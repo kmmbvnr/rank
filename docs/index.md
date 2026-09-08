@@ -60,3 +60,9 @@ Adults = Data Mask
 - [Kaggle examples](examples/kaggle.md)
 - [TPC-H examples](examples/tpch.md)
 - [Open questions](design/open-questions.md)
+
+## Marketing
+
+- [Landscape](marketing/landscape.md)
+- [Positioning](marketing/positioning.md)
+- [Languages to learn from](marketing/inspirations.md)

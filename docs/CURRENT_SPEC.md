@@ -61,6 +61,15 @@ Adults = Data Mask
 - [TPC-H examples](examples/tpch.md)
 - [Open questions](design/open-questions.md)
 
+## Marketing
+
+The marketing pages are not part of the language snapshot and are not inlined
+below.
+
+- [Landscape](marketing/landscape.md)
+- [Positioning](marketing/positioning.md)
+- [Languages to learn from](marketing/inspirations.md)
+
 ---
 
 # Lexical syntax
