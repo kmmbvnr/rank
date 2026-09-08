@@ -148,3 +148,29 @@ Answer = Best
 Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
 then use ordinary sequence addressing. The default width 13 produces
 `23514624000`; width 4 produces `5832`.
+
+## 9. Special Pythagorean triplet
+
+```rank
+use ranges
+
+option Target integer = 1000
+
+Last = Target - 1
+for a in 1 to Last
+  for b in 1 to Last
+    if b greater a
+      C = Target - a - b
+      if C greater b
+        if a * a + b * b equal C * C
+          Answer = a * b * C
+        end
+      end
+    end
+  end
+end
+```
+
+This is deliberately the direct imperative version: it exercises nested blocks
+and integer conditions without introducing a puzzle-specific operation. The
+default target produces `31875000`; target 12 produces `60`.

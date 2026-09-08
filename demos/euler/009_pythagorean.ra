@@ -2,16 +2,21 @@ rem Special Pythagorean Triplet
 rem Find a*b*c where a+b+c=1000 and
 rem a^2+b^2=c^2
 
-use numbers
+use ranges
 use io
+use cli
 
-for a in 1 to 999
-  for b in 1 to 999
+option Target integer = 1000
+
+Last = Target - 1
+
+for a in 1 to Last
+  for b in 1 to Last
     if b greater a
-      c = 1000 - a - b
-      if c greater b
-        if a * a + b * b equal c * c
-          Answer = a * b * c
+      C = Target - a - b
+      if C greater b
+        if a * a + b * b equal C * C
+          Answer = a * b * C
         end
       end
     end

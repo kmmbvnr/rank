@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "009_pythagorean"
+  run
+
+  Answer equal 31875000
+end
+
+test "workspace input"
+  use "009_pythagorean"
+  Target = 12
+  run
+
+  Answer equal 60
+end
