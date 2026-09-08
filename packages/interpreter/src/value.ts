@@ -9,6 +9,11 @@ export interface RankLabel {
     readonly name: string;
 }
 
+export interface RankIndex {
+    readonly kind: 'index';
+    readonly entries: Map<string, RankValue>;
+}
+
 export interface NativeFunction {
     readonly kind: 'function';
     readonly name: string;
@@ -52,7 +57,7 @@ export interface RankSequenceMask {
     readonly predicate: SequencePredicate;
 }
 
-export type RankValue = bigint | boolean | string | RankArray | RankLabel |
+export type RankValue = bigint | boolean | string | RankArray | RankLabel | RankIndex |
     NativeFunction | RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -61,6 +66,10 @@ export function isRankArray(value: RankValue): value is RankArray {
 
 export function isNativeFunction(value: RankValue): value is NativeFunction {
     return typeof value === 'object' && value.kind === 'function';
+}
+
+export function isRankIndex(value: RankValue): value is RankIndex {
+    return typeof value === 'object' && value.kind === 'index';
 }
 
 export function isRankSequence(value: RankValue): value is RankSequence {
@@ -86,6 +95,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'function') {
         return `<function ${value.name}>`;
+    }
+    if (value.kind === 'index') {
+        return '<index>';
     }
     if (value.kind === 'sequence-mask') {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;

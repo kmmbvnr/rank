@@ -14,7 +14,8 @@ fun two_sum A Target
         Need = Target - Ai
 
         if Need in index
-            return index Need, i
+            J = index Need
+            return array J i
         end
 
         index Ai = i
@@ -23,7 +24,9 @@ end
 ```
 
 This demonstrates:
-- `for Ai in A`;
+- `array 2 7 11 15` construction and `A i` addressing;
+- mathematical loop binding `for Ai in A`, which also binds `i`;
+- user-defined functions and `return`;
 - implicit `index`;
 - keyed membership and lookup.
 

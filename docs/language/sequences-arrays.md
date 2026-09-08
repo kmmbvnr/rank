@@ -97,8 +97,9 @@ Y = M i j
 Z = T i j k
 ```
 
-The compact mathematical forms `Ai`, `Mij`, and `Tijk` have the same addressing
-meaning where their names follow Rank's compact-index convention.
+The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
+same addressing meaning. The interpreter currently implements the spaced form;
+general compact addressing remains a later step.
 
 ## Selection with boolean masks
 

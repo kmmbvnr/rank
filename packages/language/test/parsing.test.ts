@@ -76,4 +76,32 @@ describe('Rank grammar', () => {
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
+
+    it('parses functions, array construction and keyed index assignment', async () => {
+        const document = await parse([
+            'fun two_sum A Target',
+            '  for Ai in A',
+            '    if Ai in index',
+            '      return array Ai i',
+            '    end',
+            '    index Ai = i',
+            '  end',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
+
+    it('parses shaped array blocks', async () => {
+        const document = await parse([
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
 });

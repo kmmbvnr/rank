@@ -814,8 +814,9 @@ Y = M i j
 Z = T i j k
 ```
 
-The compact mathematical forms `Ai`, `Mij`, and `Tijk` have the same addressing
-meaning where their names follow Rank's compact-index convention.
+The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
+same addressing meaning. The interpreter currently implements the spaced form;
+general compact addressing remains a later step.
 
 ## Selection with boolean masks
 
@@ -1741,7 +1742,8 @@ fun two_sum A Target
         Need = Target - Ai
 
         if Need in index
-            return index Need, i
+            J = index Need
+            return array J i
         end
 
         index Ai = i
@@ -1750,7 +1752,9 @@ end
 ```
 
 This demonstrates:
-- `for Ai in A`;
+- `array 2 7 11 15` construction and `A i` addressing;
+- mathematical loop binding `for Ai in A`, which also binds `i`;
+- user-defined functions and `return`;
 - implicit `index`;
 - keyed membership and lookup.
 

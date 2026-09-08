@@ -1,0 +1,23 @@
+use testing
+
+test "first example"
+  use "001_twosums"
+  run
+
+  A = array 2 7 11 15
+  Answer = A 9 two_sum
+
+  Answer 0 equal 0
+  Answer 1 equal 1
+end
+
+test "duplicate values"
+  use "001_twosums"
+  run
+
+  A = array 3 3
+  Answer = A 6 two_sum
+
+  Answer 0 equal 0
+  Answer 1 equal 1
+end

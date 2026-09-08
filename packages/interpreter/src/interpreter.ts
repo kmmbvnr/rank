@@ -1,4 +1,5 @@
 import {
+    isArrayExpression,
     isArgsStatement,
     isArgumentStatement,
     isApplicationExpression,
@@ -8,18 +9,23 @@ import {
     isExpressionStatement,
     isFlagStatement,
     isForStatement,
+    isFunctionStatement,
     isIfStatement,
+    isIndexAssignmentStatement,
     isLabelLiteral,
     isNameExpression,
     isNumberLiteral,
     isOptionStatement,
     isParenthesizedExpression,
     isRunStatement,
+    isReturnStatement,
     isStringLiteral,
     isTestStatement,
     isUnaryExpression,
     isUseStatement,
+    type ArrayItem,
     type Expression,
+    type FunctionStatement,
     type Program,
     type Statement,
 } from 'rank-language';
@@ -40,9 +46,11 @@ import {
     formatValue,
     isNativeFunction,
     isRankArray,
+    isRankIndex,
     isRankSequence,
     isRankSequenceMask,
     type RankArray,
+    type RankIndex,
     type RankSequence,
     type RankValue,
     type SequencePredicate,
@@ -74,6 +82,10 @@ interface LoadedProgram {
     readonly program: Program;
 }
 
+class ReturnSignal {
+    constructor(readonly value: RankValue) {}
+}
+
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
     readonly modules = new Set<string>();
@@ -85,6 +97,7 @@ export class Interpreter {
     private currentRunTarget: LoadedProgram | undefined;
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
+    private readonly localScopes: Map<string, RankValue>[] = [];
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -135,6 +148,13 @@ export class Interpreter {
             } else if (isTestStatement(statement)) {
                 this.executeTest(statement.description, statement.statements);
                 result = undefined;
+            } else if (isFunctionStatement(statement)) {
+                result = this.defineFunction(statement);
+            } else if (isReturnStatement(statement)) {
+                if (this.localScopes.length === 0) {
+                    throw new RankError('return is only valid inside a function');
+                }
+                throw new ReturnSignal(this.evaluate(statement.value));
             } else if (isIfStatement(statement)) {
                 const branch = expectBoolean(this.evaluate(statement.condition))
                     ? statement.thenStatements
@@ -143,10 +163,19 @@ export class Interpreter {
             } else if (isForStatement(statement)) {
                 const iterable = this.evaluate(statement.iterable);
                 result = undefined;
+                let index = 0n;
                 for (const value of iterationValues(iterable)) {
-                    this.variables.set(statement.variable, value);
+                    this.assign(statement.variable, value);
+                    const indexName = compactLoopIndex(statement.variable);
+                    if (indexName) this.assign(indexName, index);
                     result = this.executeStatements(statement.statements, assertBooleanExpressions);
+                    index += 1n;
                 }
+            } else if (isIndexAssignmentStatement(statement)) {
+                const index = this.localIndex();
+                const keys = statement.keys.map(key => this.evaluate(key));
+                index.entries.set(indexKey(keys), this.evaluate(statement.value));
+                result = undefined;
             } else if (isAssignmentStatement(statement)) {
                 if (statement.operator === '=') {
                     result = this.evaluate(statement.value);
@@ -185,6 +214,20 @@ export class Interpreter {
         if (isLabelLiteral(expression)) {
             return { kind: 'label', name: expression.name };
         }
+        if (isArrayExpression(expression)) {
+            const items = (expression.dimensions.length > 0
+                ? expression.rows.flatMap(row => row.items)
+                : expression.items).map(item => this.evaluateArrayItem(item));
+            if (expression.dimensions.length === 0) return array(items);
+            const shape = expression.dimensions.map(item => this.arrayDimension(item));
+            const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
+            if (BigInt(items.length) !== size) {
+                throw new RankError(
+                    `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
+                );
+            }
+            return { kind: 'array', items, shape };
+        }
         if (isNameExpression(expression)) {
             return this.resolve(expression.name);
         }
@@ -214,11 +257,71 @@ export class Interpreter {
         throw new RankError(`cannot evaluate ${expression.$type}`);
     }
 
+    private evaluateArrayItem(item: ArrayItem): RankValue {
+        const value = this.evaluate(item.value);
+        if (!item.sign) return value;
+        return this.evaluateUnary(item.sign, value);
+    }
+
+    private arrayDimension(item: ArrayItem): number {
+        const dimension = expectInteger(this.evaluateArrayItem(item));
+        if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
+        if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
+            throw new RankError(`array dimension is too large: ${dimension}`);
+        }
+        return Number(dimension);
+    }
+
     private useStandard(module: string): void {
         if (!(module in standardModules)) {
             throw new RankError(`unknown module: ${module}`);
         }
         this.modules.add(module);
+    }
+
+    private defineFunction(statement: FunctionStatement): RankValue {
+        const fn: RankValue = {
+            kind: 'function',
+            name: statement.name,
+            arities: [statement.parameters.length],
+            monadicRank: 'all',
+            call: arguments_ => this.callFunction(statement, arguments_),
+        };
+        this.assign(statement.name, fn);
+        return fn;
+    }
+
+    private callFunction(statement: FunctionStatement, arguments_: RankValue[]): RankValue {
+        if (arguments_.length !== statement.parameters.length) {
+            throw new RankError(
+                `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
+            );
+        }
+        const scope = new Map<string, RankValue>();
+        statement.parameters.forEach((parameter, index) => scope.set(parameter, arguments_[index]));
+        this.localScopes.push(scope);
+        try {
+            this.executeStatements(statement.statements);
+        } catch (error) {
+            if (error instanceof ReturnSignal) return error.value;
+            throw error;
+        } finally {
+            this.localScopes.pop();
+        }
+        throw new RankError(`function ${statement.name} reached end without return`);
+    }
+
+    private localIndex(): RankIndex {
+        this.requireModule('algo', 'index');
+        const scope = this.localScopes.at(-1) ?? this.variables;
+        const existing = scope.get('index');
+        if (existing !== undefined) {
+            if (!isRankIndex(existing)) throw new RankError('index name is already in use');
+            return existing;
+        }
+        const index: RankIndex = { kind: 'index', entries: new Map() };
+        scope.set('index', index);
+        return index;
     }
 
     private useFile(specifier: string, alias?: string): LoadedProgram {
@@ -387,10 +490,12 @@ export class Interpreter {
             if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
             return child.resolveVariable(member);
         }
-        const variable = this.variables.get(name);
+        const variable = this.findVariable(name);
         if (variable !== undefined) {
             return variable;
         }
+
+        if (name === 'index') return this.localIndex();
 
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
@@ -410,7 +515,7 @@ export class Interpreter {
             if (!child) throw new RankError(`unknown module alias: ${alias}`);
             return child.resolveVariable(member);
         }
-        const value = this.variables.get(name);
+        const value = this.findVariable(name);
         if (value === undefined) {
             throw new RankError(`unknown variable: ${name}`);
         }
@@ -420,13 +525,22 @@ export class Interpreter {
     private assign(name: string, value: RankValue): void {
         const qualified = splitQualified(name);
         if (!qualified) {
-            this.variables.set(name, value);
+            const scope = this.localScopes.at(-1) ?? this.variables;
+            scope.set(name, value);
             return;
         }
         const [alias, member] = qualified;
         const child = this.aliases.get(alias);
         if (!child) throw new RankError(`unknown module alias: ${alias}`);
         child.variables.set(member, value);
+    }
+
+    private findVariable(name: string): RankValue | undefined {
+        for (let index = this.localScopes.length - 1; index >= 0; index -= 1) {
+            const value = this.localScopes[index].get(name);
+            if (value !== undefined) return value;
+        }
+        return this.variables.get(name);
     }
 
     private apply(values: RankValue[]): RankValue {
@@ -519,6 +633,10 @@ export class Interpreter {
         }
         if (isRankSequenceMask(left) || isRankSequenceMask(right)) {
             return this.combineSequenceMasks(operator, left, right);
+        }
+        if (operator === 'in') {
+            if (!isRankIndex(right)) throw new RankError('in expects an index on the right');
+            return right.entries.has(indexKey([left]));
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {
@@ -681,6 +799,11 @@ function splitQualified(name: string): [string, string] | undefined {
     return dot < 0 ? undefined : [name.slice(0, dot), name.slice(dot + 1)];
 }
 
+function compactLoopIndex(name: string): string | undefined {
+    const match = /^[A-Z]([a-z])$/.exec(name);
+    return match?.[1];
+}
+
 function array(items: RankValue[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
 }
@@ -748,6 +871,15 @@ function applySelectors(values: RankValue[]): RankValue {
         }
         return filterSequence(source, selector.predicate);
     }
+    if (isRankIndex(values[0])) {
+        const value = values[0].entries.get(indexKey(values.slice(1)));
+        if (value === undefined) throw new RankError('missing keyed value');
+        return value;
+    }
+    if (isRankArray(values[0]) && values.length > 1
+        && values.slice(1).every(value => typeof value === 'bigint')) {
+        return atArray(values[0], values.slice(1) as bigint[]);
+    }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
         throw new RankError('value application requires a sequence and one selector');
     }
@@ -774,7 +906,41 @@ function canApplySelectors(values: RankValue[]): boolean {
         return values[0].items.length === values[1].items.length
             && values[1].items.every(item => typeof item === 'boolean');
     }
+    if (isRankIndex(values[0]) && values.length > 1) return true;
+    if (isRankArray(values[0]) && values.length > 1
+        && values.slice(1).every(value => typeof value === 'bigint')) return true;
     return false;
+}
+
+function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
+    if (indices.length > source.shape.length) {
+        throw new RankError(`array expects at most ${source.shape.length} indices`);
+    }
+    let offset = 0;
+    for (let axis = 0; axis < indices.length; axis += 1) {
+        const index = indices[axis];
+        const size = source.shape[axis];
+        if (index < 0n || index >= BigInt(size)) {
+            throw new RankError(`array index out of bounds on axis ${axis}: ${index}`);
+        }
+        const stride = source.shape.slice(axis + 1).reduce((product, value) => product * value, 1);
+        offset += Number(index) * stride;
+    }
+    if (indices.length === source.shape.length) return source.items[offset];
+    const shape = source.shape.slice(indices.length);
+    const size = shape.reduce((product, value) => product * value, 1);
+    return { kind: 'array', items: source.items.slice(offset, offset + size), shape };
+}
+
+function indexKey(values: readonly RankValue[]): string {
+    if (values.length === 0) throw new RankError('index requires at least one key');
+    return values.map(value => {
+        if (typeof value === 'bigint') return `integer:${value}`;
+        if (typeof value === 'boolean') return `boolean:${value}`;
+        if (typeof value === 'string') return `text:${value}`;
+        if (typeof value === 'object' && value.kind === 'label') return `label:${value.name}`;
+        throw new RankError('index keys must be scalar values');
+    }).join('|');
 }
 
 function assignmentOperator(operator: string): string {

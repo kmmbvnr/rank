@@ -16,8 +16,11 @@ Statement:
     FlagStatement |
     ArgsStatement |
     TestStatement |
+    FunctionStatement |
+    ReturnStatement |
     IfStatement |
     ForStatement |
+    IndexAssignmentStatement |
     AssignmentStatement |
     ExpressionStatement;
 
@@ -46,6 +49,14 @@ TestStatement:
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
+FunctionStatement:
+    'fun' name=WORD parameters+=Identifier* NL+
+    (statements+=Statement (NL+ statements+=Statement)*)?
+    NL* 'end';
+
+ReturnStatement:
+    'return' value=Expression;
+
 IfStatement:
     'if' condition=Expression NL+
     (thenStatements+=Statement (NL+ thenStatements+=Statement)*)?
@@ -59,6 +70,9 @@ ForStatement:
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
+IndexAssignmentStatement:
+    'index' keys+=PrimaryExpression+ '=' value=Expression;
+
 AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;
 
@@ -70,7 +84,21 @@ ExpressionStatement:
     value=Expression;
 
 Expression returns Expression:
-    OrExpression;
+    ArrayExpression | OrExpression;
+
+ArrayExpression:
+    'array' (
+        'shape' dimensions+=ArrayItem+ NL+
+        (rows+=ArrayRow NL+)*
+        'end' |
+        items+=ArrayItem+
+    );
+
+ArrayRow:
+    items+=ArrayItem+;
+
+ArrayItem:
+    sign=('+' | '-')? value=ArrayAtom;
 
 OrExpression returns Expression:
     XorExpression
@@ -94,7 +122,7 @@ ComparisonExpression returns Expression:
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
-    'multiple' 'by';
+    'multiple' 'by' | 'in';
 
 RangeExpression returns Expression:
     AdditionExpression
@@ -123,6 +151,9 @@ ApplicationExpression returns Expression:
     PrimaryExpression;
 
 PrimaryExpression returns Expression:
+    ArrayAtom;
+
+ArrayAtom returns Expression:
     NumberLiteral |
     StringLiteral |
     BooleanLiteral |
@@ -158,7 +189,7 @@ AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME;
+    VARIABLE | WORD | QUALIFIED_NAME | 'index';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

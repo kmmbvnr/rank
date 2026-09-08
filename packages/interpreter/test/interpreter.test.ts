@@ -125,6 +125,40 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('2');
     });
 
+    it('calls user functions with local indexes and returns arrays', () => {
+        expect(run([
+            'use algo',
+            'fun two_sum A Target',
+            '  for Ai in A',
+            '    Need = Target - Ai',
+            '    if Need in index',
+            '      J = index Need',
+            '      return array J i',
+            '    end',
+            '    index Ai = i',
+            '  end',
+            'end',
+            'A = array 2 7 11 15',
+            'Answer = A 9 two_sum',
+            'Answer 1',
+        ].join('\n'))).toBe('1');
+    });
+
+    it('constructs and addresses shaped arrays in row-major order', () => {
+        expect(run([
+            'T = array shape 2 2 2',
+            '  1 2 3 4',
+            '  5 6 7 8',
+            'end',
+            'T 1 0 1',
+        ].join('\n'))).toBe('6');
+        expect(() => run([
+            'M = array shape 2 3',
+            '  1 2 3',
+            'end',
+        ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');
