@@ -10,22 +10,22 @@ rem Return indices of two values
 rem whose sum equals Target.
 
 fun two_sum A Target
-    for Ai in A
-        Need = Target - Ai
+    for Value i in A
+        Need = Target - Value
 
         if Need in index
             J = index Need
             return array J i
         end
 
-        index Ai = i
+        index Value = i
     end
 end
 ```
 
 This demonstrates:
 - `array 2 7 11 15` construction and `A i` addressing;
-- mathematical loop binding `for Ai in A`, which also binds `i`;
+- explicit value/index binding `for Value i in A`;
 - user-defined functions and `return`;
 - implicit `index`;
 - keyed membership and lookup.
@@ -76,6 +76,42 @@ end
 
 This uses condition-controlled `for`, ordinary array addressing and one
 function-local queue. It does not require padded stacking.
+
+## 3. Longest Substring Without Repeating Characters
+
+```rank
+rem LeetCode 3: Longest Substring
+rem Find the longest window containing
+rem no repeated character.
+
+fun longest Text
+    Start = 0
+    Best = 0
+
+    for C i in Text
+        if C in index
+            Last = index C
+
+            if Last at least Start
+                Start = Last + 1
+            end
+        end
+
+        index C = i
+        Size = i - Start + 1
+
+        if Size greater Best
+            Best = Size
+        end
+    end
+
+    return Best
+end
+```
+
+The two loop bindings explicitly receive the current Unicode code point and
+its zero-based index. The local `index` stores each character's latest position.
+The solution uses only current Rank constructs and runs in linear time.
 
 ## 9. Palindrome Number
 

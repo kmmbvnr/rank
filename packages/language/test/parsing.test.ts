@@ -22,6 +22,16 @@ describe('Rank grammar', () => {
         expect(isBinaryExpression(statement.value) && isBinaryExpression(statement.value.right)).toBe(true);
     });
 
+    it('parses inclusive comparison and padded addressing', async () => {
+        const document = await parse([
+            'Last = index Ci pad -1',
+            'Ready = Last at least Start',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('parses imported words as ordinary application', async () => {
         const document = await parse('use ranges\nuse numbers\n1 to 10 sum');
         expect(document.parseResult.lexerErrors).toEqual([]);
@@ -94,11 +104,11 @@ describe('Rank grammar', () => {
     it('parses functions, array construction and keyed index assignment', async () => {
         const document = await parse([
             'fun two_sum A Target',
-            '  for Ai in A',
-            '    if Ai in index',
-            '      return array Ai i',
+            '  for Value i in A',
+            '    if Value in index',
+            '      return array Value i',
             '    end',
-            '    index Ai = i',
+            '    index Value = i',
             '  end',
             'end',
         ].join('\n'));

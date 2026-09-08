@@ -14,6 +14,25 @@ describe('Rank interpreter', () => {
         expect(run('1 not equal 2')).toBe('true');
         expect(run('not false')).toBe('true');
         expect(run('true xor false')).toBe('true');
+        expect(run('2 at least 2')).toBe('true');
+        expect(run('1 at least 2')).toBe('false');
+    });
+
+    it('pads missing addressed values without hiding other errors', () => {
+        expect(run('(array 10 20) 2 pad 99')).toBe('99');
+        expect(run('(array 10) 0 pad 1 / 0')).toBe('10');
+        expect(run('"ab" 2 pad "?"')).toBe('?');
+        expect(run('use ranges\n(1 until 3) 2 pad 99')).toBe('99');
+        expect(run([
+            'use algo',
+            'fun lookup Key',
+            '  return index Key pad -1',
+            'end',
+            '7 lookup',
+        ].join('\n'))).toBe('-1');
+        expect(() => run('(array 10 20) (-1) pad 99'))
+            .toThrowError('array index must be nonnegative on axis 0');
+        expect(() => run('1 / 0 pad 99')).toThrowError('division by zero');
     });
 
     it('keeps variables between executions', () => {
@@ -101,6 +120,18 @@ describe('Rank interpreter', () => {
             'end',
             'Last',
         ].join('\n'))).toBe('Б');
+        expect(run([
+            'Last = 0',
+            'for C i in "A😀Б"',
+            '  Last = i',
+            'end',
+            'Last',
+        ].join('\n'))).toBe('2');
+        expect(() => run([
+            'for Ci in "A"',
+            '  i',
+            'end',
+        ].join('\n'))).toThrowError('unknown name: i');
     });
 
     it('executes nested for and if blocks', () => {
@@ -152,13 +183,13 @@ describe('Rank interpreter', () => {
         expect(run([
             'use algo',
             'fun two_sum A Target',
-            '  for Ai in A',
-            '    Need = Target - Ai',
+            '  for Value i in A',
+            '    Need = Target - Value',
             '    if Need in index',
             '      J = index Need',
             '      return array J i',
             '    end',
-            '    index Ai = i',
+            '    index Value = i',
             '  end',
             'end',
             'A = array 2 7 11 15',

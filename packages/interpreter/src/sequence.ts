@@ -1,4 +1,4 @@
-import { RankError } from './errors.js';
+import { MissingValueError, RankError } from './errors.js';
 import {
     isRankSequence,
     type RankSequence,
@@ -54,7 +54,7 @@ export function boundSequence(
 export function atSequence(source: RankSequence, index: bigint): RankValue {
     if (index < 0n) throw new RankError('sequence index must be nonnegative');
     if (source.plan.size.kind === 'exact' && index >= source.plan.size.value) {
-        throw new RankError(`sequence index out of bounds: ${index}`);
+        throw new MissingValueError(`sequence index out of bounds: ${index}`);
     }
 
     const planned = source.plan.at?.(index);
@@ -65,7 +65,7 @@ export function atSequence(source: RankSequence, index: bigint): RankValue {
         if (current === index) return value;
         current += 1n;
     }
-    throw new RankError(`sequence index out of bounds: ${index}`);
+    throw new MissingValueError(`sequence index out of bounds: ${index}`);
 }
 
 export function mapSequence(

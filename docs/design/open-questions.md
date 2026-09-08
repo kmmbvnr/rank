@@ -16,11 +16,27 @@ sketch `lcm * Range` is not current syntax.
 
 ## Comparison words
 
-`equal`, `not equal`, `less` and `greater` are established.
+`equal`, `not equal`, `less`, `greater` and `at least` are established.
 
-`at least` and `at most` are currently being tested as the readable spellings
-for `>=` and `<=`, starting with TPC-H Q6, but are not yet considered fully
-settled.
+`at most` is currently being tested as the readable spelling for `<=`, starting
+with TPC-H Q6, but is not yet considered settled.
+
+## Tensor iteration
+
+`for Value Index in Sequence` now makes value and index bindings explicit. For
+a tensor, the remaining question is what sequence the tensor itself exposes:
+row-major atoms, leading-axis items, cells of a requested rank, or slices along
+a requested axis.
+
+J treats a rank-N array as a frame of cells of a chosen rank; its ordinary items
+are rank-(N-1) cells. Julia separates ordinary value/index iteration from
+`eachrow`, `eachcol` and `eachslice(..., dims=...)`. NumPy's `nditer` supports
+flat traversal, tracked multi-indices and explicit axis mappings.
+
+The current direction is to keep `for` simple: axis and cell-rank operations
+should produce iterable views, and `for` should consume those views normally.
+The default tensor iterator and the spelling of those view operations are not
+yet settled.
 
 ## Compound conditions in table source clauses
 
@@ -39,8 +55,8 @@ negative indexing conflicts with expressions such as:
 A -1 pad 0
 ```
 
-The current direction is to avoid relying on negative indexing and use explicit
-operations such as `A last`, but this is not yet fully fixed.
+Current addressing rejects negative indices, including when followed by `pad`.
+The spelling of explicit operations such as `A last` is not yet fixed.
 
 ## Join variants
 

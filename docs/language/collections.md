@@ -32,7 +32,7 @@ end
 Default:
 
 ```rank
-Last = index Ci pad -1
+Last = index C pad -1
 ```
 
 Multi-dimensional keyed addressing:

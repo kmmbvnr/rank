@@ -8,7 +8,7 @@ fun longest Text
   Best = ""
   N = len Text
 
-  for Ci in Text
+  for C i in Text
     L = i
     R = i
 

@@ -45,6 +45,14 @@ starts growing.
 applies to. Relevant to `docs/language/tensors.md`, and the language shares its
 name with the idea for a reason.
 
+### Julia — [docs.julialang.org](https://docs.julialang.org/en/v1/base/arrays/)
+**Take:** a pragmatic split between iterating values, efficient indices and
+slices along named dimensions. `eachindex` keeps storage traversal separate
+from Cartesian coordinates, while `eachrow`, `eachcol` and `eachslice` make
+axis-oriented traversal explicit. Rank should learn from this division when it
+defines tensor `for`: ordinary iteration, cell-rank iteration and a chosen axis
+are related operations, but they need not be one overloaded special case.
+
 ### Uiua — [uiua.org](https://www.uiua.org/) *(survey)*
 **Take:** a live counterexample. Uiua rebuilt notation from scratch and chose
 glyphs. Reading their rationale is the fastest way to find the weak points in

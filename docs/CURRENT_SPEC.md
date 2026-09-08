@@ -183,9 +183,10 @@ equal
 not equal
 less
 greater
+at least
 ```
 
-Exact spelling for `<=` and `>=` is still open.
+`at least` means `>=`. Exact spelling for `<=` is still open.
 
 ## Scalar types
 
@@ -503,13 +504,15 @@ continue to use ordinary spaced addressing.
 ## Iteration with value and index
 
 ```rank
-for Ai in A
-    Ai print
+for Value i in A
+    Value print
     i print
 end
 ```
 
-`Ai` binds the current value and `i` is automatically bound to its index.
+The first name binds the current value and the optional second name binds its
+zero-based index. The names are separate tokens: the whitespace is required.
+With one name, `for Value in A` binds only the value.
 
 ## Boolean addressing
 
@@ -621,6 +624,10 @@ The same concept covers:
 Data .Age = Data .Age pad Median
 ```
 
+The left side is evaluated first. The fallback expression is evaluated only
+when addressing finds no value. `pad` does not hide invalid negative indices,
+type errors or failures such as division by zero.
+
 ---
 
 # Control flow and functions
@@ -685,13 +692,16 @@ for (X in index)
 end
 ```
 
-Mathematical value/index binding:
+An optional second name explicitly receives the zero-based index:
 
 ```rank
-for Ai in A
-    Sum = Sum + Ai
+for Value i in A
+    Sum += Value
 end
 ```
+
+The names are ordinary bindings; the whitespace between them is required.
+`for Value in A` binds only the value.
 
 ## Functions
 
@@ -1059,7 +1069,7 @@ end
 Default:
 
 ```rank
-Last = index Ci pad -1
+Last = index C pad -1
 ```
 
 Multi-dimensional keyed addressing:
@@ -1799,22 +1809,22 @@ rem Return indices of two values
 rem whose sum equals Target.
 
 fun two_sum A Target
-    for Ai in A
-        Need = Target - Ai
+    for Value i in A
+        Need = Target - Value
 
         if Need in index
             J = index Need
             return array J i
         end
 
-        index Ai = i
+        index Value = i
     end
 end
 ```
 
 This demonstrates:
 - `array 2 7 11 15` construction and `A i` addressing;
-- mathematical loop binding `for Ai in A`, which also binds `i`;
+- explicit value/index binding `for Value i in A`;
 - user-defined functions and `return`;
 - implicit `index`;
 - keyed membership and lookup.
@@ -1865,6 +1875,42 @@ end
 
 This uses condition-controlled `for`, ordinary array addressing and one
 function-local queue. It does not require padded stacking.
+
+## 3. Longest Substring Without Repeating Characters
+
+```rank
+rem LeetCode 3: Longest Substring
+rem Find the longest window containing
+rem no repeated character.
+
+fun longest Text
+    Start = 0
+    Best = 0
+
+    for C i in Text
+        if C in index
+            Last = index C
+
+            if Last at least Start
+                Start = Last + 1
+            end
+        end
+
+        index C = i
+        Size = i - Start + 1
+
+        if Size greater Best
+            Best = Size
+        end
+    end
+
+    return Best
+end
+```
+
+The two loop bindings explicitly receive the current Unicode code point and
+its zero-based index. The local `index` stores each character's latest position.
+The solution uses only current Rank constructs and runs in linear time.
 
 ## 9. Palindrome Number
 
@@ -2183,11 +2229,27 @@ sketch `lcm * Range` is not current syntax.
 
 ## Comparison words
 
-`equal`, `not equal`, `less` and `greater` are established.
+`equal`, `not equal`, `less`, `greater` and `at least` are established.
 
-`at least` and `at most` are currently being tested as the readable spellings
-for `>=` and `<=`, starting with TPC-H Q6, but are not yet considered fully
-settled.
+`at most` is currently being tested as the readable spelling for `<=`, starting
+with TPC-H Q6, but is not yet considered settled.
+
+## Tensor iteration
+
+`for Value Index in Sequence` now makes value and index bindings explicit. For
+a tensor, the remaining question is what sequence the tensor itself exposes:
+row-major atoms, leading-axis items, cells of a requested rank, or slices along
+a requested axis.
+
+J treats a rank-N array as a frame of cells of a chosen rank; its ordinary items
+are rank-(N-1) cells. Julia separates ordinary value/index iteration from
+`eachrow`, `eachcol` and `eachslice(..., dims=...)`. NumPy's `nditer` supports
+flat traversal, tracked multi-indices and explicit axis mappings.
+
+The current direction is to keep `for` simple: axis and cell-rank operations
+should produce iterable views, and `for` should consume those views normally.
+The default tensor iterator and the spelling of those view operations are not
+yet settled.
 
 ## Compound conditions in table source clauses
 
@@ -2206,8 +2268,8 @@ negative indexing conflicts with expressions such as:
 A -1 pad 0
 ```
 
-The current direction is to avoid relying on negative indexing and use explicit
-operations such as `A last`, but this is not yet fully fixed.
+Current addressing rejects negative indices, including when followed by `pad`.
+The spelling of explicit operations such as `A last` is not yet fixed.
 
 ## Join variants
 

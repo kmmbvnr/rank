@@ -4,3 +4,10 @@ export class RankError extends Error {
         this.name = 'RankError';
     }
 }
+
+export class MissingValueError extends RankError {
+    constructor(message: string) {
+        super(message);
+        this.name = 'MissingValueError';
+    }
+}

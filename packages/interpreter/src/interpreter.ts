@@ -30,7 +30,7 @@ import {
     type Program,
     type Statement,
 } from 'rank-language';
-import { RankError } from './errors.js';
+import { MissingValueError, RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import { parse } from './parser.js';
 import {
@@ -171,8 +171,7 @@ export class Interpreter {
                     let index = 0n;
                     for (const value of iterationValues(iterable)) {
                         this.assign(binding.variable, value);
-                        const indexName = compactLoopIndex(binding.variable);
-                        if (indexName) this.assign(indexName, index);
+                        if (binding.index) this.assign(binding.index, index);
                         result = this.executeStatements(statement.statements, assertBooleanExpressions);
                         index += 1n;
                     }
@@ -252,6 +251,16 @@ export class Interpreter {
             return this.evaluateUnary(expression.operator, this.evaluate(expression.operand));
         }
         if (isBinaryExpression(expression)) {
+            if (expression.operator === 'pad') {
+                try {
+                    return this.evaluate(expression.left);
+                } catch (error) {
+                    if (error instanceof MissingValueError) {
+                        return this.evaluate(expression.right);
+                    }
+                    throw error;
+                }
+            }
             return this.evaluateBinary(
                 expression.operator,
                 this.evaluate(expression.left),
@@ -690,10 +699,12 @@ export class Interpreter {
             this.requireModule('numbers', 'multiple by');
             return expectInteger(left) % expectInteger(right) === 0n;
         }
-        if (operator === 'less' || operator === 'greater') {
+        if (operator === 'less' || operator === 'greater' || operator === 'atleast') {
             const a = expectInteger(left);
             const b = expectInteger(right);
-            return operator === 'less' ? a < b : a > b;
+            if (operator === 'less') return a < b;
+            if (operator === 'greater') return a > b;
+            return a >= b;
         }
 
         const a = expectInteger(left);
@@ -827,17 +838,19 @@ function splitQualified(name: string): [string, string] | undefined {
     return dot < 0 ? undefined : [name.slice(0, dot), name.slice(dot + 1)];
 }
 
-function compactLoopIndex(name: string): string | undefined {
-    const match = /^[A-Z]([a-z])$/.exec(name);
-    return match?.[1];
-}
-
 function forIteration(
     condition: Expression | undefined,
-): { readonly variable: string; readonly iterable: Expression } | undefined {
-    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in'
-        || !isNameExpression(condition.left)) return undefined;
-    return { variable: condition.left.name, iterable: condition.right };
+): { readonly variable: string; readonly index?: string; readonly iterable: Expression } | undefined {
+    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
+    const bindings = flattenApplication(condition.left);
+    if (bindings.length < 1 || bindings.length > 2 || !bindings.every(isNameExpression)) {
+        return undefined;
+    }
+    return {
+        variable: bindings[0].name,
+        index: bindings[1]?.name,
+        iterable: condition.right,
+    };
 }
 
 function array(items: RankValue[]): RankArray {
@@ -895,7 +908,9 @@ function applySelectors(values: RankValue[]): RankValue {
         const atoms = [...values[0]];
         const index = values[1];
         if (index < 0n) throw new RankError('text index must be nonnegative');
-        if (index >= BigInt(atoms.length)) throw new RankError(`text index out of bounds: ${index}`);
+        if (index >= BigInt(atoms.length)) {
+            throw new MissingValueError(`text index out of bounds: ${index}`);
+        }
         return atoms[Number(index)];
     }
     if (values.length === 2 && isRankSequence(values[0]) && typeof values[1] === 'bigint') {
@@ -910,13 +925,14 @@ function applySelectors(values: RankValue[]): RankValue {
     }
     if (isRankIndex(values[0])) {
         const value = values[0].entries.get(indexKey(values.slice(1)));
-        if (value === undefined) throw new RankError('missing keyed value');
+        if (value === undefined) throw new MissingValueError('missing keyed value');
         return value;
     }
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
         const position = values[1];
-        if (position < 0n || position >= BigInt(values[0].items.length)) {
-            throw new RankError(`queue index out of bounds: ${position}`);
+        if (position < 0n) throw new RankError('queue index must be nonnegative');
+        if (position >= BigInt(values[0].items.length)) {
+            throw new MissingValueError(`queue index out of bounds: ${position}`);
         }
         return values[0].items[Number(position)];
     }
@@ -965,8 +981,9 @@ function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
     for (let axis = 0; axis < indices.length; axis += 1) {
         const index = indices[axis];
         const size = source.shape[axis];
-        if (index < 0n || index >= BigInt(size)) {
-            throw new RankError(`array index out of bounds on axis ${axis}: ${index}`);
+        if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (index >= BigInt(size)) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
         }
         const stride = source.shape.slice(axis + 1).reduce((product, value) => product * value, 1);
         offset += Number(index) * stride;
@@ -1048,7 +1065,7 @@ function assertTestExpression(value: RankValue): void {
 }
 
 function isPredicateOperator(operator: string): boolean {
-    return ['equal', 'notequal', 'less', 'greater', 'multipleby'].includes(operator);
+    return ['equal', 'notequal', 'less', 'greater', 'atleast', 'multipleby'].includes(operator);
 }
 
 function flattenApplication(expression: Expression): Expression[] {

@@ -109,9 +109,10 @@ equal
 not equal
 less
 greater
+at least
 ```
 
-Exact spelling for `<=` and `>=` is still open.
+`at least` means `>=`. Exact spelling for `<=` is still open.
 
 ## Scalar types
 

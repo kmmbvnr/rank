@@ -74,13 +74,15 @@ continue to use ordinary spaced addressing.
 ## Iteration with value and index
 
 ```rank
-for Ai in A
-    Ai print
+for Value i in A
+    Value print
     i print
 end
 ```
 
-`Ai` binds the current value and `i` is automatically bound to its index.
+The first name binds the current value and the optional second name binds its
+zero-based index. The names are separate tokens: the whitespace is required.
+With one name, `for Value in A` binds only the value.
 
 ## Boolean addressing
 
@@ -191,3 +193,7 @@ The same concept covers:
 ```rank
 Data .Age = Data .Age pad Median
 ```
+
+The left side is evaluated first. The fallback expression is evaluated only
+when addressing finds no value. `pad` does not hide invalid negative indices,
+type errors or failures such as division by zero.

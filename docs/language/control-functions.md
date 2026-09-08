@@ -60,13 +60,16 @@ for (X in index)
 end
 ```
 
-Mathematical value/index binding:
+An optional second name explicitly receives the zero-based index:
 
 ```rank
-for Ai in A
-    Sum = Sum + Ai
+for Value i in A
+    Sum += Value
 end
 ```
+
+The names are ordinary bindings; the whitespace between them is required.
+`for Value in A` binds only the value.
 
 ## Functions
 

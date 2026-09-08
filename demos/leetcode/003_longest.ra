@@ -9,15 +9,20 @@ fun longest Text
   Best = 0
 
   for C i in Text
-    Last = index Ci pad -1
+    if C in index
+      Last = index C
 
-    if Last at least Start
-      Start = Last + 1
+      if Last at least Start
+        Start = Last + 1
+      end
     end
 
-    index Ci = i
+    index C = i
     Size = i - Start + 1
-    Best = max Best Size
+
+    if Size greater Best
+      Best = Size
+    end
   end
 
   return Best

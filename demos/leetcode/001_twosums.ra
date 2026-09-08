@@ -5,14 +5,14 @@ rem that add up to a target
 use algo
 
 fun two_sum A Target
-  for Ai in A
-    Need = Target - Ai
+  for Value i in A
+    Need = Target - Value
 
     if Need in index
       J = index Need
       return array J i
     end
 
-    index Ai = i
+    index Value = i
   end
 end

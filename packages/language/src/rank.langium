@@ -120,13 +120,18 @@ AndExpression returns Expression:
         operator='and' right=ComparisonExpression)*;
 
 ComparisonExpression returns Expression:
-    RangeExpression
+    PaddingExpression
     ({infer BinaryExpression.left=current}
-        operator=ComparisonOperator right=RangeExpression)*;
+        operator=ComparisonOperator right=PaddingExpression)*;
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
-    'multiple' 'by' | 'in';
+    'at' 'least' | 'multiple' 'by' | 'in';
+
+PaddingExpression returns Expression:
+    RangeExpression
+    ({infer BinaryExpression.left=current}
+        operator='pad' right=RangeExpression)?;
 
 RangeExpression returns Expression:
     AdditionExpression
