@@ -1,0 +1,21 @@
+{
+    "name": "rank-interpreter",
+    "description": "Runtime for the Rank programming language",
+    "version": "0.0.1",
+    "type": "module",
+    "private": true,
+    "main": "./out/index.js",
+    "types": "./out/index.d.ts",
+    "scripts": {
+        "clean": "shx rm -fr *.tsbuildinfo out",
+        "build": "echo 'No build step'",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "langium": "~4.3.0",
+        "rank-language": "0.0.1"
+    },
+    "devDependencies": {
+        "vitest": "~3.2.7"
+    }
+}

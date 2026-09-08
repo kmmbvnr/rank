@@ -1,0 +1,27 @@
+{
+    "name": "rank-workspace",
+    "description": "The Rank programming language",
+    "version": "0.0.1",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "clean": "npm run clean --workspaces",
+        "watch": "tsc -b tsconfig.build.json --watch",
+        "build": "npm run langium:generate && tsc -b tsconfig.build.json && npm run build --workspaces",
+        "build:clean": "npm run clean && npm run build",
+        "langium:generate": "npm run --workspace packages/language langium:generate",
+        "langium:watch": "npm run --workspace packages/language langium:watch",
+        "test": "npm run build && npm test --workspaces --if-present",
+        "rank": "node packages/cli/bin/cli.js"
+    },
+    "devDependencies": {
+        "@types/node": "~20.19.42",
+        "shx": "~0.4.0",
+        "typescript": "~5.9.3"
+    },
+    "workspaces": [
+        "packages/language",
+        "packages/interpreter",
+        "packages/cli"
+    ]
+}

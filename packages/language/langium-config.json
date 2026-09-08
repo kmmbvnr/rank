@@ -1,0 +1,16 @@
+{
+    "projectName": "Rank",
+    "languages": [
+        {
+            "id": "rank",
+            "grammar": "src/rank.langium",
+            "fileExtensions": [
+                ".ra"
+            ],
+            "textMate": {
+                "out": "syntaxes/rank.tmLanguage.json"
+            }
+        }
+    ],
+    "out": "src/generated"
+}
