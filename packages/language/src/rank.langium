@@ -20,6 +20,7 @@ Statement:
     ReturnStatement |
     IfStatement |
     ForStatement |
+    PushStatement |
     IndexAssignmentStatement |
     AssignmentStatement |
     ExpressionStatement;
@@ -69,6 +70,9 @@ ForStatement:
     'for' condition=Expression? NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
+
+PushStatement:
+    receiver=Expression 'push' value=Expression;
 
 IndexAssignmentStatement:
     'index' keys+=PrimaryExpression+ '=' value=Expression;

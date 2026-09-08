@@ -30,6 +30,53 @@ This demonstrates:
 - implicit `index`;
 - keyed membership and lookup.
 
+## 2. Add Two Numbers
+
+```rank
+rem LeetCode 2: Add Two Numbers
+rem Add reverse-order digit arrays.
+
+fun add_two A B
+    N = A len
+    M = B len
+    Size = N
+
+    if M greater Size
+        Size = M
+    end
+
+    Carry = 0
+    I = 0
+
+    for I less Size
+        X = 0
+        Y = 0
+
+        if I less N
+            X = A I
+        end
+
+        if I less M
+            Y = B I
+        end
+
+        Sum = X + Y + Carry
+        queue push Sum % 10
+        Carry = Sum / 10
+        I += 1
+    end
+
+    if Carry greater 0
+        queue push Carry
+    end
+
+    return queue
+end
+```
+
+This uses condition-controlled `for`, ordinary array addressing and one
+function-local queue. It does not require padded stacking.
+
 ## 9. Palindrome Number
 
 Text version:

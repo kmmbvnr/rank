@@ -3,20 +3,40 @@ rem Two numbers as digit lists in reverse
 rem order, return their sum the same way
 
 use algo
+use sequences
 
 fun add_two A B
-  Mix = A B stack pad 0
+  N = A len
+  M = B len
+  Size = N
+
+  if M greater Size
+    Size = M
+  end
+
   Carry = 0
+  I = 0
 
-  for X Y in Mix axis 1
+  for I less Size
+    X = 0
+    Y = 0
+
+    if I less N
+      X = A I
+    end
+
+    if I less M
+      Y = B I
+    end
+
     Sum = X + Y + Carry
-
-    push queue Sum % 10
+    queue push Sum % 10
     Carry = Sum / 10
+    I += 1
   end
 
   if Carry greater 0
-    push queue Carry
+    queue push Carry
   end
 
   return queue

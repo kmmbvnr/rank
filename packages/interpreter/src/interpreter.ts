@@ -17,6 +17,7 @@ import {
     isNumberLiteral,
     isOptionStatement,
     isParenthesizedExpression,
+    isPushStatement,
     isRunStatement,
     isReturnStatement,
     isStringLiteral,
@@ -47,10 +48,12 @@ import {
     isNativeFunction,
     isRankArray,
     isRankIndex,
+    isRankQueue,
     isRankSequence,
     isRankSequenceMask,
     type RankArray,
     type RankIndex,
+    type RankQueue,
     type RankSequence,
     type RankValue,
     type SequencePredicate,
@@ -179,6 +182,11 @@ export class Interpreter {
                         result = this.executeStatements(statement.statements, assertBooleanExpressions);
                     }
                 }
+            } else if (isPushStatement(statement)) {
+                const receiver = this.evaluate(statement.receiver);
+                if (!isRankQueue(receiver)) throw new RankError('push expects a queue receiver');
+                receiver.items.push(this.evaluate(statement.value));
+                result = undefined;
             } else if (isIndexAssignmentStatement(statement)) {
                 const index = this.localIndex();
                 const keys = statement.keys.map(key => this.evaluate(key));
@@ -330,6 +338,19 @@ export class Interpreter {
         const index: RankIndex = { kind: 'index', entries: new Map() };
         scope.set('index', index);
         return index;
+    }
+
+    private localQueue(): RankQueue {
+        this.requireModule('algo', 'queue');
+        const scope = this.localScopes.at(-1) ?? this.variables;
+        const existing = scope.get('queue');
+        if (existing !== undefined) {
+            if (!isRankQueue(existing)) throw new RankError('queue name is already in use');
+            return existing;
+        }
+        const queue: RankQueue = { kind: 'queue', items: [] };
+        scope.set('queue', queue);
+        return queue;
     }
 
     private useFile(specifier: string, alias?: string): LoadedProgram {
@@ -504,6 +525,7 @@ export class Interpreter {
         }
 
         if (name === 'index') return this.localIndex();
+        if (name === 'queue') return this.localQueue();
 
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
@@ -861,6 +883,7 @@ function mapTextAtoms(
 function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankSequence(value)) return sequenceValues(value, 'for');
     if (isRankArray(value)) return value.items;
+    if (isRankQueue(value)) return value.items;
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
 }
@@ -891,6 +914,13 @@ function applySelectors(values: RankValue[]): RankValue {
         const value = values[0].entries.get(indexKey(values.slice(1)));
         if (value === undefined) throw new RankError('missing keyed value');
         return value;
+    }
+    if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
+        const position = values[1];
+        if (position < 0n || position >= BigInt(values[0].items.length)) {
+            throw new RankError(`queue index out of bounds: ${position}`);
+        }
+        return values[0].items[Number(position)];
     }
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) {
@@ -923,6 +953,7 @@ function canApplySelectors(values: RankValue[]): boolean {
             && values[1].items.every(item => typeof item === 'boolean');
     }
     if (isRankIndex(values[0]) && values.length > 1) return true;
+    if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') return true;
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) return true;
     return false;

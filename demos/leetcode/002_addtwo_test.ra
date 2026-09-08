@@ -1,0 +1,43 @@
+use testing
+
+test "equal length"
+  use "002_addtwo"
+  run
+
+  A = array 2 4 3
+  B = array 5 6 4
+  Answer = A B add_two
+
+  Answer 0 equal 7
+  Answer 1 equal 0
+  Answer 2 equal 8
+end
+
+test "zero"
+  use "002_addtwo"
+  run
+
+  A = array 0
+  B = array 0
+  Answer = A B add_two
+
+  Answer 0 equal 0
+end
+
+test "carry and unequal lengths"
+  use "002_addtwo"
+  run
+
+  A = array 9 9 9 9 9 9 9
+  B = array 9 9 9 9
+  Answer = A B add_two
+
+  Answer 0 equal 8
+  Answer 1 equal 9
+  Answer 2 equal 9
+  Answer 3 equal 9
+  Answer 4 equal 0
+  Answer 5 equal 0
+  Answer 6 equal 0
+  Answer 7 equal 1
+end

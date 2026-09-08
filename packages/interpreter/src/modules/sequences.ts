@@ -1,6 +1,6 @@
 import { RankError } from '../errors.js';
 import { sequence } from '../sequence.js';
-import { isRankArray, isRankSequence, type RankValue, type SequencePlan, type SequencePredicate } from '../value.js';
+import { isRankArray, isRankQueue, isRankSequence, type RankValue, type SequencePlan, type SequencePredicate } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -18,6 +18,7 @@ export const sequencesModule: RuntimeModule = {
 function lengthOf(value: RankValue): bigint {
     if (typeof value === 'string') return BigInt([...value].length);
     if (isRankArray(value)) return BigInt(value.shape[0] ?? 0);
+    if (isRankQueue(value)) return BigInt(value.items.length);
     if (!isRankSequence(value)) throw new RankError('len expects text or a sequence');
     if (value.plan.size.kind === 'infinite') {
         throw new RankError('len requires a finite sequence');

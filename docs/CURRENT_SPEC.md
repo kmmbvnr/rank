@@ -1063,20 +1063,51 @@ The key and value types are inferred from uses within the function.
 ### Queue
 
 ```rank
-push queue X
+queue push X
 return queue
+```
+
+The first use of `queue` lazily creates one queue in the current function-call
+workspace. Separate and recursive calls receive separate queues. The queue is
+ordered, zero-based, iterable and addressable after it is returned.
+
+`push` takes one argument, so the rest of its line is one complete expression:
+
+```rank
+queue push A i + Carry
+```
+
+Structure methods place the receiver first and the method second. A method with
+no arguments ends after its name; a method with one argument consumes the rest
+of the line. Methods with two or more arguments use one expression per line:
+
+```rank
+Object operation with
+  FirstExpression
+  SecondExpression
+end
+```
+
+The `with` block is reserved by the language design. Runtime support will be
+added with the first multi-argument structure method.
+
+Addressed mutation uses assignment rather than a `put` method:
+
+```rank
+index Row Column = Value
+rem A Row Column = Value when mutable array cells are implemented
 ```
 
 ### Set
 
 ```rank
-add set X
+set add X
 ```
 
 ### Counter
 
 ```rank
-add counter X
+counter add X
 ```
 
 If multiple structures of the same type are needed, they should be given
@@ -1774,6 +1805,53 @@ This demonstrates:
 - user-defined functions and `return`;
 - implicit `index`;
 - keyed membership and lookup.
+
+## 2. Add Two Numbers
+
+```rank
+rem LeetCode 2: Add Two Numbers
+rem Add reverse-order digit arrays.
+
+fun add_two A B
+    N = A len
+    M = B len
+    Size = N
+
+    if M greater Size
+        Size = M
+    end
+
+    Carry = 0
+    I = 0
+
+    for I less Size
+        X = 0
+        Y = 0
+
+        if I less N
+            X = A I
+        end
+
+        if I less M
+            Y = B I
+        end
+
+        Sum = X + Y + Carry
+        queue push Sum % 10
+        Carry = Sum / 10
+        I += 1
+    end
+
+    if Carry greater 0
+        queue push Carry
+    end
+
+    return queue
+end
+```
+
+This uses condition-controlled `for`, ordinary array addressing and one
+function-local queue. It does not require padded stacking.
 
 ## 9. Palindrome Number
 

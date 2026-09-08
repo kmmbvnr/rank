@@ -182,6 +182,19 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
     });
 
+    it('pushes expression values into a function-local queue', () => {
+        expect(run([
+            'use algo',
+            'fun collect Value',
+            '  queue push Value + 1',
+            '  return queue',
+            'end',
+            'A = 1 collect',
+            'B = 2 collect',
+            'A 0 * 10 + B 0',
+        ].join('\n'))).toBe('23');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');
