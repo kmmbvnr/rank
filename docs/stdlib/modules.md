@@ -1,0 +1,100 @@
+# Standard library
+
+Rank starts with a small core. Vocabulary is introduced through `use` modules.
+
+Current module directions:
+
+```rank
+use numbers
+use ranges
+use collections
+use graph
+use tensor
+use tables
+use stats
+use text
+use dates
+use io
+use ml
+use algo
+use sequences
+```
+
+These names are organizational and may still be consolidated.
+
+## Numbers
+
+Candidate reusable operations:
+
+```rank
+odd
+even
+prime
+gcd
+lcm
+factor
+```
+
+## Sequences
+
+Examples:
+
+```rank
+primes
+fibonacci
+```
+
+## Tables
+
+Includes concepts such as:
+
+```rank
+csv
+group
+join
+labels
+```
+
+## Stats
+
+Examples:
+
+```rank
+mean
+median
+```
+
+## Text
+
+Examples:
+
+```rank
+split
+reverse
+text
+int
+```
+
+## Dates
+
+Examples:
+
+```rank
+hour
+weekday
+month
+year
+```
+
+## Algorithm profile
+
+`use algo` may act as a contest-oriented umbrella module rather than introducing
+new semantics.
+
+## Rule for adding library vocabulary
+
+A word belongs in the standard library when it represents a broad, reusable
+concept with established meaning.
+
+Do not add a word merely because it makes one LeetCode, Euler or Kaggle task
+shorter.

@@ -1,0 +1,47 @@
+rem Kaggle: Dogs vs Cats
+rem Classify each image as
+rem a dog or a cat.
+rem
+rem Target: dog probability
+rem Metric: Log Loss
+
+use tables
+use images
+use tensor
+use ml
+
+Train = images "train"
+Test = images "test1"
+
+rem Get target from filename
+
+Parts = Train .name "." split
+Y = Parts 0 equal "dog"
+
+rem Prepare image tensors
+
+X = Train .image
+Xtest = Test .image
+
+X = X 128 128 resize
+Xtest = Xtest 128 128 resize
+
+X = X / 255
+Xtest = Xtest / 255
+
+rem Train image classifier
+
+Model = X Y cnn
+
+Prob = Model Xtest probability
+
+rem Build submission
+
+Test .label = Prob
+
+Parts = Test .name "." split
+Test .id = Parts 0 int each
+
+Out = Test .id .label
+
+csv "submission.csv" = Out

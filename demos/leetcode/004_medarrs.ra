@@ -1,0 +1,50 @@
+rem Median of Two Sorted Arrays
+rem Median of two sorted arrays in
+rem O(log(m+n)) time
+
+use algo
+
+fun median A B
+  M = len A
+  N = len B
+
+  Half = M + N + 1
+  Half = Half / 2
+
+  Low = max 0 (Half - N)
+  High = min M Half
+
+  while Low at most High
+    i = Low + High
+    i = i / 2
+    j = Half - i
+
+    p = i - 1
+    q = j - 1
+
+    AL = A p pad -infinity
+    AR = A i pad infinity
+
+    BL = B q pad -infinity
+    BR = B j pad infinity
+
+    Left = max AL BL
+    Right = min AR BR
+
+    if Left at most Right
+      Total = M + N
+
+      if Total % 2 equal 1
+        return Left
+      end
+
+      return (Left + Right) / 2
+    end
+
+    if AL greater BR
+      High = i - 1
+    else
+      Low = i + 1
+    end
+  end
+end

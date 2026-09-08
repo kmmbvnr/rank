@@ -1,0 +1,15 @@
+rem Multiples of 3 or 5
+rem Sum multiples of 3 or 5 below 1000
+
+use ranges
+use numbers
+use io
+
+Range = 1 until 1000
+Range = filter Range any
+  multiple by 3
+  multiple by 5
+end
+
+Sum = sum Range
+print Sum

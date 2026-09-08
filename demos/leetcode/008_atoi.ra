@@ -1,0 +1,77 @@
+rem String to Integer (atoi)
+rem Skip spaces, take an optional sign and
+rem digits, clamp to 32-bit range
+
+use algo
+
+fun atoi Text
+  N = len Text
+  i = 0
+
+  while i less N
+    if Text i not equal " "
+      break
+    end
+    i = i + 1
+  end
+
+  Negative = false
+
+  if i less N
+    if Text i equal "-"
+      Negative = true
+      i = i + 1
+    else if Text i equal "+"
+      i = i + 1
+    end
+  end
+
+  Limit = -2147483647
+
+  if Negative
+    Limit = -2147483648
+  end
+
+  Mult = Limit / 10
+  Result = 0
+
+  while i less N
+    C = Text i
+
+    if C not in "0123456789"
+      break
+    end
+
+    Digit = int C
+
+    if Result less Mult
+      return clamp Negative
+    end
+
+    Result = Result * 10
+
+    Edge = Limit + Digit
+
+    if Result less Edge
+      return clamp Negative
+    end
+
+    Result = Result - Digit
+    i = i + 1
+  end
+
+  if Negative
+    return Result
+  end
+
+  return -Result
+end
+
+
+fun clamp Negative
+  if Negative
+    return -2147483648
+  end
+
+  return 2147483647
+end

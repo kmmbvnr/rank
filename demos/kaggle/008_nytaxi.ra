@@ -1,0 +1,81 @@
+rem Kaggle: NYC Taxi Trip Duration
+rem Predict taxi trip duration
+rem in seconds.
+rem
+rem Target: trip_duration
+rem Metric: RMSLE
+
+use tables
+use dates
+use math
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+rem Extract time features
+
+Date = Train .pickup_datetime
+
+Train .hour = Date hour
+Train .weekday = Date weekday
+Train .month = Date month
+
+Date = Test .pickup_datetime
+
+Test .hour = Date hour
+Test .weekday = Date weekday
+Test .month = Date month
+
+Geo =
+    Train .pickup_latitude
+    .pickup_longitude
+    .dropoff_latitude
+    .dropoff_longitude
+
+Train .distance =
+    Geo distance rank 1
+
+Geo =
+    Test .pickup_latitude
+    .pickup_longitude
+    .dropoff_latitude
+    .dropoff_longitude
+
+Test .distance =
+    Geo distance rank 1
+
+Features =
+    .distance .hour .weekday .month
+    .passenger_count
+
+X = Train Features
+Xtest = Test Features
+
+Y = Train .trip_duration + 1
+Y = Y log each
+
+Model = X Y linear
+Pred = Model Xtest predict
+
+Pred = Pred exp each
+Pred = Pred - 1
+
+Test .trip_duration = Pred
+
+Out = Test .id .trip_duration
+
+csv "submission.csv" = Out
+
+
+fun distance Point
+    Lat1 = Point 0
+    Lon1 = Point 1
+    Lat2 = Point 2
+    Lon2 = Point 3
+
+    X = Lon2 - Lon1
+    Y = Lat2 - Lat1
+
+    return sqrt X * X + Y * Y
+end

@@ -1,0 +1,10 @@
+rem Even Fibonacci Numbers
+rem Sum even Fibonacci terms <= 4e6
+
+use sequence
+
+Fib = Fibonacci from 1 to 4000000
+filter Fib even
+
+Sum = sum Fib
+print sum

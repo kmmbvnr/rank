@@ -1,0 +1,14 @@
+rem Sum Square Difference
+rem Diff of square-of-sum and sum-of-
+rem squares, 1..100
+
+Range = 1 to 100
+
+Sum = sum Range
+SquareOfSum = Sum * Sum
+
+Squares = Range * Range
+SumOfSquares = sum Squares
+
+Answer = SquareOfSum - SumOfSquares
+print Answer

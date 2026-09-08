@@ -1,0 +1,72 @@
+rem Spaceship Titanic
+rem Predict whether a passenger
+rem was transported to another
+rem dimension.
+
+use tables
+use stats
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+rem Fill numeric missing values
+
+Money =
+    .RoomService .FoodCourt
+    .ShoppingMall .Spa .VRDeck
+
+for Feature in Money
+    Median = Train Feature median
+
+    Train Feature =
+        Train Feature pad Median
+
+    Test Feature =
+        Test Feature pad Median
+end
+
+Age = Train .Age median
+Train .Age = Train .Age pad Age
+Test .Age = Test .Age pad Age
+
+rem Build total spending feature
+
+Spend = Train .RoomService
+  + Train .FoodCourt 
+  + Train .ShoppingMall
+  + Train .Spa
+  + Train .VRDeck
+Train .TotalSpend = Spend
+
+Spend = Test .RoomService
+  + Test .FoodCourt
+  + Test .ShoppingMall
+  + Test .Spa
+  + Test .VRDeck
+Test .TotalSpend = Spend
+
+rem Choose features
+
+Features =
+    .HomePlanet .CryoSleep
+    .Destination .Age .VIP
+    .TotalSpend
+
+X = Train Features
+Xtest = Test Features
+Y = Train .Transported
+
+rem Train classifier
+
+Model = X Y logistic
+Pred = Model Xtest predict
+
+rem Build Kaggle submission
+
+Test .Transported = Pred
+
+Out =
+    Test .PassengerId .Transported
+
+csv "submission.csv" = Out

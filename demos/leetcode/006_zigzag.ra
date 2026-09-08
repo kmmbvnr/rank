@@ -1,0 +1,31 @@
+rem Zigzag Conversion
+rem Write a string in zigzag on N rows,
+rem then read it back row by row
+
+use algo
+
+fun zigzag Text N
+  if N equal 1
+    return Text
+  end
+
+  Rows = array N
+  Row = 0
+  Step = 1
+
+  for Ci in Text
+    Rows Row = Rows Row + Ci
+
+    if Row equal 0
+      Step = 1
+    end
+
+    if Row equal N - 1
+      Step = -1
+    end
+
+    Row = Row + Step
+  end
+
+  return Rows + reduce
+end

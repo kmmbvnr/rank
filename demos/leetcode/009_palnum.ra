@@ -1,0 +1,32 @@
+rem Palindrome Number
+rem True if an integer reads the same
+rem both ways, without making a string
+
+use algo
+
+fun palindrome X
+  if X less 0
+    return false
+  end
+
+  if X % 10 equal 0
+    if X not equal 0
+      return false
+    end
+  end
+
+  Back = 0
+
+  while X greater Back
+    Digit = X % 10
+    X = X / 10
+
+    Back = Back * 10 + Digit
+  end
+
+  if X equal Back
+    return true
+  end
+
+  return X equal Back / 10
+end

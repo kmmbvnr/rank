@@ -1,0 +1,63 @@
+rem Regular Expression Matching
+rem Full match of a string against a
+rem pattern with '.' and '*'
+
+use algo
+
+fun match S P
+  N = len S
+  M = len P
+
+  Rows = N + 1
+  Cols = M + 1
+  DP = array Rows Cols
+
+  DP 0 0 = true
+
+  for j in 2 to M
+    k = j - 1
+
+    if P k equal "*"
+      q = j - 2
+      DP 0 j = DP 0 q
+    end
+  end
+
+  for i in 1 to N
+    for j in 1 to M
+      p = j - 1
+      s = i - 1
+
+      if P p equal "*"
+        q = j - 2
+        C = Pq
+
+        DP i j = DP i q
+
+        Same = C equal "."
+        if C equal S s
+          Same = true
+        end
+
+        if Same
+          if DP s j
+            DP i j = true
+          end
+        end
+      else
+        Same = P p equal "."
+
+        if P p equal S s
+          Same = true
+        end
+
+        if Same
+          q = j - 1
+          DP i j = DP s q
+        end
+      end
+    end
+  end
+
+  return DP N M
+end

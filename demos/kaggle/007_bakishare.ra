@@ -1,0 +1,59 @@
+rem Kaggle: Bike Sharing Demand
+rem Predict hourly bike rentals.
+rem
+rem Target: count
+rem Metric: RMSLE
+
+use tables
+use dates
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+rem Extract time features
+
+Date = Train .datetime
+
+Train .hour = Date hour
+Train .weekday = Date weekday
+Train .month = Date month
+Train .year = Date year
+
+Date = Test .datetime
+
+Test .hour = Date hour
+Test .weekday = Date weekday
+Test .month = Date month
+Test .year = Date year
+
+rem Choose features
+
+Features =
+  .hour .weekday .month .year
+  .season .holiday .workingday
+  .weather .temp .atemp
+  .humidity .windspeed
+
+X = Train Features
+Xtest = Test Features
+
+rem Train on logarithmic target
+
+Y = Train .count + 1
+Y = Y log each
+
+Model = X Y linear
+Pred = Model Xtest predict
+
+Pred = Pred exp each
+Pred = Pred - 1
+Negative = Pred less 0
+Pred Negative = 0
+
+rem Build submission
+
+Test .count = Pred
+Out = Test .datetime .count
+
+csv "submission.csv" = Out

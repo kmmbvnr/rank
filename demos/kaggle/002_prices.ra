@@ -1,0 +1,32 @@
+rem House Prices
+rem Predict the final sale price
+rem of each house.
+
+use tables
+use stats
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+Features =
+  .OverallQual .GrLivArea
+  .Neighborhood .HouseStyle
+  .KitchenQual .ExterQual
+
+X = Train Features
+Xtest = Test Features
+
+Y = Train .SalePrice + 1
+Y = Y log each
+
+Model = X Y linear
+Pred = Model Xtest predict
+
+Pred = Pred exp each
+Pred = Pred - 1
+
+Test .SalePrice = Pred
+Out = Test .Id .SalePrice
+
+csv "submission.csv" = Out

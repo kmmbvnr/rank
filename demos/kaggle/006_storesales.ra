@@ -1,0 +1,29 @@
+rem Kaggle: Store Sales
+rem Forecast sales for each store
+rem and product family.
+rem
+rem Target: sales
+rem Metric: RMSLE
+
+use tables
+use dates
+use stats
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+rem Extract weekday
+
+Train .weekday =
+    Train .date weekday
+
+Test .weekday =
+    Test .date weekday
+
+rem Historical mean by group
+
+Keys =
+    .store_nbr .family .weekday
+
+Groups = Train Keys group
+Means = Groups .sales mean

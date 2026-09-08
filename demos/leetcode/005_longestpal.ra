@@ -1,0 +1,54 @@
+rem Longest Palindromic Substring
+rem Longest substring of a string that
+rem reads the same both ways
+
+use algo
+
+fun longest Text
+  Best = ""
+  N = len Text
+
+  for Ci in Text
+    L = i
+    R = i
+
+    while L at least 0
+      if R at least N
+        break
+      end
+
+      if Text L not equal Text R
+        break
+      end
+
+      if R - L + 1 greater len Best
+        Best = Text L to R
+      end
+
+      L = L - 1
+      R = R + 1
+    end
+
+    L = i
+    R = i + 1
+
+    while L at least 0
+      if R at least N
+        break
+      end
+
+      if Text L not equal Text R
+        break
+      end
+
+      if R - L + 1 greater len Best
+        Best = Text L to R
+      end
+
+      L = L - 1
+      R = R + 1
+    end
+  end
+
+  return Best
+end

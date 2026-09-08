@@ -1,0 +1,33 @@
+гыу csv
+use tables
+use stats
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+Age = Train .Age median
+Train .Age = Train .Age pad Age
+Test .Age = Test .Age pad Age
+
+Fare = Train .Fare median
+Train .Fare = Train .Fare pad Fare
+Test .Fare = Test .Fare pad Fare
+
+Train .Female =
+  Train .Sex equal "female"
+Test .Female =
+  Test .Sex equal "female"
+
+X = Train .Female .Pclass .Age .Fare
+Y = Train .Survived
+Model = X Y logistic
+
+Xtest = Test .Female .Pclass .Age .Fare
+Pred = Model Xtest predict
+Test .Survived = Pred
+
+Submission =
+    Test .PassengerId .Survived
+
+csv "submission.csv" = Submission

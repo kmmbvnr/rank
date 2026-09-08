@@ -1,0 +1,140 @@
+rem Kaggle: Connect X
+rem Choose a column for the next
+rem move in a Connect Four game.
+rem
+rem Board: Rows by Cols
+rem 0 = empty
+rem 1 or 2 = player
+
+fun move Board Player Rows Cols Need
+    Other = 3 - Player
+
+    rem Win immediately
+
+    for c in 0 until Cols
+        if legal Board c
+            Next = drop Board c Player
+
+            if won Next Player Need
+                return c
+            end
+        end
+    end
+
+    rem Block opponent
+
+    for c in 0 until Cols
+        if legal Board c
+            Next = drop Board c Other
+
+            if won Next Other Need
+                return c
+            end
+        end
+    end
+
+    rem Prefer center columns
+
+    Center = Cols / 2
+    Best = -1
+    BestDist = Cols + 1
+
+    for c in 0 until Cols
+        if legal Board c
+            Dist = abs c - Center
+
+            if Dist less BestDist
+                Best = c
+                BestDist = Dist
+            end
+        end
+    end
+
+    return Best
+end
+
+fun legal Board c
+  return Board 0 c equal 0
+end
+
+fun drop Board c Player
+  Next = Board
+  Rows = shape Board 0
+
+  r = Rows - 1
+
+  while r at least 0
+    if Next r c equal 0
+      Next r c = Player
+      return Next
+    end
+
+    r = r - 1
+  end
+
+  return Next
+end
+
+
+fun won Board Player Need
+    Rows = shape Board 0
+    Cols = shape Board 1
+
+    for r in 0 until Rows
+        for c in 0 until Cols
+            if Board r c equal Player
+                if line Board r c 0 1 Need
+                    return true
+                end
+
+                if line Board r c 1 0 Need
+                    return true
+                end
+
+                if line Board r c 1 1 Need
+                    return true
+                end
+
+                if line Board r c 1 -1 Need
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+fun line Board r c Dr Dc Need
+    Rows = shape Board 0
+    Cols = shape Board 1
+    Player = Board r c
+
+    for k in 1 until Need
+        i = r + Dr * k
+        j = c + Dc * k
+
+        if i less 0
+            return false
+        end
+
+        if i at least Rows
+            return false
+        end
+
+        if j less 0
+            return false
+        end
+
+        if j at least Cols
+            return false
+        end
+
+        if Board i j not equal Player
+            return false
+        end
+    end
+
+    return true
+end
+

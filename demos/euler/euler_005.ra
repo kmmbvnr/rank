@@ -1,0 +1,32 @@
+rem Smallest Multiple
+rem Smallest number divisible by 1..20
+
+use numbers
+
+Range = 1 to 20
+Answer = lcm Range
+
+print Answer
+
+
+fun gcd A B
+  for B not equal 0
+    R = A % B
+    A = B
+    B = R
+  end
+
+  return A
+end
+
+
+fun lcm *Numbers
+  Result = 1
+
+  for n in Numbers
+    G = gcd Result n
+    Result = Result / G * n
+  end
+
+  return Result
+end

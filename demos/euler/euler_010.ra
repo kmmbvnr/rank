@@ -1,0 +1,11 @@
+rem Summation of Primes
+rem Sum of all primes below two million
+
+use sequences
+use numbers
+use io
+
+Primes = primes until 2000000
+Answer = sum Primes
+
+print Answer

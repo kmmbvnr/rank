@@ -1,0 +1,17 @@
+rem Two Sum
+rem Indices of two numbers in an array
+rem that add up to a target
+
+use algo
+
+fun two_sum A Target
+  for Ai in A
+    Need = Target - Ai
+
+    if Need in index
+      return index Need, i
+    end
+
+    index Ai = i
+  end
+end

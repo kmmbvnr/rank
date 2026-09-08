@@ -1,0 +1,48 @@
+rem Deep-ML #15
+rem Linear Regression Using Gradient Descent
+rem Source: Deep-ML /problems/15
+rem
+rem Train a linear regression model using
+rem batch gradient descent.
+rem
+rem X is an M x N feature matrix.
+rem The first column of X contains ones,
+rem so Theta 0 is the intercept.
+rem
+rem Y is a vector of M target values.
+rem Alpha is the learning rate.
+rem Iterations is the number of steps.
+rem
+rem Return Theta rounded to 4 decimals.
+
+use tensor
+use numbers
+
+fun linear_regression X Y Alpha Iterations
+    Dims = shape X
+    M = Dims 0
+
+    rem One coefficient per feature.
+    rem * 0.0 also ensures float values.
+    Theta = X 0 * 0.0
+
+    rem X does not change during training.
+    XT = transpose X
+
+    for i in 1 to Iterations
+        rem h = X theta
+        Pred = matmul X Theta
+
+        rem Prediction error for each row.
+        Error = Pred - Y
+
+        rem Gradient = X' Error
+        Gradient = matmul XT Error
+
+        rem theta := theta - alpha/m * gradient
+        Rate = Alpha / M
+        Theta = Theta - Rate * Gradient
+    end
+
+    return round Theta 4
+end

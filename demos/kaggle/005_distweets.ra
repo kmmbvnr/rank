@@ -1,0 +1,39 @@
+rem Kaggle: Disaster Tweets
+rem Classify whether a tweet
+rem describes a real disaster.
+rem
+rem Target: target
+rem Metric: F1
+
+use tables
+use text
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+rem Build vocabulary on Train only
+
+Texts = Train .text
+Vocab = Texts vocab
+
+rem Convert text to TF-IDF features
+
+X = Train .text Vocab tfidf
+Xtest = Test .text Vocab tfidf
+
+Y = Train .target
+
+rem Train classifier
+rem logistic will be implemented
+rem in Rank later
+
+Model = X Y logistic
+Pred = Model Xtest predict
+
+rem Build Kaggle submission
+
+Test .target = Pred
+Out = Test .id .target
+
+csv "submission.csv" = Out

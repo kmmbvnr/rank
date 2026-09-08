@@ -1,0 +1,8 @@
+rem 10001st Prime
+rem Find the 10001st prime
+
+use sequnces
+
+Answer = primes take 1000
+
+print Answer

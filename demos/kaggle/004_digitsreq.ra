@@ -1,0 +1,41 @@
+rem Kaggle: Digit Recognizer
+rem Recognize handwritten digits
+rem from 28 by 28 pixel images.
+rem
+rem Target: label
+rem Metric: Accuracy
+
+use tables
+use ml
+
+Train = csv "train.csv"
+Test = csv "test.csv"
+
+rem Get all pixel columns
+
+Features = Train labels
+Mask = Features not equal .label
+Features = Features Mask
+
+X = Train Features
+Xtest = Test Features
+Y = Train .label
+
+rem Normalize pixel values
+
+X = X / 255
+Xtest = Xtest / 255
+
+rem Train multiclass classifier
+
+Model = X Y logistic
+Pred = Model Xtest predict
+
+rem Build Kaggle submission
+
+Test .ImageId = 1 to len Test
+Test .Label = Pred
+
+Out = Test .ImageId .Label
+
+csv "submission.csv" = Out

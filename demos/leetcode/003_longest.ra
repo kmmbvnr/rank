@@ -1,0 +1,24 @@
+rem Longest Substring Without Repeating
+rem Length of the longest substring with
+rem no repeated character
+
+use algo
+
+fun longest Text
+  Start = 0
+  Best = 0
+
+  for C i in Text
+    Last = index Ci pad -1
+
+    if Last at least Start
+      Start = Last + 1
+    end
+
+    index Ci = i
+    Size = i - Start + 1
+    Best = max Best Size
+  end
+
+  return Best
+end

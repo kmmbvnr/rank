@@ -1,0 +1,23 @@
+rem Add Two Numbers
+rem Two numbers as digit lists in reverse
+rem order, return their sum the same way
+
+use algo
+
+fun add_two A B
+  Mix = A B stack pad 0
+  Carry = 0
+
+  for X Y in Mix axis 1
+    Sum = X + Y + Carry
+
+    push queue Sum % 10
+    Carry = Sum / 10
+  end
+
+  if Carry greater 0
+    push queue Carry
+  end
+
+  return queue
+end

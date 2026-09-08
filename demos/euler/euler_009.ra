@@ -1,0 +1,21 @@
+rem Special Pythagorean Triplet
+rem Find a*b*c where a+b+c=1000 and
+rem a^2+b^2=c^2
+
+use numbers
+use io
+
+for a in 1 to 999
+  for b in 1 to 999
+    if b greater a
+      c = 1000 - a - b
+      if c greater b
+        if a * a + b * b equal c * c
+          Answer = a * b * c
+        end
+      end
+    end
+  end
+end
+
+print Answer

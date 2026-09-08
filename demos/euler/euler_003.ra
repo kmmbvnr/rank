@@ -1,0 +1,11 @@
+rem Largest Prime Factor
+rem Largest prime factor of 600851475143
+
+use numbers
+use io
+
+N = 600851475143
+Factors = factor N
+Answer = max Factors
+print Answer
+
