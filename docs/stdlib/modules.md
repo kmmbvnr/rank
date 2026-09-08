@@ -61,6 +61,22 @@ rem 2 2 3
 Factoring zero or a negative integer is an error. Factoring one produces an
 empty sequence.
 
+`gcd` and `lcm` use data-first application:
+
+```rank
+G = 54 24 gcd
+L = 8 12 lcm
+```
+
+`lcm` also acts as a named reduction over a finite sequence:
+
+```rank
+Answer = (1 to 20) lcm
+```
+
+Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
+containing zero is zero, and the `lcm` of an empty sequence is one.
+
 ## Sequences
 
 Examples:

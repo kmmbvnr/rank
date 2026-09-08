@@ -7,7 +7,7 @@ Number = "7316717653133062491922511967442657474235534919493496983520312774506326
 Digits = Number int rank 0
 
 Best = 0
-Last = len Numbers - 13
+Last = Numbers len - 13
 Width = 0 until 13
 
 for i in 0 to Last

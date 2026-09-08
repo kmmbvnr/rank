@@ -7,13 +7,13 @@ Tables reuse Rank's normal addressing model.
 Current I/O form:
 
 ```rank
-Data = csv "train.csv"
+Data = "train.csv" csv
 ```
 
 Writing mirrors assignment:
 
 ```rank
-csv "submission.csv" = Out
+Out "submission.csv" csv
 ```
 
 ## Column labels
@@ -104,7 +104,7 @@ Data = Data Mask
 A table source may be refined as part of its definition:
 
 ```rank
-Data = csv "data.csv"
+Data = "data.csv" csv
 filter
 .Age greater 18
 .Score greater 0

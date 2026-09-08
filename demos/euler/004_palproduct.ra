@@ -11,11 +11,11 @@ Range = from 100 to 999
 Proudcts = Range Range * outer
 filter Products palindrome
 
-Answer = max Products
-print Answer
+Answer = Products max
+Answer print
 
 fun palindrome N
-  Text = text N
-  Back = reverse Text
+  Text = N text
+  Back = Text reverse
   return Text equal Back
 end

@@ -6,6 +6,6 @@ use numbers
 use io
 
 Primes = primes until 2000000
-Answer = sum Primes
+Answer = Primes sum
 
-print Answer
+Answer print

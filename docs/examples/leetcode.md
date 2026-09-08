@@ -37,8 +37,8 @@ rem Check whether X reads the same
 rem forward and backward.
 
 fun palindrome X
-    Text = text X
-    Back = reverse Text
+    Text = X text
+    Back = Text reverse
 
     return Text equal Back
 end

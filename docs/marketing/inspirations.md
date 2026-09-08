@@ -97,9 +97,17 @@ predicts the semantics and the user has to guess the accepted phrasing. Rank's
 defence is a small closed vocabulary (principle 4), and that defence should be
 tested against these two.
 
-### Forth
-**Take:** narrow source and a tiny core, on real hardware constraints — the
-closest prior art to principle 1 outside the array family.
+### Forth — [forth-standard.org](https://forth-standard.org/)
+**Take:** narrow source, a tiny core and the data-before-operation order, proven
+under real hardware constraints. Rank should keep the readable left-to-right
+flow without exposing stack manipulation as the main programming model.
+
+### Factor — [docs.factorcode.org](https://docs.factorcode.org/content/article-cookbook-syntax.html)
+**Take:** the closest syntactic relative for Rank's data-first calls. Factor's
+`10 sq 5 -` demonstrates postfix evaluation, and its documented stack effects
+show one way to make arity explicit. Rank takes the data-first order but prefers
+named intermediate values over implicit stack chains; it keeps addressing and
+shaped values instead of becoming a concatenative stack language.
 
 ## Tooling and delivery
 

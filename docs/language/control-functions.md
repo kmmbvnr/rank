@@ -34,7 +34,7 @@ Ranges and sequences are ordinary iterable values:
 
 ```rank
 for i in 1 to 10
-    print i
+    i print
 end
 ```
 
@@ -60,6 +60,14 @@ fun gcd A B
 end
 ```
 
+Calls use Rank's data-first order. Arguments come first and the function name
+is the final word:
+
+```rank
+G = A B gcd
+Result print
+```
+
 ## Varargs
 
 Current vararg syntax uses `*`:
@@ -70,11 +78,8 @@ fun lcm * Numbers
 end
 ```
 
-Argument expansion uses the same marker:
-
-```rank
-Answer = lcm * Range
-```
+The call-site spelling for expanding a sequence into arguments is still open;
+the former prefix sketch `lcm * Range` is not part of the current language.
 
 ## Integer arithmetic
 

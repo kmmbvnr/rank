@@ -8,6 +8,12 @@ These are active design questions, not alternate historical syntaxes.
 yet settled whether it is an exact alias for `rank 0` for text, tables and
 nested values, or whether those value models need a distinct rule.
 
+## Argument expansion
+
+Vararg declarations currently use `*`, but the data-first call-site spelling
+for expanding a sequence into arguments is not yet fixed. The former prefix
+sketch `lcm * Range` is not current syntax.
+
 ## Comparison words
 
 `equal`, `not equal`, `less` and `greater` are established.

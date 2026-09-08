@@ -9,9 +9,16 @@ A i
 A i j
 Data .Age
 index Key
+A sum
+A B gcd
 ```
 
 Conceptually, the value comes first and selectors follow.
+
+When the final word resolves to a function, preceding values are its data. Thus
+`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`. Resolution
+may use the arity and value roles registered by the imported vocabulary, but it
+does not change the parsed source structure.
 
 The fundamental selection model is:
 
@@ -44,8 +51,8 @@ continue to use ordinary spaced addressing.
 
 ```rank
 for Ai in A
-    print Ai
-    print i
+    Ai print
+    i print
 end
 ```
 

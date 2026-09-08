@@ -67,6 +67,34 @@ Mask xor= Changed
 The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `%=`,
 `and=`, `or=` and `xor=`.
 
+## Data-first application
+
+Rank places data before the operation. A called function is the final word of
+an application:
+
+```rank
+30 sin
+A B gcd
+Range lcm
+Answer print
+Model X predict
+```
+
+This is the canonical call order for standard-library and user-defined
+functions. Nullary sources such as `fibonacci` and `primes` are values rather
+than calls. Keywords such as `use`, `run`, `option` and `if` introduce their own
+statements and do not follow the function-call rule.
+
+One application calls one function. Use a named intermediate value instead of
+placing several function words on one line:
+
+```rank
+Text = N text
+Back = Text reverse
+```
+
+This is both a language rule and the preferred narrow-screen style.
+
 Conditions use words such as `equal` rather than `==`:
 
 ```rank
@@ -107,7 +135,7 @@ Values = Data Column
 Use `text` when a textual representation is needed:
 
 ```rank
-Name = text .Age
+Name = .Age text
 ```
 
 ## Strings

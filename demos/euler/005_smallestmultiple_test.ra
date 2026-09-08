@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "005_smallestmultiple"
+  run
+
+  Answer equal 232792560
+end
+
+test "workspace input"
+  use "005_smallestmultiple"
+  Limit = 10
+  run
+
+  Answer equal 2520
+end

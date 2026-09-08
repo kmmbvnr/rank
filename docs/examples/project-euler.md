@@ -16,7 +16,7 @@ Mask or= N multiple by 5
 
 Answer = N Mask sum
 
-print Answer
+Answer print
 ```
 
 This example demonstrates:
@@ -62,3 +62,21 @@ Answer = Factors max
 
 `factors` produces a finite lazy sequence of prime factors. The general `max`
 reduction consumes it without adding a puzzle-specific operation.
+
+## 5. Smallest multiple
+
+Euler 4 is deferred until the tensor and rank models are implemented.
+
+```rank
+rem Project Euler 5
+rem Smallest number divisible by 1..20
+
+use ranges
+use numbers
+
+Range = 1 to 20
+Answer = Range lcm
+```
+
+The standard `lcm` reduction consumes the lazy range. For `1 to 10`, the same
+program produces `2520`.

@@ -179,10 +179,7 @@ export class Interpreter {
             );
         }
         if (isApplicationExpression(expression)) {
-            const values = [
-                this.evaluate(expression.head),
-                ...expression.arguments.map(argument => this.evaluate(argument)),
-            ];
+            const values = flattenApplication(expression).map(part => this.evaluate(part));
             return this.apply(values);
         }
         throw new RankError(`cannot evaluate ${expression.$type}`);
@@ -414,13 +411,14 @@ export class Interpreter {
 
         const fn = functions[0];
         const functionIndex = values.indexOf(fn);
+        if (functionIndex !== values.length - 1) {
+            throw new RankError(`operation must follow its data: ${fn.name}`);
+        }
         const receivers = values.slice(0, functionIndex);
-        const arguments_ = functionIndex === 0
-            ? values.slice(1)
-            : [
-                receivers.length === 1 ? receivers[0] : applySelectors(receivers),
-                ...values.slice(functionIndex + 1),
-            ];
+        const arguments_ = receivers.length > 1 && fn.arities.includes(1)
+            && canApplySelectors(receivers)
+            ? [applySelectors(receivers)]
+            : receivers;
         return fn.call(arguments_);
     }
 
@@ -661,6 +659,18 @@ function applySelectors(values: RankValue[]): RankValue {
     return array(source.items.filter((_, index) => selector.items[index]));
 }
 
+function canApplySelectors(values: RankValue[]): boolean {
+    if (values.length !== 2) return false;
+    if (isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
+        return values[0] === values[1].source;
+    }
+    if (isRankArray(values[0]) && isRankArray(values[1])) {
+        return values[0].items.length === values[1].items.length
+            && values[1].items.every(item => typeof item === 'boolean');
+    }
+    return false;
+}
+
 function assignmentOperator(operator: string): string {
     return operator.slice(0, -1);
 }
@@ -692,6 +702,14 @@ function mapBinary(
 
 function isPredicateOperator(operator: string): boolean {
     return ['equal', 'notequal', 'less', 'greater', 'multipleby'].includes(operator);
+}
+
+function flattenApplication(expression: Expression): Expression[] {
+    if (!isApplicationExpression(expression)) return [expression];
+    return [
+        ...flattenApplication(expression.head),
+        ...expression.arguments.flatMap(flattenApplication),
+    ];
 }
 
 function expectInteger(value: RankValue): bigint {

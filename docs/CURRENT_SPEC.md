@@ -141,6 +141,34 @@ Mask xor= Changed
 The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `%=`,
 `and=`, `or=` and `xor=`.
 
+## Data-first application
+
+Rank places data before the operation. A called function is the final word of
+an application:
+
+```rank
+30 sin
+A B gcd
+Range lcm
+Answer print
+Model X predict
+```
+
+This is the canonical call order for standard-library and user-defined
+functions. Nullary sources such as `fibonacci` and `primes` are values rather
+than calls. Keywords such as `use`, `run`, `option` and `if` introduce their own
+statements and do not follow the function-call rule.
+
+One application calls one function. Use a named intermediate value instead of
+placing several function words on one line:
+
+```rank
+Text = N text
+Back = Text reverse
+```
+
+This is both a language rule and the preferred narrow-screen style.
+
 Conditions use words such as `equal` rather than `==`:
 
 ```rank
@@ -181,7 +209,7 @@ Values = Data Column
 Use `text` when a textual representation is needed:
 
 ```rank
-Name = text .Age
+Name = .Age text
 ```
 
 ## Strings
@@ -392,9 +420,16 @@ A i
 A i j
 Data .Age
 index Key
+A sum
+A B gcd
 ```
 
 Conceptually, the value comes first and selectors follow.
+
+When the final word resolves to a function, preceding values are its data. Thus
+`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`. Resolution
+may use the arity and value roles registered by the imported vocabulary, but it
+does not change the parsed source structure.
 
 The fundamental selection model is:
 
@@ -427,8 +462,8 @@ continue to use ordinary spaced addressing.
 
 ```rank
 for Ai in A
-    print Ai
-    print i
+    Ai print
+    i print
 end
 ```
 
@@ -582,7 +617,7 @@ Ranges and sequences are ordinary iterable values:
 
 ```rank
 for i in 1 to 10
-    print i
+    i print
 end
 ```
 
@@ -608,6 +643,14 @@ fun gcd A B
 end
 ```
 
+Calls use Rank's data-first order. Arguments come first and the function name
+is the final word:
+
+```rank
+G = A B gcd
+Result print
+```
+
 ## Varargs
 
 Current vararg syntax uses `*`:
@@ -618,11 +661,8 @@ fun lcm * Numbers
 end
 ```
 
-Argument expansion uses the same marker:
-
-```rank
-Answer = lcm * Range
-```
+The call-site spelling for expanding a sequence into arguments is still open;
+the former prefix sketch `lcm * Range` is not part of the current language.
 
 ## Integer arithmetic
 
@@ -933,13 +973,13 @@ Tables reuse Rank's normal addressing model.
 Current I/O form:
 
 ```rank
-Data = csv "train.csv"
+Data = "train.csv" csv
 ```
 
 Writing mirrors assignment:
 
 ```rank
-csv "submission.csv" = Out
+Out "submission.csv" csv
 ```
 
 ## Column labels
@@ -1030,7 +1070,7 @@ Data = Data Mask
 A table source may be refined as part of its definition:
 
 ```rank
-Data = csv "data.csv"
+Data = "data.csv" csv
 filter
 .Age greater 18
 .Score greater 0
@@ -1272,6 +1312,22 @@ rem 2 2 3
 Factoring zero or a negative integer is an error. Factoring one produces an
 empty sequence.
 
+`gcd` and `lcm` use data-first application:
+
+```rank
+G = 54 24 gcd
+L = 8 12 lcm
+```
+
+`lcm` also acts as a named reduction over a finite sequence:
+
+```rank
+Answer = (1 to 20) lcm
+```
+
+Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
+containing zero is zero, and the `lcm` of an empty sequence is one.
+
 ## Sequences
 
 Examples:
@@ -1356,7 +1412,7 @@ Mask or= N multiple by 5
 
 Answer = N Mask sum
 
-print Answer
+Answer print
 ```
 
 This example demonstrates:
@@ -1403,6 +1459,24 @@ Answer = Factors max
 `factors` produces a finite lazy sequence of prime factors. The general `max`
 reduction consumes it without adding a puzzle-specific operation.
 
+## 5. Smallest multiple
+
+Euler 4 is deferred until the tensor and rank models are implemented.
+
+```rank
+rem Project Euler 5
+rem Smallest number divisible by 1..20
+
+use ranges
+use numbers
+
+Range = 1 to 20
+Answer = Range lcm
+```
+
+The standard `lcm` reduction consumes the lazy range. For `1 to 10`, the same
+program produces `2520`.
+
 ---
 
 # LeetCode examples
@@ -1444,8 +1518,8 @@ rem Check whether X reads the same
 rem forward and backward.
 
 fun palindrome X
-    Text = text X
-    Back = reverse Text
+    Text = X text
+    Back = Text reverse
 
     return Text equal Back
 end
@@ -1518,13 +1592,13 @@ rem sex and passenger class.
 use tables
 use stats
 
-Data = csv "train.csv"
+Data = "train.csv" csv
 
 Keys = .Sex .Pclass
 Groups = Data Keys group
 Rate = Groups .Survived mean
 
-print Rate
+Rate print
 ```
 
 Baseline feature preparation:
@@ -1711,7 +1785,7 @@ rem https://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v3.0.1.pdf
 use tables
 use dates
 
-L = csv "lineitem.csv"
+L = "lineitem.csv" csv
 filter
 .l_shipdate year equal 1994
 .l_discount at least 0.05
@@ -1724,7 +1798,7 @@ Revenue =
     * L .l_discount
     sum
 
-print Revenue
+Revenue print
 ```
 
 The clause is part of constructing `L`. Each condition line is evaluated in the
@@ -1742,6 +1816,12 @@ These are active design questions, not alternate historical syntaxes.
 `each` is reserved as the readable spelling of rank-0 application. It is not
 yet settled whether it is an exact alias for `rank 0` for text, tables and
 nested values, or whether those value models need a distinct rule.
+
+## Argument expansion
+
+Vararg declarations currently use `*`, but the data-first call-site spelling
+for expanding a sequence into arguments is not yet fixed. The former prefix
+sketch `lcm * Range` is not current syntax.
 
 ## Comparison words
 

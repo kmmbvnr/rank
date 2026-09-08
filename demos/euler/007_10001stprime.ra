@@ -5,4 +5,4 @@ use sequnces
 
 Answer = primes take 1000
 
-print Answer
+Answer print

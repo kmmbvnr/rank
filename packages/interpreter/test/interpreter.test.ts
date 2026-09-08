@@ -77,9 +77,17 @@ describe('Rank interpreter', () => {
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');
-        expect(run('use numbers\n13195 factors max')).toBe('29');
+        expect(run('use numbers\nFactors = 13195 factors\nFactors max')).toBe('29');
         expect(() => run('use numbers\n0 factors'))
             .toThrowError('factors expects a positive integer');
+    });
+
+    it('calls operations after their data', () => {
+        expect(run('use numbers\n54 24 gcd')).toBe('6');
+        expect(run('use numbers\n8 12 lcm')).toBe('24');
+        expect(run('use ranges\nuse numbers\n(1 to 10) lcm')).toBe('2520');
+        expect(() => run('use numbers\ngcd 54 24'))
+            .toThrowError('operation must follow its data: gcd');
     });
 
     it('rejects names from modules that were not imported', () => {
@@ -90,7 +98,7 @@ describe('Rank interpreter', () => {
     it('sends print output through an injected function', () => {
         const lines: string[] = [];
         const interpreter = new Interpreter(line => lines.push(line));
-        expect(formatValue(interpreter.execute('use io\nprint 42')!)).toBe('42');
+        expect(formatValue(interpreter.execute('use io\n42 print')!)).toBe('42');
         expect(lines).toEqual(['42']);
     });
 

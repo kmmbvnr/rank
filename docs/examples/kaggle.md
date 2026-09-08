@@ -18,13 +18,13 @@ rem sex and passenger class.
 use tables
 use stats
 
-Data = csv "train.csv"
+Data = "train.csv" csv
 
 Keys = .Sex .Pclass
 Groups = Data Keys group
 Rate = Groups .Survived mean
 
-print Rate
+Rate print
 ```
 
 Baseline feature preparation:

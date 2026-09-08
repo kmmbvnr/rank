@@ -21,7 +21,7 @@ rem https://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v3.0.1.pdf
 use tables
 use dates
 
-L = csv "lineitem.csv"
+L = "lineitem.csv" csv
 filter
 .l_shipdate year equal 1994
 .l_discount at least 0.05
@@ -34,7 +34,7 @@ Revenue =
     * L .l_discount
     sum
 
-print Revenue
+Revenue print
 ```
 
 The clause is part of constructing `L`. Each condition line is evaluated in the

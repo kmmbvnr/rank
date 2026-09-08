@@ -10,4 +10,4 @@ option N integer = 600851475143
 
 Factors = N factors
 Answer = Factors max
-print Answer
+Answer print

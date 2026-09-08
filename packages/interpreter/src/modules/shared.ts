@@ -4,15 +4,19 @@ import { isRankArray, isRankSequence, type NativeFunction, type RankArray, type 
 
 export function native(
     name: string,
-    arity: number,
+    arity: number | readonly number[],
     call: (arguments_: RankValue[]) => RankValue,
 ): NativeFunction {
+    const arities = typeof arity === 'number' ? [arity] : arity;
     return {
         kind: 'function',
         name,
+        arities,
         call(arguments_) {
-            if (arguments_.length !== arity) {
-                throw new RankError(`${name} expects ${arity} argument, got ${arguments_.length}`);
+            if (!arities.includes(arguments_.length)) {
+                throw new RankError(
+                    `${name} expects ${arities.join(' or ')} argument, got ${arguments_.length}`,
+                );
             }
             return call(arguments_);
         },

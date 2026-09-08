@@ -4,11 +4,11 @@ rem squares, 1..100
 
 Range = 1 to 100
 
-Sum = sum Range
+Sum = Range sum
 SquareOfSum = Sum * Sum
 
 Squares = Range * Range
-SumOfSquares = sum Squares
+SumOfSquares = Squares sum
 
 Answer = SquareOfSum - SumOfSquares
-print Answer
+Answer print

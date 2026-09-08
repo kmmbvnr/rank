@@ -12,6 +12,7 @@ export interface RankLabel {
 export interface NativeFunction {
     readonly kind: 'function';
     readonly name: string;
+    readonly arities: readonly number[];
     readonly call: (arguments_: RankValue[]) => RankValue;
 }
 
