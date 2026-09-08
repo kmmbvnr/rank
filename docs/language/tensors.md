@@ -3,6 +3,10 @@
 Rank's array model is intended to scale from ordinary vectors to dense tensors
 used in numerical computing and ML.
 
+An atom has shape `[]`. A tensor stores a flat sequence of atoms with a
+rectangular shape `[D1, D2, ...]`. Lazy dimensions may have an exact, unknown
+finite, or infinite size; asking for an unknown finite shape is a demand point.
+
 ## Core operations
 
 Current direction includes:
@@ -48,6 +52,10 @@ Sums = A B + outer
 ```
 
 `outer` preserves the axes of both inputs.
+
+The result shape is the concatenation of the operand shapes. Left axes come
+first and the right operand varies fastest. Operands must be finite and
+restartable, and the result may remain lazy.
 
 ## Matrix multiplication
 

@@ -2,6 +2,12 @@
 
 These are active design questions, not alternate historical syntaxes.
 
+## `each` and `rank 0`
+
+`each` is reserved as the readable spelling of rank-0 application. It is not
+yet settled whether it is an exact alias for `rank 0` for text, tables and
+nested values, or whether those value models need a distinct rule.
+
 ## Comparison words
 
 `equal`, `not equal`, `less` and `greater` are established.

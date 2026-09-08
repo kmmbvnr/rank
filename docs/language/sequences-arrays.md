@@ -30,6 +30,20 @@ general lazy operation with the same observable result.
 Boundary operations such as `from`, `to` and `until` may be pushed into the
 source by the execution planner when the source can seek efficiently.
 
+## Shape and size
+
+An atom has shape `[]`. A finite sequence has shape `[Size]`. A tensor stores a
+flat sequence of atoms together with its rectangular shape `[D1, D2, ...]`.
+
+A lazy sequence carries one of three size states:
+
+- `exact`: its length is known;
+- `unknown`: it is finite, but finding its length may require iteration;
+- `infinite`: it has no finite length.
+
+Requesting the shape of an `unknown` finite sequence is a demand point and may
+iterate it. Requesting a finite shape from an `infinite` sequence is an error.
+
 ## Selection with boolean masks
 
 Selection uses Rank's normal addressing model.
@@ -88,6 +102,20 @@ Scalar broadcasting is allowed where shape rules make it unambiguous.
 M3 = N % 3 equal 0
 ```
 
+## Operation modifiers
+
+An operation may be followed by a word that changes how it is applied:
+
+```rank
+Total = A + reduce
+Prefix = A + scan
+Products = A B * outer
+Cells = A F rank 0
+```
+
+The trailing modifier binds the operation and its operands as one expression.
+In `A B * outer`, `A B` is not evaluated first as addressing.
+
 ## Each
 
 `each` applies a scalar function to every atom while preserving shape:
@@ -97,7 +125,10 @@ Numbers = Text int each
 Flags = Values prime each
 ```
 
-It is the friendly rank-0 operation.
+`each` is reserved as the friendly spelling of rank-0 application. Whether it
+is an exact alias for `rank 0` in every value model, especially for text,
+tables and nested values, remains open. The examples above are design sketches
+until that equivalence is settled.
 
 ## Rank
 
@@ -160,3 +191,11 @@ has shape:
 ```
 
 `outer` combines axes. `matmul` contracts axes.
+
+The axes of the left operand come first and the right operand varies fastest.
+Both operands must be finite and restartable. Construction is lazy: `outer`
+does not require all result atoms to be materialized immediately.
+
+Applying a same-shaped boolean mask to a tensor returns a rank-1 lazy sequence
+of the selected atoms in iteration order. Tables retain their separate
+row-selection rule.

@@ -6,6 +6,7 @@ import {
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
+    type SequenceSize,
 } from './value.js';
 
 export function sequence(plan: SequencePlan): RankSequence {
@@ -29,7 +30,7 @@ export function filterSequence(
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} where ${predicate.name}`,
-        finite: sourcePlan.finite,
+        size: filteredSize(sourcePlan.size),
         *iterate() {
             for (const value of sourcePlan.iterate()) {
                 if (predicate.test(value)) yield value;
@@ -58,7 +59,7 @@ export function mapSequence(
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} ${name}`,
-        finite: sourcePlan.finite,
+        size: sourcePlan.size,
         *iterate() {
             for (const value of sourcePlan.iterate()) yield operation(value);
         },
@@ -73,7 +74,7 @@ export function zipSequences(
 ): RankSequence {
     return sequence({
         name: `${left.plan.name} ${name} ${right.plan.name}`,
-        finite: left.plan.finite && right.plan.finite,
+        size: zippedSize(left.plan.size, right.plan.size),
         *iterate() {
             const a = left.plan.iterate();
             const b = right.plan.iterate();
@@ -89,7 +90,7 @@ export function zipSequences(
 
 export function sequenceValues(value: RankValue, operation: string): Iterable<RankValue> {
     if (!isRankSequence(value)) return [value];
-    if (!value.plan.finite) {
+    if (value.plan.size.kind === 'infinite') {
         throw new RankError(`${operation} requires a bounded sequence`);
     }
     return { [Symbol.iterator]: () => value.plan.iterate() };
@@ -97,4 +98,18 @@ export function sequenceValues(value: RankValue, operation: string): Iterable<Ra
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
     return value.plan.reduce?.(operation);
+}
+
+function filteredSize(size: SequenceSize): SequenceSize {
+    return size.kind === 'infinite' ? size : { kind: 'unknown' };
+}
+
+function zippedSize(left: SequenceSize, right: SequenceSize): SequenceSize {
+    if (left.kind === 'exact' && right.kind === 'exact') {
+        return { kind: 'exact', value: left.value < right.value ? left.value : right.value };
+    }
+    if (left.kind === 'exact' && right.kind === 'infinite') return left;
+    if (right.kind === 'exact' && left.kind === 'infinite') return right;
+    if (left.kind === 'infinite' && right.kind === 'infinite') return left;
+    return { kind: 'unknown' };
 }

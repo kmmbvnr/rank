@@ -65,6 +65,8 @@ describe('Rank interpreter', () => {
 
         const even = interpreter.variables.get('Even');
         expect(even && isRankSequence(even) && even.plan.name).toBe('even fibonacci');
+        expect(even && isRankSequence(even) && even.plan.size)
+            .toEqual({ kind: 'exact', value: 3n });
     });
 
     it('does not reduce an unbounded sequence', () => {

@@ -49,7 +49,7 @@ export const numbersModule: RuntimeModule = {
 function factorPlan(value: bigint): SequencePlan {
     return {
         name: `factors of ${value}`,
-        finite: true,
+        size: { kind: 'unknown' },
         *iterate() {
             let remaining = value;
             for (let divisor = 2n; divisor * divisor <= remaining; divisor += divisor === 2n ? 1n : 2n) {

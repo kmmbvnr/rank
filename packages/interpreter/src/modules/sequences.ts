@@ -14,7 +14,9 @@ export const sequencesModule: RuntimeModule = {
 function fibonacciPlan(boundary?: Boundary, evenOnly = false): SequencePlan {
     return {
         name: evenOnly ? 'even fibonacci' : 'fibonacci',
-        finite: boundary !== undefined,
+        size: boundary
+            ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly) }
+            : { kind: 'infinite' },
         *iterate() {
             let current = evenOnly ? 2n : 1n;
             let next = evenOnly ? 8n : 2n;
@@ -37,4 +39,17 @@ function fibonacciPlan(boundary?: Boundary, evenOnly = false): SequencePlan {
 
 function within(value: bigint, boundary: Boundary): boolean {
     return boundary.inclusive ? value <= boundary.limit : value < boundary.limit;
+}
+
+function fibonacciSize(boundary: Boundary, evenOnly: boolean): bigint {
+    let count = 0n;
+    let current = evenOnly ? 2n : 1n;
+    let next = evenOnly ? 8n : 2n;
+    while (within(current, boundary)) {
+        count += 1n;
+        [current, next] = evenOnly
+            ? [next, 4n * next + current]
+            : [next, current + next];
+    }
+    return count;
 }

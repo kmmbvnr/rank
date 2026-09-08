@@ -21,9 +21,14 @@ export interface SequencePredicate {
     readonly test: (value: RankValue) => boolean;
 }
 
+export type SequenceSize =
+    | { readonly kind: 'exact'; readonly value: bigint }
+    | { readonly kind: 'unknown' }
+    | { readonly kind: 'infinite' };
+
 export interface SequencePlan {
     readonly name: string;
-    readonly finite: boolean;
+    readonly size: SequenceSize;
     iterate(): IterableIterator<RankValue>;
 
     // Sources may extend these hooks with indexing, skipping, direct reductions,
@@ -80,13 +85,13 @@ export function formatValue(value: RankValue): string {
         return `<function ${value.name}>`;
     }
     if (value.kind === 'sequence-mask') {
-        if (!value.source.plan.finite) return `<mask ${value.predicate.name}>`;
+        if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;
         return [...value.source.plan.iterate()]
             .map(item => formatValue(value.predicate.test(item)))
             .join(' ');
     }
     if (value.kind === 'sequence') {
-        if (!value.plan.finite) return `<sequence ${value.plan.name}>`;
+        if (value.plan.size.kind === 'infinite') return `<sequence ${value.plan.name}>`;
         return [...value.plan.iterate()].map(formatValue).join(' ');
     }
     return value.items.map(formatValue).join(' ');

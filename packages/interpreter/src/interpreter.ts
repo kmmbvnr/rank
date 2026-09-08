@@ -624,11 +624,18 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean): RankSequence
     const stop = inclusive ? end + step : end;
     return sequence({
         name: `${start} ${inclusive ? 'to' : 'until'} ${end}`,
-        finite: true,
+        size: {
+            kind: 'exact',
+            value: absolute(end - start) + (inclusive ? 1n : 0n),
+        },
         *iterate() {
             for (let value = start; value !== stop; value += step) yield value;
         },
     });
+}
+
+function absolute(value: bigint): bigint {
+    return value < 0n ? -value : value;
 }
 
 function applySelectors(values: RankValue[]): RankValue {
