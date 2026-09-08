@@ -274,6 +274,30 @@ describe('Rank interpreter', () => {
             'test "false result"',
             '  1 equal 2',
             'end',
+            'test "matching arrays"',
+            '  Answer = array 7 0 8',
+            '  Answer equal array 7 0 8',
+            'end',
+            'test "different arrays"',
+            '  Answer = array 7 0 8',
+            '  Answer equal array 7 1 8',
+            'end',
+            'test "matching tensors"',
+            '  Answer = array shape 2 2',
+            '    1 2',
+            '    3 4',
+            '  end',
+            '  Answer equal array shape 2 2',
+            '    1 2',
+            '    3 4',
+            '  end',
+            'end',
+            'test "different shapes"',
+            '  Answer = array shape 1 3',
+            '    7 0 8',
+            '  end',
+            '  Answer equal array 7 0 8',
+            'end',
         ].join('\n'));
         expect(interpreter.testResults).toEqual([
             { name: 'workspace input', passed: true, output: [] },
@@ -283,6 +307,41 @@ describe('Rank interpreter', () => {
                 output: [],
                 error: 'boolean test expression evaluated to false',
             },
+            { name: 'matching arrays', passed: true, output: [] },
+            {
+                name: 'different arrays',
+                passed: false,
+                output: [],
+                error: 'boolean test expression evaluated to false',
+            },
+            { name: 'matching tensors', passed: true, output: [] },
+            {
+                name: 'different shapes',
+                passed: false,
+                output: [],
+                error: 'shape mismatch: 1,3 and 3',
+            },
+        ]);
+    });
+
+    it('compares a function-local queue with a rank-one array', () => {
+        const interpreter = new Interpreter(undefined, { testing: true });
+        interpreter.execute([
+            'use testing',
+            'test "queue result"',
+            '  use algo',
+            '  fun result Ignored',
+            '    queue push 7',
+            '    queue push 0',
+            '    queue push 8',
+            '    return queue',
+            '  end',
+            '  Answer = 0 result',
+            '  Answer equal array 7 0 8',
+            'end',
+        ].join('\n'));
+        expect(interpreter.testResults).toEqual([
+            { name: 'queue result', passed: true, output: [] },
         ]);
     });
 });

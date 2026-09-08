@@ -8,9 +8,7 @@ test "equal length"
   B = array 5 6 4
   Answer = A B add_two
 
-  Answer 0 equal 7
-  Answer 1 equal 0
-  Answer 2 equal 8
+  Answer equal array 7 0 8
 end
 
 test "zero"
@@ -21,7 +19,7 @@ test "zero"
   B = array 0
   Answer = A B add_two
 
-  Answer 0 equal 0
+  Answer equal array 0
 end
 
 test "carry and unequal lengths"
@@ -32,12 +30,5 @@ test "carry and unequal lengths"
   B = array 9 9 9 9
   Answer = A B add_two
 
-  Answer 0 equal 8
-  Answer 1 equal 9
-  Answer 2 equal 9
-  Answer 3 equal 9
-  Answer 4 equal 0
-  Answer 5 equal 0
-  Answer 6 equal 0
-  Answer 7 equal 1
+  Answer equal array 8 9 9 9 0 0 0 1
 end

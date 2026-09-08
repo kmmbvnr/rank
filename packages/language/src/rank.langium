@@ -88,7 +88,7 @@ ExpressionStatement:
     value=Expression;
 
 Expression returns Expression:
-    ArrayExpression | OrExpression;
+    OrExpression;
 
 ArrayExpression:
     'array' (
@@ -146,6 +146,7 @@ MultiplicationExpression returns Expression:
 UnaryExpression returns Expression:
     {infer UnaryExpression}
         operator=('+' | '-' | 'not') operand=UnaryExpression |
+    ArrayExpression |
     ApplicationExpression;
 
 ApplicationExpression returns Expression:

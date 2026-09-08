@@ -385,8 +385,17 @@ their top-level lines, so the test may prepare values before transferring
 control with `run`. Values created by the program remain available after it
 returns.
 
-Standalone boolean expression statements are assertions. Every such expression
-must evaluate to `true`.
+Standalone boolean expression statements are assertions. A scalar assertion
+must evaluate to `true`. An array or tensor of booleans is a single assertion
+and passes only when every element is `true`, so an entire result can be checked
+without addressing each element:
+
+```rank
+Answer equal array 7 0 8
+```
+
+`equal` remains elementwise. Arrays and tensors being compared must have the
+same shape.
 
 Arguments exercise the same input declarations through the host adapter:
 
@@ -886,6 +895,8 @@ Pred = Pred - 1
 ```
 
 Scalar broadcasting is allowed where shape rules make it unambiguous.
+Two array operands are compatible only when their complete shapes are equal;
+an equal number of elements is not enough.
 
 `%` and comparisons are also elementwise over compatible arrays:
 
@@ -1070,6 +1081,8 @@ return queue
 The first use of `queue` lazily creates one queue in the current function-call
 workspace. Separate and recursive calls receive separate queues. The queue is
 ordered, zero-based, iterable and addressable after it is returned.
+For elementwise operations, a queue behaves as a rank-1 array. This lets a
+function return a queue and a test compare it directly with an array literal.
 
 `push` takes one argument, so the rest of its line is one complete expression:
 

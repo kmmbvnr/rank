@@ -113,7 +113,18 @@ describe('Rank grammar', () => {
             '  1 2 3',
             '  4 5 6',
             'end',
+            'M equal array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
         ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
+    it('parses an array as the right operand of a comparison', async () => {
+        const document = await parse('Answer equal array 7 0 8');
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements).toHaveLength(1);

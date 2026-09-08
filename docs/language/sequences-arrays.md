@@ -152,6 +152,8 @@ Pred = Pred - 1
 ```
 
 Scalar broadcasting is allowed where shape rules make it unambiguous.
+Two array operands are compatible only when their complete shapes are equal;
+an equal number of elements is not enough.
 
 `%` and comparisons are also elementwise over compatible arrays:
 

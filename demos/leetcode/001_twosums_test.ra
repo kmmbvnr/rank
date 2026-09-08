@@ -7,8 +7,7 @@ test "first example"
   A = array 2 7 11 15
   Answer = A 9 two_sum
 
-  Answer 0 equal 0
-  Answer 1 equal 1
+  Answer equal array 0 1
 end
 
 test "later indices"
@@ -18,8 +17,7 @@ test "later indices"
   A = array 3 2 4
   Answer = A 6 two_sum
 
-  Answer 0 equal 1
-  Answer 1 equal 2
+  Answer equal array 1 2
 end
 
 test "duplicate values"
@@ -29,8 +27,7 @@ test "duplicate values"
   A = array 3 3
   Answer = A 6 two_sum
 
-  Answer 0 equal 0
-  Answer 1 equal 1
+  Answer equal array 0 1
 end
 
 test "negative values"
@@ -40,6 +37,5 @@ test "negative values"
   A = array -3 4 3 90
   Answer = A 0 two_sum
 
-  Answer 0 equal 0
-  Answer 1 equal 2
+  Answer equal array 0 2
 end

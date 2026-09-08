@@ -54,6 +54,8 @@ return queue
 The first use of `queue` lazily creates one queue in the current function-call
 workspace. Separate and recursive calls receive separate queues. The queue is
 ordered, zero-based, iterable and addressable after it is returned.
+For elementwise operations, a queue behaves as a rank-1 array. This lets a
+function return a queue and a test compare it directly with an array literal.
 
 `push` takes one argument, so the rest of its line is one complete expression:
 

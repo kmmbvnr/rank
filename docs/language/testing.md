@@ -26,8 +26,17 @@ their top-level lines, so the test may prepare values before transferring
 control with `run`. Values created by the program remain available after it
 returns.
 
-Standalone boolean expression statements are assertions. Every such expression
-must evaluate to `true`.
+Standalone boolean expression statements are assertions. A scalar assertion
+must evaluate to `true`. An array or tensor of booleans is a single assertion
+and passes only when every element is `true`, so an entire result can be checked
+without addressing each element:
+
+```rank
+Answer equal array 7 0 8
+```
+
+`equal` remains elementwise. Arrays and tensors being compared must have the
+same shape.
 
 Arguments exercise the same input declarations through the host adapter:
 

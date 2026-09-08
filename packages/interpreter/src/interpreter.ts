@@ -210,9 +210,7 @@ export class Interpreter {
                     result = this.runAlias(statement.value.name.slice(0, -4));
                 } else {
                     result = this.evaluate(statement.value);
-                    if (assertBooleanExpressions && typeof result === 'boolean' && !result) {
-                        throw new RankError('boolean test expression evaluated to false');
-                    }
+                    if (assertBooleanExpressions) assertTestExpression(result);
                 }
             }
         }
@@ -674,7 +672,7 @@ export class Interpreter {
             }
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
-        if (isRankArray(left) || isRankArray(right)) {
+        if (isRankArray(left) || isRankArray(right) || isRankQueue(left) || isRankQueue(right)) {
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (operator === 'equal' || operator === 'notequal') {
@@ -1009,14 +1007,44 @@ function mapBinary(
     if (isRankSequence(right)) {
         return mapSequence(right, name, item => operation(left, item));
     }
-    if (isRankArray(left) && isRankArray(right)) {
-        if (left.items.length !== right.items.length) {
-            throw new RankError(`shape mismatch: ${left.shape} and ${right.shape}`);
+    const leftArray = asRankArray(left);
+    const rightArray = asRankArray(right);
+    if (leftArray && rightArray) {
+        if (!sameShape(leftArray.shape, rightArray.shape)) {
+            throw new RankError(`shape mismatch: ${leftArray.shape} and ${rightArray.shape}`);
         }
-        return array(left.items.map((item, index) => operation(item, right.items[index])));
+        return {
+            kind: 'array',
+            items: leftArray.items.map((item, index) => operation(item, rightArray.items[index])),
+            shape: leftArray.shape,
+        };
     }
-    const source = isRankArray(left) ? left : right as RankArray;
-    return array(source.items.map(item => isRankArray(left) ? operation(item, right) : operation(left, item)));
+    const source = leftArray ?? rightArray!;
+    return {
+        kind: 'array',
+        items: source.items.map(item => leftArray ? operation(item, right) : operation(left, item)),
+        shape: source.shape,
+    };
+}
+
+function asRankArray(value: RankValue): RankArray | undefined {
+    if (isRankArray(value)) return value;
+    if (isRankQueue(value)) return { kind: 'array', items: value.items, shape: [value.items.length] };
+    return undefined;
+}
+
+function sameShape(left: readonly number[], right: readonly number[]): boolean {
+    return left.length === right.length
+        && left.every((dimension, index) => dimension === right[index]);
+}
+
+function assertTestExpression(value: RankValue): void {
+    const failed = typeof value === 'boolean'
+        ? !value
+        : isRankArray(value)
+            && value.items.every(item => typeof item === 'boolean')
+            && value.items.some(item => item === false);
+    if (failed) throw new RankError('boolean test expression evaluated to false');
 }
 
 function isPredicateOperator(operator: string): boolean {
