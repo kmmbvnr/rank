@@ -17,7 +17,11 @@ UseStatement:
     'use' module=WORD;
 
 AssignmentStatement:
-    name=VARIABLE '=' value=Expression;
+    name=VARIABLE operator=AssignmentOperator value=Expression;
+
+AssignmentOperator returns string:
+    '=' | '+=' | '-=' | '*=' | '/=' | '%=' |
+    'and=' | 'or=' | 'xor=';
 
 ExpressionStatement:
     value=Expression;
@@ -26,9 +30,14 @@ Expression returns Expression:
     OrExpression;
 
 OrExpression returns Expression:
+    XorExpression
+    ({infer BinaryExpression.left=current}
+        operator='or' right=XorExpression)*;
+
+XorExpression returns Expression:
     AndExpression
     ({infer BinaryExpression.left=current}
-        operator='or' right=AndExpression)*;
+        operator='xor' right=AndExpression)*;
 
 AndExpression returns Expression:
     ComparisonExpression
@@ -41,7 +50,8 @@ ComparisonExpression returns Expression:
         operator=ComparisonOperator right=RangeExpression)*;
 
 ComparisonOperator returns string:
-    'equal' | 'not' 'equal' | 'less' | 'greater';
+    'equal' | 'not' 'equal' | 'less' | 'greater' |
+    'multiple' 'by';
 
 RangeExpression returns Expression:
     AdditionExpression
@@ -102,10 +112,9 @@ Identifier returns string:
     VARIABLE | WORD;
 
 hidden terminal WS: /[\t ]+/;
+hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
 terminal INTEGER returns bigint: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"/;
-
-hidden terminal REM_COMMENT: /rem(?:[\t ]+[^\n\r]*)?/;

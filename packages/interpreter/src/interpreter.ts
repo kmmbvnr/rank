@@ -48,7 +48,17 @@ export class Interpreter {
                 this.use(statement.module);
                 result = undefined;
             } else if (isAssignmentStatement(statement)) {
-                result = this.evaluate(statement.value);
+                if (statement.operator === '=') {
+                    result = this.evaluate(statement.value);
+                } else {
+                    const left = this.resolveVariable(statement.name);
+                    const right = this.evaluate(statement.value);
+                    result = this.evaluateBinary(
+                        assignmentOperator(statement.operator),
+                        left,
+                        right,
+                    );
+                }
                 this.variables.set(statement.name, result);
             } else if (isExpressionStatement(statement)) {
                 result = this.evaluate(statement.value);
@@ -117,17 +127,33 @@ export class Interpreter {
         throw new RankError(`unknown name: ${name}`);
     }
 
+    private resolveVariable(name: string): RankValue {
+        const value = this.variables.get(name);
+        if (value === undefined) {
+            throw new RankError(`unknown variable: ${name}`);
+        }
+        return value;
+    }
+
     private apply(values: RankValue[]): RankValue {
         const functions = values.filter(isNativeFunction);
         if (functions.length === 0) {
-            throw new RankError('this form of value application is not implemented yet');
+            return applySelectors(values);
         }
         if (functions.length > 1) {
             throw new RankError('application contains more than one operation');
         }
 
         const fn = functions[0];
-        return fn.call(values.filter(value => value !== fn));
+        const functionIndex = values.indexOf(fn);
+        const receivers = values.slice(0, functionIndex);
+        const arguments_ = functionIndex === 0
+            ? values.slice(1)
+            : [
+                receivers.length === 1 ? receivers[0] : applySelectors(receivers),
+                ...values.slice(functionIndex + 1),
+            ];
+        return fn.call(arguments_);
     }
 
     private evaluateUnary(operator: string, value: RankValue): RankValue {
@@ -155,10 +181,16 @@ export class Interpreter {
             const equal = equalValues(left, right);
             return operator === 'equal' ? equal : !equal;
         }
-        if (operator === 'and' || operator === 'or') {
+        if (operator === 'and' || operator === 'or' || operator === 'xor') {
             const a = expectBoolean(left);
             const b = expectBoolean(right);
-            return operator === 'and' ? a && b : a || b;
+            if (operator === 'and') return a && b;
+            if (operator === 'or') return a || b;
+            return a !== b;
+        }
+        if (operator === 'multipleby') {
+            this.requireModule('numbers', 'multiple by');
+            return expectInteger(left) % expectInteger(right) === 0n;
         }
         if (operator === 'less' || operator === 'greater') {
             const a = expectInteger(left);
@@ -238,6 +270,26 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean): RankArray {
 
 function mapValue(value: RankValue, operation: (scalar: RankValue) => RankValue): RankValue {
     return isRankArray(value) ? array(value.items.map(operation)) : operation(value);
+}
+
+function applySelectors(values: RankValue[]): RankValue {
+    if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
+        throw new RankError('value application requires an array and one selector');
+    }
+
+    const [source, selector] = values;
+    if (source.items.length !== selector.items.length) {
+        throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
+    }
+    if (!selector.items.every(item => typeof item === 'boolean')) {
+        throw new RankError('array selector must be a boolean mask');
+    }
+
+    return array(source.items.filter((_, index) => selector.items[index]));
+}
+
+function assignmentOperator(operator: string): string {
+    return operator.slice(0, -1);
 }
 
 function mapBinary(

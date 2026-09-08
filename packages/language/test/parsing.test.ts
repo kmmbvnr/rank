@@ -28,4 +28,11 @@ describe('Rank grammar', () => {
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
+
+    it('treats rem lines as comments', async () => {
+        const document = await parse('rem Rank comment\nAnswer = 42\nremember');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
 });

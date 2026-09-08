@@ -11,20 +11,19 @@ rem https://projecteuler.net/problem=1
 
 N = 1 until 1000
 
-M3 = N % 3 equal 0
-M5 = N % 5 equal 0
+Mask = N multiple by 3
+Mask or= N multiple by 5
 
-Answer = N (M3 or M5) sum
+Answer = N Mask sum
 
 print Answer
 ```
 
 This example demonstrates:
 - the ordinary/lazy sequence `1 until 1000`;
-- elementwise `%`;
-- elementwise `equal`;
+- the `multiple by` divisibility operation from `numbers`;
 - boolean masks as first-class values;
-- boolean `or`;
+- incremental mask composition with `or=`;
 - boolean addressing;
 - the `sum` reduction.
 

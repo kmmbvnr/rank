@@ -33,7 +33,17 @@ prime
 gcd
 lcm
 factor
+multiple by
 ```
+
+`multiple by` is an elementwise divisibility test and returns a boolean value
+or mask:
+
+```rank
+Mask = N multiple by 3
+```
+
+It is the readable shortcut for `N % 3 equal 0`.
 
 ## Sequences
 

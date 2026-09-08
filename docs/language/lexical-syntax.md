@@ -51,6 +51,22 @@ Data .Age = Age
 index Key = Value
 ```
 
+Compound assignment updates an existing variable without repeating the left
+side inside the expression:
+
+```rank
+Total += Value
+Total -= Cost
+Product *= Factor
+Index %= Size
+Mask and= Active
+Mask or= Fallback
+Mask xor= Changed
+```
+
+The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `%=`,
+`and=`, `or=` and `xor=`.
+
 Conditions use words such as `equal` rather than `==`:
 
 ```rank
