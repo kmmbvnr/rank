@@ -80,3 +80,23 @@ Answer = Range lcm
 
 The standard `lcm` reduction consumes the lazy range. For `1 to 10`, the same
 program produces `2520`.
+
+## 6. Sum square difference
+
+```rank
+rem Project Euler 6
+
+use ranges
+use numbers
+
+Range = 1 to 100
+Sum = Range sum
+SquareOfSum = Sum * Sum
+Squares = Range * Range
+SumOfSquares = Squares sum
+Answer = SquareOfSum - SumOfSquares
+```
+
+Elementwise multiplication preserves the lazy range shape, and each `sum`
+consumes only its own plan. With an upper boundary of `10`, the result is
+`2640`.

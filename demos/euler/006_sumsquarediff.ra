@@ -2,7 +2,15 @@ rem Sum Square Difference
 rem Diff of square-of-sum and sum-of-
 rem squares, 1..100
 
-Range = 1 to 100
+use ranges
+use numbers
+use io
+use cli
+
+rem Inclusive upper boundary.
+option Limit integer = 100
+
+Range = 1 to Limit
 
 Sum = Range sum
 SquareOfSum = Sum * Sum
