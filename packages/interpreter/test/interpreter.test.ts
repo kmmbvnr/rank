@@ -72,6 +72,14 @@ describe('Rank interpreter', () => {
             .toThrowError('sum requires a bounded sequence');
     });
 
+    it('factors integers into a lazy sequence and reduces it', () => {
+        expect(run('use numbers\n1 factors')).toBe('');
+        expect(run('use numbers\n12 factors')).toBe('2 2 3');
+        expect(run('use numbers\n13195 factors max')).toBe('29');
+        expect(() => run('use numbers\n0 factors'))
+            .toThrowError('factors expects a positive integer');
+    });
+
     it('rejects names from modules that were not imported', () => {
         expect(() => run('sum 1')).toThrowError(RankError);
         expect(() => run('sum 1')).toThrowError('unknown name: sum');

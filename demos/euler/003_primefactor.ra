@@ -3,9 +3,11 @@ rem Largest prime factor of 600851475143
 
 use numbers
 use io
+use cli
 
-N = 600851475143
-Factors = factor N
-Answer = max Factors
+rem Integer whose factors are inspected.
+option N integer = 600851475143
+
+Factors = N factors
+Answer = Factors max
 print Answer
-

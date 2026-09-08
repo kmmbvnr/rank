@@ -37,7 +37,7 @@ even
 prime
 gcd
 lcm
-factor
+factors
 multiple by
 ```
 
@@ -49,6 +49,17 @@ Mask = N multiple by 3
 ```
 
 It is the readable shortcut for `N % 3 equal 0`.
+
+`factors` accepts a positive integer and returns its prime factors as a finite
+lazy sequence in ascending order, including repeated factors:
+
+```rank
+Factors = 12 factors
+rem 2 2 3
+```
+
+Factoring zero or a negative integer is an error. Factoring one produces an
+empty sequence.
 
 ## Sequences
 
