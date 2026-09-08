@@ -174,3 +174,18 @@ end
 This is deliberately the direct imperative version: it exercises nested blocks
 and integer conditions without introducing a puzzle-specific operation. The
 default target produces `31875000`; target 12 produces `60`.
+
+## 10. Summation of primes
+
+```rank
+use sequences
+use numbers
+
+option Limit integer = 2000000
+
+Primes = primes until Limit
+Answer = Primes sum
+```
+
+The bound becomes part of the lazy prime-source plan, and `sum` consumes that
+finite plan. The default limit produces `142913828922`; limit 10 produces `17`.

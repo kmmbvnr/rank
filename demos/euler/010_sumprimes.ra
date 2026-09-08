@@ -4,8 +4,11 @@ rem Sum of all primes below two million
 use sequences
 use numbers
 use io
+use cli
 
-Primes = primes until 2000000
+option Limit integer = 2000000
+
+Primes = primes until Limit
 Answer = Primes sum
 
 Answer print
