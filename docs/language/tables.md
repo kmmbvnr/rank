@@ -89,6 +89,9 @@ Adults = Data Mask
 ```
 
 The mask is an ordinary first-class value and the source table is not mutated.
+Table masks follow the language's demand-driven mask semantics. A planner may
+combine their predicates and push them into a table scan, including when the
+mask is later used by a reduction or projection.
 
 Explicit replacement uses ordinary assignment:
 

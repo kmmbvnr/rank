@@ -467,15 +467,34 @@ Mask = A greater 0
 B = A Mask
 ```
 
-The mask is an ordinary value. It can be named, reused and combined before it is
-applied.
+The mask is an ordinary first-class value. It can be named, reused and combined
+before it is applied.
 
 ```rank
-M3 = N % 3 equal 0
-M5 = N % 5 equal 0
+Mask = N multiple by 3
+Mask or= N multiple by 5
 
-Selected = N (M3 or M5)
+Selected = N Mask
 ```
+
+Masks are demand-driven by default. Creating a mask builds a deferred boolean
+plan; it does not require an immediate boolean array. Combining masks with
+`and`, `or`, `xor` or `not` also remains deferred.
+
+Applying a mask is a demand point, but it does not by itself require full
+materialization. An implementation may stream the selected values, fuse the
+mask with a following operation, or push predicates into a source such as a
+table scan. It may also materialize a mask eagerly when that produces the same
+observable result.
+
+Reusing a mask does not promise that its computed bits are cached. A mask
+captures the logical values of its operands when it is created, rather than
+looking up later assignments to their variable names. This snapshot rule does
+not require copying the underlying storage.
+
+Expressions deferred inside a mask must be pure. Operations with observable
+side effects are not allowed there, so an implementation may change evaluation
+order, fuse operations or recompute values without changing program meaning.
 
 Addressing does not mutate `A` or `N`.
 
@@ -746,6 +765,9 @@ Adults = Data Mask
 ```
 
 The mask is an ordinary first-class value and the source table is not mutated.
+Table masks follow the language's demand-driven mask semantics. A planner may
+combine their predicates and push them into a table scan, including when the
+mask is later used by a reduction or projection.
 
 Explicit replacement uses ordinary assignment:
 
