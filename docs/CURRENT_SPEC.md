@@ -114,6 +114,22 @@ Data .Age = Age
 index Key = Value
 ```
 
+Compound assignment updates an existing variable without repeating the left
+side inside the expression:
+
+```rank
+Total += Value
+Total -= Cost
+Product *= Factor
+Index %= Size
+Mask and= Active
+Mask or= Fallback
+Mask xor= Changed
+```
+
+The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `%=`,
+`and=`, `or=` and `xor=`.
+
 Conditions use words such as `equal` rather than `==`:
 
 ```rank
@@ -948,7 +964,17 @@ prime
 gcd
 lcm
 factor
+multiple by
 ```
+
+`multiple by` is an elementwise divisibility test and returns a boolean value
+or mask:
+
+```rank
+Mask = N multiple by 3
+```
+
+It is the readable shortcut for `N % 3 equal 0`.
 
 ## Sequences
 
@@ -1029,20 +1055,19 @@ rem https://projecteuler.net/problem=1
 
 N = 1 until 1000
 
-M3 = N % 3 equal 0
-M5 = N % 5 equal 0
+Mask = N multiple by 3
+Mask or= N multiple by 5
 
-Answer = N (M3 or M5) sum
+Answer = N Mask sum
 
 print Answer
 ```
 
 This example demonstrates:
 - the ordinary/lazy sequence `1 until 1000`;
-- elementwise `%`;
-- elementwise `equal`;
+- the `multiple by` divisibility operation from `numbers`;
 - boolean masks as first-class values;
-- boolean `or`;
+- incremental mask composition with `or=`;
 - boolean addressing;
 - the `sum` reduction.
 
