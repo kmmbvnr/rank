@@ -42,6 +42,14 @@ Addressing stays lazy. A sequence source may calculate or seek to an element
 through its own plan. Otherwise the general implementation iterates only far
 enough to reach the requested position.
 
+Text uses the same rule. Its positions are Unicode code points rather than
+UTF-16 code units or bytes:
+
+```rank
+Letter = "A😀Б" 1
+rem 😀
+```
+
 ## Mathematical compact indexing
 
 For compact mathematical code, a capital letter followed by lowercase indices

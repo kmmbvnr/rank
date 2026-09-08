@@ -7,6 +7,8 @@ import {
     isBooleanLiteral,
     isExpressionStatement,
     isFlagStatement,
+    isForStatement,
+    isIfStatement,
     isLabelLiteral,
     isNameExpression,
     isNumberLiteral,
@@ -31,6 +33,7 @@ import {
     mapSequence,
     sequence,
     sequenceMask,
+    sequenceValues,
     zipSequences,
 } from './sequence.js';
 import {
@@ -103,9 +106,16 @@ export class Interpreter {
         assertBooleanExpressions = false,
     ): RankValue | undefined {
         this.prepareInputs(program, args);
+        return this.executeStatements(program.statements, assertBooleanExpressions);
+    }
+
+    private executeStatements(
+        statements: Statement[],
+        assertBooleanExpressions = false,
+    ): RankValue | undefined {
         let result: RankValue | undefined;
 
-        for (const statement of program.statements) {
+        for (const statement of statements) {
             if (isUseStatement(statement)) {
                 if (statement.path !== undefined) {
                     this.useFile(statement.path, statement.alias);
@@ -125,6 +135,18 @@ export class Interpreter {
             } else if (isTestStatement(statement)) {
                 this.executeTest(statement.description, statement.statements);
                 result = undefined;
+            } else if (isIfStatement(statement)) {
+                const branch = expectBoolean(this.evaluate(statement.condition))
+                    ? statement.thenStatements
+                    : statement.elseStatements;
+                result = this.executeStatements(branch, assertBooleanExpressions);
+            } else if (isForStatement(statement)) {
+                const iterable = this.evaluate(statement.iterable);
+                result = undefined;
+                for (const value of iterationValues(iterable)) {
+                    this.variables.set(statement.variable, value);
+                    result = this.executeStatements(statement.statements, assertBooleanExpressions);
+                }
             } else if (isAssignmentStatement(statement)) {
                 if (statement.operator === '=') {
                     result = this.evaluate(statement.value);
@@ -180,7 +202,13 @@ export class Interpreter {
             );
         }
         if (isApplicationExpression(expression)) {
-            const values = flattenApplication(expression).map(part => this.evaluate(part));
+            const parts = flattenApplication(expression);
+            const explicitRank = explicitRankApplication(parts);
+            if (explicitRank) {
+                const values = explicitRank.parts.map(part => this.evaluate(part));
+                return this.applyAtRank(values, explicitRank.rank);
+            }
+            const values = parts.map(part => this.evaluate(part));
             return this.apply(values);
         }
         throw new RankError(`cannot evaluate ${expression.$type}`);
@@ -420,7 +448,46 @@ export class Interpreter {
             && canApplySelectors(receivers)
             ? [applySelectors(receivers)]
             : receivers;
+        if (arguments_.length === 1 && fn.monadicRank !== 'all') {
+            return this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank);
+        }
         return fn.call(arguments_);
+    }
+
+    private applyAtRank(values: RankValue[], rank: bigint): RankValue {
+        if (rank > BigInt(Number.MAX_SAFE_INTEGER)) {
+            throw new RankError(`rank is too large: ${rank}`);
+        }
+        const functions = values.filter(isNativeFunction);
+        if (functions.length !== 1 || values.at(-1) !== functions[0]) {
+            throw new RankError('rank requires one unary operation after its data');
+        }
+        const fn = functions[0];
+        if (!fn.arities.includes(1)) throw new RankError(`rank requires a unary operation: ${fn.name}`);
+        const receivers = values.slice(0, -1);
+        if (receivers.length !== 1) throw new RankError('unary rank requires one data value');
+        return this.applyUnaryAtRank(receivers[0], fn, Number(rank));
+    }
+
+    private applyUnaryAtRank(
+        value: RankValue,
+        fn: Extract<RankValue, { kind: 'function' }>,
+        cellRank: number,
+    ): RankValue {
+        if (typeof value === 'string') {
+            if (cellRank >= 1) return fn.call([value]);
+            return mapTextAtoms(value, atom => fn.call([atom]), fn.name);
+        }
+        if (isRankSequence(value)) {
+            if (cellRank >= 1) return fn.call([value]);
+            return mapSequence(value, fn.name, atom => fn.call([atom]));
+        }
+        if (isRankArray(value)) {
+            if (cellRank >= value.shape.length) return fn.call([value]);
+            if (cellRank === 0) return array(value.items.map(atom => fn.call([atom])));
+            throw new RankError(`rank ${cellRank} over tensors is not implemented yet`);
+        }
+        return fn.call([value]);
     }
 
     private evaluateUnary(operator: string, value: RankValue): RankValue {
@@ -633,11 +700,44 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean): RankSequence
     });
 }
 
+function mapTextAtoms(
+    value: string,
+    operation: (atom: string) => RankValue,
+    name: string,
+): RankSequence {
+    const atoms = [...value];
+    return sequence({
+        name: `text ${name} rank 0`,
+        size: { kind: 'exact', value: BigInt(atoms.length) },
+        *iterate() {
+            for (const atom of atoms) yield operation(atom);
+        },
+        at(index) {
+            if (index >= BigInt(atoms.length)) return undefined;
+            return operation(atoms[Number(index)]);
+        },
+    });
+}
+
+function iterationValues(value: RankValue): Iterable<RankValue> {
+    if (isRankSequence(value)) return sequenceValues(value, 'for');
+    if (isRankArray(value)) return value.items;
+    if (typeof value === 'string') return [...value];
+    throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
+}
+
 function absolute(value: bigint): bigint {
     return value < 0n ? -value : value;
 }
 
 function applySelectors(values: RankValue[]): RankValue {
+    if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
+        const atoms = [...values[0]];
+        const index = values[1];
+        if (index < 0n) throw new RankError('text index must be nonnegative');
+        if (index >= BigInt(atoms.length)) throw new RankError(`text index out of bounds: ${index}`);
+        return atoms[Number(index)];
+    }
     if (values.length === 2 && isRankSequence(values[0]) && typeof values[1] === 'bigint') {
         return atSequence(values[0], values[1]);
     }
@@ -665,6 +765,7 @@ function applySelectors(values: RankValue[]): RankValue {
 
 function canApplySelectors(values: RankValue[]): boolean {
     if (values.length !== 2) return false;
+    if (typeof values[0] === 'string' && typeof values[1] === 'bigint') return true;
     if (isRankSequence(values[0]) && typeof values[1] === 'bigint') return true;
     if (isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
         return values[0] === values[1].source;
@@ -715,6 +816,14 @@ function flattenApplication(expression: Expression): Expression[] {
         ...flattenApplication(expression.head),
         ...expression.arguments.flatMap(flattenApplication),
     ];
+}
+
+function explicitRankApplication(parts: Expression[]): { parts: Expression[]; rank: bigint } | undefined {
+    const modifier = parts.at(-2);
+    const rank = parts.at(-1);
+    if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
+    if (!isNumberLiteral(rank)) throw new RankError('rank expects a nonnegative integer');
+    return { parts: parts.slice(0, -2), rank: rank.value };
 }
 
 function expectInteger(value: RankValue): bigint {

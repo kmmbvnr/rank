@@ -61,4 +61,19 @@ describe('Rank grammar', () => {
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
     });
+
+    it('parses nested for and if blocks', async () => {
+        const document = await parse([
+            'for i in 0 until 3',
+            '  if i greater 0',
+            '    Total += i',
+            '  else',
+            '    Total = 0',
+            '  end',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
 });

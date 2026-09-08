@@ -6,12 +6,14 @@ export function native(
     name: string,
     arity: number | readonly number[],
     call: (arguments_: RankValue[]) => RankValue,
+    monadicRank: number | 'all' = 'all',
 ): NativeFunction {
     const arities = typeof arity === 'number' ? [arity] : arity;
     return {
         kind: 'function',
         name,
         arities,
+        monadicRank,
         call(arguments_) {
             if (!arities.includes(arguments_.length)) {
                 throw new RankError(

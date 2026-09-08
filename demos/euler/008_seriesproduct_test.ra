@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "008_seriesproduct"
+  run
+
+  Answer equal 23514624000
+end
+
+test "workspace input"
+  use "008_seriesproduct"
+  Width = 4
+  run
+
+  Answer equal 5832
+end

@@ -83,6 +83,48 @@ describe('Rank interpreter', () => {
             .toThrowError('sequence index out of bounds: 4');
     });
 
+    it('applies integer conversion at text cell ranks', () => {
+        expect(run('use text\n"123" integer')).toBe('123');
+        expect(run('use text\n"123" integer rank 1')).toBe('123');
+        expect(run('use text\n"1203" integer rank 0')).toBe('1 2 0 3');
+        expect(() => run('use text\n"12x" integer'))
+            .toThrowError('invalid integer text: 12x');
+    });
+
+    it('counts and addresses Unicode text atoms', () => {
+        expect(run('use sequences\n"A😀Б" len')).toBe('3');
+        expect(run('"A😀Б" 1')).toBe('😀');
+        expect(run([
+            'Last = ""',
+            'for C in "A😀Б"',
+            '  Last = C',
+            'end',
+            'Last',
+        ].join('\n'))).toBe('Б');
+    });
+
+    it('executes nested for and if blocks', () => {
+        expect(run([
+            'use ranges',
+            'Total = 0',
+            'for i in 1 to 4',
+            '  if i greater 2',
+            '    Total += i',
+            '  end',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('7');
+        expect(run([
+            'Result = 0',
+            'if false',
+            '  Result = 1',
+            'else',
+            '  Result = 2',
+            'end',
+            'Result',
+        ].join('\n'))).toBe('2');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');

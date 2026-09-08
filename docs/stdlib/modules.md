@@ -84,6 +84,7 @@ Examples:
 ```rank
 primes
 fibonacci
+len
 ```
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
@@ -123,8 +124,20 @@ Examples:
 split
 reverse
 text
-int
+integer
 ```
+
+`integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
+unary rank is 1, so a complete text value is converted at once. Explicit
+`rank 0` converts each Unicode character and produces a lazy sequence:
+
+```rank
+Value = "-1203" integer
+Digits = "1203" integer rank 0
+```
+
+`len` from `sequences` returns the number of Unicode code points in text or the
+outer length of a finite sequence. It rejects an infinite sequence.
 
 ## Dates
 

@@ -42,7 +42,7 @@ fun atoi Text
       break
     end
 
-    Digit = int C
+    Digit = C integer
 
     if Result less Mult
       return clamp Negative

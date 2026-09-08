@@ -13,6 +13,7 @@ export interface NativeFunction {
     readonly kind: 'function';
     readonly name: string;
     readonly arities: readonly number[];
+    readonly monadicRank: number | 'all';
     readonly call: (arguments_: RankValue[]) => RankValue;
 }
 

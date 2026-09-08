@@ -40,7 +40,7 @@ rem Build submission
 Test .label = Prob
 
 Parts = Test .name "." split
-Test .id = Parts 0 int each
+Test .id = Parts 0 integer each
 
 Out = Test .id .label
 

@@ -188,6 +188,13 @@ greater
 
 Exact spelling for `<=` and `>=` is still open.
 
+## Scalar types
+
+Rank currently has four scalar value types: `integer`, `boolean`, `text` and
+`label`. Integers have arbitrary precision, and `/` returns an integer quotient;
+a separate floating-point type has not been defined yet. `path` is an input
+constraint represented by a `text` value, rather than a separate runtime type.
+
 ## Labels
 
 A leading dot creates a literal label:
@@ -199,7 +206,7 @@ A leading dot creates a literal label:
 .UserId
 ```
 
-Labels are first-class values, not strings.
+Labels are first-class values, not text.
 
 ```rank
 Column = .Age
@@ -212,15 +219,18 @@ Use `text` when a textual representation is needed:
 Name = .Age text
 ```
 
-## Strings
+## Text
 
-Strings use quotes:
+Text literals use quotes:
 
 ```rank
 Text = "hello"
 ```
 
-The editor should make quotes cheap to enter, but quotes remain ordinary source syntax.
+Text is a rank-1 sequence of Unicode code points. One code point is an atomic
+`text` value, so ordinary zero-based addressing and `for` iteration work on
+text. The editor should make quotes cheap to enter, but quotes remain ordinary
+source syntax.
 
 ---
 
@@ -453,6 +463,14 @@ Addressing stays lazy. A sequence source may calculate or seek to an element
 through its own plan. Otherwise the general implementation iterates only far
 enough to reach the requested position.
 
+Text uses the same rule. Its positions are Unicode code points rather than
+UTF-16 code units or bytes:
+
+```rank
+Letter = "A😀Б" 1
+rem 😀
+```
+
 ## Mathematical compact indexing
 
 For compact mathematical code, a capital letter followed by lowercase indices
@@ -636,6 +654,10 @@ for i in 1 to 10
     i print
 end
 ```
+
+The loop variable is an ordinary name in the current workspace. Each iteration
+assigns the next value to it; after a nonempty loop it retains the last value,
+following Rank's BASIC-like workspace model.
 
 Mathematical value/index binding:
 
@@ -824,7 +846,7 @@ In `A B * outer`, `A B` is not evaluated first as addressing.
 `each` applies a scalar function to every atom while preserving shape:
 
 ```rank
-Numbers = Text int each
+Numbers = Text integer each
 Flags = Values prime each
 ```
 
@@ -848,6 +870,27 @@ Example:
 ```rank
 Rows = Matrix normalize rank 1
 ```
+
+Every function declares an intrinsic rank for each supported arity. Without an
+explicit modifier, that rank determines the cells it receives. `rank R`
+overrides the unary rank: if the argument rank is greater than `R`, the function
+is applied to each trailing `R`-cell and the leading frame is preserved. If the
+argument rank is at most `R`, the function receives the whole argument once.
+Rank values are currently nonnegative integers.
+
+For example, `integer` has intrinsic unary rank 1. It converts a complete text
+value by default, while an explicit rank 0 converts its character atoms:
+
+```rank
+Value = "1203" integer
+Digits = "1203" integer rank 0
+rem Value is 1203; Digits are 1 2 0 3
+```
+
+Rank-0 application over a lazy sequence remains lazy. Results must currently
+have compatible rectangular shapes. Binary rank specifications and the policy
+for incompatible result shapes remain deferred until the tensor model is
+implemented.
 
 ## Reduce
 
@@ -1359,6 +1402,7 @@ Examples:
 ```rank
 primes
 fibonacci
+len
 ```
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
@@ -1398,8 +1442,20 @@ Examples:
 split
 reverse
 text
-int
+integer
 ```
+
+`integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
+unary rank is 1, so a complete text value is converted at once. Explicit
+`rank 0` converts each Unicode character and produces a lazy sequence:
+
+```rank
+Value = "-1203" integer
+Digits = "1203" integer rank 0
+```
+
+`len` from `sequences` returns the number of Unicode code points in text or the
+outer length of a finite sequence. It rejects an infinite sequence.
 
 ## Dates
 
@@ -1546,6 +1602,37 @@ Answer = primes Index
 `Count` is one-based because that is how the task states the position. Rank
 sequence addressing is zero-based, so the program names the conversion before
 addressing the lazy `primes` source. With `Count = 6`, the result is `13`.
+
+## 8. Largest product in a series
+
+```rank
+use text
+use sequences
+use ranges
+
+option Width integer = 13
+
+Digits = Number integer rank 0
+Best = 0
+Last = Digits len - Width
+
+for i in 0 to Last
+  Product = 1
+  for j in 0 until Width
+    K = i + j
+    Product *= Digits K
+  end
+  if Product greater Best
+    Best = Product
+  end
+end
+
+Answer = Best
+```
+
+Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
+then use ordinary sequence addressing. The default width 13 produces
+`23514624000`; width 4 produces `5832`.
 
 ---
 

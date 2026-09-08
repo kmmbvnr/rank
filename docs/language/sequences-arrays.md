@@ -129,7 +129,7 @@ In `A B * outer`, `A B` is not evaluated first as addressing.
 `each` applies a scalar function to every atom while preserving shape:
 
 ```rank
-Numbers = Text int each
+Numbers = Text integer each
 Flags = Values prime each
 ```
 
@@ -153,6 +153,27 @@ Example:
 ```rank
 Rows = Matrix normalize rank 1
 ```
+
+Every function declares an intrinsic rank for each supported arity. Without an
+explicit modifier, that rank determines the cells it receives. `rank R`
+overrides the unary rank: if the argument rank is greater than `R`, the function
+is applied to each trailing `R`-cell and the leading frame is preserved. If the
+argument rank is at most `R`, the function receives the whole argument once.
+Rank values are currently nonnegative integers.
+
+For example, `integer` has intrinsic unary rank 1. It converts a complete text
+value by default, while an explicit rank 0 converts its character atoms:
+
+```rank
+Value = "1203" integer
+Digits = "1203" integer rank 0
+rem Value is 1203; Digits are 1 2 0 3
+```
+
+Rank-0 application over a lazy sequence remains lazy. Results must currently
+have compatible rectangular shapes. Binary rank specifications and the policy
+for incompatible result shapes remain deferred until the tensor model is
+implemented.
 
 ## Reduce
 

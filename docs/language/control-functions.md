@@ -38,6 +38,10 @@ for i in 1 to 10
 end
 ```
 
+The loop variable is an ordinary name in the current workspace. Each iteration
+assigns the next value to it; after a nonempty loop it retains the last value,
+following Rank's BASIC-like workspace model.
+
 Mathematical value/index binding:
 
 ```rank

@@ -16,6 +16,8 @@ Statement:
     FlagStatement |
     ArgsStatement |
     TestStatement |
+    IfStatement |
+    ForStatement |
     AssignmentStatement |
     ExpressionStatement;
 
@@ -41,6 +43,19 @@ ArgsStatement:
 
 TestStatement:
     'test' description=STRING NL+
+    (statements+=Statement (NL+ statements+=Statement)*)?
+    NL* 'end';
+
+IfStatement:
+    'if' condition=Expression NL+
+    (thenStatements+=Statement (NL+ thenStatements+=Statement)*)?
+    NL* ('else' NL+
+        (elseStatements+=Statement (NL+ elseStatements+=Statement)*)?
+        NL*)?
+    'end';
+
+ForStatement:
+    'for' variable=Identifier 'in' iterable=Expression NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 

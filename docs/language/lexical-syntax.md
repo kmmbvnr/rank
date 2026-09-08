@@ -114,6 +114,13 @@ greater
 
 Exact spelling for `<=` and `>=` is still open.
 
+## Scalar types
+
+Rank currently has four scalar value types: `integer`, `boolean`, `text` and
+`label`. Integers have arbitrary precision, and `/` returns an integer quotient;
+a separate floating-point type has not been defined yet. `path` is an input
+constraint represented by a `text` value, rather than a separate runtime type.
+
 ## Labels
 
 A leading dot creates a literal label:
@@ -125,7 +132,7 @@ A leading dot creates a literal label:
 .UserId
 ```
 
-Labels are first-class values, not strings.
+Labels are first-class values, not text.
 
 ```rank
 Column = .Age
@@ -138,12 +145,15 @@ Use `text` when a textual representation is needed:
 Name = .Age text
 ```
 
-## Strings
+## Text
 
-Strings use quotes:
+Text literals use quotes:
 
 ```rank
 Text = "hello"
 ```
 
-The editor should make quotes cheap to enter, but quotes remain ordinary source syntax.
+Text is a rank-1 sequence of Unicode code points. One code point is an atomic
+`text` value, so ordinary zero-based addressing and `for` iteration work on
+text. The editor should make quotes cheap to enter, but quotes remain ordinary
+source syntax.

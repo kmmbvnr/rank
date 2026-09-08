@@ -117,3 +117,34 @@ Answer = primes Index
 `Count` is one-based because that is how the task states the position. Rank
 sequence addressing is zero-based, so the program names the conversion before
 addressing the lazy `primes` source. With `Count = 6`, the result is `13`.
+
+## 8. Largest product in a series
+
+```rank
+use text
+use sequences
+use ranges
+
+option Width integer = 13
+
+Digits = Number integer rank 0
+Best = 0
+Last = Digits len - Width
+
+for i in 0 to Last
+  Product = 1
+  for j in 0 until Width
+    K = i + j
+    Product *= Digits K
+  end
+  if Product greater Best
+    Best = Product
+  end
+end
+
+Answer = Best
+```
+
+Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
+then use ordinary sequence addressing. The default width 13 produces
+`23514624000`; width 4 produces `5832`.
