@@ -51,6 +51,23 @@ export function boundSequence(
     return sequence(planned);
 }
 
+export function atSequence(source: RankSequence, index: bigint): RankValue {
+    if (index < 0n) throw new RankError('sequence index must be nonnegative');
+    if (source.plan.size.kind === 'exact' && index >= source.plan.size.value) {
+        throw new RankError(`sequence index out of bounds: ${index}`);
+    }
+
+    const planned = source.plan.at?.(index);
+    if (planned !== undefined) return planned;
+
+    let current = 0n;
+    for (const value of source.plan.iterate()) {
+        if (current === index) return value;
+        current += 1n;
+    }
+    throw new RankError(`sequence index out of bounds: ${index}`);
+}
+
 export function mapSequence(
     source: RankSequence,
     name: string,

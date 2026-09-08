@@ -1,8 +1,13 @@
 rem 10001st Prime
 rem Find the 10001st prime
 
-use sequnces
+use sequences
+use io
+use cli
 
-Answer = primes take 1000
+rem One-based position in the sequence.
+option Count integer = 10001
 
+Index = Count - 1
+Answer = primes Index
 Answer print

@@ -40,7 +40,7 @@ A -1 pad 0
 ```
 
 The current direction is to avoid relying on negative indexing and use explicit
-operations such as `last A`, but this is not yet fully fixed.
+operations such as `A last`, but this is not yet fully fixed.
 
 ## Join variants
 

@@ -25,6 +25,7 @@ import { RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import { parse } from './parser.js';
 import {
+    atSequence,
     boundSequence,
     filterSequence,
     mapSequence,
@@ -637,6 +638,9 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[]): RankValue {
+    if (values.length === 2 && isRankSequence(values[0]) && typeof values[1] === 'bigint') {
+        return atSequence(values[0], values[1]);
+    }
     if (values.length === 2 && isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
         const [source, selector] = values;
         if (selector.source !== source) {
@@ -661,6 +665,7 @@ function applySelectors(values: RankValue[]): RankValue {
 
 function canApplySelectors(values: RankValue[]): boolean {
     if (values.length !== 2) return false;
+    if (isRankSequence(values[0]) && typeof values[1] === 'bigint') return true;
     if (isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
         return values[0] === values[1].source;
     }

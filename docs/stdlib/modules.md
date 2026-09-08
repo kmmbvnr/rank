@@ -86,6 +86,15 @@ primes
 fibonacci
 ```
 
+Both are infinite lazy sources until bounded. `primes` yields ascending prime
+integers beginning with `2`, supports `to` and `until`, and may seek to a
+zero-based position through normal sequence addressing:
+
+```rank
+BelowTwenty = primes until 20
+SixthPrime = primes 5
+```
+
 ## Tables
 
 Includes concepts such as:

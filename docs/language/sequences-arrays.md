@@ -22,6 +22,14 @@ source, `to` includes the boundary and `until` excludes it:
 Fib = fibonacci to 100
 ```
 
+`primes` starts with `2 3 5 7 11 ...`. It is infinite until bounded with `to`
+or `until`, and supports ordinary zero-based sequence addressing:
+
+```rank
+BelowTwenty = primes until 20
+SixthPrime = primes 5
+```
+
 Sequence sources may accept bounds, filters and reductions in their own plan.
 For example, applying an `even` mask to `fibonacci` allows the source to produce
 only `2 8 34 ...`. A source that has no specialized implementation uses the

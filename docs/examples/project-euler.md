@@ -100,3 +100,20 @@ Answer = SquareOfSum - SumOfSquares
 Elementwise multiplication preserves the lazy range shape, and each `sum`
 consumes only its own plan. With an upper boundary of `10`, the result is
 `2640`.
+
+## 7. 10001st prime
+
+```rank
+rem Project Euler 7
+
+use sequences
+
+option Count integer = 10001
+
+Index = Count - 1
+Answer = primes Index
+```
+
+`Count` is one-based because that is how the task states the position. Rank
+sequence addressing is zero-based, so the program names the conversion before
+addressing the lazy `primes` source. With `Count = 6`, the result is `13`.

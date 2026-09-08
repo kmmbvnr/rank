@@ -437,6 +437,22 @@ The fundamental selection model is:
 value + selector -> value
 ```
 
+## Sequence indexing
+
+An integer selector addresses a sequence by its zero-based position:
+
+```rank
+First = Sequence 0
+SixthPrime = primes 5
+```
+
+Indices must be nonnegative. Addressing past the end of a finite sequence is an
+error.
+
+Addressing stays lazy. A sequence source may calculate or seek to an element
+through its own plan. Otherwise the general implementation iterates only far
+enough to reach the requested position.
+
 ## Mathematical compact indexing
 
 For compact mathematical code, a capital letter followed by lowercase indices
@@ -699,6 +715,14 @@ source, `to` includes the boundary and `until` excludes it:
 
 ```rank
 Fib = fibonacci to 100
+```
+
+`primes` starts with `2 3 5 7 11 ...`. It is infinite until bounded with `to`
+or `until`, and supports ordinary zero-based sequence addressing:
+
+```rank
+BelowTwenty = primes until 20
+SixthPrime = primes 5
 ```
 
 Sequence sources may accept bounds, filters and reductions in their own plan.
@@ -1337,6 +1361,15 @@ primes
 fibonacci
 ```
 
+Both are infinite lazy sources until bounded. `primes` yields ascending prime
+integers beginning with `2`, supports `to` and `until`, and may seek to a
+zero-based position through normal sequence addressing:
+
+```rank
+BelowTwenty = primes until 20
+SixthPrime = primes 5
+```
+
 ## Tables
 
 Includes concepts such as:
@@ -1496,6 +1529,23 @@ Answer = SquareOfSum - SumOfSquares
 Elementwise multiplication preserves the lazy range shape, and each `sum`
 consumes only its own plan. With an upper boundary of `10`, the result is
 `2640`.
+
+## 7. 10001st prime
+
+```rank
+rem Project Euler 7
+
+use sequences
+
+option Count integer = 10001
+
+Index = Count - 1
+Answer = primes Index
+```
+
+`Count` is one-based because that is how the task states the position. Rank
+sequence addressing is zero-based, so the program names the conversion before
+addressing the lazy `primes` source. With `Count = 6`, the result is `13`.
 
 ---
 
@@ -1869,7 +1919,7 @@ A -1 pad 0
 ```
 
 The current direction is to avoid relying on negative indexing and use explicit
-operations such as `last A`, but this is not yet fully fixed.
+operations such as `A last`, but this is not yet fully fixed.
 
 ## Join variants
 

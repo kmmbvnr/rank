@@ -9,6 +9,7 @@ interface Boundary {
 
 export const sequencesModule: RuntimeModule = {
     fibonacci: () => sequence(fibonacciPlan()),
+    primes: () => sequence(primePlan()),
 };
 
 function fibonacciPlan(boundary?: Boundary, evenOnly = false): SequencePlan {
@@ -52,4 +53,41 @@ function fibonacciSize(boundary: Boundary, evenOnly: boolean): bigint {
             : [next, current + next];
     }
     return count;
+}
+
+function primePlan(boundary?: Boundary): SequencePlan {
+    return {
+        name: 'primes',
+        size: boundary ? { kind: 'unknown' } : { kind: 'infinite' },
+        iterate: () => primeIterator(boundary),
+        at(index) {
+            let current = 0n;
+            for (const value of primeIterator(boundary)) {
+                if (current === index) return value;
+                current += 1n;
+            }
+            return undefined;
+        },
+        withUpperBound(limit, inclusive) {
+            return primePlan({ limit, inclusive });
+        },
+    };
+}
+
+function* primeIterator(boundary?: Boundary): IterableIterator<bigint> {
+    const found: bigint[] = [];
+    for (let candidate = 2n; !boundary || within(candidate, boundary); candidate += 1n) {
+        if (isPrime(candidate, found)) {
+            found.push(candidate);
+            yield candidate;
+        }
+    }
+}
+
+function isPrime(candidate: bigint, smallerPrimes: readonly bigint[]): boolean {
+    for (const prime of smallerPrimes) {
+        if (prime * prime > candidate) return true;
+        if (candidate % prime === 0n) return false;
+    }
+    return true;
 }

@@ -74,6 +74,15 @@ describe('Rank interpreter', () => {
             .toThrowError('sum requires a bounded sequence');
     });
 
+    it('indexes and bounds lazy prime sequences', () => {
+        expect(run('use sequences\nprimes 5')).toBe('13');
+        expect(run('use sequences\nprimes until 20')).toBe('2 3 5 7 11 13 17 19');
+        expect(() => run('use sequences\nprimes (-1)'))
+            .toThrowError('sequence index must be nonnegative');
+        expect(() => run('use sequences\n(primes until 10) 4'))
+            .toThrowError('sequence index out of bounds: 4');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');

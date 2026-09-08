@@ -26,6 +26,22 @@ The fundamental selection model is:
 value + selector -> value
 ```
 
+## Sequence indexing
+
+An integer selector addresses a sequence by its zero-based position:
+
+```rank
+First = Sequence 0
+SixthPrime = primes 5
+```
+
+Indices must be nonnegative. Addressing past the end of a finite sequence is an
+error.
+
+Addressing stays lazy. A sequence source may calculate or seek to an element
+through its own plan. Otherwise the general implementation iterates only far
+enough to reach the requested position.
+
 ## Mathematical compact indexing
 
 For compact mathematical code, a capital letter followed by lowercase indices
