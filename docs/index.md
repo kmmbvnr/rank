@@ -46,6 +46,8 @@ Adults = Data Mask
 ## Current sections
 
 - [Lexical syntax](language/lexical-syntax.md)
+- [Modules, programs and inputs](language/modules-programs.md)
+- [Testing](language/testing.md)
 - [Values and addressing](language/values-addressing.md)
 - [Control flow and functions](language/control-functions.md)
 - [Sequences and arrays](language/sequences-arrays.md)

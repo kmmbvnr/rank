@@ -62,4 +62,67 @@ describe('Rank interpreter', () => {
         expect(formatValue(interpreter.execute('use io\nprint 42')!)).toBe('42');
         expect(lines).toEqual(['42']);
     });
+
+    it('resolves program inputs as workspace, args, then default', () => {
+        const source = 'use cli\noption Limit integer = 1000\nLimit';
+        expect(new Interpreter(undefined, { args: ['--limit', '20'] }).execute(source)).toBe(20n);
+
+        const interpreter = new Interpreter(undefined, { args: ['--limit', '20'] });
+        interpreter.variables.set('Limit', 10n);
+        expect(interpreter.execute(source)).toBe(10n);
+        expect(run(source)).toBe('1000');
+    });
+
+    it('loads an open program and runs it in the current workspace', () => {
+        const interpreter = new Interpreter(undefined, {
+            sourceId: '/tests/example_test.ra',
+            loadModule: specifier => ({
+                id: `/tests/${specifier}.ra`,
+                source: 'use cli\noption Limit integer = 1000\nAnswer = Limit + 1',
+            }),
+        });
+        expect(interpreter.execute('use "worker"\nLimit = 10\nrun\nAnswer')).toBe(11n);
+    });
+
+    it('runs a program through an explicit module alias', () => {
+        const interpreter = new Interpreter(undefined, {
+            loadModule: specifier => ({
+                id: specifier,
+                source: 'use cli\noption Limit integer = 1000\nAnswer = Limit + 1',
+            }),
+        });
+        expect(interpreter.execute('use "worker" as W\nW.Limit = 20\nW.run\nW.Answer')).toBe(21n);
+    });
+
+    it('executes isolated Rank test blocks', () => {
+        const interpreter = new Interpreter(undefined, {
+            sourceId: '/tests/worker_test.ra',
+            testing: true,
+            loadModule: specifier => ({
+                id: `/tests/${specifier}.ra`,
+                source: 'use cli\noption Limit integer = 1000\nAnswer = Limit + 1',
+            }),
+        });
+        interpreter.execute([
+            'use testing',
+            'test "workspace input"',
+            '  use "worker"',
+            '  Limit = 10',
+            '  run',
+            '  Answer equal 11',
+            'end',
+            'test "false result"',
+            '  1 equal 2',
+            'end',
+        ].join('\n'));
+        expect(interpreter.testResults).toEqual([
+            { name: 'workspace input', passed: true, output: [] },
+            {
+                name: 'false result',
+                passed: false,
+                output: [],
+                error: 'boolean test expression evaluated to false',
+            },
+        ]);
+    });
 });

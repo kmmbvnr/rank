@@ -10,14 +10,42 @@ entry Program:
 
 Statement:
     UseStatement |
+    RunStatement |
+    OptionStatement |
+    ArgumentStatement |
+    FlagStatement |
+    ArgsStatement |
+    TestStatement |
     AssignmentStatement |
     ExpressionStatement;
 
 UseStatement:
-    'use' module=WORD;
+    'use' (module=WORD | path=STRING ('as' alias=Identifier)?);
+
+RunStatement:
+    'run' path=STRING?;
+
+OptionStatement:
+    'option' name=VARIABLE valueType=WORD (many?='many')?
+    ('=' defaultValue=Expression)?;
+
+ArgumentStatement:
+    'argument' name=VARIABLE valueType=WORD (many?='many')?
+    ('=' defaultValue=Expression)?;
+
+FlagStatement:
+    'flag' name=VARIABLE ('=' defaultValue=BooleanValue)?;
+
+ArgsStatement:
+    'args' values+=PrimaryExpression+;
+
+TestStatement:
+    'test' description=STRING NL+
+    (statements+=Statement (NL+ statements+=Statement)*)?
+    NL* 'end';
 
 AssignmentStatement:
-    name=VARIABLE operator=AssignmentOperator value=Expression;
+    name=AssignableName operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '/=' | '%=' |
@@ -103,7 +131,7 @@ LabelLiteral:
     '.' name=Identifier;
 
 NameExpression:
-    name=Identifier;
+    name=ReferenceName;
 
 ParenthesizedExpression:
     '(' value=Expression ')';
@@ -111,9 +139,16 @@ ParenthesizedExpression:
 Identifier returns string:
     VARIABLE | WORD;
 
+AssignableName returns string:
+    VARIABLE | QUALIFIED_NAME;
+
+ReferenceName returns string:
+    VARIABLE | WORD | QUALIFIED_NAME;
+
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
+terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
 terminal INTEGER returns bigint: /[0-9]+/;

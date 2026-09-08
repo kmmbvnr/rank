@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "001_multiples"
+  run
+
+  Answer equal 233168
+end
+
+test "workspace input"
+  use "001_multiples"
+  Limit = 10
+  run
+
+  Answer equal 23
+end
+
+test "argument input"
+  use "001_multiples"
+  args "--limit" "10"
+  run
+
+  Answer equal 23
+end

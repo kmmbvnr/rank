@@ -31,8 +31,23 @@ rank> (1 to 5) sum
 15
 ```
 
-Run a file with `npm run rank -- program.ra`. Run all grammar and interpreter
-tests with `npm test`.
+Run a file with `npm run rank -- program.ra`. Program inputs follow the file
+name:
+
+```console
+npm run rank -- demos/euler/001_multiples.ra
+npm run rank -- demos/euler/001_multiples.ra --limit 10
+```
+
+Run Rank test files directly or discover every `_test.ra` file below a
+directory:
+
+```console
+npm run rank -- test demos/euler/001_multiples_test.ra
+npm run rank -- test demos/euler
+```
+
+Run all grammar and interpreter tests with `npm test`.
 
 ## Architecture
 

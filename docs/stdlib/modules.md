@@ -22,6 +22,11 @@ use sequences
 
 These names are organizational and may still be consolidated.
 
+Each module owns its vocabulary, semantic handlers, validators and execution
+planner rules. Common operations normally fit the stable application grammar
+and do not add parser productions. Syntax extensions are combined before parser
+construction and are then enabled semantically by the corresponding `use`.
+
 ## Numbers
 
 Candidate reusable operations:

@@ -4,8 +4,12 @@ rem Sum multiples of 3 or 5 below 1000
 use ranges
 use numbers
 use io
+use cli
 
-N = 1 until 1000
+rem Upper boundary, excluded.
+option Limit integer = 1000
+
+N = 1 until Limit
 
 Mask = N multiple by 3
 Mask or= N multiple by 5

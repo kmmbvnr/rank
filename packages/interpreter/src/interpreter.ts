@@ -1,51 +1,116 @@
 import {
+    isArgsStatement,
+    isArgumentStatement,
     isApplicationExpression,
     isAssignmentStatement,
     isBinaryExpression,
     isBooleanLiteral,
     isExpressionStatement,
+    isFlagStatement,
     isLabelLiteral,
     isNameExpression,
     isNumberLiteral,
+    isOptionStatement,
     isParenthesizedExpression,
+    isRunStatement,
     isStringLiteral,
+    isTestStatement,
     isUnaryExpression,
     isUseStatement,
     type Expression,
     type Program,
+    type Statement,
 } from 'rank-language';
 import { RankError } from './errors.js';
+import { standardModules } from './modules/index.js';
 import { parse } from './parser.js';
 import {
     formatValue,
     isNativeFunction,
     isRankArray,
-    type NativeFunction,
     type RankArray,
     type RankValue,
 } from './value.js';
 
 type Output = (text: string) => void;
 
+export interface LoadedModule {
+    readonly id: string;
+    readonly source: string;
+}
+
+export interface InterpreterOptions {
+    readonly args?: readonly string[];
+    readonly sourceId?: string;
+    readonly testing?: boolean;
+    readonly loadModule?: (specifier: string, fromId?: string) => LoadedModule;
+}
+
+export interface RankTestResult {
+    readonly name: string;
+    readonly passed: boolean;
+    readonly output: readonly string[];
+    readonly error?: string;
+}
+
+interface LoadedProgram {
+    readonly id: string;
+    readonly program: Program;
+}
+
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
     readonly modules = new Set<string>();
+    readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
+    private readonly options: InterpreterOptions;
+    private readonly openPrograms = new Map<string, LoadedProgram>();
+    private readonly aliases = new Map<string, Interpreter>();
+    private currentRunTarget: LoadedProgram | undefined;
+    private pendingArgs: string[] | undefined;
+    private loadedProgram: LoadedProgram | undefined;
 
-    constructor(output: Output = console.log) {
+    constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
+        this.options = options;
     }
 
     execute(source: string): RankValue | undefined {
-        return this.executeProgram(parse(source));
+        const program = parse(source);
+        this.loadedProgram = {
+            id: this.options.sourceId ?? '<input>',
+            program,
+        };
+        return this.executeProgram(program, this.options.args ?? []);
     }
 
-    executeProgram(program: Program): RankValue | undefined {
+    executeProgram(
+        program: Program,
+        args: readonly string[] = [],
+        assertBooleanExpressions = false,
+    ): RankValue | undefined {
+        this.prepareInputs(program, args);
         let result: RankValue | undefined;
 
         for (const statement of program.statements) {
             if (isUseStatement(statement)) {
-                this.use(statement.module);
+                if (statement.path !== undefined) {
+                    this.useFile(statement.path, statement.alias);
+                } else {
+                    this.useStandard(statement.module!);
+                }
+                result = undefined;
+            } else if (isRunStatement(statement)) {
+                result = this.run(statement.path);
+            } else if (isArgsStatement(statement)) {
+                this.pendingArgs = statement.values.map(value => formatValue(this.evaluate(value)));
+                result = undefined;
+            } else if (isOptionStatement(statement)
+                || isArgumentStatement(statement)
+                || isFlagStatement(statement)) {
+                result = undefined;
+            } else if (isTestStatement(statement)) {
+                this.executeTest(statement.description, statement.statements);
                 result = undefined;
             } else if (isAssignmentStatement(statement)) {
                 if (statement.operator === '=') {
@@ -59,9 +124,16 @@ export class Interpreter {
                         right,
                     );
                 }
-                this.variables.set(statement.name, result);
+                this.assign(statement.name, result);
             } else if (isExpressionStatement(statement)) {
-                result = this.evaluate(statement.value);
+                if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
+                    result = this.runAlias(statement.value.name.slice(0, -4));
+                } else {
+                    result = this.evaluate(statement.value);
+                    if (assertBooleanExpressions && typeof result === 'boolean' && !result) {
+                        throw new RankError('boolean test expression evaluated to false');
+                    }
+                }
             }
         }
 
@@ -104,21 +176,186 @@ export class Interpreter {
         throw new RankError(`cannot evaluate ${expression.$type}`);
     }
 
-    private use(module: string): void {
-        if (!(module in modules)) {
+    private useStandard(module: string): void {
+        if (!(module in standardModules)) {
             throw new RankError(`unknown module: ${module}`);
         }
         this.modules.add(module);
     }
 
+    private useFile(specifier: string, alias?: string): LoadedProgram {
+        const loaded = this.load(specifier);
+        if (alias) {
+            if (this.aliases.has(alias) || this.variables.has(alias)) {
+                throw new RankError(`name already defined: ${alias}`);
+            }
+            const child = new Interpreter(this.output, {
+                loadModule: this.options.loadModule,
+                sourceId: loaded.id,
+            });
+            child.loadedProgram = loaded;
+            this.aliases.set(alias, child);
+        } else {
+            this.currentRunTarget = loaded;
+        }
+        return loaded;
+    }
+
+    private load(specifier: string): LoadedProgram {
+        const cached = this.openPrograms.get(specifier);
+        if (cached) return cached;
+        if (!this.options.loadModule) {
+            throw new RankError(`cannot load module without a loader: ${specifier}`);
+        }
+        const source = this.options.loadModule(specifier, this.options.sourceId);
+        const loaded = { id: source.id, program: parse(source.source) };
+        this.openPrograms.set(specifier, loaded);
+        return loaded;
+    }
+
+    private run(specifier?: string): RankValue | undefined {
+        const target = specifier ? this.useFile(specifier) : this.currentRunTarget;
+        if (!target) {
+            throw new RankError('run requires a previously used program or a file name');
+        }
+        const args = this.pendingArgs ?? [];
+        this.pendingArgs = undefined;
+        const previous = this.currentRunTarget;
+        try {
+            return this.executeProgram(target.program, args);
+        } finally {
+            this.currentRunTarget = previous;
+        }
+    }
+
+    private runAlias(alias: string): RankValue | undefined {
+        const child = this.aliases.get(alias);
+        if (!child?.loadedProgram) {
+            throw new RankError(`unknown module alias: ${alias}`);
+        }
+        return child.executeProgram(child.loadedProgram.program);
+    }
+
+    private executeTest(name: string, statements: Statement[]): void {
+        if (!this.options.testing && !this.modules.has('testing')) {
+            throw new RankError('test requires: use testing');
+        }
+        const output: string[] = [];
+        const test = new Interpreter(line => output.push(line), {
+            loadModule: this.options.loadModule,
+            sourceId: this.options.sourceId,
+            testing: true,
+        });
+        test.modules.add('testing');
+        const program = { $type: 'Program' as const, statements } as Program;
+        try {
+            test.executeProgram(program, [], true);
+            this.testResults.push({ name, passed: true, output });
+        } catch (error) {
+            this.testResults.push({
+                name,
+                passed: false,
+                output,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
+
+    private prepareInputs(program: Program, args: readonly string[]): void {
+        const declarations = program.statements.filter(statement =>
+            isOptionStatement(statement) || isArgumentStatement(statement) || isFlagStatement(statement));
+        if (declarations.length === 0) {
+            if (args.length > 0) throw new RankError(`unexpected arguments: ${args.join(' ')}`);
+            return;
+        }
+
+        const parsed = parseArguments(args);
+        let positionalIndex = 0;
+        const knownOptions = new Set<string>();
+        for (const declaration of declarations) {
+            if (isOptionStatement(declaration)) {
+                const optionName = kebabCase(declaration.name);
+                knownOptions.add(optionName);
+                const supplied = parsed.options.get(optionName);
+                if (this.variables.has(declaration.name)) {
+                    this.validateInput(declaration.name, declaration.valueType, declaration.many);
+                } else if (supplied) {
+                    this.variables.set(
+                        declaration.name,
+                        inputValues(supplied, declaration.valueType, declaration.many),
+                    );
+                } else if (declaration.defaultValue) {
+                    this.variables.set(declaration.name, this.evaluate(declaration.defaultValue));
+                    this.validateInput(declaration.name, declaration.valueType, declaration.many);
+                } else {
+                    throw new RankError(`missing option: --${optionName}`);
+                }
+            } else if (isArgumentStatement(declaration)) {
+                if (this.variables.has(declaration.name)) {
+                    this.validateInput(declaration.name, declaration.valueType, declaration.many);
+                    continue;
+                }
+                const values = declaration.many
+                    ? parsed.positionals.slice(positionalIndex)
+                    : parsed.positionals.slice(positionalIndex, positionalIndex + 1);
+                positionalIndex += values.length;
+                if (values.length > 0) {
+                    this.variables.set(
+                        declaration.name,
+                        inputValues(values, declaration.valueType, declaration.many),
+                    );
+                } else if (declaration.defaultValue) {
+                    this.variables.set(declaration.name, this.evaluate(declaration.defaultValue));
+                    this.validateInput(declaration.name, declaration.valueType, declaration.many);
+                } else {
+                    throw new RankError(`missing argument: ${declaration.name}`);
+                }
+            } else {
+                const optionName = kebabCase(declaration.name);
+                knownOptions.add(optionName);
+                const supplied = parsed.options.get(optionName);
+                if (this.variables.has(declaration.name)) {
+                    this.validateInput(declaration.name, 'boolean', false);
+                } else if (supplied) {
+                    this.variables.set(declaration.name, true);
+                } else {
+                    this.variables.set(declaration.name, declaration.defaultValue ?? false);
+                }
+            }
+        }
+
+        const unknown = [...parsed.options.keys()].filter(name => !knownOptions.has(name));
+        if (unknown.length > 0) throw new RankError(`unknown option: --${unknown[0]}`);
+        if (positionalIndex < parsed.positionals.length) {
+            throw new RankError(`unexpected argument: ${parsed.positionals[positionalIndex]}`);
+        }
+    }
+
+    private validateInput(name: string, valueType: string, many: boolean): void {
+        const value = this.variables.get(name)!;
+        const values = many && isRankArray(value) ? value.items : [value];
+        if (many && !isRankArray(value)) {
+            throw new RankError(`${name} expects multiple ${valueType} values`);
+        }
+        for (const item of values) validateInputValue(name, valueType, item);
+    }
+
     private resolve(name: string): RankValue {
+        const qualified = splitQualified(name);
+        if (qualified) {
+            const [alias, member] = qualified;
+            const child = this.aliases.get(alias);
+            if (!child) throw new RankError(`unknown module alias: ${alias}`);
+            if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
+            return child.resolveVariable(member);
+        }
         const variable = this.variables.get(name);
         if (variable !== undefined) {
             return variable;
         }
 
         for (const module of this.modules) {
-            const fn = modules[module]?.[name];
+            const fn = standardModules[module]?.[name];
             if (fn) {
                 return fn(this.output);
             }
@@ -128,11 +365,30 @@ export class Interpreter {
     }
 
     private resolveVariable(name: string): RankValue {
+        const qualified = splitQualified(name);
+        if (qualified) {
+            const [alias, member] = qualified;
+            const child = this.aliases.get(alias);
+            if (!child) throw new RankError(`unknown module alias: ${alias}`);
+            return child.resolveVariable(member);
+        }
         const value = this.variables.get(name);
         if (value === undefined) {
             throw new RankError(`unknown variable: ${name}`);
         }
         return value;
+    }
+
+    private assign(name: string, value: RankValue): void {
+        const qualified = splitQualified(name);
+        if (!qualified) {
+            this.variables.set(name, value);
+            return;
+        }
+        const [alias, member] = qualified;
+        const child = this.aliases.get(alias);
+        if (!child) throw new RankError(`unknown module alias: ${alias}`);
+        child.variables.set(member, value);
     }
 
     private apply(values: RankValue[]): RankValue {
@@ -220,38 +476,78 @@ export class Interpreter {
     }
 }
 
-type ModuleFactory = Record<string, (output: Output) => NativeFunction>;
+interface ParsedArguments {
+    readonly options: Map<string, string[]>;
+    readonly positionals: string[];
+}
 
-const modules: Record<string, ModuleFactory> = {
-    io: {
-        print: output => native('print', 1, arguments_ => {
-            output(formatValue(arguments_[0]));
-            return arguments_[0];
-        }),
-    },
-    numbers: {
-        sum: () => native('sum', 1, arguments_ => {
-            const value = arguments_[0];
-            const items = isRankArray(value) ? value.items : [value];
-            return items.reduce<bigint>((total, item) => total + expectInteger(item), 0n);
-        }),
-        odd: () => native('odd', 1, arguments_ => mapValue(arguments_[0], value => expectInteger(value) % 2n !== 0n)),
-        even: () => native('even', 1, arguments_ => mapValue(arguments_[0], value => expectInteger(value) % 2n === 0n)),
-    },
-    ranges: {},
-};
+function parseArguments(args: readonly string[]): ParsedArguments {
+    const options = new Map<string, string[]>();
+    const positionals: string[] = [];
+    for (let index = 0; index < args.length; index += 1) {
+        const argument = args[index];
+        if (argument === '--') {
+            positionals.push(...args.slice(index + 1));
+            break;
+        }
+        if (!argument.startsWith('--')) {
+            positionals.push(argument);
+            continue;
+        }
+        const equals = argument.indexOf('=');
+        const name = argument.slice(2, equals < 0 ? undefined : equals);
+        if (!name) throw new RankError('empty option name');
+        let value = equals < 0 ? undefined : argument.slice(equals + 1);
+        if (value === undefined && args[index + 1] !== undefined && !args[index + 1].startsWith('--')) {
+            value = args[index + 1];
+            index += 1;
+        }
+        const values = options.get(name) ?? [];
+        values.push(value ?? 'true');
+        options.set(name, values);
+    }
+    return { options, positionals };
+}
 
-function native(name: string, arity: number, call: (arguments_: RankValue[]) => RankValue): NativeFunction {
-    return {
-        kind: 'function',
-        name,
-        call(arguments_) {
-            if (arguments_.length !== arity) {
-                throw new RankError(`${name} expects ${arity} argument, got ${arguments_.length}`);
-            }
-            return call(arguments_);
-        },
-    };
+function inputValues(values: string[], valueType: string, many: boolean): RankValue {
+    const converted = values.map(value => parseInputValue(valueType, value));
+    return many ? array(converted) : converted.at(-1)!;
+}
+
+function parseInputValue(valueType: string, value: string): RankValue {
+    if (valueType === 'integer') {
+        try {
+            return BigInt(value);
+        } catch {
+            throw new RankError(`expected integer input, got: ${value}`);
+        }
+    }
+    if (valueType === 'text' || valueType === 'path') return value;
+    if (valueType === 'boolean') {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        throw new RankError(`expected boolean input, got: ${value}`);
+    }
+    throw new RankError(`unknown input type: ${valueType}`);
+}
+
+function validateInputValue(name: string, valueType: string, value: RankValue): void {
+    if (valueType === 'integer' && typeof value === 'bigint') return;
+    if ((valueType === 'text' || valueType === 'path') && typeof value === 'string') return;
+    if (valueType === 'boolean' && typeof value === 'boolean') return;
+    if (!['integer', 'text', 'path', 'boolean'].includes(valueType)) {
+        throw new RankError(`unknown input type: ${valueType}`);
+    }
+    throw new RankError(`${name} expects ${valueType}, got ${typeName(value)}`);
+}
+
+function kebabCase(name: string): string {
+    return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+function splitQualified(name: string): [string, string] | undefined {
+    const dot = name.indexOf('.');
+    return dot < 0 ? undefined : [name.slice(0, dot), name.slice(dot + 1)];
 }
 
 function array(items: RankValue[]): RankArray {
@@ -266,10 +562,6 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean): RankArray {
         items.push(value);
     }
     return array(items);
-}
-
-function mapValue(value: RankValue, operation: (scalar: RankValue) => RankValue): RankValue {
-    return isRankArray(value) ? array(value.items.map(operation)) : operation(value);
 }
 
 function applySelectors(values: RankValue[]): RankValue {

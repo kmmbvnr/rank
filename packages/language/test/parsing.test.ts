@@ -35,4 +35,30 @@ describe('Rank grammar', () => {
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
+
+    it('parses program imports, options, runs and tests', async () => {
+        const document = await parse([
+            'use testing',
+            'test "limit 10"',
+            '  use "001_multiples" as E',
+            '  E.Limit = 10',
+            '  E.run',
+            '  E.Answer equal 23',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
+    it('parses open imports and input declarations', async () => {
+        const document = await parse([
+            'use "worker"',
+            'option Limit integer = 1000',
+            'args "--limit" "10"',
+            'run "worker"',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+    });
 });
