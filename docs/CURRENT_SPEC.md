@@ -769,6 +769,54 @@ A lazy sequence carries one of three size states:
 Requesting the shape of an `unknown` finite sequence is a demand point and may
 iterate it. Requesting a finite shape from an `infinite` sequence is an error.
 
+## Array construction
+
+`array` is the common constructor for rectangular arrays of every rank. A
+rank-1 array is a vector, a rank-2 array is a matrix, and arrays of rank 3 or
+higher are tensors.
+
+A vector is written on one line. Every value after `array` is an element, so
+the constructor remains unambiguous beside Rank's whitespace-based addressing:
+
+```rank
+A = array 2 7 11 15
+Pair = array J i
+```
+
+Multidimensional arrays use a block. `shape` is followed by the dimensions,
+then the elements are supplied in row-major order:
+
+```rank
+M = array shape 2 3
+  1 2 3
+  4 5 6
+end
+```
+
+The same form works for any number of dimensions:
+
+```rank
+T = array shape 2 2 2
+  1 2 3 4
+  5 6 7 8
+end
+```
+
+Dimensions are nonnegative integers. The number of elements must equal the
+product of the dimensions. Line breaks inside the block are formatting only;
+they do not add an axis or change the declared shape.
+
+Array addressing uses one zero-based index per axis:
+
+```rank
+X = A i
+Y = M i j
+Z = T i j k
+```
+
+The compact mathematical forms `Ai`, `Mij`, and `Tijk` have the same addressing
+meaning where their names follow Rank's compact-index convention.
+
 ## Selection with boolean masks
 
 Selection uses Rank's normal addressing model.
