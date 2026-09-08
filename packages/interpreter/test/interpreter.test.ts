@@ -125,6 +125,29 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('2');
     });
 
+    it('uses for as a condition-controlled loop', () => {
+        expect(run([
+            'Count = 0',
+            'Total = 0',
+            'for Count less 4',
+            '  Total += Count',
+            '  Count += 1',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('6');
+    });
+
+    it('uses bare for as an unconditional loop', () => {
+        expect(run([
+            'fun repeat_once Value',
+            '  for',
+            '    return Value',
+            '  end',
+            'end',
+            '7 repeat_once',
+        ].join('\n'))).toBe('7');
+    });
+
     it('calls user functions with local indexes and returns arrays', () => {
         expect(run([
             'use algo',

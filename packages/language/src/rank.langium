@@ -66,7 +66,7 @@ IfStatement:
     'end';
 
 ForStatement:
-    'for' variable=Identifier 'in' iterable=Expression NL+
+    'for' condition=Expression? NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 

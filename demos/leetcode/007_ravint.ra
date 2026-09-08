@@ -19,7 +19,7 @@ fun reverse X
     Limit = 2147483648
   end
 
-  while X greater 0
+  for X greater 0
     Digit = X % 10
     X = X / 10
 

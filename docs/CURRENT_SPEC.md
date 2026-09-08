@@ -80,7 +80,6 @@ Standard language words are lowercase:
 
 ```rank
 for
-while
 sum
 queue
 index
@@ -635,19 +634,10 @@ else
 end
 ```
 
-## While
-
-```rank
-while B not equal 0
-    R = A % B
-    A = B
-    B = R
-end
-```
-
 ## For
 
-Ranges and sequences are ordinary iterable values:
+Rank uses one `for` statement for every kind of loop. Ranges and sequences are
+ordinary iterable values:
 
 ```rank
 for i in 1 to 10
@@ -658,6 +648,33 @@ end
 The loop variable is an ordinary name in the current workspace. Each iteration
 assigns the next value to it; after a nonempty loop it retains the last value,
 following Rank's BASIC-like workspace model.
+
+A condition after `for` is evaluated before every iteration:
+
+```rank
+for B not equal 0
+    R = A % B
+    A = B
+    B = R
+end
+```
+
+A bare `for` repeats without a condition until control leaves its body:
+
+```rank
+for
+    Count += 1
+end
+```
+
+The unparenthesized form `for X in A` is always iteration. Parentheses make a
+membership expression a loop condition when that distinction is needed:
+
+```rank
+for (X in index)
+    ...
+end
+```
 
 Mathematical value/index binding:
 
@@ -671,7 +688,7 @@ end
 
 ```rank
 fun gcd A B
-    while B not equal 0
+    for B not equal 0
         R = A % B
         A = B
         B = R
@@ -1794,7 +1811,7 @@ fun palindrome X
 
     Back = 0
 
-    while X greater Back
+    for X greater Back
         Digit = X % 10
         X = X / 10
 

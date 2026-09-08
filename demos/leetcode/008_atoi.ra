@@ -8,7 +8,7 @@ fun atoi Text
   N = len Text
   i = 0
 
-  while i less N
+  for i less N
     if Text i not equal " "
       break
     end
@@ -35,7 +35,7 @@ fun atoi Text
   Mult = Limit / 10
   Result = 0
 
-  while i less N
+  for i less N
     C = Text i
 
     if C not in "0123456789"

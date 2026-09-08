@@ -161,15 +161,23 @@ export class Interpreter {
                     : statement.elseStatements;
                 result = this.executeStatements(branch, assertBooleanExpressions);
             } else if (isForStatement(statement)) {
-                const iterable = this.evaluate(statement.iterable);
                 result = undefined;
-                let index = 0n;
-                for (const value of iterationValues(iterable)) {
-                    this.assign(statement.variable, value);
-                    const indexName = compactLoopIndex(statement.variable);
-                    if (indexName) this.assign(indexName, index);
-                    result = this.executeStatements(statement.statements, assertBooleanExpressions);
-                    index += 1n;
+                const binding = forIteration(statement.condition);
+                if (binding) {
+                    const iterable = this.evaluate(binding.iterable);
+                    let index = 0n;
+                    for (const value of iterationValues(iterable)) {
+                        this.assign(binding.variable, value);
+                        const indexName = compactLoopIndex(binding.variable);
+                        if (indexName) this.assign(indexName, index);
+                        result = this.executeStatements(statement.statements, assertBooleanExpressions);
+                        index += 1n;
+                    }
+                } else {
+                    while (!statement.condition
+                        || expectBoolean(this.evaluate(statement.condition))) {
+                        result = this.executeStatements(statement.statements, assertBooleanExpressions);
+                    }
                 }
             } else if (isIndexAssignmentStatement(statement)) {
                 const index = this.localIndex();
@@ -802,6 +810,14 @@ function splitQualified(name: string): [string, string] | undefined {
 function compactLoopIndex(name: string): string | undefined {
     const match = /^[A-Z]([a-z])$/.exec(name);
     return match?.[1];
+}
+
+function forIteration(
+    condition: Expression | undefined,
+): { readonly variable: string; readonly iterable: Expression } | undefined {
+    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in'
+        || !isNameExpression(condition.left)) return undefined;
+    return { variable: condition.left.name, iterable: condition.right };
 }
 
 function array(items: RankValue[]): RankArray {

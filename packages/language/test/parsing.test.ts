@@ -77,6 +77,20 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses conditional and infinite for blocks', async () => {
+        const document = await parse([
+            'for Count less 3',
+            '  Count += 1',
+            'end',
+            'for',
+            '  return Count',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('parses functions, array construction and keyed index assignment', async () => {
         const document = await parse([
             'fun two_sum A Target',

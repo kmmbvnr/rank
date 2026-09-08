@@ -12,7 +12,7 @@ fun longest Text
     L = i
     R = i
 
-    while L at least 0
+    for L at least 0
       if R at least N
         break
       end
@@ -32,7 +32,7 @@ fun longest Text
     L = i
     R = i + 1
 
-    while L at least 0
+    for L at least 0
       if R at least N
         break
       end

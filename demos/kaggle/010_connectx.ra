@@ -63,7 +63,7 @@ fun drop Board c Player
 
   r = Rows - 1
 
-  while r at least 0
+  for r at least 0
     if Next r c equal 0
       Next r c = Player
       return Next
@@ -137,4 +137,3 @@ fun line Board r c Dr Dc Need
 
     return true
 end
-

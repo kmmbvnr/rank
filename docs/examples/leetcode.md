@@ -66,7 +66,7 @@ fun palindrome X
 
     Back = 0
 
-    while X greater Back
+    for X greater Back
         Digit = X % 10
         X = X / 10
 

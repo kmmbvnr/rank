@@ -6,7 +6,6 @@ Standard language words are lowercase:
 
 ```rank
 for
-while
 sum
 queue
 index

@@ -14,7 +14,7 @@ fun median A B
   Low = max 0 (Half - N)
   High = min M Half
 
-  while Low at most High
+  for Low at most High
     i = Low + High
     i = i / 2
     j = Half - i
