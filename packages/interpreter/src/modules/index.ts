@@ -1,5 +1,6 @@
 import { ioModule } from './io.js';
 import { numbersModule } from './numbers.js';
+import { sequencesModule } from './sequences.js';
 import type { RuntimeModule } from './types.js';
 
 export const standardModules: Record<string, RuntimeModule> = {
@@ -7,5 +8,6 @@ export const standardModules: Record<string, RuntimeModule> = {
     io: ioModule,
     numbers: numbersModule,
     ranges: {},
+    sequences: sequencesModule,
     testing: {},
 };

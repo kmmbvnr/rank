@@ -25,11 +25,23 @@ import { RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import { parse } from './parser.js';
 import {
+    boundSequence,
+    filterSequence,
+    mapSequence,
+    sequence,
+    sequenceMask,
+    zipSequences,
+} from './sequence.js';
+import {
     formatValue,
     isNativeFunction,
     isRankArray,
+    isRankSequence,
+    isRankSequenceMask,
     type RankArray,
+    type RankSequence,
     type RankValue,
+    type SequencePredicate,
 } from './value.js';
 
 type Output = (text: string) => void;
@@ -413,6 +425,12 @@ export class Interpreter {
     }
 
     private evaluateUnary(operator: string, value: RankValue): RankValue {
+        if (operator === 'not' && isRankSequenceMask(value)) {
+            return sequenceMask(value.source, {
+                name: `not ${value.predicate.name}`,
+                test: item => !value.predicate.test(item),
+            });
+        }
         if (isRankArray(value)) {
             return array(value.items.map(item => this.evaluateUnary(operator, item)));
         }
@@ -427,11 +445,23 @@ export class Interpreter {
 
     private evaluateBinary(operator: string, left: RankValue, right: RankValue): RankValue {
         if (operator === 'to' || operator === 'until') {
+            if (isRankSequence(left)) {
+                return boundSequence(left, expectInteger(right), operator === 'to');
+            }
             this.requireModule('ranges', operator);
             return makeRange(expectInteger(left), expectInteger(right), operator === 'to');
         }
+        if (isRankSequenceMask(left) || isRankSequenceMask(right)) {
+            return this.combineSequenceMasks(operator, left, right);
+        }
+        if (isRankSequence(left) || isRankSequence(right)) {
+            if (isPredicateOperator(operator)) {
+                return this.sequenceComparison(operator, left, right);
+            }
+            return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
+        }
         if (isRankArray(left) || isRankArray(right)) {
-            return mapBinary(left, right, (a, b) => this.evaluateBinary(operator, a, b));
+            return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (operator === 'equal' || operator === 'notequal') {
             const equal = equalValues(left, right);
@@ -467,6 +497,41 @@ export class Interpreter {
             case '%': return a % b;
             default: throw new RankError(`unknown operator: ${operator}`);
         }
+    }
+
+    private sequenceComparison(operator: string, left: RankValue, right: RankValue): RankValue {
+        if (isRankSequence(left) && isRankSequence(right)) {
+            throw new RankError('comparison between two sequences is not implemented');
+        }
+        const source = isRankSequence(left) ? left : right as RankSequence;
+        const scalar = isRankSequence(left) ? right : left;
+        const predicate: SequencePredicate = {
+            name: operator,
+            test: item => expectBoolean(isRankSequence(left)
+                ? this.evaluateBinary(operator, item, scalar)
+                : this.evaluateBinary(operator, scalar, item)),
+        };
+        return sequenceMask(source, predicate);
+    }
+
+    private combineSequenceMasks(operator: string, left: RankValue, right: RankValue): RankValue {
+        if (!isRankSequenceMask(left) || !isRankSequenceMask(right)
+            || !['and', 'or', 'xor'].includes(operator)) {
+            throw new RankError(`operator ${operator} does not accept sequence masks`);
+        }
+        if (left.source !== right.source) {
+            throw new RankError('cannot combine masks from different sequences');
+        }
+        return sequenceMask(left.source, {
+            name: `${left.predicate.name} ${operator} ${right.predicate.name}`,
+            test: value => {
+                const a = left.predicate.test(value);
+                const b = right.predicate.test(value);
+                if (operator === 'and') return a && b;
+                if (operator === 'or') return a || b;
+                return a !== b;
+            },
+        });
     }
 
     private requireModule(module: string, operation: string): void {
@@ -554,19 +619,28 @@ function array(items: RankValue[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
 }
 
-function makeRange(start: bigint, end: bigint, inclusive: boolean): RankArray {
+function makeRange(start: bigint, end: bigint, inclusive: boolean): RankSequence {
     const step = start <= end ? 1n : -1n;
     const stop = inclusive ? end + step : end;
-    const items: RankValue[] = [];
-    for (let value = start; value !== stop; value += step) {
-        items.push(value);
-    }
-    return array(items);
+    return sequence({
+        name: `${start} ${inclusive ? 'to' : 'until'} ${end}`,
+        finite: true,
+        *iterate() {
+            for (let value = start; value !== stop; value += step) yield value;
+        },
+    });
 }
 
 function applySelectors(values: RankValue[]): RankValue {
+    if (values.length === 2 && isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
+        const [source, selector] = values;
+        if (selector.source !== source) {
+            throw new RankError('mask belongs to a different sequence');
+        }
+        return filterSequence(source, selector.predicate);
+    }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
-        throw new RankError('value application requires an array and one selector');
+        throw new RankError('value application requires a sequence and one selector');
     }
 
     const [source, selector] = values;
@@ -587,8 +661,18 @@ function assignmentOperator(operator: string): string {
 function mapBinary(
     left: RankValue,
     right: RankValue,
+    name: string,
     operation: (left: RankValue, right: RankValue) => RankValue,
-): RankArray {
+): RankValue {
+    if (isRankSequence(left) && isRankSequence(right)) {
+        return zipSequences(left, right, name, operation);
+    }
+    if (isRankSequence(left)) {
+        return mapSequence(left, name, item => operation(item, right));
+    }
+    if (isRankSequence(right)) {
+        return mapSequence(right, name, item => operation(left, item));
+    }
     if (isRankArray(left) && isRankArray(right)) {
         if (left.items.length !== right.items.length) {
             throw new RankError(`shape mismatch: ${left.shape} and ${right.shape}`);
@@ -597,6 +681,10 @@ function mapBinary(
     }
     const source = isRankArray(left) ? left : right as RankArray;
     return array(source.items.map(item => isRankArray(left) ? operation(item, right) : operation(left, item)));
+}
+
+function isPredicateOperator(operator: string): boolean {
+    return ['equal', 'notequal', 'less', 'greater', 'multipleby'].includes(operator);
 }
 
 function expectInteger(value: RankValue): bigint {

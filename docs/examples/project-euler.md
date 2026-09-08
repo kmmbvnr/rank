@@ -29,3 +29,21 @@ This example demonstrates:
 
 This example intentionally uses mask composition rather than the table-oriented
 source clause syntax.
+
+## 2. Even Fibonacci numbers
+
+```rank
+rem Project Euler 2
+rem Sum even Fibonacci terms <= 4e6
+
+use sequences
+use numbers
+
+Fib = fibonacci to 4000000
+Mask = Fib even
+Answer = Fib Mask sum
+```
+
+The bounded Fibonacci source stays lazy. Applying the mask pushes the standard
+`even` predicate into the source plan, which can generate only even Fibonacci
+terms before `sum` consumes them.

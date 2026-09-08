@@ -1,5 +1,6 @@
 import { RankError } from '../errors.js';
-import { isRankArray, type NativeFunction, type RankArray, type RankValue } from '../value.js';
+import { mapSequence } from '../sequence.js';
+import { isRankArray, isRankSequence, type NativeFunction, type RankArray, type RankValue } from '../value.js';
 
 export function native(
     name: string,
@@ -22,6 +23,7 @@ export function mapValue(
     value: RankValue,
     operation: (scalar: RankValue) => RankValue,
 ): RankValue {
+    if (isRankSequence(value)) return mapSequence(value, 'map', operation);
     return isRankArray(value) ? array(value.items.map(operation)) : operation(value);
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, formatValue } from '../src/index.js';
+import { Interpreter, RankError, formatValue, isRankSequence } from '../src/index.js';
 
 function run(source: string): string | undefined {
     const result = new Interpreter().execute(source);
@@ -49,6 +49,27 @@ describe('Rank interpreter', () => {
             'N Mask sum',
         ].join('\n');
         expect(run(source)).toBe('233168');
+    });
+
+    it('bounds and filters Fibonacci lazily', () => {
+        const interpreter = new Interpreter();
+        const result = interpreter.execute([
+            'use sequences',
+            'use numbers',
+            'Fib = fibonacci to 100',
+            'Mask = Fib even',
+            'Even = Fib Mask',
+            'Even sum',
+        ].join('\n'));
+        expect(formatValue(result!)).toBe('44');
+
+        const even = interpreter.variables.get('Even');
+        expect(even && isRankSequence(even) && even.plan.name).toBe('even fibonacci');
+    });
+
+    it('does not reduce an unbounded sequence', () => {
+        expect(() => run('use sequences\nuse numbers\nfibonacci sum'))
+            .toThrowError('sum requires a bounded sequence');
     });
 
     it('rejects names from modules that were not imported', () => {

@@ -1,10 +1,16 @@
 rem Even Fibonacci Numbers
 rem Sum even Fibonacci terms <= 4e6
 
-use sequence
+use sequences
+use numbers
+use io
+use cli
 
-Fib = Fibonacci from 1 to 4000000
-filter Fib even
+rem Upper boundary, included.
+option Limit integer = 4000000
 
-Sum = sum Fib
-print sum
+Fib = fibonacci to Limit
+Mask = Fib even
+
+Answer = Fib Mask sum
+print Answer

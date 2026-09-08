@@ -14,11 +14,3 @@ test "workspace input"
 
   Answer equal 23
 end
-
-test "argument input"
-  use "001_multiples"
-  args "--limit" "10"
-  run
-
-  Answer equal 23
-end

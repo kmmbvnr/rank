@@ -649,7 +649,22 @@ Primes = primes
 Fib = fibonacci to 4000000
 ```
 
-Sequences may be lazy.
+Sequences are lazy by default. Constructing, transforming or filtering a
+sequence builds a plan. A terminal operation such as `sum`, explicit
+materialization, or iteration demands values from that plan. A terminal
+operation that would consume an unbounded sequence is an error.
+
+`fibonacci` starts with `1 2 3 5 8 ...`. Applied to an ordered algorithmic
+source, `to` includes the boundary and `until` excludes it:
+
+```rank
+Fib = fibonacci to 100
+```
+
+Sequence sources may accept bounds, filters and reductions in their own plan.
+For example, applying an `even` mask to `fibonacci` allows the source to produce
+only `2 8 34 ...`. A source that has no specialized implementation uses the
+general lazy operation with the same observable result.
 
 Boundary operations such as `from`, `to` and `until` may be pushed into the
 source by the execution planner when the source can seek efficiently.
@@ -1296,6 +1311,24 @@ This example demonstrates:
 
 This example intentionally uses mask composition rather than the table-oriented
 source clause syntax.
+
+## 2. Even Fibonacci numbers
+
+```rank
+rem Project Euler 2
+rem Sum even Fibonacci terms <= 4e6
+
+use sequences
+use numbers
+
+Fib = fibonacci to 4000000
+Mask = Fib even
+Answer = Fib Mask sum
+```
+
+The bounded Fibonacci source stays lazy. Applying the mask pushes the standard
+`even` predicate into the source plan, which can generate only even Fibonacci
+terms before `sum` consumes them.
 
 ---
 
