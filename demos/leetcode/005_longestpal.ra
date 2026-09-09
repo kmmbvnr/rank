@@ -13,8 +13,7 @@ fun longest Text
 
   for C i in Text
     Best = Text i i Best expand
-    R = i + 1
-    Best = Text i R Best expand
+    Best = Text i (i + 1) Best expand
   end
 
   return Best

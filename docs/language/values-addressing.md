@@ -20,6 +20,23 @@ When the final word resolves to a function, preceding values are its data. Thus
 may use the arity and value roles registered by the imported vocabulary, but it
 does not change the parsed source structure.
 
+Function arity also separates an addressed first argument from the remaining
+arguments. The final `arity - 1` values are separate arguments; the entire
+remaining left chain forms the first argument:
+
+```rank
+Result = T i j Limit above
+rem above receives T i j, then Limit
+```
+
+Only the first argument may absorb a multi-part addressing chain. Use named
+intermediate values when several arguments require addressing. If the left
+chain cannot form one value, the call has too many arguments and is an error.
+
+For an operation supporting several arities, an exact argument count wins.
+Otherwise Rank tries larger supported arities first. This keeps a compact
+binary call such as `A B max` binary.
+
 The fundamental selection model is:
 
 ```text

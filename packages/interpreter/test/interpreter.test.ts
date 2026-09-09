@@ -398,6 +398,25 @@ describe('Rank interpreter', () => {
             .toThrowError('operation must follow its data: gcd');
     });
 
+    it('uses function arity to group an addressed first argument', () => {
+        expect(run([
+            'M = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'fun above Value Limit',
+            '  return Value greater Limit',
+            'end',
+            'M 1 0 2 above',
+        ].join('\n'))).toBe('true');
+        expect(() => run([
+            'fun add A B',
+            '  return A + B',
+            'end',
+            '1 2 3 add',
+        ].join('\n'))).toThrowError('add expects 2 arguments, got 3');
+    });
+
     it('rejects names from modules that were not imported', () => {
         expect(() => run('sum 1')).toThrowError(RankError);
         expect(() => run('sum 1')).toThrowError('unknown name: sum');

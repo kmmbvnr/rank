@@ -634,10 +634,7 @@ export class Interpreter {
             throw new RankError(`operation must follow its data: ${fn.name}`);
         }
         const receivers = values.slice(0, functionIndex);
-        const arguments_ = receivers.length > 1 && fn.arities.includes(1)
-            && canApplySelectors(receivers)
-            ? [applySelectors(receivers)]
-            : receivers;
+        const arguments_ = callArguments(fn, receivers);
         if (arguments_.length === 1 && fn.monadicRank !== 'all') {
             return this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank);
         }
@@ -1176,16 +1173,39 @@ function applySelectors(values: RankValue[]): RankValue {
     return array(source.items.filter((_, index) => selector.items[index]));
 }
 
+function callArguments(
+    fn: Extract<RankValue, { kind: 'function' }>,
+    values: RankValue[],
+): RankValue[] {
+    if (fn.arities.includes(values.length)) return values;
+
+    const arities = [...fn.arities].sort((left, right) => right - left);
+    for (const arity of arities) {
+        if (arity < 1 || values.length <= arity) continue;
+        const firstLength = values.length - arity + 1;
+        const firstParts = values.slice(0, firstLength);
+        if (!canApplySelectors(firstParts)) continue;
+        return [applySelectors(firstParts), ...values.slice(firstLength)];
+    }
+
+    return values;
+}
+
 function canApplySelectors(values: RankValue[]): boolean {
-    if (values.length !== 2) return false;
-    if (typeof values[0] === 'string' && typeof values[1] === 'bigint') return true;
-    if (typeof values[0] === 'string' && isCollectionSelector(values[1])) return true;
-    if (isRankSequence(values[0]) && typeof values[1] === 'bigint') return true;
-    if (isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
+    if (values.length < 2) return false;
+    if (values.length === 2 && typeof values[0] === 'string'
+        && typeof values[1] === 'bigint') return true;
+    if (values.length === 2 && typeof values[0] === 'string'
+        && isCollectionSelector(values[1])) return true;
+    if (values.length === 2 && isRankSequence(values[0])
+        && typeof values[1] === 'bigint') return true;
+    if (values.length === 2 && isRankSequence(values[0])
+        && isRankSequenceMask(values[1])) {
         return values[0] === values[1].source;
     }
-    if (isRankSequence(values[0]) && isIntegerCollectionSelector(values[1])) return true;
-    if (isRankArray(values[0]) && isRankArray(values[1])) {
+    if (values.length === 2 && isRankSequence(values[0])
+        && isIntegerCollectionSelector(values[1])) return true;
+    if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])) {
         return values[1].items.every(item => typeof item === 'bigint')
             || (values[0].items.length === values[1].items.length
                 && values[1].items.every(item => typeof item === 'boolean'));
