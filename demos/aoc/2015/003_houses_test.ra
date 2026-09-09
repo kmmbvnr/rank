@@ -1,0 +1,22 @@
+use testing
+
+test "one move"
+  use "003_houses"
+
+  Answer = ">" solve
+  Answer equal array 2 2
+end
+
+test "square"
+  use "003_houses"
+
+  Answer = "^>v<" solve
+  Answer equal array 4 3
+end
+
+test "alternating route"
+  use "003_houses"
+
+  Answer = "^v^v^v^v^v" solve
+  Answer equal array 2 11
+end

@@ -57,6 +57,11 @@ export interface RankQueue {
     readonly items: RankValue[];
 }
 
+export interface RankSet {
+    readonly kind: 'set';
+    readonly entries: Map<string, RankValue>;
+}
+
 export interface NativeFunction {
     readonly kind: 'function';
     readonly name: string;
@@ -101,8 +106,8 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankLabel | RankErrorValue | RankIndex | RankQueue | NativeFunction | RankSequence |
-    RankSequenceMask;
+    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | NativeFunction |
+    RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
     return typeof value === 'object' && (value.kind === 'array' || value.kind === 'bytes');
@@ -134,6 +139,10 @@ export function isRankIndex(value: RankValue): value is RankIndex {
 
 export function isRankQueue(value: RankValue): value is RankQueue {
     return typeof value === 'object' && value.kind === 'queue';
+}
+
+export function isRankSet(value: RankValue): value is RankSet {
+    return typeof value === 'object' && value.kind === 'set';
 }
 
 export function isRankSequence(value: RankValue): value is RankSequence {
@@ -179,6 +188,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'queue') {
         return value.items.map(formatValue).join(' ');
+    }
+    if (value.kind === 'set') {
+        return '<set>';
     }
     if (isRankSequenceMask(value)) {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;

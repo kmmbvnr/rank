@@ -930,6 +930,39 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('23');
     });
 
+    it('adds unique scalar and array values to a function-local set', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'fun collect X Y',
+            '  set add array 0 0',
+            '  set add array X Y',
+            '  set add array X Y',
+            '  return set len',
+            'end',
+            '2 3 collect',
+        ].join('\n'))).toBe('2');
+        expect(run([
+            'use algo',
+            'fun contains Value',
+            '  set add "Rank"',
+            '  return Value in set',
+            'end',
+            '"Rank" contains',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use algo',
+            'use sequences',
+            'fun one Value',
+            '  set add Value',
+            '  return set len',
+            'end',
+            'A = 1 one',
+            'B = 2 one',
+            'A * 10 + B',
+        ].join('\n'))).toBe('11');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');

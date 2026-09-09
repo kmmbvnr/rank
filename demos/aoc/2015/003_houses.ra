@@ -1,0 +1,96 @@
+rem Advent of Code 2015 - Day 3
+rem Perfectly Spherical Houses in a Vacuum
+rem https://adventofcode.com/2015/day/3
+
+use io
+use cli
+use algo
+use sequences
+
+argument Input path
+
+Answers = Input read solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the houses visited with one and two deliverers.
+fun solve Moves
+  Part1 = Moves houses
+  Part2 = Moves robohouses
+  return array Part1 Part2
+end
+
+
+rem Return number of houses visited by Santa.
+fun houses Moves
+  X = 0
+  Y = 0
+
+  set add array X Y
+
+  for C in Moves
+    X += C dx
+    Y += C dy
+    set add array X Y
+  end
+
+  return set len
+end
+
+
+rem Return number of houses visited by Santa and Robo-Santa.
+rem Even moves belong to Santa, odd moves to Robo-Santa.
+fun robohouses Moves
+  SantaX = 0
+  SantaY = 0
+  RoboX = 0
+  RoboY = 0
+
+  set add array 0 0
+
+  for C i in Moves
+    if i % 2 equal 0
+      SantaX += C dx
+      SantaY += C dy
+      X = SantaX
+      Y = SantaY
+    else
+      RoboX += C dx
+      RoboY += C dy
+      X = RoboX
+      Y = RoboY
+    end
+
+    set add array X Y
+  end
+
+  return set len
+end
+
+
+rem Return horizontal movement for one direction.
+fun dx C
+  if C equal ">"
+    return 1
+  end
+  if C equal "<"
+    return -1
+  end
+  return 0
+end
+
+
+rem Return vertical movement for one direction.
+fun dy C
+  if C equal "^"
+    return 1
+  end
+  if C equal "v"
+    return -1
+  end
+  return 0
+end

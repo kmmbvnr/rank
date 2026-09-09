@@ -172,8 +172,9 @@ rem Б😀A
 
 Reversal of array axes is a separate tensor operation and remains deferred.
 
-`len` from `sequences` returns the number of Unicode code points in text or the
-outer length of a finite sequence. It rejects an infinite sequence.
+`len` from `sequences` returns the number of Unicode code points in text, the
+leading-axis length of an array, the size of a queue or set, or the length of a
+finite sequence. It rejects an infinite sequence.
 
 `window` returns overlapping fixed-size cells lazily:
 

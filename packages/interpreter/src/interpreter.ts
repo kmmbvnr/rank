@@ -1,4 +1,5 @@
 import {
+    isAddStatement,
     isArrayExpression,
     isArgsStatement,
     isArgumentStatement,
@@ -37,6 +38,7 @@ import type { RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
 import { closeFile } from './modules/io.js';
 import { parse } from './parser.js';
+import { setValueKey } from './set.js';
 import {
     atSequence,
     boundSequence,
@@ -57,6 +59,7 @@ import {
     isRankIndex,
     isRankLabel,
     isRankQueue,
+    isRankSet,
     isRankSequence,
     isRankSequenceMask,
     type RankArray,
@@ -64,6 +67,7 @@ import {
     type NativeFunction,
     type RankIndex,
     type RankQueue,
+    type RankSet,
     type RankSequence,
     type RankValue,
     type SequencePredicate,
@@ -394,6 +398,11 @@ export class Interpreter {
                 if (!isRankQueue(receiver)) throw new RankError('push expects a queue receiver');
                 receiver.items.push(this.evaluate(statement.value));
                 result = undefined;
+            } else if (isAddStatement(statement)) {
+                const receiver = this.localSet();
+                const value = this.evaluate(statement.value);
+                receiver.entries.set(setValueKey(value), value);
+                result = undefined;
             } else if (isIndexAssignmentStatement(statement)) {
                 const index = this.localIndex();
                 const keys = statement.keys.map(key => this.evaluate(key));
@@ -621,6 +630,19 @@ export class Interpreter {
         return queue;
     }
 
+    private localSet(): RankSet {
+        this.requireModule('algo', 'set');
+        const scope = this.localScopes.at(-1) ?? this.variables;
+        const existing = scope.get('set');
+        if (existing !== undefined) {
+            if (!isRankSet(existing)) throw new RankError('set name is already in use');
+            return existing;
+        }
+        const set: RankSet = { kind: 'set', entries: new Map() };
+        scope.set('set', set);
+        return set;
+    }
+
     private useFile(specifier: string, alias?: string): LoadedProgram {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
@@ -804,6 +826,7 @@ export class Interpreter {
 
         if (name === 'index') return this.localIndex();
         if (name === 'queue') return this.localQueue();
+        if (name === 'set') return this.localSet();
         if (name === 'raise') return raiseFunction;
 
         for (const module of this.modules) {
@@ -1027,8 +1050,9 @@ export class Interpreter {
             return this.combineSequenceMasks(operator, left, right);
         }
         if (operator === 'in') {
-            if (!isRankIndex(right)) throw new RankError('in expects an index on the right');
-            return right.entries.has(indexKey([left]));
+            if (isRankIndex(right)) return right.entries.has(indexKey([left]));
+            if (isRankSet(right)) return right.entries.has(setValueKey(left));
+            throw new RankError('in expects an index or set on the right');
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {
@@ -2080,7 +2104,7 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             files.add(item);
         } else if (isRankArray(item) || isRankQueue(item)) {
             item.items.forEach(visit);
-        } else if (isRankIndex(item)) {
+        } else if (isRankIndex(item) || isRankSet(item)) {
             item.entries.forEach(visit);
         } else if (isRankErrorValue(item)) {
             visit(item.value);

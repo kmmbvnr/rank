@@ -243,9 +243,12 @@ describe('Rank grammar', () => {
     });
 
     it('parses a receiver method with one expression argument', async () => {
-        const document = await parse('queue push Value + 1');
+        const document = await parse([
+            'queue push Value + 1',
+            'set add array X Y',
+        ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(1);
+        expect(document.parseResult.value.statements).toHaveLength(2);
     });
 });

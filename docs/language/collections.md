@@ -1,6 +1,6 @@
 # Collections
 
-Rank supports standard local structures with implicit naming.
+`use algo` provides standard local structures with implicit naming.
 
 ## Implicit local structure
 
@@ -80,6 +80,23 @@ rem A Row Column = Value when mutable array cells are implemented
 
 ```rank
 set add X
+if X in set
+  ...
+end
+Count = set len
+```
+
+The first use of `set` lazily creates one set in the current function-call
+workspace. `add` is idempotent: adding an equal value again leaves the set
+unchanged. Scalars and arrays can be elements; array identity includes both
+shape and contents. `in` tests membership, and `len` returns the number of
+unique elements.
+
+As with `queue`, separate and recursive function calls receive separate sets.
+An array is useful for a composite value such as a coordinate:
+
+```rank
+set add array X Y
 ```
 
 ### Counter
