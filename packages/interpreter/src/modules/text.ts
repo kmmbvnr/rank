@@ -1,8 +1,21 @@
 import { RankError } from '../errors.js';
+import { formatValue, isRankLabel } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const textModule: RuntimeModule = {
+    text: () => native('text', 1, arguments_ => {
+        const value = arguments_[0];
+        if (typeof value === 'object' && !isRankLabel(value)) {
+            throw new RankError('text expects a scalar value');
+        }
+        return formatValue(value);
+    }),
+    reverse: () => native('reverse', 1, arguments_ => {
+        const value = arguments_[0];
+        if (typeof value !== 'string') throw new RankError('reverse expects text');
+        return [...value].reverse().join('');
+    }),
     integer: () => native('integer', 1, arguments_ => {
         const value = arguments_[0];
         if (typeof value !== 'string') throw new RankError('integer expects text');

@@ -256,6 +256,17 @@ describe('Rank interpreter', () => {
             .toThrowError('invalid integer text: 12x');
     });
 
+    it('formats scalar text and reverses Unicode code points', () => {
+        expect(run('use text\n123 text')).toBe('123');
+        expect(run('use text\n-120 text')).toBe('-120');
+        expect(run('use text\ntrue text')).toBe('true');
+        expect(run('use text\n.Label text')).toBe('.Label');
+        expect(run('use text\n"A😀Б" reverse')).toBe('Б😀A');
+        expect(() => run('use text\n(array 1 2) text'))
+            .toThrowError('text expects a scalar value');
+        expect(() => run('use text\n12 reverse')).toThrowError('reverse expects text');
+    });
+
     it('counts and addresses Unicode text atoms', () => {
         expect(run('use sequences\n"A😀Б" len')).toBe('3');
         expect(run('"A😀Б" 1')).toBe('😀');

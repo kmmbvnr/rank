@@ -4,31 +4,16 @@ rem product of two N-digit numbers
 
 use ranges
 use numbers
+use text
 use io
 use cli
 
 rem Return true when a nonnegative integer
 rem reads the same in both directions.
 fun palindrome X
-  if X % 10 equal 0
-    if X not equal 0
-      return false
-    end
-  end
-
-  Back = 0
-
-  for X greater Back
-    Digit = X % 10
-    X = X // 10
-    Back = Back * 10 + Digit
-  end
-
-  if X equal Back
-    return true
-  end
-
-  return X equal Back // 10
+  Text = X text
+  Back = Text reverse
+  return Text equal Back
 end
 
 rem Number of digits in each factor.

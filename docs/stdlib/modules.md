@@ -149,6 +149,19 @@ Value = "-1203" integer
 Digits = "1203" integer rank 0
 ```
 
+`text` formats one scalar value as text. Text input is returned unchanged.
+Arrays and other collections require an explicit mapping rank rather than
+being flattened implicitly.
+
+`reverse` reverses text by Unicode code point:
+
+```rank
+Back = "A😀Б" reverse
+rem Б😀A
+```
+
+Reversal of array axes is a separate tensor operation and remains deferred.
+
 `len` from `sequences` returns the number of Unicode code points in text or the
 outer length of a finite sequence. It rejects an infinite sequence.
 
