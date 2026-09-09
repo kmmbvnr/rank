@@ -114,6 +114,51 @@ describe('Rank interpreter', () => {
             .toThrowError('sequence index out of bounds: 4');
     });
 
+    it('constructs ranges and slices text by Unicode code point', () => {
+        expect(run('use ranges\n1 to 4')).toBe('1 2 3 4');
+        expect(run('"A😀БC" from 1 until 3')).toBe('😀Б');
+        expect(run('"A😀БC" from 1 to 3')).toBe('😀БC');
+        expect(run('"abcdef" array 4 1 1')).toBe('ebb');
+        expect(run('use ranges\nPositions = 1 to 3\n"abcde" Positions')).toBe('bcd');
+        expect(run('"abc" array shape 0\nend')).toBe('');
+        expect(() => run('"abc" from 1 to 3'))
+            .toThrowError('slice 1 to 3 exceeds axis size 3');
+    });
+
+    it('slices and gathers tensor axes while preserving rank', () => {
+        const matrix = [
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+        ];
+        const columns = new Interpreter().execute([
+            ...matrix,
+            'M axis 1 from 1 until 3',
+        ].join('\n'));
+        expect(columns).toEqual({ kind: 'array', items: [2n, 3n, 5n, 6n], shape: [2, 2] });
+
+        const rows = new Interpreter().execute([
+            ...matrix,
+            'M axis 0 array 1 0 1',
+        ].join('\n'));
+        expect(rows).toEqual({
+            kind: 'array',
+            items: [4n, 5n, 6n, 1n, 2n, 3n, 4n, 5n, 6n],
+            shape: [3, 3],
+        });
+
+        const reorderedColumns = new Interpreter().execute([
+            ...matrix,
+            'M axis 1 array 2 0',
+        ].join('\n'));
+        expect(reorderedColumns).toEqual({
+            kind: 'array',
+            items: [3n, 1n, 6n, 4n],
+            shape: [2, 2],
+        });
+    });
+
     it('applies integer conversion at text cell ranks', () => {
         expect(run('use text\n"123" integer')).toBe('123');
         expect(run('use text\n"123" integer rank 1')).toBe('123');

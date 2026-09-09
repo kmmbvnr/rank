@@ -5,7 +5,7 @@ rem two 3-digit numbers
 use sequences
 use io
 
-Range = from 100 to 999
+Range = 100 to 999
 
 Proudcts = Range Range * outer
 filter Products palindrome

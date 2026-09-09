@@ -156,11 +156,15 @@ Pred Negative = 0
 
 ## Slices and ranges
 
-Ranges are first-class sequences.
+Numeric ranges are first-class sequences. Their compact form does not use
+`from`:
 
 ```rank
 1 to 10
 1 until 10
+for i in 1 to 10
+  i print
+end
 ```
 
 `to` includes the endpoint.
@@ -177,12 +181,58 @@ Ranges are first-class sequences.
 => 1 2
 ```
 
-Ranges can be selectors:
+`from` appears only after a selected value and introduces a contiguous slice:
 
 ```rank
-Part = Text L to R
-Part = A L until R
+Closed = Text from L to R
+Open = Text from L until R
 ```
+
+`to` includes the final position; `until` excludes it. Slice bounds are
+zero-based, nonnegative and ascending. An exclusive end may equal the axis size;
+an inclusive end must be inside the axis. Equal exclusive bounds produce an
+empty slice.
+
+For tensors, `axis` chooses the sliced axis. Other axes are preserved:
+
+```rank
+Rows = M axis 0 from 1 until 4
+Columns = M axis 1 from 2 to 5
+```
+
+Multiple axes can be sliced through ordinary assignments without adding a
+special multidimensional delimiter:
+
+```rank
+Block = M axis 0 from 1 until 4
+Block = Block axis 1 from 2 until 5
+```
+
+## Arrays of indices
+
+An integer array is a selector for arbitrary positions. Inline `array` remains
+unambiguous because it consumes the rest of the expression:
+
+```rank
+Letters = Text array 0 2 6
+Rows = M axis 0 array 2 0 2
+```
+
+A selector can also be named and reused:
+
+```rank
+Order = array 2 0 2
+Rows = M axis 0 Order
+```
+
+Positions are returned in selector order and may repeat. An integer selector
+removes its axis; a range, integer-array or boolean-array selector preserves the
+axis. The selected axis gets the selector's length. Without an explicit `axis`,
+a collection selector applies to the leading axis; a full-shape boolean mask
+continues to select matching atoms as a rank-1 result.
+
+Text uses the same rules over Unicode code points. Selection returns text rather
+than an array of one-character text values.
 
 ## Padding and defaults
 

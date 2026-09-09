@@ -249,6 +249,14 @@ export class Interpreter {
             return this.evaluateUnary(expression.operator, this.evaluate(expression.operand));
         }
         if (isBinaryExpression(expression)) {
+            const slice = inlineSlice(expression);
+            if (slice) {
+                const start = expectInteger(this.evaluate(slice.start));
+                const end = expectInteger(this.evaluate(slice.end));
+                const source = this.evaluate(slice.source);
+                const axis = slice.axis === undefined ? 0 : safeDimension(slice.axis, 'axis');
+                return sliceValue(source, axis, start, end, slice.inclusive);
+            }
             if (expression.operator === 'pad') {
                 try {
                     return this.evaluate(expression.left);
@@ -271,6 +279,14 @@ export class Interpreter {
             if (explicitRank) {
                 const values = explicitRank.parts.map(part => this.evaluate(part));
                 return this.applyAtRank(values, explicitRank.rank);
+            }
+            const axisSelection = explicitAxisSelection(parts);
+            if (axisSelection) {
+                return selectAxis(
+                    this.evaluate(axisSelection.source),
+                    axisSelection.axis,
+                    this.evaluate(axisSelection.selector),
+                );
             }
             const values = parts.map(part => this.evaluate(part));
             return this.apply(values);
@@ -1083,6 +1099,10 @@ function applySelectors(values: RankValue[]): RankValue {
         }
         return atoms[Number(index)];
     }
+    if (values.length === 2 && typeof values[0] === 'string'
+        && isCollectionSelector(values[1])) {
+        return selectAxis(values[0], 0, values[1]);
+    }
     if (values.length === 2 && isRankSequence(values[0]) && typeof values[1] === 'bigint') {
         return atSequence(values[0], values[1]);
     }
@@ -1092,6 +1112,10 @@ function applySelectors(values: RankValue[]): RankValue {
             throw new RankError('mask belongs to a different sequence');
         }
         return filterSequence(source, selector.predicate);
+    }
+    if (values.length === 2 && isRankSequence(values[0])
+        && isIntegerCollectionSelector(values[1])) {
+        return selectAxis(values[0], 0, values[1]);
     }
     if (isRankIndex(values[0])) {
         const value = values[0].entries.get(indexKey(values.slice(1)));
@@ -1106,9 +1130,17 @@ function applySelectors(values: RankValue[]): RankValue {
         }
         return values[0].items[Number(position)];
     }
+    if (values.length === 2 && isRankQueue(values[0])
+        && isIntegerCollectionSelector(values[1])) {
+        return selectAxis(values[0], 0, values[1]);
+    }
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) {
         return atArray(values[0], values.slice(1) as bigint[]);
+    }
+    if (values.length === 2 && isRankArray(values[0])
+        && isIntegerCollectionSelector(values[1])) {
+        return selectAxis(values[0], 0, values[1]);
     }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
         throw new RankError('value application requires a sequence and one selector');
@@ -1128,16 +1160,21 @@ function applySelectors(values: RankValue[]): RankValue {
 function canApplySelectors(values: RankValue[]): boolean {
     if (values.length !== 2) return false;
     if (typeof values[0] === 'string' && typeof values[1] === 'bigint') return true;
+    if (typeof values[0] === 'string' && isCollectionSelector(values[1])) return true;
     if (isRankSequence(values[0]) && typeof values[1] === 'bigint') return true;
     if (isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
         return values[0] === values[1].source;
     }
+    if (isRankSequence(values[0]) && isIntegerCollectionSelector(values[1])) return true;
     if (isRankArray(values[0]) && isRankArray(values[1])) {
-        return values[0].items.length === values[1].items.length
-            && values[1].items.every(item => typeof item === 'boolean');
+        return values[1].items.every(item => typeof item === 'bigint')
+            || (values[0].items.length === values[1].items.length
+                && values[1].items.every(item => typeof item === 'boolean'));
     }
+    if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
     if (isRankIndex(values[0]) && values.length > 1) return true;
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') return true;
+    if (isRankQueue(values[0]) && isIntegerCollectionSelector(values[1])) return true;
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) return true;
     return false;
@@ -1162,6 +1199,122 @@ function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
     const shape = source.shape.slice(indices.length);
     const size = shape.reduce((product, value) => product * value, 1);
     return { kind: 'array', items: source.items.slice(offset, offset + size), shape };
+}
+
+function sliceValue(
+    source: RankValue,
+    axis: number,
+    start: bigint,
+    end: bigint,
+    inclusive: boolean,
+): RankValue {
+    const size = axisSize(source, axis);
+    const indices = sliceIndices(size, start, end, inclusive);
+    return selectAxis(source, axis, array(indices));
+}
+
+function sliceIndices(
+    size: number,
+    start: bigint,
+    end: bigint,
+    inclusive: boolean,
+): bigint[] {
+    if (start < 0n || end < 0n) throw new RankError('slice bounds must be nonnegative');
+    const stop = inclusive ? end + 1n : end;
+    if (start > BigInt(size) || stop > BigInt(size)) {
+        throw new RankError(`slice ${start} ${inclusive ? 'to' : 'until'} ${end} exceeds axis size ${size}`);
+    }
+    if (stop <= start) return [];
+    const result: bigint[] = [];
+    for (let position = start; position < stop; position += 1n) result.push(position);
+    return result;
+}
+
+function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
+    const size = axisSize(source, axis);
+    const indices = selectorIndices(selector, size, axis);
+    if (typeof source === 'string') {
+        const atoms = [...source];
+        return indices.map(index => atoms[index]).join('');
+    }
+    if (isRankSequence(source)) {
+        return array(indices.map(index => atSequence(source, BigInt(index))));
+    }
+    const input = isRankQueue(source)
+        ? { kind: 'array' as const, items: source.items, shape: [source.items.length] }
+        : source as RankArray;
+    const shape = [...input.shape];
+    shape[axis] = indices.length;
+    const items: RankValue[] = [];
+    for (const outputCoordinates of coordinates(shape)) {
+        const inputCoordinates = [...outputCoordinates];
+        inputCoordinates[axis] = indices[outputCoordinates[axis]];
+        items.push(input.items[arrayOffset(input.shape, inputCoordinates)]);
+    }
+    return { kind: 'array', items, shape };
+}
+
+function axisSize(source: RankValue, axis: number): number {
+    if (typeof source === 'string') {
+        if (axis !== 0) throw new RankError(`text has no axis ${axis}`);
+        return [...source].length;
+    }
+    if (isRankSequence(source)) {
+        if (axis !== 0) throw new RankError(`sequence has no axis ${axis}`);
+        if (source.plan.size.kind !== 'exact') {
+            throw new RankError('sequence selection requires an exact finite size');
+        }
+        return safeDimension(source.plan.size.value, 'sequence size');
+    }
+    if (isRankQueue(source)) {
+        if (axis !== 0) throw new RankError(`queue has no axis ${axis}`);
+        return source.items.length;
+    }
+    if (!isRankArray(source)) throw new RankError(`selection does not accept ${typeName(source)}`);
+    if (axis >= source.shape.length) throw new RankError(`array has no axis ${axis}`);
+    return source.shape[axis];
+}
+
+function selectorIndices(selector: RankValue, size: number, axis: number): number[] {
+    const values = isRankArray(selector)
+        ? selector.items
+        : isRankQueue(selector)
+            ? selector.items
+            : isRankSequence(selector)
+                ? [...sequenceValues(selector, 'selection')]
+                : undefined;
+    if (!values) throw new RankError('selection expects an array, queue or finite sequence');
+    if (isRankArray(selector) && selector.shape.length !== 1) {
+        throw new RankError('axis selector must have rank 1');
+    }
+    if (values.length === 0) return [];
+    if (values.every(value => typeof value === 'boolean')) {
+        if (values.length !== size) {
+            throw new RankError(`mask length ${values.length} does not match axis ${axis} size ${size}`);
+        }
+        return values.flatMap((value, index) => value ? [index] : []);
+    }
+    if (!values.every(value => typeof value === 'bigint')) {
+        throw new RankError('axis selector must contain only integers or only booleans');
+    }
+    return values.map(value => {
+        const index = value as bigint;
+        if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (index >= BigInt(size)) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
+        }
+        return Number(index);
+    });
+}
+
+function isCollectionSelector(value: RankValue): boolean {
+    return isRankArray(value) || isRankQueue(value) || isRankSequence(value);
+}
+
+function isIntegerCollectionSelector(value: RankValue): boolean {
+    if (isRankSequence(value)) return true;
+    if (!isRankArray(value) && !isRankQueue(value)) return false;
+    return value.items.every(item => typeof item === 'bigint');
 }
 
 function indexKey(values: readonly RankValue[]): string {
@@ -1237,6 +1390,51 @@ function assertTestExpression(value: RankValue): void {
 function isPredicateOperator(operator: string): boolean {
     return ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby']
         .includes(operator);
+}
+
+interface InlineSlice {
+    readonly source: Expression;
+    readonly axis?: bigint;
+    readonly start: Expression;
+    readonly end: Expression;
+    readonly inclusive: boolean;
+}
+
+function inlineSlice(expression: Expression): InlineSlice | undefined {
+    if (!isBinaryExpression(expression)
+        || (expression.operator !== 'to' && expression.operator !== 'until')) return undefined;
+    const parts = flattenApplication(expression.left);
+    const base = { end: expression.right, inclusive: expression.operator === 'to' };
+    if (parts.length === 3 && isNamed(parts[1], 'from')) {
+        return { ...base, source: parts[0], start: parts[2] };
+    }
+    if (parts.length === 5 && isNamed(parts[1], 'axis')
+        && isNumberLiteral(parts[2]) && typeof parts[2].value === 'bigint'
+        && isNamed(parts[3], 'from')) {
+        return {
+            ...base,
+            source: parts[0],
+            axis: parts[2].value,
+            start: parts[4],
+        };
+    }
+    return undefined;
+}
+
+function explicitAxisSelection(
+    parts: Expression[],
+): { source: Expression; axis: number; selector: Expression } | undefined {
+    if (parts.length !== 4 || !isNamed(parts[1], 'axis')
+        || !isNumberLiteral(parts[2]) || typeof parts[2].value !== 'bigint') return undefined;
+    return {
+        source: parts[0],
+        axis: safeDimension(parts[2].value, 'axis'),
+        selector: parts[3],
+    };
+}
+
+function isNamed(expression: Expression, name: string): boolean {
+    return isNameExpression(expression) && expression.name === name;
 }
 
 function flattenApplication(expression: Expression): Expression[] {

@@ -101,6 +101,19 @@ The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
 same addressing meaning. The interpreter currently implements the spaced form;
 general compact addressing remains a later step.
 
+Contiguous slices use `from` after the value. Arbitrary positions use an integer
+array as the selector:
+
+```rank
+Part = A from 2 until 6
+Picked = A array 4 1 1
+Rows = M axis 0 from 1 to 3
+```
+
+Ranges and integer arrays preserve the selected axis. A scalar integer removes
+its axis. The complete selector rules are defined in
+[Values and addressing](values-addressing.md).
+
 ## Selection with boolean masks
 
 Selection uses Rank's normal addressing model.

@@ -121,6 +121,19 @@ Python-style `//`, real `/`, and the data-first binary forms `A B min` and
 `A B max`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 
+## 5. Longest Palindromic Substring
+
+The runnable example in `demos/leetcode/005_longestpal.ra` expands around every
+possible odd and even center. It uses ordinary conditional `for` loops rather
+than adding `break`, and extracts each better result directly:
+
+```rank
+Best = Text from L to R
+```
+
+Text slices count Unicode code points. The example runs in quadratic time and
+constant auxiliary space apart from the returned text value.
+
 ## 9. Palindrome Number
 
 Text version:

@@ -159,6 +159,19 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses ranges, slices and array selectors without brackets', async () => {
+        const document = await parse([
+            'Range = 1 to 5',
+            'Part = Text from L until R',
+            'Letters = Text array 0 2 6',
+            'Rows = M axis 0 from First to Last',
+            'Columns = M axis 1 array 0 2',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(5);
+    });
+
     it('parses a receiver method with one expression argument', async () => {
         const document = await parse('queue push Value + 1');
         expect(document.parseResult.lexerErrors).toEqual([]);

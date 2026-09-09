@@ -3,50 +3,48 @@ rem Longest substring of a string that
 rem reads the same both ways
 
 use algo
+use sequences
 
 fun longest Text
   Best = ""
-  N = len Text
 
   for C i in Text
-    L = i
-    R = i
-
-    for L at least 0
-      if R at least N
-        break
-      end
-
-      if Text L not equal Text R
-        break
-      end
-
-      if R - L + 1 greater len Best
-        Best = Text L to R
-      end
-
-      L = L - 1
-      R = R + 1
-    end
-
-    L = i
+    Best = Text i i Best expand
     R = i + 1
+    Best = Text i R Best expand
+  end
 
-    for L at least 0
+  return Best
+end
+
+fun expand Text L R Best
+  N = Text len
+  More = true
+
+  for More
+    if L less 0
+      More = false
+    else
       if R at least N
-        break
-      end
+        More = false
+      else
+        Left = Text L
+        Right = Text R
 
-      if Text L not equal Text R
-        break
-      end
+        if Left not equal Right
+          More = false
+        else
+          Size = R - L + 1
+          BestSize = Best len
 
-      if R - L + 1 greater len Best
-        Best = Text L to R
-      end
+          if Size greater BestSize
+            Best = Text from L to R
+          end
 
-      L = L - 1
-      R = R + 1
+          L -= 1
+          R += 1
+        end
+      end
     end
   end
 

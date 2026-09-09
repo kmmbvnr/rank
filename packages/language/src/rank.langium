@@ -157,8 +157,11 @@ UnaryExpression returns Expression:
 ApplicationExpression returns Expression:
     PrimaryExpression
     ({infer ApplicationExpression.head=current}
-        arguments+=PrimaryExpression)+ |
+        arguments+=ApplicationArgument)+ |
     PrimaryExpression;
+
+ApplicationArgument returns Expression:
+    PrimaryExpression | ArrayExpression;
 
 PrimaryExpression returns Expression:
     ArrayAtom;
