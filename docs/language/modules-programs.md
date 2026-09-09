@@ -23,6 +23,10 @@ use "my_module"
 Without an alias, its public definitions are opened in the current workspace.
 Conflicting names are an error.
 
+A function keeps the module workspace in which it was declared. Its body can
+use standard modules and source definitions imported by its own file without
+requiring the caller to repeat those imports.
+
 An alias keeps the module in a namespace:
 
 ```rank

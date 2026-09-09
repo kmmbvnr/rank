@@ -517,6 +517,21 @@ describe('Rank interpreter', () => {
         expect(() => run('use text\n12 reverse')).toThrowError('reverse expects text');
     });
 
+    it('splits text by a text separator', () => {
+        expect(new Interpreter().execute('use text\n"a,b,,c" "," split')).toEqual({
+            kind: 'array',
+            items: ['a', 'b', '', 'c'],
+            shape: [4],
+        });
+        expect(new Interpreter().execute('use text\n"A😀Б" "" split')).toEqual({
+            kind: 'array',
+            items: ['A', '😀', 'Б'],
+            shape: [3],
+        });
+        expect(() => run('use text\n12 "," split'))
+            .toThrowError('split expects text and a text separator');
+    });
+
     it('counts and addresses Unicode text atoms', () => {
         expect(run('use sequences\n"A😀Б" len')).toBe('3');
         expect(run('"A😀Б" 1')).toBe('😀');
@@ -803,6 +818,26 @@ describe('Rank interpreter', () => {
         });
         expect(interpreter.execute('use "worker"\n41 next')).toBe(42n);
         expect(interpreter.variables.has('TopLevel')).toBe(false);
+    });
+
+    it('keeps a source function attached to its module vocabulary', () => {
+        const interpreter = new Interpreter(undefined, {
+            sourceId: '/tests/example_test.ra',
+            loadModule: specifier => ({
+                id: `/tests/${specifier}.ra`,
+                source: [
+                    'use text',
+                    'fun pieces Text',
+                    '  return Text "," split',
+                    'end',
+                ].join('\n'),
+            }),
+        });
+        expect(interpreter.execute('use "worker"\n"a,b" pieces')).toEqual({
+            kind: 'array',
+            items: ['a', 'b'],
+            shape: [2],
+        });
     });
 
     it('constructs and addresses shaped arrays in row-major order', () => {

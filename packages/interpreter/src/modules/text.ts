@@ -1,9 +1,17 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankLabel } from '../value.js';
+import { formatValue, isRankLabel, type RankArray } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const textModule: RuntimeModule = {
+    split: () => native('split', 2, arguments_ => {
+        const [value, separator] = arguments_;
+        if (typeof value !== 'string' || typeof separator !== 'string') {
+            throw new RankError('split expects text and a text separator');
+        }
+        const items = separator.length === 0 ? [...value] : value.split(separator);
+        return textArray(items);
+    }),
     text: () => native('text', 1, arguments_ => {
         const value = arguments_[0];
         if (typeof value === 'object' && !isRankLabel(value)) {
@@ -25,3 +33,7 @@ export const textModule: RuntimeModule = {
         return BigInt(value);
     }, 1),
 };
+
+function textArray(items: string[]): RankArray {
+    return { kind: 'array', items, shape: [items.length] };
+}

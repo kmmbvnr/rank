@@ -1,0 +1,25 @@
+use testing
+
+test "first box"
+  use "002_wrapping"
+
+  Lines = array "2x3x4"
+  Answer = Lines solve
+  Answer equal array 58 34
+end
+
+test "second box"
+  use "002_wrapping"
+
+  Lines = array "1x1x10"
+  Answer = Lines solve
+  Answer equal array 43 14
+end
+
+test "boxes add together"
+  use "002_wrapping"
+
+  Lines = array "2x3x4" "1x1x10"
+  Answer = Lines solve
+  Answer equal array 101 48
+end

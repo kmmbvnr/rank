@@ -1,0 +1,49 @@
+rem Advent of Code 2015 - Day 2
+rem I Was Told There Would Be No Math
+rem https://adventofcode.com/2015/day/2
+
+use io
+use cli
+use numbers
+use sequences
+use text
+
+argument Input path
+
+Answers = Input readlines solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the required wrapping paper and ribbon.
+fun solve Lines
+  Paper = 0
+  Ribbon = 0
+
+  for Line in Lines
+    Parts = Line "x" split
+    L = Parts 0 integer
+    W = Parts 1 integer
+    H = Parts 2 integer
+
+    Side1 = L * W
+    Side2 = W * H
+    Side3 = H * L
+    Sides = array Side1 Side2 Side3
+    Dimensions = array L W H
+
+    Surface = Sides sum
+    Slack = Sides min
+    Paper += 2 * Surface + Slack
+
+    Longest = Dimensions max
+    ShortSum = L + W + H - Longest
+    Volume = L * W * H
+    Ribbon += 2 * ShortSum + Volume
+  end
+
+  return array Paper Ribbon
+end

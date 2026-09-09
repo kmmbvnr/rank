@@ -244,6 +244,18 @@ export class Interpreter {
         }
     }
 
+    private prepareModule(program: Program): void {
+        this.declareFunctions(program.statements);
+        for (const statement of program.statements) {
+            if (!isUseStatement(statement)) continue;
+            if (statement.path !== undefined) {
+                this.useFile(statement.path, statement.alias);
+            } else {
+                this.useStandard(statement.module!);
+            }
+        }
+    }
+
     private executeStatements(
         statements: Statement[],
         assertBooleanExpressions = false,
@@ -611,20 +623,24 @@ export class Interpreter {
 
     private useFile(specifier: string, alias?: string): LoadedProgram {
         const loaded = this.load(specifier);
+        const child = new Interpreter(this.output, {
+            io: this.options.io,
+            loadModule: this.options.loadModule,
+            sourceId: loaded.id,
+        });
+        child.loadedProgram = loaded;
+        child.prepareModule(loaded.program);
+
         if (alias) {
             if (this.aliases.has(alias) || this.variables.has(alias)) {
                 throw new RankError(`name already defined: ${alias}`);
             }
-            const child = new Interpreter(this.output, {
-                io: this.options.io,
-                loadModule: this.options.loadModule,
-                sourceId: loaded.id,
-            });
-            child.loadedProgram = loaded;
-            child.declareFunctions(loaded.program.statements);
             this.aliases.set(alias, child);
         } else {
-            this.declareFunctions(loaded.program.statements);
+            for (const statement of loaded.program.statements) {
+                if (!isFunctionStatement(statement)) continue;
+                this.assign(statement.name, child.resolveVariable(statement.name));
+            }
             this.currentRunTarget = loaded;
         }
         return loaded;

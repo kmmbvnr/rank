@@ -141,6 +141,15 @@ text
 integer
 ```
 
+`split` separates text at every exact occurrence of a text separator and
+returns a rank-1 array of text values. Adjacent separators preserve empty
+parts. An empty separator splits by Unicode code point:
+
+```rank
+Parts = "2x3x4" "x" split
+Characters = "A😀Б" "" split
+```
+
 `integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
 unary rank is 1, so a complete text value is converted at once. Explicit
 `rank 0` converts each Unicode character and produces a lazy sequence:

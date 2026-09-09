@@ -358,6 +358,10 @@ use "my_module"
 Without an alias, its public definitions are opened in the current workspace.
 Conflicting names are an error.
 
+A function keeps the module workspace in which it was declared. Its body can
+use standard modules and source definitions imported by its own file without
+requiring the caller to repeat those imports.
+
 An alias keeps the module in a namespace:
 
 ```rank
@@ -2137,6 +2141,15 @@ split
 reverse
 text
 integer
+```
+
+`split` separates text at every exact occurrence of a text separator and
+returns a rank-1 array of text values. Adjacent separators preserve empty
+parts. An empty separator splits by Unicode code point:
+
+```rank
+Parts = "2x3x4" "x" split
+Characters = "A😀Б" "" split
 ```
 
 `integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
