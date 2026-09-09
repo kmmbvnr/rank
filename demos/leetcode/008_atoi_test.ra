@@ -1,0 +1,113 @@
+use testing
+
+test "positive integer"
+  use "008_atoi"
+  run
+
+  Answer = "42" atoi
+  Answer equal 42
+end
+
+test "spaces sign and leading zero"
+  use "008_atoi"
+  run
+
+  Answer = "   -042" atoi
+  Answer equal -42
+end
+
+test "stops at a letter"
+  use "008_atoi"
+  run
+
+  Answer = "1337c0d3" atoi
+  Answer equal 1337
+end
+
+test "stops after first zero"
+  use "008_atoi"
+  run
+
+  Answer = "0-1" atoi
+  Answer equal 0
+end
+
+test "starts with a word"
+  use "008_atoi"
+  run
+
+  Answer = "words and 987" atoi
+  Answer equal 0
+end
+
+test "positive sign"
+  use "008_atoi"
+  run
+
+  Answer = "+17" atoi
+  Answer equal 17
+end
+
+test "empty text"
+  use "008_atoi"
+  run
+
+  Answer = "" atoi
+  Answer equal 0
+end
+
+test "spaces only"
+  use "008_atoi"
+  run
+
+  Answer = "    " atoi
+  Answer equal 0
+end
+
+test "sign without digits"
+  use "008_atoi"
+  run
+
+  Answer = "-" atoi
+  Answer equal 0
+end
+
+test "positive overflow"
+  use "008_atoi"
+  run
+
+  Answer = "2147483648" atoi
+  Answer equal 2147483647
+end
+
+test "exact upper bound"
+  use "008_atoi"
+  run
+
+  Answer = "2147483647" atoi
+  Answer equal 2147483647
+end
+
+test "negative overflow"
+  use "008_atoi"
+  run
+
+  Answer = "-2147483649" atoi
+  Answer equal -2147483648
+end
+
+test "exact lower bound"
+  use "008_atoi"
+  run
+
+  Answer = "-2147483648" atoi
+  Answer equal -2147483648
+end
+
+test "stops at decimal point"
+  use "008_atoi"
+  run
+
+  Answer = "3.14159" atoi
+  Answer equal 3
+end
