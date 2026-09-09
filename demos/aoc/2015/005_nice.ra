@@ -1,0 +1,113 @@
+rem Advent of Code 2015 - Day 5
+rem Doesn't He Have Intern-Elves For This?
+rem https://adventofcode.com/2015/day/5
+
+use io
+use cli
+use algo
+use sequences
+
+argument Input path
+
+Answers = Input readlines solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Count strings accepted by each rule set.
+fun solve Lines
+  Part1 = 0
+  Part2 = 0
+
+  for S in Lines
+    if S nice1
+      Part1 += 1
+    end
+    if S nice2
+      Part2 += 1
+    end
+  end
+
+  return array Part1 Part2
+end
+
+
+rem Check the original vowel, double-letter and forbidden-pair rules.
+fun nice1 S
+  Vowels = 0
+  Double = false
+
+  for C in S
+    if C vowel
+      Vowels += 1
+    end
+  end
+
+  Pairs = S 2 window
+
+  for P in Pairs
+    if P forbidden
+      return false
+    end
+    if P 0 equal P 1
+      Double = true
+    end
+  end
+
+  return Vowels at least 3 and Double
+end
+
+
+rem Check for a repeated pair and a letter repeated after one position.
+fun nice2 S
+  Pairs = S 2 window
+  Pair = false
+
+  for P i in Pairs
+    First = index P pad -1
+    if First at least 0 and i at least First + 2
+      Pair = true
+    end
+    if First equal -1
+      index P = i
+    end
+  end
+
+  Repeat = false
+  Triples = S 3 window
+
+  for T in Triples
+    if T 0 equal T 2
+      Repeat = true
+    end
+  end
+
+  return Pair and Repeat
+end
+
+
+rem Return true for a lowercase vowel.
+fun vowel C
+  if C equal "a" or C equal "e"
+    return true
+  end
+  if C equal "i" or C equal "o" or C equal "u"
+    return true
+  end
+  return false
+end
+
+
+rem Return true for a forbidden adjacent pair.
+fun forbidden Pair
+  if Pair equal "ab" or Pair equal "cd"
+    return true
+  end
+  if Pair equal "pq" or Pair equal "xy"
+    return true
+  end
+  return false
+end

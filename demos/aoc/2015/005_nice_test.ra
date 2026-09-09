@@ -1,0 +1,28 @@
+use testing
+
+test "part 1 examples"
+  use "005_nice"
+
+  "ugknbfddgicrmopn" nice1
+  "aaa" nice1
+  "jchzalrnumimnmhp" nice1 equal false
+  "haegwjzuvuyypxyu" nice1 equal false
+  "dvszwmarrgswjxmb" nice1 equal false
+end
+
+test "part 2 examples"
+  use "005_nice"
+
+  "qjhvhtzxzqqjkmpb" nice2
+  "xxyxx" nice2
+  "uurcxstgmygtbstg" nice2 equal false
+  "ieodomkazucvgmuy" nice2 equal false
+end
+
+test "counts both rule sets"
+  use "005_nice"
+
+  Lines = array "aaa" "xxyxx" "dvszwmarrgswjxmb"
+  Answer = Lines solve
+  Answer equal array 1 1
+end
