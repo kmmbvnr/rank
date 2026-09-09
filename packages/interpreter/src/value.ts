@@ -1,8 +1,35 @@
-export interface RankArray {
-    readonly kind: 'array';
+interface RankArrayValue {
     readonly items: RankValue[];
     readonly shape: readonly number[];
     readonly itemAt?: (index: number) => RankValue;
+}
+
+export interface RankPlainArray extends RankArrayValue {
+    readonly kind: 'array';
+}
+
+export interface RankBytes extends RankArrayValue {
+    readonly kind: 'bytes';
+    readonly data: Uint8Array;
+}
+
+export type RankArray = RankPlainArray | RankBytes;
+
+export interface RankFileHandle {
+    readonly name: string;
+    read(count: number): Uint8Array;
+    write(data: Uint8Array): void;
+    seek(offset: number): void;
+    position(): number;
+    size(): number;
+    flush(): void;
+    close(): void;
+}
+
+export interface RankFile {
+    readonly kind: 'file';
+    readonly handle: RankFileHandle;
+    closed: boolean;
 }
 
 export interface RankLabel {
@@ -73,11 +100,20 @@ export interface RankSequenceMask extends RankSequence {
     readonly predicate: SequencePredicate;
 }
 
-export type RankValue = bigint | number | boolean | string | RankArray | RankLabel | RankErrorValue |
-    RankIndex | RankQueue | NativeFunction | RankSequence | RankSequenceMask;
+export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
+    RankLabel | RankErrorValue | RankIndex | RankQueue | NativeFunction | RankSequence |
+    RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
-    return typeof value === 'object' && value.kind === 'array';
+    return typeof value === 'object' && (value.kind === 'array' || value.kind === 'bytes');
+}
+
+export function isRankBytes(value: RankValue): value is RankBytes {
+    return typeof value === 'object' && value.kind === 'bytes';
+}
+
+export function isRankFile(value: RankValue): value is RankFile {
+    return typeof value === 'object' && value.kind === 'file';
 }
 
 export function isNativeFunction(value: RankValue): value is NativeFunction {
@@ -135,6 +171,9 @@ export function formatValue(value: RankValue): string {
     if (value.kind === 'function') {
         return `<function ${value.name}>`;
     }
+    if (value.kind === 'file') {
+        return `<file ${value.handle.name}${value.closed ? ' closed' : ''}>`;
+    }
     if (value.kind === 'index') {
         return '<index>';
     }
@@ -150,6 +189,9 @@ export function formatValue(value: RankValue): string {
     if (value.kind === 'sequence') {
         if (value.plan.size.kind === 'infinite') return `<sequence ${value.plan.name}>`;
         return [...value.plan.iterate()].map(formatValue).join(' ');
+    }
+    if (isRankBytes(value)) {
+        return `0x${[...value.data].map(byte => byte.toString(16).padStart(2, '0')).join('')}`;
     }
     return value.items.map(formatValue).join(' ');
 }

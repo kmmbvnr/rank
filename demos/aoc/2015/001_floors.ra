@@ -1,0 +1,39 @@
+rem Advent of Code 2015 - Day 1
+rem Not Quite Lisp
+rem https://adventofcode.com/2015/day/1
+
+use io
+use cli
+
+argument Input path
+
+Answers = Input read solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the final floor and the first basement position.
+rem Ignore line endings and other characters around the directions.
+fun solve Text
+  Floor = 0
+  Basement = 0
+
+  for C i in Text
+    if C equal "("
+      Floor += 1
+    end
+
+    if C equal ")"
+      Floor -= 1
+    end
+
+    if Basement equal 0 and Floor equal -1
+      Basement = i + 1
+    end
+  end
+
+  return array Floor Basement
+end

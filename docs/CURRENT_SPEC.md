@@ -59,12 +59,10 @@ Adults = Data Mask
 - [LeetCode examples](examples/leetcode.md)
 - [Kaggle examples](examples/kaggle.md)
 - [TPC-H examples](examples/tpch.md)
+- [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
 
 ## Marketing
-
-The marketing pages are not part of the language snapshot and are not inlined
-below.
 
 - [Landscape](marketing/landscape.md)
 - [Positioning](marketing/positioning.md)
@@ -456,6 +454,10 @@ rules independently. The parser uses a stable combined grammar, because source
 must be parsed before its `use` statements can be evaluated. Rare syntax
 extensions are assembled as grammar fragments before parser construction;
 ordinary modules use existing expression and statement extension points.
+
+Host-dependent services are injected through runtime adapters. For example,
+`use io` exposes the same Rank values and operations in every host while the CLI,
+browser or embedded application supplies the actual file-system implementation.
 
 ---
 
@@ -907,7 +909,7 @@ The names are ordinary bindings; the whitespace between them is required.
 `for Value in A` binds only the value.
 
 For a tensor, ordinary iteration yields cells along its leading axis. Explicit
-cell-rank and axis iteration are defined in the tensor section.
+cell-rank and axis iteration are defined in [Tensors](tensors.md).
 
 ## Errors and exceptions
 
@@ -1060,6 +1062,31 @@ is the final word:
 G = A B gcd
 Result print
 ```
+
+## Scoped resources
+
+Resource values such as open files have deterministic lifetimes. A resource is
+owned by the function, test or program execution that creates it and is released
+when that scope exits normally, returns or raises an error. `if` and `for` do not
+create separate ownership scopes because their variables follow Rank's
+BASIC-like workspace rules.
+
+Returning a resource moves it into the caller's ownership scope:
+
+```rank
+fun source Path
+  File = Path open
+  return File
+end
+
+File = "input.dat" source
+Header = File 64 readbytes
+```
+
+The returned file remains open in the caller and closes when the caller exits.
+Resources contained in a returned array or collection move with that value.
+Explicit operations such as `File close` remain available for early release.
+Rank does not currently have a general `defer` statement.
 
 ## Varargs
 
@@ -1249,7 +1276,7 @@ Rows = M axis 0 from 1 to 3
 
 Ranges and integer arrays preserve the selected axis. A scalar integer removes
 its axis. The complete selector rules are defined in
-[Values and addressing](language/values-addressing.md).
+[Values and addressing](values-addressing.md).
 
 ## Selection with boolean masks
 
@@ -2081,19 +2108,6 @@ BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
 
-`window` returns overlapping fixed-size cells lazily:
-
-```rank
-Pairs = Text 2 window
-Windows = Values Width window
-WindowShape = array 2 3
-Blocks = M WindowShape window
-Columns = M 3 window axis 1
-```
-
-Tensor window sizes correspond to all axes unless `axis` selects a subset.
-Only complete windows are produced.
-
 ## Tables
 
 Includes concepts such as:
@@ -2149,6 +2163,100 @@ Reversal of array axes is a separate tensor operation and remains deferred.
 
 `len` from `sequences` returns the number of Unicode code points in text or the
 outer length of a finite sequence. It rejects an infinite sequence.
+
+`window` returns overlapping fixed-size cells lazily:
+
+```rank
+Pairs = Text 2 window
+Windows = Values Width window
+WindowShape = array 2 3
+Blocks = M WindowShape window
+Columns = M 3 window axis 1
+```
+
+Tensor window sizes correspond to all axes unless `axis` selects a subset.
+Only complete windows are produced.
+
+## File I/O
+
+`use io` provides one-shot UTF-8 text operations for the common case:
+
+```rank
+Text = Path read
+Lines = Path readlines
+
+Text Path write
+Text Path append
+```
+
+`read` preserves the complete decoded text, including a final line ending.
+Invalid UTF-8 raises `.InvalidEncoding`. `readlines` recognizes LF, CRLF and CR,
+removes the line separators and does not add an empty item for a final line
+ending. An empty file produces an empty rank-1 array.
+
+`write` creates or replaces a file. `append` creates a missing file or adds text
+to the end of an existing file. Both encode text as UTF-8.
+
+Random access uses byte offsets. A one-shot block read does not create a visible
+file handle:
+
+```rank
+Bytes = Path Offset Count readbytes
+```
+
+`bytes` is a specialized rank-1 tensor whose atoms are integers from 0 through
+255. It formats as hexadecimal text such as `0x52616e6b`. Offsets and counts are
+nonnegative integers, and a block ending past the file returns the available
+bytes.
+
+Repeated and stateful I/O uses a `file` value:
+
+```rank
+File = Path open
+
+Header = File 64 readbytes
+File 1024 seek
+Chunk = File 128 readbytes
+
+Offset = File position
+Length = File size
+Done = File eof
+```
+
+`seek` sets an absolute byte offset from the beginning. `position` and `size`
+return byte counts. `eof` is true when the current position is at or beyond the
+current size.
+
+`open` is read-only by default. A mode label selects another mode:
+
+```rank
+Output = Path .write open
+Update = Path .update open
+Log = Path .append open
+```
+
+`.write` creates or clears a file, `.update` opens an existing file for reading
+and writing, and `.append` creates a missing file and forces writes to its end.
+Handles opened by all three modes can be read. Binary output takes a `bytes`
+value previously obtained from `readbytes`:
+
+```rank
+Output Bytes writebytes
+Output flush
+```
+
+`flush` requests that buffered output reach the host file system. File-system
+failures raise `.IO` and carry the path as `.Value`.
+
+A file is a scoped resource. It closes automatically when its owning function,
+test or program exits, including through `return` or an error. Returning a file,
+directly or inside a returned collection, moves ownership to the caller. A file
+may be closed early with `File close`; closing an already closed file has no
+effect, and other operations on it raise `.IO`.
+
+The interpreter accesses files only through its host adapter. The command-line
+host uses the local file system; browser and embedded hosts may provide a file
+picker, virtual file system or another implementation with the same semantics.
 
 ## Dates
 
@@ -2791,6 +2899,181 @@ Revenue print
 The clause is part of constructing `L`. Each condition line is evaluated in the
 implicit context of the current table, and the lines are combined with logical
 AND.
+
+---
+
+# Product decisions
+
+This document records deliberate product and language design decisions for Rank.
+It explains the ergonomic rationale behind decisions that might otherwise look
+counterintuitive to programmers accustomed to desktop-first, punctuation-heavy
+languages.
+
+---
+
+## 1. Words over symbols for comparisons and logic
+
+Rank intentionally uses English words for relational and boolean operations
+instead of symbolic punctuation:
+
+| Operation | Rank keyword | Conventional symbol |
+|---|---|---|
+| Equality | `equal` | `==` |
+| Inequality | `not equal` | `!=` |
+| Less than | `less` | `<` |
+| Greater than | `greater` | `>` |
+| Less than or equal | `at most` | `<=` |
+| Greater than or equal | `at least` | `>=` |
+| Boolean conjunction | `and` | `&&` |
+| Boolean disjunction | `or` | `||` |
+| Boolean negation | `not` | `!` |
+
+### Rationale: The primary keyboard layer
+
+On desktop keyboards, `<`, `>`, `!`, `=`, and `&` have dedicated keys or simple
+Shift combinations.
+
+On phones, tablets, handheld calculators, and wearable touchscreens, the reality
+is inverted:
+- **Letters are on the primary keyboard layer.** They can be typed continuously
+  with standard thumb typing, swipe gestures, and system word completion.
+- **Punctuation and relational symbols require switching layers.** Typing `<=`
+  often requires tapping `?123`, finding `<`, switching back or into `#+=` for `=`,
+  and returning to the letter layer. This introduces high input friction and breaks
+  typing flow.
+- Words such as `equal`, `greater`, and `at least` can be typed without leaving
+  the primary alphanumeric layout.
+
+Rank deliberately rejects adding symbolic aliases (such as `==`, `!=`, `<=`, `>=`).
+Dual syntax creates dialect fragmentation, and the word-based syntax directly
+serves the mobile/small-screen mission.
+
+---
+
+## 2. Intentional intermediate variables over vertical pipelines
+
+Rank encourages naming intermediate values rather than constructing long
+vertical pipelines (`|>` or fluent dot-chaining):
+
+```rank
+rem Preferred Rank style:
+Digits = Number integer rank 0
+Windows = Digits Width window
+Products = Windows * reduce rank 1
+Answer = Products max
+```
+
+### Rationale: Readability, debugging, and the BASIC spirit
+
+1. **Self-documenting dataflow on narrow screens:** On a 40-column display,
+   multi-stage chained expressions either wrap awkwardly or hide intermediate
+   array shapes. Naming values (`Digits`, `Windows`, `Products`, `Palindromes`)
+   documents the algorithmic transformation at every step without extra comments.
+2. **REPL inspectability:** In a handheld terminal or calculator REPL, each
+   intermediate variable is an immediate inspection point. The programmer can
+   print `Windows` to verify slice geometry before reducing it. In a monolithic
+   pipeline, inspecting intermediate states requires editing and splitting the
+   expression.
+3. **True to BASIC:** Rank is fundamentally a modern BASIC. Clear assignments to
+   meaningful variables keep the mental model accessible, straightforward, and
+   concrete.
+
+Short, unambiguous postfix pipelines (`Fib even sum`, `Text reverse print`) are
+supported where they remain intuitive, but intermediate variables remain the
+canonical idiomatic style.
+
+---
+
+## 3. Rejection of multi-variable `for` comprehensions
+
+Rank rejects multi-generator loop syntax (such as `for a in 1 to N, b in a to N`
+or list comprehensions):
+
+```rank
+rem Rank uses explicit nested blocks:
+for a in 1 to Last
+  for b in 1 to Last
+    ...
+  end
+end
+```
+
+### Rationale: The 40-column budget
+
+Multi-variable loop declarations pack too much state into a single horizontal
+line, directly violating the target 40-column line width. Explicit nested
+blocks make the iteration order, nesting depth, and loop scope obvious at a
+glance.
+
+---
+
+## 4. Single-level `break` without labeled jumps
+
+The `break` statement terminates only the nearest enclosing `for` loop:
+
+```rank
+for
+  Count += 1
+  if Count equal 10
+    break
+  end
+end
+```
+
+### Rationale: Pragmatic control flow
+
+Multi-level labeled breaks (e.g. `break 'outer`) or non-local control jumps add
+syntactic weight and compiler complexity that belong to systems languages rather
+than BASIC. If a deeply nested loop needs to terminate completely, standard Rank
+patterns apply:
+- Condition checks on outer loops;
+- Flag variables;
+- Returning directly from a dedicated helper function (`fun ... return ... end`).
+
+---
+
+## 5. Multidimensional `window` and operator-modifier reductions
+
+Rank introduces `window` and operator-modifier reductions (`* reduce`, `+ reduce`)
+to replace nested index-manipulation loops with rank operations:
+
+```rank
+Windows = Digits Width window
+Products = Windows * reduce rank 1
+Answer = Products max
+```
+
+### Rationale: APL power with readable words
+
+Algorithms that process sequential data (signal filtering, time-series windows,
+adjacent digit products) traditionally force programmers into writing manual
+index offset math (`i + j`), bounds checks, and mutable accumulator loops.
+
+By providing `window`, Rank lifts a sequence from rank R to rank R+1
+(producing adjacent overlapping cells). Combined with trailing cell reductions
+(`rank 1`), the problem is solved declaratively in four readable lines that fit
+comfortably on a phone screen.
+
+---
+
+## 6. Consumable lazy sequence masks
+
+Lazy masks created by predicates (e.g. `Fib even`) retain their underlying
+source and can be consumed directly by operations:
+
+```rank
+Fib = fibonacci to Limit
+Answer = Fib even sum
+```
+
+### Rationale: Eliminating ceremonial boilerplate
+
+Previously, applying a mask required re-referencing the original sequence
+(`Fib (Fib even) sum`). Making lazy masks directly consumable eliminates this
+syntactic stutter while preserving the first-class nature of masks:
+- They can still be named and reused: `Mask = Fib even`;
+- They can still be composed: `Mask or= N multiple by 5`;
+- They still participate in explicit addressing: `Selected = Fib Mask`.
 
 ---
 

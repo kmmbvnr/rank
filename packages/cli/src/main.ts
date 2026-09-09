@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import * as url from 'node:url';
+import { nodeIo } from './node-io.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const packagePath = path.resolve(__dirname, '..', 'package.json');
@@ -34,15 +35,23 @@ export default async function main(): Promise<void> {
 async function runFile(file: string, args: readonly string[]): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
-    new Interpreter(console.log, {
+    const interpreter = new Interpreter(console.log, {
         args,
+        io: nodeIo,
         sourceId,
         loadModule,
-    }).execute(source);
+    });
+    try {
+        interpreter.execute(source);
+    } finally {
+        interpreter.dispose();
+    }
 }
 
 async function repl(): Promise<void> {
     const interpreter = new Interpreter(console.log, {
+        io: nodeIo,
+        persistentResources: true,
         sourceId: path.join(process.cwd(), '<repl>'),
         loadModule,
     });
@@ -60,24 +69,28 @@ async function repl(): Promise<void> {
         input.prompt();
     }
 
-    for await (const line of input) {
-        if (line.trim() === 'exit' || line.trim() === 'quit') {
-            break;
-        }
-        if (line.trim()) {
-            try {
-                const result = interpreter.execute(line);
-                if (result !== undefined) {
-                    console.log(formatValue(result));
+    try {
+        for await (const line of input) {
+            if (line.trim() === 'exit' || line.trim() === 'quit') {
+                break;
+            }
+            if (line.trim()) {
+                try {
+                    const result = interpreter.execute(line);
+                    if (result !== undefined) {
+                        console.log(formatValue(result));
+                    }
+                } catch (error) {
+                    const message = error instanceof RankError ? error.message : String(error);
+                    console.error(chalk.red(`error: ${message}`));
                 }
-            } catch (error) {
-                const message = error instanceof RankError ? error.message : String(error);
-                console.error(chalk.red(`error: ${message}`));
+            }
+            if (terminal) {
+                input.prompt();
             }
         }
-        if (terminal) {
-            input.prompt();
-        }
+    } finally {
+        interpreter.dispose();
     }
 }
 
@@ -91,6 +104,7 @@ async function runTests(target: string): Promise<void> {
     for (const file of files) {
         const source = await fs.readFile(file, 'utf8');
         const interpreter = new Interpreter(() => undefined, {
+            io: nodeIo,
             sourceId: file,
             testing: true,
             loadModule,

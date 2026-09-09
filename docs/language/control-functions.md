@@ -233,6 +233,31 @@ G = A B gcd
 Result print
 ```
 
+## Scoped resources
+
+Resource values such as open files have deterministic lifetimes. A resource is
+owned by the function, test or program execution that creates it and is released
+when that scope exits normally, returns or raises an error. `if` and `for` do not
+create separate ownership scopes because their variables follow Rank's
+BASIC-like workspace rules.
+
+Returning a resource moves it into the caller's ownership scope:
+
+```rank
+fun source Path
+  File = Path open
+  return File
+end
+
+File = "input.dat" source
+Header = File 64 readbytes
+```
+
+The returned file remains open in the caller and closes when the caller exits.
+Resources contained in a returned array or collection move with that value.
+Explicit operations such as `File close` remain available for early release.
+Rank does not currently have a general `defer` statement.
+
 ## Varargs
 
 Current vararg syntax uses `*`:

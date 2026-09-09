@@ -33,7 +33,9 @@ import {
     type Statement,
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
+import type { RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
+import { closeFile } from './modules/io.js';
 import { parse } from './parser.js';
 import {
     atSequence,
@@ -51,12 +53,14 @@ import {
     isNativeFunction,
     isRankArray,
     isRankErrorValue,
+    isRankFile,
     isRankIndex,
     isRankLabel,
     isRankQueue,
     isRankSequence,
     isRankSequenceMask,
     type RankArray,
+    type RankFile,
     type NativeFunction,
     type RankIndex,
     type RankQueue,
@@ -76,6 +80,8 @@ export interface InterpreterOptions {
     readonly args?: readonly string[];
     readonly sourceId?: string;
     readonly testing?: boolean;
+    readonly io?: RankIo;
+    readonly persistentResources?: boolean;
     readonly loadModule?: (specifier: string, fromId?: string) => LoadedModule;
 }
 
@@ -133,6 +139,7 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly localScopes: Map<string, RankValue>[] = [];
+    private readonly resourceScopes: Set<RankFile>[] = [];
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -145,7 +152,80 @@ export class Interpreter {
             id: this.options.sourceId ?? '<input>',
             program,
         };
-        return this.executeProgram(program, this.options.args ?? []);
+        if (this.options.persistentResources) {
+            if (this.resourceScopes.length === 0) this.resourceScopes.push(new Set());
+            return this.executeProgram(program, this.options.args ?? []);
+        }
+        return this.withResourceScope(
+            () => this.executeProgram(program, this.options.args ?? []),
+            false,
+        );
+    }
+
+    dispose(): void {
+        for (const child of this.aliases.values()) child.dispose();
+        while (this.resourceScopes.length > 0) {
+            this.closeResources(this.resourceScopes.pop()!, new Set());
+        }
+    }
+
+    private withResourceScope<T extends RankValue | undefined>(
+        operation: () => T,
+        transferResult = true,
+    ): T {
+        const scope = new Set<RankFile>();
+        this.resourceScopes.push(scope);
+        let result: T | undefined;
+        let pending: unknown;
+        try {
+            result = operation();
+        } catch (error) {
+            pending = error;
+        }
+
+        const escaped = pending === undefined && transferResult
+            ? containedFiles(result)
+            : new Set<RankFile>();
+        this.resourceScopes.pop();
+
+        let closeError: unknown;
+        try {
+            this.closeResources(scope, escaped);
+        } catch (error) {
+            closeError = error;
+        }
+        if (transferResult) {
+            for (const file of escaped) this.ownFile(file);
+        }
+        if (pending !== undefined) throw pending;
+        if (closeError !== undefined) throw closeError;
+        return result as T;
+    }
+
+    private ownFile(file: RankFile): void {
+        let scope = this.resourceScopes.at(-1);
+        if (!scope) {
+            scope = new Set();
+            this.resourceScopes.push(scope);
+        }
+        scope.add(file);
+    }
+
+    private ownFiles(value: RankValue | undefined): void {
+        for (const file of containedFiles(value)) this.ownFile(file);
+    }
+
+    private closeResources(resources: Set<RankFile>, preserved: Set<RankFile>): void {
+        let firstError: unknown;
+        for (const file of [...resources].reverse()) {
+            if (preserved.has(file)) continue;
+            try {
+                closeFile(file);
+            } catch (error) {
+                firstError ??= error;
+            }
+        }
+        if (firstError !== undefined) throw firstError;
     }
 
     executeProgram(
@@ -487,18 +567,20 @@ export class Interpreter {
                 `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
             );
         }
-        const scope = new Map<string, RankValue>();
-        statement.parameters.forEach((parameter, index) => scope.set(parameter, arguments_[index]));
-        this.localScopes.push(scope);
-        try {
-            this.executeStatements(statement.statements);
-        } catch (error) {
-            if (error instanceof ReturnSignal) return error.value;
-            throw error;
-        } finally {
-            this.localScopes.pop();
-        }
-        throw new RankError(`function ${statement.name} reached end without return`);
+        return this.withResourceScope(() => {
+            const scope = new Map<string, RankValue>();
+            statement.parameters.forEach((parameter, index) => scope.set(parameter, arguments_[index]));
+            this.localScopes.push(scope);
+            try {
+                this.executeStatements(statement.statements);
+            } catch (error) {
+                if (error instanceof ReturnSignal) return error.value;
+                throw error;
+            } finally {
+                this.localScopes.pop();
+            }
+            throw new RankError(`function ${statement.name} reached end without return`);
+        });
     }
 
     private localIndex(): RankIndex {
@@ -534,6 +616,7 @@ export class Interpreter {
                 throw new RankError(`name already defined: ${alias}`);
             }
             const child = new Interpreter(this.output, {
+                io: this.options.io,
                 loadModule: this.options.loadModule,
                 sourceId: loaded.id,
             });
@@ -568,7 +651,7 @@ export class Interpreter {
         this.pendingArgs = undefined;
         const previous = this.currentRunTarget;
         try {
-            return this.executeProgram(target.program, args);
+            return this.withResourceScope(() => this.executeProgram(target.program, args));
         } finally {
             this.currentRunTarget = previous;
         }
@@ -579,7 +662,9 @@ export class Interpreter {
         if (!child?.loadedProgram) {
             throw new RankError(`unknown module alias: ${alias}`);
         }
-        return child.executeProgram(child.loadedProgram.program);
+        const result = child.withResourceScope(() => child.executeProgram(child.loadedProgram!.program));
+        this.ownFiles(result);
+        return result;
     }
 
     private executeTest(name: string, statements: Statement[]): void {
@@ -588,6 +673,7 @@ export class Interpreter {
         }
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
+            io: this.options.io,
             loadModule: this.options.loadModule,
             sourceId: this.options.sourceId,
             testing: true,
@@ -595,7 +681,7 @@ export class Interpreter {
         test.modules.add('testing');
         const program = { $type: 'Program' as const, statements } as Program;
         try {
-            test.executeProgram(program, [], true);
+            test.withResourceScope(() => test.executeProgram(program, [], true), false);
             this.testResults.push({ name, passed: true, output });
         } catch (error) {
             this.testResults.push({
@@ -707,7 +793,11 @@ export class Interpreter {
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
             if (fn) {
-                return fn(this.output);
+                return fn({
+                    output: this.output,
+                    io: this.options.io,
+                    ownFile: file => this.ownFile(file),
+                });
             }
         }
 
@@ -773,6 +863,7 @@ export class Interpreter {
             const result = arguments_.length === 1 && value.monadicRank !== 'all'
                 ? this.applyUnaryAtRank(arguments_[0], value, value.monadicRank)
                 : value.call(arguments_);
+            this.ownFiles(result);
             pending = [result];
         }
         return pending.length === 1 ? pending[0] : applySelectors(pending);
@@ -1960,4 +2051,27 @@ function typeName(value: RankValue): string {
         return typeof value;
     }
     return value.kind;
+}
+
+function containedFiles(value: RankValue | undefined): Set<RankFile> {
+    const files = new Set<RankFile>();
+    const seen = new Set<object>();
+
+    const visit = (item: RankValue | undefined): void => {
+        if (item === undefined || typeof item !== 'object' || seen.has(item)) return;
+        seen.add(item);
+        if (isRankFile(item)) {
+            files.add(item);
+        } else if (isRankArray(item) || isRankQueue(item)) {
+            item.items.forEach(visit);
+        } else if (isRankIndex(item)) {
+            item.entries.forEach(visit);
+        } else if (isRankErrorValue(item)) {
+            visit(item.value);
+            visit(item.cause);
+        }
+    };
+
+    visit(value);
+    return files;
 }

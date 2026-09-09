@@ -179,6 +179,87 @@ Columns = M 3 window axis 1
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
 Only complete windows are produced.
 
+## File I/O
+
+`use io` provides one-shot UTF-8 text operations for the common case:
+
+```rank
+Text = Path read
+Lines = Path readlines
+
+Text Path write
+Text Path append
+```
+
+`read` preserves the complete decoded text, including a final line ending.
+Invalid UTF-8 raises `.InvalidEncoding`. `readlines` recognizes LF, CRLF and CR,
+removes the line separators and does not add an empty item for a final line
+ending. An empty file produces an empty rank-1 array.
+
+`write` creates or replaces a file. `append` creates a missing file or adds text
+to the end of an existing file. Both encode text as UTF-8.
+
+Random access uses byte offsets. A one-shot block read does not create a visible
+file handle:
+
+```rank
+Bytes = Path Offset Count readbytes
+```
+
+`bytes` is a specialized rank-1 tensor whose atoms are integers from 0 through
+255. It formats as hexadecimal text such as `0x52616e6b`. Offsets and counts are
+nonnegative integers, and a block ending past the file returns the available
+bytes.
+
+Repeated and stateful I/O uses a `file` value:
+
+```rank
+File = Path open
+
+Header = File 64 readbytes
+File 1024 seek
+Chunk = File 128 readbytes
+
+Offset = File position
+Length = File size
+Done = File eof
+```
+
+`seek` sets an absolute byte offset from the beginning. `position` and `size`
+return byte counts. `eof` is true when the current position is at or beyond the
+current size.
+
+`open` is read-only by default. A mode label selects another mode:
+
+```rank
+Output = Path .write open
+Update = Path .update open
+Log = Path .append open
+```
+
+`.write` creates or clears a file, `.update` opens an existing file for reading
+and writing, and `.append` creates a missing file and forces writes to its end.
+Handles opened by all three modes can be read. Binary output takes a `bytes`
+value previously obtained from `readbytes`:
+
+```rank
+Output Bytes writebytes
+Output flush
+```
+
+`flush` requests that buffered output reach the host file system. File-system
+failures raise `.IO` and carry the path as `.Value`.
+
+A file is a scoped resource. It closes automatically when its owning function,
+test or program exits, including through `return` or an error. Returning a file,
+directly or inside a returned collection, moves ownership to the caller. A file
+may be closed early with `File close`; closing an already closed file has no
+effect, and other operations on it raise `.IO`.
+
+The interpreter accesses files only through its host adapter. The command-line
+host uses the local file system; browser and embedded hosts may provide a file
+picker, virtual file system or another implementation with the same semantics.
+
 ## Dates
 
 Examples:

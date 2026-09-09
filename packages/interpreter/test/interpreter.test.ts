@@ -1,9 +1,124 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, formatValue, isRankSequence } from '../src/index.js';
+import {
+    Interpreter,
+    RankError,
+    formatValue,
+    isRankSequence,
+    type RankFileHandle,
+    type RankFileMode,
+    type RankIo,
+} from '../src/index.js';
 
 function run(source: string): string | undefined {
     const result = new Interpreter().execute(source);
     return result === undefined ? undefined : formatValue(result);
+}
+
+class MemoryIo implements RankIo {
+    readonly files = new Map<string, Uint8Array>();
+    readonly handles: MemoryFile[] = [];
+
+    constructor(files: Record<string, string>) {
+        const encoder = new TextEncoder();
+        for (const [path, text] of Object.entries(files)) {
+            this.files.set(path, encoder.encode(text));
+        }
+    }
+
+    read(path: string): Uint8Array {
+        return this.file(path).slice();
+    }
+
+    readRange(path: string, offset: number, count: number): Uint8Array {
+        return this.file(path).slice(offset, offset + count);
+    }
+
+    write(path: string, data: Uint8Array, append: boolean): void {
+        const previous = append ? this.files.get(path) ?? new Uint8Array() : new Uint8Array();
+        const result = new Uint8Array(previous.length + data.length);
+        result.set(previous);
+        result.set(data, previous.length);
+        this.files.set(path, result);
+    }
+
+    open(path: string, mode: RankFileMode): RankFileHandle {
+        if (mode === 'read' || mode === 'update') this.file(path);
+        if (mode === 'write') this.files.set(path, new Uint8Array());
+        if (mode === 'append' && !this.files.has(path)) this.files.set(path, new Uint8Array());
+        const handle = new MemoryFile(this, path, mode);
+        this.handles.push(handle);
+        return handle;
+    }
+
+    file(path: string): Uint8Array {
+        const data = this.files.get(path);
+        if (!data) throw new Error('file does not exist');
+        return data;
+    }
+}
+
+class MemoryFile implements RankFileHandle {
+    positionValue: number;
+    closed = false;
+
+    constructor(
+        private readonly io: MemoryIo,
+        readonly name: string,
+        private readonly mode: RankFileMode,
+    ) {
+        this.positionValue = mode === 'append' ? this.size() : 0;
+    }
+
+    read(count: number): Uint8Array {
+        this.ensureOpen();
+        const data = this.io.file(this.name).slice(this.positionValue, this.positionValue + count);
+        this.positionValue += data.length;
+        return data;
+    }
+
+    write(data: Uint8Array): void {
+        this.ensureOpen();
+        if (this.mode === 'read') throw new Error('file is read-only');
+        if (this.mode === 'append') {
+            this.io.write(this.name, data, true);
+            this.positionValue = this.size();
+            return;
+        }
+        const previous = this.io.file(this.name);
+        const size = Math.max(previous.length, this.positionValue + data.length);
+        const result = new Uint8Array(size);
+        result.set(previous);
+        result.set(data, this.positionValue);
+        this.io.files.set(this.name, result);
+        this.positionValue += data.length;
+    }
+
+    seek(offset: number): void {
+        this.ensureOpen();
+        this.positionValue = offset;
+    }
+
+    position(): number {
+        this.ensureOpen();
+        return this.positionValue;
+    }
+
+    size(): number {
+        this.ensureOpen();
+        return this.io.file(this.name).length;
+    }
+
+    flush(): void {
+        this.ensureOpen();
+    }
+
+    close(): void {
+        this.closed = true;
+    }
+
+    private ensureOpen(): void {
+        if (this.closed) throw new Error('file is closed');
+    }
 }
 
 describe('Rank interpreter', () => {
@@ -836,6 +951,110 @@ describe('Rank interpreter', () => {
         const interpreter = new Interpreter(line => lines.push(line));
         expect(formatValue(interpreter.execute('use io\n42 print')!)).toBe('42');
         expect(lines).toEqual(['42']);
+    });
+
+    it('reads and writes UTF-8 text through the host adapter', () => {
+        const io = new MemoryIo({ '/input': 'one\r\ntwo\n' });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use io',
+            'Text = "/input" read',
+            'Lines = "/input" readlines',
+            '"start" "/output" write',
+            '" end" "/output" append',
+        ].join('\n'));
+
+        expect(interpreter.variables.get('Text')).toBe('one\r\ntwo\n');
+        expect(formatValue(interpreter.variables.get('Lines')!)).toBe('one two');
+        expect(new TextDecoder().decode(io.files.get('/output'))).toBe('start end');
+    });
+
+    it('reads byte ranges and seeks open files', () => {
+        const io = new MemoryIo({ '/input': 'abcdef' });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use io',
+            'Direct = "/input" 1 3 readbytes',
+            'File = "/input" open',
+            'First = File 2 readbytes',
+            'File 3 seek',
+            'Second = File 3 readbytes',
+            'Offset = File position',
+            'Length = File size',
+            'Done = File eof',
+        ].join('\n'));
+
+        expect(formatValue(interpreter.variables.get('Direct')!)).toBe('0x626364');
+        expect(formatValue(interpreter.variables.get('First')!)).toBe('0x6162');
+        expect(formatValue(interpreter.variables.get('Second')!)).toBe('0x646566');
+        expect(interpreter.variables.get('Offset')).toBe(6n);
+        expect(interpreter.variables.get('Length')).toBe(6n);
+        expect(interpreter.variables.get('Done')).toBe(true);
+        expect(io.handles[0].closed).toBe(true);
+    });
+
+    it('writes bytes through write, update and append handles', () => {
+        const io = new MemoryIo({ '/source': 'abc', '/output': 'old' });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use io',
+            'Bytes = "/source" 0 3 readbytes',
+            'Output = "/output" .write open',
+            'Output Bytes writebytes',
+            'Output flush',
+            'Patch = "/source" 1 1 readbytes',
+            'Update = "/output" .update open',
+            'Update 1 seek',
+            'Update Patch writebytes',
+            'Tail = "/source" 2 1 readbytes',
+            'Log = "/output" .append open',
+            'Log Tail writebytes',
+        ].join('\n'));
+
+        expect(new TextDecoder().decode(io.files.get('/output'))).toBe('abcc');
+        expect(io.handles.every(handle => handle.closed)).toBe(true);
+    });
+
+    it('supports explicit early close and rejects later file access', () => {
+        const io = new MemoryIo({ '/input': 'abc' });
+        const interpreter = new Interpreter(undefined, { io });
+        expect(() => interpreter.execute([
+            'use io',
+            'File = "/input" open',
+            'File close',
+            'File 1 readbytes',
+        ].join('\n'))).toThrowError('file is closed: /input');
+        expect(io.handles[0].closed).toBe(true);
+    });
+
+    it('moves returned files into the caller resource scope', () => {
+        const io = new MemoryIo({ '/input': 'abcdef' });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use io',
+            'File = "/input" source',
+            'File 2 seek',
+            'Data = File 2 readbytes',
+            '',
+            'fun source Path',
+            '  File = Path open',
+            '  return File',
+            'end',
+        ].join('\n'));
+
+        expect(formatValue(interpreter.variables.get('Data')!)).toBe('0x6364');
+        expect(io.handles[0].closed).toBe(true);
+    });
+
+    it('closes owned files when execution raises an error', () => {
+        const io = new MemoryIo({ '/input': 'abcdef' });
+        const interpreter = new Interpreter(undefined, { io });
+        expect(() => interpreter.execute([
+            'use io',
+            'File = "/input" open',
+            '.Broken raise',
+        ].join('\n'))).toThrowError('.Broken');
+        expect(io.handles[0].closed).toBe(true);
     });
 
     it('resolves program inputs as workspace, args, then default', () => {

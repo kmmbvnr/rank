@@ -119,3 +119,7 @@ rules independently. The parser uses a stable combined grammar, because source
 must be parsed before its `use` statements can be evaluated. Rare syntax
 extensions are assembled as grammar fragments before parser construction;
 ordinary modules use existing expression and statement extension points.
+
+Host-dependent services are injected through runtime adapters. For example,
+`use io` exposes the same Rank values and operations in every host while the CLI,
+browser or embedded application supplies the actual file-system implementation.
