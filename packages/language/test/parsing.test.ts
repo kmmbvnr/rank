@@ -205,6 +205,8 @@ describe('Rank grammar', () => {
     it('parses ranges, slices and array selectors without brackets', async () => {
         const document = await parse([
             'Range = 1 to 5',
+            'Odds = 1 to 9 by 2',
+            'Countdown = 10 until 0 by 2',
             'Part = Text from L until R',
             'Letters = Text array 0 2 6',
             'Rows = M axis 0 from First to Last',
@@ -212,7 +214,7 @@ describe('Rank grammar', () => {
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(5);
+        expect(document.parseResult.value.statements).toHaveLength(7);
     });
 
     it('parses a receiver method with one expression argument', async () => {

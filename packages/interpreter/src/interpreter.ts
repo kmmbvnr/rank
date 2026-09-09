@@ -381,6 +381,7 @@ export class Interpreter {
                 expression.operator,
                 this.evaluate(expression.left),
                 this.evaluate(expression.right),
+                expression.step ? this.evaluate(expression.step) : undefined,
             );
         }
         if (isApplicationExpression(expression)) {
@@ -789,13 +790,26 @@ export class Interpreter {
         throw new RankError(`operator ${operator} does not accept ${typeName(value)}`);
     }
 
-    private evaluateBinary(operator: string, left: RankValue, right: RankValue): RankValue {
+    private evaluateBinary(
+        operator: string,
+        left: RankValue,
+        right: RankValue,
+        rangeStep?: RankValue,
+    ): RankValue {
         if (operator === 'to' || operator === 'until') {
             if (isRankSequence(left)) {
+                if (rangeStep !== undefined) {
+                    throw new RankError('by applies only to numeric ranges');
+                }
                 return boundSequence(left, expectInteger(right), operator === 'to');
             }
             this.requireModule('ranges', operator);
-            return makeRange(expectInteger(left), expectInteger(right), operator === 'to');
+            return makeRange(
+                expectInteger(left),
+                expectInteger(right),
+                operator === 'to',
+                rangeStep === undefined ? undefined : expectInteger(rangeStep),
+            );
         }
         if (isRankSequenceMask(left) || isRankSequenceMask(right)) {
             return this.combineSequenceMasks(operator, left, right);
@@ -1151,17 +1165,27 @@ function array(items: RankValue[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
 }
 
-function makeRange(start: bigint, end: bigint, inclusive: boolean): RankSequence {
-    const step = start <= end ? 1n : -1n;
-    const stop = inclusive ? end + step : end;
+function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
+    const magnitude = stride ?? 1n;
+    if (magnitude <= 0n) throw new RankError('range step must be a positive integer');
+
+    const ascending = start <= end;
+    const step = ascending ? magnitude : -magnitude;
+    const distance = absolute(end - start);
+    const size = inclusive
+        ? distance / magnitude + 1n
+        : (distance + magnitude - 1n) / magnitude;
+    const within = ascending
+        ? (value: bigint) => inclusive ? value <= end : value < end
+        : (value: bigint) => inclusive ? value >= end : value > end;
     return sequence({
-        name: `${start} ${inclusive ? 'to' : 'until'} ${end}`,
+        name: `${start} ${inclusive ? 'to' : 'until'} ${end}${stride === undefined ? '' : ` by ${stride}`}`,
         size: {
             kind: 'exact',
-            value: absolute(end - start) + (inclusive ? 1n : 0n),
+            value: size,
         },
         *iterate() {
-            for (let value = start; value !== stop; value += step) yield value;
+            for (let value = start; within(value); value += step) yield value;
         },
     });
 }

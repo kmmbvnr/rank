@@ -159,7 +159,8 @@ PaddingExpression returns Expression:
 RangeExpression returns Expression:
     AdditionExpression
     ({infer BinaryExpression.left=current}
-        operator=('to' | 'until') right=AdditionExpression)?;
+        operator=('to' | 'until') right=AdditionExpression
+        ('by' step=AdditionExpression)?)?;
 
 AdditionExpression returns Expression:
     MultiplicationExpression

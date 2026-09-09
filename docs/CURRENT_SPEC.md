@@ -685,6 +685,23 @@ end
 => 1 2
 ```
 
+`by` sets a positive integer step. The bounds determine the direction, so
+the same step spelling works for ascending and descending ranges:
+
+```text
+1 to 9 by 2
+=> 1 3 5 7 9
+
+10 until 0 by 2
+=> 10 8 6 4 2
+```
+
+The step must be greater than zero. With `to`, the endpoint is included only
+when the range lands on it exactly; `1 to 6 by 2` therefore produces
+`1 3 5`. With `until`, the endpoint is always excluded. `by` applies only
+to numeric ranges; bounding a known sequence such as `fibonacci to 100` does
+not accept a step.
+
 `from` appears only after a selected value and introduces a contiguous slice:
 
 ```rank
