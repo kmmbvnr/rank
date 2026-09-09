@@ -24,14 +24,7 @@ rem both characters match, then return Best.
 fun expand Text L R Best
   N = Text len
 
-  for
-    if L less 0
-      break
-    end
-    if R at least N
-      break
-    end
-
+  for L at least 0 and R less N
     Left = Text L
     Right = Text R
     if Left not equal Right
