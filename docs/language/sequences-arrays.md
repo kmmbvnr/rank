@@ -188,6 +188,22 @@ mask with a following operation, or push predicates into a source such as a
 table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
+A lazy sequence mask retains its source and is itself a selected sequence when
+used by a sequence operation. The explicit addressing form remains valid, and
+the two examples below are equivalent:
+
+```rank
+Mask = Fib even
+Answer = Fib Mask sum
+
+Answer = Fib even sum
+```
+
+Iteration, indexing, reductions and transformations such as `window` consume
+the matching source values. Boolean composition still combines the deferred
+predicates. A materialized boolean array does not retain a source and therefore
+still needs an explicit value on its left when used for selection.
+
 Reusing a mask does not promise that its computed bits are cached. A mask
 captures the logical values of its operands when it is created, rather than
 looking up later assignments to their variable names. This snapshot rule does

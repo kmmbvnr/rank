@@ -20,7 +20,8 @@ export function sequenceMask(
     source: RankSequence,
     predicate: SequencePredicate,
 ): RankSequenceMask {
-    return { kind: 'sequence-mask', source, predicate };
+    const selected = filterSequence(source, predicate);
+    return { kind: 'sequence', plan: selected.plan, source, predicate };
 }
 
 export function filterSequence(

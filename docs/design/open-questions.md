@@ -54,6 +54,23 @@ No syntax is reserved for these extensions yet. They must remain distinct:
 stride moves a window, padding changes its valid position frame, and dilation
 changes the geometry inside each cell.
 
+## Reusable operation plans
+
+Source-bound masks and window results are already lazy values. A separate
+future feature could store an operation before it receives its source:
+
+```rank
+Even = even
+Window13 = 13 window
+
+Answer = Fib Even sum
+Windows = Digits Window13
+```
+
+This requires one general design for functions as values and partial
+application. It must not be a special case for `even` or `window`. These
+spellings are illustrative and are not current syntax.
+
 ## Join variants
 
 The compact form:

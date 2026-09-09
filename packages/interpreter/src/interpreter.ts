@@ -757,25 +757,25 @@ export class Interpreter {
     }
 
     private apply(values: RankValue[]): RankValue {
-        const functions = values.filter(isNativeFunction);
-        if (functions.length === 0) {
-            return applySelectors(values);
-        }
-        if (functions.length > 1) {
-            throw new RankError('application contains more than one operation');
-        }
+        if (!values.some(isNativeFunction)) return applySelectors(values);
 
-        const fn = functions[0];
-        const functionIndex = values.indexOf(fn);
-        if (functionIndex !== values.length - 1) {
-            throw new RankError(`operation must follow its data: ${fn.name}`);
+        let pending: RankValue[] = [];
+        for (const value of values) {
+            if (!isNativeFunction(value)) {
+                pending.push(value);
+                continue;
+            }
+            if (pending.length === 0) {
+                throw new RankError(`operation must follow its data: ${value.name}`);
+            }
+
+            const arguments_ = callArguments(value, pending);
+            const result = arguments_.length === 1 && value.monadicRank !== 'all'
+                ? this.applyUnaryAtRank(arguments_[0], value, value.monadicRank)
+                : value.call(arguments_);
+            pending = [result];
         }
-        const receivers = values.slice(0, functionIndex);
-        const arguments_ = callArguments(fn, receivers);
-        if (arguments_.length === 1 && fn.monadicRank !== 'all') {
-            return this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank);
-        }
-        return fn.call(arguments_);
+        return pending.length === 1 ? pending[0] : applySelectors(pending);
     }
 
     private applyAtRank(values: RankValue[], rank: bigint): RankValue {
@@ -915,7 +915,8 @@ export class Interpreter {
                 rangeStep === undefined ? undefined : expectInteger(rangeStep),
             );
         }
-        if (isRankSequenceMask(left) || isRankSequenceMask(right)) {
+        if ((isRankSequenceMask(left) || isRankSequenceMask(right))
+            && ['and', 'or', 'xor'].includes(operator)) {
             return this.combineSequenceMasks(operator, left, right);
         }
         if (operator === 'in') {

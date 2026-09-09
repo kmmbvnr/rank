@@ -265,15 +265,51 @@ describe('Rank interpreter', () => {
             'use numbers',
             'Fib = fibonacci to 100',
             'Mask = Fib even',
-            'Even = Fib Mask',
-            'Even sum',
+            'Mask sum',
         ].join('\n'));
         expect(formatValue(result!)).toBe('44');
 
-        const even = interpreter.variables.get('Even');
-        expect(even && isRankSequence(even) && even.plan.name).toBe('even fibonacci');
-        expect(even && isRankSequence(even) && even.plan.size)
+        const mask = interpreter.variables.get('Mask');
+        expect(mask && isRankSequence(mask) && mask.plan.name).toBe('even fibonacci');
+        expect(mask && isRankSequence(mask) && mask.plan.size)
             .toEqual({ kind: 'exact', value: 3n });
+
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'Fib = fibonacci to 100',
+            'Mask = Fib even',
+            'Fib Mask sum',
+        ].join('\n'))).toBe('44');
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'Fib = fibonacci to 100',
+            'Fib even sum',
+        ].join('\n'))).toBe('44');
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'Fib = fibonacci to 100',
+            'Fib even 1',
+        ].join('\n'))).toBe('8');
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'Total = 0',
+            'Fib = fibonacci to 100',
+            'for Value i in Fib even',
+            '  Total += Value',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('44');
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'Fib = fibonacci to 100',
+            'Pairs = Fib even 2 window',
+            'Pairs 1 + reduce',
+        ].join('\n'))).toBe('42');
     });
 
     it('does not reduce an unbounded sequence', () => {

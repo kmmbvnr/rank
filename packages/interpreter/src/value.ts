@@ -67,8 +67,8 @@ export interface RankSequence {
     readonly plan: SequencePlan;
 }
 
-export interface RankSequenceMask {
-    readonly kind: 'sequence-mask';
+export interface RankSequenceMask extends RankSequence {
+    readonly kind: 'sequence';
     readonly source: RankSequence;
     readonly predicate: SequencePredicate;
 }
@@ -105,7 +105,10 @@ export function isRankSequence(value: RankValue): value is RankSequence {
 }
 
 export function isRankSequenceMask(value: RankValue): value is RankSequenceMask {
-    return typeof value === 'object' && value.kind === 'sequence-mask';
+    return typeof value === 'object'
+        && value.kind === 'sequence'
+        && 'source' in value
+        && 'predicate' in value;
 }
 
 export function formatValue(value: RankValue): string {
@@ -138,7 +141,7 @@ export function formatValue(value: RankValue): string {
     if (value.kind === 'queue') {
         return value.items.map(formatValue).join(' ');
     }
-    if (value.kind === 'sequence-mask') {
+    if (isRankSequenceMask(value)) {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;
         return [...value.source.plan.iterate()]
             .map(item => formatValue(value.predicate.test(item)))

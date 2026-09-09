@@ -108,8 +108,8 @@ is intended.
 
 ## Data-first application
 
-Rank places data before the operation. A called function is the final word of
-an application:
+Rank places data before the operation. A function follows the values it
+consumes:
 
 ```rank
 30 sin
@@ -124,15 +124,25 @@ functions. Nullary sources such as `fibonacci` and `primes` are values rather
 than calls. Keywords such as `use`, `run`, `option` and `if` introduce their own
 statements and do not follow the function-call rule.
 
-One application calls one function. Use a named intermediate value instead of
-placing several function words on one line:
+An application may form an unambiguous left-to-right pipeline. Each function
+consumes the values accumulated before it according to its declared arity, and
+its result becomes the first value available to the next function:
+
+```rank
+Answer = Fib even sum
+Text reverse print
+```
+
+A function still cannot precede its data. Insufficient or excess arguments are
+errors. Use named intermediate values when a pipeline becomes harder to read:
 
 ```rank
 Text = N text
 Back = Text reverse
 ```
 
-This is both a language rule and the preferred narrow-screen style.
+Short pipelines are useful on a narrow screen; intermediate values remain the
+preferred style when they give a result a meaningful name.
 
 Leading unary `+`, `-` and `not` bind to their nearest value before postfix
 application. Therefore the function in this expression receives `-121`:

@@ -182,8 +182,8 @@ is intended.
 
 ## Data-first application
 
-Rank places data before the operation. A called function is the final word of
-an application:
+Rank places data before the operation. A function follows the values it
+consumes:
 
 ```rank
 30 sin
@@ -198,15 +198,25 @@ functions. Nullary sources such as `fibonacci` and `primes` are values rather
 than calls. Keywords such as `use`, `run`, `option` and `if` introduce their own
 statements and do not follow the function-call rule.
 
-One application calls one function. Use a named intermediate value instead of
-placing several function words on one line:
+An application may form an unambiguous left-to-right pipeline. Each function
+consumes the values accumulated before it according to its declared arity, and
+its result becomes the first value available to the next function:
+
+```rank
+Answer = Fib even sum
+Text reverse print
+```
+
+A function still cannot precede its data. Insufficient or excess arguments are
+errors. Use named intermediate values when a pipeline becomes harder to read:
 
 ```rank
 Text = N text
 Back = Text reverse
 ```
 
-This is both a language rule and the preferred narrow-screen style.
+Short pipelines are useful on a narrow screen; intermediate values remain the
+preferred style when they give a result a meaningful name.
 
 Leading unary `+`, `-` and `not` bind to their nearest value before postfix
 application. Therefore the function in this expression receives `-121`:
@@ -1270,6 +1280,22 @@ mask with a following operation, or push predicates into a source such as a
 table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
+A lazy sequence mask retains its source and is itself a selected sequence when
+used by a sequence operation. The explicit addressing form remains valid, and
+the two examples below are equivalent:
+
+```rank
+Mask = Fib even
+Answer = Fib Mask sum
+
+Answer = Fib even sum
+```
+
+Iteration, indexing, reductions and transformations such as `window` consume
+the matching source values. Boolean composition still combines the deferred
+predicates. A materialized boolean array does not retain a source and therefore
+still needs an explicit value on its left when used for selection.
+
 Reusing a mask does not promise that its computed bits are cached. A mask
 captures the logical values of its operands when it is created, rather than
 looking up later assignments to their variable names. This snapshot rule does
@@ -2192,13 +2218,13 @@ use sequences
 use numbers
 
 Fib = fibonacci to 4000000
-Mask = Fib even
-Answer = Fib Mask sum
+Answer = Fib even sum
 ```
 
-The bounded Fibonacci source stays lazy. Applying the mask pushes the standard
-`even` predicate into the source plan, which can generate only even Fibonacci
-terms before `sum` consumes them.
+The bounded Fibonacci source stays lazy. The source-bound mask made by `even`
+also acts as the selected sequence, so `sum` can consume it directly. The
+planner pushes the predicate into the Fibonacci source, which can generate only
+even terms.
 
 ## 3. Largest prime factor
 
@@ -2823,6 +2849,23 @@ contiguous cells. Future examples may justify three independent extensions:
 No syntax is reserved for these extensions yet. They must remain distinct:
 stride moves a window, padding changes its valid position frame, and dilation
 changes the geometry inside each cell.
+
+## Reusable operation plans
+
+Source-bound masks and window results are already lazy values. A separate
+future feature could store an operation before it receives its source:
+
+```rank
+Even = even
+Window13 = 13 window
+
+Answer = Fib Even sum
+Windows = Digits Window13
+```
+
+This requires one general design for functions as values and partial
+application. It must not be a special case for `even` or `window`. These
+spellings are illustrative and are not current syntax.
 
 ## Join variants
 
