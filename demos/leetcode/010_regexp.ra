@@ -1,63 +1,64 @@
 rem Regular Expression Matching
-rem Full match of a string against a
-rem pattern with '.' and '*'
+rem Full match of text against a pattern
+rem containing '.' and '*'
 
 use algo
+use sequences
 
-fun match S P
-  N = len S
-  M = len P
+rem Build a table where index i j says whether
+rem the first i characters match the first j
+rem pattern characters.
+fun match Text Pattern
+  N = Text len
+  M = Pattern len
 
-  Rows = N + 1
-  Cols = M + 1
-  DP = array Rows Cols
+  index 0 0 = true
 
-  DP 0 0 = true
-
-  for j in 2 to M
-    k = j - 1
-
-    if P k equal "*"
-      q = j - 2
-      DP 0 j = DP 0 q
+  rem A starred element can match empty text.
+  for PatternSymbol j in Pattern
+    if j at least 1 and PatternSymbol equal "*"
+      Column = j + 1
+      Previous = Column - 2
+      Empty = index 0 Previous pad false
+      index 0 Column = Empty
     end
   end
 
-  for i in 1 to N
-    for j in 1 to M
-      p = j - 1
-      s = i - 1
+  for TextSymbol i in Text
+    for PatternSymbol j in Pattern
+      Row = i + 1
+      Column = j + 1
 
-      if P p equal "*"
-        q = j - 2
-        C = Pq
+      if PatternSymbol equal "*"
+        Previous = Column - 2
+        Repeated = Pattern Previous
+        Same = Repeated equal "."
 
-        DP i j = DP i q
-
-        Same = C equal "."
-        if C equal S s
+        if Repeated equal TextSymbol
           Same = true
         end
 
+        Zero = index Row Previous pad false
+        More = false
+
         if Same
-          if DP s j
-            DP i j = true
-          end
+          More = index i Column pad false
         end
+
+        index Row Column = Zero or More
       else
-        Same = P p equal "."
+        Same = PatternSymbol equal "."
 
-        if P p equal S s
+        if PatternSymbol equal TextSymbol
           Same = true
         end
 
-        if Same
-          q = j - 1
-          DP i j = DP s q
-        end
+        Previous = Column - 1
+        Prefix = index i Previous pad false
+        index Row Column = Same and Prefix
       end
     end
   end
 
-  return DP N M
+  return index N M pad false
 end
