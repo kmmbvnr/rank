@@ -101,7 +101,7 @@ describe('Rank grammar', () => {
             '  Count += 1',
             'end',
             'for',
-            '  return Count',
+            '  break',
             'end',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);

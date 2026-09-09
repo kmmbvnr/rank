@@ -5,6 +5,9 @@ rem reads the same both ways
 use algo
 use sequences
 
+rem Find the first longest palindrome.
+rem Try an odd and even center at every
+rem character and keep the longest result.
 fun longest Text
   Best = ""
 
@@ -17,35 +20,33 @@ fun longest Text
   return Best
 end
 
+rem Grow a palindrome around L and R while
+rem both characters match, then return Best.
 fun expand Text L R Best
   N = Text len
-  More = true
 
-  for More
+  for
     if L less 0
-      More = false
-    else
-      if R at least N
-        More = false
-      else
-        Left = Text L
-        Right = Text R
-
-        if Left not equal Right
-          More = false
-        else
-          Size = R - L + 1
-          BestSize = Best len
-
-          if Size greater BestSize
-            Best = Text from L to R
-          end
-
-          L -= 1
-          R += 1
-        end
-      end
+      break
     end
+    if R at least N
+      break
+    end
+
+    Left = Text L
+    Right = Text R
+    if Left not equal Right
+      break
+    end
+
+    Size = R - L + 1
+    BestSize = Best len
+    if Size greater BestSize
+      Best = Text from L to R
+    end
+
+    L -= 1
+    R += 1
   end
 
   return Best

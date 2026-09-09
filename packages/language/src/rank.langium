@@ -18,6 +18,7 @@ Statement:
     TestStatement |
     FunctionStatement |
     ReturnStatement |
+    BreakStatement |
     IfStatement |
     ForStatement |
     PushStatement |
@@ -57,6 +58,9 @@ FunctionStatement:
 
 ReturnStatement:
     'return' value=Expression;
+
+BreakStatement:
+    {infer BreakStatement} 'break';
 
 IfStatement:
     'if' condition=Expression NL+

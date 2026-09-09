@@ -788,8 +788,15 @@ A bare `for` repeats without a condition until control leaves its body:
 ```rank
 for
     Count += 1
+    if Count equal 10
+        break
+    end
 end
 ```
+
+`break` immediately ends the nearest enclosing `for`. It is an error outside
+a loop. Rank does not currently have labels or a multi-level form of `break`;
+an outer loop must be ended by its own `break`, condition or `return`.
 
 The unparenthesized form `for X in A` is always iteration. Parentheses make a
 membership expression a loop condition when that distinction is needed:
@@ -816,7 +823,13 @@ cell-rank and axis iteration are defined in the tensor section.
 
 ## Functions
 
+Functions are documented with a short block of `rem` lines immediately before
+`fun`. The block says what the function returns and explains only the
+non-obvious idea or constraint:
+
 ```rank
+rem Return the greatest common divisor.
+rem Use the Euclidean algorithm.
 fun gcd A B
     for B not equal 0
         R = A % B
@@ -827,6 +840,10 @@ fun gcd A B
     return A
 end
 ```
+
+These are ordinary comments today. Future help and documentation tools may
+associate the adjacent block with the function without adding another comment
+syntax.
 
 Calls use Rank's data-first order. Arguments come first and the function name
 is the final word:

@@ -236,6 +236,32 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('7');
     });
 
+    it('breaks out of the nearest for loop', () => {
+        expect(run([
+            'use ranges',
+            'Total = 0',
+            'for i in 1 to 3',
+            '  for j in 1 to 3',
+            '    if j equal 2',
+            '      break',
+            '    end',
+            '    Total += 1',
+            '  end',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('3');
+        expect(run([
+            'Count = 0',
+            'for',
+            '  Count += 1',
+            '  break',
+            'end',
+            'Count',
+        ].join('\n'))).toBe('1');
+        expect(() => run('break'))
+            .toThrowError('break is only valid inside a for loop');
+    });
+
     it('calls user functions with local indexes and returns arrays', () => {
         expect(run([
             'use algo',

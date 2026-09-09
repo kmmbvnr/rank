@@ -6,6 +6,7 @@ import {
     isAssignmentStatement,
     isBinaryExpression,
     isBooleanLiteral,
+    isBreakStatement,
     isExpressionStatement,
     isFlagStatement,
     isForStatement,
@@ -89,6 +90,8 @@ class ReturnSignal {
     constructor(readonly value: RankValue) {}
 }
 
+class BreakSignal {}
+
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
     readonly modules = new Set<string>();
@@ -128,6 +131,7 @@ export class Interpreter {
     private executeStatements(
         statements: Statement[],
         assertBooleanExpressions = false,
+        insideLoop = false,
     ): RankValue | undefined {
         let result: RankValue | undefined;
 
@@ -158,11 +162,16 @@ export class Interpreter {
                     throw new RankError('return is only valid inside a function');
                 }
                 throw new ReturnSignal(this.evaluate(statement.value));
+            } else if (isBreakStatement(statement)) {
+                if (!insideLoop) {
+                    throw new RankError('break is only valid inside a for loop');
+                }
+                throw new BreakSignal();
             } else if (isIfStatement(statement)) {
                 const branch = expectBoolean(this.evaluate(statement.condition))
                     ? statement.thenStatements
                     : statement.elseStatements;
-                result = this.executeStatements(branch, assertBooleanExpressions);
+                result = this.executeStatements(branch, assertBooleanExpressions, insideLoop);
             } else if (isForStatement(statement)) {
                 result = undefined;
                 const binding = forIteration(statement.condition);
@@ -171,12 +180,22 @@ export class Interpreter {
                         this.assign(binding.names[0], entry.value);
                         binding.names.slice(1).forEach((name, position) =>
                             this.assign(name, entry.indices[position]));
-                        result = this.executeStatements(statement.statements, assertBooleanExpressions);
+                        try {
+                            result = this.executeStatements(statement.statements, assertBooleanExpressions, true);
+                        } catch (error) {
+                            if (error instanceof BreakSignal) break;
+                            throw error;
+                        }
                     }
                 } else {
                     while (!statement.condition
                         || expectBoolean(this.evaluate(statement.condition))) {
-                        result = this.executeStatements(statement.statements, assertBooleanExpressions);
+                        try {
+                            result = this.executeStatements(statement.statements, assertBooleanExpressions, true);
+                        } catch (error) {
+                            if (error instanceof BreakSignal) break;
+                            throw error;
+                        }
                     }
                 }
             } else if (isPushStatement(statement)) {
