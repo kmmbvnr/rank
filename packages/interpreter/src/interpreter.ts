@@ -561,13 +561,19 @@ export class Interpreter {
         const qualified = splitQualified(name);
         if (!qualified) {
             const scope = this.localScopes.at(-1) ?? this.variables;
+            const previous = scope.get(name);
+            if (previous !== undefined && typeName(previous) !== typeName(value)) {
+                throw new RankError(
+                    `${name} has type ${typeName(previous)} and cannot receive ${typeName(value)}`,
+                );
+            }
             scope.set(name, value);
             return;
         }
         const [alias, member] = qualified;
         const child = this.aliases.get(alias);
         if (!child) throw new RankError(`unknown module alias: ${alias}`);
-        child.variables.set(member, value);
+        child.assign(member, value);
     }
 
     private findVariable(name: string): RankValue | undefined {
@@ -652,7 +658,8 @@ export class Interpreter {
         if (operator === 'not' && typeof value === 'boolean') {
             return !value;
         }
-        if ((operator === '+' || operator === '-') && typeof value === 'bigint') {
+        if ((operator === '+' || operator === '-')
+            && (typeof value === 'bigint' || typeof value === 'number')) {
             return operator === '+' ? value : -value;
         }
         throw new RankError(`operator ${operator} does not accept ${typeName(value)}`);
@@ -697,25 +704,29 @@ export class Interpreter {
             this.requireModule('numbers', 'multiple by');
             return expectInteger(left) % expectInteger(right) === 0n;
         }
-        if (operator === 'less' || operator === 'greater' || operator === 'atleast') {
-            const a = expectInteger(left);
-            const b = expectInteger(right);
+        if (operator === 'less' || operator === 'greater'
+            || operator === 'atleast' || operator === 'atmost') {
+            const a = expectNumeric(left);
+            const b = expectNumeric(right);
             if (operator === 'less') return a < b;
             if (operator === 'greater') return a > b;
-            return a >= b;
+            if (operator === 'atleast') return a >= b;
+            return a <= b;
         }
 
-        const a = expectInteger(left);
-        const b = expectInteger(right);
-        if ((operator === '/' || operator === '%') && b === 0n) {
+        const a = expectNumeric(left);
+        const b = expectNumeric(right);
+        if ((operator === '/' || operator === '//' || operator === '%') && isZero(b)) {
             throw new RankError('division by zero');
         }
+        const bothIntegers = typeof a === 'bigint' && typeof b === 'bigint';
         switch (operator) {
-            case '+': return a + b;
-            case '-': return a - b;
-            case '*': return a * b;
-            case '/': return a / b;
-            case '%': return a % b;
+            case '+': return bothIntegers ? a + b : Number(a) + Number(b);
+            case '-': return bothIntegers ? a - b : Number(a) - Number(b);
+            case '*': return bothIntegers ? a * b : Number(a) * Number(b);
+            case '/': return Number(a) / Number(b);
+            case '//': return bothIntegers ? floorDivide(a, b) : Math.floor(Number(a) / Number(b));
+            case '%': return bothIntegers ? a % b : Number(a) % Number(b);
             default: throw new RankError(`unknown operator: ${operator}`);
         }
     }
@@ -850,6 +861,11 @@ function parseInputValue(valueType: string, value: string): RankValue {
             throw new RankError(`expected integer input, got: ${value}`);
         }
     }
+    if (valueType === 'real') {
+        const real = Number(value);
+        if (!Number.isFinite(real)) throw new RankError(`expected real input, got: ${value}`);
+        return real;
+    }
     if (valueType === 'text' || valueType === 'path') return value;
     if (valueType === 'boolean') {
         if (value === 'true') return true;
@@ -861,9 +877,10 @@ function parseInputValue(valueType: string, value: string): RankValue {
 
 function validateInputValue(name: string, valueType: string, value: RankValue): void {
     if (valueType === 'integer' && typeof value === 'bigint') return;
+    if (valueType === 'real' && typeof value === 'number') return;
     if ((valueType === 'text' || valueType === 'path') && typeof value === 'string') return;
     if (valueType === 'boolean' && typeof value === 'boolean') return;
-    if (!['integer', 'text', 'path', 'boolean'].includes(valueType)) {
+    if (!['integer', 'real', 'text', 'path', 'boolean'].includes(valueType)) {
         throw new RankError(`unknown input type: ${valueType}`);
     }
     throw new RankError(`${name} expects ${valueType}, got ${typeName(value)}`);
@@ -897,7 +914,8 @@ function tensorIterationSpec(expression: Expression): TensorIterationSpec | unde
     const rankWord = parts.at(-2);
     const rankValue = parts.at(-1);
     if (!rankWord || !rankValue || !isNameExpression(rankWord)
-        || rankWord.name !== 'rank' || !isNumberLiteral(rankValue)) return undefined;
+        || rankWord.name !== 'rank' || !isNumberLiteral(rankValue)
+        || typeof rankValue.value !== 'bigint') return undefined;
 
     const cellRank = safeDimension(rankValue.value, 'rank');
     const beforeRank = parts.slice(0, -2);
@@ -910,14 +928,18 @@ function tensorIterationSpec(expression: Expression): TensorIterationSpec | unde
         throw new RankError('axis expects an array followed by one or more axis numbers');
     }
     const axisParts = beforeRank.slice(2);
-    if (!axisParts.every(isNumberLiteral)) {
-        throw new RankError('axis expects nonnegative integer literals');
-    }
     return {
         source: beforeRank[0],
-        axes: axisParts.map(axis => safeDimension(axis.value, 'axis')),
+        axes: axisParts.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')),
         cellRank,
     };
+}
+
+function integerLiteral(expression: Expression, name: string): bigint {
+    if (!isNumberLiteral(expression) || typeof expression.value !== 'bigint') {
+        throw new RankError(`${name} expects nonnegative integer literals`);
+    }
+    return expression.value;
 }
 
 function safeDimension(value: bigint, name: string): number {
@@ -1213,7 +1235,8 @@ function assertTestExpression(value: RankValue): void {
 }
 
 function isPredicateOperator(operator: string): boolean {
-    return ['equal', 'notequal', 'less', 'greater', 'atleast', 'multipleby'].includes(operator);
+    return ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby']
+        .includes(operator);
 }
 
 function flattenApplication(expression: Expression): Expression[] {
@@ -1228,7 +1251,9 @@ function explicitRankApplication(parts: Expression[]): { parts: Expression[]; ra
     const modifier = parts.at(-2);
     const rank = parts.at(-1);
     if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
-    if (!isNumberLiteral(rank)) throw new RankError('rank expects a nonnegative integer');
+    if (!isNumberLiteral(rank) || typeof rank.value !== 'bigint') {
+        throw new RankError('rank expects a nonnegative integer');
+    }
     return { parts: parts.slice(0, -2), rank: rank.value };
 }
 
@@ -1239,6 +1264,25 @@ function expectInteger(value: RankValue): bigint {
     return value;
 }
 
+function expectNumeric(value: RankValue): bigint | number {
+    if (typeof value !== 'bigint' && typeof value !== 'number') {
+        throw new RankError(`expected number, got ${typeName(value)}`);
+    }
+    return value;
+}
+
+function isZero(value: bigint | number): boolean {
+    return value === 0n || value === 0;
+}
+
+function floorDivide(left: bigint, right: bigint): bigint {
+    const quotient = left / right;
+    const remainder = left % right;
+    return remainder !== 0n && (left < 0n) !== (right < 0n)
+        ? quotient - 1n
+        : quotient;
+}
+
 function expectBoolean(value: RankValue): boolean {
     if (typeof value !== 'boolean') {
         throw new RankError(`expected boolean, got ${typeName(value)}`);
@@ -1247,6 +1291,13 @@ function expectBoolean(value: RankValue): boolean {
 }
 
 function equalValues(left: RankValue, right: RankValue): boolean {
+    if ((typeof left === 'bigint' || typeof left === 'number')
+        && (typeof right === 'bigint' || typeof right === 'number')) {
+        if (typeof left === typeof right) return left === right;
+        const integer = typeof left === 'bigint' ? left : right as bigint;
+        const real = typeof left === 'number' ? left : right as number;
+        return Number.isFinite(real) && Number.isInteger(real) && integer === BigInt(real);
+    }
     if (typeof left !== 'object' || typeof right !== 'object') {
         return left === right;
     }
@@ -1257,6 +1308,8 @@ function equalValues(left: RankValue, right: RankValue): boolean {
 }
 
 function typeName(value: RankValue): string {
+    if (typeof value === 'number') return 'real';
+    if (typeof value === 'bigint') return 'integer';
     if (typeof value !== 'object') {
         return typeof value;
     }

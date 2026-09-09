@@ -243,7 +243,14 @@ Largest = A max
 Average = A mean
 ```
 
-`max` remains a reduction. It is not overloaded as an elementwise clamp.
+`min` and `max` reduce one finite collection or compare two numeric values:
+
+```rank
+Largest = A max
+Bound = Low High max
+```
+
+Their binary form returns one operand and is not an elementwise clamp.
 
 ## Scan
 

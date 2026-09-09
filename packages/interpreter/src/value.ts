@@ -62,7 +62,7 @@ export interface RankSequenceMask {
     readonly predicate: SequencePredicate;
 }
 
-export type RankValue = bigint | boolean | string | RankArray | RankLabel | RankIndex | RankQueue |
+export type RankValue = bigint | number | boolean | string | RankArray | RankLabel | RankIndex | RankQueue |
     NativeFunction | RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -92,6 +92,11 @@ export function isRankSequenceMask(value: RankValue): value is RankSequenceMask 
 export function formatValue(value: RankValue): string {
     if (typeof value === 'bigint') {
         return value.toString();
+    }
+    if (typeof value === 'number') {
+        if (value === Number.POSITIVE_INFINITY) return 'infinity';
+        if (value === Number.NEGATIVE_INFINITY) return '-infinity';
+        return Object.is(value, -0) ? '0' : value.toString();
     }
     if (typeof value === 'boolean') {
         return value ? 'true' : 'false';

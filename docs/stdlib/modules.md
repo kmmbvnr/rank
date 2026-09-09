@@ -38,6 +38,9 @@ gcd
 lcm
 factors
 multiple by
+min
+max
+infinity
 ```
 
 `multiple by` is an elementwise divisibility test and returns a boolean value
@@ -75,6 +78,17 @@ Answer = (1 to 20) lcm
 
 Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
 containing zero is zero, and the `lcm` of an empty sequence is one.
+
+`min` and `max` use data-first application. With one collection they reduce it;
+with two numeric values they return the smaller or larger operand:
+
+```rank
+Smallest = Values min
+Left = A B max
+```
+
+`infinity` is the positive infinite `real` value. Unary negation produces
+`-infinity`.
 
 ## Sequences
 

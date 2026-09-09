@@ -40,6 +40,13 @@ export function expectInteger(value: RankValue): bigint {
     return value;
 }
 
+export function expectNumeric(value: RankValue): bigint | number {
+    if (typeof value !== 'bigint' && typeof value !== 'number') {
+        throw new RankError('expected numeric input');
+    }
+    return value;
+}
+
 function array(items: RankValue[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
 }

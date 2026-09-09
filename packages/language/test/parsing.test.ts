@@ -26,10 +26,18 @@ describe('Rank grammar', () => {
         const document = await parse([
             'Last = index Ci pad -1',
             'Ready = Last at least Start',
+            'Before = Last at most Finish',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(2);
+        expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
+    it('parses real and floor division expressions', async () => {
+        const document = await parse('Mean = 5 / 2.0\nPage = 5 // 2\nPage //= 2');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
     it('parses imported words as ordinary application', async () => {

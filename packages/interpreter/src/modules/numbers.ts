@@ -7,7 +7,7 @@ import {
     type SequencePlan,
     type SequencePredicate,
 } from '../value.js';
-import { expectInteger, mapValue, native } from './shared.js';
+import { expectInteger, expectNumeric, mapValue, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const numbersModule: RuntimeModule = {
@@ -15,28 +15,16 @@ export const numbersModule: RuntimeModule = {
         const value = arguments_[0];
         if (isRankSequence(value)) {
             const planned = reduceSequence(value, 'sum');
-            if (planned !== undefined) return expectInteger(planned);
+            if (planned !== undefined) return expectNumeric(planned);
         }
         const items = isRankArray(value) ? value.items : sequenceValues(value, 'sum');
-        let total = 0n;
-        for (const item of items) total += expectInteger(item);
+        let total: bigint | number = 0n;
+        for (const item of items) total = add(total, expectNumeric(item));
         return total;
     }),
-    max: () => native('max', 1, arguments_ => {
-        const value = arguments_[0];
-        if (isRankSequence(value)) {
-            const planned = reduceSequence(value, 'max');
-            if (planned !== undefined) return expectInteger(planned);
-        }
-        const items = isRankArray(value) ? value.items : sequenceValues(value, 'max');
-        let largest: bigint | undefined;
-        for (const item of items) {
-            const integer = expectInteger(item);
-            if (largest === undefined || integer > largest) largest = integer;
-        }
-        if (largest === undefined) throw new RankError('max requires at least one value');
-        return largest;
-    }),
+    min: () => numericExtreme('min', (left, right) => left < right),
+    max: () => numericExtreme('max', (left, right) => left > right),
+    infinity: () => Number.POSITIVE_INFINITY,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
     lcm: () => native('lcm', [1, 2], arguments_ => {
@@ -60,6 +48,38 @@ export const numbersModule: RuntimeModule = {
     odd: () => predicateFunction('odd', value => expectInteger(value) % 2n !== 0n),
     even: () => predicateFunction('even', value => expectInteger(value) % 2n === 0n),
 };
+
+function numericExtreme(
+    name: 'min' | 'max',
+    replaces: (candidate: bigint | number, current: bigint | number) => boolean,
+) {
+    return native(name, [1, 2], arguments_ => {
+        if (arguments_.length === 2) {
+            const left = expectNumeric(arguments_[0]);
+            const right = expectNumeric(arguments_[1]);
+            return replaces(right, left) ? right : left;
+        }
+        const value = arguments_[0];
+        if (isRankSequence(value)) {
+            const planned = reduceSequence(value, name);
+            if (planned !== undefined) return expectNumeric(planned);
+        }
+        const items = isRankArray(value) ? value.items : sequenceValues(value, name);
+        let result: bigint | number | undefined;
+        for (const item of items) {
+            const numeric = expectNumeric(item);
+            if (result === undefined || replaces(numeric, result)) result = numeric;
+        }
+        if (result === undefined) throw new RankError(`${name} requires at least one value`);
+        return result;
+    });
+}
+
+function add(left: bigint | number, right: bigint | number): bigint | number {
+    return typeof left === 'bigint' && typeof right === 'bigint'
+        ? left + right
+        : Number(left) + Number(right);
+}
 
 function greatestCommonDivisor(left: bigint, right: bigint): bigint {
     let a = absolute(left);

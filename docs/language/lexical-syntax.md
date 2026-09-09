@@ -63,8 +63,30 @@ Mask or= Fallback
 Mask xor= Changed
 ```
 
-The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `%=`,
-`and=`, `or=` and `xor=`.
+The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `//=`,
+`%=`, `and=`, `or=` and `xor=`.
+
+## Inferred variable types
+
+Rank infers a variable's type from its first value, similar to writing `auto`
+for every local variable in C++. The type then belongs to that name and cannot
+change through a later assignment:
+
+```rank
+Count = 1
+Count = 2
+rem Count = 2.0 is a type error
+```
+
+Function parameters and loop bindings are inferred when their workspace is
+created. Arrays and other structures keep their outer type when their contents
+or shape change according to that structure's own rules. Explicit type
+annotations may be added later; inference is the only variable declaration
+mode today.
+
+Compound assignment follows the same rule. For example, `/=` cannot store a
+real quotient in a variable inferred as `integer`; use `//=` when floor division
+is intended.
 
 ## Data-first application
 
@@ -110,16 +132,41 @@ not equal
 less
 greater
 at least
+at most
 ```
 
-`at least` means `>=`. Exact spelling for `<=` is still open.
+`at least` means `>=`; `at most` means `<=`.
 
 ## Scalar types
 
-Rank currently has four scalar value types: `integer`, `boolean`, `text` and
-`label`. Integers have arbitrary precision, and `/` returns an integer quotient;
-a separate floating-point type has not been defined yet. `path` is an input
-constraint represented by a `text` value, rather than a separate runtime type.
+Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
+and `label`. Integers have arbitrary precision. `real` is currently an IEEE 754
+binary64 value and decimal literals contain a decimal point:
+
+```rank
+Count = 2
+Ratio = 2.5
+```
+
+Mixed integer/real arithmetic promotes the result to `real`. `/` always performs
+real division. `//` performs floor division as in Python; two integer operands
+produce an integer, while an operation involving a real produces a real.
+
+```rank
+Half = 5 / 2
+Page = 5 // 2
+NegativePage = -5 // 2
+rem 2.5, 2, -3
+```
+
+`infinity` and `-infinity` are real values provided by `use numbers`. They are
+valid for comparisons and arithmetic, but decimal input declarations accept
+only finite real values.
+
+Future low-precision numeric formats used by ML, such as 4-bit or 8-bit floats,
+must be requested explicitly. Type inference never silently selects a reduced
+precision format. `path` is an input constraint represented by a `text` value,
+rather than a separate runtime type.
 
 ## Labels
 

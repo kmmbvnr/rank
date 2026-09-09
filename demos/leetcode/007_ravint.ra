@@ -21,10 +21,10 @@ fun reverse X
 
   for X greater 0
     Digit = X % 10
-    X = X / 10
+    X = X // 10
 
     Max = Limit - Digit
-    Max = Max / 10
+    Max = Max // 10
 
     if Result greater Max
       return 0

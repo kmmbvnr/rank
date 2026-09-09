@@ -19,7 +19,7 @@ fun palindrome X
 
   for X greater Back
     Digit = X % 10
-    X = X / 10
+    X = X // 10
 
     Back = Back * 10 + Digit
   end
@@ -28,5 +28,5 @@ fun palindrome X
     return true
   end
 
-  return X equal Back / 10
+  return X equal Back // 10
 end

@@ -32,7 +32,7 @@ fun atoi Text
     Limit = -2147483648
   end
 
-  Mult = Limit / 10
+  Mult = Limit // 10
   Result = 0
 
   for i less N

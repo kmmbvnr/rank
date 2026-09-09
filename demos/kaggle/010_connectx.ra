@@ -35,7 +35,7 @@ fun move Board Player Rows Cols Need
 
     rem Prefer center columns
 
-    Center = Cols / 2
+    Center = Cols // 2
     Best = -1
     BestDist = Cols + 1
 

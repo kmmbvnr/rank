@@ -31,7 +31,7 @@ fun add_two A B
 
     Sum = X + Y + Carry
     queue push Sum % 10
-    Carry = Sum / 10
+    Carry = Sum // 10
     I += 1
   end
 

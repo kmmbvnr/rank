@@ -14,13 +14,6 @@ Vararg declarations currently use `*`, but the data-first call-site spelling
 for expanding a sequence into arguments is not yet fixed. The former prefix
 sketch `lcm * Range` is not current syntax.
 
-## Comparison words
-
-`equal`, `not equal`, `less`, `greater` and `at least` are established.
-
-`at most` is currently being tested as the readable spelling for `<=`, starting
-with TPC-H Q6, but is not yet considered settled.
-
 ## Multi-argument method blocks
 
 The earlier `with ... end` form for supplying two or more method arguments is

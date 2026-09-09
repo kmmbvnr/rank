@@ -10,12 +10,16 @@ describe('Rank interpreter', () => {
     it('evaluates expressions with precedence', () => {
         expect(run('2 + 3 * 4')).toBe('14');
         expect(run('(2 + 3) * 4')).toBe('20');
-        expect(run('-7 / 3')).toBe('-2');
+        expect(run('-7 / 3')).toBe('-2.3333333333333335');
+        expect(run('-7 // 3')).toBe('-3');
+        expect(run('7 // -3')).toBe('-3');
         expect(run('1 not equal 2')).toBe('true');
         expect(run('not false')).toBe('true');
         expect(run('true xor false')).toBe('true');
         expect(run('2 at least 2')).toBe('true');
         expect(run('1 at least 2')).toBe('false');
+        expect(run('2 at most 2')).toBe('true');
+        expect(run('3 at most 2')).toBe('false');
     });
 
     it('pads missing addressed values without hiding other errors', () => {
@@ -41,6 +45,14 @@ describe('Rank interpreter', () => {
         expect(formatValue(interpreter.execute('Answer')!)).toBe('42');
     });
 
+    it('keeps the inferred type of a variable', () => {
+        expect(run('Value = 1\nValue = 2')).toBe('2');
+        expect(() => run('Value = 1\nValue = 2.0'))
+            .toThrowError('Value has type integer and cannot receive real');
+        expect(() => run('Value = 1\nValue /= 2'))
+            .toThrowError('Value has type integer and cannot receive real');
+    });
+
     it('loads vocabulary without changing the grammar', () => {
         expect(() => run('1 to 3')).toThrowError('to requires: use ranges');
         expect(() => run('3 multiple by 2')).toThrowError('multiple by requires: use numbers');
@@ -54,7 +66,7 @@ describe('Rank interpreter', () => {
     });
 
     it('updates values with compound assignment', () => {
-        expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue /= 2\nValue %= 4\nValue')).toBe('1');
+        expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue %= 4\nValue')).toBe('1');
         expect(run('Mask = true\nMask and= true\nMask xor= true\nMask or= true\nMask')).toBe('true');
     });
 
@@ -294,6 +306,17 @@ describe('Rank interpreter', () => {
         expect(run('use numbers\nFactors = 13195 factors\nFactors max')).toBe('29');
         expect(() => run('use numbers\n0 factors'))
             .toThrowError('factors expects a positive integer');
+    });
+
+    it('evaluates real numbers and numeric vocabulary', () => {
+        expect(run('1 / 2')).toBe('0.5');
+        expect(run('1 + 2.5')).toBe('3.5');
+        expect(run('9007199254740992 equal 9007199254740993')).toBe('false');
+        expect(run('2 equal 2.0')).toBe('true');
+        expect(run('use numbers\n3 2 min')).toBe('2');
+        expect(run('use numbers\n3 2 max')).toBe('3');
+        expect(run('use numbers\n-infinity')).toBe('-infinity');
+        expect(run('use numbers\noption Rate real = 1.5\nRate')).toBe('1.5');
     });
 
     it('calls operations after their data', () => {

@@ -81,7 +81,7 @@ AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
-    '=' | '+=' | '-=' | '*=' | '/=' | '%=' |
+    '=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' |
     'and=' | 'or=' | 'xor=';
 
 ExpressionStatement:
@@ -126,7 +126,7 @@ ComparisonExpression returns Expression:
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
-    'at' 'least' | 'multiple' 'by' | 'in';
+    'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in';
 
 PaddingExpression returns Expression:
     RangeExpression
@@ -146,7 +146,7 @@ AdditionExpression returns Expression:
 MultiplicationExpression returns Expression:
     UnaryExpression
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '%') right=UnaryExpression)*;
+        operator=('*' | '/' | '//' | '%') right=UnaryExpression)*;
 
 UnaryExpression returns Expression:
     {infer UnaryExpression}
@@ -172,7 +172,7 @@ ArrayAtom returns Expression:
     ParenthesizedExpression;
 
 NumberLiteral:
-    value=INTEGER;
+    value=(REAL | INTEGER);
 
 StringLiteral:
     value=STRING;
@@ -207,5 +207,6 @@ terminal NL: /\r?\n/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
+terminal REAL returns number: /[0-9]+\.[0-9]+/;
 terminal INTEGER returns bigint: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"/;

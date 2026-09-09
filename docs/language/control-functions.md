@@ -109,13 +109,16 @@ end
 The call-site spelling for expanding a sequence into arguments is still open;
 the former prefix sketch `lcm * Range` is not part of the current language.
 
-## Integer arithmetic
+## Division and remainder
 
 `%` is remainder.
 
-Current examples treat `/` on integers as integer division:
+`/` always produces a real quotient. `//` is floor division and follows Python's
+rounding direction for negative values:
 
 ```rank
 Digit = X % 10
-X = X / 10
+X = X // 10
+Ratio = 5 / 2
+Floor = -5 // 2
 ```

@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-08**
+**Current language snapshot — 2026-09-09**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -137,8 +137,30 @@ Mask or= Fallback
 Mask xor= Changed
 ```
 
-The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `%=`,
-`and=`, `or=` and `xor=`.
+The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `//=`,
+`%=`, `and=`, `or=` and `xor=`.
+
+## Inferred variable types
+
+Rank infers a variable's type from its first value, similar to writing `auto`
+for every local variable in C++. The type then belongs to that name and cannot
+change through a later assignment:
+
+```rank
+Count = 1
+Count = 2
+rem Count = 2.0 is a type error
+```
+
+Function parameters and loop bindings are inferred when their workspace is
+created. Arrays and other structures keep their outer type when their contents
+or shape change according to that structure's own rules. Explicit type
+annotations may be added later; inference is the only variable declaration
+mode today.
+
+Compound assignment follows the same rule. For example, `/=` cannot store a
+real quotient in a variable inferred as `integer`; use `//=` when floor division
+is intended.
 
 ## Data-first application
 
@@ -184,16 +206,41 @@ not equal
 less
 greater
 at least
+at most
 ```
 
-`at least` means `>=`. Exact spelling for `<=` is still open.
+`at least` means `>=`; `at most` means `<=`.
 
 ## Scalar types
 
-Rank currently has four scalar value types: `integer`, `boolean`, `text` and
-`label`. Integers have arbitrary precision, and `/` returns an integer quotient;
-a separate floating-point type has not been defined yet. `path` is an input
-constraint represented by a `text` value, rather than a separate runtime type.
+Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
+and `label`. Integers have arbitrary precision. `real` is currently an IEEE 754
+binary64 value and decimal literals contain a decimal point:
+
+```rank
+Count = 2
+Ratio = 2.5
+```
+
+Mixed integer/real arithmetic promotes the result to `real`. `/` always performs
+real division. `//` performs floor division as in Python; two integer operands
+produce an integer, while an operation involving a real produces a real.
+
+```rank
+Half = 5 / 2
+Page = 5 // 2
+NegativePage = -5 // 2
+rem 2.5, 2, -3
+```
+
+`infinity` and `-infinity` are real values provided by `use numbers`. They are
+valid for comparisons and arithmetic, but decimal input declarations accept
+only finite real values.
+
+Future low-precision numeric formats used by ML, such as 4-bit or 8-bit floats,
+must be requested explicitly. Type inference never silently selects a reduced
+precision format. `path` is an input constraint represented by a `text` value,
+rather than a separate runtime type.
 
 ## Labels
 
@@ -752,15 +799,18 @@ end
 The call-site spelling for expanding a sequence into arguments is still open;
 the former prefix sketch `lcm * Range` is not part of the current language.
 
-## Integer arithmetic
+## Division and remainder
 
 `%` is remainder.
 
-Current examples treat `/` on integers as integer division:
+`/` always produces a real quotient. `//` is floor division and follows Python's
+rounding direction for negative values:
 
 ```rank
 Digit = X % 10
-X = X / 10
+X = X // 10
+Ratio = 5 / 2
+Floor = -5 // 2
 ```
 
 ---
@@ -1010,7 +1060,14 @@ Largest = A max
 Average = A mean
 ```
 
-`max` remains a reduction. It is not overloaded as an elementwise clamp.
+`min` and `max` reduce one finite collection or compare two numeric values:
+
+```rank
+Largest = A max
+Bound = Low High max
+```
+
+Their binary form returns one operand and is not an elementwise clamp.
 
 ## Scan
 
@@ -1528,6 +1585,9 @@ gcd
 lcm
 factors
 multiple by
+min
+max
+infinity
 ```
 
 `multiple by` is an elementwise divisibility test and returns a boolean value
@@ -1565,6 +1625,17 @@ Answer = (1 to 20) lcm
 
 Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
 containing zero is zero, and the `lcm` of an empty sequence is one.
+
+`min` and `max` use data-first application. With one collection they reduce it;
+with two numeric values they return the smaller or larger operand:
+
+```rank
+Smallest = Values min
+Left = A B max
+```
+
+`infinity` is the positive infinite `real` value. Unary negation produces
+`-infinity`.
 
 ## Sequences
 
@@ -1912,7 +1983,7 @@ fun add_two A B
 
         Sum = X + Y + Carry
         queue push Sum % 10
-        Carry = Sum / 10
+        Carry = Sum // 10
         I += 1
     end
 
@@ -1963,6 +2034,14 @@ The two loop bindings explicitly receive the current Unicode code point and
 its zero-based index. The local `index` stores each character's latest position.
 The solution uses only current Rank constructs and runs in linear time.
 
+## 4. Median of Two Sorted Arrays
+
+The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
+and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
+Python-style `//`, real `/`, and the data-first binary forms `A B min` and
+`A B max`. Array boundaries are handled explicitly, so the algorithm does not
+need sentinel infinities even though `use numbers` provides `infinity`.
+
 ## 9. Palindrome Number
 
 Text version:
@@ -2001,7 +2080,7 @@ fun palindrome X
 
     for X greater Back
         Digit = X % 10
-        X = X / 10
+        X = X // 10
 
         Back = Back * 10 + Digit
     end
@@ -2010,7 +2089,7 @@ fun palindrome X
         return true
     end
 
-    return X equal Back / 10
+    return X equal Back // 10
 end
 ```
 
@@ -2277,13 +2356,6 @@ nested values, or whether those value models need a distinct rule.
 Vararg declarations currently use `*`, but the data-first call-site spelling
 for expanding a sequence into arguments is not yet fixed. The former prefix
 sketch `lcm * Range` is not current syntax.
-
-## Comparison words
-
-`equal`, `not equal`, `less`, `greater` and `at least` are established.
-
-`at most` is currently being tested as the readable spelling for `<=`, starting
-with TPC-H Q6, but is not yet considered settled.
 
 ## Multi-argument method blocks
 

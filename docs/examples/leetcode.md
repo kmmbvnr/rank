@@ -62,7 +62,7 @@ fun add_two A B
 
         Sum = X + Y + Carry
         queue push Sum % 10
-        Carry = Sum / 10
+        Carry = Sum // 10
         I += 1
     end
 
@@ -113,6 +113,14 @@ The two loop bindings explicitly receive the current Unicode code point and
 its zero-based index. The local `index` stores each character's latest position.
 The solution uses only current Rank constructs and runs in linear time.
 
+## 4. Median of Two Sorted Arrays
+
+The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
+and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
+Python-style `//`, real `/`, and the data-first binary forms `A B min` and
+`A B max`. Array boundaries are handled explicitly, so the algorithm does not
+need sentinel infinities even though `use numbers` provides `infinity`.
+
 ## 9. Palindrome Number
 
 Text version:
@@ -151,7 +159,7 @@ fun palindrome X
 
     for X greater Back
         Digit = X % 10
-        X = X / 10
+        X = X // 10
 
         Back = Back * 10 + Digit
     end
@@ -160,7 +168,7 @@ fun palindrome X
         return true
     end
 
-    return X equal Back / 10
+    return X equal Back // 10
 end
 ```
 
