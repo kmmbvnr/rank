@@ -3,29 +3,37 @@ rem Write a string in zigzag on N rows,
 rem then read it back row by row
 
 use algo
+use ranges
+use sequences
 
+rem Return Text in zigzag row order.
+rem Visit vertical and diagonal positions
+rem within each repeating zigzag cycle.
 fun zigzag Text N
   if N equal 1
     return Text
   end
 
-  Rows = array N
-  Row = 0
-  Step = 1
+  Length = Text len
+  Cycle = N * 2 - 2
 
-  for C i in Text
-    Rows Row = Rows Row + C
+  for Row in 0 until N
+    Position = Row
 
-    if Row equal 0
-      Step = 1
+    for Position less Length
+      queue push Position
+
+      if Row greater 0 and Row less N - 1
+        Diagonal = Position + Cycle - Row * 2
+
+        if Diagonal less Length
+          queue push Diagonal
+        end
+      end
+
+      Position += Cycle
     end
-
-    if Row equal N - 1
-      Step = -1
-    end
-
-    Row = Row + Step
   end
 
-  return Rows + reduce
+  return Text queue
 end
