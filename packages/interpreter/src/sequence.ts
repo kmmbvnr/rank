@@ -1,6 +1,9 @@
 import { MissingValueError, RankError } from './errors.js';
 import {
+    isRankArray,
+    isRankQueue,
     isRankSequence,
+    type RankArray,
     type RankSequence,
     type RankSequenceMask,
     type RankValue,
@@ -115,6 +118,195 @@ export function sequenceValues(value: RankValue, operation: string): Iterable<Ra
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
     return value.plan.reduce?.(operation);
+}
+
+export function windowValue(
+    source: RankValue,
+    sizeValue: RankValue,
+    axes?: readonly number[],
+): RankValue {
+    const widths = windowWidths(sizeValue);
+    if (widths.some(width => width <= 0)) {
+        throw new RankError('window sizes must be positive integers');
+    }
+
+    if (typeof source === 'string') {
+        validateWindowAxes(1, widths, axes);
+        const atoms = [...source];
+        const width = widths[0];
+        return sequence({
+            name: `${width} window over text`,
+            size: { kind: 'exact', value: BigInt(Math.max(0, atoms.length - width + 1)) },
+            *iterate() {
+                for (let start = 0; start + width <= atoms.length; start += 1) {
+                    yield atoms.slice(start, start + width).join('');
+                }
+            },
+            at(index) {
+                const start = Number(index);
+                if (!Number.isSafeInteger(start) || start < 0 || start + width > atoms.length) {
+                    return undefined;
+                }
+                return atoms.slice(start, start + width).join('');
+            },
+        });
+    }
+
+    if (isRankSequence(source)) {
+        validateWindowAxes(1, widths, axes);
+        if (source.plan.size.kind !== 'exact') return streamingWindows(source, widths[0]);
+        const length = safeSize(source.plan.size.value, 'sequence size');
+        const sourceItem = cachedSequenceItem(source);
+        return arrayWindows(
+            [length],
+            sourceItem,
+            widths,
+            [0],
+        );
+    }
+
+    if (isRankQueue(source)) {
+        const items = [...source.items];
+        validateWindowAxes(1, widths, axes);
+        return arrayWindows([items.length], index => items[index], widths, [0]);
+    }
+
+    if (!isRankArray(source)) {
+        throw new RankError('window expects text, a sequence or an array');
+    }
+    const selectedAxes = validateWindowAxes(source.shape.length, widths, axes);
+    return arrayWindows(
+        source.shape,
+        index => source.itemAt?.(index) ?? source.items[index],
+        widths,
+        selectedAxes,
+    );
+}
+
+function windowWidths(value: RankValue): number[] {
+    const values = typeof value === 'bigint'
+        ? [value]
+        : isRankArray(value) && value.shape.length === 1
+            ? value.items
+            : undefined;
+    if (!values || !values.every(item => typeof item === 'bigint')) {
+        throw new RankError('window size must be an integer or a rank-1 integer array');
+    }
+    return values.map(item => safeSize(item as bigint, 'window size'));
+}
+
+function validateWindowAxes(
+    rank: number,
+    widths: readonly number[],
+    axes: readonly number[] | undefined,
+): readonly number[] {
+    const selected = axes ?? (rank === 1 && widths.length === 1
+        ? [0]
+        : Array.from({ length: rank }, (_, index) => index));
+    if (selected.length !== widths.length) {
+        throw new RankError(
+            `window has ${widths.length} size value but ${selected.length} selected axes`,
+        );
+    }
+    if (new Set(selected).size !== selected.length) {
+        throw new RankError('window axis numbers must be unique');
+    }
+    for (const axis of selected) {
+        if (!Number.isSafeInteger(axis) || axis < 0 || axis >= rank) {
+            throw new RankError(`window axis out of bounds: ${axis}`);
+        }
+    }
+    return selected;
+}
+
+function arrayWindows(
+    sourceShape: readonly number[],
+    sourceItem: (index: number) => RankValue,
+    widths: readonly number[],
+    axes: readonly number[],
+): RankArray {
+    const positionShape = [...sourceShape];
+    axes.forEach((axis, index) => {
+        positionShape[axis] = Math.max(0, sourceShape[axis] - widths[index] + 1);
+    });
+    const resultShape = [...positionShape, ...widths];
+    return lazyArray(resultShape, linear => {
+        const output = arrayCoordinates(resultShape, linear);
+        const input = output.slice(0, sourceShape.length);
+        const offsets = output.slice(sourceShape.length);
+        axes.forEach((axis, index) => {
+            input[axis] += offsets[index];
+        });
+        return sourceItem(arrayOffset(sourceShape, input));
+    });
+}
+
+function streamingWindows(source: RankSequence, width: number): RankSequence {
+    const sourceSize = source.plan.size;
+    const size = sourceSize.kind === 'infinite'
+        ? sourceSize
+        : { kind: 'unknown' as const };
+    return sequence({
+        name: `${width} window over ${source.plan.name}`,
+        size,
+        *iterate() {
+            const buffer: RankValue[] = [];
+            for (const value of source.plan.iterate()) {
+                buffer.push(value);
+                if (buffer.length < width) continue;
+                if (buffer.length > width) buffer.shift();
+                yield { kind: 'array', items: [...buffer], shape: [width] };
+            }
+        },
+    });
+}
+
+function cachedSequenceItem(source: RankSequence): (index: number) => RankValue {
+    const iterator = source.plan.iterate();
+    const items: RankValue[] = [];
+    return index => {
+        while (items.length <= index) {
+            const next = iterator.next();
+            if (next.done) throw new MissingValueError(`sequence index out of bounds: ${index}`);
+            items.push(next.value);
+        }
+        return items[index];
+    };
+}
+
+function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValue): RankArray {
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape,
+        itemAt,
+        get items() {
+            materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
+            return materialized;
+        },
+    };
+}
+
+function arrayCoordinates(shape: readonly number[], linear: number): number[] {
+    const result = Array(shape.length).fill(0) as number[];
+    for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+        result[axis] = linear % shape[axis];
+        linear = Math.floor(linear / shape[axis]);
+    }
+    return result;
+}
+
+function arrayOffset(shape: readonly number[], coordinates: readonly number[]): number {
+    return coordinates.reduce((offset, coordinate, axis) => offset * shape[axis] + coordinate, 0);
+}
+
+function arraySize(shape: readonly number[]): number {
+    return shape.reduce((product, dimension) => product * dimension, 1);
+}
+
+function safeSize(value: bigint, name: string): number {
+    if (value > BigInt(Number.MAX_SAFE_INTEGER)) throw new RankError(`${name} is too large: ${value}`);
+    return Number(value);
 }
 
 function filteredSize(size: SequenceSize): SequenceSize {

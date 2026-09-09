@@ -156,6 +156,91 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('mask shape mismatch: 2,2 and 4');
     });
 
+    it('builds overlapping text and sequence windows', () => {
+        expect(run('use sequences\n"A😀БC" 2 window')).toBe('A😀 😀Б БC');
+        expect(run([
+            'use sequences',
+            'Pairs = "xyxy" 2 window',
+            'Pairs 0 equal Pairs 2',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use ranges',
+            'use sequences',
+            'Windows = (1 to 4) 3 window',
+            'Windows * reduce rank 1',
+        ].join('\n'))).toBe('6 24');
+        expect(run('use sequences\n(array 1 2) 3 window')).toBe('');
+        expect(() => run('use sequences\n(array 1 2) 0 window'))
+            .toThrowError('window sizes must be positive integers');
+        expect(() => run('(array 1 2) 2 window'))
+            .toThrowError('unknown name: window');
+        expect(run([
+            'use sequences',
+            'Pairs = (primes until 10) 2 window',
+            'Pair = Pairs 2',
+            'Pair + reduce',
+        ].join('\n'))).toBe('12');
+    });
+
+    it('builds multidimensional windows over selected axes', () => {
+        const source = [
+            'use sequences',
+            'M = array shape 3 4',
+            '  1 2 3 4',
+            '  5 6 7 8',
+            '  9 10 11 12',
+            'end',
+        ];
+        const windows = new Interpreter().execute([
+            ...source,
+            'Size = array 2 2',
+            'M Size window',
+        ].join('\n'));
+        expect(windows).toMatchObject({ kind: 'array', shape: [2, 3, 2, 2] });
+        expect(windows && typeof windows === 'object' && windows.kind === 'array'
+            ? windows.items
+            : undefined).toEqual([
+            1n, 2n, 5n, 6n,
+            2n, 3n, 6n, 7n,
+            3n, 4n, 7n, 8n,
+            5n, 6n, 9n, 10n,
+            6n, 7n, 10n, 11n,
+            7n, 8n, 11n, 12n,
+        ]);
+        expect(run([
+            ...source,
+            'Size = array 2 2',
+            'Windows = M Size window',
+            'Windows + reduce rank 2',
+        ].join('\n'))).toBe('14 18 22 30 34 38');
+        expect(run([
+            ...source,
+            'Windows = M 3 window axis 1',
+            'Windows + reduce rank 1',
+        ].join('\n'))).toBe('6 9 18 21 30 33');
+        expect(() => run([
+            ...source,
+            'M (array 2 2) window axis 0',
+        ].join('\n'))).toThrowError('window has 2 size value but 1 selected axes');
+        expect(() => run([
+            ...source,
+            'M 2 window',
+        ].join('\n'))).toThrowError('window has 1 size value but 2 selected axes');
+    });
+
+    it('reduces complete values and trailing cells', () => {
+        expect(run('(array 2 3 4) * reduce')).toBe('24');
+        expect(run('(array 1 2 3) + reduce')).toBe('6');
+        expect(run('(array true true false) and reduce')).toBe('false');
+        const empty = 'Empty = array shape 0\nend\nEmpty';
+        expect(run(`${empty} + reduce`)).toBe('0');
+        expect(run(`${empty} * reduce`)).toBe('1');
+        expect(() => run(`${empty} - reduce`))
+            .toThrowError('- reduce does not define a value for an empty cell');
+        expect(() => run('use sequences\nfibonacci + reduce'))
+            .toThrowError('+ reduce requires a bounded sequence');
+    });
+
     it('updates values with compound assignment', () => {
         expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue %= 4\nValue')).toBe('1');
         expect(run('Mask = true\nMask and= true\nMask xor= true\nMask or= true\nMask')).toBe('true');

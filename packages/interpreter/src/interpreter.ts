@@ -43,6 +43,7 @@ import {
     sequence,
     sequenceMask,
     sequenceValues,
+    windowValue,
     zipSequences,
 } from './sequence.js';
 import {
@@ -383,6 +384,14 @@ export class Interpreter {
                     this.evaluate(outer.right),
                 );
             }
+            const reduction = explicitReduceApplication(expression);
+            if (reduction) {
+                return this.evaluateReduction(
+                    reduction.operator,
+                    this.evaluate(reduction.source),
+                    reduction.rank,
+                );
+            }
             const slice = inlineSlice(expression);
             if (slice) {
                 const start = expectInteger(this.evaluate(slice.start));
@@ -410,6 +419,15 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
+            const axisWindow = explicitAxisWindow(parts);
+            if (axisWindow) {
+                this.requireModule('sequences', 'window');
+                return windowValue(
+                    this.evaluate(axisWindow.source),
+                    this.evaluate(axisWindow.size),
+                    axisWindow.axes,
+                );
+            }
             const explicitRank = explicitRankApplication(parts);
             if (explicitRank) {
                 const values = explicitRank.parts.map(part => this.evaluate(part));
@@ -811,6 +829,49 @@ export class Interpreter {
                 arrayItem(b, rightIndex),
             );
         });
+    }
+
+    private evaluateReduction(
+        operator: string,
+        value: RankValue,
+        cellRank?: number,
+    ): RankValue {
+        if (cellRank === undefined) return this.reduceCell(operator, value);
+        if (isRankArray(value)) {
+            if (cellRank > value.shape.length) {
+                throw new RankError(`rank ${cellRank} exceeds tensor rank ${value.shape.length}`);
+            }
+            if (cellRank === value.shape.length) return this.reduceCell(operator, value);
+            const frameShape = value.shape.slice(0, value.shape.length - cellRank);
+            const cellShape = value.shape.slice(value.shape.length - cellRank);
+            const cellSize = arraySize(cellShape);
+            return lazyArray(frameShape, frameIndex => {
+                const start = frameIndex * cellSize;
+                const cell = cellRank === 0
+                    ? arrayItem(value, start)
+                    : lazyArray(cellShape, index => arrayItem(value, start + index));
+                return this.reduceCell(operator, cell);
+            });
+        }
+        if (cellRank > valueRank(value)) {
+            throw new RankError(`rank ${cellRank} exceeds value rank ${valueRank(value)}`);
+        }
+        return this.reduceCell(operator, value);
+    }
+
+    private reduceCell(operator: string, value: RankValue): RankValue {
+        if (isRankSequence(value)) {
+            const planned = value.plan.reduce?.(operator);
+            if (planned !== undefined) return planned;
+        }
+        const values = reductionValues(value, operator);
+        const first = values.next();
+        if (first.done) return reductionIdentity(operator);
+        let result = first.value;
+        for (let next = values.next(); !next.done; next = values.next()) {
+            result = this.evaluateBinary(operator, result, next.value);
+        }
+        return result;
     }
 
     private evaluateUnary(operator: string, value: RankValue): RankValue {
@@ -1600,6 +1661,45 @@ function assignmentOperator(operator: string): string {
     return operator.slice(0, -1);
 }
 
+function* reductionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
+    if (isRankArray(value)) {
+        for (let index = 0; index < arraySize(value.shape); index += 1) {
+            yield arrayItem(value, index);
+        }
+        return;
+    }
+    if (isRankQueue(value)) {
+        yield* value.items;
+        return;
+    }
+    if (typeof value === 'string') {
+        yield* value;
+        return;
+    }
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError(`${operation} reduce requires a bounded sequence`);
+        }
+        yield* value.plan.iterate();
+        return;
+    }
+    yield value;
+}
+
+function reductionIdentity(operator: string): RankValue {
+    if (operator === '+') return 0n;
+    if (operator === '*') return 1n;
+    if (operator === 'and') return true;
+    if (operator === 'or' || operator === 'xor') return false;
+    throw new RankError(`${operator} reduce does not define a value for an empty cell`);
+}
+
+function valueRank(value: RankValue): number {
+    if (isRankArray(value)) return value.shape.length;
+    if (isRankSequence(value) || isRankQueue(value) || typeof value === 'string') return 1;
+    return 0;
+}
+
 function mapBinary(
     left: RankValue,
     right: RankValue,
@@ -1745,6 +1845,50 @@ const OUTER_OPERATORS = new Set([
     'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
     'and', 'or', 'xor', 'multipleby',
 ]);
+
+interface ReduceApplication {
+    readonly operator: string;
+    readonly source: Expression;
+    readonly rank?: number;
+}
+
+function explicitReduceApplication(expression: Expression): ReduceApplication | undefined {
+    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
+        return undefined;
+    }
+    const parts = flattenApplication(expression.right);
+    if (parts.length === 1 && isNamed(parts[0], 'reduce')) {
+        return { operator: expression.operator, source: expression.left };
+    }
+    if (parts.length !== 3 || !isNamed(parts[0], 'reduce') || !isNamed(parts[1], 'rank')) {
+        return undefined;
+    }
+    return {
+        operator: expression.operator,
+        source: expression.left,
+        rank: safeDimension(integerLiteral(parts[2], 'rank'), 'rank'),
+    };
+}
+
+const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
+
+interface AxisWindowApplication {
+    readonly source: Expression;
+    readonly size: Expression;
+    readonly axes: readonly number[];
+}
+
+function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
+    if (parts.length < 5 || !isNamed(parts[2], 'window') || !isNamed(parts[3], 'axis')) {
+        return undefined;
+    }
+    return {
+        source: parts[0],
+        size: parts[1],
+        axes: parts.slice(4).map(axis =>
+            safeDimension(integerLiteral(axis, 'window axis'), 'window axis')),
+    };
+}
 
 function expectInteger(value: RankValue): bigint {
     if (typeof value !== 'bigint') {

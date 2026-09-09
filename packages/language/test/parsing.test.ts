@@ -177,6 +177,17 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses windows and ranked reductions', async () => {
+        const document = await parse([
+            'Windows = Values 3 window',
+            'Rows = Matrix 3 window axis 1',
+            'Products = Windows * reduce rank 1',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
     it('parses functions, array construction and keyed index assignment', async () => {
         const document = await parse([
             'fun two_sum A Target',

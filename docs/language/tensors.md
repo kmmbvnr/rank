@@ -28,6 +28,32 @@ layernorm
 
 The exact module split is still evolving.
 
+## Sliding windows
+
+Multidimensional `window` creates overlapping tensor cells without eagerly
+copying them:
+
+```rank
+WindowShape = array 2 3
+Blocks = M WindowShape window
+Scores = Blocks + reduce rank 2
+```
+
+For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
+form the leading window-position frame and the requested window axes are
+appended as trailing cells. This makes `rank 2` apply directly to each `2 3`
+block.
+
+Selected axes follow the operation:
+
+```rank
+Columns = M 3 window axis 1
+Blocks = T WindowShape window axis 0 2
+```
+
+There must be one window size for every selected axis. The appended cell axes
+follow the explicit axis order.
+
 ## Rank-based application
 
 The same `rank` mechanism used for arrays applies to tensor cells:

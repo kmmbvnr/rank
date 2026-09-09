@@ -123,31 +123,20 @@ addressing the lazy `primes` source. With `Count = 6`, the result is `13`.
 ```rank
 use text
 use sequences
-use ranges
+use numbers
 
 option Width integer = 13
 
 Digits = Number integer rank 0
-Best = 0
-Last = Digits len - Width
-
-for i in 0 to Last
-  Product = 1
-  for j in 0 until Width
-    K = i + j
-    Product *= Digits K
-  end
-  if Product greater Best
-    Best = Product
-  end
-end
-
-Answer = Best
+Windows = Digits Width window
+Products = Windows * reduce rank 1
+Answer = Products max
 ```
 
 Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
-then use ordinary sequence addressing. The default width 13 produces
-`23514624000`; width 4 produces `5832`.
+are unnecessary: `window` exposes each adjacent rank-1 digit cell and the
+ranked multiplication reduction produces one value per cell. The default width
+13 produces `23514624000`; width 4 produces `5832`.
 
 ## 9. Special Pythagorean triplet
 

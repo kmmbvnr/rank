@@ -98,6 +98,7 @@ Examples:
 primes
 fibonacci
 len
+window
 ```
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
@@ -164,6 +165,19 @@ Reversal of array axes is a separate tensor operation and remains deferred.
 
 `len` from `sequences` returns the number of Unicode code points in text or the
 outer length of a finite sequence. It rejects an infinite sequence.
+
+`window` returns overlapping fixed-size cells lazily:
+
+```rank
+Pairs = Text 2 window
+Windows = Values Width window
+WindowShape = array 2 3
+Blocks = M WindowShape window
+Columns = M 3 window axis 1
+```
+
+Tensor window sizes correspond to all axes unless `axis` selects a subset.
+Only complete windows are produced.
 
 ## Dates
 

@@ -1120,6 +1120,51 @@ general lazy operation with the same observable result.
 Boundary operations such as `from`, `to` and `until` may be pushed into the
 source by the execution planner when the source can seek efficiently.
 
+## Sliding windows
+
+`window` produces every overlapping, contiguous cell of a fixed size. The
+source and size precede the operation:
+
+```rank
+Pairs = Text 2 window
+Windows = Values Width window
+```
+
+Text windows are text values, so ordinary text comparison and addressing keep
+working. Windows over a finite numeric vector form a rank-2 tensor whose first
+axis selects the window and whose trailing axis contains the window cell. The
+operation is lazy and does not copy all overlapping cells before they are
+demanded. An unbounded sequence may likewise produce windows indefinitely.
+
+For a tensor, a rank-1 integer array supplies one size per selected axis:
+
+```rank
+WindowShape = array 2 3
+Blocks = M WindowShape window
+```
+
+Without `axis`, the size array must cover every tensor axis. If `M` has shape
+`4 5`, the example has shape `3 3 2 3`: window-position axes come first and
+window-cell axes are appended last.
+
+`axis` selects and orders a subset of source axes:
+
+```rank
+Columns = M 3 window axis 1
+
+WindowShape = array 2 3
+Blocks = T WindowShape window axis 0 2
+```
+
+There must be one size for each selected axis. Axis numbers are zero-based and
+unique. Source axes retain their original order in the position frame; appended
+window axes follow the stated `axis` order. A scalar size without `axis` is
+valid only for a rank-1 value.
+
+Window sizes are positive integers. Only complete windows are returned. If a
+window is larger than its source axis, that position axis is empty. Windows are
+read-only views of their source.
+
 ## Shape and size
 
 An atom has shape `[]`. A finite sequence has shape `[Size]`. A tensor stores a
@@ -1330,6 +1375,22 @@ A reduction collapses values:
 Total = A + reduce
 Product = A * reduce
 ```
+
+Without an explicit rank, reduction consumes the complete finite value in
+row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
+to one atom while preserving its leading frame:
+
+```rank
+RowTotals = M + reduce rank 1
+BlockProducts = Blocks * reduce rank 2
+```
+
+Reduction is a left fold. A scalar and a rank-0 cell reduce to themselves.
+The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `%`, `and`,
+`or` and `xor`.
+Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
+`false` and `false` respectively. Other operations reject an empty cell. A
+reduction of an unbounded sequence is an error.
 
 Named reductions use the same data-first style:
 
@@ -1739,6 +1800,32 @@ layernorm
 
 The exact module split is still evolving.
 
+## Sliding windows
+
+Multidimensional `window` creates overlapping tensor cells without eagerly
+copying them:
+
+```rank
+WindowShape = array 2 3
+Blocks = M WindowShape window
+Scores = Blocks + reduce rank 2
+```
+
+For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
+form the leading window-position frame and the requested window axes are
+appended as trailing cells. This makes `rank 2` apply directly to each `2 3`
+block.
+
+Selected axes follow the operation:
+
+```rank
+Columns = M 3 window axis 1
+Blocks = T WindowShape window axis 0 2
+```
+
+There must be one window size for every selected axis. The appended cell axes
+follow the explicit axis order.
+
 ## Rank-based application
 
 The same `rank` mechanism used for arrays applies to tensor cells:
@@ -1956,6 +2043,7 @@ Examples:
 primes
 fibonacci
 len
+window
 ```
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
@@ -1966,6 +2054,19 @@ zero-based position through normal sequence addressing:
 BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
+
+`window` returns overlapping fixed-size cells lazily:
+
+```rank
+Pairs = Text 2 window
+Windows = Values Width window
+WindowShape = array 2 3
+Blocks = M WindowShape window
+Columns = M 3 window axis 1
+```
+
+Tensor window sizes correspond to all axes unless `axis` selects a subset.
+Only complete windows are produced.
 
 ## Tables
 
@@ -2174,31 +2275,20 @@ addressing the lazy `primes` source. With `Count = 6`, the result is `13`.
 ```rank
 use text
 use sequences
-use ranges
+use numbers
 
 option Width integer = 13
 
 Digits = Number integer rank 0
-Best = 0
-Last = Digits len - Width
-
-for i in 0 to Last
-  Product = 1
-  for j in 0 until Width
-    K = i + j
-    Product *= Digits K
-  end
-  if Product greater Best
-    Best = Product
-  end
-end
-
-Answer = Best
+Windows = Digits Width window
+Products = Windows * reduce rank 1
+Answer = Products max
 ```
 
 Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
-then use ordinary sequence addressing. The default width 13 produces
-`23514624000`; width 4 produces `5832`.
+are unnecessary: `window` exposes each adjacent rank-1 digit cell and the
+ranked multiplication reduction produces one value per cell. The default width
+13 produces `23514624000`; width 4 produces `5832`.
 
 ## 9. Special Pythagorean triplet
 
@@ -2720,6 +2810,19 @@ A -1 pad 0
 
 Current addressing rejects negative indices, including when followed by `pad`.
 The spelling of explicit operations such as `A last` is not yet fixed.
+
+## Extended window geometry
+
+The current `window` operation moves by one element and produces only complete
+contiguous cells. Future examples may justify three independent extensions:
+
+- `by` to move the window by a larger stride;
+- padding and a boundary-value policy for positions near tensor edges;
+- dilation to leave gaps between values inside a window.
+
+No syntax is reserved for these extensions yet. They must remain distinct:
+stride moves a window, padding changes its valid position frame, and dilation
+changes the geometry inside each cell.
 
 ## Join variants
 

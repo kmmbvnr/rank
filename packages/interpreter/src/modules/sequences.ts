@@ -1,5 +1,5 @@
 import { RankError } from '../errors.js';
-import { sequence } from '../sequence.js';
+import { sequence, windowValue } from '../sequence.js';
 import { isRankArray, isRankQueue, isRankSequence, type RankValue, type SequencePlan, type SequencePredicate } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
@@ -13,6 +13,7 @@ export const sequencesModule: RuntimeModule = {
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
+    window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
 };
 
 function lengthOf(value: RankValue): bigint {
