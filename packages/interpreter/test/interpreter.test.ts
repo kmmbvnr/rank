@@ -262,6 +262,155 @@ describe('Rank interpreter', () => {
             .toThrowError('break is only valid inside a for loop');
     });
 
+    it('catches typed runtime errors as values', () => {
+        expect(run([
+            'use text',
+            'try',
+            '  Value = "bad" integer',
+            'catch .InvalidNumber Error',
+            '  Kind = Error .Kind',
+            '  Message = Error .Message',
+            '  Original = Error .Value',
+            '  Value = 0',
+            'end',
+            'Kind equal .InvalidNumber and Original equal "bad" and Value equal 0',
+        ].join('\n'))).toBe('true');
+    });
+
+    it('raises, catches and rethrows user errors', () => {
+        expect(run([
+            'try',
+            '  try',
+            '    .InvalidAge 17 raise',
+            '  catch .InvalidAge Error',
+            '    Error raise',
+            '  end',
+            'catch .InvalidAge Outer',
+            '  Outer .Value',
+            'end',
+        ].join('\n'))).toBe('17');
+        expect(run([
+            'try',
+            '  .Failure "could not continue" raise',
+            'catch Error',
+            '  Error .Message',
+            'end',
+        ].join('\n'))).toBe('could not continue');
+        expect(() => run('.InvalidAge 17 raise'))
+            .toThrowError('.InvalidAge: 17');
+    });
+
+    it('always executes finally and preserves cleanup causes', () => {
+        expect(run([
+            'Count = 0',
+            'try',
+            '  Count = 1',
+            'finally',
+            '  Count += 1',
+            'end',
+            'Count',
+        ].join('\n'))).toBe('2');
+        expect(run([
+            'Handled = false',
+            'Clean = false',
+            'try',
+            '  .Failure raise',
+            'catch .Failure Error',
+            '  Handled = true',
+            'finally',
+            '  Clean = true',
+            'end',
+            'Handled and Clean',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'Count = 0',
+            'for',
+            '  try',
+            '    break',
+            '  finally',
+            '    Count += 1',
+            '  end',
+            'end',
+            'Count',
+        ].join('\n'))).toBe('1');
+        expect(run([
+            'try',
+            '  try',
+            '    .Original "first" raise',
+            '  finally',
+            '    .Cleanup "second" raise',
+            '  end',
+            'catch .Cleanup Error',
+            '  Cause = Error .Cause',
+            '  Cause .Kind',
+            'end',
+        ].join('\n'))).toBe('.Original');
+    });
+
+    it('executes finally before returning from a function', () => {
+        const lines: string[] = [];
+        const interpreter = new Interpreter(line => lines.push(line));
+        const result = interpreter.execute([
+            'use io',
+            'fun answer Ignored',
+            '  try',
+            '    return 42',
+            '  finally',
+            '    "clean" print',
+            '  end',
+            'end',
+            '0 answer',
+        ].join('\n'));
+        expect(result && formatValue(result)).toBe('42');
+        expect(lines).toEqual(['clean']);
+    });
+
+    it('rejects return and break inside finally', () => {
+        expect(() => run([
+            'fun answer Ignored',
+            '  try',
+            '    return 1',
+            '  finally',
+            '    return 2',
+            '  end',
+            'end',
+            '0 answer',
+        ].join('\n'))).toThrowError('return is not valid inside finally');
+        expect(() => run([
+            'for',
+            '  try',
+            '    1',
+            '  finally',
+            '    break',
+            '  end',
+            'end',
+        ].join('\n'))).toThrowError('break is not valid inside finally');
+    });
+
+    it('does not catch return or break as errors', () => {
+        expect(run([
+            'fun answer Ignored',
+            '  try',
+            '    return 42',
+            '  catch Error',
+            '    return 0',
+            '  end',
+            'end',
+            '0 answer',
+        ].join('\n'))).toBe('42');
+        expect(run([
+            'Count = 0',
+            'for',
+            '  try',
+            '    break',
+            '  catch Error',
+            '    Count = 99',
+            '  end',
+            'end',
+            'Count',
+        ].join('\n'))).toBe('0');
+    });
+
     it('calls user functions with local indexes and returns arrays', () => {
         expect(run([
             'use algo',

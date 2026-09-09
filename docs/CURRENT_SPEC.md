@@ -838,6 +838,111 @@ The names are ordinary bindings; the whitespace between them is required.
 For a tensor, ordinary iteration yields cells along its leading axis. Explicit
 cell-rank and axis iteration are defined in the tensor section.
 
+## Errors and exceptions
+
+Rank uses structured `try / catch / end` blocks for recoverable runtime errors:
+
+```rank
+try
+    Value = Text integer
+catch .InvalidNumber Error
+    Value = 0
+end
+```
+
+A `try` block has one or more `catch` clauses, a `finally` clause, or both.
+Catch clauses are tested from top to bottom and the first matching clause runs.
+A typed clause matches the case-sensitive error label; a clause with only a
+variable catches any Rank runtime error:
+
+```rank
+try
+    Value = Source load
+catch .MissingFile Error
+    Value = Default
+catch Error
+    Error raise
+finally
+    Resource close
+end
+```
+
+The caught error is a first-class `error` value. Its standard fields use
+ordinary label addressing:
+
+```rank
+Kind = Error .Kind
+Message = Error .Message
+Original = Error .Value pad Default
+Cause = Error .Cause pad Default
+Trace = Error .Trace
+```
+
+`.Kind` is a label, `.Message` and `.Trace` are text, `.Value` is the optional
+value attached when the error was raised, and `.Cause` is an optional earlier
+error. Addressing `.Value` or `.Cause` when it is absent produces `.Missing`,
+so `pad` can provide a default. Error bindings follow the same inferred-type
+and workspace rules as other names.
+
+`raise` is a core data-first operation and does not require `use`. Error kinds
+are ordinary labels and need no declaration:
+
+```rank
+.InvalidAge raise
+.InvalidAge Age raise
+.InvalidInput "age is required" raise
+```
+
+With no attached value, the default message is the error label. A text value
+is also used as the message; another value is formatted with its label to make
+the default message. Built-in operations currently use `.Runtime` as the
+general kind, `.InvalidNumber` for invalid numeric text, and `.Missing` for
+absent addressed values.
+
+A caught error can be raised again:
+
+```rank
+catch Error
+    Error raise
+```
+
+Raising the caught value preserves the original error and diagnostic trace.
+An error raised while a handler is running propagates to the next enclosing
+`try`; another clause of the same block does not catch it. If no clause
+matches, the error continues outward. An uncaught error ends the current
+program run.
+
+`finally` runs exactly once after the `try` body and any selected `catch`,
+before control leaves the whole construct. It runs after normal completion and
+also before a pending error, `return` or `break` continues outward. A
+`try / finally / end` block without `catch` is valid and performs cleanup while
+allowing the original error to propagate.
+
+Direct `return` and `break` statements inside `finally` are errors because they
+would hide pending control flow. If cleanup raises an error while another Rank
+error is pending, the cleanup error propagates and its `.Cause` contains the
+original error. An error raised from `finally` cannot be handled by a `catch`
+belonging to the same construct; an enclosing `try` may handle it.
+
+`return` and `break` are control flow rather than errors and are never caught.
+Source syntax errors happen before execution begins and therefore cannot be
+caught by a `try` inside that source.
+
+Errors from lazy work occur when a value is demanded. A `try` around plan
+construction does not catch an error that occurs later outside the block. Put
+the terminal operation inside `try` when its errors must be handled:
+
+```rank
+try
+    Plan = Data transform
+    Result = Plan sum
+catch Error
+    ...
+end
+```
+
+Rank does not currently have resumable errors, retries or continuations.
+
 ## Functions
 
 Functions are documented with a short block of `rem` lines immediately before
@@ -2533,6 +2638,37 @@ fixed.
 
 Statistical reductions over table columns are expected to skip missing values by
 default, but the exact generic missing-value policy still needs a formal spec.
+
+## Optional results and `maybe`
+
+A future operation modifier such as `maybe` could turn an expected failure
+into an optional value instead of unwinding to `catch`:
+
+```rank
+Parsed = Text integer maybe
+Value = Parsed pad 0
+```
+
+This should be reconsidered after Rank has a first-class `missing` or optional
+type. Open questions include whether `maybe` changes the result type, how
+optional atoms behave in arrays and tables, and whether every operation may use
+the modifier or only operations that declare an expected failure.
+
+## Resumable errors and interactive repair
+
+Rank may later add a Common Lisp-style condition and restart layer above
+`try / catch`. In the interpreter or debugger, an error could suspend at its
+origin and offer operations such as:
+
+- replace the offending value and retry the operation;
+- supply a result and continue after the operation;
+- retry a containing function;
+- edit the source file, reload the affected code and continue the current run.
+
+This is intended as an interactive usability feature rather than ordinary
+program control flow. Its design must define continuation capture, stack-frame
+state, already-performed side effects, lazy sequence demand, changed function
+definitions and source locations before any syntax is reserved.
 
 ## ML library boundary
 

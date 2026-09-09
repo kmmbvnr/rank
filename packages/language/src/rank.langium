@@ -19,6 +19,7 @@ Statement:
     FunctionStatement |
     ReturnStatement |
     BreakStatement |
+    TryStatement |
     IfStatement |
     ForStatement |
     PushStatement |
@@ -61,6 +62,24 @@ ReturnStatement:
 
 BreakStatement:
     {infer BreakStatement} 'break';
+
+TryStatement:
+    'try' NL+
+    (statements+=Statement (NL+ statements+=Statement)*)?
+    NL* (
+        (catches+=CatchClause NL*)+
+        ('finally' NL+
+            (finallyStatements+=Statement
+                (NL+ finallyStatements+=Statement)*)? NL*)? |
+        'finally' NL+
+        (finallyStatements+=Statement
+            (NL+ finallyStatements+=Statement)*)? NL*
+    )
+    'end';
+
+CatchClause:
+    'catch' errorKind=LabelLiteral? errorName=VARIABLE NL+
+    (statements+=Statement (NL+ statements+=Statement)*)?;
 
 IfStatement:
     'if' condition=Expression NL+

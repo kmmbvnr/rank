@@ -71,6 +71,37 @@ fixed.
 Statistical reductions over table columns are expected to skip missing values by
 default, but the exact generic missing-value policy still needs a formal spec.
 
+## Optional results and `maybe`
+
+A future operation modifier such as `maybe` could turn an expected failure
+into an optional value instead of unwinding to `catch`:
+
+```rank
+Parsed = Text integer maybe
+Value = Parsed pad 0
+```
+
+This should be reconsidered after Rank has a first-class `missing` or optional
+type. Open questions include whether `maybe` changes the result type, how
+optional atoms behave in arrays and tables, and whether every operation may use
+the modifier or only operations that declare an expected failure.
+
+## Resumable errors and interactive repair
+
+Rank may later add a Common Lisp-style condition and restart layer above
+`try / catch`. In the interpreter or debugger, an error could suspend at its
+origin and offer operations such as:
+
+- replace the offending value and retry the operation;
+- supply a result and continue after the operation;
+- retry a containing function;
+- edit the source file, reload the affected code and continue the current run.
+
+This is intended as an interactive usability feature rather than ordinary
+program control flow. Its design must define continuation capture, stack-frame
+state, already-performed side effects, lazy sequence demand, changed function
+definitions and source locations before any syntax is reserved.
+
 ## ML library boundary
 
 `logistic`, `linear` and `cnn` have appeared in Kaggle sketches as placeholders.

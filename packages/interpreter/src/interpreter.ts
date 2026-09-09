@@ -23,6 +23,7 @@ import {
     isReturnStatement,
     isStringLiteral,
     isTestStatement,
+    isTryStatement,
     isUnaryExpression,
     isUseStatement,
     type ArrayItem,
@@ -48,11 +49,14 @@ import {
     formatValue,
     isNativeFunction,
     isRankArray,
+    isRankErrorValue,
     isRankIndex,
+    isRankLabel,
     isRankQueue,
     isRankSequence,
     isRankSequenceMask,
     type RankArray,
+    type NativeFunction,
     type RankIndex,
     type RankQueue,
     type RankSequence,
@@ -91,6 +95,30 @@ class ReturnSignal {
 }
 
 class BreakSignal {}
+
+const raiseFunction: NativeFunction = {
+    kind: 'function',
+    name: 'raise',
+    arities: [1, 2],
+    monadicRank: 'all',
+    call(arguments_) {
+        const first = arguments_[0];
+        if (arguments_.length === 1 && isRankErrorValue(first)) {
+            if (first.source instanceof RankError) throw first.source;
+            throw new RankError(first.message, first.errorKind.name, first.value);
+        }
+        if (!isRankLabel(first)) {
+            throw new RankError('raise expects an error or a label followed by an optional value');
+        }
+        const value = arguments_[1];
+        const message = value === undefined
+            ? `.${first.name}`
+            : typeof value === 'string'
+                ? value
+                : `.${first.name}: ${formatValue(value)}`;
+        throw new RankError(message, first.name, value);
+    },
+};
 
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
@@ -132,6 +160,7 @@ export class Interpreter {
         statements: Statement[],
         assertBooleanExpressions = false,
         insideLoop = false,
+        insideFinally = false,
     ): RankValue | undefined {
         let result: RankValue | undefined;
 
@@ -158,20 +187,72 @@ export class Interpreter {
             } else if (isFunctionStatement(statement)) {
                 result = this.defineFunction(statement);
             } else if (isReturnStatement(statement)) {
+                if (insideFinally) {
+                    throw new RankError('return is not valid inside finally');
+                }
                 if (this.localScopes.length === 0) {
                     throw new RankError('return is only valid inside a function');
                 }
                 throw new ReturnSignal(this.evaluate(statement.value));
             } else if (isBreakStatement(statement)) {
+                if (insideFinally) {
+                    throw new RankError('break is not valid inside finally');
+                }
                 if (!insideLoop) {
                     throw new RankError('break is only valid inside a for loop');
                 }
                 throw new BreakSignal();
+            } else if (isTryStatement(statement)) {
+                let pending: unknown;
+                try {
+                    try {
+                        result = this.executeStatements(
+                            statement.statements,
+                            assertBooleanExpressions,
+                            insideLoop,
+                            insideFinally,
+                        );
+                    } catch (error) {
+                        if (!(error instanceof RankError)) throw error;
+                        const clause = statement.catches.find(candidate =>
+                            candidate.errorKind === undefined
+                            || candidate.errorKind.name === error.rankKind);
+                        if (!clause) throw error;
+                        this.assign(clause.errorName, error.toValue());
+                        result = this.executeStatements(
+                            clause.statements,
+                            assertBooleanExpressions,
+                            insideLoop,
+                            insideFinally,
+                        );
+                    }
+                } catch (error) {
+                    pending = error;
+                }
+                try {
+                    this.executeStatements(
+                        statement.finallyStatements,
+                        assertBooleanExpressions,
+                        insideLoop,
+                        true,
+                    );
+                } catch (error) {
+                    if (error instanceof RankError && pending instanceof RankError) {
+                        error.attachCause(pending);
+                    }
+                    pending = error;
+                }
+                if (pending !== undefined) throw pending;
             } else if (isIfStatement(statement)) {
                 const branch = expectBoolean(this.evaluate(statement.condition))
                     ? statement.thenStatements
                     : statement.elseStatements;
-                result = this.executeStatements(branch, assertBooleanExpressions, insideLoop);
+                result = this.executeStatements(
+                    branch,
+                    assertBooleanExpressions,
+                    insideLoop,
+                    insideFinally,
+                );
             } else if (isForStatement(statement)) {
                 result = undefined;
                 const binding = forIteration(statement.condition);
@@ -181,7 +262,12 @@ export class Interpreter {
                         binding.names.slice(1).forEach((name, position) =>
                             this.assign(name, entry.indices[position]));
                         try {
-                            result = this.executeStatements(statement.statements, assertBooleanExpressions, true);
+                            result = this.executeStatements(
+                                statement.statements,
+                                assertBooleanExpressions,
+                                true,
+                                insideFinally,
+                            );
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             throw error;
@@ -191,7 +277,12 @@ export class Interpreter {
                     while (!statement.condition
                         || expectBoolean(this.evaluate(statement.condition))) {
                         try {
-                            result = this.executeStatements(statement.statements, assertBooleanExpressions, true);
+                            result = this.executeStatements(
+                                statement.statements,
+                                assertBooleanExpressions,
+                                true,
+                                insideFinally,
+                            );
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             throw error;
@@ -566,6 +657,7 @@ export class Interpreter {
 
         if (name === 'index') return this.localIndex();
         if (name === 'queue') return this.localQueue();
+        if (name === 'raise') return raiseFunction;
 
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
@@ -1106,6 +1198,21 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[]): RankValue {
+    if (values.length === 2 && isRankErrorValue(values[0]) && isRankLabel(values[1])) {
+        const [error, field] = values;
+        if (field.name === 'Kind') return error.errorKind;
+        if (field.name === 'Message') return error.message;
+        if (field.name === 'Trace') return error.trace;
+        if (field.name === 'Cause') {
+            if (error.cause === undefined) throw new MissingValueError('error has no cause');
+            return error.cause;
+        }
+        if (field.name === 'Value') {
+            if (error.value === undefined) throw new MissingValueError('error has no value');
+            return error.value;
+        }
+        throw new RankError(`unknown error field: .${field.name}`);
+    }
     if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
         const atoms = [...values[0]];
         const index = values[1];

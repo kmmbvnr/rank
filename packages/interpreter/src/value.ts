@@ -9,6 +9,16 @@ export interface RankLabel {
     readonly name: string;
 }
 
+export interface RankErrorValue {
+    readonly kind: 'error';
+    readonly errorKind: RankLabel;
+    readonly message: string;
+    readonly value?: RankValue;
+    readonly trace: string;
+    readonly cause?: RankErrorValue;
+    readonly source?: unknown;
+}
+
 export interface RankIndex {
     readonly kind: 'index';
     readonly entries: Map<string, RankValue>;
@@ -62,8 +72,8 @@ export interface RankSequenceMask {
     readonly predicate: SequencePredicate;
 }
 
-export type RankValue = bigint | number | boolean | string | RankArray | RankLabel | RankIndex | RankQueue |
-    NativeFunction | RankSequence | RankSequenceMask;
+export type RankValue = bigint | number | boolean | string | RankArray | RankLabel | RankErrorValue |
+    RankIndex | RankQueue | NativeFunction | RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
     return typeof value === 'object' && value.kind === 'array';
@@ -71,6 +81,14 @@ export function isRankArray(value: RankValue): value is RankArray {
 
 export function isNativeFunction(value: RankValue): value is NativeFunction {
     return typeof value === 'object' && value.kind === 'function';
+}
+
+export function isRankErrorValue(value: RankValue): value is RankErrorValue {
+    return typeof value === 'object' && value.kind === 'error';
+}
+
+export function isRankLabel(value: RankValue): value is RankLabel {
+    return typeof value === 'object' && value.kind === 'label';
 }
 
 export function isRankIndex(value: RankValue): value is RankIndex {
@@ -106,6 +124,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'label') {
         return `.${value.name}`;
+    }
+    if (value.kind === 'error') {
+        return `<error .${value.errorKind.name}: ${value.message}>`;
     }
     if (value.kind === 'function') {
         return `<function ${value.name}>`;

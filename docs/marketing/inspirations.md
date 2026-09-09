@@ -117,6 +117,13 @@ show one way to make arity explicit. Rank takes the data-first order but prefers
 named intermediate values over implicit stack chains; it keeps addressing and
 shaped values instead of becoming a concatenative stack language.
 
+### Common Lisp
+**Take:** conditions and restarts as an interactive development model. A future
+Rank debugger may suspend at the origin of an error, let the programmer replace
+a value, retry an operation or repair loaded source, and then continue the same
+run. This belongs above ordinary `try / catch` and requires explicit rules for
+continuations, side effects and lazy computations before syntax is chosen.
+
 ## Tooling and delivery
 
 ### Decker (the host of Lil) *(survey)*

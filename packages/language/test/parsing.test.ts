@@ -109,6 +109,28 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses typed and catch-all error handlers', async () => {
+        const document = await parse([
+            'try',
+            '  .InvalidAge Age raise',
+            'catch .InvalidAge Error',
+            '  Error .Value print',
+            'catch Error',
+            '  Error raise',
+            'finally',
+            '  Resource close',
+            'end',
+            'try',
+            '  Work',
+            'finally',
+            '  Cleanup',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('parses tensor for bindings with axis and cell rank', async () => {
         const document = await parse([
             'for Line i j in T axis 0 1 rank 1',

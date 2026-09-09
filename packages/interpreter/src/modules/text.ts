@@ -7,7 +7,7 @@ export const textModule: RuntimeModule = {
         const value = arguments_[0];
         if (typeof value !== 'string') throw new RankError('integer expects text');
         if (!/^[+-]?[0-9]+$/.test(value)) {
-            throw new RankError(`invalid integer text: ${value}`);
+            throw new RankError(`invalid integer text: ${value}`, 'InvalidNumber', value);
         }
         return BigInt(value);
     }, 1),
