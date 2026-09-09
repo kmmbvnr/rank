@@ -15,32 +15,32 @@ Discount = 0.06
 Quantity = 24
 
 Mask =
-    Lineitem .l_shipdate year
-    equal Year
+  Lineitem .l_shipdate year
+  equal Year
 
 filter Lineitem Mask
 
 Mask =
-    Lineitem .l_discount
-    at least Discount - 0.01
+  Lineitem .l_discount
+  at least Discount - 0.01
 
 filter Lineitem Mask
 
 Mask =
-    Lineitem .l_discount
-    at most Discount + 0.01
+  Lineitem .l_discount
+  at most Discount + 0.01
 
 filter Lineitem Mask
 
 Mask =
-    Lineitem .l_quantity
-    less Quantity
+  Lineitem .l_quantity
+  less Quantity
 
 filter Lineitem Mask
 
 Increase =
-    Lineitem .l_extendedprice *
-    Lineitem .l_discount
+  Lineitem .l_extendedprice *
+  Lineitem .l_discount
 
 Revenue = sum Increase
 

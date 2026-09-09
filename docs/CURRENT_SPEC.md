@@ -103,6 +103,23 @@ j
 k
 ```
 
+## Indentation
+
+Canonical Rank source uses two spaces for each level of nesting. Tabs are not
+used. Every nested block adds exactly two spaces:
+
+```rank
+for i in 1 to 3
+  if i odd
+    Total += i
+  end
+end
+```
+
+Blocks are delimited by words such as `if`, `for`, `fun` and `end`, so
+indentation is visual rather than semantic. Rank formatters and maintained
+source files must emit the canonical two-space form.
+
 ## Comments
 
 Comments use classic BASIC `rem`:
@@ -131,14 +148,15 @@ side inside the expression:
 Total += Value
 Total -= Cost
 Product *= Factor
+Power **= Exponent
 Index %= Size
 Mask and= Active
 Mask or= Fallback
 Mask xor= Changed
 ```
 
-The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `//=`,
-`%=`, `and=`, `or=` and `xor=`.
+The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
+`//=`, `%=`, `and=`, `or=` and `xor=`.
 
 ## Inferred variable types
 
@@ -197,6 +215,17 @@ application. Therefore the function in this expression receives `-121`:
 Answer = -121 palindrome
 ```
 
+Exponentiation is the arithmetic exception. `**` binds more tightly than a
+unary sign on its left and less tightly than a unary sign on its right:
+
+```rank
+-2 ** 2
+2 ** -2
+rem -4, 0.25
+```
+
+`**` is right-associative, so `2 ** 3 ** 2` is `2 ** (3 ** 2)`.
+
 Use parentheses or a named intermediate value when the unary operator must be
 applied to the result of a call.
 
@@ -204,7 +233,7 @@ Conditions use words such as `equal` rather than `==`:
 
 ```rank
 if X equal 0
-    return true
+  return true
 end
 ```
 
@@ -235,6 +264,11 @@ Ratio = 2.5
 Mixed integer/real arithmetic promotes the result to `real`. `/` always performs
 real division. `//` performs floor division as in Python; two integer operands
 produce an integer, while an operation involving a real produces a real.
+
+`**` raises its left operand to the power of its right operand. Integer operands
+with a nonnegative exponent produce an arbitrary-precision `integer`. A negative
+or real exponent produces a `real`. Zero to a negative power and results outside
+the real number system are errors.
 
 ```rank
 Half = 5 / 2
@@ -579,8 +613,8 @@ continue to use ordinary spaced addressing.
 
 ```rank
 for Value i in A
-    Value print
-    i print
+  Value print
+  i print
 end
 ```
 
@@ -592,7 +626,7 @@ Tensor iteration may bind one coordinate name for every frame axis:
 
 ```rank
 for Line i j in T axis 0 1 rank 1
-    Line print
+  Line print
 end
 ```
 
@@ -788,7 +822,7 @@ type errors or failures such as division by zero.
 
 ```rank
 if X less 0
-    return false
+  return false
 end
 ```
 
@@ -796,9 +830,9 @@ Alternative branches:
 
 ```rank
 if X equal 0
-    Result = 1
+  Result = 1
 else
-    Result = X
+  Result = X
 end
 ```
 
@@ -809,7 +843,7 @@ ordinary iterable values:
 
 ```rank
 for i in 1 to 10
-    i print
+  i print
 end
 ```
 
@@ -821,9 +855,9 @@ A condition after `for` is evaluated before every iteration:
 
 ```rank
 for B not equal 0
-    R = A % B
-    A = B
-    B = R
+  R = A % B
+  A = B
+  B = R
 end
 ```
 
@@ -831,10 +865,10 @@ A bare `for` repeats without a condition until control leaves its body:
 
 ```rank
 for
-    Count += 1
-    if Count equal 10
-        break
-    end
+  Count += 1
+  if Count equal 10
+    break
+  end
 end
 ```
 
@@ -847,7 +881,7 @@ membership expression a loop condition when that distinction is needed:
 
 ```rank
 for (X in index)
-    ...
+  ...
 end
 ```
 
@@ -855,7 +889,7 @@ An optional second name explicitly receives the zero-based index:
 
 ```rank
 for Value i in A
-    Sum += Value
+  Sum += Value
 end
 ```
 
@@ -871,9 +905,9 @@ Rank uses structured `try / catch / end` blocks for recoverable runtime errors:
 
 ```rank
 try
-    Value = Text integer
+  Value = Text integer
 catch .InvalidNumber Error
-    Value = 0
+  Value = 0
 end
 ```
 
@@ -884,13 +918,13 @@ variable catches any Rank runtime error:
 
 ```rank
 try
-    Value = Source load
+  Value = Source load
 catch .MissingFile Error
-    Value = Default
+  Value = Default
 catch Error
-    Error raise
+  Error raise
 finally
-    Resource close
+  Resource close
 end
 ```
 
@@ -930,7 +964,7 @@ A caught error can be raised again:
 
 ```rank
 catch Error
-    Error raise
+  Error raise
 ```
 
 Raising the caught value preserves the original error and diagnostic trace.
@@ -961,10 +995,10 @@ the terminal operation inside `try` when its errors must be handled:
 
 ```rank
 try
-    Plan = Data transform
-    Result = Plan sum
+  Plan = Data transform
+  Result = Plan sum
 catch Error
-    ...
+  ...
 end
 ```
 
@@ -980,19 +1014,34 @@ non-obvious idea or constraint:
 rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
 fun gcd A B
-    for B not equal 0
-        R = A % B
-        A = B
-        B = R
-    end
+  for B not equal 0
+    R = A % B
+    A = B
+    B = R
+  end
 
-    return A
+  return A
 end
 ```
 
 These are ordinary comments today. Future help and documentation tools may
 associate the adjacent block with the function without adding another comment
 syntax.
+
+Top-level functions are registered after the whole file is parsed and before
+its executable statements run. A function may therefore be called before its
+textual definition, and helper functions may be placed at the end of a program:
+
+```rank
+Answer = 41 next
+
+fun next X
+  return X + 1
+end
+```
+
+Loading a source file with `use` registers its top-level functions without
+executing its ordinary top-level statements.
 
 Calls use Rank's data-first order. Arguments come first and the function name
 is the final word:
@@ -1008,7 +1057,7 @@ Current vararg syntax uses `*`:
 
 ```rank
 fun lcm * Numbers
-    ...
+  ...
 end
 ```
 
@@ -1194,6 +1243,7 @@ Arithmetic on compatible arrays is elementwise:
 ```rank
 C = A + B
 Squares = Range * Range
+Powers = Bases ** Exponents
 Pred = Pred - 1
 ```
 
@@ -1201,7 +1251,7 @@ Scalar broadcasting is allowed where shape rules make it unambiguous.
 Two array operands are compatible only when their complete shapes are equal;
 an equal number of elements is not enough.
 
-`%` and comparisons are also elementwise over compatible arrays:
+`**`, `%` and comparisons are also elementwise over compatible arrays:
 
 ```rank
 M3 = N % 3 equal 0
@@ -1372,7 +1422,7 @@ Membership:
 
 ```rank
 if Need in index
-    ...
+  ...
 end
 ```
 
@@ -1505,7 +1555,7 @@ A sequence of labels can be used as a reusable selector:
 
 ```rank
 Features =
-    .Age .Fare .Pclass
+  .Age .Fare .Pclass
 
 X = Train Features
 Xtest = Test Features
@@ -1603,7 +1653,7 @@ unambiguous mechanism.
 
 ```rank
 Keys =
-    .Sex .Pclass
+  .Sex .Pclass
 
 Groups = Data Keys group
 Rate = Groups .Survived mean
@@ -1712,7 +1762,7 @@ leading axis:
 
 ```rank
 for Row i in M
-    Row print
+  Row print
 end
 ```
 
@@ -1721,7 +1771,7 @@ frame supplies the coordinate bindings:
 
 ```rank
 for Value i j in M rank 0
-    Value print
+  Value print
 end
 ```
 
@@ -1731,11 +1781,11 @@ arguments so they cannot be confused with addressing:
 
 ```rank
 for Column j in M axis 1 rank 1
-    Column print
+  Column print
 end
 
 for Line i j in T axis 0 1 rank 1
-    Line print
+  Line print
 end
 ```
 
@@ -2205,16 +2255,16 @@ rem Return indices of two values
 rem whose sum equals Target.
 
 fun two_sum A Target
-    for Value i in A
-        Need = Target - Value
+  for Value i in A
+    Need = Target - Value
 
-        if Need in index
-            J = index Need
-            return array J i
-        end
-
-        index Value = i
+    if Need in index
+      J = index Need
+      return array J i
     end
+
+    index Value = i
+  end
 end
 ```
 
@@ -2232,40 +2282,40 @@ rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
 fun add_two A B
-    N = A len
-    M = B len
-    Size = N
+  N = A len
+  M = B len
+  Size = N
 
-    if M greater Size
-        Size = M
+  if M greater Size
+    Size = M
+  end
+
+  Carry = 0
+  I = 0
+
+  for I less Size
+    X = 0
+    Y = 0
+
+    if I less N
+      X = A I
     end
 
-    Carry = 0
-    I = 0
-
-    for I less Size
-        X = 0
-        Y = 0
-
-        if I less N
-            X = A I
-        end
-
-        if I less M
-            Y = B I
-        end
-
-        Sum = X + Y + Carry
-        queue push Sum % 10
-        Carry = Sum // 10
-        I += 1
+    if I less M
+      Y = B I
     end
 
-    if Carry greater 0
-        queue push Carry
-    end
+    Sum = X + Y + Carry
+    queue push Sum % 10
+    Carry = Sum // 10
+    I += 1
+  end
 
-    return queue
+  if Carry greater 0
+    queue push Carry
+  end
+
+  return queue
 end
 ```
 
@@ -2280,27 +2330,27 @@ rem Find the longest window containing
 rem no repeated character.
 
 fun longest Text
-    Start = 0
-    Best = 0
+  Start = 0
+  Best = 0
 
-    for C i in Text
-        if C in index
-            Last = index C
+  for C i in Text
+    if C in index
+      Last = index C
 
-            if Last at least Start
-                Start = Last + 1
-            end
-        end
-
-        index C = i
-        Size = i - Start + 1
-
-        if Size greater Best
-            Best = Size
-        end
+      if Last at least Start
+        Start = Last + 1
+      end
     end
 
-    return Best
+    index C = i
+    Size = i - Start + 1
+
+    if Size greater Best
+      Best = Size
+    end
+  end
+
+  return Best
 end
 ```
 
@@ -2339,10 +2389,10 @@ rem Check whether X reads the same
 rem forward and backward.
 
 fun palindrome X
-    Text = X text
-    Back = Text reverse
+  Text = X text
+  Back = Text reverse
 
-    return Text equal Back
+  return Text equal Back
 end
 ```
 
@@ -2353,30 +2403,30 @@ rem Follow up:
 rem Do not convert X to text.
 
 fun palindrome X
-    if X less 0
-        return false
+  if X less 0
+    return false
+  end
+
+  if X % 10 equal 0
+    if X not equal 0
+      return false
     end
+  end
 
-    if X % 10 equal 0
-        if X not equal 0
-            return false
-        end
-    end
+  Back = 0
 
-    Back = 0
+  for X greater Back
+    Digit = X % 10
+    X = X // 10
 
-    for X greater Back
-        Digit = X % 10
-        X = X // 10
+    Back = Back * 10 + Digit
+  end
 
-        Back = Back * 10 + Digit
-    end
+  if X equal Back
+    return true
+  end
 
-    if X equal Back
-        return true
-    end
-
-    return X equal Back // 10
+  return X equal Back // 10
 end
 ```
 
@@ -2430,13 +2480,13 @@ Train .Age = Train .Age pad Median
 Test .Age = Test .Age pad Median
 
 Train .Female =
-    Train .Sex equal "female"
+  Train .Sex equal "female"
 
 Test .Female =
-    Test .Sex equal "female"
+  Test .Sex equal "female"
 
 Features =
-    .Female .Pclass .Age .Fare
+  .Female .Pclass .Age .Fare
 
 X = Train Features
 Xtest = Test Features
@@ -2451,9 +2501,9 @@ rem Kaggle: House Prices
 rem Predict SalePrice.
 
 Features =
-    .OverallQual .GrLivArea
-    .Neighborhood .HouseStyle
-    .KitchenQual .ExterQual
+  .OverallQual .GrLivArea
+  .Neighborhood .HouseStyle
+  .KitchenQual .ExterQual
 
 X = Train Features
 Xtest = Test Features
@@ -2512,7 +2562,7 @@ Grouping and join:
 
 ```rank
 Keys =
-    .store_nbr .family .weekday
+  .store_nbr .family .weekday
 
 Groups = Train Keys group
 Means = Groups .sales mean
@@ -2546,13 +2596,13 @@ Apply a function to each row/cell:
 
 ```rank
 Geo =
-    Train .pickup_latitude
-    .pickup_longitude
-    .dropoff_latitude
-    .dropoff_longitude
+  Train .pickup_latitude
+  .pickup_longitude
+  .dropoff_latitude
+  .dropoff_longitude
 
 Train .distance =
-    Geo distance rank 1
+  Geo distance rank 1
 ```
 
 ## Dogs vs Cats
@@ -2615,9 +2665,9 @@ filter
 end
 
 Revenue =
-    L .l_extendedprice
-    * L .l_discount
-    sum
+  L .l_extendedprice
+  * L .l_discount
+  sum
 
 Revenue print
 ```

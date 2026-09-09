@@ -51,7 +51,7 @@ leading axis:
 
 ```rank
 for Row i in M
-    Row print
+  Row print
 end
 ```
 
@@ -60,7 +60,7 @@ frame supplies the coordinate bindings:
 
 ```rank
 for Value i j in M rank 0
-    Value print
+  Value print
 end
 ```
 
@@ -70,11 +70,11 @@ arguments so they cannot be confused with addressing:
 
 ```rank
 for Column j in M axis 1 rank 1
-    Column print
+  Column print
 end
 
 for Line i j in T axis 0 1 rank 1
-    Line print
+  Line print
 end
 ```
 

@@ -10,16 +10,16 @@ rem Return indices of two values
 rem whose sum equals Target.
 
 fun two_sum A Target
-    for Value i in A
-        Need = Target - Value
+  for Value i in A
+    Need = Target - Value
 
-        if Need in index
-            J = index Need
-            return array J i
-        end
-
-        index Value = i
+    if Need in index
+      J = index Need
+      return array J i
     end
+
+    index Value = i
+  end
 end
 ```
 
@@ -37,40 +37,40 @@ rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
 fun add_two A B
-    N = A len
-    M = B len
-    Size = N
+  N = A len
+  M = B len
+  Size = N
 
-    if M greater Size
-        Size = M
+  if M greater Size
+    Size = M
+  end
+
+  Carry = 0
+  I = 0
+
+  for I less Size
+    X = 0
+    Y = 0
+
+    if I less N
+      X = A I
     end
 
-    Carry = 0
-    I = 0
-
-    for I less Size
-        X = 0
-        Y = 0
-
-        if I less N
-            X = A I
-        end
-
-        if I less M
-            Y = B I
-        end
-
-        Sum = X + Y + Carry
-        queue push Sum % 10
-        Carry = Sum // 10
-        I += 1
+    if I less M
+      Y = B I
     end
 
-    if Carry greater 0
-        queue push Carry
-    end
+    Sum = X + Y + Carry
+    queue push Sum % 10
+    Carry = Sum // 10
+    I += 1
+  end
 
-    return queue
+  if Carry greater 0
+    queue push Carry
+  end
+
+  return queue
 end
 ```
 
@@ -85,27 +85,27 @@ rem Find the longest window containing
 rem no repeated character.
 
 fun longest Text
-    Start = 0
-    Best = 0
+  Start = 0
+  Best = 0
 
-    for C i in Text
-        if C in index
-            Last = index C
+  for C i in Text
+    if C in index
+      Last = index C
 
-            if Last at least Start
-                Start = Last + 1
-            end
-        end
-
-        index C = i
-        Size = i - Start + 1
-
-        if Size greater Best
-            Best = Size
-        end
+      if Last at least Start
+        Start = Last + 1
+      end
     end
 
-    return Best
+    index C = i
+    Size = i - Start + 1
+
+    if Size greater Best
+      Best = Size
+    end
+  end
+
+  return Best
 end
 ```
 
@@ -144,10 +144,10 @@ rem Check whether X reads the same
 rem forward and backward.
 
 fun palindrome X
-    Text = X text
-    Back = Text reverse
+  Text = X text
+  Back = Text reverse
 
-    return Text equal Back
+  return Text equal Back
 end
 ```
 
@@ -158,30 +158,30 @@ rem Follow up:
 rem Do not convert X to text.
 
 fun palindrome X
-    if X less 0
-        return false
+  if X less 0
+    return false
+  end
+
+  if X % 10 equal 0
+    if X not equal 0
+      return false
     end
+  end
 
-    if X % 10 equal 0
-        if X not equal 0
-            return false
-        end
-    end
+  Back = 0
 
-    Back = 0
+  for X greater Back
+    Digit = X % 10
+    X = X // 10
 
-    for X greater Back
-        Digit = X % 10
-        X = X // 10
+    Back = Back * 10 + Digit
+  end
 
-        Back = Back * 10 + Digit
-    end
+  if X equal Back
+    return true
+  end
 
-    if X equal Back
-        return true
-    end
-
-    return X equal Back // 10
+  return X equal Back // 10
 end
 ```
 

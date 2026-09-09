@@ -92,8 +92,8 @@ continue to use ordinary spaced addressing.
 
 ```rank
 for Value i in A
-    Value print
-    i print
+  Value print
+  i print
 end
 ```
 
@@ -105,7 +105,7 @@ Tensor iteration may bind one coordinate name for every frame axis:
 
 ```rank
 for Line i j in T axis 0 1 rank 1
-    Line print
+  Line print
 end
 ```
 

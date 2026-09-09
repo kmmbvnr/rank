@@ -8,21 +8,10 @@ use text
 use io
 use cli
 
-rem Return true when a nonnegative integer
-rem reads the same in both directions.
-fun palindrome X
-  Text = X text
-  Back = Text reverse
-  return Text equal Back
-end
-
 rem Number of digits in each factor.
 option Digits integer = 3
 
-Lower = 1
-for i in 1 until Digits
-  Lower *= 10
-end
+Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
@@ -33,3 +22,11 @@ Palindromes = Products Mask
 Answer = Palindromes max
 
 Answer print
+
+rem Return true when a nonnegative integer
+rem reads the same in both directions.
+fun palindrome X
+  Text = X text
+  Back = Text reverse
+  return Text equal Back
+end

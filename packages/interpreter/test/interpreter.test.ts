@@ -22,6 +22,20 @@ describe('Rank interpreter', () => {
         expect(run('3 at most 2')).toBe('false');
     });
 
+    it('raises numbers and collections to powers', () => {
+        expect(run('2 ** 10')).toBe('1024');
+        expect(run('2 ** 3 ** 2')).toBe('512');
+        expect(run('-2 ** 2')).toBe('-4');
+        expect(run('(-2) ** 2')).toBe('4');
+        expect(run('2 ** -2')).toBe('0.25');
+        expect(run('Value = 2\nValue **= 3\nValue')).toBe('8');
+        expect(run('use ranges\n(1 to 4) ** 2')).toBe('1 4 9 16');
+        expect(run('A = array 2 3\nA A ** outer')).toBe('4 8 9 27');
+        expect(() => run('0 ** -1'))
+            .toThrowError('zero cannot be raised to a negative power');
+        expect(() => run('(-2) ** 0.5')).toThrowError('power result is not real');
+    });
+
     it('applies leading unary operators before postfix calls', () => {
         expect(run([
             'fun negative X',
@@ -528,6 +542,31 @@ describe('Rank interpreter', () => {
             'Answer = A 9 two_sum',
             'Answer 1',
         ].join('\n'))).toBe('1');
+    });
+
+    it('registers top-level functions before executing the file', () => {
+        expect(run([
+            'Answer = 41 next',
+            'fun next X',
+            '  return X + 1',
+            'end',
+            'Answer',
+        ].join('\n'))).toBe('42');
+
+        const interpreter = new Interpreter(undefined, {
+            sourceId: '/tests/example_test.ra',
+            loadModule: specifier => ({
+                id: `/tests/${specifier}.ra`,
+                source: [
+                    'TopLevel = 99',
+                    'fun next X',
+                    '  return X + 1',
+                    'end',
+                ].join('\n'),
+            }),
+        });
+        expect(interpreter.execute('use "worker"\n41 next')).toBe(42n);
+        expect(interpreter.variables.has('TopLevel')).toBe(false);
     });
 
     it('constructs and addresses shaped arrays in row-major order', () => {

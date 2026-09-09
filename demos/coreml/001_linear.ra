@@ -18,30 +18,30 @@ rem Return Theta rounded to 4 decimals.
 use numbers
 
 fun linear_regression X Y Alpha Iterations
-    Dims = shape X
-    M = Dims 0
+  Dims = shape X
+  M = Dims 0
 
-    rem One coefficient per feature.
-    rem * 0.0 also ensures float values.
-    Theta = X 0 * 0.0
+  rem One coefficient per feature.
+  rem * 0.0 also ensures float values.
+  Theta = X 0 * 0.0
 
-    rem X does not change during training.
-    XT = transpose X
+  rem X does not change during training.
+  XT = transpose X
 
-    for i in 1 to Iterations
-        rem h = X theta
-        Pred = matmul X Theta
+  for i in 1 to Iterations
+    rem h = X theta
+    Pred = matmul X Theta
 
-        rem Prediction error for each row.
-        Error = Pred - Y
+    rem Prediction error for each row.
+    Error = Pred - Y
 
-        rem Gradient = X' Error
-        Gradient = matmul XT Error
+    rem Gradient = X' Error
+    Gradient = matmul XT Error
 
-        rem theta := theta - alpha/m * gradient
-        Rate = Alpha / M
-        Theta = Theta - Rate * Gradient
-    end
+    rem theta := theta - alpha/m * gradient
+    Rate = Alpha / M
+    Theta = Theta - Rate * Gradient
+  end
 
-    return round Theta 4
+  return round Theta 4
 end

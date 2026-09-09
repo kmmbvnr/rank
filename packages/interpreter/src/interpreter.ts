@@ -152,8 +152,15 @@ export class Interpreter {
         args: readonly string[] = [],
         assertBooleanExpressions = false,
     ): RankValue | undefined {
+        this.declareFunctions(program.statements);
         this.prepareInputs(program, args);
         return this.executeStatements(program.statements, assertBooleanExpressions);
+    }
+
+    private declareFunctions(statements: readonly Statement[]): void {
+        for (const statement of statements) {
+            if (isFunctionStatement(statement)) this.defineFunction(statement);
+        }
     }
 
     private executeStatements(
@@ -359,6 +366,15 @@ export class Interpreter {
             return this.evaluateUnary(expression.operator, this.evaluate(expression.operand));
         }
         if (isBinaryExpression(expression)) {
+            if (expression.operator === '**' && isUnaryExpression(expression.left)
+                && (expression.left.operator === '+' || expression.left.operator === '-')) {
+                const powered = this.evaluateBinary(
+                    '**',
+                    this.evaluate(expression.left.operand),
+                    this.evaluate(expression.right),
+                );
+                return this.evaluateUnary(expression.left.operator, powered);
+            }
             const outer = explicitOuterApplication(expression);
             if (outer) {
                 return this.evaluateOuter(
@@ -504,8 +520,10 @@ export class Interpreter {
                 sourceId: loaded.id,
             });
             child.loadedProgram = loaded;
+            child.declareFunctions(loaded.program.statements);
             this.aliases.set(alias, child);
         } else {
+            this.declareFunctions(loaded.program.statements);
             this.currentRunTarget = loaded;
         }
         return loaded;
@@ -887,6 +905,7 @@ export class Interpreter {
             case '+': return bothIntegers ? a + b : Number(a) + Number(b);
             case '-': return bothIntegers ? a - b : Number(a) - Number(b);
             case '*': return bothIntegers ? a * b : Number(a) * Number(b);
+            case '**': return power(a, b);
             case '/': return Number(a) / Number(b);
             case '//': return bothIntegers ? floorDivide(a, b) : Math.floor(Number(a) / Number(b));
             case '%': return bothIntegers ? a % b : Number(a) % Number(b);
@@ -1722,7 +1741,7 @@ function explicitOuterApplication(expression: Expression): OuterApplication | un
 }
 
 const OUTER_OPERATORS = new Set([
-    '+', '-', '*', '/', '//', '%',
+    '+', '-', '*', '**', '/', '//', '%',
     'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
     'and', 'or', 'xor', 'multipleby',
 ]);
@@ -1743,6 +1762,18 @@ function expectNumeric(value: RankValue): bigint | number {
 
 function isZero(value: bigint | number): boolean {
     return value === 0n || value === 0;
+}
+
+function power(base: bigint | number, exponent: bigint | number): bigint | number {
+    if (isZero(base) && exponent < 0) {
+        throw new RankError('zero cannot be raised to a negative power');
+    }
+    if (typeof base === 'bigint' && typeof exponent === 'bigint' && exponent >= 0n) {
+        return base ** exponent;
+    }
+    const result = Number(base) ** Number(exponent);
+    if (Number.isNaN(result)) throw new RankError('power result is not real');
+    return result;
 }
 
 function floorDivide(left: bigint, right: bigint): bigint {

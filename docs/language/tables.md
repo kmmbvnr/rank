@@ -50,7 +50,7 @@ A sequence of labels can be used as a reusable selector:
 
 ```rank
 Features =
-    .Age .Fare .Pclass
+  .Age .Fare .Pclass
 
 X = Train Features
 Xtest = Test Features
@@ -148,7 +148,7 @@ unambiguous mechanism.
 
 ```rank
 Keys =
-    .Sex .Pclass
+  .Sex .Pclass
 
 Groups = Data Keys group
 Rate = Groups .Survived mean

@@ -104,7 +104,7 @@ AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
-    '=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' |
+    '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | '%=' |
     'and=' | 'or=' | 'xor=';
 
 ExpressionStatement:
@@ -168,9 +168,14 @@ AdditionExpression returns Expression:
         operator=('+' | '-') right=MultiplicationExpression)*;
 
 MultiplicationExpression returns Expression:
+    PowerExpression
+    ({infer BinaryExpression.left=current}
+        operator=('*' | '/' | '//' | '%') right=PowerExpression)*;
+
+PowerExpression returns Expression:
     ApplicationExpression
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '//' | '%') right=ApplicationExpression)*;
+        operator='**' right=PowerExpression)?;
 
 ApplicationExpression returns Expression:
     UnaryExpression

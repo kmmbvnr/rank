@@ -30,9 +30,9 @@ filter
 end
 
 Revenue =
-    L .l_extendedprice
-    * L .l_discount
-    sum
+  L .l_extendedprice
+  * L .l_discount
+  sum
 
 Revenue print
 ```

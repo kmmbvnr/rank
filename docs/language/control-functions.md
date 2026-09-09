@@ -4,7 +4,7 @@
 
 ```rank
 if X less 0
-    return false
+  return false
 end
 ```
 
@@ -12,9 +12,9 @@ Alternative branches:
 
 ```rank
 if X equal 0
-    Result = 1
+  Result = 1
 else
-    Result = X
+  Result = X
 end
 ```
 
@@ -25,7 +25,7 @@ ordinary iterable values:
 
 ```rank
 for i in 1 to 10
-    i print
+  i print
 end
 ```
 
@@ -37,9 +37,9 @@ A condition after `for` is evaluated before every iteration:
 
 ```rank
 for B not equal 0
-    R = A % B
-    A = B
-    B = R
+  R = A % B
+  A = B
+  B = R
 end
 ```
 
@@ -47,10 +47,10 @@ A bare `for` repeats without a condition until control leaves its body:
 
 ```rank
 for
-    Count += 1
-    if Count equal 10
-        break
-    end
+  Count += 1
+  if Count equal 10
+    break
+  end
 end
 ```
 
@@ -63,7 +63,7 @@ membership expression a loop condition when that distinction is needed:
 
 ```rank
 for (X in index)
-    ...
+  ...
 end
 ```
 
@@ -71,7 +71,7 @@ An optional second name explicitly receives the zero-based index:
 
 ```rank
 for Value i in A
-    Sum += Value
+  Sum += Value
 end
 ```
 
@@ -87,9 +87,9 @@ Rank uses structured `try / catch / end` blocks for recoverable runtime errors:
 
 ```rank
 try
-    Value = Text integer
+  Value = Text integer
 catch .InvalidNumber Error
-    Value = 0
+  Value = 0
 end
 ```
 
@@ -100,13 +100,13 @@ variable catches any Rank runtime error:
 
 ```rank
 try
-    Value = Source load
+  Value = Source load
 catch .MissingFile Error
-    Value = Default
+  Value = Default
 catch Error
-    Error raise
+  Error raise
 finally
-    Resource close
+  Resource close
 end
 ```
 
@@ -146,7 +146,7 @@ A caught error can be raised again:
 
 ```rank
 catch Error
-    Error raise
+  Error raise
 ```
 
 Raising the caught value preserves the original error and diagnostic trace.
@@ -177,10 +177,10 @@ the terminal operation inside `try` when its errors must be handled:
 
 ```rank
 try
-    Plan = Data transform
-    Result = Plan sum
+  Plan = Data transform
+  Result = Plan sum
 catch Error
-    ...
+  ...
 end
 ```
 
@@ -196,19 +196,34 @@ non-obvious idea or constraint:
 rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
 fun gcd A B
-    for B not equal 0
-        R = A % B
-        A = B
-        B = R
-    end
+  for B not equal 0
+    R = A % B
+    A = B
+    B = R
+  end
 
-    return A
+  return A
 end
 ```
 
 These are ordinary comments today. Future help and documentation tools may
 associate the adjacent block with the function without adding another comment
 syntax.
+
+Top-level functions are registered after the whole file is parsed and before
+its executable statements run. A function may therefore be called before its
+textual definition, and helper functions may be placed at the end of a program:
+
+```rank
+Answer = 41 next
+
+fun next X
+  return X + 1
+end
+```
+
+Loading a source file with `use` registers its top-level functions without
+executing its ordinary top-level statements.
 
 Calls use Rank's data-first order. Arguments come first and the function name
 is the final word:
@@ -224,7 +239,7 @@ Current vararg syntax uses `*`:
 
 ```rank
 fun lcm * Numbers
-    ...
+  ...
 end
 ```
 

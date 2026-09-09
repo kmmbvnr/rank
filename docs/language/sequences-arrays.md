@@ -161,6 +161,7 @@ Arithmetic on compatible arrays is elementwise:
 ```rank
 C = A + B
 Squares = Range * Range
+Powers = Bases ** Exponents
 Pred = Pred - 1
 ```
 
@@ -168,7 +169,7 @@ Scalar broadcasting is allowed where shape rules make it unambiguous.
 Two array operands are compatible only when their complete shapes are equal;
 an equal number of elements is not enough.
 
-`%` and comparisons are also elementwise over compatible arrays:
+`**`, `%` and comparisons are also elementwise over compatible arrays:
 
 ```rank
 M3 = N % 3 equal 0

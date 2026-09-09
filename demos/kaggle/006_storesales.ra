@@ -15,15 +15,15 @@ Test = csv "test.csv"
 rem Extract weekday
 
 Train .weekday =
-    Train .date weekday
+  Train .date weekday
 
 Test .weekday =
-    Test .date weekday
+  Test .date weekday
 
 rem Historical mean by group
 
 Keys =
-    .store_nbr .family .weekday
+  .store_nbr .family .weekday
 
 Groups = Train Keys group
 Means = Groups .sales mean

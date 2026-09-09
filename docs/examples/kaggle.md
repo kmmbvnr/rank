@@ -35,13 +35,13 @@ Train .Age = Train .Age pad Median
 Test .Age = Test .Age pad Median
 
 Train .Female =
-    Train .Sex equal "female"
+  Train .Sex equal "female"
 
 Test .Female =
-    Test .Sex equal "female"
+  Test .Sex equal "female"
 
 Features =
-    .Female .Pclass .Age .Fare
+  .Female .Pclass .Age .Fare
 
 X = Train Features
 Xtest = Test Features
@@ -56,9 +56,9 @@ rem Kaggle: House Prices
 rem Predict SalePrice.
 
 Features =
-    .OverallQual .GrLivArea
-    .Neighborhood .HouseStyle
-    .KitchenQual .ExterQual
+  .OverallQual .GrLivArea
+  .Neighborhood .HouseStyle
+  .KitchenQual .ExterQual
 
 X = Train Features
 Xtest = Test Features
@@ -117,7 +117,7 @@ Grouping and join:
 
 ```rank
 Keys =
-    .store_nbr .family .weekday
+  .store_nbr .family .weekday
 
 Groups = Train Keys group
 Means = Groups .sales mean
@@ -151,13 +151,13 @@ Apply a function to each row/cell:
 
 ```rank
 Geo =
-    Train .pickup_latitude
-    .pickup_longitude
-    .dropoff_latitude
-    .dropoff_longitude
+  Train .pickup_latitude
+  .pickup_longitude
+  .dropoff_latitude
+  .dropoff_longitude
 
 Train .distance =
-    Geo distance rank 1
+  Geo distance rank 1
 ```
 
 ## Dogs vs Cats

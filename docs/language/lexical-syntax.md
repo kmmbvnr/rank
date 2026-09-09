@@ -29,6 +29,23 @@ j
 k
 ```
 
+## Indentation
+
+Canonical Rank source uses two spaces for each level of nesting. Tabs are not
+used. Every nested block adds exactly two spaces:
+
+```rank
+for i in 1 to 3
+  if i odd
+    Total += i
+  end
+end
+```
+
+Blocks are delimited by words such as `if`, `for`, `fun` and `end`, so
+indentation is visual rather than semantic. Rank formatters and maintained
+source files must emit the canonical two-space form.
+
 ## Comments
 
 Comments use classic BASIC `rem`:
@@ -57,14 +74,15 @@ side inside the expression:
 Total += Value
 Total -= Cost
 Product *= Factor
+Power **= Exponent
 Index %= Size
 Mask and= Active
 Mask or= Fallback
 Mask xor= Changed
 ```
 
-The current compound assignment operators are `+=`, `-=`, `*=`, `/=`, `//=`,
-`%=`, `and=`, `or=` and `xor=`.
+The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
+`//=`, `%=`, `and=`, `or=` and `xor=`.
 
 ## Inferred variable types
 
@@ -123,6 +141,17 @@ application. Therefore the function in this expression receives `-121`:
 Answer = -121 palindrome
 ```
 
+Exponentiation is the arithmetic exception. `**` binds more tightly than a
+unary sign on its left and less tightly than a unary sign on its right:
+
+```rank
+-2 ** 2
+2 ** -2
+rem -4, 0.25
+```
+
+`**` is right-associative, so `2 ** 3 ** 2` is `2 ** (3 ** 2)`.
+
 Use parentheses or a named intermediate value when the unary operator must be
 applied to the result of a call.
 
@@ -130,7 +159,7 @@ Conditions use words such as `equal` rather than `==`:
 
 ```rank
 if X equal 0
-    return true
+  return true
 end
 ```
 
@@ -161,6 +190,11 @@ Ratio = 2.5
 Mixed integer/real arithmetic promotes the result to `real`. `/` always performs
 real division. `//` performs floor division as in Python; two integer operands
 produce an integer, while an operation involving a real produces a real.
+
+`**` raises its left operand to the power of its right operand. Integer operands
+with a nonnegative exponent produce an arbitrary-precision `integer`. A negative
+or real exponent produces a `real`. Zero to a negative power and results outside
+the real number system are errors.
 
 ```rank
 Half = 5 / 2

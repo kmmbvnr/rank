@@ -28,26 +28,26 @@ Test .weekday = Date weekday
 Test .month = Date month
 
 Geo =
-    Train .pickup_latitude
-    .pickup_longitude
-    .dropoff_latitude
-    .dropoff_longitude
+  Train .pickup_latitude
+  .pickup_longitude
+  .dropoff_latitude
+  .dropoff_longitude
 
 Train .distance =
-    Geo distance rank 1
+  Geo distance rank 1
 
 Geo =
-    Test .pickup_latitude
-    .pickup_longitude
-    .dropoff_latitude
-    .dropoff_longitude
+  Test .pickup_latitude
+  .pickup_longitude
+  .dropoff_latitude
+  .dropoff_longitude
 
 Test .distance =
-    Geo distance rank 1
+  Geo distance rank 1
 
 Features =
-    .distance .hour .weekday .month
-    .passenger_count
+  .distance .hour .weekday .month
+  .passenger_count
 
 X = Train Features
 Xtest = Test Features
@@ -69,13 +69,13 @@ csv "submission.csv" = Out
 
 
 fun distance Point
-    Lat1 = Point 0
-    Lon1 = Point 1
-    Lat2 = Point 2
-    Lon2 = Point 3
+  Lat1 = Point 0
+  Lon1 = Point 1
+  Lat2 = Point 2
+  Lon2 = Point 3
 
-    X = Lon2 - Lon1
-    Y = Lat2 - Lat1
+  X = Lon2 - Lon1
+  Y = Lat2 - Lat1
 
-    return sqrt X * X + Y * Y
+  return sqrt X * X + Y * Y
 end

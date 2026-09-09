@@ -47,6 +47,20 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('parses right-associative exponentiation above unary signs', async () => {
+        const document = await parse('Answer = -2 ** 3 ** 2\nAnswer **= 2');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+
+        const statement = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(statement)).toBe(true);
+        if (!isAssignmentStatement(statement)) return;
+        expect(isBinaryExpression(statement.value) && statement.value.operator).toBe('**');
+        if (!isBinaryExpression(statement.value)) return;
+        expect(isUnaryExpression(statement.value.left)).toBe(true);
+        expect(isBinaryExpression(statement.value.right) && statement.value.right.operator).toBe('**');
+    });
+
     it('parses imported words as ordinary application', async () => {
         const document = await parse('use ranges\nuse numbers\n1 to 10 sum');
         expect(document.parseResult.lexerErrors).toEqual([]);
