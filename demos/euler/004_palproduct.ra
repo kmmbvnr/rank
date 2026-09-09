@@ -1,20 +1,50 @@
 rem Largest Palindrome Product
-rem Largest palindrome from product of
-rem two 3-digit numbers
+rem Largest palindrome made from the
+rem product of two N-digit numbers
 
-use sequences
+use ranges
+use numbers
 use io
+use cli
 
-Range = 100 to 999
+rem Return true when a nonnegative integer
+rem reads the same in both directions.
+fun palindrome X
+  if X % 10 equal 0
+    if X not equal 0
+      return false
+    end
+  end
 
-Proudcts = Range Range * outer
-filter Products palindrome
+  Back = 0
 
-Answer = Products max
-Answer print
+  for X greater Back
+    Digit = X % 10
+    X = X // 10
+    Back = Back * 10 + Digit
+  end
 
-fun palindrome N
-  Text = N text
-  Back = Text reverse
-  return Text equal Back
+  if X equal Back
+    return true
+  end
+
+  return X equal Back // 10
 end
+
+rem Number of digits in each factor.
+option Digits integer = 3
+
+Lower = 1
+for i in 1 until Digits
+  Lower *= 10
+end
+Upper = Lower * 10 - 1
+
+Factors = Lower to Upper
+Products = Factors Factors * outer
+Mask = Products palindrome rank 0
+Palindromes = Products Mask
+
+Answer = Palindromes max
+
+Answer print

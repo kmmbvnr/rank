@@ -2,6 +2,7 @@ export interface RankArray {
     readonly kind: 'array';
     readonly items: RankValue[];
     readonly shape: readonly number[];
+    readonly itemAt?: (index: number) => RankValue;
 }
 
 export interface RankLabel {

@@ -86,6 +86,62 @@ describe('Rank interpreter', () => {
         expect(run('use ranges\n1 to 4 greater 2')).toBe('false false true true');
     });
 
+    it('applies binary operations to the outer cells of finite arrays', () => {
+        const product = new Interpreter().execute([
+            'use ranges',
+            'A = 1 to 2',
+            'B = 3 to 5',
+            'A B * outer',
+        ].join('\n'));
+        expect(product).toMatchObject({ kind: 'array', shape: [2, 3] });
+        expect(product && typeof product === 'object' && product.kind === 'array'
+            ? product.items
+            : undefined).toEqual([3n, 4n, 5n, 6n, 8n, 10n]);
+
+        const tensor = new Interpreter().execute([
+            'A = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'B = array 10 20',
+            'A B + outer',
+        ].join('\n'));
+        expect(tensor).toMatchObject({ kind: 'array', shape: [2, 2, 2] });
+        expect(tensor && typeof tensor === 'object' && tensor.kind === 'array'
+            ? tensor.items
+            : undefined).toEqual([11n, 21n, 12n, 22n, 13n, 23n, 14n, 24n]);
+        expect(run([
+            'A = array 1 3',
+            'B = array 2 4',
+            'A B less outer',
+        ].join('\n'))).toBe('true true false true');
+    });
+
+    it('maps and filters an outer tensor lazily', () => {
+        expect(run([
+            'use ranges',
+            'use numbers',
+            'fun even_value X',
+            '  return X % 2 equal 0',
+            'end',
+            'A = 1 to 3',
+            'Products = A A * outer',
+            'Mask = Products even_value rank 0',
+            'Selected = Products Mask',
+            'Selected sum',
+        ].join('\n'))).toBe('20');
+        expect(() => run('use sequences\nfibonacci fibonacci * outer'))
+            .toThrowError('outer left operand must be finite');
+        expect(() => run([
+            'A = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'Mask = array true false true false',
+            'A Mask',
+        ].join('\n'))).toThrowError('mask shape mismatch: 2,2 and 4');
+    });
+
     it('updates values with compound assignment', () => {
         expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue %= 4\nValue')).toBe('1');
         expect(run('Mask = true\nMask and= true\nMask xor= true\nMask or= true\nMask')).toBe('true');

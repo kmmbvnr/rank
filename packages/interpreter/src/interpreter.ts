@@ -359,6 +359,14 @@ export class Interpreter {
             return this.evaluateUnary(expression.operator, this.evaluate(expression.operand));
         }
         if (isBinaryExpression(expression)) {
+            const outer = explicitOuterApplication(expression);
+            if (outer) {
+                return this.evaluateOuter(
+                    outer.operator,
+                    this.evaluate(outer.left),
+                    this.evaluate(outer.right),
+                );
+            }
             const slice = inlineSlice(expression);
             if (slice) {
                 const start = expectInteger(this.evaluate(slice.start));
@@ -764,10 +772,27 @@ export class Interpreter {
         }
         if (isRankArray(value)) {
             if (cellRank >= value.shape.length) return fn.call([value]);
-            if (cellRank === 0) return array(value.items.map(atom => fn.call([atom])));
+            if (cellRank === 0) {
+                return lazyArray(value.shape, index => fn.call([arrayItem(value, index)]));
+            }
             throw new RankError(`rank ${cellRank} over tensors is not implemented yet`);
         }
         return fn.call([value]);
+    }
+
+    private evaluateOuter(operator: string, left: RankValue, right: RankValue): RankValue {
+        const a = outerOperand(left, 'left');
+        const b = outerOperand(right, 'right');
+        const rightSize = arraySize(b.shape);
+        return lazyArray([...a.shape, ...b.shape], index => {
+            const leftIndex = Math.floor(index / rightSize);
+            const rightIndex = index % rightSize;
+            return this.evaluateBinary(
+                operator,
+                arrayItem(a, leftIndex),
+                arrayItem(b, rightIndex),
+            );
+        });
     }
 
     private evaluateUnary(operator: string, value: RankValue): RankValue {
@@ -1165,6 +1190,50 @@ function array(items: RankValue[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
 }
 
+function lazyArray(
+    shape: readonly number[],
+    itemAt: (index: number) => RankValue,
+): RankArray {
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape,
+        itemAt,
+        get items() {
+            materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
+            return materialized;
+        },
+    };
+}
+
+function arrayItem(source: RankArray, index: number): RankValue {
+    return source.itemAt?.(index) ?? source.items[index];
+}
+
+function arraySize(shape: readonly number[]): number {
+    return shape.reduce((product, dimension) => product * dimension, 1);
+}
+
+function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
+    if (isRankArray(value)) return value;
+    if (isRankQueue(value)) {
+        return { kind: 'array', items: value.items, shape: [value.items.length] };
+    }
+    if (!isRankSequence(value)) {
+        throw new RankError(`outer ${side} operand must be a finite sequence or array`);
+    }
+    if (value.plan.size.kind === 'infinite') {
+        throw new RankError(`outer ${side} operand must be finite`);
+    }
+
+    let items: RankValue[] | undefined;
+    const values = () => items ??= [...sequenceValues(value, 'outer')];
+    const size = value.plan.size.kind === 'exact'
+        ? safeDimension(value.plan.size.value, 'outer operand size')
+        : values().length;
+    return lazyArray([size], index => values()[index]);
+}
+
 function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
     const magnitude = stride ?? 1n;
     if (magnitude <= 0n) throw new RankError('range step must be a positive integer');
@@ -1294,14 +1363,24 @@ function applySelectors(values: RankValue[]): RankValue {
     }
 
     const [source, selector] = values;
-    if (source.items.length !== selector.items.length) {
+    const sourceSize = arraySize(source.shape);
+    if (!sameShape(source.shape, selector.shape)) {
         throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
     }
     if (!selector.items.every(item => typeof item === 'boolean')) {
         throw new RankError('array selector must be a boolean mask');
     }
 
-    return array(source.items.filter((_, index) => selector.items[index]));
+    const mask = selector.items as boolean[];
+    return sequence({
+        name: 'array mask selection',
+        size: { kind: 'unknown' },
+        *iterate() {
+            for (let index = 0; index < sourceSize; index += 1) {
+                if (mask[index]) yield arrayItem(source, index);
+            }
+        },
+    });
 }
 
 function callArguments(
@@ -1338,7 +1417,7 @@ function canApplySelectors(values: RankValue[]): boolean {
         && isIntegerCollectionSelector(values[1])) return true;
     if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])) {
         return values[1].items.every(item => typeof item === 'bigint')
-            || (values[0].items.length === values[1].items.length
+            || (sameShape(values[0].shape, values[1].shape)
                 && values[1].items.every(item => typeof item === 'boolean'));
     }
     if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
@@ -1523,18 +1602,14 @@ function mapBinary(
         if (!sameShape(leftArray.shape, rightArray.shape)) {
             throw new RankError(`shape mismatch: ${leftArray.shape} and ${rightArray.shape}`);
         }
-        return {
-            kind: 'array',
-            items: leftArray.items.map((item, index) => operation(item, rightArray.items[index])),
-            shape: leftArray.shape,
-        };
+        return lazyArray(leftArray.shape, index =>
+            operation(arrayItem(leftArray, index), arrayItem(rightArray, index)));
     }
     const source = leftArray ?? rightArray!;
-    return {
-        kind: 'array',
-        items: source.items.map(item => leftArray ? operation(item, right) : operation(left, item)),
-        shape: source.shape,
-    };
+    return lazyArray(source.shape, index => {
+        const item = arrayItem(source, index);
+        return leftArray ? operation(item, right) : operation(left, item);
+    });
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {
@@ -1624,6 +1699,33 @@ function explicitRankApplication(parts: Expression[]): { parts: Expression[]; ra
     }
     return { parts: parts.slice(0, -2), rank: rank.value };
 }
+
+interface OuterApplication {
+    readonly operator: string;
+    readonly left: Expression;
+    readonly right: Expression;
+}
+
+function explicitOuterApplication(expression: Expression): OuterApplication | undefined {
+    if (!isBinaryExpression(expression)
+        || !OUTER_OPERATORS.has(expression.operator)
+        || !isNamed(expression.right, 'outer')) return undefined;
+    const operands = flattenApplication(expression.left);
+    if (operands.length !== 2) {
+        throw new RankError(`outer expects two operands, got ${operands.length}`);
+    }
+    return {
+        operator: expression.operator,
+        left: operands[0],
+        right: operands[1],
+    };
+}
+
+const OUTER_OPERATORS = new Set([
+    '+', '-', '*', '/', '//', '%',
+    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
+    'and', 'or', 'xor', 'multipleby',
+]);
 
 function expectInteger(value: RankValue): bigint {
     if (typeof value !== 'bigint') {

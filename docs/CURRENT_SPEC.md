@@ -1308,16 +1308,17 @@ Prefix = A + scan
 
 ## Outer
 
-`outer` applies a binary operation to every pair while preserving the axes of
-both arguments:
+`outer` applies a binary operation to every pair of cells. The left and right
+cell ranks belong to the operation; `outer` combines the remaining frames:
 
 ```rank
 Sums = A B + outer
 Products = A B * outer
 ```
 
-If `A` has shape `2 3` and `B` has shape `4 5`, the result of `A B * outer`
-has shape:
+The current symbolic binary operations have intrinsic ranks `0 0`. Therefore,
+if `A` has shape `2 3` and `B` has shape `4 5`, the result of `A B * outer` has
+shape:
 
 ```text
 2 3 4 5
@@ -1328,6 +1329,15 @@ has shape:
 The axes of the left operand come first and the right operand varies fastest.
 Both operands must be finite and restartable. Construction is lazy: `outer`
 does not require all result atoms to be materialized immediately.
+
+Named binary functions will use their declared intrinsic left and right ranks.
+Explicit binary rank overrides remain deferred.
+
+An axis-qualified cell view may become an operand of `outer`. Its `axis` order
+will define frame order and its `rank` will define the cells, allowing rows of
+one tensor to be paired with columns of another without moving data. The
+expression syntax is deferred because `axis` already introduces selection;
+`outer` itself does not permute axes.
 
 Applying a same-shaped boolean mask to a tensor returns a rank-1 lazy sequence
 of the selected atoms in iteration order. Tables retain their separate
@@ -1758,11 +1768,23 @@ Products = A B * outer
 Sums = A B + outer
 ```
 
-`outer` preserves the axes of both inputs.
+`outer` applies its binary operation to every pair of cells. Cell ranks belong
+to the operation, while `outer` combines the remaining frames. Current symbolic
+binary operations have intrinsic ranks `0 0`, so they pair atoms and preserve
+all axes of both inputs.
 
 The result shape is the concatenation of the operand shapes. Left axes come
 first and the right operand varies fastest. Operands must be finite and
 restartable, and the result may remain lazy.
+
+Named binary functions will use their declared intrinsic left and right ranks.
+Explicit binary rank overrides remain deferred.
+
+A future axis-qualified cell view can be passed to `outer`: `axis` order will
+define frame order and `rank` will define its cells. This will support pairings
+such as every row of one matrix with every column of another as lazy views.
+The expression syntax remains deferred because `axis` already introduces
+selection. `outer` itself does not permute axes.
 
 ## Matrix multiplication
 

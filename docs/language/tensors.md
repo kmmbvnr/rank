@@ -107,11 +107,23 @@ Products = A B * outer
 Sums = A B + outer
 ```
 
-`outer` preserves the axes of both inputs.
+`outer` applies its binary operation to every pair of cells. Cell ranks belong
+to the operation, while `outer` combines the remaining frames. Current symbolic
+binary operations have intrinsic ranks `0 0`, so they pair atoms and preserve
+all axes of both inputs.
 
 The result shape is the concatenation of the operand shapes. Left axes come
 first and the right operand varies fastest. Operands must be finite and
 restartable, and the result may remain lazy.
+
+Named binary functions will use their declared intrinsic left and right ranks.
+Explicit binary rank overrides remain deferred.
+
+A future axis-qualified cell view can be passed to `outer`: `axis` order will
+define frame order and `rank` will define its cells. This will support pairings
+such as every row of one matrix with every column of another as lazy views.
+The expression syntax remains deferred because `axis` already introduces
+selection. `outer` itself does not permute axes.
 
 ## Matrix multiplication
 
