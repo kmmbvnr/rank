@@ -7,7 +7,6 @@ rem Metric: Log Loss
 
 use tables
 use images
-use tensor
 use ml
 
 Train = images "train"

@@ -2,7 +2,6 @@ rem Largest Palindrome Product
 rem Largest palindrome from product of
 rem two 3-digit numbers
 
-use tensors
 use sequences
 use io
 

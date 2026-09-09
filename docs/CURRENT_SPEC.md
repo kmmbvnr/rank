@@ -514,6 +514,17 @@ The first name binds the current value and the optional second name binds its
 zero-based index. The names are separate tokens: the whitespace is required.
 With one name, `for Value in A` binds only the value.
 
+Tensor iteration may bind one coordinate name for every frame axis:
+
+```rank
+for Line i j in T axis 0 1 rank 1
+    Line print
+end
+```
+
+`axis` precedes its numbers, so `T axis 0` cannot be mistaken for the ordinary
+addressing expression `T 0`.
+
 ## Boolean addressing
 
 Boolean masks are ordinary first-class values.
@@ -702,6 +713,9 @@ end
 
 The names are ordinary bindings; the whitespace between them is required.
 `for Value in A` binds only the value.
+
+For a tensor, ordinary iteration yields cells along its leading axis. Explicit
+cell-rank and axis iteration are defined in the tensor section.
 
 ## Functions
 
@@ -1102,17 +1116,9 @@ queue push A i + Carry
 
 Structure methods place the receiver first and the method second. A method with
 no arguments ends after its name; a method with one argument consumes the rest
-of the line. Methods with two or more arguments use one expression per line:
-
-```rank
-Object operation with
-  FirstExpression
-  SecondExpression
-end
-```
-
-The `with` block is reserved by the language design. Runtime support will be
-added with the first multi-argument structure method.
+of the line. The block syntax for methods with two or more arguments is not yet
+settled. The earlier `with ... end` proposal is disputed and is not current
+syntax.
 
 Addressed mutation uses assignment rather than a `put` method:
 
@@ -1403,6 +1409,52 @@ Geo distance rank 1
 
 This avoids a separate dataframe-specific row API.
 
+## Iteration by axis and cell rank
+
+Ordinary `for` over a rank-N tensor yields its rank-(N-1) cells along the
+leading axis:
+
+```rank
+for Row i in M
+    Row print
+end
+```
+
+A bare `rank` in the iterable position selects trailing cells. The leading
+frame supplies the coordinate bindings:
+
+```rank
+for Value i j in M rank 0
+    Value print
+end
+```
+
+`axis` explicitly lists the frame axes being iterated. It is core contextual
+vocabulary, not a reserved grammar keyword, and it comes before its numeric
+arguments so they cannot be confused with addressing:
+
+```rank
+for Column j in M axis 1 rank 1
+    Column print
+end
+
+for Line i j in T axis 0 1 rank 1
+    Line print
+end
+```
+
+The first binding receives the cell. Subsequent bindings receive coordinates
+for the listed frame axes in the same order. Index bindings may be omitted.
+Axis numbers are zero-based and unique, and this invariant must hold:
+
+```text
+number of frame axes + cell rank = tensor rank
+```
+
+Without `axis`, the frame axes are the leading axes in natural order. `rank 0`
+yields atoms; a rank equal to the tensor rank yields the whole tensor once.
+Iteration produces cells in row-major frame order.
+
 ## Outer
 
 ```rank
@@ -1447,7 +1499,6 @@ use numbers
 use ranges
 use collections
 use graph
-use tensor
 use tables
 use stats
 use text
@@ -2234,22 +2285,12 @@ sketch `lcm * Range` is not current syntax.
 `at most` is currently being tested as the readable spelling for `<=`, starting
 with TPC-H Q6, but is not yet considered settled.
 
-## Tensor iteration
+## Multi-argument method blocks
 
-`for Value Index in Sequence` now makes value and index bindings explicit. For
-a tensor, the remaining question is what sequence the tensor itself exposes:
-row-major atoms, leading-axis items, cells of a requested rank, or slices along
-a requested axis.
-
-J treats a rank-N array as a frame of cells of a chosen rank; its ordinary items
-are rank-(N-1) cells. Julia separates ordinary value/index iteration from
-`eachrow`, `eachcol` and `eachslice(..., dims=...)`. NumPy's `nditer` supports
-flat traversal, tracked multi-indices and explicit axis mappings.
-
-The current direction is to keep `for` simple: axis and cell-rank operations
-should produce iterable views, and `for` should consume those views normally.
-The default tensor iterator and the spelling of those view operations are not
-yet settled.
+The earlier `with ... end` form for supplying two or more method arguments is
+disputed. `with` is not reserved as current syntax. A replacement should wait
+for the first real multi-argument method and must remain distinguishable from a
+method with no arguments followed by ordinary statements.
 
 ## Compound conditions in table source clauses
 

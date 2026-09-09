@@ -9,7 +9,6 @@ use numbers
 use ranges
 use collections
 use graph
-use tensor
 use tables
 use stats
 use text

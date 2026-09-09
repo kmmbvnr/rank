@@ -44,6 +44,52 @@ Geo distance rank 1
 
 This avoids a separate dataframe-specific row API.
 
+## Iteration by axis and cell rank
+
+Ordinary `for` over a rank-N tensor yields its rank-(N-1) cells along the
+leading axis:
+
+```rank
+for Row i in M
+    Row print
+end
+```
+
+A bare `rank` in the iterable position selects trailing cells. The leading
+frame supplies the coordinate bindings:
+
+```rank
+for Value i j in M rank 0
+    Value print
+end
+```
+
+`axis` explicitly lists the frame axes being iterated. It is core contextual
+vocabulary, not a reserved grammar keyword, and it comes before its numeric
+arguments so they cannot be confused with addressing:
+
+```rank
+for Column j in M axis 1 rank 1
+    Column print
+end
+
+for Line i j in T axis 0 1 rank 1
+    Line print
+end
+```
+
+The first binding receives the cell. Subsequent bindings receive coordinates
+for the listed frame axes in the same order. Index bindings may be omitted.
+Axis numbers are zero-based and unique, and this invariant must hold:
+
+```text
+number of frame axes + cell rank = tensor rank
+```
+
+Without `axis`, the frame axes are the leading axes in natural order. `rank 0`
+yields atoms; a rank equal to the tensor rank yields the whole tensor once.
+Iteration produces cells in row-major frame order.
+
 ## Outer
 
 ```rank

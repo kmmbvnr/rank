@@ -213,6 +213,68 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
     });
 
+    it('iterates tensor cells by rank and explicit axes', () => {
+        const matrix = [
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+        ];
+        expect(run([
+            ...matrix,
+            'Total = 0',
+            'for Row i in M',
+            '  Total += Row 0 * 10 + Row 2',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('59');
+        expect(run([
+            ...matrix,
+            'Total = 0',
+            'for Column j in M axis 1 rank 1',
+            '  Total += Column 0 * 10 + Column 1',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('75');
+        expect(run([
+            ...matrix,
+            'Total = 0',
+            'for Value i j in M rank 0',
+            '  Total += Value + i * 10 + j * 100',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('651');
+        expect(run([
+            'T = array shape 2 2 2',
+            '  1 2 3 4',
+            '  5 6 7 8',
+            'end',
+            'Total = 0',
+            'for Line i j in T axis 0 1 rank 1',
+            '  Total += Line 0 * 10 + Line 1',
+            'end',
+            'Total',
+        ].join('\n'))).toBe('180');
+        expect(() => run([
+            ...matrix,
+            'for Cell i in M axis 0 1 rank 1',
+            '  Cell',
+            'end',
+        ].join('\n'))).toThrowError('axis count 2 plus cell rank 1 must equal tensor rank 2');
+        expect(() => run([
+            ...matrix,
+            'for Value i j in M axis 0 0 rank 0',
+            '  Value',
+            'end',
+        ].join('\n'))).toThrowError('axis numbers must be unique');
+        expect(() => run([
+            ...matrix,
+            'for Value i in M rank 0',
+            '  Value',
+            'end',
+        ].join('\n'))).toThrowError('for expects one value name or 3 value/index names, got 2');
+    });
+
     it('pushes expression values into a function-local queue', () => {
         expect(run([
             'use algo',

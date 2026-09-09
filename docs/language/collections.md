@@ -65,17 +65,9 @@ queue push A i + Carry
 
 Structure methods place the receiver first and the method second. A method with
 no arguments ends after its name; a method with one argument consumes the rest
-of the line. Methods with two or more arguments use one expression per line:
-
-```rank
-Object operation with
-  FirstExpression
-  SecondExpression
-end
-```
-
-The `with` block is reserved by the language design. Runtime support will be
-added with the first multi-argument structure method.
+of the line. The block syntax for methods with two or more arguments is not yet
+settled. The earlier `with ... end` proposal is disputed and is not current
+syntax.
 
 Addressed mutation uses assignment rather than a `put` method:
 

@@ -167,13 +167,11 @@ export class Interpreter {
                 result = undefined;
                 const binding = forIteration(statement.condition);
                 if (binding) {
-                    const iterable = this.evaluate(binding.iterable);
-                    let index = 0n;
-                    for (const value of iterationValues(iterable)) {
-                        this.assign(binding.variable, value);
-                        if (binding.index) this.assign(binding.index, index);
+                    for (const entry of this.forEntries(binding)) {
+                        this.assign(binding.names[0], entry.value);
+                        binding.names.slice(1).forEach((name, position) =>
+                            this.assign(name, entry.indices[position]));
                         result = this.executeStatements(statement.statements, assertBooleanExpressions);
-                        index += 1n;
                     }
                 } else {
                     while (!statement.condition
@@ -757,6 +755,32 @@ export class Interpreter {
         });
     }
 
+    private *forEntries(binding: ForBinding): IterableIterator<ForEntry> {
+        const spec = tensorIterationSpec(binding.iterable);
+        if (spec) {
+            const value = this.evaluate(spec.source);
+            if (!isRankArray(value)) throw new RankError('ranked for iteration expects an array');
+            const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
+            validateForBindings(binding.names, frameAxes.length);
+            yield* tensorEntries(value, frameAxes);
+            return;
+        }
+
+        const value = this.evaluate(binding.iterable);
+        if (isRankArray(value) && value.shape.length > 1) {
+            validateForBindings(binding.names, 1);
+            yield* tensorEntries(value, [0]);
+            return;
+        }
+
+        validateForBindings(binding.names, 1);
+        let index = 0n;
+        for (const item of iterationValues(value)) {
+            yield { value: item, indices: [index] };
+            index += 1n;
+        }
+    }
+
     private requireModule(module: string, operation: string): void {
         if (!this.modules.has(module)) {
             throw new RankError(`${operation} requires: use ${module}`);
@@ -767,6 +791,22 @@ export class Interpreter {
 interface ParsedArguments {
     readonly options: Map<string, string[]>;
     readonly positionals: string[];
+}
+
+interface ForBinding {
+    readonly names: readonly string[];
+    readonly iterable: Expression;
+}
+
+interface ForEntry {
+    readonly value: RankValue;
+    readonly indices: readonly bigint[];
+}
+
+interface TensorIterationSpec {
+    readonly source: Expression;
+    readonly axes?: readonly number[];
+    readonly cellRank: number;
 }
 
 function parseArguments(args: readonly string[]): ParsedArguments {
@@ -840,17 +880,125 @@ function splitQualified(name: string): [string, string] | undefined {
 
 function forIteration(
     condition: Expression | undefined,
-): { readonly variable: string; readonly index?: string; readonly iterable: Expression } | undefined {
+): ForBinding | undefined {
     if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
     const bindings = flattenApplication(condition.left);
-    if (bindings.length < 1 || bindings.length > 2 || !bindings.every(isNameExpression)) {
+    if (bindings.length < 1 || !bindings.every(isNameExpression)) {
         return undefined;
     }
     return {
-        variable: bindings[0].name,
-        index: bindings[1]?.name,
+        names: bindings.map(binding => binding.name),
         iterable: condition.right,
     };
+}
+
+function tensorIterationSpec(expression: Expression): TensorIterationSpec | undefined {
+    const parts = flattenApplication(expression);
+    const rankWord = parts.at(-2);
+    const rankValue = parts.at(-1);
+    if (!rankWord || !rankValue || !isNameExpression(rankWord)
+        || rankWord.name !== 'rank' || !isNumberLiteral(rankValue)) return undefined;
+
+    const cellRank = safeDimension(rankValue.value, 'rank');
+    const beforeRank = parts.slice(0, -2);
+    const axisPosition = beforeRank.findIndex(part => isNameExpression(part) && part.name === 'axis');
+    if (axisPosition < 0) {
+        if (beforeRank.length !== 1) return undefined;
+        return { source: beforeRank[0], cellRank };
+    }
+    if (axisPosition !== 1 || beforeRank.length === 2) {
+        throw new RankError('axis expects an array followed by one or more axis numbers');
+    }
+    const axisParts = beforeRank.slice(2);
+    if (!axisParts.every(isNumberLiteral)) {
+        throw new RankError('axis expects nonnegative integer literals');
+    }
+    return {
+        source: beforeRank[0],
+        axes: axisParts.map(axis => safeDimension(axis.value, 'axis')),
+        cellRank,
+    };
+}
+
+function safeDimension(value: bigint, name: string): number {
+    if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError(`${name} is too large: ${value}`);
+    }
+    return Number(value);
+}
+
+function tensorFrameAxes(
+    shape: readonly number[],
+    specifiedAxes: readonly number[] | undefined,
+    cellRank: number,
+): readonly number[] {
+    if (cellRank > shape.length) {
+        throw new RankError(`rank ${cellRank} exceeds tensor rank ${shape.length}`);
+    }
+    const frameRank = shape.length - cellRank;
+    const axes = specifiedAxes ?? Array.from({ length: frameRank }, (_, index) => index);
+    if (axes.length !== frameRank) {
+        throw new RankError(
+            `axis count ${axes.length} plus cell rank ${cellRank} must equal tensor rank ${shape.length}`,
+        );
+    }
+    if (new Set(axes).size !== axes.length) throw new RankError('axis numbers must be unique');
+    for (const axis of axes) {
+        if (axis >= shape.length) throw new RankError(`axis out of bounds: ${axis}`);
+    }
+    return axes;
+}
+
+function validateForBindings(names: readonly string[], frameRank: number): void {
+    if (names.length !== 1 && names.length !== frameRank + 1) {
+        throw new RankError(
+            `for expects one value name or ${frameRank + 1} value/index names, got ${names.length}`,
+        );
+    }
+}
+
+function* tensorEntries(source: RankArray, frameAxes: readonly number[]): IterableIterator<ForEntry> {
+    const frameShape = frameAxes.map(axis => source.shape[axis]);
+    const frameSet = new Set(frameAxes);
+    const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
+    const cellShape = cellAxes.map(axis => source.shape[axis]);
+
+    for (const frameCoordinates of coordinates(frameShape)) {
+        const fullCoordinates = Array(source.shape.length).fill(0) as number[];
+        frameAxes.forEach((axis, position) => {
+            fullCoordinates[axis] = frameCoordinates[position];
+        });
+        const items: RankValue[] = [];
+        for (const cellCoordinates of coordinates(cellShape)) {
+            cellAxes.forEach((axis, position) => {
+                fullCoordinates[axis] = cellCoordinates[position];
+            });
+            items.push(source.items[arrayOffset(source.shape, fullCoordinates)]);
+        }
+        yield {
+            value: cellShape.length === 0
+                ? items[0]
+                : { kind: 'array', items, shape: cellShape },
+            indices: frameCoordinates.map(BigInt),
+        };
+    }
+}
+
+function* coordinates(shape: readonly number[]): IterableIterator<number[]> {
+    const size = shape.reduce((product, dimension) => product * dimension, 1);
+    for (let linear = 0; linear < size; linear += 1) {
+        let remaining = linear;
+        const result = Array(shape.length).fill(0) as number[];
+        for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+            result[axis] = remaining % shape[axis];
+            remaining = Math.floor(remaining / shape[axis]);
+        }
+        yield result;
+    }
+}
+
+function arrayOffset(shape: readonly number[], coordinates: readonly number[]): number {
+    return coordinates.reduce((offset, coordinate, axis) => offset * shape[axis] + coordinate, 0);
 }
 
 function array(items: RankValue[]): RankArray {

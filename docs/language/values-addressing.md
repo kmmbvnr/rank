@@ -84,6 +84,17 @@ The first name binds the current value and the optional second name binds its
 zero-based index. The names are separate tokens: the whitespace is required.
 With one name, `for Value in A` binds only the value.
 
+Tensor iteration may bind one coordinate name for every frame axis:
+
+```rank
+for Line i j in T axis 0 1 rank 1
+    Line print
+end
+```
+
+`axis` precedes its numbers, so `T axis 0` cannot be mistaken for the ordinary
+addressing expression `T 0`.
+
 ## Boolean addressing
 
 Boolean masks are ordinary first-class values.

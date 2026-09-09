@@ -101,6 +101,17 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses tensor for bindings with axis and cell rank', async () => {
+        const document = await parse([
+            'for Line i j in T axis 0 1 rank 1',
+            '  Total += Line 0',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
+
     it('parses functions, array construction and keyed index assignment', async () => {
         const document = await parse([
             'fun two_sum A Target',

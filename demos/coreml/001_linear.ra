@@ -15,7 +15,6 @@ rem Iterations is the number of steps.
 rem
 rem Return Theta rounded to 4 decimals.
 
-use tensor
 use numbers
 
 fun linear_regression X Y Alpha Iterations

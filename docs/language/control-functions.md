@@ -71,6 +71,9 @@ end
 The names are ordinary bindings; the whitespace between them is required.
 `for Value in A` binds only the value.
 
+For a tensor, ordinary iteration yields cells along its leading axis. Explicit
+cell-rank and axis iteration are defined in [Tensors](tensors.md).
+
 ## Functions
 
 ```rank

@@ -21,22 +21,12 @@ sketch `lcm * Range` is not current syntax.
 `at most` is currently being tested as the readable spelling for `<=`, starting
 with TPC-H Q6, but is not yet considered settled.
 
-## Tensor iteration
+## Multi-argument method blocks
 
-`for Value Index in Sequence` now makes value and index bindings explicit. For
-a tensor, the remaining question is what sequence the tensor itself exposes:
-row-major atoms, leading-axis items, cells of a requested rank, or slices along
-a requested axis.
-
-J treats a rank-N array as a frame of cells of a chosen rank; its ordinary items
-are rank-(N-1) cells. Julia separates ordinary value/index iteration from
-`eachrow`, `eachcol` and `eachslice(..., dims=...)`. NumPy's `nditer` supports
-flat traversal, tracked multi-indices and explicit axis mappings.
-
-The current direction is to keep `for` simple: axis and cell-rank operations
-should produce iterable views, and `for` should consume those views normally.
-The default tensor iterator and the spelling of those view operations are not
-yet settled.
+The earlier `with ... end` form for supplying two or more method arguments is
+disputed. `with` is not reserved as current syntax. A replacement should wait
+for the first real multi-argument method and must remain distinguishable from a
+method with no arguments followed by ordinary statements.
 
 ## Compound conditions in table source clauses
 
