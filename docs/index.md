@@ -59,6 +59,7 @@ Adults = Data Mask
 - [LeetCode examples](examples/leetcode.md)
 - [Kaggle examples](examples/kaggle.md)
 - [TPC-H examples](examples/tpch.md)
+- [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
 
 ## Marketing

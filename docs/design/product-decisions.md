@@ -1,0 +1,172 @@
+# Product decisions
+
+This document records deliberate product and language design decisions for Rank.
+It explains the ergonomic rationale behind decisions that might otherwise look
+counterintuitive to programmers accustomed to desktop-first, punctuation-heavy
+languages.
+
+---
+
+## 1. Words over symbols for comparisons and logic
+
+Rank intentionally uses English words for relational and boolean operations
+instead of symbolic punctuation:
+
+| Operation | Rank keyword | Conventional symbol |
+|---|---|---|
+| Equality | `equal` | `==` |
+| Inequality | `not equal` | `!=` |
+| Less than | `less` | `<` |
+| Greater than | `greater` | `>` |
+| Less than or equal | `at most` | `<=` |
+| Greater than or equal | `at least` | `>=` |
+| Boolean conjunction | `and` | `&&` |
+| Boolean disjunction | `or` | `||` |
+| Boolean negation | `not` | `!` |
+
+### Rationale: The primary keyboard layer
+
+On desktop keyboards, `<`, `>`, `!`, `=`, and `&` have dedicated keys or simple
+Shift combinations.
+
+On phones, tablets, handheld calculators, and wearable touchscreens, the reality
+is inverted:
+- **Letters are on the primary keyboard layer.** They can be typed continuously
+  with standard thumb typing, swipe gestures, and system word completion.
+- **Punctuation and relational symbols require switching layers.** Typing `<=`
+  often requires tapping `?123`, finding `<`, switching back or into `#+=` for `=`,
+  and returning to the letter layer. This introduces high input friction and breaks
+  typing flow.
+- Words such as `equal`, `greater`, and `at least` can be typed without leaving
+  the primary alphanumeric layout.
+
+Rank deliberately rejects adding symbolic aliases (such as `==`, `!=`, `<=`, `>=`).
+Dual syntax creates dialect fragmentation, and the word-based syntax directly
+serves the mobile/small-screen mission.
+
+---
+
+## 2. Intentional intermediate variables over vertical pipelines
+
+Rank encourages naming intermediate values rather than constructing long
+vertical pipelines (`|>` or fluent dot-chaining):
+
+```rank
+rem Preferred Rank style:
+Digits = Number integer rank 0
+Windows = Digits Width window
+Products = Windows * reduce rank 1
+Answer = Products max
+```
+
+### Rationale: Readability, debugging, and the BASIC spirit
+
+1. **Self-documenting dataflow on narrow screens:** On a 40-column display,
+   multi-stage chained expressions either wrap awkwardly or hide intermediate
+   array shapes. Naming values (`Digits`, `Windows`, `Products`, `Palindromes`)
+   documents the algorithmic transformation at every step without extra comments.
+2. **REPL inspectability:** In a handheld terminal or calculator REPL, each
+   intermediate variable is an immediate inspection point. The programmer can
+   print `Windows` to verify slice geometry before reducing it. In a monolithic
+   pipeline, inspecting intermediate states requires editing and splitting the
+   expression.
+3. **True to BASIC:** Rank is fundamentally a modern BASIC. Clear assignments to
+   meaningful variables keep the mental model accessible, straightforward, and
+   concrete.
+
+Short, unambiguous postfix pipelines (`Fib even sum`, `Text reverse print`) are
+supported where they remain intuitive, but intermediate variables remain the
+canonical idiomatic style.
+
+---
+
+## 3. Rejection of multi-variable `for` comprehensions
+
+Rank rejects multi-generator loop syntax (such as `for a in 1 to N, b in a to N`
+or list comprehensions):
+
+```rank
+rem Rank uses explicit nested blocks:
+for a in 1 to Last
+  for b in 1 to Last
+    ...
+  end
+end
+```
+
+### Rationale: The 40-column budget
+
+Multi-variable loop declarations pack too much state into a single horizontal
+line, directly violating the target 40-column line width. Explicit nested
+blocks make the iteration order, nesting depth, and loop scope obvious at a
+glance.
+
+---
+
+## 4. Single-level `break` without labeled jumps
+
+The `break` statement terminates only the nearest enclosing `for` loop:
+
+```rank
+for
+  Count += 1
+  if Count equal 10
+    break
+  end
+end
+```
+
+### Rationale: Pragmatic control flow
+
+Multi-level labeled breaks (e.g. `break 'outer`) or non-local control jumps add
+syntactic weight and compiler complexity that belong to systems languages rather
+than BASIC. If a deeply nested loop needs to terminate completely, standard Rank
+patterns apply:
+- Condition checks on outer loops;
+- Flag variables;
+- Returning directly from a dedicated helper function (`fun ... return ... end`).
+
+---
+
+## 5. Multidimensional `window` and operator-modifier reductions
+
+Rank introduces `window` and operator-modifier reductions (`* reduce`, `+ reduce`)
+to replace nested index-manipulation loops with rank operations:
+
+```rank
+Windows = Digits Width window
+Products = Windows * reduce rank 1
+Answer = Products max
+```
+
+### Rationale: APL power with readable words
+
+Algorithms that process sequential data (signal filtering, time-series windows,
+adjacent digit products) traditionally force programmers into writing manual
+index offset math (`i + j`), bounds checks, and mutable accumulator loops.
+
+By providing `window`, Rank lifts a sequence from rank R to rank R+1
+(producing adjacent overlapping cells). Combined with trailing cell reductions
+(`rank 1`), the problem is solved declaratively in four readable lines that fit
+comfortably on a phone screen.
+
+---
+
+## 6. Consumable lazy sequence masks
+
+Lazy masks created by predicates (e.g. `Fib even`) retain their underlying
+source and can be consumed directly by operations:
+
+```rank
+Fib = fibonacci to Limit
+Answer = Fib even sum
+```
+
+### Rationale: Eliminating ceremonial boilerplate
+
+Previously, applying a mask required re-referencing the original sequence
+(`Fib (Fib even) sum`). Making lazy masks directly consumable eliminates this
+syntactic stutter while preserving the first-class nature of masks:
+- They can still be named and reused: `Mask = Fib even`;
+- They can still be composed: `Mask or= N multiple by 5`;
+- They still participate in explicit addressing: `Selected = Fib Mask`.
