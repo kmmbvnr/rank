@@ -190,6 +190,16 @@ Back = Text reverse
 
 This is both a language rule and the preferred narrow-screen style.
 
+Leading unary `+`, `-` and `not` bind to their nearest value before postfix
+application. Therefore the function in this expression receives `-121`:
+
+```rank
+Answer = -121 palindrome
+```
+
+Use parentheses or a named intermediate value when the unary operator must be
+applied to the result of a call.
+
 Conditions use words such as `equal` rather than `==`:
 
 ```rank

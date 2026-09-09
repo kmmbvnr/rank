@@ -22,6 +22,27 @@ describe('Rank interpreter', () => {
         expect(run('3 at most 2')).toBe('false');
     });
 
+    it('applies leading unary operators before postfix calls', () => {
+        expect(run([
+            'fun negative X',
+            '  return X less 0',
+            'end',
+            '-7 negative',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'fun positive X',
+            '  return X greater 0',
+            'end',
+            '+7 positive',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'fun always_false X',
+            '  return false',
+            'end',
+            'not false always_false',
+        ].join('\n'))).toBe('false');
+    });
+
     it('pads missing addressed values without hiding other errors', () => {
         expect(run('(array 10 20) 2 pad 99')).toBe('99');
         expect(run('(array 10) 0 pad 1 / 0')).toBe('10');

@@ -167,20 +167,19 @@ AdditionExpression returns Expression:
         operator=('+' | '-') right=MultiplicationExpression)*;
 
 MultiplicationExpression returns Expression:
-    UnaryExpression
+    ApplicationExpression
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '//' | '%') right=UnaryExpression)*;
+        operator=('*' | '/' | '//' | '%') right=ApplicationExpression)*;
+
+ApplicationExpression returns Expression:
+    UnaryExpression
+    ({infer ApplicationExpression.head=current}
+        arguments+=ApplicationArgument)*;
 
 UnaryExpression returns Expression:
     {infer UnaryExpression}
         operator=('+' | '-' | 'not') operand=UnaryExpression |
     ArrayExpression |
-    ApplicationExpression;
-
-ApplicationExpression returns Expression:
-    PrimaryExpression
-    ({infer ApplicationExpression.head=current}
-        arguments+=ApplicationArgument)+ |
     PrimaryExpression;
 
 ApplicationArgument returns Expression:

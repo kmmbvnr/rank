@@ -1,0 +1,81 @@
+use testing
+
+test "odd-length palindrome"
+  use "009_palnum"
+  run
+
+  Answer = 121 palindrome
+  Answer equal true
+end
+
+test "negative integer"
+  use "009_palnum"
+  run
+
+  Answer = -121 palindrome
+  Answer equal false
+end
+
+test "trailing zero"
+  use "009_palnum"
+  run
+
+  Answer = 10 palindrome
+  Answer equal false
+end
+
+test "zero"
+  use "009_palnum"
+  run
+
+  Answer = 0 palindrome
+  Answer equal true
+end
+
+test "single digit"
+  use "009_palnum"
+  run
+
+  Answer = 7 palindrome
+  Answer equal true
+end
+
+test "even-length palindrome"
+  use "009_palnum"
+  run
+
+  Answer = 1221 palindrome
+  Answer equal true
+end
+
+test "even-length non-palindrome"
+  use "009_palnum"
+  run
+
+  Answer = 1231 palindrome
+  Answer equal false
+end
+
+test "internal zeroes"
+  use "009_palnum"
+  run
+
+  Answer = 1001 palindrome
+  Answer equal true
+end
+
+test "large palindrome"
+  use "009_palnum"
+  run
+
+  Answer = 2147447412 palindrome
+  Answer equal true
+end
+
+test "largest 32-bit integer"
+  use "009_palnum"
+  run
+
+  Answer = 2147483647 palindrome
+  Answer equal false
+end

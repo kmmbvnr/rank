@@ -1,7 +1,14 @@
 import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { type Program, createRankServices, isAssignmentStatement, isBinaryExpression } from '../src/index.js';
+import {
+    type Program,
+    createRankServices,
+    isApplicationExpression,
+    isAssignmentStatement,
+    isBinaryExpression,
+    isUnaryExpression,
+} from '../src/index.js';
 
 let parse: ReturnType<typeof parseHelper<Program>>;
 
@@ -45,6 +52,20 @@ describe('Rank grammar', () => {
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
+    it('applies a leading unary operator before postfix application', async () => {
+        const document = await parse('Answer = -121 palindrome');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+
+        const statement = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(statement)).toBe(true);
+        if (!isAssignmentStatement(statement)) return;
+        expect(isApplicationExpression(statement.value)).toBe(true);
+        if (!isApplicationExpression(statement.value)) return;
+        expect(isUnaryExpression(statement.value.head)).toBe(true);
+        expect(statement.value.arguments).toHaveLength(1);
     });
 
     it('treats rem lines as comments', async () => {
