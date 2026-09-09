@@ -1,5 +1,5 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankLabel, type RankArray } from '../value.js';
+import { formatValue, isRankBytes, isRankLabel, type RankArray } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -11,6 +11,18 @@ export const textModule: RuntimeModule = {
         }
         const items = separator.length === 0 ? [...value] : value.split(separator);
         return textArray(items);
+    }),
+    startswith: () => native('startswith', 2, arguments_ => {
+        const [value, prefix] = arguments_;
+        if (typeof value !== 'string' || typeof prefix !== 'string') {
+            throw new RankError('startswith expects text and a text prefix');
+        }
+        return value.startsWith(prefix);
+    }),
+    hex: () => native('hex', 1, arguments_ => {
+        const value = arguments_[0];
+        if (!isRankBytes(value)) throw new RankError('hex expects bytes');
+        return [...value.data].map(byte => byte.toString(16).padStart(2, '0')).join('');
     }),
     text: () => native('text', 1, arguments_ => {
         const value = arguments_[0];

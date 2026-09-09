@@ -1,0 +1,15 @@
+use testing
+
+test "abcdef example"
+  use "004_md5"
+
+  Answer = "abcdef" "00000" mine
+  Answer equal 609043
+end
+
+test "pqrstuv example"
+  use "004_md5"
+
+  Answer = "pqrstuv" "00000" mine
+  Answer equal 1048970
+end

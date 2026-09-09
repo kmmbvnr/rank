@@ -4,6 +4,10 @@
     "version": "0.0.1",
     "type": "module",
     "private": true,
+    "engines": {
+        "node": ">=20.19.0",
+        "npm": ">=10.2.3"
+    },
     "main": "./out/index.js",
     "types": "./out/index.d.ts",
     "scripts": {
@@ -12,6 +16,7 @@
         "test": "vitest run"
     },
     "dependencies": {
+        "@noble/hashes": "~2.4.0",
         "langium": "~4.3.0",
         "rank-language": "0.0.1"
     },

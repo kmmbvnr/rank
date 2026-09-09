@@ -137,6 +137,11 @@ describe('Rank interpreter', () => {
         expect(run('3 at most 2')).toBe('false');
     });
 
+    it('concatenates text with addition', () => {
+        expect(run('"Rank" + " language"')).toBe('Rank language');
+        expect(() => run('"Rank" + 1')).toThrowError('expected number, got string');
+    });
+
     it('raises numbers and collections to powers', () => {
         expect(run('2 ** 10')).toBe('1024');
         expect(run('2 ** 3 ** 2')).toBe('512');
@@ -515,6 +520,21 @@ describe('Rank interpreter', () => {
         expect(() => run('use text\n(array 1 2) text'))
             .toThrowError('text expects a scalar value');
         expect(() => run('use text\n12 reverse')).toThrowError('reverse expects text');
+    });
+
+    it('checks text prefixes and formats bytes as hexadecimal text', () => {
+        expect(run('use text\n"Rank language" "Rank" startswith')).toBe('true');
+        expect(run('use text\n"Rank language" "rank" startswith')).toBe('false');
+        expect(() => run('use text\n12 "1" startswith'))
+            .toThrowError('startswith expects text and a text prefix');
+        expect(() => run('use text\n12 hex')).toThrowError('hex expects bytes');
+    });
+
+    it('hashes UTF-8 text to MD5 bytes', () => {
+        expect(run('use crypto\nuse text\n"abc" md5 hex'))
+            .toBe('900150983cd24fb0d6963f7d28e17f72');
+        expect(() => run('use crypto\n123 md5')).toThrowError('md5 expects text');
+        expect(() => run('"abc" md5')).toThrowError('unknown name: md5');
     });
 
     it('splits text by a text separator', () => {

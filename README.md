@@ -6,7 +6,7 @@ and design documents.
 
 ## Run
 
-Requires Node.js 20 or newer.
+Requires Node.js 20.19 or newer.
 
 ```console
 npm install

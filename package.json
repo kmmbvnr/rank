@@ -4,6 +4,10 @@
     "version": "0.0.1",
     "type": "module",
     "private": true,
+    "engines": {
+        "node": ">=20.19.0",
+        "npm": ">=10.2.3"
+    },
     "scripts": {
         "clean": "npm run clean --workspaces",
         "watch": "tsc -b tsconfig.build.json --watch",

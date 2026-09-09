@@ -1,0 +1,45 @@
+rem Advent of Code 2015 - Day 4
+rem The Ideal Stocking Stuffer
+rem https://adventofcode.com/2015/day/4
+
+use io
+use cli
+use text
+use crypto
+
+argument Input path
+
+Lines = Input readlines
+Secret = Lines 0
+
+Answers = Secret solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the answers for five and six leading hexadecimal zeroes.
+fun solve Secret
+  Part1 = Secret "00000" mine
+  Part2 = Secret "000000" mine
+  return array Part1 Part2
+end
+
+
+rem Return the first positive suffix whose MD5 hash has Prefix.
+fun mine Secret Prefix
+  N = 1
+
+  for
+    Candidate = Secret + N text
+    Hash = Candidate md5 hex
+
+    if Hash Prefix startswith
+      return N
+    end
+
+    N += 1
+  end
+end

@@ -1030,6 +1030,9 @@ export class Interpreter {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if (operator === '+' && typeof left === 'string' && typeof right === 'string') {
+            return left + right;
+        }
         if (operator === 'to' || operator === 'until') {
             if (isRankSequence(left)) {
                 if (rangeStep !== undefined) {

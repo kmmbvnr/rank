@@ -2031,6 +2031,7 @@ use graph
 use tables
 use stats
 use text
+use crypto
 use dates
 use io
 use ml
@@ -2158,6 +2159,15 @@ split
 reverse
 text
 integer
+startswith
+hex
+```
+
+`+` concatenates two text values. Both operands must already be text; Rank does
+not implicitly convert numbers or other values:
+
+```rank
+Candidate = Secret + N text
 ```
 
 `split` separates text at every exact occurrence of a text separator and
@@ -2167,6 +2177,18 @@ parts. An empty separator splits by Unicode code point:
 ```rank
 Parts = "2x3x4" "x" split
 Characters = "A😀Б" "" split
+```
+
+`startswith` tests an exact, case-sensitive prefix:
+
+```rank
+Ready = Text "Rank" startswith
+```
+
+`hex` converts `bytes` to lowercase hexadecimal text without a prefix:
+
+```rank
+Encoded = Bytes hex
 ```
 
 `integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
@@ -2207,6 +2229,16 @@ Columns = M 3 window axis 1
 
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
 Only complete windows are produced.
+
+## Cryptography
+
+`use crypto` provides hash and related byte operations. `md5` hashes the UTF-8
+encoding of text and returns 16 `bytes`; formatting remains an explicit step:
+
+```rank
+Digest = Text md5
+Hash = Digest hex
+```
 
 ## File I/O
 
