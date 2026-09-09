@@ -4,6 +4,9 @@ rem return 0 if it leaves 32-bit range
 
 use algo
 
+rem Reverse the decimal digits of X.
+rem Check the 32-bit limit before adding
+rem each digit to the result.
 fun reverse X
   Sign = 1
 
