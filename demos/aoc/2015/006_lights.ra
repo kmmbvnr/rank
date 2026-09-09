@@ -1,0 +1,136 @@
+rem Advent of Code 2015 - Day 6
+rem Probably a Fire Hazard
+rem https://adventofcode.com/2015/day/6
+
+use io
+use cli
+use algo
+use ranges
+use text
+
+argument Input path
+
+Answers = Input readlines solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the final lit count and total brightness.
+fun solve Lines
+  Part1 = Lines lights
+  Part2 = Lines brightness
+  return array Part1 Part2
+end
+
+
+rem Parse an instruction into its operation and inclusive rectangle.
+fun parse Line
+  Words = Line " " split
+
+  if Words 0 equal "toggle"
+    Op = "toggle"
+    A = Words 1 "," split
+    B = Words 3 "," split
+  else
+    Op = Words 1
+    A = Words 2 "," split
+    B = Words 4 "," split
+  end
+
+  X1 = A 0 integer
+  Y1 = A 1 integer
+  X2 = B 0 integer
+  Y2 = B 1 integer
+
+  return array Op X1 Y1 X2 Y2
+end
+
+
+rem Apply the binary light rules to a sparse grid.
+fun lights Lines
+  Count = 0
+
+  for Line in Lines
+    Cmd = Line parse
+
+    Op = Cmd 0
+    X1 = Cmd 1
+    Y1 = Cmd 2
+    X2 = Cmd 3
+    Y2 = Cmd 4
+
+    for Y in Y1 to Y2
+      for X in X1 to X2
+        Old = index X Y pad false
+
+        if Op equal "on"
+          if not Old
+            index X Y = true
+            Count += 1
+          end
+        else
+          if Op equal "off"
+            if Old
+              index X Y = false
+              Count -= 1
+            end
+          else
+            if Old
+              index X Y = false
+              Count -= 1
+            else
+              index X Y = true
+              Count += 1
+            end
+          end
+        end
+      end
+    end
+  end
+
+  return Count
+end
+
+
+rem Apply the brightness rules to a sparse integer grid.
+fun brightness Lines
+  Total = 0
+
+  for Line in Lines
+    Cmd = Line parse
+
+    Op = Cmd 0
+    X1 = Cmd 1
+    Y1 = Cmd 2
+    X2 = Cmd 3
+    Y2 = Cmd 4
+
+    for Y in Y1 to Y2
+      for X in X1 to X2
+        Value = index X Y pad 0
+
+        if Op equal "on"
+          Value += 1
+          Total += 1
+        else
+          if Op equal "off"
+            if Value greater 0
+              Value -= 1
+              Total -= 1
+            end
+          else
+            Value += 2
+            Total += 2
+          end
+        end
+
+        index X Y = Value
+      end
+    end
+  end
+
+  return Total
+end

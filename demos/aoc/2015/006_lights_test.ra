@@ -1,0 +1,28 @@
+use testing
+
+test "one light"
+  use "006_lights"
+
+  Lines = array "turn on 0,0 through 0,0"
+  Answer = Lines solve
+  Answer equal array 1 1
+end
+
+test "rectangle updates"
+  use "006_lights"
+
+  First = "turn on 0,0 through 1,1"
+  Second = "toggle 0,0 through 0,0"
+  Third = "turn off 1,1 through 1,1"
+  Lines = array First Second Third
+  Answer = Lines solve
+  Answer equal array 2 5
+end
+
+test "million lights"
+  use "006_lights"
+
+  Lines = array "toggle 0,0 through 999,999"
+  Answer = Lines solve
+  Answer equal array 1000000 2000000
+end
