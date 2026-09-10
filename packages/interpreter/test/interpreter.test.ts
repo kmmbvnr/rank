@@ -1209,6 +1209,17 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
     });
 
+    it('preserves tensor shape under unary operations', () => {
+        expect(run([
+            'M = array shape 2 2',
+            '  true false',
+            '  false true',
+            'end',
+            'N = not M',
+            'N 1 0',
+        ].join('\n'))).toBe('true');
+    });
+
     it('fills and mutates material arrays in row-major order', () => {
         expect(run([
             'M = array shape 2 3 pad -1',

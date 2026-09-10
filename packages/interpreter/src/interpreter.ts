@@ -1407,7 +1407,11 @@ export class Interpreter {
             });
         }
         if (isRankArray(value)) {
-            return array(value.items.map(item => this.evaluateUnary(operator, item)));
+            return {
+                kind: 'array',
+                items: value.items.map(item => this.evaluateUnary(operator, item)),
+                shape: value.shape,
+            };
         }
         if (operator === 'not' && typeof value === 'boolean') {
             return !value;
