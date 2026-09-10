@@ -246,6 +246,28 @@ G = A B gcd
 Result print
 ```
 
+### Function equality
+
+`equal` compares function identity. Two references to the same function are equal;
+separately defined functions are distinct even when their source and results match.
+Reading the same standard function repeatedly returns the same object within one
+interpreter:
+
+```rank
+use numbers
+F = abs
+F equal abs rem true
+abs equal abs rem true
+abs equal sqrt rem false
+```
+
+Each call that creates a local function creates a distinct closure, even when the
+captured values match. Copying a function reference preserves its identity. Defining
+a function again creates a new object; saved references still refer to the old one.
+Functions supplied by standard-library modules are distinct across interpreter
+instances. User bindings can still shadow standard function names; caching does
+not change lookup order.
+
 ## Local functions and closures
 
 A function may declare functions directly inside its body. Local functions are

@@ -3,7 +3,7 @@ import { Interpreter } from '../src/index.js';
 import { LocalFrame } from '../src/frame.js';
 
 describe('runtime fast paths', () => {
-    it('keeps standard function value identity separate from cached calls', () => {
+    it('keeps cached standard functions behind variable and module lookup', () => {
         const runtime = new Interpreter();
         expect(runtime.execute(`
 use numbers
@@ -13,7 +13,7 @@ fun positive X
 end
 -3 positive
 abs equal abs
-`)).toBe(false);
+`)).toBe(true);
         expect(runtime.execute('7 positive')).toBe(7n);
         runtime.execute(`
 fun replacement X

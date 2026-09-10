@@ -72,10 +72,10 @@ the general application scan when the target's arity matches. Dynamic targets,
 argument evaluation order, rank dispatch and resource ownership are still checked.
 Other forms use the general application path without reevaluating operands.
 
-Standard function factories are cached per interpreter only when resolving an
-immediate call target. Variable lookup and module selection still happen first.
-Reading a standard function as a value retains its existing object identity
-behavior; caching must not change equality tests or expose shared mutable values.
+Standard function objects are cached per interpreter, both for calls and for reads
+as values. Variable lookup and module selection still happen first. Repeated reads
+of the same standard function return the same object; separate interpreters keep
+separate objects and host contexts. Non-function factory results are not cached.
 
 ## Function call stack
 
@@ -224,6 +224,32 @@ smaller; the counted summation was close to its baseline. The unchanged CSES Gri
 Paths test file passed with both interpreters and took 4.44 versus 4.38 seconds in
 single CLI runs including startup. That difference does not establish an improvement
 for this real-world workload. Timings are diagnostic, not CI failure thresholds.
+
+### Stable standard-function identity, 2026-09-11
+
+The identity change replaces the call-only cache from `61695fc` with a per-interpreter
+cache for every read of a standard-library function. This deliberately changes
+`abs equal abs` from false to true. User-function and closure equality is unchanged.
+
+The same nine benchmarks ran against separate builds on the same macOS arm64 /
+Node v24.15.0 environment, baseline first, after the test runs had finished.
+Medians of five runs in milliseconds:
+
+| Benchmark | `61695fc` | Stable identity |
+|---|---:|---:|
+| `tree` | 35.5 | 36.3 |
+| `total` | 7.7 | 7.7 |
+| `calls` | 15.2 | 15.1 |
+| `nativecalls` | 11.6 | 11.6 |
+| `conditional` | 9.8 | 10.0 |
+| `addressing` | 13.7 | 13.6 |
+| `tail` | 21.3 | 21.8 |
+| `dyadiccalls` | 17.8 | 18.1 |
+| `tailacc` | 24.2 | 24.1 |
+
+All median differences were below 2.5%, with overlapping sample ranges. This check
+found no measurable slowdown in the named workloads. The full suite passed 250
+tests, and all 102 demo test files passed.
 
 ### Earlier measurements
 

@@ -219,7 +219,7 @@ export class Interpreter {
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
-    private readonly invokedStandardFunctions = new Map<RuntimeModule[string], NativeFunction>();
+    private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
     private readonly resourceScopes: Set<RankFile>[] = [];
@@ -1327,9 +1327,7 @@ export class Interpreter {
                     return () => {
                         const arguments_ = operands.map(part => part());
                         const simple = !arguments_.some(isNativeFunction);
-                        // Cached standard functions are only used as call targets,
-                        // never exposed as values whose identity can be observed.
-                        const fn = this.resolve(last.name, simple);
+                        const fn = this.resolve(last.name);
                         if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
                             const result = arguments_.length === 1 && fn.monadicRank !== 'all'
                                 ? this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank)
@@ -1818,7 +1816,7 @@ export class Interpreter {
         for (const item of values) validateInputValue(name, valueType, item);
     }
 
-    private resolve(name: string, invoked = false): RankValue {
+    private resolve(name: string): RankValue {
         const qualified = splitQualified(name);
         if (qualified) {
             const [alias, member] = qualified;
@@ -1842,7 +1840,7 @@ export class Interpreter {
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
             if (fn) {
-                const cached = invoked ? this.invokedStandardFunctions.get(fn) : undefined;
+                const cached = this.standardFunctions.get(fn);
                 if (cached !== undefined) return cached;
                 const value = fn({
                     output: this.output,
@@ -1851,7 +1849,7 @@ export class Interpreter {
                     seedRandom: seed => this.random[SEED_RANDOM](seed),
                     ownFile: file => this.ownFile(file),
                 });
-                if (invoked && isNativeFunction(value)) this.invokedStandardFunctions.set(fn, value);
+                if (isNativeFunction(value)) this.standardFunctions.set(fn, value);
                 return value;
             }
         }
