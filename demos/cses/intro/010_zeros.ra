@@ -1,0 +1,20 @@
+rem CSES 1618: Trailing Zeros
+rem https://cses.fi/problemset/task/1618
+
+use io
+
+N = stdin .integer
+N zeros print
+
+
+rem Count trailing zeroes in N factorial.
+fun zeros N
+  Zeros = 0
+
+  for N at least 5
+    N //= 5
+    Zeros += N
+  end
+
+  return Zeros
+end

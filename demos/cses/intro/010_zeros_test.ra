@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "010_zeros"
+  20 zeros equal 4
+end
+
+test "below first factor of five"
+  use "010_zeros"
+  4 zeros equal 0
+end
+
+test "one factor of five"
+  use "010_zeros"
+  5 zeros equal 1
+end
+
+test "higher powers of five"
+  use "010_zeros"
+  100 zeros equal 24
+end
