@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "014_reindeer"
+
+  Lines = array shape 2
+    "Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds."
+    "Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds."
+  end
+
+  Lines 1000 solve equal array 1120 689
+end
+
+test "distance follows complete and partial cycles"
+  use "014_reindeer"
+
+  14 10 127 1 distance equal 14
+  14 10 127 10 distance equal 140
+  14 10 127 11 distance equal 140
+  14 10 127 138 distance equal 154
+end

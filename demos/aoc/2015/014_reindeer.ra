@@ -1,0 +1,96 @@
+rem Advent of Code 2015 — Day 14
+rem Reindeer Olympics
+rem https://adventofcode.com/2015/day/14
+
+use io
+use cli
+use algo
+use text
+use numbers
+use ranges
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines 2503 solve
+Part1 print
+Part2 print
+
+
+rem Find the greatest distance and the greatest per-second score.
+fun solve Lines Race
+  Pattern = "/word can fly /integer km//s for /integer seconds, but then must rest for /integer seconds."
+
+  for Line in Lines
+    Name Speed Fly Rest = Line Pattern parse
+
+    index Name "speed" = Speed
+    index Name "fly" = Fly
+    index Name "rest" = Rest
+
+    set add Name
+  end
+
+  Part1 = 0
+
+  for Name in set
+    Speed = index Name "speed"
+    Fly = index Name "fly"
+    Rest = index Name "rest"
+    Distance = Speed Fly Rest Race distance
+
+    if Distance greater Part1
+      Part1 = Distance
+    end
+  end
+
+  for Second in 1 to Race
+    Lead = 0
+
+    for Name in set
+      Speed = index Name "speed"
+      Fly = index Name "fly"
+      Rest = index Name "rest"
+      Distance = Speed Fly Rest Second distance
+
+      if Distance greater Lead
+        Lead = Distance
+      end
+    end
+
+    for Name in set
+      Speed = index Name "speed"
+      Fly = index Name "fly"
+      Rest = index Name "rest"
+      Distance = Speed Fly Rest Second distance
+
+      if Distance equal Lead
+        Score = index Name "score" pad 0
+        index Name "score" = Score + 1
+      end
+    end
+  end
+
+  Part2 = 0
+
+  for Name in set
+    Score = index Name "score" pad 0
+
+    if Score greater Part2
+      Part2 = Score
+    end
+  end
+
+  return array Part1 Part2
+end
+
+
+rem Calculate one reindeer's distance after a given number of seconds.
+fun distance Speed Fly Rest Time
+  Cycle = Fly + Rest
+  Full = Time // Cycle
+  Left = Time % Cycle
+  Active = Left Fly min
+
+  return (Full * Fly + Active) * Speed
+end
