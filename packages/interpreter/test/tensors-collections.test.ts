@@ -438,6 +438,12 @@ describe('Rank tensors and collections', () => {
         expect(run('use ranges\nuse numbers\n(-2 to 2) abs')).toBe('2 1 0 1 2');
         expect(run('use numbers\n-infinity abs')).toBe('infinity');
         expect(() => run('use numbers\n"no" abs')).toThrowError('expected numeric input');
+        expect(run('use numbers\n9 sqrt')).toBe('3');
+        expect(run('use numbers\n2.25 sqrt')).toBe('1.5');
+        expect(run('use numbers\n(array 0 4 9) sqrt')).toBe('0 2 3');
+        expect(run('use numbers\ninfinity sqrt')).toBe('infinity');
+        expect(() => run('use numbers\n-1 sqrt'))
+            .toThrowError('sqrt expects a nonnegative value');
         expect(run('use numbers\n3 2 min')).toBe('2');
         expect(run('use numbers\n3 2 max')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');

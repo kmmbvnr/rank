@@ -16,6 +16,13 @@ export const numbersModule: RuntimeModule = {
         if (typeof value === 'bigint') return absolute(value);
         return value < 0 ? -value : value === 0 ? 0 : value;
     }, 0),
+    sqrt: () => native('sqrt', 1, arguments_ => {
+        const value = expectNumeric(arguments_[0]);
+        if (value < 0) {
+            throw new RankError('sqrt expects a nonnegative value', 'DomainError');
+        }
+        return Math.sqrt(Number(value));
+    }, 0),
     sum: () => native('sum', 1, arguments_ => {
         const value = arguments_[0];
         if (isRankSequence(value)) {

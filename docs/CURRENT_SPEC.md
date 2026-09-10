@@ -2450,6 +2450,7 @@ Candidate reusable operations:
 odd
 even
 abs
+sqrt
 prime
 gcd
 lcm
@@ -2481,6 +2482,17 @@ Magnitudes = Values abs
 Its scalar rank makes the second form elementwise over arrays and lazy over
 sequences. Negative infinity becomes positive infinity, and either signed real
 zero becomes positive zero. A demanded nonnumeric cell is an error.
+
+`sqrt` has intrinsic rank 0 and returns the real square root of an `integer` or
+`real`:
+
+```rank
+Root = Value sqrt
+Roots = Values sqrt
+```
+
+It maps lazily over arrays and sequences. A negative input raises
+`.DomainError`; positive infinity remains infinity.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:
