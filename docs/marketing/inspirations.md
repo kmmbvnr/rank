@@ -53,6 +53,20 @@ axis-oriented traversal explicit. Rank should learn from this division when it
 defines tensor `for`: ordinary iteration, cell-rank iteration and a chosen axis
 are related operations, but they need not be one overloaded special case.
 
+### MATLAB / GNU Octave
+**Take:** the vocabulary and defaults of an environment where matrices are the
+ordinary working value: dimension-wise operations, linear algebra, reshaping,
+broadcasting and compact inspection in the REPL. Their punctuation-heavy matrix
+and range notation is still useful prior art for semantics even when Rank spells
+the same ideas with words that are easier to enter on a phone.
+
+### Wolfram Language / Wolfram Alpha
+**Take:** exact and symbolic values, expressions that can be inspected and
+transformed as data, and a large mathematical vocabulary that composes across
+scalars and arrays. Wolfram Alpha is also useful prior art for an exploratory
+math interface: the environment may help interpret an input while saved Rank
+source keeps a small, deterministic grammar.
+
 ### Uiua — [uiua.org](https://www.uiua.org/) *(survey)*
 **Take:** a live counterexample. Uiua rebuilt notation from scratch and chose
 glyphs. Reading their rationale is the fastest way to find the weak points in
