@@ -114,6 +114,17 @@ interface LoadedProgram {
     readonly program: Program;
 }
 
+interface ExecutionContext {
+    readonly assertBooleanExpressions: boolean;
+    readonly insideLoop: boolean;
+    readonly insideFinally: boolean;
+    readonly insideGenerator: boolean;
+}
+
+type PreparedStatement =
+    | { readonly run: (context: ExecutionContext) => RankValue | undefined }
+    | { readonly stream: (context: ExecutionContext) => Generator<RankValue, RankValue | undefined> };
+
 class ReturnSignal {
     constructor(readonly value?: RankValue) {}
 }
@@ -163,6 +174,7 @@ export class Interpreter {
     private currentRunTarget: LoadedProgram | undefined;
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
+    private readonly statements = new WeakMap<Statement, PreparedStatement>();
     private readonly expressions = new WeakMap<Expression, () => RankValue>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
@@ -353,37 +365,73 @@ export class Interpreter {
         insideFinally = false,
         insideGenerator = false,
     ): Generator<RankValue, RankValue | undefined> {
+        const context: ExecutionContext = {
+            assertBooleanExpressions, insideLoop, insideFinally, insideGenerator,
+        };
         let result: RankValue | undefined;
-
         for (const statement of statements) {
-            if (isUseStatement(statement)) {
+            let prepared = this.statements.get(statement);
+            if (!prepared) {
+                prepared = this.prepareStatement(statement);
+                this.statements.set(statement, prepared);
+            }
+            result = 'run' in prepared
+                ? prepared.run(context)
+                : yield* prepared.stream(context);
+        }
+        return result;
+    }
+
+    // Cache only syntax. Flags and workspaces belong to each execution, including
+    // resumed generators. Prepare a statement only when control reaches it.
+    private prepareStatement(statement: Statement): PreparedStatement {
+        if (isUseStatement(statement)) {
+            return { run: () => {
                 if (statement.path !== undefined) {
                     this.useFile(statement.path, statement.alias);
                 } else {
                     this.useStandard(statement.module!);
                 }
-                result = undefined;
-            } else if (isRunStatement(statement)) {
-                result = this.run(statement.path);
-            } else if (isArgsStatement(statement)) {
+                return undefined;
+            } };
+        }
+        if (isRunStatement(statement)) {
+            return { run: () => this.run(statement.path) };
+        }
+        if (isArgsStatement(statement)) {
+            return { run: () => {
                 this.pendingArgs = statement.values.map(value => formatValue(this.evaluate(value)));
-                result = undefined;
-            } else if (isOptionStatement(statement)
-                || isArgumentStatement(statement)
-                || isFlagStatement(statement)) {
-                result = undefined;
-            } else if (isTestStatement(statement)) {
+                return undefined;
+            } };
+        }
+        if (isOptionStatement(statement)
+            || isArgumentStatement(statement)
+            || isFlagStatement(statement)) {
+            return { run: () => undefined };
+        }
+        if (isTestStatement(statement)) {
+            return { run: () => {
                 this.executeTest(statement.description, statement.statements);
-                result = undefined;
-            } else if (isFunctionStatement(statement)) {
-                result = this.defineFunction(statement);
-            } else if (isYieldStatement(statement)) {
+                return undefined;
+            } };
+        }
+        if (isFunctionStatement(statement)) {
+            return { run: () => this.defineFunction(statement) };
+        }
+        if (isYieldStatement(statement)) {
+            const interpreter = this;
+            return { stream: function* (context) {
+                const { insideGenerator } = context;
                 if (!insideGenerator) {
                     throw new RankError('yield is only valid inside a generator function');
                 }
-                yield this.evaluate(statement.value);
-                result = undefined;
-            } else if (isReturnStatement(statement)) {
+                yield interpreter.evaluate(statement.value);
+                return undefined;
+            } };
+        }
+        if (isReturnStatement(statement)) {
+            return { run: context => {
+                const { insideFinally, insideGenerator } = context;
                 if (insideFinally) {
                     throw new RankError('return is not valid inside finally');
                 }
@@ -399,7 +447,11 @@ export class Interpreter {
                 throw new ReturnSignal(
                     statement.value === undefined ? undefined : this.evaluate(statement.value),
                 );
-            } else if (isBreakStatement(statement)) {
+            } };
+        }
+        if (isBreakStatement(statement)) {
+            return { run: context => {
+                const { insideLoop, insideFinally } = context;
                 if (insideFinally) {
                     throw new RankError('break is not valid inside finally');
                 }
@@ -407,11 +459,17 @@ export class Interpreter {
                     throw new RankError('break is only valid inside a for loop');
                 }
                 throw new BreakSignal();
-            } else if (isTryStatement(statement)) {
+            } };
+        }
+        if (isTryStatement(statement)) {
+            const interpreter = this;
+            return { stream: function* (context) {
+                const { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator } = context;
+                let result: RankValue | undefined;
                 let pending: unknown;
                 try {
                     try {
-                        result = yield* this.executeStatementStream(
+                        result = yield* interpreter.executeStatementStream(
                             statement.statements,
                             assertBooleanExpressions,
                             insideLoop,
@@ -424,8 +482,8 @@ export class Interpreter {
                             candidate.errorKind === undefined
                             || candidate.errorKind.name === error.rankKind);
                         if (!clause) throw error;
-                        this.assign(clause.errorName, error.toValue());
-                        result = yield* this.executeStatementStream(
+                        interpreter.assign(clause.errorName, error.toValue());
+                        result = yield* interpreter.executeStatementStream(
                             clause.statements,
                             assertBooleanExpressions,
                             insideLoop,
@@ -437,7 +495,7 @@ export class Interpreter {
                     pending = error;
                 }
                 try {
-                    yield* this.executeStatementStream(
+                    yield* interpreter.executeStatementStream(
                         statement.finallyStatements,
                         assertBooleanExpressions,
                         insideLoop,
@@ -451,35 +509,48 @@ export class Interpreter {
                     pending = error;
                 }
                 if (pending !== undefined) throw pending;
-            } else if (isIfStatement(statement)) {
+                return result;
+            } };
+        }
+        if (isIfStatement(statement)) {
+            const interpreter = this;
+            return { stream: function* (context) {
+                const { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator } = context;
+                let result: RankValue | undefined;
                 let branch = statement.elseStatements;
-                if (expectBoolean(this.evaluate(statement.condition))) {
+                if (expectBoolean(interpreter.evaluate(statement.condition))) {
                     branch = statement.thenStatements;
                 } else {
                     for (const clause of statement.elifClauses) {
-                        if (expectBoolean(this.evaluate(clause.condition))) {
+                        if (expectBoolean(interpreter.evaluate(clause.condition))) {
                             branch = clause.statements;
                             break;
                         }
                     }
                 }
-                result = yield* this.executeStatementStream(
+                result = yield* interpreter.executeStatementStream(
                     branch,
                     assertBooleanExpressions,
                     insideLoop,
                     insideFinally,
                     insideGenerator,
                 );
-            } else if (isForStatement(statement)) {
-                result = undefined;
-                const binding = forIteration(statement.condition);
+                return result;
+            } };
+        }
+        if (isForStatement(statement)) {
+            const binding = forIteration(statement.condition);
+            const interpreter = this;
+            return { stream: function* (context) {
+                const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
+                let result: RankValue | undefined;
                 if (binding) {
-                    for (const entry of this.forEntries(binding)) {
-                        this.assign(binding.names[0], entry.value);
+                    for (const entry of interpreter.forEntries(binding)) {
+                        interpreter.assign(binding.names[0], entry.value);
                         binding.names.slice(1).forEach((name, position) =>
-                            this.assign(name, entry.indices[position]));
+                            interpreter.assign(name, entry.indices[position]));
                         try {
-                            result = yield* this.executeStatementStream(
+                            result = yield* interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
@@ -493,9 +564,9 @@ export class Interpreter {
                     }
                 } else {
                     while (!statement.condition
-                        || expectBoolean(this.evaluate(statement.condition))) {
+                        || expectBoolean(interpreter.evaluate(statement.condition))) {
                         try {
-                            result = yield* this.executeStatementStream(
+                            result = yield* interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
@@ -508,12 +579,19 @@ export class Interpreter {
                         }
                     }
                 }
-            } else if (isPushStatement(statement)) {
+                return result;
+            } };
+        }
+        if (isPushStatement(statement)) {
+            return { run: () => {
                 const receiver = this.evaluate(statement.receiver);
                 if (!isRankQueue(receiver)) throw new RankError('push expects a queue receiver');
                 receiver.items.push(this.evaluate(statement.value));
-                result = undefined;
-            } else if (isAddStatement(statement)) {
+                return undefined;
+            } };
+        }
+        if (isAddStatement(statement)) {
+            return { run: () => {
                 const value = this.evaluate(statement.value);
                 if (statement.structure.startsWith('counter')) {
                     const receiver = this.localCounter();
@@ -525,14 +603,20 @@ export class Interpreter {
                     const receiver = this.localSet();
                     receiver.entries.set(setValueKey(value), value);
                 }
-                result = undefined;
-            } else if (isIndexAssignmentStatement(statement)) {
+                return undefined;
+            } };
+        }
+        if (isIndexAssignmentStatement(statement)) {
+            return { run: () => {
                 const index = this.localIndex();
                 const keys = statement.keys.map(key => this.evaluate(key));
                 index.entries.set(indexKey(keys), this.evaluate(statement.value));
-                result = undefined;
-            } else if (isUnpackStatement(statement)) {
-                result = this.evaluate(statement.value);
+                return undefined;
+            } };
+        }
+        if (isUnpackStatement(statement)) {
+            return { run: () => {
+                const result = this.evaluate(statement.value);
                 if (!isRankArray(result) || result.shape.length !== 1) {
                     throw new RankError('unpack expects a rank-1 array value');
                 }
@@ -543,7 +627,11 @@ export class Interpreter {
                     );
                 }
                 statement.names.forEach((name, index) => this.assign(name, unpacked.items[index]));
-            } else if (isArrayAssignmentStatement(statement)) {
+                return result;
+            } };
+        }
+        if (isArrayAssignmentStatement(statement)) {
+            return { run: () => {
                 const target = this.resolveVariable(statement.name);
                 const indices = statement.indices.map(index => this.evaluateArrayItem(index));
                 if (!isRankArray(target) || target.kind !== 'array') {
@@ -571,32 +659,39 @@ export class Interpreter {
                     }
                     return Number(index);
                 });
-                result = this.evaluate(statement.value);
+                const result = this.evaluate(statement.value);
                 target.items[arrayOffset(target.shape, coordinates)] = result;
-            } else if (isAssignmentStatement(statement)) {
-                if (statement.operator === '=') {
-                    result = this.evaluate(statement.value);
-                } else {
-                    const left = this.resolveVariable(statement.name);
-                    const right = this.evaluate(statement.value);
-                    result = this.evaluateBinary(
-                        assignmentOperator(statement.operator),
-                        left,
-                        right,
-                    );
-                }
-                this.assign(statement.name, result);
-            } else if (isExpressionStatement(statement)) {
-                if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
-                    result = this.runAlias(statement.value.name.slice(0, -4));
-                } else {
-                    result = this.evaluate(statement.value);
-                    if (assertBooleanExpressions) assertTestExpression(result);
-                }
-            }
+                return result;
+            } };
         }
-
-        return result;
+        if (isAssignmentStatement(statement)) {
+            const operator = statement.operator === '='
+                ? undefined : assignmentOperator(statement.operator);
+            const value = operator === undefined
+                ? () => this.evaluate(statement.value)
+                : () => this.evaluateBinary(
+                    operator,
+                    this.resolveVariable(statement.name),
+                    this.evaluate(statement.value),
+                );
+            return { run: () => {
+                const result = value();
+                this.assign(statement.name, result);
+                return result;
+            } };
+        }
+        if (isExpressionStatement(statement)) {
+            if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
+                const alias = statement.value.name.slice(0, -4);
+                return { run: () => this.runAlias(alias) };
+            }
+            return { run: context => {
+                const result = this.evaluate(statement.value);
+                if (context.assertBooleanExpressions) assertTestExpression(result);
+                return result;
+            } };
+        }
+        return { run: () => undefined };
     }
 
     evaluate(expression: Expression): RankValue {

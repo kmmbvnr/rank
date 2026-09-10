@@ -34,9 +34,17 @@ sequences are allocated anew. Operands are evaluated in their original order.
 Preparation of child expressions remains lazy, preserving errors and side effects
 in expressions that have not yet been reached.
 
-Statement execution still uses the AST stream shared with generators. This keeps
-one implementation of `try`, `catch`, `finally`, loops and control transfer. A
-bytecode VM or a separate non-generator statement executor is not implemented.
+Statements also receive a cached handler when execution first reaches them.
+Ordinary commands have synchronous handlers; control-flow commands and `yield`
+have stream handlers. Loop bindings and compound-assignment operators are prepared
+once. Loop sources, conditions, values and assignment targets remain runtime work.
+
+Each stream invocation supplies its own execution context: test assertions, loop,
+finally and generator flags. Those flags are never captured from the first call.
+Nested bodies are prepared lazily, so an unreached command does not fail early.
+The shared stream delegates to these handlers and retains one implementation of
+`try`, `catch`, `finally`, loops and control transfer. A bytecode VM or a separate
+non-generator statement executor is not implemented.
 
 ## Resource scopes
 
@@ -55,9 +63,10 @@ npm run rank -- test demos
 node benchmarks/runtime.mjs
 ```
 
-Build before running the benchmark. It parses a recursive function once, warms it
-up, checks its result and reports the median of five runs. Parsing and process
-startup are excluded. Timing is diagnostic, not a test threshold.
+Build before running the benchmark. It parses recursive and counted-loop functions
+once, warms them up, checks their results and reports the median of five runs.
+Parsing and process startup are excluded. Timing is diagnostic, not a test
+threshold.
 
 On the development machine during this refactor, the recursive benchmark changed
 from approximately 85 ms to 35 ms. The current CSES 024 draft's official sample
@@ -65,3 +74,9 @@ returned 201 in approximately 5.2 seconds, compared with 10.2 seconds before the
 refactor; the baseline was rechecked without CPU profiling. These are local
 measurements, not performance guarantees. The all-wildcard case did not complete
 within a 55-second check and remains separate unfinished example work.
+
+The subsequent prepared-statement change reduced the recursive benchmark from
+36 to 31 ms and the 50,000-iteration summation from 24.6 to 9.4 ms. All five CSES
+024 tests, including the official sample, completed in approximately 2.7 seconds.
+These measurements use the same example algorithm; this change does not establish
+completion or judge-time performance for the all-wildcard input.

@@ -1158,6 +1158,45 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('2 4 6');
     });
 
+    it('reevaluates prepared loop sources and assignments on each call', () => {
+        expect(run([
+            'fun total Values',
+            '  Sum = 0',
+            '  for Value i in Values',
+            '    Sum += Value + i',
+            '  end',
+            '  return Sum',
+            'end',
+            'A = array 2 3',
+            'First = A total',
+            'A 0 = 10',
+            'Second = A total',
+            'B = array 7',
+            'array First Second (B total)',
+        ].join('\n'))).toBe('6 14 7');
+    });
+
+    it('preserves catch and finally across prepared generator commands', () => {
+        expect(run([
+            'use ranges',
+            'fun values Base',
+            '  try',
+            '    for I in 0 until 2',
+            '      yield Base + I',
+            '    end',
+            '    .Failure raise',
+            '  catch .Failure Error',
+            '    yield Base + 2',
+            '  finally',
+            '    yield Base + 3',
+            '  end',
+            'end',
+            'A = 10 values array',
+            'B = 20 values array',
+            '(A equal (array 10 11 12 13)) and (B equal (array 20 21 22 23))',
+        ].join('\n'))).toBe('true true true true');
+    });
+
     it('prepares operands only when execution reaches them', () => {
         expect(run([
             'fun fail N',
