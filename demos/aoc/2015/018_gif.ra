@@ -1,0 +1,131 @@
+rem Advent of Code 2015 — Day 18
+rem Like a GIF For Your Yard
+rem https://adventofcode.com/2015/day/18
+
+use io
+use cli
+use algo
+use sequences
+use ranges
+
+argument Input path
+
+Lines = Input readlines
+Part1 = Lines 100 false solve
+Part2 = Lines 100 true solve
+Part1 print
+Part2 print
+
+
+rem Run the light grid, optionally keeping all four corners on.
+fun solve Lines Steps Stuck
+  Grid = Lines Stuck makegrid
+
+  for Step in 1 to Steps
+    Grid = Grid Stuck evolve
+  end
+
+  Total = 0
+  for Row in Grid
+    for On in Row
+      if On
+        Total += 1
+      end
+    end
+  end
+
+  return Total
+end
+
+
+rem Convert input rows into one dense square boolean matrix.
+fun makegrid Lines Stuck
+  N = Lines len
+
+  for Line Y in Lines
+    for C X in Line
+      On = C equal "#"
+      if Stuck
+        if X Y N corner
+          On = true
+        end
+      end
+      queue push On
+    end
+  end
+
+  return queue (array N N) reshape
+end
+
+
+rem Apply one cellular-automaton step and preserve the matrix shape.
+fun evolve Grid Stuck
+  N = Grid len
+
+  for Y in 0 until N
+    for X in 0 until N
+      On = Grid Y X
+      Count = Grid X Y neighbors
+
+      if On
+        New = Count equal 2 or Count equal 3
+      elif Count equal 3
+        New = true
+      else
+        New = false
+      end
+
+      if Stuck
+        if X Y N corner
+          New = true
+        end
+      end
+      queue push New
+    end
+  end
+
+  return queue (array N N) reshape
+end
+
+
+rem Count live cells in the eight valid neighboring positions.
+fun neighbors Grid X Y
+  Count = 0
+  N = Grid len
+
+  for DY in -1 to 1
+    for DX in -1 to 1
+      if DX not equal 0 or DY not equal 0
+        XX = X + DX
+        YY = Y + DY
+
+        if XX YY N inside
+          if Grid YY XX
+            Count += 1
+          end
+        end
+      end
+    end
+  end
+
+  return Count
+end
+
+
+rem Test whether a coordinate lies inside an N by N grid.
+fun inside X Y N
+  Result = X at least 0
+  Result and= X less N
+  Result and= Y at least 0
+  Result and= Y less N
+  return Result
+end
+
+
+rem Test whether a coordinate is one of the four corners.
+fun corner X Y N
+  Last = N - 1
+  XEdge = X equal 0 or X equal Last
+  YEdge = Y equal 0 or Y equal Last
+  return XEdge and YEdge
+end

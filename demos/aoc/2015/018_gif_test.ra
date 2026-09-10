@@ -1,0 +1,30 @@
+use testing
+
+test "official example"
+  use "018_gif"
+
+  Lines = array shape 6
+    ".#.#.#"
+    "...##."
+    "#....#"
+    "..#..."
+    "#.#..#"
+    "####.."
+  end
+
+  Lines 4 false solve equal 4
+  Lines 5 true solve equal 17
+end
+
+test "a stable block remains lit"
+  use "018_gif"
+
+  Lines = array shape 4
+    "...."
+    ".##."
+    ".##."
+    "...."
+  end
+
+  Lines 10 false solve equal 4
+end
