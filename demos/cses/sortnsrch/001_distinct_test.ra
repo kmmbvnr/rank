@@ -1,0 +1,19 @@
+use testing
+
+test "official example"
+  use "001_distinct"
+  Values = array 2 3 2 2 3
+  Values count_distinct equal 2
+end
+
+test "all values differ"
+  use "001_distinct"
+  Values = array 5 -2 0 9
+  Values count_distinct equal 4
+end
+
+test "one repeated value"
+  use "001_distinct"
+  Values = array 7 7 7 7
+  Values count_distinct equal 1
+end

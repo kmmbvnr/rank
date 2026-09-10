@@ -1,0 +1,16 @@
+rem CSES 1621: Distinct Numbers
+rem https://cses.fi/problemset/task/1621
+
+use io
+use sequences
+
+N = stdin .integer
+Values = stdin .integer N
+
+Values count_distinct print
+
+
+rem Count distinct values.
+fun count_distinct Values
+  return Values unique len
+end
