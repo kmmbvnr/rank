@@ -1,0 +1,47 @@
+rem CSES 3311: Grid Coloring I
+rem https://cses.fi/problemset/task/3311
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Grid = stdin .word N array
+Answer = Grid solve
+
+for Row in Answer
+  Row print
+end
+
+
+rem Use disjoint two-color palettes on the two checkerboard parities.
+fun solve Grid
+  Rows = Grid len
+  Answer = array shape Rows pad ""
+
+  for Row i in Grid
+    Colored = ""
+
+    for Old j in Row
+      Cell = i + j
+      if Cell even
+        if Old equal "A"
+          Colored += "B"
+        else
+          Colored += "A"
+        end
+      else
+        if Old equal "C"
+          Colored += "D"
+        else
+          Colored += "C"
+        end
+      end
+    end
+
+    Answer i = Colored
+  end
+
+  return Answer
+end

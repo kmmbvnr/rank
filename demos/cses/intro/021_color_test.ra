@@ -1,0 +1,13 @@
+use testing
+
+test "official example"
+  use "021_color"
+  Grid = array "AAAA" "BBBB" "CCDD"
+  Grid solve equal array "BCBC" "CACA" "ADAC"
+end
+
+test "one-column grid changes every cell"
+  use "021_color"
+  Grid = array "A" "B" "C" "D"
+  Grid solve equal array "B" "C" "A" "C"
+end
