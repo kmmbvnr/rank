@@ -197,6 +197,20 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses record construction and field assignment', async () => {
+        const document = await parse([
+            'Node = record',
+            '  .data = 2.0',
+            '  .grad = 0.0',
+            'end',
+            'Node .grad += 1.0',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+        expect(isArrayAssignmentStatement(document.parseResult.value.statements[1])).toBe(true);
+    });
+
     it('parses determinant application with rank and axis', async () => {
         const document = await parse([
             'use linalg',

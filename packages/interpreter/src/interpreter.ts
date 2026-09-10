@@ -25,6 +25,7 @@ import {
     isOptionStatement,
     isParenthesizedExpression,
     isPushStatement,
+    isRecordExpression,
     isRunStatement,
     isReturnStatement,
     isStdinExpression,
@@ -78,6 +79,7 @@ import {
     isRankLabel,
     isRankObject,
     isRankQueue,
+    isRankRecord,
     isRankSet,
     isRankSequence,
     isRankSequenceMask,
@@ -88,6 +90,7 @@ import {
     type NativeFunction,
     type RankIndex,
     type RankQueue,
+    type RankRecord,
     type RankSet,
     type RankSequence,
     type RankValue,
@@ -648,6 +651,22 @@ export class Interpreter {
             return { run: () => {
                 const target = this.resolveVariable(statement.name);
                 const selectors = statement.indices.map(index => this.evaluateAddressItem(index));
+                const field = selectors.at(-1);
+                if (field !== undefined && isRankLabel(field) && field.name !== '#') {
+                    let receiver = target;
+                    for (const selector of selectors.slice(0, -1)) {
+                        receiver = this.applySelectors([receiver, selector]);
+                    }
+                    if (!isRankRecord(receiver)) {
+                        throw new RankError('field assignment expects a record target');
+                    }
+                    return this.assignRecordField(
+                        receiver,
+                        field.name,
+                        statement.operator,
+                        this.evaluate(statement.value),
+                    );
+                }
                 if (!isRankArray(target) || target.kind !== 'array') {
                     throw new RankError('array assignment expects an array target');
                 }
@@ -792,6 +811,24 @@ export class Interpreter {
                     );
                 }
                 return { kind: 'array', items, shape };
+            };
+        }
+        if (isRecordExpression(expression)) {
+            return () => {
+                const record: RankRecord = {
+                    kind: 'record',
+                    entries: new Map(),
+                    types: new Map(),
+                };
+                for (const field of expression.fields) {
+                    if (record.entries.has(field.name)) {
+                        throw new RankError(`duplicate record field: .${field.name}`);
+                    }
+                    const value = this.evaluate(field.value);
+                    record.entries.set(field.name, value);
+                    record.types.set(field.name, typeName(value));
+                }
+                return record;
             };
         }
         if (isNameExpression(expression)) {
@@ -1504,6 +1541,30 @@ export class Interpreter {
         const child = this.aliases.get(alias);
         if (!child) throw new RankError(`unknown module alias: ${alias}`);
         child.assign(member, value);
+    }
+
+    private assignRecordField(
+        record: RankRecord,
+        field: string,
+        operator: string,
+        value: RankValue,
+    ): RankValue {
+        const previous = record.entries.get(field);
+        if (previous === undefined) {
+            throw new RankError(`unknown record field: .${field}`);
+        }
+        const result = operator === '='
+            ? value
+            : this.evaluateBinary(assignmentOperator(operator), previous, value);
+        const expected = record.types.get(field)!;
+        const received = typeName(result);
+        if (expected !== received) {
+            throw new RankError(
+                `record field .${field} has type ${expected} and cannot receive ${received}`,
+            );
+        }
+        record.entries.set(field, result);
+        return result;
     }
 
     private findVariable(name: string): RankValue | undefined {
@@ -2432,6 +2493,14 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         }
         throw new RankError(`unknown error field: .${field.name}`);
     }
+    if (values.length === 2 && isRankRecord(values[0]) && isRankLabel(values[1])) {
+        const [record, field] = values;
+        const value = record.entries.get(field.name);
+        if (value === undefined) {
+            throw new MissingValueError(`missing record field: .${field.name}`);
+        }
+        return value;
+    }
     if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
         const atoms = [...values[0]];
         const index = values[1];
@@ -2505,6 +2574,11 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
         return lazyArray(selection.shape, index => arrayItem(source, selection.offsetAt(index)));
     }
+    const last = values.at(-1);
+    if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
+        const receiver = applySelectors(values.slice(0, -1), missing);
+        return applySelectors([receiver, last], missing);
+    }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
         throw new RankError('value application requires a sequence and one selector');
     }
@@ -2575,11 +2649,17 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (isRankCounter(values[0]) && values.length === 2) return true;
     if (isRankObject(values[0]) && values.length === 2
         && typeof values[1] === 'string') return true;
+    if (isRankRecord(values[0]) && values.length === 2
+        && isRankLabel(values[1])) return true;
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') return true;
     if (isRankQueue(values[0]) && isIntegerCollectionSelector(values[1])) return true;
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) return true;
     if (isRankArray(values[0]) && isTensorAddress(values.slice(1))) return true;
+    const last = values.at(-1);
+    if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
+        return canApplySelectors(values.slice(0, -1));
+    }
     return false;
 }
 
@@ -3312,6 +3392,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'bytes',
     'symbol',
     'object',
+    'record',
     'file',
     'error',
     'index',
@@ -3343,7 +3424,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             return;
         } else if (isRankArray(item) || isRankQueue(item)) {
             item.items.forEach(visit);
-        } else if (isRankIndex(item) || isRankSet(item) || isRankObject(item)) {
+        } else if (isRankIndex(item) || isRankSet(item)
+            || isRankObject(item) || isRankRecord(item)) {
             item.entries.forEach(visit);
         } else if (isRankCounter(item)) {
             item.entries.forEach(entry => visit(entry.value));

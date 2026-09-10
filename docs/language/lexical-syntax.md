@@ -155,6 +155,48 @@ Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
 is intended.
 
+## Records
+
+A `record` groups a fixed set of named fields:
+
+```rank
+Node = record
+  .data = 2.0
+  .grad = 0.0
+  .op = .leaf
+end
+```
+
+Every evaluation of a record expression creates a fresh first-class value.
+Fields are read with a symbol after the record and use the ordinary assignment
+operators for mutation:
+
+```rank
+Value = Node .data
+Node .grad += 1.0
+```
+
+A record is closed when it is created. Field names cannot be repeated, and an
+assignment cannot add an unknown field. Each field independently infers its type
+from its initial value and keeps that type on later direct or compound
+assignment. `Value type` returns `.record`, and `Value is .record` is its
+type guard.
+
+Records have reference semantics. Assignment, function arguments and storage
+inside another structure preserve the same record identity, so mutation through
+one alias is visible through the others. Addressing may continue through arrays,
+queues and nested records:
+
+```rank
+Tape 0 .grad += Change
+Node .parent .grad += Change
+```
+
+Records differ from JSON `object` values and sparse `index` values. An
+`object` is read by dynamic text keys, while a record declares its fields in
+Rank source and accesses them with symbols. An `index` remains open to new
+keys and may use tuple keys.
+
 ## Unpacking assignment
 
 `unpack` assigns the items of a rank-1 array to the following names:
@@ -256,8 +298,8 @@ is
 
 `at least` means `>=`; `at most` means `<=`.
 
-`Value type` returns a symbol such as `.integer`, `.text`, `.array` or
-`.object`. `Value is .integer` is the short boolean type guard. Its right side
+`Value type` returns a symbol such as `.integer`, `.text`, `.array`, `.record`
+or `.object`. `Value is .integer` is the short boolean type guard. Its right side
 must be a known runtime type symbol.
 
 `in` tests membership. With text on both sides it performs an exact,

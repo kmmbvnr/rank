@@ -78,6 +78,12 @@ export interface RankObject {
     readonly entries: Map<string, RankValue>;
 }
 
+export interface RankRecord {
+    readonly kind: 'record';
+    readonly entries: Map<string, RankValue>;
+    readonly types: Map<string, string>;
+}
+
 export type IntrinsicRank = number | 'all';
 
 export interface NativeFunction {
@@ -128,7 +134,8 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter | RankObject | NativeFunction |
+    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
+    RankObject | RankRecord | NativeFunction |
     RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -173,6 +180,10 @@ export function isRankCounter(value: RankValue): value is RankCounter {
 
 export function isRankObject(value: RankValue): value is RankObject {
     return typeof value === 'object' && value.kind === 'object';
+}
+
+export function isRankRecord(value: RankValue): value is RankRecord {
+    return typeof value === 'object' && value.kind === 'record';
 }
 
 export function isRankSequence(value: RankValue): value is RankSequence {
@@ -227,6 +238,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'object') {
         return '<object>';
+    }
+    if (value.kind === 'record') {
+        return '<record>';
     }
     if (isRankSequenceMask(value)) {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;

@@ -1,0 +1,99 @@
+rem Deep-ML 26: Basic Autograd
+rem https://www.deep-ml.com/problems/26
+
+use algo
+use sequences
+
+rem Create a scalar tape value.
+fun value Tape Data
+  Node = record
+    .data = Data
+    .grad = 0.0
+    .op = .leaf
+  end
+  Tape push Node
+  return Node
+end
+
+rem Reuse a node or wrap a number.
+fun as_value Tape Item
+  if Item is .record
+    return Item
+  end
+  return Tape Item value
+end
+
+rem Record addition and its edges.
+fun add Tape A B
+  Left = Tape A as_value
+  Right = Tape B as_value
+  Node = record
+    .data = Left .data + Right .data
+    .grad = 0.0
+    .op = .add
+    .left = Left
+    .right = Right
+  end
+  Tape push Node
+  return Node
+end
+
+rem Record multiplication and its edges.
+fun mul Tape A B
+  Left = Tape A as_value
+  Right = Tape B as_value
+  Node = record
+    .data = Left .data * Right .data
+    .grad = 0.0
+    .op = .mul
+    .left = Left
+    .right = Right
+  end
+  Tape push Node
+  return Node
+end
+
+rem Record a scalar ReLU.
+fun relu Tape A
+  Input = Tape A as_value
+  Data = Input .data
+  if Data less 0
+    Data -= Data
+  end
+  Node = record
+    .data = Data
+    .grad = 0.0
+    .op = .relu
+    .input = Input
+  end
+  Tape push Node
+  return Node
+end
+
+rem Propagate accumulated gradients.
+fun backward Tape Out
+  Out .grad = 1.0
+  I = Tape len
+
+  for I greater 0
+    I -= 1
+    Node = Tape I
+    G = Node .grad
+
+    if Node .op equal .add
+      Node .left .grad += G
+      Node .right .grad += G
+    elif Node .op equal .mul
+      Left = Node .left
+      Right = Node .right
+      Left .grad += Right .data * G
+      Right .grad += Left .data * G
+    elif Node .op equal .relu
+      Input = Node .input
+      if Input .data greater 0
+        Input .grad += G
+      end
+    end
+  end
+  return Out
+end

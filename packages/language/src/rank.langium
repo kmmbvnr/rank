@@ -145,6 +145,14 @@ ArrayExpression:
         items+=ArrayItem+
     );
 
+RecordExpression:
+    'record' NL+
+    (fields+=RecordField NL+)*
+    'end';
+
+RecordField:
+    '.' name=Identifier '=' value=Expression;
+
 ArrayRow:
     items+=ArrayItem+;
 
@@ -215,6 +223,7 @@ UnaryExpression returns Expression:
     {infer UnaryExpression}
         operator=('+' | '-' | 'not') operand=UnaryExpression |
     ArrayExpression |
+    RecordExpression |
     PrimaryExpression;
 
 ApplicationArgument returns Expression:
@@ -251,7 +260,7 @@ BooleanValue returns boolean:
     'true' | 'false';
 
 LabelLiteral:
-    '.' name=(Identifier | 'array');
+    '.' name=(Identifier | 'array' | 'record');
 
 NameExpression:
     name=ReferenceName;

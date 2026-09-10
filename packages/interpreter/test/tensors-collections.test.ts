@@ -250,6 +250,11 @@ describe('Rank tensors and collections', () => {
             'M # 1 = M # 0',
             'M',
         ].join('\n'))).toBe('1 1 3 3');
+        expect(run([
+            'M = array shape 2 2 pad 0',
+            'M # # = 7',
+            'M',
+        ].join('\n'))).toBe('7 7 7 7');
         expect(() => run([
             'M = array shape 2 3 pad 0',
             'M # 1 = array 7 8 9',

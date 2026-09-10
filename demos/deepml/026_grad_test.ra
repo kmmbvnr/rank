@@ -1,0 +1,63 @@
+use testing
+
+test "official arithmetic graph"
+  use "026_grad"
+  use algo
+  Tape = queue
+  A = Tape 2 value
+  B = Tape 3 value
+  C = Tape 10 value
+  BC = Tape B C mul
+  D = Tape A BC add
+  E = Tape 7 2 mul
+  F = Tape E D add
+  G = Tape F relu
+
+  Tape G backward
+
+  Actual = array shape 7
+    (A .grad) (B .grad) (C .grad)
+    (D .grad) (E .grad) (F .grad)
+    (G .grad)
+  end
+  Expected = array shape 7
+    1.0 10.0 3.0 1.0 1.0 1.0 1.0
+  end
+  Actual equal Expected
+end
+
+test "official shared subgraph"
+  use "026_grad"
+  use algo
+  Tape = queue
+  A = Tape 2 value
+  B = Tape 3 value
+  M = Tape A B mul
+  Y = Tape M A add
+  Z = Tape M B add
+  W = Tape Y Z add
+
+  Tape W backward
+
+  Actual = array shape 6
+    (A .grad) (B .grad) (M .grad)
+    (Y .grad) (Z .grad) (W .grad)
+  end
+  Expected = array shape 6
+    7.0 5.0 2.0 1.0 1.0 1.0
+  end
+  Actual equal Expected
+end
+
+test "negative relu blocks its gradient"
+  use "026_grad"
+  use algo
+  Tape = queue
+  A = Tape (-2.5) value
+  Out = Tape A relu
+
+  Tape Out backward
+
+  Out .data equal 0.0
+  A .grad equal 0.0
+end
