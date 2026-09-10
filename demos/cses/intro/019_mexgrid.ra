@@ -1,0 +1,20 @@
+rem CSES 3419: Mex Grid Construction
+rem https://cses.fi/problemset/task/3419
+
+use bits
+use io
+use ranges
+
+N = stdin .integer
+Grid = N grid
+
+for Row in Grid
+  Row print
+end
+
+
+rem Construct the grid as the outer XOR of its row and column numbers.
+fun grid N
+  Values = 0 until N
+  return Values Values bxor outer
+end
