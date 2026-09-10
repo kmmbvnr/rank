@@ -1,0 +1,19 @@
+use testing
+
+test "official example"
+  use "002_misnum"
+  Values = array 2 3 1 5
+  5 Values missing equal 4
+end
+
+test "smallest input"
+  use "002_misnum"
+  Values = array 2
+  2 Values missing equal 1
+end
+
+test "missing last number"
+  use "002_misnum"
+  Values = array 1 2 3
+  4 Values missing equal 4
+end
