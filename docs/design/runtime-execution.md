@@ -87,3 +87,16 @@ only after that read reports absence. Other missing-value paths retain exception
 handling, and errors in keys or fallback expressions keep their existing behavior.
 The unchanged AoC 2015 day 6 test file, including its million-cell case, took
 14.02 seconds before and 2.85 seconds after this change in local CLI measurements.
+
+A subsequent timing audit of all 69 demo test files found MD5 mining, the light
+grid, CSES grid paths and repeated look-and-say transformations to be the largest
+costs. MD5's two official examples took about 4.7 seconds together. Compact byte
+storage and table-based hexadecimal formatting reduced that to about 3.1 seconds.
+The full demo timings summed to 15.9 seconds before and 13.3 seconds after; these
+single-run totals include runtime variation and are not a performance guarantee.
+
+`bytes.ts` shares compact binary storage between crypto and I/O. Scalar addressing
+reads individual integer atoms; requesting `items` materializes and caches the
+Rank array. Byte tensors cannot contain file handles, so ownership traversal skips
+them. Binary formatting and writing continue to use the original byte buffer.
+The test inputs and iteration counts remain unchanged.

@@ -735,6 +735,36 @@ describe('Rank interpreter', () => {
         expect(() => run('"abc" md5')).toThrowError('unknown name: md5');
     });
 
+    it('keeps compact digest bytes addressable before and after tensor operations', () => {
+        const interpreter = new Interpreter();
+        interpreter.execute([
+            'use crypto',
+            'use text',
+            'use sequences',
+            'Digest = "abc" md5',
+            'First = Digest 0',
+            'Count = Digest len',
+            'Sum = Digest + reduce',
+            'Last = Digest 15',
+            'Hex = Digest hex',
+        ].join('\n'));
+        expect(interpreter.variables.get('First')).toBe(144n);
+        expect(interpreter.variables.get('Count')).toBe(16n);
+        expect(interpreter.variables.get('Sum')).toBe(1960n);
+        expect(interpreter.variables.get('Last')).toBe(114n);
+        expect(interpreter.variables.get('Hex')).toBe('900150983cd24fb0d6963f7d28e17f72');
+    });
+
+    it('formats every byte and empty binary input as hex', () => {
+        const io = new MemoryIo({});
+        const data = Uint8Array.from({ length: 256 }, (_, index) => index);
+        io.files.set('/bytes', data);
+        const interpreter = new Interpreter(undefined, { io });
+        expect(interpreter.execute('use io\nuse text\n"/bytes" 0 256 readbytes hex'))
+            .toBe(Buffer.from(data).toString('hex'));
+        expect(interpreter.execute('"/bytes" 256 1 readbytes hex')).toBe('');
+    });
+
     it('splits text by one or several text separators', () => {
         expect(new Interpreter().execute('use text\n"a,b,,c" "," split')).toEqual({
             kind: 'array',

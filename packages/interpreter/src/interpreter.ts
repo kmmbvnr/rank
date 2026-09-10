@@ -290,7 +290,7 @@ export class Interpreter {
     }
 
     private ownFiles(value: RankValue | undefined): void {
-        if (value === undefined || typeof value !== 'object') return;
+        if (value === undefined || typeof value !== 'object' || value.kind === 'bytes') return;
         for (const file of containedFiles(value)) this.ownFile(file);
     }
 
@@ -2799,7 +2799,7 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
     const seen = new Set<object>();
 
     const visit = (item: RankValue | undefined): void => {
-        if (item === undefined || typeof item !== 'object' || seen.has(item)) return;
+        if (item === undefined || typeof item !== 'object' || item.kind === 'bytes' || seen.has(item)) return;
         seen.add(item);
         if (isRankFile(item)) {
             files.add(item);

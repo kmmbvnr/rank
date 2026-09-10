@@ -3,6 +3,9 @@ import { formatValue, isRankArray, isRankBytes, isRankLabel, type RankArray, typ
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
+const hexadecimalBytes = Array.from({ length: 256 }, (_, byte) =>
+    byte.toString(16).padStart(2, '0'));
+
 export const textModule: RuntimeModule = {
     split: () => native('split', 2, arguments_ => {
         const [value, separator] = arguments_;
@@ -37,7 +40,9 @@ export const textModule: RuntimeModule = {
     hex: () => native('hex', 1, arguments_ => {
         const value = arguments_[0];
         if (!isRankBytes(value)) throw new RankError('hex expects bytes');
-        return [...value.data].map(byte => byte.toString(16).padStart(2, '0')).join('');
+        let result = '';
+        for (const byte of value.data) result += hexadecimalBytes[byte];
+        return result;
     }),
     text: () => native('text', 1, arguments_ => {
         const value = arguments_[0];

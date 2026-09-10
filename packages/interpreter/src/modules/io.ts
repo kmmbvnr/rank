@@ -1,3 +1,4 @@
+import { ByteArray } from '../bytes.js';
 import { RankError } from '../errors.js';
 import type { RankFileMode, RankIo } from '../io.js';
 import {
@@ -5,7 +6,6 @@ import {
     isRankBytes,
     isRankFile,
     isRankLabel,
-    type RankBytes,
     type RankFile,
     type RankValue,
 } from '../value.js';
@@ -53,11 +53,11 @@ export const ioModule: RuntimeModule = {
             const path = expectPath(arguments_[0]);
             const offset = byteCount(arguments_[1], 'offset');
             const count = byteCount(arguments_[2], 'count');
-            return bytes(ioCall(path, () => host(context.io).readRange(path, offset, count)));
+            return new ByteArray(ioCall(path, () => host(context.io).readRange(path, offset, count)));
         }
         const file = openFile(arguments_[0]);
         const count = byteCount(arguments_[1], 'count');
-        return bytes(ioCall(file.handle.name, () => file.handle.read(count)));
+        return new ByteArray(ioCall(file.handle.name, () => file.handle.read(count)));
     }),
     writebytes: () => native('writebytes', 2, arguments_ => {
         const file = openFile(arguments_[0]);
@@ -160,15 +160,6 @@ function lines(text: string): RankValue {
     const items = text.split(/\r\n|\n|\r/);
     if (/\r\n$|[\n\r]$/.test(text)) items.pop();
     return { kind: 'array', items, shape: [items.length] };
-}
-
-function bytes(data: Uint8Array): RankBytes {
-    return {
-        kind: 'bytes',
-        data,
-        items: [...data].map(BigInt),
-        shape: [data.length],
-    };
 }
 
 function ioCall<T>(path: string, operation: () => T): T {
