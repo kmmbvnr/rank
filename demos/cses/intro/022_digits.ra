@@ -1,0 +1,37 @@
+rem CSES 2431: Digit Queries
+rem https://cses.fi/problemset/task/2431
+
+use io
+
+Q = stdin .integer
+Queries = stdin .integer Q
+
+for K in Queries
+  K digit print
+end
+
+
+rem Locate the query in one fixed-width block, then select its decimal digit.
+fun digit K
+  Width = 1
+  Count = 9
+  First = 1
+
+  for K greater Width * Count
+    K -= Width * Count
+    Width += 1
+    Count *= 10
+    First *= 10
+  end
+
+  Number = First + (K - 1) // Width
+  Offset = (K - 1) % Width
+  Position = Offset + 1
+
+  for Position less Width
+    Number //= 10
+    Position += 1
+  end
+
+  return Number % 10
+end

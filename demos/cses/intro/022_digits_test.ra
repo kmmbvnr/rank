@@ -1,0 +1,26 @@
+use testing
+
+test "official queries"
+  use "022_digits"
+  7 digit equal 7
+  19 digit equal 4
+  12 digit equal 1
+end
+
+test "number-width boundaries"
+  use "022_digits"
+  1 digit equal 1
+  9 digit equal 9
+  10 digit equal 1
+  11 digit equal 0
+  12 digit equal 1
+  189 digit equal 9
+  190 digit equal 1
+  191 digit equal 0
+  192 digit equal 0
+end
+
+test "largest query"
+  use "022_digits"
+  1000000000000000000 digit equal 3
+end
