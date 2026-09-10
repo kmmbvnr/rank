@@ -139,6 +139,7 @@ interface ExecutionContext {
     readonly insideLoop: boolean;
     readonly insideFinally: boolean;
     readonly insideGenerator: boolean;
+    readonly tailCallsAllowed?: false;
 }
 
 type PreparedStatement =
@@ -146,6 +147,17 @@ type PreparedStatement =
     | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> };
 
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
+interface FunctionDefinition {
+    readonly interpreter: Interpreter;
+    readonly statement: FunctionStatement;
+    readonly context: LocalFrame | undefined;
+    readonly direct: (() => RankValue) | undefined;
+}
+const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
+
+class TailCallSignal {
+    constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[]) {}
+}
 const SEED_RANDOM = Symbol('seedRandom');
 
 type SeedableRandom = (() => number) & {
@@ -407,10 +419,13 @@ export class Interpreter {
         insideLoop = false,
         insideFinally = false,
         insideGenerator = false,
+        tailCallsAllowed = true,
     ): Evaluation<RankValue | undefined> {
-        const context: ExecutionContext = {
-            assertBooleanExpressions, insideLoop, insideFinally, insideGenerator,
-        };
+        // Ordinary blocks keep their compact context; only protected blocks
+        // need to carry the additional tail-call flag.
+        const context: ExecutionContext = tailCallsAllowed
+            ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator }
+            : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, tailCallsAllowed: false };
         let result: RankValue | undefined;
         try {
             for (let index = 0; index < statements.length; index += 1) {
@@ -525,10 +540,18 @@ export class Interpreter {
                     throw new ReturnSignal(direct());
                 } };
             }
+            let candidate = statement.value;
+            while (candidate && isParenthesizedExpression(candidate)) candidate = candidate.value;
+            const tailCandidate = candidate && isApplicationExpression(candidate);
+            let tail: (() => Evaluation<RankValue>) | undefined;
             return { stream: function* (context): Execution<RankValue | undefined> {
                 validate(context);
                 throw new ReturnSignal(
-                    statement.value === undefined ? undefined : (yield* resume(interpreter.evaluateTask(statement.value))),
+                    statement.value === undefined ? undefined : yield* resume(
+                        tailCandidate && context.tailCallsAllowed !== false
+                            ? (tail ??= interpreter.compileExpression(statement.value, undefined, true))()
+                            : interpreter.evaluateTask(statement.value),
+                    ),
                 );
             } };
         }
@@ -559,6 +582,7 @@ export class Interpreter {
                                 insideLoop,
                                 insideFinally,
                                 insideGenerator,
+                                false,
                             ));
                         } catch (error) {
                             if (!(error instanceof RankError)) throw error;
@@ -573,6 +597,7 @@ export class Interpreter {
                                 insideLoop,
                                 insideFinally,
                                 insideGenerator,
+                                false,
                             ));
                         }
                     } catch (error) {
@@ -586,6 +611,7 @@ export class Interpreter {
                             insideLoop,
                             true,
                             insideGenerator,
+                            false,
                         ));
                     } catch (error) {
                         if (error instanceof RankError && pending instanceof RankError) {
@@ -613,6 +639,7 @@ export class Interpreter {
                     return this.executeStatementStream(
                         branch, context.assertBooleanExpressions, context.insideLoop,
                         context.insideFinally, context.insideGenerator,
+                        context.tailCallsAllowed,
                     );
                 } };
             }
@@ -637,6 +664,7 @@ export class Interpreter {
                     insideLoop,
                     insideFinally,
                     insideGenerator,
+                    context.tailCallsAllowed,
                 ));
                 return result;
             } };
@@ -663,6 +691,7 @@ export class Interpreter {
                                 true,
                                 insideFinally,
                                 insideGenerator,
+                                false, // Returning must close this iterator after the callee finishes.
                             ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
@@ -680,6 +709,7 @@ export class Interpreter {
                                 true,
                                 insideFinally,
                                 insideGenerator,
+                                context.tailCallsAllowed,
                             ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
@@ -888,7 +918,11 @@ export class Interpreter {
 
     // Cache syntax decisions, never values or name bindings. Preparation stays
     // lazy so errors in unexecuted branches keep their existing timing.
-    private compileExpression(expression: Expression, missing?: () => RankValue): () => Evaluation<RankValue> {
+    private compileExpression(
+        expression: Expression,
+        missing?: () => RankValue,
+        tail = false,
+    ): () => Evaluation<RankValue> {
         const interpreter = this;
         if (isNumberLiteral(expression) || isBooleanLiteral(expression)) {
             return function* (): Execution<RankValue> { return expression.value; };
@@ -973,6 +1007,7 @@ export class Interpreter {
             return function* (): Execution<RankValue> { return interpreter.resolve(expression.name); };
         }
         if (isParenthesizedExpression(expression)) {
+            if (tail) return this.compileExpression(expression.value, missing, true);
             return function* (): Execution<RankValue> { return (yield* resume(interpreter.evaluateTask(expression.value))); };
         }
         if (isUnaryExpression(expression)) {
@@ -1222,7 +1257,7 @@ export class Interpreter {
             const directParts = parts.map(part => isAllAxisExpression(part)
                 ? () => ALL_AXIS : this.compileDirectExpression(part));
             if (directParts.every(part => part !== undefined)) {
-                return () => this.apply(directParts.map(part => part()), missing);
+                return () => this.apply(directParts.map(part => part()), missing, 0, [], tail);
             }
             return function* (): Execution<RankValue> {
                 const values: RankValue[] = [];
@@ -1230,7 +1265,7 @@ export class Interpreter {
                     values.push(isAllAxisExpression(part)
                         ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part)));
                 }
-                return yield* resume(interpreter.apply(values, missing));
+                return yield* resume(interpreter.apply(values, missing, 0, [], tail));
             };
         }
         return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
@@ -1304,6 +1339,7 @@ export class Interpreter {
         };
         if (!generator) {
             functionExecutions.set(fn, execute);
+            functionDefinitions.set(fn, { interpreter: this, statement, context, direct });
         }
         this.assign(statement.name, fn);
         return fn;
@@ -1357,7 +1393,7 @@ export class Interpreter {
         if (this.callDepth >= this.maxCallDepth) {
             throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
         }
-        const frame = this.functionFrame(statement, arguments_, context);
+        let frame = this.functionFrame(statement, arguments_, context);
         const caller = this.localFrame;
         const scope = new Set<RankFile>();
         this.resourceScopes.push(scope);
@@ -1366,13 +1402,31 @@ export class Interpreter {
         let result: RankValue | undefined;
         let pending: unknown;
         try {
-            try {
-                for (const local of prepareFunction(statement).locals) this.defineFunction(local);
-                yield* resume(this.executeStatementStream(statement.statements));
-                throw new RankError(`function ${statement.name} reached end without return`);
-            } catch (error) {
-                if (error instanceof ReturnSignal && error.value !== undefined) result = error.value;
-                else pending = error;
+            while (true) {
+                try {
+                    this.localFrame = frame;
+                    for (const local of prepareFunction(statement).locals) this.defineFunction(local);
+                    yield* resume(this.executeStatementStream(statement.statements));
+                    throw new RankError(`function ${statement.name} reached end without return`);
+                } catch (error) {
+                    if (error instanceof TailCallSignal) {
+                        statement = error.definition.statement;
+                        frame = this.functionFrame(statement, error.arguments_, error.definition.context);
+                        if (error.definition.direct) {
+                            this.localFrame = frame;
+                            try {
+                                result = error.definition.direct();
+                            } catch (error) {
+                                pending = error;
+                            }
+                            break;
+                        }
+                        continue;
+                    }
+                    if (error instanceof ReturnSignal && error.value !== undefined) result = error.value;
+                    else pending = error;
+                    break;
+                }
             }
         } finally {
             this.callDepth -= 1;
@@ -1784,6 +1838,7 @@ export class Interpreter {
         missing?: () => RankValue,
         start = 0,
         pending: RankValue[] = [],
+        tail = false,
     ): Evaluation<RankValue> {
         if (start === 0 && !values.some(isNativeFunction)) return completed(this.applySelectors(values, missing));
 
@@ -1802,10 +1857,14 @@ export class Interpreter {
                 pending,
                 parts => this.applySelectors(parts),
             );
+            if (tail && index === values.length - 1 && this.resourceScopes.at(-1)?.size === 0) {
+                const definition = functionDefinitions.get(value);
+                if (definition?.interpreter === this) throw new TailCallSignal(definition, arguments_);
+            }
             const task = arguments_.length === 1 && value.monadicRank !== 'all'
                 ? this.applyUnaryAtRank(arguments_[0], value, value.monadicRank)
                 : this.invoke(value, arguments_);
-            if (!('done' in task)) return this.continueApplication(values, missing, index + 1, task);
+            if (!('done' in task)) return this.continueApplication(values, missing, index + 1, task, tail);
             this.ownFiles(task.value);
             pending = [task.value];
         }
@@ -1817,10 +1876,11 @@ export class Interpreter {
         missing: (() => RankValue) | undefined,
         start: number,
         task: Execution<RankValue>,
+        tail: boolean,
     ): Execution<RankValue> {
         const result = yield* resume(task);
         this.ownFiles(result);
-        return yield* resume(this.apply(values, missing, start, [result]));
+        return yield* resume(this.apply(values, missing, start, [result], tail));
     }
 
     private invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {

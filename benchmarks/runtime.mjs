@@ -64,6 +64,13 @@ fun addressing N
   end
   return Sum
 end
+
+fun tail N
+  if N equal 0
+    return 0
+  end
+  return (N - 1) tail
+end
 `);
 
 for (const [name, argument, expected, warmup] of [
@@ -73,6 +80,7 @@ for (const [name, argument, expected, warmup] of [
   ['nativecalls', 50000n, 1249975000n, 1000n],
   ['conditional', 50000n, 624975000n, 1000n],
   ['addressing', 50000n, 125000n, 1000n],
+  ['tail', 50000n, 0n, 1000n],
 ]) {
   const fn = runtime.variables.get(name);
   for (let i = 0; i < 2; i++) fn.call([warmup]);

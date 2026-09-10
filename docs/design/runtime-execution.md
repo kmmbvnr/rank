@@ -69,8 +69,7 @@ starts the child and later supplies its result or throws its error into the
 caller. JavaScript generator delegation is only used for the small suspension
 helper, so ordinary Rank recursion does not accumulate JavaScript call frames.
 Non-tail recursion retains intermediate results and resumes them after return.
-Tail calls currently retain their callers too; tail-call optimization is separate
-work and is not provided by the execution stack.
+Eligible tail calls replace the current invocation instead of retaining its caller.
 
 Frames still keep their lexical environments and resource scopes. Exceptions
 unwind the execution stack through the same handlers as normal execution.
@@ -105,6 +104,23 @@ functions. Nested calls can transfer files into that scope. Empty scopes returni
 scalar values skip the container traversal used to find escaping files; containers,
 closures and sequences retain the full ownership traversal.
 
+## Tail calls
+
+A return whose final ordinary postfix application calls a value-returning Rank
+function in the same interpreter can replace the current invocation. Parentheses,
+mutual recursion and dynamically selected functions are supported. Each replacement
+gets a fresh lexical frame, so closures keep the bindings from their original call.
+The call-depth budget counts active invocations, not tail replacements: a regression
+test makes one million accumulator calls with `maxCallDepth: 1`.
+
+Calls inside `try`, `catch`, `finally`, or iteration-bound `for ... in ...` bodies
+retain their callers, preserving error handling and iterator cleanup order. Calls
+also retain their callers while the current resource scope owns files. Conditional
+loops and calls after a completed protected block can use tail replacement.
+Native functions, generator targets, cross-interpreter calls and special application
+forms such as `rank` keep their existing execution paths. Non-tail expressions such
+as `return (N - 1) down + 1` still need a suspended caller.
+
 ## Verification and measurement
 
 Run from the repository root:
@@ -112,10 +128,11 @@ Run from the repository root:
 ```sh
 npm test
 npm run rank -- test demos
+npm run build
 node benchmarks/runtime.mjs
 ```
 
-Build before running the benchmark. It covers recursion, counted and conditional
+Build before running the benchmark. It covers non-tail and tail recursion, counted and conditional
 loops, direct user-function calls, native calls, and array addressing. It parses
 the functions once, warms them up, checks their results and reports the median of five runs.
 Parsing and process startup are excluded. Timing is diagnostic, not a test
@@ -140,6 +157,30 @@ immediate evaluation on the same machine:
 | `addressing` | 18.9 | 14.5 |
 
 These measurements cover the named workloads, not every non-recursive program.
+
+### Tail-call comparison, 2026-09-11
+
+The same seven-scenario benchmark was run against baseline `ae2b235` and the
+tail-call implementation on macOS arm64, Node v24.15.0 (V8 13.6.233.17-node.48).
+Each number is a median of five runs in milliseconds, after warmup. Parsing and
+process startup are excluded. The final comparison ran the tail-call version first;
+an earlier comparison in the opposite order showed the same tail-call speedup.
+
+| Benchmark | Before tail calls | Tail calls |
+|---|---:|---:|
+| `tree` | 38.1 | 37.9 |
+| `total` | 8.1 | 8.1 |
+| `calls` | 17.1 | 17.3 |
+| `nativecalls` | 13.6 | 13.5 |
+| `conditional` | 11.8 | 11.6 |
+| `addressing` | 15.3 | 14.9 |
+| `tail` (50,000 calls) | 92.5 | 51.1 |
+
+The tail scenario was about 1.8 times faster. The other medians differed by less
+than 3%, with overlapping run ranges; these checks found no measurable slowdown
+in those workloads. This is a local comparison, not a guarantee for all programs.
+
+### Earlier measurements
 
 On the development machine during this refactor, the recursive benchmark changed
 from approximately 85 ms to 35 ms. The current CSES 024 draft's official sample

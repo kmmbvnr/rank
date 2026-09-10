@@ -334,7 +334,7 @@ fun identity X
   return X
 end
 fun outer N
-  return N identity
+  return (N identity) + 0
 end
 1 outer
 `)).toThrowError('function call depth exceeds 1');
