@@ -1,0 +1,130 @@
+rem CSES 1625: Grid Path Description
+rem https://cses.fi/problemset/task/1625
+
+use io
+use ranges
+
+Path = stdin .word
+Path solve print
+
+
+rem Count matching paths with backtracking and prune paths that split the grid.
+fun solve Path
+  DYs = array -1 1 0 0
+  DXs = array 0 0 -1 1
+  Moves = "UDLR"
+
+  Seen = array shape 9 9 pad false
+  for I in 0 until 9
+    Seen 0 I = true
+    Seen 8 I = true
+    Seen I 0 = true
+    Seen I 8 = true
+  end
+  Seen 1 1 = true
+
+  return 0 1 1 walk
+
+  rem Explore one path suffix from the current grid cell.
+  fun walk Step Y X
+    if Y equal 7 and X equal 1
+      if Step equal 48
+        return 1
+      end
+      return 0
+    end
+
+    if Step equal 48
+      return 0
+    end
+
+    Up = Seen (Y - 1) X
+    Down = Seen (Y + 1) X
+    Left = Seen Y (X - 1)
+    Right = Seen Y (X + 1)
+
+    if Up and Down
+      if not Left and not Right
+        return 0
+      end
+    end
+
+    if Left and Right
+      if not Up and not Down
+        return 0
+      end
+    end
+
+    Choice = Path Step
+    Next = Step + 1
+    Ways = 0
+    Forced = ""
+    Dead = false
+
+    rem A neighbor with no other exit must be visited immediately.
+    for Move i in Moves
+      NY = Y + DYs i
+      NX = X + DXs i
+      Visited = Seen NY NX
+
+      if not Visited
+        Open = 0
+        for Other j in Moves
+          AY = NY + DYs j
+          AX = NX + DXs j
+          Around = Seen AY AX
+          if not Around
+            Open += 1
+          end
+        end
+
+        TargetRow = NY equal 7
+        Target = TargetRow and NX equal 1
+        Final = Next equal 48
+        Must = Open equal 1 and not Target
+
+        if Open equal 0
+          if Target and Final
+            Must = true
+          else
+            Dead = true
+          end
+        end
+
+        if Must
+          if Forced not equal ""
+            Dead = true
+          end
+          Forced = Move
+        end
+      end
+    end
+
+    if Dead
+      return 0
+    end
+
+    for Move i in Moves
+      Allowed = Choice equal "?"
+      Allowed or= Choice equal Move
+
+      if Forced not equal ""
+        Allowed and= Move equal Forced
+      end
+
+      if Allowed
+        NY = Y + DYs i
+        NX = X + DXs i
+        Visited = Seen NY NX
+
+        if not Visited
+          Seen NY NX = true
+          Ways += Next NY NX walk
+          Seen NY NX = false
+        end
+      end
+    end
+
+    return Ways
+  end
+end
