@@ -1,0 +1,48 @@
+rem Deep-ML 21: Pegasos Kernel SVM
+rem https://www.deep-ml.com/problems/21
+
+use numbers
+use ranges
+use sequences
+
+rem Train a deterministic kernel SVM.
+rem Visit every sample each iteration.
+fun pegasos X Y Kind Lambda Steps Sigma
+  N = X len
+  Alpha = array shape N pad 0.0
+  Bias = 0.0
+
+  for t in 1 to Steps
+    Eta = 1 / (Lambda * t)
+    Decay = 1 - Eta * Lambda
+
+    for i in 0 until N
+      Score = Bias
+
+      for j in 0 until N
+        if Kind equal "linear"
+          K = (X j * X i) sum
+        elif Kind equal "rbf"
+          D = X j - X i
+          Power = -((D * D) sum) / 1.0
+          Power /= 2 * Sigma * Sigma
+          K = Power exp
+        else
+          .InvalidInput raise
+        end
+
+        Score += Alpha j * Y j * K
+      end
+
+      Alpha i *= Decay
+      if Y i * Score less 1
+        Alpha i += Eta
+        Bias += Eta * Y i
+      end
+    end
+  end
+
+  return array (Alpha round 4) (
+    Bias round 4
+  )
+end

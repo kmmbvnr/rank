@@ -1,0 +1,81 @@
+use testing
+
+test "official linear kernel"
+  use "021_svm"
+  Data = array shape 4 2
+    1 2
+    2 3
+    3 1
+    4 1
+  end
+  Labels = array 1 1 -1 -1
+  K = "linear"
+  L = 0.01
+  T = 100
+  S = 1.0
+
+  Result = Data Labels K L T S pegasos
+  unpack Alpha Bias = Result
+
+  Alpha equal array 2.0 2.0 6.0 1.0
+  Bias equal 36.2027
+end
+
+test "official RBF kernel"
+  use "021_svm"
+  Data = array shape 4 2
+    1 2
+    2 3
+    3 1
+    4 1
+  end
+  Labels = array 1 1 -1 -1
+  K = "rbf"
+  L = 0.01
+  T = 100
+  S = 0.5
+
+  Result = Data Labels K L T S pegasos
+  unpack Alpha Bias = Result
+
+  Alpha equal array 1.0 1.0 1.0 1.0
+  Bias equal 0.0
+end
+
+test "one pass uses every sample"
+  use "021_svm"
+  Data = array shape 2 1
+    1
+    2
+  end
+  Labels = array 1 -1
+  K = "linear"
+  L = 1.0
+  T = 1
+  S = 1.0
+
+  Result = Data Labels K L T S pegasos
+  unpack Alpha Bias = Result
+
+  Alpha equal array 1.0 1.0
+  Bias equal 0.0
+end
+
+test "rejects an unknown kernel"
+  use "021_svm"
+  Data = array shape 1 1 pad 1
+  Labels = array 1
+  K = "poly"
+  L = 1.0
+  T = 1
+  S = 1.0
+  Failed = false
+
+  try
+    Result = Data Labels K L T S pegasos
+  catch .InvalidInput Error
+    Failed = true
+  end
+
+  Failed
+end

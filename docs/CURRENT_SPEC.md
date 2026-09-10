@@ -2808,6 +2808,7 @@ even
 abs
 sqrt
 log
+exp
 round
 sin
 cos
@@ -2874,6 +2875,17 @@ Bits = Value log / (2 log)
 
 It maps lazily over arrays and sequences. Its input must be positive and
 finite; zero, negative values and infinities raise `.DomainError`.
+
+`exp` has intrinsic rank 0 and returns the natural exponential as a `real`:
+
+```rank
+Growth = Rate exp
+Weights = Scores exp
+```
+
+It maps lazily over arrays and sequences. It accepts every numeric input;
+negative infinity produces zero, positive infinity remains infinity, and a
+finite input whose result overflows produces positive infinity.
 
 `round` rounds a numeric value to a signed number of decimal places:
 
