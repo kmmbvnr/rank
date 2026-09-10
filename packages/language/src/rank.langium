@@ -249,7 +249,56 @@ NameExpression:
     name=ReferenceName;
 
 ParenthesizedExpression:
-    '(' value=Expression ')';
+    '(' NL* value=MultilineExpression NL* ')';
+
+MultilineExpression returns Expression:
+    MultilineOrExpression;
+
+MultilineOrExpression returns Expression:
+    MultilineXorExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator='or' NL* right=MultilineXorExpression)*;
+
+MultilineXorExpression returns Expression:
+    MultilineAndExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator='xor' NL* right=MultilineAndExpression)*;
+
+MultilineAndExpression returns Expression:
+    MultilineComparisonExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator='and' NL* right=MultilineComparisonExpression)*;
+
+MultilineComparisonExpression returns Expression:
+    MultilinePaddingExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator=ComparisonOperator NL* right=MultilinePaddingExpression)*;
+
+MultilinePaddingExpression returns Expression:
+    MultilineRangeExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator='pad' NL* right=MultilineRangeExpression)?;
+
+MultilineRangeExpression returns Expression:
+    MultilineAdditionExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator=('to' | 'until') NL* right=MultilineAdditionExpression
+        (NL* 'by' NL* step=MultilineAdditionExpression)?)?;
+
+MultilineAdditionExpression returns Expression:
+    MultilineMultiplicationExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator=('+' | '-') NL* right=MultilineMultiplicationExpression)*;
+
+MultilineMultiplicationExpression returns Expression:
+    MultilinePowerExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator=('*' | '/' | '//' | '%') NL* right=MultilinePowerExpression)*;
+
+MultilinePowerExpression returns Expression:
+    ApplicationExpression
+    ({infer BinaryExpression.left=current}
+        NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
     VARIABLE | WORD;

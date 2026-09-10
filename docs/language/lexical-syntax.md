@@ -47,6 +47,32 @@ Blocks are delimited by words such as `if`, `for`, `fun` and `end`, so
 indentation is visual rather than semantic. Rank formatters and maintained
 source files must emit the canonical two-space form.
 
+## Parenthesized line continuation
+
+A newline normally ends an expression. Inside parentheses, an infix expression
+may continue across lines without a continuation character:
+
+```rank
+Value = (
+  A + B
+  * C
+)
+
+Ready = (
+  Count greater 0
+  and Count at most Limit
+)
+```
+
+The usual precedence rules still apply. Blank lines are allowed after the
+opening parenthesis, around infix operators, and before the closing parenthesis.
+Canonical source indents continued content by two spaces and aligns the closing
+parenthesis with the start of the expression. Parentheses do not make block
+indentation semantic.
+
+Whitespace application itself remains on one physical line. A long function
+call uses named intermediate values or a parenthesized argument.
+
 ## Comments
 
 Comments use classic BASIC `rem`:

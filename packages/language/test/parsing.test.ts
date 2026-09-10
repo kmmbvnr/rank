@@ -158,6 +158,22 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('continues expressions across lines inside parentheses', async () => {
+        const document = await parse([
+            'Result = (',
+            '  A + B',
+            '  * C',
+            ') / D',
+            'Mask = (',
+            '  A greater 0',
+            '  and B less 10',
+            ')',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('parses a named function modified by outer', async () => {
         const document = await parse('Grid = Values Values bxor outer');
         expect(document.parseResult.lexerErrors).toEqual([]);

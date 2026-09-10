@@ -18,6 +18,23 @@ describe('Rank expressions and sequences', () => {
         expect(run('3 at most 2')).toBe('false');
     });
 
+    it('continues infix expressions inside parentheses', () => {
+        expect(run([
+            'Result = (',
+            '  2 + 3',
+            '  * 4',
+            ')',
+            'Result',
+        ].join('\n'))).toBe('14');
+        expect(run([
+            'Mask = (',
+            '  3 greater 2',
+            '  and 4 less 5',
+            ')',
+            'Mask',
+        ].join('\n'))).toBe('true');
+    });
+
     it('raises numbers and collections to powers', () => {
         expect(run('2 ** 10')).toBe('1024');
         expect(run('2 ** 3 ** 2')).toBe('512');
