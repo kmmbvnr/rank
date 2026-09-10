@@ -44,7 +44,7 @@ import { MissingValueError, RankError } from './errors.js';
 import type { RankInput, RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
 import { closeFile } from './modules/io.js';
-import { lengthOfAxis } from './modules/sequences.js';
+import { lengthOfAxis, transposeValue } from './modules/sequences.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -891,6 +891,16 @@ export class Interpreter {
                 return () => {
                     this.requireModule('sequences', 'len');
                     return lengthOfAxis(this.evaluate(axisLength.source), axisLength.axis);
+                };
+            }
+            const axisTranspose = explicitAxisTranspose(parts);
+            if (axisTranspose) {
+                return () => {
+                    this.requireModule('sequences', 'transpose');
+                    return transposeValue(
+                        this.evaluate(axisTranspose.source),
+                        axisTranspose.axes,
+                    );
                 };
             }
             const explicitRank = explicitRankApplication(parts);
@@ -2606,6 +2616,18 @@ function explicitAxisLength(
     return {
         source: parts[0],
         axis: safeDimension(integerLiteral(parts[3], 'len axis'), 'len axis'),
+    };
+}
+
+function explicitAxisTranspose(
+    parts: Expression[],
+): { source: Expression; axes: readonly number[] } | undefined {
+    if (parts.length < 4 || !isNamed(parts[1], 'transpose')
+        || !isNamed(parts[2], 'axis')) return undefined;
+    return {
+        source: parts[0],
+        axes: parts.slice(3).map(axis =>
+            safeDimension(integerLiteral(axis, 'transpose axis'), 'transpose axis')),
     };
 }
 

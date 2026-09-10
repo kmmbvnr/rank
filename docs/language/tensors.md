@@ -26,11 +26,29 @@ M Row Column = Value
 Only material arrays are writable. Lazy tensor results must first be
 materialized with postfix `array`.
 
+`transpose` returns a lazy read-only view. Without an axis modifier it reverses
+the order of every axis:
+
+```rank
+T = A transpose
+rem shape 2 3 4 becomes 4 3 2
+```
+
+An explicit axis list gives the complete output-axis order:
+
+```rank
+T = A transpose axis 2 0 1
+rem shape 2 3 4 becomes 4 2 3
+```
+
+Axis numbers are zero-based. The list must contain every source axis exactly
+once; missing, repeated and out-of-range axes are errors. A matrix transpose is
+`A transpose axis 1 0`.
+
 The broader tensor direction includes:
 
 ```rank
 matmul
-transpose
 sum
 mean
 max

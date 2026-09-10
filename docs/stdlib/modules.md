@@ -173,6 +173,7 @@ primes
 fibonacci
 len
 shape
+transpose
 window
 ```
 

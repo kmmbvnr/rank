@@ -27,10 +27,63 @@ export const sequencesModule: RuntimeModule = {
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
+    transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
     unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
 };
+
+export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {
+    if (!isRankArray(value)) throw new RankError('transpose expects an array');
+    const permutation = axes
+        ? [...axes]
+        : value.shape.map((_, axis) => axis).reverse();
+    if (permutation.length !== value.shape.length) {
+        throw new RankError(
+            `transpose expects ${value.shape.length} axes, got ${permutation.length}`,
+        );
+    }
+    for (const axis of permutation) {
+        if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
+    }
+    if (new Set(permutation).size !== permutation.length) {
+        throw new RankError('transpose axes must be unique');
+    }
+
+    const shape = permutation.map(axis => value.shape[axis]);
+    let materialized: RankValue[] | undefined;
+    const itemAt = (index: number): RankValue => {
+        const output = coordinatesAt(shape, index);
+        const source = Array(value.shape.length).fill(0) as number[];
+        output.forEach((coordinate, axis) => {
+            source[permutation[axis]] = coordinate;
+        });
+        const offset = source.reduce(
+            (current, coordinate, axis) => current * value.shape[axis] + coordinate,
+            0,
+        );
+        return value.itemAt?.(offset) ?? value.items[offset];
+    };
+    return {
+        kind: 'array',
+        shape,
+        itemAt,
+        get items() {
+            const size = shape.reduce((product, dimension) => product * dimension, 1);
+            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
+            return materialized;
+        },
+    };
+}
+
+function coordinatesAt(shape: readonly number[], index: number): number[] {
+    const result = Array(shape.length).fill(0) as number[];
+    for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+        result[axis] = index % shape[axis];
+        index = Math.floor(index / shape[axis]);
+    }
+    return result;
+}
 
 export function lengthOfAxis(value: RankValue, axis: number): bigint {
     if (isRankArray(value)) {

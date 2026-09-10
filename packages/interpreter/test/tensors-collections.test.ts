@@ -30,6 +30,44 @@ describe('Rank tensors and collections', () => {
             .toThrowError('array has no axis 2');
     });
 
+    it('transposes all axes or uses an explicit axis permutation lazily', () => {
+        expect(run([
+            'use sequences',
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+            'T = M transpose',
+            'array (T shape) T',
+        ].join('\n'))).toBe('3 2 1 4 2 5 3 6');
+        expect(run([
+            'use sequences',
+            'T = array shape 2 2 3',
+            '  0 1 2 3 4 5',
+            '  6 7 8 9 10 11',
+            'end',
+            'P = T transpose axis 2 0 1',
+            'Dims = P shape',
+            'Dims 0 * 1000 + Dims 1 * 100 + Dims 2 * 10 + P 2 1 1',
+        ].join('\n'))).toBe('3231');
+        expect(() => run([
+            'use sequences',
+            'M = (array 1 2 3 4) (array 2 2) reshape',
+            'T = M transpose',
+            'T 0 0 = 9',
+        ].join('\n'))).toThrowError('cannot assign to a lazy array');
+        expect(() => run([
+            'use sequences',
+            'T = array shape 2 3 4 pad 0',
+            'T transpose axis 2 0',
+        ].join('\n'))).toThrowError('transpose expects 3 axes, got 2');
+        expect(() => run([
+            'use sequences',
+            'T = array shape 2 3 4 pad 0',
+            'T transpose axis 0 0 2',
+        ].join('\n'))).toThrowError('transpose axes must be unique');
+    });
+
     it('preserves tensor shape under unary operations', () => {
         expect(run([
             'M = array shape 2 2',
