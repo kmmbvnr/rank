@@ -1,0 +1,53 @@
+use testing
+
+test "official example"
+  use "009_matmul"
+  A = array shape 2 2
+    1 2
+    2 4
+  end
+  B = array shape 2 2
+    2 1
+    3 4
+  end
+  Expected = array shape 2 2
+    8.0 9.0
+    16.0 18.0
+  end
+
+  A B matrixmul equal Expected
+end
+
+test "rectangular matrices"
+  use "009_matmul"
+  A = array shape 2 3
+    1 2 3
+    4 5 6
+  end
+  B = array shape 3 2
+    7 8
+    9 10
+    11 12
+  end
+  Expected = array shape 2 2
+    58.0 64.0
+    139.0 154.0
+  end
+
+  A B matrixmul equal Expected
+end
+
+test "incompatible dimensions"
+  use "009_matmul"
+  A = array shape 2 2 pad 1
+  B = array shape 3 2 pad 1
+  Raised = false
+
+  try
+    Result = A B matrixmul
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end

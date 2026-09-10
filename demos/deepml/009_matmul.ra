@@ -1,0 +1,31 @@
+rem Deep-ML 9: Matrix Multiplication
+rem https://www.deep-ml.com/problems/9
+
+use ranges
+use sequences
+
+rem Multiply two compatible rank-2 matrices.
+fun matrixmul A B
+  Rows = A len axis 0
+  Inner = A len axis 1
+  BRows = B len axis 0
+  Cols = B len axis 1
+
+  if Inner not equal BRows
+    .DimensionMismatch raise
+  end
+
+  Result = array shape Rows Cols pad 0.0
+
+  for i in 0 until Rows
+    for j in 0 until Cols
+      Sum = 0.0
+      for k in 0 until Inner
+        Sum += A i k * B k j
+      end
+      Result i j = Sum
+    end
+  end
+
+  return Result
+end
