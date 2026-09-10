@@ -1,0 +1,48 @@
+use testing
+
+test "official example"
+  use "003_reshape"
+  A = array shape 2 4
+    1 2 3 4
+    5 6 7 8
+  end
+  Expected = array shape 4 2
+    1 2
+    3 4
+    5 6
+    7 8
+  end
+
+  A (array 4 2) reshape_matrix equal Expected
+end
+
+test "single row to single column"
+  use "003_reshape"
+  A = array shape 1 3
+    -1 0 2
+  end
+  Expected = array shape 3 1
+    -1
+    0
+    2
+  end
+
+  A (array 3 1) reshape_matrix equal Expected
+end
+
+test "incompatible element count"
+  use "003_reshape"
+  A = array shape 2 2
+    1 2
+    3 4
+  end
+  Raised = false
+
+  try
+    Result = A (array 3 2) reshape_matrix
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end

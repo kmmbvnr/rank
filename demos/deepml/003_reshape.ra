@@ -1,0 +1,31 @@
+rem Deep-ML 3: Reshape Matrix
+rem https://www.deep-ml.com/problems/3
+
+use ranges
+use sequences
+
+fun reshape_matrix A NewShape
+  unpack OldRows OldCols = A shape
+  unpack Rows Cols = NewShape
+
+  OldSize = OldRows * OldCols
+  NewSize = Rows * Cols
+
+  if OldSize not equal NewSize
+    .DimensionMismatch raise
+  end
+
+  Result = array shape Rows Cols pad 0
+
+  for k in 0 until NewSize
+    OldRow = k // OldCols
+    OldColumn = k % OldCols
+
+    NewRow = k // Cols
+    NewColumn = k % Cols
+
+    Result NewRow NewColumn = A OldRow OldColumn
+  end
+
+  return Result
+end
