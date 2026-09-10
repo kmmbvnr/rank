@@ -285,17 +285,19 @@ Only complete windows are produced.
 
 ## JSON
 
-`use json` reads and decodes a complete JSON document in one operation:
+`use json` decodes a complete JSON document from text:
 
 ```rank
-Data = Path json
+Data = Text json
+FileData = Path read json
 ```
 
 JSON integers become arbitrary-precision `integer` values. Decimal and
 exponent forms become `real`; strings and booleans become the corresponding
 Rank scalars; arrays become Rank arrays; objects become keyed `object` values;
-and JSON `null` becomes `.null`. Invalid input raises `.InvalidJson`, while file
-and UTF-8 failures keep their ordinary I/O error kinds.
+and JSON `null` becomes `.null`. Invalid input raises `.InvalidJson`. File input
+is composed explicitly with `read`, so file and UTF-8 failures keep their
+ordinary I/O error kinds.
 
 Object addressing follows the common data-first addressing model. Membership
 tests keys, `len` counts entries, and iteration yields each value followed by

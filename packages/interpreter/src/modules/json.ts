@@ -1,19 +1,18 @@
 import { RankError } from '../errors.js';
 import { type RankObject, type RankValue } from '../value.js';
-import { readTextFile } from './io.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const jsonModule: RuntimeModule = {
-    json: context => native('json', 1, arguments_ => {
-        const path = arguments_[0];
-        const text = readTextFile(context.io, path);
+    json: () => native('json', 1, arguments_ => {
+        const text = arguments_[0];
+        if (typeof text !== 'string') throw new RankError('json expects text');
         try {
             return new JsonParser(text).parse();
         } catch (error) {
             if (error instanceof RankError) throw error;
             const detail = error instanceof Error ? error.message : String(error);
-            throw new RankError(`invalid JSON: ${detail}`, 'InvalidJson', path);
+            throw new RankError(`invalid JSON: ${detail}`, 'InvalidJson');
         }
     }),
 };

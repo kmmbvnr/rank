@@ -8,14 +8,15 @@ use json
 
 argument Input path
 
-Part1 Part2 = Input solve
+Text = Input read
+Part1 Part2 = Text solve
 Part1 print
 Part2 print
 
 
-rem Decode the document and calculate both puzzle sums.
-fun solve Path
-  Data = Path json
+rem Decode a document and calculate both puzzle sums.
+fun solve Text
+  Data = Text json
   return array (Data sumall) (Data sumnored)
 end
 

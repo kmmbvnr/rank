@@ -1245,15 +1245,12 @@ describe('Rank interpreter', () => {
         expect(new TextDecoder().decode(io.files.get('/output'))).toBe('start end');
     });
 
-    it('reads JSON values with exact integers and keyed objects', () => {
-        const io = new MemoryIo({
-            '/data.json': '{"huge":9007199254740993,"real":-2.5,"text":"A\\uD83D\\uDE00","flag":true,"nothing":null,"items":[1,2]}',
-        });
-        const interpreter = new Interpreter(undefined, { io });
+    it('decodes JSON values with exact integers and keyed objects', () => {
+        const interpreter = new Interpreter();
         interpreter.execute([
             'use json',
             'use sequences',
-            'Data = "/data.json" json',
+            'Data = "{\\"huge\\":9007199254740993,\\"real\\":-2.5,\\"text\\":\\"A\\\\uD83D\\\\uDE00\\",\\"flag\\":true,\\"nothing\\":null,\\"items\\":[1,2]}" json',
             'Huge = Data "huge"',
             'Real = Data "real"',
             'Text = Data "text"',
@@ -1290,13 +1287,12 @@ describe('Rank interpreter', () => {
             .toBe('hugerealtextflagnothingitems');
     });
 
-    it('reports invalid JSON separately from IO errors', () => {
-        const io = new MemoryIo({ '/bad.json': '{"value":]' });
-        const interpreter = new Interpreter(undefined, { io });
-        expect(() => interpreter.execute('use json\n"/bad.json" json'))
+    it('reports invalid JSON and rejects non-text input', () => {
+        const interpreter = new Interpreter();
+        expect(() => interpreter.execute('use json\n"{\\"value\\":]" json'))
             .toThrowError('invalid JSON: expected a JSON value at position 9');
-        expect(() => interpreter.execute('use json\n"/missing.json" json'))
-            .toThrowError('/missing.json: file does not exist');
+        expect(() => interpreter.execute('use json\n42 json'))
+            .toThrowError('json expects text');
     });
 
     it('reads byte ranges and seeks open files', () => {
