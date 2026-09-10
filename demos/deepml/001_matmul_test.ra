@@ -1,0 +1,41 @@
+use testing
+
+test "official example"
+  use "001_matmul"
+  A = array shape 2 2
+    1 2
+    2 4
+  end
+  B = array 1 2
+
+  A B matrix_dot_vector equal array 5 10
+end
+
+test "rectangular matrix"
+  use "001_matmul"
+  A = array shape 2 3
+    1 2 3
+    4 5 6
+  end
+  B = array 2 0 -1
+
+  A B matrix_dot_vector equal array -1 2
+end
+
+test "incompatible dimensions"
+  use "001_matmul"
+  A = array shape 2 2
+    1 2
+    3 4
+  end
+  B = array 1 2 3
+  Raised = false
+
+  try
+    Result = A B matrix_dot_vector
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
