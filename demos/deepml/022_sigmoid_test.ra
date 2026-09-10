@@ -1,0 +1,24 @@
+use testing
+
+test "official zero example"
+  use "022_sigmoid"
+  0 sigmoid equal 0.5
+end
+
+test "official positive example"
+  use "022_sigmoid"
+  1 sigmoid equal 0.7311
+end
+
+test "scalar extension maps a vector"
+  use "022_sigmoid"
+  Input = array -1 0 1
+  Expected = array 0.2689 0.5 0.7311
+  Input sigmoid equal Expected
+end
+
+test "large magnitudes approach bounds"
+  use "022_sigmoid"
+  1000 sigmoid equal 1.0
+  (-1000) sigmoid equal 0.0
+end
