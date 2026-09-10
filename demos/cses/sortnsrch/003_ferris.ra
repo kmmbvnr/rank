@@ -1,0 +1,35 @@
+rem CSES 1090: Ferris Wheel
+rem https://cses.fi/problemset/task/1090
+
+use io
+use sequences
+
+N = stdin .integer
+X = stdin .integer
+A = stdin .integer N array
+
+A X gondolas print
+
+
+rem Find the minimum gondola count.
+fun gondolas Weights Limit
+  A = Weights sort
+  I = 0
+  J = A len - 1
+  Count = 0
+
+  for I less J
+    if A I + A J at most Limit
+      I += 1
+    end
+
+    J -= 1
+    Count += 1
+  end
+
+  if I equal J
+    Count += 1
+  end
+
+  return Count
+end

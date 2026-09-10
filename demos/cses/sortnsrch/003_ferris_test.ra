@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "003_ferris"
+  Weights = array 7 2 3 9
+  Weights 10 gondolas equal 3
+end
+
+test "everyone can share"
+  use "003_ferris"
+  Weights = array 2 3 4 5
+  Weights 7 gondolas equal 2
+end
+
+test "everyone rides alone"
+  use "003_ferris"
+  Weights = array 6 6 6 6
+  Weights 10 gondolas equal 4
+end
+
+test "one child"
+  use "003_ferris"
+  Weights = array 8
+  Weights 10 gondolas equal 1
+end
