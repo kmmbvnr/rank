@@ -1,0 +1,24 @@
+use testing
+
+test "known grid codes"
+  use "025_snow"
+
+  1 1 code equal 20151125
+  2 1 code equal 31916031
+  1 2 code equal 18749137
+  6 6 code equal 27995004
+end
+
+test "the manual sentence is parsed"
+  use "025_snow"
+
+  Text = "Enter the code at row 6, column 6."
+  Text solve equal 27995004
+end
+
+test "modular exponentiation includes exponent zero"
+  use "025_snow"
+
+  7 0 13 modpow equal 1
+  7 4 13 modpow equal 9
+end
