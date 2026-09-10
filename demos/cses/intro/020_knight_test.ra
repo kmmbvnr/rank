@@ -1,0 +1,29 @@
+use testing
+
+test "official example"
+  use "020_knight"
+  Actual = 8 solve
+  Expected = array shape 8 8
+    0 3 2 3 2 3 4 5
+    3 4 1 2 3 4 3 4
+    2 1 4 3 2 3 4 5
+    3 2 3 2 3 4 3 4
+    2 3 2 3 4 3 4 5
+    3 4 3 4 3 4 5 4
+    4 3 4 3 4 5 4 5
+    5 4 5 4 5 4 5 6
+  end
+  Actual equal Expected
+end
+
+test "smallest board"
+  use "020_knight"
+  Actual = 4 solve
+  Expected = array shape 4 4
+    0 3 2 5
+    3 4 1 2
+    2 1 4 3
+    5 2 3 2
+  end
+  Actual equal Expected
+end

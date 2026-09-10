@@ -1,0 +1,53 @@
+rem CSES 3217: Knight Moves Grid
+rem https://cses.fi/problemset/task/3217
+
+use algo
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Distances = N solve
+
+for Row in Distances
+  Row print
+end
+
+
+rem Find every shortest distance with one breadth-first traversal of the board.
+fun solve N
+  DYs = array 1 1 -1 -1 2 2 -2 -2
+  DXs = array 2 -2 2 -2 1 -1 1 -1
+
+  Dist = array shape N N pad -1
+  Dist 0 0 = 0
+
+  queue push 0
+  Head = 0
+
+  for Head less queue len
+    Cell = queue Head
+    Y = Cell // N
+    X = Cell % N
+    NextDist = Dist Y X + 1
+
+    for DY k in DYs
+      NY = Y + DY
+      NX = X + DXs k
+
+      Inside = NY at least 0 and NY less N
+      Inside and= NX at least 0 and NX less N
+
+      if Inside
+        if Dist NY NX equal -1
+          Dist NY NX = NextDist
+          queue push NY * N + NX
+        end
+      end
+    end
+
+    Head += 1
+  end
+
+  return Dist
+end
