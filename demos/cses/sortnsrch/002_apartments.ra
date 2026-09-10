@@ -1,0 +1,43 @@
+rem CSES 1084: Apartments
+rem https://cses.fi/problemset/task/1084
+
+use io
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+K = stdin .integer
+
+A = stdin .integer N array
+B = stdin .integer M array
+
+A B K match_apartments print
+
+
+rem Match applicants to nearby homes.
+fun match_apartments A B K
+  A = A sort
+  B = B sort
+  N = A len
+  M = B len
+  I = 0
+  J = 0
+  Count = 0
+
+  for I less N and J less M
+    Want = A I
+    Size = B J
+
+    if Size less Want - K
+      J += 1
+    elif Size greater Want + K
+      I += 1
+    else
+      Count += 1
+      I += 1
+      J += 1
+    end
+  end
+
+  return Count
+end

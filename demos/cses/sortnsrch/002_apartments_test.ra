@@ -1,0 +1,22 @@
+use testing
+
+test "official example"
+  use "002_apartments"
+  A = array 60 45 80 60
+  B = array 30 60 75
+  A B 5 match_apartments equal 2
+end
+
+test "exact sizes with duplicates"
+  use "002_apartments"
+  A = array 20 10 20
+  B = array 20 20 10
+  A B 0 match_apartments equal 3
+end
+
+test "no acceptable apartment"
+  use "002_apartments"
+  A = array 10 20
+  B = array 30 40
+  A B 3 match_apartments equal 0
+end
