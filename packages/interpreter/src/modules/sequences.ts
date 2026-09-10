@@ -32,7 +32,42 @@ export const sequencesModule: RuntimeModule = {
     unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
+    all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),
+    any: () => native('any', 1, arguments_ => booleanReduction(arguments_[0], 'any')),
 };
+
+function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
+    const expected = operation === 'all';
+    for (const item of collectionValues(value, operation)) {
+        if (typeof item !== 'boolean') {
+            throw new RankError(`${operation} expects boolean values`, 'TypeError');
+        }
+        if (item !== expected) return !expected;
+    }
+    return expected;
+}
+
+function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
+    if (isRankArray(value)) {
+        const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+        for (let index = 0; index < size; index += 1) {
+            yield value.itemAt?.(index) ?? value.items[index];
+        }
+        return;
+    }
+    if (isRankQueue(value)) {
+        yield* value.items;
+        return;
+    }
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError(`${operation} requires a bounded sequence`);
+        }
+        yield* value.plan.iterate();
+        return;
+    }
+    yield value;
+}
 
 function copyArray(value: RankValue): RankArray {
     if (!isRankArray(value)) throw new RankError('copy expects an array');

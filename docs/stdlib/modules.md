@@ -184,6 +184,21 @@ Left = A B max
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
 
+## Sequences
+
+`all` and `any` are named boolean reductions:
+
+```rank
+Every = Mask all
+Some = Mask any
+Rows = Flags all axis 1
+```
+
+They are equivalent to `and reduce` and `or reduce`, respectively. They accept
+only boolean cells, short-circuit when the result is known, and support `rank`
+and `axis`. Empty collections produce `true` for `all` and `false` for `any`.
+Known unbounded sequences are rejected.
+
 ## Random
 
 `use random` provides random permutation operations:

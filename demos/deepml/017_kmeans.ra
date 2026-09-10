@@ -43,7 +43,7 @@ fun k_means Points K Centroids Max
       end
     end
 
-    if (Next equal Centroids) and reduce
+    if (Next equal Centroids) all
       break
     end
 

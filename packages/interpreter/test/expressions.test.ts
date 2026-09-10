@@ -427,6 +427,40 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('+ reduce requires a bounded sequence');
     });
 
+    it('names boolean reductions and applies them at rank', () => {
+        expect(run('use sequences\n(array true true) all')).toBe('true');
+        expect(run('use sequences\n(array false true) any')).toBe('true');
+        const empty = 'Empty = array shape 0\nend\nEmpty';
+        expect(run(`use sequences\n${empty} all`)).toBe('true');
+        expect(run(`use sequences\n${empty} any`)).toBe('false');
+        expect(run([
+            'use sequences',
+            'M = array shape 2 3',
+            '  true true false',
+            '  false false false',
+            'end',
+            'M all rank 1',
+        ].join('\n'))).toBe('false false');
+        expect(() => run('use sequences\n(array true 1) all'))
+            .toThrowError('all expects boolean values');
+        expect(() => run('use sequences\nfibonacci any'))
+            .toThrowError('any requires a bounded sequence');
+        expect(() => run('(array true false) all'))
+            .toThrowError('unknown name: all');
+        expect(run([
+            'use sequences',
+            'fun not_all Dummy',
+            '  yield false',
+            '  .Demanded raise',
+            'end',
+            'fun has_any Dummy',
+            '  yield true',
+            '  .Demanded raise',
+            'end',
+            'array (0 not_all all) (0 has_any any)',
+        ].join('\n'))).toBe('false true');
+    });
+
     it('updates values with compound assignment', () => {
         expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue %= 4\nValue')).toBe('1');
         expect(run('Mask = true\nMask and= true\nMask xor= true\nMask or= true\nMask')).toBe('true');

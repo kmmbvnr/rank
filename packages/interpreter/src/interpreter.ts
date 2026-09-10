@@ -966,7 +966,12 @@ export class Interpreter {
             if (axisReduction) {
                 return () => {
                     this.requireModule(
-                        axisReduction.operation === 'mean' ? 'stats' : 'numbers',
+                        axisReduction.operation === 'mean'
+                            ? 'stats'
+                            : axisReduction.operation === 'all'
+                                || axisReduction.operation === 'any'
+                                ? 'sequences'
+                                : 'numbers',
                         axisReduction.operation,
                     );
                     return this.evaluateAxisReduction(
@@ -1681,7 +1686,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean' | 'min' | 'max',
+        operation: 'sum' | 'mean' | 'min' | 'max' | 'all' | 'any',
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -2953,13 +2958,14 @@ function explicitAxisReduction(
     parts: Expression[],
 ): {
     source: Expression;
-    operation: 'sum' | 'mean' | 'min' | 'max';
+    operation: 'sum' | 'mean' | 'min' | 'max' | 'all' | 'any';
     axes: readonly number[];
 } | undefined {
     if (parts.length < 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
     if ((operation !== 'sum' && operation !== 'mean'
-        && operation !== 'min' && operation !== 'max')
+        && operation !== 'min' && operation !== 'max'
+        && operation !== 'all' && operation !== 'any')
         || !isNamed(parts[2], 'axis')) return undefined;
     return {
         source: parts[0],

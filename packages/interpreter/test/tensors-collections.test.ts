@@ -115,6 +115,25 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('min requires at least one value');
     });
 
+    it('reduces boolean tensor axes with all and any', () => {
+        expect(run([
+            'use sequences',
+            'M = array shape 2 3',
+            '  true true false',
+            '  true false false',
+            'end',
+            'M all axis 0',
+        ].join('\n'))).toBe('true false false');
+        expect(run([
+            'use sequences',
+            'M = array shape 2 3',
+            '  true true false',
+            '  false false false',
+            'end',
+            'M any axis 1',
+        ].join('\n'))).toBe('true false');
+    });
+
     it('broadcasts trailing singleton dimensions for elementwise operations', () => {
         expect(run([
             'M = array shape 2 3',
