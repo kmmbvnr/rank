@@ -5,6 +5,7 @@ import { ioModule } from './io.js';
 import { jsonModule } from './json.js';
 import { linalgModule } from './linalg.js';
 import { numbersModule } from './numbers.js';
+import { randomModule } from './random.js';
 import { sequencesModule } from './sequences.js';
 import { statsModule } from './stats.js';
 import { textModule } from './text.js';
@@ -19,6 +20,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     json: jsonModule,
     linalg: linalgModule,
     numbers: numbersModule,
+    random: randomModule,
     ranges: {},
     sequences: sequencesModule,
     stats: statsModule,

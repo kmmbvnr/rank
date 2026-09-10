@@ -49,6 +49,7 @@ import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
+import { shuffleValue } from './modules/random.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
 import { covarianceValue } from './modules/stats.js';
 import { parse } from './parser.js';
@@ -107,6 +108,7 @@ export interface InterpreterOptions {
     readonly testing?: boolean;
     readonly input?: RankInput;
     readonly io?: RankIo;
+    readonly random?: () => number;
     readonly persistentResources?: boolean;
     readonly loadModule?: (specifier: string, fromId?: string) => LoadedModule;
 }
@@ -178,6 +180,7 @@ export class Interpreter {
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly options: InterpreterOptions;
+    private readonly random: () => number;
     private readonly openPrograms = new Map<string, LoadedProgram>();
     private readonly aliases = new Map<string, Interpreter>();
     private currentRunTarget: LoadedProgram | undefined;
@@ -193,6 +196,7 @@ export class Interpreter {
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
         this.options = options;
+        this.random = options.random ?? Math.random;
     }
 
     execute(source: string): RankValue | undefined {
@@ -939,6 +943,18 @@ export class Interpreter {
                     );
                 };
             }
+            const axisShuffle = explicitAxisShuffle(parts);
+            if (axisShuffle) {
+                return () => {
+                    this.requireModule('random', 'shuffle');
+                    return shuffleValue(
+                        this.evaluate(axisShuffle.source),
+                        axisShuffle.seed ? this.evaluate(axisShuffle.seed) : undefined,
+                        axisShuffle.axis,
+                        this.random,
+                    );
+                };
+            }
             const axisLength = explicitAxisLength(parts);
             if (axisLength) {
                 return () => {
@@ -1221,6 +1237,7 @@ export class Interpreter {
         const child = new Interpreter(this.output, {
             input: this.options.input,
             io: this.options.io,
+            random: this.random,
             loadModule: this.options.loadModule,
             sourceId: loaded.id,
         });
@@ -1287,6 +1304,7 @@ export class Interpreter {
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
             io: this.options.io,
+            random: this.random,
             loadModule: this.options.loadModule,
             sourceId: this.options.sourceId,
             testing: true,
@@ -1412,6 +1430,7 @@ export class Interpreter {
                 return fn({
                     output: this.output,
                     io: this.options.io,
+                    random: this.random,
                     ownFile: file => this.ownFile(file),
                 });
             }
@@ -2912,6 +2931,21 @@ function explicitAxisLength(
     return {
         source: parts[0],
         axis: safeDimension(integerLiteral(parts[3], 'len axis'), 'len axis'),
+    };
+}
+
+function explicitAxisShuffle(
+    parts: Expression[],
+): { source: Expression; seed?: Expression; axis: number } | undefined {
+    const shuffle = parts.findIndex(part => isNamed(part, 'shuffle'));
+    if (shuffle < 0 || !isNamed(parts[shuffle + 1], 'axis')) return undefined;
+    if ((shuffle !== 1 && shuffle !== 2) || parts.length !== shuffle + 3) {
+        throw new RankError('shuffle axis expects data, an optional seed and one axis');
+    }
+    return {
+        source: parts[0],
+        seed: shuffle === 2 ? parts[1] : undefined,
+        axis: safeDimension(integerLiteral(parts[shuffle + 2], 'shuffle axis'), 'shuffle axis'),
     };
 }
 

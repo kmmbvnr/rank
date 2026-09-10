@@ -6,6 +6,7 @@ export type Output = (text: string) => void;
 export interface RuntimeContext {
     readonly output: Output;
     readonly io?: RankIo;
+    readonly random: () => number;
     readonly ownFile: (file: RankFile) => void;
 }
 

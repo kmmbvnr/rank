@@ -1,0 +1,52 @@
+rem Deep-ML 18: K-Fold Cross-Validation
+rem https://www.deep-ml.com/problems/18
+
+use algo
+use numbers
+use random
+use ranges
+
+rem Build train and test indices
+rem for every fold.
+fun cross_validation N K Shuffle
+  if N less 0
+    .DomainError raise
+  end
+  if K less 2
+    .DomainError raise
+  end
+  if K greater N
+    .DomainError raise
+  end
+
+  Order = (0 until N) array
+  if Shuffle
+    Order = Order shuffle
+  end
+
+  Base = N // K
+  Extra = N % K
+  Positions = (0 until N) array
+
+  for Fold in 0 until K
+    First = Fold * Base
+    First += Fold Extra min
+
+    Size = Base
+    if Fold less Extra
+      Size += 1
+    end
+    Last = First + Size
+
+    Test = Order from First until Last
+
+    TrainMask = Positions less First
+    After = Positions at least Last
+    TrainMask or= After
+    Train = (Order TrainMask) array
+
+    queue push array Train Test
+  end
+
+  return queue
+end

@@ -6,6 +6,7 @@ A bare module name opens standard-library vocabulary in the current workspace:
 
 ```rank
 use numbers
+use random
 use ranges
 ```
 

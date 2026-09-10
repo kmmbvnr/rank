@@ -6,6 +6,7 @@ Current module directions:
 
 ```rank
 use numbers
+use random
 use linalg
 use bits
 use ranges
@@ -182,6 +183,33 @@ Left = A B max
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
+
+## Random
+
+`use random` provides random permutation operations:
+
+```rank
+Shuffled = Values shuffle
+Repeatable = Values 42 shuffle
+Rows = Data shuffle axis 0
+Columns = Data 42 shuffle axis 1
+```
+
+`shuffle` accepts an array or a finite sequence and returns a new eager dense
+array. It never changes its source. A sequence is explicitly consumed by the
+operation. An unbounded sequence, a scalar or a missing tensor axis is an
+error.
+
+The default axis is zero. Selecting another axis reorders its complete slices
+with one shared permutation: shuffling matrix columns moves every column as a
+unit rather than shuffling each row independently.
+
+Without a seed, `shuffle` consumes the current interpreter's pseudorandom
+stream. Supplying an integer seed creates a private stream for that operation,
+so equal inputs and equal seeds produce equal results within one interpreter
+version without changing the default stream. The precise generator and seeded
+order are implementation details and may change between versions. `shuffle`
+is not a cryptographic randomness operation.
 
 ## Linear algebra
 
