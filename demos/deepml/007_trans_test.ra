@@ -1,0 +1,68 @@
+use testing
+
+test "official example"
+  use "007_trans"
+  A = array shape 2 2
+    1 2
+    3 4
+  end
+  T = array shape 2 2
+    2 0
+    0 2
+  end
+  S = array shape 2 2
+    1 1
+    0 1
+  end
+  Expected = array shape 2 2
+    0.5 1.5
+    1.5 3.5
+  end
+
+  A T S transform_matrix equal Expected
+end
+
+test "rectangular middle matrix"
+  use "007_trans"
+  A = array shape 2 3
+    1 2 3
+    4 5 6
+  end
+  T = array shape 2 2
+    2 0
+    0 4
+  end
+  S = array shape 3 3
+    0 1 0
+    0 0 1
+    1 0 0
+  end
+  Expected = array shape 2 3
+    1.5 0.5 1.0
+    1.5 1.0 1.25
+  end
+
+  A T S transform_matrix equal Expected
+end
+
+test "singular transform"
+  use "007_trans"
+  A = array shape 2 2 pad 1
+  T = array shape 2 2
+    1 0
+    0 1
+  end
+  S = array shape 2 2
+    1 2
+    2 4
+  end
+  Raised = false
+
+  try
+    Result = A T S transform_matrix
+  catch .SingularMatrix Error
+    Raised = true
+  end
+
+  Raised
+end
