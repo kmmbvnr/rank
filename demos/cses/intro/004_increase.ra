@@ -1,0 +1,28 @@
+rem CSES 1094: Increasing Array
+rem https://cses.fi/problemset/task/1094
+
+use io
+
+N = stdin .integer
+Values = stdin .integer N array
+
+Values moves print
+
+
+rem Count increments needed to make Values nondecreasing.
+fun moves Values
+  Prev = Values 0
+  Total = 0
+
+  for X i in Values
+    if i greater 0
+      if X less Prev
+        Total += Prev - X
+      else
+        Prev = X
+      end
+    end
+  end
+
+  return Total
+end

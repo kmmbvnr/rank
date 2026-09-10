@@ -563,19 +563,30 @@ export class Interpreter {
             if (mode !== 'word' && mode !== 'integer') {
                 throw new RankError(`unsupported standard input mode: .${mode}`);
             }
-            const input = this.options.input;
-            if (!input) {
-                throw new RankError('standard input is unavailable in this host', 'IO');
+            if (!expression.count) return this.readStdin(mode);
+
+            const count = this.evaluate(expression.count);
+            if (typeof count !== 'bigint' || count < 0n) {
+                throw new RankError('stdin count must be a nonnegative integer');
             }
-            const token = input.readToken();
-            if (token === undefined) {
-                throw new RankError(`standard input ended before .${mode}`, 'EndOfInput');
-            }
-            if (mode === 'word') return token;
-            if (!/^[+-]?[0-9]+$/u.test(token)) {
-                throw new RankError(`invalid integer input: ${token}`, 'InvalidNumber', token);
-            }
-            return BigInt(token);
+            const interpreter = this;
+            let consumed = false;
+            return sequence({
+                name: `stdin .${mode}`,
+                size: { kind: 'exact', value: count },
+                *iterate() {
+                    if (consumed) {
+                        throw new RankError(
+                            `standard input sequence .${mode} has already been consumed`,
+                            'ConsumedSequence',
+                        );
+                    }
+                    consumed = true;
+                    for (let index = 0n; index < count; index += 1n) {
+                        yield interpreter.readStdin(mode);
+                    }
+                },
+            });
         }
         if (isArrayExpression(expression)) {
             const items = (expression.dimensions.length > 0
@@ -686,6 +697,22 @@ export class Interpreter {
             return this.apply(values);
         }
         throw new RankError(`cannot evaluate ${expression.$type}`);
+    }
+
+    private readStdin(mode: 'word' | 'integer'): RankValue {
+        const input = this.options.input;
+        if (!input) {
+            throw new RankError('standard input is unavailable in this host', 'IO');
+        }
+        const token = input.readToken();
+        if (token === undefined) {
+            throw new RankError(`standard input ended before .${mode}`, 'EndOfInput');
+        }
+        if (mode === 'word') return token;
+        if (!/^[+-]?[0-9]+$/u.test(token)) {
+            throw new RankError(`invalid integer input: ${token}`, 'InvalidNumber', token);
+        }
+        return BigInt(token);
     }
 
     private evaluateArrayItem(item: ArrayItem): RankValue {

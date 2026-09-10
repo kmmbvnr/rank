@@ -351,7 +351,23 @@ accepted. End of input raises `.EndOfInput`; a token that is not a decimal
 integer raises `.InvalidNumber`. Standard input is supplied by the host, so an
 embedded host without it raises `.IO`.
 
-Counted input and line-oriented input are not part of the current language yet.
+A count after the mode returns an exact-size lazy, single-pass sequence:
+
+```rank
+Count = N - 1
+Values = stdin .integer Count
+Words = stdin .word Count
+```
+
+The count must be a nonnegative integer. No input is read until the sequence is
+consumed, so input and conversion errors are delayed too. Use postfix `array`
+when the complete input must be validated or traversed more than once:
+
+```rank
+Values = stdin .integer Count array
+```
+
+Line-oriented input is not part of the current language yet.
 
 `use io` provides one-shot UTF-8 text operations for the common case:
 

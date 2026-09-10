@@ -23,6 +23,10 @@ class TokenInput implements RankInput {
     readToken(): string | undefined {
         return this.tokens[this.offset++];
     }
+
+    get reads(): number {
+        return this.offset;
+    }
 }
 
 class MemoryIo implements RankIo {
@@ -1378,6 +1382,50 @@ describe('Rank interpreter', () => {
         expect(() => new Interpreter(undefined, {
             input: new TokenInput(['x']),
         }).execute('use io\nstdin .line')).toThrowError('unsupported standard input mode: .line');
+    });
+
+    it('reads a counted standard-input sequence lazily and once', () => {
+        const input = new TokenInput(['10', '20', 'tail']);
+        const interpreter = new Interpreter(undefined, { input });
+        interpreter.execute([
+            'use io',
+            'Values = stdin .integer 2',
+        ].join('\n'));
+
+        expect(input.reads).toBe(0);
+        const values = interpreter.variables.get('Values');
+        expect(values && isRankSequence(values) && values.plan.size)
+            .toEqual({ kind: 'exact', value: 2n });
+        expect(interpreter.execute('Values array'))
+            .toEqual({ kind: 'array', items: [10n, 20n], shape: [2] });
+        expect(input.reads).toBe(2);
+        expect(() => interpreter.execute('Values array'))
+            .toThrowError('standard input sequence .integer has already been consumed');
+        expect(interpreter.execute('stdin .word 1 array'))
+            .toEqual({ kind: 'array', items: ['tail'], shape: [1] });
+
+        expect(new Interpreter(undefined, {
+            input: new TokenInput([]),
+        }).execute('use io\nstdin .word 0 array'))
+            .toEqual({ kind: 'array', items: [], shape: [0] });
+        expect(() => new Interpreter(undefined, {
+            input: new TokenInput([]),
+        }).execute('use io\nstdin .integer (-1)'))
+            .toThrowError('stdin count must be a nonnegative integer');
+        expect(() => new Interpreter(undefined, {
+            input: new TokenInput([]),
+        }).execute('use io\nstdin .integer 1.5'))
+            .toThrowError('stdin count must be a nonnegative integer');
+
+        const short = new Interpreter(undefined, { input: new TokenInput(['1']) });
+        short.execute('use io\nValues = stdin .integer 2');
+        expect(() => short.execute('Values array'))
+            .toThrowError('standard input ended before .integer');
+
+        const invalid = new Interpreter(undefined, { input: new TokenInput(['x']) });
+        invalid.execute('use io\nValues = stdin .integer 1');
+        expect(() => invalid.execute('Values array'))
+            .toThrowError('invalid integer input: x');
     });
 
     it('runs user generator functions lazily and once', () => {

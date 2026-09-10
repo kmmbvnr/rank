@@ -3,21 +3,12 @@ rem https://cses.fi/problemset/task/1083
 
 use io
 use numbers
-use ranges
 
 N = stdin .integer
 Count = N - 1
-Values = Count integers array
+Values = stdin .integer Count array
 
 N Values missing print
-
-
-rem Read Count integers as a single-pass sequence.
-fun integers Count
-  for i in 0 until Count
-    yield stdin .integer
-  end
-end
 
 
 rem Find the missing value from the numbers 1 through N.

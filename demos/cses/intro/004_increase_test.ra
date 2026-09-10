@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "004_increase"
+  Values = array 3 2 5 1 7
+  Values moves equal 5
+end
+
+test "already increasing"
+  use "004_increase"
+  Values = array 1 2 2 5
+  Values moves equal 0
+end
+
+test "one value"
+  use "004_increase"
+  Values = array 9
+  Values moves equal 0
+end
+
+test "all later values need increments"
+  use "004_increase"
+  Values = array 5 1 1
+  Values moves equal 8
+end

@@ -262,10 +262,11 @@ describe('Rank grammar', () => {
             'end',
             'N = stdin .integer',
             'Word = stdin .word',
+            'Values = stdin .integer (N - 1) array',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(4);
+        expect(document.parseResult.value.statements).toHaveLength(5);
     });
 
     it('parses postfix sequence materialization separately from array selectors', async () => {
