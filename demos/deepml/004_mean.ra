@@ -1,0 +1,20 @@
+rem Deep-ML 4: Matrix Mean
+rem https://www.deep-ml.com/problems/4
+
+use algo
+use numbers
+use sequences
+
+fun matrix_mean A Mode
+  if Mode equal "row"
+    for Row in A
+      queue push Row sum / Row len
+    end
+  else
+    for Col in A axis 1 rank 1
+      queue push Col sum / Col len
+    end
+  end
+
+  return queue
+end
