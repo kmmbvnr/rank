@@ -1,0 +1,51 @@
+use testing
+
+test "official example"
+  use "011_jacobi"
+  A = array shape 3 3
+    5 -2 3
+    -3 9 1
+    2 -1 -7
+  end
+  B = array -1 2 3
+  Expected = array 0.146 0.2032 -0.5175
+
+  A B 2 jacobi equal Expected
+end
+
+test "diagonal system in one iteration"
+  use "011_jacobi"
+  A = array shape 2 2
+    2 0
+    0 4
+  end
+  B = array 6 8
+
+  A B 1 jacobi equal array 3.0 2.0
+end
+
+test "zero iterations preserve the initial guess"
+  use "011_jacobi"
+  A = array shape 2 2
+    2 1
+    1 2
+  end
+  B = array 1 1
+
+  A B 0 jacobi equal array 0.0 0.0
+end
+
+test "matrix and vector dimensions must match"
+  use "011_jacobi"
+  A = array shape 2 3 pad 1
+  B = array 1 2
+  Raised = false
+
+  try
+    Result = A B 1 jacobi
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
