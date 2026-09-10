@@ -1,3 +1,4 @@
+import { bitsModule } from './bits.js';
 import { cryptoModule } from './crypto.js';
 import { ioModule } from './io.js';
 import { numbersModule } from './numbers.js';
@@ -7,6 +8,7 @@ import type { RuntimeModule } from './types.js';
 
 export const standardModules: Record<string, RuntimeModule> = {
     algo: {},
+    bits: bitsModule,
     cli: {},
     crypto: cryptoModule,
     io: ioModule,

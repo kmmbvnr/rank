@@ -1,0 +1,140 @@
+rem Advent of Code 2015 - Day 7
+rem Some Assembly Required
+rem https://adventofcode.com/2015/day/7
+
+use io
+use cli
+use algo
+use bits
+use text
+use sequences
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+
+Part1 print
+Part2 print
+
+
+rem Evaluate a twice. For Part 2, replace
+rem b with the first signal.
+fun solve Lines
+  Part1 = Lines "a" (-1) circuit
+  Part2 = Lines "a" Part1 circuit
+  return array Part1 Part2
+end
+
+
+rem Resolve Target by repeatedly evaluating
+rem instructions with ready inputs.
+fun circuit Lines Target Override
+  if Override at least 0
+    index "b" = Override 65535 band
+  end
+
+  Pattern = "/text -> /word"
+
+  for not (Target in index)
+    Progress = false
+
+    for Line in Lines
+      Rule = Line Pattern parse
+      Expression Dest = Rule
+
+      if not (Dest in index)
+        Terms = Expression " " split
+        Computed = false
+
+        if Terms len equal 1
+          A = Terms 0
+
+          if A index ready
+            Value = A index signal
+            Computed = true
+          end
+        else
+          if Terms len equal 2
+            A = Terms 1
+
+            Ready = A index ready
+
+            if Terms 0 equal "NOT" and Ready
+              Signal = A index signal
+              Value = Signal bnot
+              Computed = true
+            end
+          else
+            if Terms len equal 3
+              A = Terms 0
+              Op = Terms 1
+              B = Terms 2
+              LeftReady = A index ready
+              RightReady = B index ready
+
+              if LeftReady and RightReady
+                Left = A index signal
+                Right = B index signal
+                Value = Op Left Right operate
+                Computed = true
+              end
+            end
+          end
+        end
+
+        if Computed
+          index Dest = Value 65535 band
+          Progress = true
+        end
+      end
+    end
+
+    if not Progress
+      .InvalidCircuit Target raise
+    end
+  end
+
+  return index Target
+end
+
+
+rem Return true for a decimal literal or a
+rem resolved wire.
+fun ready Token Wires
+  try
+    Token integer
+    return true
+  catch .InvalidNumber Error
+    return Token in Wires
+  end
+end
+
+
+rem Read a decimal literal or wire signal.
+fun signal Token Wires
+  try
+    return Token integer
+  catch .InvalidNumber Error
+    return Wires Token
+  end
+end
+
+
+rem Apply one binary circuit operation.
+fun operate Op Left Right
+  if Op equal "AND"
+    return Left Right band
+  end
+  if Op equal "OR"
+    return Left Right bor
+  end
+  if Op equal "LSHIFT"
+    return Left Right shl
+  end
+  if Op equal "RSHIFT"
+    return Left Right shr
+  end
+
+  .InvalidCircuit Op raise
+end

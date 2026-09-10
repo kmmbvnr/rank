@@ -359,6 +359,7 @@ A bare module name opens standard-library vocabulary in the current workspace:
 
 ```rank
 use numbers
+use bits
 use ranges
 ```
 
@@ -2127,6 +2128,34 @@ Left = A B max
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
+
+## Bits
+
+`use bits` provides bitwise operations over arbitrary-precision integers:
+
+```rank
+A B band
+A B bor
+A B bxor
+A bnot
+A N shl
+A N shr
+A N bit
+A popcount
+```
+
+`bnot` follows infinite two's-complement semantics, so `A bnot` equals
+`-A - 1`. Fixed-width code makes its width explicit with a mask:
+
+```rank
+Word = Value bnot 65535 band
+```
+
+Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
+`bit` tests a zero-based position and returns a boolean. `popcount` returns the
+number of set bits. `bit` and `popcount` require a nonnegative input value.
+The module does not introduce a separate bit-mask type: bit masks are ordinary
+integers and remain distinct from boolean array masks.
 
 ## Sequences
 

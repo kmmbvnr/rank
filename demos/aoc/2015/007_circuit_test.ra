@@ -1,0 +1,48 @@
+use testing
+
+test "official circuit signals"
+  use "007_circuit"
+
+  Lines = array shape 8
+    "123 -> x"
+    "456 -> y"
+    "x AND y -> d"
+    "x OR y -> e"
+    "x LSHIFT 2 -> f"
+    "y RSHIFT 2 -> g"
+    "NOT x -> h"
+    "NOT y -> i"
+  end
+
+  Lines "d" (-1) circuit equal 72
+  Lines "e" (-1) circuit equal 507
+  Lines "f" (-1) circuit equal 492
+  Lines "g" (-1) circuit equal 114
+  Lines "h" (-1) circuit equal 65412
+  Lines "i" (-1) circuit equal 65079
+  Lines "x" (-1) circuit equal 123
+  Lines "y" (-1) circuit equal 456
+end
+
+test "part 2 replaces b"
+  use "007_circuit"
+
+  Lines = array shape 2
+    "1 -> b"
+    "b LSHIFT 1 -> a"
+  end
+  Answer = Lines solve
+  Answer equal array 2 4
+end
+
+test "out of order instructions"
+  use "007_circuit"
+
+  Lines = array shape 3
+    "x OR y -> a"
+    "7 -> y"
+    "5 -> x"
+  end
+  Answer = Lines "a" (-1) circuit
+  Answer equal 7
+end

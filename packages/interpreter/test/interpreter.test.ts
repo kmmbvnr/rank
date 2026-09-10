@@ -1056,6 +1056,23 @@ describe('Rank interpreter', () => {
         expect(run('use numbers\noption Rate real = 1.5\nRate')).toBe('1.5');
     });
 
+    it('operates on arbitrary-precision integer bits', () => {
+        expect(run('use bits\n123 456 band')).toBe('72');
+        expect(run('use bits\n123 456 bor')).toBe('507');
+        expect(run('use bits\n123 456 bxor')).toBe('435');
+        expect(run('use bits\n123 bnot')).toBe('-124');
+        expect(run('use bits\n1 12 shl')).toBe('4096');
+        expect(run('use bits\n4096 4 shr')).toBe('256');
+        expect(run('use bits\n13 2 bit')).toBe('true');
+        expect(run('use bits\n13 popcount')).toBe('3');
+        expect(run('use bits\n(array 0 1) bnot')).toBe('-1 -2');
+        expect(() => run('use bits\n1 (-1) shl'))
+            .toThrowError('shift count must be nonnegative');
+        expect(() => run('use bits\n-1 popcount'))
+            .toThrowError('popcount expects a nonnegative integer');
+        expect(() => run('1 2 band')).toThrowError('unknown name: band');
+    });
+
     it('calls operations after their data', () => {
         expect(run('use numbers\n54 24 gcd')).toBe('6');
         expect(run('use numbers\n8 12 lcm')).toBe('24');
