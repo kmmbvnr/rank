@@ -154,7 +154,7 @@ ComparisonExpression returns Expression:
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
-    'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in';
+    'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in' | 'is';
 
 PaddingExpression returns Expression:
     RangeExpression
@@ -220,7 +220,7 @@ BooleanValue returns boolean:
     'true' | 'false';
 
 LabelLiteral:
-    '.' name=Identifier;
+    '.' name=(Identifier | 'array');
 
 NameExpression:
     name=ReferenceName;

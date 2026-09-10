@@ -20,12 +20,10 @@ export const ioModule: RuntimeModule = {
         return arguments_[0];
     }),
     read: context => native('read', 1, arguments_ => {
-        const path = expectPath(arguments_[0]);
-        return decodeUtf8(ioCall(path, () => host(context.io).read(path)));
+        return readTextFile(context.io, arguments_[0]);
     }),
     readlines: context => native('readlines', 1, arguments_ => {
-        const path = expectPath(arguments_[0]);
-        return lines(decodeUtf8(ioCall(path, () => host(context.io).read(path))));
+        return lines(readTextFile(context.io, arguments_[0]));
     }),
     write: context => native('write', 2, arguments_ => {
         const text = expectText(arguments_[0], 'write');
@@ -102,6 +100,11 @@ export function closeFile(file: RankFile): void {
     if (file.closed) return;
     ioCall(file.handle.name, () => file.handle.close());
     file.closed = true;
+}
+
+export function readTextFile(io: RankIo | undefined, value: RankValue): string {
+    const path = expectPath(value);
+    return decodeUtf8(ioCall(path, () => host(io).read(path)));
 }
 
 function host(io: RankIo | undefined): RankIo {

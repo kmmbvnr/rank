@@ -1,0 +1,78 @@
+rem Advent of Code 2015 — Day 12
+rem JSAbacusFramework.io
+rem https://adventofcode.com/2015/day/12
+
+use io
+use cli
+use json
+
+argument Input path
+
+Part1 Part2 = Input solve
+Part1 print
+Part2 print
+
+
+rem Decode the document and calculate both puzzle sums.
+fun solve Path
+  Data = Path json
+  return array (Data sumall) (Data sumnored)
+end
+
+
+rem Sum every numeric value nested in arrays and objects.
+fun sumall Value
+  if Value is .integer
+    return Value
+  end
+  if Value is .real
+    return Value
+  end
+
+  Total = 0.0
+  if Value is .array
+    for Item in Value
+      Total += Item sumall
+    end
+  end
+  if Value is .object
+    for Item Key in Value
+      Total += Item sumall
+    end
+  end
+  return Total
+end
+
+
+rem Sum values except inside an object containing the text "red".
+fun sumnored Value
+  if Value is .integer
+    return Value
+  end
+  if Value is .real
+    return Value
+  end
+
+  if Value is .object
+    for Item Key in Value
+      if Item is .text
+        if Item equal "red"
+          return 0
+        end
+      end
+    end
+  end
+
+  Total = 0.0
+  if Value is .array
+    for Item in Value
+      Total += Item sumnored
+    end
+  end
+  if Value is .object
+    for Item Key in Value
+      Total += Item sumnored
+    end
+  end
+  return Total
+end

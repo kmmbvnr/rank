@@ -96,11 +96,22 @@ Count = 2
 rem Count = 2.0 is a type error
 ```
 
-Function parameters and loop bindings are inferred when their workspace is
-created. Arrays and other structures keep their outer type when their contents
-or shape change according to that structure's own rules. Explicit type
-annotations may be added later; inference is the only variable declaration
-mode today.
+Function parameters are inferred when their workspace is created. A loop over
+a finite heterogeneous collection infers one fixed union of its element types
+for the value binding. The binding does not change type between iterations:
+
+```rank
+for Value in Data
+  if Value is .integer
+    Total += Value
+  end
+end
+```
+
+`is` narrows the current value inside a branch. Arrays and other structures
+keep their outer type when their contents or shape change according to that
+structure's own rules. Explicit type annotations may be added later; inference
+is the only variable declaration mode today.
 
 Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
@@ -200,9 +211,14 @@ less
 greater
 at least
 at most
+is
 ```
 
 `at least` means `>=`; `at most` means `<=`.
+
+`Value type` returns a label such as `.integer`, `.text`, `.array` or
+`.object`. `Value is .integer` is the short boolean type guard. Its right side
+must be a known runtime type label.
 
 `in` tests membership. With text on both sides it performs an exact,
 case-sensitive substring search; the empty text occurs in every text value:

@@ -1,0 +1,23 @@
+use testing
+
+test "official array examples"
+  use "012_jsonsum"
+
+  (array 1 2 3) sumall equal 6
+  (array 1 (array 2 3)) sumall equal 6
+  (array 1 "red" 5) sumnored equal 6
+end
+
+test "red object is excluded"
+  use "012_jsonsum"
+
+  Result = "demos/aoc/2015/012_red.json" solve
+  Result equal array 15 0
+end
+
+test "red affects its object only"
+  use "012_jsonsum"
+
+  Result = "demos/aoc/2015/012_nested.json" solve
+  Result equal array 6 4
+end

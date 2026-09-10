@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-09**
+**Current language snapshot — 2026-09-10**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -168,11 +168,22 @@ Count = 2
 rem Count = 2.0 is a type error
 ```
 
-Function parameters and loop bindings are inferred when their workspace is
-created. Arrays and other structures keep their outer type when their contents
-or shape change according to that structure's own rules. Explicit type
-annotations may be added later; inference is the only variable declaration
-mode today.
+Function parameters are inferred when their workspace is created. A loop over
+a finite heterogeneous collection infers one fixed union of its element types
+for the value binding. The binding does not change type between iterations:
+
+```rank
+for Value in Data
+  if Value is .integer
+    Total += Value
+  end
+end
+```
+
+`is` narrows the current value inside a branch. Arrays and other structures
+keep their outer type when their contents or shape change according to that
+structure's own rules. Explicit type annotations may be added later; inference
+is the only variable declaration mode today.
 
 Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
@@ -272,9 +283,14 @@ less
 greater
 at least
 at most
+is
 ```
 
 `at least` means `>=`; `at most` means `<=`.
+
+`Value type` returns a label such as `.integer`, `.text`, `.array` or
+`.object`. `Value is .integer` is the short boolean type guard. Its right side
+must be a known runtime type label.
 
 `in` tests membership. With text on both sides it performs an exact,
 case-sensitive substring search; the empty text occurs in every text value:
@@ -2349,6 +2365,37 @@ Columns = M 3 window axis 1
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
 Only complete windows are produced.
 
+## JSON
+
+`use json` reads and decodes a complete JSON document in one operation:
+
+```rank
+Data = Path json
+```
+
+JSON integers become arbitrary-precision `integer` values. Decimal and
+exponent forms become `real`; strings and booleans become the corresponding
+Rank scalars; arrays become Rank arrays; objects become keyed `object` values;
+and JSON `null` becomes `.null`. Invalid input raises `.InvalidJson`, while file
+and UTF-8 failures keep their ordinary I/O error kinds.
+
+Object addressing follows the common data-first addressing model. Membership
+tests keys, `len` counts entries, and iteration yields each value followed by
+its text key:
+
+```rank
+Name = Data "name"
+HasName = "name" in Data
+
+for Value Key in Data
+  Key print
+end
+```
+
+Object entry order follows the source document. Values may be heterogeneous,
+so the loop value binding receives an inferred union type and can be narrowed
+with `is`.
+
 ## Cryptography
 
 `use crypto` provides hash and related byte operations. `md5` hashes the UTF-8
@@ -3258,151 +3305,3 @@ syntactic stutter while preserving the first-class nature of masks:
 - They still participate in explicit addressing: `Selected = Fib Mask`.
 
 ---
-
-# Open questions
-
-These are active design questions, not alternate historical syntaxes.
-
-## `each` and `rank 0`
-
-`each` is reserved as the readable spelling of rank-0 application. It is not
-yet settled whether it is an exact alias for `rank 0` for text, tables and
-nested values, or whether those value models need a distinct rule.
-
-## Argument expansion
-
-Vararg declarations currently use `*`, but the data-first call-site spelling
-for expanding a sequence into arguments is not yet fixed. The former prefix
-sketch `lcm * Range` is not current syntax.
-
-## Multi-argument method blocks
-
-The earlier `with ... end` form for supplying two or more method arguments is
-disputed. `with` is not reserved as current syntax. A replacement should wait
-for the first real multi-argument method and must remain distinguishable from a
-method with no arguments followed by ordinary statements.
-
-## Compound conditions in table source clauses
-
-Multiple condition lines in a table source clause currently mean implicit AND.
-
-The exact interaction between that implicit AND and explicit `or` is not yet
-fixed. Complex OR expressions should currently be expressed with first-class
-boolean masks where their semantics are unambiguous.
-
-## Negative indexing
-
-`pad` is cleanest if out-of-range coordinates are truly absent. Python-style
-negative indexing conflicts with expressions such as:
-
-```rank
-A -1 pad 0
-```
-
-Current addressing rejects negative indices, including when followed by `pad`.
-The spelling of explicit operations such as `A last` is not yet fixed.
-
-## Extended window geometry
-
-The current `window` operation moves by one element and produces only complete
-contiguous cells. Future examples may justify three independent extensions:
-
-- `by` to move the window by a larger stride;
-- padding and a boundary-value policy for positions near tensor edges;
-- dilation to leave gaps between values inside a window.
-
-No syntax is reserved for these extensions yet. They must remain distinct:
-stride moves a window, padding changes its valid position frame, and dilation
-changes the geometry inside each cell.
-
-## Reusable operation plans
-
-Source-bound masks and window results are already lazy values. A separate
-future feature could store an operation before it receives its source:
-
-```rank
-Even = even
-Window13 = 13 window
-
-Answer = Fib Even sum
-Windows = Digits Window13
-```
-
-This requires one general design for functions as values and partial
-application. It must not be a special case for `even` or `window`. These
-spellings are illustrative and are not current syntax.
-
-## Join variants
-
-The compact form:
-
-```rank
-A B join
-```
-
-is current, but exact rules for:
-- inner/left/right/full joins;
-- key inference;
-- duplicate column names
-
-still need specification.
-
-## Stack / combine
-
-Rank still needs a final name and exact semantics for combining unequal arrays
-into a higher-rank rectangular value with padding.
-
-`mix` was rejected as a user-facing name. `stack` is a candidate but is not yet
-fixed.
-
-## Missing values
-
-`pad` is the current common mechanism for absent data.
-
-Statistical reductions over table columns are expected to skip missing values by
-default, but the exact generic missing-value policy still needs a formal spec.
-
-## Optional results and `maybe`
-
-A future operation modifier such as `maybe` could turn an expected failure
-into an optional value instead of unwinding to `catch`:
-
-```rank
-Parsed = Text integer maybe
-Value = Parsed pad 0
-```
-
-This should be reconsidered after Rank has a first-class `missing` or optional
-type. Open questions include whether `maybe` changes the result type, how
-optional atoms behave in arrays and tables, and whether every operation may use
-the modifier or only operations that declare an expected failure.
-
-## Resumable errors and interactive repair
-
-Rank may later add a Common Lisp-style condition and restart layer above
-`try / catch`. In the interpreter or debugger, an error could suspend at its
-origin and offer operations such as:
-
-- replace the offending value and retry the operation;
-- supply a result and continue after the operation;
-- retry a containing function;
-- edit the source file, reload the affected code and continue the current run.
-
-This is intended as an interactive usability feature rather than ordinary
-program control flow. Its design must define continuation capture, stack-frame
-state, already-performed side effects, lazy sequence demand, changed function
-definitions and source locations before any syntax is reserved.
-
-## ML library boundary
-
-`logistic`, `linear` and `cnn` have appeared in Kaggle sketches as placeholders.
-
-The current design goal is to implement logistic regression in Rank itself,
-using general tensor and reduction primitives, before deciding what belongs in
-`use ml`.
-
-## NLP preprocessing
-
-`vocab` and `tfidf` were useful in the Disaster Tweets sketch, but it is not yet
-decided whether they should be standard library words or examples implemented
-from more primitive operations.

@@ -58,6 +58,7 @@ import {
     isRankFile,
     isRankIndex,
     isRankLabel,
+    isRankObject,
     isRankQueue,
     isRankSet,
     isRankSequence,
@@ -131,6 +132,14 @@ const raiseFunction: NativeFunction = {
     },
 };
 
+const typeFunction: NativeFunction = {
+    kind: 'function',
+    name: 'type',
+    arities: [1],
+    monadicRank: 'all',
+    call: arguments_ => ({ kind: 'label', name: typeName(arguments_[0]) }),
+};
+
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
     readonly modules = new Set<string>();
@@ -143,6 +152,8 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly localScopes: Map<string, RankValue>[] = [];
+    private readonly variableTypes = new Map<string, ReadonlySet<string>>();
+    private readonly localTypeScopes: Map<string, ReadonlySet<string>>[] = [];
     private readonly resourceScopes: Set<RankFile>[] = [];
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
@@ -608,8 +619,13 @@ export class Interpreter {
         }
         return this.withResourceScope(() => {
             const scope = new Map<string, RankValue>();
-            statement.parameters.forEach((parameter, index) => scope.set(parameter, arguments_[index]));
+            const typeScope = new Map<string, ReadonlySet<string>>();
+            statement.parameters.forEach((parameter, index) => {
+                scope.set(parameter, arguments_[index]);
+                typeScope.set(parameter, new Set([typeName(arguments_[index])]));
+            });
             this.localScopes.push(scope);
+            this.localTypeScopes.push(typeScope);
             try {
                 this.executeStatements(statement.statements);
             } catch (error) {
@@ -617,6 +633,7 @@ export class Interpreter {
                 throw error;
             } finally {
                 this.localScopes.pop();
+                this.localTypeScopes.pop();
             }
             throw new RankError(`function ${statement.name} reached end without return`);
         });
@@ -846,6 +863,7 @@ export class Interpreter {
         if (name === 'queue') return this.localQueue();
         if (name === 'set') return this.localSet();
         if (name === 'raise') return raiseFunction;
+        if (name === 'type') return typeFunction;
 
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
@@ -880,13 +898,18 @@ export class Interpreter {
         const qualified = splitQualified(name);
         if (!qualified) {
             const scope = this.localScopes.at(-1) ?? this.variables;
+            const typeScope = this.localTypeScopes.at(-1) ?? this.variableTypes;
             const previous = scope.get(name);
-            if (previous !== undefined && typeName(previous) !== typeName(value)) {
+            const expected = typeScope.get(name)
+                ?? (previous === undefined ? undefined : new Set([typeName(previous)]));
+            const received = typeName(value);
+            if (expected !== undefined && !expected.has(received)) {
                 throw new RankError(
-                    `${name} has type ${typeName(previous)} and cannot receive ${typeName(value)}`,
+                    `${name} has type ${formatTypes(expected)} and cannot receive ${received}`,
                 );
             }
             scope.set(name, value);
+            typeScope.set(name, expected ?? new Set([received]));
             return;
         }
         const [alias, member] = qualified;
@@ -1048,6 +1071,15 @@ export class Interpreter {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if (operator === 'is') {
+            if (!isRankLabel(right)) {
+                throw new RankError('is expects a type label on the right');
+            }
+            if (!RUNTIME_TYPE_NAMES.has(right.name)) {
+                throw new RankError(`unknown type label: .${right.name}`);
+            }
+            return typeName(left) === right.name;
+        }
         if (operator === '+' && typeof left === 'string' && typeof right === 'string') {
             return left + right;
         }
@@ -1074,9 +1106,12 @@ export class Interpreter {
             if (typeof left === 'string' && typeof right === 'string') {
                 return right.includes(left);
             }
+            if (isRankObject(right) && typeof left === 'string') {
+                return right.entries.has(left);
+            }
             if (isRankIndex(right)) return right.entries.has(indexKey([left]));
             if (isRankSet(right)) return right.entries.has(setValueKey(left));
-            throw new RankError('in expects text, an index or set on the right');
+            throw new RankError('in expects text, an object, index or set on the right');
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {
@@ -1172,23 +1207,71 @@ export class Interpreter {
             if (!isRankArray(value)) throw new RankError('ranked for iteration expects an array');
             const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
             validateForBindings(binding.names, frameAxes.length);
+            this.declareLoopTypes(binding.names, [
+                spec.cellRank === 0 ? typesOf(value.items) : new Set(['array']),
+                ...frameAxes.map(() => new Set(['integer'])),
+            ]);
             yield* tensorEntries(value, frameAxes);
             return;
         }
 
         const value = this.evaluate(binding.iterable);
+        if (isRankObject(value)) {
+            validateForBindings(binding.names, 1);
+            this.declareLoopTypes(binding.names, [
+                typesOf(value.entries.values()),
+                new Set(['text']),
+            ]);
+            for (const [key, item] of value.entries) {
+                yield { value: item, indices: [key] };
+            }
+            return;
+        }
         if (isRankArray(value) && value.shape.length > 1) {
             validateForBindings(binding.names, 1);
+            this.declareLoopTypes(binding.names, [new Set(['array']), new Set(['integer'])]);
             yield* tensorEntries(value, [0]);
             return;
         }
 
         validateForBindings(binding.names, 1);
+        if (isRankArray(value)) {
+            this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
+        } else if (isRankQueue(value)) {
+            this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
+        } else if (isRankSet(value)) {
+            this.declareLoopTypes(binding.names, [
+                typesOf(value.entries.values()),
+                new Set(['integer']),
+            ]);
+        } else if (typeof value === 'string') {
+            this.declareLoopTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
+        }
         let index = 0n;
         for (const item of iterationValues(value)) {
             yield { value: item, indices: [index] };
             index += 1n;
         }
+    }
+
+    private declareLoopTypes(
+        names: readonly string[],
+        candidates: readonly ReadonlySet<string>[],
+    ): void {
+        const scope = this.localScopes.at(-1) ?? this.variables;
+        const typeScope = this.localTypeScopes.at(-1) ?? this.variableTypes;
+        names.forEach((name, index) => {
+            const inferred = candidates[index];
+            if (!inferred || inferred.size === 0) return;
+            const previous = typeScope.get(name)
+                ?? (scope.has(name) ? new Set([typeName(scope.get(name)!)]) : undefined);
+            if (previous && [...inferred].some(type => !previous.has(type))) {
+                throw new RankError(
+                    `${name} has type ${formatTypes(previous)} and cannot receive ${formatTypes(inferred)}`,
+                );
+            }
+            typeScope.set(name, previous ?? inferred);
+        });
     }
 
     private requireModule(module: string, operation: string): void {
@@ -1210,7 +1293,7 @@ interface ForBinding {
 
 interface ForEntry {
     readonly value: RankValue;
-    readonly indices: readonly bigint[];
+    readonly indices: readonly RankValue[];
 }
 
 interface TensorIterationSpec {
@@ -1575,6 +1658,14 @@ function applySelectors(values: RankValue[]): RankValue {
         if (value === undefined) throw new MissingValueError('missing keyed value');
         return value;
     }
+    if (isRankObject(values[0])) {
+        if (values.length !== 2 || typeof values[1] !== 'string') {
+            throw new RankError('object addressing expects one text key');
+        }
+        const value = values[0].entries.get(values[1]);
+        if (value === undefined) throw new MissingValueError(`missing object key: ${values[1]}`);
+        return value;
+    }
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
         const position = values[1];
         if (position < 0n) throw new RankError('queue index must be nonnegative');
@@ -1659,6 +1750,8 @@ function canApplySelectors(values: RankValue[]): boolean {
     }
     if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
     if (isRankIndex(values[0]) && values.length > 1) return true;
+    if (isRankObject(values[0]) && values.length === 2
+        && typeof values[1] === 'string') return true;
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') return true;
     if (isRankQueue(values[0]) && isIntegerCollectionSelector(values[1])) return true;
     if (isRankArray(values[0]) && values.length > 1
@@ -2112,10 +2205,35 @@ function equalValues(left: RankValue, right: RankValue): boolean {
 function typeName(value: RankValue): string {
     if (typeof value === 'number') return 'real';
     if (typeof value === 'bigint') return 'integer';
-    if (typeof value !== 'object') {
-        return typeof value;
-    }
+    if (typeof value === 'string') return 'text';
+    if (typeof value !== 'object') return typeof value;
     return value.kind;
+}
+
+const RUNTIME_TYPE_NAMES = new Set([
+    'integer',
+    'real',
+    'boolean',
+    'text',
+    'array',
+    'bytes',
+    'label',
+    'object',
+    'file',
+    'error',
+    'index',
+    'queue',
+    'set',
+    'function',
+    'sequence',
+]);
+
+function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
+    return new Set([...values].map(typeName));
+}
+
+function formatTypes(types: ReadonlySet<string>): string {
+    return [...types].sort().join(' or ');
 }
 
 function containedFiles(value: RankValue | undefined): Set<RankFile> {
@@ -2129,7 +2247,7 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             files.add(item);
         } else if (isRankArray(item) || isRankQueue(item)) {
             item.items.forEach(visit);
-        } else if (isRankIndex(item) || isRankSet(item)) {
+        } else if (isRankIndex(item) || isRankSet(item) || isRankObject(item)) {
             item.entries.forEach(visit);
         } else if (isRankErrorValue(item)) {
             visit(item.value);

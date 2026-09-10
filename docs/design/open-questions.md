@@ -2,6 +2,25 @@
 
 These are active design questions, not alternate historical syntaxes.
 
+## Pattern matching
+
+`match / case` is a candidate for readable branching over labels, union types
+and structured values. It appears in many modern languages and could make
+exhaustive handling clearer than a long chain of type guards:
+
+```rank
+match Value
+  case .integer
+    Total += Value
+  case .text
+    Value print
+end
+```
+
+This is not current syntax. The design still needs to settle value binding,
+guards, destructuring, a default case and whether the interpreter checks that
+all members of an inferred union are covered.
+
 ## `each` and `rank 0`
 
 `each` is reserved as the readable spelling of rank-0 application. It is not

@@ -40,6 +40,17 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('parses a runtime type guard', async () => {
+        const document = await parse([
+            'if Value is .integer',
+            '  Answer = Value + 1',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
+
     it('parses real and floor division expressions', async () => {
         const document = await parse('Mean = 5 / 2.0\nPage = 5 // 2\nPage //= 2');
         expect(document.parseResult.lexerErrors).toEqual([]);

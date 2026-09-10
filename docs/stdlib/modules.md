@@ -283,6 +283,37 @@ Columns = M 3 window axis 1
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
 Only complete windows are produced.
 
+## JSON
+
+`use json` reads and decodes a complete JSON document in one operation:
+
+```rank
+Data = Path json
+```
+
+JSON integers become arbitrary-precision `integer` values. Decimal and
+exponent forms become `real`; strings and booleans become the corresponding
+Rank scalars; arrays become Rank arrays; objects become keyed `object` values;
+and JSON `null` becomes `.null`. Invalid input raises `.InvalidJson`, while file
+and UTF-8 failures keep their ordinary I/O error kinds.
+
+Object addressing follows the common data-first addressing model. Membership
+tests keys, `len` counts entries, and iteration yields each value followed by
+its text key:
+
+```rank
+Name = Data "name"
+HasName = "name" in Data
+
+for Value Key in Data
+  Key print
+end
+```
+
+Object entry order follows the source document. Values may be heterogeneous,
+so the loop value binding receives an inferred union type and can be narrowed
+with `is`.
+
 ## Cryptography
 
 `use crypto` provides hash and related byte operations. `md5` hashes the UTF-8

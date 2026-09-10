@@ -62,6 +62,11 @@ export interface RankSet {
     readonly entries: Map<string, RankValue>;
 }
 
+export interface RankObject {
+    readonly kind: 'object';
+    readonly entries: Map<string, RankValue>;
+}
+
 export interface NativeFunction {
     readonly kind: 'function';
     readonly name: string;
@@ -106,7 +111,7 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | NativeFunction |
+    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankObject | NativeFunction |
     RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -143,6 +148,10 @@ export function isRankQueue(value: RankValue): value is RankQueue {
 
 export function isRankSet(value: RankValue): value is RankSet {
     return typeof value === 'object' && value.kind === 'set';
+}
+
+export function isRankObject(value: RankValue): value is RankObject {
+    return typeof value === 'object' && value.kind === 'object';
 }
 
 export function isRankSequence(value: RankValue): value is RankSequence {
@@ -191,6 +200,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'set') {
         return '<set>';
+    }
+    if (value.kind === 'object') {
+        return '<object>';
     }
     if (isRankSequenceMask(value)) {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;

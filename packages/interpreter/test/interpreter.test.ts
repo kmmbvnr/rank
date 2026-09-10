@@ -139,7 +139,7 @@ describe('Rank interpreter', () => {
 
     it('concatenates text with addition', () => {
         expect(run('"Rank" + " language"')).toBe('Rank language');
-        expect(() => run('"Rank" + 1')).toThrowError('expected number, got string');
+        expect(() => run('"Rank" + 1')).toThrowError('expected number, got text');
     });
 
     it('raises numbers and collections to powers', () => {
@@ -206,6 +206,43 @@ describe('Rank interpreter', () => {
             .toThrowError('Value has type integer and cannot receive real');
         expect(() => run('Value = 1\nValue /= 2'))
             .toThrowError('Value has type integer and cannot receive real');
+    });
+
+    it('exposes runtime types and narrows inferred union values with is', () => {
+        expect(run('42 type')).toBe('.integer');
+        expect(run('"Rank" type')).toBe('.text');
+        expect(run('(array 1 2) type')).toBe('.array');
+        expect(run('42 is .integer')).toBe('true');
+        expect(run('42 is .real')).toBe('false');
+        expect(run([
+            'Values = array 1 "two" true',
+            'Result = ""',
+            'for Value i in Values',
+            '  if Value is .integer',
+            '    Result += "i"',
+            '  end',
+            '  if Value is .text',
+            '    Result += "t"',
+            '  end',
+            '  if Value is .boolean',
+            '    Result += "b"',
+            '  end',
+            'end',
+            'Result',
+        ].join('\n'))).toBe('itb');
+        expect(() => run([
+            'Values = array 1 "two"',
+            'for Value in Values',
+            '  Value = Value',
+            'end',
+            'Value = true',
+        ].join('\n'))).toThrowError(
+            'Value has type integer or text and cannot receive boolean',
+        );
+        expect(() => run('42 is "integer"'))
+            .toThrowError('is expects a type label on the right');
+        expect(() => run('42 is .number'))
+            .toThrowError('unknown type label: .number');
     });
 
     it('loads vocabulary without changing the grammar', () => {
@@ -1206,6 +1243,60 @@ describe('Rank interpreter', () => {
         expect(interpreter.variables.get('Text')).toBe('one\r\ntwo\n');
         expect(formatValue(interpreter.variables.get('Lines')!)).toBe('one two');
         expect(new TextDecoder().decode(io.files.get('/output'))).toBe('start end');
+    });
+
+    it('reads JSON values with exact integers and keyed objects', () => {
+        const io = new MemoryIo({
+            '/data.json': '{"huge":9007199254740993,"real":-2.5,"text":"A\\uD83D\\uDE00","flag":true,"nothing":null,"items":[1,2]}',
+        });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use json',
+            'use sequences',
+            'Data = "/data.json" json',
+            'Huge = Data "huge"',
+            'Real = Data "real"',
+            'Text = Data "text"',
+            'Flag = Data "flag"',
+            'Nothing = Data "nothing"',
+            'Items = Data "items"',
+            'RootType = Data type',
+            'ItemsType = Items type',
+            'NothingType = Nothing type',
+            'HasHuge = "huge" in Data',
+            'Count = Data len',
+            'Keys = Data keys',
+            '',
+            'fun keys Object',
+            '  Result = ""',
+            '  for Value Key in Object',
+            '    Result += Key',
+            '  end',
+            '  return Result',
+            'end',
+        ].join('\n'));
+
+        expect(interpreter.variables.get('Huge')).toBe(9007199254740993n);
+        expect(interpreter.variables.get('Real')).toBe(-2.5);
+        expect(interpreter.variables.get('Text')).toBe('A😀');
+        expect(interpreter.variables.get('Flag')).toBe(true);
+        expect(interpreter.variables.get('Nothing')).toEqual({ kind: 'label', name: 'null' });
+        expect(interpreter.variables.get('RootType')).toEqual({ kind: 'label', name: 'object' });
+        expect(interpreter.variables.get('ItemsType')).toEqual({ kind: 'label', name: 'array' });
+        expect(interpreter.variables.get('NothingType')).toEqual({ kind: 'label', name: 'label' });
+        expect(interpreter.variables.get('HasHuge')).toBe(true);
+        expect(interpreter.variables.get('Count')).toBe(6n);
+        expect(interpreter.variables.get('Keys'))
+            .toBe('hugerealtextflagnothingitems');
+    });
+
+    it('reports invalid JSON separately from IO errors', () => {
+        const io = new MemoryIo({ '/bad.json': '{"value":]' });
+        const interpreter = new Interpreter(undefined, { io });
+        expect(() => interpreter.execute('use json\n"/bad.json" json'))
+            .toThrowError('invalid JSON: expected a JSON value at position 9');
+        expect(() => interpreter.execute('use json\n"/missing.json" json'))
+            .toThrowError('/missing.json: file does not exist');
     });
 
     it('reads byte ranges and seeks open files', () => {
