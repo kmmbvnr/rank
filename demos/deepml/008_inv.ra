@@ -1,0 +1,31 @@
+rem Deep-ML 8: 2x2 Matrix Inverse
+rem https://www.deep-ml.com/problems/8
+
+use numbers
+use sequences
+
+rem Return the inverse of a 2 by 2 matrix.
+fun inverse_2x2 A
+  Rows = A len axis 0
+  Cols = A len axis 1
+  if Rows not equal 2 or Cols not equal 2
+    .DimensionMismatch raise
+  end
+
+  P = A 0 0
+  Q = A 0 1
+  R = A 1 0
+  S = A 1 1
+  D = P * S - Q * R
+
+  if D equal 0
+    .SingularMatrix raise
+  end
+
+  Result = array shape 2 2 pad 0.0
+  Result 0 0 = S / D
+  Result 0 1 = -Q / D
+  Result 1 0 = -R / D
+  Result 1 1 = P / D
+  return Result
+end

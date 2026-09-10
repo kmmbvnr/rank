@@ -1,0 +1,60 @@
+use testing
+
+test "official example"
+  use "008_inv"
+  A = array shape 2 2
+    4 7
+    2 6
+  end
+  Expected = array shape 2 2
+    0.6 -0.7
+    -0.2 0.4
+  end
+
+  A inverse_2x2 equal Expected
+end
+
+test "identity is its own inverse"
+  use "008_inv"
+  A = array shape 2 2
+    1 0
+    0 1
+  end
+  Expected = array shape 2 2
+    1.0 0.0
+    0.0 1.0
+  end
+
+  A inverse_2x2 equal Expected
+end
+
+test "singular matrix"
+  use "008_inv"
+  A = array shape 2 2
+    1 2
+    2 4
+  end
+  Raised = false
+
+  try
+    Result = A inverse_2x2
+  catch .SingularMatrix Error
+    Raised = true
+  end
+
+  Raised
+end
+
+test "matrix must be 2 by 2"
+  use "008_inv"
+  A = array shape 2 3 pad 1
+  Raised = false
+
+  try
+    Result = A inverse_2x2
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
