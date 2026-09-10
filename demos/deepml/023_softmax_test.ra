@@ -1,0 +1,31 @@
+use testing
+
+test "official increasing scores"
+  use "023_softmax"
+  use numbers
+  Scores = array 1 2 3
+  Expected = array 0.09 0.2447 0.6652
+  Result = Scores softmax
+  Result round 4 equal Expected
+end
+
+test "official equal scores"
+  use "023_softmax"
+  use numbers
+  Scores = array 1 1 1
+  Expected = array 0.3333 0.3333 0.3333
+  Result = Scores softmax
+  Result round 4 equal Expected
+end
+
+test "large scores remain finite"
+  use "023_softmax"
+  use numbers
+  Scores = array 1000 1001 1002
+  Expected = array 0.09 0.2447 0.6652
+  Result = Scores softmax
+  Total = Result sum
+
+  Result round 4 equal Expected
+  Total round 10 equal 1.0
+end
