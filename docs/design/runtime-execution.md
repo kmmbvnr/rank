@@ -46,6 +46,21 @@ Nested bodies are prepared lazily, so an unreached command does not fail early.
 The shared stream schedules these handlers and retains one implementation of
 `try`, `catch`, `finally`, loops and control transfer. A bytecode VM is not implemented.
 
+## Immediate evaluation
+
+An evaluation returns either a completed value or a suspended execution task.
+Blocks execute completed commands in a synchronous loop, preparing each command
+only when reached. The first suspension creates a continuation for the remaining
+commands. Simple applications can finish native calls and indexing immediately;
+the function value is still resolved on each execution. A function with a single
+direct return expression also uses a synchronous path, retaining argument checks,
+its lexical frame, the call-depth budget and resource ownership.
+
+All calls that can directly recurse still return tasks. No evaluation is replayed
+when switching paths. Generator commands remain deferred until iteration starts,
+even when those commands could otherwise complete immediately. Fast conditions
+and branches retain each invocation's loop, finally, generator and test context.
+
 ## Function call stack
 
 `execution.ts` drives suspended execution tasks with an explicit stack. A child
@@ -78,10 +93,10 @@ Regression tests cover a 100,000-level non-tail call and DFS on a chain of 100,0
 vertices, operand ordering, mutual recursion, closures, imported functions,
 generator resumption and cancellation, errors, and resource cleanup.
 
-On the development machine, this change increased the runtime benchmark's median
-from 31.0 to 70.4 ms for `tree` and from 8.9 to 13.1 ms for `total`. The explicit
-stack trades additional allocation and dispatch work for deeper recursion; these
-local measurements are not performance guarantees.
+The initial explicit-stack change increased the runtime benchmark's median from
+31.0 to 70.4 ms for `tree` and from 8.9 to 13.1 ms for `total`. Immediate evaluation
+removes scheduling for completed work; compare it against the pre-stack runtime
+using the same benchmark source and an optional interpreter module path.
 
 ## Resource scopes
 
@@ -100,10 +115,31 @@ npm run rank -- test demos
 node benchmarks/runtime.mjs
 ```
 
-Build before running the benchmark. It parses recursive and counted-loop functions
-once, warms them up, checks their results and reports the median of five runs.
+Build before running the benchmark. It covers recursion, counted and conditional
+loops, direct user-function calls, native calls, and array addressing. It parses
+the functions once, warms them up, checks their results and reports the median of five runs.
 Parsing and process startup are excluded. Timing is diagnostic, not a test
 threshold.
+
+To compare a separately built checkout with the same benchmark:
+
+```sh
+node benchmarks/runtime.mjs /path/to/checkout/packages/interpreter/out/index.js
+```
+
+Local medians in milliseconds, comparing the pre-stack commit `7fb9070` with
+immediate evaluation on the same machine:
+
+| Benchmark | Pre-stack | Immediate evaluation |
+|---|---:|---:|
+| `tree` | 31.5 | 37.9 |
+| `total` | 9.1 | 7.9 |
+| `calls` | 44.1 | 16.3 |
+| `nativecalls` | 15.0 | 13.4 |
+| `conditional` | 19.0 | 11.5 |
+| `addressing` | 18.9 | 14.5 |
+
+These measurements cover the named workloads, not every non-recursive program.
 
 On the development machine during this refactor, the recursive benchmark changed
 from approximately 85 ms to 35 ms. The current CSES 024 draft's official sample

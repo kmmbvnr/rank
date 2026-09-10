@@ -7,7 +7,32 @@ type Request = { readonly task: Execution<unknown> } | { readonly value: RankVal
 // through JavaScript's call stack. The result type is restored by resume().
 export type Execution<T> = Generator<Request, T, unknown>;
 
-export function* resume<T>(task: Execution<T>): Execution<T> {
+export interface Completed<T> {
+    readonly done: true;
+    readonly value: T;
+}
+
+export type Evaluation<T> = Execution<T> | Completed<T>;
+
+export function normalizeStackError(error: unknown): unknown {
+    return error instanceof RangeError && error.message.includes('call stack')
+        ? new RankError('nested host callbacks exceeded the JavaScript stack', 'RecursionLimit')
+        : error;
+}
+
+export function completed<T>(value: T): Completed<T> {
+    return { done: true, value };
+}
+
+export function mapResult<T, R>(task: Evaluation<T>, operation: (value: T) => R): Evaluation<R> {
+    if ('done' in task) return completed(operation(task.value));
+    return (function* (): Execution<R> {
+        return operation(yield* resume(task));
+    })();
+}
+
+export function* resume<T>(task: Evaluation<T>): Execution<T> {
+    if ('done' in task) return task.value;
     return (yield { task }) as T;
 }
 
@@ -17,7 +42,7 @@ export function* emit(value: RankValue): Execution<void> {
 
 export function* mapExecution<T, R>(
     values: readonly T[],
-    operation: (value: T) => Execution<R>,
+    operation: (value: T) => Evaluation<R>,
 ): Execution<R[]> {
     const results: R[] = [];
     for (const value of values) results.push(yield* resume(operation(value)));
@@ -35,8 +60,8 @@ interface Frame {
 export class ExecutionStack<T> implements Generator<RankValue, T, unknown> {
     private readonly stack: Frame[];
 
-    constructor(task: Execution<T>) {
-        this.stack = [{ task, returning: false }];
+    constructor(task: Evaluation<T>) {
+        this.stack = [{ task: 'done' in task ? resume(task) : task, returning: false }];
     }
 
     [Symbol.iterator](): Generator<RankValue, T, unknown> { return this; }
@@ -70,9 +95,7 @@ export class ExecutionStack<T> implements Generator<RankValue, T, unknown> {
                 // Lazy sequence/tensor callbacks use a synchronous host API.
                 // If those callbacks themselves nest, report the host boundary
                 // as a Rank error rather than leaking a JavaScript stack trace.
-                value = error instanceof RangeError && error.message.includes('call stack')
-                    ? new RankError('nested host callbacks exceeded the JavaScript stack', 'RecursionLimit')
-                    : error;
+                value = normalizeStackError(error);
                 continue;
             }
             if (result.done) {
@@ -92,7 +115,8 @@ export class ExecutionStack<T> implements Generator<RankValue, T, unknown> {
     }
 }
 
-export function runExecution<T>(task: Execution<T>): T {
+export function runExecution<T>(task: Evaluation<T>): T {
+    if ('done' in task) return task.value;
     const execution = new ExecutionStack(task);
     const result = execution.next();
     if (!result.done) {

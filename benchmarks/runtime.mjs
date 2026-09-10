@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
-import { Interpreter } from '../packages/interpreter/out/index.js';
+// An optional module path lets the same benchmark compare another checkout.
+const { Interpreter } = await import(process.argv[2] ?? '../packages/interpreter/out/index.js');
 
 // Parse once; measure repeated execution of the same function bodies.
 const runtime = new Interpreter();
 runtime.execute(`
 use ranges
+use numbers
 
 fun tree N
   if N equal 0
@@ -21,11 +23,56 @@ fun total N
   end
   return Sum
 end
+
+fun increment N
+  return N + 1
+end
+
+fun calls N
+  Sum = 0
+  for I in 0 until N
+    Sum += I increment
+  end
+  return Sum
+end
+
+fun nativecalls N
+  Sum = 0
+  for I in 0 until N
+    Sum += I abs
+  end
+  return Sum
+end
+
+fun conditional N
+  Sum = 0
+  I = 0
+  for I less N
+    if I % 2 equal 0
+      Sum += I
+    end
+    I += 1
+  end
+  return Sum
+end
+
+fun addressing N
+  Values = array 1 2 3 4
+  Sum = 0
+  for I in 0 until N
+    Sum += Values (I % 4)
+  end
+  return Sum
+end
 `);
 
 for (const [name, argument, expected, warmup] of [
   ['tree', 14n, 16384n, 10n],
   ['total', 50000n, 1249975000n, 1000n],
+  ['calls', 50000n, 1250025000n, 1000n],
+  ['nativecalls', 50000n, 1249975000n, 1000n],
+  ['conditional', 50000n, 624975000n, 1000n],
+  ['addressing', 50000n, 125000n, 1000n],
 ]) {
   const fn = runtime.variables.get(name);
   for (let i = 0; i < 2; i++) fn.call([warmup]);

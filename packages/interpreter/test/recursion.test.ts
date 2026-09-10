@@ -265,4 +265,104 @@ end
 1000 down
 `)).toBe('1000');
     });
+
+    it('switches cached applications between immediate and suspended function values', () => {
+        expect(run(`${down}
+fun increment N
+  return N + 1
+end
+F = increment
+fun wrapper N
+  Value = N F
+  Value += 1
+  return Value
+end
+A = 10 wrapper
+F = down
+B = 1000 wrapper
+F = increment
+C = 10 wrapper
+array A B C
+`)).toBe('12 1001 12');
+    });
+
+    it('continues a postfix application after suspension without repeating effects', () => {
+        expect(run(`${down}
+fun exercise N
+  Count = 0
+  fun tick X
+    Count += 1
+    return X
+  end
+  fun increment X
+    return X + 1
+  end
+  Answer = N tick down increment tick
+  return array Answer Count
+end
+1000 exercise
+`)).toBe('1001 2');
+    });
+
+    it('does not start synchronous generator commands until iteration begins', () => {
+        const lines: string[] = [];
+        const interpreter = new Interpreter(line => lines.push(line));
+        interpreter.execute(`
+use io
+fun values N
+  N print
+  yield N
+end
+Values = 7 values
+`);
+        expect(lines).toEqual([]);
+        const value = interpreter.variables.get('Values');
+        if (!value || !isRankSequence(value)) throw new Error('expected a sequence');
+        const iterator = value.plan.iterate();
+        expect(lines).toEqual([]);
+        expect(iterator.next().value).toBe(7n);
+        expect(lines).toEqual(['7']);
+        iterator.return?.();
+        interpreter.dispose();
+    });
+
+    it('checks the call budget and transfers files in direct return functions', () => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const interpreter = new Interpreter(undefined, { io, maxCallDepth: 1 });
+        expect(() => interpreter.execute(`
+fun identity X
+  return X
+end
+fun outer N
+  return N identity
+end
+1 outer
+`)).toThrowError('function call depth exceeds 1');
+        expect(interpreter.execute(`
+use io
+fun openfile Path
+  File = Path open
+  return File
+end
+File = "/input" openfile
+Copy = File identity
+Copy size
+`)).toBe(4n);
+        expect(io.handles[0].closed).toBe(true);
+    });
+
+    it('keeps host stack failures catchable when a native call completes synchronously', () => {
+        const interpreter = new Interpreter();
+        interpreter.variables.set('overflow', {
+            kind: 'function', name: 'overflow', arities: [1], monadicRank: 'all',
+            call() { throw new RangeError('Maximum call stack size exceeded'); },
+        });
+        expect(interpreter.execute(`
+try
+  1 overflow
+catch .RecursionLimit Error
+  Error .Kind
+end
+`)).toEqual({ kind: 'label', name: 'RecursionLimit' });
+    });
 });
