@@ -1,3 +1,4 @@
+import { ExecutionStack, emit, mapExecution, resume, runExecution, type Execution } from './execution.js';
 import { LocalFrame } from './frame.js';
 import { prepareFunction } from './prepared-function.js';
 import {
@@ -114,6 +115,7 @@ export interface InterpreterOptions {
     readonly io?: RankIo;
     readonly random?: () => number;
     readonly persistentResources?: boolean;
+    readonly maxCallDepth?: number;
     readonly loadModule?: (specifier: string, fromId?: string) => LoadedModule;
 }
 
@@ -138,7 +140,9 @@ interface ExecutionContext {
 
 type PreparedStatement =
     | { readonly run: (context: ExecutionContext) => RankValue | undefined }
-    | { readonly stream: (context: ExecutionContext) => Generator<RankValue, RankValue | undefined> };
+    | { readonly stream: (context: ExecutionContext) => Execution<RankValue | undefined> };
+
+const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Execution<RankValue>>();
 
 class ReturnSignal {
     constructor(readonly value?: RankValue) {}
@@ -191,16 +195,22 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
-    private readonly expressions = new WeakMap<Expression, () => RankValue>();
+    private readonly expressions = new WeakMap<Expression, () => Execution<RankValue>>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
     private readonly resourceScopes: Set<RankFile>[] = [];
     private readonly generatorResourceScopes = new Set<Set<RankFile>>();
+    private callDepth = 0;
+    private readonly maxCallDepth: number;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
         this.options = options;
         this.random = options.random ?? Math.random;
+        this.maxCallDepth = options.maxCallDepth ?? 200_000;
+        if (!Number.isSafeInteger(this.maxCallDepth) || this.maxCallDepth < 1) {
+            throw new RankError('maxCallDepth must be a positive safe integer');
+        }
     }
 
     execute(source: string): RankValue | undefined {
@@ -244,17 +254,31 @@ export class Interpreter {
             pending = error;
         }
 
+        return this.finishResourceScope(scope, result, pending, transferResult) as T;
+    }
+
+    private finishResourceScope(
+        scope: Set<RankFile>,
+        result: RankValue | undefined,
+        pending: unknown,
+        transferResult = true,
+    ): RankValue | undefined {
         // Most arithmetic calls neither open resources nor return containers.
         // Keep the scope itself: nested calls must still transfer files here.
         if (scope.size === 0 && (result === undefined || typeof result !== 'object')) {
             this.resourceScopes.pop();
             if (pending !== undefined) throw pending;
-            return result as T;
+            return result;
         }
 
-        const escaped = pending === undefined && transferResult
-            ? containedFiles(result)
-            : new Set<RankFile>();
+        let escaped = new Set<RankFile>();
+        if (pending === undefined && transferResult) {
+            try {
+                escaped = containedFiles(result);
+            } catch (error) {
+                pending = error;
+            }
+        }
         this.resourceScopes.pop();
 
         let closeError: unknown;
@@ -268,7 +292,7 @@ export class Interpreter {
         }
         if (pending !== undefined) throw pending;
         if (closeError !== undefined) throw closeError;
-        return result as T;
+        return result;
     }
 
     private ownFile(file: RankFile): void {
@@ -360,13 +384,13 @@ export class Interpreter {
         insideLoop = false,
         insideFinally = false,
     ): RankValue | undefined {
-        const execution = this.executeStatementStream(
+        const execution = new ExecutionStack(this.executeStatementStream(
             statements,
             assertBooleanExpressions,
             insideLoop,
             insideFinally,
             false,
-        );
+        ));
         const result = execution.next();
         if (!result.done) {
             execution.return(undefined);
@@ -381,7 +405,7 @@ export class Interpreter {
         insideLoop = false,
         insideFinally = false,
         insideGenerator = false,
-    ): Generator<RankValue, RankValue | undefined> {
+    ): Execution<RankValue | undefined> {
         const context: ExecutionContext = {
             assertBooleanExpressions, insideLoop, insideFinally, insideGenerator,
         };
@@ -394,7 +418,7 @@ export class Interpreter {
             }
             result = 'run' in prepared
                 ? prepared.run(context)
-                : yield* prepared.stream(context);
+                : yield* resume(prepared.stream(context));
         }
         return result;
     }
@@ -402,38 +426,39 @@ export class Interpreter {
     // Cache only syntax. Flags and workspaces belong to each execution, including
     // resumed generators. Prepare a statement only when control reaches it.
     private prepareStatement(statement: Statement): PreparedStatement {
+        const interpreter = this;
         if (isUseStatement(statement)) {
-            return { run: () => {
+            return { stream: function* (): Execution<RankValue | undefined> {
                 if (statement.path !== undefined) {
-                    this.useFile(statement.path, statement.alias);
+                    interpreter.useFile(statement.path, statement.alias);
                 } else {
-                    this.useStandard(statement.module!);
+                    interpreter.useStandard(statement.module!);
                 }
                 return undefined;
             } };
         }
         if (isRunStatement(statement)) {
-            return { run: () => this.run(statement.path) };
+            return { stream: function* (): Execution<RankValue | undefined> { return interpreter.run(statement.path); } };
         }
         if (isArgsStatement(statement)) {
-            return { run: () => {
-                this.pendingArgs = statement.values.map(value => formatValue(this.evaluate(value)));
+            return { stream: function* (): Execution<RankValue | undefined> {
+                interpreter.pendingArgs = (yield* resume(mapExecution(statement.values, value => interpreter.evaluateTask(value)))).map(formatValue);
                 return undefined;
             } };
         }
         if (isOptionStatement(statement)
             || isArgumentStatement(statement)
             || isFlagStatement(statement)) {
-            return { run: () => undefined };
+            return { stream: function* (): Execution<RankValue | undefined> { return undefined; } };
         }
         if (isTestStatement(statement)) {
-            return { run: () => {
-                this.executeTest(statement.description, statement.statements);
+            return { stream: function* (): Execution<RankValue | undefined> {
+                interpreter.executeTest(statement.description, statement.statements);
                 return undefined;
             } };
         }
         if (isFunctionStatement(statement)) {
-            return { run: () => this.defineFunction(statement) };
+            return { stream: function* (): Execution<RankValue | undefined> { return interpreter.defineFunction(statement); } };
         }
         if (isYieldStatement(statement)) {
             const interpreter = this;
@@ -442,17 +467,17 @@ export class Interpreter {
                 if (!insideGenerator) {
                     throw new RankError('yield is only valid inside a generator function');
                 }
-                yield interpreter.evaluate(statement.value);
+                yield* resume(emit((yield* resume(interpreter.evaluateTask(statement.value)))));
                 return undefined;
             } };
         }
         if (isReturnStatement(statement)) {
-            return { run: context => {
+            const validate = (context: ExecutionContext): void => {
                 const { insideFinally, insideGenerator } = context;
                 if (insideFinally) {
                     throw new RankError('return is not valid inside finally');
                 }
-                if (this.localFrame === undefined) {
+                if (interpreter.localFrame === undefined) {
                     throw new RankError('return is only valid inside a function');
                 }
                 if (insideGenerator && statement.value !== undefined) {
@@ -461,13 +486,23 @@ export class Interpreter {
                 if (!insideGenerator && statement.value === undefined) {
                     throw new RankError('a value-returning function must return a value');
                 }
+            };
+            const direct = statement.value && this.compileDirectExpression(statement.value);
+            if (direct) {
+                return { run: context => {
+                    validate(context);
+                    throw new ReturnSignal(direct());
+                } };
+            }
+            return { stream: function* (context): Execution<RankValue | undefined> {
+                validate(context);
                 throw new ReturnSignal(
-                    statement.value === undefined ? undefined : this.evaluate(statement.value),
+                    statement.value === undefined ? undefined : (yield* resume(interpreter.evaluateTask(statement.value))),
                 );
             } };
         }
         if (isBreakStatement(statement)) {
-            return { run: context => {
+            return { stream: function* (context): Execution<RankValue | undefined> {
                 const { insideLoop, insideFinally } = context;
                 if (insideFinally) {
                     throw new RankError('break is not valid inside finally');
@@ -486,46 +521,49 @@ export class Interpreter {
                 let pending: unknown;
                 try {
                     try {
-                        result = yield* interpreter.executeStatementStream(
-                            statement.statements,
-                            assertBooleanExpressions,
-                            insideLoop,
-                            insideFinally,
-                            insideGenerator,
-                        );
+                        try {
+                            result = yield* resume(interpreter.executeStatementStream(
+                                statement.statements,
+                                assertBooleanExpressions,
+                                insideLoop,
+                                insideFinally,
+                                insideGenerator,
+                            ));
+                        } catch (error) {
+                            if (!(error instanceof RankError)) throw error;
+                            const clause = statement.catches.find(candidate =>
+                                candidate.errorKind === undefined
+                                || candidate.errorKind.name === error.rankKind);
+                            if (!clause) throw error;
+                            interpreter.assign(clause.errorName, error.toValue());
+                            result = yield* resume(interpreter.executeStatementStream(
+                                clause.statements,
+                                assertBooleanExpressions,
+                                insideLoop,
+                                insideFinally,
+                                insideGenerator,
+                            ));
+                        }
                     } catch (error) {
-                        if (!(error instanceof RankError)) throw error;
-                        const clause = statement.catches.find(candidate =>
-                            candidate.errorKind === undefined
-                            || candidate.errorKind.name === error.rankKind);
-                        if (!clause) throw error;
-                        interpreter.assign(clause.errorName, error.toValue());
-                        result = yield* interpreter.executeStatementStream(
-                            clause.statements,
+                        pending = error;
+                    }
+                } finally {
+                    try {
+                        yield* resume(interpreter.executeStatementStream(
+                            statement.finallyStatements,
                             assertBooleanExpressions,
                             insideLoop,
-                            insideFinally,
+                            true,
                             insideGenerator,
-                        );
+                        ));
+                    } catch (error) {
+                        if (error instanceof RankError && pending instanceof RankError) {
+                            error.attachCause(pending);
+                        }
+                        pending = error;
                     }
-                } catch (error) {
-                    pending = error;
+                    if (pending !== undefined) throw pending;
                 }
-                try {
-                    yield* interpreter.executeStatementStream(
-                        statement.finallyStatements,
-                        assertBooleanExpressions,
-                        insideLoop,
-                        true,
-                        insideGenerator,
-                    );
-                } catch (error) {
-                    if (error instanceof RankError && pending instanceof RankError) {
-                        error.attachCause(pending);
-                    }
-                    pending = error;
-                }
-                if (pending !== undefined) throw pending;
                 return result;
             } };
         }
@@ -535,23 +573,23 @@ export class Interpreter {
                 const { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
                 let branch = statement.elseStatements;
-                if (expectBoolean(interpreter.evaluate(statement.condition))) {
+                if (expectBoolean((yield* resume(interpreter.evaluateTask(statement.condition))))) {
                     branch = statement.thenStatements;
                 } else {
                     for (const clause of statement.elifClauses) {
-                        if (expectBoolean(interpreter.evaluate(clause.condition))) {
+                        if (expectBoolean((yield* resume(interpreter.evaluateTask(clause.condition))))) {
                             branch = clause.statements;
                             break;
                         }
                     }
                 }
-                result = yield* interpreter.executeStatementStream(
+                result = yield* resume(interpreter.executeStatementStream(
                     branch,
                     assertBooleanExpressions,
                     insideLoop,
                     insideFinally,
                     insideGenerator,
-                );
+                ));
                 return result;
             } };
         }
@@ -562,18 +600,20 @@ export class Interpreter {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
                 if (binding) {
-                    for (const entry of interpreter.forEntries(binding)) {
+                    const spec = tensorIterationSpec(binding.iterable);
+                    const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
+                    for (const entry of interpreter.forEntries(binding, iterable)) {
                         interpreter.assign(binding.names[0], entry.value);
                         binding.names.slice(1).forEach((name, position) =>
                             interpreter.assign(name, entry.indices[position]));
                         try {
-                            result = yield* interpreter.executeStatementStream(
+                            result = yield* resume(interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
                                 insideFinally,
                                 insideGenerator,
-                            );
+                            ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             throw error;
@@ -581,15 +621,15 @@ export class Interpreter {
                     }
                 } else {
                     while (!statement.condition
-                        || expectBoolean(interpreter.evaluate(statement.condition))) {
+                        || expectBoolean((yield* resume(interpreter.evaluateTask(statement.condition))))) {
                         try {
-                            result = yield* interpreter.executeStatementStream(
+                            result = yield* resume(interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
                                 insideFinally,
                                 insideGenerator,
-                            );
+                            ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             throw error;
@@ -600,40 +640,40 @@ export class Interpreter {
             } };
         }
         if (isPushStatement(statement)) {
-            return { run: () => {
-                const receiver = this.evaluate(statement.receiver);
+            return { stream: function* (): Execution<RankValue | undefined> {
+                const receiver = (yield* resume(interpreter.evaluateTask(statement.receiver)));
                 if (!isRankQueue(receiver)) throw new RankError('push expects a queue receiver');
-                receiver.items.push(this.evaluate(statement.value));
+                receiver.items.push((yield* resume(interpreter.evaluateTask(statement.value))));
                 return undefined;
             } };
         }
         if (isAddStatement(statement)) {
-            return { run: () => {
-                const value = this.evaluate(statement.value);
+            return { stream: function* (): Execution<RankValue | undefined> {
+                const value = (yield* resume(interpreter.evaluateTask(statement.value)));
                 if (statement.structure.startsWith('counter')) {
-                    const receiver = this.localCounter();
+                    const receiver = interpreter.localCounter();
                     const key = setValueKey(value);
                     const existing = receiver.entries.get(key);
                     if (existing) existing.count += 1n;
                     else receiver.entries.set(key, { value, count: 1n });
                 } else {
-                    const receiver = this.localSet();
+                    const receiver = interpreter.localSet();
                     receiver.entries.set(setValueKey(value), value);
                 }
                 return undefined;
             } };
         }
         if (isIndexAssignmentStatement(statement)) {
-            return { run: () => {
-                const index = this.localIndex();
-                const keys = statement.keys.map(key => this.evaluate(key));
-                index.entries.set(indexKey(keys), this.evaluate(statement.value));
+            return { stream: function* (): Execution<RankValue | undefined> {
+                const index = interpreter.localIndex();
+                const keys = yield* resume(mapExecution(statement.keys, key => interpreter.evaluateTask(key)));
+                index.entries.set(indexKey(keys), (yield* resume(interpreter.evaluateTask(statement.value))));
                 return undefined;
             } };
         }
         if (isUnpackStatement(statement)) {
-            return { run: () => {
-                const result = this.evaluate(statement.value);
+            return { stream: function* (): Execution<RankValue | undefined> {
+                const result = (yield* resume(interpreter.evaluateTask(statement.value)));
                 if (!isRankArray(result) || result.shape.length !== 1) {
                     throw new RankError('unpack expects a rank-1 array value');
                 }
@@ -643,28 +683,28 @@ export class Interpreter {
                         `unpack expects ${statement.names.length} values, got ${unpacked.items.length}`,
                     );
                 }
-                statement.names.forEach((name, index) => this.assign(name, unpacked.items[index]));
+                statement.names.forEach((name, index) => interpreter.assign(name, unpacked.items[index]));
                 return result;
             } };
         }
         if (isArrayAssignmentStatement(statement)) {
-            return { run: () => {
-                const target = this.resolveVariable(statement.name);
-                const selectors = statement.indices.map(index => this.evaluateAddressItem(index));
+            return { stream: function* (): Execution<RankValue | undefined> {
+                const target = interpreter.resolveVariable(statement.name);
+                const selectors = yield* resume(mapExecution(statement.indices, index => interpreter.evaluateAddressItem(index)));
                 const field = selectors.at(-1);
                 if (field !== undefined && isRankLabel(field) && field.name !== '#') {
                     let receiver = target;
                     for (const selector of selectors.slice(0, -1)) {
-                        receiver = this.applySelectors([receiver, selector]);
+                        receiver = interpreter.applySelectors([receiver, selector]);
                     }
                     if (!isRankRecord(receiver)) {
                         throw new RankError('field assignment expects a record target');
                     }
-                    return this.assignRecordField(
+                    return interpreter.assignRecordField(
                         receiver,
                         field.name,
                         statement.operator,
-                        this.evaluate(statement.value),
+                        yield* resume(interpreter.evaluateTask(statement.value)),
                     );
                 }
                 if (!isRankArray(target) || target.kind !== 'array') {
@@ -674,7 +714,7 @@ export class Interpreter {
                     throw new RankError('cannot assign to a lazy array');
                 }
                 const selection = tensorSelection(target, selectors);
-                const result = this.evaluate(statement.value);
+                const result = (yield* resume(interpreter.evaluateTask(statement.value)));
                 const operator = statement.operator === '='
                     ? undefined : assignmentOperator(statement.operator);
                 let operands: RankValue[];
@@ -694,7 +734,7 @@ export class Interpreter {
                 }
                 const replacements = operands.map((operand, index) => operator === undefined
                     ? operand
-                    : this.evaluateBinary(
+                    : interpreter.evaluateBinary(
                         operator,
                         target.items[selection.offsetAt(index)],
                         operand,
@@ -708,72 +748,124 @@ export class Interpreter {
         if (isAssignmentStatement(statement)) {
             const operator = statement.operator === '='
                 ? undefined : assignmentOperator(statement.operator);
+            const direct = this.compileDirectExpression(statement.value);
+            if (direct) {
+                return { run: () => {
+                    const result = operator === undefined ? direct() : this.evaluateBinary(
+                        operator, this.resolveVariable(statement.name), direct(),
+                    );
+                    this.assign(statement.name, result);
+                    return result;
+                } };
+            }
             const value = operator === undefined
-                ? () => this.evaluate(statement.value)
-                : () => this.evaluateBinary(
+                ? function* (): Execution<RankValue> { return (yield* resume(interpreter.evaluateTask(statement.value))); }
+                : function* (): Execution<RankValue> { return interpreter.evaluateBinary(
                     operator,
-                    this.resolveVariable(statement.name),
-                    this.evaluate(statement.value),
-                );
-            return { run: () => {
-                const result = value();
-                this.assign(statement.name, result);
+                    interpreter.resolveVariable(statement.name),
+                    (yield* resume(interpreter.evaluateTask(statement.value))),
+                ); };
+            return { stream: function* (): Execution<RankValue | undefined> {
+                const result = yield* resume(value());
+                interpreter.assign(statement.name, result);
                 return result;
             } };
         }
         if (isExpressionStatement(statement)) {
             if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
                 const alias = statement.value.name.slice(0, -4);
-                return { run: () => this.runAlias(alias) };
+                return { stream: function* (): Execution<RankValue | undefined> { return interpreter.runAlias(alias); } };
             }
-            return { run: context => {
-                const result = this.evaluate(statement.value);
+            const direct = this.compileDirectExpression(statement.value);
+            if (direct) {
+                return { run: context => {
+                    const result = direct();
+                    if (context.assertBooleanExpressions) assertTestExpression(result);
+                    return result;
+                } };
+            }
+            return { stream: function* (context): Execution<RankValue | undefined> {
+                const result = (yield* resume(interpreter.evaluateTask(statement.value)));
                 if (context.assertBooleanExpressions) assertTestExpression(result);
                 return result;
             } };
         }
-        return { run: () => undefined };
+        return { stream: function* (): Execution<RankValue | undefined> { return undefined; } };
     }
 
     evaluate(expression: Expression): RankValue {
+        return runExecution(this.evaluateTask(expression));
+    }
+
+    private evaluateTask(expression: Expression): Execution<RankValue> {
         return this.prepareExpression(expression)();
     }
 
-    private prepareExpression(expression: Expression): () => RankValue {
+    private prepareExpression(expression: Expression): () => Execution<RankValue> {
         let execute = this.expressions.get(expression);
         if (!execute) {
-            execute = this.compileExpression(expression);
+            const direct = this.compileDirectExpression(expression);
+            execute = direct
+                ? function* () { return direct(); }
+                : this.compileExpression(expression);
             this.expressions.set(expression, execute);
         }
         return execute;
     }
 
+    // Arithmetic and conditions with no application cannot make a direct Rank
+    // call. Keep those small syntax trees synchronous to avoid allocating a task
+    // for every atom of a counted loop. Bindings and values remain runtime work.
+    private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
+        if (isNumberLiteral(expression) || isBooleanLiteral(expression) || isStringLiteral(expression)) {
+            return () => expression.value;
+        }
+        if (isLabelLiteral(expression)) return () => ({ kind: 'label', name: expression.name });
+        if (isNameExpression(expression)) return () => this.resolve(expression.name);
+        if (isParenthesizedExpression(expression)) return this.compileDirectExpression(expression.value);
+        if (isUnaryExpression(expression)) {
+            const operand = this.compileDirectExpression(expression.operand);
+            return operand ? () => this.evaluateUnary(expression.operator, operand()) : undefined;
+        }
+        if (isBinaryExpression(expression) && expression.operator !== 'pad'
+            && expression.operator !== '**'
+            && !isNamed(expression.right, 'reduce') && !isNamed(expression.right, 'outer')) {
+            const left = this.compileDirectExpression(expression.left);
+            const right = this.compileDirectExpression(expression.right);
+            const step = expression.step ? this.compileDirectExpression(expression.step) : undefined;
+            if (left && right && (!expression.step || step)) {
+                return () => this.evaluateBinary(expression.operator, left(), right(), step?.());
+            }
+        }
+        return undefined;
+    }
+
     // Cache syntax decisions, never values or name bindings. Preparation stays
     // lazy so errors in unexecuted branches keep their existing timing.
-    private compileExpression(expression: Expression, missing?: () => RankValue): () => RankValue {
+    private compileExpression(expression: Expression, missing?: () => RankValue): () => Execution<RankValue> {
+        const interpreter = this;
         if (isNumberLiteral(expression) || isBooleanLiteral(expression)) {
-            return () => expression.value;
+            return function* (): Execution<RankValue> { return expression.value; };
         }
         if (isStringLiteral(expression)) {
-            return () => expression.value;
+            return function* (): Execution<RankValue> { return expression.value; };
         }
         if (isLabelLiteral(expression)) {
-            return () => ({ kind: 'label', name: expression.name });
+            return function* (): Execution<RankValue> { return ({ kind: 'label', name: expression.name }); };
         }
         if (isStdinExpression(expression)) {
-            return () => {
-                this.requireModule('io', 'stdin');
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('io', 'stdin');
                 const mode = expression.mode.name;
                 if (mode !== 'word' && mode !== 'integer') {
                     throw new RankError(`unsupported standard input mode: .${mode}`);
                 }
-                if (!expression.count) return this.readStdin(mode);
+                if (!expression.count) return interpreter.readStdin(mode);
 
-                const count = this.evaluate(expression.count);
+                const count = (yield* resume(interpreter.evaluateTask(expression.count)));
                 if (typeof count !== 'bigint' || count < 0n) {
                     throw new RankError('stdin count must be a nonnegative integer');
                 }
-                const interpreter = this;
                 let consumed = false;
                 return sequence({
                     name: `stdin .${mode}`,
@@ -794,15 +886,15 @@ export class Interpreter {
             };
         }
         if (isArrayExpression(expression)) {
-            return () => {
-                const items = (expression.dimensions.length > 0
+            return function* (): Execution<RankValue> {
+                const items = yield* resume(mapExecution(expression.dimensions.length > 0
                     ? expression.rows.flatMap(row => row.items)
-                    : expression.items).map(item => this.evaluateArrayItem(item));
+                    : expression.items, item => interpreter.evaluateArrayItem(item)));
                 if (expression.dimensions.length === 0) return array(items);
-                const shape = expression.dimensions.map(item => this.arrayDimension(item));
+                const shape = yield* resume(mapExecution(expression.dimensions, item => interpreter.arrayDimension(item)));
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
-                    const fill = this.evaluate(expression.fill);
+                    const fill = (yield* resume(interpreter.evaluateTask(expression.fill)));
                     return { kind: 'array', items: Array(Number(size)).fill(fill), shape };
                 }
                 if (BigInt(items.length) !== size) {
@@ -814,7 +906,7 @@ export class Interpreter {
             };
         }
         if (isRecordExpression(expression)) {
-            return () => {
+            return function* (): Execution<RankValue> {
                 const record: RankRecord = {
                     kind: 'record',
                     entries: new Map(),
@@ -824,7 +916,7 @@ export class Interpreter {
                     if (record.entries.has(field.name)) {
                         throw new RankError(`duplicate record field: .${field.name}`);
                     }
-                    const value = this.evaluate(field.value);
+                    const value = yield* resume(interpreter.evaluateTask(field.value));
                     record.entries.set(field.name, value);
                     record.types.set(field.name, typeName(value));
                 }
@@ -832,24 +924,24 @@ export class Interpreter {
             };
         }
         if (isNameExpression(expression)) {
-            return () => this.resolve(expression.name);
+            return function* (): Execution<RankValue> { return interpreter.resolve(expression.name); };
         }
         if (isParenthesizedExpression(expression)) {
-            return () => this.evaluate(expression.value);
+            return function* (): Execution<RankValue> { return (yield* resume(interpreter.evaluateTask(expression.value))); };
         }
         if (isUnaryExpression(expression)) {
-            return () => {
-                return this.evaluateUnary(expression.operator, this.evaluate(expression.operand));
+            return function* (): Execution<RankValue> {
+                return interpreter.evaluateUnary(expression.operator, (yield* resume(interpreter.evaluateTask(expression.operand))));
             };
         }
         if (isBinaryExpression(expression)) {
             const signedRound = explicitSignedRoundApplication(expression);
             if (signedRound) {
-                return () => {
-                    this.requireModule('numbers', 'round');
-                    const places = this.evaluate(signedRound.places);
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('numbers', 'round');
+                    const places = (yield* resume(interpreter.evaluateTask(signedRound.places)));
                     return roundValue(
-                        this.evaluate(signedRound.source),
+                        (yield* resume(interpreter.evaluateTask(signedRound.source))),
                         typeof places === 'bigint' ? -places : places,
                     );
                 };
@@ -857,41 +949,41 @@ export class Interpreter {
             if (expression.operator === '**' && isUnaryExpression(expression.left)
                 && (expression.left.operator === '+' || expression.left.operator === '-')) {
                 const left = expression.left;
-                return () => {
-                    const powered = this.evaluateBinary(
+                return function* (): Execution<RankValue> {
+                    const powered = interpreter.evaluateBinary(
                         '**',
-                        this.evaluate(left.operand),
-                        this.evaluate(expression.right),
+                        (yield* resume(interpreter.evaluateTask(left.operand))),
+                        (yield* resume(interpreter.evaluateTask(expression.right))),
                     );
-                    return this.evaluateUnary(left.operator, powered);
+                    return interpreter.evaluateUnary(left.operator, powered);
                 };
             }
             const outer = explicitOuterApplication(expression);
             if (outer) {
-                return () => {
-                    return this.evaluateOuter(
+                return function* (): Execution<RankValue> {
+                    return interpreter.evaluateOuter(
                         outer.operator,
-                        this.evaluate(outer.left),
-                        this.evaluate(outer.right),
+                        (yield* resume(interpreter.evaluateTask(outer.left))),
+                        (yield* resume(interpreter.evaluateTask(outer.right))),
                     );
                 };
             }
             const reduction = explicitReduceApplication(expression);
             if (reduction) {
-                return () => {
-                    return this.evaluateReduction(
+                return function* (): Execution<RankValue> {
+                    return interpreter.evaluateReduction(
                         reduction.operator,
-                        this.evaluate(reduction.source),
+                        (yield* resume(interpreter.evaluateTask(reduction.source))),
                         reduction.rank,
                     );
                 };
             }
             const slice = inlineSlice(expression);
             if (slice) {
-                return () => {
-                    const start = expectInteger(this.evaluate(slice.start));
-                    const end = expectInteger(this.evaluate(slice.end));
-                    const source = this.evaluate(slice.source);
+                return function* (): Execution<RankValue> {
+                    const start = expectInteger((yield* resume(interpreter.evaluateTask(slice.start))));
+                    const end = expectInteger((yield* resume(interpreter.evaluateTask(slice.end))));
+                    const source = (yield* resume(interpreter.evaluateTask(slice.source)));
                     const axis = slice.axis === undefined ? 0 : safeDimension(slice.axis, 'axis');
                     return sliceValue(source, axis, start, end, slice.inclusive);
                 };
@@ -899,29 +991,29 @@ export class Interpreter {
             if (expression.operator === 'pad') {
                 // Identity-only marker; never exposed to Rank or passed to functions.
                 const absent: RankValue = { kind: 'label', name: '' };
-                let left: (() => RankValue) | undefined;
-                return () => {
+                let left: (() => Execution<RankValue>) | undefined;
+                return function* (): Execution<RankValue> {
                     try {
                         // Prepare on first use to preserve operand/error ordering.
-                        left ??= this.compileExpression(expression.left, () => absent);
-                        const value = left();
+                        left ??= interpreter.compileExpression(expression.left, () => absent);
+                        const value = yield* resume(left());
                         if (value !== absent) return value;
                     } catch (error) {
                         if (!(error instanceof MissingValueError)) throw error;
                     }
-                    return this.evaluate(expression.right);
+                    return (yield* resume(interpreter.evaluateTask(expression.right)));
                 };
             }
-            return () => this.evaluateBinary(
+            return function* (): Execution<RankValue> { return interpreter.evaluateBinary(
                 expression.operator,
-                this.evaluate(expression.left),
-                this.evaluate(expression.right),
-                expression.step ? this.evaluate(expression.step) : undefined,
-            );
+                (yield* resume(interpreter.evaluateTask(expression.left))),
+                (yield* resume(interpreter.evaluateTask(expression.right))),
+                expression.step ? (yield* resume(interpreter.evaluateTask(expression.step))) : undefined,
+            ); };
         }
         if (isMaterializeExpression(expression)) {
-            return () => {
-                const source = this.evaluate(expression.source);
+            return function* (): Execution<RankValue> {
+                const source = (yield* resume(interpreter.evaluateTask(expression.source)));
                 if (!isRankSequence(source)) {
                     throw new RankError('postfix array expects a sequence');
                 }
@@ -929,92 +1021,92 @@ export class Interpreter {
             };
         }
         if (isAllAxisExpression(expression)) {
-            return () => { throw new RankError('# is only valid inside tensor addressing'); };
+            return function* (): Execution<RankValue> { throw new RankError('# is only valid inside tensor addressing'); };
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
             const namedOuter = explicitNamedOuterApplication(parts);
             if (namedOuter) {
-                return () => {
-                    const operation = this.evaluate(namedOuter.operation);
+                return function* (): Execution<RankValue> {
+                    const operation = (yield* resume(interpreter.evaluateTask(namedOuter.operation)));
                     if (!isNativeFunction(operation)) {
                         throw new RankError('outer expects a binary function');
                     }
-                    return this.evaluateNamedOuter(
+                    return interpreter.evaluateNamedOuter(
                         operation,
-                        this.evaluate(namedOuter.left),
-                        this.evaluate(namedOuter.right),
+                        (yield* resume(interpreter.evaluateTask(namedOuter.left))),
+                        (yield* resume(interpreter.evaluateTask(namedOuter.right))),
                     );
                 };
             }
             const axisMatmul = explicitAxisMatmul(parts);
             if (axisMatmul) {
-                return () => {
-                    this.requireModule('linalg', 'matmul');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('linalg', 'matmul');
                     return matmulValues(
-                        this.evaluate(axisMatmul.left),
-                        this.evaluate(axisMatmul.right),
+                        (yield* resume(interpreter.evaluateTask(axisMatmul.left))),
+                        (yield* resume(interpreter.evaluateTask(axisMatmul.right))),
                         axisMatmul.axes,
                     );
                 };
             }
             const axisCovariance = explicitAxisCovariance(parts);
             if (axisCovariance) {
-                return () => {
-                    this.requireModule('stats', 'covariance');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('stats', 'covariance');
                     return covarianceValue(
-                        this.evaluate(axisCovariance.source),
+                        (yield* resume(interpreter.evaluateTask(axisCovariance.source))),
                         axisCovariance.axes,
                     );
                 };
             }
             const round = explicitRoundApplication(parts);
             if (round) {
-                return () => {
-                    this.requireModule('numbers', 'round');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('numbers', 'round');
                     return roundValue(
-                        this.evaluate(round.source),
-                        this.evaluate(round.places),
+                        (yield* resume(interpreter.evaluateTask(round.source))),
+                        (yield* resume(interpreter.evaluateTask(round.places))),
                     );
                 };
             }
             const axisWindow = explicitAxisWindow(parts);
             if (axisWindow) {
-                return () => {
-                    this.requireModule('sequences', 'window');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('sequences', 'window');
                     return windowValue(
-                        this.evaluate(axisWindow.source),
-                        this.evaluate(axisWindow.size),
+                        (yield* resume(interpreter.evaluateTask(axisWindow.source))),
+                        (yield* resume(interpreter.evaluateTask(axisWindow.size))),
                         axisWindow.axes,
                     );
                 };
             }
             const axisShuffle = explicitAxisShuffle(parts);
             if (axisShuffle) {
-                return () => {
-                    this.requireModule('random', 'shuffle');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('random', 'shuffle');
                     return shuffleValue(
-                        this.evaluate(axisShuffle.source),
-                        axisShuffle.seed ? this.evaluate(axisShuffle.seed) : undefined,
+                        (yield* resume(interpreter.evaluateTask(axisShuffle.source))),
+                        axisShuffle.seed ? (yield* resume(interpreter.evaluateTask(axisShuffle.seed))) : undefined,
                         axisShuffle.axis,
-                        this.random,
+                        interpreter.random,
                     );
                 };
             }
             const axisLength = explicitAxisLength(parts);
             if (axisLength) {
-                return () => {
-                    this.requireModule('sequences', 'len');
-                    return lengthOfAxis(this.evaluate(axisLength.source), axisLength.axis);
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('sequences', 'len');
+                    return lengthOfAxis((yield* resume(interpreter.evaluateTask(axisLength.source))), axisLength.axis);
                 };
             }
             const axisMetric = explicitAxisMetric(parts);
             if (axisMetric) {
-                return () => {
-                    this.requireModule('stats', axisMetric.metric);
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('stats', axisMetric.metric);
                     return errorMetricValue(
-                        this.evaluate(axisMetric.left),
-                        this.evaluate(axisMetric.right),
+                        (yield* resume(interpreter.evaluateTask(axisMetric.left))),
+                        (yield* resume(interpreter.evaluateTask(axisMetric.right))),
                         axisMetric.metric,
                         axisMetric.axes,
                     );
@@ -1022,8 +1114,8 @@ export class Interpreter {
             }
             const axisReduction = explicitAxisReduction(parts);
             if (axisReduction) {
-                return () => {
-                    this.requireModule(
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule(
                         axisReduction.operation === 'mean'
                             || axisReduction.operation === 'std'
                             ? 'stats'
@@ -1033,44 +1125,50 @@ export class Interpreter {
                                 : 'numbers',
                         axisReduction.operation,
                     );
-                    return this.evaluateAxisReduction(
+                    return interpreter.evaluateAxisReduction(
                         axisReduction.operation,
-                        this.evaluate(axisReduction.source),
+                        (yield* resume(interpreter.evaluateTask(axisReduction.source))),
                         axisReduction.axes,
                     );
                 };
             }
             const axisTranspose = explicitAxisTranspose(parts);
             if (axisTranspose) {
-                return () => {
-                    this.requireModule('sequences', 'transpose');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('sequences', 'transpose');
                     return transposeValue(
-                        this.evaluate(axisTranspose.source),
+                        (yield* resume(interpreter.evaluateTask(axisTranspose.source))),
                         axisTranspose.axes,
                     );
                 };
             }
             const explicitRank = explicitRankApplication(parts);
             if (explicitRank) {
-                return () => {
-                    const values = explicitRank.parts.map(part => this.evaluate(part));
-                    return this.applyAtRank(values, explicitRank.rank, explicitRank.axes);
+                return function* (): Execution<RankValue> {
+                    const values = yield* resume(mapExecution(explicitRank.parts, part => interpreter.evaluateTask(part)));
+                    return yield* resume(interpreter.applyAtRank(values, explicitRank.rank, explicitRank.axes));
                 };
             }
             const axisSelection = explicitAxisSelection(parts);
             if (axisSelection) {
-                return () => {
+                return function* (): Execution<RankValue> {
                     return selectAxis(
-                        this.evaluate(axisSelection.source),
+                        (yield* resume(interpreter.evaluateTask(axisSelection.source))),
                         axisSelection.axis,
-                        this.evaluate(axisSelection.selector),
+                        (yield* resume(interpreter.evaluateTask(axisSelection.selector))),
                     );
                 };
             }
-            return () => this.apply(parts.map(part =>
-                isAllAxisExpression(part) ? ALL_AXIS : this.evaluate(part)), missing);
+            return function* (): Execution<RankValue> {
+                const values: RankValue[] = [];
+                for (const part of parts) {
+                    values.push(isAllAxisExpression(part)
+                        ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part)));
+                }
+                return yield* resume(interpreter.apply(values, missing));
+            };
         }
-        return () => { throw new RankError(`cannot evaluate ${expression.$type}`); };
+        return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
     }
 
     private readStdin(mode: 'word' | 'integer'): RankValue {
@@ -1089,22 +1187,22 @@ export class Interpreter {
         return BigInt(token);
     }
 
-    private evaluateArrayItem(item: ArrayItem): RankValue {
-        const value = this.evaluate(item.value);
+    private *evaluateArrayItem(item: ArrayItem): Execution<RankValue> {
+        const value = (yield* resume(this.evaluateTask(item.value)));
         if (!item.sign) return value;
         return this.evaluateUnary(item.sign, value);
     }
 
-    private evaluateAddressItem(item: AddressItem): RankValue {
+    private *evaluateAddressItem(item: AddressItem): Execution<RankValue> {
         if (item.all) return ALL_AXIS;
         if (!item.value) throw new RankError('missing array selector');
-        const value = this.evaluate(item.value);
+        const value = (yield* resume(this.evaluateTask(item.value)));
         if (!item.sign) return value;
         return this.evaluateUnary(item.sign, value);
     }
 
-    private arrayDimension(item: ArrayItem): number {
-        const dimension = expectInteger(this.evaluateArrayItem(item));
+    private *arrayDimension(item: ArrayItem): Execution<number> {
+        const dimension = expectInteger((yield* resume(this.evaluateArrayItem(item))));
         if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
         if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
             throw new RankError(`array dimension is too large: ${dimension}`);
@@ -1122,7 +1220,7 @@ export class Interpreter {
     private defineFunction(statement: FunctionStatement): RankValue {
         const { generator } = prepareFunction(statement);
         const context = this.localFrame;
-        const fn: RankValue = {
+        const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
             arities: [statement.parameters.length],
@@ -1131,8 +1229,11 @@ export class Interpreter {
             captures: context?.captures(),
             call: arguments_ => generator
                 ? this.callGeneratorFunction(statement, arguments_, context)
-                : this.callFunction(statement, arguments_, context),
+                : runExecution(this.callFunction(statement, arguments_, context)),
         };
+        if (!generator) {
+            functionExecutions.set(fn, arguments_ => this.callFunction(statement, arguments_, context));
+        }
         this.assign(statement.name, fn);
         return fn;
     }
@@ -1155,26 +1256,37 @@ export class Interpreter {
         return frame;
     }
 
-    private callFunction(
+    private *callFunction(
         statement: FunctionStatement,
         arguments_: RankValue[],
         context: LocalFrame | undefined,
-    ): RankValue {
+    ): Execution<RankValue> {
+        if (this.callDepth >= this.maxCallDepth) {
+            throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
+        }
         const frame = this.functionFrame(statement, arguments_, context);
-        return this.withResourceScope(() => {
-            return this.withLexicalFrame(frame, () => {
+        const caller = this.localFrame;
+        const scope = new Set<RankFile>();
+        this.resourceScopes.push(scope);
+        this.localFrame = frame;
+        this.callDepth += 1;
+        let result: RankValue | undefined;
+        let pending: unknown;
+        try {
+            try {
                 for (const local of prepareFunction(statement).locals) this.defineFunction(local);
-                try {
-                    this.executeStatements(statement.statements);
-                } catch (error) {
-                    if (error instanceof ReturnSignal && error.value !== undefined) {
-                        return error.value;
-                    }
-                    throw error;
-                }
+                yield* resume(this.executeStatementStream(statement.statements));
                 throw new RankError(`function ${statement.name} reached end without return`);
-            });
-        });
+            } catch (error) {
+                if (error instanceof ReturnSignal && error.value !== undefined) result = error.value;
+                else pending = error;
+            }
+        } finally {
+            this.callDepth -= 1;
+            this.localFrame = caller;
+            this.finishResourceScope(scope, result, pending);
+        }
+        return result!;
     }
 
     private callGeneratorFunction(
@@ -1205,13 +1317,13 @@ export class Interpreter {
 
                 const resources = new Set<RankFile>();
                 interpreter.generatorResourceScopes.add(resources);
-                const execution = interpreter.executeStatementStream(
+                const execution = new ExecutionStack(interpreter.executeStatementStream(
                     statement.statements,
                     false,
                     false,
                     false,
                     true,
-                );
+                ));
                 try {
                     while (true) {
                         let next: IteratorResult<RankValue, RankValue | undefined>;
@@ -1233,7 +1345,10 @@ export class Interpreter {
                         interpreter.withGeneratorFrame(
                             frame,
                             resources,
-                            () => execution.return(undefined),
+                            () => {
+                                let result = execution.return(undefined);
+                                while (!result.done) result = execution.next();
+                            },
                         );
                     } finally {
                         interpreter.generatorResourceScopes.delete(resources);
@@ -1302,6 +1417,7 @@ export class Interpreter {
             input: this.options.input,
             io: this.options.io,
             random: this.random,
+            maxCallDepth: this.maxCallDepth,
             loadModule: this.options.loadModule,
             sourceId: loaded.id,
         });
@@ -1571,7 +1687,7 @@ export class Interpreter {
         return this.localFrame?.find(name)?.values.get(name) ?? this.variables.get(name);
     }
 
-    private apply(values: RankValue[], missing?: () => RankValue): RankValue {
+    private *apply(values: RankValue[], missing?: () => RankValue): Execution<RankValue> {
         if (!values.some(isNativeFunction)) return this.applySelectors(values, missing);
 
         let pending: RankValue[] = [];
@@ -1590,12 +1706,19 @@ export class Interpreter {
                 parts => this.applySelectors(parts),
             );
             const result = arguments_.length === 1 && value.monadicRank !== 'all'
-                ? this.applyUnaryAtRank(arguments_[0], value, value.monadicRank)
-                : value.call(arguments_);
+                ? yield* resume(this.applyUnaryAtRank(arguments_[0], value, value.monadicRank))
+                : yield* resume(this.invoke(value, arguments_));
             this.ownFiles(result);
             pending = [result];
         }
         return pending.length === 1 ? pending[0] : this.applySelectors(pending);
+    }
+
+    private invoke(fn: NativeFunction, arguments_: RankValue[]): Execution<RankValue> {
+        const execution = functionExecutions.get(fn);
+        return execution ? execution(arguments_) : (function* (): Execution<RankValue> {
+            return fn.call(arguments_);
+        })();
     }
 
     private applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
@@ -1608,11 +1731,11 @@ export class Interpreter {
         return applySelectors(values, missing);
     }
 
-    private applyAtRank(
+    private *applyAtRank(
         values: RankValue[],
         rank: bigint,
         axes?: readonly number[],
-    ): RankValue {
+    ): Execution<RankValue> {
         if (rank > BigInt(Number.MAX_SAFE_INTEGER)) {
             throw new RankError(`rank is too large: ${rank}`);
         }
@@ -1624,32 +1747,33 @@ export class Interpreter {
         if (!fn.arities.includes(1)) throw new RankError(`rank requires a unary operation: ${fn.name}`);
         const receivers = values.slice(0, -1);
         if (receivers.length !== 1) throw new RankError('unary rank requires one data value');
-        return this.applyUnaryAtRank(receivers[0], fn, Number(rank), axes);
+        return yield* resume(this.applyUnaryAtRank(receivers[0], fn, Number(rank), axes));
     }
 
-    private applyUnaryAtRank(
+    private *applyUnaryAtRank(
         value: RankValue,
         fn: Extract<RankValue, { kind: 'function' }>,
         cellRank: number,
         frameAxes?: readonly number[],
-    ): RankValue {
+    ): Execution<RankValue> {
         if (frameAxes !== undefined && !isRankArray(value)) {
             throw new RankError('axis rank expects an array');
         }
         if (typeof value === 'string') {
-            if (cellRank >= 1) return fn.call([value]);
+            if (cellRank >= 1) return yield* resume(this.invoke(fn, [value]));
             return mapTextAtoms(value, atom => fn.call([atom]), fn.name);
         }
         if (isRankSequence(value)) {
-            if (cellRank >= 1) return fn.call([value]);
+            if (cellRank >= 1) return yield* resume(this.invoke(fn, [value]));
             return mapSequence(value, fn.name, atom => fn.call([atom]));
         }
         if (isRankArray(value)) {
-            if (frameAxes === undefined && cellRank >= value.shape.length) return fn.call([value]);
+            if (frameAxes === undefined && cellRank >= value.shape.length) return yield* resume(this.invoke(fn, [value]));
             const axes = tensorFrameAxes(value.shape, frameAxes, cellRank);
+            if (axes.length === 0) return yield* resume(this.invoke(fn, [value]));
             return this.applyToTensorCells(value, fn, axes);
         }
-        return fn.call([value]);
+        return yield* resume(this.invoke(fn, [value]));
     }
 
     private applyToTensorCells(
@@ -1998,10 +2122,9 @@ export class Interpreter {
         });
     }
 
-    private *forEntries(binding: ForBinding): IterableIterator<ForEntry> {
+    private *forEntries(binding: ForBinding, value: RankValue): IterableIterator<ForEntry> {
         const spec = tensorIterationSpec(binding.iterable);
         if (spec) {
-            const value = this.evaluate(spec.source);
             if (!isRankArray(value)) throw new RankError('ranked for iteration expects an array');
             const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
             validateForBindings(binding.names, frameAxes.length);
@@ -2013,7 +2136,6 @@ export class Interpreter {
             return;
         }
 
-        const value = this.evaluate(binding.iterable);
         if (isRankObject(value)) {
             validateForBindings(binding.names, 1);
             this.declareLoopTypes(binding.names, [
@@ -3414,31 +3536,37 @@ function formatTypes(types: ReadonlySet<string>): string {
 function containedFiles(value: RankValue | undefined): Set<RankFile> {
     const files = new Set<RankFile>();
     const seen = new Set<object>();
-
-    const visit = (item: RankValue | undefined): void => {
-        if (item === undefined || typeof item !== 'object' || item.kind === 'bytes' || seen.has(item)) return;
+    const pending: Iterator<RankValue | undefined>[] = [[value].values()];
+    const captures = function* (scopes: readonly ReadonlyMap<string, RankValue>[]): IterableIterator<RankValue> {
+        for (const scope of scopes) yield* scope.values();
+    };
+    while (pending.length > 0) {
+        const next = pending[pending.length - 1].next();
+        if (next.done) {
+            pending.pop();
+            continue;
+        }
+        const item = next.value;
+        if (item === undefined || typeof item !== 'object' || item.kind === 'bytes' || seen.has(item)) continue;
         seen.add(item);
         if (isRankFile(item)) {
             files.add(item);
         } else if (isRankArray(item) && item.containsFiles === false) {
-            return;
+            continue;
         } else if (isRankArray(item) || isRankQueue(item)) {
-            item.items.forEach(visit);
+            pending.push(item.items.values());
         } else if (isRankIndex(item) || isRankSet(item)
             || isRankObject(item) || isRankRecord(item)) {
-            item.entries.forEach(visit);
+            pending.push(item.entries.values());
         } else if (isRankCounter(item)) {
-            item.entries.forEach(entry => visit(entry.value));
+            pending.push(Array.from(item.entries.values(), entry => entry.value).values());
         } else if (isRankErrorValue(item)) {
-            visit(item.value);
-            visit(item.cause);
+            pending.push([item.value, item.cause].values());
         } else if (isNativeFunction(item)) {
-            item.captures?.forEach(scope => scope.forEach(visit));
+            if (item.captures) pending.push(captures(item.captures));
         } else if (isRankSequence(item)) {
-            item.plan.captures?.forEach(scope => scope.forEach(visit));
+            if (item.plan.captures) pending.push(captures(item.plan.captures));
         }
-    };
-
-    visit(value);
+    }
     return files;
 }

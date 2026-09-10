@@ -35,16 +35,53 @@ Preparation of child expressions remains lazy, preserving errors and side effect
 in expressions that have not yet been reached.
 
 Statements also receive a cached handler when execution first reaches them.
-Ordinary commands have synchronous handlers; control-flow commands and `yield`
-have stream handlers. Loop bindings and compound-assignment operators are prepared
-once. Loop sources, conditions, values and assignment targets remain runtime work.
+Assignments, returns and expression statements whose expressions contain no
+applications can use synchronous handlers. Other commands have execution-task
+handlers. Loop bindings and compound-assignment operators are prepared once.
+Loop sources, conditions, values and assignment targets remain runtime work.
 
 Each stream invocation supplies its own execution context: test assertions, loop,
 finally and generator flags. Those flags are never captured from the first call.
 Nested bodies are prepared lazily, so an unreached command does not fail early.
-The shared stream delegates to these handlers and retains one implementation of
-`try`, `catch`, `finally`, loops and control transfer. A bytecode VM or a separate
-non-generator statement executor is not implemented.
+The shared stream schedules these handlers and retains one implementation of
+`try`, `catch`, `finally`, loops and control transfer. A bytecode VM is not implemented.
+
+## Function call stack
+
+`execution.ts` drives suspended execution tasks with an explicit stack. A child
+expression or function call suspends its caller through `resume`; the driver
+starts the child and later supplies its result or throws its error into the
+caller. JavaScript generator delegation is only used for the small suspension
+helper, so ordinary Rank recursion does not accumulate JavaScript call frames.
+Non-tail recursion retains intermediate results and resumes them after return.
+Tail calls currently retain their callers too; tail-call optimization is separate
+work and is not provided by the execution stack.
+
+Frames still keep their lexical environments and resource scopes. Exceptions
+unwind the execution stack through the same handlers as normal execution.
+Closing a Rank generator unwinds all suspended tasks and completes its finally
+blocks, including calls and yields during cleanup; cleanup yields are discarded.
+
+The default limit is 200,000 active value-returning function calls per interpreter.
+Hosts can set `InterpreterOptions.maxCallDepth` to a positive safe integer; imported
+modules inherit the setting. Exceeding it raises the catchable `.RecursionLimit`
+error and unwinds normally. Memory use remains proportional to the suspended
+work, so the call limit is not a memory guarantee.
+
+The synchronous host interfaces for lazy tensor cells and sequence iteration
+remain a boundary: recursively forcing another lazy callback can still exhaust
+the JavaScript stack. That failure is translated into `.RecursionLimit`. This
+differs from ordinary Rank calls, including non-tail and mutual recursion, which
+use the explicit execution stack. Scalar and whole-value `rank` calls also use it.
+
+Regression tests cover a 100,000-level non-tail call and DFS on a chain of 100,000
+vertices, operand ordering, mutual recursion, closures, imported functions,
+generator resumption and cancellation, errors, and resource cleanup.
+
+On the development machine, this change increased the runtime benchmark's median
+from 31.0 to 70.4 ms for `tree` and from 8.9 to 13.1 ms for `total`. The explicit
+stack trades additional allocation and dispatch work for deeper recursion; these
+local measurements are not performance guarantees.
 
 ## Resource scopes
 
