@@ -341,9 +341,22 @@ Powers = Bases ** Exponents
 Pred = Pred - 1
 ```
 
-Scalar broadcasting is allowed where shape rules make it unambiguous.
-Two array operands are compatible only when their complete shapes are equal;
-an equal number of elements is not enough.
+Array operands use trailing-axis broadcasting. Shapes are aligned from the
+right; corresponding dimensions are compatible when they are equal or either
+dimension is `1`. Missing leading dimensions behave as dimensions of size `1`.
+The result has the larger compatible size on every axis:
+
+```rank
+M = array shape 2 3 pad 1
+Row = array 10 20 30
+Result = M + Row
+rem Result shape is 2 3
+```
+
+Broadcast results are lazy and cached. Incompatible shapes raise
+`.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
+Sequences retain their elementwise zip behavior and do not use tensor
+broadcasting.
 
 Because scalar `+` concatenates two text values, the same array rule provides
 elementwise text concatenation and scalar broadcasting:

@@ -54,19 +54,23 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Axis reductions
 
-`sum` and `mean` without modifiers reduce every element. `axis` reduces only
-the named axes and preserves the remaining axes in their original order:
+`sum`, `mean`, `min` and `max` without modifiers reduce every element. `axis`
+reduces only the named axes and preserves the remaining axes in their original
+order:
 
 ```rank
 Total = A sum
 Rows = A mean axis 1
 Columns = A mean axis 0
 Planes = T sum axis 0 2
+Lows = A min axis 0
+Highs = A max axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
 result. Every axis must exist and may appear only once. An empty `sum` is zero;
-an empty `mean` raises `.EmptyReduction`. `mean` always returns real values.
+an empty `mean`, `min` or `max` raises `.EmptyReduction`. `mean` always returns
+real values.
 
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names

@@ -486,8 +486,9 @@ describe('Rank IO, modules and programs', () => {
             '  end',
             'end',
             'test "different shapes"',
-            '  Answer = array shape 1 3',
-            '    7 0 8',
+            '  Answer = array shape 2 2',
+            '    7 0',
+            '    1 8',
             '  end',
             '  Answer equal array 7 0 8',
             'end',
@@ -512,7 +513,7 @@ describe('Rank IO, modules and programs', () => {
                 name: 'different shapes',
                 passed: false,
                 output: [],
-                error: 'shape mismatch: 1,3 and 3',
+                error: 'shape mismatch: 2,2 and 3',
             },
         ]);
     });

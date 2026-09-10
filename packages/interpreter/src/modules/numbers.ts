@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { mapBroadcastArrays } from '../tensor.js';
 import {
     mapSequence,
     reduceSequence,
@@ -142,14 +143,7 @@ function mapBinaryNumeric(
         return mapSequence(right, name, item => scalarOperation(left, item));
     }
     if (isRankArray(left) && isRankArray(right)) {
-        if (left.shape.length !== right.shape.length
-            || left.shape.some((size, axis) => size !== right.shape[axis])) {
-            throw new RankError(`shape mismatch: ${left.shape} and ${right.shape}`);
-        }
-        return mappedArray(left.shape, index => scalarOperation(
-            left.itemAt?.(index) ?? left.items[index],
-            right.itemAt?.(index) ?? right.items[index],
-        ));
+        return mapBroadcastArrays(left, right, scalarOperation);
     }
     const array = isRankArray(left) ? left : isRankArray(right) ? right : undefined;
     if (!array) return scalarOperation(left, right);
@@ -262,7 +256,9 @@ function numericExtreme(
             const numeric = expectNumeric(item);
             if (result === undefined || replaces(numeric, result)) result = numeric;
         }
-        if (result === undefined) throw new RankError(`${name} requires at least one value`);
+        if (result === undefined) {
+            throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
+        }
         return result;
     }, 'all', [0, 0]);
 }

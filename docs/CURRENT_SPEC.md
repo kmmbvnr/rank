@@ -1648,9 +1648,22 @@ Powers = Bases ** Exponents
 Pred = Pred - 1
 ```
 
-Scalar broadcasting is allowed where shape rules make it unambiguous.
-Two array operands are compatible only when their complete shapes are equal;
-an equal number of elements is not enough.
+Array operands use trailing-axis broadcasting. Shapes are aligned from the
+right; corresponding dimensions are compatible when they are equal or either
+dimension is `1`. Missing leading dimensions behave as dimensions of size `1`.
+The result has the larger compatible size on every axis:
+
+```rank
+M = array shape 2 3 pad 1
+Row = array 10 20 30
+Result = M + Row
+rem Result shape is 2 3
+```
+
+Broadcast results are lazy and cached. Incompatible shapes raise
+`.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
+Sequences retain their elementwise zip behavior and do not use tensor
+broadcasting.
 
 Because scalar `+` concatenates two text values, the same array rule provides
 elementwise text concatenation and scalar broadcasting:
@@ -2297,19 +2310,23 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Axis reductions
 
-`sum` and `mean` without modifiers reduce every element. `axis` reduces only
-the named axes and preserves the remaining axes in their original order:
+`sum`, `mean`, `min` and `max` without modifiers reduce every element. `axis`
+reduces only the named axes and preserves the remaining axes in their original
+order:
 
 ```rank
 Total = A sum
 Rows = A mean axis 1
 Columns = A mean axis 0
 Planes = T sum axis 0 2
+Lows = A min axis 0
+Highs = A max axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
 result. Every axis must exist and may appear only once. An empty `sum` is zero;
-an empty `mean` raises `.EmptyReduction`. `mean` always returns real values.
+an empty `mean`, `min` or `max` raises `.EmptyReduction`. `mean` always returns
+real values.
 
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
@@ -2759,9 +2776,9 @@ between -1 and 1. An input outside a function's mathematical domain raises
 `.DomainError`. `sin`, `cos` and `tan` also reject infinities.
 
 Unary functions have intrinsic rank 0 and map lazily over arrays and
-sequences. `atan2` has intrinsic ranks `0 0`. It combines equal-shaped arrays
-elementwise, broadcasts a scalar over one array, and zips two sequences.
-It can also be supplied to `outer`.
+sequences. `atan2` has intrinsic ranks `0 0`. It uses the general trailing-axis
+broadcasting rule for arrays, broadcasts a scalar over one array, and zips two
+sequences. It can also be supplied to `outer`.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:

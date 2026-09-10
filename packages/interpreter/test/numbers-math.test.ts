@@ -54,6 +54,25 @@ describe('Rank mathematical functions', () => {
             'Y X atan2',
         ].join('\n'))).toBe('0 1.5707963267948966');
         expect(run('use numbers\n(array 0 1) 1 atan2')).toBe('0 0.7853981633974483');
+        expect(run([
+            'use numbers',
+            'Y = array shape 2 1 pad 1',
+            'X = array 1 -1',
+            'Y X atan2',
+        ].join('\n'))).toBe([
+            '0.7853981633974483',
+            '2.356194490192345',
+            '0.7853981633974483',
+            '2.356194490192345',
+        ].join(' '));
+        expect(run([
+            'use numbers',
+            'Y = array shape 2 1 pad 1',
+            'X = array 1 -1',
+            'Y X atan2',
+        ].join('\n'))).toBe(
+            '0.7853981633974483 2.356194490192345 0.7853981633974483 2.356194490192345',
+        );
         expect(run('use numbers\n(array 0 1) (array 1 0) atan2 outer'))
             .toBe('0 0 0.7853981633974483 1.5707963267948966');
         expect(run([
@@ -74,7 +93,7 @@ describe('Rank mathematical functions', () => {
             .toThrowError('atanh input is outside its domain');
         expect(() => run('use numbers\ninfinity sin'))
             .toThrowError('sin input is outside its domain');
-        expect(() => run('use numbers\n(array 0 1) (array 1) atan2'))
+        expect(() => run('use numbers\n(array 0 1) (array 1 2 3) atan2'))
             .toThrowError('shape mismatch');
     });
 });

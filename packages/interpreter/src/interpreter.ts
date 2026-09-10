@@ -43,6 +43,7 @@ import {
 import { MissingValueError, RankError } from './errors.js';
 import type { RankInput, RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
+import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
@@ -1645,7 +1646,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean',
+        operation: 'sum' | 'mean' | 'min' | 'max',
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -2736,11 +2737,7 @@ function mapBinary(
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
     if (leftArray && rightArray) {
-        if (!sameShape(leftArray.shape, rightArray.shape)) {
-            throw new RankError(`shape mismatch: ${leftArray.shape} and ${rightArray.shape}`);
-        }
-        return lazyArray(leftArray.shape, index =>
-            operation(arrayItem(leftArray, index), arrayItem(rightArray, index)));
+        return mapBroadcastArrays(leftArray, rightArray, operation);
     }
     const source = leftArray ?? rightArray!;
     return lazyArray(source.shape, index => {
@@ -2829,10 +2826,15 @@ function explicitAxisLength(
 
 function explicitAxisReduction(
     parts: Expression[],
-): { source: Expression; operation: 'sum' | 'mean'; axes: readonly number[] } | undefined {
+): {
+    source: Expression;
+    operation: 'sum' | 'mean' | 'min' | 'max';
+    axes: readonly number[];
+} | undefined {
     if (parts.length < 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
-    if ((operation !== 'sum' && operation !== 'mean')
+    if ((operation !== 'sum' && operation !== 'mean'
+        && operation !== 'min' && operation !== 'max')
         || !isNamed(parts[2], 'axis')) return undefined;
     return {
         source: parts[0],

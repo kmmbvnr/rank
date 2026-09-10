@@ -1,0 +1,44 @@
+use testing
+
+test "official example"
+  use "016_scale"
+  Data = array shape 3 2
+    1 2
+    3 4
+    5 6
+  end
+  Std = array shape 3 2
+    -1.2247 -1.2247
+    0.0 0.0
+    1.2247 1.2247
+  end
+  Norm = array shape 3 2
+    0.0 0.0
+    0.5 0.5
+    1.0 1.0
+  end
+
+  Result = Data feature_scaling
+  Result 0 equal Std
+  Result 1 equal Norm
+end
+
+test "features scale independently"
+  use "016_scale"
+  Data = array shape 2 3
+    -2 10 100
+    2 30 400
+  end
+  Std = array shape 2 3
+    -1.0 -1.0 -1.0
+    1.0 1.0 1.0
+  end
+  Norm = array shape 2 3
+    0.0 0.0 0.0
+    1.0 1.0 1.0
+  end
+
+  Result = Data feature_scaling
+  Result 0 equal Std
+  Result 1 equal Norm
+end

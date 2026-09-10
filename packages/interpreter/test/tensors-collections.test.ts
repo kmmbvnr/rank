@@ -68,7 +68,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('transpose axes must be unique');
     });
 
-    it('reduces selected tensor axes with sum and mean', () => {
+    it('reduces selected tensor axes', () => {
         expect(run([
             'use numbers',
             'use sequences',
@@ -97,6 +97,55 @@ describe('Rank tensors and collections', () => {
             'T = array shape 2 3 pad 0',
             'T sum axis 1 1',
         ].join('\n'))).toThrowError('sum axes must be unique');
+        expect(run([
+            'use numbers',
+            'M = array shape 3 2',
+            '  3 8',
+            '  -1 7',
+            '  4 2',
+            'end',
+            'Lows = M min axis 0',
+            'Highs = M max axis 1',
+            'array Lows Highs',
+        ].join('\n'))).toBe('-1 2 8 7 4');
+        expect(() => run([
+            'use numbers',
+            'Empty = array shape 2 0 pad 0',
+            'Empty min axis 1',
+        ].join('\n'))).toThrowError('min requires at least one value');
+    });
+
+    it('broadcasts trailing singleton dimensions for elementwise operations', () => {
+        expect(run([
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+            'M + array 10 20 30',
+        ].join('\n'))).toBe('11 22 33 14 25 36');
+        expect(run([
+            'Column = array shape 2 1',
+            '  10',
+            '  20',
+            'end',
+            'Column + array 1 2 3',
+        ].join('\n'))).toBe('11 12 13 21 22 23');
+        expect(run([
+            'M = array shape 2 3 pad 2',
+            'Mask = M greater array 1 2 3',
+            'Mask and array true false true',
+        ].join('\n'))).toBe('true false false true false false');
+        expect(() => run([
+            'A = array shape 2 3 pad 0',
+            'B = array shape 2 2 pad 0',
+            'A + B',
+        ].join('\n'))).toThrowError('shape mismatch: 2,3 and 2,2');
+        const empty = new Interpreter().execute([
+            'A = array shape 0 3 pad 0',
+            'B = array shape 1 3 pad 1',
+            'A + B',
+        ].join('\n'));
+        expect(empty).toMatchObject({ kind: 'array', shape: [0, 3], items: [] });
     });
 
     it('preserves tensor shape under unary operations', () => {
