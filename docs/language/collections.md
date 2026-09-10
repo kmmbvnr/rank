@@ -141,9 +141,21 @@ the remaining cell shape. Given `Rings` with shape `6 3`, every value from
 
 ### Counter
 
+`counter` is a frequency map:
+
 ```rank
 counter add X
+Count = counter X
+Kinds = counter len
 ```
+
+The first use lazily creates one counter in the current function-call workspace.
+`add` increments the frequency by one. Addressing an absent key returns zero,
+and `len` returns the number of distinct keys. Scalar and array keys use the
+same equality as `set` elements. Separate and recursive calls receive separate
+counters. `counter` is a first-class value with runtime type `.counter`.
+
+Counter iteration and direct frequency assignment are not defined yet.
 
 If multiple structures of the same type are needed, they should be given
 explicit names.

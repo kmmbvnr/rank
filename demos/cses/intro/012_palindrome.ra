@@ -1,0 +1,46 @@
+rem CSES 1755: Palindrome Reorder
+rem https://cses.fi/problemset/task/1755
+
+use algo
+use io
+use numbers
+use text
+
+Text = stdin .word
+Text palindrome print
+
+
+rem Build an alphabetically deterministic palindrome rearrangement.
+fun palindrome Text
+  Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+  for C in Text
+    counter add C
+  end
+
+  Odd = 0
+  Middle = ""
+  Left = ""
+
+  for C in Alphabet
+    Half = counter C // 2
+
+    if counter C odd
+      Odd += 1
+      Middle = C
+    end
+
+    I = 0
+    for I less Half
+      Left += C
+      I += 1
+    end
+  end
+
+  if Odd greater 1
+    return "NO SOLUTION"
+  end
+
+  Right = Left reverse
+  return Left + Middle + Right
+end

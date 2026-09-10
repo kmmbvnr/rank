@@ -59,6 +59,7 @@ import {
     formatValue,
     isNativeFunction,
     isRankArray,
+    isRankCounter,
     isRankErrorValue,
     isRankFile,
     isRankIndex,
@@ -69,6 +70,7 @@ import {
     isRankSequence,
     isRankSequenceMask,
     type RankArray,
+    type RankCounter,
     type RankFile,
     type NativeFunction,
     type RankIndex,
@@ -500,9 +502,17 @@ export class Interpreter {
                 receiver.items.push(this.evaluate(statement.value));
                 result = undefined;
             } else if (isAddStatement(statement)) {
-                const receiver = this.localSet();
                 const value = this.evaluate(statement.value);
-                receiver.entries.set(setValueKey(value), value);
+                if (statement.structure.startsWith('counter')) {
+                    const receiver = this.localCounter();
+                    const key = setValueKey(value);
+                    const existing = receiver.entries.get(key);
+                    if (existing) existing.count += 1n;
+                    else receiver.entries.set(key, { value, count: 1n });
+                } else {
+                    const receiver = this.localSet();
+                    receiver.entries.set(setValueKey(value), value);
+                }
                 result = undefined;
             } else if (isIndexAssignmentStatement(statement)) {
                 const index = this.localIndex();
@@ -889,6 +899,19 @@ export class Interpreter {
         return set;
     }
 
+    private localCounter(): RankCounter {
+        this.requireModule('algo', 'counter');
+        const scope = this.localScopes.at(-1) ?? this.variables;
+        const existing = scope.get('counter');
+        if (existing !== undefined) {
+            if (!isRankCounter(existing)) throw new RankError('counter name is already in use');
+            return existing;
+        }
+        const counter: RankCounter = { kind: 'counter', entries: new Map() };
+        scope.set('counter', counter);
+        return counter;
+    }
+
     private useFile(specifier: string, alias?: string): LoadedProgram {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
@@ -1075,6 +1098,7 @@ export class Interpreter {
         if (name === 'index') return this.localIndex();
         if (name === 'queue') return this.localQueue();
         if (name === 'set') return this.localSet();
+        if (name === 'counter') return this.localCounter();
         if (name === 'raise') return raiseFunction;
         if (name === 'type') return typeFunction;
 
@@ -1874,6 +1898,9 @@ function applySelectors(values: RankValue[]): RankValue {
         if (value === undefined) throw new MissingValueError('missing keyed value');
         return value;
     }
+    if (isRankCounter(values[0]) && values.length === 2) {
+        return values[0].entries.get(setValueKey(values[1]))?.count ?? 0n;
+    }
     if (isRankObject(values[0])) {
         if (values.length !== 2 || typeof values[1] !== 'string') {
             throw new RankError('object addressing expects one text key');
@@ -1966,6 +1993,7 @@ function canApplySelectors(values: RankValue[]): boolean {
     }
     if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
     if (isRankIndex(values[0]) && values.length > 1) return true;
+    if (isRankCounter(values[0]) && values.length === 2) return true;
     if (isRankObject(values[0]) && values.length === 2
         && typeof values[1] === 'string') return true;
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') return true;
@@ -2463,6 +2491,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'index',
     'queue',
     'set',
+    'counter',
     'function',
     'sequence',
 ]);
@@ -2488,6 +2517,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             item.items.forEach(visit);
         } else if (isRankIndex(item) || isRankSet(item) || isRankObject(item)) {
             item.entries.forEach(visit);
+        } else if (isRankCounter(item)) {
+            item.entries.forEach(entry => visit(entry.value));
         } else if (isRankErrorValue(item)) {
             visit(item.value);
             visit(item.cause);

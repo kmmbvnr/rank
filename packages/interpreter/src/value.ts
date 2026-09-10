@@ -62,6 +62,16 @@ export interface RankSet {
     readonly entries: Map<string, RankValue>;
 }
 
+export interface RankCounterEntry {
+    readonly value: RankValue;
+    count: bigint;
+}
+
+export interface RankCounter {
+    readonly kind: 'counter';
+    readonly entries: Map<string, RankCounterEntry>;
+}
+
 export interface RankObject {
     readonly kind: 'object';
     readonly entries: Map<string, RankValue>;
@@ -111,7 +121,7 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankObject | NativeFunction |
+    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter | RankObject | NativeFunction |
     RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -148,6 +158,10 @@ export function isRankQueue(value: RankValue): value is RankQueue {
 
 export function isRankSet(value: RankValue): value is RankSet {
     return typeof value === 'object' && value.kind === 'set';
+}
+
+export function isRankCounter(value: RankValue): value is RankCounter {
+    return typeof value === 'object' && value.kind === 'counter';
 }
 
 export function isRankObject(value: RankValue): value is RankObject {
@@ -200,6 +214,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'set') {
         return '<set>';
+    }
+    if (value.kind === 'counter') {
+        return '<counter>';
     }
     if (value.kind === 'object') {
         return '<object>';

@@ -2,6 +2,7 @@ import { RankError } from '../errors.js';
 import { sequence, windowValue } from '../sequence.js';
 import {
     isRankArray,
+    isRankCounter,
     isRankObject,
     isRankQueue,
     isRankSequence,
@@ -68,6 +69,7 @@ function lengthOf(value: RankValue): bigint {
     if (isRankArray(value)) return BigInt(value.shape[0] ?? 0);
     if (isRankQueue(value)) return BigInt(value.items.length);
     if (isRankSet(value)) return BigInt(value.entries.size);
+    if (isRankCounter(value)) return BigInt(value.entries.size);
     if (isRankObject(value)) return BigInt(value.entries.size);
     if (!isRankSequence(value)) throw new RankError('len expects text or a collection');
     if (value.plan.size.kind === 'infinite') {

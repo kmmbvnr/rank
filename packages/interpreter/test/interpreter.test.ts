@@ -1174,6 +1174,32 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('11');
     });
 
+    it('counts scalar and array values in a function-local counter', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'fun summarize Values',
+            '  for Value in Values',
+            '    counter add Value',
+            '  end',
+            '  return array (counter "A") (counter "Z") (counter len)',
+            'end',
+            'Values = array "A" "A" "B"',
+            'Values summarize',
+        ].join('\n'))).toBe('2 0 2');
+        expect(run([
+            'use algo',
+            'fun composite X Y',
+            '  counter add array X Y',
+            '  counter add array X Y',
+            '  return counter (array X Y)',
+            'end',
+            '2 3 composite',
+        ].join('\n'))).toBe('2');
+        expect(run('use algo\ncounter type')).toBe('.counter');
+        expect(() => run('counter add "A"')).toThrowError('counter requires: use algo');
+    });
+
     it('iterates sets and generates finite permutations lazily', () => {
         expect(run([
             'use algo',

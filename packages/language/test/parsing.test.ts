@@ -324,9 +324,10 @@ describe('Rank grammar', () => {
         const document = await parse([
             'queue push Value + 1',
             'set add array X Y',
+            'counter add Value',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(2);
+        expect(document.parseResult.value.statements).toHaveLength(3);
     });
 });

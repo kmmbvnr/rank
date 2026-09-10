@@ -110,7 +110,7 @@ PushStatement:
     receiver=Expression 'push' value=Expression;
 
 AddStatement:
-    SET_ADD value=Expression;
+    structure=SET_ADD value=Expression;
 
 IndexAssignmentStatement:
     'index' keys+=PrimaryExpression+ '=' value=Expression;
@@ -259,7 +259,7 @@ hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
-terminal SET_ADD: /set[\t ]+add/;
+terminal SET_ADD: /(set|counter)[\t ]+add/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
 terminal REAL returns number: /[0-9]+\.[0-9]+/;

@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "012_palindrome"
+  "AAAACACBA" palindrome equal "AAACBCAAA"
+end
+
+test "no palindrome exists"
+  use "012_palindrome"
+  "AB" palindrome equal "NO SOLUTION"
+end
+
+test "one character"
+  use "012_palindrome"
+  "A" palindrome equal "A"
+end
+
+test "all counts are even"
+  use "012_palindrome"
+  "AABBCC" palindrome equal "ABCCBA"
+end
