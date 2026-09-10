@@ -1,0 +1,85 @@
+use testing
+
+test "official weather example"
+  use "020_tree"
+  use json
+  Data = "[
+    {\"Outlook\":\"Sunny\",
+     \"Wind\":\"Weak\",
+     \"PlayTennis\":\"No\"},
+    {\"Outlook\":\"Overcast\",
+     \"Wind\":\"Strong\",
+     \"PlayTennis\":\"Yes\"},
+    {\"Outlook\":\"Rain\",
+     \"Wind\":\"Weak\",
+     \"PlayTennis\":\"Yes\"},
+    {\"Outlook\":\"Sunny\",
+     \"Wind\":\"Strong\",
+     \"PlayTennis\":\"No\"},
+    {\"Outlook\":\"Overcast\",
+     \"Wind\":\"Weak\",
+     \"PlayTennis\":\"Yes\"},
+    {\"Outlook\":\"Rain\",
+     \"Wind\":\"Strong\",
+     \"PlayTennis\":\"No\"},
+    {\"Outlook\":\"Rain\",
+     \"Wind\":\"Weak\",
+     \"PlayTennis\":\"Yes\"}
+  ]" json
+  Attrs = array "Outlook" "Wind"
+  Target = "PlayTennis"
+  Tree = Data Attrs Target learn_tree
+
+  Outlook = Tree "Outlook"
+  Rain = Outlook "Rain"
+  Wind = Rain "Wind"
+  A = Outlook "Overcast" equal "Yes"
+  B = Outlook "Sunny" equal "No"
+  C = Wind "Strong" equal "No"
+  D = Wind "Weak" equal "Yes"
+  A and B and C and D
+end
+
+test "pure data returns its class"
+  use "020_tree"
+  use json
+  Data = "[
+    {\"Color\":\"Red\",\"Class\":\"A\"},
+    {\"Color\":\"Blue\",\"Class\":\"A\"}
+  ]" json
+
+  Attrs = array "Color"
+  Result = Data Attrs "Class" learn_tree
+  Result equal "A"
+end
+
+test "majority ties are alphabetic"
+  use "020_tree"
+  use json
+  Data = "[
+    {\"Class\":\"B\"},
+    {\"Class\":\"A\"}
+  ]" json
+
+  Attrs = array shape 0 pad 0
+  Result = Data Attrs "Class" learn_tree
+  Result equal "A"
+end
+
+test "attribute ties keep input order"
+  use "020_tree"
+  use json
+  Data = "[
+    {\"First\":\"x\",\"Second\":\"m\",
+     \"Class\":\"No\"},
+    {\"First\":\"y\",\"Second\":\"n\",
+     \"Class\":\"Yes\"}
+  ]" json
+  Attrs = array "First" "Second"
+  Tree = Data Attrs "Class" learn_tree
+  First = Tree "First"
+
+  A = First "x" equal "No"
+  B = First "y" equal "Yes"
+  A and B
+end

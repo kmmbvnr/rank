@@ -2156,13 +2156,27 @@ Values = Data Column
 
 ## Projection
 
-One label returns a column:
+The first table representation is an array whose cells are objects, such as an
+array returned by `json`. With `use tables`, one text or label selector lazily
+projects the named field from every object while preserving the source shape:
 
 ```rank
 Age = Data .Age
+Column = "Age"
+Age = Data Column
 ```
 
-Multiple labels return a table/view:
+The field of each row is read only when the corresponding projected cell is
+demanded. A demanded non-object cell raises `.TypeError`; a missing field
+raises `.Missing`.
+
+Projection also composes inside a data-first call:
+
+```rank
+Count = Data .Age len
+```
+
+Multiple-column table views remain future work. The intended direction is:
 
 ```rank
 X = Data .Age .Fare .Pclass
@@ -2178,7 +2192,8 @@ X = Train Features
 Xtest = Test Features
 ```
 
-This is one of the central table abstractions in Rank.
+These future selectors will extend the same addressing model rather than add a
+separate query syntax.
 
 ## Computed columns
 
@@ -2792,6 +2807,7 @@ odd
 even
 abs
 sqrt
+log
 round
 sin
 cos
@@ -2848,6 +2864,16 @@ Roots = Values sqrt
 
 It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
+
+`log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
+
+```rank
+Natural = Value log
+Bits = Value log / (2 log)
+```
+
+It maps lazily over arrays and sequences. Its input must be positive and
+finite; zero, negative values and infinities raise `.DomainError`.
 
 `round` rounds a numeric value to a signed number of decimal places:
 

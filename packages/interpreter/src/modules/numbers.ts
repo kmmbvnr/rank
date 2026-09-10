@@ -50,6 +50,11 @@ export const numbersModule: RuntimeModule = {
         }
         return Math.sqrt(Number(value));
     }, 0),
+    log: () => unaryMath(
+        'log',
+        Math.log,
+        value => Number.isFinite(value) && value > 0,
+    ),
     round: () => native('round', 2, arguments_ =>
         roundValue(arguments_[0], arguments_[1])),
     sum: () => native('sum', 1, arguments_ => {

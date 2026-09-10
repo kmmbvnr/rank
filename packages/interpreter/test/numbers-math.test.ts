@@ -27,6 +27,18 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n0 atanh')).toBe('0');
     });
 
+    it('evaluates natural logarithms lazily at scalar rank', () => {
+        expect(run('use numbers\n1 log')).toBe('0');
+        expect(run('use numbers\n2 log')).toBe('0.6931471805599453');
+        expect(run('use numbers\n(array 1 2) log')).toBe('0 0.6931471805599453');
+        expect(run([
+            'use numbers',
+            'Values = array 1 "later"',
+            'Logs = Values log',
+            'Logs 0',
+        ].join('\n'))).toBe('0');
+    });
+
     it('maps trigonometric functions lazily while preserving tensor shape', () => {
         const value = new Interpreter().execute([
             'use numbers',
@@ -93,6 +105,14 @@ describe('Rank mathematical functions', () => {
             .toThrowError('atanh input is outside its domain');
         expect(() => run('use numbers\ninfinity sin'))
             .toThrowError('sin input is outside its domain');
+        expect(() => run('use numbers\n0 log'))
+            .toThrowError('log input is outside its domain');
+        expect(() => run('use numbers\ninfinity log'))
+            .toThrowError('log input is outside its domain');
+        expect(() => run('use numbers\n"x" log'))
+            .toThrowError('log expects numeric input');
+        expect(() => run('1 log'))
+            .toThrowError('unknown name: log');
         expect(() => run('use numbers\n(array 0 1) (array 1 2 3) atan2'))
             .toThrowError('shape mismatch');
     });

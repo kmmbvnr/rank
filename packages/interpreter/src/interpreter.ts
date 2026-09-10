@@ -52,6 +52,7 @@ import { roundValue } from './modules/numbers.js';
 import { shuffleValue } from './modules/random.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
 import { covarianceValue } from './modules/stats.js';
+import { projectField } from './modules/tables.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -1498,7 +1499,7 @@ export class Interpreter {
     }
 
     private apply(values: RankValue[], missing?: () => RankValue): RankValue {
-        if (!values.some(isNativeFunction)) return applySelectors(values, missing);
+        if (!values.some(isNativeFunction)) return this.applySelectors(values, missing);
 
         let pending: RankValue[] = [];
         for (const value of values) {
@@ -1510,14 +1511,28 @@ export class Interpreter {
                 throw new RankError(`operation must follow its data: ${value.name}`);
             }
 
-            const arguments_ = callArguments(value, pending);
+            const arguments_ = callArguments(
+                value,
+                pending,
+                parts => this.applySelectors(parts),
+            );
             const result = arguments_.length === 1 && value.monadicRank !== 'all'
                 ? this.applyUnaryAtRank(arguments_[0], value, value.monadicRank)
                 : value.call(arguments_);
             this.ownFiles(result);
             pending = [result];
         }
-        return pending.length === 1 ? pending[0] : applySelectors(pending);
+        return pending.length === 1 ? pending[0] : this.applySelectors(pending);
+    }
+
+    private applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+        if (values.length === 2 && isRankArray(values[0])
+            && (typeof values[1] === 'string' || isRankLabel(values[1]))) {
+            this.requireModule('tables', 'table projection');
+            const field = typeof values[1] === 'string' ? values[1] : values[1].name;
+            return projectField(values[0], field);
+        }
+        return applySelectors(values, missing);
     }
 
     private applyAtRank(
@@ -2506,6 +2521,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
 function callArguments(
     fn: Extract<RankValue, { kind: 'function' }>,
     values: RankValue[],
+    select: (values: RankValue[]) => RankValue = applySelectors,
 ): RankValue[] {
     if (fn.arities.includes(values.length)) return values;
 
@@ -2515,7 +2531,7 @@ function callArguments(
         const firstLength = values.length - arity + 1;
         const firstParts = values.slice(0, firstLength);
         if (!canApplySelectors(firstParts)) continue;
-        return [applySelectors(firstParts), ...values.slice(firstLength)];
+        return [select(firstParts), ...values.slice(firstLength)];
     }
 
     return values;
@@ -2540,6 +2556,8 @@ function canApplySelectors(values: RankValue[]): boolean {
             || (sameShape(values[0].shape, values[1].shape)
                 && values[1].items.every(item => typeof item === 'boolean'));
     }
+    if (values.length === 2 && isRankArray(values[0])
+        && (typeof values[1] === 'string' || isRankLabel(values[1]))) return true;
     if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
     if (isRankIndex(values[0]) && values.length > 1) return true;
     if (isRankCounter(values[0]) && values.length === 2) return true;

@@ -39,6 +39,7 @@ odd
 even
 abs
 sqrt
+log
 round
 sin
 cos
@@ -95,6 +96,16 @@ Roots = Values sqrt
 
 It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
+
+`log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
+
+```rank
+Natural = Value log
+Bits = Value log / (2 log)
+```
+
+It maps lazily over arrays and sequences. Its input must be positive and
+finite; zero, negative values and infinities raise `.DomainError`.
 
 `round` rounds a numeric value to a signed number of decimal places:
 

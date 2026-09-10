@@ -34,13 +34,27 @@ Values = Data Column
 
 ## Projection
 
-One label returns a column:
+The first table representation is an array whose cells are objects, such as an
+array returned by `json`. With `use tables`, one text or label selector lazily
+projects the named field from every object while preserving the source shape:
 
 ```rank
 Age = Data .Age
+Column = "Age"
+Age = Data Column
 ```
 
-Multiple labels return a table/view:
+The field of each row is read only when the corresponding projected cell is
+demanded. A demanded non-object cell raises `.TypeError`; a missing field
+raises `.Missing`.
+
+Projection also composes inside a data-first call:
+
+```rank
+Count = Data .Age len
+```
+
+Multiple-column table views remain future work. The intended direction is:
 
 ```rank
 X = Data .Age .Fare .Pclass
@@ -56,7 +70,8 @@ X = Train Features
 Xtest = Test Features
 ```
 
-This is one of the central table abstractions in Rank.
+These future selectors will extend the same addressing model rather than add a
+separate query syntax.
 
 ## Computed columns
 

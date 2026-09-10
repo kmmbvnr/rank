@@ -8,6 +8,7 @@ import { numbersModule } from './numbers.js';
 import { randomModule } from './random.js';
 import { sequencesModule } from './sequences.js';
 import { statsModule } from './stats.js';
+import { tablesModule } from './tables.js';
 import { textModule } from './text.js';
 import type { RuntimeModule } from './types.js';
 
@@ -24,6 +25,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     ranges: {},
     sequences: sequencesModule,
     stats: statsModule,
+    tables: tablesModule,
     testing: {},
     text: textModule,
 };

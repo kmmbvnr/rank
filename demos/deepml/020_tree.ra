@@ -1,0 +1,106 @@
+rem Deep-ML 20: Decision Tree
+rem https://www.deep-ml.com/problems/20
+
+use algo
+use numbers
+use sequences
+use tables
+
+rem Learn a categorical decision tree.
+fun learn_tree Data Attrs Target
+  Y = Data Target
+
+  if Y unique len equal 1
+    return Y 0
+  end
+
+  if Attrs len equal 0
+    return Y majority
+  end
+
+  Best = Attrs 0
+  BestGain = -1.0
+
+  for Attr in Attrs
+    Gain = Data Attr Target gain
+
+    if Gain greater BestGain
+      BestGain = Gain
+      Best = Attr
+    end
+  end
+
+  Mask = Attrs not equal Best
+  Rest = Attrs Mask array
+  Nodes = Data Best Rest Target branch
+  index Best = Nodes
+  return index
+end
+
+
+rem Build sorted branches for one split.
+fun branch Data Attr Rest T
+  Values = Data Attr unique sort
+
+  for Value in Values
+    Mask = Data Attr equal Value
+    Part = Data Mask array
+    index Value = Part Rest T learn_tree
+  end
+
+  return index
+end
+
+
+rem Compute information gain in bits.
+fun gain Data Attr Target
+  Base = Data Target entropy
+  Cond = 0.0
+  Values = Data Attr unique
+  Total = Data len
+
+  for Value in Values
+    Mask = Data Attr equal Value
+    Part = Data Mask array
+    Weight = Part len / Total
+    Bits = Part Target entropy
+    Cond += Weight * Bits
+  end
+
+  return Base - Cond
+end
+
+
+rem Compute Shannon entropy in bits.
+fun entropy Y
+  N = Y len
+  H = 0.0
+
+  for Value in Y unique
+    Count = Y (Y equal Value) len
+    P = Count / N
+    Bits = P log / (2 log)
+    H -= P * Bits
+  end
+
+  return H
+end
+
+
+rem Pick the alphabetic class on ties.
+fun majority Y
+  Values = Y unique sort
+  Best = Values 0
+  BestCount = -1
+
+  for Value in Values
+    Count = Y (Y equal Value) len
+
+    if Count greater BestCount
+      BestCount = Count
+      Best = Value
+    end
+  end
+
+  return Best
+end
