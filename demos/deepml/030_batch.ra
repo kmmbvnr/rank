@@ -1,0 +1,46 @@
+rem Deep-ML 30: Batch Iterator
+rem https://www.deep-ml.com/problems/30
+
+use numbers
+use ranges
+use sequences
+
+rem Lazily split X along its first axis.
+fun batch_iterator X Size
+  if Size at most 0
+    .InvalidBatchSize raise
+  end
+
+  N = X len
+
+  for First in 0 until N by Size
+    Last = First + Size
+    Last = Last N min
+
+    yield X from First until Last
+  end
+end
+
+rem Lazily split matching X and Y.
+fun batch_pairs X Y Size
+  if Size at most 0
+    .InvalidBatchSize raise
+  end
+
+  N = X len
+  if Y len not equal N
+    .DimensionMismatch raise
+  end
+
+  for First in 0 until N by Size
+    Last = First + Size
+    Last = Last N min
+
+    Batch = record
+      .x = X from First until Last
+      .y = Y from First until Last
+    end
+
+    yield Batch
+  end
+end

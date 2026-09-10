@@ -1,0 +1,90 @@
+use testing
+
+test "official paired batches"
+  use "030_batch"
+  use sequences
+  X = array shape 5 2
+    1 2
+    3 4
+    5 6
+    7 8
+    9 10
+  end
+  Y = array 1 2 3 4 5
+
+  Batches = X Y 2 batch_pairs array
+  Batches len equal 3
+
+  First = Batches 0
+  (First .x equal array shape 2 2
+    1 2
+    3 4
+  end) and reduce
+  (First .y equal array 1 2) and reduce
+
+  Last = Batches 2
+  (Last .x equal array shape 1 2
+    9 10
+  end) and reduce
+  (Last .y equal array 5) and reduce
+end
+
+test "official feature-only batches"
+  use "030_batch"
+  use sequences
+  X = array shape 4 2
+    1 1
+    2 2
+    3 3
+    4 4
+  end
+
+  Batches = X 3 batch_iterator array
+  Batches len equal 2
+  (Batches 0 equal array shape 3 2
+    1 1
+    2 2
+    3 3
+  end) and reduce
+  (Batches 1 equal array shape 1 2
+    4 4
+  end) and reduce
+end
+
+test "empty input has no batches"
+  use "030_batch"
+  use sequences
+  X = array shape 0 2 pad 0
+  Batches = X 3 batch_iterator array
+
+  Batches len equal 0
+end
+
+test "batch size must be positive"
+  use "030_batch"
+  X = array shape 2 1 pad 0
+  Raised = false
+
+  try
+    Result = X 0 batch_iterator array
+  catch .InvalidBatchSize Error
+    Raised = true
+  end
+
+  Raised
+end
+
+test "paired sample counts must match"
+  use "030_batch"
+  X = array shape 2 1 pad 0
+  Y = array 1 2 3
+  Raised = false
+
+  try
+    Result = X Y 2 batch_pairs array
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
