@@ -47,6 +47,21 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('parses multiple assignment from a formatted text expression', async () => {
+        const document = await parse([
+            'Pattern = "/integerx/integerx/integer"',
+            'Length Width Height = Line Pattern parse',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+
+        const statement = document.parseResult.value.statements[1];
+        expect(isAssignmentStatement(statement)).toBe(true);
+        if (!isAssignmentStatement(statement)) return;
+        expect(statement.name).toBe('Length');
+        expect(statement.additionalNames).toEqual(['Width', 'Height']);
+    });
+
     it('parses right-associative exponentiation above unary signs', async () => {
         const document = await parse('Answer = -2 ** 3 ** 2\nAnswer **= 2');
         expect(document.parseResult.lexerErrors).toEqual([]);

@@ -140,6 +140,7 @@ split
 reverse
 text
 integer
+parse
 startswith
 hex
 ```
@@ -152,13 +153,42 @@ Candidate = Secret + N text
 ```
 
 `split` separates text at every exact occurrence of a text separator and
-returns a rank-1 array of text values. Adjacent separators preserve empty
-parts. An empty separator splits by Unicode code point:
+returns a rank-1 array of text values. A rank-1 array of separators splits at
+any of them. Adjacent separators preserve empty parts. An empty separator
+splits by Unicode code point and must be used alone:
 
 ```rank
 Parts = "2x3x4" "x" split
+Fields = Text (array "," ";") split
 Characters = "A😀Б" "" split
 ```
+
+`parse` matches a complete text value against a text pattern and returns the
+captured values as a rank-1 array. It is normally combined with multiple
+assignment:
+
+```rank
+Pattern = "/word to /word = /integer"
+From To Distance = Line Pattern parse
+```
+
+Patterns use `/integer`, `/real`, `/word` and `/text`. Integers and reals are
+converted to their corresponding scalar types. `/word` captures one or more
+non-whitespace characters. `/text` captures as little text as possible while
+allowing the following literal pattern to match. `//` matches one literal
+slash. All other characters, including spaces, match exactly:
+
+```rank
+Pattern = "/integerx/integerx/integer"
+Length Width Height = "2x3x4" Pattern parse
+
+Spaced = "/integer x /integer"
+A B = "2 x 3" Spaced parse
+```
+
+An unknown directive raises `.InvalidFormat`. Input that does not match the
+complete pattern raises `.InvalidText`, with the original pattern or input
+available as the error value respectively.
 
 `startswith` tests an exact, case-sensitive prefix:
 

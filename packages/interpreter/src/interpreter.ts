@@ -409,6 +409,10 @@ export class Interpreter {
                 index.entries.set(indexKey(keys), this.evaluate(statement.value));
                 result = undefined;
             } else if (isAssignmentStatement(statement)) {
+                const names = [statement.name, ...statement.additionalNames];
+                if (names.length > 1 && statement.operator !== '=') {
+                    throw new RankError('multiple assignment supports only =');
+                }
                 if (statement.operator === '=') {
                     result = this.evaluate(statement.value);
                 } else {
@@ -420,7 +424,21 @@ export class Interpreter {
                         right,
                     );
                 }
-                this.assign(statement.name, result);
+                if (names.length === 1) {
+                    this.assign(statement.name, result);
+                } else {
+                    if (result === undefined || !isRankArray(result)
+                        || result.shape.length !== 1) {
+                        throw new RankError('multiple assignment expects a rank-1 array value');
+                    }
+                    if (result.items.length !== names.length) {
+                        throw new RankError(
+                            `multiple assignment expects ${names.length} values, got ${result.items.length}`,
+                        );
+                    }
+                    const items = result.items;
+                    names.forEach((name, index) => this.assign(name, items[index]));
+                }
             } else if (isExpressionStatement(statement)) {
                 if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
                     result = this.runAlias(statement.value.name.slice(0, -4));

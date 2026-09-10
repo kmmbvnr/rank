@@ -537,7 +537,7 @@ describe('Rank interpreter', () => {
         expect(() => run('"abc" md5')).toThrowError('unknown name: md5');
     });
 
-    it('splits text by a text separator', () => {
+    it('splits text by one or several text separators', () => {
         expect(new Interpreter().execute('use text\n"a,b,,c" "," split')).toEqual({
             kind: 'array',
             items: ['a', 'b', '', 'c'],
@@ -548,8 +548,62 @@ describe('Rank interpreter', () => {
             items: ['A', '😀', 'Б'],
             shape: [3],
         });
+        expect(new Interpreter().execute(
+            'use text\n"one,two;three" (array "," ";") split',
+        )).toEqual({
+            kind: 'array',
+            items: ['one', 'two', 'three'],
+            shape: [3],
+        });
         expect(() => run('use text\n12 "," split'))
-            .toThrowError('split expects text and a text separator');
+            .toThrowError('split expects text and a text separator or separator array');
+        expect(() => run('use text\n"a,b" (array "" ",") split'))
+            .toThrowError('an empty split separator must be used alone');
+    });
+
+    it('parses formatted text and unpacks arrays with multiple assignment', () => {
+        expect(run([
+            'use text',
+            'Pattern = "/integerx/integerx/integer"',
+            'Length Width Height = "2x3x4" Pattern parse',
+            'Length * Width * Height',
+        ].join('\n'))).toBe('24');
+        expect(new Interpreter().execute([
+            'use text',
+            'Pattern = "/word//path// /text /real"',
+            '"open/path/ remaining text -1.5" Pattern parse',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: ['open', 'remaining text', -1.5],
+            shape: [3],
+        });
+        expect(() => run('use text\n"abc" "/integer" parse'))
+            .toThrowError('text does not match format: /integer');
+        expect(run([
+            'use text',
+            'Caught = false',
+            'try',
+            '  "abc" "/integer" parse',
+            'catch .InvalidText Error',
+            '  Caught = Error .Value equal "abc"',
+            'end',
+            'Caught',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use text',
+            'Pattern = "/integer x /integer"',
+            'A B = "2 x 3" Pattern parse',
+            'A + B',
+        ].join('\n'))).toBe('5');
+        expect(() => run('use text\n"abc" "/unknown" parse'))
+            .toThrowError('unknown parse directive at position 0');
+        expect(() => run('A B = array 1 2 3'))
+            .toThrowError('multiple assignment expects 2 values, got 3');
+        expect(() => run([
+            'A B = array shape 1 2',
+            '  1 2',
+            'end',
+        ].join('\n'))).toThrowError('multiple assignment expects a rank-1 array value');
     });
 
     it('counts and addresses Unicode text atoms', () => {

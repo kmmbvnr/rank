@@ -105,7 +105,8 @@ IndexAssignmentStatement:
     'index' keys+=PrimaryExpression+ '=' value=Expression;
 
 AssignmentStatement:
-    name=AssignableName operator=AssignmentOperator value=Expression;
+    name=AssignableName additionalNames+=AssignableName*
+    operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | '%=' |

@@ -106,6 +106,24 @@ Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
 is intended.
 
+## Multiple assignment
+
+Several names on the left unpack a rank-1 array with the same number of items:
+
+```rank
+Length Width Height = array 2 3 4
+```
+
+The number of names and items must match exactly. Multiple assignment supports
+only `=`; compound assignment always has one target. Each target keeps the same
+inferred-type rule as an ordinary assignment. This form is especially useful
+with structured text parsing:
+
+```rank
+Pattern = "/integerx/integerx/integer"
+Length Width Height = Line Pattern parse
+```
+
 ## Data-first application
 
 Rank places data before the operation. A function follows the values it
