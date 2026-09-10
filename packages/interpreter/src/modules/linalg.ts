@@ -12,7 +12,83 @@ export const linalgModule: RuntimeModule = {
         undefined,
         shape => shape,
     ),
+    matmul: () => native(
+        'matmul',
+        2,
+        arguments_ => matmulValues(arguments_[0], arguments_[1]),
+    ),
 };
+
+export function matmulValues(
+    left: RankValue,
+    right: RankValue,
+    axes?: readonly [number, number],
+): RankValue {
+    if (!isRankArray(left) || left.shape.length === 0
+        || !isRankArray(right) || right.shape.length === 0) {
+        throw new RankError('matmul expects rank-1 or higher arrays');
+    }
+
+    const leftAxis = axes?.[0] ?? left.shape.length - 1;
+    const rightAxis = axes?.[1] ?? 0;
+    validateAxis(left.shape, leftAxis, 'left');
+    validateAxis(right.shape, rightAxis, 'right');
+    if (left.shape[leftAxis] !== right.shape[rightAxis]) {
+        throw new RankError(
+            `matmul contracted dimensions differ: ${left.shape[leftAxis]} and ${right.shape[rightAxis]}`,
+            'DimensionMismatch',
+        );
+    }
+
+    const leftAxes = remainingAxes(left.shape, leftAxis);
+    const rightAxes = remainingAxes(right.shape, rightAxis);
+    const outputShape = [
+        ...leftAxes.map(axis => left.shape[axis]),
+        ...rightAxes.map(axis => right.shape[axis]),
+    ];
+    const contracted = left.shape[leftAxis];
+    const cache = new Map<number, bigint | number>();
+    const resultAt = (index: number): bigint | number => {
+        const cached = cache.get(index);
+        if (cached !== undefined) return cached;
+        const output = coordinatesAt(outputShape, index);
+        const leftCoordinates = Array(left.shape.length).fill(0) as number[];
+        const rightCoordinates = Array(right.shape.length).fill(0) as number[];
+        leftAxes.forEach((axis, position) => {
+            leftCoordinates[axis] = output[position];
+        });
+        rightAxes.forEach((axis, position) => {
+            rightCoordinates[axis] = output[leftAxes.length + position];
+        });
+
+        let total: bigint | number = 0n;
+        for (let inner = 0; inner < contracted; inner += 1) {
+            leftCoordinates[leftAxis] = inner;
+            rightCoordinates[rightAxis] = inner;
+            const a = expectNumeric(arrayItem(left, arrayOffset(left.shape, leftCoordinates)));
+            const b = expectNumeric(arrayItem(right, arrayOffset(right.shape, rightCoordinates)));
+            total = addNumbers(total, multiplyNumbers(a, b));
+        }
+        cache.set(index, total);
+        return total;
+    };
+
+    if (outputShape.length === 0) return resultAt(0);
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape: outputShape,
+        itemAt: resultAt,
+        containsFiles: false,
+        get items() {
+            materialized ??= Array.from(
+                { length: arraySize(outputShape) },
+                (_, index) => resultAt(index),
+            );
+            return materialized;
+        },
+    };
+}
 
 function inverseMatrix(value: RankValue): RankArray {
     if (
@@ -64,4 +140,43 @@ function maybeSwap(rows: number[][], left: number, right: number): void {
 
 function arrayItem(value: RankArray, index: number): RankValue {
     return value.itemAt?.(index) ?? value.items[index];
+}
+
+function validateAxis(shape: readonly number[], axis: number, side: 'left' | 'right'): void {
+    if (axis >= shape.length) {
+        throw new RankError(`matmul ${side} axis out of bounds: ${axis}`);
+    }
+}
+
+function remainingAxes(shape: readonly number[], contractedAxis: number): number[] {
+    return shape.map((_, axis) => axis).filter(axis => axis !== contractedAxis);
+}
+
+function coordinatesAt(shape: readonly number[], index: number): number[] {
+    const result = Array(shape.length).fill(0) as number[];
+    for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+        result[axis] = index % shape[axis];
+        index = Math.floor(index / shape[axis]);
+    }
+    return result;
+}
+
+function arrayOffset(shape: readonly number[], coordinates: readonly number[]): number {
+    return coordinates.reduce((offset, coordinate, axis) => offset * shape[axis] + coordinate, 0);
+}
+
+function arraySize(shape: readonly number[]): number {
+    return shape.reduce((product, dimension) => product * dimension, 1);
+}
+
+function multiplyNumbers(left: bigint | number, right: bigint | number): bigint | number {
+    return typeof left === 'bigint' && typeof right === 'bigint'
+        ? left * right
+        : Number(left) * Number(right);
+}
+
+function addNumbers(left: bigint | number, right: bigint | number): bigint | number {
+    return typeof left === 'bigint' && typeof right === 'bigint'
+        ? left + right
+        : Number(left) + Number(right);
 }

@@ -254,10 +254,44 @@ selection. `outer` itself does not permute axes.
 
 ## Matrix multiplication
 
-`matmul` is distinct from `outer`.
+`matmul` from `use linalg` contracts one axis from each numeric array:
 
-- `outer` adds combination axes.
-- `matmul` contracts compatible axes.
+```rank
+C = A B matmul
+```
+
+By default it contracts the last axis of `A` with the first axis of `B`.
+The contracted dimensions must be equal. All remaining axes from `A` form
+the leading result axes, followed by all remaining axes from `B`:
+
+```text
+2 3       matmul 3 4   -> 2 4
+2 3       matmul 3     -> 2
+3         matmul 3 4   -> 4
+5 2 3     matmul 3 4   -> 5 2 4
+```
+
+Two vectors produce a scalar dot product. There is no implicit broadcasting or
+pairing of leading axes.
+
+An explicit pair selects a different contracted axis from each operand. The
+first number belongs to the left operand and the second to the right:
+
+```rank
+C = A B matmul axis 2 0
+```
+
+Both axes are zero-based. Exactly two axes are required, and out-of-range axes
+are errors. Scalar or nonnumeric operands are errors; unequal contracted
+dimensions raise `.DimensionMismatch`.
+
+Array results are lazy. Each output element is calculated on demand and cached.
+The calculation uses ordinary Rank numeric promotion: integer-only terms stay
+integer, while a real term promotes that output element to real. A contraction
+over an empty dimension produces zero for every output element.
+
+`matmul` differs from `outer`: `outer` adds combination axes, while `matmul`
+removes the selected compatible axes by summing their products.
 
 ## ML direction
 

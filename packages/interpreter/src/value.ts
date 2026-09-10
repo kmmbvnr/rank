@@ -2,6 +2,7 @@ interface RankArrayValue {
     readonly items: RankValue[];
     readonly shape: readonly number[];
     readonly itemAt?: (index: number) => RankValue;
+    readonly containsFiles?: false;
 }
 
 export interface RankPlainArray extends RankArrayValue {

@@ -2452,10 +2452,44 @@ selection. `outer` itself does not permute axes.
 
 ## Matrix multiplication
 
-`matmul` is distinct from `outer`.
+`matmul` from `use linalg` contracts one axis from each numeric array:
 
-- `outer` adds combination axes.
-- `matmul` contracts compatible axes.
+```rank
+C = A B matmul
+```
+
+By default it contracts the last axis of `A` with the first axis of `B`.
+The contracted dimensions must be equal. All remaining axes from `A` form
+the leading result axes, followed by all remaining axes from `B`:
+
+```text
+2 3       matmul 3 4   -> 2 4
+2 3       matmul 3     -> 2
+3         matmul 3 4   -> 4
+5 2 3     matmul 3 4   -> 5 2 4
+```
+
+Two vectors produce a scalar dot product. There is no implicit broadcasting or
+pairing of leading axes.
+
+An explicit pair selects a different contracted axis from each operand. The
+first number belongs to the left operand and the second to the right:
+
+```rank
+C = A B matmul axis 2 0
+```
+
+Both axes are zero-based. Exactly two axes are required, and out-of-range axes
+are errors. Scalar or nonnumeric operands are errors; unequal contracted
+dimensions raise `.DimensionMismatch`.
+
+Array results are lazy. Each output element is calculated on demand and cached.
+The calculation uses ordinary Rank numeric promotion: integer-only terms stay
+integer, while a real term promotes that output element to real. A contraction
+over an empty dimension produces zero for every output element.
+
+`matmul` differs from `outer`: `outer` adds combination axes, while `matmul`
+removes the selected compatible axes by summing their products.
 
 ## ML direction
 
@@ -2603,8 +2637,24 @@ Left = A B max
 
 ## Linear algebra
 
-`use linalg` provides operations on numeric tensor cells. `inverse` has
-intrinsic rank 2:
+`use linalg` provides tensor contraction and matrix operations.
+
+`matmul` contracts the last axis of its left array with the first axis of its
+right array:
+
+```rank
+C = A B matmul
+C = A B matmul axis 2 0
+```
+
+The explicit form names the left and right contracted axes. Their dimensions
+must match. Remaining left axes precede remaining right axes in the result, so
+vector dot products, matrix-vector products, matrix products and higher tensor
+contractions use the same rule. `matmul` does not implicitly broadcast leading
+axes. Array results are lazy and cache each demanded numeric element; a shape
+mismatch raises `.DimensionMismatch`.
+
+`inverse` has intrinsic rank 2:
 
 ```rank
 B = A inverse

@@ -132,8 +132,24 @@ Left = A B max
 
 ## Linear algebra
 
-`use linalg` provides operations on numeric tensor cells. `inverse` has
-intrinsic rank 2:
+`use linalg` provides tensor contraction and matrix operations.
+
+`matmul` contracts the last axis of its left array with the first axis of its
+right array:
+
+```rank
+C = A B matmul
+C = A B matmul axis 2 0
+```
+
+The explicit form names the left and right contracted axes. Their dimensions
+must match. Remaining left axes precede remaining right axes in the result, so
+vector dot products, matrix-vector products, matrix products and higher tensor
+contractions use the same rule. `matmul` does not implicitly broadcast leading
+axes. Array results are lazy and cache each demanded numeric element; a shape
+mismatch raises `.DimensionMismatch`.
+
+`inverse` has intrinsic rank 2:
 
 ```rank
 B = A inverse

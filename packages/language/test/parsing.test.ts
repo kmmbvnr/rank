@@ -127,6 +127,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(6);
     });
 
+    it('parses matmul with an explicit axis pair', async () => {
+        const document = await parse([
+            'use linalg',
+            'C = A B matmul axis 2 0',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('parses a named function modified by outer', async () => {
         const document = await parse('Grid = Values Values bxor outer');
         expect(document.parseResult.lexerErrors).toEqual([]);

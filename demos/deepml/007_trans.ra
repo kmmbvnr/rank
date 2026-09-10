@@ -26,32 +26,8 @@ fun transform_matrix A T S
   end
 
   Inverse = T inverse
-  Left = Inverse A matrix_multiply
-  return Left S matrix_multiply
-end
-
-rem Multiply two rank-2 matrices.
-fun matrix_multiply A B
-  Rows = A len axis 0
-  Inner = A len axis 1
-  BRows = B len axis 0
-  Cols = B len axis 1
-
-  if Inner not equal BRows
-    .DimensionMismatch raise
-  end
-
-  Result = array shape Rows Cols pad 0.0
-  for i in 0 until Rows
-    for j in 0 until Cols
-      Sum = 0.0
-      for k in 0 until Inner
-        Sum += A i k * B k j
-      end
-      Result i j = Sum
-    end
-  end
-  return Result
+  Left = Inverse A matmul
+  return Left S matmul
 end
 
 rem Compute a determinant on a private copy by elimination.

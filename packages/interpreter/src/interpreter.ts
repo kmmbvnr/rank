@@ -44,6 +44,7 @@ import { MissingValueError, RankError } from './errors.js';
 import type { RankInput, RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
 import { closeFile } from './modules/io.js';
+import { matmulValues } from './modules/linalg.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -872,6 +873,17 @@ export class Interpreter {
                         operation,
                         this.evaluate(namedOuter.left),
                         this.evaluate(namedOuter.right),
+                    );
+                };
+            }
+            const axisMatmul = explicitAxisMatmul(parts);
+            if (axisMatmul) {
+                return () => {
+                    this.requireModule('linalg', 'matmul');
+                    return matmulValues(
+                        this.evaluate(axisMatmul.left),
+                        this.evaluate(axisMatmul.right),
+                        axisMatmul.axes,
                     );
                 };
             }
@@ -2809,6 +2821,29 @@ function explicitAxisTranspose(
     };
 }
 
+interface AxisMatmulApplication {
+    readonly left: Expression;
+    readonly right: Expression;
+    readonly axes: readonly [number, number];
+}
+
+function explicitAxisMatmul(parts: Expression[]): AxisMatmulApplication | undefined {
+    if (parts.length < 4 || !isNamed(parts[2], 'matmul') || !isNamed(parts[3], 'axis')) {
+        return undefined;
+    }
+    if (parts.length !== 6) {
+        throw new RankError('matmul axis expects one axis for each operand');
+    }
+    return {
+        left: parts[0],
+        right: parts[1],
+        axes: [
+            safeDimension(integerLiteral(parts[4], 'matmul axis'), 'matmul axis'),
+            safeDimension(integerLiteral(parts[5], 'matmul axis'), 'matmul axis'),
+        ],
+    };
+}
+
 function isNamed(expression: Expression, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
 }
@@ -3038,6 +3073,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         seen.add(item);
         if (isRankFile(item)) {
             files.add(item);
+        } else if (isRankArray(item) && item.containsFiles === false) {
+            return;
         } else if (isRankArray(item) || isRankQueue(item)) {
             item.items.forEach(visit);
         } else if (isRankIndex(item) || isRankSet(item) || isRankObject(item)) {
