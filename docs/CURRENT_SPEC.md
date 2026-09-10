@@ -1728,6 +1728,26 @@ generation order; sets use insertion order. Equal values at different array
 positions remain distinct positions and can therefore produce equal result
 arrays. An unbounded sequence is an error.
 
+### Combinations
+
+`combinations` accepts a finite collection and a nonnegative count, then
+returns a lazy sequence of selections without repetition:
+
+```rank
+for Pair in Values 2 combinations
+  Pair score
+end
+```
+
+Selections follow input order. A count greater than the collection length
+produces an empty sequence; count zero produces one empty selection. Equal
+values at different positions remain distinct choices. An unbounded sequence
+is an error.
+
+For a tensor, `combinations` selects cells along the leading axis and preserves
+the remaining cell shape. Given `Rings` with shape `6 3`, every value from
+`Rings 2 combinations` therefore has shape `2 3`.
+
 ### Counter
 
 ```rank

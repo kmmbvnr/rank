@@ -1222,6 +1222,50 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('true');
     });
 
+    it('generates lazy combinations and preserves tensor cell shape', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = array 1 2 3 4',
+            'Pairs = Values 2 combinations',
+            'Pairs len',
+        ].join('\n'))).toBe('6');
+        expect(new Interpreter().execute([
+            'use algo',
+            'Values = array 1 2 3 4',
+            'Values 2 combinations 5',
+        ].join('\n'))).toEqual({ kind: 'array', items: [3n, 4n], shape: [2] });
+        expect(new Interpreter().execute([
+            'use algo',
+            'Matrix = array shape 3 2',
+            '  1 2',
+            '  3 4',
+            '  5 6',
+            'end',
+            'Matrix 2 combinations 1',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: [1n, 2n, 5n, 6n],
+            shape: [2, 2],
+        });
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = array 7 7',
+            'Zero = Values 0 combinations len equal 1',
+            'TooMany = Values 3 combinations len equal 0',
+            'Positions = Values 1 combinations len equal 2',
+            'Zero and TooMany and Positions',
+        ].join('\n'))).toBe('true');
+        expect(() => run('use algo\nValues = array 1 2\nValues (-1) combinations'))
+            .toThrowError('combination count must be nonnegative');
+        expect(() => run([
+            'use algo',
+            'use sequences',
+            'fibonacci 2 combinations',
+        ].join('\n'))).toThrowError('combinations requires a bounded sequence');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');
