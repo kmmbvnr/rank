@@ -129,6 +129,21 @@ into a higher-rank rectangular value with padding.
 `mix` was rejected as a user-facing name. `stack` is a candidate but is not yet
 fixed.
 
+## Permutations by tensor axis
+
+The current `permutations` implementation handles text and rank-1 collections.
+The agreed tensor extension will permute equal-shaped cells along one axis and
+return a lazy sequence of tensors with the original shape. It will reuse the
+existing `axis` vocabulary:
+
+```rank
+Rows = M permutations axis 0
+Columns = M permutations axis 1
+```
+
+The default is axis 0. Multiple-axis permutation and the interaction with an
+explicit `rank` modifier remain to be specified before implementation.
+
 ## Missing values
 
 `pad` is the current common mechanism for absent data.

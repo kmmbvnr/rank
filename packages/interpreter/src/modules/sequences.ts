@@ -1,5 +1,6 @@
 import { RankError } from '../errors.js';
 import { sequence, windowValue } from '../sequence.js';
+import { setValueKey } from '../set.js';
 import {
     isRankArray,
     isRankCounter,
@@ -7,6 +8,7 @@ import {
     isRankQueue,
     isRankSequence,
     isRankSet,
+    type RankArray,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -23,9 +25,102 @@ export const sequencesModule: RuntimeModule = {
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
+    sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
+    unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
 };
+
+function sortValue(value: RankValue): RankValue {
+    if (typeof value === 'string') return [...value].sort(compareText).join('');
+    if (!isRankArray(value) || value.shape.length !== 1) {
+        throw new RankError('sort expects text or a rank-1 array');
+    }
+    const items = arrayItems(value);
+    const kind = sortableKind(items);
+    items.sort((left, right) => compareValues(left, right, kind));
+    return { kind: 'array', items, shape: [items.length] };
+}
+
+function uniqueValue(value: RankValue): RankValue {
+    if (typeof value === 'string') return uniqueItems([...value]).join('');
+    if (isRankArray(value)) {
+        if (value.shape.length !== 1) throw new RankError('unique expects a rank-1 array');
+        const items = uniqueItems(arrayItems(value));
+        return { kind: 'array', items, shape: [items.length] };
+    }
+    if (isRankQueue(value)) return { kind: 'queue', items: uniqueItems(value.items) };
+    if (isRankSet(value)) return value;
+    if (isRankSequence(value)) {
+        return sequence({
+            name: `unique ${value.plan.name}`,
+            size: { kind: 'unknown' },
+            *iterate() {
+                const seen = new Set<string>();
+                for (const item of value.plan.iterate()) {
+                    const key = setValueKey(item);
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    yield item;
+                }
+            },
+        });
+    }
+    throw new RankError('unique expects text or a collection');
+}
+
+function arrayItems(value: RankArray): RankValue[] {
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    return Array.from({ length: size }, (_, index) => value.itemAt?.(index) ?? value.items[index]);
+}
+
+function uniqueItems(items: readonly RankValue[]): RankValue[] {
+    const seen = new Set<string>();
+    return items.filter(item => {
+        const key = setValueKey(item);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+type SortableKind = 'numeric' | 'text' | 'boolean' | 'symbol';
+
+function sortableKind(items: readonly RankValue[]): SortableKind {
+    if (items.length === 0) return 'numeric';
+    const kinds = new Set(items.map(item => {
+        if (typeof item === 'bigint' || typeof item === 'number') return 'numeric';
+        if (typeof item === 'string') return 'text';
+        if (typeof item === 'boolean') return 'boolean';
+        if (typeof item === 'object' && item.kind === 'label') return 'symbol';
+        throw new RankError('sort array elements must be scalar values');
+    }));
+    if (kinds.size !== 1) throw new RankError('sort array elements must have one comparable type');
+    return [...kinds][0] as SortableKind;
+}
+
+function compareValues(left: RankValue, right: RankValue, kind: SortableKind): number {
+    if (kind === 'numeric') {
+        const a = left as bigint | number;
+        const b = right as bigint | number;
+        return a < b ? -1 : a > b ? 1 : 0;
+    }
+    if (kind === 'text') return compareText(left as string, right as string);
+    if (kind === 'boolean') return Number(left as boolean) - Number(right as boolean);
+    const a = (left as { name: string }).name;
+    const b = (right as { name: string }).name;
+    return compareText(a, b);
+}
+
+function compareText(left: string, right: string): number {
+    const a = [...left];
+    const b = [...right];
+    for (let index = 0; index < Math.min(a.length, b.length); index += 1) {
+        const difference = (a[index].codePointAt(0) ?? 0) - (b[index].codePointAt(0) ?? 0);
+        if (difference !== 0) return difference;
+    }
+    return a.length - b.length;
+}
 
 function reshape(value: RankValue, shapeValue: RankValue): RankValue {
     if (!isRankArray(shapeValue) || shapeValue.shape.length !== 1

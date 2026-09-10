@@ -1496,6 +1496,22 @@ order, fuse operations or recompute values without changing program meaning.
 
 Addressing does not mutate `A` or `N`.
 
+## Ordering and uniqueness
+
+`sort` and `unique` have intrinsic rank 1. Both preserve text as text and a
+rank-1 array as a rank-1 array:
+
+```rank
+Letters = "caab" sort
+Distinct = Letters unique
+rem Letters is "aabc"; Distinct is "abc"
+```
+
+Text is ordered by Unicode code point. Arrays may contain one comparable
+scalar type: numbers, text, booleans or symbols. Integers and real numbers form
+one numeric ordering. `unique` preserves the first occurrence. It also accepts
+queues, sets and lazy sequences; sequence filtering stays lazy.
+
 ## Elementwise arithmetic
 
 Arithmetic on compatible arrays is elementwise:
@@ -1786,8 +1802,9 @@ set add array X Y
 
 ### Permutations
 
-`permutations` accepts a finite array, queue, set or sequence and returns a
-lazy sequence of rank-1 arrays:
+`permutations` has intrinsic rank 1. It accepts text or a finite rank-1 array,
+queue, set or sequence. Text produces a lazy sequence of texts; other inputs
+produce a lazy sequence of rank-1 arrays:
 
 ```rank
 for Route in Cities permutations
@@ -1796,9 +1813,10 @@ end
 ```
 
 The empty collection has one empty permutation. Input order determines
-generation order; sets use insertion order. Equal values at different array
-positions remain distinct positions and can therefore produce equal result
-arrays. An unbounded sequence is an error.
+generation order; sets use insertion order. Results are distinct by value:
+equal input values never produce duplicate permutations. The exact sequence
+size is the multinomial count, so `len` does not need to enumerate it. An
+unbounded sequence is an error.
 
 ### Combinations
 

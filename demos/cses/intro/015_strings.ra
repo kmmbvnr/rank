@@ -1,0 +1,20 @@
+rem CSES 1622: Creating Strings
+rem https://cses.fi/problemset/task/1622
+
+use io
+use sequences
+use algo
+
+Text = stdin .word
+Perms = Text sort permutations
+
+Perms len print
+for Perm in Perms
+  Perm print
+end
+
+
+rem Generate distinct strings in lexicographic order.
+fun strings Text
+  return Text sort permutations
+end

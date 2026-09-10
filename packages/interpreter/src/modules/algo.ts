@@ -1,5 +1,6 @@
 import { RankError } from '../errors.js';
 import { sequence } from '../sequence.js';
+import { setValueKey } from '../set.js';
 import {
     isRankArray,
     isRankQueue,
@@ -13,15 +14,15 @@ import type { RuntimeModule } from './types.js';
 
 export const algoModule: RuntimeModule = {
     permutations: () => native('permutations', 1, arguments_ => {
-        const items = finiteItems(arguments_[0], 'permutations');
+        const input = permutationInput(arguments_[0]);
         return sequence({
             name: 'permutations',
-            size: { kind: 'exact', value: factorial(items.length) },
+            size: { kind: 'exact', value: permutationCount(input.items) },
             *iterate() {
-                yield* permute([...items], 0);
+                yield* permute(input);
             },
         });
-    }),
+    }, 1),
     combinations: () => native('combinations', 2, arguments_ => {
         const input = combinationInput(arguments_[0]);
         const countValue = expectInteger(arguments_[1]);
@@ -39,6 +40,19 @@ export const algoModule: RuntimeModule = {
         });
     }),
 };
+
+interface PermutationInput {
+    readonly items: readonly RankValue[];
+    readonly text: boolean;
+}
+
+function permutationInput(value: RankValue): PermutationInput {
+    if (typeof value === 'string') return { items: [...value], text: true };
+    if (isRankArray(value) && value.shape.length !== 1) {
+        throw new RankError('permutations expects text or a rank-1 collection');
+    }
+    return { items: finiteItems(value, 'permutations'), text: false };
+}
 
 interface CombinationInput {
     readonly cells: readonly RankValue[];
@@ -106,16 +120,49 @@ function* choose(
     }
 }
 
-function* permute(items: RankValue[], start: number): IterableIterator<RankArray> {
-    if (start === items.length) {
-        yield { kind: 'array', items: [...items], shape: [items.length] };
+function* permute(input: PermutationInput): IterableIterator<RankArray | string> {
+    const used = Array.from({ length: input.items.length }, () => false);
+    yield* buildPermutation(input, used, []);
+}
+
+function* buildPermutation(
+    input: PermutationInput,
+    used: boolean[],
+    result: RankValue[],
+): IterableIterator<RankArray | string> {
+    if (result.length === input.items.length) {
+        if (input.text) {
+            yield result.join('');
+        } else {
+            yield { kind: 'array', items: [...result], shape: [result.length] };
+        }
         return;
     }
-    for (let index = start; index < items.length; index += 1) {
-        [items[start], items[index]] = [items[index], items[start]];
-        yield* permute(items, start + 1);
-        [items[start], items[index]] = [items[index], items[start]];
+
+    const seen = new Set<string>();
+    for (let index = 0; index < input.items.length; index += 1) {
+        if (used[index]) continue;
+        const item = input.items[index];
+        const key = setValueKey(item);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        used[index] = true;
+        result.push(item);
+        yield* buildPermutation(input, used, result);
+        result.pop();
+        used[index] = false;
     }
+}
+
+function permutationCount(items: readonly RankValue[]): bigint {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+        const key = setValueKey(item);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    let result = factorial(items.length);
+    for (const count of counts.values()) result /= factorial(count);
+    return result;
 }
 
 function arrayItem(source: RankArray, index: number): RankValue {

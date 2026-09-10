@@ -1,0 +1,20 @@
+use testing
+
+test "official example"
+  use "015_strings"
+  Actual = "aabac" strings array
+  Expected = array shape 20
+    "aaabc" "aaacb" "aabac" "aabca"
+    "aacab" "aacba" "abaac" "abaca"
+    "abcaa" "acaab" "acaba" "acbaa"
+    "baaac" "baaca" "bacaa" "bcaaa"
+    "caaab" "caaba" "cabaa" "cbaaa"
+  end
+  Actual equal Expected
+end
+
+test "all characters equal"
+  use "015_strings"
+  Actual = "aaaa" strings array
+  Actual equal array "aaaa"
+end

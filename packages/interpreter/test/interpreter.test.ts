@@ -1200,7 +1200,7 @@ describe('Rank interpreter', () => {
         expect(() => run('counter add "A"')).toThrowError('counter requires: use algo');
     });
 
-    it('iterates sets and generates finite permutations lazily', () => {
+    it('iterates sets and generates distinct finite permutations lazily', () => {
         expect(run([
             'use algo',
             'use sequences',
@@ -1222,7 +1222,16 @@ describe('Rank interpreter', () => {
             'use sequences',
             'Values = array 1 1',
             'Values permutations len',
-        ].join('\n'))).toBe('2');
+        ].join('\n'))).toBe('1');
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = "aabc" permutations',
+            'Count = Values len',
+            'First = Values 0',
+            'Last = Values 11',
+            'array Count First Last',
+        ].join('\n'))).toBe('12 aabc cbaa');
         expect(run([
             'use algo',
             'use sequences',
@@ -1263,6 +1272,28 @@ describe('Rank interpreter', () => {
             'Second = Answer 1 equal "A"',
             'First and Second',
         ].join('\n'))).toBe('true');
+    });
+
+    it('sorts and removes duplicates from rank-1 values', () => {
+        expect(run('use sequences\n"caab" sort')).toBe('aabc');
+        expect(run('use sequences\n"caabca" unique')).toBe('cab');
+        expect(run([
+            'use sequences',
+            'Values = array 3 1 2 1',
+            'Values sort unique',
+        ].join('\n'))).toBe('1 2 3');
+        expect(run([
+            'use sequences',
+            'use ranges',
+            'Values = 1 to 5',
+            'Doubled = Values + Values',
+            'Doubled unique array',
+        ].join('\n'))).toBe('2 4 6 8 10');
+        expect(() => run([
+            'use sequences',
+            'Values = array 1 "A"',
+            'Values sort',
+        ].join('\n'))).toThrowError('sort array elements must have one comparable type');
     });
 
     it('generates lazy combinations and preserves tensor cell shape', () => {

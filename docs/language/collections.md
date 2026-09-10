@@ -105,8 +105,9 @@ set add array X Y
 
 ### Permutations
 
-`permutations` accepts a finite array, queue, set or sequence and returns a
-lazy sequence of rank-1 arrays:
+`permutations` has intrinsic rank 1. It accepts text or a finite rank-1 array,
+queue, set or sequence. Text produces a lazy sequence of texts; other inputs
+produce a lazy sequence of rank-1 arrays:
 
 ```rank
 for Route in Cities permutations
@@ -115,9 +116,10 @@ end
 ```
 
 The empty collection has one empty permutation. Input order determines
-generation order; sets use insertion order. Equal values at different array
-positions remain distinct positions and can therefore produce equal result
-arrays. An unbounded sequence is an error.
+generation order; sets use insertion order. Results are distinct by value:
+equal input values never produce duplicate permutations. The exact sequence
+size is the multinomial count, so `len` does not need to enumerate it. An
+unbounded sequence is an error.
 
 ### Combinations
 

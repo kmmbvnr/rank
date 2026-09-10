@@ -259,6 +259,22 @@ order, fuse operations or recompute values without changing program meaning.
 
 Addressing does not mutate `A` or `N`.
 
+## Ordering and uniqueness
+
+`sort` and `unique` have intrinsic rank 1. Both preserve text as text and a
+rank-1 array as a rank-1 array:
+
+```rank
+Letters = "caab" sort
+Distinct = Letters unique
+rem Letters is "aabc"; Distinct is "abc"
+```
+
+Text is ordered by Unicode code point. Arrays may contain one comparable
+scalar type: numbers, text, booleans or symbols. Integers and real numbers form
+one numeric ordering. `unique` preserves the first occurrence. It also accepts
+queues, sets and lazy sequences; sequence filtering stays lazy.
+
 ## Elementwise arithmetic
 
 Arithmetic on compatible arrays is elementwise:
