@@ -1,0 +1,81 @@
+rem Deep-ML 28: SVD of a 2 by 2 matrix
+rem https://www.deep-ml.com/problems/28
+
+use linalg
+use numbers
+use sequences
+
+rem Compute U, singular values and
+rem the right factor V.
+fun svd_2x2 A
+  Shape = A shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  if Shape 0 not equal 2
+    .DimensionMismatch raise
+  end
+  if Shape 1 not equal 2
+    .DimensionMismatch raise
+  end
+
+  Y1 = A 1 0 + A 0 1
+  X1 = A 0 0 - A 1 1
+  Y2 = A 1 0 - A 0 1
+  X2 = A 0 0 + A 1 1
+
+  H1 = (Y1 * Y1 + X1 * X1) sqrt
+  H2 = (Y2 * Y2 + X2 * X2) sqrt
+
+  T1 = 1.0
+  if H1 greater 0
+    T1 = X1 / H1
+  end
+  T2 = 1.0
+  if H2 greater 0
+    T2 = X2 / H2
+  end
+
+  CC = ((1 + T1) * (1 + T2)) sqrt
+  SS = ((1 - T1) * (1 - T2)) sqrt
+  CS = ((1 + T1) * (1 - T2)) sqrt
+  SC = ((1 - T1) * (1 + T2)) sqrt
+
+  C = (CC - SS) / 2
+  Sine = (SC + CS) / 2
+
+  U = array shape 2 2
+    -C -Sine
+    -Sine C
+  end
+
+  S0 = (H1 + H2) / 2
+  S1 = (H1 - H2) abs / 2
+  S = array S0 S1
+
+  V = array shape 2 2 pad 0.0
+  if S0 greater 0
+    V 0 0 = (
+      U 0 0 * A 0 0 + U 1 0 * A 1 0
+    ) / S0
+    V 0 1 = (
+      U 0 0 * A 0 1 + U 1 0 * A 1 1
+    ) / S0
+  else
+    V 0 0 = 1.0
+  end
+
+  if S1 greater 0
+    V 1 0 = (
+      U 0 1 * A 0 0 + U 1 1 * A 1 0
+    ) / S1
+    V 1 1 = (
+      U 0 1 * A 0 1 + U 1 1 * A 1 1
+    ) / S1
+  else
+    V 1 0 = -V 0 1
+    V 1 1 = V 0 0
+  end
+
+  return array U S V
+end

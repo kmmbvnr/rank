@@ -940,8 +940,15 @@ export class Interpreter {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('numbers', 'round');
                     const places = (yield* resume(interpreter.evaluateTask(signedRound.places)));
+                    const values = yield* resume(mapExecution(
+                        signedRound.source,
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    const source = values.length === 1
+                        ? values[0]
+                        : yield* resume(interpreter.apply(values));
                     return roundValue(
-                        (yield* resume(interpreter.evaluateTask(signedRound.source))),
+                        source,
                         typeof places === 'bigint' ? -places : places,
                     );
                 };
@@ -1064,8 +1071,15 @@ export class Interpreter {
             if (round) {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('numbers', 'round');
+                    const values = yield* resume(mapExecution(
+                        round.source,
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    const source = values.length === 1
+                        ? values[0]
+                        : yield* resume(interpreter.apply(values));
                     return roundValue(
-                        (yield* resume(interpreter.evaluateTask(round.source))),
+                        source,
                         (yield* resume(interpreter.evaluateTask(round.places))),
                     );
                 };
@@ -3280,20 +3294,20 @@ interface AxisCovarianceApplication {
 }
 
 interface RoundApplication {
-    readonly source: Expression;
+    readonly source: readonly Expression[];
     readonly places: Expression;
 }
 
 function explicitSignedRoundApplication(expression: Expression): RoundApplication | undefined {
     if (!isBinaryExpression(expression) || expression.operator !== '-') return undefined;
     const parts = flattenApplication(expression.left);
-    if (parts.length !== 2 || !isNamed(parts[1], 'round')) return undefined;
-    return { source: parts[0], places: expression.right };
+    if (parts.length < 2 || !isNamed(parts.at(-1)!, 'round')) return undefined;
+    return { source: parts.slice(0, -1), places: expression.right };
 }
 
 function explicitRoundApplication(parts: Expression[]): RoundApplication | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'round')) return undefined;
-    return { source: parts[0], places: parts[2] };
+    if (parts.length < 3 || !isNamed(parts.at(-2)!, 'round')) return undefined;
+    return { source: parts.slice(0, -2), places: parts.at(-1)! };
 }
 
 function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication | undefined {

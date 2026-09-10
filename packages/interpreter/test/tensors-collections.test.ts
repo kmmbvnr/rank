@@ -731,6 +731,19 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\n1250 round -2')).toBe('1200');
         expect(run('use numbers\n1350 round -2')).toBe('1400');
         expect(run('use numbers\nuse ranges\n(1 to 3) round 2')).toBe('1 2 3');
+        expect(run([
+            'use linalg',
+            'use numbers',
+            'A = array shape 2 2',
+            '  1.23456 0',
+            '  0 2.34567',
+            'end',
+            'I = array shape 2 2',
+            '  1 0',
+            '  0 1',
+            'end',
+            'A I matmul round 3',
+        ].join('\n'))).toBe('1.235 0 0 2.346');
         const source = [
             'use numbers',
             'Values = array shape 2 2',

@@ -242,6 +242,7 @@ its result becomes the first value available to the next function:
 ```rank
 Answer = Fib even sum
 Text reverse print
+A B matmul round 6
 ```
 
 A function still cannot precede its data. Insufficient or excess arguments are

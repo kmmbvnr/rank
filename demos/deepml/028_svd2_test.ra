@@ -1,0 +1,130 @@
+use testing
+
+test "first official reconstruction"
+  use "028_svd2"
+  use linalg
+  use numbers
+  A = array shape 2 2
+    -10 8
+    10 -1
+  end
+
+  Result = A svd_2x2
+  U = Result 0
+  S = Result 1
+  V = Result 2
+  D = array shape 2 2
+    (S 0) 0.0
+    0.0 (S 1)
+  end
+  Left = U D matmul
+  Actual = Left V matmul round 6
+  Actual equal A
+end
+
+test "second official reconstruction"
+  use "028_svd2"
+  use linalg
+  use numbers
+  A = array shape 2 2
+    1 2
+    3 4
+  end
+
+  Result = A svd_2x2
+  U = Result 0
+  S = Result 1
+  V = Result 2
+  D = array shape 2 2
+    (S 0) 0.0
+    0.0 (S 1)
+  end
+  Left = U D matmul
+  Actual = Left V matmul round 6
+  Actual equal A
+end
+
+test "singular values are nonnegative"
+  use "028_svd2"
+  use numbers
+  A = array shape 2 2
+    3 0
+    0 2
+  end
+
+  Result = A svd_2x2
+  Result 1 equal array 3.0 2.0
+end
+
+test "left factor is orthogonal"
+  use "028_svd2"
+  use linalg
+  use numbers
+  use sequences
+  A = array shape 2 2
+    1 2
+    3 4
+  end
+
+  Result = A svd_2x2
+  U = Result 0
+  UT = U transpose
+  Identity = U UT matmul round 6
+  Identity equal array shape 2 2
+    1.0 0.0
+    0.0 1.0
+  end
+end
+
+test "rank deficient reconstruction"
+  use "028_svd2"
+  use linalg
+  use numbers
+  A = array shape 2 2
+    2 0
+    0 0
+  end
+
+  Result = A svd_2x2
+  U = Result 0
+  S = Result 1
+  V = Result 2
+  D = array shape 2 2
+    (S 0) 0.0
+    0.0 (S 1)
+  end
+  Left = U D matmul
+  Actual = Left V matmul round 6
+  Actual equal A
+end
+
+test "zero matrix is supported"
+  use "028_svd2"
+  use linalg
+  A = array shape 2 2 pad 0
+
+  Result = A svd_2x2
+  U = Result 0
+  S = Result 1
+  V = Result 2
+  D = array shape 2 2
+    (S 0) 0.0
+    0.0 (S 1)
+  end
+  Left = U D matmul
+  Left V matmul equal A
+end
+
+test "input must be two by two"
+  use "028_svd2"
+  A = array shape 2 3 pad 1
+  Raised = false
+
+  try
+    Result = A svd_2x2
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
