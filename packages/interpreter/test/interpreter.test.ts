@@ -1158,6 +1158,81 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('2 4 6');
     });
 
+    it('prepares operands only when execution reaches them', () => {
+        expect(run([
+            'fun fail N',
+            '  .First raise',
+            '  return N',
+            'end',
+            'try',
+            '  Answer = (0 fail) (1 abs rank Bad)',
+            'catch .First Error',
+            '  true',
+            'end',
+        ].join('\n'))).toBe('true');
+    });
+
+    it('allocates arrays afresh when executing the same function body', () => {
+        expect(run([
+            'fun make Value',
+            '  Data = array shape 2 pad Value',
+            '  return Data',
+            'end',
+            'A = 1 make',
+            'B = 2 make',
+            'A 0 = 9',
+            'array (A 0) (A 1) (B 0) (B 1)',
+        ].join('\n'))).toBe('9 1 2 2');
+    });
+
+    it('restores the caller frame after a captured function raises', () => {
+        expect(run([
+            'fun make Base',
+            '  return fail',
+            '  fun fail N',
+            '    Base += N',
+            '    .Failure Base raise',
+            '    return 0',
+            '  end',
+            'end',
+            'fun caller N',
+            '  F = N make',
+            '  try',
+            '    1 F',
+            '  catch .Failure Error',
+            '    N += 10',
+            '  end',
+            '  return N',
+            'end',
+            'array (2 caller) (5 caller)',
+        ].join('\n'))).toBe('12 15');
+    });
+
+    it('keeps frames separate when generators from the same body interleave', () => {
+        const interpreter = new Interpreter();
+        interpreter.execute([
+            'fun values Base',
+            '  yield Base',
+            '  Base += 1',
+            '  yield Base',
+            'end',
+            'A = 10 values',
+            'B = 20 values',
+        ].join('\n'));
+        const a = interpreter.variables.get('A')!;
+        const b = interpreter.variables.get('B')!;
+        if (!isRankSequence(a) || !isRankSequence(b)) throw new Error('expected sequences');
+        const left = a.plan.iterate();
+        const right = b.plan.iterate();
+        expect(left.next().value).toBe(10n);
+        expect(right.next().value).toBe(20n);
+        expect(left.next().value).toBe(11n);
+        expect(right.next().value).toBe(21n);
+        expect(left.next().done).toBe(true);
+        expect(right.next().done).toBe(true);
+        interpreter.dispose();
+    });
+
     it('rejects conditional local function declarations', () => {
         expect(() => run([
             'fun outer Enabled',
