@@ -1,0 +1,81 @@
+rem Advent of Code 2015 — Day 16
+rem Aunt Sue
+rem https://adventofcode.com/2015/day/16
+
+use io
+use cli
+use algo
+use text
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+Part1 print
+Part2 print
+
+
+rem Find the candidates matching exact and corrected evidence rules.
+fun solve Lines
+  index "children" = 3
+  index "cats" = 7
+  index "samoyeds" = 2
+  index "pomeranians" = 3
+  index "akitas" = 0
+  index "vizslas" = 0
+  index "goldfish" = 5
+  index "trees" = 3
+  index "cars" = 2
+  index "perfumes" = 1
+
+  Pattern = "Sue /integer: /word: /integer, /word: /integer, /word: /integer"
+  Part1 = 0
+  Part2 = 0
+
+  for Line in Lines
+    Id P1 V1 P2 V2 P3 V3 = Line Pattern parse
+
+    A = P1 V1 index exact
+    B = P2 V2 index exact
+    C = P3 V3 index exact
+    if A and B and C
+      Part1 = Id
+    end
+
+    A = P1 V1 index corrected
+    B = P2 V2 index corrected
+    C = P3 V3 index corrected
+    if A and B and C
+      Part2 = Id
+    end
+  end
+
+  return array Part1 Part2
+end
+
+
+rem Compare one reported property with the original exact reading.
+fun exact Property Value Targets
+  return Value equal Targets Property
+end
+
+
+rem Apply the corrected range rules to one reported property.
+fun corrected Property Value Targets
+  Target = Targets Property
+
+  if Property equal "cats"
+    return Value greater Target
+  end
+  if Property equal "trees"
+    return Value greater Target
+  end
+  if Property equal "pomeranians"
+    return Value less Target
+  end
+  if Property equal "goldfish"
+    return Value less Target
+  end
+
+  return Value equal Target
+end
