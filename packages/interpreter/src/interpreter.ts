@@ -103,6 +103,11 @@ interface LoadedProgram {
     readonly program: Program;
 }
 
+interface LocalFrame {
+    readonly values: Map<string, RankValue>;
+    readonly types: Map<string, ReadonlySet<string>>;
+}
+
 class ReturnSignal {
     constructor(readonly value: RankValue) {}
 }
@@ -225,6 +230,17 @@ export class Interpreter {
             this.resourceScopes.push(scope);
         }
         scope.add(file);
+    }
+
+    private withLocalFrame<T>(frame: LocalFrame, operation: () => T): T {
+        this.localScopes.push(frame.values);
+        this.localTypeScopes.push(frame.types);
+        try {
+            return operation();
+        } finally {
+            this.localScopes.pop();
+            this.localTypeScopes.pop();
+        }
     }
 
     private ownFiles(value: RankValue | undefined): void {
@@ -621,24 +637,23 @@ export class Interpreter {
             );
         }
         return this.withResourceScope(() => {
-            const scope = new Map<string, RankValue>();
-            const typeScope = new Map<string, ReadonlySet<string>>();
+            const frame: LocalFrame = {
+                values: new Map<string, RankValue>(),
+                types: new Map<string, ReadonlySet<string>>(),
+            };
             statement.parameters.forEach((parameter, index) => {
-                scope.set(parameter, arguments_[index]);
-                typeScope.set(parameter, new Set([typeName(arguments_[index])]));
+                frame.values.set(parameter, arguments_[index]);
+                frame.types.set(parameter, new Set([typeName(arguments_[index])]));
             });
-            this.localScopes.push(scope);
-            this.localTypeScopes.push(typeScope);
-            try {
-                this.executeStatements(statement.statements);
-            } catch (error) {
-                if (error instanceof ReturnSignal) return error.value;
-                throw error;
-            } finally {
-                this.localScopes.pop();
-                this.localTypeScopes.pop();
-            }
-            throw new RankError(`function ${statement.name} reached end without return`);
+            return this.withLocalFrame(frame, () => {
+                try {
+                    this.executeStatements(statement.statements);
+                } catch (error) {
+                    if (error instanceof ReturnSignal) return error.value;
+                    throw error;
+                }
+                throw new RankError(`function ${statement.name} reached end without return`);
+            });
         });
     }
 
