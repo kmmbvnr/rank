@@ -84,6 +84,7 @@ export interface NativeFunction {
     readonly name: string;
     readonly arities: readonly number[];
     readonly monadicRank: IntrinsicRank;
+    readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[];
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly call: (arguments_: RankValue[]) => RankValue;

@@ -80,6 +80,22 @@ layernorm
 
 The exact module split is still evolving.
 
+## Matrix inversion
+
+`inverse` from `use linalg` has intrinsic rank 2. It inverts a square numeric
+matrix and returns a real matrix with the same shape:
+
+```rank
+B = A inverse
+BatchInverse = Batch inverse
+Planes = T inverse axis 1 rank 2
+```
+
+The second expression applies to every trailing matrix cell. The third uses
+axis 1 as the frame and forms each matrix from the remaining two axes. A
+non-square cell raises `.DimensionMismatch`; a singular cell raises
+`.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+
 ## Sliding windows
 
 Multidimensional `window` creates overlapping tensor cells without eagerly

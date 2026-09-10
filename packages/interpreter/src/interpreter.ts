@@ -1477,7 +1477,8 @@ export class Interpreter {
         const cells = tensorCells(value, frameAxes);
         const frameSize = arraySize(cells.frameShape);
         if (frameSize === 0) {
-            return lazyArray(cells.frameShape, () => {
+            const resultShape = fn.monadicResultShape?.(cells.cellShape) ?? [];
+            return lazyArray([...cells.frameShape, ...resultShape], () => {
                 throw new RankError('empty ranked result has no items');
             });
         }
@@ -2183,6 +2184,7 @@ interface OuterCells {
 
 interface TensorCells {
     readonly frameShape: readonly number[];
+    readonly cellShape: readonly number[];
     readonly cellAt: (frameIndex: number) => RankValue;
 }
 
@@ -2193,6 +2195,7 @@ function tensorCells(source: RankArray, frameAxes: readonly number[]): TensorCel
     const cellShape = cellAxes.map(axis => source.shape[axis]);
     return {
         frameShape,
+        cellShape,
         cellAt(frameIndex) {
             const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
             coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {

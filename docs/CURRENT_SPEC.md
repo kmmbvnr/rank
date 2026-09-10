@@ -401,6 +401,7 @@ A bare module name opens standard-library vocabulary in the current workspace:
 
 ```rank
 use numbers
+use linalg
 use bits
 use ranges
 ```
@@ -2277,6 +2278,22 @@ layernorm
 
 The exact module split is still evolving.
 
+## Matrix inversion
+
+`inverse` from `use linalg` has intrinsic rank 2. It inverts a square numeric
+matrix and returns a real matrix with the same shape:
+
+```rank
+B = A inverse
+BatchInverse = Batch inverse
+Planes = T inverse axis 1 rank 2
+```
+
+The second expression applies to every trailing matrix cell. The third uses
+axis 1 as the frame and forms each matrix from the remaining two axes. A
+non-square cell raises `.DimensionMismatch`; a singular cell raises
+`.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+
 ## Sliding windows
 
 Multidimensional `window` creates overlapping tensor cells without eagerly
@@ -2461,6 +2478,7 @@ Current module directions:
 
 ```rank
 use numbers
+use linalg
 use ranges
 use collections
 use graph
@@ -2582,6 +2600,29 @@ Left = A B max
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
+
+## Linear algebra
+
+`use linalg` provides operations on numeric tensor cells. `inverse` has
+intrinsic rank 2:
+
+```rank
+B = A inverse
+BatchInverse = Batch inverse
+```
+
+It accepts a square rank-2 matrix and returns a real matrix of the same shape.
+On a higher-rank tensor it applies independently to every trailing matrix cell.
+The ordinary `axis ... rank 2` form selects matrices on other axes:
+
+```rank
+Planes = T inverse axis 1 rank 2
+```
+
+A non-square cell raises `.DimensionMismatch`; a singular cell raises
+`.SingularMatrix`. In a higher-rank result, matrix cells are computed only when
+demanded, and each demanded result is cached. Individual matrix inversion uses
+partial-pivoting Gauss-Jordan elimination and does not round its real results.
 
 ## Bits
 

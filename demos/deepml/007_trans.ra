@@ -4,6 +4,7 @@ rem https://www.deep-ml.com/problems/7
 use numbers
 use ranges
 use sequences
+use linalg
 
 rem Transform A by T inverse times A times S.
 fun transform_matrix A T S
@@ -24,7 +25,7 @@ fun transform_matrix A T S
     .SingularMatrix raise
   end
 
-  Inverse = T matrix_inverse
+  Inverse = T inverse
   Left = Inverse A matrix_multiply
   return Left S matrix_multiply
 end
@@ -48,68 +49,6 @@ fun matrix_multiply A B
         Sum += A i k * B k j
       end
       Result i j = Sum
-    end
-  end
-  return Result
-end
-
-rem Invert a square matrix with Gauss-Jordan elimination.
-fun matrix_inverse A
-  Rows = A len axis 0
-  Cols = A len axis 1
-  if Rows not equal Cols
-    .DimensionMismatch raise
-  end
-
-  Width = Cols * 2
-  Work = array shape Rows Width pad 0.0
-  for i in 0 until Rows
-    for j in 0 until Cols
-      Work i j = A i j
-      if i equal j
-        Work i (j + Cols) = 1.0
-      end
-    end
-  end
-
-  for i in 0 until Rows
-    Pivot = i
-    for j in i + 1 until Rows
-      if Work j i abs greater Work Pivot i abs
-        Pivot = j
-      end
-    end
-    if Work Pivot i equal 0
-      .SingularMatrix raise
-    end
-
-    if Pivot not equal i
-      for j in 0 until Width
-        Temp = Work i j * 1.0
-        Work i j = Work Pivot j
-        Work Pivot j = Temp
-      end
-    end
-
-    Divisor = Work i i * 1.0
-    for j in 0 until Width
-      Work i j = Work i j / Divisor
-    end
-
-    for Row in 0 until Rows
-      if Row not equal i
-        Factor = Work Row i * 1.0
-        for j in 0 until Width
-          Work Row j = Work Row j - Factor * Work i j
-        end
-      end
-    end
-  end
-
-  Result = array shape Rows Cols pad 0.0
-  for i in 0 until Rows
-    for j in 0 until Cols
-      Result i j = Work i (j + Cols)
     end
   end
   return Result

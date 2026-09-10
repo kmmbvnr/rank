@@ -6,6 +6,7 @@ Current module directions:
 
 ```rank
 use numbers
+use linalg
 use bits
 use ranges
 use collections
@@ -128,6 +129,29 @@ Left = A B max
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
+
+## Linear algebra
+
+`use linalg` provides operations on numeric tensor cells. `inverse` has
+intrinsic rank 2:
+
+```rank
+B = A inverse
+BatchInverse = Batch inverse
+```
+
+It accepts a square rank-2 matrix and returns a real matrix of the same shape.
+On a higher-rank tensor it applies independently to every trailing matrix cell.
+The ordinary `axis ... rank 2` form selects matrices on other axes:
+
+```rank
+Planes = T inverse axis 1 rank 2
+```
+
+A non-square cell raises `.DimensionMismatch`; a singular cell raises
+`.SingularMatrix`. In a higher-rank result, matrix cells are computed only when
+demanded, and each demanded result is cached. Individual matrix inversion uses
+partial-pivoting Gauss-Jordan elimination and does not round its real results.
 
 ## Bits
 
