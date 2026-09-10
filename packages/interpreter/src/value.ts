@@ -77,11 +77,14 @@ export interface RankObject {
     readonly entries: Map<string, RankValue>;
 }
 
+export type IntrinsicRank = number | 'all';
+
 export interface NativeFunction {
     readonly kind: 'function';
     readonly name: string;
     readonly arities: readonly number[];
-    readonly monadicRank: number | 'all';
+    readonly monadicRank: IntrinsicRank;
+    readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly call: (arguments_: RankValue[]) => RankValue;
 }

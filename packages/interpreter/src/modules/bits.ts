@@ -41,7 +41,7 @@ export const bitsModule: RuntimeModule = {
 
 function binaryOperation(name: string, operation: (left: bigint, right: bigint) => bigint) {
     return native(name, 2, arguments_ =>
-        operation(expectInteger(arguments_[0]), expectInteger(arguments_[1])));
+        operation(expectInteger(arguments_[0]), expectInteger(arguments_[1])), 'all', [0, 0]);
 }
 
 function shiftCount(value: bigint): bigint {

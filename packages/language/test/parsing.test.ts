@@ -100,6 +100,17 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('parses a named function modified by outer', async () => {
+        const document = await parse('Grid = Values Values bxor outer');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+
+        const statement = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(statement)).toBe(true);
+        if (!isAssignmentStatement(statement)) return;
+        expect(isApplicationExpression(statement.value)).toBe(true);
+    });
+
     it('applies a leading unary operator before postfix application', async () => {
         const document = await parse('Answer = -121 palindrome');
         expect(document.parseResult.lexerErrors).toEqual([]);

@@ -106,6 +106,19 @@ This requires one general design for functions as values and partial
 application. It must not be a special case for `even` or `window`. These
 spellings are illustrative and are not current syntax.
 
+## Static effect analysis
+
+Lazy higher-order operations such as `outer` require their function argument to
+be pure, but the runtime does not yet prove that property. A future semantic
+analysis pass should classify functions as `pure`, `effectful` or `unknown` from
+their resolved call graph and captured bindings. Built-ins can declare their
+effect directly; recursive groups need a fixed-point analysis, and calls through
+values may remain unknown.
+
+The language server and small-screen UI can use the same result to distinguish
+effectful calls and warn at operations that may reorder or repeat evaluation.
+The exact diagnostic policy and any source annotation remain undecided.
+
 ## Join variants
 
 The compact form:

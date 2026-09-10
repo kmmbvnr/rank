@@ -82,7 +82,7 @@ function numericExtreme(
         }
         if (result === undefined) throw new RankError(`${name} requires at least one value`);
         return result;
-    });
+    }, 'all', [0, 0]);
 }
 
 function add(left: bigint | number, right: bigint | number): bigint | number {

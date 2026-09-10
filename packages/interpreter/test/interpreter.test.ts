@@ -308,6 +308,71 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('true true false true');
     });
 
+    it('applies named binary functions with intrinsic ranks under outer', () => {
+        const xor = new Interpreter().execute([
+            'use bits',
+            'use ranges',
+            'Values = 0 until 3',
+            'Operation = bxor',
+            'Values Values Operation outer',
+        ].join('\n'));
+        expect(xor).toMatchObject({ kind: 'array', shape: [3, 3] });
+        expect(xor && typeof xor === 'object' && xor.kind === 'array'
+            ? xor.items
+            : undefined).toEqual([0n, 1n, 2n, 1n, 0n, 3n, 2n, 3n, 0n]);
+
+        expect(run([
+            'use numbers',
+            'A = array 3 1',
+            'B = array 2 4',
+            'A B min outer',
+        ].join('\n'))).toBe('2 3 1 1');
+
+        expect(run([
+            'use bits',
+            'A = array 1 "invalid"',
+            'B = array 2',
+            'Grid = A B bxor outer',
+            'Grid 0 0',
+        ].join('\n'))).toBe('3');
+
+        const whole = new Interpreter().execute([
+            'use numbers',
+            'A = array 1 2',
+            'B = array 3 4',
+            'Result = A B whole outer',
+            '',
+            'fun whole A B',
+            '  Left = A sum',
+            '  Right = B sum',
+            '  return Left + Right',
+            'end',
+            '',
+            'Result',
+        ].join('\n'));
+        expect(whole).toMatchObject({ kind: 'array', shape: [] });
+        expect(whole && typeof whole === 'object' && whole.kind === 'array'
+            ? whole.items
+            : undefined).toEqual([10n]);
+
+        expect(() => run([
+            'use numbers',
+            'A = array 1 2',
+            'A A abs outer',
+        ].join('\n'))).toThrowError('outer operation abs must accept 2 arguments');
+        expect(() => run([
+            'A = array 1',
+            'B = array 2',
+            'Result = A B pair outer',
+            '',
+            'fun pair A B',
+            '  return array 1 2',
+            'end',
+            '',
+            'Result',
+        ].join('\n'))).toThrowError('outer operation pair must return a scalar');
+    });
+
     it('maps and filters an outer tensor lazily', () => {
         expect(run([
             'use ranges',

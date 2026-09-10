@@ -421,17 +421,26 @@ Prefix = A + scan
 
 ## Outer
 
-`outer` applies a binary operation to every pair of cells. The left and right
-cell ranks belong to the operation; `outer` combines the remaining frames:
+`outer` is a higher-order modifier. It applies the operator or named binary
+function immediately before it to every pair of cells:
 
 ```rank
 Sums = A B + outer
 Products = A B * outer
+Grid = Values Values bxor outer
+Operation = min
+Smallest = A B Operation outer
 ```
 
-The current symbolic binary operations have intrinsic ranks `0 0`. Therefore,
-if `A` has shape `2 3` and `B` has shape `4 5`, the result of `A B * outer` has
-shape:
+Cell ranks belong to the operation; `outer` combines the remaining frames.
+Symbolic binary operations have intrinsic ranks `0 0`. The named functions
+`band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare ranks `0 0`.
+User-defined binary functions currently default to `all all`; syntax for
+declaring their intrinsic ranks remains deferred.
+
+The result shape is the concatenation of the left and right frame shapes.
+Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
+pairing `A B * outer` has shape:
 
 ```text
 2 3 4 5
@@ -439,11 +448,16 @@ shape:
 
 `outer` combines axes. `matmul` contracts axes.
 
-The axes of the left operand come first and the right operand varies fastest.
-Both operands must be finite and restartable. Construction is lazy: `outer`
-does not require all result atoms to be materialized immediately.
+The left frame axes come first and the right frame varies fastest. The operation
+must accept two arguments and currently must return a scalar for every pair.
+Both operands must be finite and restartable.
 
-Named binary functions will use their declared intrinsic left and right ranks.
+Construction is lazy and may compute a demanded pair again. A named function
+supplied to `outer` must therefore be pure: its result and observable behavior
+may depend only on its arguments and immutable captured values. The runtime does
+not yet prove this property; static effect analysis is tracked separately as
+tooling work.
+
 Explicit binary rank overrides remain deferred.
 
 An axis-qualified cell view may become an operand of `outer`. Its `axis` order

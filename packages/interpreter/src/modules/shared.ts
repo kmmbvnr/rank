@@ -1,12 +1,20 @@
 import { RankError } from '../errors.js';
 import { mapSequence } from '../sequence.js';
-import { isRankArray, isRankSequence, type NativeFunction, type RankArray, type RankValue } from '../value.js';
+import {
+    isRankArray,
+    isRankSequence,
+    type IntrinsicRank,
+    type NativeFunction,
+    type RankArray,
+    type RankValue,
+} from '../value.js';
 
 export function native(
     name: string,
     arity: number | readonly number[],
     call: (arguments_: RankValue[]) => RankValue,
-    monadicRank: number | 'all' = 'all',
+    monadicRank: IntrinsicRank = 'all',
+    dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank],
 ): NativeFunction {
     const arities = typeof arity === 'number' ? [arity] : arity;
     return {
@@ -14,6 +22,7 @@ export function native(
         name,
         arities,
         monadicRank,
+        dyadicRanks,
         call(arguments_) {
             if (!arities.includes(arguments_.length)) {
                 throw new RankError(

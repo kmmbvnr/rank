@@ -147,6 +147,13 @@ number of set bits. `bit` and `popcount` require a nonnegative input value.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
 
+The two-argument forms of `band`, `bor`, `bxor`, `shl` and `shr` have intrinsic
+ranks `0 0`, so they can be passed to `outer`:
+
+```rank
+Grid = Values Values bxor outer
+```
+
 `binary` formats a nonnegative integer as text. With one argument it uses the
 shortest representation, including `"0"` for zero. A positive integer width
 pads with leading zeroes and raises an error when the value does not fit:

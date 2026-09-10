@@ -69,6 +69,7 @@ import {
     isRankSet,
     isRankSequence,
     isRankSequenceMask,
+    type IntrinsicRank,
     type RankArray,
     type RankCounter,
     type RankFile,
@@ -695,6 +696,18 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
+            const namedOuter = explicitNamedOuterApplication(parts);
+            if (namedOuter) {
+                const operation = this.evaluate(namedOuter.operation);
+                if (!isNativeFunction(operation)) {
+                    throw new RankError('outer expects a binary function');
+                }
+                return this.evaluateNamedOuter(
+                    operation,
+                    this.evaluate(namedOuter.left),
+                    this.evaluate(namedOuter.right),
+                );
+            }
             const axisWindow = explicitAxisWindow(parts);
             if (axisWindow) {
                 this.requireModule('sequences', 'window');
@@ -772,6 +785,7 @@ export class Interpreter {
             name: statement.name,
             arities: [statement.parameters.length],
             monadicRank: 'all',
+            dyadicRanks: statement.parameters.length === 2 ? ['all', 'all'] : undefined,
             captures: context.values,
             call: arguments_ => generator
                 ? this.callGeneratorFunction(statement, arguments_, context)
@@ -1279,6 +1293,31 @@ export class Interpreter {
                 arrayItem(a, leftIndex),
                 arrayItem(b, rightIndex),
             );
+        });
+    }
+
+    private evaluateNamedOuter(
+        operation: NativeFunction,
+        left: RankValue,
+        right: RankValue,
+    ): RankValue {
+        if (!operation.arities.includes(2)) {
+            throw new RankError(`outer operation ${operation.name} must accept 2 arguments`);
+        }
+        const [leftRank, rightRank] = operation.dyadicRanks ?? ['all', 'all'];
+        const a = outerCells(left, leftRank, 'left');
+        const b = outerCells(right, rightRank, 'right');
+        const rightFrames = arraySize(b.frameShape);
+        return lazyArray([...a.frameShape, ...b.frameShape], index => {
+            const result = operation.call([
+                a.cellAt(Math.floor(index / rightFrames)),
+                b.cellAt(index % rightFrames),
+            ]);
+            if (valueRank(result) !== 0) {
+                throw new RankError(`outer operation ${operation.name} must return a scalar`);
+            }
+            this.ownFiles(result);
+            return result;
         });
     }
 
@@ -1836,6 +1875,33 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     return lazyArray([size], index => values()[index]);
 }
 
+interface OuterCells {
+    readonly frameShape: readonly number[];
+    readonly cellAt: (frameIndex: number) => RankValue;
+}
+
+function outerCells(
+    value: RankValue,
+    rank: IntrinsicRank,
+    side: 'left' | 'right',
+): OuterCells {
+    const source = outerOperand(value, side);
+    const receivesWhole = rank === 'all' || rank >= source.shape.length;
+    const cellRank = rank === 'all' ? source.shape.length : Math.min(rank, source.shape.length);
+    const frameShape = source.shape.slice(0, source.shape.length - cellRank);
+    const cellShape = source.shape.slice(source.shape.length - cellRank);
+    const cellSize = arraySize(cellShape);
+    return {
+        frameShape,
+        cellAt(frameIndex) {
+            if (receivesWhole) return value;
+            const start = frameIndex * cellSize;
+            if (cellRank === 0) return arrayItem(source, start);
+            return lazyArray(cellShape, index => arrayItem(source, start + index));
+        },
+    };
+}
+
 function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
     const magnitude = stride ?? 1n;
     if (magnitude <= 0n) throw new RankError('range step must be a positive integer');
@@ -2061,10 +2127,9 @@ function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
         const stride = source.shape.slice(axis + 1).reduce((product, value) => product * value, 1);
         offset += Number(index) * stride;
     }
-    if (indices.length === source.shape.length) return source.items[offset];
+    if (indices.length === source.shape.length) return arrayItem(source, offset);
     const shape = source.shape.slice(indices.length);
-    const size = shape.reduce((product, value) => product * value, 1);
-    return { kind: 'array', items: source.items.slice(offset, offset + size), shape };
+    return lazyArray(shape, index => arrayItem(source, offset + index));
 }
 
 function sliceValue(
@@ -2409,6 +2474,21 @@ function explicitRankApplication(parts: Expression[]): { parts: Expression[]; ra
         throw new RankError('rank expects a nonnegative integer');
     }
     return { parts: parts.slice(0, -2), rank: rank.value };
+}
+
+interface NamedOuterApplication {
+    readonly left: Expression;
+    readonly right: Expression;
+    readonly operation: Expression;
+}
+
+function explicitNamedOuterApplication(parts: Expression[]): NamedOuterApplication | undefined {
+    if (parts.length !== 4 || !isNamed(parts[3], 'outer')) return undefined;
+    return {
+        left: parts[0],
+        right: parts[1],
+        operation: parts[2],
+    };
 }
 
 interface OuterApplication {
