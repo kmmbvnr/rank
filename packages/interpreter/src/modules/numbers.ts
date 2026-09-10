@@ -11,6 +11,11 @@ import { expectInteger, expectNumeric, mapValue, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const numbersModule: RuntimeModule = {
+    abs: () => native('abs', 1, arguments_ => {
+        const value = expectNumeric(arguments_[0]);
+        if (typeof value === 'bigint') return absolute(value);
+        return value < 0 ? -value : value === 0 ? 0 : value;
+    }, 0),
     sum: () => native('sum', 1, arguments_ => {
         const value = arguments_[0];
         if (isRankSequence(value)) {

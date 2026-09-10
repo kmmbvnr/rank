@@ -1431,6 +1431,12 @@ describe('Rank interpreter', () => {
         expect(run('1 + 2.5')).toBe('3.5');
         expect(run('9007199254740992 equal 9007199254740993')).toBe('false');
         expect(run('2 equal 2.0')).toBe('true');
+        expect(run('use numbers\n-12 abs')).toBe('12');
+        expect(run('use numbers\n-2.5 abs')).toBe('2.5');
+        expect(run('use numbers\n(array -2 0 3) abs')).toBe('2 0 3');
+        expect(run('use ranges\nuse numbers\n(-2 to 2) abs')).toBe('2 1 0 1 2');
+        expect(run('use numbers\n-infinity abs')).toBe('infinity');
+        expect(() => run('use numbers\n"no" abs')).toThrowError('expected numeric input');
         expect(run('use numbers\n3 2 min')).toBe('2');
         expect(run('use numbers\n3 2 max')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');

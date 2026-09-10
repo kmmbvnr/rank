@@ -2330,6 +2330,7 @@ Candidate reusable operations:
 ```rank
 odd
 even
+abs
 prime
 gcd
 lcm
@@ -2349,6 +2350,18 @@ Mask = N multiple by 3
 ```
 
 It is the readable shortcut for `N % 3 equal 0`.
+
+`abs` has intrinsic rank 0 and returns the absolute value of an `integer` or
+`real`, preserving its numeric type:
+
+```rank
+Distance = Difference abs
+Magnitudes = Values abs
+```
+
+Its scalar rank makes the second form elementwise over arrays and lazy over
+sequences. Negative infinity becomes positive infinity, and either signed real
+zero becomes positive zero. A demanded nonnumeric cell is an error.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:
