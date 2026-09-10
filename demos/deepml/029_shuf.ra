@@ -1,0 +1,20 @@
+rem Deep-ML 29: Shuffle Dataset
+rem https://www.deep-ml.com/problems/29
+
+use random
+use ranges
+use sequences
+
+rem Shuffle matching samples
+rem with one shared order.
+fun shuffle_data X Y
+  Count = X len
+  if Y len not equal Count
+    .DimensionMismatch raise
+  end
+
+  Indices = 0 until Count
+  Order = Indices shuffle
+
+  return array (X Order) (Y Order)
+end

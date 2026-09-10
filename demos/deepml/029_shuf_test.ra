@@ -1,0 +1,86 @@
+use testing
+
+test "official data keeps pairs"
+  use "029_shuf"
+  use random
+  use sequences
+  X = array shape 4 2
+    1 2
+    3 4
+    5 6
+    7 8
+  end
+  Y = array 1 2 3 4
+
+  State = 42 seed
+  Result = X Y shuffle_data
+  ShuffledX = Result 0
+  ShuffledY = Result 1
+
+  for Label i in ShuffledY
+    Row = ShuffledX i
+    Row 0 equal Label * 2 - 1
+    Row 1 equal Label * 2
+  end
+  (ShuffledY sort equal Y) and reduce
+end
+
+test "second official data keeps pairs"
+  use "029_shuf"
+  use random
+  use sequences
+  X = array shape 4 2
+    1 1
+    2 2
+    3 3
+    4 4
+  end
+  Y = array 10 20 30 40
+
+  State = 24 seed
+  Result = X Y shuffle_data
+  ShuffledX = Result 0
+  ShuffledY = Result 1
+
+  for Label i in ShuffledY
+    Row = ShuffledX i
+    Row 0 * 10 equal Label
+    Row 1 equal Row 0
+  end
+  (ShuffledY sort equal Y) and reduce
+end
+
+test "resetting seed repeats a shuffle"
+  use "029_shuf"
+  use random
+  X = array shape 4 1
+    1
+    2
+    3
+    4
+  end
+  Y = array 10 20 30 40
+
+  State = 42 seed
+  First = X Y shuffle_data
+  State = 42 seed
+  Second = X Y shuffle_data
+
+  (First 0 equal Second 0) and reduce
+  (First 1 equal Second 1) and reduce
+end
+
+test "sample counts must match"
+  use "029_shuf"
+  X = array shape 2 1 pad 0
+  Y = array 1 2 3
+  Raised = false
+
+  try
+    Result = X Y shuffle_data
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end

@@ -41,6 +41,31 @@ describe('Rank random operations', () => {
         ].join('\n'))).toBe('true');
     });
 
+    it('reseeds the shared stream used by imported functions', () => {
+        const interpreter = new Interpreter(undefined, {
+            loadModule: () => ({
+                id: 'draw.ra',
+                source: [
+                    'use random',
+                    'fun draw Values',
+                    '  return Values shuffle',
+                    'end',
+                ].join('\n'),
+            }),
+        });
+        const value = interpreter.execute([
+            'use random',
+            'use "draw"',
+            'Values = array 0 1 2 3 4',
+            'State = 42 seed',
+            'First = Values draw',
+            'State = 42 seed',
+            'Second = Values draw',
+            '(First equal Second) and reduce',
+        ].join('\n'));
+        expect(value).toBe(true);
+    });
+
     it('moves complete cells along the selected axis', () => {
         expect(run([
             'use random',
@@ -68,11 +93,15 @@ describe('Rank random operations', () => {
             .toThrowError('shuffle requires a bounded sequence');
         expect(() => run('use random\n(array 1 2) 1.5 shuffle'))
             .toThrowError('shuffle seed must be an integer');
+        expect(() => run('use random\n1.5 seed'))
+            .toThrowError('seed expects an integer');
         expect(() => run('use random\n1 shuffle'))
             .toThrowError('shuffle expects an array or finite sequence');
         expect(() => run('use random\n(array 1 2) shuffle axis 1'))
             .toThrowError('shuffle axis out of bounds: 1');
         expect(() => run('(array 1 2) shuffle'))
             .toThrowError('unknown name: shuffle');
+        expect(() => run('42 seed'))
+            .toThrowError('unknown name: seed');
     });
 });

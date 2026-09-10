@@ -9,6 +9,14 @@ import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const randomModule: RuntimeModule = {
+    seed: context => native('seed', 1, arguments_ => {
+        const value = arguments_[0];
+        if (typeof value !== 'bigint') {
+            throw new RankError('seed expects an integer');
+        }
+        context.seedRandom(value);
+        return value;
+    }),
     shuffle: context => native('shuffle', [1, 2], arguments_ => shuffleValue(
         arguments_[0],
         arguments_[1],
@@ -29,7 +37,7 @@ export function shuffleValue(
         throw new RankError(`shuffle axis out of bounds: ${axis}`, 'DimensionMismatch');
     }
 
-    const random = seed === undefined ? defaultRandom : seededRandom(seed);
+    const random = seed === undefined ? defaultRandom : randomFromSeed(expectSeed(seed));
     const order = Array.from({ length: source.shape[axis] }, (_, index) => index);
     for (let index = order.length - 1; index > 0; index -= 1) {
         const other = Math.floor(random() * (index + 1));
@@ -59,8 +67,12 @@ function shuffleSource(value: RankValue): RankArray {
     throw new RankError('shuffle expects an array or finite sequence');
 }
 
-function seededRandom(seed: RankValue): () => number {
+function expectSeed(seed: RankValue): bigint {
     if (typeof seed !== 'bigint') throw new RankError('shuffle seed must be an integer');
+    return seed;
+}
+
+export function randomFromSeed(seed: bigint): () => number {
     let state = Number(BigInt.asUintN(32, seed));
     return () => {
         state = (state + 0x6d2b79f5) >>> 0;

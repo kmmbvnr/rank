@@ -3037,11 +3037,17 @@ Left = A B max
 `use random` provides random permutation operations:
 
 ```rank
+State = 42 seed
 Shuffled = Values shuffle
 Repeatable = Values 42 shuffle
 Rows = Data shuffle axis 0
 Columns = Data 42 shuffle axis 1
 ```
+
+`Seed seed` reinitializes the current interpreter's pseudorandom stream and
+returns the integer seed. Imported functions share that stream, so the setting
+applies to their later unseeded random operations as well. Repeating the call
+with the same seed restarts the same sequence.
 
 `shuffle` accepts an array or a finite sequence and returns a new eager dense
 array. It never changes its source. A sequence is explicitly consumed by the

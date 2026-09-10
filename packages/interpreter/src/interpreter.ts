@@ -51,7 +51,7 @@ import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
-import { shuffleValue } from './modules/random.js';
+import { randomFromSeed, shuffleValue } from './modules/random.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue } from './modules/stats.js';
 import { projectField } from './modules/tables.js';
@@ -143,6 +143,11 @@ type PreparedStatement =
     | { readonly stream: (context: ExecutionContext) => Execution<RankValue | undefined> };
 
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Execution<RankValue>>();
+const SEED_RANDOM = Symbol('seedRandom');
+
+type SeedableRandom = (() => number) & {
+    readonly [SEED_RANDOM]: (seed: bigint) => void;
+};
 
 class ReturnSignal {
     constructor(readonly value?: RankValue) {}
@@ -188,7 +193,7 @@ export class Interpreter {
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly options: InterpreterOptions;
-    private readonly random: () => number;
+    private readonly random: SeedableRandom;
     private readonly openPrograms = new Map<string, LoadedProgram>();
     private readonly aliases = new Map<string, Interpreter>();
     private currentRunTarget: LoadedProgram | undefined;
@@ -206,7 +211,7 @@ export class Interpreter {
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
         this.options = options;
-        this.random = options.random ?? Math.random;
+        this.random = seedableRandom(options.random);
         this.maxCallDepth = options.maxCallDepth ?? 200_000;
         if (!Number.isSafeInteger(this.maxCallDepth) || this.maxCallDepth < 1) {
             throw new RankError('maxCallDepth must be a positive safe integer');
@@ -1625,6 +1630,7 @@ export class Interpreter {
                     output: this.output,
                     io: this.options.io,
                     random: this.random,
+                    seedRandom: seed => this.random[SEED_RANDOM](seed),
                     ownFile: file => this.ownFile(file),
                 });
             }
@@ -2757,6 +2763,19 @@ function callArguments(
     }
 
     return values;
+}
+
+function seedableRandom(source?: () => number): SeedableRandom {
+    if (source && SEED_RANDOM in source) return source as SeedableRandom;
+
+    let next = source ?? Math.random;
+    const random = (() => next()) as SeedableRandom;
+    Object.defineProperty(random, SEED_RANDOM, {
+        value(seed: bigint) {
+            next = randomFromSeed(seed);
+        },
+    });
+    return random;
 }
 
 function canApplySelectors(values: RankValue[]): boolean {

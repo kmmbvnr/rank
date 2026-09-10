@@ -7,6 +7,7 @@ export interface RuntimeContext {
     readonly output: Output;
     readonly io?: RankIo;
     readonly random: () => number;
+    readonly seedRandom: (seed: bigint) => void;
     readonly ownFile: (file: RankFile) => void;
 }
 
