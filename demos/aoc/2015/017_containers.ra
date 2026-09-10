@@ -1,0 +1,54 @@
+rem Advent of Code 2015 — Day 17
+rem No Such Thing as Too Much
+rem https://adventofcode.com/2015/day/17
+
+use io
+use cli
+use text
+use bits
+use ranges
+use sequences
+
+argument Input path
+
+Lines = Input readlines
+Containers = Lines integer rank 0
+Part1 Part2 = Containers 150 solve
+Part1 print
+Part2 print
+
+
+rem Count fitting subsets and those using the fewest containers.
+fun solve Containers Target
+  N = Containers len
+  Limit = 2 ** N
+  Part1 = 0
+  MinUsed = N + 1
+  Part2 = 0
+
+  for Mask in 0 until Limit
+    Total = 0
+    Used = 0
+
+    for I in 0 until N
+      if Mask I bit
+        Total += Containers I
+        Used += 1
+      end
+    end
+
+    if Total equal Target
+      Part1 += 1
+
+      if Used less MinUsed
+        MinUsed = Used
+        Part2 = 0
+      end
+      if Used equal MinUsed
+        Part2 += 1
+      end
+    end
+  end
+
+  return array Part1 Part2
+end

@@ -1,0 +1,15 @@
+use testing
+
+test "official example"
+  use "017_containers"
+
+  Containers = array 20 15 10 5 5
+  Containers 25 solve equal array 4 3
+end
+
+test "equal containers remain distinct choices"
+  use "017_containers"
+
+  Containers = array 20 5 5
+  Containers 25 solve equal array 2 2
+end
