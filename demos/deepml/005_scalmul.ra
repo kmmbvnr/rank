@@ -1,0 +1,6 @@
+rem Deep-ML 5: Scalar Multiplication
+rem https://www.deep-ml.com/problems/5
+
+fun scalar_multiply A K
+  return A * K
+end

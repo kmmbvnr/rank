@@ -1,0 +1,37 @@
+use testing
+
+test "official example"
+  use "005_scalmul"
+  A = array shape 2 2
+    1 2
+    3 4
+  end
+  Expected = array shape 2 2
+    2 4
+    6 8
+  end
+
+  A 2 scalar_multiply equal Expected
+end
+
+test "real scalar preserves tensor shape"
+  use "005_scalmul"
+  A = array shape 2 1 2
+    2 -4
+    0 6
+  end
+  Expected = array shape 2 1 2
+    -1.0 2.0
+    0.0 -3.0
+  end
+
+  A (-0.5) scalar_multiply equal Expected
+end
+
+test "empty matrix"
+  use "005_scalmul"
+  A = array shape 0 3 pad 0
+  Expected = array shape 0 3 pad 0
+
+  A 7 scalar_multiply equal Expected
+end
