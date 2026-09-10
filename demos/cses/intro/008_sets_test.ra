@@ -1,0 +1,25 @@
+use testing
+
+test "three values"
+  use "008_sets"
+  Left = 3 left array
+  Right = 3 right array
+  Left equal array 1 2
+  Right equal array 3
+end
+
+test "multiple of four"
+  use "008_sets"
+  Left = 8 left array
+  Right = 8 right array
+  Left equal array 1 4 5 8
+  Right equal array 2 3 6 7
+end
+
+test "three modulo four"
+  use "008_sets"
+  Left = 7 left array
+  Right = 7 right array
+  Left equal array 1 2 4 7
+  Right equal array 3 5 6
+end
