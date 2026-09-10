@@ -199,12 +199,16 @@ labels
 
 ## Stats
 
-Examples:
+`use stats` currently provides arithmetic mean:
 
 ```rank
-mean
-median
+Average = Values mean
+Rows = Matrix mean axis 1
 ```
+
+`mean` accepts a numeric array or finite sequence and always returns a `real`.
+An empty input raises `.EmptyReduction`. Axis-qualified tensor behavior is
+described in [Tensors](../language/tensors.md).
 
 ## Text
 

@@ -2223,12 +2223,30 @@ Axis numbers are zero-based. The list must contain every source axis exactly
 once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 `A transpose axis 1 0`.
 
+## Axis reductions
+
+`sum` and `mean` without modifiers reduce every element. `axis` reduces only
+the named axes and preserves the remaining axes in their original order:
+
+```rank
+Total = A sum
+Rows = A mean axis 1
+Columns = A mean axis 0
+Planes = T sum axis 0 2
+```
+
+An axis list is treated as a set, so its written order does not affect the
+result. Every axis must exist and may appear only once. An empty `sum` is zero;
+an empty `mean` raises `.EmptyReduction`. `mean` always returns real values.
+
+`rank` and `axis` answer different questions. `rank` chooses trailing cells and
+applies the whole operation to every cell in the leading frame. `axis` names
+the coordinate dimensions that the operation consumes.
+
 The broader tensor direction includes:
 
 ```rank
 matmul
-sum
-mean
 max
 exp
 log
@@ -2588,12 +2606,16 @@ labels
 
 ## Stats
 
-Examples:
+`use stats` currently provides arithmetic mean:
 
 ```rank
-mean
-median
+Average = Values mean
+Rows = Matrix mean axis 1
 ```
+
+`mean` accepts a numeric array or finite sequence and always returns a `real`.
+An empty input raises `.EmptyReduction`. Axis-qualified tensor behavior is
+described in [Tensors](language/tensors.md).
 
 ## Text
 

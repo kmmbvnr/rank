@@ -68,6 +68,37 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('transpose axes must be unique');
     });
 
+    it('reduces selected tensor axes with sum and mean', () => {
+        expect(run([
+            'use numbers',
+            'use sequences',
+            'use stats',
+            'T = array shape 2 2 3',
+            '  1 2 3 4 5 6',
+            '  7 8 9 10 11 12',
+            'end',
+            'Means = T mean axis 1',
+            'Sums = T sum axis 0 2',
+            'array (Means shape) Means (Sums shape) Sums',
+        ].join('\n'))).toBe('2 3 2.5 3.5 4.5 8.5 9.5 10.5 2 30 48');
+        expect(run([
+            'use stats',
+            'Value = (array 1 2 6) mean',
+            'Value is .real',
+        ].join('\n'))).toBe('true');
+        expect(() => run([
+            'use stats',
+            'Empty = array shape 0',
+            'end',
+            'Empty mean',
+        ].join('\n'))).toThrowError('mean requires at least one value');
+        expect(() => run([
+            'use numbers',
+            'T = array shape 2 3 pad 0',
+            'T sum axis 1 1',
+        ].join('\n'))).toThrowError('sum axes must be unique');
+    });
+
     it('preserves tensor shape under unary operations', () => {
         expect(run([
             'M = array shape 2 2',

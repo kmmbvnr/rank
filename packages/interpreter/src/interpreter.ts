@@ -893,6 +893,20 @@ export class Interpreter {
                     return lengthOfAxis(this.evaluate(axisLength.source), axisLength.axis);
                 };
             }
+            const axisReduction = explicitAxisReduction(parts);
+            if (axisReduction) {
+                return () => {
+                    this.requireModule(
+                        axisReduction.operation === 'mean' ? 'stats' : 'numbers',
+                        axisReduction.operation,
+                    );
+                    return this.evaluateAxisReduction(
+                        axisReduction.operation,
+                        this.evaluate(axisReduction.source),
+                        axisReduction.axes,
+                    );
+                };
+            }
             const axisTranspose = explicitAxisTranspose(parts);
             if (axisTranspose) {
                 return () => {
@@ -1517,6 +1531,45 @@ export class Interpreter {
         return this.reduceCell(operator, value);
     }
 
+    private evaluateAxisReduction(
+        operation: 'sum' | 'mean',
+        value: RankValue,
+        axes: readonly number[],
+    ): RankValue {
+        if (!isRankArray(value)) throw new RankError(`${operation} axis expects an array`);
+        for (const axis of axes) {
+            if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
+        }
+        if (new Set(axes).size !== axes.length) {
+            throw new RankError(`${operation} axes must be unique`);
+        }
+
+        const selected = new Set(axes);
+        const reducedAxes = value.shape.map((_, axis) => axis).filter(axis => selected.has(axis));
+        const frameAxes = value.shape.map((_, axis) => axis).filter(axis => !selected.has(axis));
+        const reducedShape = reducedAxes.map(axis => value.shape[axis]);
+        const frameShape = frameAxes.map(axis => value.shape[axis]);
+        const reducer = this.resolve(operation);
+        if (!isNativeFunction(reducer)) throw new RankError(`${operation} is not an operation`);
+
+        const reduceAt = (frameIndex: number): RankValue => {
+            const sourceCoordinates = Array(value.shape.length).fill(0) as number[];
+            coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
+                sourceCoordinates[frameAxes[index]] = coordinate;
+            });
+            const items: RankValue[] = [];
+            for (const reducedCoordinates of coordinates(reducedShape)) {
+                reducedCoordinates.forEach((coordinate, index) => {
+                    sourceCoordinates[reducedAxes[index]] = coordinate;
+                });
+                items.push(arrayItem(value, arrayOffset(value.shape, sourceCoordinates)));
+            }
+            return reducer.call([{ kind: 'array', items, shape: reducedShape }]);
+        };
+
+        return frameShape.length === 0 ? reduceAt(0) : lazyArray(frameShape, reduceAt);
+    }
+
     private reduceCell(operator: string, value: RankValue): RankValue {
         if (isRankSequence(value)) {
             const planned = value.plan.reduce?.(operator);
@@ -1993,6 +2046,15 @@ function* coordinates(shape: readonly number[]): IterableIterator<number[]> {
         }
         yield result;
     }
+}
+
+function coordinatesAt(shape: readonly number[], index: number): number[] {
+    const result = Array(shape.length).fill(0) as number[];
+    for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+        result[axis] = index % shape[axis];
+        index = Math.floor(index / shape[axis]);
+    }
+    return result;
 }
 
 function arrayOffset(shape: readonly number[], coordinates: readonly number[]): number {
@@ -2616,6 +2678,21 @@ function explicitAxisLength(
     return {
         source: parts[0],
         axis: safeDimension(integerLiteral(parts[3], 'len axis'), 'len axis'),
+    };
+}
+
+function explicitAxisReduction(
+    parts: Expression[],
+): { source: Expression; operation: 'sum' | 'mean'; axes: readonly number[] } | undefined {
+    if (parts.length < 4) return undefined;
+    const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
+    if ((operation !== 'sum' && operation !== 'mean')
+        || !isNamed(parts[2], 'axis')) return undefined;
+    return {
+        source: parts[0],
+        operation,
+        axes: parts.slice(3).map(axis =>
+            safeDimension(integerLiteral(axis, `${operation} axis`), `${operation} axis`)),
     };
 }
 
