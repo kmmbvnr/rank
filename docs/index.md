@@ -62,6 +62,10 @@ Adults = Data Mask
 - [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
 
+## Development workflow
+
+- [Turning solution drafts into Rank programs](design/example-workflow.md)
+
 ## Marketing
 
 - [Landscape](marketing/landscape.md)
