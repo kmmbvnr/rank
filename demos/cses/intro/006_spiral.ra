@@ -1,0 +1,29 @@
+rem CSES 1071: Number Spiral
+rem https://cses.fi/problemset/task/1071
+
+use io
+use numbers
+use ranges
+
+T = stdin .integer
+
+for i in 1 to T
+  Y = stdin .integer
+  X = stdin .integer
+  Y X spiral print
+end
+
+
+rem Return the number at row Y and column X.
+fun spiral Y X
+  M = X Y max
+  Answer = M * M - M + 1
+
+  if M odd
+    Answer += X - Y
+  else
+    Answer += Y - X
+  end
+
+  return Answer
+end

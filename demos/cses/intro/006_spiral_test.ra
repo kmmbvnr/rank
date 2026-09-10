@@ -1,0 +1,20 @@
+use testing
+
+test "official examples"
+  use "006_spiral"
+  2 3 spiral equal 8
+  1 1 spiral equal 1
+  4 2 spiral equal 15
+end
+
+test "odd layer"
+  use "006_spiral"
+  3 1 spiral equal 5
+  3 3 spiral equal 7
+end
+
+test "even layer"
+  use "006_spiral"
+  1 4 spiral equal 10
+  4 4 spiral equal 13
+end
