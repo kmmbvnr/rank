@@ -1,0 +1,66 @@
+rem CSES 1743: String Reorder
+rem https://cses.fi/problemset/task/1743
+
+use algo
+use io
+use sequences
+
+Text = stdin .word
+Text solve print
+
+
+rem Greedily choose the smallest safe letter, except when one count is forced.
+fun solve Text
+  Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  N = Text len
+  Max = 0
+
+  for C in Text
+    Count = index C pad 0
+    Count += 1
+    index C = Count
+
+    if Count greater Max
+      Max = Count
+    end
+  end
+
+  if 2 * Max greater N + 1
+    return "-1"
+  end
+
+  Answer = ""
+  Previous = ""
+  Remaining = N
+
+  for Remaining greater 0
+    Choice = ""
+    Forced = ""
+
+    for C in Alphabet
+      Count = index C pad 0
+
+      if Count greater 0
+        if Choice equal "" and C not equal Previous
+          Choice = C
+        end
+
+        if 2 * Count greater Remaining
+          Forced = C
+        end
+      end
+    end
+
+    if Forced not equal ""
+      Choice = Forced
+    end
+
+    Answer += Choice
+    Count = index Choice
+    index Choice = Count - 1
+    Previous = Choice
+    Remaining -= 1
+  end
+
+  return Answer
+end

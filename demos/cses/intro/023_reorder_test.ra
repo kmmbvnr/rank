@@ -1,0 +1,18 @@
+use testing
+
+test "official example"
+  use "023_reorder"
+  "HATTIVATTI" solve equal "AHATITITVT"
+end
+
+test "impossible repetition"
+  use "023_reorder"
+  "AAA" solve equal "-1"
+end
+
+test "lexicographically smallest reorder"
+  use "023_reorder"
+  "AABB" solve equal "ABAB"
+  "AAABB" solve equal "ABABA"
+  "A" solve equal "A"
+end
