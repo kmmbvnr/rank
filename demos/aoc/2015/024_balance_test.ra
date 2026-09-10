@@ -1,0 +1,22 @@
+use testing
+
+test "official three-group example"
+  use "024_balance"
+
+  Packages = array 1 2 3 4 5 7 8 9 10 11
+  Packages 3 balance equal 99
+end
+
+test "official four-group example"
+  use "024_balance"
+
+  Packages = array 1 2 3 4 5 7 8 9 10 11
+  Packages 4 balance equal 44
+end
+
+test "equal package weights remain separate choices"
+  use "024_balance"
+
+  Packages = array 1 1 1 1 2 2
+  Packages 4 balance equal 2
+end

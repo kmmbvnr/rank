@@ -1,0 +1,105 @@
+rem Advent of Code 2015 — Day 24
+rem It Hangs in the Balance
+rem https://adventofcode.com/2015/day/24
+
+use io
+use cli
+use algo
+use bits
+use numbers
+use sequences
+use text
+use ranges
+
+argument Input path
+
+Lines = Input readlines
+Packages = Lines integer rank 0
+Part1 = Packages 3 balance
+Part2 = Packages 4 balance
+Part1 print
+Part2 print
+
+
+rem Minimize the first group by package count, then by product.
+fun balance Packages Groups
+  Target = Packages sum // Groups
+  Count = Packages len
+  Indices = 0 until Count
+
+  for Size in 1 to Count
+    Found = false
+    Best = 0
+
+    for Pick in Indices Size combinations
+      Weight = 0
+      Product = 1
+      Used = 0
+
+      for I in Pick
+        Weight += Packages I
+        Product *= Packages I
+        Bit = 1 I shl
+        Used = Used Bit bor
+      end
+
+      if Weight equal Target
+        Remaining = Groups - 1
+        Valid = Packages Used Remaining Target partitionable
+
+        if Valid
+          if not Found
+            Found = true
+            Best = Product
+          elif Product less Best
+            Best = Product
+          end
+        end
+      end
+    end
+
+    if Found
+      return Best
+    end
+  end
+end
+
+
+rem Check recursively whether unused packages can fill the remaining groups.
+fun partitionable Packages Used Groups Target
+  if Groups equal 1
+    return true
+  end
+
+  Count = Packages len
+  for I in 0 until Count
+    Taken = Used I bit
+    if not Taken
+      queue push I
+    end
+  end
+  Available = queue
+
+  for Size in 1 to Available len
+    for Pick in Available Size combinations
+      Weight = 0
+      NextUsed = Used
+
+      for I in Pick
+        Weight += Packages I
+        Bit = 1 I shl
+        NextUsed = NextUsed Bit bor
+      end
+
+      if Weight equal Target
+        Remaining = Groups - 1
+        Valid = Packages NextUsed Remaining Target partitionable
+        if Valid
+          return true
+        end
+      end
+    end
+  end
+
+  return false
+end
