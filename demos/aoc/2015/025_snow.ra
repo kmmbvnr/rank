@@ -4,6 +4,7 @@ rem https://adventofcode.com/2015/day/25
 
 use io
 use cli
+use numbers
 use text
 
 argument Input path
@@ -28,23 +29,6 @@ fun code Row Column
   Position = Before * Diagonal // 2 + Column
 
   Seed = 20151125
-  Factor = 252533 (Position - 1) 33554393 modpow
+  Factor = 252533 (Position - 1) 33554393 powmod
   return Seed * Factor % 33554393
-end
-
-
-rem Raise Base to Exp modulo Mod by repeated squaring.
-fun modpow Base Exp Mod
-  Result = 1
-  Base = Base % Mod
-
-  for Exp greater 0
-    if Exp % 2 equal 1
-      Result = Result * Base % Mod
-    end
-    Base = Base * Base % Mod
-    Exp //= 2
-  end
-
-  return Result
 end

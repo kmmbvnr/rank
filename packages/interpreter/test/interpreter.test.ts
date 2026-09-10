@@ -1323,6 +1323,14 @@ describe('Rank interpreter', () => {
         expect(run('use numbers\n54 24 gcd')).toBe('6');
         expect(run('use numbers\n8 12 lcm')).toBe('24');
         expect(run('use ranges\nuse numbers\n(1 to 10) lcm')).toBe('2520');
+        expect(run('use numbers\n7 0 13 powmod')).toBe('1');
+        expect(run('use numbers\n7 4 13 powmod')).toBe('9');
+        expect(run('use numbers\n-2 3 5 powmod')).toBe('2');
+        expect(run('use numbers\n9 0 1 powmod')).toBe('0');
+        expect(() => run('use numbers\n2 (-1) 5 powmod'))
+            .toThrowError('powmod exponent must be nonnegative');
+        expect(() => run('use numbers\n2 3 0 powmod'))
+            .toThrowError('powmod modulus must be positive');
         expect(() => run('use numbers\ngcd 54 24'))
             .toThrowError('operation must follow its data: gcd');
     });

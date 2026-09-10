@@ -38,6 +38,7 @@ even
 prime
 gcd
 lcm
+powmod
 factors
 multiple by
 min
@@ -80,6 +81,17 @@ Answer = (1 to 20) lcm
 
 Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
 containing zero is zero, and the `lcm` of an empty sequence is one.
+
+`powmod` raises an integer base to a nonnegative integer exponent while reducing
+every step modulo a positive integer:
+
+```rank
+Value = Base Exponent Modulus powmod
+```
+
+The result is normalized from zero through `Modulus - 1`. The implementation
+uses repeated squaring, so it does not construct the potentially huge value
+`Base ** Exponent` first.
 
 `min` and `max` use data-first application. With one collection they reduce it;
 with two numeric values they return the smaller or larger operand:

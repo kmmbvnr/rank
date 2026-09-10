@@ -15,10 +15,3 @@ test "the manual sentence is parsed"
   Text = "Enter the code at row 6, column 6."
   Text solve equal 27995004
 end
-
-test "modular exponentiation includes exponent zero"
-  use "025_snow"
-
-  7 0 13 modpow equal 1
-  7 4 13 modpow equal 9
-end

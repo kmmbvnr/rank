@@ -27,6 +27,11 @@ export const numbersModule: RuntimeModule = {
     infinity: () => Number.POSITIVE_INFINITY,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
+    powmod: () => native('powmod', 3, arguments_ => modularPower(
+        expectInteger(arguments_[0]),
+        expectInteger(arguments_[1]),
+        expectInteger(arguments_[2]),
+    )),
     lcm: () => native('lcm', [1, 2], arguments_ => {
         if (arguments_.length === 2) {
             return leastCommonMultiple(
@@ -91,6 +96,21 @@ function greatestCommonDivisor(left: bigint, right: bigint): bigint {
 function leastCommonMultiple(left: bigint, right: bigint): bigint {
     if (left === 0n || right === 0n) return 0n;
     return absolute(left / greatestCommonDivisor(left, right) * right);
+}
+
+function modularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
+    if (exponent < 0n) throw new RankError('powmod exponent must be nonnegative');
+    if (modulus <= 0n) throw new RankError('powmod modulus must be positive');
+
+    let factor = ((base % modulus) + modulus) % modulus;
+    let power = exponent;
+    let result = 1n % modulus;
+    while (power > 0n) {
+        if (power % 2n === 1n) result = result * factor % modulus;
+        factor = factor * factor % modulus;
+        power /= 2n;
+    }
+    return result;
 }
 
 function absolute(value: bigint): bigint {

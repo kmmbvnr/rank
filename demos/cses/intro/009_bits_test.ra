@@ -1,0 +1,16 @@
+use testing
+
+test "official example"
+  use "009_bits"
+  3 bitstrings equal 8
+end
+
+test "empty bit string"
+  use "009_bits"
+  0 bitstrings equal 1
+end
+
+test "result is reduced modulo prime"
+  use "009_bits"
+  30 bitstrings equal 73741817
+end
