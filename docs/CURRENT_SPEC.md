@@ -183,6 +183,17 @@ Mask xor= Changed
 The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
 `//=`, `%=`, `and=`, `or=` and `xor=`.
 
+The same operators may update an addressed material-array selection:
+
+```rank
+Matrix # Column *= -1
+Matrix Rows Columns += Delta
+```
+
+The right side is either a scalar applied to every selected cell or an array
+with exactly the selection shape. All source values are captured before any
+cell is changed, so overlapping selections have snapshot semantics.
+
 ## Inferred variable types
 
 Rank infers a variable's type from its first value, similar to writing `auto`
@@ -1582,18 +1593,19 @@ A material dense array can be changed through the same address:
 ```rank
 M Row Column = Value
 M # Column = Values
+M # Column *= -1
 M Row = 0
 ```
 
 An incomplete address preserves its trailing axes, and `#` preserves the axis
 at its position. A scalar right side fills the selected region. An array right
 side must have exactly the selected shape or `.DimensionMismatch` is raised.
-Negative and out-of-bounds indices are errors. Only `=` is supported for
-addressed assignment. Assignment changes the existing array object, so every
-alias of that array observes the new cells. The target and selectors are
-evaluated before the right-hand expression. Array replacement values are read
-before the first write, so assigning one selection of an array into another
-does not overwrite values that have not yet been copied.
+Negative and out-of-bounds indices are errors. Addressed assignment supports
+`=` and every compound assignment operator. Assignment changes the existing
+array object, so every alias of that array observes the new cells. The target,
+selectors, previous cell values and right side are evaluated before any write.
+This gives both ordinary and compound assignment snapshot semantics when
+selections overlap.
 
 Lazy arrays produced by operations such as `outer` and `window` are not
 writable. Copy a finite result explicitly with postfix `copy` before changing
@@ -2371,14 +2383,15 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Axis reductions
 
-`sum`, `mean`, `min`, `max`, `all` and `any` without modifiers reduce every
-element. `axis` reduces only the named axes and preserves the remaining axes in
-their original order:
+`sum`, `mean`, `std`, `min`, `max`, `all` and `any` without modifiers reduce
+every element. `axis` reduces only the named axes and preserves the remaining
+axes in their original order:
 
 ```rank
 Total = A sum
 Rows = A mean axis 1
 Columns = A mean axis 0
+Spread = A std axis 0
 Planes = T sum axis 0 2
 Lows = A min axis 0
 Highs = A max axis 1
@@ -2388,8 +2401,9 @@ Present = Flags any axis 0
 
 An axis list is treated as a set, so its written order does not affect the
 result. Every axis must exist and may appear only once. An empty `sum` is zero;
-empty `all` and `any` cells return `true` and `false`; an empty `mean`, `min` or
-`max` raises `.EmptyReduction`. `mean` always returns real values.
+empty `all` and `any` cells return `true` and `false`; an empty `mean`, `std`,
+`min` or `max` raises `.EmptyReduction`. `mean` and `std` always return real
+values. `std` uses the population denominator `N`.
 
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
@@ -2465,6 +2479,36 @@ The second expression applies to every trailing matrix cell. The third uses
 axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
 `.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+
+## Symmetric eigendecomposition
+
+`eigh` from `use linalg` decomposes one real symmetric matrix:
+
+```rank
+unpack Values Vectors = A eigh
+```
+
+`Values` contains the eigenvalues in ascending order. The matching eigenvectors
+are the columns of `Vectors`, so `Vectors # j` belongs to `Values j`. The
+operation returns eager real arrays. It accepts a square rank-2 numeric matrix;
+shape errors raise `.DimensionMismatch`, nonnumeric or nonfinite elements raise
+`.TypeError` or `.DomainError`, and an asymmetric matrix raises `.NotSymmetric`.
+The current interpreter uses Jacobi rotations. Eigenvector signs and bases
+inside repeated-eigenvalue subspaces are not otherwise canonicalized.
+
+## Standard deviation
+
+`std` from `use stats` computes population standard deviation:
+
+```rank
+Spread = Values std
+Columns = Data std axis 0
+Rows = Data std axis 1
+```
+
+It divides by `N`, always returns real values, and supports ordinary `rank` and
+`axis` reduction. An empty cell raises `.EmptyReduction`; every demanded cell
+must be finite and numeric.
 
 ## Covariance
 
@@ -2988,6 +3032,18 @@ A non-square cell raises `.DimensionMismatch`; a singular cell raises
 demanded, and each demanded result is cached. Individual matrix inversion uses
 partial-pivoting Gauss-Jordan elimination and does not round its real results.
 
+`eigh` decomposes one real symmetric matrix:
+
+```rank
+unpack Values Vectors = A eigh
+```
+
+Eigenvalues are ascending, and the corresponding eigenvectors are columns of
+`Vectors`. The operation accepts a square rank-2 numeric matrix and returns
+eager real arrays. Asymmetric input raises `.NotSymmetric`; shape, element and
+convergence errors use `.DimensionMismatch`, `.TypeError`, `.DomainError` and
+`.ConvergenceError`. The current implementation uses Jacobi rotations.
+
 ## Bits
 
 `use bits` provides bitwise operations over arbitrary-precision integers:
@@ -3068,18 +3124,23 @@ labels
 
 ## Stats
 
-`use stats` provides arithmetic mean and sample covariance:
+`use stats` provides arithmetic mean, population standard deviation and sample
+covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
+Spread = Values std
+Columns = Matrix std axis 0
 Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
 
-`mean` accepts a numeric array or finite sequence and always returns a `real`.
-An empty input raises `.EmptyReduction`. Axis-qualified tensor behavior is
-described in [Tensors](language/tensors.md).
+`mean` and `std` accept a numeric array or finite sequence and always return a
+`real`. `std` divides by the population denominator `N`. An empty input raises
+`.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
+is described in [Tensors](language/tensors.md). `std` rejects nonfinite cells
+with `.DomainError`.
 
 By default, `covariance` treats the last two axes as features and observations;
 earlier axes are independent batches. The explicit `axis F O` form selects the

@@ -111,6 +111,17 @@ Mask xor= Changed
 The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
 `//=`, `%=`, `and=`, `or=` and `xor=`.
 
+The same operators may update an addressed material-array selection:
+
+```rank
+Matrix # Column *= -1
+Matrix Rows Columns += Delta
+```
+
+The right side is either a scalar applied to every selected cell or an array
+with exactly the selection shape. All source values are captured before any
+cell is changed, so overlapping selections have snapshot semantics.
+
 ## Inferred variable types
 
 Rank infers a variable's type from its first value, similar to writing `auto`

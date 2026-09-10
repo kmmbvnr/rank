@@ -1,0 +1,95 @@
+use testing
+
+test "official diagonal-line example"
+  use "019_pca"
+  Data = array shape 3 2
+    1 2
+    3 4
+    5 6
+  end
+  Expected = array shape 2 1
+    0.7071
+    0.7071
+  end
+
+  Data 1 pca equal Expected
+end
+
+test "negative correlation sign"
+  use "019_pca"
+  Data = array shape 4 2
+    1 -1
+    2 -2
+    -1 1
+    -2 2
+  end
+  Expected = array shape 2 1
+    0.7071
+    -0.7071
+  end
+
+  Data 1 pca equal Expected
+end
+
+test "orthonormal component columns"
+  use "019_pca"
+  use linalg
+  use numbers
+  use sequences
+  Data = array shape 5 3
+    2 0 1
+    3 1 0
+    4 1 2
+    6 2 3
+    7 4 5
+  end
+  Components = Data 2 pca
+  Gram = Components transpose
+  Gram = Gram Components matmul
+  Gram = Gram round 3
+  Expected = array shape 2 2
+    1.0 0.0
+    0.0 1.0
+  end
+
+  Got = Components shape
+  Want = array 3 2
+  ShapeOk = (Got equal Want) all
+  ShapeOk and (Gram equal Expected) all
+end
+
+test "rejects invalid component counts"
+  use "019_pca"
+  Data = array shape 3 2
+    1 2
+    3 4
+    5 6
+  end
+  Raised = false
+
+  try
+    Result = Data 3 pca
+  catch .DomainError Error
+    Raised = true
+  end
+
+  Raised
+end
+
+test "rejects constant features"
+  use "019_pca"
+  Data = array shape 3 2
+    1 2
+    1 3
+    1 4
+  end
+  Raised = false
+
+  try
+    Result = Data 1 pca
+  catch .DomainError Error
+    Raised = true
+  end
+
+  Raised
+end

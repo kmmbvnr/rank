@@ -1,0 +1,56 @@
+rem Deep-ML 19: PCA
+rem https://www.deep-ml.com/problems/19
+
+use linalg
+use numbers
+use ranges
+use sequences
+use stats
+
+rem Standardize samples using covariance
+rem Keep the K strongest eigenvectors
+fun pca Data K
+  Shape = Data shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+
+  Samples = Shape 0
+  Features = Shape 1
+  if Samples less 2
+    .InsufficientData raise
+  end
+  if K less 1 or K greater Features
+    .DomainError raise
+  end
+
+  Mean = Data mean axis 0
+  Dev = Data std axis 0
+  if (Dev equal 0) any
+    .DomainError raise
+  end
+  X = (Data - Mean) / Dev
+
+  Cov = X covariance axis 1 0
+  unpack Values Vectors = Cov eigh
+
+  Last = Features - 1
+  First = Features - K
+  Columns = Last to First
+  Components = (Vectors # Columns) copy
+
+  rem Fix sign at the first nonzero
+  for j in 0 until K
+    for i in 0 until Features
+      Value = Components i j
+      if Value abs greater 0.0000000001
+        if Value less 0
+          Components # j *= -1
+        end
+        break
+      end
+    end
+  end
+
+  return Components round 4
+end

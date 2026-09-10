@@ -6,12 +6,33 @@ import type { RuntimeModule } from './types.js';
 
 export const statsModule: RuntimeModule = {
     mean: () => native('mean', 1, arguments_ => meanValue(arguments_[0])),
+    std: () => native('std', 1, arguments_ => standardDeviation(arguments_[0])),
     covariance: () => native(
         'covariance',
         1,
         arguments_ => covarianceValue(arguments_[0]),
     ),
 };
+
+function standardDeviation(value: RankValue): number {
+    const items = isRankArray(value) ? value.items : [...sequenceValues(value, 'std')];
+    if (items.length === 0) {
+        throw new RankError('std requires at least one value', 'EmptyReduction');
+    }
+    const values = items.map(item => {
+        const numeric = Number(expectNumeric(item));
+        if (!Number.isFinite(numeric)) {
+            throw new RankError('std expects finite values', 'DomainError');
+        }
+        return numeric;
+    });
+    const mean = values.reduce((total, item) => total + item, 0) / values.length;
+    const squared = values.reduce((total, item) => {
+        const difference = item - mean;
+        return total + difference * difference;
+    }, 0);
+    return Math.sqrt(squared / values.length);
+}
 
 export function covarianceValue(
     value: RankValue,

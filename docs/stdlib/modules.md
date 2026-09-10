@@ -294,6 +294,18 @@ A non-square cell raises `.DimensionMismatch`; a singular cell raises
 demanded, and each demanded result is cached. Individual matrix inversion uses
 partial-pivoting Gauss-Jordan elimination and does not round its real results.
 
+`eigh` decomposes one real symmetric matrix:
+
+```rank
+unpack Values Vectors = A eigh
+```
+
+Eigenvalues are ascending, and the corresponding eigenvectors are columns of
+`Vectors`. The operation accepts a square rank-2 numeric matrix and returns
+eager real arrays. Asymmetric input raises `.NotSymmetric`; shape, element and
+convergence errors use `.DimensionMismatch`, `.TypeError`, `.DomainError` and
+`.ConvergenceError`. The current implementation uses Jacobi rotations.
+
 ## Bits
 
 `use bits` provides bitwise operations over arbitrary-precision integers:
@@ -381,18 +393,23 @@ labels
 
 ## Stats
 
-`use stats` provides arithmetic mean and sample covariance:
+`use stats` provides arithmetic mean, population standard deviation and sample
+covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
+Spread = Values std
+Columns = Matrix std axis 0
 Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
 
-`mean` accepts a numeric array or finite sequence and always returns a `real`.
-An empty input raises `.EmptyReduction`. Axis-qualified tensor behavior is
-described in [Tensors](../language/tensors.md).
+`mean` and `std` accept a numeric array or finite sequence and always return a
+`real`. `std` divides by the population denominator `N`. An empty input raises
+`.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
+is described in [Tensors](../language/tensors.md). `std` rejects nonfinite
+cells with `.DomainError`.
 
 By default, `covariance` treats the last two axes as features and observations;
 earlier axes are independent batches. The explicit `axis F O` form selects the

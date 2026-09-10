@@ -256,6 +256,30 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('assignment shape mismatch: 2 and 3');
     });
 
+    it('updates tensor selections with compound assignment', () => {
+        expect(run([
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+            'M # 1 *= -1',
+            'M 0 += array 10 20 30',
+            'M',
+        ].join('\n'))).toBe('11 18 33 4 -5 6');
+        expect(run([
+            'M = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'M # 1 += M # 0',
+            'M',
+        ].join('\n'))).toBe('1 3 3 7');
+        expect(() => run([
+            'M = array shape 2 3 pad 1',
+            'M # 1 += array 1 2 3',
+        ].join('\n'))).toThrowError('assignment shape mismatch: 2 and 3');
+    });
+
     it('rejects invalid whole-axis addresses', () => {
         expect(() => run('M = array shape 2 3 pad 0\nM # # #'))
             .toThrowError('array expects at most 2 selectors');

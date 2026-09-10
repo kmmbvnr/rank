@@ -120,7 +120,8 @@ UnpackStatement:
     'unpack' names+=AssignableName+ '=' value=Expression;
 
 ArrayAssignmentStatement:
-    name=AssignableName indices+=AddressItem+ '=' value=Expression;
+    name=AssignableName indices+=AddressItem+
+    operator=AssignmentOperator value=Expression;
 
 AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;

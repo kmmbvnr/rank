@@ -2,6 +2,47 @@ import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
 describe('Rank statistics', () => {
+    it('calculates population standard deviation', () => {
+        expect(run([
+            'use numbers',
+            'use stats',
+            'Values = array 1 2 3',
+            'Result = Values std',
+            'Result round 6',
+        ].join('\n'))).toBe('0.816497');
+        expect(run('use stats\n(array 7) std')).toBe('0');
+    });
+
+    it('applies standard deviation by rank and axis', () => {
+        const source = [
+            'use numbers',
+            'use stats',
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 4 4',
+            'end',
+        ];
+        expect(run([...source, 'Result = M std rank 1', 'Result round 6'].join('\n')))
+            .toBe('0.816497 0');
+        expect(run([...source, 'Result = M std axis 0', 'Result round 6'].join('\n')))
+            .toBe('1.5 1 0.5');
+    });
+
+    it('validates standard-deviation input', () => {
+        expect(() => run([
+            'use stats',
+            'Empty = array shape 0',
+            'end',
+            'Empty std',
+        ].join('\n'))).toThrowError('std requires at least one value');
+        expect(() => run('use stats\n(array 1 "bad") std'))
+            .toThrowError('expected numeric input');
+        expect(() => run('use numbers\nuse stats\n(array 1 infinity) std'))
+            .toThrowError('std expects finite values');
+        expect(() => run('(array 1 2) std'))
+            .toThrowError('unknown name: std');
+    });
+
     it('calculates sample covariance for feature rows', () => {
         expect(run([
             'use stats',

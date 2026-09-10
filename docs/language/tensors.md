@@ -55,14 +55,15 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Axis reductions
 
-`sum`, `mean`, `min`, `max`, `all` and `any` without modifiers reduce every
-element. `axis` reduces only the named axes and preserves the remaining axes in
-their original order:
+`sum`, `mean`, `std`, `min`, `max`, `all` and `any` without modifiers reduce
+every element. `axis` reduces only the named axes and preserves the remaining
+axes in their original order:
 
 ```rank
 Total = A sum
 Rows = A mean axis 1
 Columns = A mean axis 0
+Spread = A std axis 0
 Planes = T sum axis 0 2
 Lows = A min axis 0
 Highs = A max axis 1
@@ -72,8 +73,9 @@ Present = Flags any axis 0
 
 An axis list is treated as a set, so its written order does not affect the
 result. Every axis must exist and may appear only once. An empty `sum` is zero;
-empty `all` and `any` cells return `true` and `false`; an empty `mean`, `min` or
-`max` raises `.EmptyReduction`. `mean` always returns real values.
+empty `all` and `any` cells return `true` and `false`; an empty `mean`, `std`,
+`min` or `max` raises `.EmptyReduction`. `mean` and `std` always return real
+values. `std` uses the population denominator `N`.
 
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
@@ -149,6 +151,36 @@ The second expression applies to every trailing matrix cell. The third uses
 axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
 `.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+
+## Symmetric eigendecomposition
+
+`eigh` from `use linalg` decomposes one real symmetric matrix:
+
+```rank
+unpack Values Vectors = A eigh
+```
+
+`Values` contains the eigenvalues in ascending order. The matching eigenvectors
+are the columns of `Vectors`, so `Vectors # j` belongs to `Values j`. The
+operation returns eager real arrays. It accepts a square rank-2 numeric matrix;
+shape errors raise `.DimensionMismatch`, nonnumeric or nonfinite elements raise
+`.TypeError` or `.DomainError`, and an asymmetric matrix raises `.NotSymmetric`.
+The current interpreter uses Jacobi rotations. Eigenvector signs and bases
+inside repeated-eigenvalue subspaces are not otherwise canonicalized.
+
+## Standard deviation
+
+`std` from `use stats` computes population standard deviation:
+
+```rank
+Spread = Values std
+Columns = Data std axis 0
+Rows = Data std axis 1
+```
+
+It divides by `N`, always returns real values, and supports ordinary `rank` and
+`axis` reduction. An empty cell raises `.EmptyReduction`; every demanded cell
+must be finite and numeric.
 
 ## Covariance
 

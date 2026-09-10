@@ -655,6 +655,9 @@ export class Interpreter {
                 }
                 const selection = tensorSelection(target, selectors);
                 const result = this.evaluate(statement.value);
+                const operator = statement.operator === '='
+                    ? undefined : assignmentOperator(statement.operator);
+                let operands: RankValue[];
                 if (isRankArray(result)) {
                     if (!sameShape(selection.shape, result.shape)) {
                         throw new RankError(
@@ -662,17 +665,22 @@ export class Interpreter {
                             'DimensionMismatch',
                         );
                     }
-                    const replacements = Array.from(
+                    operands = Array.from(
                         { length: arraySize(selection.shape) },
                         (_, index) => arrayItem(result, index),
                     );
-                    for (let index = 0; index < arraySize(selection.shape); index += 1) {
-                        target.items[selection.offsetAt(index)] = replacements[index];
-                    }
                 } else {
-                    for (let index = 0; index < arraySize(selection.shape); index += 1) {
-                        target.items[selection.offsetAt(index)] = result;
-                    }
+                    operands = Array(arraySize(selection.shape)).fill(result) as RankValue[];
+                }
+                const replacements = operands.map((operand, index) => operator === undefined
+                    ? operand
+                    : this.evaluateBinary(
+                        operator,
+                        target.items[selection.offsetAt(index)],
+                        operand,
+                    ));
+                for (let index = 0; index < replacements.length; index += 1) {
+                    target.items[selection.offsetAt(index)] = replacements[index];
                 }
                 return result;
             } };
@@ -967,6 +975,7 @@ export class Interpreter {
                 return () => {
                     this.requireModule(
                         axisReduction.operation === 'mean'
+                            || axisReduction.operation === 'std'
                             ? 'stats'
                             : axisReduction.operation === 'all'
                                 || axisReduction.operation === 'any'
@@ -1686,7 +1695,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean' | 'min' | 'max' | 'all' | 'any',
+        operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any',
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -2958,12 +2967,12 @@ function explicitAxisReduction(
     parts: Expression[],
 ): {
     source: Expression;
-    operation: 'sum' | 'mean' | 'min' | 'max' | 'all' | 'any';
+    operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any';
     axes: readonly number[];
 } | undefined {
     if (parts.length < 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
-    if ((operation !== 'sum' && operation !== 'mean'
+    if ((operation !== 'sum' && operation !== 'mean' && operation !== 'std'
         && operation !== 'min' && operation !== 'max'
         && operation !== 'all' && operation !== 'any')
         || !isNamed(parts[2], 'axis')) return undefined;

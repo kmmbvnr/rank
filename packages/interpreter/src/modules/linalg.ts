@@ -28,7 +28,160 @@ export const linalgModule: RuntimeModule = {
         2,
         arguments_ => solveLinearSystem(arguments_[0], arguments_[1]),
     ),
+    eigh: () => native(
+        'eigh',
+        1,
+        arguments_ => symmetricEigendecomposition(arguments_[0]),
+    ),
 };
+
+function symmetricEigendecomposition(value: RankValue): RankArray {
+    if (!isRankArray(value) || value.shape.length !== 2
+        || value.shape[0] !== value.shape[1]) {
+        throw new RankError('eigh expects a square rank-2 matrix', 'DimensionMismatch');
+    }
+
+    const size = value.shape[0];
+    const matrix = numericMatrix(value, size, 'eigh');
+    validateSymmetric(matrix);
+    const vectors = identityMatrix(size);
+    const scale = Math.max(1, ...matrix.flat().map(Math.abs));
+    const tolerance = scale * 1e-12;
+    const limit = Math.max(1, 100 * size * size);
+
+    let converged = size < 2;
+    for (let iteration = 0; iteration < limit && !converged; iteration += 1) {
+        const pivot = largestOffDiagonal(matrix);
+        if (pivot.value <= tolerance) {
+            converged = true;
+            break;
+        }
+        rotateJacobi(matrix, vectors, pivot.row, pivot.column);
+    }
+    if (!converged && largestOffDiagonal(matrix).value <= tolerance) converged = true;
+    if (!converged) {
+        throw new RankError('eigh did not converge', 'ConvergenceError');
+    }
+
+    const order = Array.from({ length: size }, (_, index) => index)
+        .sort((left, right) => matrix[left][left] - matrix[right][right]);
+    const values: RankArray = {
+        kind: 'array',
+        shape: [size],
+        items: order.map(index => cleanReal(matrix[index][index])),
+    };
+    const vectorItems = Array.from({ length: size * size }, (_, index) => {
+        const row = Math.floor(index / size);
+        const column = index % size;
+        return cleanReal(vectors[row][order[column]]);
+    });
+    const vectorArray: RankArray = {
+        kind: 'array',
+        shape: [size, size],
+        items: vectorItems,
+    };
+    return { kind: 'array', shape: [2], items: [values, vectorArray] };
+}
+
+function numericMatrix(value: RankArray, size: number, operation: string): number[][] {
+    return Array.from({ length: size }, (_, row) =>
+        Array.from({ length: size }, (_, column) => {
+            const item = arrayItem(value, row * size + column);
+            if (typeof item !== 'bigint' && typeof item !== 'number') {
+                throw new RankError(`${operation} expects numeric elements`, 'TypeError');
+            }
+            const numeric = Number(item);
+            if (!Number.isFinite(numeric)) {
+                throw new RankError(`${operation} expects finite elements`, 'DomainError');
+            }
+            return numeric;
+        }));
+}
+
+function validateSymmetric(matrix: number[][]): void {
+    const size = matrix.length;
+    for (let row = 0; row < size; row += 1) {
+        for (let column = row + 1; column < size; column += 1) {
+            const left = matrix[row][column];
+            const right = matrix[column][row];
+            const scale = Math.max(1, Math.abs(left), Math.abs(right));
+            if (Math.abs(left - right) > scale * 1e-12) {
+                throw new RankError('eigh expects a symmetric matrix', 'NotSymmetric');
+            }
+            const average = (left + right) / 2;
+            matrix[row][column] = average;
+            matrix[column][row] = average;
+        }
+    }
+}
+
+function identityMatrix(size: number): number[][] {
+    return Array.from({ length: size }, (_, row) =>
+        Array.from({ length: size }, (_, column) => row === column ? 1 : 0));
+}
+
+function largestOffDiagonal(matrix: readonly (readonly number[])[]): {
+    row: number;
+    column: number;
+    value: number;
+} {
+    let row = 0;
+    let column = 0;
+    let value = 0;
+    for (let i = 0; i < matrix.length; i += 1) {
+        for (let j = i + 1; j < matrix.length; j += 1) {
+            const candidate = Math.abs(matrix[i][j]);
+            if (candidate > value) {
+                row = i;
+                column = j;
+                value = candidate;
+            }
+        }
+    }
+    return { row, column, value };
+}
+
+function rotateJacobi(
+    matrix: number[][],
+    vectors: number[][],
+    row: number,
+    column: number,
+): void {
+    const offDiagonal = matrix[row][column];
+    const difference = matrix[column][column] - matrix[row][row];
+    const tau = difference / (2 * offDiagonal);
+    const tangent = tau === 0
+        ? 1
+        : Math.sign(tau) / (Math.abs(tau) + Math.hypot(1, tau));
+    const cosine = 1 / Math.sqrt(1 + tangent * tangent);
+    const sine = tangent * cosine;
+
+    for (let index = 0; index < matrix.length; index += 1) {
+        if (index === row || index === column) continue;
+        const left = matrix[index][row];
+        const right = matrix[index][column];
+        matrix[index][row] = cosine * left - sine * right;
+        matrix[row][index] = matrix[index][row];
+        matrix[index][column] = sine * left + cosine * right;
+        matrix[column][index] = matrix[index][column];
+    }
+
+    matrix[row][row] -= tangent * offDiagonal;
+    matrix[column][column] += tangent * offDiagonal;
+    matrix[row][column] = 0;
+    matrix[column][row] = 0;
+
+    for (let index = 0; index < vectors.length; index += 1) {
+        const left = vectors[index][row];
+        const right = vectors[index][column];
+        vectors[index][row] = cosine * left - sine * right;
+        vectors[index][column] = sine * left + cosine * right;
+    }
+}
+
+function cleanReal(value: number): number {
+    return Object.is(value, -0) ? 0 : value;
+}
 
 export function determinant(value: RankValue): bigint | number {
     if (

@@ -105,12 +105,16 @@ describe('Rank grammar', () => {
             'Total = A # j sum',
             'A # j = Values',
             'T # # k = 0',
+            'A # j *= -1',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(4);
+        expect(document.parseResult.value.statements).toHaveLength(5);
         expect(isArrayAssignmentStatement(document.parseResult.value.statements[2])).toBe(true);
         expect(isArrayAssignmentStatement(document.parseResult.value.statements[3])).toBe(true);
+        const compound = document.parseResult.value.statements[4];
+        expect(isArrayAssignmentStatement(compound)).toBe(true);
+        if (isArrayAssignmentStatement(compound)) expect(compound.operator).toBe('*=');
     });
 
     it('parses right-associative exponentiation above unary signs', async () => {

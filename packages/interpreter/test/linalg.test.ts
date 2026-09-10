@@ -2,6 +2,73 @@ import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
 describe('Rank linear algebra', () => {
+    it('decomposes real symmetric matrices with eigh', () => {
+        expect(run([
+            'use linalg',
+            'use numbers',
+            'A = array shape 3 3',
+            '  3 0 0',
+            '  0 1 0',
+            '  0 0 2',
+            'end',
+            'unpack Values Vectors = A eigh',
+            'array Values Vectors',
+        ].join('\n'))).toBe('1 2 3 0 0 1 1 0 0 0 1 0');
+
+        expectNumbers(run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  2 1',
+            '  1 2',
+            'end',
+            'unpack Values Vectors = A eigh',
+            'array Values Vectors',
+        ].join('\n')), [
+            1, 3,
+            Math.SQRT1_2, Math.SQRT1_2,
+            -Math.SQRT1_2, Math.SQRT1_2,
+        ]);
+    });
+
+    it('returns orthonormal eigh eigenvectors', () => {
+        expect(run([
+            'use linalg',
+            'use numbers',
+            'use sequences',
+            'A = array shape 3 3',
+            '  4 1 1',
+            '  1 3 0',
+            '  1 0 2',
+            'end',
+            'unpack Values Vectors = A eigh',
+            'Gram = Vectors transpose Vectors matmul',
+            'Gram round 10',
+        ].join('\n'))).toBe('1 0 0 0 1 0 0 0 1');
+    });
+
+    it('validates eigh matrices and elements', () => {
+        expect(() => run('use linalg\n(array 1 2) eigh'))
+            .toThrowError('eigh expects a square rank-2 matrix');
+        expect(() => run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  1 2',
+            '  0 1',
+            'end',
+            'A eigh',
+        ].join('\n'))).toThrowError('eigh expects a symmetric matrix');
+        expect(() => run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  1 "bad"',
+            '  "bad" 1',
+            'end',
+            'A eigh',
+        ].join('\n'))).toThrowError('eigh expects numeric elements');
+        expect(() => run('(array shape 1 1 pad 1) eigh'))
+            .toThrowError('unknown name: eigh');
+    });
+
     it('computes exact integer and real determinants', () => {
         expect(run([
             'use linalg',
