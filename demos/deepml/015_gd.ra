@@ -1,0 +1,39 @@
+rem Deep-ML 15: Gradient Descent
+rem https://www.deep-ml.com/problems/15
+
+use linalg
+use numbers
+use ranges
+use sequences
+
+rem Fit linear coefficients with a fixed number of gradient updates.
+fun linear_regression X Y Rate Steps
+  Shape = X shape
+  YShape = Y shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  if YShape len not equal 1
+    .DimensionMismatch raise
+  end
+
+  M = Shape 0
+  N = Shape 1
+  if YShape 0 not equal M
+    .DimensionMismatch raise
+  end
+
+  Theta = array shape N pad 0
+
+  for Step in 0 until Steps
+    Pred = X Theta matmul
+    Error = Pred - Y
+
+    Grad = X transpose Error matmul
+    Grad = Grad / M
+
+    Theta -= Rate * Grad
+  end
+
+  return Theta round 4
+end
