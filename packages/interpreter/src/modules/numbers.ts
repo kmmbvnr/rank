@@ -10,6 +10,7 @@ import {
 } from '../sequence.js';
 import {
     isRankArray,
+    isRankMultiset,
     isRankSequence,
     type RankArray,
     type RankValue,
@@ -252,6 +253,13 @@ function numericExtreme(
             return replaces(right, left) ? right : left;
         }
         const value = arguments_[0];
+        if (isRankMultiset(value)) {
+            const extreme = name === 'min' ? value.min() : value.max();
+            if (extreme === undefined) {
+                throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
+            }
+            return expectNumeric(extreme);
+        }
         if (isRankSequence(value)) {
             const planned = reduceSequence(value, name);
             if (planned !== undefined) return expectNumeric(planned);

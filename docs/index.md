@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-10**
+**Current language snapshot — 2026-09-11**
 
 Rank is a modern BASIC for small screens and big algorithms.
 

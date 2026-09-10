@@ -1,3 +1,5 @@
+import type { RankMultiset } from './multiset.js';
+
 interface RankArrayValue {
     readonly items: RankValue[];
     readonly shape: readonly number[];
@@ -135,7 +137,7 @@ export interface RankSequenceMask extends RankSequence {
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
-    RankObject | RankRecord | NativeFunction |
+    RankMultiset | RankObject | RankRecord | NativeFunction |
     RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -176,6 +178,10 @@ export function isRankSet(value: RankValue): value is RankSet {
 
 export function isRankCounter(value: RankValue): value is RankCounter {
     return typeof value === 'object' && value.kind === 'counter';
+}
+
+export function isRankMultiset(value: RankValue): value is RankMultiset {
+    return typeof value === 'object' && value.kind === 'multiset';
 }
 
 export function isRankObject(value: RankValue): value is RankObject {
@@ -235,6 +241,9 @@ export function formatValue(value: RankValue): string {
     }
     if (value.kind === 'counter') {
         return '<counter>';
+    }
+    if (value.kind === 'multiset') {
+        return '<multiset>';
     }
     if (value.kind === 'object') {
         return '<object>';

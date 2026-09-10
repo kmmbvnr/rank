@@ -1,9 +1,11 @@
 import { RankError } from '../errors.js';
+import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
 import { sequence, windowValue } from '../sequence.js';
 import { setValueKey } from '../set.js';
 import {
     isRankArray,
     isRankCounter,
+    isRankMultiset,
     isRankObject,
     isRankQueue,
     isRankSequence,
@@ -137,30 +139,37 @@ export function lengthOfAxis(value: RankValue, axis: number): bigint {
         return BigInt(value.shape[axis]);
     }
     if (axis !== 0) throw new RankError(`value has no axis ${axis}`);
-    if (typeof value === 'string' || isRankQueue(value) || isRankSequence(value)) {
+    if (typeof value === 'string' || isRankQueue(value)
+        || isRankMultiset(value) || isRankSequence(value)) {
         return lengthOf(value);
     }
-    throw new RankError('len axis expects text, an array, queue or sequence');
+    throw new RankError('len axis expects text, an array, queue, multiset or sequence');
 }
 
 function shapeOf(value: RankValue): RankValue {
     const dimensions = isRankArray(value)
         ? value.shape.map(dimension => BigInt(dimension))
-        : typeof value === 'string' || isRankQueue(value) || isRankSequence(value)
+        : typeof value === 'string' || isRankQueue(value)
+            || isRankMultiset(value) || isRankSequence(value)
             ? [lengthOf(value)]
             : undefined;
-    if (!dimensions) throw new RankError('shape expects text, an array, queue or sequence');
+    if (!dimensions) {
+        throw new RankError('shape expects text, an array, queue, multiset or sequence');
+    }
     return { kind: 'array', items: dimensions, shape: [dimensions.length] };
 }
 
 function sortValue(value: RankValue): RankValue {
-    if (typeof value === 'string') return [...value].sort(compareText).join('');
+    if (typeof value === 'string') {
+        return [...value].sort((left, right) =>
+            compareOrderedValues(left, right, 'text')).join('');
+    }
     if (!isRankArray(value) || value.shape.length !== 1) {
         throw new RankError('sort expects text or a rank-1 array');
     }
     const items = arrayItems(value);
     const kind = sortableKind(items);
-    items.sort((left, right) => compareValues(left, right, kind));
+    items.sort((left, right) => compareOrderedValues(left, right, kind));
     return { kind: 'array', items, shape: [items.length] };
 }
 
@@ -206,42 +215,11 @@ function uniqueItems(items: readonly RankValue[]): RankValue[] {
     });
 }
 
-type SortableKind = 'numeric' | 'text' | 'boolean' | 'symbol';
-
-function sortableKind(items: readonly RankValue[]): SortableKind {
+function sortableKind(items: readonly RankValue[]): OrderedKind {
     if (items.length === 0) return 'numeric';
-    const kinds = new Set(items.map(item => {
-        if (typeof item === 'bigint' || typeof item === 'number') return 'numeric';
-        if (typeof item === 'string') return 'text';
-        if (typeof item === 'boolean') return 'boolean';
-        if (typeof item === 'object' && item.kind === 'label') return 'symbol';
-        throw new RankError('sort array elements must be scalar values');
-    }));
+    const kinds = new Set(items.map(orderedKind));
     if (kinds.size !== 1) throw new RankError('sort array elements must have one comparable type');
-    return [...kinds][0] as SortableKind;
-}
-
-function compareValues(left: RankValue, right: RankValue, kind: SortableKind): number {
-    if (kind === 'numeric') {
-        const a = left as bigint | number;
-        const b = right as bigint | number;
-        return a < b ? -1 : a > b ? 1 : 0;
-    }
-    if (kind === 'text') return compareText(left as string, right as string);
-    if (kind === 'boolean') return Number(left as boolean) - Number(right as boolean);
-    const a = (left as { name: string }).name;
-    const b = (right as { name: string }).name;
-    return compareText(a, b);
-}
-
-function compareText(left: string, right: string): number {
-    const a = [...left];
-    const b = [...right];
-    for (let index = 0; index < Math.min(a.length, b.length); index += 1) {
-        const difference = (a[index].codePointAt(0) ?? 0) - (b[index].codePointAt(0) ?? 0);
-        if (difference !== 0) return difference;
-    }
-    return a.length - b.length;
+    return [...kinds][0];
 }
 
 function reshape(value: RankValue, shapeValue: RankValue): RankValue {
@@ -287,6 +265,7 @@ function lengthOf(value: RankValue): bigint {
     if (isRankQueue(value)) return BigInt(value.items.length);
     if (isRankSet(value)) return BigInt(value.entries.size);
     if (isRankCounter(value)) return BigInt(value.entries.size);
+    if (isRankMultiset(value)) return BigInt(value.size);
     if (isRankObject(value)) return BigInt(value.entries.size);
     if (!isRankSequence(value)) throw new RankError('len expects text or a collection');
     if (value.plan.size.kind === 'infinite') {

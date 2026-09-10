@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
 import {
@@ -13,6 +14,15 @@ import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const algoModule: RuntimeModule = {
+    multiset: () => native('multiset', 1, arguments_ => multisetValue(arguments_[0])),
+    add: () => native('add', 2, arguments_ =>
+        expectMultiset(arguments_[0]).add(arguments_[1])),
+    remove: () => native('remove', 2, arguments_ =>
+        expectMultiset(arguments_[0]).remove(arguments_[1])),
+    floor: () => native('floor', 2, arguments_ =>
+        expectMultiset(arguments_[0]).floor(arguments_[1])),
+    ceiling: () => native('ceiling', 2, arguments_ =>
+        expectMultiset(arguments_[0]).ceiling(arguments_[1])),
     permutations: () => native('permutations', 1, arguments_ => {
         const input = permutationInput(arguments_[0]);
         return sequence({

@@ -8,6 +8,7 @@ import {
     isArrayAssignmentStatement,
     isAssignmentStatement,
     isBinaryExpression,
+    isExpressionStatement,
     isMaterializeExpression,
     isUnpackStatement,
     isUnaryExpression,
@@ -498,9 +499,13 @@ describe('Rank grammar', () => {
             'queue push Value + 1',
             'set add array X Y',
             'counter add Value',
+            'Bag remove Right - Left',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(3);
+        expect(document.parseResult.value.statements).toHaveLength(4);
+        expect(isExpressionStatement(
+            document.parseResult.value.statements[3],
+        )).toBe(true);
     });
 });

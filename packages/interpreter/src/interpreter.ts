@@ -49,6 +49,7 @@ import {
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
 import type { RankInput, RankIo } from './io.js';
+import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
@@ -81,6 +82,7 @@ import {
     isRankFile,
     isRankIndex,
     isRankLabel,
+    isRankMultiset,
     isRankObject,
     isRankQueue,
     isRankRecord,
@@ -849,6 +851,19 @@ export class Interpreter {
             } };
         }
         if (isExpressionStatement(statement)) {
+            const mutation = explicitMultisetMutation(statement.value);
+            if (mutation) {
+                return { stream: function* (): Execution<RankValue | undefined> {
+                    interpreter.requireModule('algo', mutation.operation);
+                    const receiver = expectMultiset(
+                        yield* resume(interpreter.evaluateTask(mutation.receiver)),
+                    );
+                    const value = yield* resume(interpreter.evaluateTask(mutation.value));
+                    if (mutation.operation === 'add') receiver.add(value);
+                    else receiver.remove(value);
+                    return undefined;
+                } };
+            }
             if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
                 const alias = statement.value.name.slice(0, -4);
                 return { stream: function* (): Execution<RankValue | undefined> { return interpreter.runAlias(alias); } };
@@ -1252,6 +1267,29 @@ export class Interpreter {
                         axisSelection.axis,
                         (yield* resume(interpreter.evaluateTask(axisSelection.selector))),
                     );
+                };
+            }
+            const multisetMethod = explicitMultisetMethod(parts);
+            if (multisetMethod) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('algo', multisetMethod.operation);
+                    const receiverParts = yield* resume(mapExecution(
+                        multisetMethod.receiver,
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    const argumentParts = yield* resume(mapExecution(
+                        multisetMethod.argument,
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    const receiverValue = receiverParts.length === 1
+                        ? receiverParts[0]
+                        : yield* resume(interpreter.apply(receiverParts));
+                    const argumentValue = argumentParts.length === 1
+                        ? argumentParts[0]
+                        : yield* resume(interpreter.apply(argumentParts));
+                    const receiver = expectMultiset(receiverValue);
+                    if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
+                    return receiver.ceiling(argumentValue);
                 };
             }
             const directParts = parts.map(part => isAllAxisExpression(part)
@@ -2197,7 +2235,8 @@ export class Interpreter {
             }
             if (isRankIndex(right)) return right.entries.has(indexKey([left]));
             if (isRankSet(right)) return right.entries.has(setValueKey(left));
-            throw new RankError('in expects text, an object, index or set on the right');
+            if (isRankMultiset(right)) return right.has(left);
+            throw new RankError('in expects text, an object, index, set or multiset on the right');
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {
@@ -2758,6 +2797,7 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankArray(value)) return value.items;
     if (isRankQueue(value)) return value.items;
     if (isRankSet(value)) return value.entries.values();
+    if (isRankMultiset(value)) return value.values();
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
 }
@@ -3603,6 +3643,61 @@ interface AxisWindowApplication {
     readonly axes: readonly number[];
 }
 
+interface MultisetMethodApplication {
+    readonly receiver: Expression[];
+    readonly operation: 'floor' | 'ceiling';
+    readonly argument: Expression[];
+}
+
+interface MultisetMutationApplication {
+    readonly receiver: Expression;
+    readonly operation: 'add' | 'remove';
+    readonly value: Expression;
+}
+
+function explicitMultisetMutation(
+    expression: Expression,
+): MultisetMutationApplication | undefined {
+    if (isBinaryExpression(expression)) {
+        const mutation = explicitMultisetMutation(expression.left);
+        if (!mutation) return undefined;
+        return {
+            ...mutation,
+            value: { ...expression, left: mutation.value } as Expression,
+        };
+    }
+    if (!isApplicationExpression(expression)) return undefined;
+    const parts = flattenApplication(expression);
+    const receiver = parts[0];
+    const operation = parts[1];
+    if (!isNameExpression(receiver)
+        || !/^[A-Z]/.test(receiver.name)
+        || parts.length < 3) return undefined;
+    if (!isNameExpression(operation)
+        || (operation.name !== 'add' && operation.name !== 'remove')) return undefined;
+    const values = parts.slice(2);
+    const value = values.length === 1 ? values[0] : {
+        $type: 'ApplicationExpression',
+        head: values[0],
+        arguments: values.slice(1),
+    } as Expression;
+    return { receiver, operation: operation.name, value };
+}
+
+function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication | undefined {
+    const operations = ['floor', 'ceiling'] as const;
+    const position = parts.findIndex((part, index) =>
+        index > 0 && index < parts.length - 1
+        && operations.some(operation => isNamed(part, operation)));
+    if (position < 0) return undefined;
+    const operation = operations.find(candidate => isNamed(parts[position], candidate))!;
+    return {
+        receiver: parts.slice(0, position),
+        operation,
+        argument: parts.slice(position + 1),
+    };
+}
+
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
     if (parts.length < 5 || !isNamed(parts[2], 'window') || !isNamed(parts[3], 'axis')) {
         return undefined;
@@ -3701,6 +3796,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'queue',
     'set',
     'counter',
+    'multiset',
     'function',
     'sequence',
 ]);

@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-10**
+**Current language snapshot — 2026-09-11**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -1983,7 +1983,8 @@ row-selection rule.
 
 # Collections
 
-`use algo` provides standard local structures with implicit naming.
+`use algo` provides standard algorithmic collections. `index`, `queue`, `set`
+and `counter` support implicit local naming; ordered multisets are named.
 
 ## Implicit local structure
 
@@ -2088,6 +2089,45 @@ it. An array is useful for a composite value such as a coordinate:
 ```rank
 set add array X Y
 ```
+
+### Ordered multiset
+
+An ordered multiset keeps duplicate comparable scalar values in sorted order.
+It is always named because algorithms often need more than one instance:
+
+```rank
+Tickets = Prices multiset
+```
+
+The constructor accepts text or a finite rank-1 array, queue, set, multiset or
+sequence. All values must share one scalar ordering: numeric, text, boolean or
+symbol. Integers and real numbers share the numeric ordering.
+
+Methods put the receiver before the operation:
+
+```rank
+Tickets add Price
+Tickets remove Price
+Best = Tickets floor Limit
+Next = Tickets ceiling Limit
+```
+
+`remove` deletes one equal occurrence. Removing an absent value raises
+`.Missing`. `floor` returns the greatest value at most its argument;
+`ceiling` returns the least value at least its argument. When no such value
+exists they also raise `.Missing`, so ordinary `pad` supplies a fallback:
+
+```rank
+Best = Tickets floor Limit pad -1
+```
+
+Iteration is sorted and repeats duplicate values. With `use sequences`, `len`
+counts all occurrences and `shape` is its one-dimensional size. Numeric
+`min` and `max` from `use numbers` read its endpoints.
+
+Construction takes expected `O(N log N)` time. `add`, `remove`, `floor` and
+`ceiling` take expected `O(log N)` time. Membership with `in` has the same
+expected bound. The runtime type is `.multiset`.
 
 ### Permutations
 
@@ -3568,8 +3608,22 @@ year
 
 ## Algorithm profile
 
-`use algo` may act as a contest-oriented umbrella module rather than introducing
-new semantics.
+`use algo` provides algorithmic collections and combinatorial generators:
+
+```rank
+Bag = Values multiset
+Bag add Value
+Bag remove Value
+Lower = Bag floor Limit
+Upper = Bag ceiling Limit
+Routes = Cities permutations
+Pairs = Values 2 combinations
+```
+
+An ordered `multiset` preserves duplicates. Its lookup and mutation operations
+take expected `O(log N)` time. Missing `floor` and `ceiling` results raise
+`.Missing` and therefore compose with `pad`. The complete collection semantics
+are defined in the Collections section.
 
 ## Rule for adding library vocabulary
 

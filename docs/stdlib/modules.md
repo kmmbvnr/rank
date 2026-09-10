@@ -765,8 +765,22 @@ year
 
 ## Algorithm profile
 
-`use algo` may act as a contest-oriented umbrella module rather than introducing
-new semantics.
+`use algo` provides algorithmic collections and combinatorial generators:
+
+```rank
+Bag = Values multiset
+Bag add Value
+Bag remove Value
+Lower = Bag floor Limit
+Upper = Bag ceiling Limit
+Routes = Cities permutations
+Pairs = Values 2 combinations
+```
+
+An ordered `multiset` preserves duplicates. Its lookup and mutation operations
+take expected `O(log N)` time. Missing `floor` and `ceiling` results raise
+`.Missing` and therefore compose with `pad`. The complete collection semantics
+are defined in [Collections](../language/collections.md).
 
 ## Rule for adding library vocabulary
 

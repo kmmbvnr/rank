@@ -1,0 +1,29 @@
+rem CSES 1091: Concert Tickets
+rem https://cses.fi/problemset/task/1091
+
+use io
+use algo
+
+N = stdin .integer
+M = stdin .integer
+Prices = stdin .integer N array
+Customers = stdin .integer M array
+
+Prices Customers sell print
+
+
+rem Sell the best affordable ticket.
+fun sell Prices Customers
+  Tickets = Prices multiset
+
+  for Max in Customers
+    Price = Tickets floor Max pad -1
+    queue push Price
+
+    if Price not equal -1
+      Tickets remove Price
+    end
+  end
+
+  return queue
+end
