@@ -1,0 +1,61 @@
+use testing
+
+test "official three dimensional bases"
+  use "027_basis"
+  B = array shape 3 3
+    1 0 0
+    0 1 0
+    0 0 1
+  end
+  C = array shape 3 3
+    1 2.3 3
+    4.4 25 6
+    7.4 8 9
+  end
+  Expected = array shape 3 3
+    -0.6772 -0.0126 0.2342
+    -0.0184 0.0505 -0.0275
+    0.5732 -0.0345 -0.0569
+  end
+
+  B C transform_basis equal Expected
+end
+
+test "official two dimensional bases"
+  use "027_basis"
+  B = array shape 2 2
+    1 0
+    0 1
+  end
+  C = array shape 2 2
+    1 2
+    9 2
+  end
+  Expected = array shape 2 2
+    -0.125 0.125
+    0.5625 -0.0625
+  end
+
+  B C transform_basis equal Expected
+end
+
+test "dependent basis vectors fail"
+  use "027_basis"
+  B = array shape 2 2
+    1 0
+    0 1
+  end
+  C = array shape 2 2
+    1 2
+    2 4
+  end
+  Failed = false
+
+  try
+    P = B C transform_basis
+  catch .SingularMatrix Error
+    Failed = true
+  end
+
+  Failed
+end

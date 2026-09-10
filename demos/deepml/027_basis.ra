@@ -1,0 +1,11 @@
+rem Deep-ML 27: Basis Transform
+rem https://www.deep-ml.com/problems/27
+
+use linalg
+use numbers
+
+rem Convert B coordinates into basis C.
+fun transform_basis B C
+  P = C B solve
+  return P round 4
+end
