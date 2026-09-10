@@ -204,6 +204,29 @@ describe('Rank interpreter', () => {
         expect(() => run('1 / 0 pad 99')).toThrowError('division by zero');
     });
 
+    it('pads sparse reads lazily without swallowing key or fallback errors', () => {
+        const source = [
+            'use algo',
+            'fun lookup Mode',
+            '  index 1 2 = false',
+            '  if Mode equal 0',
+            '    return index 1 2 pad 1 / 0',
+            '  end',
+            '  if Mode equal 1',
+            '    return index 2 3 pad 42',
+            '  end',
+            '  if Mode equal 2',
+            '    return index (1 / 0) 3 pad 42',
+            '  end',
+            '  return index 2 3 pad index 9 9',
+            'end',
+        ].join('\n');
+        expect(run(source + '\n0 lookup')).toBe('false');
+        expect(run(source + '\n1 lookup')).toBe('42');
+        expect(() => run(source + '\n2 lookup')).toThrowError('division by zero');
+        expect(() => run(source + '\n3 lookup')).toThrowError('missing keyed value');
+    });
+
     it('keeps variables between executions', () => {
         const interpreter = new Interpreter();
         interpreter.execute('Answer = 6 * 7');

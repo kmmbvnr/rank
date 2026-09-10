@@ -709,7 +709,7 @@ export class Interpreter {
 
     // Cache syntax decisions, never values or name bindings. Preparation stays
     // lazy so errors in unexecuted branches keep their existing timing.
-    private compileExpression(expression: Expression): () => RankValue {
+    private compileExpression(expression: Expression, missing?: () => RankValue): () => RankValue {
         if (isNumberLiteral(expression) || isBooleanLiteral(expression)) {
             return () => expression.value;
         }
@@ -827,15 +827,19 @@ export class Interpreter {
                 };
             }
             if (expression.operator === 'pad') {
+                // Identity-only marker; never exposed to Rank or passed to functions.
+                const absent: RankValue = { kind: 'label', name: '' };
+                let left: (() => RankValue) | undefined;
                 return () => {
                     try {
-                        return this.evaluate(expression.left);
+                        // Prepare on first use to preserve operand/error ordering.
+                        left ??= this.compileExpression(expression.left, () => absent);
+                        const value = left();
+                        if (value !== absent) return value;
                     } catch (error) {
-                        if (error instanceof MissingValueError) {
-                            return this.evaluate(expression.right);
-                        }
-                        throw error;
+                        if (!(error instanceof MissingValueError)) throw error;
                     }
+                    return this.evaluate(expression.right);
                 };
             }
             return () => this.evaluateBinary(
@@ -898,7 +902,7 @@ export class Interpreter {
                     );
                 };
             }
-            return () => this.apply(parts.map(part => this.evaluate(part)));
+            return () => this.apply(parts.map(part => this.evaluate(part)), missing);
         }
         return () => { throw new RankError(`cannot evaluate ${expression.$type}`); };
     }
@@ -1366,8 +1370,8 @@ export class Interpreter {
         return this.localFrame?.find(name)?.values.get(name) ?? this.variables.get(name);
     }
 
-    private apply(values: RankValue[]): RankValue {
-        if (!values.some(isNativeFunction)) return applySelectors(values);
+    private apply(values: RankValue[], missing?: () => RankValue): RankValue {
+        if (!values.some(isNativeFunction)) return applySelectors(values, missing);
 
         let pending: RankValue[] = [];
         for (const value of values) {
@@ -2109,7 +2113,7 @@ function absolute(value: bigint): bigint {
     return value < 0n ? -value : value;
 }
 
-function applySelectors(values: RankValue[]): RankValue {
+function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
     if (values.length === 2 && isRankErrorValue(values[0]) && isRankLabel(values[1])) {
         const [error, field] = values;
         if (field.name === 'Kind') return error.errorKind;
@@ -2154,7 +2158,11 @@ function applySelectors(values: RankValue[]): RankValue {
     }
     if (isRankIndex(values[0])) {
         const value = values[0].entries.get(indexKey(values.slice(1)));
-        if (value === undefined) throw new MissingValueError('missing keyed value');
+        if (value === undefined) {
+            // Missing keys under pad are ordinary sparse reads, not exceptions.
+            if (missing) return missing();
+            throw new MissingValueError('missing keyed value');
+        }
         return value;
     }
     if (isRankCounter(values[0]) && values.length === 2) {

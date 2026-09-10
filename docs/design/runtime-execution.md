@@ -80,3 +80,10 @@ The subsequent prepared-statement change reduced the recursive benchmark from
 024 tests, including the official sample, completed in approximately 2.7 seconds.
 These measurements use the same example algorithm; this change does not establish
 completion or judge-time performance for the all-wildcard input.
+
+Sparse index reads directly under `pad` return a private absence marker instead
+of constructing a `MissingValueError`. The pad handler evaluates its fallback
+only after that read reports absence. Other missing-value paths retain exception
+handling, and errors in keys or fallback expressions keep their existing behavior.
+The unchanged AoC 2015 day 6 test file, including its million-cell case, took
+14.02 seconds before and 2.85 seconds after this change in local CLI measurements.
