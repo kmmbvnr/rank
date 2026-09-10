@@ -1037,6 +1037,71 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toBe('11');
     });
 
+    it('iterates sets and generates finite permutations lazily', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = array 1 2 3',
+            'Routes = Values permutations',
+            'Routes len',
+        ].join('\n'))).toBe('6');
+        expect(new Interpreter().execute([
+            'use algo',
+            'Values = array 1 2 3',
+            'Values permutations 0',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: [1n, 2n, 3n],
+            shape: [3],
+        });
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = array 1 1',
+            'Values permutations len',
+        ].join('\n'))).toBe('2');
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Empty = array shape 0',
+            'end',
+            'Empty permutations len',
+        ].join('\n'))).toBe('1');
+        expect(() => run([
+            'use algo',
+            'use sequences',
+            'fibonacci permutations',
+        ].join('\n'))).toThrowError('permutations requires a bounded sequence');
+        expect(run([
+            'use algo',
+            'fun collect Unused',
+            '  set add "B"',
+            '  set add "A"',
+            '  set add "B"',
+            '  for Value in set',
+            '    queue push Value',
+            '  end',
+            '  return queue',
+            'end',
+            'Answer = 0 collect',
+            'First = Answer 0 equal "B"',
+            'Second = Answer 1 equal "A"',
+            'First and Second',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use algo',
+            'fun first_route Unused',
+            '  set add "B"',
+            '  set add "A"',
+            '  return set permutations 0',
+            'end',
+            'Answer = 0 first_route',
+            'First = Answer 0 equal "B"',
+            'Second = Answer 1 equal "A"',
+            'First and Second',
+        ].join('\n'))).toBe('true');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');

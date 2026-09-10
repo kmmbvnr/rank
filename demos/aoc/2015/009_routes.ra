@@ -1,0 +1,66 @@
+rem Advent of Code 2015 — Day 9
+rem All in a Single Night
+rem https://adventofcode.com/2015/day/9
+use io
+use cli
+use algo
+use text
+use sequences
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+Part1 print
+Part2 print
+
+
+rem Find the shortest and longest routes that visit every city once.
+fun solve Lines
+  Pattern = "/word to /word = /integer"
+
+  for Line in Lines
+    A B Distance = Line Pattern parse
+    set add A
+    set add B
+    index A B = Distance
+    index B A = Distance
+  end
+
+  Found = false
+  Shortest = 0
+  Longest = 0
+
+  for Route in set permutations
+    Distance = Route index distance
+
+    if not Found
+      Shortest = Distance
+      Longest = Distance
+      Found = true
+    else
+      if Distance less Shortest
+        Shortest = Distance
+      end
+      if Distance greater Longest
+        Longest = Distance
+      end
+    end
+  end
+
+  return array Shortest Longest
+end
+
+
+rem Add the distances between adjacent cities in one route.
+fun distance Route Distances
+  Total = 0
+
+  for Pair in Route 2 window
+    A = Pair 0
+    B = Pair 1
+    Total += Distances A B
+  end
+
+  return Total
+end

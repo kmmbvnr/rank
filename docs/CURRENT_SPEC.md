@@ -1627,11 +1627,28 @@ shape and contents. `in` tests membership, and `len` returns the number of
 unique elements.
 
 As with `queue`, separate and recursive function calls receive separate sets.
-An array is useful for a composite value such as a coordinate:
+A set is iterable in insertion order. Adding an existing value does not move
+it. An array is useful for a composite value such as a coordinate:
 
 ```rank
 set add array X Y
 ```
+
+### Permutations
+
+`permutations` accepts a finite array, queue, set or sequence and returns a
+lazy sequence of rank-1 arrays:
+
+```rank
+for Route in Cities permutations
+  Route visit
+end
+```
+
+The empty collection has one empty permutation. Input order determines
+generation order; sets use insertion order. Equal values at different array
+positions remain distinct positions and can therefore produce equal result
+arrays. An unbounded sequence is an error.
 
 ### Counter
 

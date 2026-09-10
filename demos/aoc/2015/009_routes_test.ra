@@ -1,0 +1,23 @@
+use testing
+
+test "official example"
+  use "009_routes"
+
+  Lines = array shape 3
+    "London to Dublin = 464"
+    "London to Belfast = 518"
+    "Dublin to Belfast = 141"
+  end
+
+  Lines solve equal array 605 982
+end
+
+test "two cities have one route distance"
+  use "009_routes"
+
+  Lines = array shape 1
+    "Rank to TypeScript = 7"
+  end
+
+  Lines solve equal array 7 7
+end

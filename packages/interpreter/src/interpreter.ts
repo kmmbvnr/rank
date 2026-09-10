@@ -1515,6 +1515,7 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankSequence(value)) return sequenceValues(value, 'for');
     if (isRankArray(value)) return value.items;
     if (isRankQueue(value)) return value.items;
+    if (isRankSet(value)) return value.entries.values();
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
 }
