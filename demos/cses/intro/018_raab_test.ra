@@ -1,0 +1,22 @@
+use testing
+
+test "official cases are possible exactly when expected"
+  use "018_raab"
+  4 1 2 possible equal true
+  2 0 1 possible equal false
+  3 0 0 possible equal true
+  2 1 1 possible equal true
+  4 4 1 possible equal false
+end
+
+test "official constructive case"
+  use "018_raab"
+  Actual = 4 1 2 second array
+  Actual equal array 2 3 1 4
+end
+
+test "all rounds have a winner"
+  use "018_raab"
+  Actual = 2 1 1 second array
+  Actual equal array 2 1
+end

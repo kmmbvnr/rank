@@ -1,0 +1,61 @@
+rem CSES 3399: Raab Game I
+rem https://cses.fi/problemset/task/3399
+
+use io
+use ranges
+
+T = stdin .integer
+
+for t in 1 to T
+  N = stdin .integer
+  A = stdin .integer
+  B = stdin .integer
+
+  if not (N A B possible)
+    "NO" print
+
+  elif A equal 0 and B equal 0
+    "YES" print
+    (1 to N) print
+    (1 to N) print
+
+  else
+    "YES" print
+    (1 to N) print
+    N A B second print
+  end
+end
+
+
+rem Decide whether two permutations can have the requested scores.
+fun possible N A B
+  if A + B greater N
+    return false
+  end
+
+  if A equal 0 or B equal 0
+    return A equal 0 and B equal 0
+  end
+
+  return true
+end
+
+
+rem Shift the first A + B cards to give both players their wins.
+fun second N A B
+  M = A + B
+
+  for X in A + 1 to M
+    yield X
+  end
+
+  for X in 1 to A
+    yield X
+  end
+
+  if M less N
+    for X in M + 1 to N
+      yield X
+    end
+  end
+end
