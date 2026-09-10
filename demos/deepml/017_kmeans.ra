@@ -1,0 +1,54 @@
+rem Deep-ML 17: K-Means Clustering
+rem https://www.deep-ml.com/problems/17
+
+use numbers
+use ranges
+use sequences
+use stats
+
+rem Assign points to their nearest centroid and recompute cluster means.
+fun k_means Points K Centroids Max
+  N = Points len
+  Labels = array shape N pad 0
+
+  for Step in 0 until Max
+    for i in 0 until N
+      Point = Points i
+      Best = 0
+
+      D = Point - Centroids 0
+      BestDist = (D * D) sum / 1
+
+      for c in 1 until K
+        D = Point - Centroids c
+        Dist = (D * D) sum / 1
+
+        if Dist less BestDist
+          BestDist = Dist
+          Best = c
+        end
+      end
+
+      Labels i = Best
+    end
+
+    Next = Centroids copy
+
+    for c in 0 until K
+      Mask = Labels equal c
+      Cluster = Points Mask #
+
+      if Cluster len greater 0
+        Next c = Cluster mean axis 0
+      end
+    end
+
+    if (Next equal Centroids) and reduce
+      break
+    end
+
+    Centroids = Next
+  end
+
+  return Centroids round 4
+end
