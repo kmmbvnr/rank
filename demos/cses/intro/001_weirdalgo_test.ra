@@ -1,0 +1,13 @@
+use testing
+
+test "official example"
+  use "001_weirdalgo"
+  Actual = 3 weird array
+  Actual equal array 3 10 5 16 8 4 2 1
+end
+
+test "one is already finished"
+  use "001_weirdalgo"
+  Actual = 1 weird array
+  Actual equal array 1
+end

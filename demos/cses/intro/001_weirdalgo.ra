@@ -1,0 +1,24 @@
+rem CSES 1068: Weird Algorithm
+rem https://cses.fi/problemset/task/1068
+
+use numbers
+use io
+
+N = stdin integer
+N weird print
+
+
+rem Generate the Collatz sequence beginning with N.
+fun weird N
+  yield N
+
+  for N not equal 1
+    if N even
+      N //= 2
+    else
+      N = 3 * N + 1
+    end
+
+    yield N
+  end
+end
