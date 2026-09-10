@@ -1671,6 +1671,27 @@ is applied to each trailing `R`-cell and the leading frame is preserved. If the
 argument rank is at most `R`, the function receives the whole argument once.
 Rank values are currently nonnegative integers.
 
+An explicit `axis` list before `rank` names the frame axes. The remaining axes,
+kept in their original order, form the cell passed to the unary function:
+
+```rank
+rem T has shape 2 64 128
+A = T F rank 2
+rem frame 2, cells 64 128
+
+B = T F axis 1 rank 2
+rem frame 64, cells 2 128
+```
+
+The axis order also determines the frame order in the result. For a tensor of
+shape `2 3 4 5`, `T F axis 1 3 rank 2` applies `F` to `2 4` cells and produces
+results in a `3 5` frame. The number of frame axes plus the cell rank must equal
+the tensor rank. Frame axes are zero-based, unique and in bounds.
+
+Every cell result must have the same shape. Scalar results leave only the frame
+shape; array results append their shape to the frame. Source cells and the
+assembled result are lazy views, and a demanded cell result is cached.
+
 For example, `integer` has intrinsic unary rank 1. It converts a complete text
 value by default, while an explicit rank 0 converts its character atoms:
 
@@ -1680,10 +1701,8 @@ Digits = "1203" integer rank 0
 rem Value is 1203; Digits are 1 2 0 3
 ```
 
-Rank-0 application over a lazy sequence remains lazy. Results must currently
-have compatible rectangular shapes. Binary rank specifications and the policy
-for incompatible result shapes remain deferred until the tensor model is
-implemented.
+Rank-0 application over a lazy sequence remains lazy. Binary rank
+specifications remain deferred.
 
 ## Reduce
 
@@ -2298,7 +2317,28 @@ For a row-wise table calculation:
 Geo distance rank 1
 ```
 
-This avoids a separate dataframe-specific row API.
+An explicit axis list selects the frame, so non-trailing and non-contiguous
+cells do not require a transpose:
+
+```rank
+rem T has shape 2 64 128
+Rows = T normalize rank 2
+rem two cells of shape 64 128
+
+Planes = T normalize axis 1 rank 2
+rem 64 cells of shape 2 128
+```
+
+For `T shape = 2 3 4 5`, `T F axis 1 3 rank 2` has frame shape `3 5` and
+passes cells of shape `2 4` to `F`. Explicit axes are frame axes and their
+written order becomes the leading result-axis order. All remaining source axes
+form the cell in natural order. The number of frame axes plus the cell rank
+must equal the tensor rank.
+
+Scalar cell results have the frame shape. Array results append their common
+shape to the frame. Source cells and assembled results are lazy read-only views;
+each demanded function result is cached. This avoids a separate
+dataframe-specific row API.
 
 ## Iteration by axis and cell rank
 

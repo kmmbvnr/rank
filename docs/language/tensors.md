@@ -120,7 +120,28 @@ For a row-wise table calculation:
 Geo distance rank 1
 ```
 
-This avoids a separate dataframe-specific row API.
+An explicit axis list selects the frame, so non-trailing and non-contiguous
+cells do not require a transpose:
+
+```rank
+rem T has shape 2 64 128
+Rows = T normalize rank 2
+rem two cells of shape 64 128
+
+Planes = T normalize axis 1 rank 2
+rem 64 cells of shape 2 128
+```
+
+For `T shape = 2 3 4 5`, `T F axis 1 3 rank 2` has frame shape `3 5` and
+passes cells of shape `2 4` to `F`. Explicit axes are frame axes and their
+written order becomes the leading result-axis order. All remaining source axes
+form the cell in natural order. The number of frame axes plus the cell rank
+must equal the tensor rank.
+
+Scalar cell results have the frame shape. Array results append their common
+shape to the frame. Source cells and assembled results are lazy read-only views;
+each demanded function result is cached. This avoids a separate
+dataframe-specific row API.
 
 ## Iteration by axis and cell rank
 

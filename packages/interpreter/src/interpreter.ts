@@ -921,7 +921,7 @@ export class Interpreter {
             if (explicitRank) {
                 return () => {
                     const values = explicitRank.parts.map(part => this.evaluate(part));
-                    return this.applyAtRank(values, explicitRank.rank);
+                    return this.applyAtRank(values, explicitRank.rank, explicitRank.axes);
                 };
             }
             const axisSelection = explicitAxisSelection(parts);
@@ -1425,7 +1425,11 @@ export class Interpreter {
         return pending.length === 1 ? pending[0] : applySelectors(pending);
     }
 
-    private applyAtRank(values: RankValue[], rank: bigint): RankValue {
+    private applyAtRank(
+        values: RankValue[],
+        rank: bigint,
+        axes?: readonly number[],
+    ): RankValue {
         if (rank > BigInt(Number.MAX_SAFE_INTEGER)) {
             throw new RankError(`rank is too large: ${rank}`);
         }
@@ -1437,14 +1441,18 @@ export class Interpreter {
         if (!fn.arities.includes(1)) throw new RankError(`rank requires a unary operation: ${fn.name}`);
         const receivers = values.slice(0, -1);
         if (receivers.length !== 1) throw new RankError('unary rank requires one data value');
-        return this.applyUnaryAtRank(receivers[0], fn, Number(rank));
+        return this.applyUnaryAtRank(receivers[0], fn, Number(rank), axes);
     }
 
     private applyUnaryAtRank(
         value: RankValue,
         fn: Extract<RankValue, { kind: 'function' }>,
         cellRank: number,
+        frameAxes?: readonly number[],
     ): RankValue {
+        if (frameAxes !== undefined && !isRankArray(value)) {
+            throw new RankError('axis rank expects an array');
+        }
         if (typeof value === 'string') {
             if (cellRank >= 1) return fn.call([value]);
             return mapTextAtoms(value, atom => fn.call([atom]), fn.name);
@@ -1454,13 +1462,72 @@ export class Interpreter {
             return mapSequence(value, fn.name, atom => fn.call([atom]));
         }
         if (isRankArray(value)) {
-            if (cellRank >= value.shape.length) return fn.call([value]);
-            if (cellRank === 0) {
-                return lazyArray(value.shape, index => fn.call([arrayItem(value, index)]));
-            }
-            throw new RankError(`rank ${cellRank} over tensors is not implemented yet`);
+            if (frameAxes === undefined && cellRank >= value.shape.length) return fn.call([value]);
+            const axes = tensorFrameAxes(value.shape, frameAxes, cellRank);
+            return this.applyToTensorCells(value, fn, axes);
         }
         return fn.call([value]);
+    }
+
+    private applyToTensorCells(
+        value: RankArray,
+        fn: Extract<RankValue, { kind: 'function' }>,
+        frameAxes: readonly number[],
+    ): RankValue {
+        const cells = tensorCells(value, frameAxes);
+        const frameSize = arraySize(cells.frameShape);
+        if (frameSize === 0) {
+            return lazyArray(cells.frameShape, () => {
+                throw new RankError('empty ranked result has no items');
+            });
+        }
+        if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
+
+        const results = new Map<number, RankValue>();
+        let resultCellShape: readonly number[] | undefined;
+        const resultAt = (frameIndex: number): RankValue => {
+            const cached = results.get(frameIndex);
+            if (cached !== undefined) return cached;
+            const result = fn.call([cells.cellAt(frameIndex)]);
+            const shape = isRankArray(result) ? result.shape : [];
+            if (resultCellShape === undefined) {
+                resultCellShape = [...shape];
+            } else if (!sameShape(resultCellShape, shape)) {
+                throw new RankError(
+                    `rank results must have one shape: ${resultCellShape.join(' ')} and ${shape.join(' ')}`,
+                );
+            }
+            this.ownFiles(result);
+            results.set(frameIndex, result);
+            return result;
+        };
+        const outputShape = (): readonly number[] => {
+            resultAt(0);
+            return [...cells.frameShape, ...resultCellShape!];
+        };
+
+        let materialized: RankValue[] | undefined;
+        return {
+            kind: 'array',
+            get shape() {
+                return outputShape();
+            },
+            itemAt(index) {
+                outputShape();
+                const cellSize = arraySize(resultCellShape!);
+                const frameIndex = Math.floor(index / cellSize);
+                const result = resultAt(frameIndex);
+                return isRankArray(result) ? arrayItem(result, index % cellSize) : result;
+            },
+            get items() {
+                const shape = outputShape();
+                materialized ??= Array.from(
+                    { length: arraySize(shape) },
+                    (_, index) => this.itemAt!(index),
+                );
+                return materialized;
+            },
+        };
     }
 
     private evaluateOuter(operator: string, left: RankValue, right: RankValue): RankValue {
@@ -2114,6 +2181,37 @@ interface OuterCells {
     readonly cellAt: (frameIndex: number) => RankValue;
 }
 
+interface TensorCells {
+    readonly frameShape: readonly number[];
+    readonly cellAt: (frameIndex: number) => RankValue;
+}
+
+function tensorCells(source: RankArray, frameAxes: readonly number[]): TensorCells {
+    const frameShape = frameAxes.map(axis => source.shape[axis]);
+    const frameSet = new Set(frameAxes);
+    const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
+    const cellShape = cellAxes.map(axis => source.shape[axis]);
+    return {
+        frameShape,
+        cellAt(frameIndex) {
+            const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
+            coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
+                sourceCoordinates[frameAxes[index]] = coordinate;
+            });
+            if (cellShape.length === 0) {
+                return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
+            }
+            return lazyArray(cellShape, cellIndex => {
+                const coordinates = [...sourceCoordinates];
+                coordinatesAt(cellShape, cellIndex).forEach((coordinate, index) => {
+                    coordinates[cellAxes[index]] = coordinate;
+                });
+                return arrayItem(source, arrayOffset(source.shape, coordinates));
+            });
+        },
+    };
+}
+
 function outerCells(
     value: RankValue,
     rank: IntrinsicRank,
@@ -2720,14 +2818,29 @@ function flattenApplication(expression: Expression): Expression[] {
     ];
 }
 
-function explicitRankApplication(parts: Expression[]): { parts: Expression[]; rank: bigint } | undefined {
+function explicitRankApplication(
+    parts: Expression[],
+): { parts: Expression[]; rank: bigint; axes?: readonly number[] } | undefined {
     const modifier = parts.at(-2);
     const rank = parts.at(-1);
     if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
     if (!isNumberLiteral(rank) || typeof rank.value !== 'bigint') {
         throw new RankError('rank expects a nonnegative integer');
     }
-    return { parts: parts.slice(0, -2), rank: rank.value };
+    const beforeRank = parts.slice(0, -2);
+    const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis'));
+    if (axisPosition < 0) return { parts: beforeRank, rank: rank.value };
+    if (axisPosition !== 2 || beforeRank.length === 3) {
+        throw new RankError(
+            'axis rank expects data and a unary operation followed by one or more frame axes',
+        );
+    }
+    return {
+        parts: beforeRank.slice(0, axisPosition),
+        rank: rank.value,
+        axes: beforeRank.slice(axisPosition + 1).map(axis =>
+            safeDimension(integerLiteral(axis, 'axis rank'), 'axis rank')),
+    };
 }
 
 interface NamedOuterApplication {

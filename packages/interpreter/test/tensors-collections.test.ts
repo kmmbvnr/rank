@@ -207,6 +207,74 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('for expects one value name or 3 value/index names, got 2');
     });
 
+    it('applies unary functions to trailing or axis-selected tensor cells', () => {
+        expect(run([
+            'use sequences',
+            'fun cell_sum Cell',
+            '  return Cell + reduce',
+            'end',
+            'T = array shape 2 3 2',
+            '  1 2 3 4 5 6',
+            '  7 8 9 10 11 12',
+            'end',
+            'Trailing = T cell_sum rank 2',
+            'Selected = T cell_sum axis 1 rank 2',
+            'Reordered = T cell_sum axis 2 0 rank 1',
+            'Ok = (Trailing shape equal array 2) and reduce',
+            'Ok and= (Trailing equal array 21 57) and reduce',
+            'Ok and= (Selected shape equal array 3) and reduce',
+            'Ok and= (Selected equal array 18 26 34) and reduce',
+            'Ok and= (Reordered shape equal array 2 2) and reduce',
+            'Expected = array shape 2 2',
+            '  9 27',
+            '  12 30',
+            'end',
+            'Ok and= (Reordered equal Expected) and reduce',
+            'Ok',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use sequences',
+            'fun endpoints Row',
+            '  return array (Row 2) (Row 0)',
+            'end',
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+            'R = M endpoints rank 1',
+            'Ok = (R shape equal array 2 2) and reduce',
+            'Expected = array shape 2 2',
+            '  3 1',
+            '  6 4',
+            'end',
+            'Ok and= (R equal Expected) and reduce',
+            'Ok',
+        ].join('\n'))).toBe('true');
+        expect(() => run([
+            'fun total Cell',
+            '  return Cell + reduce',
+            'end',
+            'T = array shape 2 3 4 pad 0',
+            'T total axis 0 1 rank 2',
+        ].join('\n'))).toThrowError(
+            'axis count 2 plus cell rank 2 must equal tensor rank 3',
+        );
+        expect(() => run([
+            'fun total Cell',
+            '  return Cell + reduce',
+            'end',
+            'T = array shape 2 3 4 pad 0',
+            'T total axis 0 0 rank 1',
+        ].join('\n'))).toThrowError('axis numbers must be unique');
+        expect(() => run([
+            'fun total Cell',
+            '  return Cell + reduce',
+            'end',
+            'T = array shape 2 3 4 pad 0',
+            'T total axis 0 3 rank 1',
+        ].join('\n'))).toThrowError('axis out of bounds: 3');
+    });
+
     it('pushes expression values into a function-local queue', () => {
         expect(run([
             'use algo',
