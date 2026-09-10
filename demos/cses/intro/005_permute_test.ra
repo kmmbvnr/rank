@@ -12,8 +12,8 @@ test "five values"
   Actual equal array 2 4 1 3 5
 end
 
-test "one value"
+test "six values"
   use "005_permute"
-  Actual = 1 beautiful array
-  Actual equal array 1
+  Actual = 6 beautiful array
+  Actual equal array 2 4 6 1 3 5
 end

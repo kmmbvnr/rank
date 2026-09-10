@@ -2,6 +2,7 @@ rem CSES 1070: Permutations
 rem https://cses.fi/problemset/task/1070
 
 use io
+use ranges
 
 N = stdin .integer
 
@@ -14,17 +15,13 @@ else
 end
 
 
-rem Generate all even values before all odd values.
+rem Generate all even values before all odd values for N at least 4.
 fun beautiful N
-  I = 2
-  for I at most N
+  for I in 2 to N by 2
     yield I
-    I += 2
   end
 
-  I = 1
-  for I at most N
+  for I in 1 to N by 2
     yield I
-    I += 2
   end
 end
