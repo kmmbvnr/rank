@@ -1,0 +1,33 @@
+use testing
+
+test "official replacement examples"
+  use "019_medicine"
+
+  Rules = array shape 3 2
+    "H" "HO"
+    "H" "OH"
+    "O" "HH"
+  end
+
+  Rules "HOH" variants equal 4
+  Rules "HOHOHO" variants equal 7
+end
+
+test "replacement preserves both sides"
+  use "019_medicine"
+
+  Result = "ABCDE" "BC" "xy" 1 replaceat
+  Result equal "AxyDE"
+  Result = "ABCDE" "AB" "x" 0 replaceat
+  Result equal "xCDE"
+  Result = "ABCDE" "DE" "x" 3 replaceat
+  Result equal "ABCx"
+end
+
+test "medicine grammar counts structural tokens"
+  use "019_medicine"
+
+  "ABC" medicine_steps equal 2
+  "ARnBAr" medicine_steps equal 1
+  "ARnBYCAr" medicine_steps equal 1
+end

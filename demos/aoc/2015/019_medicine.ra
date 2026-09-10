@@ -1,0 +1,105 @@
+rem Advent of Code 2015 — Day 19
+rem Medicine for Rudolph
+rem https://adventofcode.com/2015/day/19
+
+use io
+use cli
+use algo
+use text
+use sequences
+use ranges
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+Part1 print
+Part2 print
+
+
+rem Parse replacement rules and solve both molecule questions.
+fun solve Lines
+  Target = ""
+
+  for Line in Lines
+    if " => " in Line
+      queue push Line " => " split
+    elif Line len greater 0
+      Target = Line
+    end
+  end
+
+  Part1 = queue Target variants
+  Part2 = Target medicine_steps
+  return array Part1 Part2
+end
+
+
+rem Count distinct molecules made by applying exactly one rule once.
+fun variants Rules Target
+  for Rule in Rules
+    From = Rule 0
+    To = Rule 1
+    Last = Target len - From len
+
+    if Last at least 0
+      for Start in 0 to Last
+        if Target From Start matchat
+          New = Target From To Start replaceat
+          set add New
+        end
+      end
+    end
+  end
+
+  return set len
+end
+
+
+rem Test whether Pattern occurs at one Unicode position in Text.
+fun matchat Text Pattern Start
+  Finish = Start + Pattern len
+  if Finish greater Text len
+    return false
+  end
+  Part = Text from Start until Finish
+  return Part equal Pattern
+end
+
+
+rem Replace one occurrence beginning at a known Unicode position.
+fun replaceat Text From To Start
+  Prefix = Text from 0 until Start
+  Tail = Start + From len
+  Suffix = Text from Tail until Text len
+  return Prefix + To + Suffix
+end
+
+
+rem Count minimum steps implied by the puzzle input's medicine grammar.
+fun medicine_steps Text
+  Elements = 0
+  Rn = 0
+  Ar = 0
+  Y = 0
+  Upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+  for C in Text
+    if C in Upper
+      Elements += 1
+    end
+    if C equal "Y"
+      Y += 1
+    end
+  end
+
+  for Pair in Text 2 window
+    if Pair equal "Rn"
+      Rn += 1
+    elif Pair equal "Ar"
+      Ar += 1
+    end
+  end
+
+  return Elements - Rn - Ar - 2 * Y - 1
+end
