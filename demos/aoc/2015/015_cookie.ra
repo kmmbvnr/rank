@@ -1,0 +1,77 @@
+rem Advent of Code 2015 — Day 15
+rem Science for Hungry People
+rem https://adventofcode.com/2015/day/15
+
+use io
+use cli
+use algo
+use text
+use numbers
+use ranges
+use sequences
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+Part1 print
+Part2 print
+
+
+rem Parse the ingredients and search all allocations of 100 teaspoons.
+fun solve Lines
+  Pattern = "/word: capacity /integer, durability /integer, flavor /integer, texture /integer, calories /integer"
+
+  for Line in Lines
+    Name Capacity Durability Flavor Texture Calories = Line Pattern parse
+    Ingredient = array Capacity Durability Flavor Texture Calories
+    queue push Ingredient
+  end
+
+  Totals = array 0 0 0 0 0
+  return queue 0 100 Totals search
+end
+
+
+rem Distribute the remaining teaspoons and retain both best scores.
+fun search Ingredients Position Remaining Totals
+  Ingredient = Ingredients Position
+  Last = Ingredients len - 1
+
+  if Position equal Last
+    Final = Totals + Ingredient * Remaining
+    Score = Final cookiescore
+
+    if Final 4 equal 500
+      return array Score Score
+    end
+    return array Score 0
+  end
+
+  Best = 0
+  Best500 = 0
+
+  for Amount in 0 to Remaining
+    Next = Totals + Ingredient * Amount
+    A B = Ingredients (Position + 1) (Remaining - Amount) Next search
+
+    if A greater Best
+      Best = A
+    end
+    if B greater Best500
+      Best500 = B
+    end
+  end
+
+  return array Best Best500
+end
+
+
+rem Clamp four properties at zero and multiply them into one score.
+fun cookiescore Totals
+  Capacity = 0 (Totals 0) max
+  Durability = 0 (Totals 1) max
+  Flavor = 0 (Totals 2) max
+  Texture = 0 (Totals 3) max
+  return Capacity * Durability * Flavor * Texture
+end

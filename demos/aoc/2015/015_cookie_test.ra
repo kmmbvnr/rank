@@ -1,0 +1,19 @@
+use testing
+
+test "official example"
+  use "015_cookie"
+
+  Lines = array shape 2
+    "Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8"
+    "Cinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3"
+  end
+
+  Lines solve equal array 62842880 57600000
+end
+
+test "negative properties clamp to zero"
+  use "015_cookie"
+
+  (array -1 2 3 4 5) cookiescore equal 0
+  (array 1 2 3 4 5) cookiescore equal 24
+end
