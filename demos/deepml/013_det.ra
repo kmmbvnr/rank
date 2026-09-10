@@ -1,0 +1,40 @@
+rem Deep-ML 13: Determinant
+rem https://www.deep-ml.com/problems/13
+
+use ranges
+use sequences
+
+rem Expand recursively along the first row and remove each chosen column.
+fun determinant A
+  Shape = A shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  N = Shape 0
+  if Shape 1 not equal N
+    .DimensionMismatch raise
+  end
+
+  if N equal 0
+    return 1
+  end
+  if N equal 1
+    return A 0 0
+  end
+
+  Total = 0
+  Cols = (0 until N) array
+
+  for c in Cols
+    Keep = Cols not equal c
+    Minor = A axis 0 from 1 until N
+    Minor = Minor axis 1 Keep
+
+    Sign = 1 - 2 * (c % 2)
+    Cof = Minor determinant
+
+    Total += Sign * A 0 c * Cof
+  end
+
+  return Total
+end

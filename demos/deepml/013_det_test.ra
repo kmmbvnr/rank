@@ -1,0 +1,49 @@
+use testing
+
+test "official singular matrix"
+  use "013_det"
+  A = array shape 4 4
+    1 2 3 4
+    5 6 7 8
+    9 10 11 12
+    13 14 15 16
+  end
+
+  A determinant equal 0
+end
+
+test "recursive expansion matches linalg"
+  use "013_det"
+  use linalg
+  A = array shape 4 4
+    3 2 0 1
+    4 0 1 2
+    3 0 2 1
+    9 2 3 1
+  end
+
+  A determinant equal A det
+end
+
+test "one by one matrix"
+  use "013_det"
+  A = array shape 1 1
+    -7
+  end
+
+  A determinant equal -7
+end
+
+test "matrix must be square"
+  use "013_det"
+  A = array shape 2 3 pad 1
+  Raised = false
+
+  try
+    Result = A determinant
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
