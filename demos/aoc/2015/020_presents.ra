@@ -1,0 +1,47 @@
+rem Advent of Code 2015 — Day 20
+rem Infinite Elves and Infinite Houses
+rem https://adventofcode.com/2015/day/20
+
+use io
+use cli
+use algo
+use text
+use ranges
+
+argument Input path
+
+Target = Input read integer
+Part1 = Target 10 0 firsthouse
+Part2 = Target 11 50 firsthouse
+Part1 print
+Part2 print
+
+
+rem Find the first house reached by the required delivery total.
+rem A zero visit limit means that every multiple receives a delivery.
+fun firsthouse Target Multiplier MaxVisits
+  Limit = Target // Multiplier + 1
+
+  for Elf in 1 to Limit
+    House = Elf
+    Visits = 0
+
+    for House at most Limit
+      Presents = index House pad 0
+      index House = Presents + Multiplier * Elf
+      House += Elf
+      Visits += 1
+
+      if MaxVisits greater 0
+        if Visits equal MaxVisits
+          break
+        end
+      end
+    end
+
+    Presents = index Elf pad 0
+    if Presents at least Target
+      return Elf
+    end
+  end
+end

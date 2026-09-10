@@ -1,0 +1,16 @@
+use testing
+
+test "part one delivery totals"
+  use "020_presents"
+
+  10 10 0 firsthouse equal 1
+  30 10 0 firsthouse equal 2
+  150 10 0 firsthouse equal 8
+end
+
+test "a visit limit stops later deliveries"
+  use "020_presents"
+
+  130 11 50 firsthouse equal 6
+  100 11 1 firsthouse equal 10
+end
