@@ -1,0 +1,19 @@
+use testing
+
+test "official examples"
+  use "011_coins"
+  2 1 possible equal true
+  2 2 possible equal false
+  3 3 possible equal true
+end
+
+test "unbalanced piles"
+  use "011_coins"
+  10 1 possible equal false
+end
+
+test "zero piles"
+  use "011_coins"
+  0 0 possible equal true
+  0 3 possible equal false
+end
