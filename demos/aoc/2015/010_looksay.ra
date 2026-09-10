@@ -1,0 +1,54 @@
+rem Advent of Code 2015 — Day 10
+rem Elves Look, Elves Say
+rem https://adventofcode.com/2015/day/10
+
+use io
+use cli
+use text
+use sequences
+use ranges
+
+argument Input path
+
+Start = Input readlines 0
+Part1 Part2 = Start solve
+Part1 print
+Part2 print
+
+
+rem Return the lengths after 40 and 50 look-and-say rounds.
+fun solve Value
+  After40 = Value 40 describe
+  After50 = After40 10 describe
+  return array (After40 len) (After50 len)
+end
+
+
+rem Apply the look-and-say description repeatedly.
+fun describe Value Rounds
+  for Round in 0 until Rounds
+    Value = Value look
+  end
+  return Value
+end
+
+
+rem Describe each consecutive run as its length followed by its value.
+fun look Value
+  Result = ""
+  Last = Value 0
+  Count = 0
+
+  for C in Value
+    if C equal Last
+      Count += 1
+    else
+      Result += Count text + Last
+      Last = C
+      Count = 1
+    end
+  end
+
+  Result += Count text + Last
+  return Result
+end

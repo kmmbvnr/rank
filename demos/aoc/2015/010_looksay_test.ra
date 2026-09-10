@@ -1,0 +1,30 @@
+use testing
+
+test "official sequence"
+  use "010_looksay"
+
+  "1" look equal "11"
+  "11" look equal "21"
+  "21" look equal "1211"
+  "1211" look equal "111221"
+  "111221" look equal "312211"
+end
+
+test "repeated descriptions"
+  use "010_looksay"
+
+  "1" 0 describe equal "1"
+  "1" 5 describe equal "312211"
+end
+
+test "multi-digit run length"
+  use "010_looksay"
+
+  "1111111111" look equal "101"
+end
+
+test "lengths after 40 and 50 rounds"
+  use "010_looksay"
+
+  "1" solve equal array 82350 1166642
+end
