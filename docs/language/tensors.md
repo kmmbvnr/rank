@@ -92,6 +92,23 @@ layernorm
 
 The exact module split is still evolving.
 
+## Determinant
+
+`det` from `use linalg` has intrinsic rank 2 and computes the determinant of a
+square numeric matrix:
+
+```rank
+D = A det
+BatchDeterminants = Batch det
+Planes = T det axis 1 rank 2
+```
+
+Integer-only cells produce exact `integer` results. A cell containing any
+`real` value produces a `real`. A singular cell returns zero, and the
+determinant of a `0` by `0` matrix is one. A non-square cell raises
+`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. Batched results
+are evaluated lazily and cached.
+
 ## Matrix inversion
 
 `inverse` from `use linalg` has intrinsic rank 2. It inverts a square numeric

@@ -4,6 +4,12 @@ import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const linalgModule: RuntimeModule = {
+    det: () => native(
+        'det',
+        1,
+        arguments_ => determinant(arguments_[0]),
+        2,
+    ),
     inverse: () => native(
         'inverse',
         1,
@@ -18,6 +24,89 @@ export const linalgModule: RuntimeModule = {
         arguments_ => matmulValues(arguments_[0], arguments_[1]),
     ),
 };
+
+export function determinant(value: RankValue): bigint | number {
+    if (
+        !isRankArray(value)
+        || value.shape.length !== 2
+        || value.shape[0] !== value.shape[1]
+    ) {
+        throw new RankError('det expects a square rank-2 matrix', 'DimensionMismatch');
+    }
+
+    const size = value.shape[0];
+    const items = Array.from({ length: size * size }, (_, index) => arrayItem(value, index));
+    if (items.some(item => typeof item !== 'bigint' && typeof item !== 'number')) {
+        throw new RankError('det expects numeric elements', 'TypeError');
+    }
+    if (items.every(item => typeof item === 'bigint')) {
+        return integerDeterminant(items as bigint[], size);
+    }
+    return realDeterminant(items.map(Number), size);
+}
+
+function integerDeterminant(items: readonly bigint[], size: number): bigint {
+    if (size === 0) return 1n;
+    const work = Array.from(
+        { length: size },
+        (_, row) => items.slice(row * size, (row + 1) * size),
+    );
+    let sign = 1n;
+    let divisor = 1n;
+
+    for (let column = 0; column < size - 1; column += 1) {
+        const pivot = work.findIndex((row, index) => index >= column && row[column] !== 0n);
+        if (pivot < 0) return 0n;
+        if (pivot !== column) {
+            [work[column], work[pivot]] = [work[pivot], work[column]];
+            sign = -sign;
+        }
+
+        const pivotValue = work[column][column];
+        for (let row = column + 1; row < size; row += 1) {
+            for (let inner = column + 1; inner < size; inner += 1) {
+                work[row][inner] = (
+                    work[row][inner] * pivotValue
+                    - work[row][column] * work[column][inner]
+                ) / divisor;
+            }
+            work[row][column] = 0n;
+        }
+        divisor = pivotValue;
+    }
+    return sign * work[size - 1][size - 1];
+}
+
+function realDeterminant(items: readonly number[], size: number): number {
+    if (size === 0) return 1;
+    const work = Array.from(
+        { length: size },
+        (_, row) => items.slice(row * size, (row + 1) * size),
+    );
+    let result = 1;
+
+    for (let column = 0; column < size; column += 1) {
+        let pivot = column;
+        for (let row = column + 1; row < size; row += 1) {
+            if (Math.abs(work[row][column]) > Math.abs(work[pivot][column])) pivot = row;
+        }
+        if (work[pivot][column] === 0) return 0;
+        if (pivot !== column) {
+            [work[column], work[pivot]] = [work[pivot], work[column]];
+            result = -result;
+        }
+
+        const pivotValue = work[column][column];
+        result *= pivotValue;
+        for (let row = column + 1; row < size; row += 1) {
+            const factor = work[row][column] / pivotValue;
+            for (let inner = column + 1; inner < size; inner += 1) {
+                work[row][inner] -= factor * work[column][inner];
+            }
+        }
+    }
+    return Object.is(result, -0) ? 0 : result;
+}
 
 export function matmulValues(
     left: RankValue,
