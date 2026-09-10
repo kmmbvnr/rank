@@ -46,6 +46,7 @@ import { standardModules } from './modules/index.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
+import { covarianceValue } from './modules/stats.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -884,6 +885,16 @@ export class Interpreter {
                         this.evaluate(axisMatmul.left),
                         this.evaluate(axisMatmul.right),
                         axisMatmul.axes,
+                    );
+                };
+            }
+            const axisCovariance = explicitAxisCovariance(parts);
+            if (axisCovariance) {
+                return () => {
+                    this.requireModule('stats', 'covariance');
+                    return covarianceValue(
+                        this.evaluate(axisCovariance.source),
+                        axisCovariance.axes,
                     );
                 };
             }
@@ -2840,6 +2851,27 @@ function explicitAxisMatmul(parts: Expression[]): AxisMatmulApplication | undefi
         axes: [
             safeDimension(integerLiteral(parts[4], 'matmul axis'), 'matmul axis'),
             safeDimension(integerLiteral(parts[5], 'matmul axis'), 'matmul axis'),
+        ],
+    };
+}
+
+interface AxisCovarianceApplication {
+    readonly source: Expression;
+    readonly axes: readonly [number, number];
+}
+
+function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication | undefined {
+    if (parts.length < 3 || !isNamed(parts[1], 'covariance') || !isNamed(parts[2], 'axis')) {
+        return undefined;
+    }
+    if (parts.length !== 5) {
+        throw new RankError('covariance axis expects feature and observation axes');
+    }
+    return {
+        source: parts[0],
+        axes: [
+            safeDimension(integerLiteral(parts[3], 'covariance axis'), 'covariance axis'),
+            safeDimension(integerLiteral(parts[4], 'covariance axis'), 'covariance axis'),
         ],
     };
 }

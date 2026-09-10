@@ -137,6 +137,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses covariance with feature and observation axes', async () => {
+        const document = await parse([
+            'use stats',
+            'C = Data covariance axis 1 0',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('parses a named function modified by outer', async () => {
         const document = await parse('Grid = Values Values bxor outer');
         expect(document.parseResult.lexerErrors).toEqual([]);

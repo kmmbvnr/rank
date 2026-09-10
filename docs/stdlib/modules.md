@@ -251,16 +251,25 @@ labels
 
 ## Stats
 
-`use stats` currently provides arithmetic mean:
+`use stats` provides arithmetic mean and sample covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
+Cov = Features covariance
+Cov = Samples covariance axis 1 0
 ```
 
 `mean` accepts a numeric array or finite sequence and always returns a `real`.
 An empty input raises `.EmptyReduction`. Axis-qualified tensor behavior is
 described in [Tensors](../language/tensors.md).
+
+By default, `covariance` treats the last two axes as features and observations;
+earlier axes are independent batches. The explicit `axis F O` form selects the
+feature and observation axes in that order. It preserves the other axes and
+replaces the selected axes with two feature axes. The operation uses the sample
+denominator `N - 1`, returns real values, and requires at least two
+observations. Its result and feature means are calculated lazily and cached.
 
 ## Text
 

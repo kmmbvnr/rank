@@ -96,6 +96,38 @@ axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
 `.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
 
+## Covariance
+
+`covariance` from `use stats` calculates sample covariance. By default, the
+last axis contains observations, the preceding axis contains features, and all
+earlier axes are independent batches:
+
+```rank
+Cov = Features covariance
+BatchCov = Batch covariance
+```
+
+```text
+Features Observations       -> Features Features
+Batch Features Observations -> Batch Features Features
+```
+
+An explicit axis pair handles other layouts:
+
+```rank
+Cov = Samples covariance axis 1 0
+BatchCov = T covariance axis 2 0
+```
+
+The first number selects the feature axis and the second selects the
+observation axis. Both are zero-based, valid, and distinct. All remaining axes
+become batch axes in their original order. This operation-specific `axis` form
+already defines the cells and is not combined with `rank`.
+
+Covariance divides by `N - 1`, always returns real values, and raises
+`.InsufficientData` when the observation axis has fewer than two items. The
+result and per-feature means are calculated on demand and cached.
+
 ## Sliding windows
 
 Multidimensional `window` creates overlapping tensor cells without eagerly
