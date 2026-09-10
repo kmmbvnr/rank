@@ -1,0 +1,58 @@
+use testing
+
+test "official example"
+  use "010_cov"
+  V = array shape 2 3
+    1 2 3
+    4 5 6
+  end
+  Expected = array shape 2 2
+    1.0 1.0
+    1.0 1.0
+  end
+
+  V covariance equal Expected
+end
+
+test "two observations"
+  use "010_cov"
+  V = array shape 2 2
+    1 3
+    2 6
+  end
+  Expected = array shape 2 2
+    2.0 4.0
+    4.0 8.0
+  end
+
+  V covariance equal Expected
+end
+
+test "single feature"
+  use "010_cov"
+  V = array shape 1 3
+    1 2 3
+  end
+  Expected = array shape 1 1
+    1.0
+  end
+
+  V covariance equal Expected
+end
+
+test "needs two observations"
+  use "010_cov"
+  V = array shape 2 1
+    1
+    2
+  end
+  Raised = false
+
+  try
+    Result = V covariance
+  catch .InsufficientData Error
+    Raised = true
+  end
+
+  Raised
+end

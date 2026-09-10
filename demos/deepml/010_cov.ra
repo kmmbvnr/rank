@@ -1,0 +1,23 @@
+rem Deep-ML 10: Covariance Matrix
+rem https://www.deep-ml.com/problems/10
+
+use linalg
+use sequences
+use stats
+
+rem Return the sample covariance of feature rows.
+fun covariance V
+  N = V len axis 1
+  if N less 2
+    .InsufficientData raise
+  end
+
+  Centered = V center rank 1
+  Transposed = Centered transpose
+  return Centered Transposed matmul / (N - 1)
+
+  rem Center one feature without copying it eagerly.
+  fun center Feature
+    return Feature - Feature mean
+  end
+end
