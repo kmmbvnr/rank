@@ -12,7 +12,7 @@ use sequences
 argument Input path
 
 Lines = Input readlines
-Part1 Part2 = Lines solve
+unpack Part1 Part2 = Lines solve
 
 Part1 print
 Part2 print
@@ -41,7 +41,7 @@ fun circuit Lines Target Override
 
     for Line in Lines
       Rule = Line Pattern parse
-      Expression Dest = Rule
+      unpack Expression Dest = Rule
 
       if not (Dest in index)
         Terms = Expression " " split

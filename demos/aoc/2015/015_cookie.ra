@@ -13,7 +13,7 @@ use sequences
 argument Input path
 
 Lines = Input readlines
-Part1 Part2 = Lines solve
+unpack Part1 Part2 = Lines solve
 Part1 print
 Part2 print
 
@@ -23,7 +23,7 @@ fun solve Lines
   Pattern = "/word: capacity /integer, durability /integer, flavor /integer, texture /integer, calories /integer"
 
   for Line in Lines
-    Name Capacity Durability Flavor Texture Calories = Line Pattern parse
+    unpack Name Capacity Durability Flavor Texture Calories = Line Pattern parse
     Ingredient = array Capacity Durability Flavor Texture Calories
     queue push Ingredient
   end
@@ -53,7 +53,7 @@ fun search Ingredients Position Remaining Totals
 
   for Amount in 0 to Remaining
     Next = Totals + Ingredient * Amount
-    A B = Ingredients (Position + 1) (Remaining - Amount) Next search
+    unpack A B = Ingredients (Position + 1) (Remaining - Amount) Next search
 
     if A greater Best
       Best = A

@@ -11,7 +11,7 @@ use ranges
 argument Input path
 
 Start = Input readlines 0
-Part1 Part2 = Start solve
+unpack Part1 Part2 = Start solve
 Part1 print
 Part2 print
 

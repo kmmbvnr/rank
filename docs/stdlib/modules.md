@@ -195,12 +195,11 @@ Characters = "A😀Б" "" split
 ```
 
 `parse` matches a complete text value against a text pattern and returns the
-captured values as a rank-1 array. It is normally combined with multiple
-assignment:
+captured values as a rank-1 array. It is normally combined with `unpack`:
 
 ```rank
 Pattern = "/word to /word = /integer"
-From To Distance = Line Pattern parse
+unpack From To Distance = Line Pattern parse
 ```
 
 Patterns use `/integer`, `/real`, `/word` and `/text`. Integers and reals are
@@ -211,10 +210,10 @@ slash. All other characters, including spaces, match exactly:
 
 ```rank
 Pattern = "/integerx/integerx/integer"
-Length Width Height = "2x3x4" Pattern parse
+unpack Length Width Height = "2x3x4" Pattern parse
 
 Spaced = "/integer x /integer"
-A B = "2 x 3" Spaced parse
+unpack A B = "2 x 3" Spaced parse
 ```
 
 An unknown directive raises `.InvalidFormat`. Input that does not match the

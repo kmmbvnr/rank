@@ -7,6 +7,7 @@ import {
     isApplicationExpression,
     isAssignmentStatement,
     isBinaryExpression,
+    isUnpackStatement,
     isUnaryExpression,
 } from '../src/index.js';
 
@@ -58,19 +59,23 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
-    it('parses multiple assignment from a formatted text expression', async () => {
+    it('parses explicit unpacking from a formatted text expression', async () => {
         const document = await parse([
             'Pattern = "/integerx/integerx/integer"',
-            'Length Width Height = Line Pattern parse',
+            'unpack Length Width Height = Line Pattern parse',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
 
         const statement = document.parseResult.value.statements[1];
-        expect(isAssignmentStatement(statement)).toBe(true);
-        if (!isAssignmentStatement(statement)) return;
-        expect(statement.name).toBe('Length');
-        expect(statement.additionalNames).toEqual(['Width', 'Height']);
+        expect(isUnpackStatement(statement)).toBe(true);
+        if (!isUnpackStatement(statement)) return;
+        expect(statement.names).toEqual(['Length', 'Width', 'Height']);
+    });
+
+    it('rejects unpacking without the unpack keyword', async () => {
+        const document = await parse('A B = array 1 2');
+        expect(document.parseResult.parserErrors).not.toEqual([]);
     });
 
     it('parses right-associative exponentiation above unary signs', async () => {

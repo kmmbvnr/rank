@@ -654,11 +654,11 @@ describe('Rank interpreter', () => {
             .toThrowError('an empty split separator must be used alone');
     });
 
-    it('parses formatted text and unpacks arrays with multiple assignment', () => {
+    it('parses formatted text and explicitly unpacks arrays', () => {
         expect(run([
             'use text',
             'Pattern = "/integerx/integerx/integer"',
-            'Length Width Height = "2x3x4" Pattern parse',
+            'unpack Length Width Height = "2x3x4" Pattern parse',
             'Length * Width * Height',
         ].join('\n'))).toBe('24');
         expect(new Interpreter().execute([
@@ -685,18 +685,18 @@ describe('Rank interpreter', () => {
         expect(run([
             'use text',
             'Pattern = "/integer x /integer"',
-            'A B = "2 x 3" Pattern parse',
+            'unpack A B = "2 x 3" Pattern parse',
             'A + B',
         ].join('\n'))).toBe('5');
         expect(() => run('use text\n"abc" "/unknown" parse'))
             .toThrowError('unknown parse directive at position 0');
-        expect(() => run('A B = array 1 2 3'))
-            .toThrowError('multiple assignment expects 2 values, got 3');
+        expect(() => run('unpack A B = array 1 2 3'))
+            .toThrowError('unpack expects 2 values, got 3');
         expect(() => run([
-            'A B = array shape 1 2',
+            'unpack A B = array shape 1 2',
             '  1 2',
             'end',
-        ].join('\n'))).toThrowError('multiple assignment expects a rank-1 array value');
+        ].join('\n'))).toThrowError('unpack expects a rank-1 array value');
     });
 
     it('counts and addresses Unicode text atoms', () => {

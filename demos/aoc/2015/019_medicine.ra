@@ -12,7 +12,7 @@ use ranges
 argument Input path
 
 Lines = Input readlines
-Part1 Part2 = Lines solve
+unpack Part1 Part2 = Lines solve
 Part1 print
 Part2 print
 

@@ -9,7 +9,7 @@ use json
 argument Input path
 
 Text = Input read
-Part1 Part2 = Text solve
+unpack Part1 Part2 = Text solve
 Part1 print
 Part2 print
 

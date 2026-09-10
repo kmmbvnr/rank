@@ -10,7 +10,7 @@ use sequences
 argument Input path
 
 Lines = Input readlines
-Part1 Part2 = Lines solve
+unpack Part1 Part2 = Lines solve
 Part1 print
 Part2 print
 
@@ -20,7 +20,7 @@ fun solve Lines
   Pattern = "/word to /word = /integer"
 
   for Line in Lines
-    A B Distance = Line Pattern parse
+    unpack A B Distance = Line Pattern parse
     set add A
     set add B
     index A B = Distance

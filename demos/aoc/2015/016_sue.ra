@@ -10,7 +10,7 @@ use text
 argument Input path
 
 Lines = Input readlines
-Part1 Part2 = Lines solve
+unpack Part1 Part2 = Lines solve
 Part1 print
 Part2 print
 
@@ -33,7 +33,7 @@ fun solve Lines
   Part2 = 0
 
   for Line in Lines
-    Id P1 V1 P2 V2 P3 V3 = Line Pattern parse
+    unpack Id P1 V1 P2 V2 P3 V3 = Line Pattern parse
 
     A = P1 V1 index exact
     B = P2 V2 index exact

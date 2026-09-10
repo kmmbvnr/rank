@@ -12,7 +12,7 @@ use ranges
 argument Input path
 
 Lines = Input readlines
-Part1 Part2 = Lines 2503 solve
+unpack Part1 Part2 = Lines 2503 solve
 Part1 print
 Part2 print
 
@@ -22,7 +22,7 @@ fun solve Lines Race
   Pattern = "/word can fly /integer km//s for /integer seconds, but then must rest for /integer seconds."
 
   for Line in Lines
-    Name Speed Fly Rest = Line Pattern parse
+    unpack Name Speed Fly Rest = Line Pattern parse
 
     index Name "speed" = Speed
     index Name "fly" = Fly

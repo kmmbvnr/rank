@@ -25,6 +25,7 @@ Statement:
     PushStatement |
     AddStatement |
     IndexAssignmentStatement |
+    UnpackStatement |
     AssignmentStatement |
     ExpressionStatement;
 
@@ -110,9 +111,11 @@ AddStatement:
 IndexAssignmentStatement:
     'index' keys+=PrimaryExpression+ '=' value=Expression;
 
+UnpackStatement:
+    'unpack' names+=AssignableName+ '=' value=Expression;
+
 AssignmentStatement:
-    name=AssignableName additionalNames+=AssignableName*
-    operator=AssignmentOperator value=Expression;
+    name=AssignableName operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | '%=' |
