@@ -115,6 +115,11 @@ interface LocalFrame {
     readonly types: Map<string, ReadonlySet<string>>;
 }
 
+interface LexicalContext {
+    readonly values: readonly Map<string, RankValue>[];
+    readonly types: readonly Map<string, ReadonlySet<string>>[];
+}
+
 class ReturnSignal {
     constructor(readonly value?: RankValue) {}
 }
@@ -244,25 +249,32 @@ export class Interpreter {
         scope.add(file);
     }
 
-    private withLocalFrame<T>(frame: LocalFrame, operation: () => T): T {
-        this.localScopes.push(frame.values);
-        this.localTypeScopes.push(frame.types);
+    private withLexicalFrame<T>(
+        context: LexicalContext,
+        frame: LocalFrame,
+        operation: () => T,
+    ): T {
+        const callerValues = this.localScopes.splice(0);
+        const callerTypes = this.localTypeScopes.splice(0);
+        this.localScopes.push(...context.values, frame.values);
+        this.localTypeScopes.push(...context.types, frame.types);
         try {
             return operation();
         } finally {
-            this.localScopes.pop();
-            this.localTypeScopes.pop();
+            this.localScopes.splice(0, this.localScopes.length, ...callerValues);
+            this.localTypeScopes.splice(0, this.localTypeScopes.length, ...callerTypes);
         }
     }
 
     private withGeneratorFrame<T>(
+        context: LexicalContext,
         frame: LocalFrame,
         resources: Set<RankFile>,
         operation: () => T,
     ): T {
         this.resourceScopes.push(resources);
         try {
-            return this.withLocalFrame(frame, operation);
+            return this.withLexicalFrame(context, frame, operation);
         } finally {
             this.resourceScopes.pop();
         }
@@ -290,6 +302,7 @@ export class Interpreter {
         args: readonly string[] = [],
         assertBooleanExpressions = false,
     ): RankValue | undefined {
+        validateFunctionPlacement(program.statements, 'top');
         this.declareFunctions(program.statements);
         this.prepareInputs(program, args);
         return this.executeStatements(program.statements, assertBooleanExpressions);
@@ -302,6 +315,7 @@ export class Interpreter {
     }
 
     private prepareModule(program: Program): void {
+        validateFunctionPlacement(program.statements, 'top');
         this.declareFunctions(program.statements);
         for (const statement of program.statements) {
             if (!isUseStatement(statement)) continue;
@@ -749,14 +763,19 @@ export class Interpreter {
 
     private defineFunction(statement: FunctionStatement): RankValue {
         const generator = statementsContainYield(statement.statements);
+        const context: LexicalContext = {
+            values: [...this.localScopes],
+            types: [...this.localTypeScopes],
+        };
         const fn: RankValue = {
             kind: 'function',
             name: statement.name,
             arities: [statement.parameters.length],
             monadicRank: 'all',
+            captures: context.values,
             call: arguments_ => generator
-                ? this.callGeneratorFunction(statement, arguments_)
-                : this.callFunction(statement, arguments_),
+                ? this.callGeneratorFunction(statement, arguments_, context)
+                : this.callFunction(statement, arguments_, context),
         };
         this.assign(statement.name, fn);
         return fn;
@@ -782,10 +801,15 @@ export class Interpreter {
         return frame;
     }
 
-    private callFunction(statement: FunctionStatement, arguments_: RankValue[]): RankValue {
+    private callFunction(
+        statement: FunctionStatement,
+        arguments_: RankValue[],
+        context: LexicalContext,
+    ): RankValue {
         const frame = this.functionFrame(statement, arguments_);
         return this.withResourceScope(() => {
-            return this.withLocalFrame(frame, () => {
+            return this.withLexicalFrame(context, frame, () => {
+                this.declareFunctions(statement.statements);
                 try {
                     this.executeStatements(statement.statements);
                 } catch (error) {
@@ -802,14 +826,20 @@ export class Interpreter {
     private callGeneratorFunction(
         statement: FunctionStatement,
         arguments_: RankValue[],
+        context: LexicalContext,
     ): RankSequence {
         const frame = this.functionFrame(statement, arguments_);
         const interpreter = this;
         let consumed = false;
 
+        this.withLexicalFrame(context, frame, () => {
+            this.declareFunctions(statement.statements);
+        });
+
         return sequence({
             name: statement.name,
             size: { kind: 'unknown' },
+            captures: [...context.values, frame.values],
             *iterate() {
                 if (consumed) {
                     throw new RankError(
@@ -833,6 +863,7 @@ export class Interpreter {
                         let next: IteratorResult<RankValue, RankValue | undefined>;
                         try {
                             next = interpreter.withGeneratorFrame(
+                                context,
                                 frame,
                                 resources,
                                 () => execution.next(),
@@ -847,6 +878,7 @@ export class Interpreter {
                 } finally {
                     try {
                         interpreter.withGeneratorFrame(
+                            context,
                             frame,
                             resources,
                             () => execution.return(undefined),
@@ -1134,8 +1166,19 @@ export class Interpreter {
     private assign(name: string, value: RankValue): void {
         const qualified = splitQualified(name);
         if (!qualified) {
-            const scope = this.localScopes.at(-1) ?? this.variables;
-            const typeScope = this.localTypeScopes.at(-1) ?? this.variableTypes;
+            let scopeIndex = -1;
+            for (let index = this.localScopes.length - 1; index >= 0; index -= 1) {
+                if (this.localScopes[index].has(name)) {
+                    scopeIndex = index;
+                    break;
+                }
+            }
+            const scope = scopeIndex >= 0
+                ? this.localScopes[scopeIndex]
+                : this.localScopes.at(-1) ?? this.variables;
+            const typeScope = scopeIndex >= 0
+                ? this.localTypeScopes[scopeIndex]
+                : this.localTypeScopes.at(-1) ?? this.variableTypes;
             const previous = scope.get(name);
             const expected = typeScope.get(name)
                 ?? (previous === undefined ? undefined : new Set([typeName(previous)]));
@@ -2178,6 +2221,38 @@ function statementsContainYield(statements: readonly Statement[]): boolean {
     });
 }
 
+type FunctionPlacement = 'top' | 'function' | 'block';
+
+function validateFunctionPlacement(
+    statements: readonly Statement[],
+    placement: FunctionPlacement,
+): void {
+    for (const statement of statements) {
+        if (isFunctionStatement(statement)) {
+            if (placement === 'block') {
+                throw new RankError('a local function must be declared directly inside a function');
+            }
+            validateFunctionPlacement(statement.statements, 'function');
+        } else if (isTestStatement(statement)) {
+            validateFunctionPlacement(statement.statements, 'top');
+        } else if (isIfStatement(statement)) {
+            validateFunctionPlacement(statement.thenStatements, 'block');
+            for (const clause of statement.elifClauses) {
+                validateFunctionPlacement(clause.statements, 'block');
+            }
+            validateFunctionPlacement(statement.elseStatements, 'block');
+        } else if (isForStatement(statement)) {
+            validateFunctionPlacement(statement.statements, 'block');
+        } else if (isTryStatement(statement)) {
+            validateFunctionPlacement(statement.statements, 'block');
+            for (const clause of statement.catches) {
+                validateFunctionPlacement(clause.statements, 'block');
+            }
+            validateFunctionPlacement(statement.finallyStatements, 'block');
+        }
+    }
+}
+
 function* reductionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
     if (isRankArray(value)) {
         for (let index = 0; index < arraySize(value.shape); index += 1) {
@@ -2522,6 +2597,10 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         } else if (isRankErrorValue(item)) {
             visit(item.value);
             visit(item.cause);
+        } else if (isNativeFunction(item)) {
+            item.captures?.forEach(scope => scope.forEach(visit));
+        } else if (isRankSequence(item)) {
+            item.plan.captures?.forEach(scope => scope.forEach(visit));
         }
     };
 

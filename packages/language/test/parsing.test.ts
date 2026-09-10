@@ -162,6 +162,21 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses a local function at the end of its enclosing function', async () => {
+        const document = await parse([
+            'fun make Base',
+            '  return add',
+            '',
+            '  fun add Value',
+            '    return Base + Value',
+            '  end',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
+
     it('parses elif branches before an optional else', async () => {
         const document = await parse([
             'if Value less 0',

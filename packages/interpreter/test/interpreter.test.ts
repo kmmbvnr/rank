@@ -1031,6 +1031,84 @@ describe('Rank interpreter', () => {
         expect(interpreter.variables.has('TopLevel')).toBe(false);
     });
 
+    it('registers local functions early and captures their lexical workspace', () => {
+        expect(run([
+            'fun total N',
+            '  return N adddown',
+            '',
+            '  fun adddown Value',
+            '    if Value equal 0',
+            '      return 0',
+            '    end',
+            '    return Value + ((Value - 1) adddown)',
+            '  end',
+            'end',
+            '5 total',
+        ].join('\n'))).toBe('15');
+
+        expect(run([
+            'fun make Base',
+            '  return add',
+            '',
+            '  fun add Value',
+            '    Base += 1',
+            '    return Base + Value',
+            '  end',
+            'end',
+            'A = 10 make',
+            'B = 20 make',
+            'First = 0 A',
+            'Second = 0 A',
+            'Other = 0 B',
+            'array First Second Other',
+        ].join('\n'))).toBe('11 12 21');
+    });
+
+    it('uses lexical rather than caller-local function lookup', () => {
+        expect(() => run([
+            'fun caller X',
+            '  return 1 helper',
+            'end',
+            'fun helper Y',
+            '  return X + Y',
+            'end',
+            '3 caller',
+        ].join('\n'))).toThrowError('unknown name: X');
+    });
+
+    it('keeps captured local generators alive after their outer call', () => {
+        expect(run([
+            'use ranges',
+            'fun multiples Factor',
+            '  return values',
+            '',
+            '  fun values Limit',
+            '    for Value in 1 to Limit',
+            '      yield Value * Factor',
+            '    end',
+            '  end',
+            'end',
+            'Twos = 2 multiples',
+            '3 Twos array',
+        ].join('\n'))).toBe('2 4 6');
+    });
+
+    it('rejects conditional local function declarations', () => {
+        expect(() => run([
+            'fun outer Enabled',
+            '  if Enabled',
+            '    fun inner Value',
+            '      return Value',
+            '    end',
+            '  end',
+            '  return 0',
+            'end',
+            'true outer',
+        ].join('\n'))).toThrowError(
+            'a local function must be declared directly inside a function',
+        );
+    });
+
     it('keeps a source function attached to its module vocabulary', () => {
         const interpreter = new Interpreter(undefined, {
             sourceId: '/tests/example_test.ra',
@@ -1620,6 +1698,27 @@ describe('Rank interpreter', () => {
         expect(iterator.next()).toEqual({ value: 0n, done: false });
         expect(io.handles[0].closed).toBe(false);
         iterator.return?.();
+        expect(io.handles[0].closed).toBe(true);
+    });
+
+    it('keeps resources owned by an escaping local function', () => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use io',
+            'fun reader Path',
+            '  File = Path open',
+            '  return take',
+            '',
+            '  fun take Count',
+            '    return File Count readbytes',
+            '  end',
+            'end',
+            'Take = "/input" reader',
+            'Bytes = 2 Take',
+        ].join('\n'));
+
+        expect(formatValue(interpreter.variables.get('Bytes')!)).toBe('0x5261');
         expect(io.handles[0].closed).toBe(true);
     });
 

@@ -1140,6 +1140,41 @@ G = A B gcd
 Result print
 ```
 
+## Local functions and closures
+
+A function may declare functions directly inside its body. Local functions are
+registered when the enclosing call begins, so their definitions can stay after
+the executable lines and even after the outer `return`:
+
+```rank
+fun make Base
+  return add
+
+  fun add Value
+    return Base + Value
+  end
+end
+```
+
+The local function is visible throughout that invocation of `make`. It captures
+the enclosing lexical workspace by reference, and a returned function keeps
+that workspace alive. Separate calls create separate captured workspaces.
+Assignment updates the nearest captured binding; every binding still keeps its
+inferred type.
+
+Name lookup follows one fixed order: the function's own workspace, its captured
+outer workspaces from nearest to farthest, then the module workspace. A function
+does not see local values belonging only to its caller. Top-level functions
+therefore cannot accidentally depend on a caller's parameters.
+
+A local function declaration must be a direct statement of another function.
+It cannot be conditional or appear inside `if`, `for`, `try`, `catch` or
+`finally`. Test blocks may declare test-local functions directly, as before.
+Local functions may recurse and may contain further direct local functions.
+
+Resources in a captured workspace move with an escaping function and remain
+open for as long as the receiving resource scope owns that function.
+
 ## Generator functions
 
 A function containing `yield` returns a lazy sequence. Calling it creates the

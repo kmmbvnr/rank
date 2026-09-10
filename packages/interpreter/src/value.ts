@@ -82,6 +82,7 @@ export interface NativeFunction {
     readonly name: string;
     readonly arities: readonly number[];
     readonly monadicRank: number | 'all';
+    readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly call: (arguments_: RankValue[]) => RankValue;
 }
 
@@ -99,6 +100,7 @@ export type SequenceSize =
 export interface SequencePlan {
     readonly name: string;
     readonly size: SequenceSize;
+    readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     iterate(): IterableIterator<RankValue>;
 
     // Sources may extend these hooks with indexing, skipping, direct reductions,
