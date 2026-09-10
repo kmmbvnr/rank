@@ -5,10 +5,12 @@ import {
     sequence,
     sequenceMask,
     sequenceValues,
+    zipSequences,
 } from '../sequence.js';
 import {
     isRankArray,
     isRankSequence,
+    type RankArray,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -22,6 +24,24 @@ export const numbersModule: RuntimeModule = {
         if (typeof value === 'bigint') return absolute(value);
         return value < 0 ? -value : value === 0 ? 0 : value;
     }, 0),
+    sin: () => unaryMath('sin', Math.sin, finiteDomain),
+    cos: () => unaryMath('cos', Math.cos, finiteDomain),
+    tan: () => unaryMath('tan', Math.tan, finiteDomain),
+    asin: () => unaryMath('asin', Math.asin, unitDomain),
+    acos: () => unaryMath('acos', Math.acos, unitDomain),
+    atan: () => unaryMath('atan', Math.atan),
+    atan2: () => native('atan2', 2, arguments_ => mapBinaryNumeric(
+        arguments_[0],
+        arguments_[1],
+        'atan2',
+        (left, right) => Math.atan2(left, right),
+    ), 'all', [0, 0]),
+    sinh: () => unaryMath('sinh', Math.sinh),
+    cosh: () => unaryMath('cosh', Math.cosh),
+    tanh: () => unaryMath('tanh', Math.tanh),
+    asinh: () => unaryMath('asinh', Math.asinh),
+    acosh: () => unaryMath('acosh', Math.acosh, value => value >= 1),
+    atanh: () => unaryMath('atanh', Math.atanh, value => value > -1 && value < 1),
     sqrt: () => native('sqrt', 1, arguments_ => {
         const value = expectNumeric(arguments_[0]);
         if (value < 0) {
@@ -73,6 +93,114 @@ export const numbersModule: RuntimeModule = {
     odd: () => predicateFunction('odd', value => expectInteger(value) % 2n !== 0n),
     even: () => predicateFunction('even', value => expectInteger(value) % 2n === 0n),
 };
+
+function unaryMath(
+    name: string,
+    operation: (value: number) => number,
+    accepts: (value: number) => boolean = () => true,
+) {
+    return native(name, 1, arguments_ => mapUnaryNumeric(
+        arguments_[0],
+        name,
+        value => {
+            if (!accepts(value)) {
+                throw new RankError(`${name} input is outside its domain`, 'DomainError');
+            }
+            return operation(value);
+        },
+    ));
+}
+
+function mapUnaryNumeric(
+    value: RankValue,
+    name: string,
+    operation: (value: number) => number,
+): RankValue {
+    if (isRankSequence(value)) {
+        return mapSequence(value, name, item => operation(numericReal(item, name)));
+    }
+    if (!isRankArray(value)) return operation(numericReal(value, name));
+    return mappedArray(value.shape, index =>
+        operation(numericReal(value.itemAt?.(index) ?? value.items[index], name)));
+}
+
+function mapBinaryNumeric(
+    left: RankValue,
+    right: RankValue,
+    name: string,
+    operation: (left: number, right: number) => number,
+): RankValue {
+    const scalarOperation = (a: RankValue, b: RankValue) =>
+        operation(numericReal(a, name), numericReal(b, name));
+    if (isRankSequence(left) && isRankSequence(right)) {
+        return zipSequences(left, right, name, scalarOperation);
+    }
+    if (isRankSequence(left)) {
+        return mapSequence(left, name, item => scalarOperation(item, right));
+    }
+    if (isRankSequence(right)) {
+        return mapSequence(right, name, item => scalarOperation(left, item));
+    }
+    if (isRankArray(left) && isRankArray(right)) {
+        if (left.shape.length !== right.shape.length
+            || left.shape.some((size, axis) => size !== right.shape[axis])) {
+            throw new RankError(`shape mismatch: ${left.shape} and ${right.shape}`);
+        }
+        return mappedArray(left.shape, index => scalarOperation(
+            left.itemAt?.(index) ?? left.items[index],
+            right.itemAt?.(index) ?? right.items[index],
+        ));
+    }
+    const array = isRankArray(left) ? left : isRankArray(right) ? right : undefined;
+    if (!array) return scalarOperation(left, right);
+    return mappedArray(array.shape, index => {
+        const item = array.itemAt?.(index) ?? array.items[index];
+        return isRankArray(left)
+            ? scalarOperation(item, right)
+            : scalarOperation(left, item);
+    });
+}
+
+function mappedArray(
+    shape: readonly number[],
+    operation: (index: number) => RankValue,
+): RankArray {
+    const cache = new Map<number, RankValue>();
+    const itemAt = (index: number): RankValue => {
+        const cached = cache.get(index);
+        if (cached !== undefined) return cached;
+        const result = operation(index);
+        cache.set(index, result);
+        return result;
+    };
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape,
+        itemAt,
+        containsFiles: false,
+        get items() {
+            const size = shape.reduce((product, dimension) => product * dimension, 1);
+            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
+            return materialized;
+        },
+    };
+}
+
+function numericReal(value: RankValue, operation: string): number {
+    if (typeof value !== 'bigint' && typeof value !== 'number') {
+        throw new RankError(`${operation} expects numeric input`, 'TypeError');
+    }
+    return Number(value);
+}
+
+function finiteDomain(value: number): boolean {
+    return Number.isFinite(value);
+}
+
+function unitDomain(value: number): boolean {
+    return value >= -1 && value <= 1;
+}
 
 export function roundValue(value: RankValue, placesValue: RankValue): RankValue {
     if (typeof placesValue !== 'bigint') {

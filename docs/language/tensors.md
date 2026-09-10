@@ -74,6 +74,10 @@ exp
 log
 sqrt
 round
+sin
+cos
+tan
+atan2
 softmax
 gelu
 layernorm

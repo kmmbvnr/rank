@@ -158,6 +158,17 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('parses data-first trigonometric calls', async () => {
+        const document = await parse([
+            'use numbers',
+            'Angle = Y X atan2',
+            'Wave = Angles sin',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
     it('continues expressions across lines inside parentheses', async () => {
         const document = await parse([
             'Result = (',

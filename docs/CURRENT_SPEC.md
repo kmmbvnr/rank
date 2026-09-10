@@ -2305,6 +2305,10 @@ exp
 log
 sqrt
 round
+sin
+cos
+tan
+atan2
 softmax
 gelu
 layernorm
@@ -2610,6 +2614,19 @@ even
 abs
 sqrt
 round
+sin
+cos
+tan
+asin
+acos
+atan
+atan2
+sinh
+cosh
+tanh
+asinh
+acosh
+atanh
 prime
 gcd
 lcm
@@ -2665,6 +2682,32 @@ It applies lazily to scalar cells while preserving an array's shape or a
 sequence's order. Halfway values round to the nearest even result, as in
 Python and NumPy. An integer remains an integer and a real remains a real.
 The places argument must be one scalar safe integer.
+
+The trigonometric family uses radians and returns `real` values:
+
+```rank
+Y = Angle sin
+X = Angle cos
+Slope = Angle tan
+Angle = Ratio atan
+Angle = Y X atan2
+```
+
+The circular functions are `sin`, `cos` and `tan`; their inverse functions are
+`asin`, `acos` and `atan`. `atan2` takes the vertical coordinate first and the
+horizontal coordinate second, so it preserves quadrant information and handles
+a zero horizontal coordinate.
+
+`sinh`, `cosh` and `tanh` provide the hyperbolic functions; `asinh`, `acosh` and
+`atanh` provide their inverses. `asin` and `acos` accept values from -1 through
+1, `acosh` accepts values at least 1, and `atanh` accepts values strictly
+between -1 and 1. An input outside a function's mathematical domain raises
+`.DomainError`. `sin`, `cos` and `tan` also reject infinities.
+
+Unary functions have intrinsic rank 0 and map lazily over arrays and
+sequences. `atan2` has intrinsic ranks `0 0`. It combines equal-shaped arrays
+elementwise, broadcasts a scalar over one array, and zips two sequences.
+It can also be supplied to `outer`.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:
