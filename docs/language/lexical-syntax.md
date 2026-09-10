@@ -204,6 +204,18 @@ at most
 
 `at least` means `>=`; `at most` means `<=`.
 
+`in` tests membership. With text on both sides it performs an exact,
+case-sensitive substring search; the empty text occurs in every text value:
+
+```rank
+if "ab" in Text
+  Found = true
+end
+```
+
+For keyed collections, `X in index` tests whether the key exists and `X in
+set` tests whether an equal value has been added.
+
 ## Scalar types
 
 Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`

@@ -167,6 +167,8 @@ Examples:
 ```rank
 split
 reverse
+codepoint
+character
 text
 integer
 parse
@@ -252,6 +254,17 @@ rem Б😀A
 ```
 
 Reversal of array axes is a separate tensor operation and remains deferred.
+
+`codepoint` converts exactly one Unicode character to its integer code point.
+`character` performs the inverse conversion and returns one-character text:
+
+```rank
+Code = "😀" codepoint
+C = 128512 character
+```
+
+`character` rejects negative integers, values above `0x10ffff`, and Unicode
+surrogate code points.
 
 `len` from `sequences` returns the number of Unicode code points in text, the
 leading-axis length of an array, the size of a queue or set, or the length of a

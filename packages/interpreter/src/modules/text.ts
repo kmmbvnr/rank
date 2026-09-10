@@ -51,6 +51,23 @@ export const textModule: RuntimeModule = {
         if (typeof value !== 'string') throw new RankError('reverse expects text');
         return [...value].reverse().join('');
     }),
+    codepoint: () => native('codepoint', 1, arguments_ => {
+        const value = arguments_[0];
+        if (typeof value !== 'string' || [...value].length !== 1) {
+            throw new RankError('codepoint expects one Unicode character');
+        }
+        return BigInt(value.codePointAt(0)!);
+    }),
+    character: () => native('character', 1, arguments_ => {
+        const value = arguments_[0];
+        if (typeof value !== 'bigint') {
+            throw new RankError('character expects an integer code point');
+        }
+        if (value < 0n || value > 0x10ffffn || (value >= 0xd800n && value <= 0xdfffn)) {
+            throw new RankError(`invalid Unicode code point: ${value}`);
+        }
+        return String.fromCodePoint(Number(value));
+    }),
     integer: () => native('integer', 1, arguments_ => {
         const value = arguments_[0];
         if (typeof value !== 'string') throw new RankError('integer expects text');

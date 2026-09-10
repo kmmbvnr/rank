@@ -276,6 +276,18 @@ at most
 
 `at least` means `>=`; `at most` means `<=`.
 
+`in` tests membership. With text on both sides it performs an exact,
+case-sensitive substring search; the empty text occurs in every text value:
+
+```rank
+if "ab" in Text
+  Found = true
+end
+```
+
+For keyed collections, `X in index` tests whether the key exists and `X in
+set` tests whether an equal value has been added.
+
 ## Scalar types
 
 Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
@@ -2221,6 +2233,8 @@ Examples:
 ```rank
 split
 reverse
+codepoint
+character
 text
 integer
 parse
@@ -2306,6 +2320,17 @@ rem Б😀A
 ```
 
 Reversal of array axes is a separate tensor operation and remains deferred.
+
+`codepoint` converts exactly one Unicode character to its integer code point.
+`character` performs the inverse conversion and returns one-character text:
+
+```rank
+Code = "😀" codepoint
+C = 128512 character
+```
+
+`character` rejects negative integers, values above `0x10ffff`, and Unicode
+surrogate code points.
 
 `len` from `sequences` returns the number of Unicode code points in text, the
 leading-axis length of an array, the size of a queue or set, or the length of a

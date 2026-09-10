@@ -1071,9 +1071,12 @@ export class Interpreter {
             return this.combineSequenceMasks(operator, left, right);
         }
         if (operator === 'in') {
+            if (typeof left === 'string' && typeof right === 'string') {
+                return right.includes(left);
+            }
             if (isRankIndex(right)) return right.entries.has(indexKey([left]));
             if (isRankSet(right)) return right.entries.has(setValueKey(left));
-            throw new RankError('in expects an index or set on the right');
+            throw new RankError('in expects text, an index or set on the right');
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {

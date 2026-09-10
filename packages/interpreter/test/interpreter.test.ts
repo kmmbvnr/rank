@@ -522,6 +522,21 @@ describe('Rank interpreter', () => {
         expect(() => run('use text\n12 reverse')).toThrowError('reverse expects text');
     });
 
+    it('converts Unicode code points and searches text', () => {
+        expect(run('use text\n"A" codepoint')).toBe('65');
+        expect(run('use text\n"😀" codepoint')).toBe('128512');
+        expect(run('use text\n128512 character')).toBe('😀');
+        expect(run('"bc" in "abcd"')).toBe('true');
+        expect(run('"" in "Rank"')).toBe('true');
+        expect(run('"BC" in "abcd"')).toBe('false');
+        expect(() => run('use text\n"AB" codepoint'))
+            .toThrowError('codepoint expects one Unicode character');
+        expect(() => run('use text\n55296 character'))
+            .toThrowError('invalid Unicode code point: 55296');
+        expect(() => run('use text\n1114112 character'))
+            .toThrowError('invalid Unicode code point: 1114112');
+    });
+
     it('checks text prefixes and formats bytes as hexadecimal text', () => {
         expect(run('use text\n"Rank language" "Rank" startswith')).toBe('true');
         expect(run('use text\n"Rank language" "rank" startswith')).toBe('false');
