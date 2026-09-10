@@ -1141,6 +1141,9 @@ export class Interpreter {
             if (operator === 'or') return a || b;
             return a !== b;
         }
+        if (operator === '+' && (typeof left === 'string' || typeof right === 'string')) {
+            throw new RankError('+ expects two numeric or two text values');
+        }
         if (operator === 'multipleby') {
             this.requireModule('numbers', 'multiple by');
             return expectInteger(left) % expectInteger(right) === 0n;

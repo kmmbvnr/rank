@@ -137,11 +137,6 @@ describe('Rank interpreter', () => {
         expect(run('3 at most 2')).toBe('false');
     });
 
-    it('concatenates text with addition', () => {
-        expect(run('"Rank" + " language"')).toBe('Rank language');
-        expect(() => run('"Rank" + 1')).toThrowError('expected number, got text');
-    });
-
     it('raises numbers and collections to powers', () => {
         expect(run('2 ** 10')).toBe('1024');
         expect(run('2 ** 3 ** 2')).toBe('512');
@@ -198,6 +193,14 @@ describe('Rank interpreter', () => {
         const interpreter = new Interpreter();
         interpreter.execute('Answer = 6 * 7');
         expect(formatValue(interpreter.execute('Answer')!)).toBe('42');
+    });
+
+    it('concatenates text with scalar and elementwise addition', () => {
+        expect(run('"Rank" + " language"')).toBe('Rank language');
+        expect(run('Text = "A"\nText += "😀"\nText')).toBe('A😀');
+        expect(run('(array "A" "B") + "!"')).toBe('A! B!');
+        expect(() => run('"Rank" + 1'))
+            .toThrowError('+ expects two numeric or two text values');
     });
 
     it('keeps the inferred type of a variable', () => {

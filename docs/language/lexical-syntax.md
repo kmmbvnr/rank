@@ -232,6 +232,17 @@ end
 For keyed collections, `X in index` tests whether the key exists and `X in
 set` tests whether an equal value has been added.
 
+`+` concatenates two text values, and `+=` appends text to a text variable:
+
+```rank
+Name = "Rank" + " language"
+Name += "!"
+```
+
+Both operands must be text. Rank does not implicitly convert numbers or other
+values during concatenation; use the explicit `text` operation first when
+conversion is intended.
+
 ## Scalar types
 
 Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`

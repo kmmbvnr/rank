@@ -244,6 +244,14 @@ Scalar broadcasting is allowed where shape rules make it unambiguous.
 Two array operands are compatible only when their complete shapes are equal;
 an equal number of elements is not enough.
 
+Because scalar `+` concatenates two text values, the same array rule provides
+elementwise text concatenation and scalar broadcasting:
+
+```rank
+Labels = (array "A" "B") + "!"
+rem A! B!
+```
+
 `**`, `%` and comparisons are also elementwise over compatible arrays:
 
 ```rank
