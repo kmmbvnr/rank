@@ -147,6 +147,17 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses decimal-place rounding after its data', async () => {
+        const document = await parse([
+            'use numbers',
+            'Rounded = Values round 4',
+            'Hundreds = Count round -2',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
     it('parses a named function modified by outer', async () => {
         const document = await parse('Grid = Values Values bxor outer');
         expect(document.parseResult.lexerErrors).toEqual([]);

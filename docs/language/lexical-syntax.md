@@ -10,6 +10,7 @@ sum
 queue
 index
 sqrt
+round
 ```
 
 Ordinary user variables are capitalized:
@@ -275,6 +276,12 @@ rem 2.5, 2, -3
 `infinity` and `-infinity` are real values provided by `use numbers`. They are
 valid for comparisons and arithmetic, but decimal input declarations accept
 only finite real values.
+
+`round` from `use numbers` preserves the numeric type of every scalar it
+rounds: an `integer` result remains an integer and a `real` result remains a
+real. Its signed integer places argument counts decimal positions to the right
+of zero when positive and to the left when negative. Halfway values round to
+the nearest even result.
 
 Future low-precision numeric formats used by ML, such as 4-bit or 8-bit floats,
 must be requested explicitly. Type inference never silently selects a reduced

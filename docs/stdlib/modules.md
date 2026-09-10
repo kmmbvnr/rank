@@ -38,6 +38,7 @@ odd
 even
 abs
 sqrt
+round
 prime
 gcd
 lcm
@@ -80,6 +81,19 @@ Roots = Values sqrt
 
 It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
+
+`round` rounds a numeric value to a signed number of decimal places:
+
+```rank
+Price = Value round 2
+Rounded = Values round 4
+Hundreds = Count round -2
+```
+
+It applies lazily to scalar cells while preserving an array's shape or a
+sequence's order. Halfway values round to the nearest even result, as in
+Python and NumPy. An integer remains an integer and a real remains a real.
+The places argument must be one scalar safe integer.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:

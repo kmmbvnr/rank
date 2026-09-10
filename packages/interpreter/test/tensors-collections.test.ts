@@ -518,6 +518,39 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\noption Rate real = 1.5\nRate')).toBe('1.5');
     });
 
+    it('rounds numeric scalars and arrays to decimal places', () => {
+        expect(run('use numbers\n2.5 round 0')).toBe('2');
+        expect(run('use numbers\n3.5 round 0')).toBe('4');
+        expect(run('use numbers\n-2.5 round 0')).toBe('-2');
+        expect(run('use numbers\n1250 round -2')).toBe('1200');
+        expect(run('use numbers\n1350 round -2')).toBe('1400');
+        expect(run('use numbers\nuse ranges\n(1 to 3) round 2')).toBe('1 2 3');
+        const source = [
+            'use numbers',
+            'Values = array shape 2 2',
+            '  1.23455 2.34564',
+            '  3.0 4',
+            'end',
+            'Rounded = Values round 4',
+        ];
+        expect(run([...source, 'Rounded'].join('\n'))).toBe('1.2346 2.3456 3 4');
+        expect(run([...source, 'Rounded 1 0'].join('\n'))).toBe('3');
+    });
+
+    it('keeps array rounding lazy and validates its inputs', () => {
+        expect(run([
+            'use numbers',
+            'Values = array 1.25 "later"',
+            'Rounded = Values round 1',
+            'Rounded 0',
+        ].join('\n'))).toBe('1.2');
+        expect(() => run('use numbers\n"Rank" round 2'))
+            .toThrowError('round expects numeric input');
+        expect(() => run('use numbers\n1.25 round 2.0'))
+            .toThrowError('round places must be an integer');
+        expect(() => run('1.25 round 2')).toThrowError('round requires: use numbers');
+    });
+
     it('operates on arbitrary-precision integer bits', () => {
         expect(run('use bits\n123 456 band')).toBe('72');
         expect(run('use bits\n123 456 bor')).toBe('507');

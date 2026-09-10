@@ -82,6 +82,7 @@ sum
 queue
 index
 sqrt
+round
 ```
 
 Ordinary user variables are capitalized:
@@ -347,6 +348,12 @@ rem 2.5, 2, -3
 `infinity` and `-infinity` are real values provided by `use numbers`. They are
 valid for comparisons and arithmetic, but decimal input declarations accept
 only finite real values.
+
+`round` from `use numbers` preserves the numeric type of every scalar it
+rounds: an `integer` result remains an integer and a `real` result remains a
+real. Its signed integer places argument counts decimal positions to the right
+of zero when positive and to the left when negative. Halfway values round to
+the nearest even result.
 
 Future low-precision numeric formats used by ML, such as 4-bit or 8-bit floats,
 must be requested explicitly. Type inference never silently selects a reduced
@@ -2271,6 +2278,7 @@ max
 exp
 log
 sqrt
+round
 softmax
 gelu
 layernorm
@@ -2575,6 +2583,7 @@ odd
 even
 abs
 sqrt
+round
 prime
 gcd
 lcm
@@ -2617,6 +2626,19 @@ Roots = Values sqrt
 
 It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
+
+`round` rounds a numeric value to a signed number of decimal places:
+
+```rank
+Price = Value round 2
+Rounded = Values round 4
+Hundreds = Count round -2
+```
+
+It applies lazily to scalar cells while preserving an array's shape or a
+sequence's order. Halfway values round to the nearest even result, as in
+Python and NumPy. An integer remains an integer and a real remains a real.
+The places argument must be one scalar safe integer.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:

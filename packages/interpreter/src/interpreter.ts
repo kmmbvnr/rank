@@ -45,6 +45,7 @@ import type { RankInput, RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
+import { roundValue } from './modules/numbers.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
 import { covarianceValue } from './modules/stats.js';
 import { parse } from './parser.js';
@@ -787,6 +788,17 @@ export class Interpreter {
             };
         }
         if (isBinaryExpression(expression)) {
+            const signedRound = explicitSignedRoundApplication(expression);
+            if (signedRound) {
+                return () => {
+                    this.requireModule('numbers', 'round');
+                    const places = this.evaluate(signedRound.places);
+                    return roundValue(
+                        this.evaluate(signedRound.source),
+                        typeof places === 'bigint' ? -places : places,
+                    );
+                };
+            }
             if (expression.operator === '**' && isUnaryExpression(expression.left)
                 && (expression.left.operator === '+' || expression.left.operator === '-')) {
                 const left = expression.left;
@@ -895,6 +907,16 @@ export class Interpreter {
                     return covarianceValue(
                         this.evaluate(axisCovariance.source),
                         axisCovariance.axes,
+                    );
+                };
+            }
+            const round = explicitRoundApplication(parts);
+            if (round) {
+                return () => {
+                    this.requireModule('numbers', 'round');
+                    return roundValue(
+                        this.evaluate(round.source),
+                        this.evaluate(round.places),
                     );
                 };
             }
@@ -2858,6 +2880,23 @@ function explicitAxisMatmul(parts: Expression[]): AxisMatmulApplication | undefi
 interface AxisCovarianceApplication {
     readonly source: Expression;
     readonly axes: readonly [number, number];
+}
+
+interface RoundApplication {
+    readonly source: Expression;
+    readonly places: Expression;
+}
+
+function explicitSignedRoundApplication(expression: Expression): RoundApplication | undefined {
+    if (!isBinaryExpression(expression) || expression.operator !== '-') return undefined;
+    const parts = flattenApplication(expression.left);
+    if (parts.length !== 2 || !isNamed(parts[1], 'round')) return undefined;
+    return { source: parts[0], places: expression.right };
+}
+
+function explicitRoundApplication(parts: Expression[]): RoundApplication | undefined {
+    if (parts.length !== 3 || !isNamed(parts[1], 'round')) return undefined;
+    return { source: parts[0], places: parts[2] };
 }
 
 function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication | undefined {

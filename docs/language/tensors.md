@@ -73,6 +73,7 @@ max
 exp
 log
 sqrt
+round
 softmax
 gelu
 layernorm
