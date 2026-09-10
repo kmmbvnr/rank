@@ -69,6 +69,8 @@ Lows = A min axis 0
 Highs = A max axis 1
 Complete = Flags all axis 1
 Present = Flags any axis 0
+Loss = Pred Target mse
+RowLoss = Pred Target mae axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
@@ -80,6 +82,18 @@ values. `std` uses the population denominator `N`.
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
 the coordinate dimensions that the operation consumes.
+
+The binary error metrics `mse` and `mae` first broadcast their two operands to
+one shape. Without `axis` they average every squared or absolute difference.
+With `axis` they average only the named axes and preserve the remaining frame:
+
+```rank
+Loss = Pred Target mse
+PerSample = Pred Target mse axis 1
+```
+
+Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
+Binary `rank` application is not yet part of the language.
 
 The broader tensor direction includes:
 

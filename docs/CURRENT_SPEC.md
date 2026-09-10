@@ -2412,6 +2412,8 @@ Lows = A min axis 0
 Highs = A max axis 1
 Complete = Flags all axis 1
 Present = Flags any axis 0
+Loss = Pred Target mse
+RowLoss = Pred Target mae axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
@@ -2423,6 +2425,18 @@ values. `std` uses the population denominator `N`.
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
 the coordinate dimensions that the operation consumes.
+
+The binary error metrics `mse` and `mae` first broadcast their two operands to
+one shape. Without `axis` they average every squared or absolute difference.
+With `axis` they average only the named axes and preserve the remaining frame:
+
+```rank
+Loss = Pred Target mse
+PerSample = Pred Target mse axis 1
+```
+
+Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
+Binary `rank` application is not yet part of the language.
 
 The broader tensor direction includes:
 
@@ -3162,14 +3176,16 @@ labels
 
 ## Stats
 
-`use stats` provides arithmetic mean, population standard deviation and sample
-covariance:
+`use stats` provides arithmetic mean, population standard deviation, error
+metrics and sample covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
 Spread = Values std
 Columns = Matrix std axis 0
+Loss = Pred Target mse
+Rows = Pred Target mae axis 1
 Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
@@ -3179,6 +3195,21 @@ Cov = Samples covariance axis 1 0
 `.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
 is described in [Tensors](language/tensors.md). `std` rejects nonfinite cells
 with `.DomainError`.
+
+`mse` and `mae` calculate mean squared error and mean absolute error between
+two numeric values, finite sequences or arrays:
+
+```rank
+Loss = Pred Target mse
+FeatureLoss = Pred Target mae axis 0
+```
+
+The inputs follow Rank's trailing-axis broadcasting rules. Without `axis`, the
+metric averages every broadcast result. An axis list averages only the named
+axes and preserves the others in their original order. Both metrics always
+return real values, keep framed tensor results lazy, and raise
+`.EmptyReduction` for an empty reduced cell. Incompatible shapes raise
+`.DimensionMismatch`. Binary `rank` application remains deferred.
 
 By default, `covariance` treats the last two axes as features and observations;
 earlier axes are independent batches. The explicit `axis F O` form selects the

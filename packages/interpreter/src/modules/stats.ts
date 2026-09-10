@@ -1,18 +1,146 @@
 import { RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
-import { isRankArray, type RankArray, type RankValue } from '../value.js';
+import { mapBroadcastArrays } from '../tensor.js';
+import {
+    isRankArray,
+    isRankSequence,
+    type RankArray,
+    type RankValue,
+} from '../value.js';
 import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const statsModule: RuntimeModule = {
     mean: () => native('mean', 1, arguments_ => meanValue(arguments_[0])),
     std: () => native('std', 1, arguments_ => standardDeviation(arguments_[0])),
+    mse: () => native('mse', 2, arguments_ => errorMetricValue(
+        arguments_[0],
+        arguments_[1],
+        'mse',
+    )),
+    mae: () => native('mae', 2, arguments_ => errorMetricValue(
+        arguments_[0],
+        arguments_[1],
+        'mae',
+    )),
     covariance: () => native(
         'covariance',
         1,
         arguments_ => covarianceValue(arguments_[0]),
     ),
 };
+
+export function errorMetricValue(
+    left: RankValue,
+    right: RankValue,
+    metric: 'mse' | 'mae',
+    axes?: readonly number[],
+): RankValue {
+    const losses = mapBroadcastArrays(
+        metricArray(left, metric),
+        metricArray(right, metric),
+        (a, b) => {
+            const difference = Number(expectNumeric(a)) - Number(expectNumeric(b));
+            return metric === 'mse' ? difference * difference : Math.abs(difference);
+        },
+    );
+    return axes === undefined
+        ? metricMean(losses, metric)
+        : metricByAxes(losses, axes, metric);
+}
+
+function metricMean(losses: RankArray, metric: 'mse' | 'mae'): number {
+    if (arraySize(losses.shape) === 0) {
+        throw new RankError(`${metric} requires at least one value`, 'EmptyReduction');
+    }
+    return meanValue(losses);
+}
+
+function metricArray(value: RankValue, operation: string): RankArray {
+    if (isRankArray(value)) return value;
+    const items = [...sequenceValues(value, operation)];
+    return {
+        kind: 'array',
+        items,
+        shape: isRankSequence(value) ? [items.length] : [],
+    };
+}
+
+function metricByAxes(
+    losses: RankArray,
+    axes: readonly number[],
+    metric: 'mse' | 'mae',
+): RankValue {
+    for (const axis of axes) {
+        if (axis >= losses.shape.length) {
+            throw new RankError(`array has no axis ${axis}`);
+        }
+    }
+    if (new Set(axes).size !== axes.length) {
+        throw new RankError(`${metric} axes must be unique`);
+    }
+
+    const selected = new Set(axes);
+    const reducedAxes = losses.shape
+        .map((_, axis) => axis)
+        .filter(axis => selected.has(axis));
+    const frameAxes = losses.shape
+        .map((_, axis) => axis)
+        .filter(axis => !selected.has(axis));
+    const reducedShape = reducedAxes.map(axis => losses.shape[axis]);
+    const frameShape = frameAxes.map(axis => losses.shape[axis]);
+    const reducedSize = arraySize(reducedShape);
+
+    const valueAt = (frameIndex: number): number => {
+        if (reducedSize === 0) {
+            throw new RankError(`${metric} requires at least one value`, 'EmptyReduction');
+        }
+        const source = Array(losses.shape.length).fill(0) as number[];
+        coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
+            source[frameAxes[index]] = coordinate;
+        });
+        let total = 0;
+        for (let index = 0; index < reducedSize; index += 1) {
+            coordinatesAt(reducedShape, index).forEach((coordinate, position) => {
+                source[reducedAxes[position]] = coordinate;
+            });
+            total += Number(arrayItem(losses, arrayOffset(losses.shape, source)));
+        }
+        return total / reducedSize;
+    };
+
+    return frameShape.length === 0
+        ? valueAt(0)
+        : lazyNumericArray(frameShape, valueAt);
+}
+
+function lazyNumericArray(
+    shape: readonly number[],
+    operation: (index: number) => number,
+): RankArray {
+    const cache = new Map<number, number>();
+    const itemAt = (index: number): number => {
+        const cached = cache.get(index);
+        if (cached !== undefined) return cached;
+        const result = operation(index);
+        cache.set(index, result);
+        return result;
+    };
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape,
+        itemAt,
+        containsFiles: false,
+        get items() {
+            materialized ??= Array.from(
+                { length: arraySize(shape) },
+                (_, index) => itemAt(index),
+            );
+            return materialized;
+        },
+    };
+}
 
 function standardDeviation(value: RankValue): number {
     const items = isRankArray(value) ? value.items : [...sequenceValues(value, 'std')];

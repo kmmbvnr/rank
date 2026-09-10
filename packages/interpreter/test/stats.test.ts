@@ -43,6 +43,87 @@ describe('Rank statistics', () => {
             .toThrowError('unknown name: std');
     });
 
+    it('calculates mean squared and absolute errors', () => {
+        expect(run('use stats\n3 1 mse')).toBe('4');
+        expect(run('use stats\n3 1 mae')).toBe('2');
+        expect(run([
+            'use stats',
+            'Actual = array shape 2 2',
+            '  1 4',
+            '  3 8',
+            'end',
+            'Target = array 1 2',
+            'Actual Target mse',
+        ].join('\n'))).toBe('11');
+        expect(run([
+            'use stats',
+            'Actual = array shape 2 2',
+            '  1 4',
+            '  3 8',
+            'end',
+            'Target = array 1 2',
+            'Actual Target mae',
+        ].join('\n'))).toBe('2.5');
+        expect(run([
+            'use ranges',
+            'use stats',
+            'Actual = 1 to 3',
+            'Target = array 1 1 1',
+            'Actual Target mae',
+        ].join('\n'))).toBe('1');
+    });
+
+    it('reduces error metrics over selected axes', () => {
+        const source = [
+            'use stats',
+            'Actual = array shape 2 2',
+            '  1 4',
+            '  3 8',
+            'end',
+            'Target = array 1 2',
+        ];
+        expect(run([...source, 'Actual Target mse axis 1'].join('\n')))
+            .toBe('2 20');
+        expect(run([...source, 'Actual Target mae axis 1'].join('\n')))
+            .toBe('1 4');
+        expect(run([...source, 'Actual Target mse axis 0 1'].join('\n')))
+            .toBe('11');
+    });
+
+    it('keeps framed error reductions lazy', () => {
+        expect(run([
+            'use stats',
+            'Actual = array shape 2 2',
+            '  1 2',
+            '  "later" 4',
+            'end',
+            'Target = array 1 1',
+            'Result = Actual Target mse axis 1',
+            'Result 0',
+        ].join('\n'))).toBe('0.5');
+    });
+
+    it('validates error metric inputs and axes', () => {
+        expect(() => run('3 1 mse')).toThrowError('unknown name: mse');
+        expect(() => run('use stats\n"bad" 1 mae'))
+            .toThrowError('expected numeric input');
+        expect(() => run([
+            'use stats',
+            '(array 1 2) (array 1 2 3) mse',
+        ].join('\n'))).toThrowError('shape mismatch');
+        expect(() => run([
+            'use stats',
+            'A = array shape 0 pad 0',
+            'A A mse',
+        ].join('\n'))).toThrowError('mse requires at least one value');
+        expect(() => run('use stats\n(array 1) (array 1) mae axis 1'))
+            .toThrowError('array has no axis 1');
+        expect(() => run('use stats\n(array 1) (array 1) mse axis 0 0'))
+            .toThrowError('mse axes must be unique');
+        expect(() => run('use stats\n(array 1) (array 1) mse axis'))
+            .toThrowError('mse axis expects one or more axes');
+    });
+
     it('calculates sample covariance for feature rows', () => {
         expect(run([
             'use stats',

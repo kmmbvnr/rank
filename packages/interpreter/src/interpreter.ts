@@ -51,7 +51,7 @@ import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
 import { shuffleValue } from './modules/random.js';
 import { lengthOfAxis, transposeValue } from './modules/sequences.js';
-import { covarianceValue } from './modules/stats.js';
+import { covarianceValue, errorMetricValue } from './modules/stats.js';
 import { projectField } from './modules/tables.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -969,6 +969,18 @@ export class Interpreter {
                 return () => {
                     this.requireModule('sequences', 'len');
                     return lengthOfAxis(this.evaluate(axisLength.source), axisLength.axis);
+                };
+            }
+            const axisMetric = explicitAxisMetric(parts);
+            if (axisMetric) {
+                return () => {
+                    this.requireModule('stats', axisMetric.metric);
+                    return errorMetricValue(
+                        this.evaluate(axisMetric.left),
+                        this.evaluate(axisMetric.right),
+                        axisMetric.metric,
+                        axisMetric.axes,
+                    );
                 };
             }
             const axisReduction = explicitAxisReduction(parts);
@@ -2999,6 +3011,29 @@ function explicitAxisReduction(
         operation,
         axes: parts.slice(3).map(axis =>
             safeDimension(integerLiteral(axis, `${operation} axis`), `${operation} axis`)),
+    };
+}
+
+function explicitAxisMetric(
+    parts: Expression[],
+): {
+    left: Expression;
+    right: Expression;
+    metric: 'mse' | 'mae';
+    axes: readonly number[];
+} | undefined {
+    if (parts.length < 4 || !isNamed(parts[3], 'axis')) return undefined;
+    const metric = isNameExpression(parts[2]) ? parts[2].name : undefined;
+    if (metric !== 'mse' && metric !== 'mae') return undefined;
+    if (parts.length < 5) {
+        throw new RankError(`${metric} axis expects one or more axes`);
+    }
+    return {
+        left: parts[0],
+        right: parts[1],
+        metric,
+        axes: parts.slice(4).map(axis =>
+            safeDimension(integerLiteral(axis, `${metric} axis`), `${metric} axis`)),
     };
 }
 

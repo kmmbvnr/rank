@@ -1,0 +1,49 @@
+use testing
+
+test "official two epochs"
+  use "025_backprop"
+  X = array shape 3 2
+    1.0 2.0
+    2.0 1.0
+    -1.0 -2.0
+  end
+  Y = array 1 0 0
+  W = array 0.1 -0.2
+
+  Result = X Y W 0.0 0.1 2 train_neuron
+  unpack W2 B Loss = Result
+  W2 equal array 0.1036 -0.1425
+  B equal -0.0167
+  Loss equal array 0.3033 0.2942
+end
+
+test "official three epochs"
+  use "025_backprop"
+  X = array shape 3 2
+    1 2
+    2 3
+    3 1
+  end
+  Y = array 1 0 1
+  W = array 0.5 -0.2
+
+  Result = X Y W 0 0.1 3 train_neuron
+  unpack W2 B Loss = Result
+  W2 equal array 0.4892 -0.2301
+  B equal 0.0029
+  Loss equal array 0.21 0.2087 0.2076
+end
+
+test "zero epochs preserves parameters"
+  use "025_backprop"
+  X = array shape 1 2 pad 0
+  Y = array 1
+  W = array 0.25 -0.5
+
+  Result = X Y W 1 0.1 0 train_neuron
+  unpack W2 B Loss = Result
+  Empty = array shape 0 pad 0
+  W2 equal W
+  B equal 1.0
+  Loss equal Empty
+end

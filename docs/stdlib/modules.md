@@ -416,14 +416,16 @@ labels
 
 ## Stats
 
-`use stats` provides arithmetic mean, population standard deviation and sample
-covariance:
+`use stats` provides arithmetic mean, population standard deviation, error
+metrics and sample covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
 Spread = Values std
 Columns = Matrix std axis 0
+Loss = Pred Target mse
+Rows = Pred Target mae axis 1
 Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
@@ -433,6 +435,21 @@ Cov = Samples covariance axis 1 0
 `.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
 is described in [Tensors](../language/tensors.md). `std` rejects nonfinite
 cells with `.DomainError`.
+
+`mse` and `mae` calculate mean squared error and mean absolute error between
+two numeric values, finite sequences or arrays:
+
+```rank
+Loss = Pred Target mse
+FeatureLoss = Pred Target mae axis 0
+```
+
+The inputs follow Rank's trailing-axis broadcasting rules. Without `axis`, the
+metric averages every broadcast result. An axis list averages only the named
+axes and preserves the others in their original order. Both metrics always
+return real values, keep framed tensor results lazy, and raise
+`.EmptyReduction` for an empty reduced cell. Incompatible shapes raise
+`.DimensionMismatch`. Binary `rank` application remains deferred.
 
 By default, `covariance` treats the last two axes as features and observations;
 earlier axes are independent batches. The explicit `axis F O` form selects the

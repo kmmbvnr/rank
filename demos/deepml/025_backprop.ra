@@ -1,0 +1,44 @@
+rem Deep-ML 25: Neuron Backprop
+rem https://www.deep-ml.com/problems/25
+
+use "022_sigmoid"
+use linalg
+use numbers
+use ranges
+use sequences
+use stats
+
+rem Train one neuron with full batches.
+rem Record MSE before each update.
+fun train_neuron X Y W Bias Rate Epochs
+  Loss = array shape Epochs pad 0
+  N = Y len
+  B = Bias / 1.0
+
+  for Epoch in 0 until Epochs
+    Pred = X W matmul + B
+    Pred = Pred sigmoid
+
+    Error = Pred - Y
+    Squared = Error * Error
+    Mse = Squared mean
+    Loss Epoch = Mse round 4
+
+    Delta = Error * Pred
+    Delta *= 1 - Pred
+
+    Xt = X transpose
+    GradW = Xt Delta matmul
+    GradW *= 2 / N
+
+    GradB = (Delta sum) * 2 / N
+
+    W -= Rate * GradW
+    B -= Rate * GradB
+  end
+
+  W = W round 4
+  B = B round 4
+
+  return array W B Loss
+end
