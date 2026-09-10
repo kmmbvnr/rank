@@ -1,0 +1,17 @@
+rem Deep-ML 14: Linear Regression
+rem https://www.deep-ml.com/problems/14
+
+use linalg
+use numbers
+use sequences
+
+rem Fit coefficients with the normal equation without forming an inverse.
+fun linear_regression X Y
+  Xt = X transpose
+  A = Xt X matmul
+  B = Xt Y matmul
+
+  Theta = A B solve
+
+  return Theta round 4
+end
