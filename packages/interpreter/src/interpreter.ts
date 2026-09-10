@@ -2,6 +2,7 @@ import { LocalFrame } from './frame.js';
 import { prepareFunction } from './prepared-function.js';
 import {
     isAddStatement,
+    isAllAxisExpression,
     isArrayAssignmentStatement,
     isArrayExpression,
     isArgsStatement,
@@ -34,6 +35,7 @@ import {
     isUnpackStatement,
     isUseStatement,
     isYieldStatement,
+    type AddressItem,
     type ArrayItem,
     type Expression,
     type FunctionStatement,
@@ -91,6 +93,8 @@ import {
 } from './value.js';
 
 type Output = (text: string) => void;
+
+const ALL_AXIS = { kind: 'label', name: '#' } as const;
 
 export interface LoadedModule {
     readonly id: string;
@@ -638,34 +642,34 @@ export class Interpreter {
         if (isArrayAssignmentStatement(statement)) {
             return { run: () => {
                 const target = this.resolveVariable(statement.name);
-                const indices = statement.indices.map(index => this.evaluateArrayItem(index));
+                const selectors = statement.indices.map(index => this.evaluateAddressItem(index));
                 if (!isRankArray(target) || target.kind !== 'array') {
                     throw new RankError('array assignment expects an array target');
                 }
                 if (target.itemAt !== undefined) {
                     throw new RankError('cannot assign to a lazy array');
                 }
-                if (indices.length !== target.shape.length) {
-                    throw new RankError(
-                        `array assignment expects ${target.shape.length} indices, got ${indices.length}`,
-                    );
-                }
-                const coordinates = indices.map((index, axis) => {
-                    if (typeof index !== 'bigint') {
-                        throw new RankError(`array index must be an integer on axis ${axis}`);
-                    }
-                    if (index < 0n) {
-                        throw new RankError(`array index must be nonnegative on axis ${axis}`);
-                    }
-                    if (index >= BigInt(target.shape[axis])) {
-                        throw new MissingValueError(
-                            `array index out of bounds on axis ${axis}: ${index}`,
+                const selection = tensorSelection(target, selectors);
+                const result = this.evaluate(statement.value);
+                if (isRankArray(result)) {
+                    if (!sameShape(selection.shape, result.shape)) {
+                        throw new RankError(
+                            `assignment shape mismatch: ${selection.shape} and ${result.shape}`,
+                            'DimensionMismatch',
                         );
                     }
-                    return Number(index);
-                });
-                const result = this.evaluate(statement.value);
-                target.items[arrayOffset(target.shape, coordinates)] = result;
+                    const replacements = Array.from(
+                        { length: arraySize(selection.shape) },
+                        (_, index) => arrayItem(result, index),
+                    );
+                    for (let index = 0; index < arraySize(selection.shape); index += 1) {
+                        target.items[selection.offsetAt(index)] = replacements[index];
+                    }
+                } else {
+                    for (let index = 0; index < arraySize(selection.shape); index += 1) {
+                        target.items[selection.offsetAt(index)] = result;
+                    }
+                }
                 return result;
             } };
         }
@@ -874,6 +878,9 @@ export class Interpreter {
                 return materializeSequence(source);
             };
         }
+        if (isAllAxisExpression(expression)) {
+            return () => { throw new RankError('# is only valid inside tensor addressing'); };
+        }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
             const namedOuter = explicitNamedOuterApplication(parts);
@@ -980,7 +987,8 @@ export class Interpreter {
                     );
                 };
             }
-            return () => this.apply(parts.map(part => this.evaluate(part)), missing);
+            return () => this.apply(parts.map(part =>
+                isAllAxisExpression(part) ? ALL_AXIS : this.evaluate(part)), missing);
         }
         return () => { throw new RankError(`cannot evaluate ${expression.$type}`); };
     }
@@ -1002,6 +1010,14 @@ export class Interpreter {
     }
 
     private evaluateArrayItem(item: ArrayItem): RankValue {
+        const value = this.evaluate(item.value);
+        if (!item.sign) return value;
+        return this.evaluateUnary(item.sign, value);
+    }
+
+    private evaluateAddressItem(item: AddressItem): RankValue {
+        if (item.all) return ALL_AXIS;
+        if (!item.value) throw new RankError('missing array selector');
         const value = this.evaluate(item.value);
         if (!item.sign) return value;
         return this.evaluateUnary(item.sign, value);
@@ -2423,6 +2439,12 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         && isIntegerCollectionSelector(values[1])) {
         return selectAxis(values[0], 0, values[1]);
     }
+    if (isRankArray(values[0]) && isTensorAddress(values.slice(1))) {
+        const source = values[0];
+        const selection = tensorSelection(source, values.slice(1));
+        if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
+        return lazyArray(selection.shape, index => arrayItem(source, selection.offsetAt(index)));
+    }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
         throw new RankError('value application requires a sequence and one selector');
     }
@@ -2494,7 +2516,70 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (isRankQueue(values[0]) && isIntegerCollectionSelector(values[1])) return true;
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) return true;
+    if (isRankArray(values[0]) && isTensorAddress(values.slice(1))) return true;
     return false;
+}
+
+interface TensorSelection {
+    readonly shape: readonly number[];
+    offsetAt(index: number): number;
+}
+
+function isAllAxisSelector(value: RankValue): boolean {
+    return value === ALL_AXIS;
+}
+
+function isTensorAddress(selectors: readonly RankValue[]): boolean {
+    if (selectors.length === 0) return false;
+    if (!selectors.every(selector =>
+        isAllAxisSelector(selector)
+        || typeof selector === 'bigint'
+        || isCollectionSelector(selector))) return false;
+    return selectors.some(isAllAxisSelector)
+        || (selectors.length > 1 && selectors.some(isCollectionSelector));
+}
+
+function tensorSelection(source: RankArray, selectors: readonly RankValue[]): TensorSelection {
+    if (selectors.length > source.shape.length) {
+        throw new RankError(`array expects at most ${source.shape.length} selectors`);
+    }
+    const axes = source.shape.map((size, axis) => {
+        const selector = selectors[axis] ?? ALL_AXIS;
+        if (isAllAxisSelector(selector)) {
+            return { preserve: true, size, indexAt: (coordinate: number) => coordinate };
+        }
+        if (typeof selector === 'bigint') {
+            if (selector < 0n) {
+                throw new RankError(`array index must be nonnegative on axis ${axis}`);
+            }
+            if (selector >= BigInt(size)) {
+                throw new MissingValueError(`array index out of bounds on axis ${axis}: ${selector}`);
+            }
+            return { preserve: false, size: 1, indexAt: () => Number(selector) };
+        }
+        if (typeof selector === 'number') {
+            throw new RankError(`array index must be an integer on axis ${axis}`);
+        }
+        const indices = selectorIndices(selector, size, axis);
+        return {
+            preserve: true,
+            size: indices.length,
+            indexAt: (coordinate: number) => indices[coordinate],
+        };
+    });
+    const shape = axes.filter(axis => axis.preserve).map(axis => axis.size);
+    return {
+        shape,
+        offsetAt(index) {
+            const output = coordinatesAt(shape, index);
+            let outputAxis = 0;
+            const sourceCoordinates = axes.map(axis => {
+                if (!axis.preserve) return axis.indexAt(0);
+                return axis.indexAt(output[outputAxis++]);
+            });
+            return arrayOffset(source.shape, sourceCoordinates);
+        },
+    };
 }
 
 function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
@@ -2548,6 +2633,22 @@ function sliceIndices(
 
 function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
     const size = axisSize(source, axis);
+    if (isRankArray(source)) {
+        const selectors = Array(axis).fill(ALL_AXIS) as RankValue[];
+        selectors.push(selector);
+        const selection = tensorSelection(source, selectors);
+        if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
+        return lazyArray(selection.shape, index => arrayItem(source, selection.offsetAt(index)));
+    }
+    if (typeof selector === 'bigint') {
+        if (selector < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (selector >= BigInt(size)) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${selector}`);
+        }
+        if (typeof source === 'string') return [...source][Number(selector)];
+        if (isRankSequence(source)) return atSequence(source, selector);
+        if (isRankQueue(source)) return source.items[Number(selector)];
+    }
     const indices = selectorIndices(selector, size, axis);
     if (typeof source === 'string') {
         const atoms = [...source];
@@ -2556,18 +2657,8 @@ function selectAxis(source: RankValue, axis: number, selector: RankValue): RankV
     if (isRankSequence(source)) {
         return array(indices.map(index => atSequence(source, BigInt(index))));
     }
-    const input = isRankQueue(source)
-        ? { kind: 'array' as const, items: source.items, shape: [source.items.length] }
-        : source as RankArray;
-    const shape = [...input.shape];
-    shape[axis] = indices.length;
-    const items: RankValue[] = [];
-    for (const outputCoordinates of coordinates(shape)) {
-        const inputCoordinates = [...outputCoordinates];
-        inputCoordinates[axis] = indices[outputCoordinates[axis]];
-        items.push(input.items[arrayOffset(input.shape, inputCoordinates)]);
-    }
-    return { kind: 'array', items, shape };
+    if (!isRankQueue(source)) throw new RankError(`selection does not accept ${typeName(source)}`);
+    return array(indices.map(index => source.items[index]));
 }
 
 function axisSize(source: RankValue, axis: number): number {

@@ -170,3 +170,27 @@ syntactic stutter while preserving the first-class nature of masks:
 - They can still be named and reused: `Mask = Fib even`;
 - They can still be composed: `Mask or= N multiple by 5`;
 - They still participate in explicit addressing: `Selected = Fib Mask`.
+
+---
+
+## 7. The `#` whole-axis selector
+
+Rank uses `#` as a positional tensor selector meaning every item on one axis:
+
+```rank
+Column = A # j
+Plane = T # # k
+```
+
+### Rationale: Compact multidimensional addressing on mobile devices
+
+MATLAB, Octave, NumPy and Julia conventionally use a bare colon for a complete
+axis; q elides an index between separators; Wolfram spells the selector `All`.
+Rank has no bracket-and-comma index list in which an empty slot can live, and
+adding one would make common tensor access harder to type on a phone.
+
+`#` is available from a long press on the period key on the target Android
+keyboard and remains visually distinct between whitespace-separated selectors.
+It is contextual rather than a general operator. J uses `#` for tally/copy and
+q uses it for take/reshape, but Rank spells those operations with words, leaving
+the glyph unambiguous in Rank source.

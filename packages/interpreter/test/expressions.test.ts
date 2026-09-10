@@ -546,13 +546,13 @@ describe('Rank expressions and sequences', () => {
             ...matrix,
             'M axis 1 from 1 until 3',
         ].join('\n'));
-        expect(columns).toEqual({ kind: 'array', items: [2n, 3n, 5n, 6n], shape: [2, 2] });
+        expect(columns).toMatchObject({ kind: 'array', items: [2n, 3n, 5n, 6n], shape: [2, 2] });
 
         const rows = new Interpreter().execute([
             ...matrix,
             'M axis 0 array 1 0 1',
         ].join('\n'));
-        expect(rows).toEqual({
+        expect(rows).toMatchObject({
             kind: 'array',
             items: [4n, 5n, 6n, 1n, 2n, 3n, 4n, 5n, 6n],
             shape: [3, 3],
@@ -562,7 +562,7 @@ describe('Rank expressions and sequences', () => {
             ...matrix,
             'M axis 1 array 2 0',
         ].join('\n'));
-        expect(reorderedColumns).toEqual({
+        expect(reorderedColumns).toMatchObject({
             kind: 'array',
             items: [3n, 1n, 6n, 4n],
             shape: [2, 2],

@@ -99,6 +99,20 @@ describe('Rank grammar', () => {
         expect(isArrayAssignmentStatement(document.parseResult.value.statements[1])).toBe(true);
     });
 
+    it('parses whole-axis tensor addressing and assignment', async () => {
+        const document = await parse([
+            'Column = A # j',
+            'Total = A # j sum',
+            'A # j = Values',
+            'T # # k = 0',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(4);
+        expect(isArrayAssignmentStatement(document.parseResult.value.statements[2])).toBe(true);
+        expect(isArrayAssignmentStatement(document.parseResult.value.statements[3])).toBe(true);
+    });
+
     it('parses right-associative exponentiation above unary signs', async () => {
         const document = await parse('Answer = -2 ** 3 ** 2\nAnswer **= 2');
         expect(document.parseResult.lexerErrors).toEqual([]);

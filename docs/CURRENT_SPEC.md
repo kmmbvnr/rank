@@ -744,6 +744,46 @@ end
 `axis` precedes its numbers, so `T axis 0` cannot be mistaken for the ordinary
 addressing expression `T 0`.
 
+## Whole-axis tensor addressing
+
+`#` means every position on one tensor axis. Selectors correspond to axes from
+left to right, and omitted trailing axes are implicitly complete:
+
+```rank
+Row = A i
+Column = A # j
+Plane = T i
+Line = T i # k
+LastPlane = T # # k
+```
+
+An integer selector removes its axis. `#`, a range, an integer array or a
+rank-1 boolean mask preserves its axis. For `T` with shape `2 3 4`, `T # 1`
+therefore has shape `2 4`, while `T # # 1` has shape `2 3`.
+
+Several collection selectors form a Cartesian selection rather than paired
+coordinates:
+
+```rank
+Block = A Rows Columns
+```
+
+The result has one preserved axis for every collection selector and every `#`,
+followed by all omitted trailing axes. Tensor selections are lazy and cached.
+Too many selectors, invalid indices and masks whose length differs from their
+axis are errors. `#` is valid only inside tensor addressing.
+
+`axis` remains the explicit form when an operation consumes or selects a named
+axis:
+
+```rank
+Means = A mean axis 0
+Column = A axis 1 j
+```
+
+The first expression reduces axis 0. The second selects position `j` on axis 1
+and is equivalent to `A # j`.
+
 ## Boolean addressing
 
 Boolean masks are ordinary first-class values.
@@ -1536,17 +1576,23 @@ The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
 same addressing meaning. The interpreter currently implements the spaced form;
 general compact addressing remains a later step.
 
-A material dense array can be changed through the same full address:
+A material dense array can be changed through the same address:
 
 ```rank
 M Row Column = Value
+M # Column = Values
+M Row = 0
 ```
 
-The address must contain exactly one integer index per axis. Negative and
-out-of-bounds indices are errors. Only `=` is supported for addressed
-assignment. Assignment changes the existing array object, so every alias of
-that array observes the new cell. The target and indices are evaluated before
-the right-hand expression.
+An incomplete address preserves its trailing axes, and `#` preserves the axis
+at its position. A scalar right side fills the selected region. An array right
+side must have exactly the selected shape or `.DimensionMismatch` is raised.
+Negative and out-of-bounds indices are errors. Only `=` is supported for
+addressed assignment. Assignment changes the existing array object, so every
+alias of that array observes the new cells. The target and selectors are
+evaluated before the right-hand expression. Array replacement values are read
+before the first write, so assigning one selection of an array into another
+does not overwrite values that have not yet been copied.
 
 Lazy arrays produced by operations such as `outer` and `window` are not
 writable. Copy a finite result explicitly with postfix `copy` before changing
@@ -2277,6 +2323,7 @@ Dense storage may also be allocated with a fill value and updated in place:
 ```rank
 M = array shape Rows Columns pad 0
 M Row Column = Value
+M # Column = Values
 ```
 
 Only material arrays are writable. Postfix `copy` eagerly copies either a
@@ -4101,5 +4148,29 @@ syntactic stutter while preserving the first-class nature of masks:
 - They can still be named and reused: `Mask = Fib even`;
 - They can still be composed: `Mask or= N multiple by 5`;
 - They still participate in explicit addressing: `Selected = Fib Mask`.
+
+---
+
+## 7. The `#` whole-axis selector
+
+Rank uses `#` as a positional tensor selector meaning every item on one axis:
+
+```rank
+Column = A # j
+Plane = T # # k
+```
+
+### Rationale: Compact multidimensional addressing on mobile devices
+
+MATLAB, Octave, NumPy and Julia conventionally use a bare colon for a complete
+axis; q elides an index between separators; Wolfram spells the selector `All`.
+Rank has no bracket-and-comma index list in which an empty slot can live, and
+adding one would make common tensor access harder to type on a phone.
+
+`#` is available from a long press on the period key on the target Android
+keyboard and remains visually distinct between whitespace-separated selectors.
+It is contextual rather than a general operator. J uses `#` for tally/copy and
+q uses it for take/reshape, but Rank spells those operations with words, leaving
+the glyph unambiguous in Rank source.
 
 ---

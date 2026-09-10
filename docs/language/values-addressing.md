@@ -112,6 +112,46 @@ end
 `axis` precedes its numbers, so `T axis 0` cannot be mistaken for the ordinary
 addressing expression `T 0`.
 
+## Whole-axis tensor addressing
+
+`#` means every position on one tensor axis. Selectors correspond to axes from
+left to right, and omitted trailing axes are implicitly complete:
+
+```rank
+Row = A i
+Column = A # j
+Plane = T i
+Line = T i # k
+LastPlane = T # # k
+```
+
+An integer selector removes its axis. `#`, a range, an integer array or a
+rank-1 boolean mask preserves its axis. For `T` with shape `2 3 4`, `T # 1`
+therefore has shape `2 4`, while `T # # 1` has shape `2 3`.
+
+Several collection selectors form a Cartesian selection rather than paired
+coordinates:
+
+```rank
+Block = A Rows Columns
+```
+
+The result has one preserved axis for every collection selector and every `#`,
+followed by all omitted trailing axes. Tensor selections are lazy and cached.
+Too many selectors, invalid indices and masks whose length differs from their
+axis are errors. `#` is valid only inside tensor addressing.
+
+`axis` remains the explicit form when an operation consumes or selects a named
+axis:
+
+```rank
+Means = A mean axis 0
+Column = A axis 1 j
+```
+
+The first expression reduces axis 0. The second selects position `j` on axis 1
+and is equivalent to `A # j`.
+
 ## Boolean addressing
 
 Boolean masks are ordinary first-class values.

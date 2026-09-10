@@ -21,6 +21,7 @@ Dense storage may also be allocated with a fill value and updated in place:
 ```rank
 M = array shape Rows Columns pad 0
 M Row Column = Value
+M # Column = Values
 ```
 
 Only material arrays are writable. Postfix `copy` eagerly copies either a

@@ -229,17 +229,23 @@ The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
 same addressing meaning. The interpreter currently implements the spaced form;
 general compact addressing remains a later step.
 
-A material dense array can be changed through the same full address:
+A material dense array can be changed through the same address:
 
 ```rank
 M Row Column = Value
+M # Column = Values
+M Row = 0
 ```
 
-The address must contain exactly one integer index per axis. Negative and
-out-of-bounds indices are errors. Only `=` is supported for addressed
-assignment. Assignment changes the existing array object, so every alias of
-that array observes the new cell. The target and indices are evaluated before
-the right-hand expression.
+An incomplete address preserves its trailing axes, and `#` preserves the axis
+at its position. A scalar right side fills the selected region. An array right
+side must have exactly the selected shape or `.DimensionMismatch` is raised.
+Negative and out-of-bounds indices are errors. Only `=` is supported for
+addressed assignment. Assignment changes the existing array object, so every
+alias of that array observes the new cells. The target and selectors are
+evaluated before the right-hand expression. Array replacement values are read
+before the first write, so assigning one selection of an array into another
+does not overwrite values that have not yet been copied.
 
 Lazy arrays produced by operations such as `outer` and `window` are not
 writable. Copy a finite result explicitly with postfix `copy` before changing

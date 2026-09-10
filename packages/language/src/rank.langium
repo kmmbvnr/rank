@@ -120,7 +120,7 @@ UnpackStatement:
     'unpack' names+=AssignableName+ '=' value=Expression;
 
 ArrayAssignmentStatement:
-    name=AssignableName indices+=ArrayItem+ '=' value=Expression;
+    name=AssignableName indices+=AddressItem+ '=' value=Expression;
 
 AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;
@@ -149,6 +149,10 @@ ArrayRow:
 
 ArrayItem:
     sign=('+' | '-')? value=ArrayAtom;
+
+AddressItem:
+    sign=('+' | '-')? value=ArrayAtom |
+    all?='#';
 
 OrExpression returns Expression:
     XorExpression
@@ -216,7 +220,10 @@ ApplicationArgument returns Expression:
     PrimaryExpression | ArrayExpression;
 
 PrimaryExpression returns Expression:
-    ArrayAtom;
+    ArrayAtom | AllAxisExpression;
+
+AllAxisExpression:
+    {infer AllAxisExpression} '#';
 
 ArrayAtom returns Expression:
     NumberLiteral |
