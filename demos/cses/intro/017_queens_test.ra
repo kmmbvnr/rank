@@ -1,0 +1,46 @@
+use testing
+
+test "official example"
+  use "017_queens"
+  Board = array shape 8
+    "........"
+    "........"
+    "..*....."
+    "........"
+    "........"
+    ".....**."
+    "...*...."
+    "........"
+  end
+  Board solve equal 65
+end
+
+test "empty board"
+  use "017_queens"
+  Board = array shape 8
+    "........"
+    "........"
+    "........"
+    "........"
+    "........"
+    "........"
+    "........"
+    "........"
+  end
+  Board solve equal 92
+end
+
+test "all squares reserved"
+  use "017_queens"
+  Board = array shape 8
+    "********"
+    "********"
+    "********"
+    "********"
+    "********"
+    "********"
+    "********"
+    "********"
+  end
+  Board solve equal 0
+end

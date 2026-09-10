@@ -1,0 +1,64 @@
+rem CSES 1624: Chessboard and Queens
+rem https://cses.fi/problemset/task/1624
+
+use io
+use numbers
+use ranges
+
+Board = stdin .word 8 array
+
+Board solve print
+
+
+rem Count placements by trying one column in each row.
+fun solve Board
+  return 1 search
+
+  rem State stores chosen columns in base 8,
+  rem with leading 1 as a sentinel.
+  fun search State
+    Row = 0
+    Temp = State
+
+    for Temp greater 1
+      Row += 1
+      Temp //= 8
+    end
+
+    if Row equal 8
+      return 1
+    end
+
+    Ways = 0
+    Line = Board Row
+
+    for Col in 0 until 8
+      if Line Col equal "."
+        Valid = true
+        Temp = State
+        Distance = 1
+
+        for Temp greater 1
+          Previous = Temp % 8
+
+          SameColumn = Previous equal Col
+          SameDiagonal = (Previous - Col) abs equal Distance
+
+          if SameColumn or SameDiagonal
+            Valid = false
+            break
+          end
+
+          Temp //= 8
+          Distance += 1
+        end
+
+        if Valid
+          Ways += (State * 8 + Col) search
+        end
+      end
+    end
+
+    return Ways
+  end
+end
