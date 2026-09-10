@@ -1376,6 +1376,18 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
     });
 
+    it('reports complete shapes and individual axis lengths', () => {
+        expect(run([
+            'use sequences',
+            'M = array shape 0 3 pad 0',
+            'Dims = M shape',
+            'Dims len * 1000 + Dims 0 * 100 + Dims 1 * 10 + M len + M len axis 1',
+        ].join('\n'))).toBe('2033');
+        expect(run('use sequences\n"A😀Б" shape')).toBe('3');
+        expect(() => run('use sequences\n(array 1 2) len axis 2'))
+            .toThrowError('array has no axis 2');
+    });
+
     it('preserves tensor shape under unary operations', () => {
         expect(run([
             'M = array shape 2 2',

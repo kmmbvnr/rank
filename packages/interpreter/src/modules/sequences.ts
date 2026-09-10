@@ -25,11 +25,34 @@ export const sequencesModule: RuntimeModule = {
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
+    shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
     unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
 };
+
+export function lengthOfAxis(value: RankValue, axis: number): bigint {
+    if (isRankArray(value)) {
+        if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
+        return BigInt(value.shape[axis]);
+    }
+    if (axis !== 0) throw new RankError(`value has no axis ${axis}`);
+    if (typeof value === 'string' || isRankQueue(value) || isRankSequence(value)) {
+        return lengthOf(value);
+    }
+    throw new RankError('len axis expects text, an array, queue or sequence');
+}
+
+function shapeOf(value: RankValue): RankValue {
+    const dimensions = isRankArray(value)
+        ? value.shape.map(dimension => BigInt(dimension))
+        : typeof value === 'string' || isRankQueue(value) || isRankSequence(value)
+            ? [lengthOf(value)]
+            : undefined;
+    if (!dimensions) throw new RankError('shape expects text, an array, queue or sequence');
+    return { kind: 'array', items: dimensions, shape: [dimensions.length] };
+}
 
 function sortValue(value: RankValue): RankValue {
     if (typeof value === 'string') return [...value].sort(compareText).join('');

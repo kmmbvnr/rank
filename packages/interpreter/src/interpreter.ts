@@ -44,6 +44,7 @@ import { MissingValueError, RankError } from './errors.js';
 import type { RankInput, RankIo } from './io.js';
 import { standardModules } from './modules/index.js';
 import { closeFile } from './modules/io.js';
+import { lengthOfAxis } from './modules/sequences.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -883,6 +884,13 @@ export class Interpreter {
                         this.evaluate(axisWindow.size),
                         axisWindow.axes,
                     );
+                };
+            }
+            const axisLength = explicitAxisLength(parts);
+            if (axisLength) {
+                return () => {
+                    this.requireModule('sequences', 'len');
+                    return lengthOfAxis(this.evaluate(axisLength.source), axisLength.axis);
                 };
             }
             const explicitRank = explicitRankApplication(parts);
@@ -2586,6 +2594,18 @@ function explicitAxisSelection(
         source: parts[0],
         axis: safeDimension(parts[2].value, 'axis'),
         selector: parts[3],
+    };
+}
+
+function explicitAxisLength(
+    parts: Expression[],
+): { source: Expression; axis: number } | undefined {
+    if (parts.length !== 4 || !isNamed(parts[1], 'len') || !isNamed(parts[2], 'axis')) {
+        return undefined;
+    }
+    return {
+        source: parts[0],
+        axis: safeDimension(integerLiteral(parts[3], 'len axis'), 'len axis'),
     };
 }
 

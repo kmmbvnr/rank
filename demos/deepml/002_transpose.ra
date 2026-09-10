@@ -1,0 +1,19 @@
+rem Deep-ML 2: Transpose of a Matrix
+rem https://www.deep-ml.com/problems/2
+
+use ranges
+use sequences
+
+fun transpose_matrix A
+  unpack Rows Columns = A shape
+
+  Result = array shape Columns Rows pad 0
+
+  for i in 0 until Rows
+    for j in 0 until Columns
+      Result j i = A i j
+    end
+  end
+
+  return Result
+end

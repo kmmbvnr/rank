@@ -258,7 +258,7 @@ AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'index';
+    VARIABLE | WORD | QUALIFIED_NAME | 'index' | 'shape';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

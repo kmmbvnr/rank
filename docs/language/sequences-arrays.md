@@ -127,6 +127,24 @@ Requesting the shape of an `unknown` sequence is a demand point and iterates it;
 that request may not terminate. Requesting a finite shape from an `infinite`
 sequence is an error.
 
+`shape` from `sequences` returns every dimension as a rank-1 integer array:
+
+```rank
+Dims = A shape
+unpack Rows Columns = A shape
+```
+
+Text, queues and finite lazy sequences have one dimension. `len` returns the
+leading-axis length by default. An `axis` modifier selects another tensor axis:
+
+```rank
+Rows = A len
+Columns = A len axis 1
+```
+
+Axis numbers are zero-based. Asking for a missing axis is an error. `axis` is a
+general operation modifier; each operation defines what selecting axes means.
+
 ## Array construction
 
 `array` is the common constructor for rectangular arrays of every rank. A

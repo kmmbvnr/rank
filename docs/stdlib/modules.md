@@ -172,6 +172,7 @@ Examples:
 primes
 fibonacci
 len
+shape
 window
 ```
 

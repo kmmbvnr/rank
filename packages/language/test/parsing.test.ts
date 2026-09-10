@@ -114,10 +114,17 @@ describe('Rank grammar', () => {
     });
 
     it('parses imported words as ordinary application', async () => {
-        const document = await parse('use ranges\nuse numbers\n1 to 10 sum');
+        const document = await parse([
+            'use ranges',
+            'use numbers',
+            'use sequences',
+            '1 to 10 sum',
+            'Dims = A shape',
+            'Columns = A len axis 1',
+        ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(3);
+        expect(document.parseResult.value.statements).toHaveLength(6);
     });
 
     it('parses a named function modified by outer', async () => {
