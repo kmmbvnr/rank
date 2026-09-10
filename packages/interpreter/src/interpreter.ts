@@ -559,8 +559,9 @@ export class Interpreter {
         }
         if (isStdinExpression(expression)) {
             this.requireModule('io', 'stdin');
-            if (expression.valueType !== 'integer') {
-                throw new RankError(`unsupported standard input type: ${expression.valueType}`);
+            const mode = expression.mode.name;
+            if (mode !== 'word' && mode !== 'integer') {
+                throw new RankError(`unsupported standard input mode: .${mode}`);
             }
             const input = this.options.input;
             if (!input) {
@@ -568,8 +569,9 @@ export class Interpreter {
             }
             const token = input.readToken();
             if (token === undefined) {
-                throw new RankError('standard input ended before an integer', 'EndOfInput');
+                throw new RankError(`standard input ended before .${mode}`, 'EndOfInput');
             }
+            if (mode === 'word') return token;
             if (!/^[+-]?[0-9]+$/u.test(token)) {
                 throw new RankError(`invalid integer input: ${token}`, 'InvalidNumber', token);
             }
@@ -1257,10 +1259,10 @@ export class Interpreter {
     ): RankValue {
         if (operator === 'is') {
             if (!isRankLabel(right)) {
-                throw new RankError('is expects a type label on the right');
+                throw new RankError('is expects a type symbol on the right');
             }
             if (!RUNTIME_TYPE_NAMES.has(right.name)) {
-                throw new RankError(`unknown type label: .${right.name}`);
+                throw new RankError(`unknown type symbol: .${right.name}`);
             }
             return typeName(left) === right.name;
         }
@@ -2417,7 +2419,7 @@ function typeName(value: RankValue): string {
     if (typeof value === 'bigint') return 'integer';
     if (typeof value === 'string') return 'text';
     if (typeof value !== 'object') return typeof value;
-    return value.kind;
+    return value.kind === 'label' ? 'symbol' : value.kind;
 }
 
 const RUNTIME_TYPE_NAMES = new Set([
@@ -2427,7 +2429,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'text',
     'array',
     'bytes',
-    'label',
+    'symbol',
     'object',
     'file',
     'error',

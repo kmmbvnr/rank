@@ -260,11 +260,12 @@ describe('Rank grammar', () => {
             '  yield N',
             '  return',
             'end',
-            'N = stdin integer',
+            'N = stdin .integer',
+            'Word = stdin .word',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(3);
+        expect(document.parseResult.value.statements).toHaveLength(4);
     });
 
     it('parses postfix sequence materialization separately from array selectors', async () => {

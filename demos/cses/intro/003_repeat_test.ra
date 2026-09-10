@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "003_repeat"
+  "ATTCGGGA" longest equal 3
+end
+
+test "one character"
+  use "003_repeat"
+  "A" longest equal 1
+end
+
+test "alternating characters"
+  use "003_repeat"
+  "ACGT" longest equal 1
+end
+
+test "longest run at the beginning"
+  use "003_repeat"
+  "AAAACCG" longest equal 4
+end

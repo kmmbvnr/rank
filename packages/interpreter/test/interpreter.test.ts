@@ -226,8 +226,10 @@ describe('Rank interpreter', () => {
         expect(run('42 type')).toBe('.integer');
         expect(run('"Rank" type')).toBe('.text');
         expect(run('(array 1 2) type')).toBe('.array');
+        expect(run('.Age type')).toBe('.symbol');
         expect(run('42 is .integer')).toBe('true');
         expect(run('42 is .real')).toBe('false');
+        expect(run('.Age is .symbol')).toBe('true');
         expect(run([
             'Values = array 1 "two" true',
             'Result = ""',
@@ -254,9 +256,9 @@ describe('Rank interpreter', () => {
             'Value has type integer or text and cannot receive boolean',
         );
         expect(() => run('42 is "integer"'))
-            .toThrowError('is expects a type label on the right');
+            .toThrowError('is expects a type symbol on the right');
         expect(() => run('42 is .number'))
-            .toThrowError('unknown type label: .number');
+            .toThrowError('unknown type symbol: .number');
     });
 
     it('loads vocabulary without changing the grammar', () => {
@@ -1352,26 +1354,30 @@ describe('Rank interpreter', () => {
         expect(lines).toEqual(['42']);
     });
 
-    it('reads an integer token from standard input', () => {
+    it('reads word and integer tokens from standard input', () => {
         const interpreter = new Interpreter(undefined, {
-            input: new TokenInput(['-1203', '+7']),
+            input: new TokenInput(['Rank', '-1203', '+7']),
         });
         expect(interpreter.execute([
             'use io',
-            'A = stdin integer',
-            'B = stdin integer',
-            'A + B',
-        ].join('\n'))).toBe(-1196n);
+            'Word = stdin .word',
+            'A = stdin .integer',
+            'B = stdin .integer',
+            'array Word (A + B)',
+        ].join('\n'))).toEqual({ kind: 'array', items: ['Rank', -1196n], shape: [2] });
 
         expect(() => new Interpreter(undefined, {
             input: new TokenInput([]),
-        }).execute('use io\nstdin integer')).toThrowError('standard input ended before an integer');
+        }).execute('use io\nstdin .integer')).toThrowError('standard input ended before .integer');
         expect(() => new Interpreter(undefined, {
             input: new TokenInput(['12x']),
-        }).execute('use io\nstdin integer')).toThrowError('invalid integer input: 12x');
+        }).execute('use io\nstdin .integer')).toThrowError('invalid integer input: 12x');
         expect(() => new Interpreter(undefined, {
             input: new TokenInput(['1']),
-        }).execute('stdin integer')).toThrowError('stdin requires: use io');
+        }).execute('stdin .integer')).toThrowError('stdin requires: use io');
+        expect(() => new Interpreter(undefined, {
+            input: new TokenInput(['x']),
+        }).execute('use io\nstdin .line')).toThrowError('unsupported standard input mode: .line');
     });
 
     it('runs user generator functions lazily and once', () => {
@@ -1546,7 +1552,7 @@ describe('Rank interpreter', () => {
         expect(interpreter.variables.get('Nothing')).toEqual({ kind: 'label', name: 'null' });
         expect(interpreter.variables.get('RootType')).toEqual({ kind: 'label', name: 'object' });
         expect(interpreter.variables.get('ItemsType')).toEqual({ kind: 'label', name: 'array' });
-        expect(interpreter.variables.get('NothingType')).toEqual({ kind: 'label', name: 'label' });
+        expect(interpreter.variables.get('NothingType')).toEqual({ kind: 'label', name: 'symbol' });
         expect(interpreter.variables.get('HasHuge')).toBe(true);
         expect(interpreter.variables.get('Count')).toBe(6n);
         expect(interpreter.variables.get('Keys'))

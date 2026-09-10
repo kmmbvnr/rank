@@ -5,7 +5,7 @@ use io
 use numbers
 use ranges
 
-N = stdin integer
+N = stdin .integer
 Count = N - 1
 Values = Count integers array
 
@@ -15,7 +15,7 @@ N Values missing print
 rem Read Count integers as a single-pass sequence.
 fun integers Count
   for i in 0 until Count
-    yield stdin integer
+    yield stdin .integer
   end
 end
 

@@ -289,9 +289,9 @@ is
 
 `at least` means `>=`; `at most` means `<=`.
 
-`Value type` returns a label such as `.integer`, `.text`, `.array` or
+`Value type` returns a symbol such as `.integer`, `.text`, `.array` or
 `.object`. `Value is .integer` is the short boolean type guard. Its right side
-must be a known runtime type label.
+must be a known runtime type symbol.
 
 `in` tests membership. With text on both sides it performs an exact,
 case-sensitive substring search; the empty text occurs in every text value:
@@ -319,7 +319,7 @@ conversion is intended.
 ## Scalar types
 
 Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
-and `label`. Integers have arbitrary precision. `real` is currently an IEEE 754
+and `symbol`. Integers have arbitrary precision. `real` is currently an IEEE 754
 binary64 value and decimal literals contain a decimal point:
 
 ```rank
@@ -352,9 +352,9 @@ must be requested explicitly. Type inference never silently selects a reduced
 precision format. `path` is an input constraint represented by a `text` value,
 rather than a separate runtime type.
 
-## Labels
+## Symbols
 
-A leading dot creates a literal label:
+A leading dot creates a literal symbol:
 
 ```rank
 .Age
@@ -363,7 +363,8 @@ A leading dot creates a literal label:
 .UserId
 ```
 
-Labels are first-class values, not text.
+Symbols are first-class values, not text. APIs may use them as type names,
+operation modes, error kinds or column labels:
 
 ```rank
 Column = .Age
@@ -2566,12 +2567,13 @@ Hash = Digest hex
 
 ## File I/O
 
-`use io` provides typed access to standard input. The initial scalar form reads
-one whitespace-separated token and converts it to an arbitrary-precision
-integer:
+`use io` provides symbol-directed access to standard input. `.word` reads one
+whitespace-separated token as text. `.integer` reads the same unit and converts
+it to an arbitrary-precision integer:
 
 ```rank
-N = stdin integer
+Name = stdin .word
+N = stdin .integer
 ```
 
 Spaces, tabs, LF and CRLF separate tokens. Optional `+` and `-` signs are
@@ -2579,8 +2581,7 @@ accepted. End of input raises `.EndOfInput`; a token that is not a decimal
 integer raises `.InvalidNumber`. Standard input is supplied by the host, so an
 embedded host without it raises `.IO`.
 
-Counted input and text or line-oriented input are not part of the current
-language yet.
+Counted input and line-oriented input are not part of the current language yet.
 
 `use io` provides one-shot UTF-8 text operations for the common case:
 

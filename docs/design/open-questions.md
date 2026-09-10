@@ -73,6 +73,22 @@ No syntax is reserved for these extensions yet. They must remain distinct:
 stride moves a window, padding changes its valid position frame, and dilation
 changes the geometry inside each cell.
 
+## Remaining standard-input modes
+
+Standard input modes are symbol values. The current implementation supports
+`.integer` and `.word`. The accepted direction reserves two broader modes:
+
+```rank
+Line = stdin .line
+Text = stdin .text
+```
+
+`.line` will read one line without its line ending; `.text` will read all
+remaining input and preserve line endings. Before implementation, mixed token
+and line reads still need one exact cursor rule, especially after a token at the
+end of a CRLF line. These forms are design notes, not current syntax with
+runtime support.
+
 ## Reusable operation plans
 
 Source-bound masks and window results are already lazy values. A separate

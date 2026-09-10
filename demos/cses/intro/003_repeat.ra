@@ -1,0 +1,30 @@
+rem CSES 1069: Repetitions
+rem https://cses.fi/problemset/task/1069
+
+use io
+use numbers
+
+Text = stdin .word
+
+Text longest print
+
+
+rem Find the longest run of one repeated character.
+fun longest Text
+  Prev = Text 0
+  Run = 0
+  Best = 0
+
+  for C in Text
+    if C equal Prev
+      Run += 1
+    else
+      Prev = C
+      Run = 1
+    end
+
+    Best = Best Run max
+  end
+
+  return Best
+end

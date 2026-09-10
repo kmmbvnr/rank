@@ -223,7 +223,7 @@ ArrayAtom returns Expression:
     ParenthesizedExpression;
 
 StdinExpression:
-    'stdin' valueType=WORD;
+    'stdin' mode=LabelLiteral;
 
 NumberLiteral:
     value=(REAL | INTEGER);
