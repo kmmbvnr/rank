@@ -1,0 +1,15 @@
+use testing
+
+test "official first five boards"
+  use "007_knights"
+  1 knights equal 0
+  2 knights equal 6
+  3 knights equal 28
+  4 knights equal 96
+  5 knights equal 252
+end
+
+test "larger board"
+  use "007_knights"
+  8 knights equal 1848
+end

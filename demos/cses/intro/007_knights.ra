@@ -1,0 +1,21 @@
+rem CSES 1072: Two Knights
+rem https://cses.fi/problemset/task/1072
+
+use io
+use ranges
+
+N = stdin .integer
+
+for K in 1 to N
+  K knights print
+end
+
+
+rem Count nonattacking placements of two knights on a K by K board.
+fun knights K
+  Squares = K * K
+  Answer = Squares * (Squares - 1) // 2
+  Answer -= 4 * (K - 1) * (K - 2)
+
+  return Answer
+end
