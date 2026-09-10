@@ -16,6 +16,16 @@ and dynamic row-major `reshape`:
 M = Values (array Rows Columns) reshape
 ```
 
+Dense storage may also be allocated with a fill value and updated in place:
+
+```rank
+M = array shape Rows Columns pad 0
+M Row Column = Value
+```
+
+Only material arrays are writable. Lazy tensor results must first be
+materialized with postfix `array`.
+
 The broader tensor direction includes:
 
 ```rank

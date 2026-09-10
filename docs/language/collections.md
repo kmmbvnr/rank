@@ -76,8 +76,11 @@ Addressed mutation uses assignment rather than a `put` method:
 
 ```rank
 index Row Column = Value
-rem A Row Column = Value when mutable array cells are implemented
+A Row Column = Value
 ```
+
+An `index` writes a sparse tuple key. An array write requires one in-bounds
+index per dense axis and changes the existing material array.
 
 ### Set
 

@@ -5,6 +5,7 @@ import {
     type Program,
     createRankServices,
     isApplicationExpression,
+    isArrayAssignmentStatement,
     isAssignmentStatement,
     isBinaryExpression,
     isMaterializeExpression,
@@ -74,9 +75,28 @@ describe('Rank grammar', () => {
         expect(statement.names).toEqual(['Length', 'Width', 'Height']);
     });
 
-    it('rejects unpacking without the unpack keyword', async () => {
+    it('reserves a multi-part target for addressed assignment', async () => {
         const document = await parse('A B = array 1 2');
-        expect(document.parseResult.parserErrors).not.toEqual([]);
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+
+        const statement = document.parseResult.value.statements[0];
+        expect(isArrayAssignmentStatement(statement)).toBe(true);
+        if (!isArrayAssignmentStatement(statement)) return;
+        expect(statement.name).toBe('A');
+        expect(statement.indices).toHaveLength(1);
+    });
+
+    it('parses a filled shaped array and addressed assignment', async () => {
+        const document = await parse([
+            'Dist = array shape N N pad -1',
+            'Dist Y X = NextDist',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+        expect(isAssignmentStatement(document.parseResult.value.statements[0])).toBe(true);
+        expect(isArrayAssignmentStatement(document.parseResult.value.statements[1])).toBe(true);
     });
 
     it('parses right-associative exponentiation above unary signs', async () => {

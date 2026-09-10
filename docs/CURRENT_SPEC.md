@@ -200,8 +200,9 @@ unpack Length Width Height = array 2 3 4
 The number of names and items must match exactly. Unpacking supports only `=`;
 compound assignment always has one target. Each target keeps the same
 inferred-type rule as an ordinary assignment. The explicit keyword keeps a
-multi-part target available for addressed assignment. This form is especially
-useful with structured text parsing:
+multi-part target available for addressed assignment: `A i j = Value` changes
+one cell, while `unpack A B = Values` assigns separate variables. This form is
+especially useful with structured text parsing:
 
 ```rank
 Pattern = "/integerx/integerx/integer"
@@ -1436,6 +1437,15 @@ Dimensions are nonnegative integers. The number of elements must equal the
 product of the dimensions. Line breaks inside the block are formatting only;
 they do not add an axis or change the declared shape.
 
+`pad` fills every cell with one evaluated value and therefore needs no block:
+
+```rank
+Dist = array shape Rows Columns pad -1
+```
+
+The dimensions follow the same nonnegative-integer rule. A zero dimension
+creates an empty material array with the declared shape.
+
 `reshape` constructs a dense array dynamically from existing values:
 
 ```rank
@@ -1461,6 +1471,22 @@ Z = T i j k
 The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
 same addressing meaning. The interpreter currently implements the spaced form;
 general compact addressing remains a later step.
+
+A material dense array can be changed through the same full address:
+
+```rank
+M Row Column = Value
+```
+
+The address must contain exactly one integer index per axis. Negative and
+out-of-bounds indices are errors. Only `=` is supported for addressed
+assignment. Assignment changes the existing array object, so every alias of
+that array observes the new cell. The target and indices are evaluated before
+the right-hand expression.
+
+Lazy arrays produced by operations such as `outer` and `window` are not
+writable. Materialize a finite result explicitly with postfix `array` before
+changing its cells.
 
 Contiguous slices use `from` after the value. Arbitrary positions use an integer
 array as the selector:
@@ -1822,8 +1848,11 @@ Addressed mutation uses assignment rather than a `put` method:
 
 ```rank
 index Row Column = Value
-rem A Row Column = Value when mutable array cells are implemented
+A Row Column = Value
 ```
+
+An `index` writes a sparse tuple key. An array write requires one in-bounds
+index per dense axis and changes the existing material array.
 
 ### Set
 
@@ -2146,6 +2175,16 @@ and dynamic row-major `reshape`:
 ```rank
 M = Values (array Rows Columns) reshape
 ```
+
+Dense storage may also be allocated with a fill value and updated in place:
+
+```rank
+M = array shape Rows Columns pad 0
+M Row Column = Value
+```
+
+Only material arrays are writable. Lazy tensor results must first be
+materialized with postfix `array`.
 
 The broader tensor direction includes:
 

@@ -1209,6 +1209,41 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
     });
 
+    it('fills and mutates material arrays in row-major order', () => {
+        expect(run([
+            'M = array shape 2 3 pad -1',
+            'M 1 0 = 7',
+            'M',
+        ].join('\n'))).toBe('-1 -1 -1 7 -1 -1');
+        expect(run([
+            'A = array shape 2 pad 0',
+            'Alias = A',
+            'A 1 = 9',
+            'Alias 1',
+        ].join('\n'))).toBe('9');
+        expect(run('Empty = array shape 0 3 pad 5\nEmpty')).toBe('');
+    });
+
+    it('checks addressed array assignment targets and indices', () => {
+        expect(() => run('A = 1\nA 0 = 2'))
+            .toThrowError('array assignment expects an array target');
+        expect(() => run('A = array shape 2 2 pad 0\nA 0 = 2'))
+            .toThrowError('array assignment expects 2 indices, got 1');
+        expect(() => run('A = array shape 2 pad 0\nA 1.5 = 2'))
+            .toThrowError('array index must be an integer on axis 0');
+        expect(() => run('A = array shape 2 pad 0\nA -1 = 2'))
+            .toThrowError('array index must be nonnegative on axis 0');
+        expect(() => run('A = array shape 2 pad 0\nA 2 = 2'))
+            .toThrowError('array index out of bounds on axis 0: 2');
+        expect(() => run('A = array shape 2 pad 0\nA 2 = Unknown'))
+            .toThrowError('array index out of bounds on axis 0: 2');
+        expect(() => run([
+            'use ranges',
+            'A = (1 to 2) (1 to 2) + outer',
+            'A 0 0 = 9',
+        ].join('\n'))).toThrowError('cannot assign to a lazy array');
+    });
+
     it('iterates tensor cells by rank and explicit axes', () => {
         const matrix = [
             'M = array shape 2 3',

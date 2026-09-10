@@ -1,5 +1,6 @@
 import {
     isAddStatement,
+    isArrayAssignmentStatement,
     isArrayExpression,
     isArgsStatement,
     isArgumentStatement,
@@ -546,6 +547,36 @@ export class Interpreter {
                     );
                 }
                 statement.names.forEach((name, index) => this.assign(name, unpacked.items[index]));
+            } else if (isArrayAssignmentStatement(statement)) {
+                const target = this.resolveVariable(statement.name);
+                const indices = statement.indices.map(index => this.evaluateArrayItem(index));
+                if (!isRankArray(target) || target.kind !== 'array') {
+                    throw new RankError('array assignment expects an array target');
+                }
+                if (target.itemAt !== undefined) {
+                    throw new RankError('cannot assign to a lazy array');
+                }
+                if (indices.length !== target.shape.length) {
+                    throw new RankError(
+                        `array assignment expects ${target.shape.length} indices, got ${indices.length}`,
+                    );
+                }
+                const coordinates = indices.map((index, axis) => {
+                    if (typeof index !== 'bigint') {
+                        throw new RankError(`array index must be an integer on axis ${axis}`);
+                    }
+                    if (index < 0n) {
+                        throw new RankError(`array index must be nonnegative on axis ${axis}`);
+                    }
+                    if (index >= BigInt(target.shape[axis])) {
+                        throw new MissingValueError(
+                            `array index out of bounds on axis ${axis}: ${index}`,
+                        );
+                    }
+                    return Number(index);
+                });
+                result = this.evaluate(statement.value);
+                target.items[arrayOffset(target.shape, coordinates)] = result;
             } else if (isAssignmentStatement(statement)) {
                 if (statement.operator === '=') {
                     result = this.evaluate(statement.value);
@@ -620,6 +651,10 @@ export class Interpreter {
             if (expression.dimensions.length === 0) return array(items);
             const shape = expression.dimensions.map(item => this.arrayDimension(item));
             const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
+            if (expression.fill !== undefined) {
+                const fill = this.evaluate(expression.fill);
+                return { kind: 'array', items: Array(Number(size)).fill(fill), shape };
+            }
             if (BigInt(items.length) !== size) {
                 throw new RankError(
                     `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,

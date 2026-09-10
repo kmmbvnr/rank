@@ -27,6 +27,7 @@ Statement:
     AddStatement |
     IndexAssignmentStatement |
     UnpackStatement |
+    ArrayAssignmentStatement |
     AssignmentStatement |
     ExpressionStatement;
 
@@ -118,6 +119,9 @@ IndexAssignmentStatement:
 UnpackStatement:
     'unpack' names+=AssignableName+ '=' value=Expression;
 
+ArrayAssignmentStatement:
+    name=AssignableName indices+=ArrayItem+ '=' value=Expression;
+
 AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;
 
@@ -133,9 +137,10 @@ Expression returns Expression:
 
 ArrayExpression:
     'array' (
-        'shape' dimensions+=ArrayItem+ NL+
-        (rows+=ArrayRow NL+)*
-        'end' |
+        'shape' dimensions+=ArrayItem+ (
+            'pad' fill=Expression |
+            NL+ (rows+=ArrayRow NL+)* 'end'
+        ) |
         items+=ArrayItem+
     );
 

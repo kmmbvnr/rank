@@ -128,8 +128,9 @@ unpack Length Width Height = array 2 3 4
 The number of names and items must match exactly. Unpacking supports only `=`;
 compound assignment always has one target. Each target keeps the same
 inferred-type rule as an ordinary assignment. The explicit keyword keeps a
-multi-part target available for addressed assignment. This form is especially
-useful with structured text parsing:
+multi-part target available for addressed assignment: `A i j = Value` changes
+one cell, while `unpack A B = Values` assigns separate variables. This form is
+especially useful with structured text parsing:
 
 ```rank
 Pattern = "/integerx/integerx/integer"

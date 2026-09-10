@@ -164,6 +164,15 @@ Dimensions are nonnegative integers. The number of elements must equal the
 product of the dimensions. Line breaks inside the block are formatting only;
 they do not add an axis or change the declared shape.
 
+`pad` fills every cell with one evaluated value and therefore needs no block:
+
+```rank
+Dist = array shape Rows Columns pad -1
+```
+
+The dimensions follow the same nonnegative-integer rule. A zero dimension
+creates an empty material array with the declared shape.
+
 `reshape` constructs a dense array dynamically from existing values:
 
 ```rank
@@ -189,6 +198,22 @@ Z = T i j k
 The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
 same addressing meaning. The interpreter currently implements the spaced form;
 general compact addressing remains a later step.
+
+A material dense array can be changed through the same full address:
+
+```rank
+M Row Column = Value
+```
+
+The address must contain exactly one integer index per axis. Negative and
+out-of-bounds indices are errors. Only `=` is supported for addressed
+assignment. Assignment changes the existing array object, so every alias of
+that array observes the new cell. The target and indices are evaluated before
+the right-hand expression.
+
+Lazy arrays produced by operations such as `outer` and `window` are not
+writable. Materialize a finite result explicitly with postfix `array` before
+changing its cells.
 
 Contiguous slices use `from` after the value. Arbitrary positions use an integer
 array as the selector:
