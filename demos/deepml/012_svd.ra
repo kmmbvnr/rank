@@ -1,0 +1,65 @@
+rem Deep-ML 12: SVD
+rem https://www.deep-ml.com/problems/12
+
+use linalg
+use numbers
+use ranges
+use sequences
+
+rem Decompose a 2 by 2 matrix into U, singular values and V transpose.
+fun svd_2x2 A
+  Shape = A shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  if Shape 0 not equal 2 or Shape 1 not equal 2
+    .DimensionMismatch raise
+  end
+
+  AT = A transpose
+  B = AT A matmul
+
+  Y = 2 * B 0 1
+  X = B 0 0 - B 1 1
+  Theta = Y X atan2 / 2
+
+  C = Theta cos
+  S = Theta sin
+
+  V = array shape 2 2
+    C -S
+    S  C
+  end
+
+  D = V transpose B matmul
+  D = D V matmul
+
+  D0 = D 0 0 0 max
+  D1 = D 1 1 0 max
+  S0 = D0 sqrt
+  S1 = D1 sqrt
+  Sigma = array S0 S1
+
+  U = A V matmul copy
+
+  for j in 0 until 2
+    if Sigma j greater 0
+      for i in 0 until 2
+        U i j = U i j / Sigma j
+      end
+    end
+  end
+
+  if Sigma 0 equal 0
+    U 0 0 = 1.0
+    U 1 0 = 0.0
+    U 0 1 = 0.0
+    U 1 1 = 1.0
+  elif Sigma 1 equal 0
+    U 0 1 = -U 1 0
+    U 1 1 = U 0 0
+  end
+
+  VT = V transpose
+  return array U Sigma VT
+end

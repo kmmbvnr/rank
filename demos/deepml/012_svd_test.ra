@@ -1,0 +1,75 @@
+use testing
+
+test "official example"
+  use "012_svd"
+  use numbers
+  A = array shape 2 2
+    2 1
+    1 2
+  end
+  Result = A svd_2x2
+  U = (Result 0) round 6
+  Sigma = (Result 1) round 6
+  VT = (Result 2) round 6
+  ExpectedU = array shape 2 2
+    0.707107 -0.707107
+    0.707107 0.707107
+  end
+  ExpectedVT = array shape 2 2
+    0.707107 0.707107
+    -0.707107 0.707107
+  end
+
+  U equal ExpectedU
+  Sigma equal array 3.0 1.0
+  VT equal ExpectedVT
+end
+
+test "diagonal matrix keeps descending singular values"
+  use "012_svd"
+  use numbers
+  A = array shape 2 2
+    2 0
+    0 3
+  end
+  Result = A svd_2x2
+
+  (Result 1) round 6 equal array 3.0 2.0
+end
+
+test "rank deficient matrix still has an orthogonal basis"
+  use "012_svd"
+  use numbers
+  A = array shape 2 2
+    2 0
+    0 0
+  end
+  Result = A svd_2x2
+  U = (Result 0) round 6
+  Sigma = (Result 1) round 6
+  VT = (Result 2) round 6
+
+  U equal array shape 2 2
+    1.0 0.0
+    0.0 1.0
+  end
+  Sigma equal array 2.0 0.0
+  VT equal array shape 2 2
+    1.0 0.0
+    0.0 1.0
+  end
+end
+
+test "input must be two by two"
+  use "012_svd"
+  A = array shape 2 3 pad 1
+  Raised = false
+
+  try
+    Result = A svd_2x2
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
