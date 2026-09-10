@@ -1,0 +1,35 @@
+use testing
+
+test "official example"
+  use "006_eig"
+  A = array shape 2 2
+    2 1
+    1 2
+  end
+
+  A eigenvalues equal array 3.0 1.0
+end
+
+test "repeated eigenvalue"
+  use "006_eig"
+  A = array shape 2 2
+    5 0
+    0 5
+  end
+
+  A eigenvalues equal array 5.0 5.0
+end
+
+test "matrix must be two by two"
+  use "006_eig"
+  A = array shape 2 3 pad 0
+  Raised = false
+
+  try
+    Values = A eigenvalues
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end

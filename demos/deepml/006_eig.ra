@@ -1,0 +1,28 @@
+rem Deep-ML 6: Eigenvalues
+rem https://www.deep-ml.com/problems/6
+
+use numbers
+use sequences
+
+fun eigenvalues A
+  Shape = A shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  if Shape 0 not equal 2 or Shape 1 not equal 2
+    .DimensionMismatch raise
+  end
+
+  Trace = A 0 0 + A 1 1
+
+  Det = A 0 0 * A 1 1
+  Det = Det - A 0 1 * A 1 0
+
+  Disc = Trace * Trace - 4 * Det
+  Root = Disc sqrt
+
+  L1 = (Trace + Root) / 2
+  L2 = (Trace - Root) / 2
+
+  return array L1 L2
+end
