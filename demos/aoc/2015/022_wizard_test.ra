@@ -1,0 +1,21 @@
+use testing
+
+test "official first fight"
+  use "022_wizard"
+
+  13 8 10 250 false leastmana equal 226
+end
+
+test "official second fight"
+  use "022_wizard"
+
+  14 8 10 250 false leastmana equal 641
+end
+
+test "hard mode damage happens before casting"
+  use "022_wizard"
+
+  Lost = 1 1 1 53 true leastmana equal 1000000000
+  Won = 1 1 2 53 true leastmana equal 53
+  Lost and Won
+end

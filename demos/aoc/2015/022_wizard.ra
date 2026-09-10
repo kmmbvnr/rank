@@ -1,0 +1,167 @@
+rem Advent of Code 2015 — Day 22
+rem Wizard Simulator 20XX
+rem https://adventofcode.com/2015/day/22
+
+use io
+use cli
+use text
+use numbers
+
+argument Input path
+
+Lines = Input readlines
+unpack Part1 Part2 = Lines solve
+Part1 print
+Part2 print
+
+
+rem Parse the boss and solve the normal and hard fights.
+fun solve Lines
+  Pattern = "/text: /integer"
+  unpack Name BossHP = Lines 0 Pattern parse
+  unpack Name BossDamage = Lines 1 Pattern parse
+  Part1 = BossHP BossDamage 50 500 false leastmana
+  Part2 = BossHP BossDamage 50 500 true leastmana
+  return array Part1 Part2
+end
+
+
+rem Start the search with no active effects and no mana spent.
+fun leastmana BossHP BossDamage PlayerHP PlayerMana Hard
+  State = array shape 7
+    PlayerHP PlayerMana BossHP 0 0 0 0
+  end
+  return State BossDamage Hard 1000000000 fight
+end
+
+
+rem Search every spell sequence and retain the least mana cost found.
+fun fight State BossDamage Hard Best
+  HP = State 0
+  Mana = State 1
+  Spent = State 6
+
+  if Spent at least Best
+    return Best
+  end
+
+  if Hard
+    HP -= 1
+    if HP at most 0
+      return Best
+    end
+  end
+
+  Current = array shape 7
+    HP Mana (State 2) (State 3) (State 4) (State 5) Spent
+  end
+  Current = Current effects
+
+  if Current 2 at most 0
+    return Best Spent min
+  end
+
+  HP = Current 0
+  Mana = Current 1
+  Boss = Current 2
+  Shield = Current 3
+  Poison = Current 4
+  Recharge = Current 5
+  Spent = Current 6
+
+  if Mana at least 53
+    Next = array shape 7
+      HP (Mana - 53) (Boss - 4) Shield Poison Recharge (Spent + 53)
+    end
+    Best = Next BossDamage Hard Best bossturn
+  end
+
+  if Mana at least 73
+    Next = array shape 7
+      (HP + 2) (Mana - 73) (Boss - 2) Shield Poison Recharge (Spent + 73)
+    end
+    Best = Next BossDamage Hard Best bossturn
+  end
+
+  if Mana at least 113
+    if Shield equal 0
+      Next = array shape 7
+        HP (Mana - 113) Boss 6 Poison Recharge (Spent + 113)
+      end
+      Best = Next BossDamage Hard Best bossturn
+    end
+  end
+
+  if Mana at least 173
+    if Poison equal 0
+      Next = array shape 7
+        HP (Mana - 173) Boss Shield 6 Recharge (Spent + 173)
+      end
+      Best = Next BossDamage Hard Best bossturn
+    end
+  end
+
+  if Mana at least 229
+    if Recharge equal 0
+      Next = array shape 7
+        HP (Mana - 229) Boss Shield Poison 5 (Spent + 229)
+      end
+      Best = Next BossDamage Hard Best bossturn
+    end
+  end
+
+  return Best
+end
+
+
+rem Apply effects, let the boss attack, then continue with the player turn.
+fun bossturn State BossDamage Hard Best
+  Current = State effects
+  Spent = Current 6
+
+  if Current 2 at most 0
+    return Best Spent min
+  end
+
+  Armor = 0
+  if Current 3 greater 0
+    Armor = 7
+  end
+  Hit = 1 (BossDamage - Armor) max
+  HP = Current 0 - Hit
+
+  if HP at most 0
+    return Best
+  end
+
+  Next = array shape 7
+    HP (Current 1) (Current 2) (Current 3)
+    (Current 4) (Current 5) Spent
+  end
+  return Next BossDamage Hard Best fight
+end
+
+
+rem Apply active effects once and decrease all effect timers.
+fun effects State
+  HP = State 0
+  Mana = State 1
+  Boss = State 2
+  Shield = State 3
+  Poison = State 4
+  Recharge = State 5
+  Spent = State 6
+
+  if Poison greater 0
+    Boss -= 3
+  end
+  if Recharge greater 0
+    Mana += 101
+  end
+
+  Shield = 0 (Shield - 1) max
+  Poison = 0 (Poison - 1) max
+  Recharge = 0 (Recharge - 1) max
+
+  return array HP Mana Boss Shield Poison Recharge Spent
+end
