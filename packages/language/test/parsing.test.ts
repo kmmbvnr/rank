@@ -7,6 +7,7 @@ import {
     isApplicationExpression,
     isAssignmentStatement,
     isBinaryExpression,
+    isMaterializeExpression,
     isUnpackStatement,
     isUnaryExpression,
 } from '../src/index.js';
@@ -250,6 +251,33 @@ describe('Rank grammar', () => {
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements).toHaveLength(1);
+    });
+
+    it('parses generator functions, bare return and typed stdin', async () => {
+        const document = await parse([
+            'use io',
+            'fun values N',
+            '  yield N',
+            '  return',
+            'end',
+            'N = stdin integer',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
+    it('parses postfix sequence materialization separately from array selectors', async () => {
+        const document = await parse([
+            'Values = 3 values array',
+            'Picked = Text array 0 2 6',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statement = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(statement)).toBe(true);
+        if (!isAssignmentStatement(statement)) return;
+        expect(isMaterializeExpression(statement.value)).toBe(true);
     });
 
     it('parses shaped array blocks', async () => {

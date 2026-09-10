@@ -38,6 +38,35 @@ general lazy operation with the same observable result.
 Boundary operations such as `from`, `to` and `until` may be pushed into the
 source by the execution planner when the source can seek efficiently.
 
+## Explicit materialization
+
+Postfix `array` consumes a sequence and stores its yielded items in a dense
+rank-1 array:
+
+```rank
+Values = 3 weird array
+```
+
+Materialization is eager and preserves each yielded value as one array item;
+it does not flatten yielded collections. An empty sequence produces an array
+with shape `0`. A single-pass generator is consumed by this operation.
+
+A sequence known to be infinite is rejected. A sequence whose finiteness is
+unknown is evaluated until it ends, so materialization may raise a delayed
+error or fail to terminate. No module import is required because `array` is the
+core array constructor and conversion.
+
+Position disambiguates the three uses of `array`:
+
+```rank
+A = array 2 7 11       rem construct
+Picked = A array 2 0   rem select
+Copy = Source array    rem materialize
+```
+
+Values after `array` form a selector; postfix `array` at the end of the
+expression materializes.
+
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The
@@ -91,11 +120,12 @@ flat sequence of atoms together with its rectangular shape `[D1, D2, ...]`.
 A lazy sequence carries one of three size states:
 
 - `exact`: its length is known;
-- `unknown`: it is finite, but finding its length may require iteration;
-- `infinite`: it has no finite length.
+- `unknown`: its length and possibly its finiteness are not known;
+- `infinite`: it is proven to have no finite length.
 
-Requesting the shape of an `unknown` finite sequence is a demand point and may
-iterate it. Requesting a finite shape from an `infinite` sequence is an error.
+Requesting the shape of an `unknown` sequence is a demand point and iterates it;
+that request may not terminate. Requesting a finite shape from an `infinite`
+sequence is an error.
 
 ## Array construction
 

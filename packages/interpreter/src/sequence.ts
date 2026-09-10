@@ -117,6 +117,14 @@ export function sequenceValues(value: RankValue, operation: string): Iterable<Ra
     return { [Symbol.iterator]: () => value.plan.iterate() };
 }
 
+export function materializeSequence(source: RankSequence): RankArray {
+    if (source.plan.size.kind === 'infinite') {
+        throw new RankError('cannot materialize an infinite sequence');
+    }
+    const items = [...source.plan.iterate()];
+    return { kind: 'array', items, shape: [items.length] };
+}
+
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
     return value.plan.reduce?.(operation);
 }

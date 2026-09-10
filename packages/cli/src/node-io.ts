@@ -1,5 +1,33 @@
 import * as fs from 'node:fs';
-import type { RankFileHandle, RankFileMode, RankIo } from 'rank-interpreter';
+import type { RankFileHandle, RankFileMode, RankInput, RankIo } from 'rank-interpreter';
+
+export class NodeInput implements RankInput {
+    private readonly buffer = Buffer.allocUnsafe(64 * 1024);
+    private offset = 0;
+    private length = 0;
+
+    readToken(): string | undefined {
+        let byte = this.readByte();
+        while (byte !== undefined && byte <= 0x20) byte = this.readByte();
+        if (byte === undefined) return undefined;
+
+        const bytes: number[] = [];
+        while (byte !== undefined && byte > 0x20) {
+            bytes.push(byte);
+            byte = this.readByte();
+        }
+        return Buffer.from(bytes).toString('utf8');
+    }
+
+    private readByte(): number | undefined {
+        if (this.offset === this.length) {
+            this.length = fs.readSync(0, this.buffer, 0, this.buffer.length, null);
+            this.offset = 0;
+            if (this.length === 0) return undefined;
+        }
+        return this.buffer[this.offset++];
+    }
+}
 
 export const nodeIo: RankIo = {
     read: path => fs.readFileSync(path),

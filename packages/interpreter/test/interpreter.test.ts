@@ -4,6 +4,7 @@ import {
     RankError,
     formatValue,
     isRankSequence,
+    type RankInput,
     type RankFileHandle,
     type RankFileMode,
     type RankIo,
@@ -12,6 +13,16 @@ import {
 function run(source: string): string | undefined {
     const result = new Interpreter().execute(source);
     return result === undefined ? undefined : formatValue(result);
+}
+
+class TokenInput implements RankInput {
+    private offset = 0;
+
+    constructor(private readonly tokens: readonly string[]) {}
+
+    readToken(): string | undefined {
+        return this.tokens[this.offset++];
+    }
 }
 
 class MemoryIo implements RankIo {
@@ -1339,6 +1350,149 @@ describe('Rank interpreter', () => {
         const interpreter = new Interpreter(line => lines.push(line));
         expect(formatValue(interpreter.execute('use io\n42 print')!)).toBe('42');
         expect(lines).toEqual(['42']);
+    });
+
+    it('reads an integer token from standard input', () => {
+        const interpreter = new Interpreter(undefined, {
+            input: new TokenInput(['-1203', '+7']),
+        });
+        expect(interpreter.execute([
+            'use io',
+            'A = stdin integer',
+            'B = stdin integer',
+            'A + B',
+        ].join('\n'))).toBe(-1196n);
+
+        expect(() => new Interpreter(undefined, {
+            input: new TokenInput([]),
+        }).execute('use io\nstdin integer')).toThrowError('standard input ended before an integer');
+        expect(() => new Interpreter(undefined, {
+            input: new TokenInput(['12x']),
+        }).execute('use io\nstdin integer')).toThrowError('invalid integer input: 12x');
+        expect(() => new Interpreter(undefined, {
+            input: new TokenInput(['1']),
+        }).execute('stdin integer')).toThrowError('stdin requires: use io');
+    });
+
+    it('runs user generator functions lazily and once', () => {
+        const interpreter = new Interpreter();
+        interpreter.execute([
+            'fun values N',
+            '  Current = N',
+            '  for Current greater 0',
+            '    yield Current',
+            '    Current -= 1',
+            '  end',
+            'end',
+            'Values = 3 values',
+        ].join('\n'));
+        const values = interpreter.variables.get('Values');
+        expect(values && isRankSequence(values)).toBe(true);
+        if (!values || !isRankSequence(values)) return;
+        expect(formatValue(values)).toBe('3 2 1');
+        expect(() => formatValue(values))
+            .toThrowError('generator sequence values has already been consumed');
+    });
+
+    it('materializes a finite sequence with postfix array', () => {
+        expect(run([
+            'fun values N',
+            '  for N greater 0',
+            '    yield N',
+            '    N -= 1',
+            '  end',
+            'end',
+            'Values = 3 values array',
+            'Values',
+        ].join('\n'))).toBe('3 2 1');
+        expect(run([
+            'fun none N',
+            '  if N greater 0',
+            '    yield N',
+            '  end',
+            'end',
+            '0 none array',
+        ].join('\n'))).toBe('');
+        expect(() => run('use sequences\nprimes array'))
+            .toThrowError('cannot materialize an infinite sequence');
+        expect(() => run('42 array'))
+            .toThrowError('postfix array expects a sequence');
+    });
+
+    it('supports bare return and preserves yielded array values', () => {
+        const interpreter = new Interpreter();
+        interpreter.execute([
+            'fun first Value',
+            '  yield Value',
+            '  return',
+            '  yield 99',
+            'end',
+            'Values = (array 1 2) first',
+        ].join('\n'));
+        const values = interpreter.variables.get('Values');
+        expect(values && isRankSequence(values)).toBe(true);
+        if (!values || !isRankSequence(values)) return;
+        const yielded = values.plan.iterate().next();
+        expect(yielded.done).toBe(false);
+        expect(yielded.value).toMatchObject({ kind: 'array', shape: [2] });
+    });
+
+    it('rejects return values in generators when execution reaches them', () => {
+        const interpreter = new Interpreter();
+        interpreter.execute([
+            'fun invalid N',
+            '  yield N',
+            '  return N',
+            'end',
+            'Values = 1 invalid',
+        ].join('\n'));
+        const values = interpreter.variables.get('Values');
+        expect(values && isRankSequence(values)).toBe(true);
+        if (!values || !isRankSequence(values)) return;
+        expect(() => formatValue(values)).toThrowError('a generator cannot return a value');
+        expect(() => run('fun invalid N\n  return\nend\n1 invalid'))
+            .toThrowError('a value-returning function must return a value');
+        expect(() => run('yield 1'))
+            .toThrowError('yield is only valid inside a generator function');
+    });
+
+    it('defers generator errors until the failing element is requested', () => {
+        const interpreter = new Interpreter();
+        interpreter.execute([
+            'fun values N',
+            '  yield N',
+            '  yield 1 // 0',
+            'end',
+            'Values = 7 values',
+        ].join('\n'));
+        const values = interpreter.variables.get('Values');
+        expect(values && isRankSequence(values)).toBe(true);
+        if (!values || !isRankSequence(values)) return;
+        const iterator = values.plan.iterate();
+        expect(iterator.next()).toEqual({ value: 7n, done: false });
+        expect(() => iterator.next()).toThrowError('division by zero');
+    });
+
+    it('closes generator resources when its consumer stops', () => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const interpreter = new Interpreter(undefined, { io });
+        interpreter.execute([
+            'use io',
+            'fun positions Path',
+            '  File = Path open',
+            '  yield File position',
+            '  yield File size',
+            'end',
+            'Values = "/input" positions',
+        ].join('\n'));
+        const values = interpreter.variables.get('Values');
+        expect(values && isRankSequence(values)).toBe(true);
+        if (!values || !isRankSequence(values)) return;
+        const iterator = values.plan.iterate();
+        expect(iterator.next()).toEqual({ value: 0n, done: false });
+        expect(io.handles[0].closed).toBe(false);
+        iterator.return?.();
+        expect(io.handles[0].closed).toBe(true);
     });
 
     it('reads and writes UTF-8 text through the host adapter', () => {

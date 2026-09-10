@@ -1139,6 +1139,47 @@ G = A B gcd
 Result print
 ```
 
+## Generator functions
+
+A function containing `yield` returns a lazy sequence. Calling it creates the
+sequence without running the body; execution starts when an operation first
+asks for an element:
+
+```rank
+rem Generate the Collatz values beginning with N.
+fun weird N
+  yield N
+
+  for N not equal 1
+    if N even
+      N //= 2
+    else
+      N = 3 * N + 1
+    end
+    yield N
+  end
+end
+```
+
+`yield Value` emits exactly one sequence item and suspends the function. An
+array or other collection is one item and is not flattened. Local variables
+retain their values between yields. Errors in the body are raised only when
+iteration reaches the failing statement.
+
+User generators are single-pass because they may read input, use files or
+perform other effects. A second attempt to consume the same generator sequence
+raises `.ConsumedSequence`; call the function again to create a new sequence.
+Their extent is unknown unless a future contract says otherwise.
+
+A bare `return` ends a generator early. `return Value` is an error in a
+generator, while a bare `return` is an error in an ordinary value-returning
+function. `yield` is valid only in a generator function. A yielded value does
+not become the function's return value.
+
+Resources opened by a generator remain owned by its suspended execution. They
+close when the generator finishes, raises an error, is abandoned by its
+consumer, or its interpreter is disposed.
+
 ## Scoped resources
 
 Resource values such as open files have deterministic lifetimes. A resource is
@@ -1233,6 +1274,35 @@ general lazy operation with the same observable result.
 Boundary operations such as `from`, `to` and `until` may be pushed into the
 source by the execution planner when the source can seek efficiently.
 
+## Explicit materialization
+
+Postfix `array` consumes a sequence and stores its yielded items in a dense
+rank-1 array:
+
+```rank
+Values = 3 weird array
+```
+
+Materialization is eager and preserves each yielded value as one array item;
+it does not flatten yielded collections. An empty sequence produces an array
+with shape `0`. A single-pass generator is consumed by this operation.
+
+A sequence known to be infinite is rejected. A sequence whose finiteness is
+unknown is evaluated until it ends, so materialization may raise a delayed
+error or fail to terminate. No module import is required because `array` is the
+core array constructor and conversion.
+
+Position disambiguates the three uses of `array`:
+
+```rank
+A = array 2 7 11       rem construct
+Picked = A array 2 0   rem select
+Copy = Source array    rem materialize
+```
+
+Values after `array` form a selector; postfix `array` at the end of the
+expression materializes.
+
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The
@@ -1286,11 +1356,12 @@ flat sequence of atoms together with its rectangular shape `[D1, D2, ...]`.
 A lazy sequence carries one of three size states:
 
 - `exact`: its length is known;
-- `unknown`: it is finite, but finding its length may require iteration;
-- `infinite`: it has no finite length.
+- `unknown`: its length and possibly its finiteness are not known;
+- `infinite`: it is proven to have no finite length.
 
-Requesting the shape of an `unknown` finite sequence is a demand point and may
-iterate it. Requesting a finite shape from an `infinite` sequence is an error.
+Requesting the shape of an `unknown` sequence is a demand point and iterates it;
+that request may not terminate. Requesting a finite shape from an `infinite`
+sequence is an error.
 
 ## Array construction
 
@@ -2494,6 +2565,22 @@ Hash = Digest hex
 ```
 
 ## File I/O
+
+`use io` provides typed access to standard input. The initial scalar form reads
+one whitespace-separated token and converts it to an arbitrary-precision
+integer:
+
+```rank
+N = stdin integer
+```
+
+Spaces, tabs, LF and CRLF separate tokens. Optional `+` and `-` signs are
+accepted. End of input raises `.EndOfInput`; a token that is not a decimal
+integer raises `.InvalidNumber`. Standard input is supplied by the host, so an
+embedded host without it raises `.IO`.
+
+Counted input and text or line-oriented input are not part of the current
+language yet.
 
 `use io` provides one-shot UTF-8 text operations for the common case:
 

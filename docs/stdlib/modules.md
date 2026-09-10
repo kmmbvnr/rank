@@ -337,6 +337,22 @@ Hash = Digest hex
 
 ## File I/O
 
+`use io` provides typed access to standard input. The initial scalar form reads
+one whitespace-separated token and converts it to an arbitrary-precision
+integer:
+
+```rank
+N = stdin integer
+```
+
+Spaces, tabs, LF and CRLF separate tokens. Optional `+` and `-` signs are
+accepted. End of input raises `.EndOfInput`; a token that is not a decimal
+integer raises `.InvalidNumber`. Standard input is supplied by the host, so an
+embedded host without it raises `.IO`.
+
+Counted input and text or line-oriented input are not part of the current
+language yet.
+
 `use io` provides one-shot UTF-8 text operations for the common case:
 
 ```rank

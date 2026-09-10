@@ -17,6 +17,7 @@ Statement:
     ArgsStatement |
     TestStatement |
     FunctionStatement |
+    YieldStatement |
     ReturnStatement |
     BreakStatement |
     TryStatement |
@@ -60,7 +61,10 @@ FunctionStatement:
     NL* 'end';
 
 ReturnStatement:
-    'return' value=Expression;
+    'return' value=Expression?;
+
+YieldStatement:
+    'yield' value=Expression;
 
 BreakStatement:
     {infer BreakStatement} 'break';
@@ -194,7 +198,8 @@ PowerExpression returns Expression:
 ApplicationExpression returns Expression:
     UnaryExpression
     ({infer ApplicationExpression.head=current}
-        arguments+=ApplicationArgument)*;
+        arguments+=ApplicationArgument)*
+    ({infer MaterializeExpression.source=current} 'array')?;
 
 UnaryExpression returns Expression:
     {infer UnaryExpression}
@@ -213,8 +218,12 @@ ArrayAtom returns Expression:
     StringLiteral |
     BooleanLiteral |
     LabelLiteral |
+    StdinExpression |
     NameExpression |
     ParenthesizedExpression;
+
+StdinExpression:
+    'stdin' valueType=WORD;
 
 NumberLiteral:
     value=(REAL | INTEGER);

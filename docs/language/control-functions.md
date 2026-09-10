@@ -246,6 +246,47 @@ G = A B gcd
 Result print
 ```
 
+## Generator functions
+
+A function containing `yield` returns a lazy sequence. Calling it creates the
+sequence without running the body; execution starts when an operation first
+asks for an element:
+
+```rank
+rem Generate the Collatz values beginning with N.
+fun weird N
+  yield N
+
+  for N not equal 1
+    if N even
+      N //= 2
+    else
+      N = 3 * N + 1
+    end
+    yield N
+  end
+end
+```
+
+`yield Value` emits exactly one sequence item and suspends the function. An
+array or other collection is one item and is not flattened. Local variables
+retain their values between yields. Errors in the body are raised only when
+iteration reaches the failing statement.
+
+User generators are single-pass because they may read input, use files or
+perform other effects. A second attempt to consume the same generator sequence
+raises `.ConsumedSequence`; call the function again to create a new sequence.
+Their extent is unknown unless a future contract says otherwise.
+
+A bare `return` ends a generator early. `return Value` is an error in a
+generator, while a bare `return` is an error in an ordinary value-returning
+function. `yield` is valid only in a generator function. A yielded value does
+not become the function's return value.
+
+Resources opened by a generator remain owned by its suspended execution. They
+close when the generator finishes, raises an error, is abandoned by its
+consumer, or its interpreter is disposed.
+
 ## Scoped resources
 
 Resource values such as open files have deterministic lifetimes. A resource is

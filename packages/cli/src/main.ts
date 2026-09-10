@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import * as url from 'node:url';
-import { nodeIo } from './node-io.js';
+import { NodeInput, nodeIo } from './node-io.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const packagePath = path.resolve(__dirname, '..', 'package.json');
@@ -37,6 +37,7 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
     const source = await fs.readFile(sourceId, 'utf8');
     const interpreter = new Interpreter(console.log, {
         args,
+        input: new NodeInput(),
         io: nodeIo,
         sourceId,
         loadModule,
