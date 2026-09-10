@@ -1,0 +1,34 @@
+rem CSES 1623: Apple Division
+rem https://cses.fi/problemset/task/1623
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+Weights = stdin .integer N array
+Weights solve print
+
+
+rem Find the minimum difference between the weights of two groups.
+fun solve Weights
+  Total = Weights sum
+  N = Weights len
+
+  return 1 (Weights 0) divide
+
+  rem Try both groups for every apple after the first one.
+  fun divide Pos Left
+    if Pos equal N
+      Difference = Total - 2 * Left
+      return Difference abs
+    end
+
+    Weight = Weights Pos
+    Next = Pos + 1
+
+    Include = Next (Left + Weight) divide
+    Exclude = Next Left divide
+    return Include Exclude min
+  end
+end

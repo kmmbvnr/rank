@@ -1,0 +1,19 @@
+use testing
+
+test "official example"
+  use "016_apples"
+  Weights = array 3 2 7 4 1
+  Weights solve equal 1
+end
+
+test "equal groups"
+  use "016_apples"
+  Weights = array 5 5 2 2
+  Weights solve equal 0
+end
+
+test "one apple"
+  use "016_apples"
+  Weights = array 9
+  Weights solve equal 9
+end
