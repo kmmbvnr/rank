@@ -169,6 +169,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
+    it('parses an explicit writable tensor copy', async () => {
+        const document = await parse([
+            'use sequences',
+            'Writable = Lazy copy',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('continues expressions across lines inside parentheses', async () => {
         const document = await parse([
             'Result = (',

@@ -125,6 +125,45 @@ describe('Rank tensors and collections', () => {
         expect(run('Empty = array shape 0 3 pad 5\nEmpty')).toBe('');
     });
 
+    it('copies dense and lazy tensors into independent writable arrays', () => {
+        expect(run([
+            'use sequences',
+            'Source = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'Copy = Source copy',
+            'Copy 1 0 = 9',
+            'Source 1 0',
+        ].join('\n'))).toBe('3');
+        expect(run([
+            'use sequences',
+            'Source = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'Copy = Source transpose copy',
+            'Copy 0 1 = 9',
+            'Source 1 0',
+        ].join('\n'))).toBe('3');
+        expect(run([
+            'use sequences',
+            'Source = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'Copy = Source transpose copy',
+            'Copy 0 1 = 9',
+            'Copy',
+        ].join('\n'))).toBe('1 9 2 4');
+        expect(() => run('use sequences\n42 copy'))
+            .toThrowError('copy expects an array');
+        expect(() => run('use sequences\nfibonacci copy'))
+            .toThrowError('copy expects an array');
+        expect(() => run('A = array 1 2\nA copy'))
+            .toThrowError('unknown name: copy');
+    });
+
     it('checks addressed array assignment targets and indices', () => {
         expect(() => run('A = 1\nA 0 = 2'))
             .toThrowError('array assignment expects an array target');

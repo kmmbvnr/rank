@@ -26,12 +26,23 @@ export const sequencesModule: RuntimeModule = {
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
+    copy: () => native('copy', 1, arguments_ => copyArray(arguments_[0])),
     sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
     unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
 };
+
+function copyArray(value: RankValue): RankArray {
+    if (!isRankArray(value)) throw new RankError('copy expects an array');
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    const items = Array.from(
+        { length: size },
+        (_, index) => value.itemAt?.(index) ?? value.items[index],
+    );
+    return { kind: 'array', shape: [...value.shape], items };
+}
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {
     if (!isRankArray(value)) throw new RankError('transpose expects an array');

@@ -280,7 +280,12 @@ len
 shape
 transpose
 window
+copy
 ```
+
+`copy` eagerly copies a material or lazy array into independent writable dense
+storage while preserving its shape. It does not accept a sequence; postfix
+`array` materializes a finite sequence into a rank-1 array.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, supports `to` and `until`, and may seek to a

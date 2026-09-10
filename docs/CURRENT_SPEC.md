@@ -1374,6 +1374,18 @@ Copy = Source array    rem materialize
 Values after `array` form a selector; postfix `array` at the end of the
 expression materializes.
 
+Postfix `copy` accepts a material or lazy array, eagerly evaluates all of its
+cells and returns independent writable dense storage with the same shape:
+
+```rank
+use sequences
+Writable = Source copy
+```
+
+Changing the copy does not change the source. `copy` does not accept a
+sequence; postfix `array` remains the operation that materializes a finite
+sequence into a rank-1 array.
+
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The
@@ -1537,8 +1549,8 @@ that array observes the new cell. The target and indices are evaluated before
 the right-hand expression.
 
 Lazy arrays produced by operations such as `outer` and `window` are not
-writable. Materialize a finite result explicitly with postfix `array` before
-changing its cells.
+writable. Copy a finite result explicitly with postfix `copy` before changing
+its cells.
 
 Contiguous slices use `from` after the value. Arbitrary positions use an integer
 array as the selector:
@@ -2254,8 +2266,15 @@ M = array shape Rows Columns pad 0
 M Row Column = Value
 ```
 
-Only material arrays are writable. Lazy tensor results must first be
-materialized with postfix `array`.
+Only material arrays are writable. Postfix `copy` eagerly copies either a
+material or lazy tensor into independent writable storage with the same shape:
+
+```rank
+use sequences
+Writable = Source copy
+```
+
+Changing `Writable` does not change `Source`.
 
 `transpose` returns a lazy read-only view. Without an axis modifier it reverses
 the order of every axis:
@@ -2848,7 +2867,12 @@ len
 shape
 transpose
 window
+copy
 ```
+
+`copy` eagerly copies a material or lazy array into independent writable dense
+storage while preserving its shape. It does not accept a sequence; postfix
+`array` materializes a finite sequence into a rank-1 array.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, supports `to` and `until`, and may seek to a

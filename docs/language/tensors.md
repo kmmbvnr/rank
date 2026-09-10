@@ -23,8 +23,15 @@ M = array shape Rows Columns pad 0
 M Row Column = Value
 ```
 
-Only material arrays are writable. Lazy tensor results must first be
-materialized with postfix `array`.
+Only material arrays are writable. Postfix `copy` eagerly copies either a
+material or lazy tensor into independent writable storage with the same shape:
+
+```rank
+use sequences
+Writable = Source copy
+```
+
+Changing `Writable` does not change `Source`.
 
 `transpose` returns a lazy read-only view. Without an axis modifier it reverses
 the order of every axis:
