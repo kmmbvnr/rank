@@ -1,0 +1,33 @@
+use testing
+
+test "official examples"
+  use "008_matchsticks"
+
+  Lines = array shape 4
+    "\"\""
+    "\"abc\""
+    "\"aaa\\\"aaa\""
+    "\"\\x27\""
+  end
+
+  Answer = Lines solve
+  Answer equal array 12 19
+end
+
+test "decoded lengths"
+  use "008_matchsticks"
+
+  "\"\"" memorylen equal 0
+  "\"abc\"" memorylen equal 3
+  "\"aaa\\\"aaa\"" memorylen equal 7
+  "\"\\x27\"" memorylen equal 1
+end
+
+test "encoded lengths"
+  use "008_matchsticks"
+
+  "\"\"" encodedlen equal 6
+  "\"abc\"" encodedlen equal 9
+  "\"aaa\\\"aaa\"" encodedlen equal 16
+  "\"\\x27\"" encodedlen equal 11
+end

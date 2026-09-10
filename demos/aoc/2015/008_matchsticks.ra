@@ -1,0 +1,75 @@
+rem Advent of Code 2015 - Day 8
+rem Matchsticks
+rem https://adventofcode.com/2015/day/8
+
+use io
+use cli
+use sequences
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+
+Part1 print
+Part2 print
+
+
+rem Compare source, decoded and newly
+rem encoded lengths for all literals.
+fun solve Lines
+  Part1 = 0
+  Part2 = 0
+
+  for S in Lines
+    Code = S len
+    Memory = S memorylen
+    Encoded = S encodedlen
+
+    Part1 += Code - Memory
+    Part2 += Encoded - Code
+  end
+
+  return array Part1 Part2
+end
+
+
+rem Count characters after escaping a
+rem literal for source code again.
+fun encodedlen S
+  Count = 2
+
+  for C in S
+    if C equal "\\" or C equal "\""
+      Count += 2
+    else
+      Count += 1
+    end
+  end
+
+  return Count
+end
+
+
+rem Count decoded characters inside a
+rem valid source literal.
+fun memorylen S
+  Count = 0
+  Position = 1
+  Last = S len - 1
+
+  for Position less Last
+    if S Position equal "\\"
+      Position += 1
+
+      if S Position equal "x"
+        Position += 2
+      end
+    end
+
+    Count += 1
+    Position += 1
+  end
+
+  return Count
+end
