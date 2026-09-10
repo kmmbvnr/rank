@@ -1,0 +1,36 @@
+use testing
+
+test "all six instructions update the machine"
+  use "023_turing"
+
+  Program = array shape 14
+    "inc a"
+    "tpl a"
+    "inc a"
+    "jie a, +2"
+    "inc b"
+    "hlf a"
+    "jio a, +2"
+    "inc b"
+    "jmp +2"
+    "inc b"
+    "hlf a"
+    "jio a, +2"
+    "tpl b"
+    "inc b"
+  end
+  Program 0 execute equal 2
+end
+
+test "the initial value of register a changes control flow"
+  use "023_turing"
+
+  Program = array shape 3
+    "jio a, +2"
+    "inc b"
+    "tpl b"
+  end
+  Part1 = Program 0 execute equal 3
+  Part2 = Program 1 execute equal 0
+  Part1 and Part2
+end

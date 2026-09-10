@@ -1,0 +1,95 @@
+rem Advent of Code 2015 — Day 23
+rem Opening the Turing Lock
+rem https://adventofcode.com/2015/day/23
+
+use io
+use cli
+use text
+use sequences
+
+argument Input path
+
+Program = Input readlines
+Part1 = Program 0 execute
+Part2 = Program 1 execute
+Part1 print
+Part2 print
+
+
+rem Execute the two-register program and return register b.
+fun execute Program Start
+  A = Start
+  B = 0
+  PC = 0
+
+  for PC at least 0 and PC less Program len
+    Words = Program PC " " split
+    Op = Words 0
+
+    if Op equal "hlf"
+      Register = Words 1
+      if Register equal "a"
+        A //= 2
+      else
+        B //= 2
+      end
+      PC += 1
+
+    elif Op equal "tpl"
+      Register = Words 1
+      if Register equal "a"
+        A *= 3
+      else
+        B *= 3
+      end
+      PC += 1
+
+    elif Op equal "inc"
+      Register = Words 1
+      if Register equal "a"
+        A += 1
+      else
+        B += 1
+      end
+      PC += 1
+
+    elif Op equal "jmp"
+      Offset = Words 1 integer
+      PC += Offset
+
+    elif Op equal "jie"
+      Operand = Words 1
+      Register = Operand 0
+      Offset = Words 2 integer
+      if Register equal "a"
+        Value = A
+      else
+        Value = B
+      end
+
+      if Value % 2 equal 0
+        PC += Offset
+      else
+        PC += 1
+      end
+
+    elif Op equal "jio"
+      Operand = Words 1
+      Register = Operand 0
+      Offset = Words 2 integer
+      if Register equal "a"
+        Value = A
+      else
+        Value = B
+      end
+
+      if Value equal 1
+        PC += Offset
+      else
+        PC += 1
+      end
+    end
+  end
+
+  return B
+end
