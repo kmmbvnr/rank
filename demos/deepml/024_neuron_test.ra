@@ -1,0 +1,47 @@
+use testing
+
+test "official decimal features"
+  use "024_neuron"
+  X = array shape 3 2
+    0.5 1.0
+    -1.5 -2.0
+    2.0 1.5
+  end
+  Y = array 0 1 0
+  W = array 0.7 -0.4
+
+  Result = X Y W (-0.1) single_neuron
+  unpack Pred Mse = Result
+  Pred equal array 0.4626 0.4134 0.6682
+  Mse equal 0.3349
+end
+
+test "official integer features"
+  use "024_neuron"
+  X = array shape 3 2
+    1 2
+    2 3
+    3 1
+  end
+  Y = array 1 0 1
+  W = array 0.5 -0.2
+
+  Result = X Y W 0 single_neuron
+  unpack Pred Mse = Result
+  Pred equal array 0.525 0.5987 0.7858
+  Mse equal 0.21
+end
+
+test "one sample preserves vector shape"
+  use "024_neuron"
+  X = array shape 1 2
+    0 0
+  end
+  Y = array 0
+  W = array 2.0 -3.0
+
+  Result = X Y W 0 single_neuron
+  unpack Pred Mse = Result
+  Pred equal array 0.5
+  Mse equal 0.25
+end

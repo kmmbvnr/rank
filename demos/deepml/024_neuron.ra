@@ -1,0 +1,20 @@
+rem Deep-ML 24: Single Neuron
+rem https://www.deep-ml.com/problems/24
+
+use "022_sigmoid"
+use linalg
+use numbers
+use stats
+
+rem Predict probabilities and their MSE.
+fun single_neuron X Y W Bias
+  Pred = X W matmul + Bias
+  Pred = Pred sigmoid
+
+  Error = Pred - Y
+  Mse = (Error * Error) mean
+
+  return array (Pred round 4) (
+    Mse round 4
+  )
+end
