@@ -1,0 +1,23 @@
+rem CSES 2205: Gray Code
+rem https://cses.fi/problemset/task/2205
+
+use io
+use bits
+use ranges
+
+N = stdin .integer
+
+for Code in N gray
+  Code print
+end
+
+
+rem Generate all N-bit Gray codes in order.
+fun gray N
+  Count = 2 ** N
+
+  for I in 0 until Count
+    Value = I (I // 2) bxor
+    yield Value N binary
+  end
+end

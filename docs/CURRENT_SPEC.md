@@ -2359,6 +2359,8 @@ A N shl
 A N shr
 A N bit
 A popcount
+X binary
+X Width binary
 ```
 
 `bnot` follows infinite two's-complement semantics, so `A bnot` equals
@@ -2373,6 +2375,16 @@ Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
 number of set bits. `bit` and `popcount` require a nonnegative input value.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
+
+`binary` formats a nonnegative integer as text. With one argument it uses the
+shortest representation, including `"0"` for zero. A positive integer width
+pads with leading zeroes and raises an error when the value does not fit:
+
+```rank
+Bits = 10 binary
+Padded = 3 5 binary
+rem "1010", "00011"
+```
 
 ## Sequences
 

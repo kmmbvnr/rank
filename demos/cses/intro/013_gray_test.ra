@@ -1,0 +1,15 @@
+use testing
+
+test "two bits"
+  use "013_gray"
+  Actual = 2 gray array
+  Expected = array "00" "01" "11" "10"
+  Actual equal Expected
+end
+
+test "official three-bit order"
+  use "013_gray"
+  Actual = 3 gray array
+  Expected = array "000" "001" "011" "010" "110" "111" "101" "100"
+  Actual equal Expected
+end

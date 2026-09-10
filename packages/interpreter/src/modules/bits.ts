@@ -3,12 +3,12 @@ import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const bitsModule: RuntimeModule = {
-    band: () => binary('band', (left, right) => left & right),
-    bor: () => binary('bor', (left, right) => left | right),
-    bxor: () => binary('bxor', (left, right) => left ^ right),
+    band: () => binaryOperation('band', (left, right) => left & right),
+    bor: () => binaryOperation('bor', (left, right) => left | right),
+    bxor: () => binaryOperation('bxor', (left, right) => left ^ right),
     bnot: () => native('bnot', 1, arguments_ => ~expectInteger(arguments_[0]), 0),
-    shl: () => binary('shl', (left, right) => left << shiftCount(right)),
-    shr: () => binary('shr', (left, right) => left >> shiftCount(right)),
+    shl: () => binaryOperation('shl', (left, right) => left << shiftCount(right)),
+    shr: () => binaryOperation('shr', (left, right) => left >> shiftCount(right)),
     bit: () => native('bit', 2, arguments_ => {
         const value = nonnegative('bit', expectInteger(arguments_[0]));
         const position = shiftCount(expectInteger(arguments_[1]));
@@ -23,9 +23,23 @@ export const bitsModule: RuntimeModule = {
         }
         return count;
     }, 0),
+    binary: () => native('binary', [1, 2], arguments_ => {
+        const value = nonnegative('binary', expectInteger(arguments_[0]));
+        const digits = value.toString(2);
+        if (arguments_.length === 1) return digits;
+
+        const width = expectInteger(arguments_[1]);
+        if (width <= 0n || width > BigInt(Number.MAX_SAFE_INTEGER)) {
+            throw new RankError('binary width must be a positive safe integer');
+        }
+        if (BigInt(digits.length) > width) {
+            throw new RankError(`binary value does not fit width ${width}`);
+        }
+        return digits.padStart(Number(width), '0');
+    }, 0),
 };
 
-function binary(name: string, operation: (left: bigint, right: bigint) => bigint) {
+function binaryOperation(name: string, operation: (left: bigint, right: bigint) => bigint) {
     return native(name, 2, arguments_ =>
         operation(expectInteger(arguments_[0]), expectInteger(arguments_[1])));
 }

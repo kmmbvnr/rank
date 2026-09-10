@@ -1337,11 +1337,20 @@ describe('Rank interpreter', () => {
         expect(run('use bits\n4096 4 shr')).toBe('256');
         expect(run('use bits\n13 2 bit')).toBe('true');
         expect(run('use bits\n13 popcount')).toBe('3');
+        expect(run('use bits\n0 binary')).toBe('0');
+        expect(run('use bits\n10 binary')).toBe('1010');
+        expect(run('use bits\n3 5 binary')).toBe('00011');
         expect(run('use bits\n(array 0 1) bnot')).toBe('-1 -2');
         expect(() => run('use bits\n1 (-1) shl'))
             .toThrowError('shift count must be nonnegative');
         expect(() => run('use bits\n-1 popcount'))
             .toThrowError('popcount expects a nonnegative integer');
+        expect(() => run('use bits\n-1 binary'))
+            .toThrowError('binary expects a nonnegative integer');
+        expect(() => run('use bits\n1 0 binary'))
+            .toThrowError('binary width must be a positive safe integer');
+        expect(() => run('use bits\n8 3 binary'))
+            .toThrowError('binary value does not fit width 3');
         expect(() => run('1 2 band')).toThrowError('unknown name: band');
     });
 
