@@ -385,6 +385,44 @@ describe('Rank interpreter', () => {
         ].join('\n'))).toThrowError('window has 1 size value but 2 selected axes');
     });
 
+    it('reshapes finite values in row-major order', () => {
+        const matrix = new Interpreter().execute([
+            'use sequences',
+            'use ranges',
+            'M = (1 to 6) (array 2 3) reshape',
+            'M',
+        ].join('\n'));
+        expect(matrix).toMatchObject({ kind: 'array', shape: [2, 3] });
+        expect(matrix && typeof matrix === 'object' && matrix.kind === 'array'
+            ? matrix.items
+            : undefined).toEqual([1n, 2n, 3n, 4n, 5n, 6n]);
+        expect(run([
+            'use sequences',
+            'M = "A😀БC" (array 2 2) reshape',
+            'M 1 0',
+        ].join('\n'))).toBe('Б');
+        expect(run([
+            'use sequences',
+            'use algo',
+            'fun matrix Unused',
+            '  queue push 1',
+            '  queue push 2',
+            '  queue push 3',
+            '  queue push 4',
+            '  return queue (array 2 2) reshape',
+            'end',
+            '0 matrix 1 1',
+        ].join('\n'))).toBe('4');
+        expect(() => run('use sequences\n(array 1 2 3) (array 2 2) reshape'))
+            .toThrowError('reshape shape 2 2 expects 4 elements, got 3');
+        expect(() => run('use sequences\nfibonacci (array 1) reshape'))
+            .toThrowError('reshape requires a finite sequence');
+        expect(() => run('use sequences\n(array 1) (array -1) reshape'))
+            .toThrowError('reshape dimension must be nonnegative: -1');
+        expect(() => run('(array 1) (array 1) reshape'))
+            .toThrowError('unknown name: reshape');
+    });
+
     it('reduces complete values and trailing cells', () => {
         expect(run('(array 2 3 4) * reduce')).toBe('24');
         expect(run('(array 1 2 3) + reduce')).toBe('6');
@@ -702,6 +740,33 @@ describe('Rank interpreter', () => {
             'end',
             'Result',
         ].join('\n'))).toBe('2');
+    });
+
+    it('selects the first true elif branch', () => {
+        expect(run([
+            'Value = 1',
+            'Result = "none"',
+            'if Value less 0',
+            '  Result = "negative"',
+            'elif Value equal 1',
+            '  Result = "one"',
+            'elif 1 / 0 equal 0',
+            '  Result = "unreachable"',
+            'else',
+            '  Result = "other"',
+            'end',
+            'Result',
+        ].join('\n'))).toBe('one');
+        expect(run([
+            'if false',
+            '  Result = 1',
+            'elif false',
+            '  Result = 2',
+            'else',
+            '  Result = 3',
+            'end',
+            'Result',
+        ].join('\n'))).toBe('3');
     });
 
     it('uses for as a condition-controlled loop', () => {

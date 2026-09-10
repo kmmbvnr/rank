@@ -899,6 +899,19 @@ else
 end
 ```
 
+Multiple alternatives use `elif`. Conditions are evaluated from top to bottom;
+only the first true branch runs. `else` remains optional:
+
+```rank
+if Score greater Best
+  Kind = "record"
+elif Score equal Best
+  Kind = "tie"
+else
+  Kind = "lower"
+end
+```
+
 ## For
 
 Rank uses one `for` statement for every kind of loop. Ranges and sequences are
@@ -1304,6 +1317,20 @@ Dimensions are nonnegative integers. The number of elements must equal the
 product of the dimensions. Line breaks inside the block are formatting only;
 they do not add an axis or change the declared shape.
 
+`reshape` constructs a dense array dynamically from existing values:
+
+```rank
+Shape = array Rows Columns
+M = Values Shape reshape
+```
+
+It is provided by `use sequences`. The shape must be a rank-1 array of
+nonnegative integers. Values are consumed in row-major order, and their count
+must exactly equal the product of the dimensions. Arrays, queues, finite
+sequences and Unicode text can be reshaped. An unbounded sequence is an error.
+An empty shape describes a scalar and therefore requires one value; a zero
+dimension describes an empty array.
+
 Array addressing uses one zero-based index per axis:
 
 ```rank
@@ -1604,7 +1631,10 @@ index A B C = Value
 X = index A B C
 ```
 
-The key and value types are inferred from uses within the function.
+The complete tuple is the key, so an `index` can represent a sparse matrix or
+higher-dimensional tensor. It does not infer rectangular dimensions or carry a
+dense shape; programs keep those dimensions separately when needed. The key
+and value types are inferred from uses within the function.
 
 ### Queue
 
@@ -1919,11 +1949,17 @@ finite, or infinite size; asking for an unknown finite shape is a demand point.
 
 ## Core operations
 
-Current direction includes:
+The current implementation includes dense construction through `array shape`
+and dynamic row-major `reshape`:
+
+```rank
+M = Values (array Rows Columns) reshape
+```
+
+The broader tensor direction includes:
 
 ```rank
 matmul
-reshape
 transpose
 sum
 mean
@@ -2351,6 +2387,16 @@ surrogate code points.
 `len` from `sequences` returns the number of Unicode code points in text, the
 leading-axis length of an array, the size of a queue or set, or the length of a
 finite sequence. It rejects an infinite sequence.
+
+`reshape` from `sequences` constructs a dense array in row-major order:
+
+```rank
+M = Values (array Rows Columns) reshape
+```
+
+The shape is a rank-1 array of nonnegative integers. The source may be an
+array, queue, finite sequence or text, and its element count must exactly match
+the requested shape. An infinite source is an error.
 
 `window` returns overlapping fixed-size cells lazily:
 

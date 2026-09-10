@@ -85,10 +85,16 @@ CatchClause:
 IfStatement:
     'if' condition=Expression NL+
     (thenStatements+=Statement (NL+ thenStatements+=Statement)*)?
-    NL* ('else' NL+
+    NL* (elifClauses+=ElifClause)*
+    ('else' NL+
         (elseStatements+=Statement (NL+ elseStatements+=Statement)*)?
         NL*)?
     'end';
+
+ElifClause:
+    'elif' condition=Expression NL+
+    (statements+=Statement (NL+ statements+=Statement)*)?
+    NL*;
 
 ForStatement:
     'for' condition=Expression? NL+

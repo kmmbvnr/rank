@@ -23,7 +23,45 @@ export const sequencesModule: RuntimeModule = {
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
+    reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
 };
+
+function reshape(value: RankValue, shapeValue: RankValue): RankValue {
+    if (!isRankArray(shapeValue) || shapeValue.shape.length !== 1
+        || !shapeValue.items.every(item => typeof item === 'bigint')) {
+        throw new RankError('reshape shape must be a rank-1 integer array');
+    }
+
+    const shape = shapeValue.items.map(item => reshapeDimension(item as bigint));
+    const expected = shape.reduce((product, dimension) => product * dimension, 1);
+    const items = reshapeItems(value);
+    if (items.length !== expected) {
+        throw new RankError(
+            `reshape shape ${shape.join(' ')} expects ${expected} elements, got ${items.length}`,
+        );
+    }
+    return { kind: 'array', items, shape };
+}
+
+function reshapeDimension(value: bigint): number {
+    if (value < 0n) throw new RankError(`reshape dimension must be nonnegative: ${value}`);
+    if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError(`reshape dimension is too large: ${value}`);
+    }
+    return Number(value);
+}
+
+function reshapeItems(value: RankValue): RankValue[] {
+    if (typeof value === 'string') return [...value];
+    if (isRankArray(value) || isRankQueue(value)) return [...value.items];
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError('reshape requires a finite sequence');
+        }
+        return [...value.plan.iterate()];
+    }
+    throw new RankError('reshape expects text or a finite array, queue or sequence');
+}
 
 function lengthOf(value: RankValue): bigint {
     if (typeof value === 'string') return BigInt([...value].length);

@@ -156,6 +156,23 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses elif branches before an optional else', async () => {
+        const document = await parse([
+            'if Value less 0',
+            '  Kind = "negative"',
+            'elif Value equal 0',
+            '  Kind = "zero"',
+            'elif Value equal 1',
+            '  Kind = "one"',
+            'else',
+            '  Kind = "many"',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(1);
+    });
+
     it('parses conditional and infinite for blocks', async () => {
         const document = await parse([
             'for Count less 3',

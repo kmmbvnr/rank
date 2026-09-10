@@ -9,11 +9,17 @@ finite, or infinite size; asking for an unknown finite shape is a demand point.
 
 ## Core operations
 
-Current direction includes:
+The current implementation includes dense construction through `array shape`
+and dynamic row-major `reshape`:
+
+```rank
+M = Values (array Rows Columns) reshape
+```
+
+The broader tensor direction includes:
 
 ```rank
 matmul
-reshape
 transpose
 sum
 mean

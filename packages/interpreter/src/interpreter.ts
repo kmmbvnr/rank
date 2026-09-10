@@ -359,9 +359,17 @@ export class Interpreter {
                 }
                 if (pending !== undefined) throw pending;
             } else if (isIfStatement(statement)) {
-                const branch = expectBoolean(this.evaluate(statement.condition))
-                    ? statement.thenStatements
-                    : statement.elseStatements;
+                let branch = statement.elseStatements;
+                if (expectBoolean(this.evaluate(statement.condition))) {
+                    branch = statement.thenStatements;
+                } else {
+                    for (const clause of statement.elifClauses) {
+                        if (expectBoolean(this.evaluate(clause.condition))) {
+                            branch = clause.statements;
+                            break;
+                        }
+                    }
+                }
                 result = this.executeStatements(
                     branch,
                     assertBooleanExpressions,

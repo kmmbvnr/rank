@@ -134,6 +134,20 @@ Dimensions are nonnegative integers. The number of elements must equal the
 product of the dimensions. Line breaks inside the block are formatting only;
 they do not add an axis or change the declared shape.
 
+`reshape` constructs a dense array dynamically from existing values:
+
+```rank
+Shape = array Rows Columns
+M = Values Shape reshape
+```
+
+It is provided by `use sequences`. The shape must be a rank-1 array of
+nonnegative integers. Values are consumed in row-major order, and their count
+must exactly equal the product of the dimensions. Arrays, queues, finite
+sequences and Unicode text can be reshaped. An unbounded sequence is an error.
+An empty shape describes a scalar and therefore requires one value; a zero
+dimension describes an empty array.
+
 Array addressing uses one zero-based index per axis:
 
 ```rank

@@ -18,6 +18,19 @@ else
 end
 ```
 
+Multiple alternatives use `elif`. Conditions are evaluated from top to bottom;
+only the first true branch runs. `else` remains optional:
+
+```rank
+if Score greater Best
+  Kind = "record"
+elif Score equal Best
+  Kind = "tie"
+else
+  Kind = "lower"
+end
+```
+
 ## For
 
 Rank uses one `for` statement for every kind of loop. Ranges and sequences are

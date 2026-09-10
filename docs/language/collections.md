@@ -42,7 +42,10 @@ index A B C = Value
 X = index A B C
 ```
 
-The key and value types are inferred from uses within the function.
+The complete tuple is the key, so an `index` can represent a sparse matrix or
+higher-dimensional tensor. It does not infer rectangular dimensions or carry a
+dense shape; programs keep those dimensions separately when needed. The key
+and value types are inferred from uses within the function.
 
 ### Queue
 

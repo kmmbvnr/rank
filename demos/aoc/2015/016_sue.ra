@@ -66,16 +66,13 @@ fun corrected Property Value Targets
 
   if Property equal "cats"
     return Value greater Target
-  end
-  if Property equal "trees"
+  elif Property equal "trees"
     return Value greater Target
-  end
-  if Property equal "pomeranians"
+  elif Property equal "pomeranians"
     return Value less Target
-  end
-  if Property equal "goldfish"
+  elif Property equal "goldfish"
     return Value less Target
+  else
+    return Value equal Target
   end
-
-  return Value equal Target
 end
