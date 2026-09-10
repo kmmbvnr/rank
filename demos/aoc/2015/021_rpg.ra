@@ -1,0 +1,98 @@
+rem Advent of Code 2015 — Day 21
+rem RPG Simulator 20XX
+rem https://adventofcode.com/2015/day/21
+
+use io
+use cli
+use algo
+use text
+use numbers
+
+argument Input path
+
+Lines = Input readlines
+unpack Part1 Part2 = Lines solveinput
+Part1 print
+Part2 print
+
+
+rem Parse the boss description and find the cheapest win and dearest loss.
+fun solveinput Lines
+  Pattern = "/text: /integer"
+  unpack Name BossHP = Lines 0 Pattern parse
+  unpack Name BossDamage = Lines 1 Pattern parse
+  unpack Name BossArmor = Lines 2 Pattern parse
+  Boss = array BossHP BossDamage BossArmor
+  return Boss solve
+end
+
+
+rem Try every legal equipment set. Two zero rings represent choosing none.
+fun solve Boss
+  Weapons = array shape 5 3
+    8 4 0
+    10 5 0
+    25 6 0
+    40 7 0
+    74 8 0
+  end
+
+  Armors = array shape 6 3
+    0 0 0
+    13 0 1
+    31 0 2
+    53 0 3
+    75 0 4
+    102 0 5
+  end
+
+  Rings = array shape 8 3
+    0 0 0
+    0 0 0
+    25 1 0
+    50 2 0
+    100 3 0
+    20 0 1
+    40 0 2
+    80 0 3
+  end
+
+  Cheapest = 1000000
+  Expensive = 0
+
+  for Weapon in Weapons
+    for Armor in Armors
+      Base = Weapon + Armor
+
+      for Pair in Rings 2 combinations
+        Stats = Base + Pair 0 + Pair 1
+        Cost = Stats 0
+
+        if Stats Boss wins
+          Cheapest = Cheapest Cost min
+        else
+          Expensive = Expensive Cost max
+        end
+      end
+    end
+  end
+
+  return array Cheapest Expensive
+end
+
+
+rem Compare the number of turns each fighter needs to defeat the other.
+fun wins Stats Boss
+  Damage = Stats 1
+  Defense = Stats 2
+  BossHP = Boss 0
+  BossDamage = Boss 1
+  BossArmor = Boss 2
+
+  PlayerHit = 1 (Damage - BossArmor) max
+  BossHit = 1 (BossDamage - Defense) max
+  TurnsBoss = (BossHP + PlayerHit - 1) // PlayerHit
+  TurnsPlayer = (100 + BossHit - 1) // BossHit
+
+  return TurnsBoss at most TurnsPlayer
+end

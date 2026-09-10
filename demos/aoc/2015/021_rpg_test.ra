@@ -1,0 +1,26 @@
+use testing
+
+test "a weak boss needs only the cheapest weapon"
+  use "021_rpg"
+
+  Boss = array 12 7 2
+  Boss solve equal array 8 0
+end
+
+test "all legal equipment combinations are considered"
+  use "021_rpg"
+
+  Boss = array 104 8 1
+  Boss solve equal array 78 148
+end
+
+test "the boss description is parsed"
+  use "021_rpg"
+
+  Lines = array shape 3
+    "Hit Points: 12"
+    "Damage: 7"
+    "Armor: 2"
+  end
+  Lines solveinput equal array 8 0
+end
