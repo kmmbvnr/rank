@@ -202,6 +202,20 @@ Integer-only matrices produce exact `integer` results; matrices containing a
 nonnumeric element raises `.TypeError`. Higher-rank inputs use the ordinary
 trailing-cell and `axis ... rank 2` rules.
 
+`solve` directly solves `A * X = B`:
+
+```rank
+X = A B solve
+```
+
+`A` must be a square rank-2 numeric matrix. `B` may be a length-`N` vector
+or an `N K` matrix, and the eager real result has the same shape as `B`.
+Shape errors raise `.DimensionMismatch`, singular coefficients raise
+`.SingularMatrix`, and nonnumeric elements raise `.TypeError`. The equation
+is the semantic contract; implementations may select an equivalent algorithm
+from known or detected matrix properties. The current interpreter uses
+Gaussian elimination with partial pivoting.
+
 `matmul` contracts the last axis of its left array with the first axis of its
 right array:
 

@@ -2352,6 +2352,24 @@ determinant of a `0` by `0` matrix is one. A non-square cell raises
 `.DimensionMismatch`; a nonnumeric element raises `.TypeError`. Batched results
 are evaluated lazily and cached.
 
+## Linear solve
+
+`solve` from `use linalg` solves the equation `A * X = B` directly:
+
+```rank
+X = A B solve
+```
+
+`A` is a square rank-2 numeric matrix. `B` is either a numeric vector of
+length `N` or a rank-2 matrix with shape `N K`; the real result preserves
+the shape of `B`. The operation is eager. Incompatible shapes raise
+`.DimensionMismatch`, singular coefficients raise `.SingularMatrix`, and
+nonnumeric elements raise `.TypeError`.
+
+The equation is the contract, not a particular factorization. An implementation
+may choose an equivalent solver from known or detected matrix properties.
+The current interpreter uses Gaussian elimination with partial pivoting.
+
 ## Matrix inversion
 
 `inverse` from `use linalg` has intrinsic rank 2. It inverts a square numeric
@@ -2812,6 +2830,20 @@ Integer-only matrices produce exact `integer` results; matrices containing a
 `0` by `0` matrix is one. A non-square matrix raises `.DimensionMismatch`; a
 nonnumeric element raises `.TypeError`. Higher-rank inputs use the ordinary
 trailing-cell and `axis ... rank 2` rules.
+
+`solve` directly solves `A * X = B`:
+
+```rank
+X = A B solve
+```
+
+`A` must be a square rank-2 numeric matrix. `B` may be a length-`N` vector
+or an `N K` matrix, and the eager real result has the same shape as `B`.
+Shape errors raise `.DimensionMismatch`, singular coefficients raise
+`.SingularMatrix`, and nonnumeric elements raise `.TypeError`. The equation
+is the semantic contract; implementations may select an equivalent algorithm
+from known or detected matrix properties. The current interpreter uses
+Gaussian elimination with partial pivoting.
 
 `matmul` contracts the last axis of its left array with the first axis of its
 right array:

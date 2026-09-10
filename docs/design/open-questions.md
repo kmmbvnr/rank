@@ -203,6 +203,24 @@ The current design goal is to implement logistic regression in Rank itself,
 using general tensor and reduction primitives, before deciding what belongs in
 `use ml`.
 
+## Linear solver dispatch
+
+The current `A B solve` contract deliberately describes `A * X = B` without
+exposing a factorization. The interpreter currently uses dense Gaussian
+elimination with partial pivoting. A future implementation may dispatch to:
+
+- direct diagonal or triangular substitution;
+- Cholesky for symmetric positive-definite matrices;
+- pivoted LU for general dense square matrices;
+- sparse direct or iterative solvers;
+- QR or SVD least-squares paths if rectangular systems are later accepted.
+
+The design still needs to decide whether structure comes from safe runtime
+inspection, persistent tensor metadata, explicit matrix wrapper types, or some
+combination. Cached reusable factorizations and batch/axis semantics also remain
+open. Every path must preserve the observable `solve` result and error
+contract.
+
 ## NLP preprocessing
 
 `vocab` and `tfidf` were useful in the Disaster Tweets sketch, but it is not yet

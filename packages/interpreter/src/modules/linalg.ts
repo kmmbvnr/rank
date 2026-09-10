@@ -23,6 +23,11 @@ export const linalgModule: RuntimeModule = {
         2,
         arguments_ => matmulValues(arguments_[0], arguments_[1]),
     ),
+    solve: () => native(
+        'solve',
+        2,
+        arguments_ => solveLinearSystem(arguments_[0], arguments_[1]),
+    ),
 };
 
 export function determinant(value: RankValue): bigint | number {
@@ -106,6 +111,86 @@ function realDeterminant(items: readonly number[], size: number): number {
         }
     }
     return Object.is(result, -0) ? 0 : result;
+}
+
+export function solveLinearSystem(coefficients: RankValue, right: RankValue): RankArray {
+    if (
+        !isRankArray(coefficients)
+        || coefficients.shape.length !== 2
+        || coefficients.shape[0] !== coefficients.shape[1]
+    ) {
+        throw new RankError('solve expects a square rank-2 coefficient matrix', 'DimensionMismatch');
+    }
+    if (!isRankArray(right) || (right.shape.length !== 1 && right.shape.length !== 2)) {
+        throw new RankError('solve expects a rank-1 or rank-2 right side', 'DimensionMismatch');
+    }
+
+    const size = coefficients.shape[0];
+    if (right.shape[0] !== size) {
+        throw new RankError(
+            `solve dimensions differ: ${size} and ${right.shape[0]}`,
+            'DimensionMismatch',
+        );
+    }
+    const columns = right.shape.length === 1 ? 1 : right.shape[1];
+    const matrix = numericRows(coefficients, size, size, 'coefficient');
+    const values = numericRows(right, size, columns, 'right-side');
+
+    for (let column = 0; column < size; column += 1) {
+        let pivot = column;
+        for (let row = column + 1; row < size; row += 1) {
+            if (Math.abs(matrix[row][column]) > Math.abs(matrix[pivot][column])) pivot = row;
+        }
+        if (matrix[pivot][column] === 0) {
+            throw new RankError('solve expects a nonsingular matrix', 'SingularMatrix');
+        }
+        maybeSwap(matrix, column, pivot);
+        maybeSwap(values, column, pivot);
+
+        for (let row = column + 1; row < size; row += 1) {
+            const factor = matrix[row][column] / matrix[column][column];
+            matrix[row][column] = 0;
+            for (let inner = column + 1; inner < size; inner += 1) {
+                matrix[row][inner] -= factor * matrix[column][inner];
+            }
+            for (let result = 0; result < columns; result += 1) {
+                values[row][result] -= factor * values[column][result];
+            }
+        }
+    }
+
+    const solved = Array.from({ length: size }, () => Array(columns).fill(0) as number[]);
+    for (let row = size - 1; row >= 0; row -= 1) {
+        for (let result = 0; result < columns; result += 1) {
+            let value = values[row][result];
+            for (let inner = row + 1; inner < size; inner += 1) {
+                value -= matrix[row][inner] * solved[inner][result];
+            }
+            const answer = value / matrix[row][row];
+            solved[row][result] = Object.is(answer, -0) ? 0 : answer;
+        }
+    }
+    return {
+        kind: 'array',
+        shape: [...right.shape],
+        items: solved.flat(),
+    };
+}
+
+function numericRows(
+    value: RankArray,
+    rows: number,
+    columns: number,
+    name: string,
+): number[][] {
+    return Array.from({ length: rows }, (_, row) =>
+        Array.from({ length: columns }, (_, column) => {
+            const item = arrayItem(value, row * columns + column);
+            if (typeof item !== 'bigint' && typeof item !== 'number') {
+                throw new RankError(`solve expects numeric ${name} elements`, 'TypeError');
+            }
+            return Number(item);
+        }));
 }
 
 export function matmulValues(

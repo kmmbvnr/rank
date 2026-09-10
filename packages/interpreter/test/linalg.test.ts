@@ -69,6 +69,76 @@ describe('Rank linear algebra', () => {
             .toThrowError('unknown name: det');
     });
 
+    it('solves systems with vector and matrix right sides', () => {
+        expectNumbers(run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  3 1',
+            '  1 2',
+            'end',
+            'A (array 9 8) solve',
+        ].join('\n')), [2, 3]);
+        expectNumbers(run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  3 1',
+            '  1 2',
+            'end',
+            'B = array shape 2 2',
+            '  9 1',
+            '  8 0',
+            'end',
+            'A B solve',
+        ].join('\n')), [2, 0.4, 3, -0.2]);
+        expect(run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  1 0',
+            '  0 1',
+            'end',
+            'B = array 1 2',
+            'X = A B solve',
+            'X 0 is .real and X 1 is .real',
+        ].join('\n'))).toBe('true');
+    });
+
+    it('validates linear solve shapes, singularity and elements', () => {
+        expect(() => run('use linalg\n(array 1 2) (array 1 2) solve'))
+            .toThrowError('solve expects a square rank-2 coefficient matrix');
+        expect(() => run([
+            'use linalg',
+            'A = array shape 2 2 pad 1',
+            'B = array 1 2 3',
+            'A B solve',
+        ].join('\n'))).toThrowError('solve dimensions differ: 2 and 3');
+        expect(() => run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  1 2',
+            '  2 4',
+            'end',
+            'A (array 1 2) solve',
+        ].join('\n'))).toThrowError('solve expects a nonsingular matrix');
+        expect(() => run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  1 "bad"',
+            '  0 1',
+            'end',
+            'A (array 1 2) solve',
+        ].join('\n'))).toThrowError('solve expects numeric coefficient elements');
+        expect(() => run([
+            'use linalg',
+            'A = array shape 2 2',
+            '  1 0',
+            '  0 1',
+            'end',
+            'A (array 1 "bad") solve',
+        ].join('\n'))).toThrowError('solve expects numeric right-side elements');
+        expect(() => run('(array shape 1 1 pad 1) (array 1) solve'))
+            .toThrowError('unknown name: solve');
+    });
+
     it('contracts vectors and matrices with matmul', () => {
         expect(run('use linalg\n(array 1 2 3) (array 4 5 6) matmul')).toBe('32');
         expect(run([

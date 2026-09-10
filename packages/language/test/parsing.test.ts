@@ -189,6 +189,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses a data-first linear solve', async () => {
+        const document = await parse([
+            'use linalg',
+            'X = A B solve',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(2);
+    });
+
     it('continues expressions across lines inside parentheses', async () => {
         const document = await parse([
             'Result = (',
