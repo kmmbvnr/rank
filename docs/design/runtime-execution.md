@@ -13,12 +13,18 @@ caller reference in `finally`; it does not copy the caller's scope stack.
 
 Lookup follows lexical parents and then the module's global workspace. Assignment
 updates an existing lexical binding, or creates a binding in the current frame.
-Parameters belong to the new frame. Separate calls create separate frames, while
+Parameters belong to the new invocation. Separate calls create separate frames, while
 closures from one call share their captured bindings. Suspended generators retain
 their frame and install it only while advancing or closing the generator.
 
-The maps exposed through `captures()` are live references used by file ownership
-traversal. They are not snapshots of captured values.
+Uncaptured local values use numbered slots. A function shares only its name-to-slot
+layout across calls; values and inferred types remain per invocation. Prepared name
+reads cache a slot guarded by layout identity. An unassigned slot does not shadow
+an outer or global binding, even if an earlier invocation assigned that name.
+
+Accessing `captures()` materializes live maps used by closures and file ownership
+traversal. The maps then become that frame's source of truth, and its old slot values
+are released. Captured frames cannot be reused by tail calls.
 
 ## Prepared syntax
 
@@ -60,6 +66,16 @@ All calls that can directly recurse still return tasks. No evaluation is replaye
 when switching paths. Generator commands remain deferred until iteration starts,
 even when those commands could otherwise complete immediately. Fast conditions
 and branches retain each invocation's loop, finally, generator and test context.
+
+Simple one- and two-argument postfix calls with directly evaluated operands skip
+the general application scan when the target's arity matches. Dynamic targets,
+argument evaluation order, rank dispatch and resource ownership are still checked.
+Other forms use the general application path without reevaluating operands.
+
+Standard function factories are cached per interpreter only when resolving an
+immediate call target. Variable lookup and module selection still happen first.
+Reading a standard function as a value retains its existing object identity
+behavior; caching must not change equality tests or expose shared mutable values.
 
 ## Function call stack
 
@@ -108,8 +124,12 @@ closures and sequences retain the full ownership traversal.
 
 A return whose final ordinary postfix application calls a value-returning Rank
 function in the same interpreter can replace the current invocation. Parentheses,
-mutual recursion and dynamically selected functions are supported. Each replacement
-gets a fresh lexical frame, so closures keep the bindings from their original call.
+mutual recursion and dynamically selected functions are supported. A self-tail call
+can reuse an uncaptured frame with the same lexical parent, clearing its values and
+inferred types before binding the new arguments. Other replacements get a fresh
+frame, so closures keep the bindings from their original call. A directly evaluated
+tail return avoids creating a suspended return task; complex expressions still
+resume through the execution stack.
 The call-depth budget counts active invocations, not tail replacements: a regression
 test makes one million accumulator calls with `maxCallDepth: 1`.
 
@@ -179,6 +199,31 @@ an earlier comparison in the opposite order showed the same tail-call speedup.
 The tail scenario was about 1.8 times faster. The other medians differed by less
 than 3%, with overlapping run ranges; these checks found no measurable slowdown
 in those workloads. This is a local comparison, not a guarantee for all programs.
+
+### Call and local-slot comparison, 2026-09-11
+
+Baseline `bfd28f0` and the call/local-slot changes ran the same expanded benchmark
+on macOS arm64, Node v24.15.0 (V8 13.6.233.17-node.48). These are medians of five
+runs in milliseconds after two warmups, with baseline first and no concurrent
+test run. Earlier checks in reverse order showed the same direction of change.
+
+| Benchmark | Baseline | Call/local-slot changes |
+|---|---:|---:|
+| `tree` | 38.1 | 35.2 |
+| `total` | 8.0 | 7.7 |
+| `calls` | 16.3 | 14.9 |
+| `nativecalls` | 13.2 | 11.7 |
+| `conditional` | 11.6 | 10.0 |
+| `addressing` | 15.0 | 13.8 |
+| `tail` | 51.0 | 22.2 |
+| `dyadiccalls` | 20.5 | 17.6 |
+| `tailacc` | 55.2 | 24.9 |
+
+The two tail scenarios took about 2.2–2.3 times less time. Other improvements were
+smaller; the counted summation was close to its baseline. The unchanged CSES Grid
+Paths test file passed with both interpreters and took 4.44 versus 4.38 seconds in
+single CLI runs including startup. That difference does not establish an improvement
+for this real-world workload. Timings are diagnostic, not CI failure thresholds.
 
 ### Earlier measurements
 

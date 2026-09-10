@@ -71,26 +71,48 @@ fun tail N
   end
   return (N - 1) tail
 end
+
+fun add A B
+  return A + B
+end
+
+fun dyadiccalls N
+  Sum = 0
+  for I in 0 until N
+    Sum += I 1 add
+  end
+  return Sum
+end
+
+fun tailacc N Total
+  if N equal 0
+    return Total
+  end
+  return (N - 1) (Total + 1) tailacc
+end
 `);
 
-for (const [name, argument, expected, warmup] of [
-  ['tree', 14n, 16384n, 10n],
-  ['total', 50000n, 1249975000n, 1000n],
-  ['calls', 50000n, 1250025000n, 1000n],
-  ['nativecalls', 50000n, 1249975000n, 1000n],
-  ['conditional', 50000n, 624975000n, 1000n],
-  ['addressing', 50000n, 125000n, 1000n],
-  ['tail', 50000n, 0n, 1000n],
+for (const [name, arguments_, expected, warmup] of [
+  ['tree', [14n], 16384n, [10n]],
+  ['total', [50000n], 1249975000n, [1000n]],
+  ['calls', [50000n], 1250025000n, [1000n]],
+  ['nativecalls', [50000n], 1249975000n, [1000n]],
+  ['conditional', [50000n], 624975000n, [1000n]],
+  ['addressing', [50000n], 125000n, [1000n]],
+  ['tail', [50000n], 0n, [1000n]],
+  ['dyadiccalls', [50000n], 1250025000n, [1000n]],
+  ['tailacc', [50000n, 0n], 50000n, [1000n, 0n]],
 ]) {
   const fn = runtime.variables.get(name);
-  for (let i = 0; i < 2; i++) fn.call([warmup]);
+  for (let i = 0; i < 2; i++) fn.call(warmup);
   const samples = [];
   for (let i = 0; i < 5; i++) {
     const start = performance.now();
-    assert.equal(fn.call([argument]), expected);
+    assert.equal(fn.call(arguments_), expected);
     samples.push(performance.now() - start);
   }
   samples.sort((a, b) => a - b);
   console.log(`${name}: median ${samples[2].toFixed(1)} ms (${samples.map(n => n.toFixed(1)).join(', ')})`);
 }
+
 runtime.dispose();

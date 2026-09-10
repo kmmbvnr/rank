@@ -7,9 +7,10 @@ import {
 interface PreparedFunction {
     readonly generator: boolean;
     readonly locals: readonly FunctionStatement[];
+    readonly layout: Map<string, number>;
 }
 
-// Only immutable syntax is cached. Closures and their frames remain per invocation.
+// Syntax and slot names are shared, never values. Closures remain per invocation.
 const prepared = new WeakMap<FunctionStatement, PreparedFunction>();
 
 export function prepareFunction(statement: FunctionStatement): PreparedFunction {
@@ -18,6 +19,7 @@ export function prepareFunction(statement: FunctionStatement): PreparedFunction 
         result = {
             generator: statementsContainYield(statement.statements),
             locals: statement.statements.filter(isFunctionStatement),
+            layout: new Map([...new Set(statement.parameters)].map((name, index) => [name, index])),
         };
         prepared.set(statement, result);
     }
@@ -46,4 +48,3 @@ function statementsContainYield(statements: readonly Statement[]): boolean {
         return false;
     });
 }
-

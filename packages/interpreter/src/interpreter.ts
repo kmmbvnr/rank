@@ -51,6 +51,7 @@ import { MissingValueError, RankError } from './errors.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
+import type { RuntimeModule } from './modules/types.js';
 import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
@@ -218,6 +219,7 @@ export class Interpreter {
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
+    private readonly invokedStandardFunctions = new Map<RuntimeModule[string], NativeFunction>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
     private readonly resourceScopes: Set<RankFile>[] = [];
@@ -545,16 +547,21 @@ export class Interpreter {
             let candidate = statement.value;
             while (candidate && isParenthesizedExpression(candidate)) candidate = candidate.value;
             const tailCandidate = candidate && isApplicationExpression(candidate);
+            if (!tailCandidate) {
+                return { stream: function* (context): Execution<RankValue | undefined> {
+                    validate(context);
+                    throw new ReturnSignal(statement.value === undefined ? undefined
+                        : yield* resume(interpreter.evaluateTask(statement.value)));
+                } };
+            }
             let tail: (() => Evaluation<RankValue>) | undefined;
-            return { stream: function* (context): Execution<RankValue | undefined> {
+            return { stream: context => {
                 validate(context);
-                throw new ReturnSignal(
-                    statement.value === undefined ? undefined : yield* resume(
-                        tailCandidate && context.tailCallsAllowed !== false
-                            ? (tail ??= interpreter.compileExpression(statement.value, undefined, true))()
-                            : interpreter.evaluateTask(statement.value),
-                    ),
-                );
+                if (statement.value === undefined) throw new ReturnSignal();
+                const result = context.tailCallsAllowed !== false
+                    ? (tail ??= interpreter.compileExpression(statement.value, undefined, true))()
+                    : interpreter.evaluateTask(statement.value);
+                return mapResult(result, value => { throw new ReturnSignal(value); });
             } };
         }
         if (isBreakStatement(statement)) {
@@ -912,7 +919,26 @@ export class Interpreter {
             return () => expression.value;
         }
         if (isLabelLiteral(expression)) return () => ({ kind: 'label', name: expression.name });
-        if (isNameExpression(expression)) return () => this.resolve(expression.name);
+        if (isNameExpression(expression)) {
+            const name = expression.name;
+            if (name.includes('.')) return () => this.resolve(name);
+            let layout: Map<string, number> | undefined;
+            let slot: number | undefined;
+            return () => {
+                const frame = this.localFrame;
+                if (frame) {
+                    if (layout !== frame.layout || slot === undefined) {
+                        layout = frame.layout;
+                        slot = layout.get(name);
+                    }
+                    if (slot !== undefined) {
+                        const value = frame.read(slot, name);
+                        if (value !== undefined) return value;
+                    }
+                }
+                return this.resolve(name);
+            };
+        }
         if (isParenthesizedExpression(expression)) return this.compileDirectExpression(expression.value);
         if (isUnaryExpression(expression)) {
             const operand = this.compileDirectExpression(expression.operand);
@@ -1295,6 +1321,28 @@ export class Interpreter {
             const directParts = parts.map(part => isAllAxisExpression(part)
                 ? () => ALL_AXIS : this.compileDirectExpression(part));
             if (directParts.every(part => part !== undefined)) {
+                const last = parts.at(-1)!;
+                if (!tail && (parts.length === 2 || parts.length === 3) && isNameExpression(last)) {
+                    const operands = directParts.slice(0, -1);
+                    return () => {
+                        const arguments_ = operands.map(part => part());
+                        const simple = !arguments_.some(isNativeFunction);
+                        // Cached standard functions are only used as call targets,
+                        // never exposed as values whose identity can be observed.
+                        const fn = this.resolve(last.name, simple);
+                        if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
+                            const result = arguments_.length === 1 && fn.monadicRank !== 'all'
+                                ? this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank)
+                                : this.invoke(fn, arguments_);
+                            if ('done' in result) {
+                                this.ownFiles(result.value);
+                                return result;
+                            }
+                            return this.finishApplication(result);
+                        }
+                        return this.apply([...arguments_, fn], missing, 0, [], tail);
+                    };
+                }
                 return () => this.apply(directParts.map(part => part()), missing, 0, [], tail);
             }
             return function* (): Execution<RankValue> {
@@ -1387,15 +1435,17 @@ export class Interpreter {
         statement: FunctionStatement,
         arguments_: RankValue[],
         parent: LocalFrame | undefined,
+        reusable?: LocalFrame,
     ): LocalFrame {
         if (arguments_.length !== statement.parameters.length) {
             throw new RankError(
                 `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
             );
         }
-        const frame = new LocalFrame(parent);
+        const frame = reusable?.reset() ? reusable
+            : new LocalFrame(parent, prepareFunction(statement).layout);
         statement.parameters.forEach((parameter, index) => {
-            frame.values.set(parameter, arguments_[index]);
+            frame.set(parameter, arguments_[index]);
             frame.types.set(parameter, new Set([typeName(arguments_[index])]));
         });
         return frame;
@@ -1448,8 +1498,10 @@ export class Interpreter {
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
+                        const reusable = statement === error.definition.statement
+                            && frame.parent === error.definition.context ? frame : undefined;
                         statement = error.definition.statement;
-                        frame = this.functionFrame(statement, error.arguments_, error.definition.context);
+                        frame = this.functionFrame(statement, error.arguments_, error.definition.context, reusable);
                         if (error.definition.direct) {
                             this.localFrame = frame;
                             try {
@@ -1766,7 +1818,7 @@ export class Interpreter {
         for (const item of values) validateInputValue(name, valueType, item);
     }
 
-    private resolve(name: string): RankValue {
+    private resolve(name: string, invoked = false): RankValue {
         const qualified = splitQualified(name);
         if (qualified) {
             const [alias, member] = qualified;
@@ -1790,13 +1842,17 @@ export class Interpreter {
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
             if (fn) {
-                return fn({
+                const cached = invoked ? this.invokedStandardFunctions.get(fn) : undefined;
+                if (cached !== undefined) return cached;
+                const value = fn({
                     output: this.output,
                     io: this.options.io,
                     random: this.random,
                     seedRandom: seed => this.random[SEED_RANDOM](seed),
                     ownFile: file => this.ownFile(file),
                 });
+                if (invoked && isNativeFunction(value)) this.invokedStandardFunctions.set(fn, value);
+                return value;
             }
         }
 
@@ -1822,7 +1878,7 @@ export class Interpreter {
         const qualified = splitQualified(name);
         if (!qualified) {
             const frame = this.localFrame?.find(name) ?? this.localFrame;
-            const scope = frame?.values ?? this.variables;
+            const scope = frame ?? this.variables;
             const typeScope = frame?.types ?? this.variableTypes;
             const previous = scope.get(name);
             const expected = typeScope.get(name)
@@ -1868,7 +1924,7 @@ export class Interpreter {
     }
 
     private findVariable(name: string): RankValue | undefined {
-        return this.localFrame?.find(name)?.values.get(name) ?? this.variables.get(name);
+        return this.localFrame?.find(name)?.get(name) ?? this.variables.get(name);
     }
 
     private apply(
@@ -1907,6 +1963,12 @@ export class Interpreter {
             pending = [task.value];
         }
         return completed(pending.length === 1 ? pending[0] : this.applySelectors(pending));
+    }
+
+    private *finishApplication(task: Execution<RankValue>): Execution<RankValue> {
+        const result = yield* resume(task);
+        this.ownFiles(result);
+        return result;
     }
 
     private *continueApplication(
@@ -2384,13 +2446,13 @@ export class Interpreter {
         names: readonly string[],
         candidates: readonly ReadonlySet<string>[],
     ): void {
-        const scope = this.localFrame?.values ?? this.variables;
+        const scope = this.localFrame ?? this.variables;
         const typeScope = this.localFrame?.types ?? this.variableTypes;
         names.forEach((name, index) => {
             const inferred = candidates[index];
             if (!inferred || inferred.size === 0) return;
             const previous = typeScope.get(name)
-                ?? (scope.has(name) ? new Set([typeName(scope.get(name)!)]) : undefined);
+                ?? (scope.get(name) !== undefined ? new Set([typeName(scope.get(name)!)]) : undefined);
             if (previous && [...inferred].some(type => !previous.has(type))) {
                 throw new RankError(
                     `${name} has type ${formatTypes(previous)} and cannot receive ${formatTypes(inferred)}`,
