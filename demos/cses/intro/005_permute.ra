@@ -1,0 +1,30 @@
+rem CSES 1070: Permutations
+rem https://cses.fi/problemset/task/1070
+
+use io
+
+N = stdin .integer
+
+if N equal 1
+  1 print
+elif N less 4
+  "NO SOLUTION" print
+else
+  N beautiful print
+end
+
+
+rem Generate all even values before all odd values.
+fun beautiful N
+  I = 2
+  for I at most N
+    yield I
+    I += 2
+  end
+
+  I = 1
+  for I at most N
+    yield I
+    I += 2
+  end
+end

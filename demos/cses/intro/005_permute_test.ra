@@ -1,0 +1,19 @@
+use testing
+
+test "four values"
+  use "005_permute"
+  Actual = 4 beautiful array
+  Actual equal array 2 4 1 3
+end
+
+test "five values"
+  use "005_permute"
+  Actual = 5 beautiful array
+  Actual equal array 2 4 1 3 5
+end
+
+test "one value"
+  use "005_permute"
+  Actual = 1 beautiful array
+  Actual equal array 1
+end
