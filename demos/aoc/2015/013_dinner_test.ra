@@ -1,0 +1,37 @@
+use testing
+
+test "official example"
+  use "013_dinner"
+
+  Lines = array shape 12
+    "Alice would gain 54 happiness units by sitting next to Bob."
+    "Alice would lose 79 happiness units by sitting next to Carol."
+    "Alice would lose 2 happiness units by sitting next to David."
+    "Bob would gain 83 happiness units by sitting next to Alice."
+    "Bob would lose 7 happiness units by sitting next to Carol."
+    "Bob would lose 63 happiness units by sitting next to David."
+    "Carol would lose 62 happiness units by sitting next to Alice."
+    "Carol would gain 60 happiness units by sitting next to Bob."
+    "Carol would gain 55 happiness units by sitting next to David."
+    "David would gain 46 happiness units by sitting next to Alice."
+    "David would lose 7 happiness units by sitting next to Bob."
+    "David would gain 41 happiness units by sitting next to Carol."
+  end
+
+  Lines solve equal array 330 286
+end
+
+test "adding yourself replaces the weakest edge"
+  use "013_dinner"
+
+  Lines = array shape 6
+    "A would gain 1 happiness units by sitting next to B."
+    "A would gain 1 happiness units by sitting next to C."
+    "B would gain 1 happiness units by sitting next to A."
+    "B would gain 1 happiness units by sitting next to C."
+    "C would gain 1 happiness units by sitting next to A."
+    "C would gain 1 happiness units by sitting next to B."
+  end
+
+  Lines solve equal array 6 4
+end

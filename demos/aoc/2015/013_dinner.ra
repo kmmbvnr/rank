@@ -1,0 +1,86 @@
+rem Advent of Code 2015 — Day 13
+rem Knights of the Dinner Table
+rem https://adventofcode.com/2015/day/13
+rem
+rem Part 1:
+rem Find the seating arrangement with maximum happiness.
+rem
+rem Part 2:
+rem Add yourself with zero happiness toward everyone.
+
+use io
+use cli
+use algo
+use text
+use sequences
+use ranges
+
+argument Input path
+
+Lines = Input readlines
+Part1 Part2 = Lines solve
+Part1 print
+Part2 print
+
+
+rem Find the best circular seating before and after adding yourself.
+fun solve Lines
+  Pattern = "/word would /word /integer happiness units by sitting next to /word."
+
+  for Line in Lines
+    A Sign Value B = Line Pattern parse
+
+    if Sign equal "lose"
+      Value = -Value
+    end
+
+    set add A
+    set add B
+    index A B = Value
+  end
+
+  Part1 = set index best
+
+  for Person in set
+    index "Me" Person = 0
+    index Person "Me" = 0
+  end
+  set add "Me"
+
+  Part2 = set index best
+  return array Part1 Part2
+end
+
+
+rem Return the greatest happiness among all permutations of the guests.
+fun best Guests Scores
+  Routes = Guests permutations
+  Best = (Routes 0) Scores happiness
+
+  for Route in Routes
+    Total = Route Scores happiness
+
+    if Total greater Best
+      Best = Total
+    end
+  end
+
+  return Best
+end
+
+
+rem Sum both directed scores around one circular seating arrangement.
+fun happiness Route Scores
+  Total = 0
+  N = Route len
+
+  for I in 0 until N
+    J = (I + 1) % N
+    A = Route I
+    B = Route J
+    Total += Scores A B
+    Total += Scores B A
+  end
+
+  return Total
+end
