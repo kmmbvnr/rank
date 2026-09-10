@@ -1,0 +1,19 @@
+use testing
+
+test "one disk"
+  use "014_hanoi"
+  Moves = 1 1 3 2 hanoi array
+  Moves 0 equal array 1 3
+end
+
+test "official three-disk moves"
+  use "014_hanoi"
+  Moves = 3 1 3 2 hanoi array
+  Moves 0 equal array 1 3
+  Moves 1 equal array 1 2
+  Moves 2 equal array 3 2
+  Moves 3 equal array 1 3
+  Moves 4 equal array 2 1
+  Moves 5 equal array 2 3
+  Moves 6 equal array 1 3
+end

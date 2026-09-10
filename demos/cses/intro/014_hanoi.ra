@@ -1,0 +1,30 @@
+rem CSES 2165: Tower of Hanoi
+rem https://cses.fi/problemset/task/2165
+
+use io
+
+N = stdin .integer
+Moves = 2 ** N - 1
+Moves print
+
+for Move in N 1 3 2 hanoi
+  Move print
+end
+
+
+rem Generate moves from From to To using Aux as temporary storage.
+fun hanoi N From To Aux
+  if N equal 0
+    return
+  end
+
+  for Move in (N - 1) From Aux To hanoi
+    yield Move
+  end
+
+  yield array From To
+
+  for Move in (N - 1) Aux To From hanoi
+    yield Move
+  end
+end
