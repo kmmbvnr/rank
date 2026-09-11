@@ -2134,6 +2134,15 @@ export class Interpreter {
             if (pending.length === 0) {
                 throw new RankError(`operation must follow its data: ${value.name}`);
             }
+            if (pending.length === 1
+                && value.arities.includes(1)
+                && value.arities.includes(2)
+                && index === values.length - 2
+                && !isNativeFunction(values[index + 1])) {
+                throw new RankError(
+                    `${value.name} with two arguments uses postfix order: A B ${value.name}`,
+                );
+            }
 
             const arguments_ = callArguments(
                 value,
