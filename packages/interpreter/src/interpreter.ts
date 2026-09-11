@@ -68,6 +68,7 @@ import { matmulValues } from './modules/linalg.js';
 import { roundValue, sumIndexed } from './modules/numbers.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
+import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     argsortAxis,
     lengthOfAxis,
@@ -2721,12 +2722,11 @@ export class Interpreter {
         }
         if (operator === 'less' || operator === 'greater'
             || operator === 'atleast' || operator === 'atmost') {
-            const a = expectNumeric(left);
-            const b = expectNumeric(right);
-            if (operator === 'less') return a < b;
-            if (operator === 'greater') return a > b;
-            if (operator === 'atleast') return a >= b;
-            return a <= b;
+            const order = compareOrderedValues(left, right, orderedKind(left));
+            if (operator === 'less') return order < 0;
+            if (operator === 'greater') return order > 0;
+            if (operator === 'atleast') return order >= 0;
+            return order <= 0;
         }
 
         const a = expectNumeric(left);

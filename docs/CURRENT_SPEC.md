@@ -383,6 +383,21 @@ is
 
 `at least` means `>=`; `at most` means `<=`.
 
+Ordering comparisons accept two scalars from one comparable family: numeric,
+text, boolean or symbol. Integers and reals share the numeric family. Text and
+symbols use a case-sensitive lexicographic order by Unicode code point; a
+shared prefix sorts before its longer continuation. Booleans order `false`
+before `true`. The same order is used by `sort`, heaps and ordered multisets.
+Different families and non-scalar values raise `.TypeError`.
+
+Comparisons remain scalar operations and therefore apply elementwise to arrays
+and sequences, using the ordinary broadcasting rules:
+
+```rank
+Earlier = "Ada" less "Grace"
+Mask = Names at most "M"
+```
+
 `Value type` returns a symbol such as `.integer`, `.text`, `.array`, `.record`
 or `.object`. `Value is .integer` is the short boolean type guard. Its right side
 must be a known runtime type symbol.
