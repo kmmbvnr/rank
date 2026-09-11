@@ -265,6 +265,12 @@ Next = Tickets ceiling Limit
 Third = Tickets 2
 ```
 
+These method words are contextual library names, not reserved words. Rank
+dispatches `floor`, `ceiling`, `lowerbound` and `upperbound` as multiset
+methods only when the expression before the operation evaluates to a
+multiset. Otherwise the operation resolves as an ordinary function, so a
+program may define and call `fun ceiling A B` as `3 ceiling 4`.
+
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
 `ceiling` returns the least value at least its argument. When no such value
@@ -304,6 +310,11 @@ from index zero through `I`; `F sum -1` is the empty prefix and returns zero.
 Other negative and out-of-bounds indices raise `.Missing` and compose with
 `pad`. Cell access is constant time; assignment and prefix sums take
 `O(log N)` time. The runtime type is `.fenwick`.
+
+`sum` is also contextual rather than reserved. The middle form is a Fenwick
+method only when `F` evaluates to a Fenwick tree. For any other receiver the
+ordinary application chain remains intact; for example, `A sum print` first
+reduces `A` and then prints the result.
 
 ### Permutations
 

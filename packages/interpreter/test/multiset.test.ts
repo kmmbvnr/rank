@@ -44,6 +44,18 @@ describe('ordered multiset', () => {
         ].join('\n'))).toBe('-1');
     });
 
+    it('does not reserve multiset method names for ordinary functions', () => {
+        for (const name of ['floor', 'ceiling', 'lowerbound', 'upperbound']) {
+            expect(run([
+                'use algo',
+                `fun ${name} A B`,
+                '  return A + B',
+                'end',
+                `3 ${name} 4`,
+            ].join('\n'))).toBe('7');
+        }
+    });
+
     it('adds and removes one occurrence at a time', () => {
         expect(run([
             'use algo',

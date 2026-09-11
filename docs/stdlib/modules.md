@@ -867,6 +867,10 @@ Pairs = Values 2 combinations
 a stable min-heap. `Heap push Value` uses the value as its priority.
 `new orderedset` creates a duplicate-free multiset. `lowerbound` returns the
 smallest value >= the query; `upperbound` returns the smallest value > it.
+These names, together with `floor` and `ceiling`, are contextual rather than
+reserved: receiver-first method dispatch occurs only when the evaluated
+receiver is a multiset. Otherwise Rank resolves the word as an ordinary
+function.
 See [collections](../language/collections.md) for examples and empty-container rules.
 
 `Values multiset` constructs a populated ordered multiset; `new multiset`
@@ -879,6 +883,8 @@ in [Collections](../language/collections.md).
 `Size fenwick` constructs a fixed-size integer Fenwick tree. It supports
 zero-based cell access and assignment plus inclusive prefix sums through
 `F sum I`, all as specified in [Collections](../language/collections.md).
+This middle use of `sum` dispatches by the receiver's Fenwick type and does not
+reserve the word in other application chains.
 
 ## Rule for adding library vocabulary
 

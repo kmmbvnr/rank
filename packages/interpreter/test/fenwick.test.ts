@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('fenwick tree', () => {
@@ -52,5 +53,18 @@ describe('fenwick tree', () => {
     it('requires the algorithm module', () => {
         expect(() => run('3 fenwick'))
             .toThrowError('unknown name: fenwick; did you forget `use algo`?');
+    });
+
+    it('does not capture sum in an ordinary application chain', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line));
+        expect(runtime.execute([
+            'use algo',
+            'use io',
+            'use numbers',
+            'A = array 1 2 3',
+            'A sum print',
+        ].join('\n'))).toBe(6n);
+        expect(output).toEqual(['6']);
     });
 });

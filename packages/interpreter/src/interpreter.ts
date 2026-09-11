@@ -1484,7 +1484,6 @@ export class Interpreter {
             const multisetMethod = explicitMultisetMethod(parts);
             if (multisetMethod) {
                 return function* (): Execution<RankValue> {
-                    interpreter.requireModule('algo', multisetMethod.operation);
                     const receiverParts = yield* resume(mapExecution(
                         multisetMethod.receiver,
                         part => interpreter.evaluateTask(part),
@@ -1499,17 +1498,43 @@ export class Interpreter {
                     const argumentValue = argumentParts.length === 1
                         ? argumentParts[0]
                         : yield* resume(interpreter.apply(argumentParts));
-                    const receiver = expectMultiset(receiverValue);
-                    if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
-                    if (multisetMethod.operation === 'upperbound') return receiver.upperBound(argumentValue);
-                    return receiver.ceiling(argumentValue);
+                    if (isRankMultiset(receiverValue)) {
+                        interpreter.requireModule('algo', multisetMethod.operation);
+                        const receiver = expectMultiset(receiverValue);
+                        if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
+                        if (multisetMethod.operation === 'upperbound') return receiver.upperBound(argumentValue);
+                        return receiver.ceiling(argumentValue);
+                    }
+                    const operation = yield* resume(interpreter.evaluateTask(
+                        parts[multisetMethod.receiver.length],
+                    ));
+                    return yield* resume(interpreter.apply(
+                        [receiverValue, argumentValue, operation],
+                        missing,
+                        0,
+                        [],
+                        tail,
+                    ));
                 };
             }
             const fenwickSum = explicitFenwickSum(parts);
             if (fenwickSum) {
                 return function* (): Execution<RankValue> {
-                    interpreter.requireModule('algo', 'fenwick');
                     const receiver = yield* resume(interpreter.evaluateTask(fenwickSum.receiver));
+                    if (!isRankFenwick(receiver)) {
+                        const rest = yield* resume(mapExecution(
+                            parts.slice(1),
+                            part => interpreter.evaluateTask(part),
+                        ));
+                        return yield* resume(interpreter.apply(
+                            [receiver, ...rest],
+                            missing,
+                            0,
+                            [],
+                            tail,
+                        ));
+                    }
+                    interpreter.requireModule('algo', 'fenwick');
                     const index = yield* resume(interpreter.evaluateTask(fenwickSum.index));
                     return expectFenwick(receiver).sum(expectInteger(index));
                 };
