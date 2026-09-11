@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 89.72516600000002,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 89.440833,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 12.540750000000003,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 12.468083000000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 11.763417000000004,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 11.706457999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 37.746792,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 37.670209,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 35.52229199999999,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 35.43662499999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 11.601374999999962,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 11.545166999999992,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 9.949250000000006,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 9.887625000000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 34.09370799999999,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 34.022875,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 34.638417000000004,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 34.560584000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 9.330167000000017,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 9.282333999999992,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    }
+  ]
+}

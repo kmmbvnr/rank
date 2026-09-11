@@ -406,3 +406,39 @@ stable whole-suite speedup. A short independent coverage probe overlapped the
 off run, so this pair is primarily correctness evidence.
 
 [Full suite](../../benchmarks/baselines/2026-09-11-integer-power-suite.json).
+
+
+## Branches inside whole integer loops
+
+`if`/`elif`/`else` now lower inside conditional and numeric-range loops, including
+nested branches. Conditions retain their evaluation order and only selected
+bodies run. Definite assignments merge by intersection, preventing an assignment
+in one branch from suppressing the input guard for another path. Missing inputs
+still decline before writes. Checked writers and nested source locations remain
+in use; empty branch results match reference execution.
+
+Ten differential tests cover merged and partial assignments, conditional loops,
+untaken errors, nested diagnostics, fixed-type failures and empty branches.
+TypeScript verification passes 44 language + 659 interpreter tests.
+
+The dedicated integer-branches fixture performs 200000 Collatz steps, restarting
+at 837799 whenever it reaches one. An independent JavaScript oracle checks its
+sum. Five alternating samples with counters disabled give medians of 35.437 ms
+off and 11.545 ms on, about 3.07x. A separate probe confirms one compiled loop.
+The benchmark includes parse/load/compile/evaluation and validation.
+
+[Measurements](../../benchmarks/baselines/2026-09-11-integer-branches-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-11-integer-branches-coverage.json).
+
+This is compiler coverage, not a claim that Euler 14 became faster. Existing
+sample loops with branches also need calls, container operations, suspension or
+control flow that this pass does not yet handle. Those remain on the reference
+path; samples were not rewritten to fit this pass. Next, specialize guarded
+container reads/writes and then loop control and calls to expand real coverage.
+
+Full suite: 306 files / 1054 tests pass in both modes. Complete result digests
+match the preceding committed power-loop baseline. One comparison took
+35.168 s off and 35.252 s on. This toggles all integer-loop lowering,
+not only branches; no new sample or stable whole-suite speedup is claimed.
+
+[Suite verification](../../benchmarks/baselines/2026-09-11-integer-branches-suite.json).

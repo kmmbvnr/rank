@@ -954,7 +954,7 @@ export class Interpreter {
                 read: name => this.findVariable(name),
                 writer: name => this.compileAssign(name),
                 ranges: () => this.modules.has('ranges'),
-                locate: (error, index) => this.locateError(error, index < 0 ? statement : statement.statements[index]),
+                locate: (error, command) => this.locateError(error, command),
                 compiled: this.options.onIntegerLoopCompiled,
                 executed: this.options.onIntegerLoopExecuted,
             }, binding) : undefined;

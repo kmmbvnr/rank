@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 90.356875,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 90.0655,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 12.652084000000002,
+      "entries": [
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 12.585042000000016,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    }
+  ]
+}

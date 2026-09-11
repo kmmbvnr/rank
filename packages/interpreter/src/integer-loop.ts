@@ -1,7 +1,7 @@
 import {
-    isAssignmentStatement, isBinaryExpression, isUnaryExpression,
+    isAssignmentStatement, isIfStatement, isBinaryExpression, isUnaryExpression,
     isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement,
+    type Expression, type ForStatement, type Statement,
 } from 'rank-language';
 import { completed, type Completed } from './execution.js';
 import { RankError } from './errors.js';
@@ -10,7 +10,7 @@ import type { RankValue } from './value.js';
 interface Host {
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;
-    locate(error: unknown, index: number): unknown;
+    locate(error: unknown, statement: Statement): unknown;
     ranges(): boolean;
     compiled?(source: string): void;
     executed?(): void;
@@ -122,32 +122,71 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         if (!test || test.type !== 'boolean') return undefined;
         header = `for (;;) { location = -1; ${tests.join('\n')} if (!(${test.code})) break;`;
     }
-    const body: string[] = [];
-    for (const [index, assignment] of statement.statements.entries()) {
-        if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return undefined;
-        const destination = slot(assignment.name);
-        if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
-        const lines: string[] = [];
-        const value = emit(assignment.value, lines);
-        if (!value || value.type !== 'integer') return undefined;
-        let result = value.code;
-        if (assignment.operator !== '=') {
-            const op = assignment.operator.slice(0, -1);
-            if (['+', '-', '*'].includes(op)) result = `(r${destination}) ${op} (${result})`;
-            else if (op === '%' || op === '//') {
-                lines.push(`if ((${result}) === 0n) throw zero();`);
-                const remainder = `c${index}`;
-                lines.push(`const ${remainder} = r${destination} % (${result});`);
-                const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== ((${result}) < 0n))`;
-                result = op === '%' ? `${remainder} + (${adjust} ? (${result}) : 0n)`
-                    : `r${destination} / (${result}) - (${adjust} ? 1n : 0n)`;
-            } else return undefined;
+    const locations: Statement[] = [];
+    function statements(commands: readonly Statement[], body: string[]): boolean {
+        for (const assignment of commands) {
+            const location = locations.length;
+            if (location >= 32) return false;
+            locations.push(assignment);
+            if (isIfStatement(assignment)) {
+                const incoming = new Set(assigned);
+                const outcomes: Set<string>[] = [];
+                const branches = [
+                    { condition: assignment.condition, statements: assignment.thenStatements },
+                    ...assignment.elifClauses,
+                ];
+                body.push(`location = ${location}; result = undefined;`);
+                for (const branch of branches) {
+                    assigned.clear();
+                    for (const name of incoming) assigned.add(name);
+                    const lines: string[] = [];
+                    const condition = emit(branch.condition, lines);
+                    if (condition?.type !== 'boolean') return false;
+                    body.push(`location = ${location};`, ...lines, `if (${condition.code}) {`);
+                    if (!statements(branch.statements, body)) return false;
+                    outcomes.push(new Set(assigned));
+                    body.push('} else {');
+                }
+                assigned.clear();
+                for (const name of incoming) assigned.add(name);
+                if (!statements(assignment.elseStatements, body)) return false;
+                outcomes.push(new Set(assigned));
+                body.push('}'.repeat(branches.length));
+                assigned.clear();
+                for (const name of outcomes[0]) {
+                    if (outcomes.every(outcome => outcome.has(name))) assigned.add(name);
+                }
+                continue;
+            }
+            const index = writers.length;
+            if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return false;
+            const destination = slot(assignment.name);
+            if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
+            const lines: string[] = [];
+            const value = emit(assignment.value, lines);
+            if (!value || value.type !== 'integer') return false;
+            let result = value.code;
+            if (assignment.operator !== '=') {
+                const op = assignment.operator.slice(0, -1);
+                if (['+', '-', '*'].includes(op)) result = `(r${destination}) ${op} (${result})`;
+                else if (op === '%' || op === '//') {
+                    lines.push(`if ((${result}) === 0n) throw zero();`);
+                    const remainder = `c${index}`;
+                    lines.push(`const ${remainder} = r${destination} % (${result});`);
+                    const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== ((${result}) < 0n))`;
+                    result = op === '%' ? `${remainder} + (${adjust} ? (${result}) : 0n)`
+                        : `r${destination} / (${result}) - (${adjust} ? 1n : 0n)`;
+                } else return false;
+            }
+            writers.push(host.writer(assignment.name));
+            body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,
+                `writers[${index}](out${index}); r${destination} = out${index}; result = out${index};`);
+            assigned.add(assignment.name);
         }
-        writers.push(host.writer(assignment.name));
-        body.push(`location = ${index};`, ...lines, `const out${index} = ${result};`,
-            `writers[${index}](out${index}); r${destination} = out${index}; result = out${index};`);
-        assigned.add(assignment.name);
+        return true;
     }
+    const body: string[] = [];
+    if (!statements(statement.statements, body)) return undefined;
     const source = `"use strict"; return function(input) {
         let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};
         let result, location = -1;
@@ -158,7 +197,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     };`;
     let run: (values: (RankValue | undefined)[]) => RankValue | undefined;
     try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', source)(writers, binders,
-        () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'), host.locate); }
+        () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index])); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: () => {

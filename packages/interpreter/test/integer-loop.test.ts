@@ -192,3 +192,109 @@ end`);
         expect(result.loops).toBe(1);
     });
 });
+
+
+describe('compiled loop branches', () => {
+    it('executes branching conditional loops', () => {
+        const result = compare(`N = 27
+Steps = 0
+for N greater 1
+  if N % 2 equal 0
+    N //= 2
+  else
+    N = 3 * N + 1
+  end
+  Steps += 1
+end
+Steps`);
+        expect(result.value).toBe('111');
+        expect(result.loops).toBe(1);
+    });
+
+    it('merges definite assignments across if, elif and else', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 0 to 5
+  if I less 2
+    Value = 10
+  elif I less 4
+    Value = 20
+  else
+    Value = 30
+  end
+  Total += Value
+end
+Total`);
+        expect(result.value).toBe('120');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves values assigned only on some iterations', () => {
+        const result = compare(`use ranges
+Value = 1
+Total = 0
+for I in 0 to 5
+  if I % 2 equal 0
+    Value = I
+  end
+  Total += Value
+end
+Total`);
+        expect(result.value).toBe('12');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps unselected conditions and bodies unevaluated', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 1 to 3
+  if I greater 0
+    if I less 3
+      Total += I
+    else
+      Total += 10
+    end
+  elif 1 // 0 equal 0
+    Total = 1 // 0
+  end
+end
+Total`);
+        expect(result.value).toBe('13');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each([
+        'if I equal 2\n    Done = I\n    X = 1 // 0\n  end',
+        'if I less 0\n    Done = I\n  elif 1 // (I - 2) equal 0\n    Done = 4\n  end',
+        'if I greater 0\n    Done = I\n    Real = I\n  end',
+    ])('preserves nested error locations and partial state', branch => {
+        const result = compare(`use ranges
+Done = 0
+Real = 0.0
+for I in 1 to 3
+  ${branch}
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('declines a potentially missing input before any writes', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 1 to 2
+  if I equal 2
+    Value = I
+  end
+  Total += Value
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it.each(['if false\n  X = 1\nend', 'if true\nend'])('preserves empty branch results', branch => {
+        expect(compare(`use ranges
+for I in 1 to 2
+  ${branch}
+end`).loops).toBe(1);
+    });
+});

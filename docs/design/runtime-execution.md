@@ -419,18 +419,18 @@ not full lowering of loop control. `loopPreparation: false` disables the reuse.
 ## Whole integer loops
 
 `integer-loop.ts` lowers a conditional or inline numeric-range loop into one JavaScript loop when the
-condition and straight-line assignments are supported integer expressions.
+condition and assignments are supported integer expressions.
 Inputs are guarded before execution; unsupported types or syntax retain the
 reference loop. Register variables hold integer values between operations and
 iterations. Each assignment still calls its existing writer immediately, retaining
 fixed-type checks, lexical binding behavior and partial state if a later operation
 fails. Errors carry the original body-command or loop-condition location.
 
-The scope includes conditional and `to`/`until` range loops with at most 32 assignment commands,
+The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches),
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
 bigint arithmetic. Dynamic or negative exponents retain reference execution. Calls, indexing,
-branches, floating-point operations and other iterable loops retain the old path.
+floating-point operations and other iterable loops retain the old path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
 disables this pass; compilation/execution callbacks support diagnostics.
@@ -444,3 +444,12 @@ an internal cursor, independent of assignments to the visible loop variable.
 Empty ranges do not bind variables. Zero-step and binding-type errors preserve
 reference timing and locations. Unused ordinal counters are omitted. Named range
 values and other sequence plans are not yet lowered by this pass.
+
+
+Integer-loop lowering also supports `if`/`elif`/`else`, including nested branches.
+Only selected conditions and bodies execute. Definite assignments after a branch
+are the intersection of all outgoing paths; other reads require an initial
+integer guard or decline compilation. Branch-local writes still use checked
+writers, and errors point to the original nested statement. An empty selected
+branch retains the reference result (`undefined`). This does not yet compile
+container operations, calls, suspension or loop-control commands.

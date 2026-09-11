@@ -28,7 +28,17 @@ const files = path => readdirSync(path, { withFileTypes: true }).flatMap(e => {
   return e.isDirectory() ? files(p) : p.endsWith('_test.ra') ? [p] : [];
 }).sort();
 const array = (items, shape = [items.length]) => ({ kind: 'array', items, shape });
+// Independent scalar oracle for the branching compiler fixture.
+function recurrenceAnswer(limit) {
+  let n = 837799n, total = 0n;
+  for (let i = 0; i < limit; i++) {
+    n = n === 1n ? 837799n : n % 2n === 0n ? n / 2n : 3n * n + 1n;
+    total += n;
+  }
+  return total;
+}
 const tasks = [
+  { name: 'Branching recurrence, 200000 steps', path: 'benchmarks/programs/integer-branches.ra', fn: 'recurrence', expected: recurrenceAnswer(200000), args: () => [200000n] },
   { name: 'Euler 28 Size=200001', path: 'demos/euler/028_spiraldiagonals.ra', fn: 'spiral_diagonal_sum', expected: 1n + 16n * 100000n * 100001n * 200001n / 6n + 4n * 100000n * 100001n / 2n + 4n * 100000n, args: () => [200001n] },
   { name: 'Four Squares square_sum helper, 200000 values', path: 'demos/cses/math/026_foursquares.ra', fn: 'square_sum', expected: 199999n * 200000n * 399999n / 6n, args: () => [array(Array.from({length:200000}, (_,i)=>BigInt(i)))] },
   { name: 'Stick Game n=100000 k=100', path: 'demos/cses/math/032_stickgame.ra', input: `100000 100 ${Array.from({length:100}, (_,i)=>i+1).join(' ')}` },
