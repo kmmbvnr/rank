@@ -1,0 +1,31 @@
+use testing
+
+test "official butterfly to dragonfly"
+  use "051_osa"
+  "butterfly" "dragonfly" osa equal 6
+end
+
+test "official caper to acer"
+  use "051_osa"
+  "caper" "acer" osa equal 2
+end
+
+test "official telescope to microscope"
+  use "051_osa"
+  "telescope" "microscope" osa equal 5
+end
+
+test "official london to paris"
+  use "051_osa"
+  "london" "paris" osa equal 6
+end
+
+test "adjacent transposition costs one"
+  use "051_osa"
+  "ab" "ba" osa equal 1
+end
+
+test "empty source needs insertions"
+  use "051_osa"
+  "" "rank" osa equal 4
+end
