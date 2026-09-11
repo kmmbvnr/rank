@@ -314,15 +314,17 @@ so correctness does not depend on a timing threshold.
 ### Earlier measurements
 
 On the development machine during this refactor, the recursive benchmark changed
-from approximately 85 ms to 35 ms. The current CSES 024 draft's official sample
-returned 201 in approximately 5.2 seconds, compared with 10.2 seconds before the
-refactor; the baseline was rechecked without CPU profiling. These are local
-measurements, not performance guarantees. The all-wildcard case did not complete
-within a 55-second check and remains separate unfinished example work.
+from approximately 85 ms to 35 ms. The official sample for CSES Introductory
+Problems 024 (`intro/024_gridpath`) returned 201 in approximately 5.2 seconds,
+compared with 10.2 seconds before the refactor; the baseline was rechecked without
+CPU profiling. These are local measurements, not performance guarantees. The
+all-wildcard Grid Paths case did not complete within a 55-second check and remains
+separate unfinished performance work.
 
 The subsequent prepared-statement change reduced the recursive benchmark from
-36 to 31 ms and the 50,000-iteration summation from 24.6 to 9.4 ms. All five CSES
-024 tests, including the official sample, completed in approximately 2.7 seconds.
+36 to 31 ms and the 50,000-iteration summation from 24.6 to 9.4 ms. All five
+`intro/024_gridpath` tests, including the official sample, completed in
+approximately 2.7 seconds.
 These measurements use the same example algorithm; this change does not establish
 completion or judge-time performance for the all-wildcard input.
 
