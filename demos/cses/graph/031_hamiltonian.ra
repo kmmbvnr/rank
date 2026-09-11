@@ -1,0 +1,53 @@
+rem CSES 1690: Hamiltonian Flights
+rem https://cses.fi/problemset/task/1690
+
+use bits
+use graph
+use io
+use ranges
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+N Edges hamiltonian_flights print
+
+
+rem Count routes by visited-city masks.
+fun hamiltonian_flights N Edges
+  Modulus = 1000000007
+  States = 1 N shl
+  Full = States - 1
+  Last = N - 1
+  Nodes = 0 until N
+  Back = new graph Nodes .directed
+  for Edge in Edges
+    unpack From To = Edge
+    Back add (To - 1) (From - 1)
+  end
+
+  Ways = array shape States N pad 0
+  Ways 1 0 = 1
+  for Mask in 3 until States by 2
+    HasLast = Mask Last bit
+    Incomplete = Mask not equal Full
+    if HasLast and Incomplete
+      continue
+    end
+    for City in 1 until N
+      if not (Mask City bit)
+        continue
+      end
+      Bit = 1 City shl
+      Before = Mask Bit bxor
+      Total = 0
+      for Previous in Back City
+        More = Ways Before Previous
+        Total += More
+      end
+      Ways Mask City = Total % Modulus
+    end
+  end
+  return Ways Full Last
+end

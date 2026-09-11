@@ -1,0 +1,45 @@
+use testing
+
+test "official starting square"
+  use "032_knighttour"
+  use algo
+  use numbers
+  use ranges
+  use sequences
+  Board = 2 1 knight_tour
+  Board valid_tour
+  Board 0 1 equal 1
+end
+
+test "starts in the upper left corner"
+  use "032_knighttour"
+  use algo
+  use numbers
+  use ranges
+  use sequences
+  Board = 1 1 knight_tour
+  Board valid_tour
+  Board 0 0 equal 1
+end
+
+test "starts in the board center"
+  use "032_knighttour"
+  use algo
+  use numbers
+  use ranges
+  use sequences
+  Board = 4 4 knight_tour
+  Board valid_tour
+  Board 3 3 equal 1
+end
+
+test "starts in the lower right corner"
+  use "032_knighttour"
+  use algo
+  use numbers
+  use ranges
+  use sequences
+  Board = 8 8 knight_tour
+  Board valid_tour
+  Board 7 7 equal 1
+end

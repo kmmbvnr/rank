@@ -1,0 +1,105 @@
+rem CSES 1689: Knight's Tour
+rem https://cses.fi/problemset/task/1689
+
+use algo
+use io
+use numbers
+use ranges
+use sequences
+
+X = stdin .integer
+Y = stdin .integer
+X Y knight_tour print
+
+
+rem Search low-degree moves first.
+fun knight_tour StartX StartY
+  Board = array shape 8 8 pad 0
+  DX = array 2 1 -1 -2 -2 -1 1 2
+  DY = array 1 2 2 1 -1 -2 -2 -1
+
+  fun open X Y
+    Inside = X at least 0 and X less 8
+    InsideY = Y at least 0 and Y less 8
+    Inside and= InsideY
+    if not Inside
+      return false
+    end
+    return Board Y X equal 0
+  end
+
+  fun degree Position
+    X = Position % 8
+    Y = Position // 8
+    Count = 0
+    for Move in 0 until 8
+      NX = X + DX Move
+      NY = Y + DY Move
+      if NX NY open
+        Count += 1
+      end
+    end
+    return Count
+  end
+
+  fun visit X Y Step
+    Board Y X = Step
+    if Step equal 64
+      return true
+    end
+
+    Moves = new queue
+    for Move in 0 until 8
+      NX = X + DX Move
+      NY = Y + DY Move
+      Next = NY * 8 + NX
+      if NX NY open
+        Moves push Next
+      end
+    end
+    Ordered = Moves sort by degree
+    for Next in Ordered
+      NX = Next % 8
+      NY = Next // 8
+      if NX NY (Step + 1) visit
+        return true
+      end
+    end
+    Board Y X = 0
+    return false
+  end
+
+  X = StartX - 1
+  Y = StartY - 1
+  Found = X Y 1 visit
+  if not Found
+    .Failure "tour not found" raise
+  end
+  return Board
+end
+
+
+rem Verify numbering and knight moves.
+fun valid_tour Board
+  Xs = array shape 65 pad 0
+  Ys = array shape 65 pad 0
+  for Y in 0 until 8
+    for X in 0 until 8
+      Step = Board Y X
+      if Step less 1 or Step greater 64
+        return false
+      end
+      Xs Step = X
+      Ys Step = Y
+    end
+  end
+
+  for Step in 1 until 64
+    DX = (Xs (Step + 1) - Xs Step) abs
+    DY = (Ys (Step + 1) - Ys Step) abs
+    if DX * DY not equal 2
+      return false
+    end
+  end
+  return true
+end
