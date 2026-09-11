@@ -1,3 +1,4 @@
+import { compileIntegerLoop } from './integer-loop.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
@@ -150,6 +151,9 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly integerLoopCompilation?: boolean;
+    readonly onIntegerLoopCompiled?: (source: string) => void;
+    readonly onIntegerLoopExecuted?: () => void;
     /** Reuse compiled loop bodies and their execution contexts. */
     readonly loopPreparation?: boolean;
     /** Compiled command blocks; false retains statement dispatch. */
@@ -879,7 +883,7 @@ export class Interpreter {
                 ? binding.names.slice(1).map(name =>
                     name === '#' ? undefined : this.compileAssign(name))
                 : [];
-            return { stream: function* (context) {
+            const reference: PreparedStatement = { stream: function* (context) {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
                 let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
@@ -946,6 +950,14 @@ export class Interpreter {
                 }
                 return result;
             } };
+            const compiled = this.options.integerLoopCompilation !== false ? compileIntegerLoop(statement, {
+                read: name => this.findVariable(name),
+                writer: name => this.compileAssign(name),
+                locate: (error, index) => this.locateError(error, index < 0 ? statement : statement.statements[index]),
+                compiled: this.options.onIntegerLoopCompiled,
+                executed: this.options.onIntegerLoopExecuted,
+            }) : undefined;
+            return compiled ? { stream: context => compiled.run() ?? reference.stream!(context) } : reference;
         }
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
@@ -2374,6 +2386,9 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            integerLoopCompilation: this.options.integerLoopCompilation,
+            onIntegerLoopCompiled: this.options.onIntegerLoopCompiled,
+            onIntegerLoopExecuted: this.options.onIntegerLoopExecuted,
             loopPreparation: this.options.loopPreparation,
             blockCompilation: this.options.blockCompilation,
             onBlockCompiled: this.options.onBlockCompiled,
@@ -2453,6 +2468,9 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            integerLoopCompilation: this.options.integerLoopCompilation,
+            onIntegerLoopCompiled: this.options.onIntegerLoopCompiled,
+            onIntegerLoopExecuted: this.options.onIntegerLoopExecuted,
             loopPreparation: this.options.loopPreparation,
             blockCompilation: this.options.blockCompilation,
             onBlockCompiled: this.options.onBlockCompiled,

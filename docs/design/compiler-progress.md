@@ -285,3 +285,41 @@ RANK_BENCH_COUNTERS=0 node benchmarks/tensor-fusion.mjs \
 ```
 
 [Prototype patch](../../benchmarks/experiments/conditional-loop.patch) · [Raw measurements](../../benchmarks/baselines/2026-09-11-conditional-loop-experiment.json)
+
+## Whole-loop integer lowering
+
+The compiler now emits an entire conditional loop, including its condition,
+arithmetic and register reads. Assignments remain immediate calls to the standard
+writers. This substantially reduces dispatch while preserving type errors and
+all writes completed before a failure. No execution is replayed after failure.
+
+Ten focused tests compare results, variable state and exact diagnostics, including
+integer accumulation, signed floor division/modulo, partial writes, type mismatch,
+zero iterations/missing values, fresh function calls, syntax modifiers and CSP.
+The TypeScript suite passes 44 language + 622 interpreter tests.
+
+Final focused benchmark, three alternating samples, counters disabled:
+
+| Task | Integer loop off ms | Integer loop on ms |
+| --- | ---: | ---: |
+| 006_sumdivisors_test.ra | 751.225 | 332.938 |
+| 014_christmasparty_test.ra | 205.709 | 205.815 |
+
+The Sum of Divisors source is unchanged. Christmas Party remains an iterable-loop
+control, outside this pass. A separate instrumented Mathematics-section run found
+five compiled loop entries, all in Sum of Divisors tests. There is no task-name or
+function-name recognition in the compiler; focused tests use different expressions
+and names. Other loop shapes remain reference execution.
+
+The next scope extension is numeric range iteration, followed by structured body
+branches. This pass is limited to guarded integer loops, not yet arbitrary programs.
+
+[Focused timings](../../benchmarks/baselines/2026-09-11-integer-loop-focused.json)
+
+The full suite passes 306 files / 1054 tests in both modes and in a final enabled
+verification after adding the modifier-spelling guard. Complete output/result
+digests match each other and the preceding committed runtime. The integration
+pair took 36.345 s off and 35.187 s on; a single pair does not establish a stable
+whole-suite speedup. The final enabled verification took 34.574 s.
+
+[Full-suite comparisons and final verification](../../benchmarks/baselines/2026-09-11-integer-loop-suite.json)
