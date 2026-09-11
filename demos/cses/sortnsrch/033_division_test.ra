@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "033_division"
+  Values = array 2 4 7 3 5
+  Values 3 minimum_largest_sum equal 8
+end
+
+test "one part contains everything"
+  use "033_division"
+  Values = array 2 4 7 3 5
+  Values 1 minimum_largest_sum equal 21
+end
+
+test "one part per value"
+  use "033_division"
+  Values = array 2 4 7 3 5
+  Values 5 minimum_largest_sum equal 7
+end
+
+test "supports large integers"
+  use "033_division"
+  Values = array 1000000000 1000000000
+  Expected = 2000000000
+  Values 1 minimum_largest_sum equal Expected
+end

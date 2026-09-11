@@ -1,0 +1,42 @@
+rem CSES 1085: Array Division
+rem https://cses.fi/problemset/task/1085
+
+use io
+use numbers
+
+N = stdin .integer
+K = stdin .integer
+A = stdin .integer N array
+
+A K minimum_largest_sum print
+
+
+rem Find the smallest feasible part limit.
+fun minimum_largest_sum A K
+  Low = A max
+  High = A sum
+
+  for Low less High
+    Mid = (Low + High) // 2
+
+    Parts = 1
+    Sum = 0
+
+    for X in A
+      if Sum + X greater Mid
+        Parts += 1
+        Sum = X
+      else
+        Sum += X
+      end
+    end
+
+    if Parts at most K
+      High = Mid
+    else
+      Low = Mid + 1
+    end
+  end
+
+  return Low
+end
