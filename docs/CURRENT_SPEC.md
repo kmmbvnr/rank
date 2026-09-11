@@ -1474,7 +1474,15 @@ the former prefix sketch `lcm * Range` is not part of the current language.
 
 ## Division and remainder
 
-`%` is remainder.
+`%` is floor modulo: a nonzero result has the divisor's sign. For integer
+operands and a nonzero divisor, `A equal (A // B) * B + A % B` is always true.
+For example, `-5 % 3` is `1`, `5 % -3` is `-1`, and `-5 % -3` is `-2`.
+With a positive integer modulus `M`, `X % M` is already in `[0, M)`;
+`(X % M + M) % M` is unnecessary.
+
+Real and mixed operands use the same sign rule, subject to floating-point
+rounding. A real zero result has the divisor's sign. Division or modulo by
+zero raises a Rank error.
 
 `/` always produces a real quotient. `//` is floor division and follows Python's
 rounding direction for negative values:

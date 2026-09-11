@@ -2416,7 +2416,10 @@ export class Interpreter {
         }
         if (operator === 'multipleby') {
             this.requireModule('numbers', 'multiple by');
-            return expectInteger(left) % expectInteger(right) === 0n;
+            const dividend = expectInteger(left);
+            const divisor = expectInteger(right);
+            if (divisor === 0n) throw new RankError('division by zero');
+            return dividend % divisor === 0n;
         }
         if (operator === 'less' || operator === 'greater'
             || operator === 'atleast' || operator === 'atmost') {
@@ -2440,8 +2443,19 @@ export class Interpreter {
             case '*': return bothIntegers ? a * b : Number(a) * Number(b);
             case '**': return power(a, b);
             case '/': return Number(a) / Number(b);
-            case '//': return bothIntegers ? floorDivide(a, b) : Math.floor(Number(a) / Number(b));
-            case '%': return bothIntegers ? a % b : Number(a) % Number(b);
+            case '//': return bothIntegers ? floorDivide(a, b) : floorDivideReal(Number(a), Number(b));
+            case '%': {
+                if (bothIntegers) {
+                    const remainder = a % b;
+                    return remainder !== 0n && (remainder < 0n) !== (b < 0n)
+                        ? remainder + b
+                        : remainder;
+                }
+                const divisor = Number(b);
+                const remainder = Number(a) % divisor;
+                if (remainder === 0) return divisor < 0 ? -0 : 0;
+                return (remainder < 0) !== (divisor < 0) ? remainder + divisor : remainder;
+            }
             default: throw new RankError(`unknown operator: ${operator}`);
         }
     }
@@ -3911,6 +3925,20 @@ function power(base: bigint | number, exponent: bigint | number): bigint | numbe
     const result = Number(base) ** Number(exponent);
     if (Number.isNaN(result)) throw new RankError('power result is not real');
     return result;
+}
+
+function floorDivideReal(left: number, right: number): number {
+    const remainder = left % right;
+    // Derive the quotient from the remainder so rounding near an integer
+    // boundary cannot make // disagree with %.
+    let quotient = (left - remainder) / right;
+    if (remainder !== 0 && (remainder < 0) !== (right < 0)) quotient -= 1;
+    if (quotient === 0) {
+        const ratio = left / right;
+        return ratio < 0 || Object.is(ratio, -0) ? -0 : 0;
+    }
+    const floor = Math.floor(quotient);
+    return quotient - floor > 0.5 ? floor + 1 : floor;
 }
 
 function floorDivide(left: bigint, right: bigint): bigint {
