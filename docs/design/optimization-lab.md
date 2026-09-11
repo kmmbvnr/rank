@@ -167,3 +167,90 @@ compact numeric storage, measured indexing/transpose paths, guarded generated
 loops, and finally conservative mutation/alias analysis. Record failed attempts
 here and remove their production code. No blanket performance claim follows
 from the baseline or from a passing timeout.
+
+## 4. Private storage: correctness repaired, performance costs remain
+
+The next prototype identifies owned arrays in a private WeakMap before inspecting
+their descriptors. Unknown objects, including proxies around owned arrays, take
+the ordinary path without extra property probes. This repairs the existing
+`+ reduce` example that returned 200 instead of 2. Numeric Rank literals and
+materialized sequences receive private backing arrays. JS callers can request a
+shallow copy with `createArraySnapshot`; existing host objects remain supported.
+The [storage contract](array-storage.md) explains exposure, mutation and files.
+
+Reading public `.items` disables the proof permanently. It also replaces the
+original getter with a data field when configurable. Sealed and host-replaced
+getters remain intact. The proof checks kind, shape, storage and prototype
+descriptors without invoking callbacks. A row-copy loop revalidates between
+iterations because its Rank body can mutate the next row's source.
+
+Builtin `sum` now shares the inline arithmetic plan with operator reduction.
+It preserves the BigInt-zero seed, floating-point order, arithmetic-error timing,
+and resolution of a shadowed `sum`. Named intermediates retain their ordinary
+caches. The common single-binary plan avoids allocating instruction-value arrays.
+This is a worktree checkpoint, not approval to merge the whole prototype.
+
+Measurements use the unchanged corrected DeepML 001 function, five warm samples
+and five cold processes per size. The new `--storage=snapshot` mode copies inputs
+for both runtimes; the baseline receives ordinary copies. Oracles use the input
+formula rather than reading `.items` and accidentally exposing candidate storage.
+Warm timing excludes construction; cold timing includes it.
+
+At square 512, snapshot matvec was 26.0 to 14.9 ms in one pair, then 26.3 to
+15.3 ms after the exposure change. The latter peak RSS was 277 to 208 MiB;
+cold medians were 177.0 to 170.2 ms. At square 128, the latter warm pair was
+2.4 to 1.9 ms. At square 8 it was about 0.08 to 0.09 ms. These results require
+private inputs; ordinary JS matvec was 26.7 to 26.2 ms, not a comparable gain.
+
+Costs are still visible in the full ordinary-input comparison:
+
+| Largest control | Baseline, ms | Prototype, ms |
+| --- | ---: | ---: |
+| Euler 006 | 10.6 | 11.0 |
+| DeepML 017 k-means | 41.0 | 43.4 |
+| DeepML 004 rows | 12.2 | 13.2 |
+| DeepML 004 columns | 12.6 | 13.4 |
+| DeepML 009 matrix multiplication | 313.1 | 313.8 |
+| DeepML 015 gradient descent | 76.3 | 79.1 |
+
+The lazy k-means slowdown has repeated across variants. Do not describe this
+prototype as a general acceleration. Its fallback plan and per-cell row branch
+remain candidates for removal or revision before delivery.
+
+The 81 snapshot array controls also expose a cost. Million-element named
+reductions initially rose 22%; converting the exposed getter to a data field
+reduced this to 7–15% in the next run. Twice-used values were still 5–9% slower.
+Inline reduction was 10% faster for integer, 11% faster for real and 2% faster
+for mixed values in that run. V8 diagnostics on Node 24.15.0 showed dictionary
+properties for these per-object accessors. Replacing the literal constructor
+with `Object.defineProperties` or `Object.create` did not retain fast properties
+after the first instance. Those constructor alternatives were not added.
+
+Other rejected variants:
+
+- Branding every copied row, including unknown-host rows, slowed ordinary
+  matvec from 26.6 to 30.4 ms. Only rows copied from validated private storage
+  are now branded.
+- Checking source eligibility once before the row loop let internal `.items`
+  reads expose the matrix. Later calls lost fusion: snapshot matvec reached
+  32.0 ms. Private internal reads and per-row validation replaced this variant.
+- Bypassing the generic sum application alone did not fix lazy fallback cost.
+  The specialized binary plan reduced, but did not remove, that cost.
+
+Raw evidence: [development variants](../../benchmarks/baselines/2026-09-11-owned-arrays-development.json),
+[first ordinary-input prototype](../../benchmarks/baselines/2026-09-11-owned-arrays-first-prototype.json),
+[array controls and final snapshot matvec](../../benchmarks/baselines/2026-09-11-owned-array-controls.json),
+[final ordinary-input numerical pair](../../benchmarks/baselines/2026-09-11-owned-arrays-plain-final.json).
+These files identify the base revision; candidate changes were uncommitted.
+
+All 451 JS tests passed before the final added sealed/proxy test; the 12-test
+storage file passed afterward. Six CSES smoke checks at N=200,000 passed:
+restaurant 2369.5 ms, rooms 1835.8, playlist 456.7, books 182.2, bounded-sum
+798.2, sum 165.4. The immediately preceding main run was respectively 2362.6,
+1851.9, 456.0, 183.8, 793.2 and 161.7 ms. These are single cold samples, not
+speedup claims. The full worktree demo run passed 164 files with zero failures.
+
+Next experiments: compact private real/boolean buffers, avoiding coordinate
+generators in measured row/column copies, and prepared private readers that
+retain named lazy caches. Test each independently; do not combine their gains
+with this checkpoint until repeated comparisons cover the resulting code.

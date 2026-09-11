@@ -8,7 +8,8 @@ import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import { isKnownFileFree, ResourceMap } from './resource-summary.js';
 import { numericKernel } from './numeric-kernels.js';
-import { compileFusedReduction } from './fused-reduction.js';
+import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
+import { ownedArray, privateArrayStorage } from './array-storage.js';
 import {
     isAddStatement,
     isAllAxisExpression,
@@ -1121,14 +1122,14 @@ export class Interpreter {
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(interpreter.evaluateTask(expression.fill)));
-                    return { kind: 'array', items: Array(Number(size)).fill(fill), shape };
+                    return ownedArray(Array(Number(size)).fill(fill), shape);
                 }
                 if (BigInt(items.length) !== size) {
                     throw new RankError(
                         `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
                     );
                 }
-                return { kind: 'array', items, shape };
+                return ownedArray(items, shape);
             };
         }
         if (isRecordExpression(expression)) {
@@ -1597,6 +1598,19 @@ export class Interpreter {
                         [source, selector], missing, 0, [], tail,
                     ));
                 };
+            }
+            if (parts.length === 2 && isNamed(parts[1], 'sum')) {
+                const fused = compileFusedSum(parts[0], {
+                    prepareLeaf: source => interpreter.compileDirectExpression(source)!,
+                    binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
+                }, (value, sum) => {
+                    const fn = interpreter.resolve('sum');
+                    if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.numbers.sum)) {
+                        return completed(sum ? sum() : fn.call([value]));
+                    }
+                    return interpreter.apply([value, fn], missing, 0, [], tail);
+                });
+                if (fused) return fused;
             }
             const directParts = parts.map(part => isAllAxisExpression(part)
                 ? () => ALL_AXIS : this.compileDirectExpression(part));
@@ -3047,6 +3061,9 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[]): Iterab
     const cellShape = cellAxes.map(axis => source.shape[axis]);
 
     for (const frameCoordinates of coordinates(frameShape)) {
+        // The loop body may change storage between rows. Within this copy,
+        // private primitive cells cannot execute host callbacks.
+        const storage = privateArrayStorage(source);
         const fullCoordinates = Array(source.shape.length).fill(0) as number[];
         frameAxes.forEach((axis, position) => {
             fullCoordinates[axis] = frameCoordinates[position];
@@ -3056,12 +3073,14 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[]): Iterab
             cellAxes.forEach((axis, position) => {
                 fullCoordinates[axis] = cellCoordinates[position];
             });
-            items.push(source.items[arrayOffset(source.shape, fullCoordinates)]);
+            items.push(storage
+                ? storage.read(arrayOffset(source.shape, fullCoordinates))
+                : source.items[arrayOffset(source.shape, fullCoordinates)]);
         }
         yield {
             value: cellShape.length === 0
                 ? items[0]
-                : { kind: 'array', items, shape: cellShape },
+                : storage ? ownedArray(items, cellShape) : { kind: 'array', items, shape: cellShape },
             indices: frameCoordinates.map(BigInt),
         };
     }
@@ -3094,7 +3113,7 @@ function arrayOffset(shape: readonly number[], coordinates: readonly number[]): 
 }
 
 function array(items: RankValue[]): RankArray {
-    return { kind: 'array', items, shape: [items.length] };
+    return ownedArray(items, [items.length]);
 }
 
 function lazyArray(

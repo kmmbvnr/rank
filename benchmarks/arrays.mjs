@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const options = process.argv.slice(2);
 for (const option of options) {
-  if (!['--quick', '--json', '--fusion'].includes(option) && !option.startsWith('--module=')) {
+  if (!['--quick', '--json', '--fusion'].includes(option) && !option.startsWith('--module=') && !option.startsWith('--storage=')) {
     throw new Error(`Unknown option: ${option}`);
   }
 }
@@ -15,7 +15,12 @@ const moduleOption = options.find(option => option.startsWith('--module='));
 const moduleUrl = moduleOption
   ? pathToFileURL(resolve(moduleOption.slice('--module='.length)))
   : new URL('../packages/interpreter/out/index.js', import.meta.url);
-const { Interpreter } = await import(moduleUrl.href);
+const { Interpreter, createArraySnapshot } = await import(moduleUrl.href);
+const storage = options.find(option => option.startsWith('--storage='))?.slice('--storage='.length) ?? 'plain';
+assert(['plain', 'snapshot'].includes(storage));
+const array = (items, shape = [items.length]) => storage === 'snapshot'
+  ? createArraySnapshot ? createArraySnapshot(items, shape) : { kind: 'array', items: [...items], shape: [...shape] }
+  : { kind: 'array', items, shape };
 const quick = options.includes('--quick');
 const sizes = quick ? [100] : [100, 10_000, 1_000_000];
 const repetitions = quick ? 2 : 5;
@@ -70,7 +75,7 @@ const report = {
     harnessRevision: revision(dirname(fileURLToPath(import.meta.url))),
     runtimeRevision: revision(dirname(fileURLToPath(moduleUrl))),
     module: moduleUrl.href, gc: typeof global.gc === 'function',
-    sizes, warmups: 2, repetitions, fusion: options.includes('--fusion'),
+    sizes, storage, warmups: 2, repetitions, fusion: options.includes('--fusion'),
     memory: 'post-operation minus pre-operation bytes; before validation; not peak or allocation totals',
   },
   results: [],
@@ -97,7 +102,7 @@ try {
       const b = Array.from({ length: size }, (_, i) => kind === 'mixed' && i % 2 === 0
         ? (i * 13) % 97 - 48
         : number((i * 13) % 97 - 48));
-      const vector = items => ({ kind: 'array', shape: [items.length], items });
+      const vector = items => array(items);
       const total = items => items.reduce(add, number(0));
       const mapped = a.map((item, i) => add(multiply(item, number(2)), b[i]));
       let accumulated = number(0);
@@ -111,7 +116,7 @@ try {
         ['chainreduce', vector(a), total(mapped)],
         ['prefix', vector(a), vector(prefix)],
         ['ordered', vector(a), vector([...a].sort((x, y) => x < y ? -1 : x > y ? 1 : 0))],
-        ['rows', { kind: 'array', shape: [size / width, width], items: a }, vector(rowSums)],
+        ['rows', array(a, [size / width, width]), vector(rowSums)],
       ];
       if (options.includes('--fusion')) {
         cases.push(['namedreduce', vector(a), total(mapped)],

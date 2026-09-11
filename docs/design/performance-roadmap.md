@@ -31,12 +31,12 @@ A repeatable benefit in unchanged programs is the acceptance criterion.
 
 ## Extend fusion to the forms used by demos
 
-First repair the existing descriptor-based eligibility check: a host Proxy can
-mutate input during the check. The builtin-sum experiment was about twice as
-fast on DeepML 001 but was rolled back for this correctness failure; details
-and its saved patch are in the [optimization log](optimization-lab.md). Establish
-a private, validated storage contract without probing unknown host objects,
-then repeat the sum experiment and its lazy k-means fallback control.
+The worktree's private storage contract repairs the descriptor-probe bug and
+enables the sum experiment without probing unknown host objects. Finish its
+acceptance checks before merging: snapshot matvec improves, but lazy k-means,
+ordinary row/column means and named snapshot reductions still have measured
+costs. Revise or remove the responsible parts and repeat the controls. See
+the [optimization log](optimization-lab.md#4-private-storage-correctness-repaired-performance-costs-remain).
 
 Start with builtin `sum` on arithmetic results. Consider single-use named
 temporaries and range readers if profiles justify them. Euler 006 also needs a

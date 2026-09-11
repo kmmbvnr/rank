@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
+import { describe, expect, it, vi } from 'vitest';
+import { Interpreter, RankError, createArraySnapshot, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
 
 const vector = (items: RankValue[], shape = [items.length]): RankArray => ({ kind: 'array', items, shape, containsFiles: false });
 const call = (runtime: Interpreter, name: string, ...args: RankValue[]) => {
@@ -23,6 +23,19 @@ fun replacement A
 end`;
 
 describe('builtin sum semantics required by fusion', () => {
+    it('uses the fused consumer only while snapshot storage remains private', () => {
+        const runtime = new Interpreter();
+        runtime.execute(source);
+        const input = createArraySnapshot([1n, 2n]);
+        const apply = vi.spyOn(runtime as unknown as {
+            invoke(fn: { name: string }, args: RankValue[]): unknown;
+        }, 'invoke');
+        expect(call(runtime, 'fused', input, 2n)).toBe(6n);
+        expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(0);
+        expect(call(runtime, 'ordinary', input, 2n)).toBe(6n);
+        expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(1);
+        runtime.dispose();
+    });
     it('does not introduce descriptor probes on host proxies', () => {
         const runtime = new Interpreter();
         runtime.execute(source);
@@ -43,8 +56,10 @@ describe('builtin sum semantics required by fusion', () => {
         runtime.execute(source);
         for (const items of [[], [-0], [Infinity, -Infinity], [NaN], [1e16, 1, -1e16],
             [2n ** 100n, 1n, -(2n ** 100n)], [1n, 0.25, 3n]]) {
-            const a = vector(items), b = vector(items.map(() => 1n));
-            expect(call(runtime, 'fused', a, b)).toEqual(call(runtime, 'ordinary', a, b));
+            for (const make of [vector, createArraySnapshot]) {
+                const a = make(items), b = make(items.map(() => 1n));
+                expect(call(runtime, 'fused', a, b)).toEqual(call(runtime, 'ordinary', a, b));
+            }
         }
         expect(call(runtime, 'fused', 3n, 4n)).toBe(12n);
         expect(call(runtime, 'fused', vector([1n, 2n], [2, 1]), vector([3n, 4n], [1, 2]))).toBe(21n);

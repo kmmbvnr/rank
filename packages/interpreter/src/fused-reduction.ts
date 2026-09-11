@@ -3,6 +3,8 @@ import {
     isUnaryExpression, type Expression,
 } from 'rank-language';
 import { numericKernel } from './numeric-kernels.js';
+import { privateArrayStorage } from './array-storage.js';
+import { expectNumeric } from './modules/shared.js';
 import { isRankArray, type RankValue } from './value.js';
 
 type Operation = (left: RankValue, right: RankValue) => RankValue;
@@ -14,9 +16,12 @@ type Instruction = { readonly read: () => RankValue } | {
     readonly operation: Operation;
 };
 
-interface Context {
+interface ArithmeticContext {
     readonly prepareLeaf: (expression: Expression) => () => RankValue;
     readonly binary: (operator: string, left: RankValue, right: RankValue) => RankValue;
+}
+
+interface Context extends ArithmeticContext {
     readonly reduce: (value: RankValue) => RankValue;
 }
 
@@ -27,6 +32,43 @@ export function compileFusedReduction(
     context: Context,
 ): (() => RankValue) | undefined {
     if (!['+', '-', '*'].includes(reducer)) return undefined;
+    const reduce = numericKernel(reducer, (a, b) => context.binary(reducer, a, b));
+    return compileArithmeticFold(source, context, (result, read, size) => {
+        if (!read || size === 0) return context.reduce(result);
+        let accumulated = read(0);
+        for (let index = 1; index < size; index += 1) accumulated = reduce(accumulated, read(index));
+        return accumulated;
+    });
+}
+
+export function compileFusedSum<T>(
+    source: Expression,
+    context: ArithmeticContext,
+    consume: (value: RankValue, sum: (() => RankValue) | undefined) => T,
+): (() => T) | undefined {
+    return compileArithmeticFold(source, context, (value, read, size) => consume(value, read ? () => {
+        let total: bigint | number = 0n;
+        let invalid: unknown;
+        for (let index = 0; index < size; index += 1) {
+            // Sum validates only after the ordinary arithmetic array is forced.
+            const item = read(index);
+            if (invalid !== undefined) continue;
+            try {
+                const numeric = expectNumeric(item);
+                total = typeof total === 'bigint' && typeof numeric === 'bigint'
+                    ? total + numeric : Number(total) + Number(numeric);
+            } catch (error) { invalid = error; }
+        }
+        if (invalid !== undefined) throw invalid;
+        return total;
+    } : undefined));
+}
+
+function compileArithmeticFold<T>(
+    source: Expression,
+    context: ArithmeticContext,
+    finish: (value: RankValue, read: Reader | undefined, size: number) => T,
+): (() => T) | undefined {
     const instructions: Instruction[] = [];
     const visit = (expression: Expression): number | undefined => {
         if (isParenthesizedExpression(expression)) return visit(expression.value);
@@ -50,7 +92,26 @@ export function compileFusedReduction(
     };
     const root = visit(source);
     if (root === undefined || 'read' in instructions[root]) return undefined;
-    const reduce = numericKernel(reducer, (a, b) => context.binary(reducer, a, b));
+
+    // A single binary operation is common in dot products and lazy fallback
+    // paths. Bind it without allocating instruction-value and reader arrays.
+    const first = instructions[0];
+    const second = instructions[1];
+    const binary = instructions[root];
+    if (instructions.length === 3 && 'read' in first && 'read' in second && !('read' in binary)) {
+        return () => {
+            const left = first.read(), right = second.read();
+            const value = context.binary(binary.operator, left, right);
+            const a = privateArrayStorage(left), b = privateArrayStorage(right);
+            if ((!a && typeof left !== 'number' && typeof left !== 'bigint')
+                || (!b && typeof right !== 'number' && typeof right !== 'bigint')
+                || (a && b && (a.shape.length !== b.shape.length
+                    || a.shape.some((dimension, axis) => dimension !== b.shape[axis])))
+                || !isRankArray(value)) return finish(value, undefined, 0);
+            return finish(value, index => binary.operation(a ? a.read(index) : left, b ? b.read(index) : right),
+                value.shape.reduce((size, dimension) => size * dimension, 1));
+        };
+    }
 
     return () => {
         const values: RankValue[] = [];
@@ -61,14 +122,12 @@ export function compileFusedReduction(
             if ('read' in instruction) {
                 const value = instruction.read();
                 values.push(value);
-                if (isRankArray(value)) {
-                    // Do not probe a lazy reader or force its items while deciding.
-                    const items = Object.getOwnPropertyDescriptor(value, 'items');
-                    if ('itemAt' in value || !items || !Array.isArray(items.value)) eligible = false;
-                    readers.push(index => value.itemAt?.(index) ?? value.items[index]);
-                } else {
-                    if (typeof value !== 'bigint' && typeof value !== 'number') eligible = false;
+                if (typeof value === 'bigint' || typeof value === 'number') {
                     readers.push(() => value);
+                } else {
+                    const storage = privateArrayStorage(value);
+                    if (!storage) eligible = false;
+                    if (eligible) readers.push(storage!.read);
                 }
                 continue;
             }
@@ -78,6 +137,8 @@ export function compileFusedReduction(
             // shape validation must occur in exactly the original tree order.
             const value = context.binary(instruction.operator, left, right);
             values.push(value);
+            // A rejected leaf may be effectful: no extra kind/shape probes.
+            if (!eligible) continue;
             if (isRankArray(value)) {
                 if (isRankArray(left) && isRankArray(right)
                     && (left.shape.length !== right.shape.length
@@ -93,14 +154,8 @@ export function compileFusedReduction(
             } else readers.push(() => value);
         }
         const result = values[root];
-        if (!eligible || !isRankArray(result)) return context.reduce(result);
+        if (!eligible || !isRankArray(result)) return finish(result, undefined, 0);
         const size = result.shape.reduce((product, dimension) => product * dimension, 1);
-        if (size === 0) return context.reduce(result);
-        let accumulated: RankValue = 0n;
-        for (let index = 0; index < size; index += 1) {
-            const value = readers[root](index);
-            accumulated = index === 0 ? value : reduce(accumulated, value);
-        }
-        return accumulated;
+        return finish(result, readers[root], size);
     };
 }

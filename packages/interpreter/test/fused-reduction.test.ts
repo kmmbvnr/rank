@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, isNativeFunction, isRankArray, type RankArray, type RankValue } from '../src/index.js';
+import { Interpreter, RankError, createArraySnapshot, isNativeFunction, isRankArray, type RankArray, type RankValue } from '../src/index.js';
 
-const vector = (items: RankValue[], shape = [items.length]): RankArray => ({ kind: 'array', items, shape, containsFiles: false });
+const vector = (items: RankValue[], shape = [items.length]): RankArray => createArraySnapshot(items, shape);
 function call(runtime: Interpreter, name: string, ...args: RankValue[]): RankValue {
     const fn = runtime.variables.get(name)!;
     if (!isNativeFunction(fn)) throw new Error(name);
