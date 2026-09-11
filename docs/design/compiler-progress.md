@@ -665,3 +665,36 @@ and 29.247 s on. This toggles all integer-loop compilation, not only the new
 control edges, and does not establish a stable whole-suite gain from this stage.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-loop-control-suite.json).
+
+
+## Nested numeric loop regions
+
+Nested conditional, bare and numeric-range loops now share one generated region.
+Each loop keeps an independent cursor and last completed iteration result; inner
+range bounds are captured on each entry. Definite assignments from a possibly
+empty inner loop do not leak into the following command. Existing checked writes,
+nearest-loop control edges, module guards and source error locations remain.
+Unsupported regions fall back before execution. The existing 32-command budget
+counts nested commands too.
+
+Nine additional differential tests cover dependent ranges and ordinals, descending
+loops, inner/outer continue, bare loops, interrupted results, empty loops, missing
+modules and errors in bounds, conditions and bodies. Verification passes 44 language
+and 729 interpreter tests.
+
+The new benchmark toggle disables only nested-region compilation, leaving inner
+integer kernels enabled. On the dependent-range fixture (200000 outer iterations,
+three inner values), five alternating samples give medians of 42.035 ms before
+and 26.289 ms after, about 1.60x. The independent expected sum is
+3*N*(N+1)/2 + 3*N. An instrumented run confirms 200000 kernel entries become one.
+This is a compiler fixture, not a claim that every nested demo becomes 1.6x faster.
+Timings include parse/load and result validation; counters are disabled.
+
+[Timings](../../benchmarks/baselines/2026-09-12-nested-loops-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-nested-loops-coverage.json).
+
+The full suite passes 306 files / 1054 tests in both modes; all result digests
+also match the preceding committed control-edge baseline. One pair took
+28.340 s off and 28.605 s on, so no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-nested-loops-suite.json).

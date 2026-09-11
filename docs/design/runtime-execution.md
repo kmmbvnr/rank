@@ -426,7 +426,7 @@ iterations. Each assignment still calls its existing writer immediately, retaini
 fixed-type checks, lexical binding behavior and partial state if a later operation
 fails. Errors carry the original body-command or loop-condition location.
 
-The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches),
+The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches and loops),
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
 bigint arithmetic. Dynamic or negative exponents retain reference execution. Other calls and indexing,
@@ -557,5 +557,10 @@ Definite-assignment merging considers only branches that reach the next command.
 Commands following unconditional control are not prepared. The compiler can also
 handle a loop without any register variables. Control inside `finally` declines
 before execution so the ordinary path retains its validation and exact diagnostic.
-A compiled inner loop exits only itself; an outer loop containing another loop
-is not yet lowered as one region.
+Nested numeric loops can compile as one region with shared integer registers.
+Each range captures its bounds and stride on entry and maintains an independent
+cursor. Break and continue target the nearest loop; each loop retains its own
+last completed result. Assignments made only inside a possibly empty inner loop
+are not considered definite after it. Unsupported inner constructs retain the
+reference outer loop, with eligible inner loops compiled independently.
+`nestedLoopCompilation: false` disables only region nesting for comparisons.

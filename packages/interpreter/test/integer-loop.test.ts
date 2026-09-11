@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
 
-function execute(source: string, integerLoopCompilation: boolean) {
+function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true) {
     let loops = 0;
-    const runtime = new Interpreter(undefined, { integerLoopCompilation,
+    const runtime = new Interpreter(undefined, { integerLoopCompilation, nestedLoopCompilation,
         onIntegerLoopExecuted: () => loops++ });
     const containers = () => [...runtime.variables].flatMap<unknown>(([name, value]) => {
         if (typeof value !== 'object' || value === null) return [];
@@ -560,5 +560,126 @@ for O in 1 to 3
 end
 Total`);
     expect(result.value).toBe('6');
-    expect(result.loops).toBe(3);
+    expect(result.loops).toBe(1);
+});
+
+
+describe('compiled nested regions', () => {
+    it('captures dependent bounds afresh and independent cursors at every level', () => {
+        const source = `use ranges
+Total = 0
+for I i in 1 to 3
+  for J j in I to (I + 1)
+    Total += J + i + j
+    J = 99
+  end
+end
+Total`;
+        const result = compare(source);
+        expect(result.value).toBe('24');
+        expect(result.loops).toBe(1);
+        const innerOnly = execute(source, true, false);
+        expect(innerOnly.value).toBe(result.value);
+        expect(innerOnly.loops).toBe(3);
+    });
+
+    it('separates inner and outer continue edges', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 1 to 4
+  if I equal 2
+    continue
+  end
+  for J in 3 to 1 by -1
+    if J equal 2
+      continue
+    end
+    Total += I * J
+  end
+end
+Total`);
+        expect(result.value).toBe('32');
+        expect(result.loops).toBe(1);
+    });
+
+    it('supports mixed conditional and bare loops', () => {
+        const result = compare(`I = 0
+Total = 0
+for I less 3
+  I += 1
+  J = I
+  for
+    if J equal 0
+      break
+    end
+    Total += J
+    J -= 1
+  end
+end
+Total`);
+        expect(result.value).toBe('10');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves the completed result of nested loops', () => {
+        const result = compare(`use ranges
+for I in 1 to 3
+  for J in 1 to 2
+    if J equal 2
+      break
+    end
+    Value = I * 10
+  end
+end`);
+        expect(result.value).toBe('30');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each([
+        `for J in 1 to 0 by 0
+    X = I
+  end`,
+        `for J in 1 to 2
+    X = 1 // (2 - J)
+  end`,
+        `J = 1
+  for 1 // (2 - J) greater 0
+    J += 1
+  end`,
+    ])('retains nested error locations and writes', inner => {
+        const result = compare(`use ranges
+for I in 1 to 2
+  Done = I
+  ${inner}
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('does not treat assignments in an empty inner loop as definite', () => {
+        const result = compare(`use ranges
+I = 0
+for I less 1
+  I += 1
+  for J in 1 until 1
+    Value = 5
+  end
+  Answer = Value
+end`);
+        expect(result).toHaveProperty('error');
+        // Outer region declines; its empty inner range still compiles.
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves missing-range-module errors after earlier outer writes', () => {
+        const result = compare(`I = 0
+for I less 1
+  I += 1
+  for J in 1 to 2
+    Value = J
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
 });
