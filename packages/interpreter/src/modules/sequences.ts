@@ -44,6 +44,7 @@ export const sequencesModule: RuntimeModule = {
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
     all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),
     any: () => native('any', 1, arguments_ => booleanReduction(arguments_[0], 'any')),
+    count: () => native('count', 1, arguments_ => countTrue(arguments_[0])),
 };
 
 function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
@@ -55,6 +56,17 @@ function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
         if (item !== expected) return !expected;
     }
     return expected;
+}
+
+function countTrue(value: RankValue): bigint {
+    let count = 0n;
+    for (const item of collectionValues(value, 'count')) {
+        if (typeof item !== 'boolean') {
+            throw new RankError('count expects boolean values', 'TypeError');
+        }
+        if (item) count += 1n;
+    }
+    return count;
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {

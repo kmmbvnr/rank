@@ -430,9 +430,11 @@ describe('Rank expressions and sequences', () => {
     it('names boolean reductions and applies them at rank', () => {
         expect(run('use sequences\n(array true true) all')).toBe('true');
         expect(run('use sequences\n(array false true) any')).toBe('true');
+        expect(run('use sequences\n(array true false true) count')).toBe('2');
         const empty = 'Empty = array shape 0\nend\nEmpty';
         expect(run(`use sequences\n${empty} all`)).toBe('true');
         expect(run(`use sequences\n${empty} any`)).toBe('false');
+        expect(run(`use sequences\n${empty} count`)).toBe('0');
         expect(run([
             'use sequences',
             'M = array shape 2 3',
@@ -441,12 +443,26 @@ describe('Rank expressions and sequences', () => {
             'end',
             'M all rank 1',
         ].join('\n'))).toBe('false false');
+        expect(run([
+            'use sequences',
+            'M = array shape 2 3',
+            '  true true false',
+            '  false false false',
+            'end',
+            'M count rank 1',
+        ].join('\n'))).toBe('2 0');
         expect(() => run('use sequences\n(array true 1) all'))
             .toThrowError('all expects boolean values');
+        expect(() => run('use sequences\n(array true 1) count'))
+            .toThrowError('count expects boolean values');
         expect(() => run('use sequences\nfibonacci any'))
             .toThrowError('any requires a bounded sequence');
+        expect(() => run('use sequences\nfibonacci count'))
+            .toThrowError('count requires a bounded sequence');
         expect(() => run('(array true false) all'))
             .toThrowError('unknown name: all');
+        expect(() => run('(array true false) count'))
+            .toThrowError('unknown name: count');
         expect(run([
             'use sequences',
             'fun not_all Dummy',

@@ -547,13 +547,17 @@ Boolean collections have named reductions in `use sequences`:
 ```rank
 Every = Mask all
 Some = Mask any
+TrueCount = Mask count
 Rows = Flags all axis 1
+RowCounts = Flags count axis 1
 ```
 
 `all` is equivalent to `and reduce`; `any` is equivalent to `or reduce`.
-They require boolean cells and short-circuit as soon as the result is known.
-An empty collection produces `true` for `all` and `false` for `any`. Both
-operations support `rank` and `axis`. A known unbounded sequence is rejected.
+`count` returns the integer number of `true` values. All three operations
+require boolean cells. `all` and `any` short-circuit as soon as the result is
+known, while `count` examines the complete cell. An empty collection produces
+`true` for `all`, `false` for `any` and zero for `count`. All three support
+`rank` and `axis`. A known unbounded sequence is rejected.
 
 `min` and `max` reduce one finite collection or compare two numeric values:
 

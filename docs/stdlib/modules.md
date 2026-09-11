@@ -209,18 +209,21 @@ Left = A B max
 
 ## Sequences
 
-`all` and `any` are named boolean reductions:
+`all`, `any` and `count` are named boolean reductions:
 
 ```rank
 Every = Mask all
 Some = Mask any
+TrueCount = Mask count
 Rows = Flags all axis 1
+RowCounts = Flags count axis 1
 ```
 
-They are equivalent to `and reduce` and `or reduce`, respectively. They accept
-only boolean cells, short-circuit when the result is known, and support `rank`
-and `axis`. Empty collections produce `true` for `all` and `false` for `any`.
-Known unbounded sequences are rejected.
+`all` and `any` are equivalent to `and reduce` and `or reduce`, respectively.
+`count` returns the integer number of `true` values. All three accept only
+boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
+`count` examines the complete cell. Empty collections produce `true`, `false`
+and zero, respectively. Known unbounded sequences are rejected.
 
 ## Random
 
@@ -396,6 +399,7 @@ window
 copy
 sort
 argsort
+count
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense

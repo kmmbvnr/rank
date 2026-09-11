@@ -1335,6 +1335,7 @@ export class Interpreter {
                             ? 'stats'
                             : axisReduction.operation === 'all'
                                 || axisReduction.operation === 'any'
+                                || axisReduction.operation === 'count'
                                 ? 'sequences'
                                 : 'numbers',
                         axisReduction.operation,
@@ -2265,7 +2266,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any',
+        operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count',
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -3606,14 +3607,14 @@ function explicitAxisReduction(
     parts: Expression[],
 ): {
     source: Expression;
-    operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any';
+    operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count';
     axes: readonly number[];
 } | undefined {
     if (parts.length < 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
     if ((operation !== 'sum' && operation !== 'mean' && operation !== 'std'
         && operation !== 'min' && operation !== 'max'
-        && operation !== 'all' && operation !== 'any')
+        && operation !== 'all' && operation !== 'any' && operation !== 'count')
         || !isNamed(parts[2], 'axis')) return undefined;
     return {
         source: parts[0],

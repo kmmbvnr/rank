@@ -2045,13 +2045,17 @@ Boolean collections have named reductions in `use sequences`:
 ```rank
 Every = Mask all
 Some = Mask any
+TrueCount = Mask count
 Rows = Flags all axis 1
+RowCounts = Flags count axis 1
 ```
 
 `all` is equivalent to `and reduce`; `any` is equivalent to `or reduce`.
-They require boolean cells and short-circuit as soon as the result is known.
-An empty collection produces `true` for `all` and `false` for `any`. Both
-operations support `rank` and `axis`. A known unbounded sequence is rejected.
+`count` returns the integer number of `true` values. All three operations
+require boolean cells. `all` and `any` short-circuit as soon as the result is
+known, while `count` examines the complete cell. An empty collection produces
+`true` for `all`, `false` for `any` and zero for `count`. All three support
+`rank` and `axis`. A known unbounded sequence is rejected.
 
 `min` and `max` reduce one finite collection or compare two numeric values:
 
@@ -2689,9 +2693,9 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Axis reductions
 
-`sum`, `mean`, `std`, `min`, `max`, `all` and `any` without modifiers reduce
-every element. `axis` reduces only the named axes and preserves the remaining
-axes in their original order:
+`sum`, `mean`, `std`, `min`, `max`, `all`, `any` and `count` without modifiers
+reduce every element. `axis` reduces only the named axes and preserves the
+remaining axes in their original order:
 
 ```rank
 Total = A sum
@@ -2703,15 +2707,16 @@ Lows = A min axis 0
 Highs = A max axis 1
 Complete = Flags all axis 1
 Present = Flags any axis 0
+TrueByRow = Flags count axis 1
 Loss = Pred Target mse
 RowLoss = Pred Target mae axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
-result. Every axis must exist and may appear only once. An empty `sum` is zero;
-empty `all` and `any` cells return `true` and `false`; an empty `mean`, `std`,
-`min` or `max` raises `.EmptyReduction`. `mean` and `std` always return real
-values. `std` uses the population denominator `N`.
+result. Every axis must exist and may appear only once. Empty `sum` and `count`
+cells return zero; empty `all` and `any` cells return `true` and `false`; an
+empty `mean`, `std`, `min` or `max` raises `.EmptyReduction`. `mean` and `std`
+always return real values. `std` uses the population denominator `N`.
 
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
@@ -3447,6 +3452,7 @@ window
 copy
 sort
 argsort
+count
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
