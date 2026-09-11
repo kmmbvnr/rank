@@ -1,0 +1,42 @@
+use testing
+
+test "official example"
+  use "007_divisoranalysis"
+  Factors = array shape 2 2
+    2 2
+    3 1
+  end
+  Actual = Factors analyze_divisors
+  Actual equal (array 6 28 1728)
+end
+
+test "single prime power"
+  use "007_divisoranalysis"
+  Factors = array shape 1 2
+    2 3
+  end
+  Actual = Factors analyze_divisors
+  Actual equal (array 4 15 64)
+end
+
+test "two distinct primes"
+  use "007_divisoranalysis"
+  Factors = array shape 2 2
+    2 1
+    5 1
+  end
+  Actual = Factors analyze_divisors
+  Actual equal (array 4 18 100)
+end
+
+test "large exponent stays modular"
+  use "007_divisoranalysis"
+  Factors = array shape 1 2
+    2 1000000000
+  end
+  Actual = Factors analyze_divisors
+  Expected = array shape 3
+    1000000001 281250001 32768
+  end
+  Actual equal Expected
+end

@@ -1,0 +1,50 @@
+rem CSES 2182: Divisor Analysis
+rem https://cses.fi/problemset/task/2182
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+Raw = stdin .integer (N * 2) array
+Factors = Raw (array N 2) reshape
+
+Factors analyze_divisors print
+
+
+rem Derive divisor stats from factors.
+fun analyze_divisors Factors
+  Mod = 1000000007
+  Phi = Mod - 1
+  Number = 1
+  Sum = 1
+  Product = 1
+  Count = 1
+
+  for Factor in Factors
+    Prime = Factor 0
+    Power = Factor 1
+    Terms = Power + 1
+
+    Numerator = Prime Terms Mod powmod
+    Numerator -= 1
+    Numerator %= Mod
+    Denom = Prime - 1
+    InvExp = Mod - 2
+    Inv = Denom InvExp Mod powmod
+    Geometric = Numerator * Inv
+    Geometric %= Mod
+    Sum = Sum * Geometric % Mod
+
+    Triangle = Power * Terms // 2
+    Exponent = Triangle * Count % Phi
+    Old = Product Terms Mod powmod
+    Added = Prime Exponent Mod powmod
+    Product = Old * Added % Mod
+
+    Number = Number * Terms % Mod
+    Count = Count * Terms % Phi
+  end
+
+  return array Number Sum Product
+end

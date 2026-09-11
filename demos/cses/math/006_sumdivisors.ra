@@ -1,0 +1,28 @@
+rem CSES 1082: Sum of Divisors
+rem https://cses.fi/problemset/task/1082
+
+use io
+
+N = stdin .integer
+N divisor_sum print
+
+
+rem Group divisors with equal quotients.
+fun divisor_sum N
+  Modulus = 1000000007
+  Answer = 0
+  Left = 1
+
+  for Left at most N
+    Quotient = N // Left
+    Right = N // Quotient
+    Count = Right - Left + 1
+    Part = (Left + Right) * Count // 2
+    Part %= Modulus
+    Answer += Quotient % Modulus * Part
+    Answer %= Modulus
+    Left = Right + 1
+  end
+
+  return Answer
+end

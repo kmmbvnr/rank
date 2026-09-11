@@ -1,0 +1,23 @@
+use testing
+
+test "official example"
+  use "006_sumdivisors"
+  5 divisor_sum equal 21
+end
+
+test "one contributes itself"
+  use "006_sumdivisors"
+  1 divisor_sum equal 1
+end
+
+test "groups repeated quotients"
+  use "006_sumdivisors"
+  10 divisor_sum equal 87
+  100 divisor_sum equal 8299
+end
+
+test "large input uses quotient groups"
+  use "006_sumdivisors"
+  N = 1000000000000
+  N divisor_sum equal 146462362
+end
