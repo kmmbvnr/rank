@@ -1,0 +1,44 @@
+rem CSES 1644: Maximum Subarray Sum II
+rem https://cses.fi/problemset/task/1644
+
+use io
+use algo
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+A = stdin .integer
+B = stdin .integer
+X = stdin .integer N array
+
+X A B maximum_bounded_sum print
+
+
+rem Keep the smallest allowed prefix sum.
+fun maximum_bounded_sum X A B
+  N = X len
+  Prefix = new queue
+  Prefix push 0
+
+  for Sum in X + scan
+    Prefix push Sum
+  end
+
+  Starts = new multiset
+  Best = Prefix A
+
+  for r in A to N
+    Starts add Prefix (r - A)
+
+    Old = r - B - 1
+    if Old at least 0
+      Starts remove Prefix Old
+    end
+
+    Value = Prefix r - Starts min
+    Best = Best Value max
+  end
+
+  return Best
+end

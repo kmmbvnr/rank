@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "035_maxsum2"
+  Values = array -1 3 -2 5 3 -5 2 2
+  Values 1 2 maximum_bounded_sum equal 8
+end
+
+test "requires the minimum length"
+  use "035_maxsum2"
+  Values = array 5 -10 4
+  Values 2 3 maximum_bounded_sum equal -1
+end
+
+test "all values are negative"
+  use "035_maxsum2"
+  Values = array -5 -2 -8 -1
+  Values 1 3 maximum_bounded_sum equal -1
+end
+
+test "whole array is required"
+  use "035_maxsum2"
+  Values = array 2 -1 4 -2
+  Values 4 4 maximum_bounded_sum equal 3
+end
