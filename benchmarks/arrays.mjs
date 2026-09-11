@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const options = process.argv.slice(2);
 for (const option of options) {
-  if (!['--quick', '--json'].includes(option) && !option.startsWith('--module=')) {
+  if (!['--quick', '--json', '--fusion'].includes(option) && !option.startsWith('--module=')) {
     throw new Error(`Unknown option: ${option}`);
   }
 }
@@ -35,6 +35,15 @@ end
 fun chainreduce A B
   return (A * 2 + B) + reduce
 end
+fun namedreduce A B
+  Temp = A * 2 + B
+  return Temp + reduce
+end
+fun reusedreduce A B
+  Temp = A * 2 + B
+  First = Temp + reduce
+  return First + (Temp + reduce)
+end
 fun prefix A B
   return A + scan
 end
@@ -61,7 +70,7 @@ const report = {
     harnessRevision: revision(dirname(fileURLToPath(import.meta.url))),
     runtimeRevision: revision(dirname(fileURLToPath(moduleUrl))),
     module: moduleUrl.href, gc: typeof global.gc === 'function',
-    sizes, warmups: 2, repetitions,
+    sizes, warmups: 2, repetitions, fusion: options.includes('--fusion'),
     memory: 'post-operation minus pre-operation bytes; before validation; not peak or allocation totals',
   },
   results: [],
@@ -104,6 +113,10 @@ try {
         ['ordered', vector(a), vector([...a].sort((x, y) => x < y ? -1 : x > y ? 1 : 0))],
         ['rows', { kind: 'array', shape: [size / width, width], items: a }, vector(rowSums)],
       ];
+      if (options.includes('--fusion')) {
+        cases.push(['namedreduce', vector(a), total(mapped)],
+          ['reusedreduce', vector(a), add(total(mapped), total(mapped))]);
+      }
       for (const [name, input, expectedValue] of cases) {
         const fn = runtime.variables.get(name);
         const args = [input, vector(b)];

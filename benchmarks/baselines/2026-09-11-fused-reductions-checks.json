@@ -1,0 +1,210 @@
+{
+  "scalar": [
+    {
+      "before": "tree: median 43.1 ms (41.1, 41.3, 43.1, 44.3, 47.5)\ntotal: median 9.4 ms (9.1, 9.3, 9.4, 9.8, 13.9)\ncalls: median 17.7 ms (17.5, 17.6, 17.7, 17.7, 19.1)\nnativecalls: median 13.7 ms (13.4, 13.6, 13.7, 14.6, 16.0)\nconditional: median 12.6 ms (12.1, 12.1, 12.6, 12.9, 14.3)\naddressing: median 16.0 ms (15.3, 15.8, 16.0, 16.0, 19.2)\ntail: median 27.3 ms (25.7, 26.0, 27.3, 27.3, 29.2)\ndyadiccalls: median 21.6 ms (21.5, 21.6, 21.6, 21.7, 21.8)\ntailacc: median 29.2 ms (28.9, 29.2, 29.2, 29.3, 29.3)\nindexwork: median 61.9 ms (60.1, 61.7, 61.9, 63.7, 64.0)\n",
+      "after": "tree: median 43.0 ms (42.1, 42.3, 43.0, 43.1, 48.4)\ntotal: median 9.5 ms (9.3, 9.5, 9.5, 9.6, 11.5)\ncalls: median 18.0 ms (17.8, 17.9, 18.0, 18.0, 20.2)\nnativecalls: median 14.3 ms (14.0, 14.3, 14.3, 14.4, 16.0)\nconditional: median 12.4 ms (12.1, 12.3, 12.4, 12.9, 14.2)\naddressing: median 17.1 ms (16.5, 16.6, 17.1, 17.2, 20.1)\ntail: median 26.9 ms (26.1, 26.4, 26.9, 28.3, 28.4)\ndyadiccalls: median 22.3 ms (21.6, 21.9, 22.3, 22.6, 23.2)\ntailacc: median 29.4 ms (29.3, 29.3, 29.4, 29.8, 29.9)\nindexwork: median 63.3 ms (61.5, 62.8, 63.3, 66.5, 67.1)\n"
+    },
+    {
+      "after": "tree: median 43.5 ms (42.0, 42.7, 43.5, 44.6, 47.2)\ntotal: median 9.4 ms (8.8, 9.0, 9.4, 9.7, 12.1)\ncalls: median 17.9 ms (17.7, 17.8, 17.9, 18.2, 19.0)\nnativecalls: median 14.0 ms (13.9, 13.9, 14.0, 14.1, 15.3)\nconditional: median 13.1 ms (12.3, 12.6, 13.1, 13.5, 14.5)\naddressing: median 16.2 ms (15.9, 16.1, 16.2, 16.3, 19.2)\ntail: median 26.8 ms (26.3, 26.8, 26.8, 27.1, 29.6)\ndyadiccalls: median 21.6 ms (20.9, 21.5, 21.6, 21.7, 22.1)\ntailacc: median 30.9 ms (30.6, 30.7, 30.9, 30.9, 31.3)\nindexwork: median 62.5 ms (62.2, 62.3, 62.5, 65.5, 66.7)\n",
+      "before": "tree: median 44.1 ms (43.8, 43.8, 44.1, 44.7, 50.8)\ntotal: median 9.6 ms (9.2, 9.5, 9.6, 9.7, 11.3)\ncalls: median 18.3 ms (18.0, 18.1, 18.3, 19.0, 19.2)\nnativecalls: median 14.2 ms (14.2, 14.2, 14.2, 14.4, 16.7)\nconditional: median 12.9 ms (12.3, 12.7, 12.9, 13.3, 14.6)\naddressing: median 16.9 ms (16.2, 16.4, 16.9, 17.2, 19.8)\ntail: median 27.6 ms (26.5, 27.5, 27.6, 28.2, 28.9)\ndyadiccalls: median 22.3 ms (21.6, 22.2, 22.3, 22.4, 22.6)\ntailacc: median 31.3 ms (30.7, 31.1, 31.3, 31.6, 32.1)\nindexwork: median 65.0 ms (62.7, 64.6, 65.0, 67.4, 67.7)\n"
+    },
+    {
+      "before": "tree: median 43.8 ms (43.0, 43.6, 43.8, 45.8, 49.3)\ntotal: median 9.5 ms (9.2, 9.3, 9.5, 10.0, 12.8)\ncalls: median 19.4 ms (18.5, 19.0, 19.4, 19.9, 20.5)\nnativecalls: median 14.9 ms (14.4, 14.4, 14.9, 15.1, 16.0)\nconditional: median 12.8 ms (12.4, 12.4, 12.8, 13.1, 14.5)\naddressing: median 17.2 ms (16.6, 16.7, 17.2, 17.5, 20.0)\ntail: median 27.8 ms (27.5, 27.7, 27.8, 28.7, 29.1)\ndyadiccalls: median 23.0 ms (22.9, 22.9, 23.0, 23.3, 23.3)\ntailacc: median 31.1 ms (30.6, 30.9, 31.1, 31.3, 31.5)\nindexwork: median 65.7 ms (64.0, 64.5, 65.7, 66.2, 66.5)\n",
+      "after": "tree: median 45.0 ms (44.0, 45.0, 45.0, 45.6, 50.5)\ntotal: median 9.4 ms (8.9, 9.3, 9.4, 9.5, 11.8)\ncalls: median 18.4 ms (18.2, 18.2, 18.4, 18.8, 19.3)\nnativecalls: median 14.4 ms (14.4, 14.4, 14.4, 14.6, 16.0)\nconditional: median 13.2 ms (12.8, 13.1, 13.2, 14.2, 14.5)\naddressing: median 16.9 ms (16.6, 16.7, 16.9, 17.1, 19.3)\ntail: median 27.2 ms (26.8, 26.9, 27.2, 28.6, 29.1)\ndyadiccalls: median 21.9 ms (21.7, 21.7, 21.9, 22.1, 22.2)\ntailacc: median 31.2 ms (30.3, 30.8, 31.2, 31.3, 31.5)\nindexwork: median 63.8 ms (61.3, 63.7, 63.8, 66.1, 67.8)\n"
+    }
+  ],
+  "judge": [
+    {
+      "before": {
+        "metadata": {
+          "date": "2026-09-11T05:42:49.679Z",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "platform": "darwin",
+          "arch": "arm64",
+          "harnessRevision": "b3ad18281e443ff277fceca058fcf867e414e68a",
+          "runtimeRevision": "ac0b56a4f5809ed589cba8b90712e078a54129d4",
+          "checkout": "/private/tmp/rank-before-fusion",
+          "size": 200000,
+          "timeoutMs": 30000,
+          "timing": "one cold CLI process per case, including startup, parsing, input and output"
+        },
+        "results": [
+          {
+            "name": "restaurant",
+            "ms": 3439.301417,
+            "passed": true
+          },
+          {
+            "name": "rooms",
+            "ms": 2188.049,
+            "passed": true
+          },
+          {
+            "name": "playlist",
+            "ms": 926.9075830000002,
+            "passed": true
+          },
+          {
+            "name": "books",
+            "ms": 211.1092920000001,
+            "passed": true
+          },
+          {
+            "name": "bounded-sum",
+            "ms": 1128.3927910000002,
+            "passed": true
+          },
+          {
+            "name": "sum",
+            "ms": 165.1660410000004,
+            "passed": true
+          }
+        ]
+      },
+      "after": {
+        "metadata": {
+          "date": "2026-09-11T05:42:57.847Z",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "platform": "darwin",
+          "arch": "arm64",
+          "harnessRevision": "b3ad18281e443ff277fceca058fcf867e414e68a",
+          "runtimeRevision": "b3ad18281e443ff277fceca058fcf867e414e68a",
+          "checkout": "/private/tmp/rank-fused-reductions",
+          "size": 200000,
+          "timeoutMs": 30000,
+          "timing": "one cold CLI process per case, including startup, parsing, input and output"
+        },
+        "results": [
+          {
+            "name": "restaurant",
+            "ms": 3005.1746249999997,
+            "passed": true
+          },
+          {
+            "name": "rooms",
+            "ms": 1980.596333,
+            "passed": true
+          },
+          {
+            "name": "playlist",
+            "ms": 806.5365830000001,
+            "passed": true
+          },
+          {
+            "name": "books",
+            "ms": 186.99416699999983,
+            "passed": true
+          },
+          {
+            "name": "bounded-sum",
+            "ms": 1056.550875,
+            "passed": true
+          },
+          {
+            "name": "sum",
+            "ms": 177.1873340000002,
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "after": {
+        "metadata": {
+          "date": "2026-09-11T05:43:05.163Z",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "platform": "darwin",
+          "arch": "arm64",
+          "harnessRevision": "b3ad18281e443ff277fceca058fcf867e414e68a",
+          "runtimeRevision": "b3ad18281e443ff277fceca058fcf867e414e68a",
+          "checkout": "/private/tmp/rank-fused-reductions",
+          "size": 200000,
+          "timeoutMs": 30000,
+          "timing": "one cold CLI process per case, including startup, parsing, input and output"
+        },
+        "results": [
+          {
+            "name": "restaurant",
+            "ms": 3015.128,
+            "passed": true
+          },
+          {
+            "name": "rooms",
+            "ms": 1967.9096250000002,
+            "passed": true
+          },
+          {
+            "name": "playlist",
+            "ms": 789.8727500000005,
+            "passed": true
+          },
+          {
+            "name": "books",
+            "ms": 188.4265000000005,
+            "passed": true
+          },
+          {
+            "name": "bounded-sum",
+            "ms": 1039.0927499999998,
+            "passed": true
+          },
+          {
+            "name": "sum",
+            "ms": 173.6022499999999,
+            "passed": true
+          }
+        ]
+      },
+      "before": {
+        "metadata": {
+          "date": "2026-09-11T05:43:12.443Z",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "platform": "darwin",
+          "arch": "arm64",
+          "harnessRevision": "b3ad18281e443ff277fceca058fcf867e414e68a",
+          "runtimeRevision": "ac0b56a4f5809ed589cba8b90712e078a54129d4",
+          "checkout": "/private/tmp/rank-before-fusion",
+          "size": 200000,
+          "timeoutMs": 30000,
+          "timing": "one cold CLI process per case, including startup, parsing, input and output"
+        },
+        "results": [
+          {
+            "name": "restaurant",
+            "ms": 3267.1565,
+            "passed": true
+          },
+          {
+            "name": "rooms",
+            "ms": 2143.968208,
+            "passed": true
+          },
+          {
+            "name": "playlist",
+            "ms": 904.0848750000005,
+            "passed": true
+          },
+          {
+            "name": "books",
+            "ms": 207.6151660000005,
+            "passed": true
+          },
+          {
+            "name": "bounded-sum",
+            "ms": 1172.4430830000001,
+            "passed": true
+          },
+          {
+            "name": "sum",
+            "ms": 196.039667,
+            "passed": true
+          }
+        ]
+      }
+    }
+  ]
+}
