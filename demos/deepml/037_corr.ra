@@ -1,0 +1,31 @@
+rem Deep-ML 37: Correlation Matrix
+rem https://www.deep-ml.com/problems/37
+
+use linalg
+use sequences
+use stats
+
+rem Correlate each X and Y feature pair.
+fun calculate_correlation X Y
+  N = X len
+  if Y len not equal N
+    .DimensionMismatch raise
+  end
+  if N equal 0
+    .EmptyInput raise
+  end
+
+  Xc = X - X mean axis 0
+  Yc = Y - Y mean axis 0
+  Cov = (Xc transpose) Yc matmul / N
+
+  Xstd = X std axis 0
+  Ystd = Y std axis 0
+  Scale = Xstd Ystd * outer
+  return Cov / Scale
+end
+
+rem Correlate one matrix with itself.
+fun correlation_matrix X
+  return X X calculate_correlation
+end
