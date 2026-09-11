@@ -1,0 +1,29 @@
+rem CSES 1678: Round Trip II
+rem https://cses.fi/problemset/task/1678
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 2
+Values = stdin .integer ValueCount array
+Edges = Values (array M 2) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Cycle = Graph round_trip
+
+if Cycle len equal 0
+  "IMPOSSIBLE" print
+else
+  Cycle len print
+  Cycle print
+end
+
+
+rem Recover one directed cycle.
+fun round_trip Graph
+  return Graph cycle
+end
