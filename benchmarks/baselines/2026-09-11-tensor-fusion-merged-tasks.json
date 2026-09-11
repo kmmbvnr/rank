@@ -1,0 +1,303 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "samples": 3,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 1924.7407090000002,
+      "entries": [
+        {
+          "name": "Stick Game n=100000 k=100",
+          "ms": 1757.778542,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "d4916b388218a746db2d49d9d6a899f825793ed4c9e8678849ad736c7a69822d"
+        },
+        {
+          "name": "Jacobi 128x128, 10 iterations",
+          "ms": 42.371624999999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fcefcacd7e82cd38a117f6bcaf64f8477491aedd57e3e90b125f8b70dc660889"
+        },
+        {
+          "name": "Linear SVM 32x64, 3 iterations",
+          "ms": 54.721709000000146,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b0311731ec6bc99f20238964fea287a7001e14b5f8d5a7f520eb6c98947e09a7"
+        },
+        {
+          "name": "Backprop 512x8, 10 epochs",
+          "ms": 35.35445800000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "5ed96503b72b39ed96c87c26070ff0d998f88deb50ca373f75512c9634938116"
+        },
+        {
+          "name": "Euler 6 Limit=200000",
+          "ms": 12.938292000000047,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "37bb7597787a876ab2ae53a8487c86f1ae59fafb2738d8b33d4f2ff805f38a13"
+        },
+        {
+          "name": "Linear equations 40x41",
+          "ms": 20.576917000000094,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2406447841ecd7aa2723e91a6e2e0d565b9a3c26d3b9fb228d91637e775593d8"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 391.36574999999993,
+      "entries": [
+        {
+          "name": "Stick Game n=100000 k=100",
+          "ms": 327.2583339999999,
+          "kernels": 100000,
+          "tests": 0,
+          "digest": "d4916b388218a746db2d49d9d6a899f825793ed4c9e8678849ad736c7a69822d"
+        },
+        {
+          "name": "Jacobi 128x128, 10 iterations",
+          "ms": 20.625417000000198,
+          "kernels": 128,
+          "tests": 0,
+          "digest": "fcefcacd7e82cd38a117f6bcaf64f8477491aedd57e3e90b125f8b70dc660889"
+        },
+        {
+          "name": "Linear SVM 32x64, 3 iterations",
+          "ms": 13.508499999999913,
+          "kernels": 3072,
+          "tests": 0,
+          "digest": "b0311731ec6bc99f20238964fea287a7001e14b5f8d5a7f520eb6c98947e09a7"
+        },
+        {
+          "name": "Backprop 512x8, 10 epochs",
+          "ms": 12.951542000000245,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "5ed96503b72b39ed96c87c26070ff0d998f88deb50ca373f75512c9634938116"
+        },
+        {
+          "name": "Euler 6 Limit=200000",
+          "ms": 11.575582999999824,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "37bb7597787a876ab2ae53a8487c86f1ae59fafb2738d8b33d4f2ff805f38a13"
+        },
+        {
+          "name": "Linear equations 40x41",
+          "ms": 4.943207999999686,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2406447841ecd7aa2723e91a6e2e0d565b9a3c26d3b9fb228d91637e775593d8"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 392.39649999999983,
+      "entries": [
+        {
+          "name": "Stick Game n=100000 k=100",
+          "ms": 333.758292,
+          "kernels": 100000,
+          "tests": 0,
+          "digest": "d4916b388218a746db2d49d9d6a899f825793ed4c9e8678849ad736c7a69822d"
+        },
+        {
+          "name": "Jacobi 128x128, 10 iterations",
+          "ms": 18.929208000000017,
+          "kernels": 128,
+          "tests": 0,
+          "digest": "fcefcacd7e82cd38a117f6bcaf64f8477491aedd57e3e90b125f8b70dc660889"
+        },
+        {
+          "name": "Linear SVM 32x64, 3 iterations",
+          "ms": 10.425374999999804,
+          "kernels": 3072,
+          "tests": 0,
+          "digest": "b0311731ec6bc99f20238964fea287a7001e14b5f8d5a7f520eb6c98947e09a7"
+        },
+        {
+          "name": "Backprop 512x8, 10 epochs",
+          "ms": 12.837917000000289,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "5ed96503b72b39ed96c87c26070ff0d998f88deb50ca373f75512c9634938116"
+        },
+        {
+          "name": "Euler 6 Limit=200000",
+          "ms": 11.788250000000062,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "37bb7597787a876ab2ae53a8487c86f1ae59fafb2738d8b33d4f2ff805f38a13"
+        },
+        {
+          "name": "Linear equations 40x41",
+          "ms": 4.319417000000158,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2406447841ecd7aa2723e91a6e2e0d565b9a3c26d3b9fb228d91637e775593d8"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 1945.4855420000004,
+      "entries": [
+        {
+          "name": "Stick Game n=100000 k=100",
+          "ms": 1864.866208,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "d4916b388218a746db2d49d9d6a899f825793ed4c9e8678849ad736c7a69822d"
+        },
+        {
+          "name": "Jacobi 128x128, 10 iterations",
+          "ms": 20.795124999999643,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fcefcacd7e82cd38a117f6bcaf64f8477491aedd57e3e90b125f8b70dc660889"
+        },
+        {
+          "name": "Linear SVM 32x64, 3 iterations",
+          "ms": 27.13312499999938,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b0311731ec6bc99f20238964fea287a7001e14b5f8d5a7f520eb6c98947e09a7"
+        },
+        {
+          "name": "Backprop 512x8, 10 epochs",
+          "ms": 16.50329099999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "5ed96503b72b39ed96c87c26070ff0d998f88deb50ca373f75512c9634938116"
+        },
+        {
+          "name": "Euler 6 Limit=200000",
+          "ms": 11.824958000000152,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "37bb7597787a876ab2ae53a8487c86f1ae59fafb2738d8b33d4f2ff805f38a13"
+        },
+        {
+          "name": "Linear equations 40x41",
+          "ms": 4.065499999999702,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2406447841ecd7aa2723e91a6e2e0d565b9a3c26d3b9fb228d91637e775593d8"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 1948.7484590000004,
+      "entries": [
+        {
+          "name": "Stick Game n=100000 k=100",
+          "ms": 1867.9809169999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "d4916b388218a746db2d49d9d6a899f825793ed4c9e8678849ad736c7a69822d"
+        },
+        {
+          "name": "Jacobi 128x128, 10 iterations",
+          "ms": 21.993584000000737,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fcefcacd7e82cd38a117f6bcaf64f8477491aedd57e3e90b125f8b70dc660889"
+        },
+        {
+          "name": "Linear SVM 32x64, 3 iterations",
+          "ms": 27.487624999999753,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b0311731ec6bc99f20238964fea287a7001e14b5f8d5a7f520eb6c98947e09a7"
+        },
+        {
+          "name": "Backprop 512x8, 10 epochs",
+          "ms": 15.955249999999978,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "5ed96503b72b39ed96c87c26070ff0d998f88deb50ca373f75512c9634938116"
+        },
+        {
+          "name": "Euler 6 Limit=200000",
+          "ms": 11.202833999999712,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "37bb7597787a876ab2ae53a8487c86f1ae59fafb2738d8b33d4f2ff805f38a13"
+        },
+        {
+          "name": "Linear equations 40x41",
+          "ms": 3.789375000000291,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2406447841ecd7aa2723e91a6e2e0d565b9a3c26d3b9fb228d91637e775593d8"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 386.22658299999966,
+      "entries": [
+        {
+          "name": "Stick Game n=100000 k=100",
+          "ms": 333.48091699999986,
+          "kernels": 100000,
+          "tests": 0,
+          "digest": "d4916b388218a746db2d49d9d6a899f825793ed4c9e8678849ad736c7a69822d"
+        },
+        {
+          "name": "Jacobi 128x128, 10 iterations",
+          "ms": 17.349624999999833,
+          "kernels": 128,
+          "tests": 0,
+          "digest": "fcefcacd7e82cd38a117f6bcaf64f8477491aedd57e3e90b125f8b70dc660889"
+        },
+        {
+          "name": "Linear SVM 32x64, 3 iterations",
+          "ms": 8.977167000000009,
+          "kernels": 3072,
+          "tests": 0,
+          "digest": "b0311731ec6bc99f20238964fea287a7001e14b5f8d5a7f520eb6c98947e09a7"
+        },
+        {
+          "name": "Backprop 512x8, 10 epochs",
+          "ms": 11.124708000000282,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "5ed96503b72b39ed96c87c26070ff0d998f88deb50ca373f75512c9634938116"
+        },
+        {
+          "name": "Euler 6 Limit=200000",
+          "ms": 11.184166000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "37bb7597787a876ab2ae53a8487c86f1ae59fafb2738d8b33d4f2ff805f38a13"
+        },
+        {
+          "name": "Linear equations 40x41",
+          "ms": 3.8764170000004015,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2406447841ecd7aa2723e91a6e2e0d565b9a3c26d3b9fb228d91637e775593d8"
+        }
+      ]
+    }
+  ]
+}

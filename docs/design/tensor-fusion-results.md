@@ -96,3 +96,32 @@ available in the raw reports:
 
 See the [architectural decision](tensor-fusion.md) for coverage and the path toward
 lazy readers, sequence plans, general axis/rank lowering and more expression forms.
+
+## Integration with concurrent Range Queries work
+
+While the original measurements ran, main gained CSES Range Queries in
+`080c1d8`. That runtime was merged before delivery. The earlier tables describe
+the 288-file snapshot; they must not be compared directly with this expanded
+suite. The merged version passes 44 language tests and 577 interpreter tests.
+
+A fresh comparison of the entire expanded suite completed with identical
+results/output in both modes:
+
+- Reference: 41.295 s, 306 files, 1054 tests, all passing.
+- Fusion: 42.754 s, 306 files, 1054 tests, all passing.
+
+This integration check has one sample per mode, so it is a correctness and
+overhead check rather than a stable estimate of a small performance change.
+The larger-task comparison was repeated with three alternating samples:
+
+| Task | Reference ms | Fusion ms | Speedup |
+| --- | ---: | ---: | ---: |
+| Stick Game n=100000 k=100 | 1864.866 | 333.481 | 5.59x |
+| Jacobi 128x128, 10 iterations | 21.994 | 18.929 | 1.16x |
+| Linear SVM 32x64, 3 iterations | 27.488 | 10.425 | 2.64x |
+| Backprop 512x8, 10 epochs | 16.503 | 12.838 | not attributed |
+| Euler 6 Limit=200000 | 11.825 | 11.576 | not attributed |
+| Linear equations 40x41 | 4.065 | 4.319 | not attributed |
+
+- [Merged suite results](../../benchmarks/baselines/2026-09-11-tensor-fusion-merged-suite.json)
+- [Merged task results](../../benchmarks/baselines/2026-09-11-tensor-fusion-merged-tasks.json)
