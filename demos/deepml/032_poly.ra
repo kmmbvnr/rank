@@ -1,0 +1,50 @@
+rem Deep-ML 32: Polynomial Features
+rem https://www.deep-ml.com/problems/32
+
+use algo
+use ranges
+use sequences
+
+fun polynomial_features X Degree
+  Shape = X shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  if Degree less 0
+    .DomainError raise
+  end
+
+  Rows = Shape 0
+  Cols = Shape 1
+  Indices = (0 until Cols) array
+
+  Width = 0
+  for D in 0 to Degree
+    Choices = Indices D multicomb
+    Width += Choices len
+  end
+
+  Result = new queue
+  for Row in X
+    Terms = array shape Width pad 0
+    Position = 0
+    for D in 0 to Degree
+      for Choice in Indices D multicomb
+        Term = 1
+        if D greater 0
+          Term = Row Choice * reduce
+        end
+        Terms Position = Term
+        Position += 1
+      end
+    end
+
+    Sorted = Terms sort
+    for Term in Sorted
+      Result push Term
+    end
+  end
+
+  NewShape = array Rows Width
+  return Result NewShape reshape
+end
