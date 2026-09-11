@@ -1,0 +1,43 @@
+rem CSES 1676: Road Construction
+rem https://cses.fi/problemset/task/1676
+
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Roads = Values (array M 2) reshape
+N Roads road_progress print
+
+
+rem Track components after each road.
+fun road_progress N Roads
+  Nodes = 1 to N
+  Union = new dsu Nodes
+  Sizes = array shape (N + 1) pad 1
+  M = Roads len
+  Answers = array shape M 2 pad 0
+  Largest = 1
+
+  for Road i in Roads
+    unpack A B = Road
+    RootA = Union find A
+    RootB = Union find B
+    if RootA not equal RootB
+      Combined = Sizes RootA
+      Combined += Sizes RootB
+      Union merge RootA RootB
+      Root = Union find RootA
+      Sizes Root = Combined
+      Largest = Largest max Combined
+    end
+    Answers i 0 = Union components
+    Answers i 1 = Largest
+  end
+  return Answers
+end

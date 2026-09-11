@@ -1,0 +1,32 @@
+rem CSES 1683: Planets and Kingdoms
+rem https://cses.fi/problemset/task/1683
+
+use graph
+use io
+use ranges
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Result = Graph N kingdoms
+Result .count print
+Result .labels print
+
+
+rem Label strongly connected kingdoms.
+fun kingdoms Graph N
+  Found = Graph scc
+  Part = Found .component
+  Labels = array shape N pad 0
+  for City i in 1 to N
+    Labels i = Part City
+  end
+  return record
+    .count = Found .count
+    .labels = Labels
+  end
+end

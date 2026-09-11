@@ -1,0 +1,63 @@
+rem CSES 1682: Flight Routes Check
+rem https://cses.fi/problemset/task/1682
+
+use graph
+use io
+use ranges
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+Result = N Edges routes_check
+
+if Result .possible
+  "YES" print
+else
+  "NO" print
+  Missing = array shape 2
+    (Result .source) (Result .target)
+  end
+  Missing print
+end
+
+
+rem Find a missing directed route.
+fun routes_check N Edges
+  Nodes = 1 to N
+  Graph = new graph Nodes .directed
+  Back = new graph Nodes .directed
+  Graph add Edges
+  for Edge in Edges
+    unpack From To = Edge
+    Back add To From
+  end
+
+  Forward = Graph 1 bfs
+  Reverse = Back 1 bfs
+  ForwardDist = Forward .distance
+  ReverseDist = Reverse .distance
+  for City in Nodes
+    if ForwardDist City pad -1 less 0
+      return 1 City route_failure
+    end
+    if ReverseDist City pad -1 less 0
+      return City 1 route_failure
+    end
+  end
+  return record
+    .possible = true
+    .source = 1
+    .target = 1
+  end
+end
+
+
+fun route_failure From To
+  return record
+    .possible = false
+    .source = From
+    .target = To
+  end
+end

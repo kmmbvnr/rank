@@ -1,0 +1,27 @@
+rem CSES 1675: Road Reparation
+rem https://cses.fi/problemset/task/1675
+
+use graph
+use io
+use ranges
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 3
+Values = stdin .integer Count array
+Edges = Values (array M 3) reshape
+Graph = new graph (1 to N) .undirected
+Graph add Edges
+Result = Graph road_reparation
+
+if Result .connected
+  Result .weight print
+else
+  "IMPOSSIBLE" print
+end
+
+
+rem Find the cheapest connecting roads.
+fun road_reparation Graph
+  return Graph mst
+end

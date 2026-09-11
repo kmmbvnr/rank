@@ -1,0 +1,53 @@
+use testing
+
+test "official example"
+  use "022_roadreparation"
+  use graph
+  use ranges
+  Graph = new graph (1 to 5) .undirected
+  Edges = array shape 6 3
+    1 2 3
+    2 3 5
+    2 4 2
+    3 4 8
+    5 1 7
+    5 4 4
+  end
+  Graph add Edges
+  Result = Graph road_reparation
+  Result .connected equal true
+  Result .weight equal 14
+end
+
+test "reports a disconnected graph"
+  use "022_roadreparation"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .undirected
+  Graph add 1 2 3
+  Graph add 3 4 4
+  Result = Graph road_reparation
+  Result .connected equal false
+end
+
+test "chooses cheap parallel road"
+  use "022_roadreparation"
+  use graph
+  use ranges
+  Graph = new graph (1 to 3) .undirected
+  Graph add 1 2 9
+  Graph add 1 2 2
+  Graph add 2 3 4
+  Result = Graph road_reparation
+  Result .weight equal 6
+end
+
+test "one city costs nothing"
+  use "022_roadreparation"
+  use graph
+  use ranges
+  Graph = new graph (1 to 1) .undirected
+  Result = Graph road_reparation
+  Result .connected equal true
+  Result .weight equal 0
+end
