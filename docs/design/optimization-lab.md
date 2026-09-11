@@ -697,3 +697,33 @@ Next inspect shared statement/condition composition before adding specialized
 heap or selector paths. Restaurant has a separate event-construction cost;
 optimizing its sort alone would miss much of its work. No runtime change was
 made in this measurement step.
+
+## 15. Conditional statement composition: both variants rejected
+
+Tried a shared short-circuit `findExecution` helper for `if`/`elif`: completed
+conditions selected a branch immediately, while pending conditions resumed
+without replaying earlier conditions. The first version kept the existing
+direct-condition path. At N=200,000, rooms compute improved from 1720.0 to
+1629.7 ms in a five-sample pair, about 5%. This did not justify another helper
+and execution path under the user's complexity rule.
+
+The second version removed the separate direct-condition path, reducing code
+duplication. It regressed playlist from 252.8 to 275.0 ms in a candidate-first
+pair. The scalar conditional control also increased from 10.5 to 11.5 ms.
+Other scalar controls did not show a comparable consistent gain. Reducing
+source lines by adding completion wrappers to cheap conditions was not a useful
+tradeoff here. [Comparison data](../../benchmarks/baselines/2026-09-11-condition-composition.json).
+
+Both variants were rolled back. The
+[saved unified patch](../../benchmarks/experiments/unified-condition-composition.patch)
+targets 9090d20 and contains the prototype helper tests. Keep the independent
+Rank test for ordered, skipped `elif` side effects in the regular suite. The
+first variant passed all 476 JS tests; the unified variant passed the measured
+workloads but was rejected before full-suite acceptance.
+
+This rules out blindly applying the arithmetic composition pattern to every
+statement. Keep the existing direct-condition path. Proceed to the remaining
+alias-analysis experiment and aggregate delivery checks; revisit statement
+dispatch only with evidence for a larger change.
+
+After rollback the interpreter source diff was empty and all 474 JS tests passed.

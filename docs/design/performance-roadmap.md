@@ -9,6 +9,9 @@ The unchanged numerical suite, independent oracles, sizes, profiles and gradient
 feature/iteration variants are implemented. Keep them as controls. CSES compute
 is now measured separately: the rooms profile points to statement/task overhead,
 while restaurant has substantial event-construction work before its sort.
+The condition-composition experiment was rejected: its mixed-condition gain was
+small, and unifying the direct path regressed playlist. Do not repeat that
+transformation without a different cost model.
 Keep small-input and named-intermediate controls when widening fusion. The
 latest isolated real snapshot controls retained a 3–4% cost with explicit GC;
 do not add complex producer tracking solely for that gain. Recheck aggregate

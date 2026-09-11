@@ -1,0 +1,166 @@
+{
+  "note": "Baseline 972651f has identical interpreter code to pre-experiment 9090d20. First variant retained the direct-if path; unified variant removed it. Both rejected.",
+  "rooms": {
+    "before": {
+      "metadata": {
+        "date": "2026-09-11T08:58:56.466Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "harnessRevision": "9090d20d61b93644b2b94051579af772f310824e",
+        "runtimeRevision": "972651ffcf70dde8a388991bbb6cbdb833998e40",
+        "size": 200000,
+        "samples": 5,
+        "timing": "first/warm: unchanged function call and output forcing, excluding input construction, parsing and print; sum evaluates its original A sum expression. Preparation is reported separately. Do not subtract these warm times from cold CLI times to estimate IO."
+      },
+      "results": [
+        {
+          "name": "rooms",
+          "path": "demos/cses/sortnsrch/022_rooms.ra",
+          "sha256": "62cc41341a957d852bcdd2306abaf1800c39b22fb17ad2644ba36e34fd746305",
+          "preparationMs": 92.000708,
+          "firstMs": 1699.041125,
+          "warmMs": [
+            1721.0097080000005,
+            1711.6978330000002,
+            1711.481040999999,
+            1721.5856670000012,
+            1720.0462499999994
+          ],
+          "medianMs": 1720.0462499999994,
+          "memory": {
+            "rss": 1073217536,
+            "heapTotal": 631242752,
+            "heapUsed": 356069520,
+            "external": 2332316,
+            "arrayBuffers": 29231
+          }
+        }
+      ]
+    },
+    "firstVariant": {
+      "metadata": {
+        "date": "2026-09-11T08:59:14.005Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "harnessRevision": "9090d20d61b93644b2b94051579af772f310824e",
+        "runtimeRevision": "9090d20d61b93644b2b94051579af772f310824e",
+        "size": 200000,
+        "samples": 5,
+        "timing": "first/warm: unchanged function call and output forcing, excluding input construction, parsing and print; sum evaluates its original A sum expression. Preparation is reported separately. Do not subtract these warm times from cold CLI times to estimate IO."
+      },
+      "results": [
+        {
+          "name": "rooms",
+          "path": "demos/cses/sortnsrch/022_rooms.ra",
+          "sha256": "62cc41341a957d852bcdd2306abaf1800c39b22fb17ad2644ba36e34fd746305",
+          "preparationMs": 91.054,
+          "firstMs": 1600.7305000000001,
+          "warmMs": [
+            1629.7450410000001,
+            1646.7610830000012,
+            1652.1650410000002,
+            1625.1076250000006,
+            1597.5085419999996
+          ],
+          "medianMs": 1629.7450410000001,
+          "memory": {
+            "rss": 1164607488,
+            "heapTotal": 639959040,
+            "heapUsed": 367096016,
+            "external": 2332316,
+            "arrayBuffers": 29231
+          }
+        }
+      ]
+    }
+  },
+  "unifiedPlaylist": [
+    {
+      "metadata": {
+        "date": "2026-09-11T09:01:02.000Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "harnessRevision": "9090d20d61b93644b2b94051579af772f310824e",
+        "runtimeRevision": "9090d20d61b93644b2b94051579af772f310824e",
+        "size": 200000,
+        "samples": 5,
+        "timing": "first/warm: unchanged function call and output forcing, excluding input construction, parsing and print; sum evaluates its original A sum expression. Preparation is reported separately. Do not subtract these warm times from cold CLI times to estimate IO."
+      },
+      "results": [
+        {
+          "name": "playlist",
+          "path": "demos/cses/sortnsrch/013_playlist.ra",
+          "sha256": "0efd0c77c51f907593d3c54226b65871257a06302aebe3fb742a5da08ac37db8",
+          "preparationMs": 68.915083,
+          "firstMs": 285.067792,
+          "warmMs": [
+            274.9908750000001,
+            276.92091600000003,
+            276.19170899999995,
+            272.149042,
+            273.376792
+          ],
+          "medianMs": 274.9908750000001,
+          "memory": {
+            "rss": 332251136,
+            "heapTotal": 253214720,
+            "heapUsed": 146363400,
+            "external": 2334841,
+            "arrayBuffers": 29231
+          }
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "date": "2026-09-11T09:01:04.396Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "harnessRevision": "9090d20d61b93644b2b94051579af772f310824e",
+        "runtimeRevision": "972651ffcf70dde8a388991bbb6cbdb833998e40",
+        "size": 200000,
+        "samples": 5,
+        "timing": "first/warm: unchanged function call and output forcing, excluding input construction, parsing and print; sum evaluates its original A sum expression. Preparation is reported separately. Do not subtract these warm times from cold CLI times to estimate IO."
+      },
+      "results": [
+        {
+          "name": "playlist",
+          "path": "demos/cses/sortnsrch/013_playlist.ra",
+          "sha256": "0efd0c77c51f907593d3c54226b65871257a06302aebe3fb742a5da08ac37db8",
+          "preparationMs": 65.66904199999999,
+          "firstMs": 270.68845799999997,
+          "warmMs": [
+            263.49308399999995,
+            252.79320800000005,
+            252.61237499999993,
+            253.35500000000002,
+            251.19320900000025
+          ],
+          "medianMs": 252.79320800000005,
+          "memory": {
+            "rss": 330317824,
+            "heapTotal": 252264448,
+            "heapUsed": 181546400,
+            "external": 2334841,
+            "arrayBuffers": 29231
+          }
+        }
+      ]
+    }
+  ],
+  "unifiedRuntime": {
+    "baselineMedians": {
+      "tree": 57.3,
+      "total": 8.2,
+      "calls": 15,
+      "nativecalls": 11.4,
+      "conditional": 10.5,
+      "addressing": 15.6,
+      "tail": 23.3,
+      "dyadiccalls": 17.8,
+      "tailacc": 26.1,
+      "indexwork": "indexwork: median 49.2 ms (46.9, 48.7, 49.2, 49.7, 53.3)\n"
+    },
+    "candidate": "tree: median 57.0 ms (52.0, 53.8, 57.0, 57.7, 63.9)\ntotal: median 7.6 ms (7.2, 7.6, 7.6, 8.5, 10.2)\ncalls: median 14.7 ms (14.6, 14.7, 14.7, 15.0, 16.7)\nnativecalls: median 11.1 ms (10.9, 11.1, 11.1, 11.2, 12.7)\nconditional: median 11.5 ms (11.3, 11.5, 11.5, 12.0, 13.6)\naddressing: median 16.2 ms (16.0, 16.1, 16.2, 16.3, 19.0)\ntail: median 24.3 ms (23.9, 24.0, 24.3, 24.4, 25.6)\ndyadiccalls: median 17.9 ms (17.6, 17.8, 17.9, 17.9, 18.2)\ntailacc: median 27.0 ms (26.9, 26.9, 27.0, 27.0, 27.2)\nindexwork: median 48.7 ms (46.6, 47.1, 48.7, 49.3, 50.9)\n"
+  }
+}

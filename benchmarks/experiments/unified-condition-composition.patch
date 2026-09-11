@@ -1,0 +1,153 @@
+diff --git a/packages/interpreter/src/execution.ts b/packages/interpreter/src/execution.ts
+index f6ef73e..bbb368f 100644
+--- a/packages/interpreter/src/execution.ts
++++ b/packages/interpreter/src/execution.ts
+@@ -71,6 +71,22 @@ interface Frame {
+     returning: boolean;
+ }
+ 
++export function findExecution<T>(values: readonly T[], predicate: (value: T) => Evaluation<boolean>): Evaluation<number> {
++    for (let index = 0; index < values.length; index++) {
++        const task = predicate(values[index]);
++        if ('done' in task) {
++            if (task.value) return completed(index);
++        } else return (function* (): Execution<number> {
++            if (yield* resume(task)) return index;
++            for (index++; index < values.length; index++) {
++                if (yield* resume(predicate(values[index]))) return index;
++            }
++            return -1;
++        })();
++    }
++    return completed(-1);
++}
++
+ // Both ordinary functions and suspended Rank generators use this driver.
+ // Cancellation unwinds every suspended task, including finally blocks that
+ // themselves call Rank functions.
+diff --git a/packages/interpreter/src/interpreter.ts b/packages/interpreter/src/interpreter.ts
+index cc89df4..2e6d295 100644
+--- a/packages/interpreter/src/interpreter.ts
++++ b/packages/interpreter/src/interpreter.ts
+@@ -1,5 +1,5 @@
+ import {
+-    ExecutionStack, completed, emit, flatMapResult, mapExecution, mapResult, normalizeStackError,
++    ExecutionStack, completed, emit, findExecution, flatMapResult, mapExecution, mapResult, normalizeStackError,
+     resume, runExecution, type Evaluation, type Execution,
+ } from './execution.js';
+ import { LocalFrame } from './frame.js';
+@@ -677,49 +677,18 @@ export class Interpreter {
+             } };
+         }
+         if (isIfStatement(statement)) {
+-            const conditions = [statement.condition, ...statement.elifClauses.map(clause => clause.condition)]
+-                .map(condition => this.compileDirectExpression(condition));
+-            if (conditions.every(condition => condition !== undefined)) {
+-                return { stream: context => {
+-                    let branch = statement.elseStatements;
+-                    for (let index = 0; index < conditions.length; index += 1) {
+-                        if (expectBoolean(conditions[index]())) {
+-                            branch = index === 0 ? statement.thenStatements : statement.elifClauses[index - 1].statements;
+-                            break;
+-                        }
+-                    }
+-                    return this.executeStatementStream(
+-                        branch, context.assertBooleanExpressions, context.insideLoop,
+-                        context.insideFinally, context.insideGenerator,
+-                        context.tailCallsAllowed,
+-                    );
+-                } };
+-            }
+-            const interpreter = this;
+-            return { stream: function* (context) {
+-                const { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator } = context;
+-                let result: RankValue | undefined;
+-                let branch = statement.elseStatements;
+-                if (expectBoolean((yield* resume(interpreter.evaluateTask(statement.condition))))) {
+-                    branch = statement.thenStatements;
+-                } else {
+-                    for (const clause of statement.elifClauses) {
+-                        if (expectBoolean((yield* resume(interpreter.evaluateTask(clause.condition))))) {
+-                            branch = clause.statements;
+-                            break;
+-                        }
+-                    }
+-                }
+-                result = yield* resume(interpreter.executeStatementStream(
+-                    branch,
+-                    assertBooleanExpressions,
+-                    insideLoop,
+-                    insideFinally,
+-                    insideGenerator,
++            const expressions = [statement.condition, ...statement.elifClauses.map(clause => clause.condition)];
++            const predicate = (expression: Expression) => mapResult(this.evaluateTask(expression), expectBoolean);
++            return { stream: context => flatMapResult(findExecution(expressions, predicate), index =>
++                this.executeStatementStream(
++                    index < 0 ? statement.elseStatements
++                        : index === 0 ? statement.thenStatements : statement.elifClauses[index - 1].statements,
++                    context.assertBooleanExpressions,
++                    context.insideLoop,
++                    context.insideFinally,
++                    context.insideGenerator,
+                     context.tailCallsAllowed,
+-                ));
+-                return result;
+-            } };
++                )) };
+         }
+         if (isForStatement(statement)) {
+             const binding = forIteration(statement.condition);
+diff --git a/packages/interpreter/test/condition-composition.test.ts b/packages/interpreter/test/condition-composition.test.ts
+new file mode 100644
+index 0000000..787dfe4
+--- /dev/null
++++ b/packages/interpreter/test/condition-composition.test.ts
+@@ -0,0 +1,48 @@
++import { describe, expect, it } from 'vitest';
++import { completed, emit, ExecutionStack, findExecution, type Execution } from '../src/execution.js';
++import { Interpreter } from '../src/index.js';
++
++describe('condition composition', () => {
++    it('stops synchronously at the first match', () => {
++        const seen: number[] = [];
++        expect(findExecution([1, 2, 3], value => {
++            seen.push(value); return completed(value === 2);
++        })).toEqual(completed(1));
++        expect(seen).toEqual([1, 2]);
++        expect(findExecution([], () => completed(true))).toEqual(completed(-1));
++    });
++
++    it('resumes without replaying completed conditions', () => {
++        const seen: number[] = [];
++        const stack = new ExecutionStack(findExecution([0, 1, 2, 3], value => {
++            seen.push(value);
++            return value === 1 ? (function* (): Execution<boolean> { yield* emit(7n); return false; })()
++                : completed(value === 2);
++        }));
++        expect(stack.next()).toEqual({ done: false, value: 7n });
++        expect(seen).toEqual([0, 1]);
++        expect(stack.next()).toEqual({ done: true, value: 2 });
++        expect(seen).toEqual([0, 1, 2]);
++    });
++
++    it('keeps Rank call conditions and skipped elif effects in order', () => {
++        const output: string[] = [];
++        const runtime = new Interpreter(line => output.push(line));
++        expect(runtime.execute(`use io
++fun check N
++  N print
++  return N equal 2
++end
++if 1 check
++  10
++elif 2 check
++  20
++elif 3 check
++  30
++else
++  40
++end`)).toBe(20n);
++        expect(output).toEqual(['1', '2']);
++        runtime.dispose();
++    });
++});
