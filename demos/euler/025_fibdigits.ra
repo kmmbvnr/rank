@@ -1,0 +1,38 @@
+rem 1000-digit Fibonacci Number
+rem https://projecteuler.net/problem=25
+rem Find the first Fibonacci index whose
+rem value has Digits decimal digits
+
+use text
+use sequences
+use io
+use cli
+
+option Digits integer = 1000
+
+Answer = Digits first_fibonacci_index
+Answer print
+
+
+rem Advance the two latest exact values until
+rem the newer value reaches the requested size.
+fun first_fibonacci_index Digits
+  if Digits at most 1
+    return 1
+  end
+
+  Previous = 1
+  Current = 1
+  Index = 2
+  Length = Current text len
+
+  for Length less Digits
+    Next = Previous + Current
+    Previous = Current
+    Current = Next
+    Index += 1
+    Length = Current text len
+  end
+
+  return Index
+end

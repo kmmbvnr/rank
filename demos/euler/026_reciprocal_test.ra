@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "026_reciprocal"
+  run
+
+  Answer equal 983
+end
+
+test "sevenths repeat six digits"
+  use "026_reciprocal"
+
+  7 cycle_length equal 6
+end
+
+test "terminating decimal has no cycle"
+  use "026_reciprocal"
+
+  8 cycle_length equal 0
+end

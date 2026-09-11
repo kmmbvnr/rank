@@ -1,0 +1,27 @@
+rem Number Spiral Diagonals
+rem https://projecteuler.net/problem=28
+rem Sum both diagonals in an odd square spiral
+
+use ranges
+use io
+use cli
+
+option Size integer = 1001
+
+Answer = Size spiral_diagonal_sum
+Answer print
+
+
+rem Add the four corners of every concentric
+rem odd-sized layer around the center.
+fun spiral_diagonal_sum Size
+  Total = 1
+  Layers = (Size - 1) // 2
+
+  for Layer in 1 to Layers
+    Side = Layer * 2 + 1
+    Total += 4 * Side ** 2 - 6 * (Side - 1)
+  end
+
+  return Total
+end

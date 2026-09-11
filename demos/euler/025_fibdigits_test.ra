@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "025_fibdigits"
+  run
+
+  Answer equal 4782
+end
+
+test "first three-digit Fibonacci"
+  use "025_fibdigits"
+
+  3 first_fibonacci_index equal 12
+end
+
+test "one-digit sequence starts at one"
+  use "025_fibdigits"
+
+  1 first_fibonacci_index equal 1
+end

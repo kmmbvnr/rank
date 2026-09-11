@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "027_quadraticprimes"
+  run
+
+  Answer equal -59231
+end
+
+test "Euler formula"
+  use "027_quadraticprimes"
+
+  1 41 quadratic_run equal 40
+end
+
+test "longer quadratic example"
+  use "027_quadraticprimes"
+
+  -79 1601 quadratic_run equal 80
+end

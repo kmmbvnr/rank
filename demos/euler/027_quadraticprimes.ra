@@ -1,0 +1,59 @@
+rem Quadratic Primes
+rem https://projecteuler.net/problem=27
+rem Find coefficients producing the longest
+rem prime run from n equal zero
+
+use ranges
+use sequences
+use numbers
+use io
+use cli
+
+option Limit integer = 1000
+
+Answer = Limit quadratic_product
+Answer print
+
+
+rem Search odd a values and positive prime b
+rem values allowed by the constant term.
+fun quadratic_product Limit
+  BestLength = 0
+  BestProduct = 0
+
+  for A in (-Limit + 1) until Limit by 2
+    for B in primes to Limit
+      Length = A B quadratic_run
+      if Length greater BestLength
+        BestLength = Length
+        BestProduct = A * B
+      end
+    end
+  end
+
+  return BestProduct
+end
+
+
+rem Count consecutive prime values generated
+rem by n squared plus a*n plus b.
+fun quadratic_run A B
+  N = 0
+  Value = B
+  for Value is_prime
+    N += 1
+    Value = N ** 2 + A * N + B
+  end
+  return N
+end
+
+
+rem A positive integer is prime exactly when
+rem its prime factor sequence contains itself.
+fun is_prime Value
+  if Value at most 1
+    return false
+  end
+  Factors = Value factors
+  return Factors len equal 1
+end

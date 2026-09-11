@@ -1,0 +1,53 @@
+rem Amicable Numbers
+rem https://projecteuler.net/problem=21
+rem Sum all amicable numbers below Limit
+
+use ranges
+use numbers
+use io
+use cli
+
+option Limit integer = 10000
+
+Answer = Limit amicable_sum
+Answer print
+
+
+rem Test every value against the proper
+rem divisor sum of its partner.
+fun amicable_sum Limit
+  Total = 0
+  for A in 2 until Limit
+    B = A proper_divisor_sum
+    if B not equal A
+      Partner = B proper_divisor_sum
+      if Partner equal A
+        Total += A
+      end
+    end
+  end
+  return Total
+end
+
+
+rem Pair divisors up to the square root and
+rem exclude the number itself.
+fun proper_divisor_sum N
+  if N at most 1
+    return 0
+  end
+
+  Total = 1
+  Divisor = 2
+  for Divisor * Divisor at most N
+    if N multiple by Divisor
+      Total += Divisor
+      Pair = N // Divisor
+      if Pair not equal Divisor
+        Total += Pair
+      end
+    end
+    Divisor += 1
+  end
+  return Total
+end
