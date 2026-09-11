@@ -1,0 +1,25 @@
+rem CSES 1074: Stick Lengths
+rem https://cses.fi/problemset/task/1074
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+A stick_cost print
+
+
+rem Minimize moves to one common length.
+fun stick_cost Values
+  A = Values sort
+  Target = A (A len // 2)
+  Cost = 0
+
+  for X in A
+    Cost += (X - Target) abs
+  end
+
+  return Cost
+end

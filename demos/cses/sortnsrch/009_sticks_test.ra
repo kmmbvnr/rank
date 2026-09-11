@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "009_sticks"
+  (array 2 3 1 5 2) stick_cost equal 5
+end
+
+test "even count uses a median"
+  use "009_sticks"
+  (array 1 2 8 10) stick_cost equal 15
+end
+
+test "equal sticks need no moves"
+  use "009_sticks"
+  (array 7 7 7 7) stick_cost equal 0
+end
+
+test "supports negative positions"
+  use "009_sticks"
+  (array -4 -1 3) stick_cost equal 7
+end
