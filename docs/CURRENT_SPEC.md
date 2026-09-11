@@ -2346,6 +2346,7 @@ Tickets add Price
 Tickets remove Price
 Best = Tickets floor Limit
 Next = Tickets ceiling Limit
+Third = Tickets 2
 ```
 
 `remove` deletes one equal occurrence. Removing an absent value raises
@@ -2357,13 +2358,17 @@ exists they also raise `.Missing`, so ordinary `pad` supplies a fallback:
 Best = Tickets floor Limit pad -1
 ```
 
+`Bag I` addresses the occurrence at zero-based position `I` in sorted order.
+Equal values occupy separate positions. A negative or out-of-bounds position
+raises `.Missing`, so it also composes with `pad`.
+
 Iteration is sorted and repeats duplicate values. With `use sequences`, `len`
 counts all occurrences and `shape` is its one-dimensional size. Numeric
 `min` and `max` from `use numbers` read its endpoints.
 
-Construction takes expected `O(N log N)` time. `add`, `remove`, `floor` and
-`ceiling` take expected `O(log N)` time. Membership with `in` has the same
-expected bound. The runtime type is `.multiset`.
+Construction takes expected `O(N log N)` time. Indexing, `add`, `remove`,
+`floor` and `ceiling` take expected `O(log N)` time. Membership with `in` has
+the same expected bound. The runtime type is `.multiset`.
 
 ### Permutations
 
@@ -3877,6 +3882,7 @@ Counts add Value
 Bag = Values multiset
 Bag add Value
 Bag remove Value
+Third = Bag 2
 Lower = Bag floor Limit
 Upper = Bag ceiling Limit
 Routes = Cities permutations
@@ -3884,11 +3890,11 @@ Pairs = Values 2 combinations
 ```
 
 `Values multiset` constructs a populated ordered multiset; `new multiset`
-creates an empty one. A multiset preserves duplicates. Its lookup and mutation
-operations take expected `O(log N)` time. Missing `floor` and `ceiling` results
-raise
-`.Missing` and therefore compose with `pad`. The complete collection semantics
-are defined in the Collections section.
+creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
+occurrence by zero-based index. Its lookup and mutation operations take expected
+`O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
+and therefore compose with `pad`. The complete collection semantics are defined
+in the Collections section.
 
 ## Rule for adding library vocabulary
 

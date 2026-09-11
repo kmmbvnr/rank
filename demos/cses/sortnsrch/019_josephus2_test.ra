@@ -1,0 +1,24 @@
+use testing
+
+test "official example"
+  use "019_josephus2"
+  Actual = 7 2 josephus
+  Actual equal array 3 6 2 7 5 1 4
+end
+
+test "skip zero removes in order"
+  use "019_josephus2"
+  Actual = 5 0 josephus
+  Actual equal array 1 2 3 4 5
+end
+
+test "one child"
+  use "019_josephus2"
+  1 1000000000 josephus equal array 1
+end
+
+test "wraps around the circle"
+  use "019_josephus2"
+  Actual = 5 7 josephus
+  Actual equal array 3 2 5 4 1
+end

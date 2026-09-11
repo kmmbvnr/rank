@@ -82,6 +82,31 @@ describe('ordered multiset', () => {
         ].join('\n'))).toBe('2 4 7 7');
     });
 
+    it('addresses sorted occurrences by zero-based index', () => {
+        expect(run([
+            'use algo',
+            'Bag = (array 7 2 7 4) multiset',
+            'array (Bag 0) (Bag 1) (Bag 2) (Bag 3)',
+        ].join('\n'))).toBe('2 4 7 7');
+        expect(run([
+            'use algo',
+            'Bag = (array 7 2 7 4) multiset',
+            'Bag remove 2',
+            'Bag add 5',
+            'array (Bag 0) (Bag 1) (Bag 2) (Bag 3)',
+        ].join('\n'))).toBe('4 5 7 7');
+        expect(run([
+            'use algo',
+            'Bag = (array 7 2) multiset',
+            'Bag 2 pad -1',
+        ].join('\n'))).toBe('-1');
+        expect(run([
+            'use algo',
+            'Bag = (array 7 2) multiset',
+            'Bag (-1) pad -1',
+        ].join('\n'))).toBe('-1');
+    });
+
     it('exposes numeric extrema in logarithmic time', () => {
         expect(run([
             'use algo',

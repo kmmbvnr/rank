@@ -12,6 +12,7 @@ import {
 interface Node {
     value: RankValue;
     count: number;
+    size: number;
     readonly priority: number;
     left?: Node;
     right?: Node;
@@ -70,6 +71,26 @@ export class RankMultiset {
 
     ceiling(value: RankValue): RankValue {
         return this.bound(value, 'ceiling');
+    }
+
+    at(index: bigint): RankValue {
+        if (index < 0n || index >= BigInt(this.total)) {
+            throw new MissingValueError(`multiset index out of bounds: ${index}`);
+        }
+        let offset = Number(index);
+        let node = this.root;
+        while (node) {
+            const leftSize = nodeSize(node.left);
+            if (offset < leftSize) {
+                node = node.left;
+            } else if (offset < leftSize + node.count) {
+                return node.value;
+            } else {
+                offset -= leftSize + node.count;
+                node = node.right;
+            }
+        }
+        throw new MissingValueError(`multiset index out of bounds: ${index}`);
     }
 
     min(): RankValue | undefined {
@@ -140,11 +161,11 @@ export class RankMultiset {
     }
 
     private insert(node: Node | undefined, value: RankValue): Node {
-        if (!node) return { value, count: 1, priority: this.nextPriority() };
+        if (!node) return { value, count: 1, size: 1, priority: this.nextPriority() };
         const comparison = this.compare(value, node.value);
         if (comparison === 0) {
             node.count += 1;
-            return node;
+            return update(node);
         }
         if (comparison < 0) {
             node.left = this.insert(node.left, value);
@@ -153,7 +174,7 @@ export class RankMultiset {
             node.right = this.insert(node.right, value);
             if (node.right.priority > node.priority) node = rotateLeft(node);
         }
-        return node;
+        return update(node);
     }
 
     private delete(node: Node | undefined, value: RankValue): [Node | undefined, boolean] {
@@ -162,16 +183,16 @@ export class RankMultiset {
         if (comparison < 0) {
             const [child, removed] = this.delete(node.left, value);
             node.left = child;
-            return [node, removed];
+            return [update(node), removed];
         }
         if (comparison > 0) {
             const [child, removed] = this.delete(node.right, value);
             node.right = child;
-            return [node, removed];
+            return [update(node), removed];
         }
         if (node.count > 1) {
             node.count -= 1;
-            return [node, true];
+            return [update(node), true];
         }
         return [merge(node.left, node.right), true];
     }
@@ -220,14 +241,16 @@ function rotateLeft(node: Node): Node {
     const root = node.right!;
     node.right = root.left;
     root.left = node;
-    return root;
+    update(node);
+    return update(root);
 }
 
 function rotateRight(node: Node): Node {
     const root = node.left!;
     node.left = root.right;
     root.right = node;
-    return root;
+    update(node);
+    return update(root);
 }
 
 function merge(left: Node | undefined, right: Node | undefined): Node | undefined {
@@ -235,8 +258,17 @@ function merge(left: Node | undefined, right: Node | undefined): Node | undefine
     if (!right) return left;
     if (left.priority > right.priority) {
         left.right = merge(left.right, right);
-        return left;
+        return update(left);
     }
     right.left = merge(left, right.left);
-    return right;
+    return update(right);
+}
+
+function nodeSize(node: Node | undefined): number {
+    return node?.size ?? 0;
+}
+
+function update(node: Node): Node {
+    node.size = nodeSize(node.left) + node.count + nodeSize(node.right);
+    return node;
 }

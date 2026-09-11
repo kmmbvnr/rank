@@ -1,0 +1,28 @@
+rem CSES 2163: Josephus Problem II
+rem https://cses.fi/problemset/task/2163
+
+use io
+use algo
+use ranges
+
+N = stdin .integer
+K = stdin .integer
+
+N K josephus print
+
+
+rem Remove every K-skipped child in order.
+fun josephus N K
+  Kids = (1 to N) multiset
+  Pos = 0
+
+  for Left in N to 1 by -1
+    Pos = (Pos + K) % Left
+
+    Child = Kids Pos
+    queue push Child
+    Kids remove Child
+  end
+
+  return queue
+end

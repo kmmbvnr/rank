@@ -800,6 +800,7 @@ Counts add Value
 Bag = Values multiset
 Bag add Value
 Bag remove Value
+Third = Bag 2
 Lower = Bag floor Limit
 Upper = Bag ceiling Limit
 Routes = Cities permutations
@@ -807,10 +808,11 @@ Pairs = Values 2 combinations
 ```
 
 `Values multiset` constructs a populated ordered multiset; `new multiset`
-creates an empty one. A multiset preserves duplicates. Its lookup and mutation
-operations take expected `O(log N)` time. Missing `floor` and `ceiling` results raise
-`.Missing` and therefore compose with `pad`. The complete collection semantics
-are defined in [Collections](../language/collections.md).
+creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
+occurrence by zero-based index. Its lookup and mutation operations take expected
+`O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
+and therefore compose with `pad`. The complete collection semantics are defined
+in [Collections](../language/collections.md).
 
 ## Rule for adding library vocabulary
 

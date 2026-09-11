@@ -3076,6 +3076,10 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (isRankCounter(values[0]) && values.length === 2) {
         return values[0].entries.get(setValueKey(values[1]))?.count ?? 0n;
     }
+    if (isRankMultiset(values[0]) && values.length === 2
+        && typeof values[1] === 'bigint') {
+        return values[0].at(values[1]);
+    }
     if (isRankObject(values[0])) {
         if (values.length !== 2 || typeof values[1] !== 'string') {
             throw new RankError('object addressing expects one text key');
@@ -3196,6 +3200,8 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
     if (isRankIndex(values[0]) && values.length > 1) return true;
     if (isRankCounter(values[0]) && values.length === 2) return true;
+    if (isRankMultiset(values[0]) && values.length === 2
+        && typeof values[1] === 'bigint') return true;
     if (isRankObject(values[0]) && values.length === 2
         && typeof values[1] === 'string') return true;
     if (isRankRecord(values[0]) && values.length === 2
