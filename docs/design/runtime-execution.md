@@ -377,3 +377,27 @@ of `tensorFusion`. `onScalarCompiled` reports generated code and `onScalarExecut
 counts entries into compiled expressions, including entries that delegate operators.
 
 See [compiler progress](compiler-progress.md) for measurements and current limits.
+
+## Compiled command blocks
+
+`block-compiler.ts` generates straight-line command dispatch with explicit command
+positions. A completed command falls through to the next case. A fused tensor
+group can jump over its eliminated assignments, and a suspended command returns
+to the existing execution stack. Resumption re-enters the generated block at the
+following command, retaining its result and execution context.
+
+Each command handler is prepared lazily and retained in its own block slot.
+Errors are attributed to the current command position. Return/break/continue
+signals, finally handling, iterator cleanup and file ownership remain in the
+existing execution machinery. Tests compare output, errors, suspension and file
+closure with the original dispatcher. The generated template contains positions
+only; command handlers and environments are bound per interpreter/block.
+
+The initial implementation covers blocks of 2–64 commands; other block sizes and
+CSP rejection retain the reference dispatcher. Scalar and tensor compilers are
+independent options. `blockCompilation: false` selects reference block dispatch.
+`onBlockExecuted` counts entries and resumptions; it should be disabled in timing
+runs, since heavily suspending programs may enter millions of blocks.
+
+This compiles block dispatch, including loop bodies. The `for` iterator and loop
+control handler itself are not yet lowered into the generated block.

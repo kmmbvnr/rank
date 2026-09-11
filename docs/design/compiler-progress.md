@@ -148,3 +148,61 @@ individual measurements. Counter callbacks are enabled for the measured backend.
 Next work should target compiled block/loop control and arithmetic addressing,
 while retaining suspension, error locations and ownership behavior. This scalar
 stage does not yet constitute a complete program compiler.
+
+## Compiled block dispatch and resumption
+
+Command sequences now use generated fall-through dispatch and lazily bound
+handler slots. Suspension has explicit re-entry positions; tensor groups can skip
+commands they replace. This removes repeated statement-cache lookups inside loop
+bodies while retaining the execution stack and all existing control signals.
+
+Seven added tests cover loop break/continue, repeated calls and finally, generator
+catch/finally, tensor-group jumps, file cleanup/error location, lazy preparation
+and CSP fallback. The TypeScript suite passes 44 language + 609 interpreter tests.
+
+An initial benchmark included a callback on every block entry and resumption;
+Collatz entered over 13 million times. A backend timing comparison
+should not charge only the optimized mode for those diagnostic callbacks.
+The timing harness now supports `RANK_BENCH_COUNTERS=0`. Removing redundant
+continuation generators also avoids overhead after suspended commands.
+
+Three alternating focused comparisons, counters disabled, identical test digests:
+
+| Task | Block compiler off ms | Block compiler on ms | Speedup |
+| --- | ---: | ---: | ---: |
+| Sum of Divisors | 953.39 | 748.12 | 1.27x |
+| Christmas Party | 282.30 | 235.96 | 1.20x |
+| Collatz | 7737.64 | 7597.75 | 1.02x |
+
+The small Collatz difference is not a substantial acceleration. These compare
+block dispatch only; scalar and tensor compilation are enabled in both modes.
+The initial block-size limit is 2–64 commands; loop control remains in the existing
+for handler even when its body dispatch is compiled.
+
+```sh
+RANK_BENCH_COUNTERS=0 node benchmarks/tensor-fusion.mjs \
+  suite compare 3 '.*' block
+```
+
+
+Six full-suite runs (three per mode, alternating order, counters disabled) all
+pass 306 files / 1054 tests. Complete results/output match both modes and the
+preceding scalar-compiler revision.
+
+| Full-suite measurement | Block compiler off | Block compiler on |
+| --- | ---: | ---: |
+| Median total | 36.673 s | 35.552 s |
+| Sum of Divisors | 1282.466 ms | 1032.300 ms |
+| Christmas Party | 361.216 ms | 301.259 ms |
+| Grid Paths | 2616.532 ms | 2442.719 ms |
+| Lights | 4572.025 ms | 4540.261 ms |
+| Collatz | 8916.361 ms | 8783.065 ms |
+
+The total median is 3.1% lower. The first off run was faster (35.123 s), while
+later off runs were 36.673 s; on runs were 35.500–35.580 s. Shared-process V8
+warmup affects the comparison: the first pair appeared to regress Lights and
+Grid Paths, but their repeated medians do not. These remain local measurements,
+not a universal guarantee or judge timing. The backend is enabled by default;
+`blockCompilation: false` keeps an independently selectable reference dispatcher.
+
+[Focused comparison](../../benchmarks/baselines/2026-09-11-block-compiler-focused.json) · [Full comparison](../../benchmarks/baselines/2026-09-11-block-compiler-suite.json)

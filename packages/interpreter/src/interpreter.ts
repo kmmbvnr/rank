@@ -1,3 +1,4 @@
+import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
@@ -149,6 +150,10 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Compiled command blocks; false retains statement dispatch. */
+    readonly blockCompilation?: boolean;
+    readonly onBlockCompiled?: (source: string) => void;
+    readonly onBlockExecuted?: () => void;
     /** Compound scalar expression compilation; false retains prepared operators. */
     readonly scalarCompilation?: boolean;
     readonly onScalarCompiled?: (source: string) => void;
@@ -271,6 +276,7 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
+    private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
     private localFrame: LocalFrame | undefined;
@@ -484,6 +490,21 @@ export class Interpreter {
         const context: ExecutionContext = tailCallsAllowed
             ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator }
             : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, tailCallsAllowed: false };
+        if (this.options.blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
+            let block = this.blocks.get(statements);
+            if (block === undefined) {
+                block = compileBlock<ExecutionContext>(statements.length, {
+                    prepare: index => this.preparedStatement(statements, index),
+                    locate: (error, index) => this.locateError(error, statements[index]),
+                    pause: (index, task, context, compiled) => this.continueCompiledBlock(
+                        statements, index, task, context, compiled),
+                    compiled: this.options.onBlockCompiled,
+                    executed: this.options.onBlockExecuted,
+                }) ?? null;
+                this.blocks.set(statements, block);
+            }
+            if (block) return block(context);
+        }
         let result: RankValue | undefined;
         let index = 0;
         try {
@@ -509,6 +530,17 @@ export class Interpreter {
             throw this.locateError(error, statements[index]);
         }
         return completed(result);
+    }
+
+    private *continueCompiledBlock(
+        statements: Statement[], index: number, task: Execution<RankValue | undefined>,
+        context: ExecutionContext, block: CompiledBlock<ExecutionContext>,
+    ): Execution<RankValue | undefined> {
+        try {
+            const value = (yield { task }) as RankValue | undefined;
+            const next = block(context, index + 1, value);
+            return 'done' in next ? next.value : (yield { task: next }) as RankValue | undefined;
+        } catch (error) { throw this.locateError(error, statements[index]); }
     }
 
     private preparedStatement(statements: Statement[], index: number): PreparedStatement {
@@ -2314,6 +2346,9 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            blockCompilation: this.options.blockCompilation,
+            onBlockCompiled: this.options.onBlockCompiled,
+            onBlockExecuted: this.options.onBlockExecuted,
             scalarCompilation: this.options.scalarCompilation,
             onScalarCompiled: this.options.onScalarCompiled,
             onScalarExecuted: this.options.onScalarExecuted,
@@ -2389,6 +2424,9 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            blockCompilation: this.options.blockCompilation,
+            onBlockCompiled: this.options.onBlockCompiled,
+            onBlockExecuted: this.options.onBlockExecuted,
             scalarCompilation: this.options.scalarCompilation,
             onScalarCompiled: this.options.onScalarCompiled,
             onScalarExecuted: this.options.onScalarExecuted,
