@@ -3326,7 +3326,8 @@ export class Interpreter {
         if (isRankArray(value)) {
             this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
         } else if (isRankQueue(value)) {
-            this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
+            const types = value instanceof RankDeque ? value.iterationTypes(typeName) : typesOf(value.items);
+            this.declareLoopTypes(binding.names, [types, new Set(['integer'])]);
         } else if (isRankSet(value)) {
             this.declareLoopTypes(binding.names, [
                 typesOf(value.entries.values()),

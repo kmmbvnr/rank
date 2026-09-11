@@ -182,3 +182,58 @@ array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5
         expect(heap.pop()).toBe(2n);
     });
 });
+
+
+describe('queue iteration type summaries', () => {
+    it('reuses an unchanged summary and keeps retained snapshots immutable', () => {
+        const queue = new RankDeque();
+        let calls = 0;
+        const classify = (value: unknown) => { calls++; return typeof value; };
+        queue.push(1n).push(2n);
+        const first = queue.iterationTypes(classify);
+        expect(queue.iterationTypes(classify)).toBe(first);
+        expect(calls).toBe(2);
+        queue.pushFront('text');
+        expect(queue.iterationTypes(classify)).toEqual(new Set(['string', 'bigint']));
+        expect(first).toEqual(new Set(['bigint']));
+        queue.pop();
+        expect(queue.iterationTypes(classify)).toEqual(new Set(['bigint']));
+        queue.pop(true);
+        queue.pop();
+        expect(queue.iterationTypes(classify)).toEqual(new Set());
+        queue.push(false);
+        expect(queue.iterationTypes(classify)).toEqual(new Set(['boolean']));
+    });
+
+    it('checks newly inserted types before executing a reused loop', () => {
+        expect(() => run(prelude + `
+Q = new queue
+Q push 1
+for V in Q
+  break
+end
+Alias = Q
+Alias push "text"
+for V in Q
+  break
+end
+`)).toThrow(/cannot receive/);
+    });
+
+    it('does not retain removed types in later loop declarations', () => {
+        expect(run(prelude + `
+Q = new queue
+Q push "text"
+for Old in Q
+  break
+end
+Removed = Q pop
+Q push 7
+V = 0
+for V in Q
+  break
+end
+V
+`)).toBe('7');
+    });
+});

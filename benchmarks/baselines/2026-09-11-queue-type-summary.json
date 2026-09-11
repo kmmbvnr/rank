@@ -1,0 +1,105 @@
+{
+  "baseline": "1fa5816",
+  "before": {
+    "node": "v24.15.0",
+    "mode": "suite",
+    "setting": "on",
+    "samples": 3,
+    "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+    "records": [
+      {
+        "enabled": true,
+        "sample": 0,
+        "ms": 9682.736125000001,
+        "entries": [
+          {
+            "name": "demos/euler/023_abundantsums_test.ra",
+            "ms": 9682.452625,
+            "kernels": 0,
+            "tests": 3,
+            "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+          }
+        ]
+      },
+      {
+        "enabled": true,
+        "sample": 1,
+        "ms": 7403.506208000001,
+        "entries": [
+          {
+            "name": "demos/euler/023_abundantsums_test.ra",
+            "ms": 7403.393459000001,
+            "kernels": 0,
+            "tests": 3,
+            "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+          }
+        ]
+      },
+      {
+        "enabled": true,
+        "sample": 2,
+        "ms": 7349.599042000002,
+        "entries": [
+          {
+            "name": "demos/euler/023_abundantsums_test.ra",
+            "ms": 7349.528249999999,
+            "kernels": 0,
+            "tests": 3,
+            "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "node": "v24.15.0",
+    "mode": "suite",
+    "setting": "on",
+    "samples": 3,
+    "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+    "records": [
+      {
+        "enabled": true,
+        "sample": 0,
+        "ms": 1311.1555,
+        "entries": [
+          {
+            "name": "demos/euler/023_abundantsums_test.ra",
+            "ms": 1310.871166,
+            "kernels": 0,
+            "tests": 3,
+            "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+          }
+        ]
+      },
+      {
+        "enabled": true,
+        "sample": 1,
+        "ms": 1312.1737080000003,
+        "entries": [
+          {
+            "name": "demos/euler/023_abundantsums_test.ra",
+            "ms": 1312.062667,
+            "kernels": 0,
+            "tests": 3,
+            "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+          }
+        ]
+      },
+      {
+        "enabled": true,
+        "sample": 2,
+        "ms": 1299.40575,
+        "entries": [
+          {
+            "name": "demos/euler/023_abundantsums_test.ra",
+            "ms": 1299.335083,
+            "kernels": 0,
+            "tests": 3,
+            "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+          }
+        ]
+      }
+    ]
+  }
+}
