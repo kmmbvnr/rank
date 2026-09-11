@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "014_intervals"
+  Values = array 3 2 4 5 1 1 5 3
+  Queries = array shape 4 4
+    2 4 2 4
+    5 6 2 9
+    1 8 1 5
+    3 3 4 4
+  end
+  Actual = Values Queries intervals
+  Actual equal array 2 0 8 1
+end
+
+test "closed value and index bounds"
+  use "014_intervals"
+  Values = array 5 1 5 9
+  Queries = array shape 3 4
+    1 4 5 5
+    2 3 1 5
+    4 4 1 8
+  end
+  Actual = Values Queries intervals
+  Actual equal array 2 2 0
+end

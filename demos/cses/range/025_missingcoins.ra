@@ -1,0 +1,21 @@
+rem CSES 2184: Missing Coin Sum Queries
+rem https://cses.fi/problemset/task/2184
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Values Queries missing_queries print
+
+
+rem Grow the constructible prefix.
+fun missing_queries Values Queries
+  Data = Values wavelet
+  return Data (Queries - 1) missing
+end

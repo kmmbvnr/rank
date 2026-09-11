@@ -2,6 +2,7 @@ import { RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
 import { sequence, windowValue } from '../sequence.js';
+import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import {
     isRankArray,
@@ -14,6 +15,7 @@ import {
     isRankSequence,
     isRankSequenceMask,
     isRankSegment,
+    isRankWavelet,
     isRankSet,
     type RankArray,
     type RankValue,
@@ -33,7 +35,11 @@ export const sequencesModule: RuntimeModule = {
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
-    copy: () => native('copy', 1, arguments_ => copyArray(arguments_[0])),
+    copy: () => native('copy', 1, arguments_ =>
+        arguments_[0] instanceof RankRangeSumSegment
+        || arguments_[0] instanceof RankPersistentSumSegment
+            ? arguments_[0].copy()
+            : copyArray(arguments_[0])),
     sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
     argsort: () => native(
         'argsort',
@@ -286,7 +292,7 @@ export function lengthOfAxis(value: RankValue, axis: number): bigint {
     }
     if (axis !== 0) throw new RankError(`value has no axis ${axis}`);
     if (typeof value === 'string' || isRankQueue(value) || isRankGraph(value) || isRankDsu(value)
-        || isRankSegment(value)
+        || isRankSegment(value) || isRankWavelet(value)
         || isRankMultiset(value) || isRankSequence(value)) {
         return lengthOf(value);
     }
@@ -297,7 +303,8 @@ function shapeOf(value: RankValue): RankValue {
     const dimensions = isRankArray(value)
         ? value.shape.map(dimension => BigInt(dimension))
         : typeof value === 'string' || isRankQueue(value)
-            || isRankMultiset(value) || isRankSegment(value) || isRankSequence(value)
+            || isRankMultiset(value) || isRankSegment(value)
+            || isRankWavelet(value) || isRankSequence(value)
             ? [lengthOf(value)]
             : undefined;
     if (!dimensions) {
@@ -453,6 +460,7 @@ function lengthOf(value: RankValue): bigint {
     if (isRankGraph(value)) return BigInt(value.size);
     if (isRankDsu(value)) return BigInt(value.size);
     if (isRankSegment(value)) return BigInt(value.size);
+    if (isRankWavelet(value)) return BigInt(value.size);
     if (!isRankSequence(value)) throw new RankError('len expects text or a collection');
     if (value.plan.size.kind === 'infinite') {
         throw new RankError('len requires a finite sequence');

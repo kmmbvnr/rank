@@ -1,0 +1,121 @@
+rem CSES 1739: Forest Queries II
+rem https://cses.fi/problemset/task/1739
+
+use io
+use algo
+use bits
+use ranges
+use sequences
+use text
+
+N = stdin .integer
+Q = stdin .integer
+Grid = stdin .word N array
+Queries = new queue
+for I in 1 to Q
+  Type = stdin .integer
+  if Type equal 1
+    Y = stdin .integer
+    X = stdin .integer
+    Query = array Type Y X
+  else
+    Top = stdin .integer
+    Left = stdin .integer
+    Bottom = stdin .integer
+    Right = stdin .integer
+    Query = array shape 5
+      Type Top Left Bottom Right
+    end
+  end
+  Queries push Query
+end
+
+Grid Queries forest_updates print
+
+
+rem Keep static and changed tree counts.
+fun forest_updates Grid Queries
+  Size = Grid len
+  Side = Size + 1
+  Trees = array shape Size Size pad 0
+  Prefix = array shape Side Side pad 0
+
+  for Row InitialRow in Grid
+    Codes = Row codepoint rank 0
+    Values = (46 - Codes) // 4
+    Cells = Values array
+    Trees InitialRow # = Cells
+    Running = Cells + scan
+    Columns = 1 to Size
+    Above = Prefix InitialRow Columns
+    Current = InitialRow + 1
+    Prefix Current Columns = Above
+    Prefix Current Columns += Running
+  end
+
+  Changes = new queue
+  for Y in 0 to Size
+    Changes push (Side fenwick)
+  end
+
+  Q = Queries len
+  Answers = array shape Q pad 0
+  Count = 0
+  for Query in Queries
+    Type = Query 0
+    if Type equal 1
+      Y = Query 1
+      X = Query 2
+      ZeroY = Y - 1
+      ZeroX = X - 1
+      Old = Trees ZeroY ZeroX
+      if Old equal 0
+        Delta = 1
+      else
+        Delta = -1
+      end
+      Trees ZeroY ZeroX += Delta
+      RowIndex = Y
+      for RowIndex at most Size
+        F = Changes RowIndex
+        F X += Delta
+        Step = RowIndex (-RowIndex) band
+        RowIndex += Step
+      end
+    else
+      Top = Query 1
+      Left = Query 2
+      Bottom = Query 3
+      Right = Query 4
+      Total = Prefix Bottom Right
+      Prior = Top - 1
+      Total -= Prefix Prior Right
+      Before = Left - 1
+      Total -= Prefix Bottom Before
+      Total += Prefix Prior Before
+      D = Changes Bottom Right bit2sum
+      Total += D
+      D = Changes Prior Right bit2sum
+      Total -= D
+      D = Changes Bottom Before bit2sum
+      Total -= D
+      D = Changes Prior Before bit2sum
+      Total += D
+      Answers Count = Total
+      Count += 1
+    end
+  end
+  return Answers (0 until Count)
+end
+
+
+rem Sum a two-dimensional prefix.
+fun bit2sum Rows Y X
+  Total = 0
+  for Y greater 0
+    F = Rows Y
+    Total += F sum X
+    Y -= Y (-Y) band
+  end
+  return Total
+end

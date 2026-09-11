@@ -6,7 +6,7 @@ Run the size gate separately from unit tests:
 npm run bench:judge
 ```
 
-This builds the checkout and runs eight cases at N = 200,000. Each case has its own
+This builds the checkout and runs 19 cases at N = 200,000. Each case has its own
 Node CLI process and a 30-second wall-time limit. A timeout kills that child
 process. Wrong answers, runtime failures and timeouts make the command exit with
 status 1. Progress goes to stderr; stdout is a JSON report with metadata and times.
@@ -15,6 +15,17 @@ status 1. Progress goes to stderr; stdout is a JSON report with metadata and tim
 | --- | --- | --- |
 | Grid Paths | Open square grid up to 1,000 by 1,000 | Dense dynamic-programming writes |
 | Static Range Minimum Queries | Descending values; every query spans the array | Segment construction, queries and full output |
+| Visible Buildings Queries | Increasing values; every query spans the array | Functional-graph `upto` queries |
+| Range Interval Queries | Distinct values; every rectangle spans both axes | Wavelet-matrix range counting |
+| Subarray Sum Queries II | All ones; every query spans the array | Native `maxsum` segment queries |
+| List Removals | Repeatedly remove the first remaining item | Sum-segment `firstatleast` and point updates |
+| Increasing Array Queries | Sorted values; every query spans the array | Weighted functional-graph aggregation |
+| Movie Festival Queries | Consecutive movies; full-time queries | Functional-graph path counting |
+| Forest Queries II | Empty 1,000 square; alternating toggles and queries | Dynamic two-dimensional Fenwick updates |
+| Range Updates and Sums | Alternating whole-range add, set and sum | Lazy sum-segment composition |
+| Polynomial Queries | Whole-range progression updates and sums | Polynomial Fenwick coefficients |
+| Range Queries and Copies | Copy, point update and full sum | Persistent sum-segment path copying |
+| Missing Coin Sum Queries | Powers of two and large coins; full ranges | Wavelet range-value sums |
 | Restaurant Customers | Disjoint intervals | Returning a growing queue of records; sorting events |
 | Room Allocation | All stays overlap | Growing priority queue of record payloads; full allocation output |
 | Playlist | Repeated half-length block | Index updates and lookups |

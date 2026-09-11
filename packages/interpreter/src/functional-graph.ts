@@ -1,5 +1,13 @@
 import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, type RankArray, type RankValue } from './value.js';
+import { ResourceMap } from './resource-summary.js';
+import {
+    isRankArray,
+    type RankArray,
+    type RankRecord,
+    type RankValue,
+} from './value.js';
+
+type Numeric = bigint | number;
 
 /** A prepared successor graph over the integer vertices 1 through N. */
 export class RankFunctionalGraph {
@@ -11,10 +19,16 @@ export class RankFunctionalGraph {
     private readonly entry: number[];
     private readonly cyclePosition: number[];
     private readonly cycleLength: number[];
+    private readonly increasing: boolean;
+    private readonly weightJumps?: Numeric[][];
 
-    constructor(value: RankValue) {
+    constructor(value: RankValue, weights?: RankValue) {
         this.next = successorArray(value);
         this.jumps = [this.next];
+        this.weightJumps = weights === undefined
+            ? undefined : [weightArray(weights, this.next.length)];
+        this.increasing = this.next.every((next, from) =>
+            next === from || next > from);
         const structure = decompose(this.next);
         this.component = structure.component;
         this.depth = structure.depth;
@@ -67,6 +81,47 @@ export class RankFunctionalGraph {
         return { kind: 'array', items, shape: [items.length] };
     }
 
+    upto(start: RankValue, limit: RankValue): RankValue {
+        let vertex = this.vertex(start);
+        const bound = nonnegativeInteger(
+            limit, 'functional upto limit',
+        );
+        if (BigInt(vertex + 1) > bound) {
+            return this.weightJumps
+                ? stateRecord(0n, 0n, vertex) : 0n;
+        }
+        if (!this.increasing) {
+            throw new RankError(
+                'upto requires increasing successors',
+            );
+        }
+
+        let level = 0;
+        while (2 ** level <= this.size) {
+            this.ensureLevel(level);
+            level += 1;
+        }
+        let count = 1n;
+        let sum: Numeric = 0n;
+        for (level -= 1; level >= 0; level -= 1) {
+            const steps = 2 ** level;
+            const candidate = this.jumps[level][vertex];
+            if (steps <= this.depth[vertex]
+                && BigInt(candidate + 1) <= bound) {
+                if (this.weightJumps) {
+                    sum = numericAdd(
+                        sum,
+                        this.weightJumps[level][vertex],
+                    );
+                }
+                vertex = candidate;
+                count += 1n << BigInt(level);
+            }
+        }
+        if (!this.weightJumps) return count;
+        return stateRecord(count, sum, vertex);
+    }
+
     private vertex(value: RankValue): number {
         const vertex = nonnegativeInteger(value, 'functional graph vertex');
         if (vertex < 1n || vertex > BigInt(this.size)) {
@@ -94,8 +149,43 @@ export class RankFunctionalGraph {
         while (this.jumps.length <= level) {
             const previous = this.jumps.at(-1)!;
             this.jumps.push(previous.map(vertex => previous[vertex]));
+            if (this.weightJumps) {
+                const weights = this.weightJumps.at(-1)!;
+                this.weightJumps.push(weights.map(
+                    (weight, vertex) => numericAdd(
+                        weight,
+                        weights[previous[vertex]],
+                    ),
+                ));
+            }
         }
     }
+}
+
+function stateRecord(
+    count: bigint,
+    sum: Numeric,
+    vertex: number,
+): RankRecord {
+    const entries = new ResourceMap<RankValue>(value => value);
+    entries.set('count', count);
+    entries.set('sum', sum);
+    entries.set('last', BigInt(vertex + 1));
+    const types = new Map([
+        ['count', 'integer'],
+        ['sum', typeof sum === 'bigint' ? 'integer' : 'real'],
+        ['last', 'integer'],
+    ]);
+    return entries.resources.track({
+        kind: 'record', entries, types,
+    });
+}
+
+function numericAdd(left: Numeric, right: Numeric): Numeric {
+    if (typeof left === 'bigint' && typeof right === 'bigint') {
+        return left + right;
+    }
+    return Number(left) + Number(right);
 }
 
 interface FunctionalStructure {
@@ -169,6 +259,22 @@ function successorArray(value: RankValue): number[] {
             throw new RankError('functional successors must be integers from 1 to N');
         }
         return Number(item - 1n);
+    });
+}
+
+function weightArray(value: RankValue, size: number): Numeric[] {
+    if (!isRankArray(value) || value.shape.length !== 1) {
+        throw new RankError('weighted expects a rank-1 weight array');
+    }
+    if (value.shape[0] !== size) {
+        throw new RankError('weighted successors and weights must have equal length');
+    }
+    return Array.from({ length: size }, (_, index) => {
+        const item = value.itemAt?.(index) ?? value.items[index];
+        if (typeof item !== 'bigint' && typeof item !== 'number') {
+            throw new RankError('weighted requires numeric weights');
+        }
+        return item;
     });
 }
 

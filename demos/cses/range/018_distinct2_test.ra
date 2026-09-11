@@ -1,0 +1,28 @@
+use testing
+
+test "official example"
+  use "018_distinct2"
+  Values = array 3 2 7 2 8
+  Queries = array shape 4 3
+    2 3 5
+    2 2 5
+    1 2 9
+    2 2 5
+  end
+  Actual = Values Queries distinct2
+  Actual equal array "YES" "NO" "YES"
+end
+
+test "updates relink neighbors"
+  use "018_distinct2"
+  Values = array 1 2 1 3
+  Queries = array shape 5 3
+    2 1 4
+    1 3 4
+    2 1 4
+    1 2 4
+    2 2 3
+  end
+  Actual = Values Queries distinct2
+  Actual equal array "NO" "YES" "NO"
+end

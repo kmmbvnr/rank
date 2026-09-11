@@ -357,6 +357,32 @@ Tree Position = Value
 Tree Position += Delta
 ```
 
+A numeric tree built with the standard `+` operation also accepts inclusive
+range assignment and addition:
+
+```rank
+Tree Left Right = Value
+Tree Left Right += Delta
+```
+
+These operations broadcast the numeric value across the range. They use lazy
+propagation internally, so range updates and sum queries take `O(log N)` time.
+Assignment replaces earlier pending additions; later additions apply to the
+assigned value. Other segment operations remain point-update trees.
+
+With `use sequences`, postfix `copy` creates an independent version of a
+numeric `+ segment` tree:
+
+```rank
+Version = Tree copy
+Version Position = Value
+```
+
+The first copy converts the source to persistent storage in `O(N)` time.
+It does not change its values. That copy and all later copies share unchanged
+nodes in `O(1)` time. Updating any persistent version copies only its affected
+root paths in `O(log N)` time; no update changes another version.
+
 `query` reduces an inclusive range while preserving left-to-right operand
 order:
 
@@ -369,10 +395,69 @@ Out-of-bounds positions raise `.Missing` and compose with `pad`. No identity
 value is required because an empty range is not a valid query. Empty trees may
 be constructed but cannot be queried or addressed.
 
+`firstatleast` finds the first position where the aggregate of the prefix
+reaches a numeric target:
+
+```rank
+Position = Tree Target firstatleast
+```
+
+It returns `-1` when no prefix reaches the target. Prefix aggregates must be
+monotone relative to the target. Typical valid trees use `max`, or `+` with
+nonnegative values. Rank does not attempt to prove this condition.
+
+`maxsum` is the native numeric profile for prefix and subarray sums:
+
+```rank
+Tree = Values maxsum segment
+State = Tree Left Right query
+```
+
+`State` is a record with `.sum`, `.prefix`, `.suffix` and `.best`. The three
+maxima allow the empty subarray and are therefore never negative. Addressing
+still reads the numeric point, and point assignment accepts a number. The
+profile keeps the standard four-value segment aggregate inside the runtime so
+large queries do not pay for millions of interpreted combining calls.
+
+The built-in is recognized by function identity. A user function named
+`maxsum` remains an ordinary binary operation when used with `segment`.
+
 Construction takes `O(N)` time. Point access is constant time; point updates
 and range queries take `O(log N)` time, excluding the cost of the selected
-operation. With `use sequences`, `len` and `shape` report the fixed size.
+operation. `firstatleast` also takes `O(log N)`. With `use sequences`, `len`
+and `shape` report the fixed size.
 The runtime type is `.segment`.
+
+### Wavelet matrix
+
+A wavelet matrix prepares immutable range-count queries over comparable scalar
+values:
+
+```rank
+Data = Values wavelet
+Count = Data Left Right Low High within
+Sum = Data Left Right Low High sumwithin
+One = Data (array Left Right) missing
+Answers = Data Queries missing
+```
+
+Both position and value ranges are inclusive. `within` counts positions from
+`Left` through `Right` whose values lie from `Low` through `High`. Values must
+all be numbers, text, booleans or symbols of one comparable kind. Bounds of a
+different kind are errors.
+
+`sumwithin` uses the same ranges and sums their matching values. It requires a
+numeric wavelet. Its sum tables are prepared lazily on the first aggregate
+query. `missing` requires positive integer values and returns the smallest
+positive sum that no subset of the selected positions can form. Its right
+argument has intrinsic rank 1: one pair produces one answer, while a `Q 2`
+query matrix produces a length-`Q` answer vector.
+
+Construction takes `O(N log S)` time and memory, where `S` is the number of
+distinct values. `within` and `sumwithin` take `O(log S)` per query. If `T` is
+the returned missing sum, `missing` takes `O(log S log T)`. The prepared value
+cannot be changed. With `use sequences`, `len` and `shape` report its fixed
+size. Its runtime type is `.wavelet`.
 
 
 ### Permutations

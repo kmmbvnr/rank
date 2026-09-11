@@ -1,0 +1,27 @@
+use testing
+
+test "official example"
+  use "023_polynomial"
+  Values = array 4 2 3 1 7
+  Queries = array shape 3 3
+    2 1 5
+    1 1 5
+    2 1 5
+  end
+  Actual = Values Queries polynomial
+  Actual equal array 17 32
+end
+
+test "overlapping progressions"
+  use "023_polynomial"
+  Values = array 1 1 1 1
+  Queries = array shape 5 3
+    1 2 4
+    2 1 4
+    2 2 3
+    1 1 2
+    2 1 4
+  end
+  Actual = Values Queries polynomial
+  Actual equal array 10 5 13
+end

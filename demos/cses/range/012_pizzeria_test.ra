@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "012_pizzeria"
+  Prices = array 8 6 4 5 7 5
+  Queries = array shape 3 3
+    2 2 0
+    1 5 1
+    2 2 0
+  end
+  Actual = Prices Queries deliveries
+  Actual equal array 5 4
+end
+
+test "queries use both sides"
+  use "012_pizzeria"
+  Prices = array 1 100 100 2
+  Queries = array shape 4 3
+    2 2 0
+    2 3 0
+    1 1 50
+    2 2 0
+  end
+  Actual = Prices Queries deliveries
+  Actual equal array 2 3 4
+end

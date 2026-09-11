@@ -1,0 +1,29 @@
+rem CSES 3226: Subarray Sum Queries II
+rem https://cses.fi/problemset/task/3226
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Values Queries range_max_sums print
+
+
+rem Read each range's best subarray.
+fun range_max_sums Values Queries
+  Tree = Values maxsum segment
+  Q = Queries len
+  Answers = array shape Q pad 0
+  for Query I in Queries
+    Left = Query 0 - 1
+    Right = Query 1 - 1
+    State = Tree Left Right query
+    Answers I = State .best
+  end
+  return Answers
+end

@@ -1,0 +1,56 @@
+rem CSES 1737: Range Queries and Copies
+rem https://cses.fi/problemset/task/1737
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Queries = new queue
+for I in 1 to Q
+  Type = stdin .integer
+  K = stdin .integer
+  if Type equal 3
+    Query = array Type K
+  else
+    A = stdin .integer
+    B = stdin .integer
+    Query = array Type K A B
+  end
+  Queries push Query
+end
+
+Values Queries copies print
+
+
+rem Copy roots and path-copy on updates.
+fun copies Values Queries
+  Versions = new queue
+  Versions push (Values + segment)
+  Answers = new queue
+
+  for Query in Queries
+    Type = Query 0
+    K = Query 1
+    Tree = Versions (K - 1)
+    if Type equal 3
+      Versions push (Tree copy)
+    else
+      A = Query 2
+      B = Query 3
+      if Type equal 1
+        Tree (A - 1) = B
+      else
+        Left = A - 1
+        Right = B - 1
+        Total = Tree Left Right query
+        Answers push Total
+      end
+    end
+  end
+
+  return Answers
+end

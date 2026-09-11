@@ -1,0 +1,32 @@
+rem CSES 1143: Hotel Queries
+rem https://cses.fi/problemset/task/1143
+
+use io
+use algo
+use numbers
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Hotels = stdin .integer N array
+Groups = stdin .integer M array
+
+Hotels Groups assign_hotels print
+
+
+rem Choose the first hotel with room.
+fun assign_hotels Hotels Groups
+  Tree = Hotels max segment
+  M = Groups len
+  Answers = array shape M pad 0
+
+  for Need I in Groups
+    Position = Tree Need firstatleast
+    if Position at least 0
+      Answers I = Position + 1
+      Tree Position -= Need
+    end
+  end
+
+  return Answers
+end

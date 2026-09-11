@@ -1,0 +1,29 @@
+use testing
+
+test "official example"
+  use "022_rangesums"
+  use algo
+  Queries = new queue
+  Queries push (array 3 3 5)
+  Queries push (array 1 2 4 2)
+  Queries push (array 3 3 5)
+  Queries push (array 2 2 4 5)
+  Queries push (array 3 3 5)
+  Values = array 2 3 1 1 5 3
+  Actual = Values Queries range_updates
+  Actual equal array 7 11 15
+end
+
+test "set overrides pending additions"
+  use "022_rangesums"
+  use algo
+  Queries = new queue
+  Queries push (array 1 1 5 3)
+  Queries push (array 2 2 4 1)
+  Queries push (array 1 3 5 2)
+  Queries push (array 3 1 5)
+  Queries push (array 3 2 3)
+  Values = array 1 2 3 4 5
+  Actual = Values Queries range_updates
+  Actual equal array 21 4
+end

@@ -25,12 +25,74 @@ const bound = Math.min(1000, size);
 const reading = Array.from({ length: size }, (_, i) => i % 97 + 1);
 const summands = Array.from({ length: size }, (_, i) => i % 101 - 50);
 const lines = values => values.join(' ');
+const forestSide = Math.min(1000, size);
+const forestAnswers = Array.from(
+  { length: Math.floor(size / 2) }, (_, i) => (i + 1) % 2);
+const forestQueries = Array.from({ length: size }, (_, i) => i % 2 === 0
+  ? '1 1 1' : `2 1 1 ${forestSide} ${forestSide}`);
+const rangeSumQueries = Array.from({ length: size }, (_, i) => {
+  if (i % 4 === 0) return `1 1 ${size} 1`;
+  if (i % 4 === 2) return `2 1 ${size} 1`;
+  return `3 1 ${size}`;
+});
+const rangeSumAnswers = Array.from(
+  { length: Math.floor(size / 2) }, (_, i) => size * (i % 2 === 0 ? 2 : 1));
+const polynomialQueries = Array.from({ length: size }, (_, i) => i % 2 === 0
+  ? `1 1 ${size}` : `2 1 ${size}`);
+const triangle = BigInt(size) * BigInt(size + 1) / 2n;
+const polynomialAnswers = Array.from(
+  { length: Math.floor(size / 2) }, (_, i) => BigInt(size) + BigInt(i + 1) * triangle);
+const copyQueries = Array.from({ length: size }, (_, i) => {
+  const version = Math.floor(i / 3) + 2;
+  if (i % 3 === 0) return '3 1';
+  if (i % 3 === 1) return `1 ${version} 1 2`;
+  return `2 ${version} 1 ${size}`;
+});
+const copyAnswers = Array(Math.floor(size / 3)).fill(size + 1);
+const coinPowers = Math.min(30, size);
+const coinValues = Array.from({ length: size }, (_, i) =>
+  i < coinPowers ? 2 ** i : 1_000_000_000);
+const missingCoin = coinValues.reduce((sum, value) => sum + value, 1);
+const missingQueries = Array(size).fill(`1 ${size}`);
 // Expected answers follow from the constructed inputs, not from Rank execution.
 const cases = [
   gridCase(Math.min(1000, size)),
   { name: 'static-min', path: 'demos/cses/range/002_staticmin.ra',
     input: `${size} ${size}\n${lines(Array.from({ length: size }, (_, i) => size - i))}\n${Array.from({ length: size }, () => `1 ${size}`).join('\n')}\n`,
     expected: lines(Array(size).fill(1)) },
+  { name: 'visible', path: 'demos/cses/range/013_visible.ra',
+    input: `${size} ${size}\n${lines(Array.from({ length: size }, (_, i) => i + 1))}\n${Array.from({ length: size }, () => `1 ${size}`).join('\n')}\n`,
+    expected: lines(Array(size).fill(size)) },
+  { name: 'interval-count', path: 'demos/cses/range/014_intervals.ra',
+    input: `${size} ${size}\n${lines(Array.from({ length: size }, (_, i) => i + 1))}\n${Array.from({ length: size }, () => `1 ${size} 1 ${size}`).join('\n')}\n`,
+    expected: lines(Array(size).fill(size)) },
+  { name: 'range-maxsum', path: 'demos/cses/range/016_subarraysum2.ra',
+    input: `${size} ${size}\n${lines(Array(size).fill(1))}\n${Array.from({ length: size }, () => `1 ${size}`).join('\n')}\n`,
+    expected: lines(Array(size).fill(size)) },
+  { name: 'list-removals', path: 'demos/cses/range/009_listremovals.ra',
+    input: `${size}\n${lines(Array.from({ length: size }, (_, i) => i + 1))}\n${lines(Array(size).fill(1))}\n`,
+    expected: lines(Array.from({ length: size }, (_, i) => i + 1)) },
+  { name: 'increasing', path: 'demos/cses/range/019_increasing.ra',
+    input: `${size} ${size}\n${lines(Array.from({ length: size }, (_, i) => i + 1))}\n${Array.from({ length: size }, () => `1 ${size}`).join('\n')}\n`,
+    expected: lines(Array(size).fill(0)) },
+  { name: 'movie-queries', path: 'demos/cses/range/020_movies.ra',
+    input: `${size} ${size}\n${Array.from({ length: size }, (_, i) => `${i + 1} ${i + 2}`).join('\n')}\n${Array.from({ length: size }, () => `1 ${size + 1}`).join('\n')}\n`,
+    expected: lines(Array(size).fill(size)) },
+  { name: 'forest-updates', path: 'demos/cses/range/021_forest2.ra',
+    input: `${forestSide} ${size}\n${Array(forestSide).fill('.'.repeat(forestSide)).join('\n')}\n${forestQueries.join('\n')}\n`,
+    expected: lines(forestAnswers) },
+  { name: 'range-sums', path: 'demos/cses/range/022_rangesums.ra',
+    input: `${size} ${size}\n${lines(Array(size).fill(1))}\n${rangeSumQueries.join('\n')}\n`,
+    expected: lines(rangeSumAnswers) },
+  { name: 'polynomial', path: 'demos/cses/range/023_polynomial.ra',
+    input: `${size} ${size}\n${lines(Array(size).fill(1))}\n${polynomialQueries.join('\n')}\n`,
+    expected: lines(polynomialAnswers) },
+  { name: 'range-copies', path: 'demos/cses/range/024_copies.ra',
+    input: `${size} ${size}\n${lines(Array(size).fill(1))}\n${copyQueries.join('\n')}\n`,
+    expected: lines(copyAnswers) },
+  { name: 'missing-coins', path: 'demos/cses/range/025_missingcoins.ra',
+    input: `${size} ${size}\n${lines(coinValues)}\n${missingQueries.join('\n')}\n`,
+    expected: lines(Array(size).fill(missingCoin)) },
   { name: 'restaurant', path: 'demos/cses/sortnsrch/005_restaurant.ra',
     input: `${size}\n${Array.from({ length: size }, (_, i) => `${3 * i + 1} ${3 * i + 2}`).join('\n')}\n`, expected: '1' },
   { name: 'rooms', path: 'demos/cses/sortnsrch/022_rooms.ra',

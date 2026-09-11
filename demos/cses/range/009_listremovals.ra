@@ -1,0 +1,29 @@
+rem CSES 1749: List Removals
+rem https://cses.fi/problemset/task/1749
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+Values = stdin .integer N array
+Positions = stdin .integer N array
+
+Values Positions removals print
+
+
+rem Select by live prefix count.
+fun removals Values Positions
+  N = Values len
+  Flags = array shape N pad 1
+  Alive = Flags + segment
+  Removed = array shape N pad 0
+
+  for Order I in Positions
+    Position = Alive Order firstatleast
+    Removed I = Values Position
+    Alive Position = 0
+  end
+
+  return Removed
+end
