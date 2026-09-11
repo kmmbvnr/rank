@@ -716,6 +716,53 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('combinations requires a bounded sequence');
     });
 
+    it('generates lazy combinations with repetition', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = array 1 2 3',
+            'Values 2 multicomb len',
+        ].join('\n'))).toBe('6');
+        expect(new Interpreter().execute([
+            'use algo',
+            'Values = array 1 2 3',
+            'Values 2 multicomb 3',
+        ].join('\n'))).toEqual({ kind: 'array', items: [2n, 2n], shape: [2] });
+        expect(new Interpreter().execute([
+            'use algo',
+            'Matrix = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'Matrix 2 multicomb 1',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: [1n, 2n, 3n, 4n],
+            shape: [2, 2],
+        });
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Values = array 7 8',
+            'Zero = Values 0 multicomb len equal 1',
+            'Large = Values 100 multicomb len equal 101',
+            'Zero and Large',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Empty = array shape 0 pad 0',
+            'Empty 2 multicomb len',
+        ].join('\n'))).toBe('0');
+        expect(() => run('use algo\nValues = array 1 2\nValues (-1) multicomb'))
+            .toThrowError('multicomb count must be nonnegative');
+        expect(() => run([
+            'use algo',
+            'use sequences',
+            'fibonacci 2 multicomb',
+        ].join('\n'))).toThrowError('multicomb requires a bounded sequence');
+    });
+
     it('factors integers into a lazy sequence and reduces it', () => {
         expect(run('use numbers\n1 factors')).toBe('');
         expect(run('use numbers\n12 factors')).toBe('2 2 3');

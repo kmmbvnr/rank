@@ -958,6 +958,7 @@ Lower = Bag floor Limit
 Upper = Bag ceiling Limit
 Routes = Cities permutations
 Pairs = Values 2 combinations
+Repeated = Values 2 multicomb
 ```
 
 `new stack`, `new deque` and `new heap` create empty named containers.

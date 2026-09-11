@@ -2817,6 +2817,20 @@ For a tensor, `combinations` selects cells along the leading axis and preserves
 the remaining cell shape. Given `Rings` with shape `6 3`, every value from
 `Rings 2 combinations` therefore has shape `2 3`.
 
+`multicomb` is the corresponding generator with repetition:
+
+```rank
+for Pair in Values 2 multicomb
+  Pair score
+end
+```
+
+It uses the same order and tensor cell rules. A selection may use the same
+input position more than once. Count zero produces one empty selection,
+including for an empty input; a positive count from an empty input produces
+an empty sequence. Its exact size is the multiset coefficient, so `len` does
+not enumerate the results.
+
 ### Counter
 
 `counter` is a frequency map:

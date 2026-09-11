@@ -112,6 +112,22 @@ export const algoModule: RuntimeModule = {
             },
         });
     }),
+    multicomb: () => native('multicomb', 2, arguments_ => {
+        const input = combinationInput(arguments_[0], 'multicomb');
+        const countValue = expectInteger(arguments_[1]);
+        if (countValue < 0n) throw new RankError('multicomb count must be nonnegative');
+        if (countValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+            throw new RankError(`multicomb count is too large: ${countValue}`);
+        }
+        const count = Number(countValue);
+        return sequence({
+            name: 'multicomb',
+            size: { kind: 'exact', value: multicombCount(input.cells.length, count) },
+            *iterate() {
+                yield* chooseRepeated(input, count);
+            },
+        });
+    }),
 };
 
 function expectWavelet(value: RankValue, name = 'within'): RankWavelet {
@@ -148,12 +164,15 @@ interface CombinationInput {
     readonly cellShape: readonly number[];
 }
 
-function combinationInput(value: RankValue): CombinationInput {
+function combinationInput(
+    value: RankValue,
+    operation = 'combinations',
+): CombinationInput {
     if (!isRankArray(value)) {
-        return { cells: finiteItems(value, 'combinations'), cellShape: [] };
+        return { cells: finiteItems(value, operation), cellShape: [] };
     }
     if (value.shape.length === 0) {
-        throw new RankError('combinations expects an array with rank at least 1');
+        throw new RankError(`${operation} expects an array with rank at least 1`);
     }
 
     const cellShape = value.shape.slice(1);
@@ -206,6 +225,34 @@ function* choose(
         selected.push(index);
         yield* choose(input, count, index + 1, selected);
         selected.pop();
+    }
+}
+
+function* chooseRepeated(
+    input: CombinationInput,
+    count: number,
+): IterableIterator<RankArray> {
+    if (count === 0) {
+        yield { kind: 'array', items: [], shape: [0, ...input.cellShape] };
+        return;
+    }
+    if (input.cells.length === 0) return;
+
+    const selected = Array.from({ length: count }, () => 0);
+    while (true) {
+        const cells = selected.map(index => input.cells[index]);
+        const items = input.cellShape.length === 0
+            ? cells
+            : cells.flatMap(cell => (cell as RankArray).items);
+        yield { kind: 'array', items, shape: [count, ...input.cellShape] };
+
+        let position = count - 1;
+        while (position >= 0 && selected[position] === input.cells.length - 1) {
+            position -= 1;
+        }
+        if (position < 0) return;
+        const next = selected[position] + 1;
+        selected.fill(next, position);
     }
 }
 
@@ -270,6 +317,20 @@ function binomial(size: number, count: number): bigint {
     let result = 1n;
     for (let step = 1; step <= smaller; step += 1) {
         result = result * BigInt(size - smaller + step) / BigInt(step);
+    }
+    return result;
+}
+
+function multicombCount(size: number, count: number): bigint {
+    if (count === 0) return 1n;
+    if (size === 0) return 0n;
+    const total = BigInt(size) + BigInt(count) - 1n;
+    const selections = BigInt(count);
+    const kinds = BigInt(size - 1);
+    const smaller = selections < kinds ? selections : kinds;
+    let result = 1n;
+    for (let step = 1n; step <= smaller; step += 1n) {
+        result = result * (total - smaller + step) / step;
     }
     return result;
 }
