@@ -1,0 +1,99 @@
+use testing
+
+test "official backward pass"
+  use "040_dense"
+  use numbers
+  use random
+
+  State = 42 seed
+  Layer = 2 3 dense
+  Official = array shape 2 3
+    -0.1774270654597766
+    0.6374062848804862
+    0.3280889788980837
+    0.1395241663946208
+    -0.4864631038898423
+    -0.4864972148712041
+  end
+  Layer .weights = Official
+
+  X = array shape 1 2
+    1 2
+  end
+  Forward = Layer X forward_pass
+  Grad = array shape 1 3
+    0.1 0.2 0.3
+  end
+  Back = Layer Grad 0.01 backward_pass
+  Expected = array shape 1 2
+    0.20816524 -0.22928937
+  end
+  Rounded = Back round 8
+  Matches = Rounded equal Expected
+  Same = Matches and reduce
+
+  Updated = Layer .weights
+  Old = Official 0 0
+  Changed = Updated 0 0 not equal Old
+  Same and Changed
+end
+
+test "forward pass broadcasts bias"
+  use "040_dense"
+
+  Layer = 2 2 dense
+  Layer .weights = array shape 2 2
+    1.0 2.0
+    3.0 4.0
+  end
+  Layer .bias = array 0.5 -0.5
+  X = array shape 2 2
+    1.0 2.0
+    3.0 4.0
+  end
+  Actual = Layer X forward_pass
+  Expected = array shape 2 2
+    7.5 9.5
+    15.5 21.5
+  end
+  Actual equal Expected
+end
+
+test "parameters and output shape"
+  use "040_dense"
+
+  Layer = 2 3 dense
+  CountOk = Layer parameters equal 9
+  Shape = Layer output_shape
+  ShapeOk = Shape equal array 3
+  CountOk and ShapeOk
+end
+
+test "frozen layer keeps its parameters"
+  use "040_dense"
+  use sequences
+
+  Layer = 2 1 dense
+  Layer .weights = array shape 2 1
+    2.0
+    3.0
+  end
+  Layer .bias = array 1.0
+  Layer .trainable = false
+  X = array shape 1 2
+    4.0 5.0
+  end
+  Forward = Layer X forward_pass
+  Before = Layer .weights copy
+  Grad = array shape 1 1 pad 2.0
+  Back = Layer Grad 0.1 backward_pass
+  After = Layer .weights
+
+  BackOk = Back equal array shape 1 2
+    4.0 6.0
+  end
+  Same = After equal Before
+  BackPassOk = BackOk and reduce
+  Unchanged = Same and reduce
+  BackPassOk and Unchanged
+end

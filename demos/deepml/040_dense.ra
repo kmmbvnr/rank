@@ -1,0 +1,66 @@
+rem Deep-ML 40: Dense Layer
+rem https://www.deep-ml.com/problems/40
+
+use linalg
+use numbers
+use random
+use sequences
+
+fun dense Inputs Units
+  if Inputs at most 0 or Units at most 0
+    .DomainError raise
+  end
+
+  Limit = 1 / Inputs sqrt
+  Low = -Limit
+  Shape = array Inputs Units
+  W = Shape Low Limit uniform
+  Empty = array shape 0 Inputs pad 0.0
+
+  return record
+    .units = Units
+    .trainable = true
+    .input = Empty
+    .weights = W
+    .bias = array shape Units pad 0.0
+  end
+end
+
+fun parameters Layer
+  W = Layer .weights
+  Bias = Layer .bias
+  WSize = W shape * reduce
+  return WSize + Bias len
+end
+
+fun forward_pass Layer X
+  Layer .input = X
+  W = Layer .weights
+  Bias = Layer .bias
+  return X W matmul + Bias
+end
+
+fun backward_pass Layer Grad Rate
+  X = Layer .input
+  W = Layer .weights
+  Bias = Layer .bias
+
+  Trainable = Layer .trainable
+  if Trainable
+    Xt = X transpose
+    GradW = Xt Grad matmul
+    GradB = Grad sum axis 0
+    NextW = (W - Rate * GradW) copy
+    NextB = (Bias - Rate * GradB) copy
+    Layer .weights = NextW
+    Layer .bias = NextB
+  end
+
+  Wt = W transpose
+  return Grad Wt matmul
+end
+
+fun output_shape Layer
+  Units = Layer .units
+  return array Units
+end
