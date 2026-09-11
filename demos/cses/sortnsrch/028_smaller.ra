@@ -1,0 +1,39 @@
+rem CSES 1645: Nearest Smaller Values
+rem https://cses.fi/problemset/task/1645
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+A nearest_smaller print
+
+
+rem Keep increasing positions on a stack.
+fun nearest_smaller A
+  N = A len
+  Stack = new stack
+  Answer = array shape N pad 0
+
+  for X i in A
+    for Stack len greater 0
+      Position = Stack peek
+
+      if A Position less X
+        break
+      end
+
+      Stack pop
+    end
+
+    if Stack len greater 0
+      Answer i = Stack peek + 1
+    end
+
+    Stack push i
+  end
+
+  return Answer
+end

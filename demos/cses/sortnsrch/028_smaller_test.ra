@@ -1,0 +1,27 @@
+use testing
+
+test "official example"
+  use "028_smaller"
+  Values = array 2 5 1 4 8 3 2 5
+  Expected = array 0 1 0 3 4 3 3 7
+  Values nearest_smaller equal Expected
+end
+
+test "equal values are not smaller"
+  use "028_smaller"
+  Values = array 4 4 4
+  Values nearest_smaller equal array 0 0 0
+end
+
+test "descending values"
+  use "028_smaller"
+  Values = array 5 4 3 2 1
+  Expected = array 0 0 0 0 0
+  Values nearest_smaller equal Expected
+end
+
+test "supports negative values"
+  use "028_smaller"
+  Values = array -2 3 -1 4
+  Values nearest_smaller equal array 0 1 1 3
+end
