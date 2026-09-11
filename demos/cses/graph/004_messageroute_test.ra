@@ -1,0 +1,56 @@
+use testing
+
+test "official example"
+  use "004_messageroute"
+  use graph
+  use ranges
+  Nodes = 1 to 5
+  Graph = new graph Nodes .undirected
+  Edges = array shape 5 2
+    1 2
+    1 3
+    1 4
+    2 3
+    5 4
+  end
+  Graph add Edges
+  Path = Graph 1 5 message_route
+  Path equal (array 1 4 5)
+end
+
+test "unreachable target"
+  use "004_messageroute"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .undirected
+  Graph add 1 2
+  Path = Graph 1 4 message_route
+  Path equal (array shape 0 pad 0)
+end
+
+test "single node route"
+  use "004_messageroute"
+  use graph
+  Nodes = array 1
+  Graph = new graph Nodes .undirected
+  Path = Graph 1 1 message_route
+  Path equal (array 1)
+end
+
+test "chooses a shortest route"
+  use "004_messageroute"
+  use graph
+  use ranges
+  Graph = new graph (1 to 6) .directed
+  Edges = array shape 6 2
+    1 2
+    2 3
+    3 6
+    1 4
+    4 6
+    1 2
+  end
+  Graph add Edges
+  Path = Graph 1 6 message_route
+  Path equal (array 1 4 6)
+end

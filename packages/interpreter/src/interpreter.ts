@@ -58,6 +58,7 @@ import {
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
+import { graphConstructor } from './graph.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
@@ -100,6 +101,7 @@ import {
     isRankErrorValue,
     isRankFenwick,
     isRankFile,
+    isRankGraph,
     isRankIndex,
     isRankLabel,
     isRankMultiset,
@@ -933,8 +935,20 @@ export class Interpreter {
             const mutation = explicitCollectionMutation(statement.value);
             if (mutation) {
                 return { stream: function* (): Execution<RankValue | undefined> {
-                    interpreter.requireModule('algo', mutation.operation);
                     const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
+                    if (isRankGraph(target)) {
+                        interpreter.requireModule('graph', mutation.operation);
+                        if (mutation.operation !== 'add') {
+                            throw new RankError('graph does not support remove');
+                        }
+                        const values = yield* resume(mapExecution(
+                            mutation.arguments ?? [mutation.value],
+                            value => interpreter.evaluateTask(value),
+                        ));
+                        target.add(values);
+                        return undefined;
+                    }
+                    interpreter.requireModule('algo', mutation.operation);
                     const receiver = mutation.operation === 'add'
                         ? expectAddCollection(target) : target;
                     const value = yield* resume(interpreter.evaluateTask(mutation.value));
@@ -992,6 +1006,10 @@ export class Interpreter {
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
         if (isNewStructureExpression(expression)) return () => {
+            if (expression.structure === 'graph') {
+                this.requireModule('graph', 'new graph');
+                return graphConstructor();
+            }
             this.requireModule('algo', 'new');
             return newStructure(expression.structure);
         };
@@ -1324,6 +1342,21 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
+            if (isNewStructureExpression(parts[0])
+                && parts[0].structure === 'graph') {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('graph', 'new graph');
+                    const constructor = graphConstructor();
+                    if (!isNativeFunction(constructor)) {
+                        throw new RankError('invalid graph constructor');
+                    }
+                    const arguments_ = yield* resume(mapExecution(
+                        parts.slice(1),
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    return constructor.call(arguments_);
+                };
+            }
             const namedOuter = explicitNamedOuterApplication(parts);
             if (namedOuter) {
                 return function* (): Execution<RankValue> {
@@ -1524,6 +1557,31 @@ export class Interpreter {
                         axisSelection.axis,
                         (yield* resume(interpreter.evaluateTask(axisSelection.selector))),
                     );
+                };
+            }
+            const graphEdges = explicitGraphEdges(parts);
+            if (graphEdges) {
+                return function* (): Execution<RankValue> {
+                    const receiver = yield* resume(interpreter.evaluateTask(
+                        graphEdges.receiver,
+                    ));
+                    const argument = yield* resume(interpreter.evaluateTask(
+                        graphEdges.argument,
+                    ));
+                    if (isRankGraph(receiver)) {
+                        interpreter.requireModule('graph', 'edges');
+                        return receiver.edges(argument);
+                    }
+                    const operation = yield* resume(interpreter.evaluateTask(
+                        graphEdges.operation,
+                    ));
+                    return yield* resume(interpreter.apply(
+                        [receiver, argument, operation],
+                        missing,
+                        0,
+                        [],
+                        tail,
+                    ));
                 };
             }
             const multisetMethod = explicitMultisetMethod(parts);
@@ -3331,6 +3389,9 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         }
         return value;
     }
+    if (values.length === 2 && isRankGraph(values[0])) {
+        return values[0].neighbors(values[1]);
+    }
     if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
         const atoms = [...values[0]];
         const index = values[1];
@@ -3405,7 +3466,13 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     }
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) {
-        return atArray(values[0], values.slice(1) as bigint[]);
+        const source = values[0];
+        const indices = values.slice(1) as bigint[];
+        if (source.shape.length > 0 && indices.length > source.shape.length) {
+            const selected = atArray(source, indices.slice(0, source.shape.length));
+            return applySelectors([selected, ...indices.slice(source.shape.length)], missing);
+        }
+        return atArray(source, indices);
     }
     if (values.length === 2 && isRankArray(values[0])
         && isIntegerCollectionSelector(values[1])) {
@@ -3481,6 +3548,7 @@ function seedableRandom(source?: () => number): SeedableRandom {
 
 function canApplySelectors(values: RankValue[]): boolean {
     if (values.length < 2) return false;
+    if (values.length === 2 && isRankGraph(values[0])) return true;
     if (values.length === 2 && typeof values[0] === 'string'
         && typeof values[1] === 'bigint') return true;
     if (values.length === 2 && typeof values[0] === 'string'
@@ -4315,6 +4383,7 @@ interface CollectionMutationApplication {
     readonly receiver: Expression;
     readonly operation: 'add' | 'remove';
     readonly value: Expression;
+    readonly arguments?: readonly Expression[];
 }
 
 function explicitCollectionMutation(
@@ -4326,6 +4395,7 @@ function explicitCollectionMutation(
         return {
             ...mutation,
             value: { ...expression, left: mutation.value } as Expression,
+            arguments: undefined,
         };
     }
     if (!isApplicationExpression(expression)) return undefined;
@@ -4343,7 +4413,12 @@ function explicitCollectionMutation(
         head: values[0],
         arguments: values.slice(1),
     } as Expression;
-    return { receiver, operation: operation.name, value };
+    return {
+        receiver,
+        operation: operation.name,
+        value,
+        arguments: values,
+    };
 }
 
 function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication | undefined {
@@ -4357,6 +4432,21 @@ function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication 
         receiver: parts.slice(0, position),
         operation,
         argument: parts.slice(position + 1),
+    };
+}
+
+interface GraphEdgesApplication {
+    readonly receiver: Expression;
+    readonly operation: Expression;
+    readonly argument: Expression;
+}
+
+function explicitGraphEdges(parts: Expression[]): GraphEdgesApplication | undefined {
+    if (parts.length !== 3 || !isNamed(parts[1], 'edges')) return undefined;
+    return {
+        receiver: parts[0],
+        operation: parts[1],
+        argument: parts[2],
     };
 }
 

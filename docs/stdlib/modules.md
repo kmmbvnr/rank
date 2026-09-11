@@ -917,6 +917,12 @@ zero-based cell access and assignment plus inclusive prefix sums through
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
 
+## Graph profile
+
+`use graph` provides the `new graph` constructor and graph-specific `add` and
+`edges` dispatch. Graph construction, direction, weighted bulk edges, neighbor
+sequences and vertex counts are specified in [Graphs](../language/graphs.md).
+
 ## Rule for adding library vocabulary
 
 A word belongs in the standard library when it represents a broad, reusable

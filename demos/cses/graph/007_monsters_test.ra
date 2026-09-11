@@ -1,0 +1,43 @@
+use testing
+
+test "official example"
+  use "007_monsters"
+  Grid = array shape 5
+    "########"
+    "#M..A..#"
+    "#.#.M#.#"
+    "#M#..#.."
+    "#.######"
+  end
+  Result = Grid escape_monsters
+  Result .found equal true
+  Result .path equal "RRDDR"
+end
+
+test "starts on the boundary"
+  use "007_monsters"
+  Grid = array "A.." ".M."
+  Result = Grid escape_monsters
+  Result .found equal true
+  Result .path equal ""
+end
+
+test "walls block every escape"
+  use "007_monsters"
+  Grid = array "###" "#A#" "#M#"
+  Result = Grid escape_monsters
+  Result .found equal false
+end
+
+test "monster wins a contested cell"
+  use "007_monsters"
+  Grid = array shape 5
+    "#####"
+    "#A..#"
+    "###.#"
+    "#M..."
+    "#####"
+  end
+  Result = Grid escape_monsters
+  Result .found equal false
+end

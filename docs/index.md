@@ -52,6 +52,7 @@ Adults = Data Mask
 - [Control flow and functions](language/control-functions.md)
 - [Sequences and arrays](language/sequences-arrays.md)
 - [Collections](language/collections.md)
+- [Graphs](language/graphs.md)
 - [Tables](language/tables.md)
 - [Tensor model](language/tensors.md)
 - [Standard library](stdlib/modules.md)

@@ -1,0 +1,137 @@
+rem CSES 1194: Monsters
+rem https://cses.fi/problemset/task/1194
+
+use algo
+use io
+use ranges
+use sequences
+use text
+
+Rows = stdin .integer
+Columns = stdin .integer
+Grid = stdin .word Rows array
+Result = Grid escape_monsters
+
+if Result .found
+  "YES" print
+  Result .path len print
+  Result .path print
+else
+  "NO" print
+end
+
+
+rem Escape before a monster can arrive.
+fun escape_monsters Grid
+  H = Grid len
+  W = Grid 0 len
+  DYs = array -1 1 0 0
+  DXs = array 0 0 -1 1
+  Moves = array "U" "D" "L" "R"
+  Limit = H * W + 1
+  Danger = array shape H W pad Limit
+  Start = -1
+  Pending = new queue
+
+  for Line Y in Grid
+    for Cell X in Line
+      if Cell equal "M"
+        Danger Y X = 0
+        Pending push Y * W + X
+      elif Cell equal "A"
+        Start = Y * W + X
+      end
+    end
+  end
+
+  rem Test a passable grid position.
+  fun valid Row Column
+    Inside = Row at least 0
+    Inside and= Row less H
+    Inside and= Column at least 0
+    Inside and= Column less W
+    if not Inside
+      return false
+    end
+    Cell = (Grid Row) Column
+    return Cell not equal "#"
+  end
+
+  rem Spread all monsters together.
+  for Position in Pending
+    Row = Position // W
+    Column = Position % W
+    Time = Danger Row Column + 1
+
+    for DY Direction in DYs
+      NY = Row + DY
+      NX = Column + DXs Direction
+      if NY NX valid
+        if Time less Danger NY NX
+          Danger NY NX = Time
+          Pending push NY * W + NX
+        end
+      end
+    end
+  end
+
+  Parent = array shape H W pad -1
+  Steps = array shape H W pad Limit
+  StartY = Start // W
+  StartX = Start % W
+  Parent StartY StartX = -2
+  Steps StartY StartX = 0
+  Pending = new queue
+  Pending push Start
+  Escape = -1
+
+  rem Search only cells reached in time.
+  for Position in Pending
+    Row = Position // W
+    Column = Position % W
+    Boundary = Row equal 0
+    Boundary or= Row equal H - 1
+    Boundary or= Column equal 0
+    Boundary or= Column equal W - 1
+    if Boundary
+      Escape = Position
+      break
+    end
+
+    Arrival = Steps Row Column + 1
+    for DY Direction in DYs
+      NY = Row + DY
+      NX = Column + DXs Direction
+      if NY NX valid
+        Unseen = Parent NY NX equal -1
+        Safe = Arrival less Danger NY NX
+        if Unseen and Safe
+          Parent NY NX = Direction
+          Steps NY NX = Arrival
+          Pending push NY * W + NX
+        end
+      end
+    end
+  end
+
+  Found = Escape not equal -1
+  Path = ""
+  if Found
+    Position = Escape
+    for Position not equal Start
+      Row = Position // W
+      Column = Position % W
+      Direction = Parent Row Column
+      Path += Moves Direction
+      Row -= DYs Direction
+      Column -= DXs Direction
+      Position = Row * W + Column
+    end
+    Path = Path reverse
+  end
+
+  return record
+    .found = Found
+    .path = Path
+  end
+end

@@ -170,47 +170,12 @@ addressing, and the meaning of `axis` and `rank` on unequal rows. Absent cells
 must remain distinct from numeric zero. Combining rows into a rectangular
 tensor with explicit padding is a separate conversion (see Stack / combine).
 
-## Graph representation and accelerator packing
+## Graph accelerator packing
 
-A future first-class `graph` value should separate its public behavior from
-its physical storage. CPU traversal may use mutable adjacency lists or CSR,
-while GPU and graph-learning operations may explicitly request COO or another
-packed tensor representation. Programs that iterate through neighbors must not
-depend on the chosen storage.
-
-Two construction modes are useful. A closed graph receives its vertex domain
-up front, including isolated vertices:
-
-```rank
-Nodes = 1 to NodeCount
-Graph = new graph Nodes .undirected
-```
-
-An open graph grows when edges are added:
-
-```rank
-Graph = new graph .undirected
-Graph add A B
-```
-
-Adding an edge registers both endpoints. The design still needs an operation
-for adding isolated vertices and a bulk form for a rank-2 `M 2` edge array.
-Candidate `add` forms are a scalar or rank-1 array of vertices, two scalar edge
-endpoints, and a rank-2 edge array. Their type and arity make the cases
-distinguishable, but this overload must be tested against Rank's data-first
-application rules before it becomes current syntax.
-
-Neighbor access should remain independent of construction:
-
-```rank
-Current = queue Head
-for Neighbor in Graph Current
-  queue push Neighbor
-end
-```
-
-`Graph Current` would produce a lazy sequence. Directedness should be explicit
-as `.directed` or `.undirected`; neither default is fixed yet.
+The current first-class `graph` API is specified in
+[Graphs](../language/graphs.md). Its public behavior is independent of physical
+storage, so CPU traversal may later move from mutable adjacency lists to CSR
+without changing programs.
 
 Future accelerator conversion should be explicit rather than an automatic
 materialization:
@@ -239,9 +204,8 @@ self-loops and logical undirected edges map to directed COO entries. Automatic
 deduplication would lose information needed by multigraph algorithms and edge
 features, so it should require an explicit operation if supported.
 
-All syntax in this section is illustrative. The CSES graph examples should
-settle the CPU API first; weighted traversal, packing and batching can then be
-added without changing neighbor iteration.
+Weighted traversal, packing and batching can be added without changing current
+neighbor iteration.
 
 ## Triangular matrices
 

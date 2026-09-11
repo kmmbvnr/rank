@@ -1,0 +1,70 @@
+rem CSES 1667: Message Route
+rem https://cses.fi/problemset/task/1667
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+NodeCount = stdin .integer
+EdgeCount = stdin .integer
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .undirected
+
+for i in 1 to EdgeCount
+  A = stdin .integer
+  B = stdin .integer
+  Graph add A B
+end
+
+Path = Graph 1 NodeCount message_route
+if Path len equal 0
+  "IMPOSSIBLE" print
+else
+  Path len print
+  Path print
+end
+
+
+rem Find a shortest unweighted path.
+fun message_route Graph Start Target
+  Size = Target + 1
+  Parent = array shape Size pad 0
+  Parent Start = -1
+  Pending = new queue
+  Pending push Start
+
+  for Current in Pending
+    if Current equal Target
+      break
+    end
+    for Next in Graph Current
+      if Parent Next equal 0
+        Parent Next = Current
+        Pending push Next
+      end
+    end
+  end
+
+  if Parent Target equal 0
+    return array shape 0 pad 0
+  end
+
+  Length = 0
+  Node = Target
+  for Node not equal -1
+    Length += 1
+    Node = Parent Node
+  end
+
+  Path = array shape Length pad 0
+  Position = Length - 1
+  Node = Target
+  for Node not equal -1
+    Path Position = Node
+    Position -= 1
+    Node = Parent Node
+  end
+  return Path
+end

@@ -52,6 +52,7 @@ Adults = Data Mask
 - [Control flow and functions](language/control-functions.md)
 - [Sequences and arrays](language/sequences-arrays.md)
 - [Collections](language/collections.md)
+- [Graphs](language/graphs.md)
 - [Tables](language/tables.md)
 - [Tensor model](language/tensors.md)
 - [Standard library](stdlib/modules.md)
@@ -833,9 +834,21 @@ Block = A Rows Columns
 
 The result has one preserved axis for every collection selector and every `#`,
 followed by all omitted trailing axes. Tensor selections are lazy and cached.
-Too many selectors, invalid indices and masks whose length differs from their
-axis are errors. Outside tensor addressing, `#` is valid only as a discarded
-`for` binding.
+
+Integer addressing may continue into a nested selected value after consuming
+all axes of the current tensor:
+
+```rank
+Rows = array "abc" "xyz"
+Letter = Rows 1 2
+rem z
+```
+
+For a true tensor, selectors first consume its axes together. Any remaining
+integer selectors then address the resulting value from left to right. The
+chain fails if that value is not addressable. Invalid indices and masks whose
+length differs from their axis are errors. Outside tensor addressing, `#` is
+valid only as a discarded `for` binding.
 
 `axis` remains the explicit form when an operation consumes or selects a named
 axis:
@@ -2642,6 +2655,114 @@ structures may live in modules:
 
 ---
 
+# Graphs
+
+`use graph` provides a mutable graph value for traversal algorithms. Its public
+behavior does not expose adjacency-list, CSR or other physical storage.
+
+## Construction
+
+A closed graph receives its complete finite vertex domain. This includes
+isolated vertices and makes an unknown endpoint an error:
+
+```rank
+use graph
+use ranges
+
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .undirected
+```
+
+An open graph starts empty and registers endpoints as edges arrive:
+
+```rank
+Graph = new graph .directed
+Graph add From To
+```
+
+Direction is always explicit. `.directed` stores only `From` to `To`;
+`.undirected` also makes `From` a neighbor of `To`. A self-loop appears once in
+an undirected neighbor sequence. Parallel edges are preserved.
+
+Vertices are integer, real, boolean, text or symbol scalars. A finite rank-1
+array or sequence supplies several vertices to either the closed constructor or
+`add`. The latter is useful for isolated vertices in an open graph:
+
+```rank
+Graph add Node
+Graph add Nodes
+```
+
+A rank-2 array with shape `M 2` supplies `M` edges:
+
+```rank
+Edges = array shape 3 2
+  1 2
+  2 4
+  4 1
+end
+Graph add Edges
+```
+
+An edge has weight `1` unless `add` supplies a numeric weight. Weighted bulk
+input has shape `M 3`, with source, target and weight columns:
+
+```rank
+Graph add From To Cost
+
+Flights = array shape 2 3
+  1 2 6
+  2 3 -4
+end
+Graph add Flights
+```
+
+Integer and real weights are accepted. Negative weights are preserved for
+algorithms such as Bellman-Ford; the graph does not choose an algorithm or
+interpret their sign.
+
+`Graph add A B` and `Graph add Edges` dispatch only after `Graph` evaluates to
+a graph. The word `add` remains available to user functions and other
+collections.
+
+## Neighbors and size
+
+Address a graph with one vertex to obtain a finite lazy sequence of its
+neighbors:
+
+```rank
+for Next in Graph Current
+  queue push Next
+end
+```
+
+The sequence is a snapshot of that vertex's neighbors when `Graph Current` is
+evaluated. Later graph mutations do not change an existing sequence. Neighbor
+order follows edge insertion order.
+
+The contextual `edges` method returns the same outgoing entries as lazy
+rank-1 pairs `array Next Cost`. `unpack` gives readable access without changing
+the compact neighbor form:
+
+```rank
+for Edge in Graph edges Current
+  unpack Next Cost = Edge
+end
+```
+
+For an undirected graph, the reverse entry has the same weight. Unweighted
+entries appear with cost `1`. Like `add`, `edges` dispatches only when its
+receiver evaluates to a graph and does not reserve the word for other values.
+
+For an open graph, an unknown vertex has an empty neighbor sequence and does not
+register the vertex. A closed graph raises `.Missing` for an unknown vertex.
+`Graph len` returns the vertex count, and `Graph type` returns `.graph`.
+
+Graphs are reference values: assignment and argument passing share mutations.
+Removing vertices or edges is not part of the current API.
+
+---
+
 # Tables
 
 Tables reuse Rank's normal addressing model.
@@ -3314,6 +3435,7 @@ Current module directions:
 use numbers
 use random
 use linalg
+use bits
 use ranges
 use collections
 use graph
@@ -3531,6 +3653,24 @@ so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
 
+## Sequences
+
+`all`, `any` and `count` are named boolean reductions:
+
+```rank
+Every = Mask all
+Some = Mask any
+TrueCount = Mask count
+Rows = Flags all axis 1
+RowCounts = Flags count axis 1
+```
+
+`all` and `any` are equivalent to `and reduce` and `or reduce`, respectively.
+`count` returns the integer number of `true` values. All three accept only
+boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
+`count` examines the complete cell. Empty collections produce `true`, `false`
+and zero, respectively. Known unbounded sequences are rejected.
+
 ## Random
 
 `use random` provides random permutation operations:
@@ -3674,6 +3814,13 @@ number of set bits. `bit` and `popcount` require a nonnegative input value.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
 
+The two-argument forms of `band`, `bor`, `bxor`, `shl` and `shr` have intrinsic
+ranks `0 0`, so they can be passed to `outer`:
+
+```rank
+Grid = Values Values bxor outer
+```
+
 `binary` formats a nonnegative integer as text. With one argument it uses the
 shortest representation, including `"0"` for zero. A positive integer width
 pads with leading zeroes and raises an error when the value does not fit:
@@ -3775,8 +3922,8 @@ Cov = Samples covariance axis 1 0
 `mean` and `std` accept a numeric array or finite sequence and always return a
 `real`. `std` divides by the population denominator `N`. An empty input raises
 `.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
-is described in [Tensors](language/tensors.md). `std` rejects nonfinite cells
-with `.DomainError`.
+is described in [Tensors](../language/tensors.md). `std` rejects nonfinite
+cells with `.DomainError`.
 
 `mse` and `mae` calculate mean squared error and mean absolute error between
 two numeric values, finite sequences or arrays:
@@ -4189,13 +4336,19 @@ creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
 occurrence by zero-based index. Its lookup and mutation operations take expected
 `O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
 and therefore compose with `pad`. The complete collection semantics are defined
-in the Collections section.
+in [Collections](../language/collections.md).
 
 `Size fenwick` constructs a fixed-size integer Fenwick tree. It supports
 zero-based cell access and assignment plus inclusive prefix sums through
-`F sum I`, all as specified in the Collections section.
+`F sum I`, all as specified in [Collections](../language/collections.md).
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
+
+## Graph profile
+
+`use graph` provides the `new graph` constructor and graph-specific `add` and
+`edges` dispatch. Graph construction, direction, weighted bulk edges, neighbor
+sequences and vertex counts are specified in [Graphs](../language/graphs.md).
 
 ## Rule for adding library vocabulary
 
