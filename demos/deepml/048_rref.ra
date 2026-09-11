@@ -1,0 +1,49 @@
+rem Deep-ML 48: RREF
+rem https://www.deep-ml.com/problems/48
+
+use ranges
+use sequences
+
+fun rref A
+  Rows = A len axis 0
+  Cols = A len axis 1
+  Work = (A * 1.0) copy
+  Row = 0
+
+  for Col in 0 until Cols
+    if Row at least Rows
+      break
+    end
+
+    Pivot = -1
+    for I in Row until Rows
+      if Work I Col not equal 0
+        Pivot = I
+        break
+      end
+    end
+    if Pivot equal -1
+      continue
+    end
+
+    if Pivot not equal Row
+      Saved = Work Row copy
+      Work Row = Work Pivot
+      Work Pivot = Saved
+    end
+
+    Divisor = Work Row Col
+    Work Row /= Divisor
+
+    for I in 0 until Rows
+      if I equal Row
+        continue
+      end
+      Factor = Work I Col
+      Work I -= Factor * Work Row
+    end
+    Row += 1
+  end
+
+  return Work
+end
