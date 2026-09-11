@@ -1,0 +1,28 @@
+use testing
+
+test "official example"
+  use "003_exponentiation2"
+  3 7 1 power_tower equal 2187
+  15 2 2 power_tower equal 50625
+  3 4 5 power_tower equal 763327764
+end
+
+test "zero exponent tower"
+  use "003_exponentiation2"
+  8 0 1 power_tower equal 1
+end
+
+test "zero to zero convention"
+  use "003_exponentiation2"
+  0 0 0 power_tower equal 0
+  0 0 1 power_tower equal 1
+end
+
+test "large tower is reduced"
+  use "003_exponentiation2"
+  A = 999999937
+  B = 1000000000
+  C = 1000000000
+  Actual = A B C power_tower
+  Actual equal 990216301
+end

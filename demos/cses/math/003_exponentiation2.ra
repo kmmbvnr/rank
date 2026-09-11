@@ -1,0 +1,24 @@
+rem CSES 1712: Exponentiation II
+rem https://cses.fi/problemset/task/1712
+
+use io
+use numbers
+use ranges
+
+Count = stdin .integer
+
+for Query in 1 to Count
+  A = stdin .integer
+  B = stdin .integer
+  C = stdin .integer
+  A B C power_tower print
+end
+
+
+rem Evaluate A raised to B raised to C.
+fun power_tower A B C
+  Modulus = 1000000007
+  Phi = Modulus - 1
+  Exponent = B C Phi powmod
+  return A Exponent Modulus powmod
+end

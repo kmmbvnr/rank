@@ -1,0 +1,21 @@
+rem CSES 1095: Exponentiation
+rem https://cses.fi/problemset/task/1095
+
+use io
+use numbers
+use ranges
+
+Count = stdin .integer
+
+for Query in 1 to Count
+  Base = stdin .integer
+  Exponent = stdin .integer
+  Base Exponent power print
+end
+
+
+rem Raise Base modulo the task modulus.
+fun power Base Exponent
+  Modulus = 1000000007
+  return Base Exponent Modulus powmod
+end

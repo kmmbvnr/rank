@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "002_exponentiation"
+  3 4 power equal 81
+  2 8 power equal 256
+  123 123 power equal 921450052
+end
+
+test "zero exponent"
+  use "002_exponentiation"
+  987654321 0 power equal 1
+end
+
+test "zero to zero is one"
+  use "002_exponentiation"
+  0 0 power equal 1
+end
+
+test "reduces large powers"
+  use "002_exponentiation"
+  Base = 1000000000
+  Exponent = 1000000000
+  Actual = Base Exponent power
+  Actual equal 312556845
+end
