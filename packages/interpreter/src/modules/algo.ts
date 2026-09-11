@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { addToCollection } from '../collections.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -16,7 +17,7 @@ import type { RuntimeModule } from './types.js';
 export const algoModule: RuntimeModule = {
     multiset: () => native('multiset', 1, arguments_ => multisetValue(arguments_[0])),
     add: () => native('add', 2, arguments_ =>
-        expectMultiset(arguments_[0]).add(arguments_[1])),
+        addToCollection(arguments_[0], arguments_[1])),
     remove: () => native('remove', 2, arguments_ =>
         expectMultiset(arguments_[0]).remove(arguments_[1])),
     floor: () => native('floor', 2, arguments_ =>

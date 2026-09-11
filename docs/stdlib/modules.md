@@ -788,6 +788,10 @@ year
 `use algo` provides algorithmic collections and combinatorial generators:
 
 ```rank
+Seen = new set
+Counts = new counter
+Seen add Value
+Counts add Value
 Bag = Values multiset
 Bag add Value
 Bag remove Value

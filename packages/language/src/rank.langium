@@ -245,12 +245,16 @@ ArrayAtom returns Expression:
     StringLiteral |
     BooleanLiteral |
     LabelLiteral |
+    NewStructureExpression |
     StdinExpression |
     NameExpression |
     ParenthesizedExpression;
 
 StdinExpression:
     'stdin' mode=LabelLiteral count=PrimaryExpression?;
+
+NewStructureExpression:
+    'new' structure=(WORD | 'index');
 
 NumberLiteral:
     value=(REAL | INTEGER);

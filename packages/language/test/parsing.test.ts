@@ -78,6 +78,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses explicit structure creation inside assignments and calls', async () => {
+        const document = await parse('A = new index\nB = new queue\nC = new set\nD = new counter\nB push new set');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements[0]).toMatchObject({
+            $type: 'AssignmentStatement',
+            value: { $type: 'NewStructureExpression', structure: 'index' },
+        });
+    });
+
     it('parses real and floor division expressions', async () => {
         const document = await parse('Mean = 5 / 2.0\nPage = 5 // 2\nPage //= 2');
         expect(document.parseResult.lexerErrors).toEqual([]);

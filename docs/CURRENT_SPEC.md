@@ -2120,6 +2120,46 @@ row-selection rule.
 `use algo` provides standard algorithmic collections. `index`, `queue`, `set`
 and `counter` support implicit local naming; ordered multisets are named.
 
+## Named structures
+
+Use `new` to create an independent empty structure. Each evaluation creates
+a new instance and requires `use algo`:
+
+```rank
+use algo
+Graph = new index
+Distance = new index
+Seen = new set
+Counts = new counter
+Pending = new queue
+
+Graph 1 2 = 10
+Distance 1 = 0
+Seen add 1
+Counts add 1
+Pending push 1
+```
+
+The four constructors are `new index`, `new queue`, `new set` and
+`new counter`. They do not replace the implicit local instance. Ordered
+multisets keep their existing `Values multiset` constructor.
+
+Assignment and argument passing preserve the structure's reference.
+`Alias = Seen` shares `Seen`; `Seen = set` shares the current implicit set.
+Neither assignment creates a copy. Named structures can be captured by local
+functions and returned from functions.
+
+Named sets and counters accept `Name add Value`. A set keeps one equal
+element; a counter increments that element's frequency. The whole expression
+after `add` is evaluated once. Ordinary postfix calls `Name Value add`
+also work, and `add` returns the receiver when used as a function. Named
+queues accept `Name push Value`; named indices use addressed assignment.
+
+Bare `index`, `queue`, `set` and `counter` refer only to the current
+function call's implicit instances, or the module instances at top level.
+Reading and writing use the same instances. To share a structure with another
+function, pass or capture its explicit name.
+
 ## Implicit local structure
 
 If a function uses only one instance of a standard structure, the type word
@@ -3791,6 +3831,10 @@ year
 `use algo` provides algorithmic collections and combinatorial generators:
 
 ```rank
+Seen = new set
+Counts = new counter
+Seen add Value
+Counts add Value
 Bag = Values multiset
 Bag add Value
 Bag remove Value

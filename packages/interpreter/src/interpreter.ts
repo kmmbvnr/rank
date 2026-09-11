@@ -3,6 +3,7 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
+import { addToCollection, expectAddCollection, newStructure } from './collections.js';
 import { prepareFunction } from './prepared-function.js';
 import {
     isAddStatement,
@@ -25,6 +26,7 @@ import {
     isLabelLiteral,
     isMaterializeExpression,
     isNameExpression,
+    isNewStructureExpression,
     isNumberLiteral,
     isOptionStatement,
     isParenthesizedExpression,
@@ -753,14 +755,9 @@ export class Interpreter {
             return { stream: function* (): Execution<RankValue | undefined> {
                 const value = (yield* resume(interpreter.evaluateTask(statement.value)));
                 if (statement.structure.startsWith('counter')) {
-                    const receiver = interpreter.localCounter();
-                    const key = setValueKey(value);
-                    const existing = receiver.entries.get(key);
-                    if (existing) existing.count += 1n;
-                    else receiver.entries.set(key, { value, count: 1n });
+                    addToCollection(interpreter.localCounter(), value);
                 } else {
-                    const receiver = interpreter.localSet();
-                    receiver.entries.set(setValueKey(value), value);
+                    addToCollection(interpreter.localSet(), value);
                 }
                 return undefined;
             } };
@@ -883,16 +880,16 @@ export class Interpreter {
             } };
         }
         if (isExpressionStatement(statement)) {
-            const mutation = explicitMultisetMutation(statement.value);
+            const mutation = explicitCollectionMutation(statement.value);
             if (mutation) {
                 return { stream: function* (): Execution<RankValue | undefined> {
                     interpreter.requireModule('algo', mutation.operation);
-                    const receiver = expectMultiset(
-                        yield* resume(interpreter.evaluateTask(mutation.receiver)),
-                    );
+                    const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
+                    const receiver = mutation.operation === 'add'
+                        ? expectAddCollection(target) : expectMultiset(target);
                     const value = yield* resume(interpreter.evaluateTask(mutation.value));
-                    if (mutation.operation === 'add') receiver.add(value);
-                    else receiver.remove(value);
+                    if (mutation.operation === 'add') addToCollection(receiver, value);
+                    else expectMultiset(receiver).remove(value);
                     return undefined;
                 } };
             }
@@ -940,6 +937,10 @@ export class Interpreter {
     // call. Keep those small syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
+        if (isNewStructureExpression(expression)) return () => {
+            this.requireModule('algo', 'new');
+            return newStructure(expression.structure);
+        };
         if (isNumberLiteral(expression) || isBooleanLiteral(expression) || isStringLiteral(expression)) {
             return () => expression.value;
         }
@@ -990,6 +991,10 @@ export class Interpreter {
         tail = false,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
+        if (isNewStructureExpression(expression)) {
+            const create = this.compileDirectExpression(expression)!;
+            return () => completed(create());
+        }
         if (isNumberLiteral(expression) || isBooleanLiteral(expression)) {
             return function* (): Execution<RankValue> { return expression.value; };
         }
@@ -1914,14 +1919,14 @@ export class Interpreter {
             return child.resolveVariable(member);
         }
         if (name === 'index') return this.localIndex();
+        if (name === 'queue') return this.localQueue();
+        if (name === 'set') return this.localSet();
+        if (name === 'counter') return this.localCounter();
         const variable = this.findVariable(name);
         if (variable !== undefined) {
             return variable;
         }
 
-        if (name === 'queue') return this.localQueue();
-        if (name === 'set') return this.localSet();
-        if (name === 'counter') return this.localCounter();
         if (name === 'raise') return raiseFunction;
         if (name === 'type') return typeFunction;
 
@@ -3817,17 +3822,17 @@ interface MultisetMethodApplication {
     readonly argument: Expression[];
 }
 
-interface MultisetMutationApplication {
+interface CollectionMutationApplication {
     readonly receiver: Expression;
     readonly operation: 'add' | 'remove';
     readonly value: Expression;
 }
 
-function explicitMultisetMutation(
+function explicitCollectionMutation(
     expression: Expression,
-): MultisetMutationApplication | undefined {
+): CollectionMutationApplication | undefined {
     if (isBinaryExpression(expression)) {
-        const mutation = explicitMultisetMutation(expression.left);
+        const mutation = explicitCollectionMutation(expression.left);
         if (!mutation) return undefined;
         return {
             ...mutation,
