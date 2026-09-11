@@ -1,0 +1,15 @@
+rem Deep-ML 44: Leaky ReLU
+rem https://www.deep-ml.com/problems/44
+
+rem Apply a chosen negative slope.
+fun leaky_relu_with Z Alpha
+  if Z greater 0
+    return Z
+  end
+  return Alpha * Z
+end
+
+rem Apply the conventional 0.01 slope.
+fun leaky_relu Z
+  return Z 0.01 leaky_relu_with
+end

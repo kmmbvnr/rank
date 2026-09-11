@@ -1,0 +1,26 @@
+use testing
+
+test "official positive five"
+  use "044_leakyrelu"
+  5 leaky_relu equal 5
+end
+
+test "official positive one"
+  use "044_leakyrelu"
+  1 leaky_relu equal 1
+end
+
+test "official negative one"
+  use "044_leakyrelu"
+  (-1) leaky_relu equal -0.01
+end
+
+test "custom negative slope"
+  use "044_leakyrelu"
+  (-2) 0.1 leaky_relu_with equal -0.2
+end
+
+test "zero remains zero"
+  use "044_leakyrelu"
+  0 leaky_relu equal 0.0
+end
