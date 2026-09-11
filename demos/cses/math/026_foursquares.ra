@@ -1,0 +1,43 @@
+rem CSES 3355: Sum of Four Squares
+rem https://cses.fi/problemset/task/3355
+
+use algo
+use io
+use numbers
+use ranges
+
+Tests = stdin .integer
+for Test in 1 to Tests
+  N = stdin .integer
+  N four_squares print
+end
+
+
+rem Meet two pairs of squares by sum.
+fun four_squares N
+  Limit = N isqrt
+  Width = Limit + 1
+
+  for A in 0 to Limit
+    Remaining = N - A ** 2
+    for B in 0 to Remaining isqrt
+      Sum = A ** 2 + B ** 2
+      Code = A * Width + B
+      index Sum = Code
+
+      Need = N - Sum
+      if Need in index
+        Other = index Need
+        C = Other // Width
+        D = Other % Width
+        return array A B C D
+      end
+    end
+  end
+end
+
+
+rem Check the represented value.
+fun square_sum Values
+  return (Values ** 2) sum
+end

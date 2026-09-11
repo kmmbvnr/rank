@@ -1,0 +1,25 @@
+use testing
+
+test "zero"
+  use "026_foursquares"
+  Result = 0 four_squares
+  Result square_sum equal 0
+end
+
+test "small value"
+  use "026_foursquares"
+  Result = 5 four_squares
+  Result square_sum equal 5
+end
+
+test "official value"
+  use "026_foursquares"
+  Result = 322266 four_squares
+  Result square_sum equal 322266
+end
+
+test "upper limit"
+  use "026_foursquares"
+  Result = 10000000 four_squares
+  Result square_sum equal 10000000
+end
