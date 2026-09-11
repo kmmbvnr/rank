@@ -79,6 +79,7 @@ array (Color .possible) (Colors 1) (Colors 2) (Colors 3) (Failure .possible)
 
     it('runs Dijkstra with integer and real weights', () => {
         expect(run(`${prelude}use ranges
+use numbers
 Graph = new graph (1 to 4) .directed
 Graph add 1 2 5
 Graph add 1 3 1.5
@@ -89,6 +90,33 @@ Distance = Result .distance
 Parent = Result .parent
 array (Distance 2) (Distance 4) (Parent 2)
 `)).toBe('3 5 3');
+    });
+
+    it('runs Bellman-Ford with negative edges', () => {
+        expect(run(`${prelude}use ranges
+use numbers
+Graph = new graph (1 to 4) .directed
+Graph add 1 2 4
+Graph add 1 3 5
+Graph add 2 3 (-2)
+Result = Graph 1 bellmanford
+Distance = Result .distance
+array (Distance 3) ((Result .negative) len) (Distance 4 pad infinity)
+`)).toBe('2 0 infinity');
+    });
+
+    it('marks vertices after reachable negative cycles', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 5) .directed
+Graph add 1 2 1
+Graph add 2 3 (-2)
+Graph add 3 2 1
+Graph add 3 4 1
+Graph add 5 5 (-1)
+Result = Graph 1 bellmanford
+Negative = Result .negative
+array (2 in Negative) (3 in Negative) (4 in Negative) (5 in Negative)
+`)).toBe('true true true false');
     });
 
     it('topologically sorts a DAG and reports a cycle', () => {

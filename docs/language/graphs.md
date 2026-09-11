@@ -140,3 +140,9 @@ the same `.count`, `.component`, and `.roots` fields as `components`.
 
 All indices use the graph's scalar vertices as keys. Missing distances and
 parents remain missing values, so existing `pad` handling applies.
+
+`Graph Start bellmanford` accepts negative weights. Its `.distance` and
+`.parent` indices cover vertices reachable from `Start`; `.negative` is a set
+of every reachable vertex whose shortest distance is unbounded below because
+of a reachable negative cycle. Distances stored for those vertices are
+intermediate values and must not be used as shortest paths.

@@ -2804,6 +2804,12 @@ the same `.count`, `.component`, and `.roots` fields as `components`.
 All indices use the graph's scalar vertices as keys. Missing distances and
 parents remain missing values, so existing `pad` handling applies.
 
+`Graph Start bellmanford` accepts negative weights. Its `.distance` and
+`.parent` indices cover vertices reachable from `Start`; `.negative` is a set
+of every reachable vertex whose shortest distance is unbounded below because
+of a reachable negative cycle. Distances stored for those vertices are
+intermediate values and must not be used as shortest paths.
+
 ---
 
 # Tables
@@ -4391,7 +4397,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`topological`, and `scc` algorithms. Their inputs and result records are specified in
+`bellmanford`, `topological`, and `scc` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
 
 ## Rule for adding library vocabulary

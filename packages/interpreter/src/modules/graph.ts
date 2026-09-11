@@ -37,6 +37,10 @@ export const graphModule: RuntimeModule = {
         const graph = expectGraph(values[0]);
         return searchRecord(graph, dijkstra(graph, values[1]));
     }),
+    bellmanford: () => native('bellmanford', 2, values => {
+        const graph = expectGraph(values[0]);
+        return bellmanFordRecord(graph, values[1]);
+    }),
     topological: () => native('topological', 1, values =>
         topologicalRecord(expectGraph(values[0]))),
     scc: () => native('scc', 1, values =>
@@ -214,6 +218,60 @@ function dijkstra(graph: GraphValue, start: RankValue): SearchState {
     return { distance, parent, order };
 }
 
+function bellmanFordRecord(graph: GraphValue, start: RankValue): RankRecord {
+    const startKey = requireVertex(graph, start);
+    const distance = new Map<string, Numeric>([[startKey, 0n]]);
+    const parent = new Map<string, RankValue>();
+    for (let pass = 1; pass < graph.size; pass += 1) {
+        let changed = false;
+        for (const [from, edges] of graph.adjacency) {
+            const base = distance.get(from);
+            if (base === undefined) continue;
+            for (const edge of edges) {
+                const to = setValueKey(edge.target);
+                const candidate = numericAdd(base, edge.weight);
+                const previous = distance.get(to);
+                if (previous !== undefined && numericCompare(candidate, previous) >= 0) continue;
+                distance.set(to, candidate);
+                parent.set(to, graph.vertices.get(from)!);
+                changed = true;
+            }
+        }
+        if (!changed) break;
+    }
+
+    const negativeKeys = new Set<string>();
+    const queue: RankValue[] = [];
+    for (const [from, edges] of graph.adjacency) {
+        const base = distance.get(from);
+        if (base === undefined) continue;
+        for (const edge of edges) {
+            const to = setValueKey(edge.target);
+            const previous = distance.get(to);
+            if (previous !== undefined
+                && numericCompare(numericAdd(base, edge.weight), previous) < 0
+                && !negativeKeys.has(to)) {
+                negativeKeys.add(to);
+                queue.push(edge.target);
+            }
+        }
+    }
+    for (let head = 0; head < queue.length; head += 1) {
+        const current = queue[head];
+        for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+            const key = setValueKey(edge.target);
+            if (negativeKeys.has(key)) continue;
+            negativeKeys.add(key);
+            queue.push(edge.target);
+        }
+    }
+    return record({
+        distance: indexFrom(graph, distance),
+        parent: indexFrom(graph, parent),
+        negative: setFrom(graph, negativeKeys),
+    });
+}
+
 function componentRecord(graph: GraphValue): RankRecord {
     requireUndirected(graph, 'components');
     const component = new Map<string, Numeric>();
@@ -288,6 +346,15 @@ function indexFrom(
         entries.set(indexKey([vertex]), value);
     }
     return entries.resources.track({ kind: 'index', entries });
+}
+
+function setFrom(graph: GraphValue, keys: ReadonlySet<string>): RankValue {
+    const entries = new ResourceMap<RankValue>(value => value);
+    for (const key of keys) {
+        const vertex = graph.vertices.get(key)!;
+        entries.set(setValueKey(vertex), vertex);
+    }
+    return entries.resources.track({ kind: 'set', entries });
 }
 
 function record(fields: Record<string, RankValue>): RankRecord {
