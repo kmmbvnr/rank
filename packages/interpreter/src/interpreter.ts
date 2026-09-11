@@ -88,6 +88,7 @@ import {
     atSequence,
     boundSequence,
     filterSequence,
+    lowerBoundSequence,
     mapSequence,
     materializeSequence,
     sequence,
@@ -1518,6 +1519,19 @@ export class Interpreter {
                     const remaining = yield* resume(mapExecution(parts.slice(textFormat + 2),
                         part => interpreter.evaluateTask(part)));
                     return remaining.length ? yield* resume(interpreter.apply([result, ...remaining], missing, 0, [], tail)) : result;
+                };
+            }
+            const lowerBound = explicitLowerBoundApplication(parts);
+            if (lowerBound) {
+                return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(lowerBound.source));
+                    if (!isRankSequence(source)) {
+                        throw new RankError('from expects a sequence source');
+                    }
+                    const limit = expectInteger(
+                        yield* resume(interpreter.evaluateTask(lowerBound.limit)),
+                    );
+                    return lowerBoundSequence(source, limit);
                 };
             }
             const round = explicitRoundApplication(parts);
@@ -4201,6 +4215,13 @@ interface InlineSlice {
     readonly start: Expression;
     readonly end: Expression;
     readonly inclusive: boolean;
+}
+
+function explicitLowerBoundApplication(
+    parts: Expression[],
+): { source: Expression; limit: Expression } | undefined {
+    if (parts.length !== 3 || !isNamed(parts[1], 'from')) return undefined;
+    return { source: parts[0], limit: parts[2] };
 }
 
 function inlineSlice(expression: Expression): InlineSlice | undefined {

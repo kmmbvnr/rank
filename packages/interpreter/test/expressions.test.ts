@@ -575,6 +575,31 @@ describe('Rank expressions and sequences', () => {
         expect(run('use sequences\n18 in primes')).toBe('false');
         expect(run('use sequences\n23 in (primes until 20)')).toBe('false');
         expect(run('use sequences\n8 in (fibonacci to 20)')).toBe('true');
+        expect(run('use sequences\nP = primes from 10\nP 0')).toBe('11');
+        expect(run('use sequences\nP = primes from 11\nP 0')).toBe('11');
+        expect(run([
+            'use sequences',
+            'P = primes from 10',
+            'P = P until 20',
+            'P',
+        ].join('\n'))).toBe('11 13 17 19');
+        expect(run([
+            'use sequences',
+            'P = primes from 100',
+            'P = P from 10',
+            'P 0',
+        ].join('\n'))).toBe('101');
+        expect(run([
+            'use sequences',
+            'F = fibonacci from 8',
+            'F = F to 34',
+            'F',
+        ].join('\n'))).toBe('8 13 21 34');
+        expect(() => run([
+            'use ranges',
+            'R = 1 to 5',
+            'R from 3',
+        ].join('\n'))).toThrowError('does not support from');
         expect(() => run('use sequences\nprimes (-1)'))
             .toThrowError('sequence index must be nonnegative');
         expect(() => run('use sequences\n(primes until 10) 4'))

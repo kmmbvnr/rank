@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "010_nextprime"
+  1 next_prime equal 2
+  2 next_prime equal 3
+  3 next_prime equal 5
+  42 next_prime equal 43
+  1337 next_prime equal 1361
+end
+
+test "always advances past a prime"
+  use "010_nextprime"
+  17 next_prime equal 19
+end
+
+test "skips a composite interval"
+  use "010_nextprime"
+  113 next_prime equal 127
+end
+
+test "seeks near the upper limit"
+  use "010_nextprime"
+  N = 999999999999
+  N next_prime equal 1000000000039
+end

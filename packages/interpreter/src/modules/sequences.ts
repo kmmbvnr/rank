@@ -463,27 +463,40 @@ function lengthOf(value: RankValue): bigint {
     return length;
 }
 
-function fibonacciPlan(boundary?: Boundary, evenOnly = false): SequencePlan {
+function fibonacciPlan(
+    boundary?: Boundary,
+    evenOnly = false,
+    lower?: Boundary,
+): SequencePlan {
     return {
         name: evenOnly ? 'even fibonacci' : 'fibonacci',
         size: boundary
-            ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly) }
+            ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly, lower) }
             : { kind: 'infinite' },
         *iterate() {
             let current = evenOnly ? 2n : 1n;
             let next = evenOnly ? 8n : 2n;
             while (!boundary || within(current, boundary)) {
-                yield current;
+                if (!lower || above(current, lower)) yield current;
                 [current, next] = evenOnly
                     ? [next, 4n * next + current]
                     : [next, current + next];
             }
         },
         withUpperBound(limit, inclusive) {
-            return fibonacciPlan({ limit, inclusive }, evenOnly);
+            return fibonacciPlan({ limit, inclusive }, evenOnly, lower);
+        },
+        withLowerBound(limit, inclusive) {
+            return fibonacciPlan(
+                boundary,
+                evenOnly,
+                strongerLower(lower, { limit, inclusive }),
+            );
         },
         withFilter(predicate: SequencePredicate) {
-            if (predicate.optimizationKey === 'even') return fibonacciPlan(boundary, true);
+            if (predicate.optimizationKey === 'even') {
+                return fibonacciPlan(boundary, true, lower);
+            }
             return undefined;
         },
     };
@@ -493,12 +506,26 @@ function within(value: bigint, boundary: Boundary): boolean {
     return boundary.inclusive ? value <= boundary.limit : value < boundary.limit;
 }
 
-function fibonacciSize(boundary: Boundary, evenOnly: boolean): bigint {
+function above(value: bigint, boundary: Boundary): boolean {
+    return boundary.inclusive ? value >= boundary.limit : value > boundary.limit;
+}
+
+function strongerLower(left: Boundary | undefined, right: Boundary): Boundary {
+    if (!left || right.limit > left.limit) return right;
+    if (left.limit > right.limit) return left;
+    return { limit: left.limit, inclusive: left.inclusive && right.inclusive };
+}
+
+function fibonacciSize(
+    boundary: Boundary,
+    evenOnly: boolean,
+    lower?: Boundary,
+): bigint {
     let count = 0n;
     let current = evenOnly ? 2n : 1n;
     let next = evenOnly ? 8n : 2n;
     while (within(current, boundary)) {
-        count += 1n;
+        if (!lower || above(current, lower)) count += 1n;
         [current, next] = evenOnly
             ? [next, 4n * next + current]
             : [next, current + next];
@@ -506,27 +533,31 @@ function fibonacciSize(boundary: Boundary, evenOnly: boolean): bigint {
     return count;
 }
 
-function primePlan(boundary?: Boundary): SequencePlan {
+function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     return {
         name: 'primes',
         size: boundary ? { kind: 'unknown' } : { kind: 'infinite' },
-        iterate: () => primeIterator(boundary),
+        iterate: () => primeIterator(boundary, lower),
         contains(value) {
             const integer = membershipInteger(value);
             return integer !== undefined
                 && (!boundary || within(integer, boundary))
+                && (!lower || above(integer, lower))
                 && primeMembership(integer);
         },
         at(index) {
             let current = 0n;
-            for (const value of primeIterator(boundary)) {
+            for (const value of primeIterator(boundary, lower)) {
                 if (current === index) return value;
                 current += 1n;
             }
             return undefined;
         },
         withUpperBound(limit, inclusive) {
-            return primePlan({ limit, inclusive });
+            return primePlan({ limit, inclusive }, lower);
+        },
+        withLowerBound(limit, inclusive) {
+            return primePlan(boundary, strongerLower(lower, { limit, inclusive }));
         },
     };
 }
@@ -559,7 +590,23 @@ function extendMembershipPrimes(value: bigint): void {
     }
 }
 
-function* primeIterator(boundary?: Boundary): IterableIterator<bigint> {
+function* primeIterator(
+    boundary?: Boundary,
+    lower?: Boundary,
+): IterableIterator<bigint> {
+    if (lower) {
+        let candidate = lower.limit;
+        if (!lower.inclusive) candidate += 1n;
+        if (candidate <= 2n) {
+            if (!boundary || within(2n, boundary)) yield 2n;
+            candidate = 3n;
+        }
+        if (candidate % 2n === 0n) candidate += 1n;
+        for (; !boundary || within(candidate, boundary); candidate += 2n) {
+            if (primeMembership(candidate)) yield candidate;
+        }
+        return;
+    }
     const found: bigint[] = [];
     for (let candidate = 2n; !boundary || within(candidate, boundary); candidate += 1n) {
         if (isPrime(candidate, found)) {

@@ -55,6 +55,18 @@ export function boundSequence(
     return sequence(planned);
 }
 
+export function lowerBoundSequence(
+    source: RankSequence,
+    limit: bigint,
+    inclusive = true,
+): RankSequence {
+    const planned = source.plan.withLowerBound?.(limit, inclusive);
+    if (!planned) {
+        throw new RankError(`${source.plan.name} does not support from`);
+    }
+    return sequence(planned);
+}
+
 export function atSequence(source: RankSequence, index: bigint): RankValue {
     if (index < 0n) throw new RankError('sequence index must be nonnegative');
     if (source.plan.size.kind === 'exact' && index >= source.plan.size.value) {

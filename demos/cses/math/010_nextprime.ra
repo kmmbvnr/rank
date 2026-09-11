@@ -1,0 +1,20 @@
+rem CSES 3396: Next Prime
+rem https://cses.fi/problemset/task/3396
+
+use io
+use ranges
+use sequences
+
+Tests = stdin .integer
+
+for Test in 1 to Tests
+  N = stdin .integer
+  N next_prime print
+end
+
+
+rem Seek to the first prime after N.
+fun next_prime N
+  Candidates = primes from (N + 1)
+  return Candidates 0
+end

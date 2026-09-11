@@ -1629,13 +1629,29 @@ BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
 
+`from` gives an ordered source an inclusive lower value bound:
+
+```rank
+Candidates = primes from 100
+First = Candidates 0
+rem First is 101
+```
+
+This is a source boundary rather than a positional slice. `primes` seeks to
+the first candidate at least equal to the bound, and `fibonacci` advances its
+recurrence to the first matching value. The result remains unbounded unless it
+also receives `to` or `until`. A source that cannot interpret a lower value
+bound reports an error.
+
+The existing `A from Start until End` form remains positional slicing.
+
 Sequence sources may accept bounds, filters and reductions in their own plan.
 For example, applying an `even` mask to `fibonacci` allows the source to produce
 only `2 8 34 ...`. A source that has no specialized implementation uses the
 general lazy operation with the same observable result.
 
-Boundary operations such as `from`, `to` and `until` may be pushed into the
-source by the execution planner when the source can seek efficiently.
+Sequence plans expose lower- and upper-bound hooks, so other ordered sources
+can implement `from`, `to` and `until` without enumerating discarded prefixes.
 
 ## Explicit materialization
 
@@ -4154,6 +4170,18 @@ zero-based position through normal sequence addressing:
 BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
+
+`from` sets an inclusive lower value boundary and lets the source seek instead
+of enumerating the discarded prefix:
+
+```rank
+Candidates = primes from 100
+First = Candidates 0
+rem First is 101
+```
+
+`fibonacci from Lower` uses the same plan interface. A lower-bounded source is
+still infinite until `to` or `until` supplies an upper boundary.
 
 `in` performs optimized primality testing on this source without enumerating
 an unbounded prefix:

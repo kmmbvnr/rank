@@ -460,6 +460,18 @@ BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
 
+`from` sets an inclusive lower value boundary and lets the source seek instead
+of enumerating the discarded prefix:
+
+```rank
+Candidates = primes from 100
+First = Candidates 0
+rem First is 101
+```
+
+`fibonacci from Lower` uses the same plan interface. A lower-bounded source is
+still infinite until `to` or `until` supplies an upper boundary.
+
 `in` performs optimized primality testing on this source without enumerating
 an unbounded prefix:
 

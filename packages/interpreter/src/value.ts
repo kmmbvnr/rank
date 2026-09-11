@@ -148,6 +148,7 @@ export interface SequencePlan {
     // or other source-specific planning without changing Rank syntax.
     at?(index: bigint): RankValue | undefined;
     contains?(value: RankValue): boolean;
+    withLowerBound?(limit: bigint, inclusive: boolean): SequencePlan;
     withUpperBound?(limit: bigint, inclusive: boolean): SequencePlan;
     withFilter?(predicate: SequencePredicate): SequencePlan | undefined;
     reduce?(operation: string): RankValue | undefined;
