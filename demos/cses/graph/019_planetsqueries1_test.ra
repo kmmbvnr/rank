@@ -1,0 +1,48 @@
+use testing
+
+test "official example"
+  use "019_planetsqueries1"
+  Next = array 2 1 1 4
+  Queries = array shape 3 2
+    1 2
+    3 4
+    4 1
+  end
+  Result = Next Queries planet_queries
+  Result equal (array 1 2 4)
+end
+
+test "zero steps stays in place"
+  use "019_planetsqueries1"
+  Next = array 2 3 1
+  Queries = array shape 3 2
+    1 0
+    2 0
+    3 0
+  end
+  Result = Next Queries planet_queries
+  Result equal (array 1 2 3)
+end
+
+test "handles a large cycle jump"
+  use "019_planetsqueries1"
+  Next = array 2 3 1
+  Queries = array shape 2 2
+    1 1000000000
+    2 999999999
+  end
+  Result = Next Queries planet_queries
+  Result equal (array 2 2)
+end
+
+test "enters a self loop"
+  use "019_planetsqueries1"
+  Next = array 2 3 4 4
+  Queries = array shape 3 2
+    1 2
+    1 9
+    4 100
+  end
+  Result = Next Queries planet_queries
+  Result equal (array 3 4 4)
+end

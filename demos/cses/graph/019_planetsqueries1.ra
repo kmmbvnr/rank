@@ -1,0 +1,47 @@
+rem CSES 1750: Planets Queries I
+rem https://cses.fi/problemset/task/1750
+
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Next = stdin .integer N array
+ValueCount = Q * 2
+Values = stdin .integer ValueCount array
+Queries = Values (array Q 2) reshape
+Next Queries planet_queries print
+
+
+rem Answer functional-graph jumps.
+fun planet_queries Next Queries
+  N = Next len
+  Size = N + 1
+  Levels = 31
+  Jump = array shape Levels Size pad 0
+  for Planet in 1 to N
+    Jump 0 Planet = Next (Planet - 1)
+  end
+
+  for Level in 1 until Levels
+    Previous = Jump (Level - 1)
+    Jump Level # = Previous Previous
+  end
+
+  Count = Queries len
+  Answers = array shape Count pad 0
+  for Query i in Queries
+    unpack Planet Steps = Query
+    Level = 0
+    for Steps greater 0
+      if Steps % 2 equal 1
+        Planet = Jump Level Planet
+      end
+      Steps //= 2
+      Level += 1
+    end
+    Answers i = Planet
+  end
+  return Answers
+end
