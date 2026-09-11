@@ -30,7 +30,7 @@ interface Host {
     scalarFunction(name: string, arity: number): {
         type: 'integer' | 'boolean';
         locals: readonly string[];
-        bind(): ((arguments_: RankValue[]) => RankValue) | undefined;
+        bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
     } | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
@@ -62,7 +62,7 @@ const comparisons: Record<string, string> = {
  * Writers retain fixed-type checks and partial state on errors; optional bound
  * writers specialize repeated known-value stores within one invocation. */
 type CompiledLoop = {
-    run(insideFinally?: boolean, insideGenerator?: boolean): Completed<RankValue | undefined> | undefined;
+    run(insideFinally?: boolean, insideGenerator?: boolean, tailCallsAllowed?: boolean): Completed<RankValue | undefined> | undefined;
 };
 
 export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): CompiledLoop | undefined {
@@ -85,8 +85,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     if (!candidates.size) return numeric;
     // Cache type signatures, never values or invocation frames. Keep growth bounded.
     const variants = new Map<string, CompiledLoop | undefined>();
-    return { run: (insideFinally, insideGenerator) => {
-        const result = numeric?.run(insideFinally, insideGenerator);
+    return { run: (insideFinally, insideGenerator, tailCallsAllowed) => {
+        const result = numeric?.run(insideFinally, insideGenerator, tailCallsAllowed);
         if (result) return result;
         const text: string[] = [], textArrays: string[] = [];
         for (const name of candidates) {
@@ -104,7 +104,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             if (variants.size >= 8) return undefined;
             variants.set(key, compileTypedLoop(statement, host, iteration, new Set(text), new Set(textArrays)));
         }
-        return variants.get(key)?.run(insideFinally, insideGenerator);
+        return variants.get(key)?.run(insideFinally, insideGenerator, tailCallsAllowed);
     } };
 }
 
@@ -118,7 +118,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     const written = new Set<string>();
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
-    const calls: { name: string; locals: readonly string[]; bind(): ((arguments_: RankValue[]) => RankValue) | undefined }[] = [];
+    const calls: { name: string; locals: readonly string[]; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
     const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
@@ -140,9 +140,9 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         if (index < 0) { index = names.length; names.push(name); }
         return index;
     }
-    function emit(e: Expression, lines: string[], hint?: Term['type']): Term | undefined {
+    function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
         if (serial > 256) return undefined;
-        if (isParenthesizedExpression(e)) return emit(e.value, lines, hint);
+        if (isParenthesizedExpression(e)) return emit(e.value, lines, hint, tail);
         if (isNumberLiteral(e) && typeof e.value === 'bigint') return { code: `${e.value}n`, type: 'integer' };
         if (isStringLiteral(e) && host.textLoops) return { code: JSON.stringify(e.value), type: 'text' };
         if (isBooleanLiteral(e)) return { code: String(e.value), type: 'boolean' };
@@ -247,7 +247,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     }
                     const name = `v${serial++}`, index = calls.length;
                     calls.push({ name: last.name, locals: callable.locals, bind: callable.bind });
-                    lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
+                    lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]${tail ? ', tailCallsAllowed' : ''});`);
                     return { code: name, type: callable.type };
                 }
             }
@@ -393,7 +393,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     const root = loopParts(statement, iteration, -1);
     if (!root) return undefined;
     const locations: Statement[] = [];
-    function statements(commands: readonly Statement[], body: string[]): 'next' | 'stop' | undefined {
+    function statements(commands: readonly Statement[], body: string[], allowTail: boolean): 'next' | 'stop' | undefined {
         for (const assignment of commands) {
             const location = locations.length;
             if (location >= 32) return undefined;
@@ -401,11 +401,12 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (isForStatement(assignment)) {
                 if (!host.nestedLoops) return undefined;
                 const incoming = new Set(assigned);
-                const loop = loopParts(assignment, host.iteration(assignment.condition), location);
+                const binding = host.iteration(assignment.condition);
+                const loop = loopParts(assignment, binding, location);
                 if (!loop) return undefined;
                 body.push(`{ let result; location = ${location}; ${loop.setup} ${loop.header}`,
                     'let iterationResult;', loop.bindings);
-                if (statements(assignment.statements, body) === undefined) return undefined;
+                if (statements(assignment.statements, body, allowTail && !binding) === undefined) return undefined;
                 body.push(`result = iterationResult; location = ${location}; } iterationResult = result; }`);
                 // An inner loop may run zero times, or leave through break.
                 assigned.clear();
@@ -424,7 +425,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     if (!assigned.has(expression.name)) arrayInputs.add(expression.name);
                     value = `r${array.slot}`;
                 } else {
-                    const result = emit(expression, lines);
+                    const result = emit(expression, lines, undefined, allowTail);
                     if (!result) return undefined;
                     value = result.code;
                 }
@@ -514,14 +515,14 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     const condition = emit(branch.condition, lines, 'boolean');
                     if (condition?.type !== 'boolean') return undefined;
                     body.push(`location = ${location};`, ...lines, `if (${condition.code}) {`);
-                    const flow = statements(branch.statements, body);
+                    const flow = statements(branch.statements, body, allowTail);
                     if (flow === undefined) return undefined;
                     if (flow === 'next') outcomes.push(new Set(assigned));
                     body.push('} else {');
                 }
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);
-                const flow = statements(assignment.elseStatements, body);
+                const flow = statements(assignment.elseStatements, body, allowTail);
                 if (flow === undefined) return undefined;
                 if (flow === 'next') outcomes.push(new Set(assigned));
                 body.push('}'.repeat(branches.length));
@@ -619,7 +620,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         return 'next';
     }
     const body: string[] = [];
-    if (!statements(statement.statements, body)) return undefined;
+    if (!statements(statement.statements, body, !iteration)) return undefined;
     // Container bindings must remain stable throughout the compiled region.
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
@@ -632,7 +633,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
         }
     }
-    const source = `"use strict"; return function(input, writers, binders, calls) {
+    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed) {
         ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};` : ''}
         let result, location = -1;
         try { ${root.setup} ${root.header}
@@ -641,13 +642,13 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             result = iterationResult; location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[]) => RankValue)[]) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean) => RankValue | undefined;
     try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue); }
     catch { return undefined; }
     host.compiled?.(source);
-    return { run: (insideFinally = false, insideGenerator = false) => {
+    return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
         if (hasControl && insideFinally) return undefined;
         if (hasReturn && (insideGenerator || !host.canReturn())) return undefined;
         if (needsRanges && !host.ranges()) return undefined;
@@ -700,6 +701,6 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[]) => RankValue)[]));
+        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed));
     } };
 }

@@ -61,6 +61,7 @@ function emptyGridPaths(size) {
   return paths % 1000000007n;
 }
 const tasks = [
+  { name: 'Conditional tail return, 100000 calls', path: 'benchmarks/programs/loop-tail-call.ra', fn: 'tail_scores', expected: 5000150000n, args: () => [100000n] },
   { name: 'Bounded score helper, 200000 calls', path: 'benchmarks/programs/block-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
   { name: 'Euler 45, next common polygonal value', path: 'demos/euler/045_tripolygonal.ra', fn: 'common_polygonal', expected: 1533776805n, args: () => [144n, 166n] },
   { name: 'Euler 30, fourth power digit numbers', path: 'demos/euler/030_digitpowers.ra', fn: 'digit_power_numbers', expected: 19316n, args: () => [4n] },

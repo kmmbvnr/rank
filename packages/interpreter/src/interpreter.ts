@@ -1061,7 +1061,10 @@ export class Interpreter {
                         const active = functionDefinitions.get(current);
                         if (active?.statement !== statement || (active.context !== undefined) !== captures
                             || proof.locals.some(local => active.context?.find(local))) return undefined;
-                        return arguments_ => current.call(arguments_);
+                        return (arguments_, tail = false) => {
+                            if (tail && active.interpreter === this) throw new TailCallSignal(active, arguments_);
+                            return current.call(arguments_);
+                        };
                     } };
                 },
                 absolute: this.options.absoluteLoopCompilation !== false,
@@ -1094,7 +1097,7 @@ export class Interpreter {
                 compiled: this.options.onIntegerLoopCompiled,
                 executed: this.options.onIntegerLoopExecuted,
             }, binding) : undefined;
-            return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator) ?? reference.stream!(context) } : reference;
+            return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false) ?? reference.stream!(context) } : reference;
         }
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {

@@ -2291,3 +2291,58 @@ Total`);
     expect(result.value).toBe('9');
     expect(result.loops).toBe(1);
 });
+
+describe('tail calls from compiled loop returns', () => {
+    it.each([
+        ['conditional', 'for N greater 0\n  return N helper\nend', true],
+        ['nested conditional', 'for N greater 0\n  for N greater 0\n    return N helper\n  end\nend', true],
+        ['range', 'for I in 1 to N\n  return N helper\nend', false],
+        ['range inside condition', 'for N greater 0\n  for I in 1 to N\n    return N helper\n  end\nend', false],
+        ['condition inside range', 'for I in 1 to N\n  for N greater 0\n    return N helper\n  end\nend', false],
+        ['arithmetic after call', 'for N greater 0\n  return (N helper) + 1\nend', false],
+        ['finally', 'try\n  for N greater 0\n    return N helper\n  end\nfinally\n  A 0 += 1\nend', false],
+    ])('preserves call depth through %s', (_name, loop, tail) => {
+        const results = [false, true].map(integerLoopCompilation => {
+            let entries = 0;
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, maxCallDepth: 1,
+                onIntegerLoopExecuted: () => entries++ });
+            const source = `use ranges
+fun helper X
+  return X + 1
+end
+fun perform N
+${String(loop).split('\n').map(line => '  ' + line).join('\n')}
+  return 0
+end
+A = array 0
+3 perform`;
+            try {
+                const value = runtime.execute(source);
+                return { value, entries, array: formatValue(runtime.variables.get('A')!) };
+            } catch (error) {
+                return { error: error instanceof RankError ? error.format() : String(error), entries,
+                    array: formatValue(runtime.variables.get('A')!) };
+            } finally { runtime.dispose(); }
+        });
+        expect({ ...results[1], entries: 0 }).toEqual({ ...results[0], entries: 0 });
+        expect(results[1].entries).toBe(1);
+        if (tail) expect(results[1]).toHaveProperty('value', 4n);
+        else expect(results[1]).toHaveProperty('error', expect.stringContaining('RecursionLimit'));
+        if (_name === 'finally') expect(results[1].array).toBe('1');
+    });
+
+    it('retains the source location of an error after tail transfer', () => {
+        const result = compare(`fun helper X
+  return 10 // (X - 3)
+end
+fun perform N
+  for N greater 0
+    return (N helper)
+  end
+  return 0
+end
+3 perform`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});

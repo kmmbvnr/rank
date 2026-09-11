@@ -860,3 +860,18 @@ region can write, even if those names have no value at entry yet. Global functio
 without a closure context may reuse caller-local names; the context kind is guarded
 on entry too. Function execution remains on the ordinary call path. The
 `scalarBlockCalls: false` switch retains the preceding single-return proof only.
+
+### Tail position across compiled loops
+
+A returned proven user call now receives the same tail-call context as reference
+execution. Conditional loops preserve it; entering an iterable loop disables it,
+and enclosing handlers/finally can disable it through the execution context.
+Arithmetic or another operation after the call is not tail position. Eligible calls
+to functions owned by the same interpreter throw the ordinary TailCallSignal so the
+function driver transfers control without adding a call-depth level. Cross-interpreter
+calls keep ordinary invocation. Prior writes and source locations are preserved.
+
+This fixes a compiler discrepancy: with maxCallDepth 1, a function returning a
+helper call from a conditional loop previously failed while reference execution
+succeeded. It is a correctness requirement, independent of performance on short
+loops that exit on their first iteration.

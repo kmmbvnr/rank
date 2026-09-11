@@ -1,0 +1,263 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalarcalls",
+  "counters": false,
+  "samples": 9,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 327.74091599999997,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 327.42674999999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 249.00274999999993,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 248.905709,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 257.55554199999995,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 257.47016599999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 269.1557499999999,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 269.07399999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 263.57233299999984,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 263.4709579999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 487.58854199999996,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 487.489875,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 261.999,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 261.89824999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 264.2650840000001,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 264.16712499999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 272.33500000000004,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 272.25812499999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 392.51125,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 392.41899999999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 5,
+      "ms": 256.3516249999998,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 256.2845000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 5,
+      "ms": 297.1712090000001,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 297.1119169999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 6,
+      "ms": 296.04612499999985,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 295.9865,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 6,
+      "ms": 421.3409160000001,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 421.27154199999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 7,
+      "ms": 259.640625,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 259.5796250000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 7,
+      "ms": 311.0448329999999,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 310.9692500000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 8,
+      "ms": 316.3048749999998,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 316.25675000000047,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 8,
+      "ms": 340.7313749999994,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 340.6625410000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        }
+      ]
+    }
+  ]
+}

@@ -1418,3 +1418,46 @@ the preceding scalar-call baseline. One pair takes 27.089 s off and 26.585 s on;
 this does not establish a stable whole-suite gain.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-block-calls-suite.json).
+
+## Preserve tail transfer from compiled conditional loops
+
+An audit found a correctness gap introduced by scalar user-call lowering: with
+maxCallDepth 1, `return N helper` inside a conditional loop succeeded in reference
+execution but raised RecursionLimit in the compiled path. The emitter now carries
+tail position separately from ordinary expression calls and propagates the runtime
+tail-call context. Iterable loops disable it, including nested combinations. The
+bound same-interpreter call uses the existing TailCallSignal and function driver.
+Calls followed by arithmetic, calls across interpreters and disabled contexts keep
+ordinary invocation.
+
+Eight differential cases cover conditional and nested conditional loops, iterable
+boundaries in both directions, arithmetic after a call, finally cleanup and callee
+error locations. The tests explicitly use maxCallDepth 1 and assert compiled entry.
+All 44 language + 878 interpreter tests pass.
+
+A new compiler fixture performs 100000 conditional-loop tail returns, with independent
+expected sum 5000150000. Five alternating samples compare scalar-call compilation
+off/on; this toggle covers the complete call-lowering stage, not just this fix.
+A nine-sample repeat checks the initially slower short-loop case. Timings include
+loading/parsing, compilation, execution and validation with counters disabled.
+
+| Fixture | First off/on medians ms | Repeat off/on medians ms |
+| --- | ---: | ---: |
+| 100000 immediate tail returns | 285.454 / 306.500 | 295.987 / 261.898 |
+
+The direction changes between runs, so no stable speedup is claimed for this
+short-loop case. Correct tail semantics are retained regardless. Coverage records
+zero versus 100000 compiled entries. Euler 45 remains a control for complete scalar
+call lowering (zero/one entries, 17.709/8.683 ms in the first samples); its difference
+must not be attributed to the tail fix.
+
+[First samples](../../benchmarks/baselines/2026-09-12-call-tail-focused.json),
+[repeat](../../benchmarks/baselines/2026-09-12-call-tail-repeat.json),
+[coverage](../../benchmarks/baselines/2026-09-12-call-tail-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests, with every digest matching
+the preceding helper-block baseline. One pair takes 27.040 s off and 26.519 s on,
+again toggling all scalar call lowering. This is not an incremental performance
+measurement of the correctness fix.
+
+[Suite results](../../benchmarks/baselines/2026-09-12-call-tail-suite.json).
