@@ -1,0 +1,60 @@
+rem Deep-ML 47: Descent Variants
+rem https://www.deep-ml.com/problems/47
+
+use linalg
+use numbers
+use ranges
+use sequences
+
+fun descent X Y W Rate Iter Size Mode
+  N = Y len
+  if X len not equal N
+    .DimensionMismatch raise
+  end
+  if Iter less 0
+    .DomainError raise
+  end
+  if Mode equal .mini_batch
+    if Size at most 0
+      .DomainError raise
+    end
+  end
+
+  for # in 0 until Iter
+    if Mode equal .batch
+      Error = X W matmul - Y
+      XT = X transpose
+      Gradient = XT Error matmul
+      Gradient = Gradient * 2 / N
+      W -= Rate * Gradient
+      continue
+    end
+
+    if Mode equal .stochastic
+      for Row i in X
+        Error = Row W matmul - Y i
+        Gradient = Row * Error * 2
+        W -= Rate * Gradient
+      end
+      continue
+    end
+
+    if Mode equal .mini_batch
+      for I in 0 until N by Size
+        J = (I + Size) min N
+        Xb = X axis 0 from I until J
+        Yb = Y from I until J
+        Error = Xb W matmul - Yb
+        XT = Xb transpose
+        Gradient = XT Error matmul
+        Gradient = Gradient * 2 / Size
+        W -= Rate * Gradient
+      end
+      continue
+    end
+
+    .UnknownMethod raise Mode
+  end
+
+  return W
+end

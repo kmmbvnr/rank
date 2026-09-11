@@ -1,0 +1,73 @@
+use testing
+
+test "official batch descent"
+  use "047_descent"
+  use numbers
+  X = array shape 4 2
+    1 1
+    2 1
+    3 1
+    4 1
+  end
+  Y = array 2 3 4 5
+  W = array 0.0 0.0
+
+  Out = X Y W 0.01 100 1 .batch descent
+  Expected = array 1.14905239 0.56176776
+  Rounded = Out round 8
+  (Rounded equal Expected) and reduce
+end
+
+test "official stochastic descent"
+  use "047_descent"
+  use numbers
+  X = array shape 4 2
+    1 1
+    2 1
+    3 1
+    4 1
+  end
+  Y = array 2 3 4 5
+  W = array 0.0 0.0
+
+  Mode = .stochastic
+  Out = X Y W 0.01 100 1 Mode descent
+  Expected = array 1.0507814 0.83659454
+  Rounded = Out round 8
+  (Rounded equal Expected) and reduce
+end
+
+test "official mini batch descent"
+  use "047_descent"
+  use numbers
+  X = array shape 4 2
+    1 1
+    2 1
+    3 1
+    4 1
+  end
+  Y = array 2 3 4 5
+  W = array 0.0 0.0
+
+  Mode = .mini_batch
+  Out = X Y W 0.01 100 2 Mode descent
+  Expected = array 1.10334065 0.68329431
+  Rounded = Out round 8
+  (Rounded equal Expected) and reduce
+end
+
+test "rejects an unknown method"
+  use "047_descent"
+  X = array shape 1 1 pad 1
+  Y = array 1
+  W = array 0.0
+  Raised = false
+
+  try
+    Out = X Y W 0.1 1 1 .other descent
+  catch .UnknownMethod Error
+    Raised = true
+  end
+
+  Raised
+end
