@@ -1,0 +1,28 @@
+rem Distinct Powers
+rem https://projecteuler.net/problem=29
+rem Count distinct a ** b values over the
+rem requested inclusive square range
+
+use ranges
+use algo
+use sequences
+use io
+use cli
+
+option Limit integer = 100
+
+Answer = Limit distinct_powers
+Answer print
+
+
+rem Exact integers make equality sufficient;
+rem the set removes repeated powers.
+fun distinct_powers Limit
+  Values = new set
+  for A in 2 to Limit
+    for B in 2 to Limit
+      Values add A ** B
+    end
+  end
+  return Values len
+end

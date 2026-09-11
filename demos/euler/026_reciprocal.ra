@@ -1,0 +1,50 @@
+rem Reciprocal Cycles
+rem https://projecteuler.net/problem=26
+rem Find the denominator below Limit with the
+rem longest decimal recurring cycle
+
+use ranges
+use algo
+use io
+use cli
+
+option Limit integer = 1000
+
+Answer = Limit longest_reciprocal_cycle
+Answer print
+
+
+rem Compare cycle lengths for every eligible
+rem denominator and keep the first maximum.
+fun longest_reciprocal_cycle Limit
+  Best = 0
+  BestLength = 0
+  for Denominator in 2 until Limit
+    Length = Denominator cycle_length
+    if Length greater BestLength
+      Best = Denominator
+      BestLength = Length
+    end
+  end
+  return Best
+end
+
+
+rem Record the first position of each remainder;
+rem a repeated remainder closes the cycle.
+fun cycle_length Denominator
+  Seen = new index
+  Remainder = 1 % Denominator
+  Position = 0
+
+  for Remainder not equal 0
+    if Remainder in Seen
+      return Position - Seen Remainder
+    end
+    Seen Remainder = Position
+    Remainder = Remainder * 10 % Denominator
+    Position += 1
+  end
+
+  return 0
+end

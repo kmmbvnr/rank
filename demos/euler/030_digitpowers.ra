@@ -1,0 +1,41 @@
+rem Digit Fifth Powers
+rem https://projecteuler.net/problem=30
+rem Sum numbers equal to the sum of Power-th
+rem powers of their decimal digits
+
+use ranges
+use text
+use sequences
+use numbers
+use io
+use cli
+
+option Power integer = 5
+
+Answer = Power digit_power_numbers
+Answer print
+
+
+rem Six times the largest digit power safely
+rem bounds the fourth- and fifth-power tasks.
+fun digit_power_numbers Power
+  Upper = 6 * 9 ** Power
+  Total = 0
+  for N in 2 to Upper
+    Sum = N Power digit_power_sum
+    if Sum equal N
+      Total += N
+    end
+  end
+  return Total
+end
+
+
+rem Apply the power to every decimal digit,
+rem then reduce the resulting values.
+fun digit_power_sum N Power
+  Text = N text
+  Digits = Text integer rank 0
+  Powers = Digits ** Power
+  return Powers sum
+end

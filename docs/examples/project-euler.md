@@ -380,3 +380,160 @@ Answer = Values sum
 
 The symbolic product reduction computes the exact factorial; the same ranked
 text conversion as problem 16 gives the digit sum `648`.
+
+## 21. Amicable numbers
+
+```rank
+rem Project Euler 21
+rem https://projecteuler.net/problem=21
+
+B = A proper_divisor_sum
+Partner = B proper_divisor_sum
+if B not equal A and Partner equal A
+  Total += A
+end
+```
+
+`proper_divisor_sum` visits divisor pairs only through the square root. The
+search adds each amicable value below 10000 and produces `31626`.
+
+## 22. Names scores
+
+```rank
+rem Project Euler 22
+rem https://projecteuler.net/problem=22
+
+Text = Input read
+Names = Text names_from_text
+Answer = Names names_score
+```
+
+The program accepts the official names file as a path argument. It removes the
+outer quotes, splits the CSV text, sorts the names, and derives letter values
+from Unicode code points. The official input is embedded only in the test; the
+program tree needs no fixture file. The answer is `871198282`.
+
+## 23. Non-abundant sums
+
+```rank
+rem Project Euler 23
+rem https://projecteuler.net/problem=23
+
+Abundant = new queue
+AbundantSet = new set
+```
+
+A divisor-sum sieve discovers abundant numbers. For every candidate, the
+ordered queue supplies possible first terms and the set tests the complement
+in expected constant time. The search stops after the first pair and produces
+`4179871`.
+
+## 24. Lexicographic permutations
+
+```rank
+rem Project Euler 24
+rem https://projecteuler.net/problem=24
+
+Choice = Remaining // Block
+Digit = Available Choice
+Available remove Digit
+```
+
+Factorial block sizes select each digit directly from an ordered multiset, so
+the program does not enumerate the first million permutations. Text preserves
+the possible leading zero. The answer is `"2783915460"`.
+
+## 25. 1000-digit Fibonacci number
+
+```rank
+rem Project Euler 25
+rem https://projecteuler.net/problem=25
+
+for Length less Digits
+  Next = Previous + Current
+  Previous = Current
+  Current = Next
+  Index += 1
+  Length = Current text len
+end
+```
+
+The two latest arbitrary-precision integers are sufficient state. The first
+Fibonacci value with 1000 decimal digits has index `4782`.
+
+## 26. Reciprocal cycles
+
+```rank
+rem Project Euler 26
+rem https://projecteuler.net/problem=26
+
+Seen Remainder = Position
+Remainder = Remainder * 10 % Denominator
+```
+
+Long division repeats exactly when a remainder repeats. A sparse `index`
+records the first position of each remainder, giving denominator `983` below
+1000.
+
+## 27. Quadratic primes
+
+```rank
+rem Project Euler 27
+rem https://projecteuler.net/problem=27
+
+for A in (-Limit + 1) until Limit by 2
+  for B in primes to Limit
+    Length = A B quadratic_run
+  end
+end
+```
+
+The constant coefficient must be a positive prime, and the winning odd prime
+allows only odd `a`, which narrows the search. The local `is_prime` helper uses
+the existing `factors` sequence, so no puzzle-specific primitive is needed.
+The coefficient product is `-59231`.
+
+## 28. Number spiral diagonals
+
+```rank
+rem Project Euler 28
+rem https://projecteuler.net/problem=28
+
+Side = Layer * 2 + 1
+Total += 4 * Side ** 2 - 6 * (Side - 1)
+```
+
+Each concentric layer contributes its four corners directly. The formula gives
+`669171001` for a 1001 by 1001 spiral without constructing the matrix.
+
+## 29. Distinct powers
+
+```rank
+rem Project Euler 29
+rem https://projecteuler.net/problem=29
+
+for A in 2 to Limit
+  for B in 2 to Limit
+    Values add A ** B
+  end
+end
+```
+
+Exact integer exponentiation and structural set equality remove duplicates
+without canonicalizing prime exponents manually. The result is `9183`.
+
+## 30. Digit fifth powers
+
+```rank
+rem Project Euler 30
+rem https://projecteuler.net/problem=30
+
+Text = N text
+Digits = Text integer rank 0
+Powers = Digits ** Power
+Sum = Powers sum
+```
+
+Rank-0 conversion exposes decimal digits, scalar extension raises every digit,
+and a reduction checks their sum. The fifth-power answer is `443839`; the same
+function gives `19316` for fourth powers.

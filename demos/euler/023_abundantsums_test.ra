@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "023_abundantsums"
+  run
+
+  Answer equal 4179871
+end
+
+test "below the first abundant sum"
+  use "023_abundantsums"
+
+  23 non_abundant_sum equal 276
+end
+
+test "twenty-four is excluded"
+  use "023_abundantsums"
+
+  24 non_abundant_sum equal 276
+end

@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "030_digitpowers"
+  run
+
+  Answer equal 443839
+end
+
+test "fourth powers"
+  use "030_digitpowers"
+
+  4 digit_power_numbers equal 19316
+end
+
+test "one matching value"
+  use "030_digitpowers"
+
+  1634 4 digit_power_sum equal 1634
+end

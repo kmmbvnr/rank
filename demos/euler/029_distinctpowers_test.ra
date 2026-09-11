@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "029_distinctpowers"
+  run
+
+  Answer equal 9183
+end
+
+test "official two through five range"
+  use "029_distinctpowers"
+
+  5 distinct_powers equal 15
+end

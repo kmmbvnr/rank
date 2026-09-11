@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "021_amicable"
+  run
+
+  Answer equal 31626
+end
+
+test "first amicable pair"
+  use "021_amicable"
+
+  220 proper_divisor_sum equal 284
+  284 proper_divisor_sum equal 220
+  300 amicable_sum equal 504
+end

@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "024_lexicographic"
+  run
+
+  Answer equal "2783915460"
+end
+
+test "fourth permutation of three digits"
+  use "024_lexicographic"
+  Digits = array 0 1 2
+
+  Digits 4 lexicographic equal "120"
+end
+
+test "first permutation keeps leading zero"
+  use "024_lexicographic"
+  Digits = array 0 1 2
+
+  Digits 1 lexicographic equal "012"
+end

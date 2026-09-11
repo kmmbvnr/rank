@@ -1,0 +1,50 @@
+rem Names Scores
+rem https://projecteuler.net/problem=22
+rem Sum alphabetical scores from the
+rem official comma-separated names file
+
+use text
+use sequences
+use io
+use cli
+
+argument Input path
+
+Text = Input read
+Names = Text names_from_text
+Answer = Names names_score
+Answer print
+
+
+rem Remove the surrounding quotes and split
+rem the quoted comma-separated input.
+fun names_from_text Text
+  Last = Text len - 1
+  Body = Text from 1 until Last
+  return Body "\",\"" split
+end
+
+
+rem Sort names and multiply each letter sum
+rem by its one-based position.
+fun names_score Names
+  Sorted = Names sort
+  Total = 0
+  for Name i in Sorted
+    Total += Name name_value * (i + 1)
+  end
+  return Total
+end
+
+
+rem Convert A through Z to values 1 through
+rem 26 using Unicode code points.
+fun name_value Name
+  Base = "A" codepoint
+  Total = 0
+  for C in Name
+    Value = C codepoint - Base + 1
+    Total += Value
+  end
+  return Total
+end

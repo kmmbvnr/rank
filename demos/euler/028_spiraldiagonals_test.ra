@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "028_spiraldiagonals"
+  run
+
+  Answer equal 669171001
+end
+
+test "official five by five spiral"
+  use "028_spiraldiagonals"
+
+  5 spiral_diagonal_sum equal 101
+end
+
+test "center only"
+  use "028_spiraldiagonals"
+
+  1 spiral_diagonal_sum equal 1
+end
