@@ -1,0 +1,27 @@
+use testing
+
+test "official example"
+  use "001_josephus"
+  7 1 removed equal 2
+  7 3 removed equal 6
+  2 2 removed equal 1
+  1337 1313 removed equal 1107
+end
+
+test "one child"
+  use "001_josephus"
+  1 1 removed equal 1
+end
+
+test "odd circle wraps to first child"
+  use "001_josephus"
+  7 4 removed equal 1
+  7 5 removed equal 5
+end
+
+test "large circle avoids simulation"
+  use "001_josephus"
+  1000000000 1 removed equal 2
+  N = 1000000000
+  N N removed equal 926258177
+end

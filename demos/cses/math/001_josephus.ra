@@ -1,0 +1,36 @@
+rem CSES 2164: Josephus Queries
+rem https://cses.fi/problemset/task/2164
+
+use io
+use numbers
+use ranges
+
+Q = stdin .integer
+
+for Query in 1 to Q
+  N = stdin .integer
+  K = stdin .integer
+  N K removed print
+end
+
+
+rem Find Kth removal without a circle.
+fun removed N K
+  First = (N + 1) // 2
+
+  if K at most First
+    Child = K * 2
+    if Child greater N
+      Child -= N
+    end
+    return Child
+  end
+
+  NextK = K - First
+  Child = (N // 2) NextK removed
+
+  if N odd
+    return Child * 2 + 1
+  end
+  return Child * 2 - 1
+end
