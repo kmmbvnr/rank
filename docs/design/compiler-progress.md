@@ -1287,3 +1287,33 @@ preceding text-vector baseline. One pair takes 27.788 s off and 27.791 s on;
 no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-direct-text-suite.json).
+
+## Integer text conversion composed with length
+
+Standard integer `text` and `len` of known text/arrays can now stay inside a
+compiled region. Decimal rendering carries an expression-local ASCII proof,
+allowing its following length to avoid a code-point array. Other text keeps
+Unicode counting and array length uses the current first dimension. Native
+identity guards preserve overrides. Five differential tests cover negative decimal
+chains, Unicode text vectors, reallocated matrix lengths, and shadowed text/len.
+All 44 language + 841 interpreter tests pass.
+
+Five alternating samples toggle only `scalarTextCompilation`, keeping earlier
+stages enabled. The unchanged Euler 25 solution finds the first 1000-digit Fibonacci
+index, validated against 4782. Median time drops from 24.800 ms to 18.882 ms, about
+24% less time (1.31x). This includes parsing/loading, compilation, execution and
+result validation with counters off. Separate coverage changes from zero to one
+compiled region for the complete Fibonacci recurrence loop.
+
+[Timings](../../benchmarks/baselines/2026-09-12-scalar-text-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-scalar-text-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests, with every digest matching
+the preceding direct-text baseline. One pair takes 27.556 s off and 27.573 s on;
+no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-scalar-text-suite.json).
+
+Euler 30 remains a useful coverage target: its hot outer loop calls a helper that
+converts text digits at rank 0, raises their powers and sums them. Compiling isolated
+numeric statements cannot remove that call/pipeline boundary yet.

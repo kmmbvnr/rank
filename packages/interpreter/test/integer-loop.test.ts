@@ -1909,3 +1909,77 @@ end`);
         expect(results[1]).toEqual([BigInt(chars.length * (chars.length + 1) / 2), chars.at(-1) ?? '']);
     });
 });
+
+
+describe('compiled integer text and length', () => {
+    it('composes decimal text and length without parentheses', () => {
+        const result = compare(`use text
+use sequences
+use ranges
+Total = 0
+for I in -12 to -9
+  Total += I text len
+end
+Total`);
+        expect(result.value).toBe('11');
+        expect(result.loops).toBe(1);
+    });
+
+    it('counts Unicode code points for known text bindings', () => {
+        const result = compare(`use sequences
+Rows = array "😀a" "é" ""
+Total = 0
+for Row in Rows
+  Total += Row len
+end
+Total`);
+        expect(result.value).toBe('4');
+        expect(result.loops).toBe(1);
+    });
+
+    it('uses the first array dimension after local allocations', () => {
+        const result = compare(`use ranges
+use sequences
+Total = 0
+for I in 1 to 3
+  A = array shape I 2 pad 0
+  Total += A len
+end
+Total`);
+        expect(result.value).toBe('6');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps a shadowed text function', () => {
+        const result = compare(`use text
+use sequences
+use ranges
+fun text X
+  return "xx"
+end
+Total = 0
+for I in 1 to 3
+  Total += I text len
+end
+Total`);
+        expect(result.value).toBe('6');
+        expect(result.loops).toBe(0);
+    });
+});
+
+
+it('retains shadowed len on a known allocated array', () => {
+    const result = compare(`use ranges
+use sequences
+fun len A
+  return 7
+end
+Total = 0
+for I in 1 to 2
+  A = array shape I pad 0
+  Total += A len
+end
+Total`);
+    expect(result.value).toBe('14');
+    expect(result.loops).toBe(0);
+});

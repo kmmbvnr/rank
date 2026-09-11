@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalartext",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 80.70795899999999,
+      "entries": [
+        {
+          "name": "Euler 25, first 1000-digit Fibonacci index",
+          "ms": 80.42541700000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "86772ed71060b6419fd0a09e05cfccb0a1704d429df94f1e4f71f008153bbf55"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 20.337666000000013,
+      "entries": [
+        {
+          "name": "Euler 25, first 1000-digit Fibonacci index",
+          "ms": 20.283082999999976,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "86772ed71060b6419fd0a09e05cfccb0a1704d429df94f1e4f71f008153bbf55"
+        }
+      ]
+    }
+  ]
+}

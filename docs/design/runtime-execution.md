@@ -799,3 +799,15 @@ points (including lone surrogates); immutable strings preserve the source when i
 variable is reassigned. An early exit no longer needs to allocate an array for the
 unvisited suffix. Interpreted loops keep their existing iterator path.
 `directTextIteration: false` restores code-point array construction for comparison.
+
+### Scalar text conversion and length
+
+The compiler can lower standard `text` on a proven integer and standard `len` on
+known text or array values. Native identity guards preserve shadowing and missing
+imports. Integer rendering uses exact decimal BigInt text. Its expression carries
+an ASCII proof, so a following `len` can read the string length without creating a
+code-point array. Arbitrary text retains Unicode code-point counting; local aliases
+currently do not propagate the ASCII proof. Known array length reads the current
+first shape dimension, including after a local reallocation. Unknown collection
+receivers keep their previous guarded or reference paths.
+`scalarTextCompilation: false` disables these lowerings for comparison.

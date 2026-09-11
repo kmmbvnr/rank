@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarTextCompilation?: boolean;
     readonly directTextIteration?: boolean;
     readonly textArrayLoopCompilation?: boolean;
     readonly textLoopCompilation?: boolean;
@@ -1039,6 +1040,7 @@ export class Interpreter {
                 dimension: checkedArrayDimension,
                 booleanArrays: this.options.booleanArrayCompilation !== false,
                 booleanLocals: this.options.booleanLoopCompilation !== false,
+                scalarText: this.options.scalarTextCompilation !== false,
                 absolute: this.options.absoluteLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
                 extremeParts: expression => {
@@ -2500,6 +2502,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarTextCompilation: this.options.scalarTextCompilation,
             directTextIteration: this.options.directTextIteration,
             textArrayLoopCompilation: this.options.textArrayLoopCompilation,
             textLoopCompilation: this.options.textLoopCompilation,
@@ -2604,6 +2607,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarTextCompilation: this.options.scalarTextCompilation,
             directTextIteration: this.options.directTextIteration,
             textArrayLoopCompilation: this.options.textArrayLoopCompilation,
             textLoopCompilation: this.options.textLoopCompilation,

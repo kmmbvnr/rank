@@ -26,6 +26,7 @@ interface Host {
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
     readonly absolute: boolean;
+    readonly scalarText: boolean;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -47,7 +48,7 @@ interface Host {
     compiled?(source: string): void;
     executed?(): void;
 }
-interface Term { code: string; type: 'integer' | 'boolean' | 'text' }
+interface Term { code: string; type: 'integer' | 'boolean' | 'text'; ascii?: boolean }
 const comparisons: Record<string, string> = {
     less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==',
 };
@@ -174,6 +175,34 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
+            if (op === 'text' && host.scalarText) {
+                const value = emit(e.head, lines);
+                if (value?.type !== 'integer') return undefined;
+                builtins.set(op, 'text');
+                const name = `v${serial++}`;
+                lines.push(`const ${name} = (${value.code}).toString();`);
+                // Decimal integer rendering has one UTF-16 unit per code point.
+                return { code: name, type: 'text', ascii: true };
+            }
+            if (op === 'len' && host.scalarText) {
+                const array = isNameExpression(e.head) ? arrays.get(e.head.name) : undefined;
+                if (array && isNameExpression(e.head)) {
+                    if (!assigned.has(e.head.name)) arrayInputs.add(e.head.name);
+                    builtins.set(op, 'sequences');
+                    return { code: `BigInt(r${array.slot}.shape[0] ?? 0)`, type: 'integer' };
+                }
+                const knownText = isStringLiteral(e.head) || isApplicationExpression(e.head)
+                    || isParenthesizedExpression(e.head)
+                    || isNameExpression(e.head) && (localTypes.get(e.head.name) === 'text' || textSources.has(e.head.name));
+                if (knownText) {
+                    const value = emit(e.head, lines);
+                    if (value?.type !== 'text') return undefined;
+                    builtins.set(op, 'sequences');
+                    const name = `v${serial++}`;
+                    lines.push(`const ${name} = BigInt(${value.ascii ? `(${value.code}).length` : `[...(${value.code})].length`});`);
+                    return { code: name, type: 'integer' };
+                }
+            }
             if (op === 'abs' && host.absolute) {
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;
