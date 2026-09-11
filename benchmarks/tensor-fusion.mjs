@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls', 'scalarbodies'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -110,6 +110,8 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      scalarFunctionCompilation: backend === 'scalarbodies' ? enabled : undefined,
+      onScalarFunctionExecuted: backend === 'scalarbodies' && counters ? () => kernels++ : undefined,
       scalarBlockCalls: backend === 'blockcalls' ? enabled : undefined,
       scalarCallCompilation: backend === 'scalarcalls' ? enabled : undefined,
       tensorTextDigits: backend === 'tensordigits' ? enabled : undefined,

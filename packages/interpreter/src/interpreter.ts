@@ -1,3 +1,4 @@
+import { compileScalarFunction } from './scalar-function-kernel.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -153,6 +154,8 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarFunctionCompilation?: boolean;
+    readonly onScalarFunctionExecuted?: () => void;
     readonly scalarBlockCalls?: boolean;
     readonly scalarCallCompilation?: boolean;
     readonly tensorTextDigits?: boolean;
@@ -1061,9 +1064,10 @@ export class Interpreter {
                         const active = functionDefinitions.get(current);
                         if (active?.statement !== statement || (active.context !== undefined) !== captures
                             || proof.locals.some(local => active.context?.find(local))) return undefined;
+                        const compiled = active.interpreter.prepareScalarFunctionCall(statement);
                         return (arguments_, tail = false) => {
                             if (tail && active.interpreter === this) throw new TailCallSignal(active, arguments_);
-                            return current.call(arguments_);
+                            return compiled ? compiled(arguments_) : current.call(arguments_);
                         };
                     } };
                 },
@@ -2303,6 +2307,23 @@ export class Interpreter {
         return fn;
     }
 
+    private prepareScalarFunctionCall(statement: FunctionStatement): ((arguments_: RankValue[]) => RankValue) | undefined {
+        if (this.options.scalarFunctionCompilation === false) return undefined;
+        const kernel = compileScalarFunction(statement);
+        if (!kernel) return undefined;
+        const locate = (error: unknown, index: number) => this.locateError(error, kernel.locations[index] ?? statement);
+        return arguments_ => {
+            if (this.callDepth >= this.maxCallDepth) {
+                throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
+            }
+            this.callDepth += 1;
+            try {
+                this.options.onScalarFunctionExecuted?.();
+                return kernel.run(arguments_, locate);
+            } finally { this.callDepth -= 1; }
+        };
+    }
+
     private functionFrame(
         statement: FunctionStatement,
         arguments_: RankValue[],
@@ -2528,6 +2549,8 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarFunctionCompilation: this.options.scalarFunctionCompilation,
+            onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
             scalarBlockCalls: this.options.scalarBlockCalls,
             scalarCallCompilation: this.options.scalarCallCompilation,
             tensorTextDigits: this.options.tensorTextDigits,
@@ -2636,6 +2659,8 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarFunctionCompilation: this.options.scalarFunctionCompilation,
+            onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
             scalarBlockCalls: this.options.scalarBlockCalls,
             scalarCallCompilation: this.options.scalarCallCompilation,
             tensorTextDigits: this.options.tensorTextDigits,

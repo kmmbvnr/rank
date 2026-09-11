@@ -875,3 +875,23 @@ This fixes a compiler discrepancy: with maxCallDepth 1, a function returning a
 helper call from a conditional loop previously failed while reference execution
 succeeded. It is a correctness requirement, independent of performance on short
 loops that exit on their first iteration.
+
+### Generated bodies for proven scalar functions
+
+Ordinary calls from compiled regions can now execute a generated body for functions
+accepted by the scalar-call proof. The emitter uses private JavaScript slots for
+parameters and locals, exact BigInt operations, eager boolean operands, branches
+and explicit returns. Duplicate parameter names retain the existing last-binding
+behavior. Generated code has no access to the lexical environment.
+
+The existing definition/context/collision and argument-type guards still apply.
+The owning interpreter checks and restores logical call depth, and errors are
+located at the original callee statements, including imported modules. No separate
+Rank frame or resource scope is needed for this proved subset: it cannot access
+external state, call other functions, receive files or return non-scalar resources.
+The code cache retains AST metadata only. CSP failure retains ordinary execution.
+
+Eligible tail calls still use TailCallSignal and the ordinary function driver;
+this stage optimizes normal calls only. `scalarFunctionCompilation: false` retains
+the preceding normal-call implementation. `onScalarFunctionExecuted` counts actual
+generated callee executions independently of compiled outer-loop entries.

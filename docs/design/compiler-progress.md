@@ -1461,3 +1461,43 @@ again toggling all scalar call lowering. This is not an incremental performance
 measurement of the correctness fix.
 
 [Suite results](../../benchmarks/baselines/2026-09-12-call-tail-suite.json).
+
+## Generated bodies for proven scalar callees
+
+Normal calls from compiled loops can now execute a generated scalar function body.
+The existing proof and closure-write guards remain prerequisites; generated code
+uses only private parameter/local slots. The owning interpreter retains depth-limit
+checks and callee source locations. Tail transfers retain the prior driver and are
+not optimized by this stage. Unsupported bodies and CSP failures use ordinary calls.
+
+A separate test file adds eleven differential/CSP cases: signed floor division and
+remainders (including a large integer), caller-local isolation, boolean compounds
+and elif, eager boolean errors, duplicate parameter binding, imported execution and
+error locations, and blocked Function construction. Existing tests also recheck
+closure collisions and tail-call depth semantics. All 44 language + 889 interpreter
+tests pass.
+
+Five alternating samples toggle only `scalarFunctionCompilation`; compiled caller
+regions stay enabled in both modes. Timings include loading/parsing, compilation,
+execution and independent result validation with counters disabled.
+
+| Task | Prior median ms | Generated body median ms |
+| --- | ---: | ---: |
+| Bounded-score fixture, 200000 calls | 229.872 | 8.213 |
+| Unchanged Euler 45 | 7.812 | 3.205 |
+| Immediate-tail fixture, 100000 calls (control) | 171.111 | 176.245 |
+
+The normal-call fixture improves about 28x, and Euler 45 about 2.44x. The fixture
+result is not a claim about a contest demo. The tail control remains on the previous
+path and shows no gain. Separate callee counters record 200000 and 59360 generated
+executions for the first two cases, zero for the tail control, and zero everywhere
+when this stage is disabled. These counters exclude outer-loop entries.
+
+[Timings](../../benchmarks/baselines/2026-09-12-scalar-bodies-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-scalar-bodies-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests, with all digests matching the
+preceding tail-fix baseline. One pair takes 26.951 s off and 26.399 s on; no stable
+whole-suite speedup is established from one pair.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-scalar-bodies-suite.json).
