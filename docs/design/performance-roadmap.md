@@ -51,6 +51,20 @@ See [execution model](runtime-execution.md) for implemented runtime optimization
    loops. Compare compilation plus execution on cold runs and cached execution on
    warm runs. Cache by a guarded plan/type signature; retain a general fallback.
    Only expand to user functions if measurements justify the complexity.
+6. **Analyze array mutation and aliases.** Add a conservative analysis after
+   parsing, initially within one function. Distinguish single-use temporary
+   results from arrays proven unchanged over the region being optimized. The
+   absence of assignments through one name is insufficient: track aliases such
+   as `B = A`, writes through other references, and escapes through containers,
+   returns or closure captures. Treat unknown calls and host-provided values as
+   potentially mutable unless a checked contract proves otherwise. When proof is
+   incomplete, retain ordinary execution. No new keyword is planned.
+   Use these proofs to explore fusion across named intermediates and removal of
+   redundant reads or checks; buffer reuse additionally requires proof that no
+   live alias can observe the old value. Preserve lazy read timing, errors and
+   resource lifetimes. Add alias-mutation and escape tests, then benchmark
+   one-shot and reused arrays, small inputs and analysis overhead before enabling
+   each optimization. This step is proposed, not implemented.
 
 Generating recursive JS calls directly would reintroduce the host stack limit.
 Any function compiler must retain deep recursion, tail calls, closures, resource
