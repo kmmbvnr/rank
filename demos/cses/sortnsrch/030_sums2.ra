@@ -1,0 +1,34 @@
+rem CSES 1661: Subarray Sums II
+rem https://cses.fi/problemset/task/1661
+
+use io
+use algo
+
+N = stdin .integer
+X = stdin .integer
+A = stdin .integer N array
+
+A X count_subarray_sums print
+
+
+rem Count equal prefix-sum differences.
+fun count_subarray_sums A Target
+  Prefix = 0
+  Answer = 0
+
+  index 0 = 1
+
+  for Value in A
+    Prefix += Value
+    Need = Prefix - Target
+
+    if Need in index
+      Answer += index Need
+    end
+
+    Count = index Prefix pad 0
+    index Prefix = Count + 1
+  end
+
+  return Answer
+end

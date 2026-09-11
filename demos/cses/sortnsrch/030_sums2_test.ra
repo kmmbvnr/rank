@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "030_sums2"
+  Values = array 2 -1 3 5 -2
+  Values 7 count_subarray_sums equal 2
+end
+
+test "repeated zero prefixes"
+  use "030_sums2"
+  Values = array 0 0 0
+  Values 0 count_subarray_sums equal 6
+end
+
+test "negative target"
+  use "030_sums2"
+  Values = array -1 -2 3 -3
+  Values (-3) count_subarray_sums equal 3
+end
+
+test "no matching sum"
+  use "030_sums2"
+  Values = array 2 4 8
+  Values 7 count_subarray_sums equal 0
+end
