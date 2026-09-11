@@ -1,0 +1,30 @@
+rem CSES 2210: Counting Grids
+rem https://cses.fi/problemset/task/2210
+
+use io
+use numbers
+
+N = stdin .integer
+N grids print
+
+
+rem Average fixed colorings by rotation.
+fun grids N
+  Mod = 1000000007
+  Cells = N * N
+
+  HalfTurns = (Cells + 1) // 2
+  QuarterTurns = Cells // 4
+  if N odd
+    QuarterTurns = (Cells + 3) // 4
+  end
+
+  Identity = 2 Cells Mod powmod
+  Half = 2 HalfTurns Mod powmod
+  Quarter = 2 QuarterTurns Mod powmod
+  Total = Identity + Half
+  Total += 2 * Quarter
+
+  Inverse = 4 (Mod - 2) Mod powmod
+  return Total % Mod * Inverse % Mod
+end

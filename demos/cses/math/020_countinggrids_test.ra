@@ -1,0 +1,21 @@
+use testing
+
+test "one cell"
+  use "020_countinggrids"
+  1 grids equal 2
+end
+
+test "two by two"
+  use "020_countinggrids"
+  2 grids equal 6
+end
+
+test "odd side"
+  use "020_countinggrids"
+  3 grids equal 140
+end
+
+test "official example"
+  use "020_countinggrids"
+  4 grids equal 16456
+end

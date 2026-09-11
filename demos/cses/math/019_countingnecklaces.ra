@@ -1,0 +1,39 @@
+rem CSES 2209: Counting Necklaces
+rem https://cses.fi/problemset/task/2209
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+Colors = stdin .integer
+N Colors necklaces print
+
+
+rem Count rotation classes by Burnside.
+fun necklaces N Colors
+  Mod = 1000000007
+  Total = 0
+
+  for Divisor in N divisors
+    Exponent = N // Divisor
+    Ways = Colors Exponent Mod powmod
+    Total += Divisor totient * Ways
+    Total %= Mod
+  end
+
+  Inverse = N (Mod - 2) Mod powmod
+  return Total * Inverse % Mod
+end
+
+
+rem Compute Euler's totient.
+fun totient N
+  Result = N
+  Factors = N factors unique
+  for Prime in Factors
+    Result = Result // Prime
+    Result *= Prime - 1
+  end
+  return Result
+end

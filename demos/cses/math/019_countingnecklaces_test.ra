@@ -1,0 +1,22 @@
+use testing
+
+test "official example"
+  use "019_countingnecklaces"
+  4 3 necklaces equal 24
+end
+
+test "one pearl"
+  use "019_countingnecklaces"
+  1 7 necklaces equal 7
+end
+
+test "binary necklaces"
+  use "019_countingnecklaces"
+  3 2 necklaces equal 4
+  6 2 necklaces equal 14
+end
+
+test "ten pearls"
+  use "019_countingnecklaces"
+  10 3 necklaces equal 5934
+end
