@@ -1,0 +1,16 @@
+rem CSES 1751: Planets Cycles
+rem https://cses.fi/problemset/task/1751
+
+use graph
+use io
+
+N = stdin .integer
+Next = stdin .integer N array
+Next planet_cycles print
+
+
+rem Count visits before a repeat.
+fun planet_cycles Next
+  Planets = Next functional
+  return Planets lengths
+end

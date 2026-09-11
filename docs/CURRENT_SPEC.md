@@ -2805,6 +2805,40 @@ integer, real, boolean, text, or symbols, like graph vertices. The method words
 dispatch only when their receiver is a DSU and remain available to ordinary
 user functions.
 
+## Functional graphs
+
+A rank-1 successor array can prepare a functional graph whose vertices are the
+integers from `1` through `N`. Item `I - 1` is the sole outgoing successor of
+vertex `I`, and every successor must also lie in `1..N`:
+
+```rank
+Planets = Next functional
+End = Planets jump Start Steps
+Steps = Planets distance From To
+Lengths = Planets lengths
+```
+
+`jump` follows exactly the requested nonnegative number of transitions and
+accepts arbitrarily large integers. Its cached binary-lifting table grows only
+to the largest requested bit. `distance` returns the minimum number of forward
+transitions from `From` to `To`; an unreachable target is missing and composes
+with `pad`:
+
+```rank
+Steps = Planets distance From To pad -1
+```
+
+`lengths` returns a rank-1 integer array aligned with the successor array. Each
+item is the number of distinct vertices visited from that vertex before the
+first repeated vertex. Construction decomposes the graph into cycles and their
+incoming trees once; queries do not mutate the value.
+
+This API is experimental. It stays in the graph library while examples beyond
+the adjacent CSES functional-graph tasks test whether the prepared object is a
+useful general abstraction. If later programs do not reuse the combined
+`jump`, `distance`, and `lengths` interface, simplify it to independent
+operations or remove it before treating the API as stable.
+
 ## Basic algorithms
 
 Graph algorithms are ordinary data-first functions exported by `use graph`.
@@ -4461,7 +4495,9 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `floyd`, `cycle`, `topological`, `scc`, `mst`, and `maxflow` algorithms. Their inputs and result records are specified in
+`bellmanford`, `floyd`, `cycle`, `topological`, `scc`, `mst`, and `maxflow`
+algorithms. It also provides the experimental `Next functional` prepared value
+with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
 [Graphs](../language/graphs.md).
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.

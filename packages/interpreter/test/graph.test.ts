@@ -5,6 +5,54 @@ import { run } from './support.js';
 const prelude = 'use graph\nuse sequences\n';
 
 describe('graphs', () => {
+    it('prepares and jumps through a functional graph', () => {
+        expect(run(`${prelude}
+Next = array 2 3 1 5 5
+Planets = Next functional
+array (Planets jump 1 1000000000) (Planets jump 4 100)
+`)).toBe('2 5');
+    });
+
+    it('finds directed functional-graph distances', () => {
+        expect(run(`${prelude}
+Next = array 2 3 1 5 5 7 6 7
+Planets = Next functional
+array (Planets distance 1 3) (Planets distance 3 2) (Planets distance 8 6)
+`)).toBe('2 2 2');
+    });
+
+    it('pads unreachable functional-graph distances', () => {
+        expect(run(`${prelude}
+Next = array 2 3 1 5 5
+Planets = Next functional
+array (Planets distance 5 4 pad -1) (Planets distance 1 5 pad -1)
+`)).toBe('-1 -1');
+    });
+
+    it('reports functional-graph orbit lengths', () => {
+        expect(run(`${prelude}
+Next = array 2 3 1 5 5 7 6 7
+Planets = Next functional
+Planets lengths
+`)).toBe('3 3 3 2 1 2 2 3');
+    });
+
+    it('validates functional successor arrays', () => {
+        expect(() => run(`${prelude}(array 2 4 1) functional`))
+            .toThrow('functional successors must be integers from 1 to N');
+        expect(() => run(`${prelude}(array shape 1 2 pad 1) functional`))
+            .toThrow('functional expects a rank-1 successor array');
+    });
+
+    it('keeps functional method words contextual', () => {
+        expect(run(`
+fun jump A B C
+  return A + B + C
+end
+1 jump 2 3
+`)).toBe('6');
+    });
+
     it('merges and queries a closed DSU', () => {
         expect(run(`${prelude}use ranges
 Union = new dsu (1 to 5)

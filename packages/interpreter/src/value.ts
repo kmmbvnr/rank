@@ -3,6 +3,7 @@ import type { RankFenwick } from './fenwick.js';
 import type { RankHeap } from './containers.js';
 import type { GraphValue } from './graph.js';
 import type { RankDsu } from './dsu.js';
+import type { RankFunctionalGraph } from './functional-graph.js';
 
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
@@ -146,12 +147,16 @@ export interface RankSequenceMask extends RankSequence {
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankHeap | RankObject | RankRecord | NativeFunction |
-    RankSequence | RankSequenceMask | GraphValue | RankDsu;
+    RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph;
 
 export type RankGraph = GraphValue;
 
 export function isRankDsu(value: RankValue): value is RankDsu {
     return typeof value === 'object' && value.kind === 'dsu';
+}
+
+export function isRankFunctionalGraph(value: RankValue): value is RankFunctionalGraph {
+    return typeof value === 'object' && value.kind === 'functional';
 }
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -280,6 +285,9 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     }
     if (value.kind === 'dsu') {
         return `<dsu ${value.size} ${value.components}>`;
+    }
+    if (value.kind === 'functional') {
+        return `<functional ${value.size}>`;
     }
     if (value.kind === 'object') {
         return '<object>';

@@ -1,0 +1,28 @@
+rem CSES 1160: Planets Queries II
+rem https://cses.fi/problemset/task/1160
+
+use graph
+use io
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Next = stdin .integer N array
+ValueCount = Q * 2
+Values = stdin .integer ValueCount array
+Queries = Values (array Q 2) reshape
+Next Queries planet_distances print
+
+
+rem Find forward distances or -1.
+fun planet_distances Next Queries
+  F = Next functional
+  Count = Queries len
+  Answers = array shape Count pad 0
+  for Query i in Queries
+    unpack From To = Query
+    Steps = F distance From To pad -1
+    Answers i = Steps
+  end
+  return Answers
+end

@@ -1,5 +1,6 @@
 import { RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
+import { RankFunctionalGraph } from '../functional-graph.js';
 import { expectGraph, type GraphValue } from '../graph.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
@@ -60,7 +61,20 @@ export const graphModule: RuntimeModule = {
         maximumFlowRecord(expectGraph(values[0]), values[1], values[2])),
     cycle: () => native('cycle', 1, values =>
         graphCycle(expectGraph(values[0]))),
+    functional: () => native('functional', 1, values =>
+        new RankFunctionalGraph(values[0])),
+    jump: () => native('jump', 3, values =>
+        expectFunctional(values[0]).jump(values[1], values[2])),
+    distance: () => native('distance', 3, values =>
+        expectFunctional(values[0]).distance(values[1], values[2])),
+    lengths: () => native('lengths', 1, values =>
+        expectFunctional(values[0]).lengths()),
 };
+
+function expectFunctional(value: RankValue): RankFunctionalGraph {
+    if (value instanceof RankFunctionalGraph) return value;
+    throw new RankError('functional graph operation expects a functional graph');
+}
 
 function graphCycle(graph: GraphValue): RankArray {
     const state = new Map<string, 1 | 2>();

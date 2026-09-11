@@ -2,6 +2,7 @@ use testing
 
 test "official example"
   use "019_planetsqueries1"
+  use graph
   Next = array 2 1 1 4
   Queries = array shape 3 2
     1 2
@@ -14,6 +15,7 @@ end
 
 test "zero steps stays in place"
   use "019_planetsqueries1"
+  use graph
   Next = array 2 3 1
   Queries = array shape 3 2
     1 0
@@ -26,6 +28,7 @@ end
 
 test "handles a large cycle jump"
   use "019_planetsqueries1"
+  use graph
   Next = array 2 3 1
   Queries = array shape 2 2
     1 1000000000
@@ -37,6 +40,7 @@ end
 
 test "enters a self loop"
   use "019_planetsqueries1"
+  use graph
   Next = array 2 3 4 4
   Queries = array shape 3 2
     1 2

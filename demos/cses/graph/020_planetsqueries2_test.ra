@@ -1,0 +1,55 @@
+use testing
+
+test "official example"
+  use "020_planetsqueries2"
+  use graph
+  Next = array 2 3 2 3 2
+  Queries = array shape 3 2
+    1 2
+    1 3
+    1 4
+  end
+  Result = Next Queries planet_distances
+  Result equal (array 1 2 -1)
+end
+
+test "zero steps and cycle direction"
+  use "020_planetsqueries2"
+  use graph
+  Next = array 2 3 1
+  Queries = array shape 4 2
+    1 1
+    1 3
+    3 2
+    2 1
+  end
+  Result = Next Queries planet_distances
+  Result equal (array 0 2 2 2)
+end
+
+test "tail cannot be reached backwards"
+  use "020_planetsqueries2"
+  use graph
+  Next = array 2 3 3 3
+  Queries = array shape 4 2
+    1 3
+    3 1
+    4 2
+    4 3
+  end
+  Result = Next Queries planet_distances
+  Result equal (array 2 -1 -1 1)
+end
+
+test "separates functional components"
+  use "020_planetsqueries2"
+  use graph
+  Next = array 2 1 4 3
+  Queries = array shape 3 2
+    1 4
+    4 3
+    2 1
+  end
+  Result = Next Queries planet_distances
+  Result equal (array -1 1 1)
+end

@@ -101,6 +101,7 @@ import {
     isRankArray,
     isRankCounter,
     isRankDsu,
+    isRankFunctionalGraph,
     isRankErrorValue,
     isRankFenwick,
     isRankFile,
@@ -1584,6 +1585,30 @@ export class Interpreter {
                         return receiver.connected(arguments_[0], arguments_[1]);
                     }
                     const operation = yield* resume(interpreter.evaluateTask(dsuMethod.operationExpression));
+                    return yield* resume(interpreter.apply(
+                        [receiver, ...arguments_, operation], missing, 0, [], tail,
+                    ));
+                };
+            }
+            const functionalMethod = explicitFunctionalMethod(parts);
+            if (functionalMethod) {
+                return function* (): Execution<RankValue> {
+                    const receiver = yield* resume(interpreter.evaluateTask(
+                        functionalMethod.receiver,
+                    ));
+                    const arguments_ = yield* resume(mapExecution(
+                        functionalMethod.arguments,
+                        argument => interpreter.evaluateTask(argument),
+                    ));
+                    if (isRankFunctionalGraph(receiver)) {
+                        interpreter.requireModule('graph', functionalMethod.operation);
+                        return functionalMethod.operation === 'jump'
+                            ? receiver.jump(arguments_[0], arguments_[1])
+                            : receiver.distance(arguments_[0], arguments_[1]);
+                    }
+                    const operation = yield* resume(interpreter.evaluateTask(
+                        functionalMethod.operationExpression,
+                    ));
                     return yield* resume(interpreter.apply(
                         [receiver, ...arguments_, operation], missing, 0, [], tail,
                     ));
@@ -4429,6 +4454,25 @@ interface DsuMethodApplication {
     readonly arguments: readonly Expression[];
 }
 
+interface FunctionalMethodApplication {
+    readonly receiver: Expression;
+    readonly operation: 'jump' | 'distance';
+    readonly operationExpression: Expression;
+    readonly arguments: readonly Expression[];
+}
+
+function explicitFunctionalMethod(
+    parts: Expression[],
+): FunctionalMethodApplication | undefined {
+    if (parts.length !== 4 || !isNameExpression(parts[1])) return undefined;
+    const operation = parts[1].name;
+    if (operation !== 'jump' && operation !== 'distance') return undefined;
+    return {
+        receiver: parts[0], operation, operationExpression: parts[1],
+        arguments: parts.slice(2),
+    };
+}
+
 function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | undefined {
     if (parts.length !== 3 && parts.length !== 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
@@ -4615,6 +4659,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'fenwick',
     'heap',
     'dsu',
+    'functional',
     'function',
     'sequence',
 ]);
