@@ -1,0 +1,34 @@
+rem CSES 1722: Fibonacci Numbers
+rem https://cses.fi/problemset/task/1722
+
+use bits
+use io
+
+N = stdin .integer
+N fibonacci_mod print
+
+
+rem Double a Fibonacci pair per bit.
+fun fibonacci_mod N
+  Mod = 1000000007
+  Current = 0
+  Next = 1
+
+  for Bit in N binary
+    Double = 2 * Next - Current
+    A = Current * Double % Mod
+    A = (A + Mod) % Mod
+    B = Current ** 2 + Next ** 2
+    B %= Mod
+
+    if Bit equal "0"
+      Current = A
+      Next = B
+    else
+      Current = B
+      Next = (A + B) % Mod
+    end
+  end
+
+  return Current
+end

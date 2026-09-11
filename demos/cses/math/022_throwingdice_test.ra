@@ -1,0 +1,23 @@
+use testing
+
+test "one throw"
+  use "022_throwingdice"
+  1 dice_ways equal 1
+end
+
+test "first six sums double"
+  use "022_throwingdice"
+  2 dice_ways equal 2
+  6 dice_ways equal 32
+end
+
+test "official example"
+  use "022_throwingdice"
+  8 dice_ways equal 125
+end
+
+test "upper limit"
+  use "022_throwingdice"
+  N = 1000000000000000000
+  N dice_ways equal 106021903
+end

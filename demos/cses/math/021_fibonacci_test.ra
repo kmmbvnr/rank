@@ -1,0 +1,22 @@
+use testing
+
+test "zero starts the sequence"
+  use "021_fibonacci"
+  0 fibonacci_mod equal 0
+end
+
+test "official example"
+  use "021_fibonacci"
+  10 fibonacci_mod equal 55
+end
+
+test "intermediate value"
+  use "021_fibonacci"
+  50 fibonacci_mod equal 586268941
+end
+
+test "upper limit"
+  use "021_fibonacci"
+  N = 1000000000000000000
+  N fibonacci_mod equal 209783453
+end
