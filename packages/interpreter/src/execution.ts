@@ -31,6 +31,13 @@ export function mapResult<T, R>(task: Evaluation<T>, operation: (value: T) => R)
     })();
 }
 
+export function flatMapResult<T, R>(task: Evaluation<T>, operation: (value: T) => Evaluation<R>): Evaluation<R> {
+    if ('done' in task) return operation(task.value);
+    return (function* (): Execution<R> {
+        return yield* resume(operation(yield* resume(task)));
+    })();
+}
+
 export function* resume<T>(task: Evaluation<T>): Execution<T> {
     if ('done' in task) return task.value;
     return (yield { task }) as T;

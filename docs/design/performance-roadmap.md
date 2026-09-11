@@ -19,7 +19,8 @@ an optimization preserves performance elsewhere.
 The worktree's private storage contract repairs the descriptor-probe bug and
 enables the sum experiment without probing unknown host objects. Finish its
 acceptance checks before merging: snapshot matvec improves, but named snapshot
-reductions and lazy k-means still have measured costs. The short-vector cache
+reductions still have measured costs. Shared evaluation composition improves
+lazy k-means, but its bounded-sum regression must be resolved before acceptance. The short-vector cache
 prototype was rejected: its small gain did not justify added complexity. The coordinate-copy
 change removed the ordinary mean regression and made row/column means about
 three times faster at 512 square. Revise or remove the remaining responsible
@@ -55,8 +56,11 @@ record fields, container methods or loop dispatch. Retain recursion, tail-call
 and memo benchmarks as regression controls.
 
 Tensor row/column copying and matrix transpose coordinate reuse have been
-measured and improved. Next inspect multidimensional selectors and the remaining
-temporary-array/cache costs in k-means and gradient descent.
+measured and improved. Shared completed-result composition also made scalar
+matmul more than twice as fast in the current experiment, which remains pending
+because bounded-sum regressed about 13%. Resolve that regression first.
+Reprofile before specializing multidimensional
+selectors; previous measurements included the now-removed suspension cost.
 
 Why: array reductions do not cover most scalar CSES algorithms.
 

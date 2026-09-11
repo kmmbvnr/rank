@@ -493,3 +493,54 @@ mechanism may avoid suspension for completed operands while retaining the
 existing execution stack for actual Rank calls. Test evaluation order, errors,
 deep recursion and cancellation before measuring it. Do not assume an indexing
 expression cannot contain a function merely because its names look like indices.
+
+## 10. Completed arithmetic composition: promising, not accepted yet
+
+The general binary-expression evaluator now composes `Evaluation` results with
+`flatMapResult`. This seven-line helper invokes the continuation immediately for
+a completed operand and uses the existing execution stack for a suspended one.
+The right operand is still evaluated after the left, and an optional step after
+both. Special syntax, including `pad`, keeps its existing evaluator. No numeric
+types, selector kinds or matrix sizes are guessed. The direct-expression path
+for ordinary scalar arithmetic remains unchanged.
+
+Five-sample comparisons against dffc395, using unchanged demo sources:
+
+| Workload | Before warm | After warm | Repeat before | Repeat after |
+| --- | ---: | ---: | ---: | ---: |
+| DeepML 009, 64-square matmul | 315.4 ms | 133.8 ms | 340.3 ms | 143.1 ms |
+| DeepML 009, 24-square matmul | 18.4 ms | 8.9 ms | 20.1 ms | 8.7 ms |
+
+The second run reversed the initial version order. At 64 square, its cold
+medians were 499.7 to 296.3 ms and peak RSS 380.0 to 179.0 MiB. K-means at
+2,048 points improved from 43.8 to 31.8 ms warm and 220.5 to 202.5 ms cold.
+These workloads do not use transpose, so dffc395 is the before-composition
+runtime for these comparisons. The full suite also includes the earlier matrix
+transpose change: gradient 82.2 to 64.6 ms is therefore a cumulative result.
+
+Other largest-size warm controls were Euler 11.2 to 11.1 ms, matvec 19.9 to
+19.1, row mean 4.3 to 4.1 and column mean 4.4 to 4.1. Do not infer small gains
+from these controls. Cold matvec increased 167.5 to 171.7 ms; not every cold
+or memory measurement improved.
+[First matmul comparison](../../benchmarks/baselines/2026-09-11-expression-composition-matmul.json)
+and [full repeat](../../benchmarks/baselines/2026-09-11-expression-composition-full.json).
+
+All 470 JS tests passed. New tests assert that selector arithmetic returns a
+completed result, that continuations run once in order, and that operand failure
+or cancellation prevents the continuation and closes the suspended operand.
+Rank-level side effects and first-error behavior are checked too. The full
+suite includes 100,000-frame recursion, million-call tail recursion, memoization,
+resource cleanup and error-location tests.
+
+All 164 demo files and the six judge-scale correctness/timeout checks passed.
+However, bounded-sum took 928.3 ms. An immediate paired check was 815.3 ms
+before versus 925.4 ms after: a roughly 13% regression, despite passing the
+timeout. A variant using `mapResult` for the final operand took 913.9 ms;
+a larger `mapPair` helper with reused right/operation closures took 919.1 ms.
+Neither revision removed this cost, so those revisions were dropped.
+[Judge smoke results](../../benchmarks/baselines/2026-09-11-expression-composition-judge.json).
+
+Decision: retain the first, smallest prototype only as a worktree experiment.
+It is not ready for acceptance or main. Investigate the suspended-operand path
+and repeat the bounded-sum comparison before accepting the numerical gains.
+No short-vector cache specialization was restored.

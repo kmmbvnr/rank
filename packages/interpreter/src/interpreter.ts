@@ -1,5 +1,5 @@
 import {
-    ExecutionStack, completed, emit, mapExecution, mapResult, normalizeStackError,
+    ExecutionStack, completed, emit, flatMapResult, mapExecution, mapResult, normalizeStackError,
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
@@ -1295,12 +1295,12 @@ export class Interpreter {
                     return (yield* resume(interpreter.evaluateTask(expression.right)));
                 };
             }
-            return function* (): Execution<RankValue> { return interpreter.evaluateBinary(
-                expression.operator,
-                (yield* resume(interpreter.evaluateTask(expression.left))),
-                (yield* resume(interpreter.evaluateTask(expression.right))),
-                expression.step ? (yield* resume(interpreter.evaluateTask(expression.step))) : undefined,
-            ); };
+            return () => flatMapResult(interpreter.evaluateTask(expression.left), left =>
+                flatMapResult(interpreter.evaluateTask(expression.right), right =>
+                    expression.step
+                        ? mapResult(interpreter.evaluateTask(expression.step), step =>
+                            interpreter.evaluateBinary(expression.operator, left, right, step))
+                        : completed(interpreter.evaluateBinary(expression.operator, left, right))));
         }
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {

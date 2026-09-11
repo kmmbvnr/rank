@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "date": "2026-09-11T08:32:56.142Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "platform": "darwin",
+    "arch": "arm64",
+    "harnessRevision": "c9072ca1efe79d2ef1acfff6b6d6db7064503926",
+    "runtimeRevision": "c9072ca1efe79d2ef1acfff6b6d6db7064503926",
+    "checkout": "/private/tmp/rank-demo-roadmap",
+    "size": 200000,
+    "timeoutMs": 30000,
+    "timing": "one cold CLI process per case, including startup, parsing, input and output",
+    "note": "Candidate includes the uncommitted expression-composition patch over c9072ca; one cold smoke sample per case, not speedup evidence."
+  },
+  "results": [
+    {
+      "name": "restaurant",
+      "ms": 2365.998458,
+      "passed": true
+    },
+    {
+      "name": "rooms",
+      "ms": 1803.4912090000003,
+      "passed": true
+    },
+    {
+      "name": "playlist",
+      "ms": 466.06758400000035,
+      "passed": true
+    },
+    {
+      "name": "books",
+      "ms": 185.3095000000003,
+      "passed": true
+    },
+    {
+      "name": "bounded-sum",
+      "ms": 928.2684580000005,
+      "passed": true
+    },
+    {
+      "name": "sum",
+      "ms": 165.28700000000026,
+      "passed": true
+    }
+  ]
+}
