@@ -1,0 +1,75 @@
+rem CSES 1197: Cycle Finding
+rem https://cses.fi/problemset/task/1197
+
+use algo
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 3
+Values = stdin .integer ValueCount array
+Edges = Values (array M 3) reshape
+Result = Edges N negative_cycle
+
+if Result .found
+  "YES" print
+  Result .cycle print
+else
+  "NO" print
+end
+
+
+rem Find one negative directed cycle.
+fun negative_cycle Edges N
+  Size = N + 1
+  Dist = array shape Size pad 0
+  Parent = array shape Size pad 0
+  Changed = 0
+
+  for # in 1 to N
+    Changed = 0
+    for Edge in Edges
+      unpack From To Cost = Edge
+      Candidate = Dist From + Cost
+      if Candidate less Dist To
+        Dist To = Candidate
+        Parent To = From
+        Changed = To
+      end
+    end
+  end
+
+  if Changed equal 0
+    return record
+      .found = false
+      .cycle = array shape 0 pad 0
+    end
+  end
+
+  Start = Changed
+  for # in 1 to N
+    Start = Parent Start
+  end
+
+  Path = new queue
+  Path push Start
+  Node = Parent Start
+  for Node not equal Start
+    Path push Node
+    Node = Parent Node
+  end
+  Path push Start
+
+  Length = Path len
+  Cycle = array shape Length pad 0
+  for City i in Path
+    Position = Length - i - 1
+    Cycle Position = City
+  end
+  return record
+    .found = true
+    .cycle = Cycle
+  end
+end
