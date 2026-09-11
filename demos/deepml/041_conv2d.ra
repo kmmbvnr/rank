@@ -1,0 +1,11 @@
+rem Deep-ML 41: Simple Conv2D
+rem https://www.deep-ml.com/problems/41
+
+use numbers
+use sequences
+
+fun simple_conv2d A K P S
+  W = K shape
+  B = A W window stride S padding P
+  return (B * K) sum rank 2
+end
