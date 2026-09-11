@@ -51,6 +51,7 @@ import {
     type Statement,
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
+import { expectFenwick } from './fenwick.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
@@ -89,6 +90,7 @@ import {
     isRankArray,
     isRankCounter,
     isRankErrorValue,
+    isRankFenwick,
     isRankFile,
     isRankIndex,
     isRankLabel,
@@ -825,6 +827,20 @@ export class Interpreter {
                     }
                     return undefined;
                 }
+                if (isRankFenwick(target)) {
+                    if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
+                        throw new RankError('fenwick assignment expects one integer index');
+                    }
+                    const value = yield* resume(interpreter.evaluateTask(statement.value));
+                    const result = statement.operator === '=' ? value : interpreter.evaluateBinary(
+                        assignmentOperator(statement.operator), target.at(selectors[0]), value,
+                    );
+                    if (typeof result !== 'bigint') {
+                        throw new RankError('fenwick values must be integers');
+                    }
+                    target.set(selectors[0], result);
+                    return result;
+                }
                 const field = selectors.at(-1);
                 if (field !== undefined && isRankLabel(field) && field.name !== '#') {
                     let receiver: RankValue = target;
@@ -1421,6 +1437,15 @@ export class Interpreter {
                     const receiver = expectMultiset(receiverValue);
                     if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
                     return receiver.ceiling(argumentValue);
+                };
+            }
+            const fenwickSum = explicitFenwickSum(parts);
+            if (fenwickSum) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('algo', 'fenwick');
+                    const receiver = yield* resume(interpreter.evaluateTask(fenwickSum.receiver));
+                    const index = yield* resume(interpreter.evaluateTask(fenwickSum.index));
+                    return expectFenwick(receiver).sum(expectInteger(index));
                 };
             }
             const directParts = parts.map(part => isAllAxisExpression(part)
@@ -3076,6 +3101,10 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (isRankCounter(values[0]) && values.length === 2) {
         return values[0].entries.get(setValueKey(values[1]))?.count ?? 0n;
     }
+    if (isRankFenwick(values[0]) && values.length === 2
+        && typeof values[1] === 'bigint') {
+        return values[0].at(values[1]);
+    }
     if (isRankMultiset(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') {
         return values[0].at(values[1]);
@@ -3200,6 +3229,8 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (isRankArray(values[0]) && isRankSequence(values[1])) return true;
     if (isRankIndex(values[0]) && values.length > 1) return true;
     if (isRankCounter(values[0]) && values.length === 2) return true;
+    if (isRankFenwick(values[0]) && values.length === 2
+        && typeof values[1] === 'bigint') return true;
     if (isRankMultiset(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') return true;
     if (isRankObject(values[0]) && values.length === 2
@@ -3880,6 +3911,11 @@ interface MultisetMethodApplication {
     readonly argument: Expression[];
 }
 
+interface FenwickSumApplication {
+    readonly receiver: Expression;
+    readonly index: Expression;
+}
+
 interface CollectionMutationApplication {
     readonly receiver: Expression;
     readonly operation: 'add' | 'remove';
@@ -3927,6 +3963,11 @@ function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication 
         operation,
         argument: parts.slice(position + 1),
     };
+}
+
+function explicitFenwickSum(parts: Expression[]): FenwickSumApplication | undefined {
+    if (parts.length !== 3 || !isNamed(parts[1], 'sum')) return undefined;
+    return { receiver: parts[0], index: parts[2] };
 }
 
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
@@ -4042,6 +4083,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'set',
     'counter',
     'multiset',
+    'fenwick',
     'function',
     'sequence',
 ]);

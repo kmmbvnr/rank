@@ -1,5 +1,6 @@
 import { RankError } from '../errors.js';
 import { addToCollection } from '../collections.js';
+import { RankFenwick } from '../fenwick.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -15,6 +16,8 @@ import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const algoModule: RuntimeModule = {
+    fenwick: () => native('fenwick', 1, arguments_ =>
+        new RankFenwick(expectInteger(arguments_[0]))),
     multiset: () => native('multiset', 1, arguments_ => multisetValue(arguments_[0])),
     add: () => native('add', 2, arguments_ =>
         addToCollection(arguments_[0], arguments_[1])),

@@ -221,6 +221,25 @@ Construction takes expected `O(N log N)` time. Indexing, `add`, `remove`,
 `floor` and `ceiling` take expected `O(log N)` time. Membership with `in` has
 the same expected bound. The runtime type is `.multiset`.
 
+### Fenwick tree
+
+A Fenwick tree is a fixed-size integer array with logarithmic prefix sums:
+
+```rank
+F = N fenwick
+F I = Value
+F I += Delta
+Value = F I
+Prefix = F sum I
+```
+
+Indices are zero-based. Cells start at zero. Addressed assignment writes one
+cell, and compound assignment updates it. `F sum I` returns the inclusive sum
+from index zero through `I`; `F sum -1` is the empty prefix and returns zero.
+Other negative and out-of-bounds indices raise `.Missing` and compose with
+`pad`. Cell access is constant time; assignment and prefix sums take
+`O(log N)` time. The runtime type is `.fenwick`.
+
 ### Permutations
 
 `permutations` has intrinsic rank 1. It accepts text or a finite rank-1 array,

@@ -1,0 +1,50 @@
+use testing
+
+test "official example"
+  use "021_ranges"
+  Ranges = array shape 4 2
+    1 6
+    2 4
+    4 8
+    3 6
+  end
+  Result = Ranges nested_range_counts
+  Result .contains equal array 2 0 0 0
+  Result .inside equal array 0 1 0 1
+end
+
+test "disjoint ranges"
+  use "021_ranges"
+  Ranges = array shape 3 2
+    1 2
+    4 5
+    8 9
+  end
+  Result = Ranges nested_range_counts
+  Result .contains equal array 0 0 0
+  Result .inside equal array 0 0 0
+end
+
+test "nested chain"
+  use "021_ranges"
+  Ranges = array shape 3 2
+    1 10
+    2 9
+    3 8
+  end
+  Result = Ranges nested_range_counts
+  Result .contains equal array 2 1 0
+  Result .inside equal array 0 1 2
+end
+
+test "equal right endpoints"
+  use "021_ranges"
+  Ranges = array shape 3 2
+    2 6
+    1 6
+    3 5
+  end
+  Result = Ranges nested_range_counts
+  Result .contains equal array 1 2 0
+  Result .inside equal array 1 0 2
+end

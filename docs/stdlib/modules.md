@@ -795,6 +795,7 @@ year
 Seen = new set
 Counts = new counter
 Empty = new multiset
+F = Size fenwick
 Seen add Value
 Counts add Value
 Bag = Values multiset
@@ -813,6 +814,10 @@ occurrence by zero-based index. Its lookup and mutation operations take expected
 `O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
 and therefore compose with `pad`. The complete collection semantics are defined
 in [Collections](../language/collections.md).
+
+`Size fenwick` constructs a fixed-size integer Fenwick tree. It supports
+zero-based cell access and assignment plus inclusive prefix sums through
+`F sum I`, all as specified in [Collections](../language/collections.md).
 
 ## Rule for adding library vocabulary
 

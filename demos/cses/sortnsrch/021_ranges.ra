@@ -1,0 +1,63 @@
+rem CSES 2169: Nested Ranges Count
+rem https://cses.fi/problemset/task/2169
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Values = stdin .integer (N * 2) array
+Data = Values (array N 2) reshape
+
+Result = Data nested_range_counts
+Result .contains print
+Result .inside print
+
+
+rem Count containing and contained ranges.
+fun nested_range_counts Data
+  Shape = Data shape
+  N = Shape 0
+  Start = Data # 0
+  Finish = Data # 1
+
+  Base = 1000000001
+  Keys = Start * Base + Base - Finish
+  Order = Keys argsort
+
+  Ends = Finish unique sort
+  Rank = new index
+
+  for Y I in Ends
+    Rank Y = I
+  end
+
+  Contains = array shape N pad 0
+  Inside = array shape N pad 0
+  F = Ends len fenwick
+
+  for K in (N - 1) to 0 by -1
+    I = Order K
+    R = Rank (Finish I)
+    Contains I = F sum R
+    F R += 1
+  end
+
+  F = Ends len fenwick
+  Seen = 0
+
+  for I in Order
+    R = Rank (Finish I)
+    Less = F sum (R - 1)
+    Inside I = Seen - Less
+    F R += 1
+    Seen += 1
+  end
+
+  Result = record
+    .contains = Contains
+    .inside = Inside
+  end
+  return Result
+end

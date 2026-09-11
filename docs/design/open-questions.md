@@ -73,6 +73,16 @@ No syntax is reserved for these extensions yet. They must remain distinct:
 stride moves a window, padding changes its valid position frame, and dilation
 changes the geometry inside each cell.
 
+## Segment tree
+
+A segment tree is a candidate general algorithmic structure for range queries
+that cannot be expressed efficiently by a Fenwick tree. It should support a
+user-selected associative reduction, point updates and later lazy range
+updates. Before adding syntax, a real example must settle the identity value,
+half-open or inclusive bounds, how a pure combining function is supplied, and
+whether lazy updates need their own operation type. No segment-tree syntax is
+current or reserved yet.
+
 ## Remaining standard-input modes
 
 Standard input modes are symbol values. The current implementation supports
