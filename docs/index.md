@@ -65,6 +65,7 @@ Adults = Data Mask
 ## Development workflow
 
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
+- [Array performance roadmap and benchmarks](design/performance-roadmap.md)
 
 ## Marketing
 
