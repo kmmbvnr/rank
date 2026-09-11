@@ -1,0 +1,59 @@
+rem CSES 1192: Counting Rooms
+rem https://cses.fi/problemset/task/1192
+
+use algo
+use io
+use ranges
+use sequences
+
+Rows = stdin .integer
+Columns = stdin .integer
+Grid = stdin .word Rows array
+Grid count_rooms print
+
+
+rem Count connected components of floor cells with breadth-first search.
+fun count_rooms Grid
+  Rows = Grid len
+  Columns = Grid 0 len
+  Seen = array shape Rows Columns pad false
+  DYs = array -1 1 0 0
+  DXs = array 0 0 -1 1
+  Rooms = 0
+  Head = 0
+
+  for Line Y in Grid
+    for Cell X in Line
+      if Cell equal "." and Seen Y X equal false
+        Rooms += 1
+        Seen Y X = true
+        queue push Y * Columns + X
+
+        for Head less queue len
+          Position = queue Head
+          Row = Position // Columns
+          Column = Position % Columns
+
+          for DY Direction in DYs
+            NY = Row + DY
+            NX = Column + DXs Direction
+            Inside = NY at least 0 and NY less Rows
+            Inside and= NX at least 0 and NX less Columns
+
+            if Inside
+              Neighbor = Grid NY
+              if Neighbor NX equal "." and Seen NY NX equal false
+                Seen NY NX = true
+                queue push NY * Columns + NX
+              end
+            end
+          end
+
+          Head += 1
+        end
+      end
+    end
+  end
+
+  return Rooms
+end
