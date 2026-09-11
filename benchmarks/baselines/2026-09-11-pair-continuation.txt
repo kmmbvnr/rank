@@ -1,0 +1,316 @@
+Candidate: 1308f26 with the mapPair/resumePair working-tree patch.
+Baseline: main 9e67783. Node v24.15.0, Apple M5.
+Baseline runtime medians (ms), captured before the output below:
+tree 37.2; total 7.7; calls 14.9; nativecalls 11.4; conditional 10.5;
+addressing 13.5; tail 22.4; dyadiccalls 17.9; tailacc 25.6.
+Below: baseline indexwork, then all candidate scalar results,
+paired numerical report, then candidate judge-scale results.
+
+indexwork: median 52.7 ms (50.9, 52.0, 52.7, 53.8, 54.3)
+tree: median 36.9 ms (36.5, 36.7, 36.9, 37.6, 41.7)
+total: median 7.8 ms (7.4, 7.5, 7.8, 7.8, 10.4)
+calls: median 14.8 ms (14.7, 14.7, 14.8, 15.0, 16.6)
+nativecalls: median 11.6 ms (11.5, 11.5, 11.6, 11.6, 13.2)
+conditional: median 10.6 ms (10.5, 10.6, 10.6, 11.0, 12.8)
+addressing: median 16.4 ms (16.1, 16.4, 16.4, 16.6, 19.2)
+tail: median 22.6 ms (22.5, 22.6, 22.6, 23.1, 24.0)
+dyadiccalls: median 17.6 ms (17.6, 17.6, 17.6, 17.7, 18.1)
+tailacc: median 25.8 ms (25.6, 25.6, 25.8, 26.9, 27.8)
+indexwork: median 48.2 ms (47.5, 47.8, 48.2, 50.1, 50.5)
+candidate matmul/4: 0.3 ms warm; 126.0 MiB peak
+baseline matmul/4: 0.3 ms warm; 120.7 MiB peak
+baseline matmul/24: 18.2 ms warm; 269.3 MiB peak
+candidate matmul/24: 9.2 ms warm; 141.0 MiB peak
+candidate matmul/64: 133.2 ms warm; 275.1 MiB peak
+baseline matmul/64: 315.3 ms warm; 381.3 MiB peak
+{
+  "metadata": {
+    "date": "2026-09-11T09:29:43.113Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "storage": "plain",
+    "gradient": {
+      "features": 8,
+      "steps": 20
+    },
+    "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+    "sources": {
+      "euler": {
+        "path": "demos/euler/006_sumsquarediff.ra",
+        "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+      },
+      "matvec": {
+        "path": "demos/deepml/001_matmul.ra",
+        "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+      },
+      "kmeans": {
+        "path": "demos/deepml/017_kmeans.ra",
+        "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+      },
+      "row": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "column": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "matmul": {
+        "path": "demos/deepml/009_matmul.ra",
+        "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+      },
+      "gradient": {
+        "path": "demos/deepml/015_gd.ra",
+        "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+      }
+    }
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-demo-roadmap/",
+      "revision": "1308f26c61fed23baef721cad6415f5c61c0ff07",
+      "dirty": true
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-delivery-main-baseline",
+      "revision": "9e677834efdbe353845effca2ec7aae2f5da37a9",
+      "dirty": false
+    }
+  },
+  "results": [
+    {
+      "name": "matmul",
+      "scale": 0,
+      "version": "candidate",
+      "warmProcessMs": 140.933,
+      "size": 4,
+      "firstMs": 2.832833000000008,
+      "warmMs": [
+        0.3651249999999777,
+        0.8472919999999817,
+        0.2585410000000081,
+        0.22191599999999312,
+        0.229582999999991
+      ],
+      "memory": {
+        "rss": 132136960,
+        "heapTotal": 56541184,
+        "heapUsed": 25129240,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 129040,
+      "coldProcessMs": [
+        143.36487499999998,
+        139.41837499999997,
+        138.74762499999986,
+        139.26470799999993,
+        141.97074999999995
+      ]
+    },
+    {
+      "name": "matmul",
+      "scale": 0,
+      "version": "baseline",
+      "warmProcessMs": 144.16587500000003,
+      "size": 4,
+      "firstMs": 2.7724159999999927,
+      "warmMs": [
+        0.4065840000000094,
+        0.36366599999999494,
+        0.33475000000001387,
+        0.30666700000000446,
+        0.3069589999999778
+      ],
+      "memory": {
+        "rss": 126517248,
+        "heapTotal": 55230464,
+        "heapUsed": 32743896,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 123552,
+      "coldProcessMs": [
+        140.51404200000002,
+        137.912417,
+        139.14945899999998,
+        140.798542,
+        137.9330420000001
+      ]
+    },
+    {
+      "name": "matmul",
+      "scale": 1,
+      "version": "baseline",
+      "warmProcessMs": 304.0105420000002,
+      "size": 24,
+      "firstMs": 27.181624999999997,
+      "warmMs": [
+        17.804333999999983,
+        21.460624999999993,
+        18.67108300000001,
+        18.24675000000002,
+        17.582708999999966
+      ],
+      "memory": {
+        "rss": 282394624,
+        "heapTotal": 190283776,
+        "heapUsed": 109530600,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 275776,
+      "coldProcessMs": [
+        164.90879099999984,
+        163.8488339999999,
+        165.34820800000034,
+        165.3812499999999,
+        163.46349999999984
+      ]
+    },
+    {
+      "name": "matmul",
+      "scale": 1,
+      "version": "candidate",
+      "warmProcessMs": 225.5341669999998,
+      "size": 24,
+      "firstMs": 18.33229200000001,
+      "warmMs": [
+        9.162042000000014,
+        9.319749999999999,
+        9.05933300000001,
+        9.092415999999986,
+        9.838375000000013
+      ],
+      "memory": {
+        "rss": 147832832,
+        "heapTotal": 101367808,
+        "heapUsed": 51164176,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 144384,
+      "coldProcessMs": [
+        156.86495800000012,
+        156.11516600000004,
+        154.75504200000023,
+        155.2240829999996,
+        156.62554099999988
+      ]
+    },
+    {
+      "name": "matmul",
+      "scale": 2,
+      "version": "candidate",
+      "warmProcessMs": 1240.6172919999995,
+      "size": 64,
+      "firstMs": 144.78495800000002,
+      "warmMs": [
+        133.220375,
+        137.49029099999996,
+        137.9770420000001,
+        132.99037500000009,
+        132.95629200000008
+      ],
+      "memory": {
+        "rss": 288505856,
+        "heapTotal": 181714944,
+        "heapUsed": 56374904,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 281744,
+      "coldProcessMs": [
+        284.80883300000005,
+        285.1540420000001,
+        285.1771669999998,
+        294.46479200000067,
+        290.28449999999975
+      ]
+    },
+    {
+      "name": "matmul",
+      "scale": 2,
+      "version": "baseline",
+      "warmProcessMs": 2701.931374999999,
+      "size": 64,
+      "firstMs": 338.66391699999997,
+      "warmMs": [
+        313.1993749999999,
+        325.0551659999999,
+        315.76695799999993,
+        315.33475000000044,
+        312.23062500000015
+      ],
+      "memory": {
+        "rss": 399294464,
+        "heapTotal": 234635264,
+        "heapUsed": 146085256,
+        "external": 2332316,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 390480,
+      "coldProcessMs": [
+        479.05274999999983,
+        477.03449999999975,
+        490.1606670000001,
+        479.53758299999936,
+        481.9819580000003
+      ]
+    }
+  ]
+}
+restaurant: 2382.8 ms PASS
+rooms: 1881.5 ms PASS
+playlist: 442.4 ms PASS
+books: 171.4 ms PASS
+bounded-sum: 627.4 ms PASS
+sum: 164.6 ms PASS
+{
+  "metadata": {
+    "date": "2026-09-11T09:29:54.845Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "platform": "darwin",
+    "arch": "arm64",
+    "harnessRevision": "1308f26c61fed23baef721cad6415f5c61c0ff07",
+    "runtimeRevision": "1308f26c61fed23baef721cad6415f5c61c0ff07",
+    "checkout": "/private/tmp/rank-demo-roadmap",
+    "size": 200000,
+    "timeoutMs": 30000,
+    "timing": "one cold CLI process per case, including startup, parsing, input and output"
+  },
+  "results": [
+    {
+      "name": "restaurant",
+      "ms": 2382.784708,
+      "passed": true
+    },
+    {
+      "name": "rooms",
+      "ms": 1881.5070829999995,
+      "passed": true
+    },
+    {
+      "name": "playlist",
+      "ms": 442.3697910000001,
+      "passed": true
+    },
+    {
+      "name": "books",
+      "ms": 171.37479200000053,
+      "passed": true
+    },
+    {
+      "name": "bounded-sum",
+      "ms": 627.3845410000004,
+      "passed": true
+    },
+    {
+      "name": "sum",
+      "ms": 164.61508400000002,
+      "passed": true
+    }
+  ]
+}

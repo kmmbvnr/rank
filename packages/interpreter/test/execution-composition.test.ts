@@ -1,9 +1,40 @@
 import { describe, expect, it } from 'vitest';
-import { completed, emit, ExecutionStack, flatMapResult, mapExecution, runExecution, type Evaluation, type Execution } from '../src/execution.js';
+import { completed, emit, ExecutionStack, flatMapResult, mapExecution, mapPair, runExecution, type Evaluation, type Execution } from '../src/execution.js';
 import { Interpreter, parse, type RankValue } from '../src/index.js';
 import { isExpressionStatement, type Expression } from 'rank-language';
 
 describe('evaluation composition', () => {
+    it('uses one continuation for two suspended arithmetic operands', () => {
+        const left = (function* (): Execution<number> { return 2; })();
+        const right = (function* (): Execution<number> { return 4; })();
+        const task = mapPair(left, () => right, (a, b) => a + b);
+        if ('done' in task) throw new Error('expected suspension');
+        // Check the task identities, not timing: the right request must not
+        // introduce an extra wrapper around the actual right operand.
+        expect(task.next()).toEqual({ done: false, value: { task: left } });
+        expect(task.next(2)).toEqual({ done: false, value: { task: right } });
+        expect(task.next(4)).toEqual({ done: true, value: 6 });
+        expect(mapPair(completed(2), () => completed(4), (a, b) => a + b)).toEqual(completed(6));
+    });
+
+    it('evaluates a pending right operand once after a completed left operand', () => {
+        let reads = 0;
+        const task = mapPair(completed(2), () => {
+            reads++;
+            return (function* (): Execution<number> { return 4; })();
+        }, (a, b) => a + b);
+        expect(runExecution(task)).toBe(6);
+        expect(reads).toBe(1);
+    });
+
+    it('does not start the right operand when the left operand fails', () => {
+        let reads = 0;
+        const left = (function* (): Execution<number> { throw new Error('left failed'); })();
+        const task = mapPair(left, () => { reads++; return completed(4); }, (a, b) => a + b);
+        expect(() => runExecution(task)).toThrow('left failed');
+        expect(reads).toBe(0);
+    });
+
     it('collects completed operands without a task and resumes at the first pending operand', () => {
         expect(mapExecution([1, 2], value => completed(value * 2))).toEqual(completed([2, 4]));
         expect(mapExecution([], () => { throw new Error('empty'); })).toEqual(completed([]));

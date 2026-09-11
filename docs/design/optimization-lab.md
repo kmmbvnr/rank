@@ -765,3 +765,38 @@ The scan also records 11 existing parse failures: the ten Kaggle drafts and
 TPCH 001. For example, the first Kaggle draft starts with `гыу csv`. These were
 not edited. Earlier statements that 164 demo test files passed do not claim that
 every draft under `demos/` parses or runs; the scan now makes that limit explicit.
+
+## 17. Aggregate recursion regression: one reusable pair continuation
+
+After integrating main `9e67783`, the scalar acceptance benchmark found a
+regression that the numerical suite did not cover: recursive `tree` took
+56.3 ms versus 37.9 ms in main. Nested `flatMapResult` calls added a second
+continuation when both arithmetic operands suspended.
+
+`mapPair` now uses one continuation for both operands. Completed operands still
+take the synchronous path. Stepped binary expressions retain their original
+generator path. The first version allocated the continuation function on every
+call and still took 45.8 ms against 37.4 ms. Moving that generator function to
+module scope reduced the candidate to 36.9 ms in two runs; the repeated main
+comparison was 37.2 ms. This avoids per-call function allocation without adding
+a syntax-specific recursive fast path.
+
+The same run retained the matrix gain: unchanged DeepML matmul at 64 square
+took 133.2 ms versus 315.3 ms in main (five warm samples). All six judge-scale
+oracles passed at N=200,000; bounded-sum took 627.4 ms. Immediately before the
+generator-hoisting change, a paired cold bounded-sum comparison was 594.6 ms
+versus 788.7 ms in main. These cold timings include startup and I/O and should
+not be treated as precise kernel measurements.
+[Raw scalar, matrix and judge results](../../benchmarks/baselines/2026-09-11-pair-continuation.txt).
+
+The deterministic test checks that the suspended pair requests the actual left
+and right tasks, without wrapping the right task in another continuation.
+Additional tests cover a completed left operand and a failing left operand.
+The full demo command passed all 200 test files after main integration; the
+offline alias-analysis suite passed seven tests.
+
+Acceptance is not a claim that all workloads improved. Scalar `addressing`
+still took 16.4 ms versus 13.5 ms in main. The private-array representation and
+safe host fallback need their own aggregate cost accounting. Do not hide these
+costs behind the matrix result or restore unsafe descriptor probes to recover
+the old plain-host fusion timing.

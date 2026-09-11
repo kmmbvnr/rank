@@ -38,6 +38,20 @@ export function flatMapResult<T, R>(task: Evaluation<T>, operation: (value: T) =
     })();
 }
 
+/** Two operands share one continuation when both need the execution stack. */
+export function mapPair<T, U, R>(
+    left: Evaluation<T>, right: () => Evaluation<U>, operation: (left: T, right: U) => R,
+): Evaluation<R> {
+    if ('done' in left) return mapResult(right(), value => operation(left.value, value));
+    return resumePair(left, right, operation);
+}
+
+function* resumePair<T, U, R>(
+    left: Evaluation<T>, right: () => Evaluation<U>, operation: (left: T, right: U) => R,
+): Execution<R> {
+    return operation(yield* resume(left), yield* resume(right()));
+}
+
 export function* resume<T>(task: Evaluation<T>): Execution<T> {
     if ('done' in task) return task.value;
     return (yield { task }) as T;
