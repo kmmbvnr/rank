@@ -1,0 +1,48 @@
+rem CSES 1642: Sum of Four Values
+rem https://cses.fi/problemset/task/1642
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+X = stdin .integer
+A = stdin .integer N array
+
+Answer = A X find_four
+
+if Answer len equal 0
+  "IMPOSSIBLE" print
+else
+  Answer print
+end
+
+
+rem Match each pair with an earlier pair.
+fun find_four A Target
+  N = A len
+
+  for i in 0 until N
+    for j in i + 1 until N
+      Need = Target - A i - A j
+
+      if Need in index
+        Pair = index Need
+        First = Pair 0 + 1
+        Second = Pair 1 + 1
+        Third = i + 1
+        Fourth = j + 1
+        return array First Second Third Fourth
+      end
+    end
+
+    for k in 0 until i
+      Sum = A k + A i
+      index Sum = array k i
+    end
+  end
+
+  return array shape 0
+  end
+end
