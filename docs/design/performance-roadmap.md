@@ -71,6 +71,45 @@ Any function compiler must retain deep recursion, tail calls, closures, resource
 cleanup and Rank source diagnostics. WASM/SIMD kernels are a later experiment once
 packed storage exists and profiles identify a suitable workload.
 
+## Stability during one operation
+
+Rank execution is sequential. A synchronous, read-only numeric operation can
+assume its inputs stay unchanged for that call if it invokes no user code,
+effectful lazy readers or host hooks and uses no externally shared mutable
+storage. This is a local guarantee, not a promise that the arrays are immutable
+for their entire lifetime. An alias such as `B = A` does not by itself invalidate
+the guarantee: something must execute a write through that alias.
+
+Use this narrower proof before implementing the whole-function analysis in step 6:
+
+- **Fusion (step 3):** compute `(A * 2 + B) + reduce` in one traversal without
+  storing every intermediate element. Preserve arithmetic and reduction order.
+  The source arrays may be mutable before and after the call.
+- **Numeric kernels and packed storage (steps 2 and 4):** retain proven shape,
+  storage and element-type facts for the duration of a kernel, and move redundant
+  checks outside its loop. Stability alone does not prove that elements are
+  numeric or homogeneous; establish those facts separately without changing read
+  effects or error timing. Measure any validation pass, especially on small arrays.
+- **Generated loops (step 5):** validate a plan's assumptions at entry and use them
+  throughout that invocation. Revalidate on the next call; a cached plan does not
+  make mutable input data permanent.
+
+Aliases still matter when reusing an input buffer for output, moving work across
+expressions, or caching results between calls. Those transformations need the
+stronger mutation and escape analysis in step 6. Temporary-buffer reuse also
+requires proof that no live reference can observe the overwritten contents.
+
+Sequential execution does not make every read pure. Lazy callbacks, JS getters
+and proxies can execute writes during access. Unknown inputs retain ordinary
+execution unless their access contract proves the required properties. Tests
+must cover these cases and mutations between successive calls.
+
+Internal parallelism is a possible implementation detail, not a new source-level
+execution model. Any future parallel kernel must prevent concurrent input writes
+and preserve observable sequential behavior, including error handling and
+floating-point reduction order. No parallel implementation or speedup is claimed
+here.
+
 ## Benchmark commands
 
 From a built checkout:
