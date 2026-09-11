@@ -4,6 +4,11 @@ import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const linalgModule: RuntimeModule = {
+    diag: () => native(
+        'diag',
+        1,
+        arguments_ => diagonal(arguments_[0]),
+    ),
     det: () => native(
         'det',
         1,
@@ -34,6 +39,39 @@ export const linalgModule: RuntimeModule = {
         arguments_ => symmetricEigendecomposition(arguments_[0]),
     ),
 };
+
+function diagonal(value: RankValue): RankArray {
+    if (!isRankArray(value) || (value.shape.length !== 1 && value.shape.length !== 2)) {
+        throw new RankError(
+            'diag expects a rank-1 vector or rank-2 matrix',
+            'DimensionMismatch',
+        );
+    }
+
+    if (value.shape.length === 2) {
+        const [rows, columns] = value.shape;
+        const size = Math.min(rows, columns);
+        const items = Array.from({ length: size }, (_, index) =>
+            diagNumber(arrayItem(value, index * columns + index)));
+        return { kind: 'array', items, shape: [size] };
+    }
+
+    const size = value.shape[0];
+    const values = Array.from({ length: size }, (_, index) =>
+        diagNumber(arrayItem(value, index)));
+    const zero = values.some(item => typeof item === 'number') ? 0 : 0n;
+    const items = Array.from({ length: size * size }, (_, index) => {
+        const row = Math.floor(index / size);
+        const column = index % size;
+        return row === column ? values[row] : zero;
+    });
+    return { kind: 'array', items, shape: [size, size] };
+}
+
+function diagNumber(value: RankValue): bigint | number {
+    if (typeof value === 'bigint' || typeof value === 'number') return value;
+    throw new RankError('diag expects numeric elements', 'TypeError');
+}
 
 function symmetricEigendecomposition(value: RankValue): RankArray {
     if (!isRankArray(value) || value.shape.length !== 2

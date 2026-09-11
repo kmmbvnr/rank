@@ -4208,6 +4208,18 @@ and `choices` are not cryptographic randomness operations.
 
 `use linalg` provides tensor contraction and matrix operations.
 
+`diag` converts a numeric vector into a square diagonal matrix and extracts
+the main diagonal of a numeric matrix:
+
+```rank
+Matrix = Values diag
+Values = Matrix diag
+```
+
+A rectangular matrix returns `min(Rows, Columns)` values. Empty vectors and
+matrices are valid. Other ranks raise `.DimensionMismatch`, and a nonnumeric
+selected value raises `.TypeError`.
+
 `det` has intrinsic rank 2 and returns the determinant of a square numeric
 matrix:
 

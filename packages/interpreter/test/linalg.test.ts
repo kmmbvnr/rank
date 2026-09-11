@@ -2,6 +2,45 @@ import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
 describe('Rank linear algebra', () => {
+    it('constructs and extracts diagonals', () => {
+        expect(run([
+            'use linalg',
+            'use sequences',
+            'D = (array 1 2 3) diag',
+            'ShapeOk = (D shape equal array 3 3) and reduce',
+            'ValuesOk = D equal array shape 3 3',
+            '  1 0 0',
+            '  0 2 0',
+            '  0 0 3',
+            'end',
+            'ShapeOk and (ValuesOk and reduce)',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'use linalg',
+            'A = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+            'A diag',
+        ].join('\n'))).toBe('1 5');
+        expect(run([
+            'use linalg',
+            'D = (array 1.5 2.5) diag',
+            'D 0 1 is .real',
+        ].join('\n'))).toBe('true');
+        expect(run('use linalg\nuse sequences\n(array shape 0 pad 0) diag shape'))
+            .toBe('0 0');
+    });
+
+    it('validates diagonal inputs', () => {
+        expect(() => run('use linalg\n1 diag'))
+            .toThrowError('diag expects a rank-1 vector or rank-2 matrix');
+        expect(() => run('use linalg\n(array shape 1 1 1 pad 0) diag'))
+            .toThrowError('diag expects a rank-1 vector or rank-2 matrix');
+        expect(() => run('use linalg\n(array 1 "bad") diag'))
+            .toThrowError('diag expects numeric elements');
+    });
+
     it('decomposes real symmetric matrices with eigh', () => {
         expect(run([
             'use linalg',
