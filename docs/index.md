@@ -64,6 +64,7 @@ Adults = Data Mask
 
 ## Development workflow
 
+- [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
 
 ## Marketing
