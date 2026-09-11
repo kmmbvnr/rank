@@ -1,0 +1,314 @@
+{
+  "description": "Container resource-scan regression measurements. Tests and benchmarks ran sequentially; unrelated machine activity was not controlled.",
+  "beforeRevision": "9f57f7dfcac88f3f249c94be5cc25e1a0217f6b3",
+  "afterRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+  "micro": {
+    "before": {
+      "date": "2026-09-11T05:06:48.248Z",
+      "node": "v24.15.0",
+      "results": [
+        {
+          "name": "setwork",
+          "size": 5000,
+          "samples": [
+            160.640125,
+            156.85366699999997,
+            153.44716700000004
+          ],
+          "medianMs": 156.85366699999997
+        },
+        {
+          "name": "setwork",
+          "size": 10000,
+          "samples": [
+            584.2028339999999,
+            587.5941660000001,
+            581.3303330000001
+          ],
+          "medianMs": 584.2028339999999
+        },
+        {
+          "name": "setwork",
+          "size": 20000,
+          "samples": [
+            2259.342875,
+            2260.262917,
+            2266.324208
+          ],
+          "medianMs": 2260.262917
+        },
+        {
+          "name": "heapwork",
+          "size": 5000,
+          "samples": [
+            192.6674579999999,
+            189.32929200000035,
+            188.7513340000005
+          ],
+          "medianMs": 189.32929200000035
+        },
+        {
+          "name": "heapwork",
+          "size": 10000,
+          "samples": [
+            742.5384589999994,
+            741.4137919999994,
+            744.6492500000004
+          ],
+          "medianMs": 742.5384589999994
+        },
+        {
+          "name": "heapwork",
+          "size": 20000,
+          "samples": [
+            2955.519542,
+            2958.426957999998,
+            2973.4429170000003
+          ],
+          "medianMs": 2958.426957999998
+        }
+      ]
+    },
+    "after": {
+      "date": "2026-09-11T05:06:48.663Z",
+      "node": "v24.15.0",
+      "results": [
+        {
+          "name": "setwork",
+          "size": 5000,
+          "samples": [
+            15.52154200000001,
+            12.620415999999977,
+            12.777834000000013
+          ],
+          "medianMs": 12.777834000000013
+        },
+        {
+          "name": "setwork",
+          "size": 10000,
+          "samples": [
+            24.367166999999995,
+            23.034583999999995,
+            24.549124999999975
+          ],
+          "medianMs": 24.367166999999995
+        },
+        {
+          "name": "setwork",
+          "size": 20000,
+          "samples": [
+            42.316374999999994,
+            40.70162499999998,
+            41.644957999999974
+          ],
+          "medianMs": 41.644957999999974
+        },
+        {
+          "name": "heapwork",
+          "size": 5000,
+          "samples": [
+            3.3503749999999854,
+            2.2672079999999823,
+            2.4950410000000147
+          ],
+          "medianMs": 2.4950410000000147
+        },
+        {
+          "name": "heapwork",
+          "size": 10000,
+          "samples": [
+            3.4191249999999513,
+            4.04645800000003,
+            2.8472919999999817
+          ],
+          "medianMs": 3.4191249999999513
+        },
+        {
+          "name": "heapwork",
+          "size": 20000,
+          "samples": [
+            6.052542000000017,
+            6.334334000000013,
+            5.804041000000041
+          ],
+          "medianMs": 6.052542000000017
+        }
+      ]
+    }
+  },
+  "scalar": {
+    "before": {
+      "runtime": "tree: median 37.0 ms (36.3, 36.8, 37.0, 37.5, 41.0)\ntotal: median 8.0 ms (7.9, 8.0, 8.0, 8.1, 10.5)\ncalls: median 15.2 ms (15.0, 15.1, 15.2, 15.4, 17.3)\nnativecalls: median 11.4 ms (11.3, 11.3, 11.4, 11.4, 12.8)\nconditional: median 10.0 ms (9.9, 9.9, 10.0, 10.4, 12.3)\naddressing: median 13.5 ms (13.5, 13.5, 13.5, 13.7, 16.6)\ntail: median 22.3 ms (21.9, 22.0, 22.3, 22.9, 23.5)\ndyadiccalls: median 18.1 ms (18.0, 18.1, 18.1, 18.2, 18.7)\ntailacc: median 25.5 ms (25.1, 25.4, 25.5, 25.5, 25.7)\nindexwork: median 53.5 ms (52.4, 53.4, 53.5, 55.1, 55.4)\n",
+      "memo": "manual: 1000 calls, median 122.1 ms (120.9, 121.0, 122.1, 129.0, 134.8)\nfresh: 1000 calls, median 80.0 ms (78.1, 78.4, 80.0, 85.1, 86.8)\ncached: 1000 calls, median 0.1 ms (0.1, 0.1, 0.1, 0.1, 0.1)\n"
+    },
+    "after": {
+      "runtime": "tree: median 37.4 ms (36.8, 36.9, 37.4, 38.0, 41.5)\ntotal: median 7.9 ms (7.6, 7.9, 7.9, 8.0, 10.6)\ncalls: median 15.0 ms (14.9, 14.9, 15.0, 15.0, 16.9)\nnativecalls: median 11.3 ms (11.2, 11.2, 11.3, 11.3, 12.9)\nconditional: median 10.2 ms (10.0, 10.1, 10.2, 10.8, 12.4)\naddressing: median 13.5 ms (13.4, 13.5, 13.5, 13.9, 16.8)\ntail: median 24.3 ms (24.1, 24.1, 24.3, 24.7, 25.4)\ndyadiccalls: median 18.1 ms (18.0, 18.1, 18.1, 18.1, 18.5)\ntailacc: median 27.5 ms (27.2, 27.3, 27.5, 27.8, 27.9)\nindexwork: median 52.7 ms (51.3, 51.9, 52.7, 55.0, 55.5)\n",
+      "memo": "manual: 1000 calls, median 119.8 ms (118.7, 118.8, 119.8, 126.9, 134.6)\nfresh: 1000 calls, median 77.8 ms (76.3, 76.4, 77.8, 83.6, 85.9)\ncached: 1000 calls, median 0.1 ms (0.1, 0.1, 0.1, 0.1, 0.1)\n"
+    }
+  },
+  "judge": [
+    {
+      "metadata": {
+        "date": "2026-09-11T05:07:18.219Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "platform": "darwin",
+        "arch": "arm64",
+        "harnessRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+        "runtimeRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+        "checkout": "/private/tmp/rank-container-resources",
+        "size": 200000,
+        "timeoutMs": 30000,
+        "timing": "one cold CLI process per case, including startup, parsing, input and output"
+      },
+      "results": [
+        {
+          "name": "restaurant",
+          "ms": 2817.5193750000003,
+          "passed": true
+        },
+        {
+          "name": "rooms",
+          "ms": 1855.366375,
+          "passed": true
+        },
+        {
+          "name": "playlist",
+          "ms": 770.9778329999999,
+          "passed": true
+        },
+        {
+          "name": "books",
+          "ms": 182.04100000000017,
+          "passed": true
+        },
+        {
+          "name": "bounded-sum",
+          "ms": 1010.1941660000002,
+          "passed": true
+        },
+        {
+          "name": "sum",
+          "ms": 178.67579100000057,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "date": "2026-09-11T05:07:25.138Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "platform": "darwin",
+        "arch": "arm64",
+        "harnessRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+        "runtimeRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+        "checkout": "/private/tmp/rank-container-resources",
+        "size": 200000,
+        "timeoutMs": 30000,
+        "timing": "one cold CLI process per case, including startup, parsing, input and output"
+      },
+      "results": [
+        {
+          "name": "restaurant",
+          "ms": 2823.483125,
+          "passed": true
+        },
+        {
+          "name": "rooms",
+          "ms": 1875.0163750000002,
+          "passed": true
+        },
+        {
+          "name": "playlist",
+          "ms": 776.0526250000003,
+          "passed": true
+        },
+        {
+          "name": "books",
+          "ms": 183.41241700000046,
+          "passed": true
+        },
+        {
+          "name": "bounded-sum",
+          "ms": 1016.5029159999995,
+          "passed": true
+        },
+        {
+          "name": "sum",
+          "ms": 176.80745899999965,
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "baselineTimeout": {
+    "metadata": {
+      "date": "2026-09-11T05:07:32.092Z",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "platform": "darwin",
+      "arch": "arm64",
+      "harnessRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+      "runtimeRevision": "9f57f7dfcac88f3f249c94be5cc25e1a0217f6b3",
+      "checkout": "/private/tmp/rank-before-container-resources",
+      "size": 200000,
+      "timeoutMs": 30000,
+      "timing": "one cold CLI process per case, including startup, parsing, input and output"
+    },
+    "results": [
+      {
+        "name": "restaurant",
+        "ms": 30006.427874999998,
+        "passed": false,
+        "failure": "time limit exceeded"
+      }
+    ]
+  },
+  "baselineSum": {
+    "metadata": {
+      "date": "2026-09-11T05:08:02.142Z",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "platform": "darwin",
+      "arch": "arm64",
+      "harnessRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+      "runtimeRevision": "9f57f7dfcac88f3f249c94be5cc25e1a0217f6b3",
+      "checkout": "/private/tmp/rank-before-container-resources",
+      "size": 1000,
+      "timeoutMs": 30000,
+      "timing": "one cold CLI process per case, including startup, parsing, input and output"
+    },
+    "results": [
+      {
+        "name": "sum",
+        "ms": 133.5455,
+        "passed": false,
+        "failure": "exit 1: RankError [Runtime]: fenwick requires: use algo\n  at /private/tmp/rank-container-resources/benchmarks/programs/sum.ra:5:1\n5 | A sum print\n    ^"
+      }
+    ]
+  },
+  "forcedTimeout": {
+    "metadata": {
+      "date": "2026-09-11T05:08:02.317Z",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "platform": "darwin",
+      "arch": "arm64",
+      "harnessRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+      "runtimeRevision": "d4ed1c539f74c2a4c7e4402822828856d0ee70cb",
+      "checkout": "/private/tmp/rank-container-resources",
+      "size": 1,
+      "timeoutMs": 1,
+      "timing": "one cold CLI process per case, including startup, parsing, input and output"
+    },
+    "results": [
+      {
+        "name": "sum",
+        "ms": 0.40516600000000125,
+        "passed": false,
+        "failure": "time limit exceeded"
+      }
+    ]
+  }
+}

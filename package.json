@@ -16,6 +16,7 @@
         "langium:generate": "npm run --workspace packages/language langium:generate",
         "langium:watch": "npm run --workspace packages/language langium:watch",
         "test": "npm run build && npm test --workspaces --if-present",
+        "bench:judge": "npm run build && node benchmarks/judge-scale.mjs",
         "rank": "node packages/cli/bin/cli.js"
     },
     "devDependencies": {

@@ -6,6 +6,7 @@ import { LocalFrame } from './frame.js';
 import { addToCollection, expectAddCollection, newStructure } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
+import { isKnownFileFree, ResourceMap } from './resource-summary.js';
 import {
     isAddStatement,
     isAllAxisExpression,
@@ -305,9 +306,9 @@ export class Interpreter {
         pending: unknown,
         transferResult = true,
     ): RankValue | undefined {
-        // Most arithmetic calls neither open resources nor return containers.
+        // Resource-free containers need no deep escape scan, just like scalars.
         // Keep the scope itself: nested calls must still transfer files here.
-        if (scope.size === 0 && (result === undefined || typeof result !== 'object')) {
+        if (scope.size === 0 && isKnownFileFree(result)) {
             this.resourceScopes.pop();
             if (pending !== undefined) throw pending;
             return result;
@@ -373,7 +374,7 @@ export class Interpreter {
     }
 
     private ownFiles(value: RankValue | undefined): void {
-        if (value === undefined || typeof value !== 'object' || value.kind === 'bytes') return;
+        if (isKnownFileFree(value)) return;
         for (const file of containedFiles(value)) this.ownFile(file);
     }
 
@@ -1110,11 +1111,12 @@ export class Interpreter {
         }
         if (isRecordExpression(expression)) {
             return function* (): Execution<RankValue> {
-                const record: RankRecord = {
+                const entries = new ResourceMap<RankValue>(value => value);
+                const record: RankRecord = entries.resources.track({
                     kind: 'record',
-                    entries: new Map(),
+                    entries,
                     types: new Map(),
-                };
+                });
                 for (const field of expression.fields) {
                     if (record.entries.has(field.name)) {
                         throw new RankError(`duplicate record field: .${field.name}`);
@@ -1867,7 +1869,7 @@ export class Interpreter {
             if (!isRankIndex(existing)) throw new RankError('index name is already in use');
             return existing;
         }
-        const index: RankIndex = { kind: 'index', entries: new Map() };
+        const index = newStructure('index') as RankIndex;
         scope.set('index', index);
         return index;
     }
@@ -1893,7 +1895,7 @@ export class Interpreter {
             if (!isRankSet(existing)) throw new RankError('set name is already in use');
             return existing;
         }
-        const set: RankSet = { kind: 'set', entries: new Map() };
+        const set = newStructure('set') as RankSet;
         scope.set('set', set);
         return set;
     }
@@ -1906,7 +1908,7 @@ export class Interpreter {
             if (!isRankCounter(existing)) throw new RankError('counter name is already in use');
             return existing;
         }
-        const counter: RankCounter = { kind: 'counter', entries: new Map() };
+        const counter = newStructure('counter') as RankCounter;
         scope.set('counter', counter);
         return counter;
     }
@@ -4364,6 +4366,7 @@ function formatTypes(types: ReadonlySet<string>): string {
 
 function containedFiles(value: RankValue | undefined): Set<RankFile> {
     const files = new Set<RankFile>();
+    if (isKnownFileFree(value)) return files;
     const seen = new Set<object>();
     const pending: Iterator<RankValue | undefined>[] = [[value].values()];
     const captures = function* (scopes: readonly ReadonlyMap<string, RankValue>[]): IterableIterator<RankValue> {
@@ -4376,7 +4379,7 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             continue;
         }
         const item = next.value;
-        if (item === undefined || typeof item !== 'object' || item.kind === 'bytes' || seen.has(item)) continue;
+        if (isKnownFileFree(item) || item === undefined || typeof item !== 'object' || seen.has(item)) continue;
         seen.add(item);
         if (isRankFile(item)) {
             files.add(item);
