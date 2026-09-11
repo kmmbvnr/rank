@@ -45,7 +45,109 @@ export const graphModule: RuntimeModule = {
         topologicalRecord(expectGraph(values[0]))),
     scc: () => native('scc', 1, values =>
         stronglyConnectedRecord(expectGraph(values[0]))),
+    floyd: () => native('floyd', 1, values =>
+        floydRecord(expectGraph(values[0]))),
+    mst: () => native('mst', 1, values =>
+        minimumSpanningTreeRecord(expectGraph(values[0]))),
 };
+
+function floydRecord(graph: GraphValue): RankRecord {
+    const vertices = [...graph.vertices.values()];
+    const positions = new Map(vertices.map((value, index) => [setValueKey(value), index]));
+    const size = vertices.length;
+    const distance: Array<Numeric | undefined> = Array(size * size).fill(undefined);
+    for (let index = 0; index < size; index += 1) distance[index * size + index] = 0n;
+    for (const [from, edges] of graph.adjacency) {
+        const row = positions.get(from)!;
+        for (const edge of edges) {
+            const column = positions.get(setValueKey(edge.target))!;
+            const offset = row * size + column;
+            const previous = distance[offset];
+            if (previous === undefined || numericCompare(edge.weight, previous) < 0) {
+                distance[offset] = edge.weight;
+            }
+        }
+    }
+    for (let middle = 0; middle < size; middle += 1) {
+        for (let from = 0; from < size; from += 1) {
+            const left = distance[from * size + middle];
+            if (left === undefined) continue;
+            for (let to = 0; to < size; to += 1) {
+                const right = distance[middle * size + to];
+                if (right === undefined) continue;
+                const offset = from * size + to;
+                const candidate = numericAdd(left, right);
+                const previous = distance[offset];
+                if (previous === undefined || numericCompare(candidate, previous) < 0) {
+                    distance[offset] = candidate;
+                }
+            }
+        }
+    }
+    const entries = new ResourceMap<RankValue>(value => value);
+    const negative = new Set<string>();
+    for (let from = 0; from < size; from += 1) {
+        if (numericCompare(distance[from * size + from]!, 0n) < 0) {
+            negative.add(setValueKey(vertices[from]));
+        }
+        for (let to = 0; to < size; to += 1) {
+            const value = distance[from * size + to];
+            if (value !== undefined) entries.set(indexKey([vertices[from], vertices[to]]), value);
+        }
+    }
+    const index = entries.resources.track({ kind: 'index' as const, entries });
+    return record({ distance: index, negative: setFrom(graph, negative) });
+}
+
+function minimumSpanningTreeRecord(graph: GraphValue): RankRecord {
+    requireUndirected(graph, 'mst');
+    const vertices = [...graph.vertices.values()];
+    const position = new Map(vertices.map((value, index) => [setValueKey(value), index]));
+    const edges: Array<{ from: RankValue; to: RankValue; weight: Numeric }> = [];
+    for (const [fromKey, outgoing] of graph.adjacency) {
+        const fromIndex = position.get(fromKey)!;
+        for (const edge of outgoing) {
+            const toIndex = position.get(setValueKey(edge.target))!;
+            if (fromIndex <= toIndex) {
+                edges.push({ from: vertices[fromIndex], to: edge.target, weight: edge.weight });
+            }
+        }
+    }
+    edges.sort((left, right) => numericCompare(left.weight, right.weight));
+    const parent = vertices.map((_, index) => index);
+    const sizes = vertices.map(() => 1);
+    const find = (value: number): number => {
+        let root = value;
+        while (parent[root] !== root) root = parent[root];
+        while (parent[value] !== value) {
+            const next = parent[value];
+            parent[value] = root;
+            value = next;
+        }
+        return root;
+    };
+    const selected: typeof edges = [];
+    let weight: Numeric = 0n;
+    let components = vertices.length;
+    for (const edge of edges) {
+        let left = find(position.get(setValueKey(edge.from))!);
+        let right = find(position.get(setValueKey(edge.to))!);
+        if (left === right) continue;
+        if (sizes[left] < sizes[right]) [left, right] = [right, left];
+        parent[right] = left;
+        sizes[left] += sizes[right];
+        components -= 1;
+        selected.push(edge);
+        weight = numericAdd(weight, edge.weight);
+    }
+    const items = selected.flatMap(edge => [edge.from, edge.to, edge.weight]);
+    return record({
+        connected: components <= 1,
+        components: BigInt(components),
+        weight,
+        edges: { kind: 'array', items, shape: [selected.length, 3] },
+    });
+}
 
 function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
     const startKey = requireVertex(graph, start);

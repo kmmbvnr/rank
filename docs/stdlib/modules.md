@@ -921,7 +921,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `topological`, and `scc` algorithms. Their inputs and result records are specified in
+`bellmanford`, `floyd`, `topological`, `scc`, and `mst` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
 
 ## Rule for adding library vocabulary

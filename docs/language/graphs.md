@@ -146,3 +146,13 @@ parents remain missing values, so existing `pad` handling applies.
 of every reachable vertex whose shortest distance is unbounded below because
 of a reachable negative cycle. Distances stored for those vertices are
 intermediate values and must not be used as shortest paths.
+
+`Graph floyd` computes all-pairs shortest paths and returns `.distance` as a
+two-key index addressed by `Distance From To`. Missing pairs are unreachable.
+Its `.negative` set contains vertices that lie on a negative cycle.
+
+`Graph mst` accepts an undirected weighted graph and applies Kruskal's
+algorithm. It returns `.connected`, `.components`, total `.weight`, and
+`.edges` as an `M` by `3` array. For a disconnected graph these fields describe
+the minimum spanning forest and `.connected` is false. Parallel edges are
+eligible independently; self-loops are never selected.

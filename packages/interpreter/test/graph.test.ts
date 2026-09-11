@@ -150,6 +150,41 @@ array (Result .count) (Part 1) (Part 2) (Part 3) (Part 4) (Part 5) (Part 6)
 `)).toBe('4 2 2 3 3 4 1');
     });
 
+    it('computes all-pairs shortest paths', () => {
+        expect(run(`${prelude}use ranges
+use numbers
+Graph = new graph (1 to 3) .directed
+Graph add 1 2 5
+Graph add 2 3 (-2)
+Graph add 1 3 9
+Result = Graph floyd
+Distance = Result .distance
+array (Distance 1 3) (Distance 3 1 pad infinity) ((Result .negative) len)
+`)).toBe('3 infinity 0');
+    });
+
+    it('builds a minimum spanning tree', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 4) .undirected
+Graph add 1 2 5
+Graph add 1 3 1
+Graph add 3 2 2
+Graph add 2 4 3
+Result = Graph mst
+array (Result .connected) (Result .components) (Result .weight) ((Result .edges) shape)
+`)).toBe('true 1 6 3 3');
+    });
+
+    it('returns a minimum spanning forest', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 4) .undirected
+Graph add 1 2 4
+Graph add 3 4 7
+Result = Graph mst
+array (Result .connected) (Result .components) (Result .weight)
+`)).toBe('false 2 11');
+    });
+
     it('validates graph algorithm domains', () => {
         expect(() => run(`${prelude}
 Graph = new graph .directed
