@@ -1,0 +1,60 @@
+use testing
+
+test "official equal parameters"
+  use "049_adam"
+  use numbers
+
+  fun gradient X
+    return X * 2
+  end
+
+  X = array 1.0 1.0
+  Grad = gradient
+  Input = record
+    .parameters = X
+    .gradient = Grad
+  end
+  Actual = Input adam_optimizer
+  Expected = array 0.99000325 0.99000325
+  Rounded = Actual round 8
+  (Rounded equal Expected) and reduce
+end
+
+test "official unequal parameters"
+  use "049_adam"
+  use numbers
+
+  fun gradient X
+    return X * 2
+  end
+
+  X = array 0.2 12.3
+  Grad = gradient
+  Input = record
+    .parameters = X
+    .gradient = Grad
+  end
+  Actual = Input adam_optimizer
+  Expected = array shape 2
+    0.19001678 12.29000026
+  end
+  Rounded = Actual round 8
+  (Rounded equal Expected) and reduce
+end
+
+test "zero gradient keeps parameters"
+  use "049_adam"
+
+  fun zero_gradient X
+    return X * 0.0
+  end
+
+  X = array -2.0 4.0
+  Grad = zero_gradient
+  Input = record
+    .parameters = X
+    .gradient = Grad
+  end
+  Actual = Input adam_optimizer
+  (Actual equal X) and reduce
+end
