@@ -1,0 +1,229 @@
+{
+  "metadata": {
+    "date": "2026-09-11T06:31:33.536Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+    "sources": {
+      "euler": {
+        "path": "demos/euler/006_sumsquarediff.ra",
+        "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+      },
+      "matvec": {
+        "path": "demos/deepml/001_matmul.ra",
+        "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+      },
+      "row": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "column": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "matmul": {
+        "path": "demos/deepml/009_matmul.ra",
+        "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+      },
+      "gradient": {
+        "path": "demos/deepml/015_gd.ra",
+        "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+      }
+    }
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-demo-roadmap/",
+      "revision": "007f0858fca37dfb201aaaee52d5fa27c8054305",
+      "dirty": true
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-before-storage",
+      "revision": "d03c2bd1c562c311d8203b4c3d27a21fdd9f02d2",
+      "dirty": false
+    }
+  },
+  "results": [
+    {
+      "name": "matvec",
+      "scale": 0,
+      "version": "candidate",
+      "warmProcessMs": 132.240416,
+      "size": 8,
+      "firstMs": 1.9692500000000024,
+      "warmMs": [
+        0.09195900000000279,
+        0.084541999999999,
+        0.06120799999999349,
+        0.07687500000000114,
+        0.0747080000000011
+      ],
+      "memory": {
+        "rss": 119406592,
+        "heapTotal": 54706176,
+        "heapUsed": 26553664,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 116608,
+      "coldProcessMs": [
+        133.50912499999998,
+        134.72950000000003,
+        135.030083,
+        131.93429100000003,
+        132.34383300000013
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 0,
+      "version": "baseline",
+      "warmProcessMs": 132.29687499999997,
+      "size": 8,
+      "firstMs": 1.8952919999999978,
+      "warmMs": [
+        0.09387500000001125,
+        0.08216600000000085,
+        0.06583299999999781,
+        0.07825000000001125,
+        0.08587500000000148
+      ],
+      "memory": {
+        "rss": 113328128,
+        "heapTotal": 53657600,
+        "heapUsed": 27260824,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 110688,
+      "coldProcessMs": [
+        134.27108300000003,
+        132.203708,
+        131.22245799999996,
+        133.218167,
+        136.4491660000001
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 1,
+      "version": "baseline",
+      "warmProcessMs": 157.5213749999998,
+      "size": 128,
+      "firstMs": 5.497583000000006,
+      "warmMs": [
+        2.4566250000000025,
+        2.566874999999982,
+        2.142707999999999,
+        2.4590829999999926,
+        2.1376249999999857
+      ],
+      "memory": {
+        "rss": 137265152,
+        "heapTotal": 61407232,
+        "heapUsed": 38156280,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 134048,
+      "coldProcessMs": [
+        138.19987500000002,
+        137.1217919999999,
+        138.3536250000002,
+        137.31220799999983,
+        135.54441700000007
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 1,
+      "version": "candidate",
+      "warmProcessMs": 149.25225,
+      "size": 128,
+      "firstMs": 4.744749999999996,
+      "warmMs": [
+        2.041166000000004,
+        1.5287500000000023,
+        1.4824999999999875,
+        1.6478330000000199,
+        1.40787499999999
+      ],
+      "memory": {
+        "rss": 131284992,
+        "heapTotal": 56426496,
+        "heapUsed": 32131936,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 128208,
+      "coldProcessMs": [
+        135.71362499999987,
+        135.3034590000002,
+        135.881167,
+        135.47558299999992,
+        135.50283400000035
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 2,
+      "version": "candidate",
+      "warmProcessMs": 269.0563339999999,
+      "size": 512,
+      "firstMs": 22.00483299999999,
+      "warmMs": [
+        17.396333,
+        13.389125000000007,
+        13.149124999999998,
+        13.168709000000007,
+        13.235291999999987
+      ],
+      "memory": {
+        "rss": 188579840,
+        "heapTotal": 111607808,
+        "heapUsed": 71416448,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 184160,
+      "coldProcessMs": [
+        159.9820420000001,
+        159.5630000000001,
+        160.3262909999994,
+        164.1297909999994,
+        158.2046249999994
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 2,
+      "version": "baseline",
+      "warmProcessMs": 381.2315410000001,
+      "size": 512,
+      "firstMs": 37.68870799999999,
+      "warmMs": [
+        31.924499999999995,
+        26.29166600000002,
+        26.318208000000027,
+        26.58158400000002,
+        26.13225
+      ],
+      "memory": {
+        "rss": 292405248,
+        "heapTotal": 213057536,
+        "heapUsed": 88796576,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 285552,
+      "coldProcessMs": [
+        177.32929200000035,
+        176.9742500000002,
+        184.5461669999995,
+        181.463667,
+        174.2368750000005
+      ]
+    }
+  ]
+}

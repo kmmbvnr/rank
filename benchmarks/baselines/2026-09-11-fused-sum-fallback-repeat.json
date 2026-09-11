@@ -1,0 +1,233 @@
+{
+  "metadata": {
+    "date": "2026-09-11T06:38:35.082Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+    "sources": {
+      "euler": {
+        "path": "demos/euler/006_sumsquarediff.ra",
+        "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+      },
+      "matvec": {
+        "path": "demos/deepml/001_matmul.ra",
+        "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+      },
+      "kmeans": {
+        "path": "demos/deepml/017_kmeans.ra",
+        "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+      },
+      "row": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "column": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "matmul": {
+        "path": "demos/deepml/009_matmul.ra",
+        "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+      },
+      "gradient": {
+        "path": "demos/deepml/015_gd.ra",
+        "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+      }
+    }
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-demo-roadmap/",
+      "revision": "007f0858fca37dfb201aaaee52d5fa27c8054305",
+      "dirty": true
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-before-storage",
+      "revision": "d03c2bd1c562c311d8203b4c3d27a21fdd9f02d2",
+      "dirty": false
+    }
+  },
+  "results": [
+    {
+      "name": "kmeans",
+      "scale": 0,
+      "version": "candidate",
+      "warmProcessMs": 159.27866699999998,
+      "size": 16,
+      "firstMs": 4.233332999999988,
+      "warmMs": [
+        0.788375000000002,
+        0.6671669999999779,
+        0.6219169999999963,
+        0.568000000000012,
+        0.5405419999999879
+      ],
+      "memory": {
+        "rss": 134168576,
+        "heapTotal": 59686912,
+        "heapUsed": 34057176,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 131024,
+      "coldProcessMs": [
+        154.540708,
+        153.95295799999997,
+        151.963667,
+        154.26874999999995,
+        156.5675839999999
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 0,
+      "version": "baseline",
+      "warmProcessMs": 159.74204199999997,
+      "size": 16,
+      "firstMs": 4.019499999999994,
+      "warmMs": [
+        0.7692909999999813,
+        0.5998749999999973,
+        0.609250000000003,
+        0.5630840000000035,
+        0.5747910000000047
+      ],
+      "memory": {
+        "rss": 134021120,
+        "heapTotal": 59686912,
+        "heapUsed": 39777544,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 130896,
+      "coldProcessMs": [
+        160.50287500000002,
+        149.93883300000005,
+        154.21716600000013,
+        157.17945800000007,
+        154.01199999999994
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 1,
+      "version": "baseline",
+      "warmProcessMs": 220.3369170000003,
+      "size": 256,
+      "firstMs": 12.692667,
+      "warmMs": [
+        7.382374999999996,
+        6.027000000000015,
+        7.308000000000021,
+        8.25366600000001,
+        4.959499999999991
+      ],
+      "memory": {
+        "rss": 208863232,
+        "heapTotal": 191463424,
+        "heapUsed": 80890056,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 203968,
+      "coldProcessMs": [
+        163.40587499999992,
+        160.30158299999994,
+        161.9231249999998,
+        161.52037500000006,
+        163.4078340000001
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 1,
+      "version": "candidate",
+      "warmProcessMs": 219.37112500000012,
+      "size": 256,
+      "firstMs": 13.316958,
+      "warmMs": [
+        6.869250000000022,
+        7.405124999999998,
+        7.66820899999999,
+        5.16945800000002,
+        7.912583000000012
+      ],
+      "memory": {
+        "rss": 209469440,
+        "heapTotal": 192774144,
+        "heapUsed": 76369448,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 204560,
+      "coldProcessMs": [
+        164.49283400000013,
+        160.69087500000023,
+        164.63324999999986,
+        161.78604099999984,
+        164.89945899999975
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 2,
+      "version": "candidate",
+      "warmProcessMs": 537.29025,
+      "size": 2048,
+      "firstMs": 60.682541000000015,
+      "warmMs": [
+        46.826750000000004,
+        42.802250000000015,
+        45.469832999999994,
+        41.043582999999956,
+        43.52016700000007
+      ],
+      "memory": {
+        "rss": 396099584,
+        "heapTotal": 242483200,
+        "heapUsed": 134721272,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 387488,
+      "coldProcessMs": [
+        218.25362499999937,
+        215.01941699999952,
+        212.63466599999992,
+        211.9032500000003,
+        216.9174580000008
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 2,
+      "version": "baseline",
+      "warmProcessMs": 524.8891249999997,
+      "size": 2048,
+      "firstMs": 59.61070799999999,
+      "warmMs": [
+        42.595416,
+        41.43991600000004,
+        44.79137499999996,
+        40.53120799999999,
+        39.688958000000014
+      ],
+      "memory": {
+        "rss": 405176320,
+        "heapTotal": 230162432,
+        "heapUsed": 158910000,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 396208,
+      "coldProcessMs": [
+        215.15312499999982,
+        215.62737500000003,
+        214.488292,
+        215.5034999999998,
+        215.14645800000017
+      ]
+    }
+  ]
+}

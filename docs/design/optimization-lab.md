@@ -100,13 +100,67 @@ Correction commit: `96d1dc2`. The independent JS test passed. The corrected
 matvec baseline at square sizes 8/128/512 was 0.1/2.4/26.5 ms warm; largest
 peak RSS was 278.3 MiB. [Raw samples](../../benchmarks/baselines/2026-09-11-matvec-corrected-before.json).
 
-Next, measure the corrected DeepML 001. It provides a program for builtin-sum
-fusion that the initial four-demo shortlist missed. DeepML 017
-also has `(D * D) sum`, but `D` is a named lazy arithmetic result, so it adds
-cache and effect constraints. Builtin `sum` materializes its array before
-validating numeric elements; the explicit `+ reduce` path reads one element
-at a time. A fusion experiment must preserve this difference, including host
-getters and shadowed `sum` functions.
+## 3. Builtin-sum fusion: faster prototype rejected on correctness
+
+The prototype shared arithmetic-plan construction with `+ reduce`, resolved
+`sum` after preparing operands, and checked its identity against the builtin.
+Only a transient inline arithmetic result could be fused. A shadowed function,
+lazy input, named cached intermediate or different broadcast shape retained
+ordinary execution. Sum kept its integer-zero seed and deferred summand type
+errors until all arithmetic reads finished, as the materializing builtin does.
+
+Two comparisons of the same corrected DeepML 001 source gave:
+
+| Square size | First pair, before / prototype ms | Second pair, before / prototype ms |
+| --- | --- | --- |
+| 128 | 2.5 / 1.5 | 2.5 / 1.5 |
+| 512 | 26.3 / 13.2 | 26.1 / 13.4 |
+
+At 512 square, peak process RSS fell from 279 to 180 MiB, then from 276 to
+178 MiB. These are prototype results, **not shipped improvements**.
+[First matvec pair](../../benchmarks/baselines/2026-09-11-fused-sum-matvec-first.json),
+[full second pair](../../benchmarks/baselines/2026-09-11-fused-sum-numerical-first.json).
+
+The new k-means control uses unchanged DeepML 017, two known clusters and
+independently checked centroids at 16/256/2,048 points. Its lazy `D * D` takes
+the fallback. At 2,048 points it rose from 41.8 to 43.2 ms, then from 40.7 to
+42.4 ms. Bypassing generic function application on the builtin fallback did
+not remove the slowdown: another pair was 41.4 to 43.5 ms. The plan itself
+still costs work before falling back. [First k-means pair](../../benchmarks/baselines/2026-09-11-fused-sum-kmeans-first.json),
+[fallback experiment](../../benchmarks/baselines/2026-09-11-fused-sum-fallback-repeat.json).
+
+All 81 array controls passed against both runtimes. Million-element named
+intermediates changed by -2.5% to -0.6%; twice-used intermediates by -1.8% to
++0.1%. Inline mixed reduction was 8.3% slower in this pair, while integer was
+1.0% slower and real 4.3% faster. At 100 elements, the real named control rose
+from 34.8 to 39.3 microseconds. These samples do not settle the older fusion
+regression report. [Full raw array controls](../../benchmarks/baselines/2026-09-11-fused-sum-array-controls.json).
+
+The rejection came from a host Proxy test. The eligibility check calls
+`Object.getOwnPropertyDescriptor(input, 'items')`. That call can execute a
+Proxy trap and change the array. A one-element example returned `200n` in the
+prototype and `2n` in ordinary execution. The six earlier correctness tests,
+438 JS tests and 164 demo files had not covered this trap. The added test failed
+before rollback and passed afterward.
+
+Both production source files were restored to their committed versions and
+rebuilt. Post-rollback `npm test` passed 439 JS tests, including six permanent
+sum semantics tests; the fresh demo run passed all 164 files. The [rejected patch](../../benchmarks/experiments/fused-sum-unsafe.patch)
+is saved for inspection only; it is not runtime code and must not be applied
+without fixing its eligibility check. The k-means harness and raw results stay.
+
+The existing `+ reduce` fusion uses the same descriptor probe. A separate live
+check after rollback also returned `200n` for `(A * 2) + reduce` versus `2n` for
+a named intermediate on the same kind of Proxy. This is an open pre-existing
+correctness issue, not repaired by rolling back the sum extension.
+
+Next prerequisite: identify runtime-owned array objects through private identity
+metadata before inspecting storage. Unknown host objects must use the ordinary
+path without extra descriptor or `has` traps. Origin alone is not immutability:
+validate storage/prototype changes between calls without invoking user hooks.
+An explicit host snapshot constructor could provide the same contract to JS
+callers. Compact numeric storage can use this boundary too. Fix the older
+reduction gate before trying the sum patch again.
 
 Continue with builtin-sum fusion where it matches measured array workloads,
 compact numeric storage, measured indexing/transpose paths, guarded generated

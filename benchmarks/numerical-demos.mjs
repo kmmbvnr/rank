@@ -16,9 +16,11 @@ const options = Object.fromEntries(process.argv.slice(2).map(arg => {
 }));
 const sources = { euler: 'demos/euler/006_sumsquarediff.ra',
   matvec: 'demos/deepml/001_matmul.ra',
+  kmeans: 'demos/deepml/017_kmeans.ra',
   row: 'demos/deepml/004_mean.ra', column: 'demos/deepml/004_mean.ra',
   matmul: 'demos/deepml/009_matmul.ra', gradient: 'demos/deepml/015_gd.ra' };
 const sizes = { euler: [100, 20000, 200000], matvec: [8, 128, 512], row: [8, 128, 512],
+  kmeans: [16, 256, 2048],
   column: [8, 128, 512], matmul: [4, 24, 64], gradient: [16, 256, 2048] };
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const samples = Number(options.samples ?? 5);
@@ -48,6 +50,11 @@ if (options.worker) {
       const axisMean = modulus => Array.from({ length: size }, (_, i) => i % modulus).reduce((a, b) => a + b, 0) / size;
       expected = Array.from({ length: size }, (_, i) => name === 'row' ? i % 7 + axisMean(11) + 0.25 : i % 11 + axisMean(7) + 0.25);
       run = () => runtime.variables.get('matrix_mean').call([a, name]);
+    } else if (name === 'kmeans') {
+      const points = matrix(size, 2, (r, c) => (r % 2) * 10 + (Math.floor(r / 2) % 2) * 2 + c);
+      const centroids = matrix(2, 2, (r, c) => r * 10 + c);
+      expected = [1, 2, 11, 12];
+      run = () => runtime.variables.get('k_means').call([points, 2n, centroids, 5n]);
     } else if (name === 'matvec') {
       const a = matrix(size, size, (r, c) => (r + c) % 7 / 8);
       const b = array(Array.from({ length: size }, (_, c) => c % 5 / 4), [size]);
