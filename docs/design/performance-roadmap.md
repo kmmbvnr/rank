@@ -33,9 +33,11 @@ A repeatable benefit in unchanged programs is the acceptance criterion.
 
 The worktree's private storage contract repairs the descriptor-probe bug and
 enables the sum experiment without probing unknown host objects. Finish its
-acceptance checks before merging: snapshot matvec improves, but lazy k-means,
-ordinary row/column means and named snapshot reductions still have measured
-costs. Revise or remove the responsible parts and repeat the controls. See
+acceptance checks before merging: snapshot matvec improves, but lazy k-means
+and named snapshot reductions still have measured costs. The coordinate-copy
+change removed the ordinary mean regression and made row/column means about
+three times faster at 512 square. Revise or remove the remaining responsible
+parts and repeat the controls. See
 the [optimization log](optimization-lab.md#4-private-storage-correctness-repaired-performance-costs-remain).
 
 Start with builtin `sum` on arithmetic results. Consider single-use named
@@ -65,6 +67,10 @@ the interpreted triple-loop overhead in DeepML 009.
 Use CSES and DeepML 009 profiles to choose one hot path at a time: indexing,
 record fields, container methods or loop dispatch. Retain recursion, tail-call
 and memo benchmarks as regression controls.
+
+Tensor row/column coordinate allocation has been removed and measured. Next
+inspect multidimensional selectors and gradient descent's transpose/materialized
+temporaries; do not count the completed copy-loop change as progress on these.
 
 Why: array reductions do not cover most scalar CSES algorithms.
 

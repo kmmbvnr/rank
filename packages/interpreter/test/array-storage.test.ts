@@ -209,4 +209,72 @@ end`);
         expect(reads[firstItem + 1]).toBe('shape');
         instance.dispose();
     });
+
+    it('preserves the shared cell shape when a loop body changes it', () => {
+        const instance = new Interpreter();
+        instance.variables.set('shorten', native('shorten', 1, ([row]) => {
+            (row as unknown as { shape: number[] }).shape[0] = 1;
+            return 0n;
+        }));
+        const result = instance.execute(`use algo
+use sequences
+A = array shape 2 3
+  1 2 3 4 5 6
+end
+for Row in A
+  queue push Row len
+  Row shorten
+end
+queue`);
+        if (!result || !isRankQueue(result)) throw new Error('expected queue');
+        expect(result.items).toEqual([3n, 1n]);
+        instance.dispose();
+    });
+
+    it('does not add reads of a getter installed on the shared cell shape', () => {
+        const instance = new Interpreter();
+        let reads = 0;
+        instance.variables.set('shorten', native('shorten', 1, ([row]) => {
+            Object.defineProperty((row as RankArray).shape, 0, {
+                get() { reads++; return 1; }, configurable: true,
+            });
+            return 0n;
+        }));
+        const result = instance.execute(`use algo
+use sequences
+A = array shape 2 3
+  1 2 3 4 5 6
+end
+for Row in A
+  queue push Row len
+  Row shorten
+end
+queue`);
+        if (!result || !isRankQueue(result)) throw new Error('expected queue');
+        expect(result.items).toEqual([3n, 1n]);
+        // Size once, coordinate calculation twice, len once, as before fusion.
+        expect(reads).toBe(4);
+        instance.dispose();
+    });
+
+    it('keeps coordinate mapping if a host callback changes cell rank', () => {
+        const instance = new Interpreter();
+        instance.variables.set('reshape', native('reshape', 1, ([row]) => {
+            (row as unknown as { shape: number[] }).shape.splice(0, 1, 1, 3);
+            return 0n;
+        }));
+        const result = instance.execute(`use algo
+use numbers
+A = array shape 2 3
+  1 2 3 4 5 6
+end
+for Row in A
+  queue push Row sum
+  Row reshape
+end
+queue`);
+        if (!result || !isRankQueue(result)) throw new Error('expected queue');
+        expect(result.items).toEqual([6n, 12n]);
+        instance.dispose();
+    });
 });

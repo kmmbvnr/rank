@@ -3069,10 +3069,22 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[]): Iterab
             fullCoordinates[axis] = frameCoordinates[position];
         });
         const items: RankValue[] = [];
-        for (const cellCoordinates of coordinates(cellShape)) {
-            cellAxes.forEach((axis, position) => {
-                fullCoordinates[axis] = cellCoordinates[position];
-            });
+        const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
+        for (let linear = 0; linear < cellSize; linear++) {
+            if (cellShape.length !== cellAxes.length) {
+                // A host callback can resize the shared cell shape. Preserve
+                // the ordinary missing/extra coordinate behavior in that case.
+                const cellCoordinates = coordinatesAt(cellShape, linear);
+                cellAxes.forEach((axis, position) => {
+                    fullCoordinates[axis] = cellCoordinates[position];
+                });
+            } else {
+                let remaining = linear;
+                for (let position = cellShape.length - 1; position >= 0; position--) {
+                    fullCoordinates[cellAxes[position]] = remaining % cellShape[position];
+                    remaining = Math.floor(remaining / cellShape[position]);
+                }
+            }
             items.push(storage
                 ? storage.read(arrayOffset(source.shape, fullCoordinates))
                 : source.items[arrayOffset(source.shape, fullCoordinates)]);

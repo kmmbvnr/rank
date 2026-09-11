@@ -318,3 +318,66 @@ range. Never use a wrapping typed-array store as the overflow check. Real values
 and nested/file values also require promotion to their appropriate generic
 representation. This design is deferred until a workload justifies conversion
 and promotion costs.
+
+## 6. Tensor row/column copies: repeated benefit
+
+The mean profile pointed to `coordinates` inside `tensorEntries`. Every copied
+cell allocated a coordinate array and advanced a generator before reading its
+value. The new inner loop computes coordinates directly into the row's existing
+coordinate buffer. Frame iteration is unchanged. Unusual host mutations that
+change cell rank use the old coordinate mapping. Foreign `.items` getters still
+run before the `.shape` read used for offsets; storage is checked between rows.
+
+This review found a correctness error in checkpoint `03fd034`: its owned-array
+constructor copied the cell shape and broke the alias between yielded rows and
+their iterator. A host function changing the first row's dimension produced
+lengths `[3, 3]`, while pre-storage runtime `d03c2bd` produced `[3, 1]`. The new
+test failed before the repair. The internal constructor now retains that
+runtime-owned shape, while storing separate dimension values for validation.
+If a callback installs shape getters, metadata construction uses descriptors
+and falls back without reading them. A second live comparison and permanent
+test confirm the same four getter reads as `d03c2bd`. JS snapshot construction
+still copies the caller's shape before passing it to the internal constructor.
+
+Five-sample comparisons against `d03c2bd`, unchanged demos and ordinary host
+inputs, all at square 512:
+
+| Demo | First pair, baseline → candidate | Repeat, baseline → candidate |
+| --- | ---: | ---: |
+| DeepML 004 row mean | 12.2 → 4.1 ms | 12.3 → 4.2 ms |
+| DeepML 004 column mean | 12.6 → 4.2 ms | 12.8 → 4.2 ms |
+
+The row and column standalone runs used opposite runtime orders. The row
+comparison repeated with reversed order in the full suite. Their cold process
+medians improved by only about 5–6%, because startup and setup still dominate.
+At square 128 the full suite's warm row/column times fell from 1.3/1.4 to
+0.8/0.9 ms. Small square-8 results remain around 0.1 ms.
+
+Ordinary-input matvec at 512 fell from 26.4 to 19.1 ms in the full suite, without
+requiring a host snapshot. With copied snapshot inputs, the cumulative storage
+plus copy changes were 26.3 to 9.7 ms; cold medians 175.6 to 160.9 ms and peak
+RSS 273 to 190 MiB. These snapshot results include the earlier sum fusion and
+must not be presented as the isolated coordinate-loop gain.
+
+The remaining large ordinary-input controls were Euler 10.8 to 11.5 ms,
+k-means 41.0 to 42.4 ms, matrix multiplication 321.6 to 315.6 ms and gradient
+descent 75.4 to 78.4 ms. No speedup is claimed for these controls. A short
+two-file test run overlapped part of the full comparison; standalone row/column
+and snapshot comparisons had no concurrent test workload. The k-means fallback
+and named-snapshot costs from section 4 remain unresolved. Coordinate copying
+repairs the earlier mean regression but does not settle those other costs.
+
+The independent tensor-copy test covers 78 combinations of three shapes
+(including empty dimensions), reordered frame axes, all cell ranks and both
+ordinary/private inputs. It groups elements using nested JS coordinate loops
+rather than the interpreter's linear decoder. Additional tests cover shared
+shape mutation, accessor read counts and changed cell rank. All 457 JS tests
+passed. All 164 demo files passed with zero failures.
+The six N=200,000 judge smoke checks passed: restaurant 2350.2 ms, rooms
+1855.1, playlist 460.8, books 184.1, bounded-sum 792.9 and sum 162.6.
+These single cold samples are regression smoke checks, not speedup claims.
+[Raw comparisons](../../benchmarks/baselines/2026-09-11-tensor-coordinate-copy.json).
+
+Decision: keep the coordinate-copy change and shape-alias repair. Continue with
+the lazy fallback cost, private readers that preserve named caches, and the
+remaining measured scalar/indexing and transpose paths before generated loops.

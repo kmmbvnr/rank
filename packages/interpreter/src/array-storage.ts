@@ -2,7 +2,7 @@ import { RankError } from './errors.js';
 import type { RankArray, RankValue } from './value.js';
 
 interface Storage {
-    readonly shape: number[];
+    readonly shape: readonly number[];
     readonly dimensions: readonly number[];
     readonly read: (index: number) => RankValue;
     readonly expose: () => RankValue[];
@@ -11,13 +11,25 @@ interface Storage {
 
 const owned = new WeakMap<object, Storage>();
 
-/** Internal constructor: items must be a freshly allocated, unaliased JS array. */
+/** Internal constructor: items must be fresh; shape must be a runtime-owned JS array. */
 export function ownedArray(items: RankValue[], shape: readonly number[]): RankArray {
     if (!items.every(item => typeof item === 'number' || typeof item === 'bigint' || typeof item === 'boolean')) {
         return { kind: 'array', items, shape };
     }
-    const dimensions = [...shape];
-    const arrayShape = [...dimensions];
+    if (Object.getPrototypeOf(shape) !== Array.prototype) return { kind: 'array', items, shape };
+    const dimensions: number[] = [];
+    for (let axis = 0; axis < shape.length; axis++) {
+        const dimension = Object.getOwnPropertyDescriptor(shape, axis);
+        // A previously yielded cell can expose this shared shape to JS. Never
+        // invoke a newly installed getter just to build optimization metadata.
+        if (!dimension || !('value' in dimension) || typeof dimension.value !== 'number') {
+            return { kind: 'array', items, shape };
+        }
+        dimensions.push(dimension.value);
+    }
+    // Tensor cells intentionally share their shape with the iterator. Retain
+    // that alias; dimensions is only the private validation snapshot.
+    const arrayShape = shape;
     let storage: Storage;
     const result: RankArray = {
         kind: 'array', shape: arrayShape,
