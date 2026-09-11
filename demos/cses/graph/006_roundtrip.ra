@@ -1,0 +1,81 @@
+rem CSES 1669: Round Trip
+rem https://cses.fi/problemset/task/1669
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+NodeCount = stdin .integer
+EdgeCount = stdin .integer
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .undirected
+
+for i in 1 to EdgeCount
+  A = stdin .integer
+  B = stdin .integer
+  Graph add A B
+end
+
+Cycle = Graph NodeCount find_cycle
+if Cycle len equal 0
+  "IMPOSSIBLE" print
+else
+  Cycle len print
+  Cycle print
+end
+
+
+rem Return one simple undirected cycle.
+fun find_cycle Graph NodeCount
+  Size = NodeCount + 1
+  State = array shape Size pad 0
+  Parent = array shape Size pad 0
+
+  fun visit Node Previous
+    State Node = 1
+    Parent Node = Previous
+
+    for Next in Graph Node
+      if Next equal Previous
+        continue
+      end
+      if State Next equal 0
+        Cycle = Next Node visit
+        if Cycle len greater 0
+          return Cycle
+        end
+      elif State Next equal 1
+        Path = new queue
+        Path push Next
+        Current = Node
+        for Current not equal Next
+          Path push Current
+          Current = Parent Current
+        end
+        Path push Next
+
+        Length = Path len
+        Cycle = array shape Length pad 0
+        for City i in Path
+          Cycle i = City
+        end
+        return Cycle
+      end
+    end
+
+    State Node = 2
+    return array shape 0 pad 0
+  end
+
+  for Start in 1 to NodeCount
+    if State Start equal 0
+      Cycle = Start 0 visit
+      if Cycle len greater 0
+        return Cycle
+      end
+    end
+  end
+  return array shape 0 pad 0
+end
