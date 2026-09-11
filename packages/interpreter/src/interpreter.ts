@@ -8,6 +8,7 @@ import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import { isKnownFileFree, ResourceMap } from './resource-summary.js';
 import { numericKernel } from './numeric-kernels.js';
+import { compileFusedReduction } from './fused-reduction.js';
 import {
     isAddStatement,
     isAllAxisExpression,
@@ -1231,6 +1232,14 @@ export class Interpreter {
             }
             const reduction = explicitReduceApplication(expression);
             if (reduction) {
+                const fused = reduction.rank === undefined ? compileFusedReduction(
+                    reduction.source, reduction.operator, {
+                        prepareLeaf: source => interpreter.compileDirectExpression(source)!,
+                        binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
+                        reduce: value => interpreter.evaluateReduction(reduction.operator, value),
+                    },
+                ) : undefined;
+                if (fused) return () => completed(fused());
                 return function* (): Execution<RankValue> {
                     return interpreter.evaluateReduction(
                         reduction.operator,
