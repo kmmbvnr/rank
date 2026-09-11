@@ -1,0 +1,12 @@
+rem Deep-ML 31: Divide Dataset
+rem https://www.deep-ml.com/problems/31
+
+rem Split rows by one feature threshold.
+fun divide_on_feature X Feature Limit
+  Values = X axis 1 Feature
+  Above = Values at least Limit
+
+  High = X axis 0 Above
+  Low = X axis 0 (not Above)
+  return array High Low
+end
