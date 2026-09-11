@@ -1,0 +1,48 @@
+rem CSES 2187: Bracket Sequences II
+rem https://cses.fi/problemset/task/2187
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+Prefix = stdin .word
+N Prefix completions print
+
+
+rem Count valid suffixes after a prefix.
+fun completions N Prefix
+  if N odd
+    return 0
+  end
+
+  Balance = 0
+  for Bracket in Prefix
+    if Bracket equal "("
+      Balance += 1
+    else
+      Balance -= 1
+    end
+    if Balance less 0
+      return 0
+    end
+  end
+
+  Remaining = N - Prefix len
+  if Balance greater Remaining
+    return 0
+  end
+  if (Remaining - Balance) odd
+    return 0
+  end
+
+  Mod = 1000000007
+  Opens = (Remaining - Balance) // 2
+  A = Remaining Opens Mod binomialmod
+  B = 0
+  if Opens greater 0
+    Less = Opens - 1
+    B = Remaining Less Mod binomialmod
+  end
+  return (A - B + Mod) % Mod
+end

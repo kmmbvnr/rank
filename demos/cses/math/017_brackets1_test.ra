@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "017_brackets1"
+  6 bracket_count equal 5
+end
+
+test "odd length is impossible"
+  use "017_brackets1"
+  7 bracket_count equal 0
+end
+
+test "one pair has one sequence"
+  use "017_brackets1"
+  2 bracket_count equal 1
+end
+
+test "upper limit stays modular"
+  use "017_brackets1"
+  1000000 bracket_count equal 213941567
+end

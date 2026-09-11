@@ -1,0 +1,22 @@
+rem CSES 2064: Bracket Sequences I
+rem https://cses.fi/problemset/task/2064
+
+use io
+use numbers
+
+N = stdin .integer
+N bracket_count print
+
+
+rem Calculate a Catalan number.
+fun bracket_count N
+  if N odd
+    return 0
+  end
+
+  Mod = 1000000007
+  Opens = N // 2
+  First = N Opens Mod binomialmod
+  Second = N (Opens - 1) Mod binomialmod
+  return (First - Second + Mod) % Mod
+end

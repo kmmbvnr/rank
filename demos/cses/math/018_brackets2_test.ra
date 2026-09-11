@@ -1,0 +1,23 @@
+use testing
+
+test "official example"
+  use "018_brackets2"
+  6 "(()" completions equal 2
+end
+
+test "prefix cannot close too early"
+  use "018_brackets2"
+  4 ")(" completions equal 0
+end
+
+test "balance must fit the suffix"
+  use "018_brackets2"
+  4 "(((" completions equal 0
+  6 "(" completions equal 5
+end
+
+test "complete sequence has one suffix"
+  use "018_brackets2"
+  4 "()()" completions equal 1
+  4 "(())" completions equal 1
+end
