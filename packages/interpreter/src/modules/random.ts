@@ -5,7 +5,7 @@ import {
     type RankArray,
     type RankValue,
 } from '../value.js';
-import { native } from './shared.js';
+import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const randomModule: RuntimeModule = {
@@ -23,7 +23,45 @@ export const randomModule: RuntimeModule = {
         0,
         context.random,
     )),
+    choices: context => native('choices', 2, arguments_ => choicesValue(
+        arguments_[0],
+        arguments_[1],
+        context.random,
+    )),
 };
+
+/** Draw complete leading-axis cells independently with replacement. */
+export function choicesValue(
+    value: RankValue,
+    countValue: RankValue,
+    random: () => number = Math.random,
+): RankArray {
+    const source = randomSource(value, 'choices');
+    const integer = expectInteger(countValue);
+    if (integer < 0n) throw new RankError('choices count must be nonnegative');
+    if (integer > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError(`choices count is too large: ${integer}`);
+    }
+    const count = Number(integer);
+    const axisSize = source.shape[0];
+    if (count > 0 && axisSize === 0) {
+        throw new RankError('choices cannot draw from an empty input');
+    }
+
+    const cellShape = source.shape.slice(1);
+    const cellSize = cellShape
+        .reduce((product, dimension) => product * dimension, 1);
+    const items: RankValue[] = [];
+    for (let draw = 0; draw < count; draw += 1) {
+        const sourceCell = Math.floor(random() * axisSize);
+        const start = sourceCell * cellSize;
+        for (let offset = 0; offset < cellSize; offset += 1) {
+            const index = start + offset;
+            items.push(source.itemAt?.(index) ?? source.items[index]);
+        }
+    }
+    return { kind: 'array', items, shape: [count, ...cellShape] };
+}
 
 /** Return an eager copy with complete cells reordered along one axis. */
 export function shuffleValue(
@@ -32,7 +70,7 @@ export function shuffleValue(
     axis = 0,
     defaultRandom: () => number = Math.random,
 ): RankArray {
-    const source = shuffleSource(value);
+    const source = randomSource(value, 'shuffle');
     if (axis < 0 || axis >= source.shape.length) {
         throw new RankError(`shuffle axis out of bounds: ${axis}`, 'DimensionMismatch');
     }
@@ -58,13 +96,13 @@ export function shuffleValue(
     return { kind: 'array', items, shape: [...source.shape] };
 }
 
-function shuffleSource(value: RankValue): RankArray {
+function randomSource(value: RankValue, operation: string): RankArray {
     if (typeof value === 'object' && value.kind === 'array') return value;
     if (isRankSequence(value)) {
-        const items = [...sequenceValues(value, 'shuffle')];
+        const items = [...sequenceValues(value, operation)];
         return { kind: 'array', items, shape: [items.length] };
     }
-    throw new RankError('shuffle expects an array or finite sequence');
+    throw new RankError(`${operation} expects an array or finite sequence`);
 }
 
 function expectSeed(seed: RankValue): bigint {

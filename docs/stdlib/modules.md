@@ -300,6 +300,7 @@ them. Other numeric sequences still fail the boolean-cell requirement.
 State = 42 seed
 Shuffled = Values shuffle
 Repeatable = Values 42 shuffle
+Sample = Values 10 choices
 Rows = Data shuffle axis 0
 Columns = Data 42 shuffle axis 1
 ```
@@ -314,6 +315,12 @@ array. It never changes its source. A sequence is explicitly consumed by the
 operation. An unbounded sequence, a scalar or a missing tensor axis is an
 error.
 
+`Values Count choices` independently draws `Count` values with replacement
+and returns an eager dense array. For a tensor it draws complete cells along
+the leading axis, preserving their shape. Count must be nonnegative. Count
+zero is valid for an empty input; a positive draw from an empty input is an
+error.
+
 The default axis is zero. Selecting another axis reorders its complete slices
 with one shared permutation: shuffling matrix columns moves every column as a
 unit rather than shuffling each row independently.
@@ -323,7 +330,7 @@ stream. Supplying an integer seed creates a private stream for that operation,
 so equal inputs and equal seeds produce equal results within one interpreter
 version without changing the default stream. The precise generator and seeded
 order are implementation details and may change between versions. `shuffle`
-is not a cryptographic randomness operation.
+and `choices` are not cryptographic randomness operations.
 
 ## Linear algebra
 

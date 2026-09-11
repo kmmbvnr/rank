@@ -41,6 +41,56 @@ describe('Rank random operations', () => {
         ].join('\n'))).toBe('true');
     });
 
+    it('draws choices independently with replacement', () => {
+        const draws = [0, 0.9, 0.4];
+        let calls = 0;
+        const interpreter = new Interpreter(() => {}, {
+            random: () => draws[calls++],
+        });
+        expect(interpreter.execute([
+            'use random',
+            'Values = array 10 20 30',
+            'Values 3 choices',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: [10n, 30n, 20n],
+            shape: [3],
+        });
+        expect(calls).toBe(3);
+    });
+
+    it('draws complete leading-axis cells', () => {
+        const interpreter = new Interpreter(() => {}, { random: () => 0.6 });
+        expect(interpreter.execute([
+            'use random',
+            'M = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'M 3 choices',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: [3n, 4n, 3n, 4n, 3n, 4n],
+            shape: [3, 2],
+        });
+    });
+
+    it('validates choice counts and sources', () => {
+        expect(new Interpreter().execute([
+            'use random',
+            'A = array shape 0 2 pad 0',
+            'A 0 choices',
+        ].join('\n'))).toEqual({ kind: 'array', items: [], shape: [0, 2] });
+        expect(() => run('use random\n(array 1 2) (-1) choices'))
+            .toThrowError('choices count must be nonnegative');
+        expect(() => run('use random\nA = array shape 0 pad 0\nA 1 choices'))
+            .toThrowError('choices cannot draw from an empty input');
+        expect(() => run('use random\n1 2 choices'))
+            .toThrowError('choices expects an array or finite sequence');
+        expect(() => run('use random\nuse sequences\nfibonacci 2 choices'))
+            .toThrowError('choices requires a bounded sequence');
+    });
+
     it('reseeds the shared stream used by imported functions', () => {
         const interpreter = new Interpreter(undefined, {
             loadModule: () => ({
