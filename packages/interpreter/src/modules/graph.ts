@@ -25,6 +25,10 @@ export const graphModule: RuntimeModule = {
         const graph = expectGraph(values[0]);
         return searchRecord(graph, breadthFirst(graph, values[1]));
     }),
+    dfs: () => native('dfs', 2, values => {
+        const graph = expectGraph(values[0]);
+        return searchRecord(graph, depthFirst(graph, values[1]));
+    }),
     components: () => native('components', 1, values =>
         componentRecord(expectGraph(values[0]))),
     bipartite: () => native('bipartite', 1, values =>
@@ -33,6 +37,10 @@ export const graphModule: RuntimeModule = {
         const graph = expectGraph(values[0]);
         return searchRecord(graph, dijkstra(graph, values[1]));
     }),
+    topological: () => native('topological', 1, values =>
+        topologicalRecord(expectGraph(values[0]))),
+    scc: () => native('scc', 1, values =>
+        stronglyConnectedRecord(expectGraph(values[0]))),
 };
 
 function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
@@ -54,6 +62,126 @@ function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
         }
     }
     return { distance, parent, order };
+}
+
+function depthFirst(graph: GraphValue, start: RankValue): SearchState {
+    const startKey = requireVertex(graph, start);
+    const distance = new Map<string, Numeric>([[startKey, 0n]]);
+    const parent = new Map<string, RankValue>();
+    const order: RankValue[] = [];
+    const stack: RankValue[] = [start];
+    while (stack.length > 0) {
+        const current = stack.pop()!;
+        const currentKey = setValueKey(current);
+        order.push(current);
+        const edges = graph.adjacency.get(currentKey) ?? [];
+        for (let position = edges.length - 1; position >= 0; position -= 1) {
+            const next = edges[position].target;
+            const nextKey = setValueKey(next);
+            if (distance.has(nextKey)) continue;
+            distance.set(nextKey, BigInt(distance.get(currentKey) as bigint) + 1n);
+            parent.set(nextKey, current);
+            stack.push(next);
+        }
+    }
+    return { distance, parent, order };
+}
+
+function topologicalRecord(graph: GraphValue): RankRecord {
+    requireDirected(graph, 'topological');
+    const indegree = new Map<string, number>();
+    for (const key of graph.vertices.keys()) indegree.set(key, 0);
+    for (const edges of graph.adjacency.values()) {
+        for (const edge of edges) {
+            const key = setValueKey(edge.target);
+            indegree.set(key, indegree.get(key)! + 1);
+        }
+    }
+    const queue = [...graph.vertices]
+        .filter(([key]) => indegree.get(key) === 0)
+        .map(([, vertex]) => vertex);
+    const order: RankValue[] = [];
+    for (let head = 0; head < queue.length; head += 1) {
+        const current = queue[head];
+        order.push(current);
+        for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+            const key = setValueKey(edge.target);
+            const remaining = indegree.get(key)! - 1;
+            indegree.set(key, remaining);
+            if (remaining === 0) queue.push(edge.target);
+        }
+    }
+    return record({
+        possible: order.length === graph.size,
+        order: array(order.length === graph.size ? order : []),
+    });
+}
+
+function stronglyConnectedRecord(graph: GraphValue): RankRecord {
+    requireDirected(graph, 'scc');
+    const finished: string[] = [];
+    const visited = new Set<string>();
+    for (const root of graph.vertices.keys()) {
+        if (visited.has(root)) continue;
+        finishFrom(graph, root, visited, finished);
+    }
+
+    const reverse = new Map<string, string[]>();
+    for (const key of graph.vertices.keys()) reverse.set(key, []);
+    for (const [from, edges] of graph.adjacency) {
+        for (const edge of edges) reverse.get(setValueKey(edge.target))!.push(from);
+    }
+
+    const component = new Map<string, RankValue>();
+    const roots: RankValue[] = [];
+    let count = 0n;
+    while (finished.length > 0) {
+        const root = finished.pop()!;
+        if (component.has(root)) continue;
+        count += 1n;
+        roots.push(graph.vertices.get(root)!);
+        const stack = [root];
+        component.set(root, count);
+        while (stack.length > 0) {
+            const current = stack.pop()!;
+            const edges = reverse.get(current)!;
+            for (let position = edges.length - 1; position >= 0; position -= 1) {
+                const next = edges[position];
+                if (component.has(next)) continue;
+                component.set(next, count);
+                stack.push(next);
+            }
+        }
+    }
+    return record({
+        count,
+        component: indexFrom(graph, component),
+        roots: array(roots),
+    });
+}
+
+function finishFrom(
+    graph: GraphValue,
+    root: string,
+    visited: Set<string>,
+    finished: string[],
+): void {
+    const stack: Array<{ key: string; next: number }> = [{ key: root, next: 0 }];
+    visited.add(root);
+    while (stack.length > 0) {
+        const frame = stack[stack.length - 1];
+        const edges = graph.adjacency.get(frame.key) ?? [];
+        if (frame.next < edges.length) {
+            const next = setValueKey(edges[frame.next++].target);
+            if (!visited.has(next)) {
+                visited.add(next);
+                stack.push({ key: next, next: 0 });
+            }
+            continue;
+        }
+        finished.push(frame.key);
+        stack.pop();
+    }
 }
 
 function dijkstra(graph: GraphValue, start: RankValue): SearchState {
@@ -192,6 +320,10 @@ function requireVertex(graph: GraphValue, vertex: RankValue): string {
 
 function requireUndirected(graph: GraphValue, operation: string): void {
     if (graph.directed) throw new RankError(`${operation} expects an undirected graph`);
+}
+
+function requireDirected(graph: GraphValue, operation: string): void {
+    if (!graph.directed) throw new RankError(`${operation} expects a directed graph`);
 }
 
 function rejectNegativeWeights(graph: GraphValue): void {
