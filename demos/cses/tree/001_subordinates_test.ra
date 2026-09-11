@@ -1,0 +1,40 @@
+use testing
+
+test "official example"
+  use "001_subordinates"
+  use graph
+  use ranges
+  use sequences
+  Bosses = array 1 1 2 3
+  Actual = Bosses subordinates
+  Actual equal (array 4 1 1 0 0)
+end
+
+test "single director"
+  use "001_subordinates"
+  use graph
+  use ranges
+  use sequences
+  Bosses = array shape 0 pad 0
+  Bosses subordinates equal (array 0)
+end
+
+test "long reporting chain"
+  use "001_subordinates"
+  use graph
+  use ranges
+  use sequences
+  Bosses = array 1 2 3 4 5
+  Actual = Bosses subordinates
+  Actual equal (array 5 4 3 2 1 0)
+end
+
+test "boss may have a larger number"
+  use "001_subordinates"
+  use graph
+  use ranges
+  use sequences
+  Bosses = array 4 1 1 4
+  Actual = Bosses subordinates
+  Actual equal (array 4 0 0 2 0)
+end

@@ -1,0 +1,57 @@
+use testing
+
+test "official example"
+  use "004_distances1"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Tree = new graph (1 to 5) .undirected
+  Edges = array shape 4 2
+    1 2
+    1 3
+    3 4
+    3 5
+  end
+  Tree add Edges
+  Actual = Tree tree_distances
+  Actual equal (array 2 3 2 3 3)
+end
+
+test "single node has zero distance"
+  use "004_distances1"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Tree = new graph (array 1) .undirected
+  Tree tree_distances equal (array 0)
+end
+
+test "path distances reach an end"
+  use "004_distances1"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Tree = new graph (1 to 5) .undirected
+  for Node in 1 until 5
+    Tree add Node (Node + 1)
+  end
+  Actual = Tree tree_distances
+  Actual equal (array 4 3 2 3 4)
+end
+
+test "star leaves are two apart"
+  use "004_distances1"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Tree = new graph (1 to 5) .undirected
+  for Node in 2 to 5
+    Tree add 1 Node
+  end
+  Actual = Tree tree_distances
+  Actual equal (array 1 2 2 2 2)
+end

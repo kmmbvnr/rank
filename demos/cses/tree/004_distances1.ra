@@ -1,0 +1,38 @@
+rem CSES 1132: Tree Distances I
+rem https://cses.fi/problemset/task/1132
+
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Tree tree_distances print
+
+
+rem Compare distances from both ends.
+fun tree_distances Tree
+  First = Tree 1 bfs
+  Last = First .order len - 1
+  A = (First .order) Last
+  FromA = Tree A bfs
+  Last = FromA .order len - 1
+  B = (FromA .order) Last
+  FromB = Tree B bfs
+
+  N = Tree len
+  Result = array shape N pad 0
+  for Node in 1 to N
+    Left = (FromA .distance) Node
+    Right = (FromB .distance) Node
+    Result (Node - 1) = Left max Right
+  end
+  return Result
+end

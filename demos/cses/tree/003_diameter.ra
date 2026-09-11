@@ -1,0 +1,28 @@
+rem CSES 1131: Tree Diameter
+rem https://cses.fi/problemset/task/1131
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Tree tree_diameter print
+
+
+rem Find both ends with two searches.
+fun tree_diameter Tree
+  First = Tree 1 bfs
+  Last = First .order len - 1
+  End = (First .order) Last
+  Second = Tree End bfs
+  Last = Second .order len - 1
+  End = (Second .order) Last
+  return (Second .distance) End
+end

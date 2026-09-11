@@ -1,0 +1,39 @@
+rem CSES 1130: Tree Matching
+rem https://cses.fi/problemset/task/1130
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Tree tree_matching print
+
+
+rem Match free child and parent nodes.
+fun tree_matching Tree
+  Walk = Tree 1 dfs
+  Size = Tree len + 1
+  Used = array shape Size pad false
+  Pairs = 0
+  Last = Walk .order len - 1
+
+  for i in Last to 1 by -1
+    Node = (Walk .order) i
+    Parent = (Walk .parent) Node
+    if not (Used Node)
+      if not (Used Parent)
+        Used Node = true
+        Used Parent = true
+        Pairs += 1
+      end
+    end
+  end
+  return Pairs
+end

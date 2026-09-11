@@ -1,0 +1,33 @@
+rem CSES 1674: Subordinates
+rem https://cses.fi/problemset/task/1674
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Bosses = stdin .integer (N - 1) array
+Bosses subordinates print
+
+
+rem Count all employees below each boss.
+fun subordinates Bosses
+  N = Bosses len + 1
+  Tree = new graph (1 to N) .directed
+  for Boss i in Bosses
+    Employee = i + 2
+    Tree add Boss Employee
+  end
+
+  Walk = Tree 1 dfs
+  Counts = array shape N pad 0
+  Last = Walk .order len - 1
+  for i in Last to 1 by -1
+    Employee = (Walk .order) i
+    Boss = (Walk .parent) Employee
+    Count = Counts (Employee - 1) + 1
+    Counts (Boss - 1) += Count
+  end
+  return Counts
+end
