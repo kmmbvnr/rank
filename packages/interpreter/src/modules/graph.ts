@@ -1,0 +1,258 @@
+import { RankError } from '../errors.js';
+import { expectGraph, type GraphValue } from '../graph.js';
+import { indexKey } from '../index-key.js';
+import { ResourceMap } from '../resource-summary.js';
+import { setValueKey } from '../set.js';
+import {
+    type RankArray,
+    type RankIndex,
+    type RankRecord,
+    type RankValue,
+} from '../value.js';
+import { native } from './shared.js';
+import type { RuntimeModule } from './types.js';
+
+type Numeric = bigint | number;
+
+interface SearchState {
+    readonly distance: Map<string, Numeric>;
+    readonly parent: Map<string, RankValue>;
+    readonly order: RankValue[];
+}
+
+export const graphModule: RuntimeModule = {
+    bfs: () => native('bfs', 2, values => {
+        const graph = expectGraph(values[0]);
+        return searchRecord(graph, breadthFirst(graph, values[1]));
+    }),
+    components: () => native('components', 1, values =>
+        componentRecord(expectGraph(values[0]))),
+    bipartite: () => native('bipartite', 1, values =>
+        bipartiteRecord(expectGraph(values[0]))),
+    dijkstra: () => native('dijkstra', 2, values => {
+        const graph = expectGraph(values[0]);
+        return searchRecord(graph, dijkstra(graph, values[1]));
+    }),
+};
+
+function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
+    const startKey = requireVertex(graph, start);
+    const distance = new Map<string, Numeric>([[startKey, 0n]]);
+    const parent = new Map<string, RankValue>();
+    const order: RankValue[] = [];
+    const queue: RankValue[] = [start];
+    for (let head = 0; head < queue.length; head += 1) {
+        const current = queue[head];
+        const currentKey = setValueKey(current);
+        order.push(current);
+        for (const edge of graph.adjacency.get(currentKey) ?? []) {
+            const nextKey = setValueKey(edge.target);
+            if (distance.has(nextKey)) continue;
+            distance.set(nextKey, BigInt(distance.get(currentKey) as bigint) + 1n);
+            parent.set(nextKey, current);
+            queue.push(edge.target);
+        }
+    }
+    return { distance, parent, order };
+}
+
+function dijkstra(graph: GraphValue, start: RankValue): SearchState {
+    const startKey = requireVertex(graph, start);
+    rejectNegativeWeights(graph);
+    const distance = new Map<string, Numeric>([[startKey, 0n]]);
+    const parent = new Map<string, RankValue>();
+    const order: RankValue[] = [];
+    const settled = new Set<string>();
+    const heap = new MinHeap();
+    heap.push({ vertex: start, distance: 0n });
+    while (heap.size > 0) {
+        const entry = heap.pop()!;
+        const key = setValueKey(entry.vertex);
+        if (settled.has(key) || numericCompare(entry.distance, distance.get(key)!) !== 0) {
+            continue;
+        }
+        settled.add(key);
+        order.push(entry.vertex);
+        for (const edge of graph.adjacency.get(key) ?? []) {
+            const nextKey = setValueKey(edge.target);
+            const candidate = numericAdd(entry.distance, edge.weight);
+            const previous = distance.get(nextKey);
+            if (previous !== undefined && numericCompare(candidate, previous) >= 0) continue;
+            distance.set(nextKey, candidate);
+            parent.set(nextKey, entry.vertex);
+            heap.push({ vertex: edge.target, distance: candidate });
+        }
+    }
+    return { distance, parent, order };
+}
+
+function componentRecord(graph: GraphValue): RankRecord {
+    requireUndirected(graph, 'components');
+    const component = new Map<string, Numeric>();
+    const roots: RankValue[] = [];
+    let count = 0n;
+    for (const root of graph.vertices.values()) {
+        const rootKey = setValueKey(root);
+        if (component.has(rootKey)) continue;
+        count += 1n;
+        roots.push(root);
+        const queue: RankValue[] = [root];
+        component.set(rootKey, count);
+        for (let head = 0; head < queue.length; head += 1) {
+            const current = queue[head];
+            for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+                const key = setValueKey(edge.target);
+                if (component.has(key)) continue;
+                component.set(key, count);
+                queue.push(edge.target);
+            }
+        }
+    }
+    return record({
+        count,
+        component: indexFrom(graph, component),
+        roots: array(roots),
+    });
+}
+
+function bipartiteRecord(graph: GraphValue): RankRecord {
+    requireUndirected(graph, 'bipartite');
+    const color = new Map<string, Numeric>();
+    let possible = true;
+    for (const root of graph.vertices.values()) {
+        const rootKey = setValueKey(root);
+        if (color.has(rootKey)) continue;
+        color.set(rootKey, 1n);
+        const queue: RankValue[] = [root];
+        for (let head = 0; head < queue.length; head += 1) {
+            const current = queue[head];
+            const currentColor = color.get(setValueKey(current)) as bigint;
+            for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+                const key = setValueKey(edge.target);
+                const nextColor = color.get(key);
+                if (nextColor === undefined) {
+                    color.set(key, 3n - currentColor);
+                    queue.push(edge.target);
+                } else if (nextColor === currentColor) {
+                    possible = false;
+                }
+            }
+        }
+    }
+    return record({ possible, color: indexFrom(graph, color) });
+}
+
+function searchRecord(graph: GraphValue, state: SearchState): RankRecord {
+    return record({
+        distance: indexFrom(graph, state.distance),
+        parent: indexFrom(graph, state.parent),
+        order: array(state.order),
+    });
+}
+
+function indexFrom(
+    graph: GraphValue,
+    values: ReadonlyMap<string, RankValue>,
+): RankIndex {
+    const entries = new ResourceMap<RankValue>(value => value);
+    for (const [key, value] of values) {
+        const vertex = graph.vertices.get(key)!;
+        entries.set(indexKey([vertex]), value);
+    }
+    return entries.resources.track({ kind: 'index', entries });
+}
+
+function record(fields: Record<string, RankValue>): RankRecord {
+    const entries = new ResourceMap<RankValue>(value => value);
+    const types = new Map<string, string>();
+    for (const [name, value] of Object.entries(fields)) {
+        entries.set(name, value);
+        types.set(name, valueType(value));
+    }
+    return entries.resources.track({ kind: 'record', entries, types });
+}
+
+function array(items: RankValue[]): RankArray {
+    return { kind: 'array', items, shape: [items.length] };
+}
+
+function valueType(value: RankValue): string {
+    if (typeof value === 'bigint') return 'integer';
+    if (typeof value === 'number') return 'real';
+    if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'string') return 'text';
+    return value.kind === 'label' ? 'symbol' : value.kind;
+}
+
+function requireVertex(graph: GraphValue, vertex: RankValue): string {
+    const key = setValueKey(vertex);
+    if (!graph.vertices.has(key)) throw new RankError('graph does not contain the start vertex');
+    return key;
+}
+
+function requireUndirected(graph: GraphValue, operation: string): void {
+    if (graph.directed) throw new RankError(`${operation} expects an undirected graph`);
+}
+
+function rejectNegativeWeights(graph: GraphValue): void {
+    for (const edges of graph.adjacency.values()) {
+        for (const edge of edges) {
+            if (numericCompare(edge.weight, 0n) < 0) {
+                throw new RankError('dijkstra requires nonnegative edge weights');
+            }
+        }
+    }
+}
+
+function numericAdd(left: Numeric, right: Numeric): Numeric {
+    return typeof left === 'number' || typeof right === 'number'
+        ? Number(left) + Number(right)
+        : left + right;
+}
+
+function numericCompare(left: Numeric, right: Numeric): number {
+    return left < right ? -1 : left > right ? 1 : 0;
+}
+
+interface HeapEntry {
+    readonly vertex: RankValue;
+    readonly distance: Numeric;
+}
+
+class MinHeap {
+    private readonly items: HeapEntry[] = [];
+
+    get size(): number { return this.items.length; }
+
+    push(value: HeapEntry): void {
+        this.items.push(value);
+        let index = this.items.length - 1;
+        while (index > 0) {
+            const parent = Math.floor((index - 1) / 2);
+            if (numericCompare(this.items[parent].distance, value.distance) <= 0) break;
+            this.items[index] = this.items[parent];
+            index = parent;
+        }
+        this.items[index] = value;
+    }
+
+    pop(): HeapEntry | undefined {
+        const first = this.items[0];
+        const last = this.items.pop();
+        if (last === undefined || this.items.length === 0) return first;
+        let index = 0;
+        while (true) {
+            const left = index * 2 + 1;
+            if (left >= this.items.length) break;
+            const right = left + 1;
+            const child = right < this.items.length
+                && numericCompare(this.items[right].distance, this.items[left].distance) < 0
+                ? right : left;
+            if (numericCompare(this.items[child].distance, last.distance) >= 0) break;
+            this.items[index] = this.items[child];
+            index = child;
+        }
+        this.items[index] = last;
+        return first;
+    }
+}

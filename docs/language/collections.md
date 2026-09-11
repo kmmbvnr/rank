@@ -113,7 +113,7 @@ Index 7 rem 99
 Passing it as `Cache` preserves that reference. Named indices support reads,
 membership, padded reads and writes with the same complete tuple keys as
 implicit indices. Compound writes such as `Cache K += 1` require an existing
-entry. Keys may be integers, booleans, text or labels. A named index can also
+entry. Keys may be integers, real numbers, booleans, text or labels. A named index can also
 be captured by a local function.
 
 ### Queue, stack, deque and heap

@@ -919,9 +919,10 @@ reserve the word in other application chains.
 
 ## Graph profile
 
-`use graph` provides the `new graph` constructor and graph-specific `add` and
-`edges` dispatch. Graph construction, direction, weighted bulk edges, neighbor
-sequences and vertex counts are specified in [Graphs](../language/graphs.md).
+`use graph` provides the `new graph` constructor, graph-specific `add` and
+`edges` dispatch, and the `bfs`, `components`, `bipartite`, and `dijkstra`
+algorithms. Their inputs and result records are specified in
+[Graphs](../language/graphs.md).
 
 ## Rule for adding library vocabulary
 

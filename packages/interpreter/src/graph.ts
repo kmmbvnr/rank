@@ -12,9 +12,14 @@ import { native } from './modules/shared.js';
 
 type GraphDirection = 'directed' | 'undirected';
 
-interface GraphEdge {
+export interface GraphEdge {
     readonly target: RankValue;
     readonly weight: bigint | number;
+}
+
+export function expectGraph(value: RankValue): GraphValue {
+    if (typeof value === 'object' && value.kind === 'graph') return value;
+    throw new RankError('graph algorithm expects a graph');
 }
 
 /** Mutable adjacency storage behind Rank's graph value. */

@@ -103,3 +103,34 @@ register the vertex. A closed graph raises `.Missing` for an unknown vertex.
 
 Graphs are reference values: assignment and argument passing share mutations.
 Removing vertices or edges is not part of the current API.
+
+## Basic algorithms
+
+Graph algorithms are ordinary data-first functions exported by `use graph`.
+They operate on the abstract graph value and may choose a different internal
+representation in future implementations.
+
+`Graph Start bfs` traverses outgoing unweighted edges. `Graph Start dijkstra`
+computes shortest distances for nonnegative numeric weights and rejects a
+negative edge. Both return a record with three fields:
+
+- `.distance`: an index from every reached vertex to its distance;
+- `.parent`: an index containing the search-tree parent of each reached vertex
+  except the start;
+- `.order`: vertices in discovery order for BFS and settlement order for
+  Dijkstra.
+
+```rank
+Result = Graph Start dijkstra
+Distance = Result .distance
+Answer = Distance Target pad infinity
+```
+
+`Graph components` accepts an undirected graph and returns `.count`, a
+`.component` index numbered from one in vertex insertion order, and a `.roots`
+array. `Graph bipartite` also accepts an undirected graph and returns
+`.possible` plus a `.color` index whose values are one or two. An odd cycle
+makes `.possible` false.
+
+All indices use the graph's scalar vertices as keys. Missing distances and
+parents remain missing values, so existing `pad` handling applies.
