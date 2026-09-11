@@ -103,3 +103,46 @@ register the vertex. A closed graph raises `.Missing` for an unknown vertex.
 
 Graphs are reference values: assignment and argument passing share mutations.
 Removing vertices or edges is not part of the current API.
+
+## Basic algorithms
+
+Graph algorithms are ordinary data-first functions exported by `use graph`.
+They operate on the abstract graph value and may choose a different internal
+representation in future implementations.
+
+`Graph Start bfs` traverses outgoing unweighted edges in breadth-first order;
+`Graph Start dfs` uses depth-first order without consuming the host call stack.
+`Graph Start dijkstra` computes shortest distances for nonnegative numeric
+weights and rejects a negative edge. All three return a record with three fields:
+
+- `.distance`: an index from every reached vertex to its distance;
+- `.parent`: an index containing the search-tree parent of each reached vertex
+  except the start;
+- `.order`: vertices in discovery order for BFS and settlement order for
+Dijkstra.
+
+```rank
+Result = Graph Start dijkstra
+Distance = Result .distance
+Answer = Distance Target pad infinity
+```
+
+`Graph components` accepts an undirected graph and returns `.count`, a
+`.component` index numbered from one in vertex insertion order, and a `.roots`
+array. `Graph bipartite` also accepts an undirected graph and returns
+`.possible` plus a `.color` index whose values are one or two. An odd cycle
+makes `.possible` false.
+
+`Graph topological` accepts a directed graph. It returns `.possible` and an
+`.order` array. A directed cycle makes `.possible` false and `.order` empty.
+`Graph scc` finds strongly connected components of a directed graph and returns
+the same `.count`, `.component`, and `.roots` fields as `components`.
+
+All indices use the graph's scalar vertices as keys. Missing distances and
+parents remain missing values, so existing `pad` handling applies.
+
+`Graph Start bellmanford` accepts negative weights. Its `.distance` and
+`.parent` indices cover vertices reachable from `Start`; `.negative` is a set
+of every reachable vertex whose shortest distance is unbounded below because
+of a reachable negative cycle. Distances stored for those vertices are
+intermediate values and must not be used as shortest paths.

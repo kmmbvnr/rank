@@ -121,7 +121,7 @@ IndexAssignmentStatement:
     'index' keys+=PrimaryExpression+ '=' value=Expression;
 
 UnpackStatement:
-    'unpack' names+=AssignableName+ '=' value=Expression;
+    'unpack' names+=UnpackTarget+ '=' value=Expression;
 
 ArrayAssignmentStatement:
     name=AssignableName indices+=AddressItem+
@@ -335,6 +335,9 @@ Identifier returns string:
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
+
+UnpackTarget returns string:
+    AssignableName | '#';
 
 ReferenceName returns string:
     VARIABLE | WORD | QUALIFIED_NAME | 'index' | 'shape';

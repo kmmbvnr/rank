@@ -59,6 +59,7 @@ import {
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
 import { graphConstructor } from './graph.js';
+import { indexKey } from './index-key.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
@@ -820,7 +821,9 @@ export class Interpreter {
                         `unpack expects ${statement.names.length} values, got ${unpacked.items.length}`,
                     );
                 }
-                statement.names.forEach((name, index) => interpreter.assign(name, unpacked.items[index]));
+                statement.names.forEach((name, index) => {
+                    if (name !== '#') interpreter.assign(name, unpacked.items[index]);
+                });
                 return result;
             } };
         }
@@ -3764,17 +3767,6 @@ function isIntegerCollectionSelector(value: RankValue): boolean {
     if (isRankSequence(value)) return true;
     if (!isRankArray(value) && !isRankQueue(value)) return false;
     return value.items.every(item => typeof item === 'bigint');
-}
-
-function indexKey(values: readonly RankValue[]): string {
-    if (values.length === 0) throw new RankError('index requires at least one key');
-    return JSON.stringify(values.map(value => {
-        if (typeof value === 'bigint') return `integer:${value}`;
-        if (typeof value === 'boolean') return `boolean:${value}`;
-        if (typeof value === 'string') return `text:${value}`;
-        if (typeof value === 'object' && value.kind === 'label') return `label:${value.name}`;
-        throw new RankError('index keys must be scalar values');
-    }));
 }
 
 function memoScalarKey(value: RankValue): string {

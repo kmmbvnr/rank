@@ -1,0 +1,82 @@
+rem CSES 1673: High Score
+rem https://cses.fi/problemset/task/1673
+
+use algo
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+NodeCount = stdin .integer
+EdgeCount = stdin .integer
+ValueCount = EdgeCount * 3
+Values = stdin .integer ValueCount array
+Shape = array EdgeCount 3
+Edges = Values Shape reshape
+Result = Edges NodeCount high_score
+if Result .infinite
+  -1 print
+else
+  Result .score print
+end
+
+
+rem Maximize a route with Bellman-Ford.
+fun high_score Edges N
+  Nodes = 1 to N
+  Graph = new graph Nodes .directed
+  Back = new graph Nodes .directed
+  Graph add Edges
+  for Edge in Edges
+    unpack From To # = Edge
+    Back add To From
+  end
+
+  Size = N + 1
+  CanReach = array shape Size pad false
+  CanReach N = true
+  Pending = new queue
+  Pending push N
+
+  for Current in Pending
+    for Previous in Back Current
+      if not CanReach Previous
+        CanReach Previous = true
+        Pending push Previous
+      end
+    end
+  end
+
+  Dist = array shape Size pad -infinity
+  Dist 1 = 0
+  for Pass in 1 to N
+    Updated = false
+    for Edge in Edges
+      unpack From To Score = Edge
+      if Dist From not equal -infinity
+        Candidate = Dist From + Score
+        if Candidate greater Dist To
+          Dist To = Candidate
+          Updated = true
+          Last = Pass equal N
+          Useful = CanReach To
+          if Last and Useful
+            return record
+              .infinite = true
+              .score = 0
+            end
+          end
+        end
+      end
+    end
+    if not Updated
+      break
+    end
+  end
+
+  return record
+    .infinite = false
+    .score = Dist N
+  end
+end

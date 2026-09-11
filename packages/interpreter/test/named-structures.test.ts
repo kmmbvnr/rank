@@ -3,6 +3,15 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('named structures', () => {
+    it('uses real scalar index keys', () => {
+        expect(run(`
+use algo
+Values = new index
+Values 1.5 = "half"
+Values 1.5
+`)).toBe('half');
+    });
+
     it('creates independent instances of all five explicit structure types', () => {
         expect(run(`
 use algo

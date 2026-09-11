@@ -1,0 +1,78 @@
+rem CSES 1195: Flight Discount
+rem https://cses.fi/problemset/task/1195
+
+use algo
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 3
+Values = stdin .integer ValueCount array
+Edges = Values (array M 3) reshape
+Edges N flight_discount print
+
+
+rem Try the coupon on every flight.
+fun flight_discount Edges N
+  Nodes = 1 to N
+  Graph = new graph Nodes .directed
+  Back = new graph Nodes .directed
+  Graph add Edges
+  for Edge in Edges
+    unpack From To Cost = Edge
+    Back add To From Cost
+  end
+
+  FromStart = Graph N 1 distances
+  ToEnd = Back N N distances
+  Best = array infinity
+
+  for Edge in Edges
+    unpack From To Cost = Edge
+    Left = FromStart From
+    Right = ToEnd To
+    Known = Left not equal infinity
+    Known and= Right not equal infinity
+    if Known
+      Candidate = Left + Cost // 2
+      Candidate += Right
+      if Candidate less Best 0
+        Best 0 = Candidate
+      end
+    end
+  end
+  return Best 0
+end
+
+
+rem Dijkstra distances from one start.
+fun distances Graph N Start
+  Size = N + 1
+  Dist = array shape Size pad infinity
+  Dist Start = 0
+  Pending = new heap
+  Item = array Start 0
+  Pending 0 Item enqueue
+
+  for Pending len greater 0
+    Item = Pending pop
+    unpack Current Distance = Item
+    if Distance not equal Dist Current
+      continue
+    end
+    for Edge in Graph edges Current
+      unpack Next Cost = Edge
+      Candidate = Distance + Cost
+      if Candidate less Dist Next
+        Dist Next = Candidate
+        Item = array Next Candidate
+        Pending Candidate Item enqueue
+      end
+    end
+  end
+  return Dist
+end

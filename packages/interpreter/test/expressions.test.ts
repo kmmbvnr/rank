@@ -783,6 +783,10 @@ describe('Rank expressions and sequences', () => {
             '  1 2',
             'end',
         ].join('\n'))).toThrowError('unpack expects a rank-1 array value');
+        expect(run([
+            'unpack A # C = array 2 99 5',
+            'A * C',
+        ].join('\n'))).toBe('10');
     });
 
     it('counts and addresses Unicode text atoms', () => {
