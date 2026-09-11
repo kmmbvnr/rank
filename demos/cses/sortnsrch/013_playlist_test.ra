@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "013_playlist"
+  A = array 1 2 1 3 2 7 4 2
+  A longest_distinct equal 5
+end
+
+test "all songs differ"
+  use "013_playlist"
+  A = array 4 1 9 2
+  A longest_distinct equal 4
+end
+
+test "one song repeats"
+  use "013_playlist"
+  A = array 6 6 6 6
+  A longest_distinct equal 1
+end
+
+test "empty playlist"
+  use "013_playlist"
+  Empty = array shape 0
+  end
+  Empty longest_distinct equal 0
+end

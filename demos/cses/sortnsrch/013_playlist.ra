@@ -1,0 +1,32 @@
+rem CSES 1141: Playlist
+rem https://cses.fi/problemset/task/1141
+
+use io
+use algo
+use numbers
+
+N = stdin .integer
+A = stdin .integer N array
+
+A longest_distinct print
+
+
+rem Find the longest distinct segment.
+fun longest_distinct A
+  Left = 0
+  Best = 0
+
+  for Value i in A
+    if Value in index
+      Prev = index Value
+      Left = Left (Prev + 1) max
+    end
+
+    index Value = i
+
+    Size = i - Left + 1
+    Best = Best Size max
+  end
+
+  return Best
+end
