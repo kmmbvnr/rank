@@ -1,0 +1,230 @@
+diff --git a/benchmarks/tensor-fusion.mjs b/benchmarks/tensor-fusion.mjs
+index 574063e..5543c3c 100644
+--- a/benchmarks/tensor-fusion.mjs
++++ b/benchmarks/tensor-fusion.mjs
+@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
+ const setting = process.argv[3] ?? 'compare';
+ const backend = process.argv[6] ?? 'tensor';
+ const counters = process.env.RANK_BENCH_COUNTERS !== '0';
+-assert(['tensor', 'scalar', 'block', 'loop'].includes(backend));
++assert(['tensor', 'scalar', 'block', 'loop', 'control'].includes(backend));
+ const answers = new Map();
+ const samples = Number(process.argv[4] ?? 3);
+ assert(['tasks', 'suite'].includes(mode));
+@@ -52,6 +52,7 @@ for (let sample=0; sample<samples; sample++) {
+     const output=[];
+     const runtime = new Interpreter(line => output.push(line), {
+       tensorFusion: backend === 'tensor' ? enabled : true,
++      synchronousLoops: backend === 'control' ? enabled : undefined,
+       loopPreparation: backend === 'loop' ? enabled : undefined,
+       blockCompilation: backend === 'block' ? enabled : undefined,
+       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,
+diff --git a/packages/interpreter/src/interpreter.ts b/packages/interpreter/src/interpreter.ts
+index 8879927..6af596d 100644
+--- a/packages/interpreter/src/interpreter.ts
++++ b/packages/interpreter/src/interpreter.ts
+@@ -1,3 +1,4 @@
++import { runConditionalLoop } from './conditional-loop.js';
+ import { compileBlock, type CompiledBlock } from './block-compiler.js';
+ import { compileScalarExpression } from './scalar-compiler.js';
+ import { compileTensorKernel } from './tensor-kernel.js';
+@@ -151,6 +152,7 @@ export interface LoadedModule {
+ 
+ export interface InterpreterOptions {
+     /** Reuse compiled loop bodies and their execution contexts. */
++    readonly synchronousLoops?: boolean;
+     readonly loopPreparation?: boolean;
+     /** Compiled command blocks; false retains statement dispatch. */
+     readonly blockCompilation?: boolean;
+@@ -879,6 +881,29 @@ export class Interpreter {
+                 ? binding.names.slice(1).map(name =>
+                     name === '#' ? undefined : this.compileAssign(name))
+                 : [];
++            if (this.options.synchronousLoops !== false && !binding && (condition || !statement.condition)) {
++                const test = condition ? () => expectBoolean(condition()) : () => true;
++                const control = (error: unknown): 'break' | 'continue' => {
++                    if (error instanceof BreakSignal) return 'break';
++                    if (error instanceof ContinueSignal) return 'continue';
++                    throw error;
++                };
++                return { stream: context => {
++                    let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
++                    return runConditionalLoop(
++                        test,
++                        () => {
++                            if (interpreter.options.loopPreparation !== false) {
++                                return (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, false))();
++                            }
++                            return interpreter.executeStatementStream(statement.statements,
++                                context.assertBooleanExpressions, true, context.insideFinally,
++                                context.insideGenerator, context.tailCallsAllowed);
++                        },
++                        control,
++                    );
++                } };
++            }
+             return { stream: function* (context) {
+                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
+                 let result: RankValue | undefined;
+@@ -2374,6 +2399,7 @@ export class Interpreter {
+         const loaded = this.load(specifier);
+         const child = new Interpreter(this.output, {
+             input: this.options.input,
++            synchronousLoops: this.options.synchronousLoops,
+             loopPreparation: this.options.loopPreparation,
+             blockCompilation: this.options.blockCompilation,
+             onBlockCompiled: this.options.onBlockCompiled,
+@@ -2453,6 +2479,7 @@ export class Interpreter {
+         const output: string[] = [];
+         const test = new Interpreter(line => output.push(line), {
+             input: this.options.input,
++            synchronousLoops: this.options.synchronousLoops,
+             loopPreparation: this.options.loopPreparation,
+             blockCompilation: this.options.blockCompilation,
+             onBlockCompiled: this.options.onBlockCompiled,
+--- /dev/null
++++ b/packages/interpreter/src/conditional-loop.ts
+@@ -0,0 +1,40 @@
++import { completed, type Evaluation, type Execution } from './execution.js';
++import type { RankValue } from './value.js';
++
++type Value = RankValue | undefined;
++type Control = (error: unknown) => 'break' | 'continue';
++
++/** Completed iterations need neither a generator nor per-loop state closures. */
++export function runConditionalLoop(
++    test: () => boolean, body: () => Evaluation<Value>, control: Control,
++): Evaluation<Value> {
++    let result: Value;
++    while (test()) {
++        try {
++            const task = body();
++            if ('done' in task) result = task.value;
++            else return continueLoop(test, body, control, result, task);
++        } catch (error) {
++            if (control(error) === 'break') break;
++        }
++    }
++    return completed(result);
++}
++
++/** One continuation handles every later suspension, with bounded stack depth. */
++function* continueLoop(
++    test: () => boolean, body: () => Evaluation<Value>, control: Control,
++    result: Value, first: Execution<Value>,
++): Execution<Value> {
++    try { result = (yield { task: first }) as Value; }
++    catch (error) { if (control(error) === 'break') return result; }
++    while (test()) {
++        try {
++            const task = body();
++            result = 'done' in task ? task.value : (yield { task }) as Value;
++        } catch (error) {
++            if (control(error) === 'break') break;
++        }
++    }
++    return result;
++}
+--- /dev/null
++++ b/packages/interpreter/test/conditional-loop.test.ts
+@@ -0,0 +1,100 @@
++import { describe, expect, it } from 'vitest';
++import { runConditionalLoop } from '../src/conditional-loop.js';
++import { completed, ExecutionStack, type Execution } from '../src/execution.js';
++import { Interpreter, RankError, formatValue, type RankValue } from '../src/index.js';
++
++describe('synchronous conditional loops', () => {
++    it('finishes completed bodies without allocating a suspended task', () => {
++        let index = 0;
++        const result = runConditionalLoop(() => index < 10,
++            () => completed(BigInt(++index)), error => { throw error; });
++        expect(result).toEqual({ done: true, value: 10n });
++    });
++
++    it('keeps continuation depth bounded across repeated suspensions', () => {
++        let index = 0, depth = 0;
++        const loop = runConditionalLoop(() => index < 20000, () => (function* (): Execution<RankValue | undefined> {
++            yield { value: BigInt(++index) };
++            return BigInt(index);
++        })(), error => { throw error; });
++        const stack = new ExecutionStack(loop);
++        let next = stack.next();
++        while (!next.done) {
++            depth = Math.max(depth, (stack as unknown as { stack: unknown[] }).stack.length);
++            next = stack.next();
++        }
++        expect(next.value).toBe(20000n);
++        expect(depth).toBeLessThanOrEqual(2);
++    });
++
++    it('handles break and continue after a suspended body without replay', () => {
++        let index = 0;
++        const loop = runConditionalLoop(() => index < 10, () => (function* (): Execution<RankValue | undefined> {
++            const value = ++index;
++            yield { value: BigInt(value) };
++            if (value === 2) throw 'continue';
++            if (value === 5) throw 'break';
++            return BigInt(value);
++        })(), error => {
++            if (error === 'break' || error === 'continue') return error;
++            throw error;
++        });
++        const stack = new ExecutionStack(loop);
++        const seen: RankValue[] = [];
++        let next = stack.next();
++        while (!next.done) { seen.push(next.value); next = stack.next(); }
++        expect(seen).toEqual([1n, 2n, 3n, 4n, 5n]);
++        expect(next.value).toBe(4n);
++    });
++
++    it.each([
++        `use io
++fun next X
++  Y = X + 1
++  Y print
++  return Y
++end
++I = 0
++for I less 3
++  I = I next
++  X = I + 1
++end
++I
++`,
++        `use io
++fun values X
++  try
++    for true
++      yield X
++      X += 1
++    end
++  finally
++    "closed" print
++  end
++end
++for V in 10 values
++  V print
++  break
++end
++true
++`,
++        `I = 0
++for I less 2
++  I += 1
++  Value = 1 / (I - 1)
++end
++`,
++    ])('matches reference loop output and diagnostics', source => {
++        const run = (synchronousLoops: boolean) => {
++            const output: string[] = [];
++            const runtime = new Interpreter(line => output.push(line), { synchronousLoops });
++            try {
++                const value = runtime.execute(source);
++                return { output, value: value === undefined ? undefined : formatValue(value) };
++            } catch (error) {
++                return { output, error: error instanceof RankError ? error.format() : String(error) };
++            } finally { runtime.dispose(); }
++        };
++        expect(run(true)).toEqual(run(false));
++    });
++});

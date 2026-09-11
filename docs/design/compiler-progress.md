@@ -242,3 +242,46 @@ comparison took 34.438 s off and 34.824 s on. A single pair is not
 a stable estimate of whole-suite performance.
 
 [Focused report](../../benchmarks/baselines/2026-09-11-loop-preparation-focused.json) · [Full-suite check](../../benchmarks/baselines/2026-09-11-loop-preparation-suite.json)
+
+## Conditional-loop fast path: experiment not enabled
+
+A prototype ran completed conditional-loop iterations in an ordinary function,
+creating a continuation only on the first suspended body. One continuation handled
+all later suspensions, avoiding unbounded stack growth. A second version removed
+per-loop state closures and hoisted condition/control callbacks.
+
+The prototype passed 44 language + 618 interpreter tests, including six added
+cases for synchronous completion, 20000 suspensions with bounded execution-stack
+depth, break/continue after suspension, cleanup and error equivalence.
+
+Three alternating focused comparisons of the revised prototype, counters disabled:
+
+| Task | Existing loop ms | Prototype ms |
+| --- | ---: | ---: |
+| Sum of Divisors | 728.246 | 729.698 |
+| Christmas Party | 217.727 | 219.685 |
+| Collatz | 7560.622 | 7405.345 |
+
+There is no useful improvement in the arithmetic-loop target. Collatz's median
+is about 2% lower, but sample ranges overlap and that is insufficient evidence to
+justify another default execution path. Christmas Party is predominantly a counted
+loop and serves as a control. The prototype is removed from the active runtime;
+no new interpreter option remains.
+
+The existing generator loop already executes completed bodies directly. Merely
+changing its outer control wrapper leaves most work intact. The next substantial
+step is lowering loop-body arithmetic and slot reads/writes together, with guarded
+entry and correct state restoration on errors, rather than adding more wrappers.
+
+The experiment is archived as a patch against `b3d1c26` for independent reproduction:
+
+```sh
+git worktree add --detach /tmp/rank-loop-experiment b3d1c26
+# In that checkout, with dependencies installed:
+git apply /path/to/conditional-loop.patch
+npm test
+RANK_BENCH_COUNTERS=0 node benchmarks/tensor-fusion.mjs \
+  suite compare 3 '(014_collatz|006_sumdivisors|014_christmasparty)_test' control
+```
+
+[Prototype patch](../../benchmarks/experiments/conditional-loop.patch) · [Raw measurements](../../benchmarks/baselines/2026-09-11-conditional-loop-experiment.json)
