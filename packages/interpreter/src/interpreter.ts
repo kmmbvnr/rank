@@ -833,9 +833,9 @@ export class Interpreter {
             } };
         }
         if (isArrayAssignmentStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                const target = interpreter.resolveVariable(statement.name);
-                const selectors = yield* resume(mapExecution(statement.indices, index => interpreter.evaluateAddressItem(index)));
+            const general = function* (
+                target: RankValue, selectors: RankValue[], evaluated?: RankValue,
+            ): Execution<RankValue | undefined> {
                 if (isRankIndex(target)) {
                     const key = indexKey(selectors);
                     const value = yield* resume(interpreter.evaluateTask(statement.value));
@@ -897,7 +897,10 @@ export class Interpreter {
                     throw new RankError('cannot assign to a lazy array');
                 }
                 const selection = tensorSelection(target, selectors);
-                const result = (yield* resume(interpreter.evaluateTask(statement.value)));
+                // The compiled single-cell form hands its value over when the
+                // shape rules have to decide what happens to it.
+                const result = evaluated
+                    ?? (yield* resume(interpreter.evaluateTask(statement.value)));
                 const operator = statement.operator === '='
                     ? undefined : assignmentOperator(statement.operator);
                 let operands: RankValue[];
@@ -926,6 +929,45 @@ export class Interpreter {
                     target.items[selection.offsetAt(index)] = replacements[index];
                 }
                 return result;
+            };
+            const address = statement.indices.length === 1 ? statement.indices[0] : undefined;
+            const directIndex = address && !address.all && !address.sign && address.value
+                ? this.compileDirectExpression(address.value) : undefined;
+            const directValue = this.compileDirectExpression(statement.value);
+            if (directIndex && directValue) {
+                // One integer index into a stored vector is the shape dynamic
+                // programming writes in its inner loop. It needs no suspendable
+                // task, no selector list and no tensor selection; anything that
+                // does falls through to the general form with the selector it
+                // already evaluated.
+                const operator = statement.operator === '='
+                    ? undefined : assignmentOperator(statement.operator);
+                return { stream: (): Evaluation<RankValue | undefined> => {
+                    const target = this.resolveVariable(statement.name);
+                    const selector = directIndex();
+                    if (typeof selector === 'bigint' && typeof target === 'object'
+                        && target.kind === 'array' && target.shape.length === 1
+                        && target.itemAt === undefined) {
+                        const offset = Number(selector);
+                        if (offset >= 0 && offset < target.shape[0]) {
+                            const value = directValue();
+                            if (isRankArray(value)) return general(target, [selector], value);
+                            target.items[offset] = operator === undefined ? value
+                                : this.evaluateBinary(operator, target.items[offset], value);
+                            return completed(value);
+                        }
+                    }
+                    return general(target, [selector]);
+                } };
+            }
+            return { stream: (): Evaluation<RankValue | undefined> => {
+                const target = this.resolveVariable(statement.name);
+                // Selectors that all complete hand straight over to the general
+                // form, so the usual case adds no second generator to drive.
+                return flatMapResult(
+                    mapExecution(statement.indices, index => this.evaluateAddressItem(index)),
+                    selectors => general(target, selectors),
+                );
             } };
         }
         if (isAssignmentStatement(statement)) {
@@ -2363,10 +2405,21 @@ export class Interpreter {
             const frame = this.localFrame?.find(name) ?? this.localFrame;
             const scope = frame ?? this.variables;
             const typeScope = frame?.types ?? this.variableTypes;
-            const previous = scope.get(name);
-            const expected = typeScope.get(name)
-                ?? (previous === undefined ? undefined : new Set([typeName(previous)]));
             const received = typeName(value);
+            // A variable that already carries a recorded type needs neither its
+            // previous value nor a rewrite of the type it keeps.
+            const recorded = typeScope.get(name);
+            if (recorded !== undefined) {
+                if (!recorded.has(received)) {
+                    throw new RankError(
+                        `${name} has type ${formatTypes(recorded)} and cannot receive ${received}`,
+                    );
+                }
+                scope.set(name, value);
+                return;
+            }
+            const previous = scope.get(name);
+            const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
             if (expected !== undefined && !expected.has(received)) {
                 throw new RankError(
                     `${name} has type ${formatTypes(expected)} and cannot receive ${received}`,
@@ -2407,7 +2460,7 @@ export class Interpreter {
     }
 
     private findVariable(name: string): RankValue | undefined {
-        return this.localFrame?.find(name)?.get(name) ?? this.variables.get(name);
+        return this.localFrame?.lookup(name) ?? this.variables.get(name);
     }
 
     private apply(
@@ -2799,6 +2852,37 @@ export class Interpreter {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        // Integer arithmetic and integer comparison are what programs spend
+        // their time on, and every one of them used to walk twenty operator
+        // tests, a numeric coercion and a three-way ordering helper to reach
+        // an answer the operands already determine.
+        if (typeof left === 'bigint' && typeof right === 'bigint') {
+            switch (operator) {
+                case '+': return left + right;
+                case '-': return left - right;
+                case '*': return left * right;
+                case 'less': return left < right;
+                case 'greater': return left > right;
+                case 'atleast': return left >= right;
+                case 'atmost': return left <= right;
+                case 'equal': return left === right;
+                case 'notequal': return left !== right;
+                case 'min': this.requireModule('numbers', operator); return left < right ? left : right;
+                case 'max': this.requireModule('numbers', operator); return left > right ? left : right;
+                case '%': {
+                    if (right === 0n) throw new RankError('division by zero');
+                    const remainder = left % right;
+                    return remainder !== 0n && (remainder < 0n) !== (right < 0n)
+                        ? remainder + right
+                        : remainder;
+                }
+                case '//': {
+                    if (right === 0n) throw new RankError('division by zero');
+                    return floorDivide(left, right);
+                }
+                default: break;
+            }
+        }
         if (operator === 'min' || operator === 'max') {
             this.requireModule('numbers', operator);
         }
@@ -3467,6 +3551,24 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+    // Reading one cell out of an array is the most common application in the
+    // language. The branch that serves it sits seventeen type guards down, and
+    // every guard reloads `kind` from a receiver whose shape varies, so the
+    // whole chain runs uncached. Answer that one case up front.
+    if (values.length === 2 && typeof values[1] === 'bigint') {
+        const receiver = values[0];
+        if (typeof receiver === 'object' && receiver.kind === 'array') {
+            const size = receiver.shape.length === 1 ? receiver.shape[0] : -1;
+            if (size >= 0) {
+                if (values[1] < 0n) throw new RankError('array index must be nonnegative on axis 0');
+                const position = Number(values[1]);
+                if (position >= size) {
+                    throw new MissingValueError(`array index out of bounds on axis 0: ${values[1]}`);
+                }
+                return arrayItem(receiver, position);
+            }
+        }
+    }
     if (values.length === 2 && isRankErrorValue(values[0]) && isRankLabel(values[1])) {
         const [error, field] = values;
         if (field.name === 'Kind') return error.errorKind;
@@ -3761,23 +3863,27 @@ function tensorSelection(source: RankArray, selectors: readonly RankValue[]): Te
 }
 
 function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
-    if (indices.length > source.shape.length) {
-        throw new RankError(`array expects at most ${source.shape.length} indices`);
+    const shape = source.shape;
+    if (indices.length > shape.length) {
+        throw new RankError(`array expects at most ${shape.length} indices`);
     }
+    // Accumulating the offset one axis at a time keeps the walk free of the
+    // per-axis stride slice, which allocated on every element read.
     let offset = 0;
     for (let axis = 0; axis < indices.length; axis += 1) {
         const index = indices[axis];
-        const size = source.shape[axis];
+        const size = shape[axis];
         if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
-        if (index >= BigInt(size)) {
+        const position = Number(index);
+        if (position >= size) {
             throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
         }
-        const stride = source.shape.slice(axis + 1).reduce((product, value) => product * value, 1);
-        offset += Number(index) * stride;
+        offset = offset * size + position;
     }
-    if (indices.length === source.shape.length) return arrayItem(source, offset);
-    const shape = source.shape.slice(indices.length);
-    return lazyArray(shape, index => arrayItem(source, offset + index));
+    for (let axis = indices.length; axis < shape.length; axis += 1) offset *= shape[axis];
+    if (indices.length === shape.length) return arrayItem(source, offset);
+    const rest = shape.slice(indices.length);
+    return lazyArray(rest, index => arrayItem(source, offset + index));
 }
 
 function sliceValue(

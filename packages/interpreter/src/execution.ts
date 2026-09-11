@@ -26,15 +26,18 @@ export function completed<T>(value: T): Completed<T> {
 
 export function mapResult<T, R>(task: Evaluation<T>, operation: (value: T) => R): Evaluation<R> {
     if ('done' in task) return completed(operation(task.value));
+    // The task is known to be suspended here, so the request goes to the driver
+    // directly rather than through another generator for it to delegate into.
     return (function* (): Execution<R> {
-        return operation(yield* resume(task));
+        return operation((yield { task }) as T);
     })();
 }
 
 export function flatMapResult<T, R>(task: Evaluation<T>, operation: (value: T) => Evaluation<R>): Evaluation<R> {
     if ('done' in task) return operation(task.value);
     return (function* (): Execution<R> {
-        return yield* resume(operation(yield* resume(task)));
+        const result = operation((yield { task }) as T);
+        return 'done' in result ? result.value : (yield { task: result }) as R;
     })();
 }
 
@@ -47,9 +50,11 @@ export function mapPair<T, U, R>(
 }
 
 function* resumePair<T, U, R>(
-    left: Evaluation<T>, right: () => Evaluation<U>, operation: (left: T, right: U) => R,
+    left: Execution<T>, right: () => Evaluation<U>, operation: (left: T, right: U) => R,
 ): Execution<R> {
-    return operation(yield* resume(left), yield* resume(right()));
+    const first = (yield { task: left }) as T;
+    const task = right();
+    return operation(first, 'done' in task ? task.value : (yield { task }) as U);
 }
 
 export function* resume<T>(task: Evaluation<T>): Execution<T> {
@@ -86,9 +91,10 @@ function* resumeMapExecution<T, R>(
     operation: (value: T) => Evaluation<R>,
     index: number,
 ): Execution<R[]> {
-    results.push(yield* resume(pending));
+    results.push((yield { task: pending }) as R);
     for (index++; index < values.length; index++) {
-        results.push(yield* resume(operation(values[index])));
+        const task = operation(values[index]);
+        results.push('done' in task ? task.value : (yield { task }) as R);
     }
     return results;
 }
@@ -131,8 +137,15 @@ export class ExecutionStack<T> implements Generator<RankValue, T, unknown> {
             const frame = this.stack[this.stack.length - 1];
             let result: IteratorResult<Request, unknown>;
             try {
-                if (method !== 'next') frame.returning = false;
-                result = frame.task[method](value);
+                // Naming the three methods keeps the resume off a computed
+                // property lookup, which every suspended task pays on re-entry.
+                if (method === 'next') {
+                    result = frame.task.next(value);
+                } else {
+                    frame.returning = false;
+                    result = method === 'throw'
+                        ? frame.task.throw(value) : frame.task.return(value);
+                }
             } catch (error) {
                 this.stack.pop();
                 method = 'throw';
@@ -145,7 +158,8 @@ export class ExecutionStack<T> implements Generator<RankValue, T, unknown> {
             if (result.done) {
                 this.stack.pop();
                 value = result.value;
-                method = this.stack.at(-1)?.returning ? 'return' : 'next';
+                const caller = this.stack[this.stack.length - 1];
+                method = caller !== undefined && caller.returning ? 'return' : 'next';
             } else if ('task' in result.value) {
                 this.stack.push({ task: result.value.task, returning: false });
                 method = 'next';

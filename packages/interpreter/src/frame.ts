@@ -56,6 +56,16 @@ export class LocalFrame {
         return true;
     }
 
+    // Reading a variable only wants the value, so the walk keeps it rather than
+    // handing back a frame the caller has to look the name up in a second time.
+    lookup(name: string): RankValue | undefined {
+        for (let frame: LocalFrame | undefined = this; frame; frame = frame.parent) {
+            const value = frame.get(name);
+            if (value !== undefined) return value;
+        }
+        return undefined;
+    }
+
     find(name: string): LocalFrame | undefined {
         for (let frame: LocalFrame | undefined = this; frame; frame = frame.parent) {
             if (frame.get(name) !== undefined) return frame;
