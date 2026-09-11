@@ -6,6 +6,7 @@ import { LocalFrame } from './frame.js';
 import { addToCollection, expectAddCollection, newStructure } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
+import { numericKernel } from './numeric-kernels.js';
 import {
     isAddStatement,
     isAllAxisExpression,
@@ -61,7 +62,7 @@ import type { RuntimeModule } from './modules/types.js';
 import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
-import { roundValue } from './modules/numbers.js';
+import { roundValue, sumIndexed } from './modules/numbers.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
 import {
@@ -2359,10 +2360,9 @@ export class Interpreter {
             const cellSize = arraySize(cellShape);
             return lazyArray(frameShape, frameIndex => {
                 const start = frameIndex * cellSize;
-                const cell = cellRank === 0
-                    ? arrayItem(value, start)
-                    : lazyArray(cellShape, index => arrayItem(value, start + index));
-                return this.reduceCell(operator, cell);
+                return cellRank === 0
+                    ? this.reduceCell(operator, arrayItem(value, start))
+                    : this.reduceArrayCell(operator, value, start, cellSize);
             });
         }
         if (cellRank > valueRank(value)) {
@@ -2379,11 +2379,23 @@ export class Interpreter {
             throw new RankError(`${operator} scan requires a bounded sequence`);
         }
         const result: RankValue[] = [];
+        const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
+        if (isRankArray(value)) {
+            const size = arraySize(value.shape);
+            if (size === 0) return array(result);
+            let accumulated = arrayItem(value, 0);
+            result.push(accumulated);
+            for (let index = 1; index < size; index += 1) {
+                accumulated = operation(accumulated, arrayItem(value, index));
+                result.push(accumulated);
+            }
+            return array(result);
+        }
         let accumulated: RankValue | undefined;
         for (const item of reductionValues(value, operator)) {
             accumulated = accumulated === undefined
                 ? item
-                : this.evaluateBinary(operator, accumulated, item);
+                : operation(accumulated, item);
             result.push(accumulated);
         }
         return { kind: 'array', items: result, shape: [result.length] };
@@ -2410,17 +2422,31 @@ export class Interpreter {
         const reducer = this.resolve(operation);
         if (!isNativeFunction(reducer)) throw new RankError(`${operation} is not an operation`);
 
+        const strides = value.shape.map(() => 1);
+        for (let axis = strides.length - 2; axis >= 0; axis -= 1) {
+            strides[axis] = strides[axis + 1] * value.shape[axis + 1];
+        }
+        const reducedSize = arraySize(reducedShape);
+        const offsetAt = (index: number, axes: readonly number[]): number => {
+            let offset = 0;
+            for (let current = axes.length - 1; current >= 0; current -= 1) {
+                const axis = axes[current];
+                offset += (index % value.shape[axis]) * strides[axis];
+                index = Math.floor(index / value.shape[axis]);
+            }
+            return offset;
+        };
+        // Lazy cells must still be fully read before the reducer validates them.
+        const directSum = operation === 'sum' && value.itemAt === undefined
+            && reducer === this.standardFunctions.get(standardModules.numbers.sum);
+
         const reduceAt = (frameIndex: number): RankValue => {
-            const sourceCoordinates = Array(value.shape.length).fill(0) as number[];
-            coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
-                sourceCoordinates[frameAxes[index]] = coordinate;
-            });
+            const start = offsetAt(frameIndex, frameAxes);
+            const itemAt = (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
+            if (directSum) return sumIndexed(reducedSize, itemAt);
             const items: RankValue[] = [];
-            for (const reducedCoordinates of coordinates(reducedShape)) {
-                reducedCoordinates.forEach((coordinate, index) => {
-                    sourceCoordinates[reducedAxes[index]] = coordinate;
-                });
-                items.push(arrayItem(value, arrayOffset(value.shape, sourceCoordinates)));
+            for (let index = 0; index < reducedSize; index += 1) {
+                items.push(itemAt(index));
             }
             return reducer.call([{ kind: 'array', items, shape: reducedShape }]);
         };
@@ -2429,6 +2455,7 @@ export class Interpreter {
     }
 
     private reduceCell(operator: string, value: RankValue): RankValue {
+        if (isRankArray(value)) return this.reduceArrayCell(operator, value, 0, arraySize(value.shape));
         if (isRankSequence(value)) {
             const planned = value.plan.reduce?.(operator);
             if (planned !== undefined) return planned;
@@ -2437,8 +2464,20 @@ export class Interpreter {
         const first = values.next();
         if (first.done) return reductionIdentity(operator);
         let result = first.value;
+        const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
         for (let next = values.next(); !next.done; next = values.next()) {
-            result = this.evaluateBinary(operator, result, next.value);
+            result = operation(result, next.value);
+        }
+        return result;
+    }
+
+    private reduceArrayCell(operator: string, value: RankArray, start: number, size: number): RankValue {
+        if (size === 0) return reductionIdentity(operator);
+        const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
+        let result = arrayItem(value, start);
+        const end = start + size;
+        for (let index = start + 1; index < end; index += 1) {
+            result = operation(result, arrayItem(value, index));
         }
         return result;
     }
@@ -2523,7 +2562,8 @@ export class Interpreter {
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (isRankArray(left) || isRankArray(right) || isRankQueue(left) || isRankQueue(right)) {
-            return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
+            return mapBinary(left, right, operator,
+                numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b)));
         }
         if (operator === 'equal' || operator === 'notequal') {
             const equal = equalValues(left, right);

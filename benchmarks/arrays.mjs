@@ -76,22 +76,28 @@ function force(value) {
 }
 
 try {
-  for (const kind of ['integer', 'real']) {
-    const number = value => kind === 'integer' ? BigInt(value) : value;
+  for (const kind of ['integer', 'real', 'mixed']) {
+    const number = value => kind === 'real' ? value : BigInt(value);
+    const add = (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a + b : Number(a) + Number(b);
+    const multiply = (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a * b : Number(a) * Number(b);
     for (const size of sizes) {
       // Exact quarter fractions keep real correctness checks independent of tolerance.
-      const a = Array.from({ length: size }, (_, i) => number((i * 37) % 101 - 50) + (kind === 'real' ? 0.25 : 0n));
-      const b = Array.from({ length: size }, (_, i) => number((i * 13) % 97 - 48));
+      const a = Array.from({ length: size }, (_, i) => kind === 'mixed' && i % 2 !== 0
+        ? (i * 37) % 101 - 49.75
+        : number((i * 37) % 101 - 50) + (kind === 'real' ? 0.25 : 0n));
+      const b = Array.from({ length: size }, (_, i) => kind === 'mixed' && i % 2 === 0
+        ? (i * 13) % 97 - 48
+        : number((i * 13) % 97 - 48));
       const vector = items => ({ kind: 'array', shape: [items.length], items });
-      const total = items => items.reduce((sum, item) => sum + item, number(0));
-      const mapped = a.map((item, i) => item * number(2) + b[i]);
+      const total = items => items.reduce(add, number(0));
+      const mapped = a.map((item, i) => add(multiply(item, number(2)), b[i]));
       let accumulated = number(0);
-      const prefix = a.map(item => accumulated += item);
+      const prefix = a.map(item => accumulated = add(accumulated, item));
       const width = 10;
       const rowSums = Array.from({ length: size / width }, (_, row) => total(a.slice(row * width, (row + 1) * width)));
       const cases = [
         ['total', vector(a), total(a)],
-        ['addition', vector(a), vector(a.map((item, i) => item + b[i]))],
+        ['addition', vector(a), vector(a.map((item, i) => add(item, b[i])))],
         ['chain', vector(a), vector(mapped)],
         ['chainreduce', vector(a), total(mapped)],
         ['prefix', vector(a), vector(prefix)],
