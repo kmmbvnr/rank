@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "012_triangledivisors"
+  run
+
+  Answer equal 76576500
+end
+
+test "more than five divisors"
+  use "012_triangledivisors"
+
+  5 first_triangle equal 28
+end

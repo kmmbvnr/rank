@@ -1,0 +1,64 @@
+rem Highly Divisible Triangular Number
+rem https://projecteuler.net/problem=12
+rem Find the first triangular number with
+rem more than the requested divisors
+
+use numbers
+use sequences
+use io
+use cli
+
+option Minimum integer = 500
+
+Answer = Minimum first_triangle
+Answer print
+
+
+rem Find the first triangular number whose
+rem divisor count is greater than Minimum.
+fun first_triangle Minimum
+  N = 1
+  for true
+    if N even
+      Left = N // 2
+      Right = N + 1
+    else
+      Left = N
+      Right = (N + 1) // 2
+    end
+
+    Divisors = Left divisor_count
+    Divisors *= Right divisor_count
+    if Divisors greater Minimum
+      return N * (N + 1) // 2
+    end
+    N += 1
+  end
+end
+
+
+rem Convert prime exponents into the number
+rem of positive divisors.
+fun divisor_count N
+  if N equal 1
+    return 1
+  end
+
+  Count = 1
+  Previous = 0
+  Exponent = 0
+
+  for Factor in N factors
+    if Factor equal Previous
+      Exponent += 1
+    else
+      if Exponent greater 0
+        Count *= Exponent + 1
+      end
+      Previous = Factor
+      Exponent = 1
+    end
+  end
+
+  return Count * (Exponent + 1)
+end

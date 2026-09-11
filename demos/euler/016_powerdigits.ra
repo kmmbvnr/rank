@@ -1,0 +1,24 @@
+rem Power Digit Sum
+rem https://projecteuler.net/problem=16
+rem Sum the decimal digits of 2 ** 1000
+
+use text
+use sequences
+use numbers
+use io
+use cli
+
+option Base integer = 2
+option Exponent integer = 1000
+
+Answer = Base Exponent power_digit_sum
+Answer print
+
+
+rem Raise an arbitrary-precision integer and
+rem reduce its decimal digits.
+fun power_digit_sum Base Exponent
+  Digits = (Base ** Exponent) text
+  Values = Digits integer rank 0
+  return Values sum
+end

@@ -1,0 +1,15 @@
+use testing
+
+test "default input"
+  use "013_largesum"
+  run
+
+  Answer equal 5537376230
+end
+
+test "small exact sum"
+  use "013_largesum"
+  Numbers = array 12345 98765
+
+  Numbers 3 leading_sum equal 111
+end

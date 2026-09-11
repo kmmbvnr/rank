@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "015_latticepaths"
+  run
+
+  Answer equal 137846528820
+end
+
+test "two by two grid"
+  use "015_latticepaths"
+
+  2 lattice_paths equal 6
+end

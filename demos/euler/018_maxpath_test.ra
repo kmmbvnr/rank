@@ -1,0 +1,15 @@
+use testing
+
+test "default input"
+  use "018_maxpath"
+  run
+
+  Answer equal 1074
+end
+
+test "official small triangle"
+  use "018_maxpath"
+  Triangle = array 3 7 4 2 4 6 8 5 9 3
+
+  Triangle 4 maximum_path equal 23
+end

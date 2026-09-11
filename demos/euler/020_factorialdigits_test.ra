@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "020_factorialdigits"
+  run
+
+  Answer equal 648
+end
+
+test "ten factorial"
+  use "020_factorialdigits"
+
+  10 factorial_digit_sum equal 27
+end
+
+test "zero factorial"
+  use "020_factorialdigits"
+
+  0 factorial_digit_sum equal 1
+end

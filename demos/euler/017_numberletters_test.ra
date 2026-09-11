@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "017_numberletters"
+  run
+
+  Answer equal 21124
+end
+
+test "one through five"
+  use "017_numberletters"
+
+  5 number_letter_total equal 19
+end
+
+test "British and"
+  use "017_numberletters"
+
+  Through342 = 342 number_letter_total
+  Through341 = 341 number_letter_total
+  Through115 = 115 number_letter_total
+  Through114 = 114 number_letter_total
+
+  Through342 - Through341 equal 23
+  Through115 - Through114 equal 20
+end
