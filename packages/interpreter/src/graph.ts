@@ -15,6 +15,7 @@ type GraphDirection = 'directed' | 'undirected';
 export interface GraphEdge {
     readonly target: RankValue;
     readonly weight: bigint | number;
+    readonly id: number;
 }
 
 export function expectGraph(value: RankValue): GraphValue {
@@ -27,6 +28,7 @@ export class GraphValue implements RankGraph {
     readonly kind = 'graph' as const;
     readonly vertices = new Map<string, RankValue>();
     readonly adjacency = new Map<string, GraphEdge[]>();
+    private nextEdgeId = 0;
 
     constructor(
         readonly directed: boolean,
@@ -44,6 +46,7 @@ export class GraphValue implements RankGraph {
 
     addEdge(left: RankValue, right: RankValue, weight: RankValue = 1n): void {
         const numericWeight = graphWeight(weight);
+        const id = this.nextEdgeId++;
         if (this.open) {
             this.addVertex(left);
             this.addVertex(right);
@@ -51,9 +54,9 @@ export class GraphValue implements RankGraph {
             this.requireVertex(left);
             this.requireVertex(right);
         }
-        this.adjacency.get(graphKey(left))!.push({ target: right, weight: numericWeight });
+        this.adjacency.get(graphKey(left))!.push({ target: right, weight: numericWeight, id });
         if (!this.directed && graphKey(left) !== graphKey(right)) {
-            this.adjacency.get(graphKey(right))!.push({ target: left, weight: numericWeight });
+            this.adjacency.get(graphKey(right))!.push({ target: left, weight: numericWeight, id });
         }
     }
 

@@ -2842,6 +2842,12 @@ the same `.count`, `.component`, and `.roots` fields as `components`.
 All indices use the graph's scalar vertices as keys. Missing distances and
 parents remain missing values, so existing `pad` handling applies.
 
+`Graph cycle` returns one cycle from either a directed or undirected graph as a
+rank-1 array. The first vertex is repeated at the end, so each adjacent pair is
+an edge in traversal order. An acyclic graph returns an empty array. Search is
+iterative; self-loops and cycles formed by parallel undirected edges are
+preserved.
+
 `Graph Start bellmanford` accepts negative weights. Its `.distance` and
 `.parent` indices cover vertices reachable from `Start`; `.negative` is a set
 of every reachable vertex whose shortest distance is unbounded below because
@@ -4455,7 +4461,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `floyd`, `topological`, `scc`, `mst`, and `maxflow` algorithms. Their inputs and result records are specified in
+`bellmanford`, `floyd`, `cycle`, `topological`, `scc`, `mst`, and `maxflow` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.

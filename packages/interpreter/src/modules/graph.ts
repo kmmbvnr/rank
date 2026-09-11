@@ -58,7 +58,53 @@ export const graphModule: RuntimeModule = {
         minimumSpanningTreeRecord(expectGraph(values[0]))),
     maxflow: () => native('maxflow', 3, values =>
         maximumFlowRecord(expectGraph(values[0]), values[1], values[2])),
+    cycle: () => native('cycle', 1, values =>
+        graphCycle(expectGraph(values[0]))),
 };
+
+function graphCycle(graph: GraphValue): RankArray {
+    const state = new Map<string, 1 | 2>();
+    const parent = new Map<string, string>();
+    const parentEdge = new Map<string, number>();
+    for (const root of graph.vertices.keys()) {
+        if (state.has(root)) continue;
+        state.set(root, 1);
+        const stack: Array<{ key: string; next: number }> = [{ key: root, next: 0 }];
+        while (stack.length > 0) {
+            const frame = stack[stack.length - 1];
+            const edges = graph.adjacency.get(frame.key) ?? [];
+            if (frame.next >= edges.length) {
+                state.set(frame.key, 2);
+                stack.pop();
+                continue;
+            }
+            const edge = edges[frame.next++];
+            if (!graph.directed && parentEdge.get(frame.key) === edge.id) continue;
+            const next = setValueKey(edge.target);
+            if (!state.has(next)) {
+                state.set(next, 1);
+                parent.set(next, frame.key);
+                parentEdge.set(next, edge.id);
+                stack.push({ key: next, next: 0 });
+                continue;
+            }
+            if (state.get(next) !== 1) continue;
+            const keys = [next];
+            let current = frame.key;
+            while (current !== next) {
+                keys.push(current);
+                const previous = parent.get(current);
+                if (previous === undefined) break;
+                current = previous;
+            }
+            if (current !== next) continue;
+            keys.push(next);
+            keys.reverse();
+            return array(keys.map(key => graph.vertices.get(key)!));
+        }
+    }
+    return array([]);
+}
 
 interface ResidualEdge {
     readonly to: number;

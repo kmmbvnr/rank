@@ -921,7 +921,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `floyd`, `topological`, `scc`, `mst`, and `maxflow` algorithms. Their inputs and result records are specified in
+`bellmanford`, `floyd`, `cycle`, `topological`, `scc`, `mst`, and `maxflow` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.

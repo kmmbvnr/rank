@@ -171,6 +171,28 @@ array (Sorted .possible) (Sorted .order) (Blocked .possible)
 `)).toBe('true 1 2 3 4 false');
     });
 
+    it('restores directed and undirected cycles', () => {
+        expect(run(`${prelude}use ranges
+Directed = new graph (1 to 4) .directed
+Directed add 1 2
+Directed add 2 3
+Directed add 3 1
+Undirected = new graph (1 to 3) .undirected
+Undirected add 1 2
+Undirected add 1 2
+array (Directed cycle) (Undirected cycle)
+`)).toBe('1 2 3 1 1 2 1');
+    });
+
+    it('returns an empty array for an acyclic graph', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 4) .directed
+Graph add 1 2
+Graph add 2 3
+(Graph cycle) shape
+`)).toBe('0');
+    });
+
     it('finds strongly connected components', () => {
         expect(run(`${prelude}use ranges
 Graph = new graph (1 to 6) .directed
