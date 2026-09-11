@@ -1,0 +1,37 @@
+rem Deep-ML 34: One-Hot Encoding
+rem https://www.deep-ml.com/problems/34
+
+use numbers
+use sequences
+
+rem Encode labels with a chosen width.
+fun to_categorical X Columns
+  if Columns less 0
+    .DomainError raise
+  end
+
+  Rows = X len
+  Out = array shape Rows Columns pad 0
+
+  for Label Row in X
+    if Label less 0
+      .DomainError raise
+    end
+    if Label at least Columns
+      .DomainError raise
+    end
+    Out Row Label = 1
+  end
+
+  return Out
+end
+
+rem Infer width from the largest label.
+fun categorical X
+  if X len equal 0
+    .EmptyInput raise
+  end
+
+  Columns = X max + 1
+  return X Columns to_categorical
+end

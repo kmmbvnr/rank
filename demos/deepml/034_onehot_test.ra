@@ -1,0 +1,56 @@
+use testing
+
+test "official inferred width"
+  use "034_onehot"
+  X = array 0 1 2 1 0
+
+  Actual = X categorical
+  Expected = array shape 5 3
+    1 0 0
+    0 1 0
+    0 0 1
+    0 1 0
+    1 0 0
+  end
+
+  (Actual equal Expected) and reduce
+end
+
+test "official explicit width"
+  use "034_onehot"
+  X = array 3 1 2 1 3
+
+  Actual = X 4 to_categorical
+  Expected = array shape 5 4
+    0 0 0 1
+    0 1 0 0
+    0 0 1 0
+    0 1 0 0
+    0 0 0 1
+  end
+
+  (Actual equal Expected) and reduce
+end
+
+test "explicit width allows no rows"
+  use "034_onehot"
+  use sequences
+  X = array shape 0 pad 0
+  Result = X 3 to_categorical
+
+  Result len equal 0
+end
+
+test "labels must fit the width"
+  use "034_onehot"
+  Raised = false
+
+  try
+    X = array 0 3
+    Result = X 3 to_categorical
+  catch .DomainError Error
+    Raised = true
+  end
+
+  Raised
+end
