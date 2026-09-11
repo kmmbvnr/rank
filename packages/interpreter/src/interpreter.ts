@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly arrayWriteCompilation?: boolean;
     readonly arrayLoopCompilation?: boolean;
     readonly nestedLoopCompilation?: boolean;
     readonly tensorCellCompilation?: boolean;
@@ -1006,6 +1007,8 @@ export class Interpreter {
                 writer: name => this.compileAssign(name),
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                arrayWrites: this.options.arrayWriteCompilation !== false,
+                arrayOffset: (source, indices) => tensorSelection(source, indices).offsetAt(0),
                 arrayReads: this.options.arrayLoopCompilation !== false,
                 iteration: forIteration,
                 ranges: () => this.modules.has('ranges'),
@@ -2454,6 +2457,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            arrayWriteCompilation: this.options.arrayWriteCompilation,
             arrayLoopCompilation: this.options.arrayLoopCompilation,
             nestedLoopCompilation: this.options.nestedLoopCompilation,
             tensorCellCompilation: this.options.tensorCellCompilation,
@@ -2543,6 +2547,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            arrayWriteCompilation: this.options.arrayWriteCompilation,
             arrayLoopCompilation: this.options.arrayLoopCompilation,
             nestedLoopCompilation: this.options.nestedLoopCompilation,
             tensorCellCompilation: this.options.tensorCellCompilation,

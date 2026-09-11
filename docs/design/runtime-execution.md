@@ -574,10 +574,26 @@ so negative and out-of-bounds indices retain their diagnostics and source locati
 
 Entry guards accept only already materialized integer atoms and the exact number
 of indices for the receiver rank. They do not force lazy readers. Partial addresses,
-noninteger arrays and rebinding the receiver retain ordinary execution. Array
-writes are not lowered by this stage. `arrayLoopCompilation: false` disables these
+noninteger arrays and rebinding the receiver retain ordinary execution. Plain full-address writes are supported as described below; compound assignments
+retain ordinary execution. `arrayLoopCompilation: false` disables these
 reads while leaving the preceding integer compiler enabled.
 
 The current type guard scans the materialized atoms on each region entry. This
 cost can dominate a short loop over a large array. Future storage type summaries
 must track mutation correctly before this scan can be safely cached or hoisted.
+
+
+## Array writes inside compiled numeric loops
+
+Plain `A I = Value` assignments can join an integer region, including full matrix
+addresses. The receiver is guarded as a stored integer array with matching rank;
+rebinding, lazy destinations and partial or collection selectors retain ordinary
+execution. The existing indexed-container path remains available through the same
+statement syntax, selected by receiver kind.
+
+The compiler evaluates coordinates and validates the array selection before the
+right operand, then writes immediately. It reuses tensor selection for identical
+bounds diagnostics. Aliases see earlier writes, including on a later error or
+break. An array assignment contributes its right operand to the statement result;
+an index assignment still contributes no result. `arrayWriteCompilation: false`
+disables array writes while retaining array reads and existing index writes.

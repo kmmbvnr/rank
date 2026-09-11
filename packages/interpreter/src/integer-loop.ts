@@ -18,6 +18,8 @@ interface IterationBinding {
 interface Host {
     readonly nestedLoops: boolean;
     readonly arrayReads: boolean;
+    readonly arrayWrites: boolean;
+    arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     iteration(condition: Expression | undefined): IterationBinding | undefined;
     read(name: string): RankValue | undefined;
@@ -47,6 +49,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
     const arrays = new Map<string, { slot: number; rank: number }>();
+    const destinations = new Map<string, { slot: number; rank: number }>();
     let needsAlgo = false, needsRanges = false, hasControl = false;
     let serial = 0;
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
@@ -235,8 +238,12 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             }
             if (isArrayAssignmentStatement(assignment)) {
                 if (assignment.operator !== '=') return undefined;
-                const receiver = container(assignment.name, 'index');
-                if (!receiver) return undefined;
+                if (assignment.name.includes('.')) return undefined;
+                const previous = destinations.get(assignment.name);
+                if (previous && previous.rank !== assignment.indices.length) return undefined;
+                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length };
+                destinations.set(assignment.name, target);
+                const receiver = `r${target.slot}`;
                 const lines: string[] = [], keys: string[] = [];
                 for (const address of assignment.indices) {
                     if (address.all || address.sign || !address.value) return undefined;
@@ -245,10 +252,13 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                     keys.push(value.code);
                 }
                 const name = `key${serial++}`;
-                lines.push(`const ${name} = key([${keys.join(',')}]);`);
+                lines.push(`const ${name} = ${receiver}.kind === 'array'
+                    ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
                 const value = emit(assignment.value, lines);
                 if (value?.type !== 'integer') return undefined;
-                body.push(`location = ${location};`, ...lines, `${receiver}.entries.set(${name}, ${value.code}); iterationResult = undefined;`);
+                body.push(`location = ${location};`, ...lines, `if (${receiver}.kind === 'array') {
+                    ${receiver}.items[${name}] = ${value.code}; iterationResult = ${value.code};
+                } else { ${receiver}.entries.set(${name}, ${value.code}); iterationResult = undefined; }`);
                 continue;
             }
             if (isIfStatement(assignment)) {
@@ -317,6 +327,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     // Container bindings must remain stable throughout the compiled region.
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
     if ([...arrays].some(([name, info]) => written.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
+    if ([...destinations].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
     if ([...builtins.keys()].some(name => written.has(name))) return undefined;
     const source = `"use strict"; return function(input) {
         ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};` : ''}
@@ -328,9 +339,9 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[]) => RankValue | undefined;
-    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', 'key', 'arrayRead', source)(writers, binders,
+    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', source)(writers, binders,
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead); }
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
@@ -358,6 +369,17 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             if (!value || !isRankArray(value) || value.shape.length !== info.rank) return undefined;
             const items = materializedArrayItems(value);
             if (!items || !items.every(item => typeof item === 'bigint')) return undefined;
+            values[info.slot] = value;
+        }
+        for (const [name, info] of destinations) {
+            const value = host.read(name);
+            if (!value) return undefined;
+            if (!isRankIndex(value)) {
+                if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
+                    || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
+                const items = materializedArrayItems(value);
+                if (!items || !items.every(item => typeof item === 'bigint')) return undefined;
+            }
             values[info.slot] = value;
         }
         host.executed?.();

@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "arraywrite",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 303.933084,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 303.626166,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 149.714791,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 149.628333,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    }
+  ]
+}

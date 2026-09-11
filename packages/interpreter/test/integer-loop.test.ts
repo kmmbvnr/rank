@@ -7,6 +7,8 @@ function execute(source: string, integerLoopCompilation: boolean, nestedLoopComp
         onIntegerLoopExecuted: () => loops++ });
     const containers = () => [...runtime.variables].flatMap<unknown>(([name, value]) => {
         if (typeof value !== 'object' || value === null) return [];
+        if (value.kind === 'array' && Array.isArray(Object.getOwnPropertyDescriptor(value, 'items')?.value))
+            return [[name, value.shape, value.items.map(formatValue)]];
         if (value.kind === 'queue') return [[name, value.items.map(formatValue)]];
         if (value.kind === 'index') return [[name, [...value.entries].map(([key, item]) => [key, formatValue(item)])]];
         return [];
@@ -780,4 +782,73 @@ for I in 0 until 0
 end`);
         expect(read).not.toHaveBeenCalled();
     } finally { runtime.dispose(); }
+});
+
+describe('array writes in compiled integer loops', () => {
+    it('reads earlier writes through an alias', () => {
+        const result = compare(`use ranges
+A = array shape 6 pad 0
+B = A
+A 0 = 1
+for I in 1 until 6
+  A I = (B (I - 1)) * 2
+end
+A`);
+        expect(result.value).toBe('1 2 4 8 16 32');
+        expect(result.loops).toBe(1);
+    });
+
+    it('returns the right operand of the last completed array write', () => {
+        const result = compare(`use ranges
+A = array shape 2 2 pad 0
+for I in 0 until 2
+  for J in 0 until 2
+    A I J = I * 2 + J
+  end
+end`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['-1', '3'])('checks address %s before evaluating a failing right operand', index => {
+        const result = compare(`use ranges
+A = array 1 2 3
+for I in 0 until 2
+  A I = 9
+  A (${index}) = 1 // 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves earlier writes when the right operand fails', () => {
+        const result = compare(`use ranges
+A = array 1 2 3
+for I in 0 until 3
+  A I = 9 // (1 - I)
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves array mutations and results across break', () => {
+        const result = compare(`use ranges
+A = array 1 2 3
+for I in 0 until 3
+  A I = I + 10
+  if I equal 1
+    break
+  end
+end`);
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains partial row assignment', () => {
+        const result = compare(`use ranges
+A = array shape 2 2 pad 0
+for I in 0 until 2
+  A I = 7
+end`);
+        expect(result.loops).toBe(0);
+    });
 });

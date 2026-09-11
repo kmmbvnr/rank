@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "arraywrite",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 307.80558299999996,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 307.51725,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 150.54020799999995,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 150.44762500000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 152.70304099999998,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 152.61683300000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 311.094958,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 311.007917,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 311.10970800000007,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 311.0360840000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 151.05720900000006,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 150.96962500000018,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 152.29508399999986,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 152.216584,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 310.4519580000001,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 310.3657910000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 310.68654200000014,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 310.60300000000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 150.93470899999966,
+      "entries": [
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 150.84749999999985,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    }
+  ]
+}

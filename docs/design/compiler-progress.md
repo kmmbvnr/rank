@@ -734,3 +734,36 @@ digest matching the preceding nested-loop baseline. One pair takes 27.989 s off
 and 28.280 s on; no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-array-loop-suite.json).
+
+## Stored integer array writes
+
+Plain indexed assignments now accept guarded stored integer arrays as well as
+indexes. Array targets must have full scalar addresses and stable bindings. The
+compiler validates the selection before evaluating the right operand and writes
+immediately, preserving aliases, partial mutation on errors and the assignment's
+right-operand result. Index writes retain their undefined result. Lazy destinations,
+partial selectors, compound assignments and noninteger arrays retain reference
+execution. Selection reuses the existing checked tensor helper.
+
+Seven new differential tests cover aliases, matrix writes, assignment results,
+negative/out-of-bounds error ordering, failing right operands, break and partial-row
+fallback. The differential helper now compares stored array contents and shapes,
+not only scalar variables and indexes. Verification passes 44 language and 745
+interpreter tests.
+
+The unchanged CSES Dice Combinations solution runs at N=1000000 in five alternating
+samples. A separate full-table recurrence (six explicit predecessors per state,
+exact Number integer sums below 2^53) supplies an independent expected result.
+Median task time is 310.603 ms off and 150.970 ms on, about 2.06x. The toggle disables
+only array writes, retaining preceding read, scalar, loop and tensor optimizations.
+One instrumented run confirms zero versus one compiled whole loop. Timings include
+parse/load and result validation, with counters disabled.
+
+[Timings](../../benchmarks/baselines/2026-09-12-array-write-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-array-write-coverage.json).
+
+The complete suite passes 306 files / 1054 tests in both modes, with all result
+digests matching the preceding array-read baseline. One pair takes 27.968 s off
+and 28.160 s on; no overall speedup is established from this pair.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-array-write-suite.json).
