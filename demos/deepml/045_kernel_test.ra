@@ -1,0 +1,40 @@
+use testing
+
+test "official first vectors"
+  use "045_kernel"
+  X = array 1 2 3
+  Y = array 4 5 6
+
+  X Y kernel_function equal 32
+end
+
+test "official second vectors"
+  use "045_kernel"
+  X = array 0 1 2
+  Y = array 3 4 5
+
+  X Y kernel_function equal 14
+end
+
+test "real vectors preserve precision"
+  use "045_kernel"
+  X = array 0.5 2.0
+  Y = array 4.0 -1.0
+
+  X Y kernel_function equal 0.0
+end
+
+test "lengths must match"
+  use "045_kernel"
+  Raised = false
+
+  try
+    Result = (array 1 2) (array 3) (
+      kernel_function
+    )
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
