@@ -244,6 +244,10 @@ boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
 and zero, respectively. Known unbounded sequences are rejected.
 
+A lazy sequence mask is also accepted by `count`. It returns the number of
+source items selected by the mask and lets the source plan provide a direct
+count without enumerating those items.
+
 ## Random
 
 `use random` provides random permutation operations:
@@ -933,7 +937,8 @@ with `jump`, `distance`, and `lengths` queries. Their inputs and results are spe
 [Graphs](../language/graphs.md).
 An undirected tree can be prepared with `Tree Root root`; its postfix
 `ancestor`, `lca`, and `distance` queries and traversal fields are specified
-in the same document.
+in the same document. `Tree pathlengths` provides a lazy unordered-pair
+distance sequence with planned exact and bounded-range counts.
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.
 

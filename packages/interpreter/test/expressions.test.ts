@@ -444,6 +444,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('use sequences\n(array true true) all')).toBe('true');
         expect(run('use sequences\n(array false true) any')).toBe('true');
         expect(run('use sequences\n(array true false true) count')).toBe('2');
+        expect(run('use sequences\nuse ranges\n((1 to 5) greater 2) count')).toBe('3');
         const empty = 'Empty = array shape 0\nend\nEmpty';
         expect(run(`use sequences\n${empty} all`)).toBe('true');
         expect(run(`use sequences\n${empty} any`)).toBe('false');

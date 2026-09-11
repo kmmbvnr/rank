@@ -66,7 +66,83 @@ Tree add 1 2
 Tree add 1 2
 Tree add 3 4
 Tree 1 root
-`)).toThrow('root expects a connected tree');
+        `)).toThrow('root expects a connected tree');
+    });
+
+    it('exposes lazy unordered tree path lengths', () => {
+        expect(run(`${prelude}use ranges
+Tree = new graph (1 to 5) .undirected
+Tree add (array shape 4 2
+  1 2
+  1 3
+  3 4
+  3 5
+end)
+Lengths = Tree pathlengths
+Exact = Lengths equal 2
+Near = Lengths at least 1
+Near and= Lengths at most 2
+array (Exact count) (Near count) (Lengths array)
+`)).toBe('4 8 1 1 2 2 2 3 3 1 1 2');
+    });
+
+    it('plans reversed path-length comparisons', () => {
+        expect(run(`${prelude}use ranges
+Tree = new graph (1 to 4) .undirected
+Tree add 1 2
+Tree add 2 3
+Tree add 3 4
+Lengths = Tree pathlengths
+array ((2 equal Lengths) count) ((2 at least Lengths) count)
+        `)).toBe('2 5');
+    });
+
+    it('matches enumerated path-length ranges', () => {
+        for (const [low, high] of [[1, 1], [2, 4], [3, 7], [8, 20]]) {
+            expect(run(`${prelude}use ranges
+Tree = new graph (1 to 9) .undirected
+Tree add (array shape 8 2
+  1 2
+  1 3
+  2 4
+  2 5
+  3 6
+  6 7
+  6 8
+  8 9
+end)
+Lengths = Tree pathlengths
+Values = Lengths array
+Expected = Values at least ${low}
+Expected and= Values at most ${high}
+Actual = Lengths at least ${low}
+Actual and= Lengths at most ${high}
+(Expected count) equal (Actual count)
+`)).toBe('true');
+        }
+    });
+
+    it('handles a tree without vertex pairs', () => {
+        expect(run(`${prelude}
+Tree = new graph (array 1) .undirected
+Lengths = Tree pathlengths
+array (Lengths len) ((Lengths equal 1) count)
+`)).toBe('0 0');
+    });
+
+    it('validates path-length tree inputs', () => {
+        expect(() => run(`${prelude}
+Tree = new graph .directed
+Tree add 1 2
+Tree pathlengths
+`)).toThrow('pathlengths expects an undirected graph');
+        expect(() => run(`${prelude}use ranges
+Tree = new graph (1 to 3) .undirected
+Tree add 1 2
+Tree add 2 3
+Tree add 3 1
+Tree pathlengths
+`)).toThrow('pathlengths expects a tree');
     });
 
     it('prepares and jumps through a functional graph', () => {

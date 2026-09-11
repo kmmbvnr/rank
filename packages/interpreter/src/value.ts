@@ -111,8 +111,27 @@ export interface NativeFunction {
 export interface SequencePredicate {
     readonly name: string;
     readonly optimizationKey?: string;
+    readonly expression?: SequencePredicateExpression;
     readonly test: (value: RankValue) => boolean;
 }
+
+export type SequencePredicateExpression =
+    | {
+        readonly kind: 'comparison';
+        readonly operator: string;
+        readonly scalar: RankValue;
+        readonly sourceOnLeft: boolean;
+    }
+    | {
+        readonly kind: 'logical';
+        readonly operator: 'and' | 'or' | 'xor';
+        readonly left?: SequencePredicateExpression;
+        readonly right?: SequencePredicateExpression;
+    }
+    | {
+        readonly kind: 'not';
+        readonly operand?: SequencePredicateExpression;
+    };
 
 export type SequenceSize =
     | { readonly kind: 'exact'; readonly value: bigint }

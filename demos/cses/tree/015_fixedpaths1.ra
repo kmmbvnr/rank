@@ -1,0 +1,24 @@
+rem CSES 2080: Fixed-Length Paths I
+rem https://cses.fi/problemset/task/2080
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+K = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Tree K count_paths print
+
+
+rem Count unordered pairs K edges apart.
+fun count_paths Tree K
+  Lengths = Tree pathlengths
+  return (Lengths equal K) count
+end

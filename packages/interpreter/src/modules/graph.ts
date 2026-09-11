@@ -4,12 +4,16 @@ import { RankFunctionalGraph } from '../functional-graph.js';
 import { expectGraph, type GraphValue } from '../graph.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
+import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
 import {
     type RankArray,
     type RankIndex,
     type RankRecord,
     type RankValue,
+    type SequencePlan,
+    type SequencePredicate,
+    type SequencePredicateExpression,
     isRankDsu,
 } from '../value.js';
 import { native } from './shared.js';
@@ -90,7 +94,266 @@ export const graphModule: RuntimeModule = {
     }),
     lengths: () => native('lengths', 1, values =>
         expectFunctional(values[0]).lengths()),
+    pathlengths: () => native('pathlengths', 1, values =>
+        treePathLengths(expectGraph(values[0]))),
 };
+
+interface TreeSnapshot {
+    readonly adjacency: readonly (readonly number[])[];
+}
+
+interface DistanceBounds {
+    readonly lower?: bigint;
+    readonly upper?: bigint;
+}
+
+function treePathLengths(graph: GraphValue): RankValue {
+    const tree = snapshotTree(graph, 'pathlengths');
+    return sequence(pathLengthPlan(tree));
+}
+
+function pathLengthPlan(
+    tree: TreeSnapshot,
+    predicate?: SequencePredicate,
+): SequencePlan {
+    const size = BigInt(tree.adjacency.length);
+    return {
+        name: predicate
+            ? `tree path lengths where ${predicate.name}`
+            : 'tree path lengths',
+        size: predicate
+            ? { kind: 'unknown' }
+            : { kind: 'exact', value: size * (size - 1n) / 2n },
+        *iterate() {
+            const count = tree.adjacency.length;
+            for (let source = 0; source < count; source += 1) {
+                const distance = new Int32Array(count).fill(-1);
+                distance[source] = 0;
+                const queue = [source];
+                for (let next = 0; next < queue.length; next += 1) {
+                    const vertex = queue[next];
+                    for (const neighbor of tree.adjacency[vertex]) {
+                        if (distance[neighbor] >= 0) continue;
+                        distance[neighbor] = distance[vertex] + 1;
+                        queue.push(neighbor);
+                    }
+                }
+                for (let target = source + 1; target < count; target += 1) {
+                    const value = BigInt(distance[target]);
+                    if (!predicate || predicate.test(value)) yield value;
+                }
+            }
+        },
+        withFilter(next) {
+            if (!predicate) return pathLengthPlan(tree, next);
+            return pathLengthPlan(tree, {
+                name: `${predicate.name} and ${next.name}`,
+                expression: {
+                    kind: 'logical',
+                    operator: 'and',
+                    left: predicate.expression,
+                    right: next.expression,
+                },
+                test: value => predicate.test(value) && next.test(value),
+            });
+        },
+        reduce(operation) {
+            if (operation !== 'count' || !predicate?.expression) return undefined;
+            const bounds = predicateBounds(predicate.expression);
+            if (!bounds) return undefined;
+            return countTreeDistances(tree, bounds);
+        },
+    };
+}
+
+function snapshotTree(graph: GraphValue, operation: string): TreeSnapshot {
+    requireUndirected(graph, operation);
+    const vertices = [...graph.vertices.keys()];
+    const position = new Map(vertices.map((key, index) => [key, index]));
+    const edgeIds = new Set<number>();
+    const adjacency = vertices.map(key => graph.adjacency.get(key)!.map(edge => {
+        edgeIds.add(edge.id);
+        return position.get(setValueKey(edge.target))!;
+    }));
+    if (graph.size === 0 || edgeIds.size !== graph.size - 1) {
+        throw new RankError(`${operation} expects a tree`);
+    }
+    const seen = new Uint8Array(graph.size);
+    const pending = [0];
+    seen[0] = 1;
+    for (let next = 0; next < pending.length; next += 1) {
+        for (const neighbor of adjacency[pending[next]]) {
+            if (seen[neighbor]) continue;
+            seen[neighbor] = 1;
+            pending.push(neighbor);
+        }
+    }
+    if (pending.length !== graph.size) {
+        throw new RankError(`${operation} expects a connected tree`);
+    }
+    return { adjacency };
+}
+
+function predicateBounds(
+    expression: SequencePredicateExpression,
+): DistanceBounds | undefined {
+    if (expression.kind === 'logical') {
+        if (expression.operator !== 'and' || !expression.left || !expression.right) {
+            return undefined;
+        }
+        const left = predicateBounds(expression.left);
+        const right = predicateBounds(expression.right);
+        if (!left || !right) return undefined;
+        return intersectBounds(left, right);
+    }
+    if (expression.kind !== 'comparison'
+        || typeof expression.scalar !== 'bigint') return undefined;
+    let operator = expression.operator;
+    if (!expression.sourceOnLeft) operator = reverseComparison(operator);
+    const value = expression.scalar;
+    if (operator === 'equal') return { lower: value, upper: value };
+    if (operator === 'atleast') return { lower: value };
+    if (operator === 'atmost') return { upper: value };
+    if (operator === 'greater') return { lower: value + 1n };
+    if (operator === 'less') return { upper: value - 1n };
+    return undefined;
+}
+
+function reverseComparison(operator: string): string {
+    if (operator === 'less') return 'greater';
+    if (operator === 'greater') return 'less';
+    if (operator === 'atleast') return 'atmost';
+    if (operator === 'atmost') return 'atleast';
+    return operator;
+}
+
+function intersectBounds(left: DistanceBounds, right: DistanceBounds): DistanceBounds {
+    const lower = left.lower === undefined ? right.lower
+        : right.lower === undefined ? left.lower
+            : left.lower > right.lower ? left.lower : right.lower;
+    const upper = left.upper === undefined ? right.upper
+        : right.upper === undefined ? left.upper
+            : left.upper < right.upper ? left.upper : right.upper;
+    return { lower, upper };
+}
+
+function countTreeDistances(tree: TreeSnapshot, bounds: DistanceBounds): bigint {
+    const count = tree.adjacency.length;
+    const minimum = bounds.lower ?? 1n;
+    const maximum = bounds.upper ?? BigInt(count - 1);
+    const lower = Number(minimum < 1n ? 1n : minimum);
+    const upper = Number(maximum > BigInt(count - 1) ? BigInt(count - 1) : maximum);
+    if (lower > upper || upper < 1 || lower >= count) return 0n;
+
+    const removed = new Uint8Array(count);
+    const parent = new Int32Array(count);
+    const sizes = new Int32Array(count);
+    const components = [0];
+    let result = 0;
+    while (components.length > 0) {
+        const start = components.pop()!;
+        if (removed[start]) continue;
+        const centroid = findCentroid(tree, start, removed, parent, sizes);
+        const all = [0];
+        for (const neighbor of tree.adjacency[centroid]) {
+            if (removed[neighbor]) continue;
+            const branch = collectDistances(tree, neighbor, centroid, removed, upper);
+            result -= pairsInRange(branch, lower, upper);
+            for (const distance of branch) all.push(distance);
+        }
+        result += pairsInRange(all, lower, upper);
+        removed[centroid] = 1;
+        for (const neighbor of tree.adjacency[centroid]) {
+            if (!removed[neighbor]) components.push(neighbor);
+        }
+    }
+    return BigInt(result);
+}
+
+function findCentroid(
+    tree: TreeSnapshot,
+    start: number,
+    removed: Uint8Array,
+    parent: Int32Array,
+    sizes: Int32Array,
+): number {
+    const vertices = [start];
+    parent[start] = -1;
+    for (let next = 0; next < vertices.length; next += 1) {
+        const vertex = vertices[next];
+        for (const neighbor of tree.adjacency[vertex]) {
+            if (removed[neighbor] || neighbor === parent[vertex]) continue;
+            parent[neighbor] = vertex;
+            vertices.push(neighbor);
+        }
+    }
+    for (let index = vertices.length - 1; index >= 0; index -= 1) {
+        const vertex = vertices[index];
+        let size = 1;
+        for (const neighbor of tree.adjacency[vertex]) {
+            if (!removed[neighbor] && parent[neighbor] === vertex) {
+                size += sizes[neighbor];
+            }
+        }
+        sizes[vertex] = size;
+    }
+    const total = vertices.length;
+    for (const vertex of vertices) {
+        let largest = total - sizes[vertex];
+        for (const neighbor of tree.adjacency[vertex]) {
+            if (!removed[neighbor] && parent[neighbor] === vertex) {
+                largest = Math.max(largest, sizes[neighbor]);
+            }
+        }
+        if (largest * 2 <= total) return vertex;
+    }
+    throw new RankError('could not decompose tree');
+}
+
+function collectDistances(
+    tree: TreeSnapshot,
+    start: number,
+    parent: number,
+    removed: Uint8Array,
+    limit: number,
+): number[] {
+    const distances: number[] = [];
+    const pending = [{ vertex: start, parent, distance: 1 }];
+    while (pending.length > 0) {
+        const current = pending.pop()!;
+        if (current.distance > limit) continue;
+        distances.push(current.distance);
+        for (const neighbor of tree.adjacency[current.vertex]) {
+            if (removed[neighbor] || neighbor === current.parent) continue;
+            pending.push({
+                vertex: neighbor,
+                parent: current.vertex,
+                distance: current.distance + 1,
+            });
+        }
+    }
+    return distances;
+}
+
+function pairsInRange(values: number[], lower: number, upper: number): number {
+    values.sort((left, right) => left - right);
+    return pairsAtMost(values, upper) - pairsAtMost(values, lower - 1);
+}
+
+function pairsAtMost(values: readonly number[], limit: number): number {
+    let left = 0;
+    let right = values.length - 1;
+    let result = 0;
+    while (left < right) {
+        if (values[left] + values[right] <= limit) {
+            result += right - left;
+            left += 1;
+        } else {
+            right -= 1;
+        }
+    }
+    return result;
+}
 
 function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     requireUndirected(graph, 'root');

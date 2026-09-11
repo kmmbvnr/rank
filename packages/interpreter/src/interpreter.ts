@@ -2769,6 +2769,10 @@ export class Interpreter {
         if (operator === 'not' && isRankSequenceMask(value)) {
             return sequenceMask(value.source, {
                 name: `not ${value.predicate.name}`,
+                expression: {
+                    kind: 'not',
+                    operand: value.predicate.expression,
+                },
                 test: item => !value.predicate.test(item),
             });
         }
@@ -2930,6 +2934,12 @@ export class Interpreter {
         const scalar = isRankSequence(left) ? right : left;
         const predicate: SequencePredicate = {
             name: operator,
+            expression: {
+                kind: 'comparison',
+                operator,
+                scalar,
+                sourceOnLeft: isRankSequence(left),
+            },
             test: item => expectBoolean(isRankSequence(left)
                 ? this.evaluateBinary(operator, item, scalar)
                 : this.evaluateBinary(operator, scalar, item)),
@@ -2947,6 +2957,12 @@ export class Interpreter {
         }
         return sequenceMask(left.source, {
             name: `${left.predicate.name} ${operator} ${right.predicate.name}`,
+            expression: {
+                kind: 'logical',
+                operator: operator as 'and' | 'or' | 'xor',
+                left: left.predicate.expression,
+                right: right.predicate.expression,
+            },
             test: value => {
                 const a = left.predicate.test(value);
                 const b = right.predicate.test(value);

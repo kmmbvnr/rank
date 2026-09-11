@@ -200,6 +200,33 @@ The largest child subtree is visited first. Consequently, vertices from any
 one heavy path also occupy consecutive `.entry` positions; `.head` identifies
 the first vertex of that path for heavy-light decomposition.
 
+## Pair distances
+
+`Tree pathlengths` snapshots a connected undirected tree and returns a finite
+lazy sequence containing the edge distance between every unordered pair of
+distinct vertices. Each pair occurs once, and an `N`-vertex tree therefore has
+`N * (N - 1) // 2` logical path lengths:
+
+```rank
+Lengths = Tree pathlengths
+Exact = (Lengths equal K) count
+Mask = Lengths at least Low
+Mask and= Lengths at most High
+Within = Mask count
+```
+
+Iteration or materialization enumerates the logical sequence and takes
+quadratic time. Integer comparisons followed by `count` are planned without
+materializing it. Exact and bounded-range counts use centroid decomposition in
+`O(N log^2 N)` time and `O(N)` auxiliary space. Comparisons may be written on
+either side of the sequence, and bounds combined with `and` remain visible to
+the planner. Arbitrary predicates and `or`, `xor`, or `not` compositions fall
+back to ordinary lazy enumeration.
+
+The values count edges, like rooted-tree `distance`; stored graph weights do
+not alter them. The sequence deliberately discards pair endpoints. Use
+`Rooted A B distance` when a particular pair or its vertices matter.
+
 ## Basic algorithms
 
 Graph algorithms are ordinary data-first functions exported by `use graph`.

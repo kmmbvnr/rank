@@ -2185,6 +2185,10 @@ known, while `count` examines the complete cell. An empty collection produces
 `true` for `all`, `false` for `any` and zero for `count`. All three support
 `rank` and `axis`. A known unbounded sequence is rejected.
 
+A lazy sequence mask is also accepted by `count`. It returns the number of
+source items selected by the mask and lets the source plan provide a direct
+count without enumerating those items.
+
 Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
 between numeric values and broadcast over arrays:
 
@@ -2916,6 +2920,33 @@ are read-only snapshots; later graph mutations do not change them.
 The largest child subtree is visited first. Consequently, vertices from any
 one heavy path also occupy consecutive `.entry` positions; `.head` identifies
 the first vertex of that path for heavy-light decomposition.
+
+## Pair distances
+
+`Tree pathlengths` snapshots a connected undirected tree and returns a finite
+lazy sequence containing the edge distance between every unordered pair of
+distinct vertices. Each pair occurs once, and an `N`-vertex tree therefore has
+`N * (N - 1) // 2` logical path lengths:
+
+```rank
+Lengths = Tree pathlengths
+Exact = (Lengths equal K) count
+Mask = Lengths at least Low
+Mask and= Lengths at most High
+Within = Mask count
+```
+
+Iteration or materialization enumerates the logical sequence and takes
+quadratic time. Integer comparisons followed by `count` are planned without
+materializing it. Exact and bounded-range counts use centroid decomposition in
+`O(N log^2 N)` time and `O(N)` auxiliary space. Comparisons may be written on
+either side of the sequence, and bounds combined with `and` remain visible to
+the planner. Arbitrary predicates and `or`, `xor`, or `not` compositions fall
+back to ordinary lazy enumeration.
+
+The values count edges, like rooted-tree `distance`; stored graph weights do
+not alter them. The sequence deliberately discards pair endpoints. Use
+`Rooted A B distance` when a particular pair or its vertices matter.
 
 ## Basic algorithms
 
@@ -3904,6 +3935,10 @@ boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
 and zero, respectively. Known unbounded sequences are rejected.
 
+A lazy sequence mask is also accepted by `count`. It returns the number of
+source items selected by the mask and lets the source plan provide a direct
+count without enumerating those items.
+
 ## Random
 
 `use random` provides random permutation operations:
@@ -4593,7 +4628,8 @@ with `jump`, `distance`, and `lengths` queries. Their inputs and results are spe
 [Graphs](../language/graphs.md).
 An undirected tree can be prepared with `Tree Root root`; its postfix
 `ancestor`, `lca`, and `distance` queries and traversal fields follow the
-rooted-tree rules above.
+rooted-tree rules above. `Tree pathlengths` provides a lazy unordered-pair
+distance sequence with planned exact and bounded-range counts.
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.
 

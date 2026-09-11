@@ -1,0 +1,27 @@
+rem CSES 2081: Fixed-Length Paths II
+rem https://cses.fi/problemset/task/2081
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Low = stdin .integer
+High = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Tree Low High count_paths print
+
+
+rem Count pairs within a distance range.
+fun count_paths Tree Low High
+  Lengths = Tree pathlengths
+  Mask = Lengths at least Low
+  Mask and= Lengths at most High
+  return Mask count
+end

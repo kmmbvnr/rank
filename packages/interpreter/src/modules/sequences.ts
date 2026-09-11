@@ -12,6 +12,7 @@ import {
     isRankObject,
     isRankQueue,
     isRankSequence,
+    isRankSequenceMask,
     isRankSegment,
     isRankSet,
     type RankArray,
@@ -63,6 +64,18 @@ function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
 }
 
 function countTrue(value: RankValue): bigint {
+    if (isRankSequenceMask(value)) {
+        const planned = value.plan.reduce?.('count');
+        if (planned !== undefined) {
+            if (typeof planned !== 'bigint') {
+                throw new RankError('count plan must return an integer');
+            }
+            return planned;
+        }
+        let selected = 0n;
+        for (const _ of value.plan.iterate()) selected += 1n;
+        return selected;
+    }
     let count = 0n;
     for (const item of collectionValues(value, 'count')) {
         if (typeof item !== 'boolean') {
