@@ -4166,13 +4166,14 @@ them. Other numeric sequences still fail the boolean-cell requirement.
 
 ## Random
 
-`use random` provides random permutation operations:
+`use random` provides random sampling operations:
 
 ```rank
 State = 42 seed
 Shuffled = Values shuffle
 Repeatable = Values 42 shuffle
 Sample = Values 10 choices
+Noise = Shape Low High uniform
 Rows = Data shuffle axis 0
 Columns = Data 42 shuffle axis 1
 ```
@@ -4186,6 +4187,12 @@ with the same seed restarts the same sequence.
 array. It never changes its source. A sequence is explicitly consumed by the
 operation. An unbounded sequence, a scalar or a missing tensor axis is an
 error.
+
+`Shape Low High uniform` returns an eager real tensor whose independent values
+are drawn from the half-open interval `[Low, High)`. `Shape` is a rank-1 array
+of nonnegative integer dimensions. Equal bounds produce a constant tensor;
+zero dimensions produce an empty tensor. Bounds must be finite numbers and the
+lower bound must not exceed the upper bound.
 
 `Values Count choices` independently draws `Count` values with replacement
 and returns an eager dense array. For a tensor it draws complete cells along
@@ -4201,8 +4208,8 @@ Without a seed, `shuffle` consumes the current interpreter's pseudorandom
 stream. Supplying an integer seed creates a private stream for that operation,
 so equal inputs and equal seeds produce equal results within one interpreter
 version without changing the default stream. The precise generator and seeded
-order are implementation details and may change between versions. `shuffle`
-and `choices` are not cryptographic randomness operations.
+order are implementation details and may change between versions. `shuffle`,
+`choices` and `uniform` are not cryptographic randomness operations.
 
 ## Linear algebra
 

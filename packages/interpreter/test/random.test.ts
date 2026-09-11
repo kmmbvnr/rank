@@ -91,6 +91,55 @@ describe('Rank random operations', () => {
             .toThrowError('choices requires a bounded sequence');
     });
 
+    it('fills uniform tensors from the shared stream', () => {
+        const draws = [0, 0.25, 0.5, 0.75];
+        let calls = 0;
+        const interpreter = new Interpreter(() => {}, {
+            random: () => draws[calls++],
+        });
+        expect(interpreter.execute([
+            'use random',
+            'Shape = array 2 2',
+            'Low = -2',
+            'Shape Low 2 uniform',
+        ].join('\n'))).toEqual({
+            kind: 'array',
+            items: [-2, -1, 0, 1],
+            shape: [2, 2],
+        });
+        expect(calls).toBe(4);
+    });
+
+    it('repeats uniform tensors after reseeding', () => {
+        expect(run([
+            'use random',
+            'Shape = array 2 3',
+            'State = 42 seed',
+            'First = Shape 0 1 uniform',
+            'State = 42 seed',
+            'Second = Shape 0 1 uniform',
+            '(First equal Second) and reduce',
+        ].join('\n'))).toBe('true');
+    });
+
+    it('validates uniform shapes and bounds', () => {
+        expect(run([
+            'use random',
+            'use sequences',
+            'Shape = array 0 3',
+            'A = Shape 1 2 uniform',
+            'A shape',
+        ].join('\n'))).toBe('0 3');
+        expect(() => run('use random\n1 0 1 uniform'))
+            .toThrowError('uniform shape must be a rank-1 integer array');
+        expect(() => run('use random\n(array 2 -1) 0 1 uniform'))
+            .toThrowError('uniform dimension must be nonnegative');
+        expect(() => run('use random\n(array 2) 2 1 uniform'))
+            .toThrowError('uniform lower bound must not exceed upper bound');
+        expect(() => run('use random\n(array 2) "low" 1 uniform'))
+            .toThrowError('uniform lower bound must be numeric');
+    });
+
     it('reseeds the shared stream used by imported functions', () => {
         const interpreter = new Interpreter(undefined, {
             loadModule: () => ({

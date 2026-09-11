@@ -1,6 +1,7 @@
 import { RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import {
+    isRankArray,
     isRankSequence,
     type RankArray,
     type RankValue,
@@ -28,7 +29,69 @@ export const randomModule: RuntimeModule = {
         arguments_[1],
         context.random,
     )),
+    uniform: context => native('uniform', 3, arguments_ => uniformValue(
+        arguments_[0],
+        arguments_[1],
+        arguments_[2],
+        context.random,
+    )),
 };
+
+/** Fill an eager tensor from a continuous uniform distribution. */
+export function uniformValue(
+    shapeValue: RankValue,
+    lowValue: RankValue,
+    highValue: RankValue,
+    random: () => number = Math.random,
+): RankArray {
+    if (!isRankArray(shapeValue) || shapeValue.shape.length !== 1) {
+        throw new RankError('uniform shape must be a rank-1 integer array');
+    }
+    const shape = Array.from({ length: shapeValue.shape[0] }, (_, index) => {
+        const value = shapeValue.itemAt?.(index) ?? shapeValue.items[index];
+        if (typeof value !== 'bigint') {
+            throw new RankError('uniform shape must be a rank-1 integer array');
+        }
+        if (value < 0n) {
+            throw new RankError(`uniform dimension must be nonnegative: ${value}`);
+        }
+        if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+            throw new RankError(`uniform dimension is too large: ${value}`);
+        }
+        return Number(value);
+    });
+    const low = finiteBound(lowValue, 'lower');
+    const high = finiteBound(highValue, 'upper');
+    if (low > high) {
+        throw new RankError('uniform lower bound must not exceed upper bound');
+    }
+    const size = uniformSize(shape);
+    const width = high - low;
+    const items = Array.from({ length: size }, () => low + random() * width);
+    return { kind: 'array', items, shape };
+}
+
+function finiteBound(value: RankValue, side: string): number {
+    if (typeof value !== 'bigint' && typeof value !== 'number') {
+        throw new RankError(`uniform ${side} bound must be numeric`);
+    }
+    const result = Number(value);
+    if (!Number.isFinite(result)) {
+        throw new RankError(`uniform ${side} bound must be finite`);
+    }
+    return result;
+}
+
+function uniformSize(shape: readonly number[]): number {
+    let size = 1;
+    for (const dimension of shape) {
+        if (dimension !== 0 && size > 0xffffffff / dimension) {
+            throw new RankError('uniform shape is too large');
+        }
+        size *= dimension;
+    }
+    return size;
+}
 
 /** Draw complete leading-axis cells independently with replacement. */
 export function choicesValue(
