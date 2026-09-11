@@ -1,0 +1,20 @@
+use testing
+
+test "four values and factors"
+  use "047_primefactors"
+  run
+
+  Answer equal 134043
+end
+
+test "two values and factors"
+  use "047_primefactors"
+
+  2 distinct_factor_run equal 14
+end
+
+test "three values and factors"
+  use "047_primefactors"
+
+  3 distinct_factor_run equal 644
+end

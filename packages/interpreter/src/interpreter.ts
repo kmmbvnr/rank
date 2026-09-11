@@ -3,7 +3,7 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
-import { addToCollection, expectAddCollection, newStructure } from './collections.js';
+import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import { isKnownFileFree, ResourceMap } from './resource-summary.js';
@@ -935,10 +935,10 @@ export class Interpreter {
                     interpreter.requireModule('algo', mutation.operation);
                     const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
                     const receiver = mutation.operation === 'add'
-                        ? expectAddCollection(target) : expectMultiset(target);
+                        ? expectAddCollection(target) : target;
                     const value = yield* resume(interpreter.evaluateTask(mutation.value));
                     if (mutation.operation === 'add') addToCollection(receiver, value);
-                    else expectMultiset(receiver).remove(value);
+                    else removeFromCollection(receiver, value);
                     return undefined;
                 } };
             }

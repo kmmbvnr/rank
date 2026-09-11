@@ -1,0 +1,34 @@
+rem Distinct Primes Factors
+rem https://projecteuler.net/problem=47
+rem Find the first run whose length and each
+rem distinct prime-factor count equal Count
+
+use sequences
+use numbers
+use io
+use cli
+
+option Count integer = 4
+
+Answer = Count distinct_factor_run
+Answer print
+
+
+rem Extend or reset the consecutive run after
+rem counting unique factors of each integer.
+fun distinct_factor_run Count
+  Run = 0
+  Value = 2
+  for
+    Factors = Value factors unique
+    if Factors len equal Count
+      Run += 1
+      if Run equal Count
+        return Value - Count + 1
+      end
+    else
+      Run = 0
+    end
+    Value += 1
+  end
+end

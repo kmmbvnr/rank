@@ -1,0 +1,14 @@
+use testing
+
+test "last ten digits"
+  use "048_selfpowers"
+  run
+
+  Answer equal 9110846700
+end
+
+test "first ten self powers"
+  use "048_selfpowers"
+
+  10 10 self_power_tail equal 405071317
+end

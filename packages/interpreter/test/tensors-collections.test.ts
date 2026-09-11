@@ -728,6 +728,14 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\ninfinity sqrt')).toBe('infinity');
         expect(() => run('use numbers\n-1 sqrt'))
             .toThrowError('sqrt expects a nonnegative value');
+        expect(run('use numbers\n(array 0 1 2 15 16 17) isqrt'))
+            .toBe('0 1 1 3 4 4');
+        expect(run('use numbers\n152415787532388367501905199875019052100 isqrt'))
+            .toBe('12345678901234567890');
+        expect(() => run('use numbers\n-1 isqrt'))
+            .toThrowError('isqrt expects a nonnegative integer');
+        expect(() => run('use numbers\n2.25 isqrt'))
+            .toThrowError('expected integer input');
         expect(run('use numbers\n3 min 2')).toBe('2');
         expect(run('use numbers\n3 max 2')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');

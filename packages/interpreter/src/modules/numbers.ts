@@ -52,6 +52,13 @@ export const numbersModule: RuntimeModule = {
         }
         return Math.sqrt(Number(value));
     }, 0),
+    isqrt: () => native('isqrt', 1, arguments_ => {
+        const value = expectInteger(arguments_[0]);
+        if (value < 0n) {
+            throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
+        }
+        return integerSquareRoot(value);
+    }, 0),
     log: () => unaryMath(
         'log',
         Math.log,
@@ -206,6 +213,18 @@ function finiteDomain(value: number): boolean {
 
 function unitDomain(value: number): boolean {
     return value >= -1 && value <= 1;
+}
+
+/** Return the exact floor of the square root using integer Newton iteration. */
+function integerSquareRoot(value: bigint): bigint {
+    if (value < 2n) return value;
+    const bits = BigInt(value.toString(2).length);
+    let root = 1n << ((bits + 1n) / 2n);
+    for (;;) {
+        const next = (root + value / root) / 2n;
+        if (next >= root) return root;
+        root = next;
+    }
 }
 
 export function roundValue(value: RankValue, placesValue: RankValue): RankValue {

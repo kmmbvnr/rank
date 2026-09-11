@@ -1,0 +1,52 @@
+rem Coded Triangle Numbers
+rem https://projecteuler.net/problem=42
+rem Count words whose alphabetic value is a
+rem triangular number
+
+use text
+use sequences
+use numbers
+use io
+use cli
+
+argument Input path
+
+Text = Input read
+Words = Text words_from_text
+Answer = Words triangle_word_count
+Answer print
+
+
+rem Remove the outer quotes and split the
+rem quoted comma-separated word list.
+fun words_from_text Text
+  Last = Text len - 1
+  Body = Text from 1 until Last
+  return Body "\",\"" split
+end
+
+
+rem Count words whose value makes 8N + 1 an
+rem odd square, the triangular-number test.
+fun triangle_word_count Words
+  Count = 0
+  for Word in Words
+    Value = Word word_value
+    Discriminant = 8 * Value + 1
+    Root = Discriminant isqrt
+    if Root ** 2 equal Discriminant
+      Count += 1
+    end
+  end
+  return Count
+end
+
+
+rem Convert A through Z to values 1 through 26.
+fun word_value Word
+  Total = 0
+  for Letter in Word
+    Total += Letter codepoint - 64
+  end
+  return Total
+end

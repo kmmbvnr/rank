@@ -1,0 +1,51 @@
+rem Consecutive Prime Sum
+rem https://projecteuler.net/problem=50
+rem Find the prime below Limit made from the
+rem longest sum of consecutive primes
+
+use ranges
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+Answer = Limit longest_prime_sum
+Answer print
+
+
+rem Prefix sums make each candidate interval
+rem constant time; lengths are tried longest first.
+fun longest_prime_sum Limit
+  Primes = (primes until Limit) array
+  Count = Primes len
+  Prefix = array shape (Count + 1) pad 0
+  for Prime I in Primes
+    Next = I + 1
+    Prefix Next = Prefix I + Prime
+  end
+
+  Length = 0
+  for I in 1 to Count
+    if Prefix I at least Limit
+      break
+    end
+    Length = I
+  end
+
+  for Length greater 0
+    LastStart = Count - Length
+    for Start in 0 to LastStart
+      End = Start + Length
+      Total = Prefix End - Prefix Start
+      if Total at least Limit
+        break
+      end
+      if Total in primes
+        return Total
+      end
+    end
+    Length -= 1
+  end
+  return 0
+end

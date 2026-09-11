@@ -1,0 +1,16 @@
+use testing
+
+test "minimum pentagonal difference"
+  use "044_pentagondiff"
+  run
+
+  Answer equal 5482660
+end
+
+test "first pentagonal values"
+  use "044_pentagondiff"
+
+  1 pentagonal equal 1
+  4 pentagonal equal 22
+  7 pentagonal equal 70
+end

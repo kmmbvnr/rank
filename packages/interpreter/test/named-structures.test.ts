@@ -148,10 +148,27 @@ array (Seen len) (Counts 7) (Tickets len) (Tickets floor 4)
         expect(run('fun add A B\n return A + B\nend\n3 4 add')).toBe('7');
     });
 
+    it('removes set values through either application order', () => {
+        expect(run(`
+use algo
+use sequences
+Seen = new set
+Seen add 2
+Seen add 7
+Seen remove 2
+Seen 7 remove
+Seen len
+`)).toBe('0');
+        expect(() => run('use algo\nSeen = new set\nSeen remove 1'))
+            .toThrowError('set does not contain the value');
+    });
+
     it('reports unsupported constructors and receiver types as Rank errors', () => {
         expect(() => run('new set')).toThrowError('requires: use algo');
         expect(() => run('use algo\nnew unknown')).toThrowError('unknown structure');
         expect(() => run('use algo\nA = array 1 2\nA add 3')).toThrowError('add expects a set, counter or multiset');
+        expect(() => run('use algo\nA = array 1 2\nA remove 1'))
+            .toThrowError('remove expects a set or multiset');
     });
 
     it('creates fresh values in loops and keeps recursive implicit instances separate', () => {

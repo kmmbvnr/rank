@@ -1,0 +1,40 @@
+rem Triangular, Pentagonal, and Hexagonal
+rem https://projecteuler.net/problem=45
+rem Find the next value shared by all three
+rem polygonal sequences after 40755
+
+use io
+
+Answer = 144 166 common_polygonal
+Answer print
+
+
+rem Every hexagonal number is triangular, so
+rem merge only hexagonal and pentagonal values.
+fun common_polygonal HexIndex PentIndex
+  Hex = HexIndex hexagonal
+  Pent = PentIndex pentagonal
+
+  for Hex not equal Pent
+    if Hex less Pent
+      HexIndex += 1
+      Hex = HexIndex hexagonal
+    else
+      PentIndex += 1
+      Pent = PentIndex pentagonal
+    end
+  end
+  return Hex
+end
+
+
+rem Return one hexagonal sequence value.
+fun hexagonal N
+  return N * (2 * N - 1)
+end
+
+
+rem Return one pentagonal sequence value.
+fun pentagonal N
+  return N * (3 * N - 1) // 2
+end

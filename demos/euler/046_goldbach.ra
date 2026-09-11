@@ -1,0 +1,43 @@
+rem Goldbach's Other Conjecture
+rem https://projecteuler.net/problem=46
+rem Find the first odd composite that is not
+rem a prime plus twice a square
+
+use sequences
+use numbers
+use io
+
+Answer = 9 goldbach_counterexample
+Answer print
+
+
+rem Visit odd composites until one has no
+rem representation of the proposed form.
+fun goldbach_counterexample Start
+  Candidate = Start
+  for
+    if not (Candidate in primes)
+      if not (Candidate goldbach_representation)
+        return Candidate
+      end
+    end
+    Candidate += 2
+  end
+end
+
+
+rem Subtract twice each possible square and
+rem test whether the positive remainder is prime.
+fun goldbach_representation Value
+  Square = 1
+  TwiceSquare = 2
+  for TwiceSquare less Value
+    Remainder = Value - TwiceSquare
+    if Remainder in primes
+      return true
+    end
+    Square += 1
+    TwiceSquare = 2 * Square ** 2
+  end
+  return false
+end

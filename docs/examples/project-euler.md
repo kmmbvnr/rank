@@ -701,3 +701,134 @@ end
 Whole blocks of equal-width integers are skipped arithmetically, so the program
 never constructs the million-character prefix. The seven selected digits have
 product `210`.
+
+## 41. Pandigital prime
+
+```rank
+for CandidateText in Digits permutations
+  Candidate = CandidateText integer
+  if Candidate in primes
+    return Candidate
+  end
+end
+```
+
+Descending digits make lazy permutations arrive from largest to smallest. The
+first prime is `7652413`.
+
+## 42. Coded triangle numbers
+
+```rank
+Discriminant = 8 * Value + 1
+Root = Discriminant isqrt
+if Root ** 2 equal Discriminant
+  Count += 1
+end
+```
+
+`codepoint` computes word values, and exact `isqrt` recognizes triangular
+values without floating-point conversion. The official file contains `162`.
+
+## 43. Sub-string divisibility
+
+```rank
+for Digit in Digits
+  if not (Digit in Prefix)
+    Next = Prefix + Digit
+    Valid = Next Divisors valid_suffix
+  end
+end
+```
+
+A local recursive search rejects invalid prefixes as soon as their newest
+three-digit slice can be checked. The survivors sum to `16695334890`.
+
+## 44. Pentagon numbers
+
+```rank
+if Difference in Pentagons
+  if Sum in Pentagons
+    Best = Difference
+  end
+end
+```
+
+An indexed array supplies pair values while a set provides membership tests.
+The bounded search finds the minimum difference `5482660`.
+
+## 45. Triangular, pentagonal, and hexagonal
+
+```rank
+for Hex not equal Pent
+  if Hex less Pent
+    HexIndex += 1
+  else
+    PentIndex += 1
+  end
+end
+```
+
+Every hexagonal number is triangular, so merging only two polygonal streams
+reaches `1533776805` without storing either stream.
+
+## 46. Goldbach's other conjecture
+
+```rank
+Remainder = Value - TwiceSquare
+if Remainder in primes
+  return true
+end
+```
+
+Odd composites are tested against successive doubled squares. Optimized prime
+membership identifies `5777` as the first counterexample.
+
+## 47. Distinct prime factors
+
+```rank
+Factors = Value factors unique
+if Factors len equal Count
+  Run += 1
+else
+  Run = 0
+end
+```
+
+The standard operations express the property directly. The first qualifying
+run of four integers begins at `134043`.
+
+## 48. Self powers
+
+```rank
+Total += N N Modulus powmod
+Total %= Modulus
+```
+
+Modular exponentiation avoids large intermediate powers. The final ten-digit
+numeric suffix is `9110846700`.
+
+## 49. Prime permutations
+
+```rank
+Key = A text sort
+if B text sort equal Key
+  if C text sort equal Key
+    ...
+  end
+end
+```
+
+Sorted decimal text gives digit permutations a common key. The requested
+concatenation is `296962999629`.
+
+## 50. Consecutive prime sum
+
+```rank
+Total = Prefix End - Prefix Start
+if Total in primes
+  return Total
+end
+```
+
+Prefix sums make every interval sum constant time, and lengths are tried from
+largest to smallest. The result below one million is `997651`.

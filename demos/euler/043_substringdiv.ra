@@ -1,0 +1,62 @@
+rem Sub-string Divisibility
+rem https://projecteuler.net/problem=43
+rem Sum zero-to-nine pandigital values whose
+rem overlapping triples have prime divisors
+
+use ranges
+use sequences
+use text
+use numbers
+use io
+
+Digits = "0123456789"
+Answer = Digits substring_divisible_sum
+Answer print
+
+
+rem Build prefixes and reject each branch as
+rem soon as its newest three digits fail.
+fun substring_divisible_sum Digits
+  Divisors = array 2 3 5 7 11 13 17
+  Total = 0
+  "" search
+  return Total
+
+  fun search Prefix
+    Length = Prefix len
+    if Length equal Digits len
+      Total += Prefix integer
+      return 0
+    end
+
+    for Digit in Digits
+      if not (Digit in Prefix)
+        Next = Prefix + Digit
+        Valid = Next Divisors valid_suffix
+        if Valid
+          Next search
+        end
+      end
+    end
+    return 0
+  end
+end
+
+
+rem Check the newest required three-digit
+rem divisibility rule of one prefix.
+fun valid_suffix Prefix Divisors
+  Length = Prefix len
+  if Length equal 1 and Prefix equal "0"
+    return false
+  end
+  if Length less 4
+    return true
+  end
+
+  Start = Length - 3
+  Text = Prefix from Start until Length
+  Value = Text integer
+  Divisor = Divisors (Length - 4)
+  return Value multiple by Divisor
+end
