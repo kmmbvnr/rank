@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "016_permutationrounds"
+  P = array 5 3 2 6 4 1 8 7
+  P rounds equal 4
+end
+
+test "identity needs one round"
+  use "016_permutationrounds"
+  P = array 1 2 3 4 5
+  P rounds equal 1
+end
+
+test "one cycle uses its length"
+  use "016_permutationrounds"
+  P = array 2 3 4 5 1
+  P rounds equal 5
+end
+
+test "cycle prime powers form an lcm"
+  use "016_permutationrounds"
+  P = array 2 3 4 1 6 7 8 9 10 5
+  P rounds equal 12
+end

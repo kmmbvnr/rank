@@ -1,0 +1,50 @@
+rem CSES 3398: Permutation Rounds
+rem https://cses.fi/problemset/task/3398
+
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+P = stdin .integer N array
+P rounds print
+
+
+rem Build the LCM of all cycle lengths.
+fun rounds P
+  N = P len
+  Powers = array shape (N + 1) pad 0
+  Visited = array shape N pad false
+
+  for Start in 0 until N
+    if not (Visited Start)
+      Length = 0
+      Node = Start
+
+      for not (Visited Node)
+        Visited Node = true
+        Node = P Node - 1
+        Length += 1
+      end
+
+      Factors = Length factors array
+      for Prime in Factors unique
+        Mask = Factors equal Prime
+        Power = Mask count
+        if Power greater Powers Prime
+          Powers Prime = Power
+        end
+      end
+    end
+  end
+
+  Mod = 1000000007
+  Answer = 1
+  for Prime in primes to N
+    Power = Powers Prime
+    Part = Prime Power Mod powmod
+    Answer = Answer * Part % Mod
+  end
+  return Answer
+end
