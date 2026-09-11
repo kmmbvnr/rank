@@ -1,0 +1,16 @@
+rem Deep-ML 54: Simple RNN
+rem https://www.deep-ml.com/problems/54
+
+use linalg
+use numbers
+
+fun rnn_forward Inputs H Wx Wh Bias
+  for X in Inputs
+    FromInput = Wx X matmul
+    FromHidden = Wh H matmul
+    H = FromInput + FromHidden + Bias
+    H = H tanh
+  end
+
+  return H round 4
+end
