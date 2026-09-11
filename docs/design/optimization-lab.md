@@ -544,3 +544,44 @@ Decision: retain the first, smallest prototype only as a worktree experiment.
 It is not ready for acceptance or main. Investigate the suspended-operand path
 and repeat the bounded-sum comparison before accepting the numerical gains.
 No short-vector cache specialization was restored.
+
+## 11. Operand collection and unary extrema: bounded-sum recovery
+
+The mixed expression `Prefix r - Starts min` exposed another unconditional
+task boundary. Unary extrema collected their source operands through a generator
+and then suspended around ordinary synchronous reads and native calls.
+
+`mapExecution` now collects completed operands directly. At the first suspended
+operand it returns a continuation carrying the already collected prefix; later
+operands are evaluated in order without replay. Unary extrema compose collection,
+source application and invocation using the same `flatMapResult` helper as
+arithmetic. They still resolve `min`/`max` after the source, check the function,
+and suspend for Rank-defined replacements. There is no multiset-specific path.
+
+Changing operand collection alone gave 902.5 ms for bounded-sum and did not fix
+the earlier 815 to 925 ms regression. With unary extrema composed too, a cold
+ABBA comparison at N=200,000 was 865.8 ms before, 631.8 and 636.3 after, and
+821.3 before. A subsequent six-task run gave 632.9 ms. This removes the measured
+regression and improves on the pre-composition runtime by about 23–27% in these
+pairs. [Bounded-sum comparisons](../../benchmarks/baselines/2026-09-11-composed-extrema-bounded.json).
+
+The full numerical repeat preserved the larger gains: matmul at 64 square
+329.7 to 145.2 ms warm, k-means at 2,048 points 42.1 to 33.4. Controls were
+Euler 11.2 to 11.0 ms, matvec 18.6 to 19.2, row mean 4.2 to 4.2 and column
+mean 4.1 to 4.3. Gradient 81.0 to 63.9 includes the earlier transpose change.
+Matmul peak RSS was 369.6 to 271.0 MiB, a smaller decrease than the prior run;
+do not promise a fixed memory reduction.
+[Full numerical report](../../benchmarks/baselines/2026-09-11-composed-extrema-full.json).
+
+All 473 JS tests passed. Added tests cover synchronous and empty collection,
+the first suspension with no replay, cancellation before later operands, and
+re-resolving a shadowed extremum on the same prepared expression. Existing
+recursion, resource and diagnostic tests also passed. All six N=200,000 judge
+checks passed; their single cold times are smoke checks, not speedup estimates
+for every CSES task.
+[Judge report](../../benchmarks/baselines/2026-09-11-composed-extrema-judge.json).
+
+All 164 demo files passed after the final change. Decision: keep the combined
+composition change. It retains the large numerical gain and removes the
+bounded-sum regression through shared evaluation machinery. This completes the
+acceptance check left open in section 10; named snapshot costs remain separate.

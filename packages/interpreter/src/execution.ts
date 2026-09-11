@@ -47,13 +47,23 @@ export function* emit(value: RankValue): Execution<void> {
     yield { value };
 }
 
-export function* mapExecution<T, R>(
+export function mapExecution<T, R>(
     values: readonly T[],
     operation: (value: T) => Evaluation<R>,
-): Execution<R[]> {
+): Evaluation<R[]> {
     const results: R[] = [];
-    for (const value of values) results.push(yield* resume(operation(value)));
-    return results;
+    for (let index = 0; index < values.length; index++) {
+        const task = operation(values[index]);
+        if ('done' in task) results.push(task.value);
+        else return (function* (): Execution<R[]> {
+            results.push(yield* resume(task));
+            for (index++; index < values.length; index++) {
+                results.push(yield* resume(operation(values[index])));
+            }
+            return results;
+        })();
+    }
+    return completed(results);
 }
 
 interface Frame {

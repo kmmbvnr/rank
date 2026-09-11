@@ -1476,28 +1476,28 @@ export class Interpreter {
             }
             const extreme = explicitExtremeApplication(parts);
             if (extreme) {
+                if ('reduction' in extreme) return () => flatMapResult(mapExecution(
+                    extreme.source, part => interpreter.evaluateTask(part),
+                ), sourceParts => {
+                    if (sourceParts.length > 1 && !canApplySelectors(sourceParts)) {
+                        throw new RankError(`binary ${extreme.reduction} uses infix order: A ${extreme.reduction} B`);
+                    }
+                    const source = sourceParts.length === 1
+                        ? completed(sourceParts[0]) : interpreter.apply(sourceParts);
+                    return flatMapResult(source, result => {
+                        const fn = interpreter.resolve(extreme.reduction);
+                        if (!isNativeFunction(fn)) throw new RankError(`unknown operation: ${extreme.reduction}`);
+                        return interpreter.invoke(fn, [result]);
+                    });
+                });
                 return function* (): Execution<RankValue> {
                     const sourceParts = yield* resume(mapExecution(
                         extreme.source,
                         part => interpreter.evaluateTask(part),
                     ));
-                    if ('reduction' in extreme
-                        && sourceParts.length > 1
-                        && !canApplySelectors(sourceParts)) {
-                        throw new RankError(
-                            `binary ${extreme.reduction} uses infix order: A ${extreme.reduction} B`,
-                        );
-                    }
                     let result = sourceParts.length === 1
                         ? sourceParts[0]
                         : yield* resume(interpreter.apply(sourceParts));
-                    if ('reduction' in extreme) {
-                        const fn = interpreter.resolve(extreme.reduction);
-                        if (!isNativeFunction(fn)) {
-                            throw new RankError(`unknown operation: ${extreme.reduction}`);
-                        }
-                        return yield* resume(interpreter.invoke(fn, [result]));
-                    }
                     for (const step of extreme.steps) {
                         const right = yield* resume(interpreter.evaluateTask(step.right));
                         result = interpreter.evaluateBinary(step.operation, result, right);

@@ -1,9 +1,54 @@
 import { describe, expect, it } from 'vitest';
-import { completed, emit, ExecutionStack, flatMapResult, runExecution, type Evaluation, type Execution } from '../src/execution.js';
+import { completed, emit, ExecutionStack, flatMapResult, mapExecution, runExecution, type Evaluation, type Execution } from '../src/execution.js';
 import { Interpreter, parse, type RankValue } from '../src/index.js';
 import { isExpressionStatement, type Expression } from 'rank-language';
 
 describe('evaluation composition', () => {
+    it('collects completed operands without a task and resumes at the first pending operand', () => {
+        expect(mapExecution([1, 2], value => completed(value * 2))).toEqual(completed([2, 4]));
+        expect(mapExecution([], () => { throw new Error('empty'); })).toEqual(completed([]));
+        const seen: number[] = [];
+        const task = mapExecution([1, 2, 3], value => {
+            seen.push(value);
+            return value === 2
+                ? (function* (): Execution<number> { yield* emit(9n); return value * 2; })()
+                : completed(value * 2);
+        });
+        expect(seen).toEqual([1, 2]);
+        const stack = new ExecutionStack(task);
+        expect(stack.next()).toEqual({ done: false, value: 9n });
+        expect(seen).toEqual([1, 2]);
+        expect(stack.next()).toEqual({ done: true, value: [2, 4, 6] });
+        expect(seen).toEqual([1, 2, 3]);
+    });
+
+    it('cancels operand collection without reading later operands', () => {
+        const seen: number[] = [];
+        let closed = false;
+        const stack = new ExecutionStack(mapExecution([1, 2, 3], value => {
+            seen.push(value);
+            return value === 2 ? (function* (): Execution<number> {
+                try { yield* emit(9n); return value; } finally { closed = true; }
+            })() : completed(value);
+        }));
+        stack.next();
+        stack.return([]);
+        expect(seen).toEqual([1, 2]);
+        expect(closed).toBe(true);
+    });
+
+    it('keeps builtin extrema synchronous but rechecks shadowed functions', () => {
+        const runtime = new Interpreter();
+        runtime.execute('use numbers\nA = array 3 7\nfun replacement X\n return X max + 10\nend');
+        const statement = parse('A min').statements[0];
+        if (!isExpressionStatement(statement)) throw new Error('expected expression');
+        const evaluator = runtime as unknown as { evaluateTask(expression: Expression): Evaluation<RankValue> };
+        expect(evaluator.evaluateTask(statement.value)).toEqual(completed(3n));
+        runtime.variables.set('min', runtime.variables.get('replacement')!);
+        expect(runExecution(evaluator.evaluateTask(statement.value))).toBe(17n);
+        runtime.dispose();
+    });
+
     it('keeps arithmetic over completed selectors on the synchronous path', () => {
         const runtime = new Interpreter();
         runtime.execute('A = array 2 3\nB = array 4 5');

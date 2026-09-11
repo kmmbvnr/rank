@@ -1,0 +1,71 @@
+{
+  "note": "Candidate: b39ce61 plus synchronous operand collection and composed unary extrema. First baseline in this four-run ABBA sequence was 865.756666 ms; full remaining reports follow.",
+  "reports": [
+    {
+      "metadata": {
+        "date": "2026-09-11T08:38:35.064Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "platform": "darwin",
+        "arch": "arm64",
+        "harnessRevision": "b39ce613d5045978e7a59aa4677e8df2f84f11b3",
+        "runtimeRevision": "b39ce613d5045978e7a59aa4677e8df2f84f11b3",
+        "checkout": "/private/tmp/rank-demo-roadmap",
+        "size": 200000,
+        "timeoutMs": 30000,
+        "timing": "one cold CLI process per case, including startup, parsing, input and output"
+      },
+      "results": [
+        {
+          "name": "bounded-sum",
+          "ms": 631.757583,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "date": "2026-09-11T08:38:35.798Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "platform": "darwin",
+        "arch": "arm64",
+        "harnessRevision": "b39ce613d5045978e7a59aa4677e8df2f84f11b3",
+        "runtimeRevision": "b39ce613d5045978e7a59aa4677e8df2f84f11b3",
+        "checkout": "/private/tmp/rank-demo-roadmap",
+        "size": 200000,
+        "timeoutMs": 30000,
+        "timing": "one cold CLI process per case, including startup, parsing, input and output"
+      },
+      "results": [
+        {
+          "name": "bounded-sum",
+          "ms": 636.347334,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "date": "2026-09-11T08:38:36.536Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "platform": "darwin",
+        "arch": "arm64",
+        "harnessRevision": "b39ce613d5045978e7a59aa4677e8df2f84f11b3",
+        "runtimeRevision": "dffc395bb0f56af7d8a54fa71a96d54a043903e6",
+        "checkout": "/private/tmp/rank-before-transpose",
+        "size": 200000,
+        "timeoutMs": 30000,
+        "timing": "one cold CLI process per case, including startup, parsing, input and output"
+      },
+      "results": [
+        {
+          "name": "bounded-sum",
+          "ms": 821.29,
+          "passed": true
+        }
+      ]
+    }
+  ]
+}
