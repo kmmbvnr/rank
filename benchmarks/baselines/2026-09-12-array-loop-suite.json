@@ -1,0 +1,4309 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "arrayloop",
+  "counters": false,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 27989.304208,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/001_floors_test.ra",
+          "ms": 67.40629100000001,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d69153b1216e77d933ea902a88977262b6a8677af14febb6ee2f572990d69896"
+        },
+        {
+          "name": "demos/aoc/2015/002_wrapping_test.ra",
+          "ms": 10.452665999999994,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "19ffd9dce8559e5930b5834e613b7f01c8a5d5cf3ab9f5de81da5671fb6ab80e"
+        },
+        {
+          "name": "demos/aoc/2015/003_houses_test.ra",
+          "ms": 14.95191699999998,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "c2c82f67abb7b6645c3e136df514d8e23c3a3c4ef8bfdb73060edd8502399071"
+        },
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2601.6469159999997,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/005_nice_test.ra",
+          "ms": 20.402750000000196,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "1a02790ac7208e6e75a0cc62dd23c7ba7d3d5ef9361f8564c784ad10f3b6d1fc"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4173.839458,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/007_circuit_test.ra",
+          "ms": 42.21379200000047,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "bac8f600bb01f25925c35d8b32e4b446beac7fdc7287a99a6fa20758e195f6ff"
+        },
+        {
+          "name": "demos/aoc/2015/008_matchsticks_test.ra",
+          "ms": 5.535625000000437,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ec4584dd3620ca5ac57fb6f60323772fa41649f335d7558effb360bd1cbf5181"
+        },
+        {
+          "name": "demos/aoc/2015/009_routes_test.ra",
+          "ms": 7.425124999999753,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9ded61492a49d01fb40bc7cdc37ef8c22a6bb823fc599f39dde038deac12e630"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1208.9192919999996,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/aoc/2015/011_password_test.ra",
+          "ms": 269.7854590000006,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "303bf6d44dd047fdc18d598f2dd404c02e843c705fe06538348ea70c7ba5915c"
+        },
+        {
+          "name": "demos/aoc/2015/012_jsonsum_test.ra",
+          "ms": 10.26549999999952,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5713e683657df2fcc3e2113676714572b5486a2f646fb1f7a39d61d34bda69ee"
+        },
+        {
+          "name": "demos/aoc/2015/013_dinner_test.ra",
+          "ms": 10.248125000000073,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "bbd82d952700125a067d3f9ab18eff111060d92e9c7b36371f516d5a7317a3d4"
+        },
+        {
+          "name": "demos/aoc/2015/014_reindeer_test.ra",
+          "ms": 31.298791999999594,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "4f1764524baba92302ee31780e56fbd2e65a3e2f39ad6f50d2eb2e7c5a39a560"
+        },
+        {
+          "name": "demos/aoc/2015/015_cookie_test.ra",
+          "ms": 17.0278330000001,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f45f079b1ee85386930fbb31ebddb94a0c8e4044d10fab842f5a2ec8b6624d41"
+        },
+        {
+          "name": "demos/aoc/2015/016_sue_test.ra",
+          "ms": 8.330459000000701,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f24de06b71d3ef9b91ee3d430ec8b73d054f76da0b37c32488c0533086dbca64"
+        },
+        {
+          "name": "demos/aoc/2015/017_containers_test.ra",
+          "ms": 6.271291999999448,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "61f8593698705bb607e8b45c334f33de78be08e4ec800e92d778ab1449c8bdd8"
+        },
+        {
+          "name": "demos/aoc/2015/018_gif_test.ra",
+          "ms": 34.78924999999981,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "e9d048ff45ca104f4addb527c4a7da40c67235ca3886309620b02c6615c2d953"
+        },
+        {
+          "name": "demos/aoc/2015/019_medicine_test.ra",
+          "ms": 16.290666000000783,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0c8d3d541fac6e002afec9374cf7b94e54dd011152057653e6f8227481cba0bb"
+        },
+        {
+          "name": "demos/aoc/2015/020_presents_test.ra",
+          "ms": 5.348165999999765,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "581b9afe71b54ba2d79e8b83ff0b0bea8a06efbb4b4a70308d06ef230d82e1c6"
+        },
+        {
+          "name": "demos/aoc/2015/021_rpg_test.ra",
+          "ms": 27.382834000000003,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "140ac24723534885d218fbb0a0ffbec5aae3a7ad87b63960e88ad9aa6e1ab860"
+        },
+        {
+          "name": "demos/aoc/2015/022_wizard_test.ra",
+          "ms": 21.408916999998837,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "c9ad40debb3821c3f167fe3864b3d64cb87f0490135d78cbfe2336dc711fbebb"
+        },
+        {
+          "name": "demos/aoc/2015/023_turing_test.ra",
+          "ms": 11.383332999999766,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2b378d2ce81a580815745eb6d855aafcce77187fe1046983ff787e4402a7b2ca"
+        },
+        {
+          "name": "demos/aoc/2015/024_balance_test.ra",
+          "ms": 18.07012500000019,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0d8f82e2114f34abe4108eda411fc57cd5fbaed45f88bd3ce320cd1ffbeb3400"
+        },
+        {
+          "name": "demos/aoc/2015/025_snow_test.ra",
+          "ms": 2.1425000000017462,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9dbadea5a7dc328710b425f46ebe6c53d359a4358e2f2c0d572e38932c56b2bf"
+        },
+        {
+          "name": "demos/cses/dynamic/001_dice_test.ra",
+          "ms": 3.7987500000017462,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6a3dfd35a9964d05a9956f879cf1f610962febc8c378c15b44d55107331ff0e3"
+        },
+        {
+          "name": "demos/cses/dynamic/002_mincoins_test.ra",
+          "ms": 4.757625000000189,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "9e9c288c4ded0fb88a292ef96057f90b90efb738fc2c0a11a37b7f7c8428fefd"
+        },
+        {
+          "name": "demos/cses/dynamic/003_coincomb1_test.ra",
+          "ms": 5.1646249999994325,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4f5939ad69a7b677910f9ecf96fadd1e4527d42723159da7837716d8987f9ccf"
+        },
+        {
+          "name": "demos/cses/dynamic/004_coincomb2_test.ra",
+          "ms": 6.025292000000263,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "43512fdd4d0e4655fcfb3045cce71c1b1917cdbcaa339651cc391ac5b0635af9"
+        },
+        {
+          "name": "demos/cses/dynamic/005_removedigits_test.ra",
+          "ms": 4.699875000000247,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "588b4707ba94a32dd55cd6760128fd9e5e0608af9f2da2e53a57d9b95b8fa793"
+        },
+        {
+          "name": "demos/cses/dynamic/006_gridpaths_test.ra",
+          "ms": 5.796124999998938,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "aeec8288c28724d431f0e4bb24aeca44fb86dc81fa09a2f715670ed38d81ae65"
+        },
+        {
+          "name": "demos/cses/dynamic/007_bookshop_test.ra",
+          "ms": 4.395499999998719,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dc4f1772d301daaef1387d04f87b19b24b6d8b8e06266b6cf40a4964d2bb0e3f"
+        },
+        {
+          "name": "demos/cses/dynamic/008_arraydesc_test.ra",
+          "ms": 10.279124999999112,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e87a5fddb1d1782af1dc61d28482a9690a9d733e0d73d1f05d38f38d29f523ce"
+        },
+        {
+          "name": "demos/cses/dynamic/009_towers_test.ra",
+          "ms": 6.603791999999885,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "833a95f85a49a5b44204a8b046ed674bc70f202501e744be4ec193b9698e1c91"
+        },
+        {
+          "name": "demos/cses/dynamic/010_editdistance_test.ra",
+          "ms": 12.000584000001254,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5b0c4116b0ad802ca58ddf74a80ff50aab10490808021ef00f26dc7cd790508b"
+        },
+        {
+          "name": "demos/cses/dynamic/011_lcs_test.ra",
+          "ms": 15.676665999999386,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fb6c3b16d1df3a5ed8f325d3a93a9c7abcb3d659e56f49803463fa19328f9ca1"
+        },
+        {
+          "name": "demos/cses/dynamic/012_rectcut_test.ra",
+          "ms": 10.578542000001107,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dea01f0228ef7e5557efd8c586d731d7f125f81b79f7cf5a1127477af7d89877"
+        },
+        {
+          "name": "demos/cses/dynamic/013_minpath_test.ra",
+          "ms": 13.407916000000114,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "bbd29e8a8c0ae3ea68dddcda03f1c7a043d5612cb08ede83c5310bf3166011c0"
+        },
+        {
+          "name": "demos/cses/dynamic/014_moneysums_test.ra",
+          "ms": 3.960957999999664,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "026720dda13f2b6e4d57ec88b712eb6a2bf66dbca9cc3f81545d7affdf102d2c"
+        },
+        {
+          "name": "demos/cses/dynamic/015_removal_test.ra",
+          "ms": 8.552207999999155,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "709fce22aa0b12a3aebaaecba5497abfea1a7b90b64c8c38f46a628b205e5922"
+        },
+        {
+          "name": "demos/cses/dynamic/016_twosets_test.ra",
+          "ms": 5.209708000000319,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "abc698d1224c17e0c446075f573189109485bdd6d8cd4f2377645bd247309165"
+        },
+        {
+          "name": "demos/cses/dynamic/017_mountain_test.ra",
+          "ms": 14.113417000000481,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "529c9518c13ffcd87d7fdde57bf66a8c9f03656ca83c952d60c4f8df23cea13f"
+        },
+        {
+          "name": "demos/cses/dynamic/018_increasing_test.ra",
+          "ms": 3.177625000000262,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "33e48bf11f1eafa28fafe1284338b7aff17b9523e654bf54400c52445316f2f0"
+        },
+        {
+          "name": "demos/cses/dynamic/019_projects_test.ra",
+          "ms": 11.337832999999591,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "51f926332cdeee884a4c07ac0cf7ca0d918a6d3f40b387924618976847ccbddb"
+        },
+        {
+          "name": "demos/cses/dynamic/020_elevator_test.ra",
+          "ms": 7.903792000000976,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c981a3787c76299fb2a747bcb1ce5f6b79b9df8cd315e89faee83e06b589f392"
+        },
+        {
+          "name": "demos/cses/dynamic/021_tilings_test.ra",
+          "ms": 20.143167000000176,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "f3ccbc71571c5c8458d6c0fbcc604021033db07349a589eb7b7b3ba99fa6df69"
+        },
+        {
+          "name": "demos/cses/dynamic/022_countnums_test.ra",
+          "ms": 12.41729099999975,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "0ee5b388681775532be986e9e34d89391ff108abdda09de7c97a5072a33d4eb9"
+        },
+        {
+          "name": "demos/cses/dynamic/023_incsubseq2_test.ra",
+          "ms": 5.101875000000291,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "07fb3cf2b88d42d6a78707472b79676f2b151fd69e49e1093ce556724e1cc59e"
+        },
+        {
+          "name": "demos/cses/graph/001_countrooms_test.ra",
+          "ms": 14.885582999999315,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6dc7c6de6c3a73793b33402235ad08f3ce0dbb38df03b5384c0b306b7836b843"
+        },
+        {
+          "name": "demos/cses/graph/002_labyrinth_test.ra",
+          "ms": 17.85304200000064,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "273dfd28786581bf87cc8abb5696202d6cf1304468d222fca030a8526f6b6cde"
+        },
+        {
+          "name": "demos/cses/graph/003_buildroads_test.ra",
+          "ms": 16.910790999998426,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f186a75c01e5481c82504a527143f990be682b390bdc2decd2dd58abce6ff5f9"
+        },
+        {
+          "name": "demos/cses/graph/004_messageroute_test.ra",
+          "ms": 29.00116699999853,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "057804b456281083f92b83b6cf89db0d6538448fbeeac133b61af96b212b40c7"
+        },
+        {
+          "name": "demos/cses/graph/005_buildteams_test.ra",
+          "ms": 11.655833999999231,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "55a0359f33861a90e880b53a5067900cccedd0bbd5832d2dfe6f65c3785aa584"
+        },
+        {
+          "name": "demos/cses/graph/006_roundtrip_test.ra",
+          "ms": 18.355458,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c006167e5daa9b8b23ca676611ef8c8304af8058dec09c065346ffacdcd6137e"
+        },
+        {
+          "name": "demos/cses/graph/007_monsters_test.ra",
+          "ms": 18.54570799999965,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c1c5088cd202855b6c87bbe2729d85ecb205cffa71ab905aec650f0728e52b18"
+        },
+        {
+          "name": "demos/cses/graph/008_routes1_test.ra",
+          "ms": 9.25262500000099,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "3a2b9b8a1227a1fcbf83efb0197959fe23fdc1c6b7ae85f869d1599524d04b71"
+        },
+        {
+          "name": "demos/cses/graph/009_routes2_test.ra",
+          "ms": 11.095041000000492,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "83d6cba0c1b1b309c3467502bf4729b1ead28ed5278fe8d1137a79f310ad4e40"
+        },
+        {
+          "name": "demos/cses/graph/010_highscore_test.ra",
+          "ms": 9.725875000000087,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c65d31340b9211362521b25b24656d6cea30ad8cae5a5492b99575811db7c94c"
+        },
+        {
+          "name": "demos/cses/graph/011_discount_test.ra",
+          "ms": 9.353832999999213,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d099e123e5874945af2a51bd1cf9e6f2cc987cb6aa4cf7e9915a34568f780158"
+        },
+        {
+          "name": "demos/cses/graph/012_cyclefinding_test.ra",
+          "ms": 7.454499999999825,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "13162ab56ea6f1e887d9981c87f107f1181dd4c6ab9f57395646da3405d9d7a8"
+        },
+        {
+          "name": "demos/cses/graph/013_flightroutes_test.ra",
+          "ms": 8.899332999999388,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4298aa5ccd147f29e525991740bcc6d7620e86ac98721528cff2991162c3a254"
+        },
+        {
+          "name": "demos/cses/graph/014_roundtrip2_test.ra",
+          "ms": 3.0925829999996495,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "431546639072186c777e0f29c62a034a80a9d1adaf22d36b0cefe108db0bfeb8"
+        },
+        {
+          "name": "demos/cses/graph/015_courseschedule_test.ra",
+          "ms": 2.5449159999989206,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "eb805d4a38716312229bb1f33891d30da8d3ce767a79bd2e5989a9363d054cba"
+        },
+        {
+          "name": "demos/cses/graph/016_longestroute_test.ra",
+          "ms": 7.248750000000655,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1d465295a6e941ac00749110f105a4194f545b1cdb6329796028cb4ad78a123f"
+        },
+        {
+          "name": "demos/cses/graph/017_gameroutes_test.ra",
+          "ms": 3.099625000000742,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a00628fc167b8b999a11e4832fdf9a0ad04190c3f1f3b70c1148b8c4cc051046"
+        },
+        {
+          "name": "demos/cses/graph/018_investigation_test.ra",
+          "ms": 13.319167000001471,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "86b7b5022e5c02e6fa3e710efb5b6d145d824512366d12c72dddbe16f17511b7"
+        },
+        {
+          "name": "demos/cses/graph/019_planetsqueries1_test.ra",
+          "ms": 2.830374999999549,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c02d9f724dd3f759a50edcfe5b2ef8aada3c2801a7d4c30d51292bf38b4b21f9"
+        },
+        {
+          "name": "demos/cses/graph/020_planetsqueries2_test.ra",
+          "ms": 9.885458999999173,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "93338561a2567db7a742b9d92aedeef9b2ea272ed66a931b49a7404cb29c0645"
+        },
+        {
+          "name": "demos/cses/graph/021_planetscycles_test.ra",
+          "ms": 1.3973750000004657,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "206e7815831e0b44501397bbb5a86c2b06d21efc1a853028b1cf250fcc705029"
+        },
+        {
+          "name": "demos/cses/graph/022_roadreparation_test.ra",
+          "ms": 2.4404169999997976,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4d2f939c1e5bc7ecddf5374283c44da70ec630cef8f0b2c5d1d16b5c356ea426"
+        },
+        {
+          "name": "demos/cses/graph/023_roadconstruction_test.ra",
+          "ms": 5.184291999999914,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "8b6e309fb43053aceee2d088fd5e4028ac018cea560987131daebda9c26ccfd4"
+        },
+        {
+          "name": "demos/cses/graph/024_routescheck_test.ra",
+          "ms": 8.548458999999639,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c20f8e0b061e5d1febeda844f9e02949a2bb4a00a5439bf162f2ef930fa894c3"
+        },
+        {
+          "name": "demos/cses/graph/025_kingdoms_test.ra",
+          "ms": 3.5319169999984297,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e988a2483567700f7482bcaabf35c3174c3c42b474008a575792881330c7de2"
+        },
+        {
+          "name": "demos/cses/graph/026_giantpizza_test.ra",
+          "ms": 17.046542000000045,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "7c0a56d0abac39e6900c6a35ca0d0f78c683b0b02db3770225edc2fad7114341"
+        },
+        {
+          "name": "demos/cses/graph/027_coincollector_test.ra",
+          "ms": 4.9652920000007725,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "667a497e9e36c3d4f6f8ed0c7f95dec833cee08b527df6a9a58d67ea3264cacc"
+        },
+        {
+          "name": "demos/cses/graph/028_maildelivery_test.ra",
+          "ms": 3.6856669999997393,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "02b8c60c43ad58774f6755e7cf6e5efca79a39dbe33471f0db6dce710da50b1b"
+        },
+        {
+          "name": "demos/cses/graph/029_debruijn_test.ra",
+          "ms": 3.909625000000233,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "83ec5465b7784bc7d7d41c8bd4c6d4411bd568da87d63073889aea87d5d0e5d9"
+        },
+        {
+          "name": "demos/cses/graph/030_teleporterspath_test.ra",
+          "ms": 4.959541999998692,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1c0ac5f7a97ceec15fb7c2395fc9b77e69e6a63da4b2d506be22aead9b0b8f54"
+        },
+        {
+          "name": "demos/cses/graph/031_hamiltonian_test.ra",
+          "ms": 6.737499999999272,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "22221963e34aee41266c3fbfdc2504a50c56f61e2a7678b0f872171d2b5490af"
+        },
+        {
+          "name": "demos/cses/graph/032_knighttour_test.ra",
+          "ms": 326.9720839999991,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6d941972d1d839ce3d3cbe158ba169915e6dd759dbe598173d8be2c45d38526c"
+        },
+        {
+          "name": "demos/cses/graph/033_downloadspeed_test.ra",
+          "ms": 3.2824169999985315,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "51c14218a0a7eb0cce4f3152cdb4fb60c350521fa3e85f4cf03478daa2820f74"
+        },
+        {
+          "name": "demos/cses/graph/034_policechase_test.ra",
+          "ms": 6.383083999999144,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "00f304826878b31aceaeeb3b0110a6423757de860bfbac9d94e82f6dd8a39fda"
+        },
+        {
+          "name": "demos/cses/graph/035_schooldance_test.ra",
+          "ms": 5.026917000001049,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d604746456874ffa8b294aa89bf3f4e46f491c91fa2d02a86865d2bac1bf4d1a"
+        },
+        {
+          "name": "demos/cses/graph/036_distinctroutes_test.ra",
+          "ms": 9.133791000000201,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "85480494db0421af6b15647b2cae9931de87367b7ccff26714d40c4fc99eb672"
+        },
+        {
+          "name": "demos/cses/intro/001_weirdalgo_test.ra",
+          "ms": 2.433666999999332,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2f5ed3b85bae36531f927ddfb820b10bc325ba9e7573bf0c93baad75df4fbfc8"
+        },
+        {
+          "name": "demos/cses/intro/002_misnum_test.ra",
+          "ms": 2.4778750000004948,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "cd2694076344c4018a69322ac0eebff36388f844572d06e39958efc4368202d2"
+        },
+        {
+          "name": "demos/cses/intro/003_repeat_test.ra",
+          "ms": 1.4984170000006998,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b97259d9e3c59d2d2911d7ce59e1a342f4c89d79d7da368080a953f0e1e98074"
+        },
+        {
+          "name": "demos/cses/intro/004_increase_test.ra",
+          "ms": 2.2633329999989655,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e10b6d66dcc53e5ff8610c06cd017bcd8726ac4fa1dd41e2da6983a74843f53c"
+        },
+        {
+          "name": "demos/cses/intro/005_permute_test.ra",
+          "ms": 3.2152919999989535,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "105c5c9e51bbf063ed3b7cc4840ff026a67a54782a6488e9d7ecb387f22a4e39"
+        },
+        {
+          "name": "demos/cses/intro/006_spiral_test.ra",
+          "ms": 2.3192089999993186,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "abde799a9ad631ba9c784cc8a837931e1fb71cbd9fdbfe02560a04908f61b5f9"
+        },
+        {
+          "name": "demos/cses/intro/007_knights_test.ra",
+          "ms": 1.414375000000291,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "bdd49e22193975f9ab73fe68e29780adf1976c7414391fff80f1221c8dcf4157"
+        },
+        {
+          "name": "demos/cses/intro/008_sets_test.ra",
+          "ms": 12.757583000000523,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ce4f18c5cbc800c7e6490e9fbdf660f75d2d84a745d24853bdd83e613a0c9fc8"
+        },
+        {
+          "name": "demos/cses/intro/009_bits_test.ra",
+          "ms": 2.6022920000013983,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5b5d6515e50fe0673e0b3c96edf8fb65d2401548d70d5e45e29dd3b29ffcea74"
+        },
+        {
+          "name": "demos/cses/intro/010_zeros_test.ra",
+          "ms": 1.2759590000005119,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "be9352d22ffbf879db0b4477e2dd89b77109b6e2769df00910a9c198de5b90ee"
+        },
+        {
+          "name": "demos/cses/intro/011_coins_test.ra",
+          "ms": 2.8117920000004233,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "651b91789e14502615357cc69d8eb1ceb43987622c765b4730997e798291bdc1"
+        },
+        {
+          "name": "demos/cses/intro/012_palindrome_test.ra",
+          "ms": 2.9933750000000146,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e7d7152be2bfbd9901826621dbb584df376ca9098b3eeeb1b7cce6d64a5dd9e9"
+        },
+        {
+          "name": "demos/cses/intro/013_gray_test.ra",
+          "ms": 1.942709000000832,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "21b460e4baf39b9dc39c4a382a4a47280be7f6f2f7e205e9887da60229affc24"
+        },
+        {
+          "name": "demos/cses/intro/014_hanoi_test.ra",
+          "ms": 3.5790840000008757,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "3fd9e0ba9afd7e7118af5f5fa0760f4a30f429c8668c51422dea77c975fdc14d"
+        },
+        {
+          "name": "demos/cses/intro/015_strings_test.ra",
+          "ms": 1.2809159999997064,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "fdcb0b7b2ecaf7707620dd107c267c91778ff67bc443c84af89a3df208d7fd00"
+        },
+        {
+          "name": "demos/cses/intro/016_apples_test.ra",
+          "ms": 3.421666999998706,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "123c1c59dd5d051f9d71e926a9c3b1c8f038c3e538f7542814adb20f7d74a4fa"
+        },
+        {
+          "name": "demos/cses/intro/017_queens_test.ra",
+          "ms": 89.4116670000003,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ddf11c139b3f728f5f3f85fb88967c12b1176394b3f1c3806868b0cef8eee800"
+        },
+        {
+          "name": "demos/cses/intro/018_raab_test.ra",
+          "ms": 14.463292000000365,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "19acafeb676bbb108188fe9f380305aac506e0fa2c77ffa8a0bab698f17cc579"
+        },
+        {
+          "name": "demos/cses/intro/019_mexgrid_test.ra",
+          "ms": 1.1020829999997659,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "80dfc971e51414a6d3cb82b81a100499fff221e70263dea258fd7e14f8599a86"
+        },
+        {
+          "name": "demos/cses/intro/020_knight_test.ra",
+          "ms": 5.576082999999926,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "03e4c05dcca8fa2a4c6d6e989e54293fbc4c32b7bf8a61e1bbe4a7f9f5b2e70e"
+        },
+        {
+          "name": "demos/cses/intro/021_color_test.ra",
+          "ms": 5.785125000000335,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "1a4446c7aec9e7adc00ca99df22a7eda5fab639f13381e008985097c3f291884"
+        },
+        {
+          "name": "demos/cses/intro/022_digits_test.ra",
+          "ms": 4.335833999999522,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "e7ec14a6d04c26ca7aab883471a2879f512ab86813af78639df67f36cfff5507"
+        },
+        {
+          "name": "demos/cses/intro/023_reorder_test.ra",
+          "ms": 4.88274999999885,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "b32e3085830d9c0da7b6e207c42394fe027353c40150f9d65155534929ddfca5"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1830.7172919999994,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        },
+        {
+          "name": "demos/cses/math/001_josephus_test.ra",
+          "ms": 7.338207999999213,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "57a8135cab8cfe267ccc544534f8bb1d4a36dccc3f669c7c89bf4dc1480b5f0c"
+        },
+        {
+          "name": "demos/cses/math/002_exponentiation_test.ra",
+          "ms": 1.2671249999984866,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5d66cf1a3690eddb8e8db6478044c2e1e8c1e32064cf0f0d10137f71d9d601bf"
+        },
+        {
+          "name": "demos/cses/math/003_exponentiation2_test.ra",
+          "ms": 1.7126250000001164,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5a3fbeeddf559fa217d7bf13bf35e2cbafa178d3282a0cfa0691001e285459f7"
+        },
+        {
+          "name": "demos/cses/math/004_countdivisors_test.ra",
+          "ms": 1.9095830000005662,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2fbe2c6c8934556a8ae2e602b708593b579c59b999f746e5fdcb7e5693eb0ca8"
+        },
+        {
+          "name": "demos/cses/math/005_commondivisors_test.ra",
+          "ms": 11.08783399999993,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2636294590cf05677120ea8a41d8796e01e6c081a712bd3346889a7ce8c884e1"
+        },
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 306.86712500000067,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/007_divisoranalysis_test.ra",
+          "ms": 7.93279099999927,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d38f57077f6cf5700ddec5d426bb98aeeaee8378d49c85a1a2560181f498aa31"
+        },
+        {
+          "name": "demos/cses/math/008_primemultiples_test.ra",
+          "ms": 5.139291999999841,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "890ed8bd8afea513c51ecd7a2d31923a8f52805d5087aadcf358547503d428dd"
+        },
+        {
+          "name": "demos/cses/math/009_coprimepairs_test.ra",
+          "ms": 4.9832079999996495,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "29baf5c9edc39f7c4e30d1f45b74baeccce28d00a31d23c5d466ae9e22334b77"
+        },
+        {
+          "name": "demos/cses/math/010_nextprime_test.ra",
+          "ms": 34.06916600000113,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c0f0fefaa870c21dbfdf35c1bc23365bd5ed0002c731c9f39dd4056146a83dcf"
+        },
+        {
+          "name": "demos/cses/math/011_binomials_test.ra",
+          "ms": 122.15695899999992,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b1b5a6a8ee1a5156f7f32310863ef7f70fc169920bdd907eb57922bc4cfb0278"
+        },
+        {
+          "name": "demos/cses/math/012_creatingstrings2_test.ra",
+          "ms": 6.204917000000933,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "579de0cd55ba33c4b4c2f3dd92b67af707019369e074958f68c890dc1e32e119"
+        },
+        {
+          "name": "demos/cses/math/013_distributingapples_test.ra",
+          "ms": 151.73908299999857,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "621bb410bdd3a459debc55d90e932ca8f58236e91e6daa848701c743355a9f87"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 99.11133300000074,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/cses/math/015_permutationorder_test.ra",
+          "ms": 12.25550000000112,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "82af765fdb799e0c27950eb488c8b038bd452d4c7fcb68a5abbefc9ea25c5d75"
+        },
+        {
+          "name": "demos/cses/math/016_permutationrounds_test.ra",
+          "ms": 7.781999999999243,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "480ce9398293f9ba7795c8097b68aa9153532bc82ff89e40996f43a03e6e30a7"
+        },
+        {
+          "name": "demos/cses/math/017_brackets1_test.ra",
+          "ms": 2.3006249999998545,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "211298681d0d1b88b8642f46c97891c1d43ff8888ee106f0a75241d5818f1b5d"
+        },
+        {
+          "name": "demos/cses/math/018_brackets2_test.ra",
+          "ms": 4.007417000000714,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "270c2f92ee8907e944955629c8d8b5b5201dcd50b8da83367baa4892c94a76e2"
+        },
+        {
+          "name": "demos/cses/math/019_countingnecklaces_test.ra",
+          "ms": 2.4379160000007687,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "618509591958c5f7494d84e30257e87d7c5ef5673c5433bbc844ff40c3cc5389"
+        },
+        {
+          "name": "demos/cses/math/020_countinggrids_test.ra",
+          "ms": 3.220792000000074,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1e998150e2ba4f4693d55a4942d855f6fe505f243578374f2e23dd12d46bf7fa"
+        },
+        {
+          "name": "demos/cses/math/021_fibonacci_test.ra",
+          "ms": 4.420041999999739,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "799c4c341feded6ddde4d13a1e0bb41f4930e3c8fee65b3c7826daa31efb9e00"
+        },
+        {
+          "name": "demos/cses/math/022_throwingdice_test.ra",
+          "ms": 9.315625000001091,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b8075b9b48e464d67116406cfd9fe88d5313f24b0ee0378ee6101048ac6422e1"
+        },
+        {
+          "name": "demos/cses/math/023_graphpaths1_test.ra",
+          "ms": 4.158833000001323,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "34317b02a669ec602c6ae76617ddf2f3a268c1dc089a6c9233733b69fd35f0cd"
+        },
+        {
+          "name": "demos/cses/math/024_graphpaths2_test.ra",
+          "ms": 6.656834000001254,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1b66c37cf158e354a5c22040d228e74480957803ebbf433f80cc7918c32eb9ea"
+        },
+        {
+          "name": "demos/cses/math/025_linearequations_test.ra",
+          "ms": 9.063125000000582,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6dee9bb39b1e79d1b1e06635ee6ecf919c2a8898df3c4187cffa7d9b636495c0"
+        },
+        {
+          "name": "demos/cses/math/026_foursquares_test.ra",
+          "ms": 12.68958399999974,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "20bb789ae46e49a9269812f9f2c82627716c38e3eb0d77cf7ca05e7e13b23358"
+        },
+        {
+          "name": "demos/cses/math/027_trianglesums_test.ra",
+          "ms": 4.114584000000832,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c86363c4e592378cc5e657092f0f741ced872af416457263c790614d5a05b420"
+        },
+        {
+          "name": "demos/cses/math/028_diceprobability_test.ra",
+          "ms": 6.2809589999997115,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f73e0d19b69da1ed74b263a5eef526975fb2c600ea13b2add113e20fd045290a"
+        },
+        {
+          "name": "demos/cses/math/029_movingrobots_test.ra",
+          "ms": 212.24041699999907,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "ad900d510e91f0eb952d24506683db7b928b703e29b045f27ef6ee20d29fb3b8"
+        },
+        {
+          "name": "demos/cses/math/030_candylottery_test.ra",
+          "ms": 4.296167000000423,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a5a29557f134192c02fc4e414414f677f51cc85ca8d40c620d0adae6ac9130f2"
+        },
+        {
+          "name": "demos/cses/math/031_inversionprob_test.ra",
+          "ms": 6.867374999999811,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dbc6f0ea5c45d42833d64c48ea53662125ae7979210bbf8c3e9414655f70cb47"
+        },
+        {
+          "name": "demos/cses/math/032_stickgame_test.ra",
+          "ms": 4.622333999999682,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "da73e235ff99e6ec68cc12c7e5e5dfa1d7529fccca7ca0e20f41dd9b4f13b0f1"
+        },
+        {
+          "name": "demos/cses/range/001_staticsum_test.ra",
+          "ms": 5.411499999998341,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f9ee4f3949039e78e92aa206b8dac75ca84f3e3603d13766402fbde3b757896c"
+        },
+        {
+          "name": "demos/cses/range/002_staticmin_test.ra",
+          "ms": 1.6849160000001575,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "3024d4f670bdcab1452dd8de432bdce09c29c98ff02bb7c4df1e612d65733a4a"
+        },
+        {
+          "name": "demos/cses/range/003_dynamicsum_test.ra",
+          "ms": 5.153041999999914,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "628cd9b147308c6336a49dfacf56c2dfc9fb6fdb485c91dc5c774cc4566d440b"
+        },
+        {
+          "name": "demos/cses/range/004_dynamicmin_test.ra",
+          "ms": 1.8320420000000013,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "6425b34d6e6c572993bec95ddf550c2dc404100c75e5ea4488d639f5dd96ab15"
+        },
+        {
+          "name": "demos/cses/range/005_staticxor_test.ra",
+          "ms": 1.5810419999997976,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "61c5ddca6712db6825ea4d5c18caba1717362dde294526f677a70f90379cbf9d"
+        },
+        {
+          "name": "demos/cses/range/006_rangeupdate_test.ra",
+          "ms": 6.083791000000929,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "ac30c480334fa0a2dda12a2f431f34afcda833068cc8341f1141c209cf9972e6"
+        },
+        {
+          "name": "demos/cses/range/007_forest_test.ra",
+          "ms": 3.6528330000001006,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "66d322d2c7749718ae9082e062bb0dcdeef851351a8855f405aa2ed4ace44015"
+        },
+        {
+          "name": "demos/cses/range/008_hotel_test.ra",
+          "ms": 1.627375000000029,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "6fecfcc61937e01e0244dd142e1580000a2d75bbcf8952816da0db6aacba27d0"
+        },
+        {
+          "name": "demos/cses/range/009_listremovals_test.ra",
+          "ms": 1.4249170000002778,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "28bd50611495944fec90b90f21be017ee725b33e54e3b2652fc9ad0d09283003"
+        },
+        {
+          "name": "demos/cses/range/010_salary_test.ra",
+          "ms": 11.085084000000279,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "101d684d200521ed9354ad4cfaccbed3041f4087c5ea5742d9b6fd7d465383b0"
+        },
+        {
+          "name": "demos/cses/range/011_prefixsum_test.ra",
+          "ms": 2.79754099999991,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "829883ac8d09a4edc705bdb1ce7830ecdcb29276e627fd8b99fdb742037d79cd"
+        },
+        {
+          "name": "demos/cses/range/012_pizzeria_test.ra",
+          "ms": 3.3431670000009035,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "3caa7a0fd0f4acdbc3e49bd11fe6b5860d9e50d01a5bb34e39af7cfe65dc4636"
+        },
+        {
+          "name": "demos/cses/range/013_visible_test.ra",
+          "ms": 3.587499999999636,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "97aaae569375770cb61392c65be9ccdd1228acbddca6f8e3f22d14e9f2806e72"
+        },
+        {
+          "name": "demos/cses/range/014_intervals_test.ra",
+          "ms": 1.9905830000006972,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "e59b3e1d1753234095562877b80bd7ce024de86a6c273823e7dc51bef2b8ab76"
+        },
+        {
+          "name": "demos/cses/range/015_subarraysum_test.ra",
+          "ms": 1.8677499999994325,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9b77e0bf734ade5c8e71f22a60b676d8342ccd05bab2f34a7fe13d73dd4d221b"
+        },
+        {
+          "name": "demos/cses/range/016_subarraysum2_test.ra",
+          "ms": 1.4343750000007276,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "5ab396a9e146cc766ff24d7087918fc46a70d39dff2dc45ceecc8b21ea170f93"
+        },
+        {
+          "name": "demos/cses/range/017_distinct_test.ra",
+          "ms": 3.793874999999389,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9378c81a8c10411b808f7832081fa5d1bb0c066b374c70ed6b84a15746ddd789"
+        },
+        {
+          "name": "demos/cses/range/018_distinct2_test.ra",
+          "ms": 12.25420800000029,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "e8259d6ec8fe7625d28f1dca5c42a446e725faef6cbbfe2b5bbc69b43b8e45fa"
+        },
+        {
+          "name": "demos/cses/range/019_increasing_test.ra",
+          "ms": 5.0775830000002316,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "790f4b654e7b0aefa3f639d90c6538e317aa161a5577c1e50f1de1cfc46acdab"
+        },
+        {
+          "name": "demos/cses/range/020_movies_test.ra",
+          "ms": 2.3771670000005543,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "7c4aaf05cb21930ce9c68d746ed883d7569ef10f006e8abef51ae4d53a037ba1"
+        },
+        {
+          "name": "demos/cses/range/021_forest2_test.ra",
+          "ms": 13.450417000000016,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "c64be491d4360b9dc3bff002e0110e32bbd72ea3d2801647b89c733038a7f389"
+        },
+        {
+          "name": "demos/cses/range/022_rangesums_test.ra",
+          "ms": 8.70429200000035,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "45edffeaa3adabc8e0d3b79b56ff94c1c25e62c22a0f9c89a88a05508a359df3"
+        },
+        {
+          "name": "demos/cses/range/023_polynomial_test.ra",
+          "ms": 7.505750000000262,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "41a285a51f5dd02bdbb4ecadcd91473671d995d2dd8d668d73f6713fba7d905d"
+        },
+        {
+          "name": "demos/cses/range/024_copies_test.ra",
+          "ms": 8.369041000001744,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8e872dcf6708be84262c79db272c02157f0291f99a41c801586ac16293dd2b61"
+        },
+        {
+          "name": "demos/cses/range/025_missingcoins_test.ra",
+          "ms": 1.3208330000015849,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "7aee9791a55bb04e2c549e12c9f6964e3a9a994b5556ef93c78bd01bf42b4c15"
+        },
+        {
+          "name": "demos/cses/sortnsrch/001_distinct_test.ra",
+          "ms": 0.7865419999998267,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "4b1f27a50649a0d69685e68a5e52e15e31f6f5ff63462b90478c10aad7a354a8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/002_apartments_test.ra",
+          "ms": 3.17174999999952,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5c47090a88798773e492787e2e5a3408337a173f4ba5a847f1737772aaab781e"
+        },
+        {
+          "name": "demos/cses/sortnsrch/003_ferris_test.ra",
+          "ms": 4.100166000000172,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dad9dbb91fb05ce02edccc06f1fbaf75015d850b885789860dc152e0146c842c"
+        },
+        {
+          "name": "demos/cses/sortnsrch/004_tickets_test.ra",
+          "ms": 3.2244579999987764,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "23359ef09428995caa51ef8cdd076ac01e2656f15bc4cfc91537b4e847c6a0be"
+        },
+        {
+          "name": "demos/cses/sortnsrch/005_restaurant_test.ra",
+          "ms": 3.9870000000009895,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "3674cb3674ec707b0eb302704366e81c15ff75cf95d333eb7efc183561027bbe"
+        },
+        {
+          "name": "demos/cses/sortnsrch/006_movies_test.ra",
+          "ms": 3.336208999999144,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "14500219839ce290176ae45e2e506c7b42316d863796cd76b65960cc161f2bb0"
+        },
+        {
+          "name": "demos/cses/sortnsrch/007_twovalues_test.ra",
+          "ms": 6.596292000000176,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "780224dbbe4617d52692f34d70e10a2c2495f68d0187f0f47e936539b24de812"
+        },
+        {
+          "name": "demos/cses/sortnsrch/008_maxsubarray_test.ra",
+          "ms": 2.180459000001065,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "11d34700eb27fe75ee1c8b4440a04b4c1b323a1b1e9a2370b5fa141e931c3df6"
+        },
+        {
+          "name": "demos/cses/sortnsrch/009_sticks_test.ra",
+          "ms": 5.893749999999272,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6a33a28f7c94446b8366739d8fb0d653b5267170bf656d5b1a4caabf32d9ae93"
+        },
+        {
+          "name": "demos/cses/sortnsrch/010_missing_coin_test.ra",
+          "ms": 1.2907080000004498,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5ce581cfa1e8e068c3a8d0f0040432067424ce98362fe97f106a8783ef0d7d1c"
+        },
+        {
+          "name": "demos/cses/sortnsrch/011_collecting_test.ra",
+          "ms": 3.4814580000002024,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d6112e1f40ea7a160d86839a0c7f26cfa3983a98c3342d3110365dced214a3d2"
+        },
+        {
+          "name": "demos/cses/sortnsrch/012_collecting2_test.ra",
+          "ms": 6.145499999998719,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "f34371e717a4bccd3693b4135093adb084337ee1121c7142cd57fcc818d6e563"
+        },
+        {
+          "name": "demos/cses/sortnsrch/013_playlist_test.ra",
+          "ms": 2.5742079999999987,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f630c5b0ee20a31c2c6ea99e3eab9f58b9bb080110dd4c2c909b4829d706089a"
+        },
+        {
+          "name": "demos/cses/sortnsrch/014_towers_test.ra",
+          "ms": 1.8320000000003347,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "7a34c13e607d5591380e1d312beed44c31904278b2fe2561a0c0caf96fc02071"
+        },
+        {
+          "name": "demos/cses/sortnsrch/015_traffic_test.ra",
+          "ms": 3.167333999999755,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b9e362379d51d4da396dc637bb64aed1961225c4e70037bffa8f03a7915cd25a"
+        },
+        {
+          "name": "demos/cses/sortnsrch/016_subarrs_test.ra",
+          "ms": 1.8009169999986625,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "449d5ba56185809f68290ed37fed1aa7be2b1d93668b9edbab1f00e39b817282"
+        },
+        {
+          "name": "demos/cses/sortnsrch/017_subseq_test.ra",
+          "ms": 2.6494579999998678,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a6bb37a71a90032f2d4670a180e5ac6497e4c4fb9f23c04ad81e3c1724addcb4"
+        },
+        {
+          "name": "demos/cses/sortnsrch/018_josephus_test.ra",
+          "ms": 4.929249999999229,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4dc1ba492128381b22bd83f79fda063a15816f18f0a30330411d1da0353012b2"
+        },
+        {
+          "name": "demos/cses/sortnsrch/019_josephus2_test.ra",
+          "ms": 1.9011249999985012,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fc976688c2dab3b31f9b996f375dc06b37ef10fd3c1ad0ecf6a1516a022d2995"
+        },
+        {
+          "name": "demos/cses/sortnsrch/020_ranges_test.ra",
+          "ms": 6.551249999998618,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fa1d44472e587abd40abce238de7b39dad15cdc46487f68ca674b37d27eb3bd8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/021_ranges_test.ra",
+          "ms": 5.095874999999069,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fa1d44472e587abd40abce238de7b39dad15cdc46487f68ca674b37d27eb3bd8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/022_rooms_test.ra",
+          "ms": 5.428834000000279,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d7e131e62fb5ae82ff5ca0d87999c838e58cd7a29f5fae0160ceb4747a95ae72"
+        },
+        {
+          "name": "demos/cses/sortnsrch/023_factory_test.ra",
+          "ms": 2.829541999999492,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "db179a8e34f19c274c091429409639a7e1432807b89eba2a0c82d5cc3e4fc018"
+        },
+        {
+          "name": "demos/cses/sortnsrch/024_tasks_test.ra",
+          "ms": 2.338958000000275,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78b13f256d1f9b89845b9822866681e9654ac8937652216441c49fac94e56497"
+        },
+        {
+          "name": "demos/cses/sortnsrch/025_books_test.ra",
+          "ms": 1.1877500000009604,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "ad70a11ec026c9fe9ffe5fba8ac3e4c352b3b3e667d2438a36342038d81fe31a"
+        },
+        {
+          "name": "demos/cses/sortnsrch/026_three_test.ra",
+          "ms": 6.648541999998997,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "012e825512dfcc90d3b5a9ad97abe33b68b93f68b8f06f28d0378cb596cebc1d"
+        },
+        {
+          "name": "demos/cses/sortnsrch/027_four_test.ra",
+          "ms": 5.497708999999304,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "65086739c54c43fb7ec9c150fd32e0fb82334c89d5b9f75244ca56faba0e8dc3"
+        },
+        {
+          "name": "demos/cses/sortnsrch/028_smaller_test.ra",
+          "ms": 2.5069169999987935,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2b9cca01e1ba0e9174dc47b5495d35c88634c3ccda69b9553b4604736996d0e3"
+        },
+        {
+          "name": "demos/cses/sortnsrch/029_sums1_test.ra",
+          "ms": 1.8287920000002487,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "92f32299539d75a045e396152fdaeb9727d3e59340eefaa41b1abc67a9406bb8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/030_sums2_test.ra",
+          "ms": 2.9839169999995647,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "9bd7bd833dc5dae04de1d249d3ba5fcb52343862d957a802657e7c9fce742a87"
+        },
+        {
+          "name": "demos/cses/sortnsrch/031_div_test.ra",
+          "ms": 1.7793750000000728,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a4ba41b1e74c981897d256e42eac877a8741583f155e773ef65e6c1adb6f873d"
+        },
+        {
+          "name": "demos/cses/sortnsrch/032_dist2_test.ra",
+          "ms": 2.484667000000627,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5cd8c4772879b6ec96db92ecb8135120aacb0a24e20b76aefdcbc71b810ae7df"
+        },
+        {
+          "name": "demos/cses/sortnsrch/033_division_test.ra",
+          "ms": 2.798458000001119,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "bfbdb5c7cc5e4451b9588e134548645bfa38238ec28f66c1ce1b123ee7c51c7b"
+        },
+        {
+          "name": "demos/cses/sortnsrch/034_movies2_test.ra",
+          "ms": 2.7053329999998823,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "29eec040e48bf8c3f0224ffe6428e8ed64e7fa087bb0c378dd69b9f08a86a392"
+        },
+        {
+          "name": "demos/cses/sortnsrch/035_maxsum2_test.ra",
+          "ms": 5.508583000000726,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dad55e0ca5f313c7b59e49a98cf7b2812800cdc51dd34bf197b6efae13bf04cc"
+        },
+        {
+          "name": "demos/cses/tree/001_subordinates_test.ra",
+          "ms": 5.020500000000538,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "9772ad4cdde641a24e6d2e9af46323f3e0deb4168d3f226d3808834cf97ebd4b"
+        },
+        {
+          "name": "demos/cses/tree/002_matching_test.ra",
+          "ms": 7.831749999999374,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1526a4a9e8a21296f4e0bd9c7e50bb1a737b605ae9e81750b3b4332bf17db1c4"
+        },
+        {
+          "name": "demos/cses/tree/003_diameter_test.ra",
+          "ms": 3.107458000000406,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "0641fa34afc4a9f62f7ced1186e0536c93819dbea2ba872ddbdedd5e41df61df"
+        },
+        {
+          "name": "demos/cses/tree/004_distances1_test.ra",
+          "ms": 3.6663339999995515,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "17054eb09c2663f3730add8317480e84a7670d2f0184e8b561845a031fa848da"
+        },
+        {
+          "name": "demos/cses/tree/005_distances2_test.ra",
+          "ms": 7.001916999999594,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "667c760f671c32665372c25ec0557ec43f6cc1b222242c41484476c581dc8554"
+        },
+        {
+          "name": "demos/cses/tree/006_company1_test.ra",
+          "ms": 5.929707999999664,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5417bee3590972f30bb973e69f9b193934498eebc6ea9448c7ab48ac0a4573bc"
+        },
+        {
+          "name": "demos/cses/tree/007_company2_test.ra",
+          "ms": 7.020667000000685,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "7c1575abf4cafa2ba42ce676156a8e21bb2ec6830331a5fb990a3c96135125dd"
+        },
+        {
+          "name": "demos/cses/tree/008_distancequeries_test.ra",
+          "ms": 6.181332999998631,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "10d62bfba2655811b862821d3cd7fd6ed254ba620b6b982c5a4f409a1762b7f0"
+        },
+        {
+          "name": "demos/cses/tree/009_countpaths_test.ra",
+          "ms": 11.399625000000015,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5e7725da94b52cb75c4a717ca28670b58317228904ce11cb0425eef278c1ed2d"
+        },
+        {
+          "name": "demos/cses/tree/010_subtreequeries_test.ra",
+          "ms": 21.369165999998586,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f67ed7281e25a149ee1912e54400f006c7c6264d9bb2e3bca88762e434fdff85"
+        },
+        {
+          "name": "demos/cses/tree/011_pathqueries_test.ra",
+          "ms": 11.29466599999978,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1abf6797a5043a1bfd715f754ebee8542ac418767f841b6258def1bfd8460b4b"
+        },
+        {
+          "name": "demos/cses/tree/012_pathqueries2_test.ra",
+          "ms": 9.019458999999188,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "832eabbd384e803267f273bce9efa35d765918976335648c36818d5a8e938888"
+        },
+        {
+          "name": "demos/cses/tree/013_colors_test.ra",
+          "ms": 6.000083000000814,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "0ba58c66b3eb15e70c7fb1d8598037401d671738b66c6dabae15fb82eb648c5f"
+        },
+        {
+          "name": "demos/cses/tree/014_centroid_test.ra",
+          "ms": 6.985666999999012,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fa1d09742b0bcd4c80b06bd3c6fae6f9d6e871141711d4a3ebe2bd40f0868f37"
+        },
+        {
+          "name": "demos/cses/tree/015_fixedpaths1_test.ra",
+          "ms": 3.7760830000006536,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6776bf869e7773a9a8d9aa63622857e55f982302ada94013d8c2a9cb93a1d283"
+        },
+        {
+          "name": "demos/cses/tree/016_fixedpaths2_test.ra",
+          "ms": 2.6015000000006694,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e538d7acf22d734f0d4e9ea4d3cccfa44476922dd13cdfd78a1648d182b483f6"
+        },
+        {
+          "name": "demos/deepml/001_matmul_test.ra",
+          "ms": 3.831083999999464,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "72d5d762a0741281ae138eb317a4c73820c3d9cbcc7acbfb915c841d854dbe4e"
+        },
+        {
+          "name": "demos/deepml/002_transpose_test.ra",
+          "ms": 1.9561670000002778,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ffdc46769180aa4e91eb23f94f092aeee1e06fb4c9489adab81a9f834b954f4c"
+        },
+        {
+          "name": "demos/deepml/003_reshape_test.ra",
+          "ms": 2.254124999999476,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "4001ba7abbf421da1cf4c02f2ab6f0e3fd8dd42099c0efb3dbd730acd6cbb7e7"
+        },
+        {
+          "name": "demos/deepml/004_mean_test.ra",
+          "ms": 4.631708999999319,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "8644ef68f4264a6607c4ccaf29ddf9852329ab3e60ee70f41e41cb1c84321301"
+        },
+        {
+          "name": "demos/deepml/005_scalmul_test.ra",
+          "ms": 1.8812920000000304,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "029d02e67c60d9cbeb8c51c2b6627c2c4639cade843b55e3590c9c139f4a6049"
+        },
+        {
+          "name": "demos/deepml/006_eig_test.ra",
+          "ms": 4.315833000000566,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "94492351068bbf161556d92ce87202c85fe7b8eb35b9f5d8d1b0e344d2674763"
+        },
+        {
+          "name": "demos/deepml/007_trans_test.ra",
+          "ms": 12.98424999999952,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "b2dcc6ccd87bc5ca7ee1f7044ccd66c7e3995f0bc23137add384b11dc51dfeb2"
+        },
+        {
+          "name": "demos/deepml/008_inv_test.ra",
+          "ms": 3.339958000000479,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "cc908d271e2300491e3cb865383aa617f11209036507047271ba402f280d7e59"
+        },
+        {
+          "name": "demos/deepml/009_matmul_test.ra",
+          "ms": 3.354125000001659,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "7845fe6645ad1f032a953bc307315530d1b090b6bda73b92fb5d6103b8ca71e0"
+        },
+        {
+          "name": "demos/deepml/010_cov_test.ra",
+          "ms": 3.6437499999992724,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "3ad25be34cee2996f6295c12e2f856c0f93be0fc2fd905dd4fc83d8368eb51b8"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 9.374832999999853,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/deepml/012_svd_test.ra",
+          "ms": 9.320999999999913,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "092480717b78238e4cbb9ab2a2a875c2a0b118c65c74b6a0a43b0d8fa0eea9af"
+        },
+        {
+          "name": "demos/deepml/013_det_test.ra",
+          "ms": 6.9973750000008295,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "8d30714680b4329de73fb1b010239f1b8c8dcf4e2048d785cd74ac8007ee5d42"
+        },
+        {
+          "name": "demos/deepml/014_linreg_test.ra",
+          "ms": 1.7601250000006985,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "ff6686f4ea36402e403f1cdfb7aedbe45a29126aa71c84296a9b86e9f7d3d6a1"
+        },
+        {
+          "name": "demos/deepml/015_gd_test.ra",
+          "ms": 11.403916999999637,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "899ea3c024c6a1739e7ee44a021b5c4ea6970b49a907e78c3c75f713ba749c63"
+        },
+        {
+          "name": "demos/deepml/016_scale_test.ra",
+          "ms": 10.621458999999959,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "57ac712d8691e52756219903338d26f4d723222fa84fd681e51e870151cc8611"
+        },
+        {
+          "name": "demos/deepml/017_kmeans_test.ra",
+          "ms": 9.8890420000007,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "b23a466cf8480c2458dc6c2935ff9bea434dd27ba78f62a9e17167e85515c44d"
+        },
+        {
+          "name": "demos/deepml/018_crossval_test.ra",
+          "ms": 9.207374999999956,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b5c65ae3681c12438c3be30273cb9498a19f9ebeef5661db86eca3334d7a64cf"
+        },
+        {
+          "name": "demos/deepml/019_pca_test.ra",
+          "ms": 13.696375000001353,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "f68c577d8bdbb10c09eca3e0ef8f65b45463578423f0d4df8acfa6aa5b55a67a"
+        },
+        {
+          "name": "demos/deepml/020_tree_test.ra",
+          "ms": 9.737457999999606,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "130293f54b3fdc4d3de725b5e125ca12652cec11f90e37ebf5bea3edb5633e66"
+        },
+        {
+          "name": "demos/deepml/021_svm_test.ra",
+          "ms": 32.449000000000524,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "57451b6e171e88c046623746ae79f8025f0ef9859bfea9879a3a09b035ed1ff7"
+        },
+        {
+          "name": "demos/deepml/022_sigmoid_test.ra",
+          "ms": 16.77325000000019,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "94ade629abf90fdb016442e8a605c5ea54a92e12189ca79658ac36cee996d60b"
+        },
+        {
+          "name": "demos/deepml/023_softmax_test.ra",
+          "ms": 1.574957999999242,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "81530eada53c99421c50c09b9c87cc8a2aa8ae5ce6f65cf763ad1a8941ce76cc"
+        },
+        {
+          "name": "demos/deepml/024_neuron_test.ra",
+          "ms": 3.414541999998619,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "563f2e86a9ea907ce852f05e050f3f7c04c93bed04eec54146d550f81a9d01b6"
+        },
+        {
+          "name": "demos/deepml/025_backprop_test.ra",
+          "ms": 4.712832999999591,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ea3a3d18fc4e9b106b6b177d9ec38c0b1e776346fa2aa639acd971f3781728ac"
+        },
+        {
+          "name": "demos/deepml/026_grad_test.ra",
+          "ms": 11.560625000000073,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0fba92259468875ee4f60236497790a9274560df230dfff55b02fc0dc209e08d"
+        },
+        {
+          "name": "demos/deepml/027_basis_test.ra",
+          "ms": 1.2731669999993755,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "48a994b8d7241b030b6d843757ae316f31e37032facb18bc42587c2b89434501"
+        },
+        {
+          "name": "demos/deepml/028_svd2_test.ra",
+          "ms": 34.022124999999505,
+          "kernels": 0,
+          "tests": 7,
+          "digest": "f4ff8254b6e0f7a28b8199d72ad27ac151252f048407f464a1c9b7f602da349c"
+        },
+        {
+          "name": "demos/deepml/029_shuf_test.ra",
+          "ms": 5.7601250000006985,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "26fce44a13720d528149a3d2ecf6a58b10b1f5aaa7fed9257faa84e4301b20b6"
+        },
+        {
+          "name": "demos/deepml/030_batch_test.ra",
+          "ms": 11.763291999999637,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "ca7182ef76ab48b9407f922f59ff2fd3b29f1edafba800126e5a980df2159a52"
+        },
+        {
+          "name": "demos/euler/001_multiples_test.ra",
+          "ms": 1.657375000000684,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8af84386c70aca32e08b396bcdafac7c705c8d2a691430acd1c81233db0a9402"
+        },
+        {
+          "name": "demos/euler/002_evenfib_test.ra",
+          "ms": 0.7368749999986903,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f71c73da0c6252d50cdb4db25af8d01cf534df8a7a5bbae21adfd93da389caef"
+        },
+        {
+          "name": "demos/euler/003_primefactor_test.ra",
+          "ms": 0.6163339999984601,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "febc973a2d98086eca910d1db960dfd151d0f4ef4d4da78af409cfa7d82561d3"
+        },
+        {
+          "name": "demos/euler/004_palproduct_test.ra",
+          "ms": 915.0788330000014,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5c7cbd055b60f38b00cb0ae733d7fdfec703c0cba1f68a1c1d9c2345ed646d90"
+        },
+        {
+          "name": "demos/euler/005_smallestmultiple_test.ra",
+          "ms": 3.1913339999991877,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "60262c06b9f37a196ae7a4eda9f27efca437dc477f4afce123ba750b6028ea2d"
+        },
+        {
+          "name": "demos/euler/006_sumsquarediff_test.ra",
+          "ms": 0.7996669999993173,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8c7933921f2ce5f4a9f7fa6496e60b6de33e8afa3709b1064012ddcc31786116"
+        },
+        {
+          "name": "demos/euler/007_10001stprime_test.ra",
+          "ms": 4.33574999999837,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8d5cf21830f410e9c9df5d4c310dc1647061ac50da55c9dc61b52062092b0a8c"
+        },
+        {
+          "name": "demos/euler/008_seriesproduct_test.ra",
+          "ms": 5.744333000000552,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "cb27d343a0de7759f94a232facac029b6e67066d13b605dc09dffb4dc5969809"
+        },
+        {
+          "name": "demos/euler/009_pythagorean_test.ra",
+          "ms": 88.03099999999904,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f51a7d49f959e1d7d0ebfa12faa6813172269a9029607dcb1363f3c26de6f21d"
+        },
+        {
+          "name": "demos/euler/010_sumprimes_test.ra",
+          "ms": 70.22429200000079,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2dd20aabe0d23d2f832c08e43f4b2c946e50fe17226bf1fa07791071def3dfab"
+        },
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 15.56787500000064,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        },
+        {
+          "name": "demos/euler/012_triangledivisors_test.ra",
+          "ms": 104.65550000000076,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "afc2327437d62604fac1660f3d6c57d74c3ccf7f27d02c1db53d548c26c2769c"
+        },
+        {
+          "name": "demos/euler/013_largesum_test.ra",
+          "ms": 3.7497500000008586,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "023c2e0306c3aa890fbd2b7dbd36c6c3555b2da87ef06c60765c2f2e8a5cf6bc"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 4640.22725,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        },
+        {
+          "name": "demos/euler/015_latticepaths_test.ra",
+          "ms": 3.714250000000902,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "d5d7365b12e301b173da227699997f88e42a24eccf92de8078c9031dbef58c7a"
+        },
+        {
+          "name": "demos/euler/016_powerdigits_test.ra",
+          "ms": 2.0002090000016324,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "028d5076da814ba868707a996e9279feab1fd38dfa727b0892b0e4eb7d3cf676"
+        },
+        {
+          "name": "demos/euler/017_numberletters_test.ra",
+          "ms": 12.121250000000146,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d1698521253a054e450180bbd0cbb4d6db15973a53735128673b79763f37c2ae"
+        },
+        {
+          "name": "demos/euler/018_maxpath_test.ra",
+          "ms": 5.513875000000553,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "cefef8aab734e220a79483e8559296052b48a6e51ebb888e441e390ea394b201"
+        },
+        {
+          "name": "demos/euler/019_sundays_test.ra",
+          "ms": 14.942917000000307,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "5816df06d4e3113d7e77620ad2c54ab0416b57158b397895200df70951f96255"
+        },
+        {
+          "name": "demos/euler/020_factorialdigits_test.ra",
+          "ms": 2.8157500000015716,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "8098a1aadab0e7394a383a5eb08a547d5e86c6f461deb6a540ad8e40661e67cc"
+        },
+        {
+          "name": "demos/euler/021_amicable_test.ra",
+          "ms": 195.07808400000067,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "dd7dc33e5e073290fbd8223b718d8f406e6bfdebb120c9bc7b1164fdb21eea0e"
+        },
+        {
+          "name": "demos/euler/022_namescores_test.ra",
+          "ms": 36.92279100000087,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "cd04998479ab71f9d40362c635d2d219955c4ad7af7a9b671dbab0f6ac7bf367"
+        },
+        {
+          "name": "demos/euler/023_abundantsums_test.ra",
+          "ms": 1183.479707999999,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+        },
+        {
+          "name": "demos/euler/024_lexicographic_test.ra",
+          "ms": 5.539375000000291,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "f46330d035ed30c85c859c4a7c9345508cc2100b9d773d59db053ebd04abb1bd"
+        },
+        {
+          "name": "demos/euler/025_fibdigits_test.ra",
+          "ms": 28.156833999997616,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "983543130514210723ce372e60d1b48abe4b07930ccca00dcaa31e0268c731cc"
+        },
+        {
+          "name": "demos/euler/026_reciprocal_test.ra",
+          "ms": 69.2302090000012,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "1f00967a9eb1ddc6b985bd38bdb637f456b585b200c9ecce7523319b3d45e434"
+        },
+        {
+          "name": "demos/euler/027_quadraticprimes_test.ra",
+          "ms": 532.5700830000023,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "2ff83bf6da8a9ab38065b12d695fe078e03dd4a5c27655a3c397b2a47589a96a"
+        },
+        {
+          "name": "demos/euler/028_spiraldiagonals_test.ra",
+          "ms": 4.525166999999783,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "729ed7ef1385cc6e707a6c0c3e113718fbb523ba022173182bfa0487a2ce958c"
+        },
+        {
+          "name": "demos/euler/029_distinctpowers_test.ra",
+          "ms": 10.848207999999431,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8976b2486978929efb0cc5b91aadd3c670e1581d5799bb656430bab9de2e50a4"
+        },
+        {
+          "name": "demos/euler/030_digitpowers_test.ra",
+          "ms": 2508.469916000002,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "869ff8028fe5700f50582769b4effeae74ed3e71779bc142daaacab4dd67d6e5"
+        },
+        {
+          "name": "demos/euler/031_coinsums_test.ra",
+          "ms": 4.638875000000553,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "b3b81682623ddb9b8b8ed8d138314f64822bf597fdf1a4dabf59173904f1da6a"
+        },
+        {
+          "name": "demos/euler/032_pandigitalproducts_test.ra",
+          "ms": 345.6010839999981,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "6f4b53366f621a0f3bdfcc8942003a367a57288c0bb93d773c3cdd5ad75ad45e"
+        },
+        {
+          "name": "demos/euler/033_digitfractions_test.ra",
+          "ms": 14.718833999999333,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d9758370b029e1d166bd4843ece2f5f1173c804519fc1967704bee98c9b842e6"
+        },
+        {
+          "name": "demos/euler/034_digitfactorials_test.ra",
+          "ms": 113.02062499999738,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "46fdaa61293315aa8b15afa7b8d88bebe8080a36293c2a7017c9a04982243ce2"
+        },
+        {
+          "name": "demos/euler/035_circularprimes_test.ra",
+          "ms": 669.7627920000014,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "4f4127b79c7f0f817ccca5390a56dd092e1b0cf6a8065d1222cd80348bb06502"
+        },
+        {
+          "name": "demos/euler/036_doublepalindromes_test.ra",
+          "ms": 286.83029199999874,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "60aed68f3e4ac69a699312f53db5b2318f5fc246742a458e002800ccdc044a5d"
+        },
+        {
+          "name": "demos/euler/037_truncatableprimes_test.ra",
+          "ms": 597.565083999998,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9763ac165cba10b7784eb8611d4476d187c7ee5412cc72229c767a3d662268ac"
+        },
+        {
+          "name": "demos/euler/038_pandigitalmultiples_test.ra",
+          "ms": 34.31837499999892,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "93b9bfb14a07c5a216e317047fc6909082f5856a68bb7e9d333b0b0d966fb4ab"
+        },
+        {
+          "name": "demos/euler/039_righttriangles_test.ra",
+          "ms": 5.759707999997772,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "ca925a08ef547d4211650a90598f974d6be1c0a7f36122c83c0eabbf011659af"
+        },
+        {
+          "name": "demos/euler/040_champernowne_test.ra",
+          "ms": 2.243540999999823,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "a50e12862fa2e26e65248cc2766cab7c7e1f3626ffb98088b926e3f8aa4802e6"
+        },
+        {
+          "name": "demos/euler/041_pandigitalprime_test.ra",
+          "ms": 1.0250410000007832,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "35309e9b40c04b9a1bd086a7dd7ffb8538944231f69518a67088c9e81b0ad3aa"
+        },
+        {
+          "name": "demos/euler/042_trianglewords_test.ra",
+          "ms": 11.964875000001484,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "71e9224d7d1cd5314862c2fdead65b406978863859a30b5c4df1f737e35f35ab"
+        },
+        {
+          "name": "demos/euler/043_substringdiv_test.ra",
+          "ms": 335.80991599999834,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "077573007ec9be0b912e9258a5eecd888b0ac9621d3b6fdda945ce7d792a5533"
+        },
+        {
+          "name": "demos/euler/044_pentagondiff_test.ra",
+          "ms": 1284.583999999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "1f521d6d36667a86dd22930d012ad499f818f5f5264750e4024fb5186239398a"
+        },
+        {
+          "name": "demos/euler/045_tripolygonal_test.ra",
+          "ms": 25.74529199999961,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "d547700b37319eb48a928015528b748851b9f43bdcab32f10ebbd12bd54f084e"
+        },
+        {
+          "name": "demos/euler/046_goldbach_test.ra",
+          "ms": 13.113084000000526,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f58fbc3fb8cf74879c55f68c622358cb896acd9f9a39baf695789a50357ca8b4"
+        },
+        {
+          "name": "demos/euler/047_primefactors_test.ra",
+          "ms": 311.5249580000018,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "4c6b520582d1880b7ad23f3ebafb3d3a51f78728b8823bb6f82f325be09a3606"
+        },
+        {
+          "name": "demos/euler/048_selfpowers_test.ra",
+          "ms": 5.1787919999987935,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "74dbbfd6d2c6c6327f718a3263156425b63412a1b2c1d60c7a3a2ee36741ddee"
+        },
+        {
+          "name": "demos/euler/049_primepermutations_test.ra",
+          "ms": 79.96745899999951,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "42fb6ee8b3da29b8dad22f772614c93f7fb7342dccc34f8355b3863790c91dcb"
+        },
+        {
+          "name": "demos/euler/050_primesum_test.ra",
+          "ms": 95.44695900000079,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0c7db463c87312ad394c7e0c647ec73cfeae350c5a54848f91c37c039277bb0e"
+        },
+        {
+          "name": "demos/leetcode/001_twosums_test.ra",
+          "ms": 3.90991700000086,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "8c1b25a64c33335dd2fdd34885c858f9dc82e34c4831d7cc49f3982070a3e433"
+        },
+        {
+          "name": "demos/leetcode/002_addtwo_test.ra",
+          "ms": 2.95600000000195,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "96048e4bdcfb3ca4a6082436786e2e834e2a9c410a9cf3b5b0ad05ee33c7f1b3"
+        },
+        {
+          "name": "demos/leetcode/003_longest_test.ra",
+          "ms": 2.5085419999995793,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "61be1e9c09426afdb0cf6a30cca51cc57689758987b09040a325ba08f08d60d0"
+        },
+        {
+          "name": "demos/leetcode/004_medarrs_test.ra",
+          "ms": 25.99395799999911,
+          "kernels": 0,
+          "tests": 8,
+          "digest": "400679e5107b94cb68f5722eb5b2c1c6aa31c25cc39b654b6f6716330d264c07"
+        },
+        {
+          "name": "demos/leetcode/005_longestpal_test.ra",
+          "ms": 4.978084000002127,
+          "kernels": 0,
+          "tests": 7,
+          "digest": "62f786ff9f7c6d3e2956cfdedea05e2b14cbd4206384b014d586665c337e8ab1"
+        },
+        {
+          "name": "demos/leetcode/006_zigzag_test.ra",
+          "ms": 7.1685839999991,
+          "kernels": 0,
+          "tests": 6,
+          "digest": "a84563aadd9f027beaaa716d0a21456970ff5a6baac5bc61a14a7d246fa50a48"
+        },
+        {
+          "name": "demos/leetcode/007_revint_test.ra",
+          "ms": 4.249291000000085,
+          "kernels": 0,
+          "tests": 8,
+          "digest": "a9d292a99a8817290ddc2dfd1a3f5670f9cba87032e2a72d4e3de7fae6828568"
+        },
+        {
+          "name": "demos/leetcode/008_atoi_test.ra",
+          "ms": 14.653082999997423,
+          "kernels": 0,
+          "tests": 14,
+          "digest": "898150c8eeb4e4d8ff5822e8c2a37dfcce80d2dcb7b2242614125f5cf10ef96f"
+        },
+        {
+          "name": "demos/leetcode/009_palnum_test.ra",
+          "ms": 7.172291999999288,
+          "kernels": 0,
+          "tests": 10,
+          "digest": "1f79017e641ac2212a4e9d18d6bcb8648d8afe0aeb68d4908df7841188bd927c"
+        },
+        {
+          "name": "demos/leetcode/010_regexp_test.ra",
+          "ms": 24.689416000001074,
+          "kernels": 0,
+          "tests": 14,
+          "digest": "826ed10da4551bd03d89e910025f8677990a110e3b61acd7896b5f85e0ba0d3a"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 28279.974666,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/001_floors_test.ra",
+          "ms": 1.9514999999992142,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d69153b1216e77d933ea902a88977262b6a8677af14febb6ee2f572990d69896"
+        },
+        {
+          "name": "demos/aoc/2015/002_wrapping_test.ra",
+          "ms": 2.5476249999992433,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "19ffd9dce8559e5930b5834e613b7f01c8a5d5cf3ab9f5de81da5671fb6ab80e"
+        },
+        {
+          "name": "demos/aoc/2015/003_houses_test.ra",
+          "ms": 3.19220900000073,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "c2c82f67abb7b6645c3e136df514d8e23c3a3c4ef8bfdb73060edd8502399071"
+        },
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2997.0764169999966,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/005_nice_test.ra",
+          "ms": 7.183625000001484,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "1a02790ac7208e6e75a0cc62dd23c7ba7d3d5ef9361f8564c784ad10f3b6d1fc"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4480.467459000003,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/007_circuit_test.ra",
+          "ms": 12.213459000005969,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "bac8f600bb01f25925c35d8b32e4b446beac7fdc7287a99a6fa20758e195f6ff"
+        },
+        {
+          "name": "demos/aoc/2015/008_matchsticks_test.ra",
+          "ms": 2.594666999997571,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ec4584dd3620ca5ac57fb6f60323772fa41649f335d7558effb360bd1cbf5181"
+        },
+        {
+          "name": "demos/aoc/2015/009_routes_test.ra",
+          "ms": 1.9737919999970472,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9ded61492a49d01fb40bc7cdc37ef8c22a6bb823fc599f39dde038deac12e630"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1519.9095420000012,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/aoc/2015/011_password_test.ra",
+          "ms": 277.6554160000014,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "303bf6d44dd047fdc18d598f2dd404c02e843c705fe06538348ea70c7ba5915c"
+        },
+        {
+          "name": "demos/aoc/2015/012_jsonsum_test.ra",
+          "ms": 5.192957999999635,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5713e683657df2fcc3e2113676714572b5486a2f646fb1f7a39d61d34bda69ee"
+        },
+        {
+          "name": "demos/aoc/2015/013_dinner_test.ra",
+          "ms": 4.4913330000053975,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "bbd82d952700125a067d3f9ab18eff111060d92e9c7b36371f516d5a7317a3d4"
+        },
+        {
+          "name": "demos/aoc/2015/014_reindeer_test.ra",
+          "ms": 21.06604199999856,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "4f1764524baba92302ee31780e56fbd2e65a3e2f39ad6f50d2eb2e7c5a39a560"
+        },
+        {
+          "name": "demos/aoc/2015/015_cookie_test.ra",
+          "ms": 3.9848330000022543,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f45f079b1ee85386930fbb31ebddb94a0c8e4044d10fab842f5a2ec8b6624d41"
+        },
+        {
+          "name": "demos/aoc/2015/016_sue_test.ra",
+          "ms": 2.467584000005445,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f24de06b71d3ef9b91ee3d430ec8b73d054f76da0b37c32488c0533086dbca64"
+        },
+        {
+          "name": "demos/aoc/2015/017_containers_test.ra",
+          "ms": 1.7631669999973383,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "61f8593698705bb607e8b45c334f33de78be08e4ec800e92d778ab1449c8bdd8"
+        },
+        {
+          "name": "demos/aoc/2015/018_gif_test.ra",
+          "ms": 18.124459000006027,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "e9d048ff45ca104f4addb527c4a7da40c67235ca3886309620b02c6615c2d953"
+        },
+        {
+          "name": "demos/aoc/2015/019_medicine_test.ra",
+          "ms": 5.9956660000025295,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0c8d3d541fac6e002afec9374cf7b94e54dd011152057653e6f8227481cba0bb"
+        },
+        {
+          "name": "demos/aoc/2015/020_presents_test.ra",
+          "ms": 2.38262499999837,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "581b9afe71b54ba2d79e8b83ff0b0bea8a06efbb4b4a70308d06ef230d82e1c6"
+        },
+        {
+          "name": "demos/aoc/2015/021_rpg_test.ra",
+          "ms": 21.70925000000716,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "140ac24723534885d218fbb0a0ffbec5aae3a7ad87b63960e88ad9aa6e1ab860"
+        },
+        {
+          "name": "demos/aoc/2015/022_wizard_test.ra",
+          "ms": 11.835417000002053,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "c9ad40debb3821c3f167fe3864b3d64cb87f0490135d78cbfe2336dc711fbebb"
+        },
+        {
+          "name": "demos/aoc/2015/023_turing_test.ra",
+          "ms": 2.811999999998079,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2b378d2ce81a580815745eb6d855aafcce77187fe1046983ff787e4402a7b2ca"
+        },
+        {
+          "name": "demos/aoc/2015/024_balance_test.ra",
+          "ms": 5.46179100000154,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0d8f82e2114f34abe4108eda411fc57cd5fbaed45f88bd3ce320cd1ffbeb3400"
+        },
+        {
+          "name": "demos/aoc/2015/025_snow_test.ra",
+          "ms": 1.315375000005588,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9dbadea5a7dc328710b425f46ebe6c53d359a4358e2f2c0d572e38932c56b2bf"
+        },
+        {
+          "name": "demos/cses/dynamic/001_dice_test.ra",
+          "ms": 1.8051249999989523,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6a3dfd35a9964d05a9956f879cf1f610962febc8c378c15b44d55107331ff0e3"
+        },
+        {
+          "name": "demos/cses/dynamic/002_mincoins_test.ra",
+          "ms": 2.4991250000020955,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "9e9c288c4ded0fb88a292ef96057f90b90efb738fc2c0a11a37b7f7c8428fefd"
+        },
+        {
+          "name": "demos/cses/dynamic/003_coincomb1_test.ra",
+          "ms": 2.076374999996915,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4f5939ad69a7b677910f9ecf96fadd1e4527d42723159da7837716d8987f9ccf"
+        },
+        {
+          "name": "demos/cses/dynamic/004_coincomb2_test.ra",
+          "ms": 1.8852079999996931,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "43512fdd4d0e4655fcfb3045cce71c1b1917cdbcaa339651cc391ac5b0635af9"
+        },
+        {
+          "name": "demos/cses/dynamic/005_removedigits_test.ra",
+          "ms": 4.704375000001164,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "588b4707ba94a32dd55cd6760128fd9e5e0608af9f2da2e53a57d9b95b8fa793"
+        },
+        {
+          "name": "demos/cses/dynamic/006_gridpaths_test.ra",
+          "ms": 2.2333749999961583,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "aeec8288c28724d431f0e4bb24aeca44fb86dc81fa09a2f715670ed38d81ae65"
+        },
+        {
+          "name": "demos/cses/dynamic/007_bookshop_test.ra",
+          "ms": 2.5536250000004657,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dc4f1772d301daaef1387d04f87b19b24b6d8b8e06266b6cf40a4964d2bb0e3f"
+        },
+        {
+          "name": "demos/cses/dynamic/008_arraydesc_test.ra",
+          "ms": 3.083667000006244,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e87a5fddb1d1782af1dc61d28482a9690a9d733e0d73d1f05d38f38d29f523ce"
+        },
+        {
+          "name": "demos/cses/dynamic/009_towers_test.ra",
+          "ms": 3.2762080000029528,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "833a95f85a49a5b44204a8b046ed674bc70f202501e744be4ec193b9698e1c91"
+        },
+        {
+          "name": "demos/cses/dynamic/010_editdistance_test.ra",
+          "ms": 2.8819169999987935,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5b0c4116b0ad802ca58ddf74a80ff50aab10490808021ef00f26dc7cd790508b"
+        },
+        {
+          "name": "demos/cses/dynamic/011_lcs_test.ra",
+          "ms": 5.610000000000582,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fb6c3b16d1df3a5ed8f325d3a93a9c7abcb3d659e56f49803463fa19328f9ca1"
+        },
+        {
+          "name": "demos/cses/dynamic/012_rectcut_test.ra",
+          "ms": 3.7069999999948777,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dea01f0228ef7e5557efd8c586d731d7f125f81b79f7cf5a1127477af7d89877"
+        },
+        {
+          "name": "demos/cses/dynamic/013_minpath_test.ra",
+          "ms": 6.103124999994179,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "bbd29e8a8c0ae3ea68dddcda03f1c7a043d5612cb08ede83c5310bf3166011c0"
+        },
+        {
+          "name": "demos/cses/dynamic/014_moneysums_test.ra",
+          "ms": 2.5507910000014817,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "026720dda13f2b6e4d57ec88b712eb6a2bf66dbca9cc3f81545d7affdf102d2c"
+        },
+        {
+          "name": "demos/cses/dynamic/015_removal_test.ra",
+          "ms": 2.691459000001487,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "709fce22aa0b12a3aebaaecba5497abfea1a7b90b64c8c38f46a628b205e5922"
+        },
+        {
+          "name": "demos/cses/dynamic/016_twosets_test.ra",
+          "ms": 2.4289589999971213,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "abc698d1224c17e0c446075f573189109485bdd6d8cd4f2377645bd247309165"
+        },
+        {
+          "name": "demos/cses/dynamic/017_mountain_test.ra",
+          "ms": 4.852916999996523,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "529c9518c13ffcd87d7fdde57bf66a8c9f03656ca83c952d60c4f8df23cea13f"
+        },
+        {
+          "name": "demos/cses/dynamic/018_increasing_test.ra",
+          "ms": 1.7719159999978729,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "33e48bf11f1eafa28fafe1284338b7aff17b9523e654bf54400c52445316f2f0"
+        },
+        {
+          "name": "demos/cses/dynamic/019_projects_test.ra",
+          "ms": 2.962915999996767,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "51f926332cdeee884a4c07ac0cf7ca0d918a6d3f40b387924618976847ccbddb"
+        },
+        {
+          "name": "demos/cses/dynamic/020_elevator_test.ra",
+          "ms": 6.962500000001455,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c981a3787c76299fb2a747bcb1ce5f6b79b9df8cd315e89faee83e06b589f392"
+        },
+        {
+          "name": "demos/cses/dynamic/021_tilings_test.ra",
+          "ms": 5.413291999997455,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "f3ccbc71571c5c8458d6c0fbcc604021033db07349a589eb7b7b3ba99fa6df69"
+        },
+        {
+          "name": "demos/cses/dynamic/022_countnums_test.ra",
+          "ms": 6.875667000000249,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "0ee5b388681775532be986e9e34d89391ff108abdda09de7c97a5072a33d4eb9"
+        },
+        {
+          "name": "demos/cses/dynamic/023_incsubseq2_test.ra",
+          "ms": 2.593291000004683,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "07fb3cf2b88d42d6a78707472b79676f2b151fd69e49e1093ce556724e1cc59e"
+        },
+        {
+          "name": "demos/cses/graph/001_countrooms_test.ra",
+          "ms": 5.479249999996682,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6dc7c6de6c3a73793b33402235ad08f3ce0dbb38df03b5384c0b306b7836b843"
+        },
+        {
+          "name": "demos/cses/graph/002_labyrinth_test.ra",
+          "ms": 8.588334000000032,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "273dfd28786581bf87cc8abb5696202d6cf1304468d222fca030a8526f6b6cde"
+        },
+        {
+          "name": "demos/cses/graph/003_buildroads_test.ra",
+          "ms": 4.972083999993629,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f186a75c01e5481c82504a527143f990be682b390bdc2decd2dd58abce6ff5f9"
+        },
+        {
+          "name": "demos/cses/graph/004_messageroute_test.ra",
+          "ms": 4.7612910000025295,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "057804b456281083f92b83b6cf89db0d6538448fbeeac133b61af96b212b40c7"
+        },
+        {
+          "name": "demos/cses/graph/005_buildteams_test.ra",
+          "ms": 4.187458000000333,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "55a0359f33861a90e880b53a5067900cccedd0bbd5832d2dfe6f65c3785aa584"
+        },
+        {
+          "name": "demos/cses/graph/006_roundtrip_test.ra",
+          "ms": 7.810540999998921,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c006167e5daa9b8b23ca676611ef8c8304af8058dec09c065346ffacdcd6137e"
+        },
+        {
+          "name": "demos/cses/graph/007_monsters_test.ra",
+          "ms": 9.925499999997555,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c1c5088cd202855b6c87bbe2729d85ecb205cffa71ab905aec650f0728e52b18"
+        },
+        {
+          "name": "demos/cses/graph/008_routes1_test.ra",
+          "ms": 4.2821249999979045,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "3a2b9b8a1227a1fcbf83efb0197959fe23fdc1c6b7ae85f869d1599524d04b71"
+        },
+        {
+          "name": "demos/cses/graph/009_routes2_test.ra",
+          "ms": 4.616958999999042,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "83d6cba0c1b1b309c3467502bf4729b1ead28ed5278fe8d1137a79f310ad4e40"
+        },
+        {
+          "name": "demos/cses/graph/010_highscore_test.ra",
+          "ms": 7.977624999999534,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c65d31340b9211362521b25b24656d6cea30ad8cae5a5492b99575811db7c94c"
+        },
+        {
+          "name": "demos/cses/graph/011_discount_test.ra",
+          "ms": 5.652625000002445,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d099e123e5874945af2a51bd1cf9e6f2cc987cb6aa4cf7e9915a34568f780158"
+        },
+        {
+          "name": "demos/cses/graph/012_cyclefinding_test.ra",
+          "ms": 4.898375000004307,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "13162ab56ea6f1e887d9981c87f107f1181dd4c6ab9f57395646da3405d9d7a8"
+        },
+        {
+          "name": "demos/cses/graph/013_flightroutes_test.ra",
+          "ms": 4.2436670000024606,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4298aa5ccd147f29e525991740bcc6d7620e86ac98721528cff2991162c3a254"
+        },
+        {
+          "name": "demos/cses/graph/014_roundtrip2_test.ra",
+          "ms": 2.3156249999956344,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "431546639072186c777e0f29c62a034a80a9d1adaf22d36b0cefe108db0bfeb8"
+        },
+        {
+          "name": "demos/cses/graph/015_courseschedule_test.ra",
+          "ms": 2.229624999999942,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "eb805d4a38716312229bb1f33891d30da8d3ce767a79bd2e5989a9363d054cba"
+        },
+        {
+          "name": "demos/cses/graph/016_longestroute_test.ra",
+          "ms": 6.996917000004032,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1d465295a6e941ac00749110f105a4194f545b1cdb6329796028cb4ad78a123f"
+        },
+        {
+          "name": "demos/cses/graph/017_gameroutes_test.ra",
+          "ms": 2.7145000000018626,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a00628fc167b8b999a11e4832fdf9a0ad04190c3f1f3b70c1148b8c4cc051046"
+        },
+        {
+          "name": "demos/cses/graph/018_investigation_test.ra",
+          "ms": 5.813249999999243,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "86b7b5022e5c02e6fa3e710efb5b6d145d824512366d12c72dddbe16f17511b7"
+        },
+        {
+          "name": "demos/cses/graph/019_planetsqueries1_test.ra",
+          "ms": 2.377833999998984,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c02d9f724dd3f759a50edcfe5b2ef8aada3c2801a7d4c30d51292bf38b4b21f9"
+        },
+        {
+          "name": "demos/cses/graph/020_planetsqueries2_test.ra",
+          "ms": 2.4373750000013388,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "93338561a2567db7a742b9d92aedeef9b2ea272ed66a931b49a7404cb29c0645"
+        },
+        {
+          "name": "demos/cses/graph/021_planetscycles_test.ra",
+          "ms": 1.2699590000047465,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "206e7815831e0b44501397bbb5a86c2b06d21efc1a853028b1cf250fcc705029"
+        },
+        {
+          "name": "demos/cses/graph/022_roadreparation_test.ra",
+          "ms": 2.170834000004106,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4d2f939c1e5bc7ecddf5374283c44da70ec630cef8f0b2c5d1d16b5c356ea426"
+        },
+        {
+          "name": "demos/cses/graph/023_roadconstruction_test.ra",
+          "ms": 6.107708999996248,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "8b6e309fb43053aceee2d088fd5e4028ac018cea560987131daebda9c26ccfd4"
+        },
+        {
+          "name": "demos/cses/graph/024_routescheck_test.ra",
+          "ms": 4.039625000004889,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c20f8e0b061e5d1febeda844f9e02949a2bb4a00a5439bf162f2ef930fa894c3"
+        },
+        {
+          "name": "demos/cses/graph/025_kingdoms_test.ra",
+          "ms": 3.141916000000492,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e988a2483567700f7482bcaabf35c3174c3c42b474008a575792881330c7de2"
+        },
+        {
+          "name": "demos/cses/graph/026_giantpizza_test.ra",
+          "ms": 5.843291000004683,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "7c0a56d0abac39e6900c6a35ca0d0f78c683b0b02db3770225edc2fad7114341"
+        },
+        {
+          "name": "demos/cses/graph/027_coincollector_test.ra",
+          "ms": 4.322165999998106,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "667a497e9e36c3d4f6f8ed0c7f95dec833cee08b527df6a9a58d67ea3264cacc"
+        },
+        {
+          "name": "demos/cses/graph/028_maildelivery_test.ra",
+          "ms": 3.0658330000005662,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "02b8c60c43ad58774f6755e7cf6e5efca79a39dbe33471f0db6dce710da50b1b"
+        },
+        {
+          "name": "demos/cses/graph/029_debruijn_test.ra",
+          "ms": 5.564875000003667,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "83ec5465b7784bc7d7d41c8bd4c6d4411bd568da87d63073889aea87d5d0e5d9"
+        },
+        {
+          "name": "demos/cses/graph/030_teleporterspath_test.ra",
+          "ms": 2.8986670000012964,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1c0ac5f7a97ceec15fb7c2395fc9b77e69e6a63da4b2d506be22aead9b0b8f54"
+        },
+        {
+          "name": "demos/cses/graph/031_hamiltonian_test.ra",
+          "ms": 4.158332999999402,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "22221963e34aee41266c3fbfdc2504a50c56f61e2a7678b0f872171d2b5490af"
+        },
+        {
+          "name": "demos/cses/graph/032_knighttour_test.ra",
+          "ms": 341.4770839999983,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6d941972d1d839ce3d3cbe158ba169915e6dd759dbe598173d8be2c45d38526c"
+        },
+        {
+          "name": "demos/cses/graph/033_downloadspeed_test.ra",
+          "ms": 2.415000000000873,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "51c14218a0a7eb0cce4f3152cdb4fb60c350521fa3e85f4cf03478daa2820f74"
+        },
+        {
+          "name": "demos/cses/graph/034_policechase_test.ra",
+          "ms": 4.6568330000009155,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "00f304826878b31aceaeeb3b0110a6423757de860bfbac9d94e82f6dd8a39fda"
+        },
+        {
+          "name": "demos/cses/graph/035_schooldance_test.ra",
+          "ms": 4.394207999997889,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d604746456874ffa8b294aa89bf3f4e46f491c91fa2d02a86865d2bac1bf4d1a"
+        },
+        {
+          "name": "demos/cses/graph/036_distinctroutes_test.ra",
+          "ms": 5.543250000002445,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "85480494db0421af6b15647b2cae9931de87367b7ccff26714d40c4fc99eb672"
+        },
+        {
+          "name": "demos/cses/intro/001_weirdalgo_test.ra",
+          "ms": 0.8559580000001006,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2f5ed3b85bae36531f927ddfb820b10bc325ba9e7573bf0c93baad75df4fbfc8"
+        },
+        {
+          "name": "demos/cses/intro/002_misnum_test.ra",
+          "ms": 1.0365419999943697,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "cd2694076344c4018a69322ac0eebff36388f844572d06e39958efc4368202d2"
+        },
+        {
+          "name": "demos/cses/intro/003_repeat_test.ra",
+          "ms": 1.3733750000028522,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b97259d9e3c59d2d2911d7ce59e1a342f4c89d79d7da368080a953f0e1e98074"
+        },
+        {
+          "name": "demos/cses/intro/004_increase_test.ra",
+          "ms": 1.3885000000009313,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e10b6d66dcc53e5ff8610c06cd017bcd8726ac4fa1dd41e2da6983a74843f53c"
+        },
+        {
+          "name": "demos/cses/intro/005_permute_test.ra",
+          "ms": 1.217833000002429,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "105c5c9e51bbf063ed3b7cc4840ff026a67a54782a6488e9d7ecb387f22a4e39"
+        },
+        {
+          "name": "demos/cses/intro/006_spiral_test.ra",
+          "ms": 1.3914169999989099,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "abde799a9ad631ba9c784cc8a837931e1fb71cbd9fdbfe02560a04908f61b5f9"
+        },
+        {
+          "name": "demos/cses/intro/007_knights_test.ra",
+          "ms": 1.0805830000026617,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "bdd49e22193975f9ab73fe68e29780adf1976c7414391fff80f1221c8dcf4157"
+        },
+        {
+          "name": "demos/cses/intro/008_sets_test.ra",
+          "ms": 2.61737500000163,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ce4f18c5cbc800c7e6490e9fbdf660f75d2d84a745d24853bdd83e613a0c9fc8"
+        },
+        {
+          "name": "demos/cses/intro/009_bits_test.ra",
+          "ms": 0.679667000003974,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5b5d6515e50fe0673e0b3c96edf8fb65d2401548d70d5e45e29dd3b29ffcea74"
+        },
+        {
+          "name": "demos/cses/intro/010_zeros_test.ra",
+          "ms": 1.004624999994121,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "be9352d22ffbf879db0b4477e2dd89b77109b6e2769df00910a9c198de5b90ee"
+        },
+        {
+          "name": "demos/cses/intro/011_coins_test.ra",
+          "ms": 1.4458749999976135,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "651b91789e14502615357cc69d8eb1ceb43987622c765b4730997e798291bdc1"
+        },
+        {
+          "name": "demos/cses/intro/012_palindrome_test.ra",
+          "ms": 4.20850000000064,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e7d7152be2bfbd9901826621dbb584df376ca9098b3eeeb1b7cce6d64a5dd9e9"
+        },
+        {
+          "name": "demos/cses/intro/013_gray_test.ra",
+          "ms": 0.9931250000008731,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "21b460e4baf39b9dc39c4a382a4a47280be7f6f2f7e205e9887da60229affc24"
+        },
+        {
+          "name": "demos/cses/intro/014_hanoi_test.ra",
+          "ms": 1.3996249999981956,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "3fd9e0ba9afd7e7118af5f5fa0760f4a30f429c8668c51422dea77c975fdc14d"
+        },
+        {
+          "name": "demos/cses/intro/015_strings_test.ra",
+          "ms": 0.8242079999981797,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "fdcb0b7b2ecaf7707620dd107c267c91778ff67bc443c84af89a3df208d7fd00"
+        },
+        {
+          "name": "demos/cses/intro/016_apples_test.ra",
+          "ms": 1.7591249999968568,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "123c1c59dd5d051f9d71e926a9c3b1c8f038c3e538f7542814adb20f7d74a4fa"
+        },
+        {
+          "name": "demos/cses/intro/017_queens_test.ra",
+          "ms": 100.05049999999756,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ddf11c139b3f728f5f3f85fb88967c12b1176394b3f1c3806868b0cef8eee800"
+        },
+        {
+          "name": "demos/cses/intro/018_raab_test.ra",
+          "ms": 4.781416999998328,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "19acafeb676bbb108188fe9f380305aac506e0fa2c77ffa8a0bab698f17cc579"
+        },
+        {
+          "name": "demos/cses/intro/019_mexgrid_test.ra",
+          "ms": 0.9258750000008149,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "80dfc971e51414a6d3cb82b81a100499fff221e70263dea258fd7e14f8599a86"
+        },
+        {
+          "name": "demos/cses/intro/020_knight_test.ra",
+          "ms": 3.1953750000029686,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "03e4c05dcca8fa2a4c6d6e989e54293fbc4c32b7bf8a61e1bbe4a7f9f5b2e70e"
+        },
+        {
+          "name": "demos/cses/intro/021_color_test.ra",
+          "ms": 1.2817500000019209,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "1a4446c7aec9e7adc00ca99df22a7eda5fab639f13381e008985097c3f291884"
+        },
+        {
+          "name": "demos/cses/intro/022_digits_test.ra",
+          "ms": 3.187959000002593,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "e7ec14a6d04c26ca7aab883471a2879f512ab86813af78639df67f36cfff5507"
+        },
+        {
+          "name": "demos/cses/intro/023_reorder_test.ra",
+          "ms": 3.157333999995899,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "b32e3085830d9c0da7b6e207c42394fe027353c40150f9d65155534929ddfca5"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 2258.5829589999994,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        },
+        {
+          "name": "demos/cses/math/001_josephus_test.ra",
+          "ms": 4.655790999997407,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "57a8135cab8cfe267ccc544534f8bb1d4a36dccc3f669c7c89bf4dc1480b5f0c"
+        },
+        {
+          "name": "demos/cses/math/002_exponentiation_test.ra",
+          "ms": 1.278666999998677,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5d66cf1a3690eddb8e8db6478044c2e1e8c1e32064cf0f0d10137f71d9d601bf"
+        },
+        {
+          "name": "demos/cses/math/003_exponentiation2_test.ra",
+          "ms": 1.6439170000012382,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5a3fbeeddf559fa217d7bf13bf35e2cbafa178d3282a0cfa0691001e285459f7"
+        },
+        {
+          "name": "demos/cses/math/004_countdivisors_test.ra",
+          "ms": 1.097249999998894,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2fbe2c6c8934556a8ae2e602b708593b579c59b999f746e5fdcb7e5693eb0ca8"
+        },
+        {
+          "name": "demos/cses/math/005_commondivisors_test.ra",
+          "ms": 2.0298340000008466,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2636294590cf05677120ea8a41d8796e01e6c081a712bd3346889a7ce8c884e1"
+        },
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 343.190416999998,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/007_divisoranalysis_test.ra",
+          "ms": 6.4282079999975394,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d38f57077f6cf5700ddec5d426bb98aeeaee8378d49c85a1a2560181f498aa31"
+        },
+        {
+          "name": "demos/cses/math/008_primemultiples_test.ra",
+          "ms": 2.820208000004641,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "890ed8bd8afea513c51ecd7a2d31923a8f52805d5087aadcf358547503d428dd"
+        },
+        {
+          "name": "demos/cses/math/009_coprimepairs_test.ra",
+          "ms": 3.0258749999993597,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "29baf5c9edc39f7c4e30d1f45b74baeccce28d00a31d23c5d466ae9e22334b77"
+        },
+        {
+          "name": "demos/cses/math/010_nextprime_test.ra",
+          "ms": 1.62354200000118,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c0f0fefaa870c21dbfdf35c1bc23365bd5ed0002c731c9f39dd4056146a83dcf"
+        },
+        {
+          "name": "demos/cses/math/011_binomials_test.ra",
+          "ms": 2.1460000000006403,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b1b5a6a8ee1a5156f7f32310863ef7f70fc169920bdd907eb57922bc4cfb0278"
+        },
+        {
+          "name": "demos/cses/math/012_creatingstrings2_test.ra",
+          "ms": 3.982624999996915,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "579de0cd55ba33c4b4c2f3dd92b67af707019369e074958f68c890dc1e32e119"
+        },
+        {
+          "name": "demos/cses/math/013_distributingapples_test.ra",
+          "ms": 1.2822499999965657,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "621bb410bdd3a459debc55d90e932ca8f58236e91e6daa848701c743355a9f87"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 108.2466659999991,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/cses/math/015_permutationorder_test.ra",
+          "ms": 7.737541000002238,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "82af765fdb799e0c27950eb488c8b038bd452d4c7fcb68a5abbefc9ea25c5d75"
+        },
+        {
+          "name": "demos/cses/math/016_permutationrounds_test.ra",
+          "ms": 3.943874999997206,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "480ce9398293f9ba7795c8097b68aa9153532bc82ff89e40996f43a03e6e30a7"
+        },
+        {
+          "name": "demos/cses/math/017_brackets1_test.ra",
+          "ms": 2.2765419999996084,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "211298681d0d1b88b8642f46c97891c1d43ff8888ee106f0a75241d5818f1b5d"
+        },
+        {
+          "name": "demos/cses/math/018_brackets2_test.ra",
+          "ms": 2.747292000000016,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "270c2f92ee8907e944955629c8d8b5b5201dcd50b8da83367baa4892c94a76e2"
+        },
+        {
+          "name": "demos/cses/math/019_countingnecklaces_test.ra",
+          "ms": 2.3657080000048154,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "618509591958c5f7494d84e30257e87d7c5ef5673c5433bbc844ff40c3cc5389"
+        },
+        {
+          "name": "demos/cses/math/020_countinggrids_test.ra",
+          "ms": 2.1364580000008573,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1e998150e2ba4f4693d55a4942d855f6fe505f243578374f2e23dd12d46bf7fa"
+        },
+        {
+          "name": "demos/cses/math/021_fibonacci_test.ra",
+          "ms": 2.151583999999275,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "799c4c341feded6ddde4d13a1e0bb41f4930e3c8fee65b3c7826daa31efb9e00"
+        },
+        {
+          "name": "demos/cses/math/022_throwingdice_test.ra",
+          "ms": 5.483291999997164,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b8075b9b48e464d67116406cfd9fe88d5313f24b0ee0378ee6101048ac6422e1"
+        },
+        {
+          "name": "demos/cses/math/023_graphpaths1_test.ra",
+          "ms": 4.015666999999667,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "34317b02a669ec602c6ae76617ddf2f3a268c1dc089a6c9233733b69fd35f0cd"
+        },
+        {
+          "name": "demos/cses/math/024_graphpaths2_test.ra",
+          "ms": 7.549916000003577,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1b66c37cf158e354a5c22040d228e74480957803ebbf433f80cc7918c32eb9ea"
+        },
+        {
+          "name": "demos/cses/math/025_linearequations_test.ra",
+          "ms": 6.656749999994645,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6dee9bb39b1e79d1b1e06635ee6ecf919c2a8898df3c4187cffa7d9b636495c0"
+        },
+        {
+          "name": "demos/cses/math/026_foursquares_test.ra",
+          "ms": 7.253458000006503,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "20bb789ae46e49a9269812f9f2c82627716c38e3eb0d77cf7ca05e7e13b23358"
+        },
+        {
+          "name": "demos/cses/math/027_trianglesums_test.ra",
+          "ms": 3.035916000000725,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "c86363c4e592378cc5e657092f0f741ced872af416457263c790614d5a05b420"
+        },
+        {
+          "name": "demos/cses/math/028_diceprobability_test.ra",
+          "ms": 2.9519169999985024,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f73e0d19b69da1ed74b263a5eef526975fb2c600ea13b2add113e20fd045290a"
+        },
+        {
+          "name": "demos/cses/math/029_movingrobots_test.ra",
+          "ms": 219.4672500000015,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "ad900d510e91f0eb952d24506683db7b928b703e29b045f27ef6ee20d29fb3b8"
+        },
+        {
+          "name": "demos/cses/math/030_candylottery_test.ra",
+          "ms": 3.817084000002069,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a5a29557f134192c02fc4e414414f677f51cc85ca8d40c620d0adae6ac9130f2"
+        },
+        {
+          "name": "demos/cses/math/031_inversionprob_test.ra",
+          "ms": 2.655665999998746,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dbc6f0ea5c45d42833d64c48ea53662125ae7979210bbf8c3e9414655f70cb47"
+        },
+        {
+          "name": "demos/cses/math/032_stickgame_test.ra",
+          "ms": 2.9497919999994338,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "da73e235ff99e6ec68cc12c7e5e5dfa1d7529fccca7ca0e20f41dd9b4f13b0f1"
+        },
+        {
+          "name": "demos/cses/range/001_staticsum_test.ra",
+          "ms": 1.6564999999973224,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f9ee4f3949039e78e92aa206b8dac75ca84f3e3603d13766402fbde3b757896c"
+        },
+        {
+          "name": "demos/cses/range/002_staticmin_test.ra",
+          "ms": 1.384249999995518,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "3024d4f670bdcab1452dd8de432bdce09c29c98ff02bb7c4df1e612d65733a4a"
+        },
+        {
+          "name": "demos/cses/range/003_dynamicsum_test.ra",
+          "ms": 1.6806660000002012,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "628cd9b147308c6336a49dfacf56c2dfc9fb6fdb485c91dc5c774cc4566d440b"
+        },
+        {
+          "name": "demos/cses/range/004_dynamicmin_test.ra",
+          "ms": 1.6069580000039423,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "6425b34d6e6c572993bec95ddf550c2dc404100c75e5ea4488d639f5dd96ab15"
+        },
+        {
+          "name": "demos/cses/range/005_staticxor_test.ra",
+          "ms": 1.3772079999980633,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "61c5ddca6712db6825ea4d5c18caba1717362dde294526f677a70f90379cbf9d"
+        },
+        {
+          "name": "demos/cses/range/006_rangeupdate_test.ra",
+          "ms": 2.1845420000026934,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "ac30c480334fa0a2dda12a2f431f34afcda833068cc8341f1141c209cf9972e6"
+        },
+        {
+          "name": "demos/cses/range/007_forest_test.ra",
+          "ms": 3.443749999998545,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "66d322d2c7749718ae9082e062bb0dcdeef851351a8855f405aa2ed4ace44015"
+        },
+        {
+          "name": "demos/cses/range/008_hotel_test.ra",
+          "ms": 1.35216699999728,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "6fecfcc61937e01e0244dd142e1580000a2d75bbcf8952816da0db6aacba27d0"
+        },
+        {
+          "name": "demos/cses/range/009_listremovals_test.ra",
+          "ms": 1.2619579999955022,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "28bd50611495944fec90b90f21be017ee725b33e54e3b2652fc9ad0d09283003"
+        },
+        {
+          "name": "demos/cses/range/010_salary_test.ra",
+          "ms": 3.0053330000009737,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "101d684d200521ed9354ad4cfaccbed3041f4087c5ea5742d9b6fd7d465383b0"
+        },
+        {
+          "name": "demos/cses/range/011_prefixsum_test.ra",
+          "ms": 1.6927909999940312,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "829883ac8d09a4edc705bdb1ce7830ecdcb29276e627fd8b99fdb742037d79cd"
+        },
+        {
+          "name": "demos/cses/range/012_pizzeria_test.ra",
+          "ms": 2.3702090000006137,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "3caa7a0fd0f4acdbc3e49bd11fe6b5860d9e50d01a5bb34e39af7cfe65dc4636"
+        },
+        {
+          "name": "demos/cses/range/013_visible_test.ra",
+          "ms": 2.291750000003958,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "97aaae569375770cb61392c65be9ccdd1228acbddca6f8e3f22d14e9f2806e72"
+        },
+        {
+          "name": "demos/cses/range/014_intervals_test.ra",
+          "ms": 1.6452920000010636,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "e59b3e1d1753234095562877b80bd7ce024de86a6c273823e7dc51bef2b8ab76"
+        },
+        {
+          "name": "demos/cses/range/015_subarraysum_test.ra",
+          "ms": 1.4952499999999418,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9b77e0bf734ade5c8e71f22a60b676d8342ccd05bab2f34a7fe13d73dd4d221b"
+        },
+        {
+          "name": "demos/cses/range/016_subarraysum2_test.ra",
+          "ms": 1.3969160000051488,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "5ab396a9e146cc766ff24d7087918fc46a70d39dff2dc45ceecc8b21ea170f93"
+        },
+        {
+          "name": "demos/cses/range/017_distinct_test.ra",
+          "ms": 2.2599589999954333,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9378c81a8c10411b808f7832081fa5d1bb0c066b374c70ed6b84a15746ddd789"
+        },
+        {
+          "name": "demos/cses/range/018_distinct2_test.ra",
+          "ms": 3.6490839999969467,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "e8259d6ec8fe7625d28f1dca5c42a446e725faef6cbbfe2b5bbc69b43b8e45fa"
+        },
+        {
+          "name": "demos/cses/range/019_increasing_test.ra",
+          "ms": 5.41387499999837,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "790f4b654e7b0aefa3f639d90c6538e317aa161a5577c1e50f1de1cfc46acdab"
+        },
+        {
+          "name": "demos/cses/range/020_movies_test.ra",
+          "ms": 2.361625000005006,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "7c4aaf05cb21930ce9c68d746ed883d7569ef10f006e8abef51ae4d53a037ba1"
+        },
+        {
+          "name": "demos/cses/range/021_forest2_test.ra",
+          "ms": 5.09870800000499,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "c64be491d4360b9dc3bff002e0110e32bbd72ea3d2801647b89c733038a7f389"
+        },
+        {
+          "name": "demos/cses/range/022_rangesums_test.ra",
+          "ms": 2.3621660000062548,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "45edffeaa3adabc8e0d3b79b56ff94c1c25e62c22a0f9c89a88a05508a359df3"
+        },
+        {
+          "name": "demos/cses/range/023_polynomial_test.ra",
+          "ms": 3.1042079999970156,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "41a285a51f5dd02bdbb4ecadcd91473671d995d2dd8d668d73f6713fba7d905d"
+        },
+        {
+          "name": "demos/cses/range/024_copies_test.ra",
+          "ms": 2.7676250000004075,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8e872dcf6708be84262c79db272c02157f0291f99a41c801586ac16293dd2b61"
+        },
+        {
+          "name": "demos/cses/range/025_missingcoins_test.ra",
+          "ms": 1.1456250000046566,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "7aee9791a55bb04e2c549e12c9f6964e3a9a994b5556ef93c78bd01bf42b4c15"
+        },
+        {
+          "name": "demos/cses/sortnsrch/001_distinct_test.ra",
+          "ms": 0.769124999998894,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "4b1f27a50649a0d69685e68a5e52e15e31f6f5ff63462b90478c10aad7a354a8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/002_apartments_test.ra",
+          "ms": 2.226457999997365,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5c47090a88798773e492787e2e5a3408337a173f4ba5a847f1737772aaab781e"
+        },
+        {
+          "name": "demos/cses/sortnsrch/003_ferris_test.ra",
+          "ms": 1.9494590000031167,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dad9dbb91fb05ce02edccc06f1fbaf75015d850b885789860dc152e0146c842c"
+        },
+        {
+          "name": "demos/cses/sortnsrch/004_tickets_test.ra",
+          "ms": 1.625625000000582,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "23359ef09428995caa51ef8cdd076ac01e2656f15bc4cfc91537b4e847c6a0be"
+        },
+        {
+          "name": "demos/cses/sortnsrch/005_restaurant_test.ra",
+          "ms": 5.004958999998053,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "3674cb3674ec707b0eb302704366e81c15ff75cf95d333eb7efc183561027bbe"
+        },
+        {
+          "name": "demos/cses/sortnsrch/006_movies_test.ra",
+          "ms": 2.889832999993814,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "14500219839ce290176ae45e2e506c7b42316d863796cd76b65960cc161f2bb0"
+        },
+        {
+          "name": "demos/cses/sortnsrch/007_twovalues_test.ra",
+          "ms": 2.0697500000023865,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "780224dbbe4617d52692f34d70e10a2c2495f68d0187f0f47e936539b24de812"
+        },
+        {
+          "name": "demos/cses/sortnsrch/008_maxsubarray_test.ra",
+          "ms": 1.7284579999977723,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "11d34700eb27fe75ee1c8b4440a04b4c1b323a1b1e9a2370b5fa141e931c3df6"
+        },
+        {
+          "name": "demos/cses/sortnsrch/009_sticks_test.ra",
+          "ms": 1.5489999999990687,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6a33a28f7c94446b8366739d8fb0d653b5267170bf656d5b1a4caabf32d9ae93"
+        },
+        {
+          "name": "demos/cses/sortnsrch/010_missing_coin_test.ra",
+          "ms": 1.3369170000005397,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5ce581cfa1e8e068c3a8d0f0040432067424ce98362fe97f106a8783ef0d7d1c"
+        },
+        {
+          "name": "demos/cses/sortnsrch/011_collecting_test.ra",
+          "ms": 1.545458000000508,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d6112e1f40ea7a160d86839a0c7f26cfa3983a98c3342d3110365dced214a3d2"
+        },
+        {
+          "name": "demos/cses/sortnsrch/012_collecting2_test.ra",
+          "ms": 4.206209000003582,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "f34371e717a4bccd3693b4135093adb084337ee1121c7142cd57fcc818d6e563"
+        },
+        {
+          "name": "demos/cses/sortnsrch/013_playlist_test.ra",
+          "ms": 1.777208999999857,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f630c5b0ee20a31c2c6ea99e3eab9f58b9bb080110dd4c2c909b4829d706089a"
+        },
+        {
+          "name": "demos/cses/sortnsrch/014_towers_test.ra",
+          "ms": 1.7125000000014552,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "7a34c13e607d5591380e1d312beed44c31904278b2fe2561a0c0caf96fc02071"
+        },
+        {
+          "name": "demos/cses/sortnsrch/015_traffic_test.ra",
+          "ms": 2.5374589999992168,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b9e362379d51d4da396dc637bb64aed1961225c4e70037bffa8f03a7915cd25a"
+        },
+        {
+          "name": "demos/cses/sortnsrch/016_subarrs_test.ra",
+          "ms": 4.053374999995867,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "449d5ba56185809f68290ed37fed1aa7be2b1d93668b9edbab1f00e39b817282"
+        },
+        {
+          "name": "demos/cses/sortnsrch/017_subseq_test.ra",
+          "ms": 1.7206250000017462,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a6bb37a71a90032f2d4670a180e5ac6497e4c4fb9f23c04ad81e3c1724addcb4"
+        },
+        {
+          "name": "demos/cses/sortnsrch/018_josephus_test.ra",
+          "ms": 2.3760420000035083,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "4dc1ba492128381b22bd83f79fda063a15816f18f0a30330411d1da0353012b2"
+        },
+        {
+          "name": "demos/cses/sortnsrch/019_josephus2_test.ra",
+          "ms": 1.8427920000031008,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fc976688c2dab3b31f9b996f375dc06b37ef10fd3c1ad0ecf6a1516a022d2995"
+        },
+        {
+          "name": "demos/cses/sortnsrch/020_ranges_test.ra",
+          "ms": 4.146624999993946,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fa1d44472e587abd40abce238de7b39dad15cdc46487f68ca674b37d27eb3bd8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/021_ranges_test.ra",
+          "ms": 4.973749999997381,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fa1d44472e587abd40abce238de7b39dad15cdc46487f68ca674b37d27eb3bd8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/022_rooms_test.ra",
+          "ms": 4.06358299999556,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "d7e131e62fb5ae82ff5ca0d87999c838e58cd7a29f5fae0160ceb4747a95ae72"
+        },
+        {
+          "name": "demos/cses/sortnsrch/023_factory_test.ra",
+          "ms": 2.0321659999972326,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "db179a8e34f19c274c091429409639a7e1432807b89eba2a0c82d5cc3e4fc018"
+        },
+        {
+          "name": "demos/cses/sortnsrch/024_tasks_test.ra",
+          "ms": 4.549667000006593,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78b13f256d1f9b89845b9822866681e9654ac8937652216441c49fac94e56497"
+        },
+        {
+          "name": "demos/cses/sortnsrch/025_books_test.ra",
+          "ms": 1.2003750000003492,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "ad70a11ec026c9fe9ffe5fba8ac3e4c352b3b3e667d2438a36342038d81fe31a"
+        },
+        {
+          "name": "demos/cses/sortnsrch/026_three_test.ra",
+          "ms": 3.1344160000007832,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "012e825512dfcc90d3b5a9ad97abe33b68b93f68b8f06f28d0378cb596cebc1d"
+        },
+        {
+          "name": "demos/cses/sortnsrch/027_four_test.ra",
+          "ms": 3.168333999994502,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "65086739c54c43fb7ec9c150fd32e0fb82334c89d5b9f75244ca56faba0e8dc3"
+        },
+        {
+          "name": "demos/cses/sortnsrch/028_smaller_test.ra",
+          "ms": 2.353833000001032,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2b9cca01e1ba0e9174dc47b5495d35c88634c3ccda69b9553b4604736996d0e3"
+        },
+        {
+          "name": "demos/cses/sortnsrch/029_sums1_test.ra",
+          "ms": 1.8323749999981374,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "92f32299539d75a045e396152fdaeb9727d3e59340eefaa41b1abc67a9406bb8"
+        },
+        {
+          "name": "demos/cses/sortnsrch/030_sums2_test.ra",
+          "ms": 1.9031659999964177,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "9bd7bd833dc5dae04de1d249d3ba5fcb52343862d957a802657e7c9fce742a87"
+        },
+        {
+          "name": "demos/cses/sortnsrch/031_div_test.ra",
+          "ms": 1.8091659999990952,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "a4ba41b1e74c981897d256e42eac877a8741583f155e773ef65e6c1adb6f873d"
+        },
+        {
+          "name": "demos/cses/sortnsrch/032_dist2_test.ra",
+          "ms": 2.43279099999927,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5cd8c4772879b6ec96db92ecb8135120aacb0a24e20b76aefdcbc71b810ae7df"
+        },
+        {
+          "name": "demos/cses/sortnsrch/033_division_test.ra",
+          "ms": 2.239625000001979,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "bfbdb5c7cc5e4451b9588e134548645bfa38238ec28f66c1ce1b123ee7c51c7b"
+        },
+        {
+          "name": "demos/cses/sortnsrch/034_movies2_test.ra",
+          "ms": 2.6199169999963487,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "29eec040e48bf8c3f0224ffe6428e8ed64e7fa087bb0c378dd69b9f08a86a392"
+        },
+        {
+          "name": "demos/cses/sortnsrch/035_maxsum2_test.ra",
+          "ms": 5.02204100000381,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dad55e0ca5f313c7b59e49a98cf7b2812800cdc51dd34bf197b6efae13bf04cc"
+        },
+        {
+          "name": "demos/cses/tree/001_subordinates_test.ra",
+          "ms": 3.091082999999344,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "9772ad4cdde641a24e6d2e9af46323f3e0deb4168d3f226d3808834cf97ebd4b"
+        },
+        {
+          "name": "demos/cses/tree/002_matching_test.ra",
+          "ms": 3.212208000004466,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1526a4a9e8a21296f4e0bd9c7e50bb1a737b605ae9e81750b3b4332bf17db1c4"
+        },
+        {
+          "name": "demos/cses/tree/003_diameter_test.ra",
+          "ms": 2.6462920000049053,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "0641fa34afc4a9f62f7ced1186e0536c93819dbea2ba872ddbdedd5e41df61df"
+        },
+        {
+          "name": "demos/cses/tree/004_distances1_test.ra",
+          "ms": 3.6168330000000424,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "17054eb09c2663f3730add8317480e84a7670d2f0184e8b561845a031fa848da"
+        },
+        {
+          "name": "demos/cses/tree/005_distances2_test.ra",
+          "ms": 4.425707999995211,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "667c760f671c32665372c25ec0557ec43f6cc1b222242c41484476c581dc8554"
+        },
+        {
+          "name": "demos/cses/tree/006_company1_test.ra",
+          "ms": 2.65479200000118,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5417bee3590972f30bb973e69f9b193934498eebc6ea9448c7ab48ac0a4573bc"
+        },
+        {
+          "name": "demos/cses/tree/007_company2_test.ra",
+          "ms": 4.4537080000009155,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "7c1575abf4cafa2ba42ce676156a8e21bb2ec6830331a5fb990a3c96135125dd"
+        },
+        {
+          "name": "demos/cses/tree/008_distancequeries_test.ra",
+          "ms": 2.299209000004339,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "10d62bfba2655811b862821d3cd7fd6ed254ba620b6b982c5a4f409a1762b7f0"
+        },
+        {
+          "name": "demos/cses/tree/009_countpaths_test.ra",
+          "ms": 4.596084000004339,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "5e7725da94b52cb75c4a717ca28670b58317228904ce11cb0425eef278c1ed2d"
+        },
+        {
+          "name": "demos/cses/tree/010_subtreequeries_test.ra",
+          "ms": 5.023458000003302,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "f67ed7281e25a149ee1912e54400f006c7c6264d9bb2e3bca88762e434fdff85"
+        },
+        {
+          "name": "demos/cses/tree/011_pathqueries_test.ra",
+          "ms": 5.669167000000016,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "1abf6797a5043a1bfd715f754ebee8542ac418767f841b6258def1bfd8460b4b"
+        },
+        {
+          "name": "demos/cses/tree/012_pathqueries2_test.ra",
+          "ms": 9.578915999998571,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "832eabbd384e803267f273bce9efa35d765918976335648c36818d5a8e938888"
+        },
+        {
+          "name": "demos/cses/tree/013_colors_test.ra",
+          "ms": 4.925875000000815,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "0ba58c66b3eb15e70c7fb1d8598037401d671738b66c6dabae15fb82eb648c5f"
+        },
+        {
+          "name": "demos/cses/tree/014_centroid_test.ra",
+          "ms": 3.008625000002212,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "fa1d09742b0bcd4c80b06bd3c6fae6f9d6e871141711d4a3ebe2bd40f0868f37"
+        },
+        {
+          "name": "demos/cses/tree/015_fixedpaths1_test.ra",
+          "ms": 2.1822920000049635,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "6776bf869e7773a9a8d9aa63622857e55f982302ada94013d8c2a9cb93a1d283"
+        },
+        {
+          "name": "demos/cses/tree/016_fixedpaths2_test.ra",
+          "ms": 2.2685829999973066,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "e538d7acf22d734f0d4e9ea4d3cccfa44476922dd13cdfd78a1648d182b483f6"
+        },
+        {
+          "name": "demos/deepml/001_matmul_test.ra",
+          "ms": 1.3225000000020373,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "72d5d762a0741281ae138eb317a4c73820c3d9cbcc7acbfb915c841d854dbe4e"
+        },
+        {
+          "name": "demos/deepml/002_transpose_test.ra",
+          "ms": 1.409417000002577,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ffdc46769180aa4e91eb23f94f092aeee1e06fb4c9489adab81a9f834b954f4c"
+        },
+        {
+          "name": "demos/deepml/003_reshape_test.ra",
+          "ms": 1.891750000002503,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "4001ba7abbf421da1cf4c02f2ab6f0e3fd8dd42099c0efb3dbd730acd6cbb7e7"
+        },
+        {
+          "name": "demos/deepml/004_mean_test.ra",
+          "ms": 1.2587499999935972,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "8644ef68f4264a6607c4ccaf29ddf9852329ab3e60ee70f41e41cb1c84321301"
+        },
+        {
+          "name": "demos/deepml/005_scalmul_test.ra",
+          "ms": 0.7944999999963329,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "029d02e67c60d9cbeb8c51c2b6627c2c4639cade843b55e3590c9c139f4a6049"
+        },
+        {
+          "name": "demos/deepml/006_eig_test.ra",
+          "ms": 4.102082999997947,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "94492351068bbf161556d92ce87202c85fe7b8eb35b9f5d8d1b0e344d2674763"
+        },
+        {
+          "name": "demos/deepml/007_trans_test.ra",
+          "ms": 5.416833999996015,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "b2dcc6ccd87bc5ca7ee1f7044ccd66c7e3995f0bc23137add384b11dc51dfeb2"
+        },
+        {
+          "name": "demos/deepml/008_inv_test.ra",
+          "ms": 2.6882909999985714,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "cc908d271e2300491e3cb865383aa617f11209036507047271ba402f280d7e59"
+        },
+        {
+          "name": "demos/deepml/009_matmul_test.ra",
+          "ms": 2.09991699999955,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "7845fe6645ad1f032a953bc307315530d1b090b6bda73b92fb5d6103b8ca71e0"
+        },
+        {
+          "name": "demos/deepml/010_cov_test.ra",
+          "ms": 1.8911670000015874,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "3ad25be34cee2996f6295c12e2f856c0f93be0fc2fd905dd4fc83d8368eb51b8"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 2.8391670000055456,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/deepml/012_svd_test.ra",
+          "ms": 5.372333999999682,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "092480717b78238e4cbb9ab2a2a875c2a0b118c65c74b6a0a43b0d8fa0eea9af"
+        },
+        {
+          "name": "demos/deepml/013_det_test.ra",
+          "ms": 6.421125000000757,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "8d30714680b4329de73fb1b010239f1b8c8dcf4e2048d785cd74ac8007ee5d42"
+        },
+        {
+          "name": "demos/deepml/014_linreg_test.ra",
+          "ms": 1.6280419999966398,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "ff6686f4ea36402e403f1cdfb7aedbe45a29126aa71c84296a9b86e9f7d3d6a1"
+        },
+        {
+          "name": "demos/deepml/015_gd_test.ra",
+          "ms": 10.79804200000217,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "899ea3c024c6a1739e7ee44a021b5c4ea6970b49a907e78c3c75f713ba749c63"
+        },
+        {
+          "name": "demos/deepml/016_scale_test.ra",
+          "ms": 1.659458000001905,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "57ac712d8691e52756219903338d26f4d723222fa84fd681e51e870151cc8611"
+        },
+        {
+          "name": "demos/deepml/017_kmeans_test.ra",
+          "ms": 3.396042000000307,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "b23a466cf8480c2458dc6c2935ff9bea434dd27ba78f62a9e17167e85515c44d"
+        },
+        {
+          "name": "demos/deepml/018_crossval_test.ra",
+          "ms": 4.315083000001323,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "b5c65ae3681c12438c3be30273cb9498a19f9ebeef5661db86eca3334d7a64cf"
+        },
+        {
+          "name": "demos/deepml/019_pca_test.ra",
+          "ms": 8.110625000001164,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "f68c577d8bdbb10c09eca3e0ef8f65b45463578423f0d4df8acfa6aa5b55a67a"
+        },
+        {
+          "name": "demos/deepml/020_tree_test.ra",
+          "ms": 6.273207999998704,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "130293f54b3fdc4d3de725b5e125ca12652cec11f90e37ebf5bea3edb5633e66"
+        },
+        {
+          "name": "demos/deepml/021_svm_test.ra",
+          "ms": 21.610124999999243,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "57451b6e171e88c046623746ae79f8025f0ef9859bfea9879a3a09b035ed1ff7"
+        },
+        {
+          "name": "demos/deepml/022_sigmoid_test.ra",
+          "ms": 1.055207999997947,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "94ade629abf90fdb016442e8a605c5ea54a92e12189ca79658ac36cee996d60b"
+        },
+        {
+          "name": "demos/deepml/023_softmax_test.ra",
+          "ms": 1.1051250000018626,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "81530eada53c99421c50c09b9c87cc8a2aa8ae5ce6f65cf763ad1a8941ce76cc"
+        },
+        {
+          "name": "demos/deepml/024_neuron_test.ra",
+          "ms": 2.002583000001323,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "563f2e86a9ea907ce852f05e050f3f7c04c93bed04eec54146d550f81a9d01b6"
+        },
+        {
+          "name": "demos/deepml/025_backprop_test.ra",
+          "ms": 3.3444170000002487,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "ea3a3d18fc4e9b106b6b177d9ec38c0b1e776346fa2aa639acd971f3781728ac"
+        },
+        {
+          "name": "demos/deepml/026_grad_test.ra",
+          "ms": 5.09520799999882,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0fba92259468875ee4f60236497790a9274560df230dfff55b02fc0dc209e08d"
+        },
+        {
+          "name": "demos/deepml/027_basis_test.ra",
+          "ms": 1.1327089999977034,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "48a994b8d7241b030b6d843757ae316f31e37032facb18bc42587c2b89434501"
+        },
+        {
+          "name": "demos/deepml/028_svd2_test.ra",
+          "ms": 15.830290999998397,
+          "kernels": 0,
+          "tests": 7,
+          "digest": "f4ff8254b6e0f7a28b8199d72ad27ac151252f048407f464a1c9b7f602da349c"
+        },
+        {
+          "name": "demos/deepml/029_shuf_test.ra",
+          "ms": 2.74237500000163,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "26fce44a13720d528149a3d2ecf6a58b10b1f5aaa7fed9257faa84e4301b20b6"
+        },
+        {
+          "name": "demos/deepml/030_batch_test.ra",
+          "ms": 3.9047500000015134,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "ca7182ef76ab48b9407f922f59ff2fd3b29f1edafba800126e5a980df2159a52"
+        },
+        {
+          "name": "demos/euler/001_multiples_test.ra",
+          "ms": 0.9030409999977564,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8af84386c70aca32e08b396bcdafac7c705c8d2a691430acd1c81233db0a9402"
+        },
+        {
+          "name": "demos/euler/002_evenfib_test.ra",
+          "ms": 0.629625000001397,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f71c73da0c6252d50cdb4db25af8d01cf534df8a7a5bbae21adfd93da389caef"
+        },
+        {
+          "name": "demos/euler/003_primefactor_test.ra",
+          "ms": 0.5704159999950207,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "febc973a2d98086eca910d1db960dfd151d0f4ef4d4da78af409cfa7d82561d3"
+        },
+        {
+          "name": "demos/euler/004_palproduct_test.ra",
+          "ms": 955.1209170000002,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "5c7cbd055b60f38b00cb0ae733d7fdfec703c0cba1f68a1c1d9c2345ed646d90"
+        },
+        {
+          "name": "demos/euler/005_smallestmultiple_test.ra",
+          "ms": 2.707541999996465,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "60262c06b9f37a196ae7a4eda9f27efca437dc477f4afce123ba750b6028ea2d"
+        },
+        {
+          "name": "demos/euler/006_sumsquarediff_test.ra",
+          "ms": 0.793666999998095,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8c7933921f2ce5f4a9f7fa6496e60b6de33e8afa3709b1064012ddcc31786116"
+        },
+        {
+          "name": "demos/euler/007_10001stprime_test.ra",
+          "ms": 3.098167000003741,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8d5cf21830f410e9c9df5d4c310dc1647061ac50da55c9dc61b52062092b0a8c"
+        },
+        {
+          "name": "demos/euler/008_seriesproduct_test.ra",
+          "ms": 6.391125000001921,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "cb27d343a0de7759f94a232facac029b6e67066d13b605dc09dffb4dc5969809"
+        },
+        {
+          "name": "demos/euler/009_pythagorean_test.ra",
+          "ms": 92.32558399999834,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f51a7d49f959e1d7d0ebfa12faa6813172269a9029607dcb1363f3c26de6f21d"
+        },
+        {
+          "name": "demos/euler/010_sumprimes_test.ra",
+          "ms": 69.18004199999996,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2dd20aabe0d23d2f832c08e43f4b2c946e50fe17226bf1fa07791071def3dfab"
+        },
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 12.49883299999783,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        },
+        {
+          "name": "demos/euler/012_triangledivisors_test.ra",
+          "ms": 94.96466700000019,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "afc2327437d62604fac1660f3d6c57d74c3ccf7f27d02c1db53d548c26c2769c"
+        },
+        {
+          "name": "demos/euler/013_largesum_test.ra",
+          "ms": 3.6598749999975553,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "023c2e0306c3aa890fbd2b7dbd36c6c3555b2da87ef06c60765c2f2e8a5cf6bc"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 4637.259124999997,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        },
+        {
+          "name": "demos/euler/015_latticepaths_test.ra",
+          "ms": 3.132166999996116,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "d5d7365b12e301b173da227699997f88e42a24eccf92de8078c9031dbef58c7a"
+        },
+        {
+          "name": "demos/euler/016_powerdigits_test.ra",
+          "ms": 0.936915999998746,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "028d5076da814ba868707a996e9279feab1fd38dfa727b0892b0e4eb7d3cf676"
+        },
+        {
+          "name": "demos/euler/017_numberletters_test.ra",
+          "ms": 9.279083000001265,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d1698521253a054e450180bbd0cbb4d6db15973a53735128673b79763f37c2ae"
+        },
+        {
+          "name": "demos/euler/018_maxpath_test.ra",
+          "ms": 2.323833000002196,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "cefef8aab734e220a79483e8559296052b48a6e51ebb888e441e390ea394b201"
+        },
+        {
+          "name": "demos/euler/019_sundays_test.ra",
+          "ms": 5.752707999999984,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "5816df06d4e3113d7e77620ad2c54ab0416b57158b397895200df70951f96255"
+        },
+        {
+          "name": "demos/euler/020_factorialdigits_test.ra",
+          "ms": 1.330207999999402,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "8098a1aadab0e7394a383a5eb08a547d5e86c6f461deb6a540ad8e40661e67cc"
+        },
+        {
+          "name": "demos/euler/021_amicable_test.ra",
+          "ms": 198.70387499999924,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "dd7dc33e5e073290fbd8223b718d8f406e6bfdebb120c9bc7b1164fdb21eea0e"
+        },
+        {
+          "name": "demos/euler/022_namescores_test.ra",
+          "ms": 34.56145799999649,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "cd04998479ab71f9d40362c635d2d219955c4ad7af7a9b671dbab0f6ac7bf367"
+        },
+        {
+          "name": "demos/euler/023_abundantsums_test.ra",
+          "ms": 1168.061708000001,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "59a62bad2d379e3859e85a6475f6a1b59fb9dfdbf1be6991ae1d7bbad6f102a2"
+        },
+        {
+          "name": "demos/euler/024_lexicographic_test.ra",
+          "ms": 4.389666999995825,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "f46330d035ed30c85c859c4a7c9345508cc2100b9d773d59db053ebd04abb1bd"
+        },
+        {
+          "name": "demos/euler/025_fibdigits_test.ra",
+          "ms": 26.375333000003593,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "983543130514210723ce372e60d1b48abe4b07930ccca00dcaa31e0268c731cc"
+        },
+        {
+          "name": "demos/euler/026_reciprocal_test.ra",
+          "ms": 65.23079200000211,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "1f00967a9eb1ddc6b985bd38bdb637f456b585b200c9ecce7523319b3d45e434"
+        },
+        {
+          "name": "demos/euler/027_quadraticprimes_test.ra",
+          "ms": 531.6733750000058,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "2ff83bf6da8a9ab38065b12d695fe078e03dd4a5c27655a3c397b2a47589a96a"
+        },
+        {
+          "name": "demos/euler/028_spiraldiagonals_test.ra",
+          "ms": 3.466707999999926,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "729ed7ef1385cc6e707a6c0c3e113718fbb523ba022173182bfa0487a2ce958c"
+        },
+        {
+          "name": "demos/euler/029_distinctpowers_test.ra",
+          "ms": 10.056541999998444,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8976b2486978929efb0cc5b91aadd3c670e1581d5799bb656430bab9de2e50a4"
+        },
+        {
+          "name": "demos/euler/030_digitpowers_test.ra",
+          "ms": 2517.0942910000012,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "869ff8028fe5700f50582769b4effeae74ed3e71779bc142daaacab4dd67d6e5"
+        },
+        {
+          "name": "demos/euler/031_coinsums_test.ra",
+          "ms": 4.182332999997016,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "b3b81682623ddb9b8b8ed8d138314f64822bf597fdf1a4dabf59173904f1da6a"
+        },
+        {
+          "name": "demos/euler/032_pandigitalproducts_test.ra",
+          "ms": 319.72029199999815,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "6f4b53366f621a0f3bdfcc8942003a367a57288c0bb93d773c3cdd5ad75ad45e"
+        },
+        {
+          "name": "demos/euler/033_digitfractions_test.ra",
+          "ms": 10.680083999999624,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d9758370b029e1d166bd4843ece2f5f1173c804519fc1967704bee98c9b842e6"
+        },
+        {
+          "name": "demos/euler/034_digitfactorials_test.ra",
+          "ms": 113.81150000000343,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "46fdaa61293315aa8b15afa7b8d88bebe8080a36293c2a7017c9a04982243ce2"
+        },
+        {
+          "name": "demos/euler/035_circularprimes_test.ra",
+          "ms": 686.903790999997,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "4f4127b79c7f0f817ccca5390a56dd092e1b0cf6a8065d1222cd80348bb06502"
+        },
+        {
+          "name": "demos/euler/036_doublepalindromes_test.ra",
+          "ms": 283.2252080000035,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "60aed68f3e4ac69a699312f53db5b2318f5fc246742a458e002800ccdc044a5d"
+        },
+        {
+          "name": "demos/euler/037_truncatableprimes_test.ra",
+          "ms": 591.8937500000029,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "9763ac165cba10b7784eb8611d4476d187c7ee5412cc72229c767a3d662268ac"
+        },
+        {
+          "name": "demos/euler/038_pandigitalmultiples_test.ra",
+          "ms": 34.94495800000004,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "93b9bfb14a07c5a216e317047fc6909082f5856a68bb7e9d333b0b0d966fb4ab"
+        },
+        {
+          "name": "demos/euler/039_righttriangles_test.ra",
+          "ms": 2.4691669999956503,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "ca925a08ef547d4211650a90598f974d6be1c0a7f36122c83c0eabbf011659af"
+        },
+        {
+          "name": "demos/euler/040_champernowne_test.ra",
+          "ms": 1.9980419999992591,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "a50e12862fa2e26e65248cc2766cab7c7e1f3626ffb98088b926e3f8aa4802e6"
+        },
+        {
+          "name": "demos/euler/041_pandigitalprime_test.ra",
+          "ms": 0.7863339999967138,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "35309e9b40c04b9a1bd086a7dd7ffb8538944231f69518a67088c9e81b0ad3aa"
+        },
+        {
+          "name": "demos/euler/042_trianglewords_test.ra",
+          "ms": 10.86504199999763,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "71e9224d7d1cd5314862c2fdead65b406978863859a30b5c4df1f737e35f35ab"
+        },
+        {
+          "name": "demos/euler/043_substringdiv_test.ra",
+          "ms": 347.22670800000196,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "077573007ec9be0b912e9258a5eecd888b0ac9621d3b6fdda945ce7d792a5533"
+        },
+        {
+          "name": "demos/euler/044_pentagondiff_test.ra",
+          "ms": 1295.8507090000057,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "1f521d6d36667a86dd22930d012ad499f818f5f5264750e4024fb5186239398a"
+        },
+        {
+          "name": "demos/euler/045_tripolygonal_test.ra",
+          "ms": 26.214333999996597,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "d547700b37319eb48a928015528b748851b9f43bdcab32f10ebbd12bd54f084e"
+        },
+        {
+          "name": "demos/euler/046_goldbach_test.ra",
+          "ms": 11.547749999997905,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f58fbc3fb8cf74879c55f68c622358cb896acd9f9a39baf695789a50357ca8b4"
+        },
+        {
+          "name": "demos/euler/047_primefactors_test.ra",
+          "ms": 316.4918749999997,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "4c6b520582d1880b7ad23f3ebafb3d3a51f78728b8823bb6f82f325be09a3606"
+        },
+        {
+          "name": "demos/euler/048_selfpowers_test.ra",
+          "ms": 5.270666000003985,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "74dbbfd6d2c6c6327f718a3263156425b63412a1b2c1d60c7a3a2ee36741ddee"
+        },
+        {
+          "name": "demos/euler/049_primepermutations_test.ra",
+          "ms": 72.190042000002,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "42fb6ee8b3da29b8dad22f772614c93f7fb7342dccc34f8355b3863790c91dcb"
+        },
+        {
+          "name": "demos/euler/050_primesum_test.ra",
+          "ms": 93.07762499999808,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "0c7db463c87312ad394c7e0c647ec73cfeae350c5a54848f91c37c039277bb0e"
+        },
+        {
+          "name": "demos/leetcode/001_twosums_test.ra",
+          "ms": 3.558708000004117,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "8c1b25a64c33335dd2fdd34885c858f9dc82e34c4831d7cc49f3982070a3e433"
+        },
+        {
+          "name": "demos/leetcode/002_addtwo_test.ra",
+          "ms": 2.227207999996608,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "96048e4bdcfb3ca4a6082436786e2e834e2a9c410a9cf3b5b0ad05ee33c7f1b3"
+        },
+        {
+          "name": "demos/leetcode/003_longest_test.ra",
+          "ms": 2.132332999994105,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "61be1e9c09426afdb0cf6a30cca51cc57689758987b09040a325ba08f08d60d0"
+        },
+        {
+          "name": "demos/leetcode/004_medarrs_test.ra",
+          "ms": 12.140250000004016,
+          "kernels": 0,
+          "tests": 8,
+          "digest": "400679e5107b94cb68f5722eb5b2c1c6aa31c25cc39b654b6f6716330d264c07"
+        },
+        {
+          "name": "demos/leetcode/005_longestpal_test.ra",
+          "ms": 4.401333000001614,
+          "kernels": 0,
+          "tests": 7,
+          "digest": "62f786ff9f7c6d3e2956cfdedea05e2b14cbd4206384b014d586665c337e8ab1"
+        },
+        {
+          "name": "demos/leetcode/006_zigzag_test.ra",
+          "ms": 3.532583000000159,
+          "kernels": 0,
+          "tests": 6,
+          "digest": "a84563aadd9f027beaaa716d0a21456970ff5a6baac5bc61a14a7d246fa50a48"
+        },
+        {
+          "name": "demos/leetcode/007_revint_test.ra",
+          "ms": 3.7817079999949783,
+          "kernels": 0,
+          "tests": 8,
+          "digest": "a9d292a99a8817290ddc2dfd1a3f5670f9cba87032e2a72d4e3de7fae6828568"
+        },
+        {
+          "name": "demos/leetcode/008_atoi_test.ra",
+          "ms": 14.878083999996306,
+          "kernels": 0,
+          "tests": 14,
+          "digest": "898150c8eeb4e4d8ff5822e8c2a37dfcce80d2dcb7b2242614125f5cf10ef96f"
+        },
+        {
+          "name": "demos/leetcode/009_palnum_test.ra",
+          "ms": 4.028041000005032,
+          "kernels": 0,
+          "tests": 10,
+          "digest": "1f79017e641ac2212a4e9d18d6bcb8648d8afe0aeb68d4908df7841188bd927c"
+        },
+        {
+          "name": "demos/leetcode/010_regexp_test.ra",
+          "ms": 14.77362500000163,
+          "kernels": 0,
+          "tests": 14,
+          "digest": "826ed10da4551bd03d89e910025f8677990a110e3b61acd7896b5f85e0ba0d3a"
+        }
+      ]
+    }
+  ]
+}

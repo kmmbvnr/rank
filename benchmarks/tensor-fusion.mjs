@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -38,6 +38,7 @@ function recurrenceAnswer(limit) {
   return total;
 }
 const tasks = [
+  { name: 'Indexed integer dot product, 200000 atoms', path: 'benchmarks/programs/array-loop.ra', fn: 'dot', expected: 1200000n, args: () => [array(Array(200000).fill(2n)), array(Array(200000).fill(3n))] },
   { name: 'Nested dependent ranges, 200000x3', path: 'benchmarks/programs/nested-loops.ra', fn: 'nested_sum', expected: 3n * 200000n * 200001n / 2n + 3n * 200000n, args: () => [200000n] },
   { name: 'Trial divisors of 10^10', path: 'benchmarks/programs/loop-control.ra', fn: 'trial_divisors', expected: 121n, args: () => [10000000000n] },
   { name: 'Tensor rank-0 traversal, 512x512', path: 'benchmarks/programs/tensor-scan.ra', fn: 'tensor_sum', expected: 262144n, args: () => [array(Array(512*512).fill(1n), [512,512])] },
@@ -70,6 +71,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      arrayLoopCompilation: backend === 'arrayloop' ? enabled : undefined,
       nestedLoopCompilation: backend === 'nested' ? enabled : undefined,
       tensorCellCompilation: backend === 'cells' ? enabled : undefined,
       directIteration: backend === 'iteration' ? enabled : undefined,
@@ -77,7 +79,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

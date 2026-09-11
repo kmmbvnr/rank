@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "arrayloop",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 102.43695899999999,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 102.06333299999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 13.856583999999998,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 13.797874999999976,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 12.904334000000006,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 12.851082999999988,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 54.186458000000016,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 54.116333999999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 49.20716600000003,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 49.13395800000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 13.131250000000023,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 13.072959000000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 12.581042000000025,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 12.52412499999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 48.611625000000004,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 48.55633399999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 48.455791999999974,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 48.40420899999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 12.737875000000031,
+      "entries": [
+        {
+          "name": "Indexed integer dot product, 200000 atoms",
+          "ms": 12.687000000000012,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "bc97eb043d57733358aa8667967abd3f5aa719603a6bfbb6a13a2bb131023bdb"
+        }
+      ]
+    }
+  ]
+}

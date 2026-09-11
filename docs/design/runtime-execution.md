@@ -564,3 +564,20 @@ last completed result. Assignments made only inside a possibly empty inner loop
 are not considered definite after it. Unsupported inner constructs retain the
 reference outer loop, with eligible inner loops compiled independently.
 `nestedLoopCompilation: false` disables only region nesting for comparisons.
+
+## Array reads inside compiled numeric loops
+
+The integer compiler can read a stable named integer array with a complete scalar
+address, including matrix and higher-dimensional coordinates. Parenthesized index
+expressions remain separate operands. It calls the existing checked array reader,
+so negative and out-of-bounds indices retain their diagnostics and source locations.
+
+Entry guards accept only already materialized integer atoms and the exact number
+of indices for the receiver rank. They do not force lazy readers. Partial addresses,
+noninteger arrays and rebinding the receiver retain ordinary execution. Array
+writes are not lowered by this stage. `arrayLoopCompilation: false` disables these
+reads while leaving the preceding integer compiler enabled.
+
+The current type guard scans the materialized atoms on each region entry. This
+cost can dominate a short loop over a large array. Future storage type summaries
+must track mutation correctly before this scan can be safely cached or hoisted.

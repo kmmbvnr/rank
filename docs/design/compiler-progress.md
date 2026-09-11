@@ -698,3 +698,39 @@ also match the preceding committed control-edge baseline. One pair took
 28.340 s off and 28.605 s on, so no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-nested-loops-suite.json).
+
+
+## Integer array reads in compiled regions
+
+Complete scalar addresses now lower to the existing checked array reader inside
+integer loops. The compiler flattens application chains but preserves parenthesized
+index expressions. It guards receiver identity through stable bindings, exact rank,
+and materialized integer atoms before any body execution. Array writes, incomplete
+addresses and lazy inputs retain ordinary execution. Entry guards currently scan
+all atoms; storage mutation/type summaries are needed before safely caching them.
+
+Nine new tests cover matrix coordinates, negative/large/out-of-bounds addresses,
+reads in conditions and dependent bounds, real inputs, partial indexing, rebinding,
+and an unread lazy input. Verification passes 44 language + 738 interpreter tests.
+
+Five alternating samples of an explicit integer dot product over 200000 atoms give
+medians of 49.134 ms off and 12.851 ms on (3.82x). The independent result is 1200000.
+The toggle disables only array reads in integer regions; earlier optimizations
+remain enabled. Counters are disabled during timing; a separate run confirms zero
+versus one compiled region. Timing includes input construction, parsing and checks.
+
+[Timings](../../benchmarks/baselines/2026-09-12-array-loop-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-array-loop-coverage.json).
+
+An unchanged real-demo control, Euler 11 tests, shows no meaningful gain across five
+pairs: medians 11.513 ms off and 11.590 ms on. This illustrates the remaining cost
+of entering short kernels and scanning arrays; do not extrapolate the dot-product
+gain to arbitrary matrix programs.
+
+[Euler 11 control](../../benchmarks/baselines/2026-09-12-array-loop-grid.json).
+
+The complete suite passes 306 files / 1054 tests in both modes, with every result
+digest matching the preceding nested-loop baseline. One pair takes 27.989 s off
+and 28.280 s on; no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-array-loop-suite.json).

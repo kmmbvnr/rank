@@ -683,3 +683,101 @@ end`);
         expect(result.loops).toBe(0);
     });
 });
+
+describe('integer array reads in compiled loops', () => {
+    it('reads full matrix coordinates inside one nested region', () => {
+        const result = compare(`use ranges
+A = array shape 2 3
+  1 2 3
+  4 5 6
+end
+Total = 0
+for I in 0 until 2
+  for J in 0 until 3
+    Total += A I J
+  end
+end
+Total`);
+        expect(result.value).toBe('21');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['-1', '3', '999999999999999999999999999999'])('preserves bounds errors at %s', index => {
+        const result = compare(`use ranges
+A = array 2 4 6
+Total = 0
+for I in 0 to 1
+  Total += A I
+  Bad = A (${index})
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('uses array values in conditions and dependent bounds', () => {
+        const result = compare(`use ranges
+A = array 2 4 6
+Total = 0
+for I in 0 until 3
+  for J in 1 to (A I)
+    if (A I) greater J
+      Total += J
+    end
+  end
+end
+Total`);
+        expect(result.value).toBe('22');
+        expect(result.loops).toBe(1);
+    });
+
+    it('declines real atoms before execution', () => {
+        const result = compare(`use ranges
+A = array 1.5 2.5
+Total = 0.0
+for I in 0 until 2
+  Total += A I
+end
+Total`);
+        expect(result.value).toBe('4');
+        expect(result.loops).toBe(0);
+    });
+
+    it('retains partial indexing semantics', () => {
+        const result = compare(`use ranges
+A = array shape 2 2
+  1 2
+  3 4
+end
+for I in 0 until 2
+  Row = A I
+end`);
+        expect(result.loops).toBe(0);
+    });
+
+    it('declines receiver rebinding', () => {
+        const result = compare(`use ranges
+A = array 1 2
+Total = 0
+for I in 0 until 2
+  Total += A I
+  A = array 3 4
+end
+Total`);
+        expect(result.value).toBe('5');
+        expect(result.loops).toBe(0);
+    });
+});
+
+it('does not force lazy array input when the loop does not read it', () => {
+    const read = vi.fn(() => 1n);
+    const runtime = new Interpreter();
+    runtime.variables.set('A', { kind: 'array', shape: [1], itemAt: read,
+        get items(): never { throw new Error('forced lazy input'); } });
+    try {
+        runtime.execute(`use ranges
+for I in 0 until 0
+  Value = A I
+end`);
+        expect(read).not.toHaveBeenCalled();
+    } finally { runtime.dispose(); }
+});

@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly arrayLoopCompilation?: boolean;
     readonly nestedLoopCompilation?: boolean;
     readonly tensorCellCompilation?: boolean;
     /** Iterate scalar streams without per-element entry wrappers. */
@@ -1004,6 +1005,8 @@ export class Interpreter {
                 read: name => this.findVariable(name),
                 writer: name => this.compileAssign(name),
                 nestedLoops: this.options.nestedLoopCompilation !== false,
+                arrayRead: atArray,
+                arrayReads: this.options.arrayLoopCompilation !== false,
                 iteration: forIteration,
                 ranges: () => this.modules.has('ranges'),
                 module: name => this.modules.has(name),
@@ -2451,6 +2454,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            arrayLoopCompilation: this.options.arrayLoopCompilation,
             nestedLoopCompilation: this.options.nestedLoopCompilation,
             tensorCellCompilation: this.options.tensorCellCompilation,
             directIteration: this.options.directIteration,
@@ -2539,6 +2543,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            arrayLoopCompilation: this.options.arrayLoopCompilation,
             nestedLoopCompilation: this.options.nestedLoopCompilation,
             tensorCellCompilation: this.options.tensorCellCompilation,
             directIteration: this.options.directIteration,
