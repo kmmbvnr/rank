@@ -1,0 +1,41 @@
+use testing
+
+test "official increasing scores"
+  use "039_logsoftmax"
+  Scores = array 1 2 3
+  Expected = array shape 3
+    -2.4076 -1.4076 -0.4076
+  end
+
+  Actual = Scores log_softmax
+  (Actual equal Expected) and reduce
+end
+
+test "official equal scores"
+  use "039_logsoftmax"
+  Scores = array 1 1 1
+  Expected = array shape 3
+    -1.0986 -1.0986 -1.0986
+  end
+
+  Actual = Scores log_softmax
+  (Actual equal Expected) and reduce
+end
+
+test "official small score"
+  use "039_logsoftmax"
+  Scores = array 1 1 0.0000001
+  Expected = array -0.862 -0.862 -1.862
+
+  Actual = Scores log_softmax
+  (Actual equal Expected) and reduce
+end
+
+test "large scores stay finite"
+  use "039_logsoftmax"
+  Scores = array 10000 10000
+  Expected = array -0.6931 -0.6931
+
+  Actual = Scores log_softmax
+  (Actual equal Expected) and reduce
+end

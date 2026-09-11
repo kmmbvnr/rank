@@ -1,0 +1,10 @@
+rem Deep-ML 39: Log Softmax
+rem https://www.deep-ml.com/problems/39
+
+use numbers
+
+fun log_softmax Scores
+  Shift = Scores - Scores max
+  Normalizer = Shift exp sum log
+  return (Shift - Normalizer) round 4
+end
