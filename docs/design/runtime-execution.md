@@ -667,3 +667,19 @@ function call. Captured frames retain their mapped-value representation. This re
 on the region's integer guards and absence of arbitrary user calls or suspension;
 it is not an unchecked writer for general execution. `boundIntegerWrites: false`
 keeps the original per-assignment checks for comparisons.
+
+
+## Boolean locals in numeric regions
+
+Numeric regions can store known boolean values from literals and comparisons,
+combine them with `and=`, `or=` and `xor=`, and use them in conditions or boolean
+equality tests. Incoming named conditions receive boolean guards. Local register
+types remain consistent throughout the region; conflicting types decline compilation
+and retain ordinary error timing. Checked first writes still establish Rank's fixed
+variable type before bound stores can specialize later writes.
+
+Operands retain ordinary evaluation order, including eager evaluation of boolean
+compound-assignment operands. Arrays remain integer-only in these regions: boolean
+array cells and general inference for unknown input aliases are future work.
+`booleanLoopCompilation: false` disables boolean local lowering while retaining
+existing integer operations and literal/comparison conditions.

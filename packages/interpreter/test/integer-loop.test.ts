@@ -1209,3 +1209,98 @@ Value = "text"`);
         expect(result.loops).toBe(1);
     });
 });
+
+describe('boolean locals in compiled loops', () => {
+    it('stores comparisons and combines boolean assignment operators', () => {
+        const result = compare(`use ranges
+Count = 0
+for I in 0 until 6
+  Allowed = I less 2
+  Allowed or= I equal 5
+  Allowed and= I greater 0
+  Allowed xor= I equal 3
+  if Allowed
+    Count += 1
+  end
+end
+Count`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it('guards an incoming boolean loop condition', () => {
+        const result = compare(`Active = true
+I = 0
+for Active
+  I += 1
+  Active = I less 4
+end
+I`);
+        expect(result.value).toBe('4');
+        expect(result.loops).toBe(1);
+    });
+
+    it('merges boolean definitions from both branches', () => {
+        const result = compare(`use ranges
+Count = 0
+for I in 0 until 4
+  if I less 2
+    Flag = true
+  else
+    Flag = false
+  end
+  Copy = Flag
+  if Copy equal true
+    Count += 1
+  end
+end
+Count`);
+        expect(result.value).toBe('2');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves a first-write type error after earlier mutations', () => {
+        const result = compare(`use ranges
+Flag = 1
+Done = 0
+for I in 0 until 3
+  Done += 1
+  Flag = I less 2
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('does not make boolean compound operands short-circuit', () => {
+        const result = compare(`use ranges
+Flag = true
+for I in 0 until 1
+  Flag or= (1 // 0) equal 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps the boolean type after leaving the region', () => {
+        const result = compare(`use ranges
+for I in 0 until 2
+  Flag = I equal 0
+end
+Flag = 1`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('declines incompatible local types across branches', () => {
+        const result = compare(`use ranges
+for I in 0 until 2
+  if I equal 0
+    Value = true
+  else
+    Value = 1
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});

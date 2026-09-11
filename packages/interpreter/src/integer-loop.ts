@@ -23,6 +23,7 @@ interface Host {
     readonly arrayWrites: boolean;
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
+    readonly booleanLocals: boolean;
     extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
@@ -44,11 +45,12 @@ const comparisons: Record<string, string> = {
 
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound
- * writers specialize repeated integer stores within one invocation. */
+ * writers specialize repeated known scalar stores within one invocation. */
 export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): {
     run(insideFinally?: boolean): Completed<RankValue | undefined> | undefined;
 } | undefined {
     if (!statement.statements.length || statement.statements.length > 32) return undefined;
+    const localTypes = new Map<string, Term['type']>();
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
     const writers: ((value: RankValue) => void)[] = [];
     const binders: ((value: RankValue) => void)[] = [];
@@ -75,18 +77,21 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         if (index < 0) { index = names.length; names.push(name); }
         return index;
     }
-    function emit(e: Expression, lines: string[]): Term | undefined {
+    function emit(e: Expression, lines: string[], hint?: Term['type']): Term | undefined {
         if (serial > 256) return undefined;
-        if (isParenthesizedExpression(e)) return emit(e.value, lines);
+        if (isParenthesizedExpression(e)) return emit(e.value, lines, hint);
         if (isNumberLiteral(e) && typeof e.value === 'bigint') return { code: `${e.value}n`, type: 'integer' };
         if (isBooleanLiteral(e)) return { code: String(e.value), type: 'boolean' };
         if (isNameExpression(e) && !e.name.includes('.')) {
+            const type = localTypes.get(e.name) ?? hint ?? 'integer';
+            if (hint && type !== hint || type === 'boolean' && !host.booleanLocals) return undefined;
+            localTypes.set(e.name, type);
             const index = slot(e.name);
             if (!assigned.has(e.name)) required.add(index);
-            return { code: `r${index}`, type: 'integer' };
+            return { code: `r${index}`, type };
         }
         if (isUnaryExpression(e)) {
-            const value = emit(e.operand, lines);
+            const value = emit(e.operand, lines, e.operator === 'not' ? 'boolean' : 'integer');
             if (!value) return undefined;
             if (e.operator === 'not' && value.type === 'boolean') return { code: `!(${value.code})`, type: 'boolean' };
             if (value.type === 'integer' && ['+', '-'].includes(e.operator)) {
@@ -167,12 +172,20 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
             return { code: name, type: 'integer' };
         }
-        const left = emit(e.left, lines), right = emit(e.right, lines);
+        const booleanPair = ['and', 'or', 'xor'].includes(e.operator)
+            || ['equal', 'notequal'].includes(e.operator) && (isBooleanLiteral(e.right)
+                || isNameExpression(e.right) && localTypes.get(e.right.name) === 'boolean');
+        const left = emit(e.left, lines, booleanPair ? 'boolean' : undefined);
+        const right = emit(e.right, lines, booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);
         if (!left || !right) return undefined;
         const a = left.code, b = right.code, op = e.operator;
         const name = `v${serial++}`;
         if (left.type === 'boolean' && right.type === 'boolean' && ['and', 'or', 'xor'].includes(op)) {
             lines.push(`const ${name} = (${a}) ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} (${b});`);
+            return { code: name, type: 'boolean' };
+        }
+        if (left.type === 'boolean' && right.type === 'boolean' && ['equal', 'notequal'].includes(op)) {
+            lines.push(`const ${name} = (${a}) ${comparisons[op]} (${b});`);
             return { code: name, type: 'boolean' };
         }
         if (left.type !== 'integer' || right.type !== 'integer') return undefined;
@@ -223,6 +236,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             }
             for (const [index, name] of iteration.names.entries()) {
                 if (name === '#') continue;
+                if (localTypes.has(name) && localTypes.get(name) !== 'integer') return undefined;
+                localTypes.set(name, 'integer');
                 const target = slot(name), value = index === 0 ? 'cursor' : arrayIteration ? 'ordinal++' : 'ordinal';
                 bindings += `const bound${binders.length} = ${value}; binders[${binders.length}](bound${binders.length}); r${target} = bound${binders.length};\n`;
                 binders.push(host.writer(name));
@@ -231,7 +246,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 written.add(name);
             }
         } else {
-            const test = node.condition ? emit(node.condition, tests) : { code: 'true', type: 'boolean' };
+            const test = node.condition ? emit(node.condition, tests, 'boolean') : { code: 'true', type: 'boolean' };
             if (!test || test.type !== 'boolean') return undefined;
             header = `for (;;) { location = ${location}; ${tests.join('\n')} if (!(${test.code})) break;`;
         }
@@ -330,7 +345,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                     assigned.clear();
                     for (const name of incoming) assigned.add(name);
                     const lines: string[] = [];
-                    const condition = emit(branch.condition, lines);
+                    const condition = emit(branch.condition, lines, 'boolean');
                     if (condition?.type !== 'boolean') return undefined;
                     body.push(`location = ${location};`, ...lines, `if (${condition.code}) {`);
                     const flow = statements(branch.statements, body);
@@ -357,12 +372,19 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             written.add(assignment.name);
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
             const lines: string[] = [];
-            const value = emit(assignment.value, lines);
-            if (!value || value.type !== 'integer') return undefined;
+            const booleanUpdate = ['and=', 'or=', 'xor='].includes(assignment.operator);
+            const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : undefined);
+            if (!value || value.type === 'boolean' && !host.booleanLocals) return undefined;
+            const previousType = localTypes.get(assignment.name);
+            if (previousType && previousType !== value.type) return undefined;
+            localTypes.set(assignment.name, value.type);
             let result = value.code;
             if (assignment.operator !== '=') {
                 const op = assignment.operator.slice(0, -1);
-                if (['+', '-', '*'].includes(op)) result = `(r${destination}) ${op} (${result})`;
+                if (booleanUpdate && value.type === 'boolean') {
+                    result = `(r${destination}) ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} (${result})`;
+                } else if (value.type !== 'integer') return undefined;
+                else if (['+', '-', '*'].includes(op)) result = `(r${destination}) ${op} (${result})`;
                 else if (op === '%' || op === '//') {
                     lines.push(`if ((${result}) === 0n) throw zero();`);
                     const remainder = `c${index}`;
@@ -410,7 +432,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         const values: (RankValue | undefined)[] = [];
         for (const index of required) {
             const value = host.read(names[index]);
-            if (typeof value !== 'bigint') return undefined;
+            if (typeof value !== (localTypes.get(names[index]) === 'boolean' ? 'boolean' : 'bigint')) return undefined;
             values[index] = value;
         }
         for (const [name, info] of containers) {

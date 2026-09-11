@@ -947,3 +947,52 @@ matches the preceding scalar-address baseline. One pair takes 28.097 s off and
 28.021 s on; no stable whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-bound-writes-suite.json).
+
+## Boolean scalar state in numeric regions
+
+The compiler now tracks integer versus boolean register types. It accepts boolean
+literals/comparison results, incoming named conditions, boolean equality, and
+`and=`/`or=`/`xor=`. Conflicting inferred types decline before execution; first writes
+still use normal type checks and later bound stores preserve the established type.
+Boolean operands retain eager evaluation. Boolean arrays are not covered yet.
+
+Seven differential tests cover comparison flags, compound boolean operators,
+incoming conditions, branch definitions and copies, first-write type errors,
+operand error order, types after the region and incompatible branch assignments.
+Verification passes 44 language + 788 interpreter tests.
+
+Five alternating samples use unchanged CSES Array Description with 1000 unknown
+positions and maximum value 100. A separate Number-based row recurrence supplies
+an independent expected count; all sums remain exactly representable. Medians are
+59.314 ms off and 14.414 ms on, about 4.12x. Only boolean-local lowering is toggled,
+with preceding compiler stages enabled in both modes. Timing includes parse/load,
+input construction and validation with counters disabled.
+
+The coverage run changes from one compiled initialization loop to 1000 compiled
+loop entries: the initialization plus 999 inner row loops. The outer loop remains
+interpreted because it constructs a fresh array and rebinds the previous row.
+
+[Timings](../../benchmarks/baselines/2026-09-12-boolean-locals-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-boolean-locals-coverage.json).
+
+The complete suite passes 306 files / 1054 tests in both modes, with all digests
+matching the preceding bound-writer baseline. One pair takes 27.693 s off and
+27.855 s on; no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-boolean-locals-suite.json).
+
+### Remaining dynamic-programming coverage candidates
+
+Source inspection identifies these remaining boundaries; this is not a claim that
+all other code in these examples is already compiled:
+
+- Removing Digits creates a text-to-integer tensor pipeline inside its outer loop.
+- Array Description constructs and rebinds row arrays inside its outer loop.
+- Grid Paths and Edit Distance iterate text and compare characters.
+- Rectangle Cutting calls a local helper from its outer loops; eligible loops in
+  that helper compile independently.
+- Minimal Grid Path constructs and iterates sets and builds text.
+- Money Sums reads and writes boolean array cells.
+
+These are existing Rank constructs. Extending compiler coverage does not require
+changing the example algorithms or adding language syntax.
