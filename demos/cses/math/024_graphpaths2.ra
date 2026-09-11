@@ -1,0 +1,80 @@
+rem CSES 1724: Graph Paths II
+rem https://cses.fi/problemset/task/1724
+
+use io
+use numbers
+use ranges
+use sequences
+
+Nodes = stdin .integer
+M = stdin .integer
+Length = stdin .integer
+Raw = stdin .integer (M * 3) array
+Edges = Raw (array M 3) reshape
+Answer = Nodes Edges Length min_path
+Answer print
+
+
+rem Find an exact-length minimum walk.
+fun min_path Nodes Edges Length
+  N = Nodes
+  Paths = array shape N N pad infinity
+  for Edge in Edges
+    unpack From To Cost = Edge
+    I = From - 1
+    J = To - 1
+    Paths I J = Paths I J min Cost
+  end
+
+  Power = Paths Length minplus_power
+  Answer = Power 0 (Nodes - 1)
+  if Answer equal infinity
+    return -1
+  end
+  return Answer
+end
+
+
+rem Raise a min-plus matrix.
+fun minplus_power Base Exponent
+  Size = Base len
+  Result = Size minplus_identity
+
+  for Exponent greater 0
+    if Exponent odd
+      Result = Result Base minplus
+    end
+    Base = Base Base minplus
+    Exponent //= 2
+  end
+
+  return Result
+end
+
+
+rem Multiply min-plus matrices.
+fun minplus Left Right
+  Size = Left len
+  N = Size
+  Result = array shape N N pad infinity
+
+  for K in 0 until Size
+    Column = Left # K
+    Row = Right K
+    Candidate = Column Row + outer
+    Result = (Result min Candidate) copy
+  end
+
+  return Result
+end
+
+
+rem Construct a min-plus identity.
+fun minplus_identity Size
+  N = Size
+  Result = array shape N N pad infinity
+  for I in 0 until Size
+    Result I I = 0
+  end
+  return Result
+end
