@@ -53,7 +53,7 @@ fun escape_monsters Grid
     if not Inside
       return false
     end
-    Cell = (Grid Row) Column
+    Cell = Grid Row Column
     return Cell not equal "#"
   end
 

@@ -1,0 +1,54 @@
+rem CSES 1671: Shortest Routes I
+rem https://cses.fi/problemset/task/1671
+
+use algo
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+NodeCount = stdin .integer
+EdgeCount = stdin .integer
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .directed
+
+for i in 1 to EdgeCount
+  From = stdin .integer
+  To = stdin .integer
+  Cost = stdin .integer
+  Graph add From To Cost
+end
+
+Distances = Graph NodeCount shortest
+Distances print
+
+
+rem Find distances from node one.
+fun shortest Graph NodeCount
+  Size = NodeCount + 1
+  Dist = array shape Size pad infinity
+  Dist 1 = 0
+  Pending = new heap
+  Item = array 1 0
+  Pending 0 Item enqueue
+
+  for Pending len greater 0
+    Item = Pending pop
+    unpack Current Distance = Item
+    if Distance not equal Dist Current
+      continue
+    end
+
+    for Edge in Graph edges Current
+      unpack Next Cost = Edge
+      Candidate = Distance + Cost
+      if Candidate less Dist Next
+        Dist Next = Candidate
+        Item = array Next Candidate
+        Pending Candidate Item enqueue
+      end
+    end
+  end
+  return Dist from 1 to NodeCount
+end
