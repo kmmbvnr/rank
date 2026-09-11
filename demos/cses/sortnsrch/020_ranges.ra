@@ -1,0 +1,57 @@
+rem CSES 2168: Nested Ranges Check
+rem https://cses.fi/problemset/task/2168
+
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Values = stdin .integer (N * 2) array
+Data = Values (array N 2) reshape
+
+Result = Data nested_ranges
+Result .contains print
+Result .inside print
+
+
+rem Mark containing and contained ranges.
+fun nested_ranges Data
+  Shape = Data shape
+  N = Shape 0
+  Start = Data # 0
+  Finish = Data # 1
+
+  Base = 1000000001
+  Keys = Start * Base + Base - Finish
+  Order = Keys argsort
+
+  Contains = array shape N pad 0
+  Inside = array shape N pad 0
+  MaxFinish = -1
+
+  for I in Order
+    Y = Finish I
+    if Y at most MaxFinish
+      Inside I = 1
+    end
+    MaxFinish = MaxFinish Y max
+  end
+
+  MinFinish = Base
+
+  for K in (N - 1) to 0 by -1
+    I = Order K
+    Y = Finish I
+    if Y at least MinFinish
+      Contains I = 1
+    end
+    MinFinish = MinFinish Y min
+  end
+
+  Result = record
+    .contains = Contains
+    .inside = Inside
+  end
+  return Result
+end
