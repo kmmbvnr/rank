@@ -30,6 +30,14 @@ export const sequencesModule: RuntimeModule = {
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     copy: () => native('copy', 1, arguments_ => copyArray(arguments_[0])),
     sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
+    argsort: () => native(
+        'argsort',
+        1,
+        arguments_ => argsortValue(arguments_[0]),
+        1,
+        undefined,
+        shape => shape,
+    ),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
     unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
@@ -124,11 +132,11 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     };
 }
 
-/** Materialize the finite rank-1 sources accepted by `sort by`. */
-export function sortByItems(value: RankValue): RankValue[] {
+/** Materialize the finite rank-1 sources accepted by keyed sorting. */
+export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[] {
     if (isRankArray(value)) {
         if (value.shape.length !== 1) {
-            throw new RankError('sort by expects a rank-1 collection');
+            throw new RankError(`${operation} expects a rank-1 collection`);
         }
         return arrayItems(value);
     }
@@ -137,29 +145,31 @@ export function sortByItems(value: RankValue): RankValue[] {
     if (isRankMultiset(value)) return [...value.values()];
     if (isRankSequence(value)) {
         if (value.plan.size.kind === 'infinite') {
-            throw new RankError('sort by requires a finite collection');
+            throw new RankError(`${operation} requires a finite collection`);
         }
         return [...value.plan.iterate()];
     }
-    throw new RankError('sort by expects a finite rank-1 collection');
+    throw new RankError(`${operation} expects a finite rank-1 collection`);
 }
 
 /** Sort already-computed key rows lexicographically and stably. */
 export function sortByKeys(
     items: readonly RankValue[],
     keys: readonly (readonly RankValue[])[],
+    operation = 'sort by',
+    indices = false,
 ): RankArray {
-    if (items.length !== keys.length) throw new RankError('sort by key count mismatch');
+    if (items.length !== keys.length) throw new RankError(`${operation} key count mismatch`);
     const width = keys[0]?.length ?? 0;
     if (keys.some(key => key.length !== width)) {
-        throw new RankError('sort by keys must have one shape');
+        throw new RankError(`${operation} keys must have one shape`);
     }
     const kinds = Array.from({ length: width }, (_, column) => {
         if (keys.length === 0) return undefined;
         const kind = orderedKind(keys[0][column]);
         for (let row = 1; row < keys.length; row += 1) {
             if (orderedKind(keys[row][column]) !== kind) {
-                throw new RankError('sort by key values must have one comparable type');
+                throw new RankError(`${operation} key values must have one comparable type`);
             }
         }
         return kind;
@@ -178,9 +188,41 @@ export function sortByKeys(
     });
     return {
         kind: 'array',
-        items: entries.map(entry => entry.value),
+        items: entries.map(entry => indices ? BigInt(entry.position) : entry.value),
         shape: [entries.length],
     };
+}
+
+/** Return stable indices that order a tensor along one axis. */
+export function argsortAxis(value: RankValue, axis: number): RankArray {
+    if (!isRankArray(value)) throw new RankError('argsort axis expects an array');
+    if (axis < 0 || axis >= value.shape.length) {
+        throw new RankError(`argsort axis out of bounds: ${axis}`, 'DimensionMismatch');
+    }
+    const shape = [...value.shape];
+    const result = Array<RankValue>(arraySize(shape));
+    const vectorShape = shape.filter((_, current) => current !== axis);
+    const vectorCount = arraySize(vectorShape);
+    for (let vector = 0; vector < vectorCount; vector += 1) {
+        const fixed = coordinatesAt(vectorShape, vector);
+        const source = Array(shape.length).fill(0) as number[];
+        let fixedIndex = 0;
+        for (let current = 0; current < shape.length; current += 1) {
+            if (current !== axis) source[current] = fixed[fixedIndex++];
+        }
+        const values = Array.from({ length: shape[axis] }, (_, coordinate) => {
+            source[axis] = coordinate;
+            return value.itemAt?.(offsetAt(shape, source))
+                ?? value.items[offsetAt(shape, source)];
+        });
+        const kind = sortableKind(values, 'argsort');
+        const order = stableOrder(values, kind);
+        for (let coordinate = 0; coordinate < shape[axis]; coordinate += 1) {
+            source[axis] = coordinate;
+            result[offsetAt(shape, source)] = BigInt(order[coordinate]);
+        }
+    }
+    return { kind: 'array', items: result, shape };
 }
 
 function coordinatesAt(shape: readonly number[], index: number): number[] {
@@ -227,9 +269,24 @@ function sortValue(value: RankValue): RankValue {
         throw new RankError('sort expects text or a rank-1 array');
     }
     const items = arrayItems(value);
-    const kind = sortableKind(items);
+    const kind = sortableKind(items, 'sort');
     items.sort((left, right) => compareOrderedValues(left, right, kind));
     return { kind: 'array', items, shape: [items.length] };
+}
+
+function argsortValue(value: RankValue): RankArray {
+    const items = typeof value === 'string'
+        ? [...value]
+        : isRankArray(value) && value.shape.length === 1
+            ? arrayItems(value)
+            : undefined;
+    if (!items) throw new RankError('argsort expects text or a rank-1 array');
+    const order = stableOrder(items, sortableKind(items, 'argsort'));
+    return {
+        kind: 'array',
+        items: order.map(index => BigInt(index)),
+        shape: [order.length],
+    };
 }
 
 function uniqueValue(value: RankValue): RankValue {
@@ -274,11 +331,31 @@ function uniqueItems(items: readonly RankValue[]): RankValue[] {
     });
 }
 
-function sortableKind(items: readonly RankValue[]): OrderedKind {
+function sortableKind(items: readonly RankValue[], operation: string): OrderedKind {
     if (items.length === 0) return 'numeric';
     const kinds = new Set(items.map(orderedKind));
-    if (kinds.size !== 1) throw new RankError('sort array elements must have one comparable type');
+    if (kinds.size !== 1) {
+        throw new RankError(`${operation} array elements must have one comparable type`);
+    }
     return [...kinds][0];
+}
+
+function stableOrder(items: readonly RankValue[], kind: OrderedKind): number[] {
+    return items
+        .map((_, position) => position)
+        .sort((left, right) =>
+            compareOrderedValues(items[left], items[right], kind) || left - right);
+}
+
+function arraySize(shape: readonly number[]): number {
+    return shape.reduce((product, dimension) => product * dimension, 1);
+}
+
+function offsetAt(shape: readonly number[], coordinates: readonly number[]): number {
+    return coordinates.reduce(
+        (offset, coordinate, axis) => offset * shape[axis] + coordinate,
+        0,
+    );
 }
 
 function reshape(value: RankValue, shapeValue: RankValue): RankValue {

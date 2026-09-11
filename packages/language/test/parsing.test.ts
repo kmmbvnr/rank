@@ -9,8 +9,8 @@ import {
     isAssignmentStatement,
     isBinaryExpression,
     isExpressionStatement,
+    isKeyedSortExpression,
     isMaterializeExpression,
-    isSortByExpression,
     isUnpackStatement,
     isUnaryExpression,
 } from '../src/index.js';
@@ -22,10 +22,11 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
-    it('parses field and function sort keys', async () => {
+    it('parses field and function ordering keys', async () => {
         const document = await parse([
             'Fields = Events sort by .time .delta',
             'Values = Events sort by eventkey',
+            'Order = Events argsort by .time',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -35,11 +36,12 @@ describe('Rank grammar', () => {
         expect(isAssignmentStatement(fields)).toBe(true);
         expect(isAssignmentStatement(key)).toBe(true);
         if (!isAssignmentStatement(fields) || !isAssignmentStatement(key)) return;
-        expect(isSortByExpression(fields.value)).toBe(true);
-        expect(isSortByExpression(key.value)).toBe(true);
-        if (!isSortByExpression(fields.value) || !isSortByExpression(key.value)) return;
+        expect(isKeyedSortExpression(fields.value)).toBe(true);
+        expect(isKeyedSortExpression(key.value)).toBe(true);
+        if (!isKeyedSortExpression(fields.value) || !isKeyedSortExpression(key.value)) return;
         expect(fields.value.fields.map(field => field.name)).toEqual(['time', 'delta']);
         expect(key.value.key?.name).toBe('eventkey');
+        expect(document.parseResult.value.statements).toHaveLength(3);
     });
 
     it('parses a program and preserves operator precedence', async () => {

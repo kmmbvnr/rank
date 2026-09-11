@@ -1813,8 +1813,8 @@ Addressing does not mutate `A` or `N`.
 
 ## Ordering and uniqueness
 
-`sort` and `unique` have intrinsic rank 1. Both preserve text as text and a
-rank-1 array as a rank-1 array:
+`sort`, `argsort` and `unique` have intrinsic rank 1. `sort` and `unique`
+preserve text as text and a rank-1 array as a rank-1 array:
 
 ```rank
 Letters = "caab" sort
@@ -1827,6 +1827,24 @@ scalar type: numbers, text, booleans or symbols. Integers and real numbers form
 one numeric ordering. `unique` preserves the first occurrence. It also accepts
 queues, sets and lazy sequences; sequence filtering stays lazy.
 
+`argsort` returns the stable, zero-based permutation that would sort each
+rank-1 cell. Text produces an integer vector. An array produces an integer
+array of the same shape:
+
+```rank
+Order = (array 30 10 20) argsort
+rem Order is array 1 2 0
+
+Rows = M argsort
+Columns = M argsort axis 0
+```
+
+Without `axis`, intrinsic rank 1 means that a tensor is ordered independently
+along its last axis. `axis N` instead orders every vector along axis `N` and
+places the local source positions in the same tensor shape. The source is not
+changed. A missing axis or mixed incomparable values in one vector is an
+error.
+
 `sort by` orders a finite rank-1 collection by a separate key. A sequence of
 field symbols forms a lexicographic key for records:
 
@@ -1838,6 +1856,14 @@ A single unary function may compute the key instead:
 
 ```rank
 Sorted = Values sort by magnitude
+```
+
+`argsort by` accepts the same sources and keys but returns their zero-based
+source positions:
+
+```rank
+Order = Events argsort by .time .delta
+Order = Values argsort by magnitude
 ```
 
 Every key component must be a comparable scalar. Values at the same key keep
@@ -3372,6 +3398,7 @@ transpose
 window
 copy
 sort
+argsort
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
@@ -3387,13 +3414,19 @@ BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
 
+`argsort` has intrinsic rank 1 and returns stable, zero-based sorting positions.
+For tensors it returns the same shape, orders along the last axis by default,
+and accepts `axis N` to select another axis.
+
 `sort by` performs a stable materializing sort of a finite rank-1 collection.
 Record fields form a lexicographic key, or one unary function computes a scalar
-key once for each value:
+key once for each value. `argsort by` accepts the same keys and returns source
+positions:
 
 ```rank
 Events = Events sort by .time .delta
 Values = Values sort by magnitude
+Order = Events argsort by .time .delta
 ```
 
 The result is a new rank-1 array. Key values use the ordinary numeric, text,

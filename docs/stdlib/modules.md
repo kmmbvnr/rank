@@ -395,6 +395,7 @@ transpose
 window
 copy
 sort
+argsort
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
@@ -410,13 +411,19 @@ BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
 
+`argsort` has intrinsic rank 1 and returns stable, zero-based sorting positions.
+For tensors it returns the same shape, orders along the last axis by default,
+and accepts `axis N` to select another axis.
+
 `sort by` performs a stable materializing sort of a finite rank-1 collection.
 Record fields form a lexicographic key, or one unary function computes a scalar
-key once for each value:
+key once for each value. `argsort by` accepts the same keys and returns source
+positions:
 
 ```rank
 Events = Events sort by .time .delta
 Values = Values sort by magnitude
+Order = Events argsort by .time .delta
 ```
 
 The result is a new rank-1 array. Key values use the ordinary numeric, text,

@@ -32,7 +32,7 @@ import {
     isRecordExpression,
     isRunStatement,
     isReturnStatement,
-    isSortByExpression,
+    isKeyedSortExpression,
     isStdinExpression,
     isStringLiteral,
     isTestStatement,
@@ -59,6 +59,7 @@ import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
 import {
+    argsortAxis,
     lengthOfAxis,
     sortByItems,
     sortByKeys,
@@ -1068,30 +1069,34 @@ export class Interpreter {
                 return record;
             };
         }
-        if (isSortByExpression(expression)) {
+        if (isKeyedSortExpression(expression)) {
             return function* (): Execution<RankValue> {
-                interpreter.requireModule('sequences', 'sort by');
+                const operation = expression.operator.startsWith('argsort')
+                    ? 'argsort by'
+                    : 'sort by';
+                const indices = operation === 'argsort by';
+                interpreter.requireModule('sequences', operation);
                 const source = yield* resume(interpreter.evaluateTask(expression.source));
-                const items = sortByItems(source);
+                const items = sortByItems(source, operation);
                 if (expression.fields.length > 0) {
                     const keys = items.map(item => expression.fields.map(field => {
                         if (!isRankRecord(item)) {
-                            throw new RankError('sort by fields expects records', 'TypeError');
+                            throw new RankError(`${operation} fields expects records`, 'TypeError');
                         }
                         const value = item.entries.get(field.name);
                         if (value === undefined) {
                             throw new MissingValueError(
-                                `sort by record is missing field .${field.name}`,
+                                `${operation} record is missing field .${field.name}`,
                             );
                         }
                         return value;
                     }));
-                    return sortByKeys(items, keys);
+                    return sortByKeys(items, keys, operation, indices);
                 }
-                if (!expression.key) throw new RankError('sort by requires a key');
+                if (!expression.key) throw new RankError(`${operation} requires a key`);
                 const key = yield* resume(interpreter.evaluateTask(expression.key));
                 if (!isNativeFunction(key) || !key.arities.includes(1)) {
-                    throw new RankError('sort by key must be a unary function');
+                    throw new RankError(`${operation} key must be a unary function`);
                 }
                 const keys: RankValue[][] = [];
                 for (const item of items) {
@@ -1099,7 +1104,7 @@ export class Interpreter {
                     interpreter.ownFiles(value);
                     keys.push([value]);
                 }
-                return sortByKeys(items, keys);
+                return sortByKeys(items, keys, operation, indices);
             };
         }
         if (isNameExpression(expression)) {
@@ -1292,6 +1297,16 @@ export class Interpreter {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'len');
                     return lengthOfAxis((yield* resume(interpreter.evaluateTask(axisLength.source))), axisLength.axis);
+                };
+            }
+            const axisArgsort = explicitAxisArgsort(parts);
+            if (axisArgsort) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('sequences', 'argsort');
+                    return argsortAxis(
+                        (yield* resume(interpreter.evaluateTask(axisArgsort.source))),
+                        axisArgsort.axis,
+                    );
                 };
             }
             const axisMetric = explicitAxisMetric(parts);
@@ -3539,6 +3554,17 @@ function explicitAxisLength(
     return {
         source: parts[0],
         axis: safeDimension(integerLiteral(parts[3], 'len axis'), 'len axis'),
+    };
+}
+
+function explicitAxisArgsort(
+    parts: Expression[],
+): { source: Expression; axis: number } | undefined {
+    if (parts.length !== 4 || !isNamed(parts[1], 'argsort')
+        || !isNamed(parts[2], 'axis')) return undefined;
+    return {
+        source: parts[0],
+        axis: safeDimension(integerLiteral(parts[3], 'argsort axis'), 'argsort axis'),
     };
 }
 
