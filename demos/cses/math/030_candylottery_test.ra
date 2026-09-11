@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "030_candylottery"
+  2 3 candy_text equal "2.444444"
+end
+
+test "one choice"
+  use "030_candylottery"
+  100 1 candy_text equal "1.000000"
+end
+
+test "one child is uniform"
+  use "030_candylottery"
+  1 100 candy_text equal "50.500000"
+end
+
+test "three binary choices"
+  use "030_candylottery"
+  3 2 candy_text equal "1.875000"
+end

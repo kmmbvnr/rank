@@ -1,0 +1,28 @@
+rem CSES 1727: Candy Lottery
+rem https://cses.fi/problemset/task/1727
+
+use io
+use numbers
+use ranges
+use sequences
+use text
+
+Children = stdin .integer
+Choices = stdin .integer
+Children Choices candy_text print
+
+
+rem Format the expected maximum.
+fun candy_text Children Choices
+  Expected = Children Choices candy_max
+  return Expected text ".6f"
+end
+
+
+rem Sum tails of the maximum.
+fun candy_max Children Choices
+  Below = 0 until Choices
+  Ratios = Below / Choices
+  Chances = Ratios ** Children
+  return Choices - Chances sum
+end

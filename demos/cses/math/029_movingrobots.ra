@@ -1,0 +1,98 @@
+rem CSES 1726: Moving Robots
+rem https://cses.fi/problemset/task/1726
+
+use io
+use linalg
+use numbers
+use ranges
+use sequences
+use text
+
+Steps = stdin .integer
+Steps empty_text print
+
+
+rem Format the expected empty cells.
+fun empty_text Steps
+  Expected = Steps empty_cells
+  return Expected text ".6f"
+end
+
+
+rem Combine all absence chances.
+fun empty_cells Steps
+  Move = 8 transition_matrix
+  Power = Move Steps matrix_power
+  Absence = 1.0 - Power transpose
+  Empty = Absence * reduce rank 1
+  return Empty sum
+end
+
+
+rem Build the board transition matrix.
+fun transition_matrix Board
+  Cells = Board ** 2
+  Move = array shape Cells Cells pad 0.0
+
+  for Y in 0 until Board
+    for X in 0 until Board
+      Degree = 4
+      L = Board - 1
+      if X equal 0 or X equal L
+        Degree -= 1
+      end
+      if Y equal 0 or Y equal L
+        Degree -= 1
+      end
+
+      From = Y * Board + X
+      for DY in -1 to 1
+        for DX in -1 to 1
+          Distance = DX abs + DY abs
+          if Distance not equal 1
+            continue
+          end
+          NX = X + DX
+          NY = Y + DY
+          if NX less 0 or NX greater L
+            continue
+          end
+          if NY less 0 or NY greater L
+            continue
+          end
+          To = NY * Board + NX
+          Move From To = 1.0 / Degree
+        end
+      end
+    end
+  end
+
+  return Move
+end
+
+
+rem Raise a real square matrix.
+fun matrix_power Base Exponent
+  Size = Base len
+  Result = Size identity_real
+
+  for Exponent greater 0
+    if Exponent odd
+      Result = Result Base matmul
+    end
+    Base = Base Base matmul
+    Exponent //= 2
+  end
+
+  return Result
+end
+
+
+rem Construct a real identity matrix.
+fun identity_real Size
+  Result = array shape Size Size pad 0.0
+  for I in 0 until Size
+    Result I I = 1.0
+  end
+  return Result
+end

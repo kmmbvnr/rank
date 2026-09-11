@@ -1,0 +1,21 @@
+use testing
+
+test "initial board is full"
+  use "029_movingrobots"
+  0 empty_text equal "0.000000"
+end
+
+test "one step"
+  use "029_movingrobots"
+  1 empty_text equal "19.673611"
+end
+
+test "official example"
+  use "029_movingrobots"
+  10 empty_text equal "23.120740"
+end
+
+test "one hundred steps"
+  use "029_movingrobots"
+  100 empty_text equal "23.556866"
+end
