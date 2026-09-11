@@ -1,18 +1,28 @@
 import { RankError } from './errors.js';
+import { ResourceMap } from './resource-summary.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { RankMultiset } from './multiset.js';
 import { setValueKey } from './set.js';
-import { isRankCounter, isRankMultiset, isRankSet, type RankValue } from './value.js';
+import { isRankCounter, isRankMultiset, isRankSet, type RankCounterEntry, type RankValue } from './value.js';
 
 export function newStructure(name: string): RankValue {
     switch (name) {
-        case 'index': return { kind: 'index', entries: new Map() };
+        case 'index': {
+            const entries = new ResourceMap<RankValue>(value => value);
+            return entries.resources.track({ kind: 'index', entries });
+        }
         case 'queue': return new RankDeque();
         case 'deque': return new RankDeque('deque');
         case 'stack': return new RankDeque('stack');
         case 'heap': return new RankHeap();
-        case 'set': return { kind: 'set', entries: new Map() };
-        case 'counter': return { kind: 'counter', entries: new Map() };
+        case 'set': {
+            const entries = new ResourceMap<RankValue>(value => value);
+            return entries.resources.track({ kind: 'set', entries });
+        }
+        case 'counter': {
+            const entries = new ResourceMap<RankCounterEntry>(entry => entry.value);
+            return entries.resources.track({ kind: 'counter', entries });
+        }
         case 'multiset': return new RankMultiset();
         case 'orderedset': return new RankMultiset(true);
         default: throw new RankError(`unknown structure: ${name}`);

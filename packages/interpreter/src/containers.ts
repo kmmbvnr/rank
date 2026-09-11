@@ -1,15 +1,19 @@
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import { isRankQueue, type RankValue } from './value.js';
+import { ResourceSummary } from './resource-summary.js';
 
 /** Queue-family storage. Removed entries release their references immediately. */
 export class RankDeque {
+    private readonly resources = new ResourceSummary();
     readonly kind = 'queue' as const;
     private readonly entries = new Map<number, RankValue>();
     private first = 0;
     private last = 0;
 
-    constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {}
+    constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {
+        this.resources.track(this);
+    }
 
     get size(): number { return this.last - this.first; }
     get items(): RankValue[] { return [...this.values()]; }
@@ -18,10 +22,12 @@ export class RankDeque {
         for (let index = this.first; index < this.last; index++) yield this.entries.get(index)!;
     }
     push(value: RankValue): this {
+        this.resources.include(value);
         this.entries.set(this.last++, value);
         return this;
     }
     pushFront(value: RankValue): this {
+        this.resources.include(value);
         this.entries.set(--this.first, value);
         return this;
     }
@@ -41,10 +47,13 @@ interface HeapEntry { readonly priority: RankValue; readonly value: RankValue; r
 
 /** Stable min-priority queue; ties retain insertion order. */
 export class RankHeap {
+    private readonly resources = new ResourceSummary();
     readonly kind = 'heap' as const;
     private readonly entries: HeapEntry[] = [];
     private priorityKind?: OrderedKind;
     private nextOrder = 0;
+
+    constructor() { this.resources.track(this); }
 
     get size(): number { return this.entries.length; }
     *values(): IterableIterator<RankValue> { for (const entry of this.entries) yield entry.value; }
@@ -55,6 +64,7 @@ export class RankHeap {
             throw new RankError('heap priorities must have one comparable type');
         }
         this.priorityKind = kind;
+        this.resources.include(value);
         const entry = { value, priority, order: this.nextOrder++ };
         let index = this.entries.length;
         this.entries.push(entry);
