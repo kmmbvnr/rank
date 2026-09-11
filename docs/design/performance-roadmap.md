@@ -18,8 +18,9 @@ an optimization preserves performance elsewhere.
 
 The worktree's private storage contract repairs the descriptor-probe bug and
 enables the sum experiment without probing unknown host objects. Finish its
-acceptance checks before merging: snapshot matvec improves, but lazy k-means
-and named snapshot reductions still have measured costs. The coordinate-copy
+acceptance checks before merging: snapshot matvec improves, but named snapshot
+reductions and lazy k-means still have measured costs. The short-vector cache
+prototype was rejected: its small gain did not justify added complexity. The coordinate-copy
 change removed the ordinary mean regression and made row/column means about
 three times faster at 512 square. Revise or remove the remaining responsible
 parts and repeat the controls. See
@@ -86,6 +87,11 @@ Why: these transformations span places where writes may occur. Whole-function
 analysis is unnecessary for the operation-local cases below.
 
 ## Safety and acceptance rules
+
+A small speedup does not justify extra implementation complexity. Keep a small
+gain only when the change also simplifies the code. Specialized paths need a
+repeatable benefit large enough to justify their added maintenance and tests;
+otherwise roll them back and record the experiment.
 
 Rank execution is sequential. A synchronous read-only kernel may treat inputs as
 stable for that call if it invokes no effectful lazy readers, user callbacks or

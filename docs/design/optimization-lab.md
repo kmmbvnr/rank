@@ -433,3 +433,45 @@ All 461 JS tests and all 164 demo files passed.
 Decision: keep the local coordinate reuse. For k-means, investigate small lazy
 array construction/cache allocations rather than assuming the private-storage
 lookup explains the whole regression. Keep named-cache semantics as a gate.
+
+## 8. Short-vector result caches: rejected for added complexity
+
+Broadcast arithmetic allocated a Map even for two-element vectors. The first
+prototype stored indices 0 and 1 in local slots for every array. K-means improved,
+but the extra per-element branches hurt million-element integer reductions:
+chain 94.45 to 113.61 ms, named 94.94 to 112.69 ms, and reused 136.05 to
+155.55 ms. That general version was rejected; its patch is retained in
+`benchmarks/experiments/general-two-slot-cache.patch`.
+
+The second prototype selects the slot reader only for rank-one shapes of at
+most two cells. Larger arrays retain their Map reader without slot branches.
+Unusual indices on a short vector allocate a Map on demand. Both paths preserve
+cached zero/false values, failed-read retries, NaN keys, and the separate
+materialized-items cache. Four new tests cover these behaviors.
+
+Five-sample k-means comparisons at 2,048 points were 43.00 to 40.67 ms against
+the before-cache runtime, and 42.00 to 40.93 ms against the pre-storage runtime.
+The corresponding large integer controls for the limited version were 90.05,
+91.27 and 130.41 ms; real chain reduction was 82.01 to 84.78 ms. These controls
+reject the general version's large regression, not establish a universal gain.
+[Raw isolated runs](../../benchmarks/baselines/2026-09-11-small-vector-cache.json).
+
+A completed full ordinary-input comparison against d03c2bd also passed all
+numerical oracles: largest-size warm medians were Euler 10.9 to 11.0 ms,
+matvec 26.5 to 19.6, k-means 42.5 to 40.8, row mean 12.6 to 4.1,
+column mean 13.6 to 4.3, matmul 330.7 to 329.2 and gradient 80.2 to 64.0.
+These are cumulative changes, not cache-only gains. Its full JSON output was
+truncated during collection; these figures are from the surviving summary.
+K-means peak RSS increased from 368.8 to 405.6 MiB in that run, so the earlier
+isolated RSS decreases do not establish a memory improvement.
+
+Decision: reject both versions. The user clarified the acceptance rule: a small
+speedup is insufficient when it adds complexity; small gains are acceptable
+when the code also becomes simpler. About 5% in one workload does not justify
+two reader paths, extra cache state and a special fallback for unusual indices.
+Production code was restored to the original Map implementation. Keep the four
+behavior tests and measured results. Named snapshot reduction overhead and the
+earlier k-means slowdown remain open.
+
+After rollback, all 465 JS tests passed, including the four new cache tests.
+The 164-file demo run passed before rollback; it is not a post-rollback result.

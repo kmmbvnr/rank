@@ -1,0 +1,27 @@
+diff --git a/packages/interpreter/src/tensor.ts b/packages/interpreter/src/tensor.ts
+index 12f1892..cf6e6da 100644
+--- a/packages/interpreter/src/tensor.ts
++++ b/packages/interpreter/src/tensor.ts
+@@ -11,15 +11,19 @@ export function mapBroadcastArrays(
+     const rightStrides = arrayStrides(right.shape);
+     const sameShape = left.shape.length === right.shape.length
+         && left.shape.every((dimension, axis) => dimension === right.shape[axis]);
+-    const cache = new Map<number, RankValue>();
++    let first: RankValue | undefined;
++    let second: RankValue | undefined;
++    let cache: Map<number, RankValue> | undefined;
+     const itemAt = (index: number): RankValue => {
+-        const cached = cache.get(index);
++        const cached = index === 0 ? first : index === 1 ? second : cache?.get(index);
+         if (cached !== undefined) return cached;
+         const result = operation(
+             arrayItem(left, sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
+             arrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
+         );
+-        cache.set(index, result);
++        if (index === 0) first = result;
++        else if (index === 1) second = result;
++        else (cache ??= new Map()).set(index, result);
+         return result;
+     };
+     let materialized: RankValue[] | undefined;
