@@ -593,8 +593,8 @@ execution. The existing indexed-container path remains available through the sam
 statement syntax, selected by receiver kind.
 
 The compiler evaluates coordinates and validates the array selection before the
-right operand, then writes immediately. It reuses tensor selection for identical
-bounds diagnostics. Aliases see earlier writes, including on a later error or
+right operand, then writes immediately. Full scalar addresses use the checked offset helper described below, retaining
+tensor selection's bounds diagnostics. Aliases see earlier writes, including on a later error or
 break. An array assignment contributes its right operand to the statement result;
 an index assignment still contributes no result. `arrayWriteCompilation: false`
 disables array writes while retaining array reads and existing index writes.
@@ -638,3 +638,16 @@ shadowed functions or other operand types retain ordinary execution.
 Malformed chains decline compilation so skipped bodies keep their error timing.
 The compiler evaluates operands in order, retains exact BigInt values and uses the
 left operand on ties. `extremaLoopCompilation: false` disables only this lowering.
+
+
+## Scalar write-address lowering
+
+Compiled full-cell writes compute their row-major offset directly in
+`scalarArrayWriteOffset`. The region guards already establish the receiver rank
+and integer coordinates. The helper checks each axis in order, comparing bounds
+in BigInt space, and computes the offset without selector objects, closures or an
+output-shape plan. Validation still happens before the right operand.
+
+General slices keep tensor selection. `scalarAddressCompilation: false` routes
+compiled writes through the prior tensor-selection helper for differential tests
+and benchmarks; the same numeric region still compiles in both modes.

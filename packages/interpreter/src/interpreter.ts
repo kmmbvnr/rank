@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarAddressCompilation?: boolean;
     readonly extremaLoopCompilation?: boolean;
     readonly compoundArrayCompilation?: boolean;
     readonly arrayIterationCompilation?: boolean;
@@ -1020,7 +1021,9 @@ export class Interpreter {
                 arrayIteration: this.options.arrayIterationCompilation !== false,
                 iterationValues: (binding, source) => this.iterationAtoms(binding, source),
                 arrayWrites: this.options.arrayWriteCompilation !== false,
-                arrayOffset: (source, indices) => tensorSelection(source, indices).offsetAt(0),
+                arrayOffset: this.options.scalarAddressCompilation !== false
+                    ? scalarArrayWriteOffset
+                    : (source, indices) => tensorSelection(source, indices).offsetAt(0),
                 arrayReads: this.options.arrayLoopCompilation !== false,
                 iteration: forIteration,
                 ranges: () => this.modules.has('ranges'),
@@ -2469,6 +2472,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarAddressCompilation: this.options.scalarAddressCompilation,
             extremaLoopCompilation: this.options.extremaLoopCompilation,
             compoundArrayCompilation: this.options.compoundArrayCompilation,
             arrayIterationCompilation: this.options.arrayIterationCompilation,
@@ -2562,6 +2566,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarAddressCompilation: this.options.scalarAddressCompilation,
             extremaLoopCompilation: this.options.extremaLoopCompilation,
             compoundArrayCompilation: this.options.compoundArrayCompilation,
             arrayIterationCompilation: this.options.arrayIterationCompilation,
@@ -4308,6 +4313,23 @@ function isTensorAddress(selectors: readonly RankValue[]): boolean {
         || isCollectionSelector(selector))) return false;
     return selectors.some(isAllAxisSelector)
         || (selectors.length > 1 && selectors.some(isCollectionSelector));
+}
+
+/** Full scalar addresses are guaranteed by the integer-region entry guards.
+ * Keep write bounds in BigInt space, as in tensorSelection, without building
+ * per-axis selector closures or an output-shape plan for a single cell. */
+function scalarArrayWriteOffset(source: RankArray, indices: readonly bigint[]): number {
+    const shape = source.shape;
+    let offset = 0;
+    for (let axis = 0; axis < indices.length; axis++) {
+        const index = indices[axis], size = shape[axis];
+        if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (index >= BigInt(size)) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
+        }
+        offset = offset * size + Number(index);
+    }
+    return offset;
 }
 
 function tensorSelection(source: RankArray, selectors: readonly RankValue[]): TensorSelection {

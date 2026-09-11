@@ -863,3 +863,41 @@ matching the preceding compound-array baseline. One pair takes 27.989 s off and
 28.039 s on; no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-loop-extrema-suite.json).
+
+## Full scalar write offsets without selection plans
+
+Compiled full-cell writes now call a checked row-major offset helper instead of
+building tensor-selection axis objects, closures and an output shape. Existing
+region guards establish full rank and integer selectors. Bounds remain in BigInt
+space, checked in axis order before RHS evaluation. General selection is unchanged.
+The address toggle retains the same compiled regions and only changes this helper.
+
+Six differential cases cover rectangular rank-three layout, errors on later axes,
+negative and huge coordinates, prior mutations, RHS error order and an empty axis.
+TypeScript verification passes 44 language + 775 interpreter tests.
+
+Five alternating samples keep all earlier compilation enabled in both modes.
+Independent answers and unchanged Rank functions are the same as the preceding
+stages; timings include parse/load, input construction and validation with counters
+disabled.
+
+| Workload | Selection median ms | Scalar offset median ms |
+| --- | ---: | ---: |
+| Minimizing Coins, target 100000 | 113.603 | 97.528 |
+| Euler 18, 400 rows | 22.796 | 21.051 |
+| Coin Combinations I, target 100000 | 88.849 | 63.204 |
+| Dice Combinations, N=1000000 | 161.332 | 136.247 |
+
+These samples reduce elapsed time by about 14%, 8%, 29% and 16%. A separate
+instrumented run confirms one region for every task in both modes, so this gain
+comes from cheaper address handling rather than newly covered loops.
+
+[Timings](../../benchmarks/baselines/2026-09-12-scalar-address-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-scalar-address-coverage.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes. All result
+digests match the preceding extrema baseline. A single pair takes 28.127 s off and
+28.755 s on; it does not establish a whole-suite improvement. Do not extrapolate
+these focused gains to total test-suite timing.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-scalar-address-suite.json).

@@ -1083,3 +1083,40 @@ end`);
         expect(result).not.toHaveProperty('error');
     });
 });
+
+describe('compiled full scalar write addresses', () => {
+    it('writes rectangular rank-three cells in row-major order', () => {
+        const result = compare(`use ranges
+A = array shape 2 3 4 pad 0
+for I in 0 until 2
+  for J in 0 until 3
+    for K in 0 until 4
+      A I J K = I * 100 + J * 10 + K
+    end
+  end
+end
+A`);
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['0 3 0', '0 0 4', '0 (0 - 1) 0', '0 0 999999999999999999999999'])('preserves error ordering for address %s', address => {
+        const result = compare(`use ranges
+A = array shape 2 3 4 pad 0
+for I in 0 until 1
+  A 1 2 3 = 99
+  A ${address} = 1 // 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('rejects a coordinate on an empty axis', () => {
+        const result = compare(`use ranges
+A = array shape 2 0 4 pad 0
+for I in 0 until 1
+  A 0 0 0 = 1
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});

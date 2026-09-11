@@ -1,0 +1,361 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "address",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 471.839334,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 173.29708399999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 37.181959000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 97.36429200000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 163.48566699999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 305.622333,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 96.08833300000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 21.757540999999947,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 58.220916999999986,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 129.25308300000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 311.33679100000006,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 95.94550000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 21.084333000000015,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 64.26487499999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 129.7610830000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 386.8276249999999,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 113.60275000000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 28.989125000000058,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 88.45066699999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 155.51029200000016,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 392.291375,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 110.03295800000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 22.795708000000104,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 90.29954099999986,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 168.927958,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 318.28925000000027,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 99.33162500000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 19.14566700000023,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 63.35612499999979,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 136.2465000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 317.314292,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 97.52787499999977,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 19.333084000000326,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 61.82012500000019,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 138.45108299999993,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 383.99604100000033,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 114.072541,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 22.349665999999615,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 87.66408300000012,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 159.7176669999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 384.3164999999999,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 113.34962499999983,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 20.573917000000165,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 88.84850000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 161.33245799999986,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 320.93983300000036,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 99.41499999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 21.05058400000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 63.20433400000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 137.06795899999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    }
+  ]
+}

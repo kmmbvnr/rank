@@ -1,0 +1,81 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "address",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 471.013041,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 177.84891699999997,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 38.00999999999999,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 97.962625,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 156.65387500000003,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 298.94275000000005,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 95.64420799999994,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 22.698667,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 58.656375000000025,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 121.63658399999997,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        }
+      ]
+    }
+  ]
+}
