@@ -1,4 +1,5 @@
 import { RankError } from './errors.js';
+import { RankMultiset } from './multiset.js';
 import { setValueKey } from './set.js';
 import { isRankCounter, isRankMultiset, isRankSet, type RankValue } from './value.js';
 
@@ -8,6 +9,7 @@ export function newStructure(name: string): RankValue {
         case 'queue': return { kind: 'queue', items: [] };
         case 'set': return { kind: 'set', entries: new Map() };
         case 'counter': return { kind: 'counter', entries: new Map() };
+        case 'multiset': return new RankMultiset();
         default: throw new RankError(`unknown structure: ${name}`);
     }
 }

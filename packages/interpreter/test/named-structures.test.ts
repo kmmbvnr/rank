@@ -3,7 +3,7 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('named structures', () => {
-    it('creates independent instances of all four implicit structure types', () => {
+    it('creates independent instances of all five explicit structure types', () => {
         expect(run(`
 use algo
 use sequences
@@ -20,8 +20,11 @@ C add 7
 Q = new queue
 R = new queue
 Q push 7
-array (A 1) (B 1) (S len) (T len) (C 7) (D 7) (Q len) (R len)
-`)).toBe('10 20 1 0 1 0 1 0');
+M = new multiset
+N = new multiset
+M add 7
+array (A 1) (B 1) (S len) (T len) (C 7) (D 7) (Q len) (R len) (M len) (N len)
+`)).toBe('10 20 1 0 1 0 1 0 1 0');
     });
 
     it('mutates aliases and parameters without copying the collections', () => {

@@ -79,7 +79,14 @@ describe('Rank grammar', () => {
     });
 
     it('parses explicit structure creation inside assignments and calls', async () => {
-        const document = await parse('A = new index\nB = new queue\nC = new set\nD = new counter\nB push new set');
+        const document = await parse([
+            'A = new index',
+            'B = new queue',
+            'C = new set',
+            'D = new counter',
+            'E = new multiset',
+            'B push new set',
+        ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements[0]).toMatchObject({
@@ -526,7 +533,7 @@ describe('Rank grammar', () => {
         const document = await parse([
             'Range = 1 to 5',
             'Odds = 1 to 9 by 2',
-            'Countdown = 10 until 0 by 2',
+            'Countdown = 10 until 0 by -2',
             'Part = Text from L until R',
             'Letters = Text array 0 2 6',
             'Rows = M axis 0 from First to Last',

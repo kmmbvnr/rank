@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
 describe('ordered multiset', () => {
+    it('creates an empty named multiset and infers its value type on add', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'Bag = new multiset',
+            'Before = Bag len',
+            'Bag add 5',
+            'Bag add 3',
+            'array Before (Bag len) (Bag floor 4)',
+        ].join('\n'))).toBe('0 2 3');
+    });
+
     it('preserves duplicates and reports its total length', () => {
         expect(run([
             'use algo',

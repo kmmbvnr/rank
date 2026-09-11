@@ -15,17 +15,18 @@ Distance = new index
 Seen = new set
 Counts = new counter
 Pending = new queue
+Bag = new multiset
 
 Graph 1 2 = 10
 Distance 1 = 0
 Seen add 1
 Counts add 1
 Pending push 1
+Bag add 1
 ```
 
-The four constructors are `new index`, `new queue`, `new set` and
-`new counter`. They do not replace the implicit local instance. Ordered
-multisets keep their existing `Values multiset` constructor.
+The five constructors are `new index`, `new queue`, `new set`, `new counter`
+and `new multiset`. They do not replace the implicit local instance.
 
 Assignment and argument passing preserve the structure's reference.
 `Alias = Seen` shares `Seen`; `Seen = set` shares the current implicit set.
@@ -180,11 +181,14 @@ It is always named because algorithms often need more than one instance:
 
 ```rank
 Tickets = Prices multiset
+Empty = new multiset
 ```
 
-The constructor accepts text or a finite rank-1 array, queue, set, multiset or
-sequence. All values must share one scalar ordering: numeric, text, boolean or
-symbol. Integers and real numbers share the numeric ordering.
+`Values multiset` fills a new multiset from text or a finite rank-1 array,
+queue, set, multiset or sequence. `new multiset` creates an empty instance and
+infers its ordering from the first added value. All values must share one
+scalar ordering: numeric, text, boolean or symbol. Integers and real numbers
+share the numeric ordering.
 
 Methods put the receiver before the operation:
 

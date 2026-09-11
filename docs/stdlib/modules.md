@@ -794,6 +794,7 @@ year
 ```rank
 Seen = new set
 Counts = new counter
+Empty = new multiset
 Seen add Value
 Counts add Value
 Bag = Values multiset
@@ -805,8 +806,9 @@ Routes = Cities permutations
 Pairs = Values 2 combinations
 ```
 
-An ordered `multiset` preserves duplicates. Its lookup and mutation operations
-take expected `O(log N)` time. Missing `floor` and `ceiling` results raise
+`Values multiset` constructs a populated ordered multiset; `new multiset`
+creates an empty one. A multiset preserves duplicates. Its lookup and mutation
+operations take expected `O(log N)` time. Missing `floor` and `ceiling` results raise
 `.Missing` and therefore compose with `pad`. The complete collection semantics
 are defined in [Collections](../language/collections.md).
 
