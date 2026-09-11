@@ -71,3 +71,54 @@ fresh summary. Narrower invalidation and recertification are possible later work
 JS tests check zero iteration of resource-free containers, not elapsed time. They
 also cover nested aliases, cyclic parents, public Map mutation, imported files and
 lazy file discovery. Existing file lifetime and generator tests still apply.
+
+## Measured baseline
+
+Measured on 2026-09-11, Apple M5, macOS arm64, Node 24.15.0. The baseline runtime
+was `9f57f7d`; the candidate was `d4ed1c5`. Both were built before measurement.
+No assistant-launched tests or benchmarks ran concurrently; unrelated machine
+activity was not controlled.
+
+Container microbenchmark medians, milliseconds (three samples):
+
+| Workload | N | Before | After |
+| --- | ---: | ---: | ---: |
+| Return growing set | 5,000 | 156.9 | 12.8 |
+| Return growing set | 10,000 | 584.2 | 24.4 |
+| Return growing set | 20,000 | 2260.3 | 41.6 |
+| Heap enqueue | 5,000 | 189.3 | 2.5 |
+| Heap enqueue | 10,000 | 742.5 | 3.4 |
+| Heap enqueue | 20,000 | 2958.4 | 6.1 |
+
+The baseline approaches four times the cost when N doubles. The candidate no
+longer shows that quadratic growth on these numeric workloads.
+
+Two complete judge-scale runs at N = 200,000, seconds:
+
+| Case | Run 1 | Run 2 |
+| --- | ---: | ---: |
+| Restaurant | 2.818 | 2.823 |
+| Rooms | 1.855 | 1.875 |
+| Playlist | 0.771 | 0.776 |
+| Books | 0.182 | 0.183 |
+| Bounded sum | 1.010 | 1.017 |
+| Sum pipeline | 0.179 | 0.177 |
+
+All complete answers matched. The original runtime's restaurant process exceeded
+the 30-second budget and was killed; its eventual completion time was not measured.
+The original `A sum print` also failed the answer gate because it was misidentified
+as a Fenwick operation. The fix checks the receiver type before selecting Fenwick
+syntax and retains normal sum dispatch for other receivers. A forced one-millisecond
+timeout verified the harness failure path separately.
+
+The scalar benchmark pair stayed close for ordinary counted loops and calls:
+summation 8.0 → 7.9 ms, calls 15.2 → 15.0 ms, and indexed reads 13.5 → 13.5 ms.
+Tail recursion was slower in this pair (22.3 → 24.3 ms; accumulator variant
+25.5 → 27.5 ms). A single pair does not establish whether this 8–9% difference is
+stable. Memo workloads were slightly faster; cached calls rounded to 0.1 ms in both
+versions. No blanket scalar speedup or zero-regression claim is made.
+
+[Raw results](../../benchmarks/baselines/2026-09-11-container-resources.json) retain
+all microbenchmark samples, scalar output, both judge-scale runs and failure-gate
+checks. These local times are evidence for this change, not universal time limits.
+The final verification passed 395 JS tests and the tests in 134 demo files.

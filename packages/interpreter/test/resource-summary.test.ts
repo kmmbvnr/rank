@@ -87,6 +87,25 @@ File size
         expect(isKnownFileFree(queue)).toBe(false);
     });
 
+    it('still closes local files when returning a proven file-free container', () => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const runtime = new Interpreter(undefined, { io, persistentResources: true });
+        runtime.execute(`
+use io
+use algo
+fun build Path
+  File = Path open
+  Q = new queue
+  Q push 7
+  return Q
+end
+Q = "/input" build
+`);
+        expect(io.handles[0].closed).toBe(true);
+        expect(isKnownFileFree(runtime.variables.get('Q'))).toBe(true);
+        runtime.dispose();
+    });
+
     it('invalidates cross-interpreter proofs and preserves imported file results', () => {
         const io = new MemoryIo({ '/input': 'Rank' });
         const runtime = new Interpreter(undefined, {
