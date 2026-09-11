@@ -566,14 +566,12 @@ describe('Rank expressions and sequences', () => {
         expect(run('use ranges\n1 to 4')).toBe('1 2 3 4');
         expect(run('use ranges\n1 to 9 by 2')).toBe('1 3 5 7 9');
         expect(run('use ranges\n1 to 6 by 2')).toBe('1 3 5');
-        expect(run('use ranges\n10 until 0 by 2')).toBe('10 8 6 4 2');
-        expect(run('use ranges\n10 to 1 by 3')).toBe('10 7 4 1');
+        expect(run('use ranges\n10 until 0 by -2')).toBe('10 8 6 4 2');
+        expect(run('use ranges\n10 to 1 by -3')).toBe('10 7 4 1');
         expect(run('use ranges\n1 until 1 by 2')).toBe('');
         expect(run('use ranges\n1 to 1 by 2')).toBe('1');
         expect(() => run('use ranges\n1 to 5 by 0'))
-            .toThrowError('range step must be a positive integer');
-        expect(() => run('use ranges\n1 to 5 by -1'))
-            .toThrowError('range step must be a positive integer');
+            .toThrowError('range step must be a nonzero integer');
         expect(() => run('use sequences\nfibonacci to 20 by 2'))
             .toThrowError('by applies only to numeric ranges');
         expect(run('"A😀БC" from 1 until 3')).toBe('😀Б');

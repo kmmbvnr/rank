@@ -905,22 +905,49 @@ end
 => 1 2
 ```
 
-`by` sets a positive integer step. The bounds determine the direction, so
-the same step spelling works for ascending and descending ranges:
+Numeric ranges use a step of `1` by default. `by` sets a nonzero integer
+step: positive steps move up, negative steps move down. The bounds never
+choose the direction. A range is empty when the step points away from its end:
+
+```text
+1 to 0
+=> empty
+
+1 to 5 by -1
+=> empty
+```
+
+Use an explicit negative step for a descending range:
 
 ```text
 1 to 9 by 2
 => 1 3 5 7 9
 
-10 until 0 by 2
+10 until 0 by -2
 => 10 8 6 4 2
 ```
 
-The step must be greater than zero. With `to`, the endpoint is included only
+With `to`, the endpoint is included only
 when the range lands on it exactly; `1 to 6 by 2` therefore produces
 `1 3 5`. With `until`, the endpoint is always excluded. `by` applies only
 to numeric ranges; bounding a known sequence such as `fibonacci to 100` does
 not accept a step.
+
+Equal bounds produce one value with `to` and no values with `until`,
+regardless of the step's sign. A zero step is an error even for empty ranges.
+
+```rank
+N = 0
+for i in 1 to N
+  i print
+end
+rem No output.
+
+for i in 3 to 1 by -1
+  i print
+end
+rem Prints 3, 2, 1.
+```
 
 `from` appears only after a selected value and introduces a contiguous slice:
 

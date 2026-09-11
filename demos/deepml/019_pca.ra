@@ -36,7 +36,7 @@ fun pca Data K
 
   Last = Features - 1
   First = Features - K
-  Columns = Last to First
+  Columns = Last to First by -1
   Components = (Vectors # Columns) copy
 
   rem Fix sign at the first nonzero

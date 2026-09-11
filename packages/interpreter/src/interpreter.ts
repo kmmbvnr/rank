@@ -2919,13 +2919,13 @@ function outerCells(
 }
 
 function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
-    const magnitude = stride ?? 1n;
-    if (magnitude <= 0n) throw new RankError('range step must be a positive integer');
+    const step = stride ?? 1n;
+    if (step === 0n) throw new RankError('range step must be a nonzero integer');
 
-    const ascending = start <= end;
-    const step = ascending ? magnitude : -magnitude;
-    const distance = absolute(end - start);
-    const size = inclusive
+    const ascending = step > 0n;
+    const magnitude = absolute(step);
+    const distance = ascending ? end - start : start - end;
+    const size = distance < 0n ? 0n : inclusive
         ? distance / magnitude + 1n
         : (distance + magnitude - 1n) / magnitude;
     const within = ascending
