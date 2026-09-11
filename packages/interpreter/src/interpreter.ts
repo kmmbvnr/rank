@@ -704,29 +704,35 @@ export class Interpreter {
                 } };
             }
             const interpreter = this;
-            return { stream: function* (context) {
-                const { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator } = context;
-                let result: RankValue | undefined;
-                let branch = statement.elseStatements;
-                if (expectBoolean((yield* resume(interpreter.evaluateTask(statement.condition))))) {
-                    branch = statement.thenStatements;
-                } else {
-                    for (const clause of statement.elifClauses) {
-                        if (expectBoolean((yield* resume(interpreter.evaluateTask(clause.condition))))) {
-                            branch = clause.statements;
-                            break;
-                        }
-                    }
+            const tests = [statement.condition, ...statement.elifClauses.map(clause => clause.condition)];
+            const branchAt = (index: number) => index < 0 ? statement.elseStatements
+                : index === 0 ? statement.thenStatements : statement.elifClauses[index - 1].statements;
+            const enter = (context: ExecutionContext, index: number) => interpreter.executeStatementStream(
+                branchAt(index),
+                context.assertBooleanExpressions,
+                context.insideLoop,
+                context.insideFinally,
+                context.insideGenerator,
+                context.tailCallsAllowed,
+            );
+            // Only a condition that actually suspends needs a task to drive it;
+            // the rest pick their branch and hand the block straight back.
+            const suspended = function* (
+                context: ExecutionContext, index: number, pending: Execution<RankValue>,
+            ): Execution<RankValue | undefined> {
+                let taken = expectBoolean(yield* resume(pending)) ? index : -1;
+                for (index += 1; taken < 0 && index < tests.length; index += 1) {
+                    if (expectBoolean(yield* resume(interpreter.evaluateTask(tests[index])))) taken = index;
                 }
-                result = yield* resume(interpreter.executeStatementStream(
-                    branch,
-                    assertBooleanExpressions,
-                    insideLoop,
-                    insideFinally,
-                    insideGenerator,
-                    context.tailCallsAllowed,
-                ));
-                return result;
+                return yield* resume(enter(context, taken));
+            };
+            return { stream: (context): Evaluation<RankValue | undefined> => {
+                for (let index = 0; index < tests.length; index += 1) {
+                    const task = this.evaluateTask(tests[index]);
+                    if (!('done' in task)) return suspended(context, index, task);
+                    if (expectBoolean(task.value)) return enter(context, index);
+                }
+                return enter(context, -1);
             } };
         }
         if (isForStatement(statement)) {
@@ -734,6 +740,9 @@ export class Interpreter {
             const condition = !binding && statement.condition
                 ? this.compileDirectExpression(statement.condition) : undefined;
             const interpreter = this;
+            // The index names never change, so the loop reads them from one list
+            // rather than slicing the binding on every iteration.
+            const indexNames = binding ? binding.names.slice(1) : [];
             return { stream: function* (context) {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
@@ -744,20 +753,24 @@ export class Interpreter {
                         if (binding.names[0] !== '#') {
                             interpreter.assign(binding.names[0], entry.value);
                         }
-                        binding.names.slice(1).forEach((name, position) => {
-                            if (name !== '#') {
-                                interpreter.assign(name, entry.indices[position]);
+                        for (let position = 0; position < indexNames.length; position += 1) {
+                            if (indexNames[position] !== '#') {
+                                interpreter.assign(indexNames[position], entry.indices[position]);
                             }
-                        });
+                        }
                         try {
-                            result = yield* resume(interpreter.executeStatementStream(
+                            // A body that finishes on its own needs no task; only
+                            // one that suspends goes back to the driver.
+                            const body = interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
                                 insideFinally,
                                 insideGenerator,
                                 false, // Returning must close this iterator after the callee finishes.
-                            ));
+                            );
+                            result = 'done' in body
+                                ? body.value : (yield { task: body }) as RankValue | undefined;
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             if (error instanceof ContinueSignal) continue;
@@ -765,18 +778,28 @@ export class Interpreter {
                         }
                     }
                 } else {
-                    while (!statement.condition
-                        || expectBoolean(condition ? condition()
-                            : yield* resume(interpreter.evaluateTask(statement.condition)))) {
+                    for (;;) {
+                        if (statement.condition) {
+                            let test: RankValue;
+                            if (condition) {
+                                test = condition();
+                            } else {
+                                const task = interpreter.evaluateTask(statement.condition);
+                                test = 'done' in task ? task.value : (yield { task }) as RankValue;
+                            }
+                            if (!expectBoolean(test)) break;
+                        }
                         try {
-                            result = yield* resume(interpreter.executeStatementStream(
+                            const body = interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
                                 insideFinally,
                                 insideGenerator,
                                 context.tailCallsAllowed,
-                            ));
+                            );
+                            result = 'done' in body
+                                ? body.value : (yield { task: body }) as RankValue | undefined;
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             if (error instanceof ContinueSignal) continue;
