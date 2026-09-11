@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "arrayiteration",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 91.987333,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 91.70075,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 16.579791,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 16.518167000000005,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    }
+  ]
+}

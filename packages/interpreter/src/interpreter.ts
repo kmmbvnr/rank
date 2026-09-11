@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly arrayIterationCompilation?: boolean;
     readonly arrayWriteCompilation?: boolean;
     readonly arrayLoopCompilation?: boolean;
     readonly nestedLoopCompilation?: boolean;
@@ -1007,6 +1008,8 @@ export class Interpreter {
                 writer: name => this.compileAssign(name),
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                arrayIteration: this.options.arrayIterationCompilation !== false,
+                iterationValues: (binding, source) => this.iterationAtoms(binding, source),
                 arrayWrites: this.options.arrayWriteCompilation !== false,
                 arrayOffset: (source, indices) => tensorSelection(source, indices).offsetAt(0),
                 arrayReads: this.options.arrayLoopCompilation !== false,
@@ -2457,6 +2460,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            arrayIterationCompilation: this.options.arrayIterationCompilation,
             arrayWriteCompilation: this.options.arrayWriteCompilation,
             arrayLoopCompilation: this.options.arrayLoopCompilation,
             nestedLoopCompilation: this.options.nestedLoopCompilation,
@@ -2547,6 +2551,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            arrayIterationCompilation: this.options.arrayIterationCompilation,
             arrayWriteCompilation: this.options.arrayWriteCompilation,
             arrayLoopCompilation: this.options.arrayLoopCompilation,
             nestedLoopCompilation: this.options.nestedLoopCompilation,

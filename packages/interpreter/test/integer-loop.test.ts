@@ -852,3 +852,97 @@ end`);
         expect(result.loops).toBe(0);
     });
 });
+
+describe('compiled array iteration', () => {
+    it('keeps an independent cursor and ordinal across continue', () => {
+        const result = compare(`A = array 10 20 30
+Total = 0
+for Value i in A
+  if i equal 1
+    continue
+  end
+  Total += Value + i
+  Value = 99
+end
+Total`);
+        expect(result.value).toBe('42');
+        expect(result.loops).toBe(1);
+    });
+
+    it('observes writes to future elements through an alias', () => {
+        const result = compare(`A = array 1 2 3
+B = A
+Total = 0
+for Value i in A
+  B 2 = 10
+  Total += Value
+end
+Total`);
+        expect(result.value).toBe('13');
+        expect(result.loops).toBe(1);
+    });
+
+    it('composes named array and numeric-range loops', () => {
+        const result = compare(`use ranges
+A = array 1 2 3
+Total = 0
+for I in 1 to 2
+  for Value in A
+    Total += I * Value
+  end
+end
+Total`);
+        expect(result.value).toBe('18');
+        expect(result.loops).toBe(1);
+    });
+
+    it('supports discarded value and index bindings', () => {
+        const result = compare(`A = array 10 20
+Total = 0
+for # i in A
+  Total += i
+end
+for Value # in A
+  Total += Value
+end
+Total`);
+        expect(result.value).toBe('31');
+        expect(result.loops).toBe(2);
+    });
+
+    it('checks index type even when the array is empty', () => {
+        const result = compare(`A = array shape 0 pad 0
+I = "text"
+for Value I in A
+  Total = 1
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps the type-declaration error before any body write', () => {
+        const result = compare(`A = array 1 2
+Value = "text"
+for Value in A
+  Total = 1
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('declines heterogeneous arrays and receiver rebinding', () => {
+        expect(compare(`A = array 1 2.5
+for Value in A
+  Result = Value
+end`).loops).toBe(0);
+        const result = compare(`A = array 1 2
+Total = 0
+for Value in A
+  A = array 9 9
+  Total += Value
+end
+Total`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(0);
+    });
+});

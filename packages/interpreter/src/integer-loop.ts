@@ -18,6 +18,8 @@ interface IterationBinding {
 interface Host {
     readonly nestedLoops: boolean;
     readonly arrayReads: boolean;
+    readonly arrayIteration: boolean;
+    iterationValues(binding: IterationBinding, source: RankArray): Iterable<RankValue>;
     readonly arrayWrites: boolean;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
@@ -49,6 +51,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
     const arrays = new Map<string, { slot: number; rank: number }>();
+    const iterators: ((source: RankArray) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number }>();
     let needsAlgo = false, needsRanges = false, hasControl = false;
     let serial = 0;
@@ -169,25 +172,38 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
-            needsRanges = true;
             let range = iteration.iterable;
             while (isParenthesizedExpression(range)) range = range.value;
-            if (!isBinaryExpression(range) || !['to', 'until'].includes(range.operator)
-                || iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
+            if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
                 || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
-            const start = emit(range.left, tests), end = emit(range.right, tests);
-            const step = range.step ? emit(range.step, tests) : { code: '1n', type: 'integer' };
-            if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
-            setup = `${tests.join('\n')} const start = ${start.code}, end = ${end.code}, stride = ${step.code};
-                if (stride === 0n) throw badStep();`;
             const indexed = iteration.names.length === 2 && iteration.names[1] !== '#';
-            header = `for (let cursor = start${indexed ? ', ordinal = 0n' : ''};
-                stride > 0n ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
-                cursor += stride${indexed ? ', ordinal += 1n' : ''}) { location = ${location};`;
+            const arrayIteration = isNameExpression(range);
+            if (isNameExpression(range)) {
+                if (!host.arrayIteration || range.name.includes('.')) return undefined;
+                const old = arrays.get(range.name);
+                if (old && old.rank !== 1) return undefined;
+                const info = old ?? { slot: slot(range.name), rank: 1 };
+                arrays.set(range.name, info);
+                const binding = iteration;
+                setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                iterators.push(source => host.iterationValues(binding, source));
+                header = `for (const cursor of iterable) { location = ${location};`;
+            } else {
+                needsRanges = true;
+                if (!isBinaryExpression(range) || !['to', 'until'].includes(range.operator)) return undefined;
+                const start = emit(range.left, tests), end = emit(range.right, tests);
+                const step = range.step ? emit(range.step, tests) : { code: '1n', type: 'integer' };
+                if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
+                setup = `${tests.join('\n')} const start = ${start.code}, end = ${end.code}, stride = ${step.code};
+                    if (stride === 0n) throw badStep();`;
+                header = `for (let cursor = start${indexed ? ', ordinal = 0n' : ''};
+                    stride > 0n ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
+                    cursor += stride${indexed ? ', ordinal += 1n' : ''}) { location = ${location};`;
+            }
             for (const [index, name] of iteration.names.entries()) {
                 if (name === '#') continue;
-                const target = slot(name), value = index === 0 ? 'cursor' : 'ordinal';
-                bindings += `binders[${binders.length}](${value}); r${target} = ${value};\n`;
+                const target = slot(name), value = index === 0 ? 'cursor' : arrayIteration ? 'ordinal++' : 'ordinal';
+                bindings += `const bound${binders.length} = ${value}; binders[${binders.length}](bound${binders.length}); r${target} = bound${binders.length};\n`;
                 binders.push(host.writer(name));
                 assigned.add(name);
                 written.add(name);
@@ -339,9 +355,9 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[]) => RankValue | undefined;
-    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', source)(writers, binders,
+    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', source)(writers, binders,
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset); }
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {

@@ -767,3 +767,33 @@ digests matching the preceding array-read baseline. One pair takes 27.968 s off
 and 28.160 s on; no overall speedup is established from this pair.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-array-write-suite.json).
+
+## Named integer-vector loop regions
+
+Named stored integer vectors now join conditional and numeric-range loops in the
+same generated region. The existing type-declaration prologue runs at each loop
+entry. Native for-of iteration retains live item reads and an independent cursor;
+optional ordinals advance exactly once, including on continue. Matrix rows, mixed
+atoms, lazy inputs and rebinding the source retain reference execution.
+
+Seven differential tests cover binder reassignment, continue, alias writes to later
+cells, nested array/range loops, discarded bindings, empty-array index type errors,
+value type errors, heterogeneous arrays and source rebinding. Verification passes
+44 language + 752 interpreter tests.
+
+On the unchanged CSES Increasing Array function with 200000 alternating one/zero
+values, five alternating samples give medians of 36.673 ms off and 14.534 ms on,
+about 2.52x. The independently known answer is 100000 increments. The toggle only
+disables vector-loop lowering; the earlier direct scalar iteration path remains
+active in the reference mode. A separate instrumented run confirms zero versus one
+compiled region. Counters are disabled during timing; task times include parsing,
+input construction and answer validation.
+
+[Timings](../../benchmarks/baselines/2026-09-12-array-iteration-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-array-iteration-coverage.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes. All result
+digests match the preceding array-write baseline. One pair takes 27.942 s off and
+27.991 s on; no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-array-iteration-suite.json).

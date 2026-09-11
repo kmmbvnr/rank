@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -82,6 +82,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      arrayIterationCompilation: backend === 'arrayiteration' ? enabled : undefined,
       arrayWriteCompilation: backend === 'arraywrite' ? enabled : undefined,
       arrayLoopCompilation: backend === 'arrayloop' ? enabled : undefined,
       nestedLoopCompilation: backend === 'nested' ? enabled : undefined,
@@ -91,7 +92,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

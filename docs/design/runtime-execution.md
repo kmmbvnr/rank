@@ -418,19 +418,20 @@ not full lowering of loop control. `loopPreparation: false` disables the reuse.
 
 ## Whole integer loops
 
-`integer-loop.ts` lowers a conditional or inline numeric-range loop into one JavaScript loop when the
-condition and assignments are supported integer expressions.
+`integer-loop.ts` lowers conditional, inline numeric-range and stored integer-vector
+loops into JavaScript regions when the conditions and bodies are supported.
 Inputs are guarded before execution; unsupported types or syntax retain the
 reference loop. Register variables hold integer values between operations and
-iterations. Each assignment still calls its existing writer immediately, retaining
+iterations. Each scalar assignment still calls its existing writer immediately, retaining
 fixed-type checks, lexical binding behavior and partial state if a later operation
 fails. Errors carry the original body-command or loop-condition location.
 
 The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches and loops),
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
-bigint arithmetic. Dynamic or negative exponents retain reference execution. Other calls and indexing,
-floating-point operations and other iterable loops retain the old path.
+bigint arithmetic. Guarded array reads/writes, containers and vector iteration are
+described below. Dynamic or negative exponents, unsupported calls/selectors,
+floating-point operations and other iterable loops retain the reference path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
 disables this pass; compilation/execution callbacks support diagnostics.
@@ -597,3 +598,17 @@ bounds diagnostics. Aliases see earlier writes, including on a later error or
 break. An array assignment contributes its right operand to the statement result;
 an index assignment still contributes no result. `arrayWriteCompilation: false`
 disables array writes while retaining array reads and existing index writes.
+
+## Compiled iteration over stored vectors
+
+`for Value i in A` can join a numeric region when A is a stable named,
+already-materialized integer vector. The optional ordinal and `#` discards retain
+their existing meaning. The compiler uses the normal loop-type declaration before
+iteration, including checking the ordinal's type for an empty vector.
+
+A native for-of loop advances independently of assignments to the visible binder.
+It reads the live items, so writes to later cells through aliases remain visible.
+Array and numeric-range loops can nest in the same region. Matrix-row iteration,
+heterogeneous or unevaluated lazy inputs, and receiver rebinding retain reference
+execution. `arrayIterationCompilation: false` disables this lowering while keeping
+preceding numeric-range and array read/write optimizations enabled.
