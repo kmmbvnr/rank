@@ -66,7 +66,8 @@ Adults = Data Mask
 
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
-- [Array performance roadmap and benchmarks](design/performance-roadmap.md)
+- [Performance roadmap: remaining work](design/performance-roadmap.md)
+- [Performance measurements and benchmark commands](design/performance-measurements.md)
 
 ## Marketing
 
