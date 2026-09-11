@@ -1,0 +1,8 @@
+rem Deep-ML 35: Diagonal Matrix
+rem https://www.deep-ml.com/problems/35
+
+use linalg
+
+fun make_diagonal X
+  return X diag
+end

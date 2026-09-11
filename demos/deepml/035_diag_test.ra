@@ -1,0 +1,35 @@
+use testing
+
+test "official three values"
+  use "035_diag"
+
+  Actual = (array 1 2 3) make_diagonal
+  Expected = array shape 3 3
+    1 0 0
+    0 2 0
+    0 0 3
+  end
+  Actual equal Expected
+end
+
+test "official four values"
+  use "035_diag"
+
+  Actual = (array 4 5 6 7) make_diagonal
+  Expected = array shape 4 4
+    4 0 0 0
+    0 5 0 0
+    0 0 6 0
+    0 0 0 7
+  end
+  Actual equal Expected
+end
+
+test "empty vector makes empty matrix"
+  use "035_diag"
+  use sequences
+
+  X = array shape 0 pad 0
+  Actual = X make_diagonal
+  Actual shape equal array 0 0
+end
