@@ -32,6 +32,7 @@ import {
     isRecordExpression,
     isRunStatement,
     isReturnStatement,
+    isSortByExpression,
     isStdinExpression,
     isStringLiteral,
     isTestStatement,
@@ -57,7 +58,12 @@ import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
-import { lengthOfAxis, transposeValue } from './modules/sequences.js';
+import {
+    lengthOfAxis,
+    sortByItems,
+    sortByKeys,
+    transposeValue,
+} from './modules/sequences.js';
 import { covarianceValue, errorMetricValue } from './modules/stats.js';
 import { projectField } from './modules/tables.js';
 import { parse } from './parser.js';
@@ -690,9 +696,14 @@ export class Interpreter {
                     const spec = tensorIterationSpec(binding.iterable);
                     const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
                     for (const entry of interpreter.forEntries(binding, iterable)) {
-                        interpreter.assign(binding.names[0], entry.value);
-                        binding.names.slice(1).forEach((name, position) =>
-                            interpreter.assign(name, entry.indices[position]));
+                        if (binding.names[0] !== '#') {
+                            interpreter.assign(binding.names[0], entry.value);
+                        }
+                        binding.names.slice(1).forEach((name, position) => {
+                            if (name !== '#') {
+                                interpreter.assign(name, entry.indices[position]);
+                            }
+                        });
                         try {
                             result = yield* resume(interpreter.executeStatementStream(
                                 statement.statements,
@@ -1042,6 +1053,40 @@ export class Interpreter {
                     record.types.set(field.name, typeName(value));
                 }
                 return record;
+            };
+        }
+        if (isSortByExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('sequences', 'sort by');
+                const source = yield* resume(interpreter.evaluateTask(expression.source));
+                const items = sortByItems(source);
+                if (expression.fields.length > 0) {
+                    const keys = items.map(item => expression.fields.map(field => {
+                        if (!isRankRecord(item)) {
+                            throw new RankError('sort by fields expects records', 'TypeError');
+                        }
+                        const value = item.entries.get(field.name);
+                        if (value === undefined) {
+                            throw new MissingValueError(
+                                `sort by record is missing field .${field.name}`,
+                            );
+                        }
+                        return value;
+                    }));
+                    return sortByKeys(items, keys);
+                }
+                if (!expression.key) throw new RankError('sort by requires a key');
+                const key = yield* resume(interpreter.evaluateTask(expression.key));
+                if (!isNativeFunction(key) || !key.arities.includes(1)) {
+                    throw new RankError('sort by key must be a unary function');
+                }
+                const keys: RankValue[][] = [];
+                for (const item of items) {
+                    const value = yield* resume(interpreter.invoke(key, [item]));
+                    interpreter.ownFiles(value);
+                    keys.push([value]);
+                }
+                return sortByKeys(items, keys);
             };
         }
         if (isNameExpression(expression)) {
@@ -2447,6 +2492,7 @@ export class Interpreter {
         const scope = this.localFrame ?? this.variables;
         const typeScope = this.localFrame?.types ?? this.variableTypes;
         names.forEach((name, index) => {
+            if (name === '#') return;
             const inferred = candidates[index];
             if (!inferred || inferred.size === 0) return;
             const previous = typeScope.get(name)
@@ -2568,11 +2614,12 @@ function forIteration(
 ): ForBinding | undefined {
     if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
     const bindings = flattenApplication(condition.left);
-    if (bindings.length < 1 || !bindings.every(isNameExpression)) {
+    if (bindings.length < 1 || !bindings.every(binding =>
+        isNameExpression(binding) || isAllAxisExpression(binding))) {
         return undefined;
     }
     return {
-        names: bindings.map(binding => binding.name),
+        names: bindings.map(binding => isNameExpression(binding) ? binding.name : '#'),
         iterable: condition.right,
     };
 }

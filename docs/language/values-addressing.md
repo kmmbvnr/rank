@@ -139,7 +139,8 @@ Block = A Rows Columns
 The result has one preserved axis for every collection selector and every `#`,
 followed by all omitted trailing axes. Tensor selections are lazy and cached.
 Too many selectors, invalid indices and masks whose length differs from their
-axis are errors. `#` is valid only inside tensor addressing.
+axis are errors. Outside tensor addressing, `#` is valid only as a discarded
+`for` binding.
 
 `axis` remains the explicit form when an operation consumes or selects a named
 axis:

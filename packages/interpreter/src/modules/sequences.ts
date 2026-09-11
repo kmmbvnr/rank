@@ -124,6 +124,65 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     };
 }
 
+/** Materialize the finite rank-1 sources accepted by `sort by`. */
+export function sortByItems(value: RankValue): RankValue[] {
+    if (isRankArray(value)) {
+        if (value.shape.length !== 1) {
+            throw new RankError('sort by expects a rank-1 collection');
+        }
+        return arrayItems(value);
+    }
+    if (isRankQueue(value)) return [...value.items];
+    if (isRankSet(value)) return [...value.entries.values()];
+    if (isRankMultiset(value)) return [...value.values()];
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError('sort by requires a finite collection');
+        }
+        return [...value.plan.iterate()];
+    }
+    throw new RankError('sort by expects a finite rank-1 collection');
+}
+
+/** Sort already-computed key rows lexicographically and stably. */
+export function sortByKeys(
+    items: readonly RankValue[],
+    keys: readonly (readonly RankValue[])[],
+): RankArray {
+    if (items.length !== keys.length) throw new RankError('sort by key count mismatch');
+    const width = keys[0]?.length ?? 0;
+    if (keys.some(key => key.length !== width)) {
+        throw new RankError('sort by keys must have one shape');
+    }
+    const kinds = Array.from({ length: width }, (_, column) => {
+        if (keys.length === 0) return undefined;
+        const kind = orderedKind(keys[0][column]);
+        for (let row = 1; row < keys.length; row += 1) {
+            if (orderedKind(keys[row][column]) !== kind) {
+                throw new RankError('sort by key values must have one comparable type');
+            }
+        }
+        return kind;
+    });
+    const entries = items.map((value, position) => ({ value, position, keys: keys[position] }));
+    entries.sort((left, right) => {
+        for (let column = 0; column < width; column += 1) {
+            const order = compareOrderedValues(
+                left.keys[column],
+                right.keys[column],
+                kinds[column]!,
+            );
+            if (order !== 0) return order;
+        }
+        return left.position - right.position;
+    });
+    return {
+        kind: 'array',
+        items: entries.map(entry => entry.value),
+        shape: [entries.length],
+    };
+}
+
 function coordinatesAt(shape: readonly number[], index: number): number[] {
     const result = Array(shape.length).fill(0) as number[];
     for (let axis = shape.length - 1; axis >= 0; axis -= 1) {

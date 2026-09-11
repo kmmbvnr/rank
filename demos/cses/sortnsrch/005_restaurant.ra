@@ -1,0 +1,52 @@
+rem CSES 1619: Restaurant Customers
+rem https://cses.fi/problemset/task/1619
+
+use io
+use algo
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Events = queue
+
+for # in 1 to N
+  Arrive = stdin .integer
+  Leave = stdin .integer
+  Events Arrive Leave visit
+end
+
+Events busiest print
+
+
+rem Make one customer-count event.
+fun event Time Delta
+  Event = record
+    .time = Time
+    .delta = Delta
+  end
+  return Event
+end
+
+
+rem Add one customer's arrival and exit.
+fun visit Events Arrive Leave
+  Events push Arrive 1 event
+  Events push Leave (-1) event
+  return Events
+end
+
+
+rem Find the peak active customer count.
+fun busiest Events
+  Sorted = Events sort by .time .delta
+  Now = 0
+  Best = 0
+
+  for Event in Sorted
+    Now += Event .delta
+    Best = Best Now max
+  end
+
+  return Best
+end

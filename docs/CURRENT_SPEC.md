@@ -826,7 +826,8 @@ Block = A Rows Columns
 The result has one preserved axis for every collection selector and every `#`,
 followed by all omitted trailing axes. Tensor selections are lazy and cached.
 Too many selectors, invalid indices and masks whose length differs from their
-axis are errors. `#` is valid only inside tensor addressing.
+axis are errors. Outside tensor addressing, `#` is valid only as a discarded
+`for` binding.
 
 `axis` remains the explicit form when an operation consumes or selects a named
 axis:
@@ -1114,6 +1115,19 @@ end
 
 The names are ordinary bindings; the whitespace between them is required.
 `for Value in A` binds only the value.
+
+`#` in a binding position discards that value instead of creating or changing
+a variable. It is useful for fixed repetition and for ignoring an index:
+
+```rank
+for # in 1 to N
+  Item read
+end
+
+for Value # in A
+  Value visit
+end
+```
 
 For a tensor, ordinary iteration yields cells along its leading axis. Explicit
 cell-rank and axis iteration are defined in [Tensors](tensors.md).
@@ -1760,6 +1774,26 @@ Text is ordered by Unicode code point. Arrays may contain one comparable
 scalar type: numbers, text, booleans or symbols. Integers and real numbers form
 one numeric ordering. `unique` preserves the first occurrence. It also accepts
 queues, sets and lazy sequences; sequence filtering stays lazy.
+
+`sort by` orders a finite rank-1 collection by a separate key. A sequence of
+field symbols forms a lexicographic key for records:
+
+```rank
+Sorted = Events sort by .time .delta
+```
+
+A single unary function may compute the key instead:
+
+```rank
+Sorted = Values sort by magnitude
+```
+
+Every key component must be a comparable scalar. Values at the same key keep
+their source order, and a key function runs exactly once per value in source
+order. The operation materializes a new rank-1 array and does not change its
+source. It accepts rank-1 arrays, queues, sets, multisets and finite sequences;
+an unbounded sequence is an error. Field sorting requires records and reports a
+missing field as `.Missing`. A compound source expression must be parenthesized.
 
 ## Elementwise arithmetic
 
@@ -3259,6 +3293,7 @@ shape
 transpose
 window
 copy
+sort
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
@@ -3273,6 +3308,18 @@ zero-based position through normal sequence addressing:
 BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
+
+`sort by` performs a stable materializing sort of a finite rank-1 collection.
+Record fields form a lexicographic key, or one unary function computes a scalar
+key once for each value:
+
+```rank
+Events = Events sort by .time .delta
+Values = Values sort by magnitude
+```
+
+The result is a new rank-1 array. Key values use the ordinary numeric, text,
+boolean or symbol ordering.
 
 ## Tables
 

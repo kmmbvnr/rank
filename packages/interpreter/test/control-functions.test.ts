@@ -25,6 +25,25 @@ describe('Rank control flow and functions', () => {
         ].join('\n'))).toBe('2');
     });
 
+    it('discards loop values or indices with #', () => {
+        expect(run([
+            'use ranges',
+            'Count = 0',
+            'for # in 1 to 3',
+            '  Count += 1',
+            'end',
+            'Last = 0',
+            'for # i in "ab"',
+            '  Last = i',
+            'end',
+            'Total = 0',
+            'for Value # in array 2 4',
+            '  Total += Value',
+            'end',
+            'array Count Last Total',
+        ].join('\n'))).toBe('3 1 6');
+    });
+
     it('selects the first true elif branch', () => {
         expect(run([
             'Value = 1',

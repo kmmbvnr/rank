@@ -214,10 +214,15 @@ PowerExpression returns Expression:
         operator='**' right=PowerExpression)?;
 
 ApplicationExpression returns Expression:
+    SortByExpression |
     UnaryExpression
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
     ({infer MaterializeExpression.source=current} 'array')?;
+
+SortByExpression:
+    source=PrimaryExpression SORT_BY
+    (fields+=LabelLiteral+ | key=NameExpression);
 
 UnaryExpression returns Expression:
     {infer UnaryExpression}
@@ -330,6 +335,7 @@ hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
+terminal SORT_BY: /sort[\t ]+by/;
 terminal SET_ADD: /(set|counter)[\t ]+add/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;

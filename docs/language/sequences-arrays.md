@@ -337,6 +337,26 @@ scalar type: numbers, text, booleans or symbols. Integers and real numbers form
 one numeric ordering. `unique` preserves the first occurrence. It also accepts
 queues, sets and lazy sequences; sequence filtering stays lazy.
 
+`sort by` orders a finite rank-1 collection by a separate key. A sequence of
+field symbols forms a lexicographic key for records:
+
+```rank
+Sorted = Events sort by .time .delta
+```
+
+A single unary function may compute the key instead:
+
+```rank
+Sorted = Values sort by magnitude
+```
+
+Every key component must be a comparable scalar. Values at the same key keep
+their source order, and a key function runs exactly once per value in source
+order. The operation materializes a new rank-1 array and does not change its
+source. It accepts rank-1 arrays, queues, sets, multisets and finite sequences;
+an unbounded sequence is an error. Field sorting requires records and reports a
+missing field as `.Missing`. A compound source expression must be parenthesized.
+
 ## Elementwise arithmetic
 
 Arithmetic on compatible arrays is elementwise:

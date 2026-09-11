@@ -394,6 +394,7 @@ shape
 transpose
 window
 copy
+sort
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
@@ -408,6 +409,18 @@ zero-based position through normal sequence addressing:
 BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
+
+`sort by` performs a stable materializing sort of a finite rank-1 collection.
+Record fields form a lexicographic key, or one unary function computes a scalar
+key once for each value:
+
+```rank
+Events = Events sort by .time .delta
+Values = Values sort by magnitude
+```
+
+The result is a new rank-1 array. Key values use the ordinary numeric, text,
+boolean or symbol ordering.
 
 ## Tables
 

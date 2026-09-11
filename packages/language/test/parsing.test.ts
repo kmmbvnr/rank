@@ -10,6 +10,7 @@ import {
     isBinaryExpression,
     isExpressionStatement,
     isMaterializeExpression,
+    isSortByExpression,
     isUnpackStatement,
     isUnaryExpression,
 } from '../src/index.js';
@@ -21,6 +22,26 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
+    it('parses field and function sort keys', async () => {
+        const document = await parse([
+            'Fields = Events sort by .time .delta',
+            'Values = Events sort by eventkey',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+
+        const fields = document.parseResult.value.statements[0];
+        const key = document.parseResult.value.statements[1];
+        expect(isAssignmentStatement(fields)).toBe(true);
+        expect(isAssignmentStatement(key)).toBe(true);
+        if (!isAssignmentStatement(fields) || !isAssignmentStatement(key)) return;
+        expect(isSortByExpression(fields.value)).toBe(true);
+        expect(isSortByExpression(key.value)).toBe(true);
+        if (!isSortByExpression(fields.value) || !isSortByExpression(key.value)) return;
+        expect(fields.value.fields.map(field => field.name)).toEqual(['time', 'delta']);
+        expect(key.value.key?.name).toBe('eventkey');
+    });
+
     it('parses a program and preserves operator precedence', async () => {
         const document = await parse('Answer = 2 + 3 * 4');
         expect(document.parseResult.lexerErrors).toEqual([]);

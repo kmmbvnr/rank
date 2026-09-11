@@ -1,0 +1,39 @@
+use testing
+
+test "official example"
+  use "005_restaurant"
+  use algo
+  Events = queue
+  Events 5 8 visit
+  Events 2 4 visit
+  Events 3 9 visit
+  Events busiest equal 2
+end
+
+test "departure precedes equal arrival"
+  use "005_restaurant"
+  use algo
+  Events = queue
+  Events 1 2 visit
+  Events 2 3 visit
+  Events 3 4 visit
+  Events busiest equal 1
+end
+
+test "duplicate intervals all overlap"
+  use "005_restaurant"
+  use algo
+  Events = queue
+  Events 1 10 visit
+  Events 1 10 visit
+  Events 1 10 visit
+  Events 1 10 visit
+  Events busiest equal 4
+end
+
+test "empty event collection"
+  use "005_restaurant"
+  use algo
+  Events = queue
+  Events busiest equal 0
+end

@@ -91,6 +91,19 @@ end
 The names are ordinary bindings; the whitespace between them is required.
 `for Value in A` binds only the value.
 
+`#` in a binding position discards that value instead of creating or changing
+a variable. It is useful for fixed repetition and for ignoring an index:
+
+```rank
+for # in 1 to N
+  Item read
+end
+
+for Value # in A
+  Value visit
+end
+```
+
 For a tensor, ordinary iteration yields cells along its leading axis. Explicit
 cell-rank and axis iteration are defined in [Tensors](tensors.md).
 
