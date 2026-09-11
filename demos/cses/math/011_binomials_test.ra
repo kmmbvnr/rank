@@ -1,0 +1,42 @@
+use testing
+
+test "official example"
+  use "011_binomials"
+  Queries = array shape 3 2
+    5 3
+    8 1
+    9 5
+  end
+  Actual = Queries binomials
+  Actual equal (array 10 8 126)
+end
+
+test "choosing none or all"
+  use "011_binomials"
+  Queries = array shape 3 2
+    0 0
+    7 0
+    7 7
+  end
+  Queries binomials equal (array 1 1 1)
+end
+
+test "answers mixed query sizes"
+  use "011_binomials"
+  Queries = array shape 3 2
+    4 2
+    10 3
+    20 2
+  end
+  Actual = Queries binomials
+  Actual equal (array 6 120 190)
+end
+
+test "prepares the maximum limit"
+  use "011_binomials"
+  Queries = array shape 1 2
+    1000000 500000
+  end
+  Actual = Queries binomials
+  Actual equal (array 996692777)
+end

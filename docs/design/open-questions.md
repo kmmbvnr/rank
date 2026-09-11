@@ -33,6 +33,21 @@ Vararg declarations currently use `*`, but the data-first call-site spelling
 for expanding a sequence into arguments is not yet fixed. The former prefix
 sketch `lcm * Range` is not current syntax.
 
+## Addressing followed by operations
+
+An addressed tensor result does not yet continue into a postfix operation in
+the same flat chain. For example, `Queries # 0 max` reports that `#` is outside
+addressing, while these two statements work:
+
+```rank
+Arguments = Queries # 0
+Limit = Arguments max
+```
+
+If more examples need the compact form, application continuation should make
+the address boundary explicit without changing the meaning of `#` or claiming
+operation names during parsing.
+
 ## Multi-argument method blocks
 
 The earlier `with ... end` form for supplying two or more method arguments is

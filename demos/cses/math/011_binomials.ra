@@ -1,0 +1,45 @@
+rem CSES 1079: Binomial Coefficients
+rem https://cses.fi/problemset/task/1079
+
+use algo
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Raw = stdin .integer (N * 2) array
+Queries = Raw (array N 2) reshape
+
+Queries binomials print
+
+
+rem Prepare factorials for every query.
+fun binomials Queries
+  Mod = 1000000007
+  Arguments = Queries # 0
+  Limit = Arguments max
+  Fact = array shape (Limit + 1) pad 1
+  Inv = array shape (Limit + 1) pad 1
+
+  for I in 1 to Limit
+    Fact I = Fact (I - 1) * I % Mod
+  end
+
+  Last = Fact Limit
+  Exponent = Mod - 2
+  Inv Limit = Last Exponent Mod powmod
+  for I in Limit to 1 by -1
+    Inv (I - 1) = Inv I * I % Mod
+  end
+
+  for Query in Queries
+    unpack A B = Query
+    Value = Fact A * Inv B % Mod
+    Value *= Inv (A - B)
+    Value %= Mod
+    queue push Value
+  end
+
+  return queue
+end
