@@ -747,3 +747,13 @@ still has integer type. The original iterator and live array semantics are retai
 This proof is local to a synchronous compiled region with typed writes, not a cache
 of arbitrary mutable arrays. `provenIterationTypes: false` restores type collection
 for differential benchmarks; ordinary interpreted loops are unchanged.
+
+
+### Integer absolute values inside regions
+
+The compiler lowers the standard numeric `abs` applied to a proven integer into
+an exact BigInt sign test. Operands are evaluated once, including destructive
+container reads. Entry guards verify the standard function identity and input
+types before any writes. Shadowed functions, missing imports and noninteger
+inputs retain reference execution. `absoluteLoopCompilation: false` disables
+this lowering independently for benchmarks.

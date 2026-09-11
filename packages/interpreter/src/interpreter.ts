@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly absoluteLoopCompilation?: boolean;
     readonly provenIterationTypes?: boolean;
     readonly loopReturnCompilation?: boolean;
     readonly arrayLocalCompilation?: boolean;
@@ -1033,6 +1034,7 @@ export class Interpreter {
                 dimension: checkedArrayDimension,
                 booleanArrays: this.options.booleanArrayCompilation !== false,
                 booleanLocals: this.options.booleanLoopCompilation !== false,
+                absolute: this.options.absoluteLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
                 extremeParts: expression => {
                     const parts = flattenApplication(expression);
@@ -2492,6 +2494,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            absoluteLoopCompilation: this.options.absoluteLoopCompilation,
             provenIterationTypes: this.options.provenIterationTypes,
             loopReturnCompilation: this.options.loopReturnCompilation,
             arrayLocalCompilation: this.options.arrayLocalCompilation,
@@ -2592,6 +2595,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            absoluteLoopCompilation: this.options.absoluteLoopCompilation,
             provenIterationTypes: this.options.provenIterationTypes,
             loopReturnCompilation: this.options.loopReturnCompilation,
             arrayLocalCompilation: this.options.arrayLocalCompilation,

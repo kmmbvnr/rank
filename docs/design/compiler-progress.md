@@ -1141,3 +1141,33 @@ with the preceding return-edge baseline. One pair takes 27.729 s off and 27.878 
 on; this does not establish any whole-suite speedup.
 
 [Suite results](../../benchmarks/baselines/2026-09-12-iteration-types-suite.json).
+
+## Integer absolute values in numeric loops
+
+Standard `abs` now lowers inside typed integer regions with a native identity
+guard. Exact BigInt sign selection keeps large magnitudes and zero intact;
+operand instructions run once before the sign test. Four differential tests
+cover values beyond the safe Number range, destructive queue operands, user
+function shadowing and missing imports. All 44 language + 821 interpreter tests
+pass. Other numeric types retain reference execution.
+
+Five alternating samples toggle only `absoluteLoopCompilation`, retaining all
+previous stages. The unchanged CSES Stick Lengths solution receives 200000
+alternating lengths 1 and 1001; its independently expected cost is 100000000.
+Median task time falls from 51.046 ms to 25.350 ms, about 2.01x. This includes
+input construction, sorting, parsing/loading, compilation, execution and result
+validation with counters disabled. Separate coverage records zero versus one
+compiled loop, identifying the newly covered accumulation region.
+
+[Timing samples](../../benchmarks/baselines/2026-09-12-absolute-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-absolute-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests; every digest agrees with
+the preceding proven-iteration-types baseline. One pair takes 27.552 s off and
+27.600 s on, so no full-suite speedup is established.
+
+[Suite results](../../benchmarks/baselines/2026-09-12-absolute-suite.json).
+
+A remaining coverage gap is text iteration and text equality. For example,
+Edit Distance iterates over two strings and updates numeric rows; its numeric
+operations already fit the region model, but character values do not yet.

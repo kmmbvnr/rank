@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "absolute",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 106.85925,
+      "entries": [
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 106.56804100000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 26.89308300000002,
+      "entries": [
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 26.819500000000005,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        }
+      ]
+    }
+  ]
+}

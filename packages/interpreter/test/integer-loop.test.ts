@@ -1667,3 +1667,59 @@ end`);
         expect(result.variables).toContainEqual(['Total', '0']);
     });
 });
+
+
+describe('compiled integer absolute values', () => {
+    it('sums signed magnitudes without losing large integers', () => {
+        const result = compare(`use numbers
+A = array -9007199254740993 0 9007199254740993
+Total = 0
+for X in A
+  Total += X abs
+end
+Total`);
+        expect(result.value).toBe('18014398509481986');
+        expect(result.loops).toBe(1);
+    });
+
+    it('evaluates a destructive operand exactly once', () => {
+        const result = compare(`use numbers
+use algo
+use ranges
+Q = new queue
+Q push -5
+Q push -7
+Total = 0
+for I in 1 to 2
+  Total += (Q pop) abs
+end
+Total`);
+        expect(result.value).toBe('12');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains a user function named abs', () => {
+        const result = compare(`use numbers
+use ranges
+fun abs X
+  return X + 10
+end
+Total = 0
+for I in 1 to 2
+  Total += I abs
+end
+Total`);
+        expect(result.value).toBe('23');
+        expect(result.loops).toBe(0);
+    });
+
+    it('preserves diagnostics for a missing numbers import', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 1 to 2
+  Total += I abs
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});

@@ -23,6 +23,7 @@ interface Host {
     readonly arrayWrites: boolean;
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
+    readonly absolute: boolean;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -125,6 +126,14 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
+            if (op === 'abs' && host.absolute) {
+                const value = emit(e.head, lines);
+                if (value?.type !== 'integer') return undefined;
+                builtins.set(op, 'numbers');
+                const name = `v${serial++}`;
+                lines.push(`const ${name} = (${value.code}) < 0n ? -(${value.code}) : (${value.code});`);
+                return { code: name, type: 'integer' };
+            }
             if (op === 'even' || op === 'odd') {
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;
