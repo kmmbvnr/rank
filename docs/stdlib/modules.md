@@ -923,6 +923,8 @@ reserve the word in other application chains.
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
 `bellmanford`, `floyd`, `topological`, `scc`, and `mst` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
+The same module provides closed and open `new dsu` structures with contextual
+`merge`, `find`, and `connected` methods plus `components` and `len` queries.
 
 ## Rule for adding library vocabulary
 

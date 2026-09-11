@@ -59,6 +59,7 @@ import {
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
 import { graphConstructor } from './graph.js';
+import { dsuFrom } from './dsu.js';
 import { indexKey } from './index-key.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
@@ -99,6 +100,7 @@ import {
     isNativeFunction,
     isRankArray,
     isRankCounter,
+    isRankDsu,
     isRankErrorValue,
     isRankFenwick,
     isRankFile,
@@ -1013,6 +1015,10 @@ export class Interpreter {
                 this.requireModule('graph', 'new graph');
                 return graphConstructor();
             }
+            if (expression.structure === 'dsu') {
+                this.requireModule('graph', 'new dsu');
+                return dsuFrom();
+            }
             this.requireModule('algo', 'new');
             return newStructure(expression.structure);
         };
@@ -1340,6 +1346,14 @@ export class Interpreter {
                     return constructor.call(arguments_);
                 };
             }
+            if (isNewStructureExpression(parts[0])
+                && parts[0].structure === 'dsu') {
+                if (parts.length !== 2) throw new RankError('new dsu expects one collection');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('graph', 'new dsu');
+                    return dsuFrom(yield* resume(interpreter.evaluateTask(parts[1])));
+                };
+            }
             const namedOuter = explicitNamedOuterApplication(parts);
             if (namedOuter) {
                 return function* (): Execution<RankValue> {
@@ -1550,6 +1564,28 @@ export class Interpreter {
                         0,
                         [],
                         tail,
+                    ));
+                };
+            }
+            const dsuMethod = explicitDsuMethod(parts);
+            if (dsuMethod) {
+                return function* (): Execution<RankValue> {
+                    const receiver = yield* resume(interpreter.evaluateTask(dsuMethod.receiver));
+                    const arguments_ = yield* resume(mapExecution(
+                        dsuMethod.arguments,
+                        argument => interpreter.evaluateTask(argument),
+                    ));
+                    if (isRankDsu(receiver)) {
+                        interpreter.requireModule('graph', dsuMethod.operation);
+                        if (dsuMethod.operation === 'find') return receiver.find(arguments_[0]);
+                        if (dsuMethod.operation === 'merge') {
+                            return receiver.merge(arguments_[0], arguments_[1]);
+                        }
+                        return receiver.connected(arguments_[0], arguments_[1]);
+                    }
+                    const operation = yield* resume(interpreter.evaluateTask(dsuMethod.operationExpression));
+                    return yield* resume(interpreter.apply(
+                        [receiver, ...arguments_, operation], missing, 0, [], tail,
                     ));
                 };
             }
@@ -4386,6 +4422,31 @@ interface GraphEdgesApplication {
     readonly argument: Expression;
 }
 
+interface DsuMethodApplication {
+    readonly receiver: Expression;
+    readonly operation: 'find' | 'merge' | 'connected';
+    readonly operationExpression: Expression;
+    readonly arguments: readonly Expression[];
+}
+
+function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | undefined {
+    if (parts.length !== 3 && parts.length !== 4) return undefined;
+    const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
+    if (operation === 'find' && parts.length === 3) {
+        return {
+            receiver: parts[0], operation, operationExpression: parts[1],
+            arguments: parts.slice(2),
+        };
+    }
+    if ((operation === 'merge' || operation === 'connected') && parts.length === 4) {
+        return {
+            receiver: parts[0], operation, operationExpression: parts[1],
+            arguments: parts.slice(2),
+        };
+    }
+    return undefined;
+}
+
 function explicitGraphEdges(parts: Expression[]): GraphEdgesApplication | undefined {
     if (parts.length !== 3 || !isNamed(parts[1], 'edges')) return undefined;
     return {
@@ -4553,6 +4614,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'multiset',
     'fenwick',
     'heap',
+    'dsu',
     'function',
     'sequence',
 ]);

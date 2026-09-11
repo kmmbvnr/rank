@@ -2,6 +2,7 @@ import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
 import type { RankHeap } from './containers.js';
 import type { GraphValue } from './graph.js';
+import type { RankDsu } from './dsu.js';
 
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
@@ -145,9 +146,13 @@ export interface RankSequenceMask extends RankSequence {
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankHeap | RankObject | RankRecord | NativeFunction |
-    RankSequence | RankSequenceMask | GraphValue;
+    RankSequence | RankSequenceMask | GraphValue | RankDsu;
 
 export type RankGraph = GraphValue;
+
+export function isRankDsu(value: RankValue): value is RankDsu {
+    return typeof value === 'object' && value.kind === 'dsu';
+}
 
 export function isRankArray(value: RankValue): value is RankArray {
     return typeof value === 'object' && (value.kind === 'array' || value.kind === 'bytes');
@@ -272,6 +277,9 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'graph') {
         const direction = value.directed ? 'directed' : 'undirected';
         return `<graph ${direction} ${value.size}>`;
+    }
+    if (value.kind === 'dsu') {
+        return `<dsu ${value.size} ${value.components}>`;
     }
     if (value.kind === 'object') {
         return '<object>';

@@ -2,6 +2,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap } from './resource-summary.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { RankMultiset } from './multiset.js';
+import { dsuFrom } from './dsu.js';
 import { setValueKey } from './set.js';
 import { isRankCounter, isRankMultiset, isRankSet, type RankCounterEntry, type RankValue } from './value.js';
 
@@ -25,6 +26,7 @@ export function newStructure(name: string): RankValue {
         }
         case 'multiset': return new RankMultiset();
         case 'orderedset': return new RankMultiset(true);
+        case 'dsu': return dsuFrom();
         default: throw new RankError(`unknown structure: ${name}`);
     }
 }

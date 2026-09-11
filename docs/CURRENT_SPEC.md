@@ -2781,6 +2781,30 @@ register the vertex. A closed graph raises `.Missing` for an unknown vertex.
 Graphs are reference values: assignment and argument passing share mutations.
 Removing vertices or edges is not part of the current API.
 
+## Disjoint sets
+
+`use graph` also provides a mutable disjoint-set union structure. A closed DSU
+starts with a finite rank-1 collection and rejects unknown values:
+
+```rank
+Union = new dsu Nodes
+Union merge A B
+Root = Union find A
+Same = Union connected A B
+Count = Union components
+```
+
+`merge` uses union by size and returns true only when it combines two previous
+components. `find` returns the representative value selected by the structure;
+`connected` compares representatives. `components` returns the current number
+of components, while `len` returns the number of registered values.
+
+`new dsu` without a collection creates an open DSU. `find`, `merge`, and
+`connected` register unknown scalar values before answering. DSU values may be
+integer, real, boolean, text, or symbols, like graph vertices. The method words
+dispatch only when their receiver is a DSU and remain available to ordinary
+user functions.
+
 ## Basic algorithms
 
 Graph algorithms are ordinary data-first functions exported by `use graph`.
@@ -4423,6 +4447,8 @@ reserve the word in other application chains.
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
 `bellmanford`, `floyd`, `topological`, `scc`, and `mst` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
+The same module provides closed and open `new dsu` structures with contextual
+`merge`, `find`, and `connected` methods plus `components` and `len` queries.
 
 ## Rule for adding library vocabulary
 

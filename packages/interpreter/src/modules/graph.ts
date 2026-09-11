@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { RankDsu } from '../dsu.js';
 import { expectGraph, type GraphValue } from '../graph.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
@@ -8,6 +9,7 @@ import {
     type RankIndex,
     type RankRecord,
     type RankValue,
+    isRankDsu,
 } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
@@ -29,8 +31,13 @@ export const graphModule: RuntimeModule = {
         const graph = expectGraph(values[0]);
         return searchRecord(graph, depthFirst(graph, values[1]));
     }),
-    components: () => native('components', 1, values =>
-        componentRecord(expectGraph(values[0]))),
+    components: () => native('components', 1, values => isRankDsu(values[0])
+        ? values[0].components : componentRecord(expectGraph(values[0]))),
+    find: () => native('find', 2, values => expectDsu(values[0]).find(values[1])),
+    merge: () => native('merge', 3, values =>
+        expectDsu(values[0]).merge(values[1], values[2])),
+    connected: () => native('connected', 3, values =>
+        expectDsu(values[0]).connected(values[1], values[2])),
     bipartite: () => native('bipartite', 1, values =>
         bipartiteRecord(expectGraph(values[0]))),
     dijkstra: () => native('dijkstra', 2, values => {
@@ -50,6 +57,11 @@ export const graphModule: RuntimeModule = {
     mst: () => native('mst', 1, values =>
         minimumSpanningTreeRecord(expectGraph(values[0]))),
 };
+
+function expectDsu(value: RankValue): RankDsu {
+    if (isRankDsu(value)) return value;
+    throw new RankError('dsu operation expects a dsu');
+}
 
 function floydRecord(graph: GraphValue): RankRecord {
     const vertices = [...graph.vertices.values()];

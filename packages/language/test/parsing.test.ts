@@ -97,6 +97,7 @@ describe('Rank grammar', () => {
             'C = new set',
             'D = new counter',
             'E = new multiset',
+            'F = new dsu Nodes',
             'B push new set',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
