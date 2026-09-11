@@ -10,6 +10,8 @@ import { nodeIo } from '../packages/cli/out/node-io.js';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
+const backend = process.argv[6] ?? 'tensor';
+assert(['tensor', 'scalar'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -48,7 +50,10 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
-      tensorFusion: enabled, onTensorKernelExecuted: () => kernels++,
+      tensorFusion: backend === 'tensor' ? enabled : true,
+      scalarCompilation: backend === 'scalar' ? enabled : undefined,
+      onTensorKernelExecuted: backend === 'tensor' ? () => kernels++ : undefined,
+      onScalarExecuted: backend === 'scalar' ? () => kernels++ : undefined,
       sourceId:path, loadModule, io:nodeIo, testing: mode === 'suite',
       args: item.cli ?? [], input:{readToken:()=>tokens[offset++]},
     });
@@ -74,4 +79,4 @@ for (let sample=0; sample<samples; sample++) {
   records.push({enabled, sample, ms:performance.now()-start, entries});
  }
 }
-console.log(JSON.stringify({node:process.version, mode, setting, samples, timing:"fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order", records},null,2));
+console.log(JSON.stringify({node:process.version, mode, setting, backend, samples, timing:"fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order", records},null,2));

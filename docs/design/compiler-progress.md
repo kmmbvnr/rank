@@ -93,3 +93,58 @@ result/output digests match the preceding reference-mode suite. This one run
 is a correctness check, not evidence of a whole-suite speedup.
 
 [Task report](../../benchmarks/baselines/2026-09-11-tensor-return-tasks.json) · [Suite report](../../benchmarks/baselines/2026-09-11-tensor-return-suite.json)
+
+## Scalar expression compilation
+
+Compound expressions now compile to straight-line JavaScript with guarded
+operators. The initial set is arithmetic `+ - * // %`, integer comparisons and
+unary signs/not. This reaches arithmetic inside scalar loops without requiring a
+tensor or changing Rank source. Unsupported operand types call the reference
+operator at that exact point, using already-read operands; execution never replays
+a failed expression. Floor division/modulo preserve negative integer semantics.
+
+The generated factory is weakly cached by AST identity, while readers remain
+specific to each local function declaration. CSP failure retains ordinary prepared
+handlers. Compilation starts at two supported operations and limits expression
+size; unsupported syntax stays on the existing path.
+
+Twelve focused tests cover numeric edge cases, collection fallback, first-error
+order, fixed variable types, closure separation/code reuse and CSP. The full
+TypeScript suite passes 44 language and 602 interpreter tests.
+
+To compare this backend while retaining tensor fusion in both modes:
+
+```sh
+node benchmarks/tensor-fusion.mjs suite compare 3 '.*' scalar
+```
+
+In scalar reports the historical `kernels` field counts entries into generated
+scalar expressions, including those whose operators fall back. It does not count
+compiled loops: loop control flow is still interpreted.
+
+
+Three alternating full-suite comparisons (Apple M5, Node v24.15.0), with tensor
+fusion enabled in both modes, pass all 306 files / 1054 tests in every run. Full
+result/output digests also match the preceding return-compiler revision.
+
+| Measurement | Scalar compiler off | Scalar compiler on |
+| --- | ---: | ---: |
+| Full suite median | 37.668 s | 36.729 s |
+| Sum of Divisors tests | 1650.560 ms | 1333.891 ms |
+| Christmas Party tests | 379.836 ms | 349.765 ms |
+| Collatz tests | 9031.156 ms | 9024.093 ms |
+
+The compiler is entered in 121 demo test files. Sum of Divisors executes 6000081
+compiled expressions per run; Christmas Party 1000008; Collatz 793752. Collatz
+still spends most of its time outside compound arithmetic.
+
+The full-suite median is 2.5% lower, but ranges overlap: off 35.684–37.754 s,
+on 36.440–37.328 s. This is a modest local improvement, not a guarantee for every
+program. Modes alternate within one process, so shared V8 warmup/GC can affect
+individual measurements. Counter callbacks are enabled for the measured backend.
+
+[All six runs and per-file results](../../benchmarks/baselines/2026-09-11-scalar-compiler-suite.json)
+
+Next work should target compiled block/loop control and arithmetic addressing,
+while retaining suspension, error locations and ownership behavior. This scalar
+stage does not yet constitute a complete program compiler.

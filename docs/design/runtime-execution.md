@@ -354,3 +354,26 @@ reads individual integer atoms; requesting `items` materializes and caches the
 Rank array. Byte tensors cannot contain file handles, so ownership traversal skips
 them. Binary formatting and writing continue to use the original byte buffer.
 The test inputs and iteration counts remain unchanged.
+
+## Compiled scalar expressions
+
+`scalar-compiler.ts` emits JavaScript for compound arithmetic expressions with at
+least two supported operations. It currently handles `+`, `-`, `*`, integer floor
+division/modulo, integer comparisons and unary signs/not. Number arithmetic keeps
+JavaScript/Rank floating-point order; mixed types and non-scalars delegate to the
+reference operator with operands already evaluated. There is no retry of an
+expression after partial execution, and no reassociation or common-subexpression
+elimination of name reads.
+
+Factories are weakly cached by AST identity. Local declarations bind new readers
+and environments to the shared code, so separate closures never share values.
+Literals and user names are not interpolated into generated JavaScript. Unsupported
+syntax retains prepared handlers; browser CSP rejection also retains that path.
+
+This stage compiles expression evaluation inside assignments, returns and loop
+conditions. It does not compile loop control flow, calls, suspension or resource
+ownership. `scalarCompilation: false` selects the old expression path, independently
+of `tensorFusion`. `onScalarCompiled` reports generated code and `onScalarExecuted`
+counts entries into compiled expressions, including entries that delegate operators.
+
+See [compiler progress](compiler-progress.md) for measurements and current limits.

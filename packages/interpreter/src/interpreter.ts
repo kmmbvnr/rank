@@ -1,3 +1,4 @@
+import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
     ExecutionStack, completed, emit, flatMapResult, mapExecution, mapPair, mapResult, normalizeStackError,
@@ -148,6 +149,10 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Compound scalar expression compilation; false retains prepared operators. */
+    readonly scalarCompilation?: boolean;
+    readonly onScalarCompiled?: (source: string) => void;
+    readonly onScalarExecuted?: () => void;
     /** General tensor fusion; false selects the reference statement path. */
     readonly tensorFusion?: boolean;
     readonly onTensorKernelCompiled?: (source: string) => void;
@@ -1178,6 +1183,17 @@ export class Interpreter {
     // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
+        if (this.options.scalarCompilation !== false
+            && (isBinaryExpression(expression) || isUnaryExpression(expression))) {
+            const compiled = compileScalarExpression(expression, {
+                leaf: leaf => this.compileDirectExpression(leaf)!,
+                binary: (op, left, right) => this.evaluateBinary(op, left, right),
+                unary: (op, value) => this.evaluateUnary(op, value),
+                compiled: this.options.onScalarCompiled,
+                executed: this.options.onScalarExecuted,
+            });
+            if (compiled) return compiled;
+        }
         if (isNewStructureExpression(expression)) return () => {
             if (expression.structure === 'graph') {
                 this.requireModule('graph', 'new graph');
@@ -2298,6 +2314,9 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarCompilation: this.options.scalarCompilation,
+            onScalarCompiled: this.options.onScalarCompiled,
+            onScalarExecuted: this.options.onScalarExecuted,
             tensorFusion: this.options.tensorFusion,
             onTensorKernelCompiled: this.options.onTensorKernelCompiled,
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,
@@ -2370,6 +2389,9 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarCompilation: this.options.scalarCompilation,
+            onScalarCompiled: this.options.onScalarCompiled,
+            onScalarExecuted: this.options.onScalarExecuted,
             tensorFusion: this.options.tensorFusion,
             onTensorKernelCompiled: this.options.onTensorKernelCompiled,
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,
