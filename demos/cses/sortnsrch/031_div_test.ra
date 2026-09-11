@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "031_div"
+  Values = array 3 1 2 7 4
+  Values count_divisible_subarrays equal 1
+end
+
+test "every zero subarray"
+  use "031_div"
+  Values = array 0 0 0
+  Values count_divisible_subarrays equal 6
+end
+
+test "normalizes negative remainders"
+  use "031_div"
+  Values = array -1 1 -1 1
+  Values count_divisible_subarrays equal 4
+end
+
+test "single divisible value"
+  use "031_div"
+  Values = array 9
+  Values count_divisible_subarrays equal 1
+end

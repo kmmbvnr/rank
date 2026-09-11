@@ -1,0 +1,36 @@
+rem CSES 1662: Subarray Divisibility
+rem https://cses.fi/problemset/task/1662
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+A count_divisible_subarrays print
+
+
+rem Count equal prefix remainders.
+fun count_divisible_subarrays A
+  N = A len
+  Prefix = 0
+  Answer = 0
+
+  index 0 = 1
+
+  for X in A
+    Prefix += X
+    Remainder = Prefix % N
+
+    if Remainder less 0
+      Remainder += N
+    end
+
+    Count = index Remainder pad 0
+    Answer += Count
+    index Remainder = Count + 1
+  end
+
+  return Answer
+end
