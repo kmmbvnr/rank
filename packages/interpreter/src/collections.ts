@@ -1,4 +1,4 @@
-import { RankError } from './errors.js';
+import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap } from './resource-summary.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { RankMultiset } from './multiset.js';
@@ -45,4 +45,13 @@ export function addToCollection(target: RankValue, value: RankValue): RankValue 
         else receiver.entries.set(key, { value, count: 1n });
     }
     return receiver;
+}
+
+export function removeFromCollection(target: RankValue, value: RankValue): RankValue {
+    if (isRankMultiset(target)) return target.remove(value);
+    if (!isRankSet(target)) throw new RankError('remove expects a set or multiset');
+    if (!target.entries.delete(setValueKey(value))) {
+        throw new MissingValueError('set does not contain the value');
+    }
+    return target;
 }

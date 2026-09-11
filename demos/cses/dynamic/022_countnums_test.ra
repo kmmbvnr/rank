@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "022_countnums"
+  123 321 count_numbers equal 171
+end
+
+test "zero is included"
+  use "022_countnums"
+  0 0 count_numbers equal 1
+end
+
+test "equal adjacent digits fail"
+  use "022_countnums"
+  10 11 count_numbers equal 1
+end
+
+test "leading zeroes are not digits"
+  use "022_countnums"
+  98 102 count_numbers equal 3
+end

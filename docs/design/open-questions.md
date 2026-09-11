@@ -152,6 +152,115 @@ into a higher-rank rectangular value with padding.
 `mix` was rejected as a user-facing name. `stack` is a candidate but is not yet
 fixed.
 
+## Rectangular and ragged construction
+
+Find one coherent construction syntax for rectangular tensors and rows of
+unequal length. The existing `array shape ...` and the proposed
+`array .ragged` use inconsistent forms; `.ragged` is not approved or reserved.
+The design should stay easy to type on a phone and avoid new keywords where
+existing vocabulary can express the distinction clearly.
+
+Euler 18 motivates preserving row boundaries and addressing a triangle by row
+and column. Its current example already writes the input in 15 data lines,
+but stores a flat array and computes triangular offsets manually. Other uses
+include graph adjacency lists and batches of sequences with different lengths.
+
+Before implementation, settle row boundaries and line continuation, shape,
+addressing, and the meaning of `axis` and `rank` on unequal rows. Absent cells
+must remain distinct from numeric zero. Combining rows into a rectangular
+tensor with explicit padding is a separate conversion (see Stack / combine).
+
+## Graph representation and accelerator packing
+
+A future first-class `graph` value should separate its public behavior from
+its physical storage. CPU traversal may use mutable adjacency lists or CSR,
+while GPU and graph-learning operations may explicitly request COO or another
+packed tensor representation. Programs that iterate through neighbors must not
+depend on the chosen storage.
+
+Two construction modes are useful. A closed graph receives its vertex domain
+up front, including isolated vertices:
+
+```rank
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .undirected
+```
+
+An open graph grows when edges are added:
+
+```rank
+Graph = new graph .undirected
+Graph add A B
+```
+
+Adding an edge registers both endpoints. The design still needs an operation
+for adding isolated vertices and a bulk form for a rank-2 `M 2` edge array.
+Candidate `add` forms are a scalar or rank-1 array of vertices, two scalar edge
+endpoints, and a rank-2 edge array. Their type and arity make the cases
+distinguishable, but this overload must be tested against Rank's data-first
+application rules before it becomes current syntax.
+
+Neighbor access should remain independent of construction:
+
+```rank
+Current = queue Head
+for Neighbor in Graph Current
+  queue push Neighbor
+end
+```
+
+`Graph Current` would produce a lazy sequence. Directedness should be explicit
+as `.directed` or `.undirected`; neither default is fixed yet.
+
+Future accelerator conversion should be explicit rather than an automatic
+materialization:
+
+```rank
+Packed = Graph coo
+Sources = Packed .sources
+Targets = Packed .targets
+```
+
+An optional `csr` conversion may expose offsets and targets for efficient
+neighbor ranges. An `M 2` human-facing edge matrix and a `2 M` COO tensor carry
+the same topology and can be converted by transposing axes.
+
+Batching should concatenate packed node and edge arrays, shift vertex indices,
+and retain per-graph node and edge counts. Node features and edge features stay
+in parallel tensors rather than changing the topology value. This follows the
+separation used by
+[PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html)
+and the batched sender/receiver representation in
+[Jraph](https://jraph.readthedocs.io/en/latest/api.html).
+
+The design must preserve stable vertex indices and either stable edge IDs or a
+reported packing permutation. It must also decide how parallel edges,
+self-loops and logical undirected edges map to directed COO entries. Automatic
+deduplication would lose information needed by multigraph algorithms and edge
+features, so it should require an explicit operation if supported.
+
+All syntax in this section is illustrative. The CSES graph examples should
+settle the CPU API first; weighted traversal, packing and batching can then be
+added without changing neighbor iteration.
+
+## Triangular matrices
+
+Consider upper- and lower-triangular matrix representations and specialized
+algorithms as a future linear-algebra feature. A triangular matrix has a square
+logical shape and zeros on one side of the diagonal; ragged rows have absent
+elements instead. The two concepts need separate semantics even if their
+storage can share implementation techniques.
+
+Potential benefits include forward/back substitution for `solve`, exploiting
+triangular factors from LU or Cholesky, and specialized multiplication and
+determinant evaluation. Structure could be represented by a view or metadata
+without new language keywords. The design must settle validation, mutation,
+storage and how operations preserve or discard that structure. Coordinate this
+with Linear solver dispatch below; no constructor syntax is agreed yet.
+
+Julia's [triangular matrix views](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.LowerTriangular)
+are a reference for this design.
+
 ## Permutations by tensor axis
 
 The current `permutations` implementation handles text and rank-1 collections.

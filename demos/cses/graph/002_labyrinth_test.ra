@@ -1,0 +1,30 @@
+use testing
+
+test "official example"
+  use "002_labyrinth"
+  Grid = array shape 5
+    "########"
+    "#.A#...#"
+    "#.##.#B#"
+    "#......#"
+    "########"
+  end
+  Result = Grid labyrinth
+  Result .found equal true
+  Result .path equal "LDDRRRRRU"
+end
+
+test "adjacent endpoints"
+  use "002_labyrinth"
+  Result = (array "AB") labyrinth
+  Result .found equal true
+  Result .path equal "R"
+end
+
+test "blocked endpoint"
+  use "002_labyrinth"
+  Grid = array "A#" "#B"
+  Result = Grid labyrinth
+  Result .found equal false
+  Result .path equal ""
+end

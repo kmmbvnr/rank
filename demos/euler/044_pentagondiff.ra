@@ -1,0 +1,55 @@
+rem Pentagon Numbers
+rem https://projecteuler.net/problem=44
+rem Find the smallest pentagonal difference
+rem whose matching sum is also pentagonal
+
+use ranges
+use sequences
+use algo
+use io
+use cli
+
+option Limit integer = 2200
+
+Answer = Limit pentagonal_difference
+Answer print
+
+
+rem Materialize indexed values and a larger set
+rem covering every pair sum in the search.
+fun pentagonal_difference Limit
+  Values = array shape (Limit + 1) pad 0
+  Pentagons = new set
+  for N in 1 to Limit * 2
+    Value = N pentagonal
+    Pentagons add Value
+    if N at most Limit
+      Values N = Value
+    end
+  end
+
+  Best = -1
+  for K in 2 to Limit
+    PK = Values K
+    for J in (K - 1) to 1 by -1
+      PJ = Values J
+      Difference = PK - PJ
+      if Best greater 0 and Difference at least Best
+        break
+      end
+      Sum = PK + PJ
+      if Difference in Pentagons
+        if Sum in Pentagons
+          Best = Difference
+        end
+      end
+    end
+  end
+  return Best
+end
+
+
+rem Return the Nth positive pentagonal number.
+fun pentagonal N
+  return N * (3 * N - 1) // 2
+end

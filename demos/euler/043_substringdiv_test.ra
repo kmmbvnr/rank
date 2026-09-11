@@ -1,0 +1,17 @@
+use testing
+
+test "all qualifying pandigitals"
+  use "043_substringdiv"
+  run
+
+  Answer equal 16695334890
+end
+
+test "official example prefixes"
+  use "043_substringdiv"
+  Divisors = array 2 3 5 7 11 13 17
+
+  "1406" Divisors valid_suffix
+  "14063" Divisors valid_suffix
+  "1406357289" Divisors valid_suffix
+end

@@ -1,0 +1,20 @@
+use testing
+
+test "below one million"
+  use "050_primesum"
+  run
+
+  Answer equal 997651
+end
+
+test "below one thousand"
+  use "050_primesum"
+
+  1000 longest_prime_sum equal 953
+end
+
+test "below one hundred"
+  use "050_primesum"
+
+  100 longest_prime_sum equal 41
+end

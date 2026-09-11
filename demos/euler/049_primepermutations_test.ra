@@ -1,0 +1,17 @@
+use testing
+
+test "second arithmetic sequence"
+  use "049_primepermutations"
+  run
+
+  Answer equal 296962999629
+end
+
+test "terms are permutations"
+  use "049_primepermutations"
+  use text
+  use sequences
+
+  2969 text sort equal 6299 text sort
+  6299 text sort equal 9629 text sort
+end

@@ -1,0 +1,35 @@
+rem CSES 1093: Two Sets II
+rem https://cses.fi/problemset/task/1093
+
+use io
+use ranges
+
+N = stdin .integer
+N two_sets print
+
+
+rem Count each equal partition once.
+fun two_sets N
+  Modulus = 1000000007
+  Total = N * (N + 1) // 2
+
+  if Total % 2 equal 1
+    return 0
+  end
+
+  Target = Total // 2
+  Size = Target + 1
+  Ways = array shape Size pad 0
+  Ways 0 = 1
+
+  for Value in 1 until N
+    if Value at most Target
+      for Sum in Target to Value by -1
+        Ways Sum += Ways (Sum - Value)
+        Ways Sum %= Modulus
+      end
+    end
+  end
+
+  return Ways Target
+end

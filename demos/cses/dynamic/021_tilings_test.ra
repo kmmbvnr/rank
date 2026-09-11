@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "021_tilings"
+  4 7 counting_tilings equal 781
+end
+
+test "one square cannot be tiled"
+  use "021_tilings"
+  1 1 counting_tilings equal 0
+end
+
+test "two by two square"
+  use "021_tilings"
+  2 2 counting_tilings equal 2
+end
+
+test "two by three rectangle"
+  use "021_tilings"
+  2 3 counting_tilings equal 3
+end
+
+test "odd area cannot be tiled"
+  use "021_tilings"
+  3 3 counting_tilings equal 0
+end

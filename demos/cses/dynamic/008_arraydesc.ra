@@ -1,0 +1,50 @@
+rem CSES 1746: Array Description
+rem https://cses.fi/problemset/task/1746
+
+use io
+use numbers
+use ranges
+
+N = stdin .integer
+Maximum = stdin .integer
+Description = stdin .integer N array
+
+Description Maximum descriptions print
+
+
+rem Keep counts for the prior position.
+fun descriptions Description Maximum
+  Modulus = 1000000007
+  Size = Maximum + 2
+  Previous = array shape Size pad 0
+  First = Description 0
+
+  if First equal 0
+    for Value in 1 to Maximum
+      Previous Value = 1
+    end
+  else
+    Previous First = 1
+  end
+
+  for Wanted i in Description
+    if i greater 0
+      Next = array shape Size pad 0
+
+      for Value in 1 to Maximum
+        Allowed = Wanted equal 0
+        Allowed or= Wanted equal Value
+        if Allowed
+          Count = Previous (Value - 1)
+          Count += Previous Value
+          Count += Previous (Value + 1)
+          Next Value = Count % Modulus
+        end
+      end
+
+      Previous = Next
+    end
+  end
+
+  return Previous sum % Modulus
+end

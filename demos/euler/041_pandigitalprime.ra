@@ -1,0 +1,26 @@
+rem Pandigital Prime
+rem https://projecteuler.net/problem=41
+rem Find the largest prime using each digit
+rem from 1 through N exactly once
+
+use algo
+use sequences
+use text
+use io
+
+Digits = "7654321"
+Answer = Digits largest_pandigital_prime
+Answer print
+
+
+rem Descending input makes permutations arrive
+rem from largest to smallest candidate.
+fun largest_pandigital_prime Digits
+  for CandidateText in Digits permutations
+    Candidate = CandidateText integer
+    if Candidate in primes
+      return Candidate
+    end
+  end
+  return 0
+end

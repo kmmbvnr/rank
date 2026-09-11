@@ -1,0 +1,63 @@
+rem CSES 1140: Projects
+rem https://cses.fi/problemset/task/1140
+
+use algo
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Projects = new queue
+
+for i in 1 to N
+  Project = record
+    .start = stdin .integer
+    .finish = stdin .integer
+    .reward = stdin .integer
+  end
+  Projects push Project
+end
+
+Projects maximum_reward print
+
+
+rem Combine a project with its last
+rem compatible prefix.
+fun maximum_reward Jobs
+  Sorted = Jobs sort by .finish .start
+  Count = Sorted len
+  Size = Count + 1
+  Best = array shape Size pad 0
+
+  for Project i in Sorted
+    Low = 0
+    High = i
+
+    for Low less High
+      Middle = (Low + High) // 2
+      Previous = Sorted Middle
+      Finish = Previous .finish
+      if Finish less Project .start
+        Low = Middle + 1
+      else
+        High = Middle
+      end
+    end
+
+    Take = Best Low + Project .reward
+    Best (i + 1) = Best i max Take
+  end
+
+  return Best Count
+end
+
+
+rem Build a project for direct callers.
+fun project Start Finish Reward
+  return record
+    .start = Start
+    .finish = Finish
+    .reward = Reward
+  end
+end

@@ -445,6 +445,20 @@ Cells = A F rank 0
 
 The trailing modifier binds the operation and its operands as one expression.
 In `A B * outer`, `A B` is not evaluated first as addressing.
+A completed modified operation can feed the next operation in the same chain:
+
+```rank
+Total = "1203" integer rank 0 sum
+Total = A + scan sum
+Total = A B * outer sum rank 1 sum
+Total = M sum axis 0 sum
+```
+
+`rank` consumes its integer argument; `axis` consumes its axis numbers (and
+an optional `rank R`). The following operation receives the modified result.
+For example, `A + scan sum` means `(A + scan) sum`. Operands are evaluated
+once. Parentheses remain available to make grouping explicit.
+
 
 ## Each
 

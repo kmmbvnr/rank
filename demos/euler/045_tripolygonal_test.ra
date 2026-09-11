@@ -1,0 +1,14 @@
+use testing
+
+test "next shared value"
+  use "045_tripolygonal"
+  run
+
+  Answer equal 1533776805
+end
+
+test "known shared value"
+  use "045_tripolygonal"
+
+  143 165 common_polygonal equal 40755
+end

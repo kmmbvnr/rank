@@ -3,7 +3,7 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
-import { addToCollection, expectAddCollection, newStructure } from './collections.js';
+import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import { isKnownFileFree, ResourceMap } from './resource-summary.js';
@@ -69,6 +69,7 @@ import { matmulValues } from './modules/linalg.js';
 import { roundValue, sumIndexed } from './modules/numbers.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
+import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     argsortAxis,
     lengthOfAxis,
@@ -936,10 +937,10 @@ export class Interpreter {
                     interpreter.requireModule('algo', mutation.operation);
                     const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
                     const receiver = mutation.operation === 'add'
-                        ? expectAddCollection(target) : expectMultiset(target);
+                        ? expectAddCollection(target) : target;
                     const value = yield* resume(interpreter.evaluateTask(mutation.value));
                     if (mutation.operation === 'add') addToCollection(receiver, value);
-                    else expectMultiset(receiver).remove(value);
+                    else removeFromCollection(receiver, value);
                     return undefined;
                 } };
             }
@@ -1067,6 +1068,8 @@ export class Interpreter {
         tail = false,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
+        const pipeline = modifierPipeline(expression);
+        if (pipeline) return this.compileExpression(pipeline, missing, tail);
         if (isNewStructureExpression(expression)) {
             const create = this.compileDirectExpression(expression)!;
             return () => completed(create());
@@ -1330,6 +1333,16 @@ export class Interpreter {
                     );
                 };
             }
+            const explicitRank = explicitRankApplication(parts);
+            if (explicitRank) {
+                return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(
+                        applicationParts(explicitRank.parts.slice(0, -1)),
+                    ));
+                    const operation = yield* resume(interpreter.evaluateTask(explicitRank.parts.at(-1)!));
+                    return yield* resume(interpreter.applyAtRank([source, operation], explicitRank.rank, explicitRank.axes));
+                };
+            }
             const axisMatmul = explicitAxisMatmul(parts);
             if (axisMatmul) {
                 return function* (): Execution<RankValue> {
@@ -1467,13 +1480,6 @@ export class Interpreter {
                     );
                 };
             }
-            const explicitRank = explicitRankApplication(parts);
-            if (explicitRank) {
-                return function* (): Execution<RankValue> {
-                    const values = yield* resume(mapExecution(explicitRank.parts, part => interpreter.evaluateTask(part)));
-                    return yield* resume(interpreter.applyAtRank(values, explicitRank.rank, explicitRank.axes));
-                };
-            }
             const extreme = explicitExtremeApplication(parts);
             if (extreme) {
                 if ('reduction' in extreme) return () => flatMapResult(mapExecution(
@@ -1551,28 +1557,6 @@ export class Interpreter {
                     ));
                 };
             }
-            const fenwickSum = explicitFenwickSum(parts);
-            if (fenwickSum) {
-                return function* (): Execution<RankValue> {
-                    const receiver = yield* resume(interpreter.evaluateTask(fenwickSum.receiver));
-                    if (!isRankFenwick(receiver)) {
-                        const rest = yield* resume(mapExecution(
-                            parts.slice(1),
-                            part => interpreter.evaluateTask(part),
-                        ));
-                        return yield* resume(interpreter.apply(
-                            [receiver, ...rest],
-                            missing,
-                            0,
-                            [],
-                            tail,
-                        ));
-                    }
-                    interpreter.requireModule('algo', 'fenwick');
-                    const index = yield* resume(interpreter.evaluateTask(fenwickSum.index));
-                    return expectFenwick(receiver).sum(expectInteger(index));
-                };
-            }
             const materializePipeline = explicitMaterializePipeline(parts);
             if (materializePipeline) {
                 return function* (): Execution<RankValue> {
@@ -1611,6 +1595,39 @@ export class Interpreter {
                     return interpreter.apply([value, fn], missing, 0, [], tail);
                 });
                 if (fused) return fused;
+            }
+            if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
+                return function* (): Execution<RankValue> {
+                    let pending: RankValue[] = [];
+                    for (let index = 0; index < parts.length; index += 1) {
+                        const part = parts[index];
+                        // Resolve receiver methods before looking up ordinary functions.
+                        // Each operation consumes its arguments and leaves its result
+                        // available to the remainder of the postfix chain.
+                        if (isNamed(part, 'sum')) {
+                            const receiver = pending.length === 1 ? pending[0]
+                                : canApplySelectors(pending) ? interpreter.applySelectors(pending) : undefined;
+                            if (receiver !== undefined && isRankFenwick(receiver)) {
+                                interpreter.requireModule('algo', 'fenwick');
+                                const argument = parts[++index];
+                                if (!argument) throw new RankError('fenwick sum expects one integer index');
+                                const position = yield* resume(interpreter.evaluateTask(argument));
+                                pending = [expectFenwick(receiver).sum(expectInteger(position))];
+                                continue;
+                            }
+                        }
+                        const value = isAllAxisExpression(part)
+                            ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part));
+                        pending.push(value);
+                        if (isNativeFunction(value)) {
+                            pending = [yield* resume(interpreter.apply(
+                                pending, missing, 0, [], tail && index === parts.length - 1,
+                            ))];
+                        }
+                    }
+                    return pending.length === 1
+                        ? pending[0] : interpreter.applySelectors(pending, missing);
+                };
             }
             const directParts = parts.map(part => isAllAxisExpression(part)
                 ? () => ALL_AXIS : this.compileDirectExpression(part));
@@ -2719,12 +2736,11 @@ export class Interpreter {
         }
         if (operator === 'less' || operator === 'greater'
             || operator === 'atleast' || operator === 'atmost') {
-            const a = expectNumeric(left);
-            const b = expectNumeric(right);
-            if (operator === 'less') return a < b;
-            if (operator === 'greater') return a > b;
-            if (operator === 'atleast') return a >= b;
-            return a <= b;
+            const order = compareOrderedValues(left, right, orderedKind(left));
+            if (operator === 'less') return order < 0;
+            if (operator === 'greater') return order > 0;
+            if (operator === 'atleast') return order >= 0;
+            return order <= 0;
         }
 
         const a = expectNumeric(left);
@@ -4065,6 +4081,54 @@ function flattenApplication(expression: Expression): Expression[] {
     ];
 }
 
+// Group a completed modified operation before compiling the remaining pipeline.
+// These private syntax nodes reuse the existing evaluator; no values are cached.
+function applicationParts(parts: Expression[]): Expression {
+    if (parts.length === 1) return parts[0];
+    return { $type: 'ApplicationExpression', head: parts[0], arguments: parts.slice(1) } as Expression;
+}
+
+function continueModified(prefix: Expression, rest: Expression[]): Expression {
+    return applicationParts([
+        { $type: 'ParenthesizedExpression', value: prefix } as Expression,
+        ...rest,
+    ]);
+}
+
+function modifierPipeline(expression: Expression): Expression | undefined {
+    if (isBinaryExpression(expression)) {
+        const parts = flattenApplication(expression.right);
+        const scan = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'scan');
+        const reduce = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'reduce');
+        const outer = OUTER_OPERATORS.has(expression.operator) && isNamed(parts[0], 'outer');
+        if (!scan && !reduce && !outer) return undefined;
+        const end = reduce && parts[1] && isNamed(parts[1], 'rank') ? 3 : 1;
+        if (parts.length <= end) return undefined;
+        return continueModified(
+            { ...expression, right: applicationParts(parts.slice(0, end)) } as Expression,
+            parts.slice(end),
+        );
+    }
+    if (!isApplicationExpression(expression)) return undefined;
+    const parts = flattenApplication(expression);
+    const rank = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'rank'));
+    if (rank >= 0 && parts.length > rank + 2) {
+        return continueModified(applicationParts(parts.slice(0, rank + 2)), parts.slice(rank + 2));
+    }
+    const axis = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'axis'));
+    if (axis >= 0) {
+        let end = axis + 1;
+        while (end < parts.length && isNumberLiteral(parts[end])) end++;
+        if (end > axis + 1 && end < parts.length && !isNamed(parts[end], 'rank')) {
+            return continueModified(applicationParts(parts.slice(0, end)), parts.slice(end));
+        }
+    }
+    if (parts.length > 4 && isNamed(parts[3], 'outer')) {
+        return continueModified(applicationParts(parts.slice(0, 4)), parts.slice(4));
+    }
+    return undefined;
+}
+
 function explicitMaterializePipeline(parts: Expression[]): {
     readonly source: readonly Expression[];
     readonly selector: ArrayExpression;
@@ -4090,6 +4154,7 @@ function explicitRankApplication(
         throw new RankError('rank expects a nonnegative integer');
     }
     const beforeRank = parts.slice(0, -2);
+    if (beforeRank.length < 2) throw new RankError('rank requires data and a unary operation');
     const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis'));
     if (axisPosition < 0) return { parts: beforeRank, rank: rank.value };
     if (axisPosition !== 2 || beforeRank.length === 3) {
@@ -4246,11 +4311,6 @@ interface MultisetMethodApplication {
     readonly argument: Expression[];
 }
 
-interface FenwickSumApplication {
-    readonly receiver: Expression;
-    readonly index: Expression;
-}
-
 interface CollectionMutationApplication {
     readonly receiver: Expression;
     readonly operation: 'add' | 'remove';
@@ -4298,11 +4358,6 @@ function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication 
         operation,
         argument: parts.slice(position + 1),
     };
-}
-
-function explicitFenwickSum(parts: Expression[]): FenwickSumApplication | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'sum')) return undefined;
-    return { receiver: parts[0], index: parts[2] };
 }
 
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {

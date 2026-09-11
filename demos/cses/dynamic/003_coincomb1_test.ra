@@ -1,0 +1,26 @@
+use testing
+
+test "official example"
+  use "003_coincomb1"
+  Coins = array 2 3 5
+  Coins 9 ordered_coin_ways equal 8
+end
+
+test "order distinguishes solutions"
+  use "003_coincomb1"
+  Coins = array 2 3
+  Coins 7 ordered_coin_ways equal 3
+end
+
+test "empty sum has one sequence"
+  use "003_coincomb1"
+  Coins = array 4 9
+  Coins 0 ordered_coin_ways equal 1
+end
+
+test "result is reduced modulo prime"
+  use "003_coincomb1"
+  Coins = array 1 2
+  Actual = Coins 50 ordered_coin_ways
+  Actual equal 365010934
+end

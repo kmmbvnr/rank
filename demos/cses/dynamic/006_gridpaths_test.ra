@@ -1,0 +1,27 @@
+use testing
+
+test "official example"
+  use "006_gridpaths"
+  Grid = array shape 4
+    "...." ".*.." "...*" "*..."
+  end
+  Grid grid_paths equal 3
+end
+
+test "one open square"
+  use "006_gridpaths"
+  Grid = array "."
+  Grid grid_paths equal 1
+end
+
+test "start is blocked"
+  use "006_gridpaths"
+  Grid = array "*." ".."
+  Grid grid_paths equal 0
+end
+
+test "only one route remains"
+  use "006_gridpaths"
+  Grid = array "..." "**." "..."
+  Grid grid_paths equal 1
+end

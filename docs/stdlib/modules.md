@@ -39,6 +39,7 @@ odd
 even
 abs
 sqrt
+isqrt
 log
 exp
 round
@@ -96,6 +97,19 @@ Roots = Values sqrt
 
 It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
+
+`isqrt` has intrinsic rank 0 and returns the exact integer floor of the square
+root of a nonnegative `integer`:
+
+```rank
+Root = Value isqrt
+Roots = Values isqrt
+Perfect = Root ** 2 equal Value
+```
+
+It maps lazily over arrays and sequences. A negative integer raises
+`.DomainError`, and a `real` raises `.TypeError`. The computation uses only
+integer arithmetic, so large values do not lose precision.
 
 `log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
 

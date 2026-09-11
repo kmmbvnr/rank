@@ -9,7 +9,7 @@ export function orderedKind(value: RankValue): OrderedKind {
     if (typeof value === 'string') return 'text';
     if (typeof value === 'boolean') return 'boolean';
     if (isRankLabel(value)) return 'symbol';
-    throw new RankError('ordered values must be comparable scalars');
+    throw new RankError('ordered values must be comparable scalars', 'TypeError');
 }
 
 /** Compare two values using Rank's scalar ordering. */
@@ -19,7 +19,7 @@ export function compareOrderedValues(
     kind: OrderedKind,
 ): number {
     if (orderedKind(left) !== kind || orderedKind(right) !== kind) {
-        throw new RankError('ordered values must have one comparable type');
+        throw new RankError('ordered values must have one comparable type', 'TypeError');
     }
     if (kind === 'numeric') {
         const a = left as bigint | number;

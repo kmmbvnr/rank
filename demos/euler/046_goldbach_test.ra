@@ -1,0 +1,16 @@
+use testing
+
+test "first counterexample"
+  use "046_goldbach"
+  run
+
+  Answer equal 5777
+end
+
+test "represented odd composites"
+  use "046_goldbach"
+
+  9 goldbach_representation
+  33 goldbach_representation
+  not (5777 goldbach_representation)
+end

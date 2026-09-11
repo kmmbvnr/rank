@@ -1,0 +1,34 @@
+rem CSES 1748: Increasing Subsequence II
+rem https://cses.fi/problemset/task/1748
+
+use algo
+use io
+use sequences
+
+N = stdin .integer
+Values = stdin .integer N array
+Values increasing_subsequences print
+
+
+rem Count prefixes by compressed rank.
+fun increasing_subsequences Values
+  Modulus = 1000000007
+  Sorted = Values sort unique
+
+  for Value Rank in Sorted
+    index Value = Rank
+  end
+
+  Counts = Sorted len fenwick
+
+  for Value in Values
+    Rank = index Value
+    Ways = 1 + Counts sum (Rank - 1)
+    Ways %= Modulus
+    Old = Counts Rank
+    Counts Rank = (Old + Ways) % Modulus
+  end
+
+  Last = Sorted len - 1
+  return Counts sum Last % Modulus
+end

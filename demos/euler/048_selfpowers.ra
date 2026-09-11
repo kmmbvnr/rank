@@ -1,0 +1,28 @@
+rem Self Powers
+rem https://projecteuler.net/problem=48
+rem Find the final Digits decimal digits of
+rem the self-power sum through Limit
+
+use ranges
+use numbers
+use io
+use cli
+
+option Limit integer = 1000
+option Digits integer = 10
+
+Answer = Limit Digits self_power_tail
+Answer print
+
+
+rem Reduce every power modulo the requested
+rem decimal place value before adding it.
+fun self_power_tail Limit Digits
+  Modulus = 10 ** Digits
+  Total = 0
+  for N in 1 to Limit
+    Total += N N Modulus powmod
+    Total %= Modulus
+  end
+  return Total
+end

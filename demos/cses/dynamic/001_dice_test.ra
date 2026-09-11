@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "001_dice"
+  3 dice_combinations equal 4
+end
+
+test "smallest sum"
+  use "001_dice"
+  1 dice_combinations equal 1
+end
+
+test "first sum longer than one die"
+  use "001_dice"
+  7 dice_combinations equal 63
+end
+
+test "result is reduced modulo prime"
+  use "001_dice"
+  50 dice_combinations equal 660641036
+end

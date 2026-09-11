@@ -1,0 +1,14 @@
+use testing
+
+test "seven pandigital digits"
+  use "041_pandigitalprime"
+  run
+
+  Answer equal 7652413
+end
+
+test "four pandigital digits"
+  use "041_pandigitalprime"
+
+  "4321" largest_pandigital_prime equal 4231
+end

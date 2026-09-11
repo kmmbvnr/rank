@@ -1,0 +1,60 @@
+rem CSES 1653: Elevator Rides
+rem https://cses.fi/problemset/task/1653
+
+use bits
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Limit = stdin .integer
+Weights = stdin .integer N array
+Weights Limit elevator_rides print
+
+
+rem Minimize rides, then final weight.
+fun elevator_rides Weights Limit
+  Count = Weights len
+  States = 1 Count shl
+  Missing = Count + 1
+  Rides = array shape States pad Missing
+  Last = array shape States pad 0
+  Rides 0 = 1
+
+  fun add_person Mask Person
+    if not (Mask Person bit)
+      return 0
+    end
+
+    Bit = 1 Person shl
+    Previous = Mask Bit bxor
+    NewRides = Rides Previous
+    Weight = Weights Person
+    NewWeight = Last Previous + Weight
+
+    if NewWeight greater Limit
+      NewRides += 1
+      NewWeight = Weight
+    end
+
+    Better = NewRides less Rides Mask
+    Same = NewRides equal Rides Mask
+    Lighter = NewWeight less Last Mask
+    Better or= Same and Lighter
+
+    if Better
+      Rides Mask = NewRides
+      Last Mask = NewWeight
+    end
+    return 0
+  end
+
+  for Mask in 1 until States
+    for Person in 0 until Count
+      Mask Person add_person
+    end
+  end
+
+  return Rides (States - 1)
+end

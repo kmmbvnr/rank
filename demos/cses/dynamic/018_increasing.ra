@@ -1,0 +1,26 @@
+rem CSES 1145: Increasing Subsequence
+rem https://cses.fi/problemset/task/1145
+
+use algo
+use io
+use sequences
+
+N = stdin .integer
+Values = stdin .integer N array
+Values increasing_length print
+
+
+rem Keep the smallest tail by length.
+fun increasing_length Values
+  Tails = new multiset
+
+  for Value in Values
+    Old = Tails ceiling Value pad -1
+    if Old not equal -1
+      Tails remove Old
+    end
+    Tails add Value
+  end
+
+  return Tails len
+end

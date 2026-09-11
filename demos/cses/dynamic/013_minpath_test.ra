@@ -1,0 +1,27 @@
+use testing
+
+test "official example"
+  use "013_minpath"
+  Grid = array shape 4
+    "AACA" "BABC" "ABDA" "AACA"
+  end
+  Grid minimal_grid_path equal "AAABACA"
+end
+
+test "one cell"
+  use "013_minpath"
+  Grid = array "Z"
+  Grid minimal_grid_path equal "Z"
+end
+
+test "choose the smaller first step"
+  use "013_minpath"
+  Grid = array "AB" "CA"
+  Grid minimal_grid_path equal "ABA"
+end
+
+test "keep tied prefixes"
+  use "013_minpath"
+  Grid = array "AAA" "AZA" "AAA"
+  Grid minimal_grid_path equal "AAAAA"
+end

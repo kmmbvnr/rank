@@ -1,0 +1,31 @@
+use testing
+
+test "official example"
+  use "001_countrooms"
+  Grid = array shape 5
+    "########"
+    "#..#...#"
+    "####.#.#"
+    "#..#...#"
+    "########"
+  end
+  Grid count_rooms equal 3
+end
+
+test "one open room"
+  use "001_countrooms"
+  Grid = array "..." "..."
+  Grid count_rooms equal 1
+end
+
+test "walls contain no rooms"
+  use "001_countrooms"
+  Grid = array "##" "##"
+  Grid count_rooms equal 0
+end
+
+test "diagonal cells are separate"
+  use "001_countrooms"
+  Grid = array ".#" "#."
+  Grid count_rooms equal 2
+end

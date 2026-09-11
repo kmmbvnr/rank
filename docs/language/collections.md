@@ -209,6 +209,7 @@ index per dense axis and changes the existing material array.
 
 ```rank
 set add X
+set remove X
 if X in set
   ...
 end
@@ -217,7 +218,8 @@ Count = set len
 
 The first use of `set` lazily creates one set in the current function-call
 workspace. `add` is idempotent: adding an equal value again leaves the set
-unchanged. Scalars, arrays and records can be elements. Array equality includes
+unchanged. `remove` deletes that value and raises `.Missing` when it is absent.
+Scalars, arrays and records can be elements. Array equality includes
 both shape and contents; record equality includes field names and recursively
 equal values. `in` tests membership, and `len` returns the number of unique
 elements.
@@ -326,7 +328,9 @@ Other negative and out-of-bounds indices raise `.Missing` and compose with
 `sum` is also contextual rather than reserved. The middle form is a Fenwick
 method only when `F` evaluates to a Fenwick tree. For any other receiver the
 ordinary application chain remains intact; for example, `A sum print` first
-reduces `A` and then prints the result.
+reduces `A` and then prints the result. Receiver dispatch happens at each application, so
+`F sum I print` computes the prefix and then prints it, with or without
+`use numbers`. The receiver and index are evaluated once.
 
 ### Permutations
 

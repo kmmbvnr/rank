@@ -1,6 +1,6 @@
 import { RankError } from '../errors.js';
 import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
-import { addToCollection } from '../collections.js';
+import { addToCollection, removeFromCollection } from '../collections.js';
 import { RankFenwick } from '../fenwick.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
@@ -35,7 +35,7 @@ export const algoModule: RuntimeModule = {
     add: () => native('add', 2, arguments_ =>
         addToCollection(arguments_[0], arguments_[1])),
     remove: () => native('remove', 2, arguments_ =>
-        expectMultiset(arguments_[0]).remove(arguments_[1])),
+        removeFromCollection(arguments_[0], arguments_[1])),
     floor: () => native('floor', 2, arguments_ =>
         expectMultiset(arguments_[0]).floor(arguments_[1])),
     ceiling: () => native('ceiling', 2, arguments_ =>

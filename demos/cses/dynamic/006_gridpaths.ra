@@ -1,0 +1,35 @@
+rem CSES 1638: Grid Paths I
+rem https://cses.fi/problemset/task/1638
+
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Grid = stdin .word N array
+
+Grid grid_paths print
+
+
+rem Reuse one row of path counts.
+fun grid_paths Grid
+  Size = Grid len
+  Ways = array shape Size pad 0
+  Ways 0 = 1
+
+  for Row in Grid
+    for Cell Column in Row
+      if Cell equal "*"
+        Ways Column = 0
+      else
+        if Column greater 0
+          Left = Ways (Column - 1)
+          Ways Column += Left
+          Ways Column %= 1000000007
+        end
+      end
+    end
+  end
+
+  return Ways (Size - 1)
+end

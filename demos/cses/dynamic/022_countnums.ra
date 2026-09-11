@@ -1,0 +1,82 @@
+rem CSES 2220: Counting Numbers
+rem https://cses.fi/problemset/task/2220
+
+use io
+use numbers
+use ranges
+use text
+
+Lower = stdin .integer
+Upper = stdin .integer
+Lower Upper count_numbers print
+
+
+rem Subtract two inclusive prefixes.
+fun count_numbers Lower Upper
+  High = Upper valid_up_to
+  Low = (Lower - 1) valid_up_to
+  return High - Low
+end
+
+
+rem Count values with no digit repeats.
+fun valid_up_to Limit
+  if Limit less 0
+    return 0
+  end
+
+  Digits = Limit text integer rank 0
+  Current = array shape 11 2 pad 0
+  Current 10 1 = 1
+
+  fun add_state Prev Tight Maximum
+    Ways = Current Prev Tight
+    if Ways equal 0
+      return 0
+    end
+
+    Last = 9
+    if Tight equal 1
+      Last = Maximum
+    end
+
+    for Digit in 0 to Last
+      Leading = Prev equal 10
+      Leading and= Digit equal 0
+      Repeated = Prev equal Digit
+      if Repeated and not Leading
+        continue
+      end
+
+      NewPrev = Digit
+      if Leading
+        NewPrev = 10
+      end
+
+      NewTight = 0
+      KeepsLimit = Tight equal 1
+      SameDigit = Digit equal Maximum
+      KeepsLimit and= SameDigit
+      if KeepsLimit
+        NewTight = 1
+      end
+
+      Next NewPrev NewTight += Ways
+    end
+    return 0
+  end
+
+  for Maximum in Digits
+    Next = array shape 11 2 pad 0
+
+    for Prev in 0 to 10
+      for Tight in 0 to 1
+        Prev Tight Maximum add_state
+      end
+    end
+
+    Current = Next
+  end
+
+  return Current sum
+end

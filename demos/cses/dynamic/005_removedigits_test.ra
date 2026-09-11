@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "005_removedigits"
+  27 removing_digits equal 5
+end
+
+test "one digit"
+  use "005_removedigits"
+  7 removing_digits equal 1
+end
+
+test "zero digit is ignored"
+  use "005_removedigits"
+  10 removing_digits equal 2
+end
+
+test "best digit can change"
+  use "005_removedigits"
+  19 removing_digits equal 3
+end

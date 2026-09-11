@@ -18,6 +18,19 @@ describe('Rank expressions and sequences', () => {
         expect(run('3 at most 2')).toBe('false');
     });
 
+    it('orders comparable scalar values consistently', () => {
+        expect(run('"A" less "B"')).toBe('true');
+        expect(run('"A" less "AA"')).toBe('true');
+        expect(run('"😀" greater "Z"')).toBe('true');
+        expect(run('.age at most .time')).toBe('true');
+        expect(run('false less true')).toBe('true');
+        expect(run('(array "B" "A") less "B"')).toBe('false true');
+        expect(() => run('1 less "2"'))
+            .toThrowError('ordered values must have one comparable type');
+        expect(() => run('record\n  .value = 1\nend less 2'))
+            .toThrowError('ordered values must be comparable scalars');
+    });
+
     it('continues infix expressions inside parentheses', () => {
         expect(run([
             'Result = (',

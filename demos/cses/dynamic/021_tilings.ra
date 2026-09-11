@@ -1,0 +1,57 @@
+rem CSES 2181: Counting Tilings
+rem https://cses.fi/problemset/task/2181
+
+use bits
+use io
+use ranges
+
+Height = stdin .integer
+Width = stdin .integer
+Height Width counting_tilings print
+
+
+rem Carry occupied cells across columns.
+fun counting_tilings Height Width
+  Modulus = 1000000007
+  States = 1 Height shl
+  Current = array shape States pad 0
+  Current 0 = 1
+
+  for Column in 1 to Width
+    Next = array shape States pad 0
+
+    for Mask in 0 until States
+      Ways = Current Mask
+      if Ways greater 0
+        0 0 fill
+      end
+    end
+
+    Current = Next
+  end
+
+  return Current 0
+
+  rem Fill a column and emit its mask.
+  fun fill Row NextMask
+    if Row equal Height
+      Next NextMask += Ways
+      Next NextMask %= Modulus
+      return 0
+    end
+
+    if Mask Row bit
+      return (Row + 1) NextMask fill
+    end
+
+    Bit = 1 Row shl
+    (Row + 1) (NextMask Bit bor) fill
+
+    if Row + 1 less Height
+      if not (Mask (Row + 1) bit)
+        (Row + 2) NextMask fill
+      end
+    end
+    return 0
+  end
+end

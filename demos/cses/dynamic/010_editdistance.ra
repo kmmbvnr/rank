@@ -1,0 +1,41 @@
+rem CSES 1639: Edit Distance
+rem https://cses.fi/problemset/task/1639
+
+use io
+use numbers
+use ranges
+use sequences
+
+Left = stdin .word
+Right = stdin .word
+Left Right edit_distance print
+
+
+rem Keep only the prior distance row.
+fun edit_distance Left Right
+  Width = Right len
+  Previous = (0 to Width) array
+
+  for A i in Left
+    Size = Width + 1
+    Current = array shape Size pad 0
+    Current 0 = i + 1
+
+    for B j in Right
+      if A equal B
+        Current (j + 1) = Previous j
+      else
+        Delete = Previous (j + 1)
+        Insert = Current j
+        Replace = Previous j
+        Best = Delete min Insert
+        Best = Best min Replace
+        Current (j + 1) = Best + 1
+      end
+    end
+
+    Previous = Current
+  end
+
+  return Previous Width
+end

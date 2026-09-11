@@ -1,0 +1,114 @@
+rem CSES 1193: Labyrinth
+rem https://cses.fi/problemset/task/1193
+
+use algo
+use io
+use ranges
+use sequences
+use text
+
+Rows = stdin .integer
+Columns = stdin .integer
+Grid = stdin .word Rows array
+Result = Grid labyrinth
+
+if Result .found
+  "YES" print
+  Result .path len print
+  Result .path print
+else
+  "NO" print
+end
+
+
+rem Find and rebuild a shortest path.
+fun labyrinth Grid
+  H = Grid len
+  W = Grid 0 len
+  DYs = array -1 1 0 0
+  DXs = array 0 0 -1 1
+  Moves = array "U" "D" "L" "R"
+  Parent = array shape H W pad -1
+  Start = -1
+  Target = -1
+
+  for Line Y in Grid
+    for Cell X in Line
+      if Cell equal "A"
+        Start = Y * W + X
+      elif Cell equal "B"
+        Target = Y * W + X
+      end
+    end
+  end
+
+  rem Visit an unseen open neighbor.
+  fun visit Row Column Direction
+    NY = Row + DYs Direction
+    NX = Column + DXs Direction
+    Inside = NY at least 0
+    Inside and= NY less H
+    Inside and= NX at least 0
+    Inside and= NX less W
+    if not Inside
+      return -1
+    end
+
+    Neighbor = Grid NY
+    if Neighbor NX equal "#"
+      return -1
+    end
+    if Parent NY NX not equal -1
+      return -1
+    end
+
+    Parent NY NX = Direction
+    return NY * W + NX
+  end
+
+  StartY = Start // W
+  StartX = Start % W
+  Parent StartY StartX = -2
+  queue push Start
+  Head = 0
+
+  for Head less queue len
+    Position = queue Head
+    Row = Position // W
+    Column = Position % W
+
+    for DY Direction in DYs
+      Next = Row Column Direction visit
+      if Next not equal -1
+        queue push Next
+      end
+    end
+
+    Head += 1
+  end
+
+  TargetY = Target // W
+  TargetX = Target % W
+  LastMove = Parent TargetY TargetX
+  Found = LastMove not equal -1
+  Path = ""
+
+  if Found
+    Position = Target
+    for Position not equal Start
+      Row = Position // W
+      Column = Position % W
+      Direction = Parent Row Column
+      Path += Moves Direction
+      Row -= DYs Direction
+      Column -= DXs Direction
+      Position = Row * W + Column
+    end
+    Path = Path reverse
+  end
+
+  return record
+    .found = Found
+    .path = Path
+  end
+end

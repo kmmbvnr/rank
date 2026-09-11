@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "008_arraydesc"
+  Description = array 2 0 2
+  Description 5 descriptions equal 3
+end
+
+test "one unknown value"
+  use "008_arraydesc"
+  Description = array 0
+  Description 3 descriptions equal 3
+end
+
+test "fixed jump is too large"
+  use "008_arraydesc"
+  Description = array 1 3
+  Description 3 descriptions equal 0
+end
+
+test "two unknown binary values"
+  use "008_arraydesc"
+  Description = array 0 0
+  Description 2 descriptions equal 4
+end
