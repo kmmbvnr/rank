@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "010_salary"
+  Salaries = array 3 7 2 2 5
+  Types = array "?" "!" "?"
+  As = array 2 3 2
+  Bs = array 3 6 3
+  Actual = Salaries Types As Bs salaries
+  Actual equal array 3 2
+end
+
+test "duplicates and new values"
+  use "010_salary"
+  Salaries = array 5 5 10
+  Types = array "?" "!" "?" "?"
+  As = array 5 2 5 7
+  Bs = array 5 7 7 20
+  Actual = Salaries Types As Bs salaries
+  Actual equal array 2 2 2
+end

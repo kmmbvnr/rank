@@ -1,0 +1,25 @@
+use testing
+
+test "updates change the best prefix"
+  use "011_prefixsum"
+  Values = array 1 2 -1 3 1
+  Queries = array shape 3 3
+    2 2 4
+    1 3 3
+    2 2 4
+  end
+  Actual = Values Queries prefix_queries
+  Actual equal array 4 8
+end
+
+test "the empty prefix allows zero"
+  use "011_prefixsum"
+  Values = array -5 -2 4
+  Queries = array shape 3 3
+    2 1 2
+    2 1 3
+    2 3 3
+  end
+  Actual = Values Queries prefix_queries
+  Actual equal array 0 0 4
+end

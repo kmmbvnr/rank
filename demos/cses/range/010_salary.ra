@@ -1,0 +1,70 @@
+rem CSES 1144: Salary Queries
+rem https://cses.fi/problemset/task/1144
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Salaries = stdin .integer N array
+Types = array shape Q pad ""
+As = array shape Q pad 0
+Bs = array shape Q pad 0
+
+for I in 0 until Q
+  Types I = stdin .word
+  As I = stdin .integer
+  Bs I = stdin .integer
+end
+
+Result = Salaries Types As Bs salaries
+Result print
+
+
+rem Compress salaries and boundaries.
+rem Count them with a Fenwick tree.
+fun salaries Salaries Types As Bs
+  N = Salaries len
+  Q = Types len
+  Total = N + Q * 2
+  Coordinates = array shape Total pad 0
+  Coordinates (0 until N) = Salaries
+  Coordinates (N until N + Q) = As
+  LastStart = N + Q
+  Tail = LastStart until Total
+  Coordinates Tail = Bs
+  Coordinates = Coordinates unique sort
+
+  Rank = new index
+  for Value I in Coordinates
+    Rank Value = I
+  end
+
+  Counts = Coordinates len fenwick
+  for Salary in Salaries
+    Counts (Rank Salary) += 1
+  end
+
+  Answers = array shape Q pad 0
+  AnswerCount = 0
+  for Type I in Types
+    A = As I
+    B = Bs I
+    if Type equal "!"
+      Employee = A - 1
+      Old = Salaries Employee
+      Counts (Rank Old) -= 1
+      Salaries Employee = B
+      Counts (Rank B) += 1
+    else
+      High = Counts sum (Rank B)
+      Low = Counts sum (Rank A - 1)
+      Answers AnswerCount = High - Low
+      AnswerCount += 1
+    end
+  end
+
+  return Answers (0 until AnswerCount)
+end

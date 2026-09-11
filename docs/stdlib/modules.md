@@ -422,8 +422,9 @@ count
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
-storage while preserving its shape. It does not accept a sequence; postfix
-`array` materializes a finite sequence into a rank-1 array.
+storage while preserving its shape. On a numeric `+ segment`, it creates an
+independent persistent version that shares unchanged nodes. It does not accept
+a sequence; postfix `array` materializes a finite sequence into a rank-1 array.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, supports `to` and `until`, and may seek to a
@@ -880,6 +881,7 @@ Counts = new counter
 Empty = new multiset
 F = Size fenwick
 Tree = Values min segment
+Data = Values wavelet
 Seen add Value
 Counts add Value
 Bag = Values multiset
@@ -923,14 +925,29 @@ operation. `Tree Left Right query` reduces an inclusive range, and addressed
 assignment performs a point update. Construction, bounds and error behavior
 are specified in [Collections](../language/collections.md).
 
+`Tree Target firstatleast` finds the first monotone numeric prefix that reaches
+the target. `Values maxsum segment` selects the native prefix/subarray summary
+profile and returns `.sum`, `.prefix`, `.suffix` and `.best` from `query`.
+
+Numeric `Values + segment` trees also accept inclusive addressed range
+assignment and addition. Both updates and `query` take `O(log N)` time.
+
+`Values wavelet` prepares an immutable wavelet matrix. The form
+`Data Left Right Low High within` counts values inside inclusive position and
+value ranges. `sumwithin` sums a numeric rectangle, and
+`Data Bounds missing` finds the first missing subset sum for positive integer
+values. `Bounds` may be one range pair or a matrix of range pairs because the
+operation has intrinsic ranks `all 1`. See [Collections](../language/collections.md).
+
 ## Graph profile
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
 `bellmanford`, `floyd`, `cycle`, `euler`, `topological`, `scc`, `mst`, and `maxflow`
 algorithms. It also provides the experimental `Next functional` prepared value
-with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
-[Graphs](../language/graphs.md).
+with `jump`, `distance`, `lengths`, and the increasing-path `upto` query.
+`Next Cost weighted` adds numeric edge sums to that path. Inputs and results
+are specified in [Graphs](../language/graphs.md).
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.
 

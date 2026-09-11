@@ -1,0 +1,24 @@
+use testing
+
+test "updates move the best subarray"
+  use "015_subarraysum"
+  Values = array 1 2 -3 5 -1
+  Updates = array shape 3 2
+    2 6
+    3 1
+    1 -2
+  end
+  Actual = Values Updates max_subarrays
+  Actual equal array 9 13 12
+end
+
+test "negative values allow empty"
+  use "015_subarraysum"
+  Values = array -1 -2 -3
+  Updates = array shape 2 2
+    2 -4
+    1 5
+  end
+  Actual = Values Updates max_subarrays
+  Actual equal array 0 5
+end

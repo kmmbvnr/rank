@@ -1,0 +1,61 @@
+rem CSES 2206: Pizzeria Queries
+rem https://cses.fi/problemset/task/2206
+
+use io
+use algo
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Prices = stdin .integer N array
+Queries = array shape Q 3 pad 0
+
+for I in 0 until Q
+  Type = stdin .integer
+  Queries I 0 = Type
+  Queries I 1 = stdin .integer
+  if Type equal 1
+    Queries I 2 = stdin .integer
+  end
+end
+
+Prices Queries deliveries print
+
+
+rem Split distance at the query point.
+fun deliveries Prices Queries
+  N = Prices len
+  Indices = (0 until N) array
+  LeftPrices = Prices - Indices
+  RightPrices = Prices + Indices
+  FromLeft = LeftPrices min segment
+  FromRight = RightPrices min segment
+  Q = Queries len
+  Answers = array shape Q pad 0
+  Count = 0
+
+  for Query in Queries
+    Type = Query 0
+    Position = Query 1 - 1
+    if Type equal 1
+      Price = Query 2
+      LeftPrice = Price - Position
+      RightPrice = Price + Position
+      FromLeft Position = LeftPrice
+      FromRight Position = RightPrice
+    else
+      Left = FromLeft 0 Position query
+      Left += Position
+      Last = N - 1
+      R = FromRight Position Last query
+      Right = R
+      Right -= Position
+      Answers Count = Left min Right
+      Count += 1
+    end
+  end
+
+  return Answers (0 until Count)
+end

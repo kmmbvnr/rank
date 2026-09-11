@@ -1,10 +1,11 @@
 import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
-import type { RankSegment } from './segment.js';
+import type { RankSegmentValue } from './segment.js';
 import type { RankHeap } from './containers.js';
 import type { GraphValue } from './graph.js';
 import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
+import type { RankWavelet } from './wavelet.js';
 
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
@@ -147,8 +148,9 @@ export interface RankSequenceMask extends RankSequence {
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
-    RankMultiset | RankFenwick | RankSegment | RankHeap | RankObject | RankRecord | NativeFunction |
-    RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph;
+    RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord | NativeFunction |
+    RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
+    RankWavelet;
 
 export type RankGraph = GraphValue;
 
@@ -208,8 +210,12 @@ export function isRankFenwick(value: RankValue): value is RankFenwick {
     return typeof value === 'object' && value.kind === 'fenwick';
 }
 
-export function isRankSegment(value: RankValue): value is RankSegment {
+export function isRankSegment(value: RankValue): value is RankSegmentValue {
     return typeof value === 'object' && value.kind === 'segment';
+}
+
+export function isRankWavelet(value: RankValue): value is RankWavelet {
+    return typeof value === 'object' && value.kind === 'wavelet';
 }
 
 export function isRankObject(value: RankValue): value is RankObject {
@@ -286,6 +292,9 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     }
     if (value.kind === 'segment') {
         return `<segment ${value.operation}>`;
+    }
+    if (value.kind === 'wavelet') {
+        return `<wavelet ${value.size}>`;
     }
     if (value.kind === 'graph') {
         const direction = value.directed ? 'directed' : 'undirected';

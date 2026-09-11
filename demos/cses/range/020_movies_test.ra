@@ -1,0 +1,35 @@
+use testing
+
+test "official example"
+  use "020_movies"
+  Movies = array shape 4 2
+    2 5
+    6 10
+    4 7
+    9 10
+  end
+  Queries = array shape 3 2
+    5 9
+    2 10
+    7 10
+  end
+  Actual = Movies Queries movie_queries
+  Actual equal array 0 2 1
+end
+
+test "ties use the earliest finish"
+  use "020_movies"
+  Movies = array shape 4 2
+    1 5
+    2 3
+    3 4
+    4 7
+  end
+  Queries = array shape 3 2
+    1 7
+    2 4
+    3 6
+  end
+  Actual = Movies Queries movie_queries
+  Actual equal array 3 2 1
+end

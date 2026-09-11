@@ -1,0 +1,17 @@
+use testing
+
+test "official example"
+  use "008_hotel"
+  Hotels = array 3 2 4 1 5 5 2 6
+  Groups = array 4 4 7 1 1
+  Actual = Hotels Groups assign_hotels
+  Actual equal array 3 5 0 1 1
+end
+
+test "chooses the first hotel"
+  use "008_hotel"
+  Hotels = array 5 5 5
+  Groups = array 2 3 1 5 4
+  Actual = Hotels Groups assign_hotels
+  Actual equal array 1 1 2 3 2
+end

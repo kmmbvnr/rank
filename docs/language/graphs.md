@@ -139,6 +139,9 @@ Planets = Next functional
 End = Planets jump Start Steps
 Steps = Planets distance From To
 Lengths = Planets lengths
+Count = Planets Start Limit upto
+Weighted = Next Cost weighted
+State = Weighted Start Limit upto
 ```
 
 `jump` follows exactly the requested nonnegative number of transitions and
@@ -156,10 +159,28 @@ item is the number of distinct vertices visited from that vertex before the
 first repeated vertex. Construction decomposes the graph into cycles and their
 incoming trees once; queries do not mutate the value.
 
+`upto` counts vertices on the path from `Start` whose numbers do not exceed
+`Limit`, including the start when it is in range. It requires every successor
+to be either its own vertex or a larger vertex. This makes the path monotone,
+so the cached jump table answers each query in `O(log N)` time. It returns zero
+when `Start` exceeds `Limit`. Next-greater links are a typical use.
+
+`Next Cost weighted` prepares the same increasing successor path with one
+numeric outgoing-edge cost per vertex. Its `upto` result is a record:
+
+- `.count` is the number of visited vertices;
+- `.sum` is the sum of traversed edge costs;
+- `.last` is the last visited vertex.
+
+The edge leaving `.last` is not traversed and is not included in `.sum`.
+Integer costs keep an integer sum; any real cost produces a real sum. The
+successor and cost arrays must have equal lengths. Weighted jump sums grow
+alongside the same lazy binary-lifting table.
+
 This API is experimental. It stays in the graph library while examples beyond
 the adjacent CSES functional-graph tasks test whether the prepared object is a
 useful general abstraction. If later programs do not reuse the combined
-`jump`, `distance`, and `lengths` interface, simplify it to independent
+`jump`, `distance`, `lengths`, `upto`, and `weighted` interface, simplify it to independent
 operations or remove it before treating the API as stable.
 
 ## Basic algorithms

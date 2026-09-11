@@ -58,7 +58,12 @@ import {
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
-import { RankSegment } from './segment.js';
+import {
+    RankMaxSumSegment,
+    RankPersistentSumSegment,
+    RankRangeSumSegment,
+    RankSegment,
+} from './segment.js';
 import { graphConstructor } from './graph.js';
 import { dsuFrom } from './dsu.js';
 import { indexKey } from './index-key.js';
@@ -66,7 +71,7 @@ import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
-import { mapBroadcastArrays } from './tensor.js';
+import { broadcastShape, mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { roundValue, sumIndexed } from './modules/numbers.js';
@@ -864,6 +869,20 @@ export class Interpreter {
                     return result;
                 }
                 if (isRankSegment(target)) {
+                    if (selectors.length === 2
+                        && selectors.every(selector => typeof selector === 'bigint')
+                        && (target instanceof RankRangeSumSegment
+                            || target instanceof RankPersistentSumSegment)) {
+                        const value = yield* resume(interpreter.evaluateTask(statement.value));
+                        if (statement.operator === '=') {
+                            target.setRange(selectors[0], selectors[1], value);
+                        } else if (statement.operator === '+=') {
+                            target.addRange(selectors[0], selectors[1], value);
+                        } else {
+                            throw new RankError('+ segment range assignment supports = and +=');
+                        }
+                        return value;
+                    }
                     if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
                         throw new RankError('segment assignment expects one integer index');
                     }
@@ -1275,6 +1294,11 @@ export class Interpreter {
                     }
                     const source = yield* resume(interpreter.evaluateTask(symbolicSegment.source));
                     const values = segmentItems(source);
+                    if (symbolicSegment.operator === '+'
+                        && values.every(value => typeof value === 'bigint'
+                            || typeof value === 'number')) {
+                        return new RankRangeSumSegment(values);
+                    }
                     return new RankSegment(
                         values,
                         (left, right) => interpreter.evaluateBinary(
@@ -1558,6 +1582,8 @@ export class Interpreter {
                         throw new RankError('segment requires a binary operation');
                     }
                     const values = segmentItems(source);
+                    const maxSum = interpreter.standardFunctions.get(standardModules.algo.maxsum);
+                    if (operation === maxSum) return new RankMaxSumSegment(values);
                     return new RankSegment(
                         values,
                         (left, right) => operation.call([left, right]),
@@ -1795,9 +1821,7 @@ export class Interpreter {
                     const simple = !isNativeFunction(a) && (b === undefined || !isNativeFunction(b));
                     const fn = (binary ? operation : right)();
                     if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
-                        const result = arguments_.length === 1 && fn.monadicRank !== 'all'
-                            ? this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank)
-                            : this.invoke(fn, arguments_);
+                        const result = this.applyIntrinsicRank(fn, arguments_);
                         if ('done' in result) {
                             this.ownFiles(result.value);
                             return result;
@@ -2437,9 +2461,7 @@ export class Interpreter {
                 const definition = functionDefinitions.get(value);
                 if (definition?.interpreter === this) throw new TailCallSignal(definition, arguments_);
             }
-            const task = arguments_.length === 1 && value.monadicRank !== 'all'
-                ? this.applyUnaryAtRank(arguments_[0], value, value.monadicRank)
-                : this.invoke(value, arguments_);
+            const task = this.applyIntrinsicRank(value, arguments_);
             if (!('done' in task)) return this.continueApplication(values, missing, index + 1, task, tail);
             this.ownFiles(task.value);
             pending = [task.value];
@@ -2523,6 +2545,69 @@ export class Interpreter {
             return completed(this.applyToTensorCells(value, fn, axes));
         }
         return this.invoke(fn, [value]);
+    }
+
+    private applyIntrinsicRank(
+        fn: NativeFunction,
+        arguments_: RankValue[],
+    ): Evaluation<RankValue> {
+        if (arguments_.length === 1 && fn.monadicRank !== 'all') {
+            return this.applyUnaryAtRank(
+                arguments_[0], fn, fn.monadicRank,
+            );
+        }
+        if (arguments_.length === 2 && fn.dyadicRanks
+            && arguments_.some(isRankArray)) {
+            return this.applyDyadicAtRank(
+                arguments_[0], arguments_[1], fn,
+            );
+        }
+        return this.invoke(fn, arguments_);
+    }
+
+    private applyDyadicAtRank(
+        left: RankValue,
+        right: RankValue,
+        fn: NativeFunction,
+    ): Evaluation<RankValue> {
+        const [leftRank, rightRank] = fn.dyadicRanks!;
+        const a = dyadicCells(left, leftRank);
+        const b = dyadicCells(right, rightRank);
+        const frameShape = broadcastShape(
+            a.frameShape, b.frameShape,
+        );
+        if (frameShape.length === 0) {
+            return this.invoke(fn, [left, right]);
+        }
+        const applyCell = (x: RankValue, y: RankValue): RankValue => {
+            const result = fn.call([x, y]);
+            if (valueRank(result) !== 0) {
+                throw new RankError(
+                    `rank operation ${fn.name} must return a scalar`,
+                );
+            }
+            this.ownFiles(result);
+            return result;
+        };
+        if (a.frameShape.length === 0) {
+            return completed(lazyArray(frameShape, index =>
+                applyCell(a.cellAt(0), b.cellAt(index)), true));
+        }
+        if (b.frameShape.length === 0) {
+            return completed(lazyArray(frameShape, index =>
+                applyCell(a.cellAt(index), b.cellAt(0)), true));
+        }
+        if (sameShape(a.frameShape, b.frameShape)) {
+            return completed(lazyArray(frameShape, index =>
+                applyCell(a.cellAt(index), b.cellAt(index)), true));
+        }
+        const leftCells = lazyArray(a.frameShape, a.cellAt);
+        const rightCells = lazyArray(b.frameShape, b.cellAt);
+        return completed(mapBroadcastArrays(
+            leftCells,
+            rightCells,
+            applyCell,
+        ));
     }
 
     private applyToTensorCells(
@@ -3290,12 +3375,14 @@ function array(items: RankValue[]): RankArray {
 function lazyArray(
     shape: readonly number[],
     itemAt: (index: number) => RankValue,
+    fileFree = false,
 ): RankArray {
     let materialized: RankValue[] | undefined;
     return {
         kind: 'array',
         shape,
         itemAt,
+        containsFiles: fileFree ? false : undefined,
         get items() {
             materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
             return materialized;
@@ -3334,6 +3421,34 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
 interface OuterCells {
     readonly frameShape: readonly number[];
     readonly cellAt: (frameIndex: number) => RankValue;
+}
+
+function dyadicCells(
+    value: RankValue,
+    rank: IntrinsicRank,
+): OuterCells {
+    if (!isRankArray(value)) {
+        return { frameShape: [], cellAt: () => value };
+    }
+    const cellRank = rank === 'all'
+        ? value.shape.length
+        : Math.min(rank, value.shape.length);
+    const frameShape = value.shape.slice(
+        0, value.shape.length - cellRank,
+    );
+    const cellShape = cellRank === 0
+        ? [] : value.shape.slice(-cellRank);
+    const cellSize = arraySize(cellShape);
+    return {
+        frameShape,
+        cellAt(frameIndex) {
+            if (frameShape.length === 0) return value;
+            const start = frameIndex * cellSize;
+            if (cellRank === 0) return arrayItem(value, start);
+            return lazyArray(cellShape, index =>
+                arrayItem(value, start + index));
+        },
+    };
 }
 
 interface TensorCells {
@@ -4764,6 +4879,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'multiset',
     'fenwick',
     'segment',
+    'wavelet',
     'heap',
     'dsu',
     'functional',

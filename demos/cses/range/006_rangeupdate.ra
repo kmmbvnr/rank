@@ -24,10 +24,12 @@ end
 Values Queries range_updates print
 
 
-rem Store only update differences; the original values remain unchanged.
+rem Store only update differences.
+rem Original values remain unchanged.
 fun range_updates Values Queries
   Updates = Values len fenwick
-  Answers = array shape (Queries len) pad 0
+  Q = Queries len
+  Answers = array shape Q pad 0
   Count = 0
 
   for Query in Queries
@@ -42,7 +44,9 @@ fun range_updates Values Queries
       end
     else
       Position = Query 1 - 1
-      Answers Count = Values Position + Updates sum Position
+      Change = Updates sum Position
+      Base = Values Position
+      Answers Count = Base + Change
       Count += 1
     end
   end

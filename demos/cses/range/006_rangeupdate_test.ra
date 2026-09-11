@@ -9,10 +9,11 @@ test "official example"
     1 1 8 2
     2 4 0 0
   end
-  Values Queries range_updates equal array 5 8
+  Actual = Values Queries range_updates
+  Actual equal array 5 8
 end
 
-test "updates may reach the last position"
+test "update may reach the end"
   use "006_rangeupdate"
   Values = array 1 2 3
   Queries = array shape 5 4
@@ -22,5 +23,6 @@ test "updates may reach the last position"
     1 2 2 -4
     2 2 0 0
   end
-  Values Queries range_updates equal array 6 8 3
+  Actual = Values Queries range_updates
+  Actual equal array 6 8 3
 end

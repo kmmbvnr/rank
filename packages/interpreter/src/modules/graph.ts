@@ -65,12 +65,18 @@ export const graphModule: RuntimeModule = {
         eulerTrail(expectGraph(values[0]), values[1])),
     functional: () => native('functional', 1, values =>
         new RankFunctionalGraph(values[0])),
+    weighted: () => native('weighted', 2, values =>
+        new RankFunctionalGraph(values[0], values[1])),
     jump: () => native('jump', 3, values =>
         expectFunctional(values[0]).jump(values[1], values[2])),
     distance: () => native('distance', 3, values =>
         expectFunctional(values[0]).distance(values[1], values[2])),
     lengths: () => native('lengths', 1, values =>
         expectFunctional(values[0]).lengths()),
+    upto: () => native('upto', 3, values =>
+        expectFunctional(values[0]).upto(
+            values[1], values[2],
+        )),
 };
 
 function expectFunctional(value: RankValue): RankFunctionalGraph {

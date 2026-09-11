@@ -15,10 +15,12 @@ Queries = Raw (array Q 3) reshape
 Values Queries dynamic_sums print
 
 
-rem Apply point assignments and answer inclusive one-based ranges.
+rem Apply point assignments.
+rem Answer inclusive one-based ranges.
 fun dynamic_sums Values Queries
   Tree = Values + segment
-  Answers = array shape (Queries len) pad 0
+  Q = Queries len
+  Answers = array shape Q pad 0
   Count = 0
 
   for Query in Queries
@@ -26,7 +28,10 @@ fun dynamic_sums Values Queries
     if Type equal 1
       Tree (A - 1) = B
     else
-      Answers Count = Tree (A - 1) (B - 1) query
+      Left = A - 1
+      Right = B - 1
+      Sum = Tree Left Right query
+      Answers Count = Sum
       Count += 1
     end
   end
