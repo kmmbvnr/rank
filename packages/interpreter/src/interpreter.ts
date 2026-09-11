@@ -3895,6 +3895,16 @@ function tensorSelection(source: RankArray, selectors: readonly RankValue[]): Te
         };
     });
     const shape = axes.filter(axis => axis.preserve).map(axis => axis.size);
+    // A vector selection is already a linear mapping. Avoid rebuilding a
+    // one-coordinate tensor address for every selected item; gather-heavy
+    // loops use this path for both boolean masks and integer index vectors.
+    if (axes.length === 1) {
+        const axis = axes[0];
+        return {
+            shape,
+            offsetAt(index) { return axis.indexAt(axis.preserve ? index : 0); },
+        };
+    }
     return {
         shape,
         offsetAt(index) {
@@ -4014,35 +4024,51 @@ function axisSize(source: RankValue, axis: number): number {
 }
 
 function selectorIndices(selector: RankValue, size: number, axis: number): number[] {
-    const values = isRankArray(selector)
-        ? selector.items
-        : isRankQueue(selector)
-            ? selector.items
-            : isRankSequence(selector)
-                ? [...sequenceValues(selector, 'selection')]
-                : undefined;
-    if (!values) throw new RankError('selection expects an array, queue or finite sequence');
     if (isRankArray(selector) && selector.shape.length !== 1) {
         throw new RankError('axis selector must have rank 1');
     }
-    if (values.length === 0) return [];
-    if (values.every(value => typeof value === 'boolean')) {
-        if (values.length !== size) {
-            throw new RankError(`mask length ${values.length} does not match axis ${axis} size ${size}`);
-        }
-        return values.flatMap((value, index) => value ? [index] : []);
+    const count = isRankArray(selector)
+        ? arraySize(selector.shape)
+        : isRankQueue(selector)
+            ? selector.items.length
+            : undefined;
+    const values = count === undefined && isRankSequence(selector)
+        ? [...sequenceValues(selector, 'selection')]
+        : undefined;
+    if (count === undefined && values === undefined) {
+        throw new RankError('selection expects an array, queue or finite sequence');
     }
-    if (!values.every(value => typeof value === 'bigint')) {
-        throw new RankError('axis selector must contain only integers or only booleans');
+    const length = count ?? values!.length;
+    if (length === 0) return [];
+    const at = isRankArray(selector)
+        ? (index: number) => arrayItem(selector, index)
+        : isRankQueue(selector)
+            ? (index: number) => selector.items[index]
+            : (index: number) => values![index];
+    const boolean = typeof at(0) === 'boolean';
+    if (boolean && length !== size) {
+        throw new RankError(`mask length ${length} does not match axis ${axis} size ${size}`);
     }
-    return values.map(value => {
-        const index = value as bigint;
-        if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
-        if (index >= BigInt(size)) {
-            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
+    const result: number[] = [];
+    for (let position = 0; position < length; position += 1) {
+        const value = at(position);
+        if (boolean) {
+            if (typeof value !== 'boolean') {
+                throw new RankError('axis selector must contain only integers or only booleans');
+            }
+            if (value) result.push(position);
+            continue;
         }
-        return Number(index);
-    });
+        if (typeof value !== 'bigint') {
+            throw new RankError('axis selector must contain only integers or only booleans');
+        }
+        if (value < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (value >= BigInt(size)) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${value}`);
+        }
+        result.push(Number(value));
+    }
+    return result;
 }
 
 function isCollectionSelector(value: RankValue): boolean {
