@@ -48,12 +48,8 @@ fun quadratic_run A B
 end
 
 
-rem A positive integer is prime exactly when
-rem its prime factor sequence contains itself.
+rem Use optimized membership in the ordered
+rem infinite prime source.
 fun is_prime Value
-  if Value at most 1
-    return false
-  end
-  Factors = Value factors
-  return Factors len equal 1
+  return Value in primes
 end

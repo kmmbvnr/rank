@@ -121,6 +121,7 @@ export interface SequencePlan {
     // Sources may extend these hooks with indexing, skipping, direct reductions,
     // or other source-specific planning without changing Rank syntax.
     at?(index: bigint): RankValue | undefined;
+    contains?(value: RankValue): boolean;
     withUpperBound?(limit: bigint, inclusive: boolean): SequencePlan;
     withFilter?(predicate: SequencePredicate): SequencePlan | undefined;
     reduce?(operation: string): RankValue | undefined;

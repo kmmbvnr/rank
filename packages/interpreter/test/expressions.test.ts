@@ -556,10 +556,17 @@ describe('Rank expressions and sequences', () => {
     it('indexes and bounds lazy prime sequences', () => {
         expect(run('use sequences\nprimes 5')).toBe('13');
         expect(run('use sequences\nprimes until 20')).toBe('2 3 5 7 11 13 17 19');
+        expect(run('use sequences\n17 in primes')).toBe('true');
+        expect(run('use sequences\n17.0 in primes')).toBe('true');
+        expect(run('use sequences\n18 in primes')).toBe('false');
+        expect(run('use sequences\n23 in (primes until 20)')).toBe('false');
+        expect(run('use sequences\n8 in (fibonacci to 20)')).toBe('true');
         expect(() => run('use sequences\nprimes (-1)'))
             .toThrowError('sequence index must be nonnegative');
         expect(() => run('use sequences\n(primes until 10) 4'))
             .toThrowError('sequence index out of bounds: 4');
+        expect(() => run('use sequences\n4 in fibonacci'))
+            .toThrowError('in requires bounded sequence or membership support');
     });
 
     it('constructs ranges and slices text by Unicode code point', () => {

@@ -1,0 +1,14 @@
+use testing
+
+test "all digit factorials"
+  use "034_digitfactorials"
+  run
+
+  Answer equal 40730
+end
+
+test "three digits include 145"
+  use "034_digitfactorials"
+
+  3 digit_factorial_sum equal 145
+end

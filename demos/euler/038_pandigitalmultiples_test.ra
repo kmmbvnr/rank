@@ -1,0 +1,14 @@
+use testing
+
+test "largest concatenated product"
+  use "038_pandigitalmultiples"
+  run
+
+  Answer equal 932718654
+end
+
+test "base nine example"
+  use "038_pandigitalmultiples"
+
+  9 pandigital_multiple equal 918273645
+end

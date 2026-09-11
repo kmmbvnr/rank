@@ -2008,7 +2008,7 @@ In `A B * outer`, `A B` is not evaluated first as addressing.
 
 ```rank
 Numbers = Text integer each
-Flags = Values prime each
+Flags = Values odd each
 ```
 
 `each` is reserved as the friendly spelling of rank-0 application. Whether it
@@ -2104,6 +2104,9 @@ Total = A sum
 Largest = A max
 Average = A mean
 ```
+
+Numeric sets also support `sum`, `min` and `max`. Duplicate insertion remains
+idempotent, so each distinct set member contributes once.
 
 Boolean collections have named reductions in `use sequences`:
 
@@ -2432,6 +2435,17 @@ it. An array is useful for a composite value such as a coordinate:
 ```rank
 set add array X Y
 ```
+
+A numeric set is a finite collection for `sum`, `min` and `max`:
+
+```rank
+Total = set sum
+Smallest = set min
+Largest = set max
+```
+
+Each distinct value contributes once. An empty set sums to zero; `min` and
+`max` reject it as an empty reduction.
 
 ### Ordered multiset
 
@@ -3312,7 +3326,6 @@ tanh
 asinh
 acosh
 atanh
-prime
 gcd
 lcm
 powmod
@@ -3652,6 +3665,19 @@ zero-based position through normal sequence addressing:
 BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
+
+`in` performs optimized primality testing on this source without enumerating
+an unbounded prefix:
+
+```rank
+if Candidate in primes
+  ...
+end
+```
+
+A boundary remains part of membership, so `23 in (primes until 20)` is false.
+Membership in another bounded sequence uses a finite linear scan. An unbounded
+sequence without its own membership plan is rejected.
 
 `argsort` has intrinsic rank 1 and returns stable, zero-based sorting positions.
 For tensors it returns the same shape, orders along the last axis by default,
@@ -4625,7 +4651,8 @@ end
 
 The constant coefficient must be a positive prime, and the winning odd prime
 allows only odd `a`, which narrows the search. The local `is_prime` helper uses
-the existing `factors` sequence, so no puzzle-specific primitive is needed.
+optimized membership in the existing `primes` source, so no separate predicate
+word is needed.
 The coefficient product is `-59231`.
 
 ## 28. Number spiral diagonals
@@ -4672,6 +4699,169 @@ Sum = Powers sum
 Rank-0 conversion exposes decimal digits, scalar extension raises every digit,
 and a reduction checks their sum. The fifth-power answer is `443839`; the same
 function gives `19316` for fourth powers.
+
+## 31. Coin sums
+
+```rank
+rem Project Euler 31
+rem https://projecteuler.net/problem=31
+
+Ways = array shape (Target + 1) pad 0
+Ways 0 = 1
+for Coin in Coins
+  for Amount in Coin to Target
+    Previous = Amount - Coin
+    Ways Amount += Ways Previous
+  end
+end
+```
+
+Processing one coin at a time counts combinations without counting different
+orders separately. The dynamic-programming array gives `73682` ways to make
+200 pence.
+
+## 32. Pandigital products
+
+```rank
+rem Project Euler 32
+rem https://projecteuler.net/problem=32
+
+Identity = A text + B text
+Identity += Product text
+if Identity Digits pandigital
+  Products add Product
+end
+```
+
+Only one-by-four and two-by-three digit factor shapes can fill a nine-digit
+identity. A set removes products found through more than one factor pair; the
+sum of distinct products is `45228`.
+
+## 33. Digit cancelling fractions
+
+```rank
+rem Project Euler 33
+rem https://projecteuler.net/problem=33
+
+if Numerator Denominator curious
+  NumeratorProduct *= Numerator
+  DenominatorProduct *= Denominator
+end
+```
+
+The helper checks all four possible locations of one common nonzero digit with
+integer cross multiplication. `gcd` reduces the accumulated fraction to the
+denominator `100`.
+
+## 34. Digit factorials
+
+```rank
+rem Project Euler 34
+rem https://projecteuler.net/problem=34
+
+for Length in 2 to MaximumDigits
+  0 Length "" 0 search
+end
+```
+
+The local recursive function enumerates nondecreasing digit multisets rather
+than every integer through seven times 9 factorial. It finds `145` and `40585`,
+whose sum is `40730`.
+
+## 35. Circular primes
+
+```rank
+rem Project Euler 35
+rem https://projecteuler.net/problem=35
+
+for Shift in 1 until Length
+  Left = Text from Shift until Length
+  Right = Text from 0 until Shift
+  Number = (Left + Right) integer
+end
+```
+
+Decimal slices form each rotation, and `Number in primes` performs optimized
+primality testing without materializing the infinite source. There are `55`
+circular primes below one million.
+
+## 36. Double-base palindromes
+
+```rank
+rem Project Euler 36
+rem https://projecteuler.net/problem=36
+
+Decimal = Value text
+Binary = Value binary
+```
+
+Text `reverse` performs the same palindrome check in both representations.
+Even positive values cannot be binary palindromes without a leading zero, so
+the odd-only search produces `872187`.
+
+## 37. Truncatable primes
+
+```rank
+rem Project Euler 37
+rem https://projecteuler.net/problem=37
+
+LeftText = Text from Drop until Length
+RightText = Text from 0 until Last
+```
+
+Every proper decimal prefix and suffix is parsed and tested with `in primes`.
+The search stops after the stated eleven values and returns `748317`.
+
+## 38. Pandigital multiples
+
+```rank
+rem Project Euler 38
+rem https://projecteuler.net/problem=38
+
+for Text len less 9
+  Piece = Base * Multiplier
+  Text += Piece text
+  Multiplier += 1
+end
+```
+
+Each base appends successive products until it reaches nine digits. Sorting
+the text recognizes digits one through nine exactly once; the maximum is
+`932718654`.
+
+## 39. Integer right triangles
+
+```rank
+rem Project Euler 39
+rem https://projecteuler.net/problem=39
+
+Primitive = 2 * M * (M + N)
+for P in Primitive to Limit by Primitive
+  Counts P += 1
+end
+```
+
+Euclid's formula generates each primitive triple from coprime parameters of
+opposite parity. Marking all scaled perimeters identifies `840` as the most
+productive perimeter through 1000.
+
+## 40. Champernowne's constant
+
+```rank
+rem Project Euler 40
+rem https://projecteuler.net/problem=40
+
+for Remaining greater Digits * Count
+  Remaining -= Digits * Count
+  Digits += 1
+  First *= 10
+  Count *= 10
+end
+```
+
+Whole blocks of equal-width integers are skipped arithmetically, so the program
+never constructs the million-character prefix. The seven selected digits have
+product `210`.
 
 ---
 

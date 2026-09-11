@@ -1,0 +1,45 @@
+rem Circular Primes
+rem https://projecteuler.net/problem=35
+rem Count primes below Limit whose every
+rem decimal rotation is also prime
+
+use ranges
+use sequences
+use text
+use io
+use cli
+
+option Limit integer = 1000000
+
+Answer = Limit circular_prime_count
+Answer print
+
+
+rem Visit each bounded prime and test every
+rem rotation through optimized prime membership.
+fun circular_prime_count Limit
+  Count = 0
+  for Value in primes until Limit
+    if Value circular_prime
+      Count += 1
+    end
+  end
+  return Count
+end
+
+
+rem Rotate the decimal text at every boundary.
+fun circular_prime Value
+  Text = Value text
+  Length = Text len
+  for Shift in 1 until Length
+    Left = Text from Shift until Length
+    Right = Text from 0 until Shift
+    Rotation = Left + Right
+    Number = Rotation integer
+    if not (Number in primes)
+      return false
+    end
+  end
+  return true
+end

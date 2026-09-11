@@ -1,0 +1,14 @@
+use testing
+
+test "below one million"
+  use "036_doublepalindromes"
+  run
+
+  Answer equal 872187
+end
+
+test "below one thousand"
+  use "036_doublepalindromes"
+
+  1000 double_palindrome_sum equal 1772
+end

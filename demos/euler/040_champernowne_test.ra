@@ -1,0 +1,21 @@
+use testing
+
+test "power-of-ten positions"
+  use "040_champernowne"
+  run
+
+  Answer equal 210
+end
+
+test "twelfth digit"
+  use "040_champernowne"
+
+  12 champernowne_digit equal 1
+end
+
+test "first two-digit boundary"
+  use "040_champernowne"
+
+  10 champernowne_digit equal 1
+  11 champernowne_digit equal 0
+end

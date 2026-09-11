@@ -1,0 +1,47 @@
+rem Pandigital Multiples
+rem https://projecteuler.net/problem=38
+rem Find the largest nine-digit pandigital
+rem concatenated product of one integer
+
+use ranges
+use sequences
+use text
+use numbers
+use io
+use cli
+
+option MaximumBase integer = 9999
+
+Answer = MaximumBase pandigital_multiple
+Answer print
+
+
+rem Append successive products until each
+rem candidate reaches nine decimal digits.
+fun pandigital_multiple MaximumBase
+  Best = 0
+  Digits = "123456789"
+
+  for Base in 1 to MaximumBase
+    Text = ""
+    Multiplier = 1
+    for Text len less 9
+      Piece = Base * Multiplier
+      Text += Piece text
+      Multiplier += 1
+    end
+
+    if Multiplier greater 2
+      if Text len equal 9
+        IsPandigital = Text sort equal Digits
+      else
+        IsPandigital = false
+      end
+      if IsPandigital
+        Candidate = Text integer
+        Best = Best max Candidate
+      end
+    end
+  end
+  return Best
+end

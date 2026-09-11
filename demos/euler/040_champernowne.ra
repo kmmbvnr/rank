@@ -1,0 +1,43 @@
+rem Champernowne's Constant
+rem https://projecteuler.net/problem=40
+rem Multiply the digits at powers of ten in
+rem the concatenated positive integers
+
+use ranges
+use text
+use io
+
+Positions = array shape 7
+  1 10 100 1000
+  10000 100000 1000000
+end
+
+Product = 1
+for Position in Positions
+  Product *= Position champernowne_digit
+end
+Answer = Product
+Answer print
+
+
+rem Skip whole equal-width number blocks, then
+rem address the digit inside the target number.
+fun champernowne_digit Position
+  Digits = 1
+  First = 1
+  Count = 9
+  Remaining = Position
+
+  for Remaining greater Digits * Count
+    Remaining -= Digits * Count
+    Digits += 1
+    First *= 10
+    Count *= 10
+  end
+
+  NumberIndex = (Remaining - 1) // Digits
+  DigitIndex = (Remaining - 1) % Digits
+  Number = First + NumberIndex
+  Text = Number text
+  return Text DigitIndex integer
+end

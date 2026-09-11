@@ -230,6 +230,17 @@ it. An array is useful for a composite value such as a coordinate:
 set add array X Y
 ```
 
+A numeric set is a finite collection for `sum`, `min` and `max`:
+
+```rank
+Total = set sum
+Smallest = set min
+Largest = set max
+```
+
+Each distinct value contributes once. An empty set sums to zero; `min` and
+`max` reject it as an empty reduction.
+
 ### Ordered multiset
 
 `new orderedset` creates the unique-value variant of a multiset: repeated

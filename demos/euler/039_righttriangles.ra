@@ -1,0 +1,54 @@
+rem Integer Right Triangles
+rem https://projecteuler.net/problem=39
+rem Find the perimeter at most Limit with
+rem the most integer right triangles
+
+use ranges
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000
+
+Answer = Limit right_triangle_perimeter
+Answer print
+
+
+rem Generate primitive triples with Euclid's
+rem formula, then count every scaled perimeter.
+fun right_triangle_perimeter Limit
+  Counts = array shape (Limit + 1) pad 0
+
+  for M in 2 to Limit
+    Smallest = 2 * M * (M + 1)
+    if Smallest greater Limit
+      break
+    end
+
+    for N in 1 until M
+      Difference = M - N
+      if Difference odd
+        Divisor = M N gcd
+        if Divisor equal 1
+          Primitive = 2 * M * (M + N)
+          if Primitive at most Limit
+            for P in Primitive to Limit by Primitive
+              Counts P += 1
+            end
+          end
+        end
+      end
+    end
+  end
+
+  Best = 0
+  Most = 0
+  for Count P in Counts
+    if Count greater Most
+      Most = Count
+      Best = P
+    end
+  end
+  return Best
+end

@@ -12,6 +12,7 @@ import {
     isRankArray,
     isRankMultiset,
     isRankSequence,
+    isRankSet,
     type RankArray,
     type RankValue,
     type SequencePlan,
@@ -65,7 +66,11 @@ export const numbersModule: RuntimeModule = {
             const planned = reduceSequence(value, 'sum');
             if (planned !== undefined) return expectNumeric(planned);
         }
-        const items = isRankArray(value) ? value.items : sequenceValues(value, 'sum');
+        const items = isRankArray(value)
+            ? value.items
+            : isRankSet(value)
+                ? value.entries.values()
+                : sequenceValues(value, 'sum');
         let total: bigint | number = 0n;
         for (const item of items) total = add(total, expectNumeric(item));
         return total;
@@ -264,7 +269,11 @@ function numericExtreme(
             const planned = reduceSequence(value, name);
             if (planned !== undefined) return expectNumeric(planned);
         }
-        const items = isRankArray(value) ? value.items : sequenceValues(value, name);
+        const items = isRankArray(value)
+            ? value.items
+            : isRankSet(value)
+                ? value.entries.values()
+                : sequenceValues(value, name);
         let result: bigint | number | undefined;
         for (const item of items) {
             const numeric = expectNumeric(item);

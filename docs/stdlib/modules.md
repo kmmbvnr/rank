@@ -55,7 +55,6 @@ tanh
 asinh
 acosh
 atanh
-prime
 gcd
 lcm
 powmod
@@ -420,6 +419,19 @@ zero-based position through normal sequence addressing:
 BelowTwenty = primes until 20
 SixthPrime = primes 5
 ```
+
+`in` performs optimized primality testing on this source without enumerating
+an unbounded prefix:
+
+```rank
+if Candidate in primes
+  ...
+end
+```
+
+A boundary remains part of membership, so `23 in (primes until 20)` is false.
+Membership in another bounded sequence uses a finite linear scan. An unbounded
+sequence without its own membership plan is rejected.
 
 `argsort` has intrinsic rank 1 and returns stable, zero-based sorting positions.
 For tensors it returns the same shape, orders along the last axis by default,

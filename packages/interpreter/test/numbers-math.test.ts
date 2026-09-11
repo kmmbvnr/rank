@@ -24,6 +24,20 @@ describe('Rank mathematical functions', () => {
             .toThrowError('max requires: use numbers');
     });
 
+    it('reduces numeric sets', () => {
+        const source = [
+            'use algo',
+            'use numbers',
+            'Values = new set',
+            'Values add 7',
+            'Values add 2',
+            'Values add 7',
+        ];
+        expect(run([...source, 'Values sum'].join('\n'))).toBe('9');
+        expect(run([...source, 'Values min'].join('\n'))).toBe('2');
+        expect(run([...source, 'Values max'].join('\n'))).toBe('7');
+    });
+
     it('evaluates circular trigonometric functions in radians', () => {
         expect(run('use numbers\n0 sin')).toBe('0');
         expect(run('use numbers\n0 cos')).toBe('1');

@@ -1,0 +1,20 @@
+use testing
+
+test "reduced denominator"
+  use "033_digitfractions"
+  run
+
+  Answer equal 100
+end
+
+test "curious fraction"
+  use "033_digitfractions"
+
+  49 98 curious
+end
+
+test "trivial zeros"
+  use "033_digitfractions"
+
+  not (30 50 curious)
+end

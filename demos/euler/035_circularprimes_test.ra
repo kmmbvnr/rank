@@ -1,0 +1,14 @@
+use testing
+
+test "below one million"
+  use "035_circularprimes"
+  run
+
+  Answer equal 55
+end
+
+test "below one hundred"
+  use "035_circularprimes"
+
+  100 circular_prime_count equal 13
+end

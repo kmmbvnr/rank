@@ -1,0 +1,33 @@
+rem Double-base Palindromes
+rem https://projecteuler.net/problem=36
+rem Sum values below Limit palindromic in
+rem both decimal and binary notation
+
+use ranges
+use ranges
+use text
+use bits
+use io
+use cli
+
+option Limit integer = 1000000
+
+Answer = Limit double_palindrome_sum
+Answer print
+
+
+rem Even positive values end in binary zero,
+rem so only odd candidates can qualify.
+fun double_palindrome_sum Limit
+  Total = 0
+  for Value in 1 until Limit by 2
+    Decimal = Value text
+    if Decimal equal Decimal reverse
+      Binary = Value binary
+      if Binary equal Binary reverse
+        Total += Value
+      end
+    end
+  end
+  return Total
+end

@@ -1,0 +1,14 @@
+use testing
+
+test "all eleven primes"
+  use "037_truncatableprimes"
+  run
+
+  Answer equal 748317
+end
+
+test "below one thousand"
+  use "037_truncatableprimes"
+
+  1000 truncatable_prime_sum equal 1986
+end

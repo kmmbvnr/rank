@@ -476,6 +476,12 @@ function primePlan(boundary?: Boundary): SequencePlan {
         name: 'primes',
         size: boundary ? { kind: 'unknown' } : { kind: 'infinite' },
         iterate: () => primeIterator(boundary),
+        contains(value) {
+            const integer = membershipInteger(value);
+            return integer !== undefined
+                && (!boundary || within(integer, boundary))
+                && primeMembership(integer);
+        },
         at(index) {
             let current = 0n;
             for (const value of primeIterator(boundary)) {
@@ -488,6 +494,34 @@ function primePlan(boundary?: Boundary): SequencePlan {
             return primePlan({ limit, inclusive });
         },
     };
+}
+
+const membershipPrimes = [2n, 3n];
+
+function membershipInteger(value: RankValue): bigint | undefined {
+    if (typeof value === 'bigint') return value;
+    if (typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value)) {
+        return BigInt(value);
+    }
+    return undefined;
+}
+
+function primeMembership(value: bigint): boolean {
+    if (value < 2n) return false;
+    extendMembershipPrimes(value);
+    for (const prime of membershipPrimes) {
+        if (prime * prime > value) return true;
+        if (value % prime === 0n) return value === prime;
+    }
+    return true;
+}
+
+function extendMembershipPrimes(value: bigint): void {
+    let candidate = membershipPrimes[membershipPrimes.length - 1] + 2n;
+    while (membershipPrimes[membershipPrimes.length - 1] ** 2n <= value) {
+        if (isPrime(candidate, membershipPrimes)) membershipPrimes.push(candidate);
+        candidate += 2n;
+    }
 }
 
 function* primeIterator(boundary?: Boundary): IterableIterator<bigint> {

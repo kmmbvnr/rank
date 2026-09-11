@@ -1,0 +1,20 @@
+use testing
+
+test "all distinct products"
+  use "032_pandigitalproducts"
+  run
+
+  Answer equal 45228
+end
+
+test "known identity"
+  use "032_pandigitalproducts"
+
+  "391867254" "123456789" pandigital
+end
+
+test "repeated digit"
+  use "032_pandigitalproducts"
+
+  not ("391867255" "123456789" pandigital)
+end

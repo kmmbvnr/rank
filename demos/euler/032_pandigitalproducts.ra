@@ -1,0 +1,55 @@
+rem Pandigital Products
+rem https://projecteuler.net/problem=32
+rem Sum distinct products whose complete
+rem identity uses digits 1 through 9
+
+use ranges
+use sequences
+use text
+use algo
+use numbers
+use io
+
+Digits = "123456789"
+Answer = Digits pandigital_products
+Answer print
+
+
+rem Search the only possible one-by-four and
+rem two-by-three digit factor shapes.
+fun pandigital_products Digits
+  Products = new set
+
+  for A in 2 to 9
+    for B in 1234 to 9876
+      Product = A * B
+      Identity = A text + B text
+      Identity += Product text
+      if Identity Digits pandigital
+        Products add Product
+      end
+    end
+  end
+
+  for A in 12 to 98
+    for B in 123 to 987
+      Product = A * B
+      Identity = A text + B text
+      Identity += Product text
+      if Identity Digits pandigital
+        Products add Product
+      end
+    end
+  end
+
+  return Products sum
+end
+
+
+rem Accept every requested digit exactly once.
+fun pandigital Text Digits
+  if Text len not equal Digits len
+    return false
+  end
+  return Text sort equal Digits
+end

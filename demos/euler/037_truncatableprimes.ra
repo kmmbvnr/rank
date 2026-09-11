@@ -1,0 +1,54 @@
+rem Truncatable Primes
+rem https://projecteuler.net/problem=37
+rem Sum the eleven primes that stay prime
+rem when truncated from either side
+
+use ranges
+use sequences
+use text
+use io
+
+Answer = 1000000 truncatable_prime_sum
+Answer print
+
+
+rem Test every shorter decimal prefix and
+rem suffix through optimized prime membership.
+fun truncatable_prime_sum Limit
+  Total = 0
+  Found = 0
+  for Value in primes until Limit
+    if Value greater 7
+      if Value truncatable_prime
+        Total += Value
+        Found += 1
+        if Found equal 11
+          break
+        end
+      end
+    end
+  end
+  return Total
+end
+
+
+rem Check all proper decimal prefixes and
+rem suffixes of one known prime.
+fun truncatable_prime Value
+  Text = Value text
+  Length = Text len
+  for Drop in 1 until Length
+    LeftText = Text from Drop until Length
+    Left = LeftText integer
+    Last = Length - Drop
+    RightText = Text from 0 until Last
+    Right = RightText integer
+    if not (Left in primes)
+      return false
+    end
+    if not (Right in primes)
+      return false
+    end
+  end
+  return true
+end

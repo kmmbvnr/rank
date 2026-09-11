@@ -2640,7 +2640,18 @@ export class Interpreter {
             if (isRankIndex(right)) return right.entries.has(indexKey([left]));
             if (isRankSet(right)) return right.entries.has(setValueKey(left));
             if (isRankMultiset(right)) return right.has(left);
-            throw new RankError('in expects text, an object, index, set or multiset on the right');
+            if (isRankSequence(right)) {
+                const planned = right.plan.contains?.(left);
+                if (planned !== undefined) return planned;
+                if (right.plan.size.kind === 'infinite') {
+                    throw new RankError('in requires bounded sequence or membership support');
+                }
+                for (const item of right.plan.iterate()) {
+                    if (equalValues(left, item)) return true;
+                }
+                return false;
+            }
+            throw new RankError('in expects text, an object, index, set, multiset or sequence on the right');
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {

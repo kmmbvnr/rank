@@ -452,7 +452,7 @@ In `A B * outer`, `A B` is not evaluated first as addressing.
 
 ```rank
 Numbers = Text integer each
-Flags = Values prime each
+Flags = Values odd each
 ```
 
 `each` is reserved as the friendly spelling of rank-0 application. Whether it
@@ -548,6 +548,9 @@ Total = A sum
 Largest = A max
 Average = A mean
 ```
+
+Numeric sets also support `sum`, `min` and `max`. Duplicate insertion remains
+idempotent, so each distinct set member contributes once.
 
 Boolean collections have named reductions in `use sequences`:
 

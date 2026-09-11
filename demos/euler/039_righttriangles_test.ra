@@ -1,0 +1,14 @@
+use testing
+
+test "perimeters through one thousand"
+  use "039_righttriangles"
+  run
+
+  Answer equal 840
+end
+
+test "three solutions at 120"
+  use "039_righttriangles"
+
+  120 right_triangle_perimeter equal 120
+end
