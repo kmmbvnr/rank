@@ -1,73 +1,48 @@
-# Private array storage and the JS boundary
+# Array storage and the internal JS boundary
 
-Fusion must not inspect an arbitrary host object to decide whether it is safe.
-Even `Object.getOwnPropertyDescriptor` and `in` can run a Proxy trap. The old
-gate could change a numeric input while checking it.
+Rank arrays use ordinary JS data properties for eager cells and shape. There
+is no private ownership WeakMap, exposure getter, frozen storage or permanent
+"exposed" state. Rank assignments through aliases remain observable.
 
-## The checked contract
+## Scope
 
-The runtime keeps a private WeakMap of arrays it constructed from fresh numeric
-or boolean cells. The record contains the unexposed cell reader and the original
-shape and getter identities. Looking up an unknown object, including a Proxy
-around a known array, does not read any property on that object.
+The interpreter's JS objects are an internal protocol used by this repository.
+They are not a stable public embedding API. The project owner confirmed this
+scope during the optimization pass: we control both producers and consumers.
 
-For a known identity, descriptor checks are safe: the object itself was created
-by the runtime and cannot become a Proxy. Each use checks the original fields
-and shape dimensions. A changed getter, prototype, shape or storage uses the
-ordinary evaluator. All leaves must qualify before fusion reads cells.
+Eager host arrays must have ordinary data properties and stable contents during
+a synchronous operation. Arbitrary Proxy traps, effectful property getters,
+prototype tricks and concurrent host mutation are outside this contract.
+Unsupported objects are not promised a deterministic rejection or a safe slow
+path. This is a precondition, not an untrusted-host security boundary.
 
-Reading public `items` exposes the mutable backing array and disables this
-proof for that value. JS can then install element getters, replace cells or add
-files. Rank indexed assignment currently takes this same conservative path.
-The file-free marker also disappears on exposure or descriptor replacement.
-Ordinary mutation and alias behavior remain available.
+Mutations between calls remain supported. Rank callbacks and lazy evaluation
+remain part of language semantics; this restriction does not make them pure.
 
-This is an operation-local proof, not whole-function immutability. Tensor loops
-revalidate between rows because the loop body may call user code. Copying one
-validated row can read private primitive cells without exposing the input.
-Foreign matrices keep their ordinary getter order and plain row representation.
+## Fusion checks
 
-## JS snapshot constructor
+An eager numeric reader requires a Rank array with no `itemAt`, an own data
+property containing a JS items array, and numeric or boolean cells. Eligibility
+is checked per operation, so replacing items or changing a cell between calls
+does not leave a stale proof. Nested/object cells take ordinary evaluation.
 
-JS callers can opt into the same contract:
+Lazy Rank arrays keep their readers and caches. Fusion is limited to inline
+arithmetic; named intermediates and broadcasting cases retain their ordinary
+path. Operand order, floating-point order, BigInt precision, shadowed standard
+functions and Rank error locations remain tested.
 
-```js
-import { Interpreter, createArraySnapshot } from './packages/interpreter/out/index.js';
+Tensor row copying reads the current source on each iteration. Files inserted
+into arrays remain visible to resource cleanup; there is no stale file-free
+marker derived from former numeric contents.
 
-const runtime = new Interpreter();
-runtime.variables.set('A', createArraySnapshot([1, 2, 3]));
-runtime.variables.set('B', createArraySnapshot([4, 5, 6]));
-console.log(runtime.execute('use numbers\n(A * B) sum')); // 32
-runtime.dispose();
-```
+## Copy helper
 
-`createArraySnapshot(items, shape?)` copies the iterable and shape. The default
-shape is a vector. Invalid dimensions or a mismatched item count raise a Rank
-dimension error. This is a shallow snapshot: nested objects are not copied and
-such arrays use ordinary execution. BigInts keep arbitrary precision; mixed
-integer/real cells, signed zero, NaN and booleans are not coerced during copying.
+`createArraySnapshot(items, shape?)` remains a shallow copy helper for tests and
+internal callers. It copies the iterable and shape, validates dimensions, and
+preserves numeric values without coercion. It neither freezes the result nor
+confers a special optimization capability. Ordinary eager arrays qualify for
+the same fusion. Mutating the copy does not change the original outer array.
 
-This constructor does not freeze public `items`. Accessing it gives the caller
-mutable storage and switches that snapshot to ordinary execution. Replacing
-`items` also disables the proof. The original input iterable and the snapshot
-do not share their outer cell array.
-
-Rank array literals and finite sequence materialization create eligible storage
-internally when all cells are numeric or boolean. No Rank keyword was added.
-Not every array-producing operation propagates this contract yet; lazy readers,
-reshaped views and already exposed arrays remain conservative fallbacks.
-
-## Measurements and future work
-
-Use `--storage=plain` and `--storage=snapshot` with `benchmarks/arrays.mjs` or
-`benchmarks/numerical-demos.mjs`. The default is `plain`. Both versions get the
-same values and shape; an older runtime without the constructor receives copied
-plain arrays in snapshot mode. Numerical cold timing includes input construction;
-array-kernel warm timing does not. Do not combine these two storage modes in a
-single speedup claim. Results are in the [optimization log](optimization-lab.md).
-
-The backing store is still a JS array. The compact real/boolean experiment was
-rolled back after measured conversion costs and slower numerical demos; see
-the optimization log. Internal read/write APIs may avoid unnecessary exposure, but
-must preserve callbacks and file lifetime. A type annotation alone cannot prove
-that a host object is free of getters or proxies.
+The old private-storage design and the short-array cutoff experiment are
+historical entries in the [optimization log](optimization-lab.md). Measurements
+before and after the boundary decision remain available there.

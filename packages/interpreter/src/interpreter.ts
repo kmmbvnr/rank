@@ -9,7 +9,6 @@ import { prepareFunction } from './prepared-function.js';
 import { isKnownFileFree, ResourceMap } from './resource-summary.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
-import { ownedArray, privateArrayStorage } from './array-storage.js';
 import {
     isAddStatement,
     isAllAxisExpression,
@@ -1125,14 +1124,14 @@ export class Interpreter {
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(interpreter.evaluateTask(expression.fill)));
-                    return ownedArray(Array(Number(size)).fill(fill), shape);
+                    return { kind: 'array', items: Array(Number(size)).fill(fill), shape };
                 }
                 if (BigInt(items.length) !== size) {
                     throw new RankError(
                         `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
                     );
                 }
-                return ownedArray(items, shape);
+                return { kind: 'array', items, shape };
             };
         }
         if (isRecordExpression(expression)) {
@@ -3083,9 +3082,6 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[]): Iterab
     const cellShape = cellAxes.map(axis => source.shape[axis]);
 
     for (const frameCoordinates of coordinates(frameShape)) {
-        // The loop body may change storage between rows. Within this copy,
-        // private primitive cells cannot execute host callbacks.
-        const storage = privateArrayStorage(source);
         const fullCoordinates = Array(source.shape.length).fill(0) as number[];
         frameAxes.forEach((axis, position) => {
             fullCoordinates[axis] = frameCoordinates[position];
@@ -3107,14 +3103,12 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[]): Iterab
                     remaining = Math.floor(remaining / cellShape[position]);
                 }
             }
-            items.push(storage
-                ? storage.read(arrayOffset(source.shape, fullCoordinates))
-                : source.items[arrayOffset(source.shape, fullCoordinates)]);
+            items.push(source.items[arrayOffset(source.shape, fullCoordinates)]);
         }
         yield {
             value: cellShape.length === 0
                 ? items[0]
-                : storage ? ownedArray(items, cellShape) : { kind: 'array', items, shape: cellShape },
+                : { kind: 'array', items, shape: cellShape },
             indices: frameCoordinates.map(BigInt),
         };
     }
@@ -3147,7 +3141,7 @@ function arrayOffset(shape: readonly number[], coordinates: readonly number[]): 
 }
 
 function array(items: RankValue[]): RankArray {
-    return ownedArray(items, [items.length]);
+    return { kind: 'array', items, shape: [items.length] };
 }
 
 function lazyArray(

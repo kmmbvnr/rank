@@ -88,14 +88,18 @@ end
         runtime.dispose();
     });
 
-    it('reads eager getter operands in tree order and observes mutations between calls', () => {
+    it('reads lazy operands in tree order and observes mutations between calls', () => {
         const runtime = new Interpreter();
         runtime.execute('fun fused A B\n  return (A + (B * 2)) + reduce\nend');
         const reads: string[] = [];
-        const a = vector([1n, 2n]);
-        const b = vector([3n, 4n]);
-        Object.defineProperty(a.items, '0', { get: () => { reads.push('a0'); b.items[0] = 10n; return 1n; } });
-        Object.defineProperty(b.items, '1', { get: () => { reads.push('b1'); return 4n; } });
+        const a: RankArray = { ...vector([1n, 2n]), itemAt: index => {
+            if (index === 0) { reads.push('a0'); b.items[0] = 10n; }
+            return a.items[index];
+        } };
+        const b: RankArray = { ...vector([3n, 4n]), itemAt: index => {
+            if (index === 1) reads.push('b1');
+            return b.items[index];
+        } };
         expect(call(runtime, 'fused', a, b)).toBe(31n);
         expect(reads).toEqual(['a0', 'b1']);
         a.items[1] = 20n;

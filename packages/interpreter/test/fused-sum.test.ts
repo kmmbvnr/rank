@@ -23,7 +23,7 @@ fun replacement A
 end`;
 
 describe('builtin sum semantics required by fusion', () => {
-    it('uses the fused consumer only while snapshot storage remains private', () => {
+    it('fuses eager inputs while named intermediates retain ordinary evaluation', () => {
         const runtime = new Interpreter();
         runtime.execute(source);
         const input = createArraySnapshot([1n, 2n]);
@@ -36,19 +36,14 @@ describe('builtin sum semantics required by fusion', () => {
         expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(1);
         runtime.dispose();
     });
-    it('does not introduce descriptor probes on host proxies', () => {
+    it('observes ordinary eager input changes between calls', () => {
         const runtime = new Interpreter();
         runtime.execute(source);
-        let probes = 0;
-        const input = () => new Proxy(vector([1n]), {
-            getOwnPropertyDescriptor(target, key) {
-                if (key === 'items') { probes++; target.items[0] = 100n; }
-                return Reflect.getOwnPropertyDescriptor(target, key);
-            },
-        });
-        expect(call(runtime, 'ordinary', input(), 2n)).toBe(2n);
-        expect(call(runtime, 'fused', input(), 2n)).toBe(2n);
-        expect(probes).toBe(0);
+        const input = vector([1n]);
+        expect(call(runtime, 'fused', input, 2n)).toBe(2n);
+        input.items[0] = 100n;
+        expect(call(runtime, 'fused', input, 2n)).toBe(200n);
+        expect(call(runtime, 'ordinary', input, 2n)).toBe(200n);
         runtime.dispose();
     });
     it('matches ordinary sum types, seed and floating-point order', () => {
@@ -70,9 +65,8 @@ describe('builtin sum semantics required by fusion', () => {
         const runtime = new Interpreter();
         runtime.execute(source);
         runtime.variables.set('sum', runtime.variables.get('replacement')!);
-        const items: RankValue[] = [1n];
-        Object.defineProperty(items, '0', { get: () => { throw new Error('read input'); } });
-        expect(call(runtime, 'fused', vector(items), 2n)).toBe(99n);
+        const input: RankArray = { ...vector([1n]), itemAt: () => { throw new Error('read input'); } };
+        expect(call(runtime, 'fused', input, 2n)).toBe(99n);
         runtime.variables.set('A', vector([1n, 2n]));
         runtime.variables.set('B', vector([1n, 2n, 3n]));
         expect(() => runtime.execute('(A * B + Missing) sum')).toThrow('shape mismatch');
@@ -84,29 +78,35 @@ describe('builtin sum semantics required by fusion', () => {
         runtime.execute(source);
         const reads: number[] = [];
         const nested = vector([1n]);
-        const items: RankValue[] = [nested, 2n, 3n];
-        for (let index = 0; index < 3; index++) Object.defineProperty(items, index, {
-            get: () => { reads.push(index); return index === 0 ? nested : BigInt(index); },
-        });
-        expect(() => call(runtime, 'fused', vector(items), 2n)).toThrow('expected numeric input');
+        let failLate = false;
+        const input: RankArray = { ...vector([nested, 2n, 3n]), itemAt: index => {
+            reads.push(index);
+            if (failLate && index === 2) throw new Error('late read');
+            return index === 0 ? nested : BigInt(index);
+        } };
+        expect(() => call(runtime, 'fused', input, 2n)).toThrow('expected numeric input');
         expect(reads).toEqual([0, 1, 2]);
-        Object.defineProperty(items, '2', { get: () => { throw new Error('late read'); } });
-        expect(() => call(runtime, 'fused', vector(items), 2n)).toThrow('late read');
+        failLate = true;
+        expect(() => call(runtime, 'fused', input, 2n)).toThrow('late read');
         runtime.dispose();
     });
 
-    it('keeps getter order and the already resolved consumer when a read rebinds sum', () => {
+    it('keeps lazy reader order and the resolved consumer when a read rebinds sum', () => {
         const runtime = new Interpreter();
         runtime.execute(source);
         const reads: string[] = [];
-        const a = vector([1n, 2n]), b = vector([3n, 4n]);
-        Object.defineProperty(a.items, '0', { get: () => {
-            reads.push('a0');
-            b.items[0] = 10n;
-            runtime.variables.set('sum', runtime.variables.get('replacement')!);
-            return 1n;
-        } });
-        Object.defineProperty(b.items, '1', { get: () => { reads.push('b1'); return 4n; } });
+        const a: RankArray = { ...vector([1n, 2n]), itemAt: index => {
+            if (index === 0) {
+                reads.push('a0');
+                b.items[0] = 10n;
+                runtime.variables.set('sum', runtime.variables.get('replacement')!);
+            }
+            return BigInt(index + 1);
+        } };
+        const b: RankArray = { ...vector([3n, 4n]), itemAt: index => {
+            if (index === 1) reads.push('b1');
+            return b.items[index];
+        } };
         expect(call(runtime, 'fused', a, b)).toBe(18n);
         expect(reads).toEqual(['a0', 'b1']);
         expect(call(runtime, 'fused', a, b)).toBe(99n);

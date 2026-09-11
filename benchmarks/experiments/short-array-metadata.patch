@@ -1,0 +1,23 @@
+diff --git a/packages/interpreter/src/array-storage.ts b/packages/interpreter/src/array-storage.ts
+index fbd5c4d..0224277 100644
+--- a/packages/interpreter/src/array-storage.ts
++++ b/packages/interpreter/src/array-storage.ts
+@@ -12,7 +12,8 @@ interface Storage {
+ const owned = new WeakMap<object, Storage>();
+ 
+ /** Internal constructor: items must be fresh; shape must be a runtime-owned JS array. */
+-export function ownedArray(items: RankValue[], shape: readonly number[]): RankArray {
++export function ownedArray(items: RankValue[], shape: readonly number[], explicitSnapshot = false): RankArray {
++    if (!explicitSnapshot && items.length < 16) return { kind: 'array', items, shape };
+     if (!items.every(item => typeof item === 'number' || typeof item === 'bigint' || typeof item === 'boolean')) {
+         return { kind: 'array', items, shape };
+     }
+@@ -65,7 +66,7 @@ export function createArraySnapshot(items: Iterable<RankValue>, shape?: readonly
+         || dimensions.reduce((size, dimension) => size * BigInt(dimension), 1n) !== BigInt(copied.length)) {
+         throw new RankError('array snapshot shape does not match its items', 'DimensionMismatch');
+     }
+-    return ownedArray(copied, dimensions);
++    return ownedArray(copied, dimensions, true);
+ }
+ 
+ /** Unknown objects (including proxies) are rejected without any property probe. */

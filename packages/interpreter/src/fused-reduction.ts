@@ -3,7 +3,7 @@ import {
     isUnaryExpression, type Expression,
 } from 'rank-language';
 import { numericKernel } from './numeric-kernels.js';
-import { privateArrayStorage } from './array-storage.js';
+import { eagerArrayStorage } from './array-storage.js';
 import { expectNumeric } from './modules/shared.js';
 import { isRankArray, type RankValue } from './value.js';
 
@@ -102,7 +102,7 @@ function compileArithmeticFold<T>(
         return () => {
             const left = first.read(), right = second.read();
             const value = context.binary(binary.operator, left, right);
-            const a = privateArrayStorage(left), b = privateArrayStorage(right);
+            const a = eagerArrayStorage(left), b = eagerArrayStorage(right);
             if ((!a && typeof left !== 'number' && typeof left !== 'bigint')
                 || (!b && typeof right !== 'number' && typeof right !== 'bigint')
                 || (a && b && (a.shape.length !== b.shape.length
@@ -125,7 +125,7 @@ function compileArithmeticFold<T>(
                 if (typeof value === 'bigint' || typeof value === 'number') {
                     readers.push(() => value);
                 } else {
-                    const storage = privateArrayStorage(value);
+                    const storage = eagerArrayStorage(value);
                     if (!storage) eligible = false;
                     if (eligible) readers.push(storage!.read);
                 }
@@ -137,7 +137,7 @@ function compileArithmeticFold<T>(
             // shape validation must occur in exactly the original tree order.
             const value = context.binary(instruction.operator, left, right);
             values.push(value);
-            // A rejected leaf may be effectful: no extra kind/shape probes.
+            // A rejected leaf may be a lazy Rank value; retain its ordinary path.
             if (!eligible) continue;
             if (isRankArray(value)) {
                 if (isRankArray(left) && isRankArray(right)
@@ -148,8 +148,7 @@ function compileArithmeticFold<T>(
                 }
                 const readLeft = readers[instruction.left];
                 const readRight = readers[instruction.right];
-                // Read the left operand before entering the right subtree, even
-                // when host array elements have observable getters.
+                // Preserve arithmetic tree order and floating-point rounding.
                 readers.push(index => instruction.operation(readLeft(index), readRight(index)));
             } else readers.push(() => value);
         }

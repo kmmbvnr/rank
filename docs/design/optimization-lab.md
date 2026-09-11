@@ -800,3 +800,53 @@ still took 16.4 ms versus 13.5 ms in main. The private-array representation and
 safe host fallback need their own aggregate cost accounting. Do not hide these
 costs behind the matrix result or restore unsafe descriptor probes to recover
 the old plain-host fusion timing.
+
+## 18. Short-array metadata cutoff: diagnostic only, rolled back
+
+A prototype skipped private metadata for implicit arrays shorter than 16 cells,
+while explicit snapshots still received it. Scalar addressing fell from the
+previous 16.4 ms to 14.0 ms. The numerical suite retained the existing gains,
+but did not establish a further useful demo improvement from this cutoff.
+The arbitrary size split treated the symptom and added a second construction
+policy. It was rolled back before the boundary redesign below.
+[Rejected patch](../../benchmarks/experiments/short-array-metadata.patch),
+[numerical results](../../benchmarks/baselines/2026-09-11-short-array-metadata.json).
+
+## 19. Owner decision: JS objects are an internal protocol
+
+The owner clarified that a public JS embedding API is not needed now: this
+project controls both producers and consumers. The Proxy example is reachable
+through a deliberately effectful host object, not ordinary Rank source. It
+should not impose a general representation cost on Rank programs. This decision
+supersedes the arbitrary-host compatibility requirement in sections 3, 4 and 17.
+
+Removed the ownership WeakMap, per-instance items accessors, descriptor identity
+snapshots and exposure transitions. Eager arrays are ordinary objects again.
+Fusion checks eager storage and primitive cells per operation; lazy Rank values
+retain their ordinary readers and caches. No immutable keyword or size cutoff
+was added. The snapshot helper is now only a shallow copy, not an eligibility
+requirement. The [current boundary contract](array-storage.md) states that
+effectful eager-host getters, Proxy traps and concurrent host mutation are not
+supported; the runtime does not promise to detect them.
+
+Tests requiring arbitrary eager-host trap behavior were removed or rewritten
+as tests of lazy Rank reader behavior. Rank aliases, writes between calls,
+lazy error ordering, cached intermediates, shadowed sum, exact arithmetic and
+files remain covered. Pure Rank tests and independent numerical oracles were
+not weakened to accept different answers.
+
+The first full numerical comparison used ordinary eager inputs and five warm
+samples against main 9e67783. Matrix-vector at 512 square improved from 26.6 to
+7.9 ms without snapshot mode; matmul 64 square retained 313.1 to 132.3 ms.
+Row/column means were about 4.3 ms against 13.2/13.5 ms; k-means 45.3 to 33.1;
+gradient descent 80.5 to 61.1. Scalar addressing returned to 13.5 ms, and tree
+recursion took 37.5 ms.
+[Numerical report](../../benchmarks/baselines/2026-09-11-eager-arrays-numerical.json).
+
+Real plain-host inline chain reduction at one million cells took 34.6 ms,
+versus 86.2 ms under the private-only gate and 29.8 ms in the earlier main
+comparison. Named and reused controls took about 81 and 113 ms. The eager
+primitive scan has a cost; it is not cached across mutations. Do not claim
+the old inline-fold speed was recovered exactly or add another ownership
+system for the residual difference.
+[Fold controls](../../benchmarks/baselines/2026-09-11-eager-arrays-folds.json).

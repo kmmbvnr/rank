@@ -3,6 +3,9 @@ import type { RankFenwick } from './fenwick.js';
 import type { RankHeap } from './containers.js';
 
 interface RankArrayValue {
+    // Internal protocol, not a stable embedding API. Eager host arrays must use
+    // ordinary data properties and remain stable during a synchronous operation.
+    // Lazy Rank evaluation uses itemAt and retains its ordinary cache semantics.
     readonly items: RankValue[];
     readonly shape: readonly number[];
     readonly itemAt?: (index: number) => RankValue;
