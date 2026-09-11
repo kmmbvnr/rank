@@ -24,3 +24,21 @@ export function createArraySnapshot(items: Iterable<RankValue>, shape?: readonly
     }
     return { kind: 'array', items: copied, shape: dimensions };
 }
+
+
+// Only runtime-owned readers may publish a stable, already-computed cache.
+// Looking up storage must never evaluate a lazy element or call user code.
+const cachedStorage = new WeakMap<RankArray, () => RankValue[] | undefined>();
+
+export function registerCachedArray<T extends RankArray>(
+    value: T, peek: () => RankValue[] | undefined,
+): T {
+    cachedStorage.set(value, peek);
+    return value;
+}
+
+export function materializedArrayItems(value: RankArray): RankValue[] | undefined {
+    if ('itemAt' in value) return cachedStorage.get(value)?.();
+    const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
+    return Array.isArray(items) ? items : undefined;
+}

@@ -302,3 +302,32 @@ A f`);
         }
     });
 });
+
+
+describe('compiled access to completed lazy caches', () => {
+    it('uses a completed round cache without rereading mutated source cells', () => {
+        const result = compare(`use numbers
+A = array 1.2 2.8
+R = A round 0
+Warm = R sum
+A 0 = 100.0
+Answer = (R * 2) sum
+Answer
+`);
+        expect(result.value).toBe('8');
+        expect(result.kernels).toBe(1);
+    });
+
+    it('does not force a partially cached input to enable compilation', () => {
+        const result = compare(`use numbers
+A = array 1.2 2.8
+R = A round 0
+First = R 0
+A 1 = 4.1
+Answer = (R * 2) sum
+Answer
+`);
+        expect(result.value).toBe('10');
+        expect(result.kernels).toBe(0);
+    });
+});

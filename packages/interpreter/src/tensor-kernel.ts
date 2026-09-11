@@ -5,6 +5,7 @@ import {
     type Expression, type Statement,
 } from 'rank-language';
 import { type RankValue, isRankArray } from './value.js';
+import { materializedArrayItems } from './array-storage.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Reducer = 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
@@ -116,8 +117,8 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
                 const value = node.name === undefined ? node.value : host.lookup(node.name);
                 if (numeric(value) || typeof value === 'boolean') {
                     result = { scalar: value, boolean: typeof value === 'boolean', slot: scalars.push(value!) - 1 };
-                } else if (value && isRankArray(value) && !('itemAt' in value)) {
-                    const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
+                } else if (value && isRankArray(value)) {
+                    const items = materializedArrayItems(value);
                     if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
                         || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;
                     const view = { items, offset: 0, shape: value.shape };
