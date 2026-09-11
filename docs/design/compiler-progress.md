@@ -901,3 +901,49 @@ digests match the preceding extrema baseline. A single pair takes 28.127 s off a
 these focused gains to total test-suite timing.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-scalar-address-suite.json).
+
+## Integer writers bound to one region invocation
+
+Compiled integer regions now create temporary write sites. A site's first executed
+assignment calls the existing checked writer, then binds a direct store to the
+owning local frame or mapped capture. Global values continue through the resource
+map. Binding is lazy so skipped assignments do not raise type errors early.
+Temporary writers are passed into the generated call and discarded afterward;
+compiled AST caches do not retain old invocation frames. This specialization relies
+on guarded integer results and synchronous regions without arbitrary user calls.
+
+Six differential tests cover repeated calls with fresh frames, captured parent
+variables, different parameter types in later calls, skipped writes, a late first
+assignment failure and type preservation after returning from the region. Verification
+passes 44 language + 781 interpreter tests.
+
+Five alternating samples toggle only invocation-bound stores, keeping all preceding
+compilation enabled. Existing independent answers are checked, and timing includes
+parse/load, input construction and validation with counters disabled.
+
+| Workload | Checked writer median ms | Bound writer median ms |
+| --- | ---: | ---: |
+| Minimizing Coins, target 100000 | 98.412 | 53.668 |
+| Euler 18, 400 rows | 20.785 | 13.122 |
+| Dice Combinations, N=1000000 | 123.363 | 65.447 |
+| Branching recurrence, 200000 steps | 11.071 | 8.039 |
+
+These reduce elapsed time by roughly 45%, 37%, 47% and 27%. Both modes enter one
+compiled region per task in the separate coverage run.
+
+[Timings](../../benchmarks/baselines/2026-09-12-bound-writes-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-bound-writes-coverage.json).
+
+Short-loop preparation has a cost, so Collatz tests were measured separately over
+three alternating pairs. Medians are 4276.043 ms off and 4305.070 ms on (about 0.7%
+slower), with overlapping sample ranges. This is no evidence of a useful Collatz
+speedup; it bounds the observed overhead in this control without claiming a stable
+small regression.
+
+[Short-loop control](../../benchmarks/baselines/2026-09-12-bound-writes-collatz.json).
+
+The full suite passes 306 files / 1054 tests in both modes. Every result digest
+matches the preceding scalar-address baseline. One pair takes 28.097 s off and
+28.021 s on; no stable whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-bound-writes-suite.json).

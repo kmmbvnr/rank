@@ -29,6 +29,7 @@ interface Host {
     iteration(condition: Expression | undefined): IterationBinding | undefined;
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;
+    prepareWriter?(name: string, checked: (value: RankValue) => void): (value: RankValue) => void;
     locate(error: unknown, statement: Statement): unknown;
     ranges(): boolean;
     module(name: string): boolean;
@@ -41,8 +42,9 @@ const comparisons: Record<string, string> = {
     less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==',
 };
 
-/** Whole numeric loop: keep reads in local registers, but commit each assignment
- * through the normal writer so fixed types and partial state on errors survive. */
+/** Whole numeric loop: keep reads in local registers and commit every assignment.
+ * Writers retain fixed-type checks and partial state on errors; optional bound
+ * writers specialize repeated integer stores within one invocation. */
 export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): {
     run(insideFinally?: boolean): Completed<RankValue | undefined> | undefined;
 } | undefined {
@@ -50,6 +52,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
     const writers: ((value: RankValue) => void)[] = [];
     const binders: ((value: RankValue) => void)[] = [];
+    const writerNames: string[] = [], binderNames: string[] = [];
     const written = new Set<string>();
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
@@ -223,6 +226,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 const target = slot(name), value = index === 0 ? 'cursor' : arrayIteration ? 'ordinal++' : 'ordinal';
                 bindings += `const bound${binders.length} = ${value}; binders[${binders.length}](bound${binders.length}); r${target} = bound${binders.length};\n`;
                 binders.push(host.writer(name));
+                binderNames.push(name);
                 assigned.add(name);
                 written.add(name);
             }
@@ -369,6 +373,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 } else return undefined;
             }
             writers.push(host.writer(assignment.name));
+            writerNames.push(assignment.name);
             body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,
                 `writers[${index}](out${index}); r${destination} = out${index}; iterationResult = out${index};`);
             assigned.add(assignment.name);
@@ -382,7 +387,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     if ([...arrays].some(([name, info]) => written.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
     if ([...destinations].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
     if ([...builtins.keys()].some(name => written.has(name))) return undefined;
-    const source = `"use strict"; return function(input) {
+    const source = `"use strict"; return function(input, writers, binders) {
         ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};` : ''}
         let result, location = -1;
         try { ${root.setup} ${root.header}
@@ -391,8 +396,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             result = iterationResult; location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
-    let run: (values: (RankValue | undefined)[]) => RankValue | undefined;
-    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', source)(writers, binders,
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[]) => RankValue | undefined;
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators); }
     catch { return undefined; }
@@ -437,6 +442,10 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             values[info.slot] = value;
         }
         host.executed?.();
-        return completed(run(values));
+        const activeWriters = host.prepareWriter
+            ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
+        const activeBinders = host.prepareWriter
+            ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
+        return completed(run(values, activeWriters, activeBinders));
     } };
 }

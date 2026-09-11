@@ -1120,3 +1120,92 @@ end`);
         expect(result.loops).toBe(1);
     });
 });
+
+describe('invocation-bound integer writers', () => {
+    it('binds fresh local frames on repeated function calls', () => {
+        const result = compare(`use ranges
+fun tally Start
+  Total = Start
+  for I in 1 to 3
+    Total += I
+  end
+  return Total
+end
+A = 1 tally
+B = 100 tally
+array A B`);
+        expect(result.value).toBe('7 106');
+        expect(result.loops).toBe(2);
+    });
+
+    it('updates captured parent variables across nested calls', () => {
+        const result = compare(`use ranges
+fun outer Seed
+  Total = Seed
+  fun add N
+    for I in 1 to N
+      Total += I
+    end
+    return Total
+  end
+  First = 3 add
+  Second = 2 add
+  return Total
+end
+10 outer`);
+        expect(result.value).toBe('19');
+        expect(result.loops).toBe(2);
+    });
+
+    it('checks a new invocation with a different parameter type', () => {
+        const result = compare(`use ranges
+fun replace Value
+  for I in 0 until 2
+    Done = I
+    Value = I
+  end
+  return Value
+end
+First = 1 replace
+Second = 1.0 replace`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(2);
+    });
+
+    it('does not check an assignment that never executes', () => {
+        const result = compare(`use ranges
+Value = "kept"
+for I in 0 until 2
+  if I less 0
+    Value = I
+  end
+end
+Value`);
+        expect(result.value).toBe('kept');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps prior writes before a late first-assignment type error', () => {
+        const result = compare(`use ranges
+Wrong = "text"
+Done = 0
+for I in 0 until 4
+  Done += I
+  if I equal 2
+    Wrong = I
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains declared types after the compiled region returns', () => {
+        const result = compare(`use ranges
+for I in 0 until 3
+  Value = I
+end
+Value = "text"`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});

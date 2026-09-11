@@ -77,6 +77,16 @@ export class LocalFrame {
         return true;
     }
 
+    /** For a synchronous typed region after its first checked assignment.
+     * The returned writer must not outlive that invocation or frame reset. */
+    bindStore(name: string): (value: RankValue) => void {
+        const slot = this.layout.get(name)!;
+        return value => {
+            if (this.mappedValues) this.mappedValues.set(name, value);
+            else this.slots[slot] = value;
+        };
+    }
+
     typeOf(name: string): ReadonlySet<string> | undefined {
         if (this.mappedTypes) return this.mappedTypes.get(name);
         const slot = this.layout.get(name);

@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly boundIntegerWrites?: boolean;
     readonly scalarAddressCompilation?: boolean;
     readonly extremaLoopCompilation?: boolean;
     readonly compoundArrayCompilation?: boolean;
@@ -1009,6 +1010,15 @@ export class Interpreter {
             const compiled = this.options.integerLoopCompilation !== false ? compileIntegerLoop(statement, {
                 read: name => this.findVariable(name),
                 writer: name => this.compileAssign(name),
+                prepareWriter: this.options.boundIntegerWrites !== false ? (name, checked) => {
+                    let direct: ((value: RankValue) => void) | undefined;
+                    return value => {
+                        if (direct) { direct(value); return; }
+                        checked(value);
+                        const frame = this.localFrame?.find(name);
+                        direct = frame ? frame.bindStore(name) : next => { this.variables.set(name, next); };
+                    };
+                } : undefined,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
                 extrema: this.options.extremaLoopCompilation !== false,
@@ -2472,6 +2482,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            boundIntegerWrites: this.options.boundIntegerWrites,
             scalarAddressCompilation: this.options.scalarAddressCompilation,
             extremaLoopCompilation: this.options.extremaLoopCompilation,
             compoundArrayCompilation: this.options.compoundArrayCompilation,
@@ -2566,6 +2577,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            boundIntegerWrites: this.options.boundIntegerWrites,
             scalarAddressCompilation: this.options.scalarAddressCompilation,
             extremaLoopCompilation: this.options.extremaLoopCompilation,
             compoundArrayCompilation: this.options.compoundArrayCompilation,

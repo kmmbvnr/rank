@@ -422,9 +422,9 @@ not full lowering of loop control. `loopPreparation: false` disables the reuse.
 loops into JavaScript regions when the conditions and bodies are supported.
 Inputs are guarded before execution; unsupported types or syntax retain the
 reference loop. Register variables hold integer values between operations and
-iterations. Each scalar assignment still calls its existing writer immediately, retaining
-fixed-type checks, lexical binding behavior and partial state if a later operation
-fails. Errors carry the original body-command or loop-condition location.
+iterations. Scalar assignments commit immediately, retaining fixed-type checks,
+lexical binding behavior and partial state if a later operation fails. The
+invocation-bound writer optimization below avoids repeating known type checks. Errors carry the original body-command or loop-condition location.
 
 The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches and loops),
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
@@ -436,8 +436,8 @@ Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
 disables this pass; compilation/execution callbacks support diagnostics.
 
-This is the first whole-loop lowering stage. Typed writers deliberately remain
-runtime calls; future optimizations can specialize them with equivalent guards.
+Typed writes remain runtime calls; invocation-bound integer writers specialize
+the checks as described below.
 
 Numeric range lowering supports `by`, descending steps, an optional index binding
 and `#` discard bindings. Start, end and step are evaluated once; progression uses
@@ -651,3 +651,19 @@ output-shape plan. Validation still happens before the right operand.
 General slices keep tensor selection. `scalarAddressCompilation: false` routes
 compiled writes through the prior tensor-selection helper for differential tests
 and benchmarks; the same numeric region still compiles in both modes.
+
+
+## Invocation-bound integer writers
+
+Synchronous integer regions prepare temporary writers for their scalar assignments
+and loop bindings. Each site's first actual write uses the ordinary checked writer.
+Only after that succeeds does the site bind a direct store to the owning frame slot
+or mapped capture; global writes retain the resource-aware variable map. Skipped
+assignments are not checked early, and later failures keep earlier mutations.
+
+These writers exist only for one region invocation. They never cache a previous
+call's frame in the compiled AST, and they are recreated for recursion or another
+function call. Captured frames retain their mapped-value representation. This relies
+on the region's integer guards and absence of arbitrary user calls or suspension;
+it is not an unchecked writer for general execution. `boundIntegerWrites: false`
+keeps the original per-assignment checks for comparisons.

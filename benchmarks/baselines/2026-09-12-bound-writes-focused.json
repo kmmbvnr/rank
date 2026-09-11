@@ -1,0 +1,361 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "writes",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 334.72225000000003,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 156.23204199999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 33.07724999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 127.33920799999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 17.577334000000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 143.61420800000002,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 53.66762499999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 16.01566699999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 65.44733400000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 8.15887500000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 149.39812500000005,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 56.21362499999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 13.122250000000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 71.72158300000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 8.038999999999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 258.546958,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 99.99120800000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 20.18945800000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 126.97229199999992,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 11.161958000000027,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 252.47649999999987,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 97.37083300000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 21.74387499999989,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 122.84979199999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 10.319915999999921,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 144.66308299999992,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 58.46724999999992,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 14.507291000000123,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 63.2462079999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 8.234750000000076,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 139.74545899999998,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 51.703166999999894,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 11.459542000000056,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 68.5501670000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 7.8247499999999945,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 250.6161669999999,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 98.41208299999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 20.785125000000107,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 120.15054099999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 11.07141700000011,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 249.68441599999983,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 97.66362500000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 18.164125000000013,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 123.36312500000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 10.281124999999975,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 122.718167,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 50.502750000000106,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 8.57699999999977,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 57.746250000000146,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 5.711334000000079,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    }
+  ]
+}
