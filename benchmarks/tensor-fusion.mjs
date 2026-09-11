@@ -38,6 +38,7 @@ function recurrenceAnswer(limit) {
   return total;
 }
 const tasks = [
+  { name: 'Trial divisors of 10^10', path: 'benchmarks/programs/loop-control.ra', fn: 'trial_divisors', expected: 121n, args: () => [10000000000n] },
   { name: 'Tensor rank-0 traversal, 512x512', path: 'benchmarks/programs/tensor-scan.ra', fn: 'tensor_sum', expected: 262144n, args: () => [array(Array(512*512).fill(1n), [512,512])] },
   ...['row', 'column'].map(direction => ({ name: `Matrix Mean 1024x1024 ${direction}`, path: 'demos/deepml/004_mean.ra', fn: 'matrix_mean', args: () => [array(Array.from({length:1024*1024}, (_,i)=>i%1024), [1024,1024]), direction], verify: value => assert.deepEqual(value.items, Array.from({length:1024}, (_,i)=>direction === 'row' ? 511.5 : i)) })),
   { name: 'Matrix Vector 1024x1024', path: 'demos/deepml/001_matmul.ra', fn: 'matrix_dot_vector', args: () => [array(Array.from({length:1024*1024}, (_,i)=>i%1024), [1024,1024]), array(Array(1024).fill(1))], verify: value => assert.deepEqual(value.items, Array(1024).fill(523776)) },

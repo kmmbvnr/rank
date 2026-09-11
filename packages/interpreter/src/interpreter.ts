@@ -1013,7 +1013,7 @@ export class Interpreter {
                 compiled: this.options.onIntegerLoopCompiled,
                 executed: this.options.onIntegerLoopExecuted,
             }, binding) : undefined;
-            return compiled ? { stream: context => compiled.run() ?? reference.stream!(context) } : reference;
+            return compiled ? { stream: context => compiled.run(context.insideFinally) ?? reference.stream!(context) } : reference;
         }
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {

@@ -438,3 +438,127 @@ end`);
     expect(result).toHaveProperty('error');
     expect(result.loops).toBe(0);
 });
+
+
+describe('compiled loop control', () => {
+    it.each(['break', 'continue'])('retains the last completed body result on %s', operation => {
+        const result = compare(`I = 0
+for I less 3
+  I += 1
+  if I at least 2
+    ${operation}
+  end
+  Value = 10
+end`);
+        expect(result.value).toBe('10');
+        expect(result.loops).toBe(1);
+    });
+
+    it('supports a bare loop with no register variables', () => {
+        const result = compare('for\n  break\nend');
+        expect(result.value).toBeUndefined();
+        expect(result.loops).toBe(1);
+    });
+
+    it('merges only paths that reach the next statement', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 1 to 5
+  if I less 3
+    continue
+  elif I equal 5
+    break
+  else
+    Value = I
+  end
+  Total += Value
+end
+Total`);
+        expect(result.value).toBe('7');
+        expect(result.loops).toBe(1);
+    });
+
+    it('does not prepare unreachable statements after unconditional control', () => {
+        const result = compare(`for true
+  if true
+    break
+  else
+    continue
+  end
+  Unknown print
+end`);
+        expect(result.value).toBeUndefined();
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps descending range progress and its index after continue', () => {
+        const result = compare(`use ranges
+Total = 0
+for V i in 7 to 1 by -2
+  if V equal 5
+    V = 100
+    continue
+  end
+  Total += V + i
+end
+Total`);
+        expect(result.value).toBe('16');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['break', 'continue'])('preserves the ban on %s inside finally', operation => {
+        const result = compare(`I = 0
+try
+  I = 1
+finally
+  for I less 3
+    I += 1
+    ${operation}
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it('reports condition errors at the loop after continue', () => {
+        const result = compare(`I = 1
+for 1 // (2 - I) greater 0
+  I += 1
+  continue
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});
+
+it('keeps mutations preceding a compiled break', () => {
+    const result = compare(`use algo
+use ranges
+use sequences
+P = new stack
+for I in 1 to 3
+  P push I
+  if I equal 2
+    break
+  end
+end
+P len`);
+    expect(result.value).toBe('2');
+    expect(result.loops).toBe(1);
+});
+
+it('limits a compiled break to its inner loop', () => {
+    const result = compare(`use ranges
+Total = 0
+for O in 1 to 3
+  for I in 1 to 4
+    if I equal 2
+      break
+    end
+    Total += O * I
+  end
+end
+Total`);
+    expect(result.value).toBe('6');
+    expect(result.loops).toBe(3);
+});

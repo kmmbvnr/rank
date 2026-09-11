@@ -629,3 +629,39 @@ commit. The single pair took 28.558 s off and 31.970 s on; this does not
 establish a stable whole-suite speedup.
 
 [Final suite](../../benchmarks/baselines/2026-09-12-tensor-cell-suite.json).
+
+
+## Break and continue as compiled control edges
+
+The integer compiler now emits direct `break`/`continue` edges and accepts a bare
+`for`. Definite assignments merge only across paths that reach subsequent code.
+The last completed iteration result is separate from current partial writes, so
+control exits preserve both result semantics and mutations. `finally` retains
+reference validation; unsupported nested-loop regions still run normally, while
+eligible inner loops may compile independently.
+
+Eleven new differential cases cover interrupted results, register-free loops,
+fallthrough-only assignment merging, unreachable code, descending indexed ranges,
+finally diagnostics, errors after continue, container writes and nested-loop exits.
+TypeScript verification passes 44 language + 720 interpreter tests.
+
+The trial-divisors fixture visits candidates until their square exceeds 10^10,
+using continue for nondivisors. Its independently known answer is 121: 10^10 is
+2^10 times 5^10. Five alternating samples give median task times of 234.668 ms
+reference and 6.429 ms compiled, about 36.5x. A separate instrumented run confirms
+one compiled loop. Timing includes parse/load, evaluation and validation with
+callbacks disabled.
+
+This is a control-heavy compiler benchmark, not a claimed 36x improvement for
+existing demos. It shows the cost of repeatedly throwing and routing continue
+signals through the ordinary driver. Arithmetic and the algorithm are unchanged.
+
+[Timings](../../benchmarks/baselines/2026-09-12-loop-control-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-loop-control-coverage.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes. All result
+digests match the preceding tensor-cell commit. One pair took 32.126 s off
+and 29.247 s on. This toggles all integer-loop compilation, not only the new
+control edges, and does not establish a stable whole-suite gain from this stage.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-loop-control-suite.json).

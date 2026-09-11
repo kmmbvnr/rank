@@ -451,7 +451,7 @@ Only selected conditions and bodies execute. Definite assignments after a branch
 are the intersection of all outgoing paths; other reads require an initial
 integer guard or decline compilation. Branch-local writes still use checked
 writers, and errors point to the original nested statement. An empty selected
-branch retains the reference result (`undefined`). General calls, suspension and loop-control commands remain on the reference path.
+branch retains the reference result (`undefined`). General calls and suspension remain on the reference path.
 
 
 ### Guarded containers in integer loops
@@ -542,3 +542,20 @@ improve their benchmark. Their next optimization should include the surrounding
 traversal and body rather than adding a kernel boundary around a single read.
 `tensorCellCompilation: false` disables cell-copy compilation; the option
 propagates to loaded modules and test interpreters.
+
+
+## Compiled loop-control edges
+
+The integer-loop compiler lowers `break` and `continue` to JavaScript control
+edges, including within `if`/`elif`/`else`. Bare `for` loops can also compile.
+The body result is committed only after an iteration completes: a break or
+continue retains the preceding completed iteration's result while preserving all
+writes already made by the interrupted body. Range cursors and ordinals advance
+normally on continue and stop on break.
+
+Definite-assignment merging considers only branches that reach the next command.
+Commands following unconditional control are not prepared. The compiler can also
+handle a loop without any register variables. Control inside `finally` declines
+before execution so the ordinary path retains its validation and exact diagnostic.
+A compiled inner loop exits only itself; an outer loop containing another loop
+is not yet lowered as one region.

@@ -1,0 +1,25 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "on",
+  "backend": "integer",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 59.308291999999994,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 58.931916999999984,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    }
+  ]
+}

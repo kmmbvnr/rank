@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 296.849584,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 296.454667,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 7.842165999999963,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 7.786417000000029,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 6.4322500000000105,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 6.3878330000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 238.371667,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 238.29466699999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 234.26966700000003,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 234.19008300000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 6.654250000000047,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 6.597999999999956,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 6.497042000000079,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 6.429333000000042,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 234.74916599999995,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 234.66845899999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 234.51329099999998,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 234.4370409999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 4.771375000000035,
+      "entries": [
+        {
+          "name": "Trial divisors of 10^10",
+          "ms": 4.726083999999901,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f0160f4d6d711f725ee0a0a59e6e49233f7502069e6d1b72dd26b5a37aaffd08"
+        }
+      ]
+    }
+  ]
+}
