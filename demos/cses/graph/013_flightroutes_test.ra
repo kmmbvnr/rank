@@ -1,0 +1,58 @@
+use testing
+
+test "official example"
+  use "013_flightroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .directed
+  Edges = array shape 6 3
+    1 2 1
+    1 3 3
+    2 3 2
+    2 4 6
+    3 2 8
+    3 4 1
+  end
+  Graph add Edges
+  Result = Graph 4 3 flight_routes
+  Result equal (array 4 4 7)
+end
+
+test "uses a positive cycle"
+  use "013_flightroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 3) .directed
+  Edges = array shape 4 3
+    1 2 1
+    2 3 1
+    2 2 2
+    1 3 10
+  end
+  Graph add Edges
+  Result = Graph 3 4 flight_routes
+  Result equal (array 2 4 6 8)
+end
+
+test "keeps equal routes"
+  use "013_flightroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 2) .directed
+  Graph add 1 2 4
+  Graph add 1 2 4
+  Result = Graph 2 2 flight_routes
+  Result equal (array 4 4)
+end
+
+test "keeps exact large prices"
+  use "013_flightroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 2) .directed
+  Price = 9007199254740993
+  Graph add 1 2 Price
+  Graph add 1 2 Price
+  Result = Graph 2 2 flight_routes
+  Result equal (array Price Price)
+end

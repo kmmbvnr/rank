@@ -1,0 +1,55 @@
+rem CSES 1196: Flight Routes
+rem https://cses.fi/problemset/task/1196
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+K = stdin .integer
+ValueCount = M * 3
+Values = stdin .integer ValueCount array
+Edges = Values (array M 3) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Graph N K flight_routes print
+
+
+rem Find K shortest walks from 1 to N.
+fun flight_routes Graph N K
+  Size = N + 1
+  Visits = array shape Size pad 0
+  Answers = array shape K pad 0
+  Pending = new heap
+  Item = array 1 0
+  Pending 0 Item enqueue
+  Found = 0
+
+  for Pending len greater 0
+    Item = Pending pop
+    unpack Current Distance = Item
+    if Visits Current at least K
+      continue
+    end
+    Visits Current += 1
+
+    if Current equal N
+      Answers Found = Distance
+      Found += 1
+      if Found equal K
+        break
+      end
+    end
+
+    for Edge in Graph edges Current
+      unpack Next Cost = Edge
+      NextDistance = Distance + Cost
+      Item = array Next NextDistance
+      Pending NextDistance Item enqueue
+    end
+  end
+  return Answers
+end
