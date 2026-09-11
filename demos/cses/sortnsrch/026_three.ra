@@ -1,0 +1,49 @@
+rem CSES 1641: Sum of Three Values
+rem https://cses.fi/problemset/task/1641
+
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+X = stdin .integer
+A = stdin .integer N array
+
+Answer = A X find_three
+
+if Answer len equal 0
+  "IMPOSSIBLE" print
+else
+  Answer print
+end
+
+
+rem Search sorted values from both ends.
+fun find_three A Target
+  N = A len
+  Order = A argsort
+  B = A Order
+
+  for a in 0 until (N - 2)
+    Left = a + 1
+    Right = N - 1
+
+    for Left less Right
+      Sum = B a + B Left + B Right
+
+      if Sum equal Target
+        First = Order a + 1
+        Second = Order Left + 1
+        Third = Order Right + 1
+        return array First Second Third
+      elif Sum less Target
+        Left += 1
+      else
+        Right -= 1
+      end
+    end
+  end
+
+  return array shape 0
+  end
+end
