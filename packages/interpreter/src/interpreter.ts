@@ -986,8 +986,8 @@ export class Interpreter {
         return execute;
     }
 
-    // Arithmetic and conditions with no application cannot make a direct Rank
-    // call. Keep those small syntax trees synchronous to avoid allocating a task
+    // Arithmetic, conditions and infix extrema with direct operands cannot call
+    // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
         if (isNewStructureExpression(expression)) return () => {
@@ -1019,6 +1019,26 @@ export class Interpreter {
             };
         }
         if (isParenthesizedExpression(expression)) return this.compileDirectExpression(expression.value);
+        if (isApplicationExpression(expression)) {
+            const parts = flattenApplication(expression);
+            // Only the unambiguous binary chain belongs here. Reductions,
+            // selectors and effectful operands retain the application evaluator.
+            if (parts.length < 3 || parts.length % 2 === 0
+                || !parts.every((part, index) => index % 2 === 0 || extremeName(part))) return undefined;
+            const left = this.compileDirectExpression(parts[0]);
+            if (!left) return undefined;
+            const steps: Array<{ operation: 'min' | 'max'; right: () => RankValue }> = [];
+            for (let index = 1; index < parts.length; index += 2) {
+                const right = this.compileDirectExpression(parts[index + 1]);
+                if (!right) return undefined;
+                steps.push({ operation: extremeName(parts[index])!, right });
+            }
+            return () => {
+                let result = left();
+                for (const step of steps) result = this.evaluateBinary(step.operation, result, step.right());
+                return result;
+            };
+        }
         if (isUnaryExpression(expression)) {
             const operand = this.compileDirectExpression(expression.operand);
             return operand ? () => this.evaluateUnary(expression.operator, operand()) : undefined;

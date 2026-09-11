@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "date": "2026-09-11T05:59:25.549Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "size": 1000000,
+    "samples": 5,
+    "source": "use numbers\nuse ranges\n\nfun infixmax N\n Op = max\n Best = 0\n for I in 0 until N\n  Best = Best max I\n end\n return Best\nend\n\nfun aliasmax N\n Op = max\n Best = 0\n for I in 0 until N\n  Best = Best I Op\n end\n return Best\nend\n\nfun infixmin N\n Op = min\n Best = 0\n for I in 0 until N\n  Best = Best min (-I)\n end\n return Best\nend\n\nfun aliasmin N\n Op = min\n Best = 0\n for I in 0 until N\n  Best = Best (-I) Op\n end\n return Best\nend\n\nfun arithmetic N\n Op = max\n Best = 0\n for I in 0 until N\n  Best += I\n end\n return Best\nend\n\nfun conditional N\n Op = max\n Best = 0\n for I in 0 until N\n  if I greater Best\n Best = I\n end\n end\n return Best\nend",
+    "sourceHash": "04a3525c921597a8825f377146fcc26e3ae68484f1be02991c5ca94c9ea5be9f",
+    "policy": "median ratios: infix/alias <= 1.5; candidate/baseline <= 1.25; alternating order",
+    "playlistSourceHash": "0efd0c77c51f907593d3c54226b65871257a06302aebe3fb742a5da08ac37db8",
+    "playlistSize": 200000,
+    "playlistTiming": "cold CLI including parse and I/O"
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-extreme-direct/",
+      "revision": "94f9c2849c5e03214bf31c43356c9a024b0f00af",
+      "dirty": true,
+      "scalar": {
+        "infixmax": [
+          175.72700000000003,
+          173.70224999999846,
+          172.99629099999947,
+          172.31337500000154,
+          178.36658399999942
+        ],
+        "aliasmax": [
+          222.7807089999999,
+          206.63416699999925,
+          219.11854200000016,
+          208.01295800000116,
+          230.63300000000163
+        ],
+        "infixmin": [
+          164.22812499999964,
+          173.8319590000001,
+          163.5198330000003,
+          174.02687499999956,
+          174.94633299999987
+        ],
+        "aliasmin": [
+          223.68820800000003,
+          210.27700000000004,
+          219.95150000000103,
+          211.0393750000003,
+          230.58550000000105
+        ],
+        "arithmetic": [
+          164.89887499999986,
+          163.0140420000007,
+          170.24775000000045,
+          174.29612499999894,
+          168.94029099999898
+        ],
+        "conditional": [
+          171.16925000000083,
+          170.22108300000036,
+          170.88795799999934,
+          176.5137079999986,
+          183.41991600000256
+        ]
+      },
+      "playlist": [
+        486.77879100000064,
+        473.1889169999995,
+        477.104083000002,
+        490.78775000000314,
+        582.5970409999973
+      ]
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-extreme-before",
+      "revision": "94f9c2849c5e03214bf31c43356c9a024b0f00af",
+      "dirty": false,
+      "scalar": {
+        "infixmax": [
+          1081.053625,
+          1053.3888749999996,
+          1069.841792000001,
+          1074.2817920000016,
+          1074.8371249999982
+        ],
+        "aliasmax": [
+          216.8544589999999,
+          215.9243749999996,
+          218.1711669999986,
+          210.1424169999991,
+          236.3180420000026
+        ],
+        "infixmin": [
+          1078.813083,
+          1104.3929579999995,
+          1079.6949160000004,
+          1073.7104999999992,
+          1216.9610829999983
+        ],
+        "aliasmin": [
+          223.3892920000003,
+          219.06104199999936,
+          220.2372919999998,
+          218.97479100000055,
+          229.02637500000128
+        ],
+        "arithmetic": [
+          170.54525000000012,
+          166.2416659999999,
+          172.0268329999999,
+          168.28870900000038,
+          171.13337500000125
+        ],
+        "conditional": [
+          172.96216600000025,
+          173.35529099999985,
+          176.4984170000007,
+          181.53479200000038,
+          172.57374999999956
+        ]
+      },
+      "playlist": [
+        770.5527919999986,
+        775.8687079999982,
+        770.3035000000018,
+        762.2038339999999,
+        773.9390830000011
+      ]
+    }
+  },
+  "comparisons": {
+    "infix/alias min": 0.7903194977074459,
+    "infix/alias max": 0.7927318629201099,
+    "candidate/baseline infixmax": 0.16169151454816633,
+    "candidate/baseline aliasmax": 1.0104405646553953,
+    "candidate/baseline infixmin": 0.16100099798932463,
+    "candidate/baseline aliasmin": 0.9987023451051207,
+    "candidate/baseline arithmetic": 0.9905892483079937,
+    "candidate/baseline conditional": 0.9873898224427484,
+    "candidate/baseline playlist": 0.6317267240529336
+  },
+  "failures": []
+}

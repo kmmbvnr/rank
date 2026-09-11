@@ -15,6 +15,7 @@ node --expose-gc benchmarks/arrays.mjs --json
 node --expose-gc benchmarks/arrays.mjs --fusion --json
 node benchmarks/runtime.mjs
 node benchmarks/memo.mjs
+node benchmarks/extrema.mjs --baseline=/path/to/built/baseline
 ```
 
 `--quick` checks all workloads with integer, real and mixed inputs at 100 elements with two
@@ -248,3 +249,86 @@ and [additional scalar and judge checks](../../benchmarks/baselines/2026-09-11-f
 retain every sample. After incorporating main's additional Euler tests, the
 build, all 424 JS tests and all 154 demo files passed (including Euler 21–30
 from main `7e2e4ed`).
+
+## Direct infix min/max (2026-09-11)
+
+The infix syntax introduced in `9f57f7d` always entered the resumable application
+evaluator, even for two scalar names. It bypassed the existing synchronous path
+used by simple calls through an alias. Correctness tests covered the new syntax,
+but the scalar suite did not compare spellings. The judge suite's 30-second
+timeout could not detect a subsecond regression in playlist.
+
+Implementation `65db244` prepares simple min/max chains in the direct-expression
+compiler and uses the existing binary evaluator. Operand reads and operations
+remain interleaved in left-to-right order. Compilation caches readers, not values
+or numeric types. Array broadcasting, module checks and errors retain the binary
+evaluator's behavior. Calls in operands, selectors and postfix reductions retain
+the application path; the change does not remove stack-safe recursion.
+
+The runtime change adds 20 lines rather than a separate arithmetic engine. Five
+JS tests cover the direct execution boundary, changing argument types, lazy
+arrays, selectors, reductions, effect order, skipped branches and 10,000 nested
+recursive calls in an operand. The execution-path check observes three calls to
+the slow expression compiler before the change and zero after it, with the same
+answer. It does not depend on timing or expose a new public diagnostics API.
+
+### Repeatable regression check
+
+```sh
+npm run bench:extrema -- --baseline=/path/to/built/baseline
+```
+
+This builds the candidate; build the baseline separately. Without `--baseline`,
+the command still compares infix min/max against calls through aliases. It
+measures six scalar loops and the unchanged playlist demo at N = 200,000.
+Scalar sources are parsed once, warmed up three times at N = 10,000, then run
+five times at N = 1,000,000. Versions and scalar case order alternate. Playlist
+runs in separate cold CLI processes, including parsing and I/O, with the same
+source and input in both versions. Every timed result is checked independently.
+
+The command emits raw JSON with sources or hashes, revisions, dirty state and
+all samples. It exits nonzero if an infix/alias median ratio exceeds 1.5 or any
+candidate/baseline median ratio exceeds 1.25. These are deliberately broad
+initial regression budgets, not a calibrated statistical significance test.
+Repeat a failure on an idle machine before diagnosing it. Smaller regressions
+can pass; inspect raw samples as well. The deterministic JS test protects the
+specific execution-path property on ordinary test runs; timing gates run only
+when this benchmark command is invoked.
+
+### Measurements
+
+Baseline `94f9c28`, candidate implementation `65db244`, Apple M5 / Node 24.15.0.
+Both checkouts were built before timing. No assistant-launched tests or other
+benchmarks overlapped the paired runs; unrelated machine activity was not
+controlled. First run median milliseconds:
+
+| Workload | Before | After |
+| --- | ---: | ---: |
+| Infix max, 1,000,000 iterations | 1074.3 | 173.7 |
+| Infix min, 1,000,000 iterations | 1079.7 | 173.8 |
+| Max through alias | 216.9 | 219.1 |
+| Min through alias | 220.2 | 220.0 |
+| Arithmetic control | 170.5 | 168.9 |
+| Conditional control | 173.4 | 171.2 |
+| Playlist, 200,000 elements | 770.6 | 486.8 |
+
+Infix min/max were about 6.2 times faster; playlist used 37% less elapsed time.
+Control medians moved by roughly 1%. This supports a gain for this demo and
+input, not for every program. The first candidate playlist run had an outlying
+582.6 ms sample; raw results retain it.
+
+[First raw comparison](../../benchmarks/baselines/2026-09-11-extrema-first.json)
+was recorded before committing the implementation, so its candidate revision is
+the base revision with `dirty: true`.
+
+The [second comparison](../../benchmarks/baselines/2026-09-11-extrema-second.json)
+used clean candidate `65db244`. Max measured 1070.1 → 171.1 ms, min
+1085.7 → 167.8 ms, and playlist 775.9 → 478.3 ms. Thus the two runs show
+6.2–6.5 times faster infix loops and 37–38% less time for playlist. Control
+median changes across both runs ranged from 4.4% faster to 1.0% slower.
+Both runs passed all ratio gates; this is not a guarantee against smaller
+regressions or different workload behavior.
+
+Verification: build, 429 JS tests, 154 demo files and all six judge-scale cases
+at N = 200,000 passed. The judge timeout results alone are not used to claim
+unchanged performance.
