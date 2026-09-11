@@ -1,0 +1,17 @@
+rem Deep-ML 36: Accuracy Score
+rem https://www.deep-ml.com/problems/36
+
+use sequences
+
+fun accuracy_score Truth Predicted
+  Count = Truth len
+  if Predicted len not equal Count
+    .DimensionMismatch raise
+  end
+  if Count equal 0
+    .EmptyInput raise
+  end
+
+  Hits = (Truth equal Predicted) count
+  return Hits / Count
+end

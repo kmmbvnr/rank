@@ -1,0 +1,55 @@
+use testing
+
+test "official six predictions"
+  use "036_accuracy"
+  Truth = array 1 0 1 1 0 1
+  Predicted = array 1 0 0 1 0 1
+
+  Score = Truth Predicted accuracy_score
+  Score equal 5 / 6
+end
+
+test "official half correct"
+  use "036_accuracy"
+  Truth = array 1 1 1 1
+  Predicted = array 1 0 1 0
+
+  Score = Truth Predicted accuracy_score
+  Score equal 0.5
+end
+
+test "all predictions may be correct"
+  use "036_accuracy"
+  Truth = array 2 0 2
+
+  Truth Truth accuracy_score equal 1
+end
+
+test "lengths must match"
+  use "036_accuracy"
+  Raised = false
+
+  try
+    Result = (array 1 0) (array 1) (
+      accuracy_score
+    )
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
+
+test "empty accuracy is undefined"
+  use "036_accuracy"
+  Empty = array shape 0 pad 0
+  Raised = false
+
+  try
+    Result = Empty Empty accuracy_score
+  catch .EmptyInput Error
+    Raised = true
+  end
+
+  Raised
+end
