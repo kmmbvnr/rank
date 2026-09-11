@@ -1,0 +1,59 @@
+use testing
+
+test "official example"
+  use "005_buildteams"
+  use graph
+  use ranges
+  Graph = new graph (1 to 5) .undirected
+  Edges = array shape 3 2
+    1 2
+    1 3
+    4 5
+  end
+  Graph add Edges
+  Result = Graph 5 build_teams
+  Result .possible equal true
+  Result .teams equal (array 1 2 2 1 2)
+end
+
+test "odd cycle is impossible"
+  use "005_buildteams"
+  use graph
+  use ranges
+  Graph = new graph (1 to 3) .undirected
+  Edges = array shape 3 2
+    1 2
+    2 3
+    3 1
+  end
+  Graph add Edges
+  Result = Graph 3 build_teams
+  Result .possible equal false
+end
+
+test "isolated pupils get a team"
+  use "005_buildteams"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .undirected
+  Result = Graph 4 build_teams
+  Result .possible equal true
+  Result .teams equal (array 1 1 1 1)
+end
+
+test "colors separate components"
+  use "005_buildteams"
+  use graph
+  use ranges
+  Graph = new graph (1 to 6) .undirected
+  Edges = array shape 3 2
+    1 2
+    2 3
+    4 5
+  end
+  Graph add Edges
+  Result = Graph 6 build_teams
+  Result .possible equal true
+  Expected = array 1 2 1 1 2 1
+  Result .teams equal Expected
+end

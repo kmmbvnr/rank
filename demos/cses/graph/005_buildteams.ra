@@ -1,0 +1,62 @@
+rem CSES 1668: Building Teams
+rem https://cses.fi/problemset/task/1668
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+NodeCount = stdin .integer
+EdgeCount = stdin .integer
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .undirected
+
+for i in 1 to EdgeCount
+  A = stdin .integer
+  B = stdin .integer
+  Graph add A B
+end
+
+Result = Graph NodeCount build_teams
+if Result .possible
+  Result .teams print
+else
+  "IMPOSSIBLE" print
+end
+
+
+rem Color components with two teams.
+fun build_teams Graph NodeCount
+  Size = NodeCount + 1
+  Teams = array shape Size pad 0
+  Possible = true
+
+  for Start in 1 to NodeCount
+    if Teams Start equal 0
+      Teams Start = 1
+      Pending = new queue
+      Pending push Start
+
+      for Current in Pending
+        CurrentTeam = Teams Current
+        for Next in Graph Current
+          Old = Teams Next
+          Same = Old equal CurrentTeam
+          if Old equal 0
+            Team = 3 - CurrentTeam
+            Teams Next = Team
+            Pending push Next
+          elif Same
+            Possible = false
+          end
+        end
+      end
+    end
+  end
+
+  return record
+    .possible = Possible
+    .teams = Teams from 1 to NodeCount
+  end
+end
