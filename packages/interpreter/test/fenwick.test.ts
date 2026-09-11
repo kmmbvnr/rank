@@ -3,6 +3,57 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('fenwick tree', () => {
+    it.each(['', 'use numbers'])('continues prefix sum pipelines with %s', numbers => {
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line));
+        expect(runtime.execute(`
+use algo
+use io
+use text
+use sequences
+${numbers}
+F = 3 fenwick
+F 0 = 2
+F 1 = 5
+F sum 1 print
+`)).toBe(7n);
+        expect(runtime.execute('F sum 1 text len print')).toBe(1n);
+        expect(runtime.execute('(F sum 1) + 0')).toBe(7n);
+        expect(runtime.execute('F sum 3 pad 42')).toBe(42n);
+        expect(runtime.execute(`
+Holder = record
+  .tree = F
+end
+Holder .tree sum (1 print) print
+`)).toBe(7n);
+        expect(runtime.execute(`
+fun source N
+  N print
+  return F
+end
+9 source sum 1 print
+`)).toBe(7n);
+        expect(output).toEqual(['7', '1', '1', '7', '9', '7']);
+        runtime.dispose();
+    });
+
+    it('keeps user-defined sum arity and dispatches each new receiver', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line));
+        expect(runtime.execute(`
+use algo
+use io
+fun sum A B
+  return A + B
+end
+F = 2 fenwick
+F 0 = 7
+F sum 1 3 sum print
+`)).toBe(10n);
+        expect(output).toEqual(['10']);
+        runtime.dispose();
+    });
+
     it('does not claim ordinary sum pipelines or evaluate their receiver twice', () => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line));
@@ -18,6 +69,8 @@ end
         expect(output).toEqual(['7', '6']);
         runtime.execute('use algo\n(array 4 5) sum print');
         expect(output.at(-1)).toBe('9');
+        runtime.execute('use ranges\nuse sequences\n(1 to 3) array sum print');
+        expect(output.at(-1)).toBe('6');
         runtime.execute('fun replacement A\n  return 99\nend');
         runtime.variables.set('sum', runtime.variables.get('replacement')!);
         expect(runtime.execute('(array 1 2) sum print')).toBe(99n);

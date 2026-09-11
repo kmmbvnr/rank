@@ -1550,28 +1550,6 @@ export class Interpreter {
                     ));
                 };
             }
-            const fenwickSum = explicitFenwickSum(parts);
-            if (fenwickSum) {
-                return function* (): Execution<RankValue> {
-                    const receiver = yield* resume(interpreter.evaluateTask(fenwickSum.receiver));
-                    if (!isRankFenwick(receiver)) {
-                        const rest = yield* resume(mapExecution(
-                            parts.slice(1),
-                            part => interpreter.evaluateTask(part),
-                        ));
-                        return yield* resume(interpreter.apply(
-                            [receiver, ...rest],
-                            missing,
-                            0,
-                            [],
-                            tail,
-                        ));
-                    }
-                    interpreter.requireModule('algo', 'fenwick');
-                    const index = yield* resume(interpreter.evaluateTask(fenwickSum.index));
-                    return expectFenwick(receiver).sum(expectInteger(index));
-                };
-            }
             const materializePipeline = explicitMaterializePipeline(parts);
             if (materializePipeline) {
                 return function* (): Execution<RankValue> {
@@ -1596,6 +1574,39 @@ export class Interpreter {
                     return yield* resume(interpreter.apply(
                         [source, selector], missing, 0, [], tail,
                     ));
+                };
+            }
+            if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
+                return function* (): Execution<RankValue> {
+                    let pending: RankValue[] = [];
+                    for (let index = 0; index < parts.length; index += 1) {
+                        const part = parts[index];
+                        // Resolve receiver methods before looking up ordinary functions.
+                        // Each operation consumes its arguments and leaves its result
+                        // available to the remainder of the postfix chain.
+                        if (isNamed(part, 'sum')) {
+                            const receiver = pending.length === 1 ? pending[0]
+                                : canApplySelectors(pending) ? interpreter.applySelectors(pending) : undefined;
+                            if (receiver !== undefined && isRankFenwick(receiver)) {
+                                interpreter.requireModule('algo', 'fenwick');
+                                const argument = parts[++index];
+                                if (!argument) throw new RankError('fenwick sum expects one integer index');
+                                const position = yield* resume(interpreter.evaluateTask(argument));
+                                pending = [expectFenwick(receiver).sum(expectInteger(position))];
+                                continue;
+                            }
+                        }
+                        const value = isAllAxisExpression(part)
+                            ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part));
+                        pending.push(value);
+                        if (isNativeFunction(value)) {
+                            pending = [yield* resume(interpreter.apply(
+                                pending, missing, 0, [], tail && index === parts.length - 1,
+                            ))];
+                        }
+                    }
+                    return pending.length === 1
+                        ? pending[0] : interpreter.applySelectors(pending, missing);
                 };
             }
             const directParts = parts.map(part => isAllAxisExpression(part)
@@ -4215,11 +4226,6 @@ interface MultisetMethodApplication {
     readonly argument: Expression[];
 }
 
-interface FenwickSumApplication {
-    readonly receiver: Expression;
-    readonly index: Expression;
-}
-
 interface CollectionMutationApplication {
     readonly receiver: Expression;
     readonly operation: 'add' | 'remove';
@@ -4267,11 +4273,6 @@ function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication 
         operation,
         argument: parts.slice(position + 1),
     };
-}
-
-function explicitFenwickSum(parts: Expression[]): FenwickSumApplication | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'sum')) return undefined;
-    return { receiver: parts[0], index: parts[2] };
 }
 
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {

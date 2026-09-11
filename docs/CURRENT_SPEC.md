@@ -2535,7 +2535,9 @@ Other negative and out-of-bounds indices raise `.Missing` and compose with
 `sum` is also contextual rather than reserved. The middle form is a Fenwick
 method only when `F` evaluates to a Fenwick tree. For any other receiver the
 ordinary application chain remains intact; for example, `A sum print` first
-reduces `A` and then prints the result.
+reduces `A` and then prints the result. Receiver dispatch happens at each application, so
+`F sum I print` computes the prefix and then prints it, with or without
+`use numbers`. The receiver and index are evaluated once.
 
 ### Permutations
 
