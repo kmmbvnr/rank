@@ -1066,6 +1066,8 @@ export class Interpreter {
         tail = false,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
+        const pipeline = modifierPipeline(expression);
+        if (pipeline) return this.compileExpression(pipeline, missing, tail);
         if (isNewStructureExpression(expression)) {
             const create = this.compileDirectExpression(expression)!;
             return () => completed(create());
@@ -1329,6 +1331,16 @@ export class Interpreter {
                     );
                 };
             }
+            const explicitRank = explicitRankApplication(parts);
+            if (explicitRank) {
+                return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(
+                        applicationParts(explicitRank.parts.slice(0, -1)),
+                    ));
+                    const operation = yield* resume(interpreter.evaluateTask(explicitRank.parts.at(-1)!));
+                    return yield* resume(interpreter.applyAtRank([source, operation], explicitRank.rank, explicitRank.axes));
+                };
+            }
             const axisMatmul = explicitAxisMatmul(parts);
             if (axisMatmul) {
                 return function* (): Execution<RankValue> {
@@ -1464,13 +1476,6 @@ export class Interpreter {
                         (yield* resume(interpreter.evaluateTask(axisTranspose.source))),
                         axisTranspose.axes,
                     );
-                };
-            }
-            const explicitRank = explicitRankApplication(parts);
-            if (explicitRank) {
-                return function* (): Execution<RankValue> {
-                    const values = yield* resume(mapExecution(explicitRank.parts, part => interpreter.evaluateTask(part)));
-                    return yield* resume(interpreter.applyAtRank(values, explicitRank.rank, explicitRank.axes));
                 };
             }
             const extreme = explicitExtremeApplication(parts);
@@ -4045,6 +4050,54 @@ function flattenApplication(expression: Expression): Expression[] {
     ];
 }
 
+// Group a completed modified operation before compiling the remaining pipeline.
+// These private syntax nodes reuse the existing evaluator; no values are cached.
+function applicationParts(parts: Expression[]): Expression {
+    if (parts.length === 1) return parts[0];
+    return { $type: 'ApplicationExpression', head: parts[0], arguments: parts.slice(1) } as Expression;
+}
+
+function continueModified(prefix: Expression, rest: Expression[]): Expression {
+    return applicationParts([
+        { $type: 'ParenthesizedExpression', value: prefix } as Expression,
+        ...rest,
+    ]);
+}
+
+function modifierPipeline(expression: Expression): Expression | undefined {
+    if (isBinaryExpression(expression)) {
+        const parts = flattenApplication(expression.right);
+        const scan = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'scan');
+        const reduce = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'reduce');
+        const outer = OUTER_OPERATORS.has(expression.operator) && isNamed(parts[0], 'outer');
+        if (!scan && !reduce && !outer) return undefined;
+        const end = reduce && parts[1] && isNamed(parts[1], 'rank') ? 3 : 1;
+        if (parts.length <= end) return undefined;
+        return continueModified(
+            { ...expression, right: applicationParts(parts.slice(0, end)) } as Expression,
+            parts.slice(end),
+        );
+    }
+    if (!isApplicationExpression(expression)) return undefined;
+    const parts = flattenApplication(expression);
+    const rank = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'rank'));
+    if (rank >= 0 && parts.length > rank + 2) {
+        return continueModified(applicationParts(parts.slice(0, rank + 2)), parts.slice(rank + 2));
+    }
+    const axis = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'axis'));
+    if (axis >= 0) {
+        let end = axis + 1;
+        while (end < parts.length && isNumberLiteral(parts[end])) end++;
+        if (end > axis + 1 && end < parts.length && !isNamed(parts[end], 'rank')) {
+            return continueModified(applicationParts(parts.slice(0, end)), parts.slice(end));
+        }
+    }
+    if (parts.length > 4 && isNamed(parts[3], 'outer')) {
+        return continueModified(applicationParts(parts.slice(0, 4)), parts.slice(4));
+    }
+    return undefined;
+}
+
 function explicitMaterializePipeline(parts: Expression[]): {
     readonly source: readonly Expression[];
     readonly selector: ArrayExpression;
@@ -4070,6 +4123,7 @@ function explicitRankApplication(
         throw new RankError('rank expects a nonnegative integer');
     }
     const beforeRank = parts.slice(0, -2);
+    if (beforeRank.length < 2) throw new RankError('rank requires data and a unary operation');
     const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis'));
     if (axisPosition < 0) return { parts: beforeRank, rank: rank.value };
     if (axisPosition !== 2 || beforeRank.length === 3) {
