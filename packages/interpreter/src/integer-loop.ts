@@ -27,6 +27,10 @@ interface Host {
     readonly extrema: boolean;
     readonly absolute: boolean;
     readonly scalarText: boolean;
+    scalarFunction(name: string, arity: number): {
+        type: 'integer' | 'boolean';
+        bind(): ((arguments_: RankValue[]) => RankValue) | undefined;
+    } | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -113,6 +117,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     const written = new Set<string>();
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
+    const calls: { name: string; bind(): ((arguments_: RankValue[]) => RankValue) | undefined }[] = [];
     const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
@@ -224,6 +229,26 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 const name = `v${serial++}`;
                 lines.push(`const ${name} = ${op === 'len' ? `BigInt(${receiver}.size)` : `${receiver}.pop()`};`);
                 return { code: name, type: 'integer' };
+            }
+        }
+        if (isApplicationExpression(e)) {
+            const flatten = (node: Expression): Expression[] => isApplicationExpression(node)
+                ? [...flatten(node.head), ...node.arguments.flatMap(flatten)] : [node];
+            const parts = flatten(e), last = parts.at(-1);
+            if (last && isNameExpression(last) && !last.name.includes('.')) {
+                const callable = host.scalarFunction(last.name, parts.length - 1);
+                if (callable) {
+                    const arguments_: string[] = [];
+                    for (const part of parts.slice(0, -1)) {
+                        const value = emit(part, lines);
+                        if (value?.type !== 'integer') return undefined;
+                        arguments_.push(value.code);
+                    }
+                    const name = `v${serial++}`, index = calls.length;
+                    calls.push({ name: last.name, bind: callable.bind });
+                    lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
+                    return { code: name, type: callable.type };
+                }
             }
         }
         if (isApplicationExpression(e)) {
@@ -598,7 +623,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return undefined;
-    if ([...builtins.keys()].some(name => written.has(name))) return undefined;
+    if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name))) return undefined;
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
@@ -606,7 +631,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
         }
     }
-    const source = `"use strict"; return function(input, writers, binders) {
+    const source = `"use strict"; return function(input, writers, binders, calls) {
         ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};` : ''}
         let result, location = -1;
         try { ${root.setup} ${root.header}
@@ -615,7 +640,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             result = iterationResult; location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[]) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[]) => RankValue)[]) => RankValue | undefined;
     try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue); }
@@ -627,6 +652,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         if (needsRanges && !host.ranges()) return undefined;
         if (needsAlgo && !host.module('algo')) return undefined;
         for (const [name, module] of builtins) if (!host.builtin(module, name)) return undefined;
+        const activeCalls = calls.map(call => call.bind());
+        if (activeCalls.some(call => !call)) return undefined;
         const values: (RankValue | undefined)[] = [];
         for (const index of required) {
             const value = host.read(names[index]);
@@ -672,6 +699,6 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        return completed(run(values, activeWriters, activeBinders));
+        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[]) => RankValue)[]));
     } };
 }

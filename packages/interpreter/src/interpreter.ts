@@ -1,3 +1,4 @@
+import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -152,6 +153,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarCallCompilation?: boolean;
     readonly tensorTextDigits?: boolean;
     readonly scalarTextCompilation?: boolean;
     readonly directTextIteration?: boolean;
@@ -1043,6 +1045,21 @@ export class Interpreter {
                 booleanArrays: this.options.booleanArrayCompilation !== false,
                 booleanLocals: this.options.booleanLoopCompilation !== false,
                 scalarText: this.options.scalarTextCompilation !== false,
+                scalarFunction: (name, arity) => {
+                    if (this.options.scalarCallCompilation === false) return undefined;
+                    const value = this.findVariable(name);
+                    const definition = value && isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
+                    if (!definition || definition.statement.parameters.length !== arity) return undefined;
+                    const statement = definition.statement;
+                    const type = scalarFunctionResult(statement);
+                    if (!type) return undefined;
+                    return { type, bind: () => {
+                        const current = this.findVariable(name);
+                        if (!current || !isNativeFunction(current)
+                            || functionDefinitions.get(current)?.statement !== statement) return undefined;
+                        return arguments_ => current.call(arguments_);
+                    } };
+                },
                 absolute: this.options.absoluteLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
                 extremeParts: expression => {
@@ -2504,6 +2521,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarCallCompilation: this.options.scalarCallCompilation,
             tensorTextDigits: this.options.tensorTextDigits,
             scalarTextCompilation: this.options.scalarTextCompilation,
             directTextIteration: this.options.directTextIteration,
@@ -2610,6 +2628,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarCallCompilation: this.options.scalarCallCompilation,
             tensorTextDigits: this.options.tensorTextDigits,
             scalarTextCompilation: this.options.scalarTextCompilation,
             directTextIteration: this.options.directTextIteration,

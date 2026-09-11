@@ -1983,3 +1983,150 @@ Total`);
     expect(result.value).toBe('14');
     expect(result.loops).toBe(0);
 });
+
+describe('proven scalar calls from loop regions', () => {
+    it('calls a two-argument scalar function in a compiled loop', () => {
+        const result = compare(`use ranges
+fun combine A B
+  return A * 10 + B
+end
+Total = 0
+for I in 1 to 3
+  Total += I 2 combine
+end
+Total`);
+        expect(result.value).toBe('66');
+        expect(result.loops).toBe(1);
+    });
+
+    it('uses a boolean function result as a branch condition', () => {
+        const result = compare(`use ranges
+fun positive X
+  return X greater 0
+end
+Total = 0
+for I in -2 to 2
+  if I positive
+    Total += I
+  end
+end
+Total`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps callee diagnostics and earlier caller mutations', () => {
+        const result = compare(`use ranges
+fun divide X
+  return 10 // X
+end
+A = array 0
+for I in 1 to 0 by -1
+  A 0 += 1
+  Result = I divide
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.containers).toContainEqual(['A', [1], ['2']]);
+        expect(result.loops).toBe(1);
+    });
+
+    it('does not assume a captured value is a parameter', () => {
+        const result = compare(`use ranges
+Offset = 7
+fun plus X
+  return X + Offset
+end
+Total = 0
+for I in 1 to 3
+  Total += I plus
+end
+Total`);
+        expect(result.value).toBe('27');
+        expect(result.loops).toBe(0);
+    });
+
+    it('keeps effectful helpers on the ordinary path', () => {
+        const result = compare(`use ranges
+A = array 0
+fun update X
+  A 0 += X
+  return X
+end
+Total = 0
+for I in 1 to 3
+  Total += I update
+end
+Total`);
+        expect(result.value).toBe('6');
+        expect(result.containers).toContainEqual(['A', [1], ['6']]);
+        expect(result.loops).toBe(0);
+    });
+
+    it('binds local function instances separately on each invocation', () => {
+        const result = compare(`use ranges
+fun perform N
+  fun twice X
+    return X * 2
+  end
+  Total = 0
+  for I in 1 to N
+    Total += I twice
+  end
+  return Total
+end
+A = 3 perform
+B = 4 perform
+array A B`);
+        expect(result.value).toBe('12 20');
+        expect(result.loops).toBe(2);
+    });
+
+    it('rechecks the function definition after replacement', () => {
+        let loops = 0;
+        const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+        try {
+            runtime.execute(`use ranges
+fun helper X
+  return X + 1
+end
+fun perform N
+  Total = 0
+  for I in 1 to N
+    Total += I helper
+  end
+  return Total
+end`);
+            expect(runtime.execute('3 perform')).toBe(9n);
+            expect(loops).toBe(1);
+            runtime.execute(`fun helper X
+  return X + 10
+end`);
+            expect(runtime.execute('3 perform')).toBe(36n);
+            expect(loops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it('preserves the ordinary call depth limit', () => {
+        const errors = [false, true].map(integerLoopCompilation => {
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, maxCallDepth: 1 });
+            try {
+                runtime.execute(`use ranges
+fun helper X
+  return X + 1
+end
+fun perform N
+  Total = 0
+  for I in 1 to N
+    Total += I helper
+  end
+  return Total
+end
+3 perform`);
+                return 'unexpected success';
+            } catch (error) { return error instanceof RankError ? error.format() : String(error); }
+            finally { runtime.dispose(); }
+        });
+        expect(errors[1]).toBe(errors[0]);
+        expect(errors[1]).toContain('RecursionLimit');
+    });
+});

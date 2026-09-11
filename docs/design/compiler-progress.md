@@ -1351,3 +1351,35 @@ Final reports were rerun after tightening the newline guard and adding literal
 input coverage.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-tensor-digits-suite.json).
+
+## Calls to proven scalar user functions from numeric regions
+
+The compiler can now cross a restricted user-call boundary: a one-return function
+using integer parameters and supported scalar arithmetic/comparisons. A separate
+syntax proof excludes external reads, nested calls and mutations, and infers an
+integer or boolean result. The compiled loop binds the current matching definition
+on each entry and calls its existing runtime implementation. Frames, resource scope,
+parameter checks, errors and call-depth limits remain authoritative. This is not
+inlining and does not yet cover arbitrary functions or the Euler 30 helper.
+
+Eight regressions cover two-argument calls, boolean results, error locations and
+prior caller writes, captured-read rejection, effectful-helper rejection, separate
+local declarations across invocations, replacement of a definition and recursion
+limits. All 44 language + 861 interpreter tests pass.
+
+Five alternating samples toggle only `scalarCallCompilation`, with counters off.
+The unchanged Euler 45 solution computes the next common polygonal number after
+40755 from indices 144 and 166, validated against 1533776805. Median time drops
+from 16.494 ms to 7.962 ms, about 2.07x. Timings include loading/parsing, compilation,
+execution and validation. Separate coverage records zero versus one compiled outer
+region containing the hexagonal/pentagonal calls.
+
+[Timings](../../benchmarks/baselines/2026-09-12-scalar-calls-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-scalar-calls-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests and every digest agrees with
+the preceding tensor-digit baseline. One pair takes 27.094 s off and 26.424 s on;
+this single pair does not establish a stable whole-suite speedup or attribute all
+of that difference to this stage.
+
+[Suite results](../../benchmarks/baselines/2026-09-12-scalar-calls-suite.json).

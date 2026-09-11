@@ -827,3 +827,19 @@ the reference path and its errors. `tensorTextDigits: false` disables this stage
 The surrounding user-function call still uses the existing function machinery;
 this extends the composable tensor IR rather than compiling arbitrary calls inside
 numeric loop regions.
+
+### Proven scalar user calls from loop regions
+
+A compiled loop may call a user function whose body is one return expression
+containing only integer parameters, integer/boolean literals, supported arithmetic,
+comparisons and boolean operators. A syntax proof establishes an integer or boolean
+result and excludes effects on caller state. Arguments must be proven integers.
+External names, nested calls, memo/generator functions and other bodies decline.
+This is a conservative proof, not the language's complete purity analysis.
+
+Entry binding checks the active function definition against the proved AST and
+retains the actual closure only for that region invocation. Cached plans retain
+AST metadata, not invocation frames. Calls continue through the ordinary function
+machinery, preserving lexical/resource scopes, fixed parameter types, diagnostics
+and call-depth limits. No inlining is performed. A changed definition falls back
+before any region writes. `scalarCallCompilation: false` disables this stage.
