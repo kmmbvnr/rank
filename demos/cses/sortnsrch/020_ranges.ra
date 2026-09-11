@@ -35,7 +35,7 @@ fun nested_ranges Data
     if Y at most MaxFinish
       Inside I = 1
     end
-    MaxFinish = MaxFinish Y max
+    MaxFinish = MaxFinish max Y
   end
 
   MinFinish = Base
@@ -46,7 +46,7 @@ fun nested_ranges Data
     if Y at least MinFinish
       Contains I = 1
     end
-    MinFinish = MinFinish Y min
+    MinFinish = MinFinish min Y
   end
 
   Result = record

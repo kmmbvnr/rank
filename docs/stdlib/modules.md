@@ -196,13 +196,19 @@ The result is normalized from zero through `Modulus - 1`. The implementation
 uses repeated squaring, so it does not construct the potentially huge value
 `Base ** Exponent` first.
 
-`min` and `max` use data-first application. With one collection they reduce it;
-with two numeric values they return the smaller or larger operand:
+Postfix `min` and `max` reduce one collection. Their direct binary forms are
+infix and return the smaller or larger numeric operand:
 
 ```rank
 Smallest = Values min
-Left = A B max
+Left = A max B
+Bound = Low max Limit min High
 ```
+
+Binary chains associate from the left and broadcast over arrays using the
+ordinary trailing-axis rules. Parenthesize a compound right operand, as in
+`0 max (Limit - Used)`. A stored operation remains an ordinary function value,
+so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.

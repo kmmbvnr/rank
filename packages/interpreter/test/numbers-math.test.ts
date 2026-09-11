@@ -3,6 +3,27 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank mathematical functions', () => {
+    it('uses postfix reductions and infix min/max chains', () => {
+        expect(run('use numbers\n(array 3 1 2) max')).toBe('3');
+        expect(run('use numbers\n(array 3 1 2) min')).toBe('1');
+        expect(run('use numbers\n3 min 1 min 2')).toBe('1');
+        expect(run('use numbers\n9 min 4 max 7')).toBe('7');
+        expect(run('use numbers\n3 max (1 + 4)')).toBe('5');
+        expect(run('use numbers\n(array 1 4) max 3')).toBe('3 4');
+        expect(run([
+            'use numbers',
+            'M = array shape 2 2',
+            '  1 7',
+            '  4 2',
+            'end',
+            'M 0 max',
+        ].join('\n'))).toBe('7');
+        expect(() => run('use numbers\n3 2 max'))
+            .toThrowError('binary max uses infix order: A max B');
+        expect(() => run('3 max 2'))
+            .toThrowError('max requires: use numbers');
+    });
+
     it('evaluates circular trigonometric functions in radians', () => {
         expect(run('use numbers\n0 sin')).toBe('0');
         expect(run('use numbers\n0 cos')).toBe('1');

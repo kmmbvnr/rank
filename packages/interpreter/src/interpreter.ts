@@ -1440,6 +1440,37 @@ export class Interpreter {
                     return yield* resume(interpreter.applyAtRank(values, explicitRank.rank, explicitRank.axes));
                 };
             }
+            const extreme = explicitExtremeApplication(parts);
+            if (extreme) {
+                return function* (): Execution<RankValue> {
+                    const sourceParts = yield* resume(mapExecution(
+                        extreme.source,
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    if ('reduction' in extreme
+                        && sourceParts.length > 1
+                        && !canApplySelectors(sourceParts)) {
+                        throw new RankError(
+                            `binary ${extreme.reduction} uses infix order: A ${extreme.reduction} B`,
+                        );
+                    }
+                    let result = sourceParts.length === 1
+                        ? sourceParts[0]
+                        : yield* resume(interpreter.apply(sourceParts));
+                    if ('reduction' in extreme) {
+                        const fn = interpreter.resolve(extreme.reduction);
+                        if (!isNativeFunction(fn)) {
+                            throw new RankError(`unknown operation: ${extreme.reduction}`);
+                        }
+                        return yield* resume(interpreter.invoke(fn, [result]));
+                    }
+                    for (const step of extreme.steps) {
+                        const right = yield* resume(interpreter.evaluateTask(step.right));
+                        result = interpreter.evaluateBinary(step.operation, result, right);
+                    }
+                    return result;
+                };
+            }
             const axisSelection = explicitAxisSelection(parts);
             if (axisSelection) {
                 return function* (): Execution<RankValue> {
@@ -2134,16 +2165,6 @@ export class Interpreter {
             if (pending.length === 0) {
                 throw new RankError(`operation must follow its data: ${value.name}`);
             }
-            if (pending.length === 1
-                && value.arities.includes(1)
-                && value.arities.includes(2)
-                && index === values.length - 2
-                && !isNativeFunction(values[index + 1])) {
-                throw new RankError(
-                    `${value.name} with two arguments uses postfix order: A B ${value.name}`,
-                );
-            }
-
             const arguments_ = callArguments(
                 value,
                 pending,
@@ -2473,6 +2494,9 @@ export class Interpreter {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if (operator === 'min' || operator === 'max') {
+            this.requireModule('numbers', operator);
+        }
         if (operator === 'is') {
             if (!isRankLabel(right)) {
                 throw new RankError('is expects a type symbol on the right');
@@ -2581,6 +2605,8 @@ export class Interpreter {
                 if (remainder === 0) return divisor < 0 ? -0 : 0;
                 return (remainder < 0) !== (divisor < 0) ? remainder + divisor : remainder;
             }
+            case 'min': return a < b ? a : b;
+            case 'max': return a > b ? a : b;
             default: throw new RankError(`unknown operator: ${operator}`);
         }
     }
@@ -3903,6 +3929,53 @@ interface NamedOuterApplication {
     readonly left: Expression;
     readonly right: Expression;
     readonly operation: Expression;
+}
+
+interface ExtremeReduction {
+    readonly source: readonly Expression[];
+    readonly reduction: 'min' | 'max';
+}
+
+interface ExtremeChain {
+    readonly source: readonly Expression[];
+    readonly steps: readonly {
+        readonly operation: 'min' | 'max';
+        readonly right: Expression;
+    }[];
+}
+
+type ExtremeApplication = ExtremeReduction | ExtremeChain;
+
+function explicitExtremeApplication(parts: Expression[]): ExtremeApplication | undefined {
+    const first = parts.findIndex((part, index) => index > 0
+        && (isNamed(part, 'min') || isNamed(part, 'max')));
+    if (first < 0) return undefined;
+
+    const source = parts.slice(0, first);
+    const firstName = extremeName(parts[first])!;
+    if (first === parts.length - 1) {
+        return { source, reduction: firstName };
+    }
+
+    const steps: Array<{ operation: 'min' | 'max'; right: Expression }> = [];
+    for (let index = first; index < parts.length; index += 2) {
+        const operation = parts[index];
+        const right = parts[index + 1];
+        const operationName = operation && extremeName(operation);
+        if (!operationName) {
+            throw new RankError('min/max chains require an operation between each value');
+        }
+        if (!right) throw new RankError(`${operationName} expects a value on the right`);
+        steps.push({ operation: operationName, right });
+    }
+    return { source, steps };
+}
+
+function extremeName(expression: Expression): 'min' | 'max' | undefined {
+    if (!isNameExpression(expression)) return undefined;
+    return expression.name === 'min' || expression.name === 'max'
+        ? expression.name
+        : undefined;
 }
 
 function explicitNamedOuterApplication(parts: Expression[]): NamedOuterApplication | undefined {

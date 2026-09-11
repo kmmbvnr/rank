@@ -721,8 +721,10 @@ intermediate values when several arguments require addressing. If the left
 chain cannot form one value, the call has too many arguments and is an error.
 
 For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. This keeps a compact
-binary call such as `A B max` binary.
+Otherwise Rank tries larger supported arities first. Direct binary `min` and
+`max` are the arithmetic-like exceptions: write `A min B` and `A max B`.
+Their postfix forms `A min` and `A max` always reduce the one value on their
+left, including an addressed value such as `Matrix i max`.
 
 The fundamental selection model is:
 
@@ -2098,14 +2100,17 @@ known, while `count` examines the complete cell. An empty collection produces
 `true` for `all`, `false` for `any` and zero for `count`. All three support
 `rank` and `axis`. A known unbounded sequence is rejected.
 
-`min` and `max` reduce one finite collection or compare two numeric values:
+Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
+between numeric values and broadcast over arrays:
 
 ```rank
 Largest = A max
-Bound = Low High max
+Bound = Low max High
+Clamped = Values max 0
 ```
 
-Their binary form returns one operand and is not an elementwise clamp.
+Binary chains associate from the left. `axis` and `rank` modify the postfix
+reduction; the binary form already follows ordinary elementwise broadcasting.
 
 ## Scan
 
@@ -3414,13 +3419,19 @@ The result is normalized from zero through `Modulus - 1`. The implementation
 uses repeated squaring, so it does not construct the potentially huge value
 `Base ** Exponent` first.
 
-`min` and `max` use data-first application. With one collection they reduce it;
-with two numeric values they return the smaller or larger operand:
+Postfix `min` and `max` reduce one collection. Their direct binary forms are
+infix and return the smaller or larger numeric operand:
 
 ```rank
 Smallest = Values min
-Left = A B max
+Left = A max B
+Bound = Low max Limit min High
 ```
+
+Binary chains associate from the left and broadcast over arrays using the
+ordinary trailing-axis rules. Parenthesize a compound right operand, as in
+`0 max (Limit - Used)`. A stored operation remains an ordinary function value,
+so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
@@ -4379,8 +4390,8 @@ The solution uses only current Rank constructs and runs in linear time.
 
 The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
-Python-style `//`, real `/`, and the data-first binary forms `A B min` and
-`A B max`. Array boundaries are handled explicitly, so the algorithm does not
+Python-style `//`, real `/`, and the infix binary forms `A min B` and
+`A max B`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 
 ## 5. Longest Palindromic Substring

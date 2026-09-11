@@ -90,7 +90,7 @@ fun distance Speed Fly Rest Time
   Cycle = Fly + Rest
   Full = Time // Cycle
   Left = Time % Cycle
-  Active = Left Fly min
+  Active = Left min Fly
 
   return (Full * Fly + Active) * Speed
 end

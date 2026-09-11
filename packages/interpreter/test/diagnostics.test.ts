@@ -79,12 +79,6 @@ describe('runtime diagnostics', () => {
         expect(new Interpreter().execute('use numbers\n-1 abs')).toBe(1n);
     });
 
-    it('explains postfix order for an infix binary reduction', () => {
-        expect(failure('use numbers\n1 max 2').message)
-            .toBe('max with two arguments uses postfix order: A B max');
-        expect(new Interpreter().execute('use numbers\n1 2 max')).toBe(2n);
-    });
-
     it('formats parser errors with source context too', () => {
         const error = failure('X =');
         expect(error.rankKind).toBe('Syntax');

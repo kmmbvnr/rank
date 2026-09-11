@@ -23,7 +23,7 @@ fun longest Text
       Run = 1
     end
 
-    Best = Best Run max
+    Best = Best max Run
   end
 
   return Best

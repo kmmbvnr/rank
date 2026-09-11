@@ -63,7 +63,7 @@ fun median A B
           if J greater 0
             Q = J - 1
             BL = B Q
-            Left = Left BL max
+            Left = Left max BL
           end
         end
 
@@ -80,7 +80,7 @@ fun median A B
 
           if J less N
             BR = B J
-            Right = Right BR min
+            Right = Right min BR
           end
         end
 

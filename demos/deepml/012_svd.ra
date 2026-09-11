@@ -34,8 +34,8 @@ fun svd_2x2 A
   D = V transpose B matmul
   D = D V matmul
 
-  D0 = D 0 0 0 max
-  D1 = D 1 1 0 max
+  D0 = D 0 0 max 0
+  D1 = D 1 1 max 0
   S0 = D0 sqrt
   S1 = D1 sqrt
   Sigma = array S0 S1

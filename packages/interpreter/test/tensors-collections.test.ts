@@ -728,8 +728,8 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\ninfinity sqrt')).toBe('infinity');
         expect(() => run('use numbers\n-1 sqrt'))
             .toThrowError('sqrt expects a nonnegative value');
-        expect(run('use numbers\n3 2 min')).toBe('2');
-        expect(run('use numbers\n3 2 max')).toBe('3');
+        expect(run('use numbers\n3 min 2')).toBe('2');
+        expect(run('use numbers\n3 max 2')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');
         expect(run('use numbers\noption Rate real = 1.5\nRate')).toBe('1.5');
     });

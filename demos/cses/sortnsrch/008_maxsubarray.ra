@@ -19,8 +19,8 @@ fun max_subarray A
   Best = A 0
 
   for i in 1 until N
-    Current = A i (Current + A i) max
-    Best = Best Current max
+    Current = A i max (Current + A i)
+    Best = Best max Current
   end
 
   return Best

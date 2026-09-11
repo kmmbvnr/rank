@@ -555,14 +555,17 @@ known, while `count` examines the complete cell. An empty collection produces
 `true` for `all`, `false` for `any` and zero for `count`. All three support
 `rank` and `axis`. A known unbounded sequence is rejected.
 
-`min` and `max` reduce one finite collection or compare two numeric values:
+Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
+between numeric values and broadcast over arrays:
 
 ```rank
 Largest = A max
-Bound = Low High max
+Bound = Low max High
+Clamped = Values max 0
 ```
 
-Their binary form returns one operand and is not an elementwise clamp.
+Binary chains associate from the left. `axis` and `rank` modify the postfix
+reduction; the binary form already follows ordinary elementwise broadcasting.
 
 ## Scan
 

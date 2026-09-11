@@ -45,7 +45,7 @@ fun busiest Events
 
   for Event in Sorted
     Now += Event .delta
-    Best = Best Now max
+    Best = Best max Now
   end
 
   return Best

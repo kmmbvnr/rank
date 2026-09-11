@@ -69,9 +69,9 @@ end
 
 rem Clamp four properties at zero and multiply them into one score.
 fun cookiescore Totals
-  Capacity = 0 (Totals 0) max
-  Durability = 0 (Totals 1) max
-  Flavor = 0 (Totals 2) max
-  Texture = 0 (Totals 3) max
+  Capacity = 0 max (Totals 0)
+  Durability = 0 max (Totals 1)
+  Flavor = 0 max (Totals 2)
+  Texture = 0 max (Totals 3)
   return Capacity * Durability * Flavor * Texture
 end

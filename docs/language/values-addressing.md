@@ -34,8 +34,10 @@ intermediate values when several arguments require addressing. If the left
 chain cannot form one value, the call has too many arguments and is an error.
 
 For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. This keeps a compact
-binary call such as `A B max` binary.
+Otherwise Rank tries larger supported arities first. Direct binary `min` and
+`max` are the arithmetic-like exceptions: write `A min B` and `A max B`.
+Their postfix forms `A min` and `A max` always reduce the one value on their
+left, including an addressed value such as `Matrix i max`.
 
 The fundamental selection model is:
 

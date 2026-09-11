@@ -30,7 +30,7 @@ fun cross_validation N K Shuffle
 
   for Fold in 0 until K
     First = Fold * Base
-    First += Fold Extra min
+    First += Fold min Extra
 
     Size = Base
     if Fold less Extra

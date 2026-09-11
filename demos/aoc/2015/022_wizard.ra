@@ -58,7 +58,7 @@ fun fight State BossDamage Hard Best
   Current = Current effects
 
   if Current 2 at most 0
-    return Best Spent min
+    return Best min Spent
   end
 
   HP = Current 0
@@ -120,14 +120,14 @@ fun bossturn State BossDamage Hard Best
   Spent = Current 6
 
   if Current 2 at most 0
-    return Best Spent min
+    return Best min Spent
   end
 
   Armor = 0
   if Current 3 greater 0
     Armor = 7
   end
-  Hit = 1 (BossDamage - Armor) max
+  Hit = 1 max (BossDamage - Armor)
   HP = Current 0 - Hit
 
   if HP at most 0
@@ -159,9 +159,9 @@ fun effects State
     Mana += 101
   end
 
-  Shield = 0 (Shield - 1) max
-  Poison = 0 (Poison - 1) max
-  Recharge = 0 (Recharge - 1) max
+  Shield = 0 max (Shield - 1)
+  Poison = 0 max (Poison - 1)
+  Recharge = 0 max (Recharge - 1)
 
   return array HP Mana Boss Shield Poison Recharge Spent
 end
