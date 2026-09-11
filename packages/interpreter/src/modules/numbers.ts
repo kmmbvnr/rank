@@ -111,6 +111,11 @@ export const numbersModule: RuntimeModule = {
         if (value < 1n) throw new RankError('factors expects a positive integer');
         return sequence(factorPlan(value));
     }),
+    divisors: () => native('divisors', 1, arguments_ => {
+        const value = expectInteger(arguments_[0]);
+        if (value < 1n) throw new RankError('divisors expects a positive integer');
+        return sequence(divisorPlan(value));
+    }),
     odd: () => predicateFunction('odd', value => expectInteger(value) % 2n !== 0n),
     even: () => predicateFunction('even', value => expectInteger(value) % 2n === 0n),
 };
@@ -407,6 +412,61 @@ function factorPlan(value: bigint): SequencePlan {
             if (remaining > 1n) yield remaining;
         },
     };
+}
+
+function divisorPlan(value: bigint): SequencePlan {
+    let cached: readonly [bigint, number][] | undefined;
+    const powers = () => cached ??= factorPowers(value);
+    return {
+        name: `divisors of ${value}`,
+        size: { kind: 'unknown' },
+        *iterate() {
+            const values = [1n];
+            for (const [prime, exponent] of powers()) {
+                const previous = values.length;
+                let multiplier = 1n;
+                for (let power = 1; power <= exponent; power += 1) {
+                    multiplier *= prime;
+                    for (let index = 0; index < previous; index += 1) {
+                        values.push(values[index] * multiplier);
+                    }
+                }
+            }
+            values.sort((left, right) => left < right ? -1 : left > right ? 1 : 0);
+            yield* values;
+        },
+        contains(candidate) {
+            return typeof candidate === 'bigint'
+                && candidate > 0n
+                && value % candidate === 0n;
+        },
+        reduce(operation) {
+            if (operation !== 'count') return undefined;
+            return powers().reduce(
+                (count, [, exponent]) => count * BigInt(exponent + 1),
+                1n,
+            );
+        },
+    };
+}
+
+function factorPowers(value: bigint): readonly [bigint, number][] {
+    const result: [bigint, number][] = [];
+    let remaining = value;
+    for (
+        let divisor = 2n;
+        divisor * divisor <= remaining;
+        divisor += divisor === 2n ? 1n : 2n
+    ) {
+        let exponent = 0;
+        while (remaining % divisor === 0n) {
+            exponent += 1;
+            remaining /= divisor;
+        }
+        if (exponent > 0) result.push([divisor, exponent]);
+    }
+    if (remaining > 1n) result.push([remaining, 1]);
+    return result;
 }
 
 function predicateFunction(name: string, test: (value: RankValue) => boolean) {

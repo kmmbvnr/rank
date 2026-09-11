@@ -3,6 +3,20 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank mathematical functions', () => {
+    it('enumerates and counts positive divisors', () => {
+        expect(run('use numbers\n1 divisors')).toBe('1');
+        expect(run('use numbers\n12 divisors')).toBe('1 2 3 4 6 12');
+        expect(run([
+            'use numbers',
+            'use sequences',
+            '73513440 divisors count',
+        ].join('\n'))).toBe('768');
+        expect(run('use numbers\n3 in (12 divisors)')).toBe('true');
+        expect(run('use numbers\n5 in (12 divisors)')).toBe('false');
+        expect(() => run('use numbers\n0 divisors'))
+            .toThrowError('divisors expects a positive integer');
+    });
+
     it('uses postfix reductions and infix min/max chains', () => {
         expect(run('use numbers\n(array 3 1 2) max')).toBe('3');
         expect(run('use numbers\n(array 3 1 2) min')).toBe('1');

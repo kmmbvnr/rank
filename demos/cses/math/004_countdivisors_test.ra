@@ -1,0 +1,24 @@
+use testing
+
+test "official example"
+  use "004_countdivisors"
+  16 divisor_count equal 5
+  17 divisor_count equal 2
+  18 divisor_count equal 6
+end
+
+test "one has one divisor"
+  use "004_countdivisors"
+  1 divisor_count equal 1
+end
+
+test "perfect square counts root once"
+  use "004_countdivisors"
+  36 divisor_count equal 9
+  1000000 divisor_count equal 49
+end
+
+test "many prime powers compose"
+  use "004_countdivisors"
+  73513440 divisor_count equal 768
+end

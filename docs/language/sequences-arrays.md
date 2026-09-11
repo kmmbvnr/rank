@@ -589,6 +589,10 @@ A lazy sequence mask is also accepted by `count`. It returns the number of
 source items selected by the mask and lets the source plan provide a direct
 count without enumerating those items.
 
+A finite lazy source may define a direct cardinality count. The numbers module
+uses this hook for `N divisors count`; other numeric sequences still fail the
+boolean-cell requirement.
+
 Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
 between numeric values and broadcast over arrays:
 

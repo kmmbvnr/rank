@@ -64,7 +64,7 @@ function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
 }
 
 function countTrue(value: RankValue): bigint {
-    if (isRankSequenceMask(value)) {
+    if (isRankSequence(value)) {
         const planned = value.plan.reduce?.('count');
         if (planned !== undefined) {
             if (typeof planned !== 'bigint') {
@@ -72,6 +72,8 @@ function countTrue(value: RankValue): bigint {
             }
             return planned;
         }
+    }
+    if (isRankSequenceMask(value)) {
         let selected = 0n;
         for (const _ of value.plan.iterate()) selected += 1n;
         return selected;

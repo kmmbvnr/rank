@@ -1,0 +1,20 @@
+rem CSES 1713: Counting Divisors
+rem https://cses.fi/problemset/task/1713
+
+use io
+use numbers
+use ranges
+use sequences
+
+Count = stdin .integer
+
+for Query in 1 to Count
+  N = stdin .integer
+  N divisor_count print
+end
+
+
+rem Count divisors without an array.
+fun divisor_count N
+  return N divisors count
+end

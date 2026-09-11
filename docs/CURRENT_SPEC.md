@@ -2189,6 +2189,10 @@ A lazy sequence mask is also accepted by `count`. It returns the number of
 source items selected by the mask and lets the source plan provide a direct
 count without enumerating those items.
 
+A finite lazy source may define a direct cardinality count. The numbers module
+uses this hook for `N divisors count`; other numeric sequences still fail the
+boolean-cell requirement.
+
 Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
 between numeric values and broadcast over arrays:
 
@@ -3751,6 +3755,7 @@ gcd
 lcm
 powmod
 factors
+divisors
 multiple by
 min
 max
@@ -3873,6 +3878,23 @@ rem 2 2 3
 Factoring zero or a negative integer is an error. Factoring one produces an
 empty sequence.
 
+`divisors` accepts a positive integer and returns its positive divisors as a
+finite lazy sequence in ascending order:
+
+```rank
+Values = 12 divisors
+rem 1 2 3 4 6 12
+```
+
+The plan recognizes `count`, so the common composition below multiplies the
+prime exponents without materializing the divisors:
+
+```rank
+Count = N divisors count
+```
+
+Zero and negative integers are errors. The divisors of one contain only one.
+
 `gcd` and `lcm` use data-first application:
 
 ```rank
@@ -3938,6 +3960,10 @@ and zero, respectively. Known unbounded sequences are rejected.
 A lazy sequence mask is also accepted by `count`. It returns the number of
 source items selected by the mask and lets the source plan provide a direct
 count without enumerating those items.
+
+A finite lazy source may also define a direct cardinality count. For example,
+`N divisors count` returns the number of positive divisors without enumerating
+them. Other numeric sequences still fail the boolean-cell requirement.
 
 ## Random
 
