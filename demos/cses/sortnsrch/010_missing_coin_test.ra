@@ -1,0 +1,22 @@
+use testing
+
+test "official example"
+  use "010_missing_coin"
+  Coins = array 2 9 1 2 7
+  Coins missing_sum equal 6
+end
+
+test "consecutive sums extend fully"
+  use "010_missing_coin"
+  (array 1 1 1) missing_sum equal 4
+end
+
+test "gap begins at one"
+  use "010_missing_coin"
+  (array 5 2 9) missing_sum equal 1
+end
+
+test "stops at the first gap"
+  use "010_missing_coin"
+  (array 1 2 2 7) missing_sum equal 6
+end

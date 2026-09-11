@@ -1,0 +1,27 @@
+rem CSES 2183: Missing Coin Sum
+rem https://cses.fi/problemset/task/2183
+
+use io
+use sequences
+
+N = stdin .integer
+Coins = stdin .integer N array
+
+Coins missing_sum print
+
+
+rem Find the smallest unreachable sum.
+fun missing_sum Values
+  Coins = Values sort
+  Missing = 1
+
+  for Coin in Coins
+    if Coin greater Missing
+      break
+    end
+
+    Missing += Coin
+  end
+
+  return Missing
+end
