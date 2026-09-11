@@ -1,0 +1,80 @@
+rem CSES 2217: Collecting Numbers II
+rem https://cses.fi/problemset/task/2217
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+A = stdin .integer N array
+Raw = stdin .integer (M * 2) array
+Swaps = Raw (array M 2) reshape
+
+A Swaps collecting_updates print
+
+
+rem Update the round count after swaps.
+fun collecting_updates Values Swaps
+  A = Values copy
+  N = A len
+
+  for Value i in A
+    index Value = i
+  end
+
+  Rounds = 1
+
+  for Value in 1 until N
+    Next = Value + 1
+    if index Value greater index Next
+      Rounds += 1
+    end
+  end
+
+  for Swap in Swaps rank 1
+    I = Swap 0 - 1
+    J = Swap 1 - 1
+    X = A I
+    Y = A J
+
+    Edges = array X Y (X - 1) (Y - 1)
+    Edges = Edges unique
+
+    for Value in Edges
+      Valid = Value at least 1
+      Valid and= Value less N
+      if Valid
+        Next = Value + 1
+        Before = index Value
+        After = index Next
+        if Before greater After
+          Rounds -= 1
+        end
+      end
+    end
+
+    A I = Y
+    A J = X
+    index X = J
+    index Y = I
+
+    for Value in Edges
+      Valid = Value at least 1
+      Valid and= Value less N
+      if Valid
+        Next = Value + 1
+        Before = index Value
+        After = index Next
+        if Before greater After
+          Rounds += 1
+        end
+      end
+    end
+
+    queue push Rounds
+  end
+
+  return queue
+end

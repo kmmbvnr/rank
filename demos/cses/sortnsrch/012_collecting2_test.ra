@@ -1,0 +1,35 @@
+use testing
+
+test "official example"
+  use "012_collecting2"
+  A = array 4 2 1 5 3
+  Swaps = array shape 3 2
+    2 3
+    1 5
+    2 3
+  end
+  Actual = A Swaps collecting_updates
+  Actual equal array 2 3 4
+end
+
+test "self swap changes nothing"
+  use "012_collecting2"
+  A = array 3 1 2
+  Swaps = array shape 2 2
+    2 2
+    1 1
+  end
+  Actual = A Swaps collecting_updates
+  Actual equal array 2 2
+end
+
+test "swaps can restore order"
+  use "012_collecting2"
+  A = array 3 2 1
+  Swaps = array shape 2 2
+    1 3
+    1 1
+  end
+  Actual = A Swaps collecting_updates
+  Actual equal array 1 1
+end
