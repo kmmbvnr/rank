@@ -17,6 +17,40 @@ function items(value: RankValue): RankValue[] {
 }
 
 describe('numeric collection kernels', () => {
+    it('guards integer power and leaves real domains to the scalar fallback', () => {
+        const calls: RankValue[][] = [];
+        const power = numericKernel('**', (left, right) => {
+            calls.push([left, right]);
+            return 'fallback';
+        });
+        expect(power(2n ** 70n, 3n)).toBe(2n ** 210n);
+        expect(power(0n, 0n)).toBe(1n);
+        expect(power(0n, -1n)).toBe('fallback');
+        expect(power(-2, 0.5)).toBe('fallback');
+        expect(power('bad', 2n)).toBe('fallback');
+        expect(calls).toEqual([[0n, -1n], [-2, 0.5], ['bad', 2n]]);
+    });
+
+    it('keeps sequence arithmetic lazy, exact and repeatable', () => {
+        const runtime = new Interpreter();
+        expect(runtime.execute(`use ranges
+use numbers
+R = 1 to 4
+Squares = R ** 2
+A = Squares sum
+B = Squares sum
+A + B`)).toBe(60n);
+        expect(runtime.execute('use ranges\nuse numbers\n((1 to 3) + (4 to 6)) sum')).toBe(21n);
+        expect(runtime.execute('use ranges\nuse numbers\n(10 - (1 to 3)) sum')).toBe(24n);
+        expect(runtime.execute('use ranges\nuse numbers\n((1 to 3) * 0.5) sum')).toBe(3);
+        expect(runtime.execute('use ranges\nuse numbers\n((1 until 1) ** (-1)) sum')).toBe(0n);
+        expect(() => runtime.execute('use ranges\nuse numbers\n((0 to 1) ** (-1)) sum'))
+            .toThrow('zero cannot be raised to a negative power');
+        expect(() => runtime.execute('use ranges\nuse numbers\n((-2 to -1) ** 0.5) sum'))
+            .toThrow('power result is not real');
+        runtime.dispose();
+    });
+
     for (const operator of ['+', '-', '*']) {
         it(`matches scalar ${operator} for mixed numbers and floating-point edge cases`, () => {
             const runtime = new Interpreter();

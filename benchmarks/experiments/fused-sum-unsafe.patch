@@ -1,0 +1,132 @@
+diff --git a/packages/interpreter/src/fused-reduction.ts b/packages/interpreter/src/fused-reduction.ts
+index 6e4ed04..c03a20b 100644
+--- a/packages/interpreter/src/fused-reduction.ts
++++ b/packages/interpreter/src/fused-reduction.ts
+@@ -3,6 +3,7 @@ import {
+     isUnaryExpression, type Expression,
+ } from 'rank-language';
+ import { numericKernel } from './numeric-kernels.js';
++import { expectNumeric } from './modules/shared.js';
+ import { isRankArray, type RankValue } from './value.js';
+ 
+ type Operation = (left: RankValue, right: RankValue) => RankValue;
+@@ -14,9 +15,12 @@ type Instruction = { readonly read: () => RankValue } | {
+     readonly operation: Operation;
+ };
+ 
+-interface Context {
++interface ArithmeticContext {
+     readonly prepareLeaf: (expression: Expression) => () => RankValue;
+     readonly binary: (operator: string, left: RankValue, right: RankValue) => RankValue;
++}
++
++interface Context extends ArithmeticContext {
+     readonly reduce: (value: RankValue) => RankValue;
+ }
+ 
+@@ -27,6 +31,45 @@ export function compileFusedReduction(
+     context: Context,
+ ): (() => RankValue) | undefined {
+     if (!['+', '-', '*'].includes(reducer)) return undefined;
++    const reduce = numericKernel(reducer, (a, b) => context.binary(reducer, a, b));
++    return compileArithmeticFold(source, context, (result, read, size) => {
++        if (!read || size === 0) return context.reduce(result);
++        let accumulated = read(0);
++        for (let index = 1; index < size; index += 1) accumulated = reduce(accumulated, read(index));
++        return accumulated;
++    });
++}
++
++/** Resolve the consumer after preparing operands, before reading array elements. */
++export function compileFusedSum<T>(
++    source: Expression,
++    context: ArithmeticContext,
++    consume: (value: RankValue, sum: (() => RankValue) | undefined) => T,
++): (() => T) | undefined {
++    return compileArithmeticFold(source, context, (value, read, size) => consume(value, read ? () => {
++        let total: bigint | number = 0n;
++        let invalid: unknown;
++        for (let index = 0; index < size; index += 1) {
++            // Ordinary sum forces the full arithmetic array before type checks.
++            // Arithmetic/read errors still take precedence over a bad summand.
++            const item = read(index);
++            if (invalid !== undefined) continue;
++            try {
++                const numeric = expectNumeric(item);
++                total = typeof total === 'bigint' && typeof numeric === 'bigint'
++                    ? total + numeric : Number(total) + Number(numeric);
++            } catch (error) { invalid = error; }
++        }
++        if (invalid !== undefined) throw invalid;
++        return total;
++    } : undefined));
++}
++
++function compileArithmeticFold<T>(
++    source: Expression,
++    context: ArithmeticContext,
++    finish: (value: RankValue, read: Reader | undefined, size: number) => T,
++): (() => T) | undefined {
+     const instructions: Instruction[] = [];
+     const visit = (expression: Expression): number | undefined => {
+         if (isParenthesizedExpression(expression)) return visit(expression.value);
+@@ -50,7 +93,6 @@ export function compileFusedReduction(
+     };
+     const root = visit(source);
+     if (root === undefined || 'read' in instructions[root]) return undefined;
+-    const reduce = numericKernel(reducer, (a, b) => context.binary(reducer, a, b));
+ 
+     return () => {
+         const values: RankValue[] = [];
+@@ -93,14 +135,8 @@ export function compileFusedReduction(
+             } else readers.push(() => value);
+         }
+         const result = values[root];
+-        if (!eligible || !isRankArray(result)) return context.reduce(result);
++        if (!eligible || !isRankArray(result)) return finish(result, undefined, 0);
+         const size = result.shape.reduce((product, dimension) => product * dimension, 1);
+-        if (size === 0) return context.reduce(result);
+-        let accumulated: RankValue = 0n;
+-        for (let index = 0; index < size; index += 1) {
+-            const value = readers[root](index);
+-            accumulated = index === 0 ? value : reduce(accumulated, value);
+-        }
+-        return accumulated;
++        return finish(result, readers[root], size);
+     };
+ }
+diff --git a/packages/interpreter/src/interpreter.ts b/packages/interpreter/src/interpreter.ts
+index 9e4b007..ddfddfc 100644
+--- a/packages/interpreter/src/interpreter.ts
++++ b/packages/interpreter/src/interpreter.ts
+@@ -8,7 +8,7 @@ import { RankDeque, RankHeap, pushCollection } from './containers.js';
+ import { prepareFunction } from './prepared-function.js';
+ import { isKnownFileFree, ResourceMap } from './resource-summary.js';
+ import { numericKernel } from './numeric-kernels.js';
+-import { compileFusedReduction } from './fused-reduction.js';
++import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
+ import {
+     isAddStatement,
+     isAllAxisExpression,
+@@ -1598,6 +1598,21 @@ export class Interpreter {
+                     ));
+                 };
+             }
++            if (parts.length === 2 && isNamed(parts[1], 'sum')) {
++                const fused = compileFusedSum(parts[0], {
++                    prepareLeaf: source => interpreter.compileDirectExpression(source)!,
++                    binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
++                }, (value, sum) => {
++                    const fn = interpreter.resolve('sum');
++                    if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.numbers.sum)) {
++                        // Builtin sum always returns a scalar, including when
++                        // a lazy source needs its ordinary materializing path.
++                        return completed(sum ? sum() : fn.call([value]));
++                    }
++                    return interpreter.apply([value, fn], missing, 0, [], tail);
++                });
++                if (fused) return fused;
++            }
+             const directParts = parts.map(part => isAllAxisExpression(part)
+                 ? () => ALL_AXIS : this.compileDirectExpression(part));
+             if (directParts.every(part => part !== undefined)) {

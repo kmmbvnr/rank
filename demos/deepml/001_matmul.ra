@@ -11,7 +11,7 @@ fun matrix_dot_vector A B
   end
 
   for Row in A
-    queue push Row * B sum
+    queue push (Row * B) sum
   end
 
   return queue

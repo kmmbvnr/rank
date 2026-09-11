@@ -1,0 +1,233 @@
+{
+  "metadata": {
+    "date": "2026-09-11T06:34:20.448Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+    "sources": {
+      "euler": {
+        "path": "demos/euler/006_sumsquarediff.ra",
+        "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+      },
+      "matvec": {
+        "path": "demos/deepml/001_matmul.ra",
+        "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+      },
+      "kmeans": {
+        "path": "demos/deepml/017_kmeans.ra",
+        "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+      },
+      "row": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "column": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "matmul": {
+        "path": "demos/deepml/009_matmul.ra",
+        "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+      },
+      "gradient": {
+        "path": "demos/deepml/015_gd.ra",
+        "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+      }
+    }
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-demo-roadmap/",
+      "revision": "007f0858fca37dfb201aaaee52d5fa27c8054305",
+      "dirty": true
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-before-storage",
+      "revision": "d03c2bd1c562c311d8203b4c3d27a21fdd9f02d2",
+      "dirty": false
+    }
+  },
+  "results": [
+    {
+      "name": "kmeans",
+      "scale": 0,
+      "version": "baseline",
+      "warmProcessMs": 194.024291,
+      "size": 16,
+      "firstMs": 3.9884169999999983,
+      "warmMs": [
+        0.7640839999999969,
+        0.6057919999999797,
+        0.5899589999999932,
+        0.5297079999999994,
+        0.501291000000009
+      ],
+      "memory": {
+        "rss": 135299072,
+        "heapTotal": 59686912,
+        "heapUsed": 33581248,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 132144,
+      "coldProcessMs": [
+        155.989958,
+        152.23395800000014,
+        155.93450000000007,
+        152.48675000000003,
+        152.61187500000005
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 0,
+      "version": "candidate",
+      "warmProcessMs": 161.440792,
+      "size": 16,
+      "firstMs": 4.418500000000023,
+      "warmMs": [
+        0.8334169999999972,
+        0.6738749999999811,
+        0.6619159999999908,
+        0.6554160000000024,
+        0.5673749999999984
+      ],
+      "memory": {
+        "rss": 136478720,
+        "heapTotal": 59949056,
+        "heapUsed": 40525896,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 133280,
+      "coldProcessMs": [
+        154.9905,
+        155.766792,
+        153.72979099999998,
+        155.40499999999997,
+        152.9917079999998
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 1,
+      "version": "candidate",
+      "warmProcessMs": 218.33866699999976,
+      "size": 256,
+      "firstMs": 13.536500000000018,
+      "warmMs": [
+        7.229583000000019,
+        6.2954579999999964,
+        7.160790999999989,
+        7.497457999999995,
+        4.860624999999999
+      ],
+      "memory": {
+        "rss": 207503360,
+        "heapTotal": 190939136,
+        "heapUsed": 83749272,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 202656,
+      "coldProcessMs": [
+        161.9369160000001,
+        165.03129100000024,
+        161.34645799999998,
+        160.12487499999997,
+        160.12966700000015
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 1,
+      "version": "baseline",
+      "warmProcessMs": 217.93612500000017,
+      "size": 256,
+      "firstMs": 12.78200000000001,
+      "warmMs": [
+        7.792292000000003,
+        5.941958,
+        7.976583000000005,
+        5.477624999999989,
+        8.100875000000002
+      ],
+      "memory": {
+        "rss": 209027072,
+        "heapTotal": 192249856,
+        "heapUsed": 75806032,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 204128,
+      "coldProcessMs": [
+        158.69712500000014,
+        161.20699999999988,
+        164.6017499999998,
+        160.80116700000008,
+        162.71170800000027
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 2,
+      "version": "baseline",
+      "warmProcessMs": 523.0409999999997,
+      "size": 2048,
+      "firstMs": 58.672458000000006,
+      "warmMs": [
+        47.14345800000001,
+        41.75366700000001,
+        43.85383300000001,
+        39.70583399999998,
+        39.06012500000003
+      ],
+      "memory": {
+        "rss": 406093824,
+        "heapTotal": 228851712,
+        "heapUsed": 139107896,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 397104,
+      "coldProcessMs": [
+        212.15087500000027,
+        212.41891600000054,
+        211.25954199999978,
+        214.00204099999974,
+        212.56312500000058
+      ]
+    },
+    {
+      "name": "kmeans",
+      "scale": 2,
+      "version": "candidate",
+      "warmProcessMs": 537.3727080000008,
+      "size": 2048,
+      "firstMs": 59.75241599999998,
+      "warmMs": [
+        47.555916999999965,
+        41.63287500000001,
+        44.80058300000002,
+        42.42229100000003,
+        43.16362499999997
+      ],
+      "memory": {
+        "rss": 392888320,
+        "heapTotal": 258473984,
+        "heapUsed": 155034168,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 385088,
+      "coldProcessMs": [
+        214.06983300000047,
+        211.2717909999992,
+        211.9019589999998,
+        217.19958300000053,
+        216.8415840000007
+      ]
+    }
+  ]
+}
