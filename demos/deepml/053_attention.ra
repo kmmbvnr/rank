@@ -1,0 +1,30 @@
+rem Deep-ML 53: Self Attention
+rem https://www.deep-ml.com/problems/53
+
+use linalg
+use numbers
+use sequences
+
+fun compute_qkv X Wq Wk Wv
+  return record
+    .q = X Wq matmul
+    .k = X Wk matmul
+    .v = X Wv matmul
+  end
+end
+
+fun self_attention Q K V
+  Width = Q len axis 1
+  Kt = K transpose
+  Scores = Q Kt matmul
+  Scores /= Width sqrt
+
+  Tops = Scores max axis 1
+  Shift = Scores transpose - Tops
+  Exps = Shift transpose exp
+  Totals = Exps sum axis 1
+  Weights = Exps transpose / Totals
+  Weights = Weights transpose
+
+  return Weights V matmul
+end

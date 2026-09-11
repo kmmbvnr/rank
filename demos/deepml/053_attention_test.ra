@@ -1,0 +1,92 @@
+use testing
+
+test "official identity projections"
+  use "053_attention"
+  use numbers
+
+  X = array shape 2 2
+    1 0
+    0 1
+  end
+  I = array shape 2 2
+    1 0
+    0 1
+  end
+  Wv = array shape 2 2
+    1 2
+    3 4
+  end
+
+  Parts = X I I Wv compute_qkv
+  Q = Parts .q
+  K = Parts .k
+  V = Parts .v
+  Actual = Q K V self_attention round 6
+  Expected = array shape 2 2
+    1.660477 2.660477
+    2.339523 3.339523
+  end
+  (Actual equal Expected) and reduce
+end
+
+test "official unequal tokens"
+  use "053_attention"
+  use numbers
+
+  X = array shape 2 2
+    1 1
+    1 0
+  end
+  I = array shape 2 2
+    1 0
+    0 1
+  end
+  Wv = array shape 2 2
+    1 2
+    3 4
+  end
+
+  Parts = X I I Wv compute_qkv
+  Q = Parts .q
+  K = Parts .k
+  V = Parts .v
+  Actual = Q K V self_attention round 8
+  Expected = array shape 2 2
+    3.00928465 4.67904620
+    2.50000000 4.00000000
+  end
+  (Actual equal Expected) and reduce
+end
+
+test "official three dimensional case"
+  use "053_attention"
+  use numbers
+
+  X = array shape 3 3
+    1 0 1
+    0 1 1
+    1 1 0
+  end
+  W = array shape 3 3
+    1 1 0
+    0 1 1
+    1 0 1
+  end
+  Wv = array shape 3 3
+    1 2 3
+    4 5 6
+    7 8 9
+  end
+
+  Parts = X W W Wv compute_qkv
+  Q = Parts .q
+  K = Parts .k
+  V = Parts .v
+  Actual = Q K V self_attention round 8
+  Expected = array shape 3 3
+    8.00000000 10.00000000 12.00000000
+    8.61987385 10.61987385 12.61987385
+    7.38012615 9.38012615 11.38012615
+  end
+  (Actual equal Expected) and reduce
+end
