@@ -67,27 +67,6 @@ Letter = "A😀Б" 1
 rem 😀
 ```
 
-## Mathematical compact indexing
-
-For compact mathematical code, a capital letter followed by lowercase indices
-denotes indexed access:
-
-```rank
-Ai
-Aij
-DPij
-```
-
-Examples:
-
-```rank
-DP00 = true
-DPij = DPi q
-```
-
-This convention is intended for short mathematical object names. Longer names
-continue to use ordinary spaced addressing.
-
 ## Iteration with value and index
 
 ```rank

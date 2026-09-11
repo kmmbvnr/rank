@@ -184,14 +184,3 @@ fun palindrome X
   return X equal Back // 10
 end
 ```
-
-## Regular expression matching
-
-The DP notation can use compact mathematical indexing:
-
-```rank
-DP00 = true
-DPij = DPi q
-```
-
-This is one reason compact `Aij` notation exists in Rank.

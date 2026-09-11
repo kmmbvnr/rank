@@ -754,27 +754,6 @@ Letter = "A😀Б" 1
 rem 😀
 ```
 
-## Mathematical compact indexing
-
-For compact mathematical code, a capital letter followed by lowercase indices
-denotes indexed access:
-
-```rank
-Ai
-Aij
-DPij
-```
-
-Examples:
-
-```rank
-DP00 = true
-DPij = DPi q
-```
-
-This convention is intended for short mathematical object names. Longer names
-continue to use ordinary spaced addressing.
-
 ## Iteration with value and index
 
 ```rank
@@ -1723,10 +1702,6 @@ Y = M i j
 Z = T i j k
 ```
 
-The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
-same addressing meaning. The interpreter currently implements the spaced form;
-general compact addressing remains a later step.
-
 A material dense array can be changed through the same address:
 
 ```rank
@@ -2182,7 +2157,7 @@ itself denotes that lazily-created local instance.
 `index` is a sparse keyed structure.
 
 ```rank
-index Ai = i
+index Value = Position
 ```
 
 Read:
@@ -4243,16 +4218,6 @@ fun palindrome X
 end
 ```
 
-## Regular expression matching
-
-The DP notation can use compact mathematical indexing:
-
-```rank
-DP00 = true
-DPij = DPi q
-```
-
-This is one reason compact `Aij` notation exists in Rank.
 
 ---
 

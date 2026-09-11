@@ -53,7 +53,7 @@ itself denotes that lazily-created local instance.
 `index` is a sparse keyed structure.
 
 ```rank
-index Ai = i
+index Value = Position
 ```
 
 Read:

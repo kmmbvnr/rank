@@ -225,10 +225,6 @@ Y = M i j
 Z = T i j k
 ```
 
-The compact mathematical forms `Ai`, `Mij`, and `Tijk` are reserved for the
-same addressing meaning. The interpreter currently implements the spaced form;
-general compact addressing remains a later step.
-
 A material dense array can be changed through the same address:
 
 ```rank
