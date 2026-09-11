@@ -1,0 +1,33 @@
+rem CSES 1081: Common Divisors
+rem https://cses.fi/problemset/task/1081
+
+use algo
+use io
+use numbers
+
+N = stdin .integer
+Values = stdin .integer N
+
+Values largest_gcd print
+
+
+rem Find the best divisor shared twice.
+fun largest_gcd Values
+  Counts = new counter
+  Seen = new counter
+  Shared = new set
+
+  for Value in Values
+    Seen add Value
+    if Seen Value at most 2
+      for Divisor in Value divisors
+        Counts add Divisor
+        if Counts Divisor equal 2
+          Shared add Divisor
+        end
+      end
+    end
+  end
+
+  return Shared max
+end

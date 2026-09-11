@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "005_commondivisors"
+  Values = array 3 14 15 7 9
+  Values largest_gcd equal 7
+end
+
+test "equal values keep themselves"
+  use "005_commondivisors"
+  Values = array 12 5 12
+  Values largest_gcd equal 12
+end
+
+test "coprime values share one"
+  use "005_commondivisors"
+  Values = array 5 7 11 13
+  Values largest_gcd equal 1
+end
+
+test "chooses best pair only"
+  use "005_commondivisors"
+  Values = array 6 10 15 25
+  Values largest_gcd equal 5
+end
