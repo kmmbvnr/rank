@@ -790,3 +790,12 @@ Mixed arrays decline before writes. Empty vectors retain ordinary behavior when
 no element type can be inferred. Text-array mutation and creation are not yet
 lowered. `textArrayLoopCompilation: false` disables the text-vector specialization
 while keeping scalar text loops available.
+
+### Direct text iteration in compiled regions
+
+Compiled text loops can use JavaScript's string iterator directly after the usual
+binding checks. Both it and the previous code-point array preserve Unicode code
+points (including lone surrogates); immutable strings preserve the source when its
+variable is reassigned. An early exit no longer needs to allocate an array for the
+unvisited suffix. Interpreted loops keep their existing iterator path.
+`directTextIteration: false` restores code-point array construction for comparison.

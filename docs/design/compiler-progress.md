@@ -1247,3 +1247,43 @@ scalar-text baseline. One pair takes 27.696 s off and 27.736 s on; no whole-suit
 speedup is established.
 
 [Suite results](../../benchmarks/baselines/2026-09-12-text-arrays-suite.json).
+
+## Direct string iteration without code-point arrays
+
+Compiled loops now use the string iterator after ordinary binding validation,
+avoiding allocation of a code-point array. Strings are immutable, so iteration
+retains the original source on reassignment. Three differential cases cover
+supplementary/combining characters, lone surrogates and empty strings against the
+previous path and independently calculated code-point counts/last values. Existing
+text-loop tests cover early return, source reassignment and validation errors.
+All 44 language + 836 interpreter tests pass.
+
+Five alternating samples toggle only `directTextIteration`; a nine-sample repeat
+checks small and mixed full-traversal differences in the first run. Counters are
+disabled and timing includes input construction, parsing/loading, compilation,
+execution and validation. The first-match compiler fixture now also receives text
+with a known first/last matching code point. It is not an unchanged contest demo.
+
+| Task | First off/on medians ms | Repeat off/on medians ms |
+| --- | ---: | ---: |
+| Text first match, first of 200000 | 0.815 / 0.280 | 0.797 / 0.237 |
+| Text first match, last of 200000 | 4.752 / 4.443 | 5.040 / 4.206 |
+| Grid Paths 500 by 500 | 17.611 / 17.215 | 17.179 / 16.801 |
+| Edit Distance 300 each | 9.095 / 9.493 | 9.027 / 8.969 |
+| Integer first match, first (control) | 4.804 / 4.763 | 4.864 / 4.885 |
+| Integer first match, last (control) | 8.968 / 9.085 | 9.048 / 9.036 |
+
+The clear benefit is early text exit (about 3.36x in the repeat). Full text search
+also improves in both runs, while the contest examples show small changes and
+Edit Distance has no consistent direction. Coverage stays at one compiled region
+per task in both modes; this change reduces iteration work, not compiler coverage.
+
+[First samples](../../benchmarks/baselines/2026-09-12-direct-text-focused.json),
+[repeat](../../benchmarks/baselines/2026-09-12-direct-text-repeat.json),
+[coverage](../../benchmarks/baselines/2026-09-12-direct-text-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests. All digests agree with the
+preceding text-vector baseline. One pair takes 27.788 s off and 27.791 s on;
+no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-direct-text-suite.json).

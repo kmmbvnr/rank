@@ -1,0 +1,893 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "textiteration",
+  "counters": false,
+  "samples": 9,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 136.161083,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 49.0095,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 5.8746249999999804,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 37.49087500000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 28.026832999999982,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.368416000000025,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.833125000000052,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 55.40866699999998,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.42045799999999645,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 5.402000000000044,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 20.08499999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 15.273750000000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.006792000000019,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 8.960500000000025,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 48.377624999999966,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.3484579999999937,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.344791999999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 19.626166000000012,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 10.007000000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.828625000000045,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.056707999999958,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 51.195875,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.8454169999999976,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 5.689875000000029,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 21.21312499999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.389290999999957,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.8722080000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.048417000000029,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 46.31712500000003,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.7970839999999839,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 5.111000000000047,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.122082999999975,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.254999999999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.8444169999999644,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.092208000000028,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 47.20558399999993,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.25950000000000273,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.203415999999947,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 19.66391600000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.968874999999969,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.8792909999999665,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.137040999999954,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 44.409374999999955,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.22958299999993415,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.179707999999891,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.641166,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.904124999999908,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.192332999999962,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.175250000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 46.1812910000001,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.8324999999999818,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 5.039749999999913,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.961291999999958,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.359916999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.848124999999982,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.038665999999921,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 46.01375000000007,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.8249170000000277,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.719416000000024,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.483125000000086,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.87824999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.923584000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.093917000000033,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 43.86170900000002,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.21945900000002894,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.206417000000101,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.906208000000106,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.688625000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.8024580000000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 8.954667000000086,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 5,
+      "ms": 43.73208299999999,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.4120830000000524,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.203875000000039,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.48508300000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.57604200000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.920832999999902,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.03633400000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 5,
+      "ms": 45.55270900000005,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.7826249999999391,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 5.151917000000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.732250000000022,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.027417000000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.863958000000025,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 8.902958999999896,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 6,
+      "ms": 45.623334,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.781833000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.672125000000051,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.408916999999974,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.78516599999989,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.851249999999936,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.037041999999929,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 6,
+      "ms": 44.7711250000001,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.218166999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.182000000000016,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.80083300000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.730916999999977,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.8325419999999895,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 8.933499999999981,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 7,
+      "ms": 44.86420799999996,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.23087499999996908,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.401207999999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.224958000000015,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.759166999999934,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.083666999999991,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.096124999999915,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 7,
+      "ms": 45.97929199999999,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.7804579999999532,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.678541999999993,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.17883299999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.838583999999969,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.002292000000011,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.41979200000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 8,
+      "ms": 45.021749999999884,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.7556249999998954,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.6739579999999705,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.940875000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.73370900000009,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.846374999999966,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 9.002917000000025,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 8,
+      "ms": 43.8932920000002,
+      "entries": [
+        {
+          "name": "Text first match, 200000 code points, first",
+          "ms": 0.23670799999990777,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "Text first match, 200000 code points, last",
+          "ms": 4.423541999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 16.383584000000155,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.937791999999945,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 4.884874999999965,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 8.949332999999797,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    }
+  ]
+}

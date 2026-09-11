@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -61,6 +61,7 @@ function emptyGridPaths(size) {
   return paths % 1000000007n;
 }
 const tasks = [
+  ...['first', 'last'].map(position => ({ name: `Text first match, 200000 code points, ${position}`, path: 'benchmarks/programs/loop-return.ra', fn: 'first_match', expected: position === 'first' ? 0n : 199999n, args: () => [position === 'first' ? '😀' + 'a'.repeat(199999) : 'a'.repeat(199999) + '😀', '😀'] })),
   { name: 'Grid Paths, 500 by 500 open cells', path: 'demos/cses/dynamic/006_gridpaths.ra', fn: 'grid_paths', expected: emptyGridPaths(500), args: () => [array(Array(500).fill('.'.repeat(500)))] },
   { name: 'Edit Distance, 300 distinct characters each', path: 'demos/cses/dynamic/010_editdistance.ra', fn: 'edit_distance', expected: 300n, args: () => ['a'.repeat(300), 'b'.repeat(300)] },
   { name: 'Stick Lengths, 200000 alternating lengths', path: 'demos/cses/sortnsrch/009_sticks.ra', fn: 'stick_cost', expected: 100000000n, args: () => [array(Array.from({length:200000}, (_,i)=>i%2?1001n:1n))] },
@@ -104,6 +105,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      directTextIteration: backend === 'textiteration' ? enabled : undefined,
       textArrayLoopCompilation: backend === 'textarrays' ? enabled : undefined,
       textLoopCompilation: backend === 'textloops' ? enabled : undefined,
       absoluteLoopCompilation: backend === 'absolute' ? enabled : undefined,
@@ -126,7 +128,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

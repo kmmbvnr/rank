@@ -1887,3 +1887,25 @@ end`);
         expect(result.loops).toBe(1);
     });
 });
+
+
+describe('direct compiled text iteration', () => {
+    it.each(['😀é', '\ud800x\udc00', ''])('preserves code point iteration for %j', text => {
+        const results = [false, true].map(directTextIteration => {
+            const runtime = new Interpreter(undefined, { directTextIteration });
+            runtime.variables.set('Text', text);
+            try {
+                runtime.execute(`Total = 0
+Last = ""
+for C i in Text
+  Total += i + 1
+  Last = C
+end`);
+                return [runtime.variables.get('Total'), runtime.variables.get('Last')];
+            } finally { runtime.dispose(); }
+        });
+        const chars = [...text];
+        expect(results[1]).toEqual(results[0]);
+        expect(results[1]).toEqual([BigInt(chars.length * (chars.length + 1) / 2), chars.at(-1) ?? '']);
+    });
+});
