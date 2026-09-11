@@ -359,3 +359,50 @@ whole integer-loop pass, including conditional loops; it does not isolate the
 range extension or establish a stable whole-suite speedup.
 
 [Full-suite verification](../../benchmarks/baselines/2026-09-11-range-loop-suite.json)
+
+
+## Constant integer powers in whole loops
+
+The integer loop compiler now lowers `**` with a nonnegative integer literal
+exponent, including a parenthesized literal. It preserves `-X ** 2` versus
+`(-X) ** 2`, exact bigint results and checked writes. Dynamic, negative and real
+exponents fall back before loop execution. No sample or language syntax changed.
+
+Ten differential cases cover precedence, large results, unsupported exponents
+and partial writes on type errors. TypeScript tests: 44 language + 649 interpreter.
+
+Euler 28, calling the unchanged `spiral_diagonal_sum` with Size=200001:
+
+| Measurement | Compiler off | Compiler on |
+| --- | ---: | ---: |
+| Median of five alternating samples | 31.172 ms | 8.285 ms |
+
+This is about 3.76x faster. Timings include parsing, module loading, compilation,
+execution and result validation; counters were disabled. The answer is also
+checked against an independent closed form. A separate instrumented run confirms
+one compiled loop. The ordinary Size=1001 sample is too small for this larger
+benchmark's gain to imply a meaningful whole-suite improvement.
+
+[Timings](../../benchmarks/baselines/2026-09-11-integer-power-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-11-integer-power-coverage.json).
+
+### Next candidates from the preceding suite profile
+
+The range-loop enabled baseline puts Euler 14 Collatz at 8.9 s, AoC 2015 Day 6
+Lights at 4.7 s and Euler 30 Digit Powers at 3.2 s. These are priorities to
+investigate, not measured promises of future acceleration:
+
+- Collatz needs branches, container reads/writes and stack operations in loops.
+- Lights needs nested loops, branches and multidimensional index updates.
+- Digit Powers needs fusion across text-to-digit conversion, power and reduction.
+
+Keep the existing samples and compare observable results and error behavior
+while widening compiler coverage. These stages require no new language syntax.
+
+Full-suite verification passes 306 files / 1054 tests in both modes.
+Complete result digests match the preceding committed range-loop baseline.
+One pair took 35.017 s off and 38.349 s on; it does not establish a
+stable whole-suite speedup. A short independent coverage probe overlapped the
+off run, so this pair is primarily correctness evidence.
+
+[Full suite](../../benchmarks/baselines/2026-09-11-integer-power-suite.json).

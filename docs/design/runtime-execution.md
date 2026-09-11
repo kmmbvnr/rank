@@ -427,7 +427,9 @@ fixed-type checks, lexical binding behavior and partial state if a later operati
 fails. Errors carry the original body-command or loop-condition location.
 
 The scope includes conditional and `to`/`until` range loops with at most 32 assignment commands,
-integer arithmetic `+ - * // %`, comparisons and boolean conditions. Calls, indexing,
+integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
+comparisons and boolean conditions. Power preserves sign precedence and exact
+bigint arithmetic. Dynamic or negative exponents retain reference execution. Calls, indexing,
 branches, floating-point operations and other iterable loops retain the old path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`

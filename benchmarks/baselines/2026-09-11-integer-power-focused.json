@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 92.984417,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 92.70975,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 9.601166000000006,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 9.5445,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 8.340374999999995,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 8.28483399999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 33.202416,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 33.143834,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 31.250459000000006,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 31.172082999999986,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 8.391500000000036,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 8.330332999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 7.376874999999984,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 7.324374999999975,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 30.79195900000002,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 30.74087499999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 30.53970899999996,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 30.477332999999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 7.112874999999974,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 7.070249999999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    }
+  ]
+}

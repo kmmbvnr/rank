@@ -58,6 +58,19 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
+        if (e.operator === '**') {
+            let exponent = e.right;
+            while (isParenthesizedExpression(exponent)) exponent = exponent.value;
+            if (!isNumberLiteral(exponent) || typeof exponent.value !== 'bigint' || exponent.value < 0n) return undefined;
+            // Power binds before an unparenthesized sign, as in the evaluator.
+            const signed = isUnaryExpression(e.left) && ['+', '-'].includes(e.left.operator) ? e.left : undefined;
+            const base = emit(signed ? signed.operand : e.left, lines);
+            if (base?.type !== 'integer') return undefined;
+            const name = `v${serial++}`;
+            const negative = signed?.operator === '-';
+            lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
+            return { code: name, type: 'integer' };
+        }
         const left = emit(e.left, lines), right = emit(e.right, lines);
         if (!left || !right) return undefined;
         const a = left.code, b = right.code, op = e.operator;

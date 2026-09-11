@@ -29,6 +29,7 @@ const files = path => readdirSync(path, { withFileTypes: true }).flatMap(e => {
 }).sort();
 const array = (items, shape = [items.length]) => ({ kind: 'array', items, shape });
 const tasks = [
+  { name: 'Euler 28 Size=200001', path: 'demos/euler/028_spiraldiagonals.ra', fn: 'spiral_diagonal_sum', expected: 1n + 16n * 100000n * 100001n * 200001n / 6n + 4n * 100000n * 100001n / 2n + 4n * 100000n, args: () => [200001n] },
   { name: 'Four Squares square_sum helper, 200000 values', path: 'demos/cses/math/026_foursquares.ra', fn: 'square_sum', expected: 199999n * 200000n * 399999n / 6n, args: () => [array(Array.from({length:200000}, (_,i)=>BigInt(i)))] },
   { name: 'Stick Game n=100000 k=100', path: 'demos/cses/math/032_stickgame.ra', input: `100000 100 ${Array.from({length:100}, (_,i)=>i+1).join(' ')}` },
   { name: 'Jacobi 128x128, 10 iterations', path: 'demos/deepml/011_jacobi.ra', fn: 'jacobi', args: () => [array(Array.from({length:128*128}, (_,i)=>i%129===0?2:0), [128,128]), array(Array(128).fill(2)), 10n] },

@@ -150,3 +150,45 @@ Count
         expect(compare(source)).toHaveProperty('error');
     });
 });
+
+
+describe('compiled integer powers', () => {
+    it.each([
+        ['-I ** 2', '-9'], ['(-I) ** 2', '9'],
+        ['+I ** 2', '9'], ['I ** (0)', '1'],
+        ['I ** 40', '12157665459056928801'],
+        ['I ** 2 ** 3', '6561'],
+    ])('preserves precedence and exact integers: %s', (expression, expected) => {
+        const result = compare(`use ranges
+Total = 0
+for I in 3 to 3
+  Total = ${expression}
+end
+Total`);
+        expect(result.value).toBe(expected);
+        // A computed exponent remains on the reference path.
+        expect(result.loops).toBe(expression === 'I ** 2 ** 3' ? 0 : 1);
+    });
+
+    it.each(['I ** -1', 'I ** N', 'I ** 0.5'])('declines %s before execution', expression => {
+        const result = compare(`use ranges
+N = 2
+for I in 1 to 3
+  Answer = ${expression}
+end
+Answer`);
+        expect(result.loops).toBe(0);
+    });
+
+    it('preserves partial writes and fixed-type errors', () => {
+        const result = compare(`use ranges
+Answer = 0.0
+Done = 0
+for I in 1 to 3
+  Done = I ** 2
+  Answer = I ** 2
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});
