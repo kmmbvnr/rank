@@ -8,8 +8,10 @@ raw-result links are in [performance measurements](performance-measurements.md).
 The unchanged numerical suite, independent oracles, sizes, profiles and gradient
 feature/iteration variants are implemented. Keep them as controls. Separate CSES
 sorting/container compute from input/output before choosing its next hot path.
-Investigate the small-input and named-intermediate fusion costs before widening
-fusion. Recheck aggregate demo performance against main before delivery.
+Keep small-input and named-intermediate controls when widening fusion. The
+latest isolated real snapshot controls retained a 3–4% cost with explicit GC;
+do not add complex producer tracking solely for that gain. Recheck aggregate
+demo performance against main before delivery.
 
 Why: timeout smoke checks alone cannot identify a bottleneck or establish that
 an optimization preserves performance elsewhere.

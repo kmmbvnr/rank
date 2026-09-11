@@ -7,7 +7,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const options = process.argv.slice(2);
 for (const option of options) {
-  if (!['--quick', '--json', '--fusion'].includes(option) && !option.startsWith('--module=') && !option.startsWith('--storage=')) {
+  if (!['--quick', '--json', '--fusion'].includes(option)
+      && !['--module=', '--storage=', '--only=', '--kind=', '--size='].some(prefix => option.startsWith(prefix))) {
     throw new Error(`Unknown option: ${option}`);
   }
 }
@@ -22,7 +23,15 @@ const array = (items, shape = [items.length]) => storage === 'snapshot'
   ? createArraySnapshot ? createArraySnapshot(items, shape) : { kind: 'array', items: [...items], shape: [...shape] }
   : { kind: 'array', items, shape };
 const quick = options.includes('--quick');
-const sizes = quick ? [100] : [100, 10_000, 1_000_000];
+const only = options.find(option => option.startsWith('--only='))?.slice('--only='.length)?.split(',');
+const kinds = options.find(option => option.startsWith('--kind='))?.slice('--kind='.length)?.split(',') ?? ['integer', 'real', 'mixed'];
+const sizeOption = options.find(option => option.startsWith('--size='))?.slice('--size='.length);
+const sizes = sizeOption === undefined ? quick ? [100] : [100, 10_000, 1_000_000] : [Number(sizeOption)];
+assert(kinds.every(kind => ['integer', 'real', 'mixed'].includes(kind)), 'invalid kind');
+assert(sizes.every(size => [100, 10_000, 1_000_000].includes(size)), 'invalid size');
+const names = ['total', 'addition', 'chain', 'chainreduce', 'prefix', 'ordered', 'rows',
+  ...(options.includes('--fusion') ? ['namedreduce', 'reusedreduce'] : [])];
+assert(!only || only.every(name => names.includes(name)), 'invalid case (named/reused reductions require --fusion)');
 const repetitions = quick ? 2 : 5;
 const runtime = new Interpreter();
 runtime.execute(`
@@ -75,7 +84,7 @@ const report = {
     harnessRevision: revision(dirname(fileURLToPath(import.meta.url))),
     runtimeRevision: revision(dirname(fileURLToPath(moduleUrl))),
     module: moduleUrl.href, gc: typeof global.gc === 'function',
-    sizes, storage, warmups: 2, repetitions, fusion: options.includes('--fusion'),
+    sizes, kinds, only, storage, warmups: 2, repetitions, fusion: options.includes('--fusion'),
     memory: 'post-operation minus pre-operation bytes; before validation; not peak or allocation totals',
   },
   results: [],
@@ -90,7 +99,7 @@ function force(value) {
 }
 
 try {
-  for (const kind of ['integer', 'real', 'mixed']) {
+  for (const kind of kinds) {
     const number = value => kind === 'real' ? value : BigInt(value);
     const add = (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a + b : Number(a) + Number(b);
     const multiply = (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a * b : Number(a) * Number(b);
@@ -123,6 +132,7 @@ try {
           ['reusedreduce', vector(a), add(total(mapped), total(mapped))]);
       }
       for (const [name, input, expectedValue] of cases) {
+        if (only && !only.includes(name)) continue;
         const fn = runtime.variables.get(name);
         const args = [input, vector(b)];
         const expected = force(expectedValue);

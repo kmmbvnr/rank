@@ -1,0 +1,229 @@
+{
+  "before": {
+    "metadata": {
+      "date": "2026-09-11T08:44:57.152Z",
+      "node": "v24.15.0",
+      "v8": "13.6.233.17-node.48",
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M5",
+      "harnessRevision": "15fffc356dd53a4b4b73a0ed7fe8bf0e7d996235",
+      "runtimeRevision": "d03c2bd1c562c311d8203b4c3d27a21fdd9f02d2",
+      "module": "file:///private/tmp/rank-before-storage/packages/interpreter/out/index.js",
+      "gc": false,
+      "sizes": [
+        1000000
+      ],
+      "kinds": [
+        "real"
+      ],
+      "only": [
+        "namedreduce",
+        "reusedreduce"
+      ],
+      "storage": "snapshot",
+      "warmups": 2,
+      "repetitions": 5,
+      "fusion": true,
+      "memory": "post-operation minus pre-operation bytes; before validation; not peak or allocation totals"
+    },
+    "results": [
+      {
+        "name": "namedreduce",
+        "kind": "real",
+        "size": 1000000,
+        "medianMs": 97.260625,
+        "medianHeapUsedDelta": 47411672,
+        "medianArrayBuffersDelta": 0,
+        "medianRssDelta": 29392896,
+        "samples": [
+          {
+            "ms": 97.260625,
+            "heapUsedDelta": -67322864,
+            "arrayBuffersDelta": 0,
+            "rssDelta": -22446080
+          },
+          {
+            "ms": 75.93600000000004,
+            "heapUsedDelta": 114778464,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 58621952
+          },
+          {
+            "ms": 116.58458299999995,
+            "heapUsedDelta": 1647088,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 28786688
+          },
+          {
+            "ms": 100.69387500000005,
+            "heapUsedDelta": 47411672,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 29392896
+          },
+          {
+            "ms": 86.49454200000002,
+            "heapUsedDelta": 48471768,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 44089344
+          }
+        ]
+      },
+      {
+        "name": "reusedreduce",
+        "kind": "real",
+        "size": 1000000,
+        "medianMs": 127.66391699999986,
+        "medianHeapUsedDelta": 54768928,
+        "medianArrayBuffersDelta": 0,
+        "medianRssDelta": 56934400,
+        "samples": [
+          {
+            "ms": 145.11408299999994,
+            "heapUsedDelta": 67023328,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 56934400
+          },
+          {
+            "ms": 158.68149999999991,
+            "heapUsedDelta": 38593152,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 82034688
+          },
+          {
+            "ms": 127.66391699999986,
+            "heapUsedDelta": 54768928,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 43761664
+          },
+          {
+            "ms": 122.20937500000014,
+            "heapUsedDelta": 53446480,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 43859968
+          },
+          {
+            "ms": 123.12408299999993,
+            "heapUsedDelta": 67147088,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 57114624
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "metadata": {
+      "date": "2026-09-11T08:44:45.408Z",
+      "node": "v24.15.0",
+      "v8": "13.6.233.17-node.48",
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M5",
+      "harnessRevision": "15fffc356dd53a4b4b73a0ed7fe8bf0e7d996235",
+      "runtimeRevision": "15fffc356dd53a4b4b73a0ed7fe8bf0e7d996235",
+      "module": "file:///private/tmp/rank-demo-roadmap/packages/interpreter/out/index.js",
+      "gc": false,
+      "sizes": [
+        1000000
+      ],
+      "kinds": [
+        "real"
+      ],
+      "only": [
+        "namedreduce",
+        "reusedreduce"
+      ],
+      "storage": "snapshot",
+      "warmups": 2,
+      "repetitions": 5,
+      "fusion": true,
+      "memory": "post-operation minus pre-operation bytes; before validation; not peak or allocation totals"
+    },
+    "results": [
+      {
+        "name": "namedreduce",
+        "kind": "real",
+        "size": 1000000,
+        "medianMs": 102.1679170000001,
+        "medianHeapUsedDelta": 62057152,
+        "medianArrayBuffersDelta": 0,
+        "medianRssDelta": 44072960,
+        "samples": [
+          {
+            "ms": 104.76608400000009,
+            "heapUsedDelta": -80040496,
+            "arrayBuffersDelta": 0,
+            "rssDelta": -34750464
+          },
+          {
+            "ms": 94.78537500000004,
+            "heapUsedDelta": 37655128,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 29376512
+          },
+          {
+            "ms": 96.864416,
+            "heapUsedDelta": 65994040,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 44482560
+          },
+          {
+            "ms": 102.1679170000001,
+            "heapUsedDelta": 62057152,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 44072960
+          },
+          {
+            "ms": 103.6629999999999,
+            "heapUsedDelta": 63178592,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 58310656
+          }
+        ]
+      },
+      {
+        "name": "reusedreduce",
+        "kind": "real",
+        "size": 1000000,
+        "medianMs": 127.10024999999996,
+        "medianHeapUsedDelta": 54445120,
+        "medianArrayBuffersDelta": 0,
+        "medianRssDelta": 45219840,
+        "samples": [
+          {
+            "ms": 124.77449999999999,
+            "heapUsedDelta": 54445120,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 45219840
+          },
+          {
+            "ms": 123.58191699999998,
+            "heapUsedDelta": 52186696,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 42123264
+          },
+          {
+            "ms": 127.10024999999996,
+            "heapUsedDelta": 67475960,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 57655296
+          },
+          {
+            "ms": 135.56966699999998,
+            "heapUsedDelta": 74728544,
+            "arrayBuffersDelta": 0,
+            "rssDelta": 64798720
+          },
+          {
+            "ms": 181.30262500000026,
+            "heapUsedDelta": -610426600,
+            "arrayBuffersDelta": 0,
+            "rssDelta": -392462336
+          }
+        ]
+      }
+    ]
+  },
+  "note": "Focused candidate-first repeat. A 94ms quick/invalid-option harness check overlapped the baseline process; treat this pair as diagnostic, not a clean acceptance measurement."
+}

@@ -585,3 +585,38 @@ All 164 demo files passed after the final change. Decision: keep the combined
 composition change. It retains the large numerical gain and removes the
 bounded-sum regression through shared evaluation machinery. This completes the
 acceptance check left open in section 10; named snapshot costs remain separate.
+
+## 12. Named snapshot controls after execution changes
+
+Repeated the 81-case array suite against d03c2bd after the composition changes.
+At one million real elements, named reduction was 96.9 to 106.6 ms and reused
+reduction 124.5 to 142.8 ms. Integer cases improved instead. These aggregate
+runs include different warmed code and heap histories, so they do not isolate
+the cost of private storage.
+[Full refresh](../../benchmarks/baselines/2026-09-11-named-snapshot-refresh.json).
+
+The harness now accepts `--only`, `--kind` and `--size` filters. Defaults are
+unchanged, and unknown cases/types/sizes are rejected. A focused real-only
+candidate-first repeat gave 97.3 to 102.2 ms for named reduction and 127.7 to
+127.1 for reused reduction. A short harness validation overlapped that baseline
+process, so treat it as diagnostic rather than clean acceptance evidence.
+[Focused diagnostic](../../benchmarks/baselines/2026-09-11-named-snapshot-focused.json).
+
+A separate, uncontended before-first pair with explicit GC outside each measured
+operation gave 82.2 to 85.7 ms and 111.4 to 114.9 ms respectively. Both used
+five samples, the same inputs, and exact result checks. This supports a remaining
+roughly 3–4% cost under those conditions, not a universal 15% regression.
+[GC-controlled pair](../../benchmarks/baselines/2026-09-11-named-snapshot-gc.json).
+
+Reproduce the focused candidate with `node --expose-gc benchmarks/arrays.mjs
+--fusion --storage=snapshot --json --kind=real --size=1000000
+--only=namedreduce,reusedreduce`; add `--module=/path/to/interpreter/out/index.js`
+for the baseline. The older runtime lacks the snapshot constructor, so its
+input is a copied ordinary array. This compares the supported input paths,
+not two implementations of the same private-storage contract.
+
+No production code changed in this step. Do not add a second lazy-producer
+registry merely to chase this small residual cost: it would need recursive
+validation and exact preservation of named caches. Keep these controls for
+future fusion or alias-analysis experiments. The remaining cost is recorded;
+it has not been eliminated.
