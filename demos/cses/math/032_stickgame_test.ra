@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "032_stickgame"
+  Moves = array 1 3 4
+  10 Moves stick_game equal "WLWWWWLWLW"
+end
+
+test "only one stick per move"
+  use "032_stickgame"
+  Moves = array 1
+  6 Moves stick_game equal "WLWLWL"
+end
+
+test "one or two sticks"
+  use "032_stickgame"
+  Moves = array 1 2
+  6 Moves stick_game equal "WWLWWL"
+end
+
+test "moves may be unordered"
+  use "032_stickgame"
+  Moves = array 4 1 3
+  7 Moves stick_game equal "WLWWWWL"
+end

@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "031_inversionprob"
+  Values = array 5 2 7
+  Values inversion_text equal "1.057143"
+end
+
+test "one value has no pair"
+  use "031_inversionprob"
+  Values = array 1
+  Values inversion_text equal "0.000000"
+end
+
+test "equal binary ranges"
+  use "031_inversionprob"
+  Values = array 2 2
+  Values inversion_text equal "0.250000"
+end
+
+test "different ranges"
+  use "031_inversionprob"
+  Values = array 1 2 3
+  Values inversion_text equal "0.166667"
+end

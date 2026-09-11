@@ -1,0 +1,38 @@
+rem CSES 1728: Inversion Probability
+rem https://cses.fi/problemset/task/1728
+
+use io
+use numbers
+use ranges
+use sequences
+use text
+
+N = stdin .integer
+Ranges = stdin .integer N array
+Ranges inversion_text print
+
+
+rem Format the expected inversion count.
+fun inversion_text Ranges
+  Expected = Ranges expected_inversions
+  return Expected text ".6f"
+end
+
+
+rem Add each pair's inversion chance.
+fun expected_inversions Ranges
+  N = Ranges len
+  Expected = 0.0
+
+  for I in 0 until N
+    for J in I + 1 until N
+      A = Ranges I
+      B = Ranges J
+      M = (A - 1) B min
+      Winning = M * A - M * (M + 1) // 2
+      Expected += Winning / (A * B)
+    end
+  end
+
+  return Expected
+end
