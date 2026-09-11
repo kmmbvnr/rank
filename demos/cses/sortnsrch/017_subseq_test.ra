@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "017_subseq"
+  Values = array 1 2 1 3
+  Values distinct_subsequences equal 11
+end
+
+test "all values differ"
+  use "017_subseq"
+  Values = array 4 1 9
+  Values distinct_subsequences equal 7
+end
+
+test "all values are equal"
+  use "017_subseq"
+  Values = array 5 5 5
+  Values distinct_subsequences equal 3
+end
+
+test "several repeated values"
+  use "017_subseq"
+  Values = array 2 7 2 7
+  Values distinct_subsequences equal 8
+end

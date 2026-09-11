@@ -1,0 +1,29 @@
+rem CSES 3421: Distinct Values Subsequences
+rem https://cses.fi/problemset/task/3421
+
+use io
+use algo
+
+N = stdin .integer
+A = stdin .integer N array
+
+A distinct_subsequences print
+
+
+rem Choose zero or one copy of each value.
+fun distinct_subsequences A
+  for Value in A
+    Count = index Value pad 0
+    index Value = Count + 1
+    set add Value
+  end
+
+  Answer = 1
+
+  for Value in set
+    Answer *= index Value + 1
+    Answer %= 1000000007
+  end
+
+  return Answer - 1
+end
