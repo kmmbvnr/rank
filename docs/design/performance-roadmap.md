@@ -14,8 +14,11 @@ small, and unifying the direct path regressed playlist. Do not repeat that
 transformation without a different cost model.
 Keep small-input and named-intermediate controls when widening fusion. The
 latest isolated real snapshot controls retained a 3–4% cost with explicit GC;
-do not add complex producer tracking solely for that gain. Recheck aggregate
-demo performance against main before delivery.
+do not add complex producer tracking solely for that gain. The aggregate
+comparison against main `9e67783` is now in the
+[integrated results](optimization-results.md). Resolve its remaining storage
+acceptance items before delivery: scalar addressing is slower, and the safe
+plain-host fallback loses the old descriptor-probing fusion path.
 
 Why: timeout smoke checks alone cannot identify a bottleneck or establish that
 an optimization preserves performance elsewhere.
@@ -33,6 +36,9 @@ change removed the ordinary mean regression and made row/column means about
 three times faster at 512 square. Revise or remove the remaining responsible
 parts and repeat the controls. See
 the [optimization log](optimization-lab.md#4-private-storage-correctness-repaired-performance-costs-remain).
+
+The aggregate recursion regression was repaired with one reusable pair
+continuation. Keep that scalar regression control alongside numerical demos.
 
 Builtin `sum` on inline arithmetic and Euler's guarded sequence power have been
 implemented and measured. Consider single-use named temporaries and private

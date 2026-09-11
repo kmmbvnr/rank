@@ -1,0 +1,403 @@
+{
+  "metadata": {
+    "date": "2026-09-11T09:21:36.160Z",
+    "node": "v24.15.0",
+    "v8": "13.6.233.17-node.48",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5",
+    "harnessRevision": "1308f26c61fed23baef721cad6415f5c61c0ff07",
+    "runtimeRevision": "1308f26c61fed23baef721cad6415f5c61c0ff07",
+    "module": "file:///private/tmp/rank-demo-roadmap/packages/interpreter/out/index.js",
+    "gc": true,
+    "sizes": [
+      1000000
+    ],
+    "kinds": [
+      "integer",
+      "real",
+      "mixed"
+    ],
+    "only": [
+      "chainreduce",
+      "namedreduce",
+      "reusedreduce"
+    ],
+    "storage": "snapshot",
+    "warmups": 2,
+    "repetitions": 5,
+    "fusion": true,
+    "memory": "post-operation minus pre-operation bytes; before validation; not peak or allocation totals"
+  },
+  "results": [
+    {
+      "name": "chainreduce",
+      "kind": "integer",
+      "size": 1000000,
+      "medianMs": 28.966999999999985,
+      "medianHeapUsedDelta": 52213848,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 0,
+      "samples": [
+        {
+          "ms": 29.539499999999975,
+          "heapUsedDelta": 52250248,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 28.966999999999985,
+          "heapUsedDelta": 52213848,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 29.218250000000012,
+          "heapUsedDelta": 52231688,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 28.765792000000033,
+          "heapUsedDelta": 52206656,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 16384
+        },
+        {
+          "ms": 28.811500000000024,
+          "heapUsedDelta": 52198096,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        }
+      ]
+    },
+    {
+      "name": "namedreduce",
+      "kind": "integer",
+      "size": 1000000,
+      "medianMs": 109.7778330000001,
+      "medianHeapUsedDelta": 95573704,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 29376512,
+      "samples": [
+        {
+          "ms": 108.02154199999995,
+          "heapUsedDelta": 95701464,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29442048
+        },
+        {
+          "ms": 109.7778330000001,
+          "heapUsedDelta": 95582304,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        },
+        {
+          "ms": 110.70341700000017,
+          "heapUsedDelta": 95573704,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        },
+        {
+          "ms": 130.21737500000017,
+          "heapUsedDelta": 95544784,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        },
+        {
+          "ms": 108.77829200000019,
+          "heapUsedDelta": 95560072,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        }
+      ]
+    },
+    {
+      "name": "reusedreduce",
+      "kind": "integer",
+      "size": 1000000,
+      "medianMs": 150.81495799999993,
+      "medianHeapUsedDelta": 92535712,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 29376512,
+      "samples": [
+        {
+          "ms": 147.28079200000002,
+          "heapUsedDelta": 92585096,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 30015488
+        },
+        {
+          "ms": 149.09945900000002,
+          "heapUsedDelta": 92524432,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        },
+        {
+          "ms": 150.81495799999993,
+          "heapUsedDelta": 92540152,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        },
+        {
+          "ms": 154.71645899999976,
+          "heapUsedDelta": 92535712,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        },
+        {
+          "ms": 155.4824169999997,
+          "heapUsedDelta": 92475736,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 29376512
+        }
+      ]
+    },
+    {
+      "name": "chainreduce",
+      "kind": "real",
+      "size": 1000000,
+      "medianMs": 26.407208000000082,
+      "medianHeapUsedDelta": 40021720,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 0,
+      "samples": [
+        {
+          "ms": 26.19162499999993,
+          "heapUsedDelta": 40021528,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 26.407208000000082,
+          "heapUsedDelta": 40021720,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 26.709917000000132,
+          "heapUsedDelta": 40021720,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 26.33729200000016,
+          "heapUsedDelta": 40021720,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 26.47262499999988,
+          "heapUsedDelta": 40021720,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        }
+      ]
+    },
+    {
+      "name": "namedreduce",
+      "kind": "real",
+      "size": 1000000,
+      "medianMs": 90.56333299999915,
+      "medianHeapUsedDelta": 98838624,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 58621952,
+      "samples": [
+        {
+          "ms": 88.19900000000052,
+          "heapUsedDelta": 98867032,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 91.42025000000012,
+          "heapUsedDelta": 98808952,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 92.84012499999972,
+          "heapUsedDelta": 98838624,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 90.56333299999915,
+          "heapUsedDelta": 98816056,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 87.82370900000024,
+          "heapUsedDelta": 98839560,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        }
+      ]
+    },
+    {
+      "name": "reusedreduce",
+      "kind": "real",
+      "size": 1000000,
+      "medianMs": 125.78195799999958,
+      "medianHeapUsedDelta": 106829784,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 58621952,
+      "samples": [
+        {
+          "ms": 129.0902500000002,
+          "heapUsedDelta": 106830008,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 130.02187499999945,
+          "heapUsedDelta": 106829784,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 125.41904199999954,
+          "heapUsedDelta": 106816664,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 125.78195799999958,
+          "heapUsedDelta": 106829784,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 123.55575000000044,
+          "heapUsedDelta": 106843336,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        }
+      ]
+    },
+    {
+      "name": "chainreduce",
+      "kind": "mixed",
+      "size": 1000000,
+      "medianMs": 32.59837500000049,
+      "medianHeapUsedDelta": 43904784,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 0,
+      "samples": [
+        {
+          "ms": 31.307749999999942,
+          "heapUsedDelta": 43904560,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 32.79320800000005,
+          "heapUsedDelta": 43904952,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 32.59837500000049,
+          "heapUsedDelta": 43904784,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 34.13091600000007,
+          "heapUsedDelta": 43904784,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        },
+        {
+          "ms": 32.40654199999972,
+          "heapUsedDelta": 43907120,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 0
+        }
+      ]
+    },
+    {
+      "name": "namedreduce",
+      "kind": "mixed",
+      "size": 1000000,
+      "medianMs": 99.88887499999964,
+      "medianHeapUsedDelta": 102700128,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 58621952,
+      "samples": [
+        {
+          "ms": 101.14375000000018,
+          "heapUsedDelta": 102712896,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 99.37362499999927,
+          "heapUsedDelta": 102700128,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 97.87504199999967,
+          "heapUsedDelta": 102713680,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 100.35237499999948,
+          "heapUsedDelta": 102700128,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 99.88887499999964,
+          "heapUsedDelta": 102700128,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        }
+      ]
+    },
+    {
+      "name": "reusedreduce",
+      "kind": "mixed",
+      "size": 1000000,
+      "medianMs": 130.46908299999996,
+      "medianHeapUsedDelta": 110718408,
+      "medianArrayBuffersDelta": 0,
+      "medianRssDelta": 58621952,
+      "samples": [
+        {
+          "ms": 130.46908299999996,
+          "heapUsedDelta": 110718408,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 130.62762500000008,
+          "heapUsedDelta": 110691608,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 129.7900410000002,
+          "heapUsedDelta": 110722296,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 132.81204199999956,
+          "heapUsedDelta": 110704856,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        },
+        {
+          "ms": 129.39008400000057,
+          "heapUsedDelta": 110718408,
+          "arrayBuffersDelta": 0,
+          "rssDelta": 58621952
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,8 @@ Implemented changes and local measurements. Remaining work is in the
 [performance roadmap](performance-roadmap.md).
 
 The current step-by-step experiments are in the [optimization log](optimization-lab.md).
+The [integrated results](optimization-results.md) compare the current worktree
+with main and list the remaining host-array and scalar-addressing costs.
 
 ## Benchmark commands
 
