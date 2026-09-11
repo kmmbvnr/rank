@@ -10,7 +10,7 @@ Width = stdin .integer
 Height Width counting_tilings print
 
 
-rem Carry occupied cells across each column boundary.
+rem Carry occupied cells across columns.
 fun counting_tilings Height Width
   Modulus = 1000000007
   States = 1 Height shl
@@ -32,7 +32,7 @@ fun counting_tilings Height Width
 
   return Current 0
 
-  rem Fill one column and emit its next mask.
+  rem Fill a column and emit its mask.
   fun fill Row NextMask
     if Row equal Height
       Next NextMask += Ways

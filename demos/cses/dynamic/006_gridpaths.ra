@@ -23,7 +23,8 @@ fun grid_paths Grid
         Ways Column = 0
       else
         if Column greater 0
-          Ways Column += Ways (Column - 1)
+          Left = Ways (Column - 1)
+          Ways Column += Left
           Ways Column %= 1000000007
         end
       end

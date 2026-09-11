@@ -11,7 +11,8 @@ Coins = stdin .integer N array
 Coins Target unordered_coin_ways print
 
 
-rem Add each denomination once to the DP.
+rem Add each denomination once
+rem to the dynamic program.
 fun unordered_coin_ways Coins Target
   Ways = array shape (Target + 1) pad 0
   Ways 0 = 1

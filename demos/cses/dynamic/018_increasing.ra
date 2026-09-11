@@ -10,7 +10,7 @@ Values = stdin .integer N array
 Values increasing_length print
 
 
-rem Keep the smallest tail for every length.
+rem Keep the smallest tail by length.
 fun increasing_length Values
   Tails = new multiset
 

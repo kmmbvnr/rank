@@ -9,13 +9,14 @@ N = stdin .integer
 Maximum = stdin .integer
 Description = stdin .integer N array
 
-Description Maximum array_descriptions print
+Description Maximum descriptions print
 
 
-rem Keep counts for the previous position.
-fun array_descriptions Description Maximum
+rem Keep counts for the prior position.
+fun descriptions Description Maximum
   Modulus = 1000000007
-  Previous = array shape (Maximum + 2) pad 0
+  Size = Maximum + 2
+  Previous = array shape Size pad 0
   First = Description 0
 
   if First equal 0
@@ -28,10 +29,12 @@ fun array_descriptions Description Maximum
 
   for Wanted i in Description
     if i greater 0
-      Next = array shape (Maximum + 2) pad 0
+      Next = array shape Size pad 0
 
       for Value in 1 to Maximum
-        if Wanted equal 0 or Wanted equal Value
+        Allowed = Wanted equal 0
+        Allowed or= Wanted equal Value
+        if Allowed
           Count = Previous (Value - 1)
           Count += Previous Value
           Count += Previous (Value + 1)

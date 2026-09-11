@@ -13,7 +13,8 @@ Pages = stdin .integer N array
 Prices Pages Budget book_shop print
 
 
-rem Visit budgets backwards so each book is used once.
+rem Visit budgets backwards so every
+rem book is used at most once.
 fun book_shop Prices Pages Budget
   Best = array shape (Budget + 1) pad 0
 
@@ -21,8 +22,12 @@ fun book_shop Prices Pages Budget
     if Price at most Budget
       for Cost in Budget to Price by -1
         Previous = Cost - Price
-        Candidate = Best Previous + Pages i
-        Best Cost = Best Cost max Candidate
+        PageCount = Pages i
+        Base = Best Previous
+        Candidate = Base + PageCount
+        Current = Best Cost
+        Maximum = Current max Candidate
+        Best Cost = Maximum
       end
     end
   end

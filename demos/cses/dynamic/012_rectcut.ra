@@ -10,33 +10,40 @@ Width = stdin .integer
 Height Width rectangle_cuts print
 
 
-rem Try each distinct first cut of every rectangle.
+rem Try each distinct first cut.
 fun rectangle_cuts Height Width
-  Cuts = array shape (Height + 1) (Width + 1) pad 0
+  Rows = Height + 1
+  Columns = Width + 1
+  Cuts = array shape Rows Columns pad 0
+
+  fun best_cut H W
+    if H equal W
+      return 0
+    end
+
+    Best = H * W
+    Last = H // 2 + 1
+    for Split in 1 until Last
+      Other = H - Split
+      Candidate = Cuts Split W
+      Candidate += Cuts Other W + 1
+      Best = Best min Candidate
+    end
+
+    Last = W // 2 + 1
+    for Split in 1 until Last
+      Other = W - Split
+      Candidate = Cuts H Split
+      Candidate += Cuts H Other + 1
+      Best = Best min Candidate
+    end
+
+    return Best
+  end
 
   for H in 1 to Height
     for W in 1 to Width
-      if H not equal W
-        Best = H * W
-
-        if H greater 1
-          for Split in 1 to (H // 2)
-            Candidate = Cuts Split W
-            Candidate += Cuts (H - Split) W + 1
-            Best = Best min Candidate
-          end
-        end
-
-        if W greater 1
-          for Split in 1 to (W // 2)
-            Candidate = Cuts H Split
-            Candidate += Cuts H (W - Split) + 1
-            Best = Best min Candidate
-          end
-        end
-
-        Cuts H W = Best
-      end
+      Cuts H W = H W best_cut
     end
   end
 

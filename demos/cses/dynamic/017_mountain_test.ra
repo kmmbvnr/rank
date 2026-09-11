@@ -2,7 +2,9 @@ use testing
 
 test "official example"
   use "017_mountain"
-  Heights = array 20 15 17 35 25 40 12 19 13 12
+  Heights = array shape 10
+    20 15 17 35 25 40 12 19 13 12
+  end
   Heights mountain_route equal 5
 end
 
@@ -18,7 +20,7 @@ test "equal heights merge"
   Heights mountain_route equal 1
 end
 
-test "equal peaks preserve the best side"
+test "equal peaks keep the best side"
   use "017_mountain"
   Heights = array 4 1 2 3 3
   Heights mountain_route equal 4

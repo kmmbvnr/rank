@@ -8,7 +8,7 @@ N = stdin .integer
 N two_sets print
 
 
-rem Count one representative of each equal partition.
+rem Count each equal partition once.
 fun two_sets N
   Modulus = 1000000007
   Total = N * (N + 1) // 2
@@ -18,7 +18,8 @@ fun two_sets N
   end
 
   Target = Total // 2
-  Ways = array shape (Target + 1) pad 0
+  Size = Target + 1
+  Ways = array shape Size pad 0
   Ways 0 = 1
 
   for Value in 1 until N

@@ -15,10 +15,12 @@ Sums len print
 Sums print
 
 
-rem Mark sums backwards so each coin is used once.
+rem Mark sums backwards so every coin
+rem is used at most once.
 fun money_sums Coins
   Maximum = Coins sum
-  Reachable = array shape (Maximum + 1) pad false
+  Size = Maximum + 1
+  Reachable = array shape Size pad false
   Reachable 0 = true
 
   for Coin in Coins

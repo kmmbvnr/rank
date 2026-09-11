@@ -11,13 +11,15 @@ Upper = stdin .integer
 Lower Upper count_numbers print
 
 
-rem Subtract two inclusive digit-DP prefixes.
+rem Subtract two inclusive prefixes.
 fun count_numbers Lower Upper
-  return Upper valid_up_to - (Lower - 1) valid_up_to
+  High = Upper valid_up_to
+  Low = (Lower - 1) valid_up_to
+  return High - Low
 end
 
 
-rem Count values through Limit without equal adjacent digits.
+rem Count values with no digit repeats.
 fun valid_up_to Limit
   if Limit less 0
     return 0
@@ -27,37 +29,49 @@ fun valid_up_to Limit
   Current = array shape 11 2 pad 0
   Current 10 1 = 1
 
+  fun add_state Prev Tight Maximum
+    Ways = Current Prev Tight
+    if Ways equal 0
+      return 0
+    end
+
+    Last = 9
+    if Tight equal 1
+      Last = Maximum
+    end
+
+    for Digit in 0 to Last
+      Leading = Prev equal 10
+      Leading and= Digit equal 0
+      Repeated = Prev equal Digit
+      if Repeated and not Leading
+        continue
+      end
+
+      NewPrev = Digit
+      if Leading
+        NewPrev = 10
+      end
+
+      NewTight = 0
+      KeepsLimit = Tight equal 1
+      SameDigit = Digit equal Maximum
+      KeepsLimit and= SameDigit
+      if KeepsLimit
+        NewTight = 1
+      end
+
+      Next NewPrev NewTight += Ways
+    end
+    return 0
+  end
+
   for Maximum in Digits
     Next = array shape 11 2 pad 0
 
-    for Previous in 0 to 10
+    for Prev in 0 to 10
       for Tight in 0 to 1
-        Ways = Current Previous Tight
-        if Ways greater 0
-          Last = 9
-          if Tight equal 1
-            Last = Maximum
-          end
-
-          for Digit in 0 to Last
-            Leading = Previous equal 10 and Digit equal 0
-            Repeated = Previous equal Digit
-
-            if Leading or not Repeated
-              NextPrevious = Digit
-              if Leading
-                NextPrevious = 10
-              end
-
-              NextTight = 0
-              if Tight equal 1 and Digit equal Maximum
-                NextTight = 1
-              end
-
-              Next NextPrevious NextTight += Ways
-            end
-          end
-        end
+        Prev Tight Maximum add_state
       end
     end
 

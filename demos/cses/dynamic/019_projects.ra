@@ -22,11 +22,13 @@ end
 Projects maximum_reward print
 
 
-rem Combine each project with the last compatible prefix.
-fun maximum_reward Projects
-  Sorted = Projects sort by .finish .start
+rem Combine a project with its last
+rem compatible prefix.
+fun maximum_reward Jobs
+  Sorted = Jobs sort by .finish .start
   Count = Sorted len
-  Best = array shape (Count + 1) pad 0
+  Size = Count + 1
+  Best = array shape Size pad 0
 
   for Project i in Sorted
     Low = 0
@@ -35,7 +37,8 @@ fun maximum_reward Projects
     for Low less High
       Middle = (Low + High) // 2
       Previous = Sorted Middle
-      if Previous .finish less Project .start
+      Finish = Previous .finish
+      if Finish less Project .start
         Low = Middle + 1
       else
         High = Middle
@@ -50,7 +53,7 @@ fun maximum_reward Projects
 end
 
 
-rem Build one project value for direct callers and tests.
+rem Build a project for direct callers.
 fun project Start Finish Reward
   return record
     .start = Start

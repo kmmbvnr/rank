@@ -11,11 +11,11 @@ Heights = stdin .integer N array
 Heights mountain_route print
 
 
-rem Collapse valleys into a decreasing stack.
+rem Collapse valleys into a stack.
 fun mountain_route Heights
   Mountains = new stack
 
-  for Height in Heights
+  fun add_height Height
     Current = record
       .height = Height
       .path = 1
@@ -23,41 +23,52 @@ fun mountain_route Heights
 
     if Mountains len equal 0
       Mountains push Current
-    else
-      Top = Mountains peek
-
-      if Height less Top .height
-        Mountains push Current
-      elif Height greater Top .height
-        Lower = Mountains pop
-
-        for Mountains len greater 0
-          Top = Mountains peek
-          if Height at most Top .height
-            break
-          end
-          if Lower .path at least Top .path
-            Top .path = Lower .path + 1
-          end
-          Lower = Mountains pop
-        end
-
-        Current .path += Lower .path
-
-        if Mountains len equal 0
-          Mountains push Current
-        else
-          Top = Mountains peek
-          if Height equal Top .height
-            if Current .path greater Top .path
-              Top .path = Current .path
-            end
-          else
-            Mountains push Current
-          end
-        end
-      end
+      return 0
     end
+
+    Top = Mountains peek
+    if Height less Top .height
+      Mountains push Current
+      return 0
+    end
+    if Height equal Top .height
+      return 0
+    end
+
+    Lower = Mountains pop
+    for Mountains len greater 0
+      Top = Mountains peek
+      if Height at most Top .height
+        break
+      end
+      if Lower .path at least Top .path
+        Top .path = Lower .path + 1
+      end
+      Lower = Mountains pop
+    end
+
+    Current .path += Lower .path
+
+    if Mountains len equal 0
+      Mountains push Current
+      return 0
+    end
+
+    Top = Mountains peek
+    if Height equal Top .height
+      TopPath = Top .path
+      CurrentPath = Current .path
+      BestPath = TopPath max CurrentPath
+      Top .path = BestPath
+      return 0
+    end
+
+    Mountains push Current
+    return 0
+  end
+
+  for Height in Heights
+    Height add_height
   end
 
   for Mountains len greater 1

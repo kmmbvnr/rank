@@ -14,11 +14,13 @@ for Answer in Answers
 end
 
 
-rem Precompute both top-edge states up to the tallest query.
+rem Precompute both top-edge states
+rem through the tallest query.
 fun counting_towers Heights
   Modulus = 1000000007
   Maximum = Heights max
-  Answers = array shape (Maximum + 1) pad 0
+  Size = Maximum + 1
+  Answers = array shape Size pad 0
   Together = 1
   Separate = 1
   Answers 1 = 2
@@ -26,9 +28,14 @@ fun counting_towers Heights
   for Height in 2 to Maximum
     OldTogether = Together
     OldSeparate = Separate
-    Together = (2 * OldTogether + OldSeparate) % Modulus
-    Separate = (OldTogether + 4 * OldSeparate) % Modulus
-    Answers Height = (Together + Separate) % Modulus
+    Together = 2 * OldTogether
+    Together += OldSeparate
+    Together %= Modulus
+    Separate = OldTogether
+    Separate += 4 * OldSeparate
+    Separate %= Modulus
+    Answer = Together + Separate
+    Answers Height = Answer % Modulus
   end
 
   return Answers Heights

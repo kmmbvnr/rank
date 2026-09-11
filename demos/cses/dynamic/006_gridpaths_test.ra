@@ -2,7 +2,9 @@ use testing
 
 test "official example"
   use "006_gridpaths"
-  Grid = array "...." ".*.." "...*" "*..."
+  Grid = array shape 4
+    "...." ".*.." "...*" "*..."
+  end
   Grid grid_paths equal 3
 end
 

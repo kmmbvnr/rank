@@ -10,7 +10,7 @@ Values = stdin .integer N array
 Values increasing_subsequences print
 
 
-rem Count smaller prefixes by compressed value rank.
+rem Count prefixes by compressed rank.
 fun increasing_subsequences Values
   Modulus = 1000000007
   Sorted = Values sort unique

@@ -12,7 +12,10 @@ end
 
 test "all operation kinds"
   use "010_editdistance"
-  "KITTEN" "SITTING" edit_distance equal 3
+  A = "KITTEN"
+  B = "SITTING"
+  Actual = A B edit_distance
+  Actual equal 3
 end
 
 test "empty left text"

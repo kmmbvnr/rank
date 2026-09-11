@@ -11,7 +11,7 @@ Values = stdin .integer N array
 Values removal_game print
 
 
-rem Store the best score difference for each interval.
+rem Store the best interval difference.
 fun removal_game Values
   N = Values len
   Difference = Values copy
@@ -19,9 +19,14 @@ fun removal_game Values
   for Length in 2 to N
     for Left in 0 to (N - Length)
       Right = Left + Length - 1
-      TakeLeft = Values Left - Difference (Left + 1)
-      TakeRight = Values Right - Difference Left
-      Difference Left = TakeLeft max TakeRight
+      AfterLeft = Difference (Left + 1)
+      TakeLeft = Values Left - AfterLeft
+      BeforeRight = Difference Left
+      RightValue = Values Right
+      TakeRight = RightValue
+      TakeRight -= BeforeRight
+      Best = TakeLeft max TakeRight
+      Difference Left = Best
     end
   end
 

@@ -21,5 +21,6 @@ end
 test "result is reduced modulo prime"
   use "003_coincomb1"
   Coins = array 1 2
-  Coins 50 ordered_coin_ways equal 365010934
+  Actual = Coins 50 ordered_coin_ways
+  Actual equal 365010934
 end

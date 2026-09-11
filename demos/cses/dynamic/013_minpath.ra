@@ -11,7 +11,7 @@ Grid = stdin .word N array
 Grid minimal_grid_path print
 
 
-rem Keep positions that share the best prefix.
+rem Keep positions with the best prefix.
 fun minimal_grid_path Grid
   Size = Grid len
   Current = new set
@@ -24,9 +24,9 @@ fun minimal_grid_path Grid
       Candidates = new set
 
       for Row in Current
-        PreviousColumn = Diagonal - 1 - Row
+        Previous = Diagonal - 1 - Row
 
-        if PreviousColumn + 1 less Size
+        if Previous + 1 less Size
           Candidates add Row
         end
         if Row + 1 less Size

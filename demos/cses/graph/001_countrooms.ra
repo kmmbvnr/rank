@@ -12,46 +12,68 @@ Grid = stdin .word Rows array
 Grid count_rooms print
 
 
-rem Count connected components of floor cells with breadth-first search.
+rem Count connected floor components.
 fun count_rooms Grid
-  Rows = Grid len
-  Columns = Grid 0 len
-  Seen = array shape Rows Columns pad false
+  H = Grid len
+  W = Grid 0 len
+  Seen = array shape H W pad false
   DYs = array -1 1 0 0
   DXs = array 0 0 -1 1
-  Rooms = 0
-  Head = 0
 
+  rem Mark one component with BFS.
+  fun flood Y X
+    Line = Grid Y
+    if Line X not equal "."
+      return 0
+    end
+    if Seen Y X
+      return 0
+    end
+
+    Seen Y X = true
+    queue push Y * W + X
+    Head = 0
+
+    for Head less queue len
+      Position = queue Head
+      Row = Position // W
+      Column = Position % W
+
+      for DY Direction in DYs
+        NY = Row + DY
+        NX = Column + DXs Direction
+        Inside = NY at least 0
+        Inside and= NY less H
+        Inside and= NX at least 0
+        Inside and= NX less W
+
+        if not Inside
+          continue
+        end
+
+        Neighbor = Grid NY
+        if Neighbor NX not equal "."
+          continue
+        end
+        if Seen NY NX
+          continue
+        end
+
+        Seen NY NX = true
+        Next = NY * W + NX
+        queue push Next
+      end
+
+      Head += 1
+    end
+
+    return 1
+  end
+
+  Rooms = 0
   for Line Y in Grid
     for Cell X in Line
-      if Cell equal "." and Seen Y X equal false
-        Rooms += 1
-        Seen Y X = true
-        queue push Y * Columns + X
-
-        for Head less queue len
-          Position = queue Head
-          Row = Position // Columns
-          Column = Position % Columns
-
-          for DY Direction in DYs
-            NY = Row + DY
-            NX = Column + DXs Direction
-            Inside = NY at least 0 and NY less Rows
-            Inside and= NX at least 0 and NX less Columns
-
-            if Inside
-              Neighbor = Grid NY
-              if Neighbor NX equal "." and Seen NY NX equal false
-                Seen NY NX = true
-                queue push NY * Columns + NX
-              end
-            end
-          end
-
-          Head += 1
-        end
-      end
+      Rooms += Y X flood
     end
   end
 

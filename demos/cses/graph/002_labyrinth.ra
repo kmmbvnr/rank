@@ -21,72 +21,88 @@ else
 end
 
 
-rem Find one shortest path and reconstruct it from recorded incoming moves.
+rem Find and rebuild a shortest path.
 fun labyrinth Grid
-  Rows = Grid len
-  Columns = Grid 0 len
+  H = Grid len
+  W = Grid 0 len
   DYs = array -1 1 0 0
   DXs = array 0 0 -1 1
   Moves = array "U" "D" "L" "R"
-  Parent = array shape Rows Columns pad -1
+  Parent = array shape H W pad -1
   Start = -1
   Target = -1
 
   for Line Y in Grid
     for Cell X in Line
       if Cell equal "A"
-        Start = Y * Columns + X
+        Start = Y * W + X
       elif Cell equal "B"
-        Target = Y * Columns + X
+        Target = Y * W + X
       end
     end
   end
 
-  StartY = Start // Columns
-  StartX = Start % Columns
+  rem Visit an unseen open neighbor.
+  fun visit Row Column Direction
+    NY = Row + DYs Direction
+    NX = Column + DXs Direction
+    Inside = NY at least 0
+    Inside and= NY less H
+    Inside and= NX at least 0
+    Inside and= NX less W
+    if not Inside
+      return -1
+    end
+
+    Neighbor = Grid NY
+    if Neighbor NX equal "#"
+      return -1
+    end
+    if Parent NY NX not equal -1
+      return -1
+    end
+
+    Parent NY NX = Direction
+    return NY * W + NX
+  end
+
+  StartY = Start // W
+  StartX = Start % W
   Parent StartY StartX = -2
   queue push Start
   Head = 0
 
   for Head less queue len
     Position = queue Head
-    Row = Position // Columns
-    Column = Position % Columns
+    Row = Position // W
+    Column = Position % W
 
     for DY Direction in DYs
-      NY = Row + DY
-      NX = Column + DXs Direction
-      Inside = NY at least 0 and NY less Rows
-      Inside and= NX at least 0 and NX less Columns
-
-      if Inside
-        Neighbor = Grid NY
-        Open = Neighbor NX not equal "#"
-        if Open and Parent NY NX equal -1
-          Parent NY NX = Direction
-          queue push NY * Columns + NX
-        end
+      Next = Row Column Direction visit
+      if Next not equal -1
+        queue push Next
       end
     end
 
     Head += 1
   end
 
-  TargetY = Target // Columns
-  TargetX = Target % Columns
-  Found = Parent TargetY TargetX not equal -1
+  TargetY = Target // W
+  TargetX = Target % W
+  LastMove = Parent TargetY TargetX
+  Found = LastMove not equal -1
   Path = ""
 
   if Found
     Position = Target
     for Position not equal Start
-      Row = Position // Columns
-      Column = Position % Columns
+      Row = Position // W
+      Column = Position % W
       Direction = Parent Row Column
       Path += Moves Direction
       Row -= DYs Direction
       Column -= DXs Direction
-      Position = Row * Columns + Column
+      Position = Row * W + Column
     end
     Path = Path reverse
   end

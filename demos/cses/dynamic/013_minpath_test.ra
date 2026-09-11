@@ -2,7 +2,9 @@ use testing
 
 test "official example"
   use "013_minpath"
-  Grid = array "AACA" "BABC" "ABDA" "AACA"
+  Grid = array shape 4
+    "AACA" "BABC" "ABDA" "AACA"
+  end
   Grid minimal_grid_path equal "AAABACA"
 end
 
