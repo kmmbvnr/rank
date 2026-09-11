@@ -1,0 +1,21 @@
+rem Deep-ML 52: Recall Metric
+rem https://www.deep-ml.com/problems/52
+
+use numbers
+use sequences
+
+fun recall Truth Predicted
+  if Truth len not equal Predicted len
+    .DimensionMismatch raise
+  end
+
+  Actual = Truth equal 1
+  Positives = Actual count
+  if Positives equal 0
+    return 0.0
+  end
+
+  Guessed = Predicted equal 1
+  Hits = (Actual and Guessed) count
+  return (Hits / Positives) round 3
+end
