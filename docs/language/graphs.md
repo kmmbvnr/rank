@@ -104,6 +104,30 @@ register the vertex. A closed graph raises `.Missing` for an unknown vertex.
 Graphs are reference values: assignment and argument passing share mutations.
 Removing vertices or edges is not part of the current API.
 
+## Disjoint sets
+
+`use graph` also provides a mutable disjoint-set union structure. A closed DSU
+starts with a finite rank-1 collection and rejects unknown values:
+
+```rank
+Union = new dsu Nodes
+Union merge A B
+Root = Union find A
+Same = Union connected A B
+Count = Union components
+```
+
+`merge` uses union by size and returns true only when it combines two previous
+components. `find` returns the representative value selected by the structure;
+`connected` compares representatives. `components` returns the current number
+of components, while `len` returns the number of registered values.
+
+`new dsu` without a collection creates an open DSU. `find`, `merge`, and
+`connected` register unknown scalar values before answering. DSU values may be
+integer, real, boolean, text, or symbols, like graph vertices. The method words
+dispatch only when their receiver is a DSU and remain available to ordinary
+user functions.
+
 ## Basic algorithms
 
 Graph algorithms are ordinary data-first functions exported by `use graph`.
@@ -156,3 +180,13 @@ algorithm. It returns `.connected`, `.components`, total `.weight`, and
 `.edges` as an `M` by `3` array. For a disconnected graph these fields describe
 the minimum spanning forest and `.connected` is false. Parallel edges are
 eligible independently; self-loops are never selected.
+
+`Graph Source Sink maxflow` accepts a directed graph whose weights are finite,
+nonnegative capacities. Source and sink must differ. It uses a level-graph
+blocking-flow algorithm and returns:
+
+- `.value`, the maximum flow value;
+- `.flow`, a two-key index addressed by `Flow From To`, with parallel-edge
+  flows aggregated and absent pairs readable through `pad 0`;
+- `.cut`, the set of vertices reachable from `Source` in the final residual
+  graph, which is the source side of a minimum cut.

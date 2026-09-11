@@ -5,6 +5,42 @@ import { run } from './support.js';
 const prelude = 'use graph\nuse sequences\n';
 
 describe('graphs', () => {
+    it('merges and queries a closed DSU', () => {
+        expect(run(`${prelude}use ranges
+Union = new dsu (1 to 5)
+A = Union merge 1 2
+B = Union merge 2 3
+C = Union merge 1 3
+Root = Union find 3
+array A B C (Union connected 1 3) (Union connected 1 4) Root (Union components) (Union len)
+`)).toBe('true true false true false 1 3 5');
+    });
+
+    it('grows an open DSU on demand', () => {
+        expect(run(`${prelude}
+Union = new dsu
+Union merge "a" "b"
+Union find "alone"
+array (Union components) (Union len) (Union connected "a" "b")
+`)).toBe('2 3 true');
+    });
+
+    it('rejects unknown closed DSU values', () => {
+        expect(() => run(`${prelude}
+Union = new dsu (array 1 2)
+Union find 3
+`)).toThrow('dsu does not contain the value');
+    });
+
+    it('keeps DSU method words contextual', () => {
+        expect(run(`
+fun find A B
+  return A + B
+end
+3 find 4
+`)).toBe('7');
+    });
+
     it('creates a closed undirected graph', () => {
         expect(run(prelude + `
 use ranges
@@ -183,6 +219,45 @@ Graph add 3 4 7
 Result = Graph mst
 array (Result .connected) (Result .components) (Result .weight)
 `)).toBe('false 2 11');
+    });
+
+    it('computes maximum flow and a minimum cut', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 4) .directed
+Graph add 1 2 3
+Graph add 1 3 2
+Graph add 2 3 1
+Graph add 2 4 2
+Graph add 3 4 4
+Result = Graph 1 4 maxflow
+Flow = Result .flow
+Cut = Result .cut
+array (Result .value) (Flow 1 2) (Flow 1 3) (1 in Cut) (2 in Cut)
+`)).toBe('5 3 2 true false');
+    });
+
+    it('aggregates parallel flow edges', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 2) .directed
+Graph add 1 2 2
+Graph add 1 2 3
+Result = Graph 1 2 maxflow
+Flow = Result .flow
+array (Result .value) (Flow 1 2)
+`)).toBe('5 5');
+    });
+
+    it('validates maximum-flow networks', () => {
+        expect(() => run(`${prelude}
+Graph = new graph .undirected
+Graph add 1 2 3
+Graph 1 2 maxflow
+`)).toThrow('maxflow expects a directed graph');
+        expect(() => run(`${prelude}
+Graph = new graph .directed
+Graph add 1 2 (-1)
+Graph 1 2 maxflow
+`)).toThrow('maxflow requires finite nonnegative capacities');
     });
 
     it('validates graph algorithm domains', () => {

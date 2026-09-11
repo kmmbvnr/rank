@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { RankDsu } from '../dsu.js';
 import { expectGraph, type GraphValue } from '../graph.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
@@ -8,6 +9,7 @@ import {
     type RankIndex,
     type RankRecord,
     type RankValue,
+    isRankDsu,
 } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
@@ -29,8 +31,13 @@ export const graphModule: RuntimeModule = {
         const graph = expectGraph(values[0]);
         return searchRecord(graph, depthFirst(graph, values[1]));
     }),
-    components: () => native('components', 1, values =>
-        componentRecord(expectGraph(values[0]))),
+    components: () => native('components', 1, values => isRankDsu(values[0])
+        ? values[0].components : componentRecord(expectGraph(values[0]))),
+    find: () => native('find', 2, values => expectDsu(values[0]).find(values[1])),
+    merge: () => native('merge', 3, values =>
+        expectDsu(values[0]).merge(values[1], values[2])),
+    connected: () => native('connected', 3, values =>
+        expectDsu(values[0]).connected(values[1], values[2])),
     bipartite: () => native('bipartite', 1, values =>
         bipartiteRecord(expectGraph(values[0]))),
     dijkstra: () => native('dijkstra', 2, values => {
@@ -49,7 +56,171 @@ export const graphModule: RuntimeModule = {
         floydRecord(expectGraph(values[0]))),
     mst: () => native('mst', 1, values =>
         minimumSpanningTreeRecord(expectGraph(values[0]))),
+    maxflow: () => native('maxflow', 3, values =>
+        maximumFlowRecord(expectGraph(values[0]), values[1], values[2])),
 };
+
+interface ResidualEdge {
+    readonly to: number;
+    readonly reverse: number;
+    capacity: Numeric;
+}
+
+interface OriginalFlowEdge {
+    readonly from: number;
+    readonly to: number;
+    readonly capacity: Numeric;
+    readonly residual: ResidualEdge;
+}
+
+function maximumFlowRecord(
+    graph: GraphValue,
+    source: RankValue,
+    sink: RankValue,
+): RankRecord {
+    requireDirected(graph, 'maxflow');
+    const sourceKey = requireVertex(graph, source);
+    const sinkKey = requireVertex(graph, sink);
+    const vertices = [...graph.vertices.values()];
+    const position = new Map(vertices.map((value, index) => [setValueKey(value), index]));
+    const start = position.get(sourceKey)!;
+    const target = position.get(sinkKey)!;
+    if (start === target) throw new RankError('maxflow source and sink must differ');
+    const residual: ResidualEdge[][] = vertices.map(() => []);
+    const originals: OriginalFlowEdge[] = [];
+    for (const [fromKey, edges] of graph.adjacency) {
+        const from = position.get(fromKey)!;
+        for (const edge of edges) {
+            validateCapacity(edge.weight);
+            const to = position.get(setValueKey(edge.target))!;
+            if (from === to) continue;
+            const forward: ResidualEdge = {
+                to, reverse: residual[to].length, capacity: edge.weight,
+            };
+            const reverse: ResidualEdge = {
+                to: from, reverse: residual[from].length, capacity: 0n,
+            };
+            residual[from].push(forward);
+            residual[to].push(reverse);
+            originals.push({ from, to, capacity: edge.weight, residual: forward });
+        }
+    }
+
+    let value: Numeric = 0n;
+    while (true) {
+        const levels = flowLevels(residual, start);
+        if (levels[target] < 0) break;
+        const next = vertices.map(() => 0);
+        while (true) {
+            const amount = augmentLevelPath(residual, levels, next, start, target);
+            if (amount === undefined) break;
+            value = numericAdd(value, amount);
+        }
+    }
+
+    const flowEntries = new ResourceMap<RankValue>(item => item);
+    const totals = new Map<string, Numeric>();
+    for (const edge of originals) {
+        const key = indexKey([vertices[edge.from], vertices[edge.to]]);
+        const used = numericSubtract(edge.capacity, edge.residual.capacity);
+        totals.set(key, numericAdd(totals.get(key) ?? 0n, used));
+    }
+    for (const [key, total] of totals) flowEntries.set(key, total);
+    const flow = flowEntries.resources.track({ kind: 'index' as const, entries: flowEntries });
+    return record({ value, flow, cut: reachableCut(graph, residual, vertices, start) });
+}
+
+function flowLevels(edges: readonly ResidualEdge[][], start: number): number[] {
+    const levels = edges.map(() => -1);
+    levels[start] = 0;
+    const queue = [start];
+    for (let head = 0; head < queue.length; head += 1) {
+        const from = queue[head];
+        for (const edge of edges[from]) {
+            if (levels[edge.to] < 0 && numericCompare(edge.capacity, 0n) > 0) {
+                levels[edge.to] = levels[from] + 1;
+                queue.push(edge.to);
+            }
+        }
+    }
+    return levels;
+}
+
+function augmentLevelPath(
+    edges: ResidualEdge[][],
+    levels: readonly number[],
+    next: number[],
+    start: number,
+    target: number,
+): Numeric | undefined {
+    const nodes = [start];
+    const path: Array<{ from: number; edge: number }> = [];
+    while (nodes.length > 0) {
+        const from = nodes[nodes.length - 1];
+        if (from === target) {
+            let amount = edges[path[0].from][path[0].edge].capacity;
+            for (const step of path.slice(1)) {
+                const capacity = edges[step.from][step.edge].capacity;
+                if (numericCompare(capacity, amount) < 0) amount = capacity;
+            }
+            for (const step of path) {
+                const edge = edges[step.from][step.edge];
+                edge.capacity = numericSubtract(edge.capacity, amount);
+                const reverse = edges[edge.to][edge.reverse];
+                reverse.capacity = numericAdd(reverse.capacity, amount);
+            }
+            return amount;
+        }
+        let advanced = false;
+        while (next[from] < edges[from].length) {
+            const edge = edges[from][next[from]];
+            if (levels[edge.to] === levels[from] + 1
+                && numericCompare(edge.capacity, 0n) > 0) {
+                path.push({ from, edge: next[from] });
+                nodes.push(edge.to);
+                advanced = true;
+                break;
+            }
+            next[from] += 1;
+        }
+        if (advanced) continue;
+        nodes.pop();
+        const previous = path.pop();
+        if (previous) next[previous.from] += 1;
+    }
+    return undefined;
+}
+
+function reachableCut(
+    graph: GraphValue,
+    edges: readonly ResidualEdge[][],
+    vertices: readonly RankValue[],
+    start: number,
+): RankValue {
+    const seen = new Set([start]);
+    const queue = [start];
+    for (let head = 0; head < queue.length; head += 1) {
+        for (const edge of edges[queue[head]]) {
+            if (!seen.has(edge.to) && numericCompare(edge.capacity, 0n) > 0) {
+                seen.add(edge.to);
+                queue.push(edge.to);
+            }
+        }
+    }
+    return setFrom(graph, new Set([...seen].map(index => setValueKey(vertices[index]))));
+}
+
+function validateCapacity(value: Numeric): void {
+    if (numericCompare(value, 0n) < 0
+        || (typeof value === 'number' && !Number.isFinite(value))) {
+        throw new RankError('maxflow requires finite nonnegative capacities');
+    }
+}
+
+function expectDsu(value: RankValue): RankDsu {
+    if (isRankDsu(value)) return value;
+    throw new RankError('dsu operation expects a dsu');
+}
 
 function floydRecord(graph: GraphValue): RankRecord {
     const vertices = [...graph.vertices.values()];
@@ -509,6 +680,12 @@ function numericAdd(left: Numeric, right: Numeric): Numeric {
     return typeof left === 'number' || typeof right === 'number'
         ? Number(left) + Number(right)
         : left + right;
+}
+
+function numericSubtract(left: Numeric, right: Numeric): Numeric {
+    return typeof left === 'number' || typeof right === 'number'
+        ? Number(left) - Number(right)
+        : left - right;
 }
 
 function numericCompare(left: Numeric, right: Numeric): number {
