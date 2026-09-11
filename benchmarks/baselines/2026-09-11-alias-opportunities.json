@@ -1,0 +1,989 @@
+{
+  "note": "Offline conservative opportunity scan, not an optimization or a proof of numeric/pure storage. Unknown applications include selectors without runtime type contracts.",
+  "functions": 249,
+  "analysisMs": 18.189919000001126,
+  "parseFailures": [
+    {
+      "path": "demos/kaggle/001_titanic.ra",
+      "message": "unexpected character: ->г<- at offset: 0, skipped 3 characters. at 1:1"
+    },
+    {
+      "path": "demos/kaggle/002_prices.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 12:10"
+    },
+    {
+      "path": "demos/kaggle/003_spaceship.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 15:7"
+    },
+    {
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 41:22"
+    },
+    {
+      "path": "demos/kaggle/005_distweets.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 39:22"
+    },
+    {
+      "path": "demos/kaggle/006_storesales.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 17:16"
+    },
+    {
+      "path": "demos/kaggle/007_bakishare.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 32:10"
+    },
+    {
+      "path": "demos/kaggle/008_nytaxi.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 30:5"
+    },
+    {
+      "path": "demos/kaggle/009_dogvscat.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 46:22"
+    },
+    {
+      "path": "demos/kaggle/010_connectx.ra",
+      "message": "Expecting token of type 'EOF' but found `fun`. at 60:1"
+    },
+    {
+      "path": "demos/tpch/001_q6_revchange.ra",
+      "message": "Expecting token of type 'EOF' but found `=`. at 17:6"
+    }
+  ],
+  "results": [
+    {
+      "path": "demos/aoc/2015/002_wrapping.ra",
+      "function": "solve",
+      "arrays": [
+        {
+          "name": "Sides",
+          "writes": 1,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "Sides"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Dimensions",
+          "writes": 1,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "Dimensions"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/aoc/2015/015_cookie.ra",
+      "function": "solve",
+      "arrays": [
+        {
+          "name": "Ingredient",
+          "writes": 1,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "Ingredient"
+          ],
+          "reasons": [
+            "stored in container"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Totals",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Totals"
+          ],
+          "reasons": [
+            "result escape",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/aoc/2015/021_rpg.ra",
+      "function": "solveinput",
+      "arrays": [
+        {
+          "name": "Boss",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Boss"
+          ],
+          "reasons": [
+            "result escape",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/aoc/2015/021_rpg.ra",
+      "function": "solve",
+      "arrays": [
+        {
+          "name": "Weapons",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Weapons"
+          ],
+          "reasons": [
+            "reachable from affected value"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Armors",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Armors"
+          ],
+          "reasons": [
+            "reachable from affected value"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Rings",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Rings"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/aoc/2015/022_wizard.ra",
+      "function": "leastmana",
+      "arrays": [
+        {
+          "name": "State",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "State"
+          ],
+          "reasons": [
+            "result escape",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/aoc/2015/022_wizard.ra",
+      "function": "fight",
+      "arrays": [
+        {
+          "name": "Current",
+          "writes": 2,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Current"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Next",
+          "writes": 5,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Next"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/aoc/2015/022_wizard.ra",
+      "function": "bossturn",
+      "arrays": [
+        {
+          "name": "Next",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Next"
+          ],
+          "reasons": [
+            "result escape",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/intro/020_knight.ra",
+      "function": "solve",
+      "arrays": [
+        {
+          "name": "DYs",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "DYs"
+          ],
+          "reasons": [
+            "reachable from affected value"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "DXs",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "DXs"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Dist",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Dist"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "result escape",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/intro/021_color.ra",
+      "function": "solve",
+      "arrays": [
+        {
+          "name": "Answer",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Answer"
+          ],
+          "reasons": [
+            "content write",
+            "result escape"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/intro/024_gridpath.ra",
+      "function": "solve",
+      "arrays": [
+        {
+          "name": "DYs",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "DYs"
+          ],
+          "reasons": [
+            "closure capture"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "DXs",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "DXs"
+          ],
+          "reasons": [
+            "closure capture"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Seen",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Seen"
+          ],
+          "reasons": [
+            "closure capture",
+            "content write"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/sortnsrch/012_collecting2.ra",
+      "function": "collecting_updates",
+      "arrays": [
+        {
+          "name": "Edges",
+          "writes": 2,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "Edges"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/sortnsrch/020_ranges.ra",
+      "function": "nested_ranges",
+      "arrays": [
+        {
+          "name": "Contains",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Contains"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "stored in container"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Inside",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Inside"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "stored in container"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/sortnsrch/021_ranges.ra",
+      "function": "nested_range_counts",
+      "arrays": [
+        {
+          "name": "Contains",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Contains"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "stored in container"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Inside",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Inside"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "stored in container"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/sortnsrch/022_rooms.ra",
+      "function": "allocate_rooms",
+      "arrays": [
+        {
+          "name": "Rooms",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Rooms"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "stored in container"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/sortnsrch/028_smaller.ra",
+      "function": "nearest_smaller",
+      "arrays": [
+        {
+          "name": "Answer",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Answer"
+          ],
+          "reasons": [
+            "content write",
+            "result escape"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/cses/sortnsrch/034_movies2.ra",
+      "function": "maximum_movies",
+      "arrays": [
+        {
+          "name": "Empty",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Empty"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/002_transpose.ra",
+      "function": "transpose_matrix",
+      "arrays": [
+        {
+          "name": "Result",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Result"
+          ],
+          "reasons": [
+            "content write",
+            "result escape"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/003_reshape.ra",
+      "function": "reshape_matrix",
+      "arrays": [
+        {
+          "name": "Result",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Result"
+          ],
+          "reasons": [
+            "content write",
+            "result escape"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/007_trans.ra",
+      "function": "determinant",
+      "arrays": [
+        {
+          "name": "Work",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Work"
+          ],
+          "reasons": [
+            "compound or unpack assignment",
+            "content write",
+            "reachable from affected value",
+            "stored through address",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/008_inv.ra",
+      "function": "inverse_2x2",
+      "arrays": [
+        {
+          "name": "Result",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Result"
+          ],
+          "reasons": [
+            "content write",
+            "result escape"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/009_matmul.ra",
+      "function": "matrixmul",
+      "arrays": [
+        {
+          "name": "Result",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Result"
+          ],
+          "reasons": [
+            "content write",
+            "result escape"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/011_jacobi.ra",
+      "function": "jacobi",
+      "arrays": [
+        {
+          "name": "X",
+          "writes": 2,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "X"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "result escape",
+            "stored through address",
+            "unknown application"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Next",
+          "writes": 1,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "Next"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/012_svd.ra",
+      "function": "svd_2x2",
+      "arrays": [
+        {
+          "name": "V",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "V"
+          ],
+          "reasons": [
+            "reachable from affected value",
+            "unknown application"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Sigma",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Sigma"
+          ],
+          "reasons": [
+            "result escape",
+            "stored in container",
+            "stored through address",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/015_gd.ra",
+      "function": "linear_regression",
+      "arrays": [
+        {
+          "name": "Theta",
+          "writes": 2,
+          "loopWrite": true,
+          "freshArray": true,
+          "aliases": [
+            "Theta"
+          ],
+          "reasons": [
+            "compound or unpack assignment",
+            "reachable from affected value",
+            "result escape",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/017_kmeans.ra",
+      "function": "k_means",
+      "arrays": [
+        {
+          "name": "Labels",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Labels"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/021_svm.ra",
+      "function": "pegasos",
+      "arrays": [
+        {
+          "name": "Alpha",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Alpha"
+          ],
+          "reasons": [
+            "compound or unpack assignment",
+            "content write",
+            "reachable from affected value",
+            "result escape",
+            "stored in container",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/025_backprop.ra",
+      "function": "train_neuron",
+      "arrays": [
+        {
+          "name": "Loss",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Loss"
+          ],
+          "reasons": [
+            "content write",
+            "result escape",
+            "stored in container"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/deepml/028_svd2.ra",
+      "function": "svd_2x2",
+      "arrays": [
+        {
+          "name": "U",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "U"
+          ],
+          "reasons": [
+            "result escape",
+            "stored in container",
+            "stored through address",
+            "unknown application"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "S",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "S"
+          ],
+          "reasons": [
+            "result escape",
+            "stored in container"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "V",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "V"
+          ],
+          "reasons": [
+            "content write",
+            "result escape",
+            "stored in container",
+            "stored through address",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/euler/011_gridproduct.ra",
+      "function": "greatest_product",
+      "arrays": [
+        {
+          "name": "Directions",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Directions"
+          ],
+          "reasons": [
+            "reachable from affected value"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/euler/017_numberletters.ra",
+      "function": "number_letter_total",
+      "arrays": [
+        {
+          "name": "Small",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Small"
+          ],
+          "reasons": [
+            "closure capture"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Teens",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Teens"
+          ],
+          "reasons": [
+            "closure capture"
+          ],
+          "candidate": false
+        },
+        {
+          "name": "Tens",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Tens"
+          ],
+          "reasons": [
+            "closure capture"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/euler/023_abundantsums.ra",
+      "function": "non_abundant_sum",
+      "arrays": [
+        {
+          "name": "DivisorSums",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "DivisorSums"
+          ],
+          "reasons": [
+            "content write",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/euler/031_coinsums.ra",
+      "function": "coin_sums",
+      "arrays": [
+        {
+          "name": "Ways",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Ways"
+          ],
+          "reasons": [
+            "content write",
+            "result escape",
+            "stored through address",
+            "unknown application"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/euler/034_digitfactorials.ra",
+      "function": "digit_factorial_sum",
+      "arrays": [
+        {
+          "name": "Factorials",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Factorials"
+          ],
+          "reasons": [
+            "closure capture"
+          ],
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "path": "demos/euler/039_righttriangles.ra",
+      "function": "right_triangle_perimeter",
+      "arrays": [
+        {
+          "name": "Counts",
+          "writes": 1,
+          "loopWrite": false,
+          "freshArray": true,
+          "aliases": [
+            "Counts"
+          ],
+          "reasons": [
+            "content write",
+            "reachable from affected value"
+          ],
+          "candidate": false
+        }
+      ]
+    }
+  ]
+}

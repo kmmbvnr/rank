@@ -727,3 +727,41 @@ alias-analysis experiment and aggregate delivery checks; revisit statement
 dispatch only with evidence for a larger change.
 
 After rollback the interpreter source diff was empty and all 474 JS tests passed.
+
+## 16. Function-local alias analysis: offline prototype only
+
+Built a flow-insensitive pass over parsed function bodies. It tracks assignments
+and loop-carried bindings, transitive aliases, writes through addresses, container
+stores, returned/yielded values, closure captures and unknown applications.
+Dependencies carry effects back through lazy values and iterated elements. The
+last rule matters: without an element-type proof, iterating a collection need
+not produce detached primitive values. Seven standalone tests cover these cases.
+Run `node --test benchmarks/experiments/alias-analysis.test.mjs`.
+
+An offline scan of the parseable non-test demos examined 249 functions and 51
+bindings initialized by array syntax. The final conservative pass left no
+unaffected fresh-array candidates. An earlier version listed four small constant
+tables, but had not propagated dependencies through iteration; that missing rule
+was repaired and covered by a test. Analysis itself took about 18 ms across the
+249 functions, excluding parsing, on this run.
+[Raw opportunities and rejection reasons](../../benchmarks/baselines/2026-09-11-alias-opportunities.json).
+Reproduce with `node benchmarks/alias-opportunities.mjs`.
+
+This does not mean Rank has no immutable arrays or profitable static analyses.
+The prototype treats `A I` as an unknown application without a type contract,
+and does not assume that a standard function name still denotes an unchanged,
+pure builtin. It does not prove numeric element types or permit buffer reuse.
+Such proofs require more precise types, effects and lifetime/use information.
+The prototype is an opportunity finder, not an optimizer safety boundary.
+
+Decision: keep it as an offline experiment, with no interpreter import or
+per-execution cost. No immutable keyword, implicit freezing, or buffer reuse was
+added. Adding a runtime pass with no demonstrated applicable optimization would
+violate the complexity rule. The existing operation-local private-storage checks
+remain the implemented mechanism. Revisit broader analysis with a concrete large
+workload and checked builtin/host contracts, not merely unchanged spelling.
+
+The scan also records 11 existing parse failures: the ten Kaggle drafts and
+TPCH 001. For example, the first Kaggle draft starts with `гыу csv`. These were
+not edited. Earlier statements that 164 demo test files passed do not claim that
+every draft under `demos/` parses or runs; the scan now makes that limit explicit.

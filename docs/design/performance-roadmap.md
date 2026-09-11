@@ -84,12 +84,14 @@ Why: code generation adds startup and maintenance costs. WASM/SIMD and internal
 parallel kernels remain conditional experiments after suitable storage and
 measured workloads exist.
 
-## Last: broader mutation and alias analysis
+## Broader alias analysis needs an applicable optimization
 
-Add conservative analysis after parsing, initially within one function. Track
-writes through aliases such as `B = A` and escapes through calls, containers,
-returns and closures. Unknown calls and host values need a checked contract or
-ordinary execution. No new keyword is planned.
+The offline function-local prototype now tracks aliases, writes, loop bindings,
+captures and escapes. Its conservative scan found no unaffected fresh-array
+candidates among 51 array-syntax bindings in 249 parsed demo functions. Keep it
+offline until a concrete transformation benefits from more precise type/effect
+proofs. Unknown calls and host values need a checked contract or ordinary
+execution. No new keyword is planned.
 
 Use these proofs for optimizations across expressions, retained validated facts
 and buffer reuse. Reusing a buffer additionally requires proof that no live alias
