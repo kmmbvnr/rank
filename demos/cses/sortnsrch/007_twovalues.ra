@@ -1,0 +1,36 @@
+rem CSES 1640: Sum of Two Values
+rem https://cses.fi/problemset/task/1640
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+X = stdin .integer
+Values = stdin .integer N array
+
+Answer = Values X find_pair
+
+if Answer len equal 0
+  "IMPOSSIBLE" print
+else
+  Answer print
+end
+
+
+rem Find one pair with the target sum.
+fun find_pair A Target
+  for Value i in A
+    Need = Target - Value
+
+    if Need in index
+      J = index Need
+      return array (J + 1) (i + 1)
+    end
+
+    index Value = i
+  end
+
+  return array shape 0
+  end
+end

@@ -1,0 +1,30 @@
+use testing
+
+test "official example"
+  use "007_twovalues"
+  Values = array 2 7 5 1
+  Actual = Values 8 find_pair
+  Actual equal array 2 4
+end
+
+test "duplicate value forms a pair"
+  use "007_twovalues"
+  Values = array 3 3
+  Actual = Values 6 find_pair
+  Actual equal array 1 2
+end
+
+test "does not reuse one position"
+  use "007_twovalues"
+  Values = array 4 1 9
+  Actual = Values 8 find_pair
+  Actual equal array shape 0
+  end
+end
+
+test "supports negative values"
+  use "007_twovalues"
+  Values = array -5 8 2 11
+  Actual = Values 6 find_pair
+  Actual equal array 1 4
+end
