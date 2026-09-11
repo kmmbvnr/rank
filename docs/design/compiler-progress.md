@@ -1209,3 +1209,41 @@ with the preceding integer-absolute baseline. One pair takes 27.476 s off and
 27.692 s on (about 0.8% slower), so no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-text-loops-suite.json).
+
+## Text vectors and nested inferred character loops
+
+Materialized text vectors can now feed nested character loops in one region.
+Every input cell is guarded before execution; signature selection alone is not a
+type proof. Nested text iteration also accepts the type inferred from the outer
+binding. Existing checked bindings, string snapshot behavior and immediate numeric
+writes remain in effect. Five differential tests cover Unicode rows, empty-string
+binding checks, mixed-vector fallback, local string reassignment and partial numeric
+writes before a later bounds error. All 44 language + 833 interpreter tests pass.
+
+The unchanged Grid Paths demo receives an open 500 by 500 field. Its independent
+oracle uses the exact central binomial coefficient modulo 1000000007. Five initial
+alternating samples toggle `textArrayLoopCompilation`; scalar text compilation stays
+enabled in both modes. Timings include construction, parsing/loading, compilation,
+execution and validation with counters off. A nine-sample repeat checks an initially
+negligible result, with Edit Distance as an unchanged scalar-text control.
+
+| Task | First off/on medians ms | Repeat off/on medians ms |
+| --- | ---: | ---: |
+| Grid Paths 500 by 500 | 19.676 / 19.862 | 17.295 / 17.145 |
+| Edit Distance 300 each | 9.856 / 10.638 | 9.121 / 9.299 |
+
+No material speedup is established. Coverage does improve: Grid Paths changes from
+500 inner-region entries to one complete nested region; Edit Distance stays at one.
+This stage is retained as compiler coverage for arrays of text, not as a performance
+win. Text iteration still constructs code-point arrays and remains a candidate for
+separate optimization.
+
+[First samples](../../benchmarks/baselines/2026-09-12-text-arrays-focused.json),
+[repeat](../../benchmarks/baselines/2026-09-12-text-arrays-repeat.json),
+[coverage](../../benchmarks/baselines/2026-09-12-text-arrays-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests. Digests match the preceding
+scalar-text baseline. One pair takes 27.696 s off and 27.736 s on; no whole-suite
+speedup is established.
+
+[Suite results](../../benchmarks/baselines/2026-09-12-text-arrays-suite.json).

@@ -17,10 +17,11 @@ interface IterationBinding {
 }
 interface Host {
     readonly textLoops: boolean;
+    readonly textArrayLoops: boolean;
     readonly nestedLoops: boolean;
     readonly arrayReads: boolean;
     readonly arrayIteration: boolean;
-    iterationValues(binding: IterationBinding, source: RankArray | string): Iterable<RankValue>;
+    iterationValues(binding: IterationBinding, source: RankArray | string, elementType?: 'integer' | 'text'): Iterable<RankValue>;
     readonly arrayWrites: boolean;
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
@@ -59,7 +60,7 @@ type CompiledLoop = {
 };
 
 export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): CompiledLoop | undefined {
-    const numeric = compileTypedLoop(statement, host, iteration, new Set());
+    const numeric = compileTypedLoop(statement, host, iteration, new Set(), new Set());
     if (!host.textLoops) return numeric;
     const candidates = new Set<string>();
     function collect(node: Statement) {
@@ -81,18 +82,27 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     return { run: (insideFinally, insideGenerator) => {
         const result = numeric?.run(insideFinally, insideGenerator);
         if (result) return result;
-        const text = [...candidates].filter(name => typeof host.read(name) === 'string');
-        if (!text.length) return undefined;
-        const key = JSON.stringify(text);
+        const text: string[] = [], textArrays: string[] = [];
+        for (const name of candidates) {
+            const value = host.read(name);
+            if (typeof value === 'string') text.push(name);
+            else if (host.textArrayLoops && value && isRankArray(value) && value.shape.length === 1) {
+                // This only selects a candidate plan; its entry guard checks every cell.
+                const items = materializedArrayItems(value);
+                if (items && typeof items[0] === 'string') textArrays.push(name);
+            }
+        }
+        if (!text.length && !textArrays.length) return undefined;
+        const key = JSON.stringify([text, textArrays]);
         if (!variants.has(key)) {
             if (variants.size >= 8) return undefined;
-            variants.set(key, compileTypedLoop(statement, host, iteration, new Set(text)));
+            variants.set(key, compileTypedLoop(statement, host, iteration, new Set(text), new Set(textArrays)));
         }
         return variants.get(key)?.run(insideFinally, insideGenerator);
     } };
 }
 
-function compileTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>): CompiledLoop | undefined {
+function compileTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>): CompiledLoop | undefined {
     if (!statement.statements.length || statement.statements.length > 32) return undefined;
     const localTypes = new Map<string, Term['type']>();
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
@@ -274,7 +284,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
             const indexed = iteration.names.length === 2 && iteration.names[1] !== '#';
             const arrayIteration = isNameExpression(range);
-            const textIteration = isNameExpression(range) && textSources.has(range.name);
+            const textIteration = isNameExpression(range) && (textSources.has(range.name) || localTypes.get(range.name) === 'text');
+            let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
             if (textIteration && isNameExpression(range)) {
                 const source = emit(range, tests, 'text');
                 if (source?.type !== 'text') return undefined;
@@ -284,13 +295,14 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             } else if (isNameExpression(range)) {
                 if (!host.arrayIteration || range.name.includes('.')) return undefined;
                 const old = arrays.get(range.name);
-                if (old && (old.rank !== 1 || old.type !== 'integer')) return undefined;
-                const info = old ?? { slot: slot(range.name), rank: 1, type: 'integer' as const };
+                elementType = textArrays.has(range.name) ? 'text' : 'integer';
+                if (old && (old.rank !== 1 || old.type !== elementType)) return undefined;
+                const info = old ?? { slot: slot(range.name), rank: 1, type: elementType };
                 arrays.set(range.name, info);
                 if (!assigned.has(range.name)) arrayInputs.add(range.name);
                 const binding = iteration;
                 setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
-                iterators.push(source => host.iterationValues(binding, source));
+                iterators.push(source => host.iterationValues(binding, source, elementType));
                 header = `for (const cursor of iterable) { location = ${location};`;
             } else {
                 needsRanges = true;
@@ -306,7 +318,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             }
             for (const [index, name] of iteration.names.entries()) {
                 if (name === '#') continue;
-                const type = index === 0 && textIteration ? 'text' : 'integer';
+                const type = index === 0 ? elementType : 'integer';
                 if (localTypes.has(name) && localTypes.get(name) !== type) return undefined;
                 localTypes.set(name, type);
                 const target = slot(name), value = index === 0 ? 'cursor' : arrayIteration ? 'ordinal++' : 'ordinal';
@@ -607,7 +619,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (!value || !isRankArray(value) || value.shape.length !== info.rank) return undefined;
             if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return undefined;
             const items = materializedArrayItems(value);
-            if (!items || !items.every(item => typeof item === (info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
+            if (!items || !items.every(item => typeof item === (info.type === 'text' ? 'string' : info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
             values[info.slot] = value;
         }
         for (const [name, info] of destinations) {
@@ -622,7 +634,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
                     || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
                 const items = materializedArrayItems(value);
-                if (!items || !items.every(item => typeof item === (info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
+                if (!items || !items.every(item => typeof item === (info.type === 'text' ? 'string' : info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
             }
             values[info.slot] = value;
         }

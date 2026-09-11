@@ -1,0 +1,221 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "textarrays",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 113.26275,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 82.932208,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 29.957167,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 32.792958999999996,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 20.586375000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 12.074292000000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 29.297375000000017,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 20.00595800000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.182334000000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 29.704207999999994,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 20.48362499999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.12908299999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 28.779957999999965,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 19.67641599999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.979583000000048,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 29.532332999999994,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 19.86166700000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.588375000000042,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 27.91187500000001,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.18587500000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 10.667666999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 27.905167000000006,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.37008400000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 10.467083000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 27.073166000000015,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.17429100000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 9.856374999999957,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 27.94541700000002,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 17.250625000000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 10.638374999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    }
+  ]
+}

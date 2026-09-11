@@ -764,8 +764,8 @@ Named text inputs can now specialize a loop region alongside integer and boolean
 locals and numeric arrays. The existing text iterator supplies Unicode code points
 and ordinal indices; empty text still declares text/integer binding types. Text
 literals, assignment, equality/inequality and returns are supported in these
-regions. Text arrays, concatenation, indexing and arbitrary text function calls
-are not yet lowered by this pass.
+regions. Concatenation, text indexing and arbitrary text function calls are not
+yet lowered by this pass. Text-vector iteration is described below.
 
 The numeric plan remains the first path. If its guards decline before execution,
 the dispatcher observes which named iterable inputs are strings and builds a
@@ -775,3 +775,18 @@ input values or invocation frames. Each plan guards required input types before
 executing and uses checked writes. Unsupported signatures use reference execution.
 A string source assigned only inside the region may still lack an entry-time type
 proof and fall back. `textLoopCompilation: false` disables this stage independently.
+
+
+### Text vectors feeding nested character loops
+
+A materialized one-dimensional array of strings can now supply text bindings to
+nested compiled loops. Signature selection inspects the first element only to
+choose a candidate; the region guard checks every element before execution.
+Unknown lazy readers are not forced. The proven element type passes into ordinary
+binding validation, avoiding a second type scan. Nested loops can use text types
+inferred from an enclosing binding, rather than requiring an entry-time variable.
+
+Mixed arrays decline before writes. Empty vectors retain ordinary behavior when
+no element type can be inferred. Text-array mutation and creation are not yet
+lowered. `textArrayLoopCompilation: false` disables the text-vector specialization
+while keeping scalar text loops available.

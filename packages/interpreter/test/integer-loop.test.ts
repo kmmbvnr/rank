@@ -1817,3 +1817,73 @@ array A B C`);
         expect(result.loops).toBe(3);
     });
 });
+
+describe('compiled iteration over text vectors', () => {
+    it('joins rows and Unicode character loops in one region', () => {
+        const result = compare(`Rows = array "a😀" "" "😀b😀"
+Total = 0
+for Row i in Rows
+  for C j in Row
+    if C equal "😀"
+      Total += i * 10 + j
+    end
+  end
+end
+Total`);
+        expect(result.value).toBe('43');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains empty-string element binding validation', () => {
+        const result = compare(`Rows = array ""
+C = 1
+Total = 0
+for Row in Rows
+  for C in Row
+    Total += 1
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.variables).toContainEqual(['Total', '0']);
+    });
+
+    it('falls back before writes for a mixed vector', () => {
+        const result = compare(`Rows = array "a" 5
+Total = 0
+for Row in Rows
+  for C in Row
+    Total += 1
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.variables).toContainEqual(['Total', '1']);
+    });
+
+    it('keeps local string rebinding separate from vector storage', () => {
+        const result = compare(`Rows = array "ab" "c"
+Total = 0
+for Row in Rows
+  for C in Row
+    Row = "x"
+    Total += 1
+  end
+end
+Rows`);
+        expect(result.value).toBe('ab c');
+        expect(result.variables).toContainEqual(['Total', '3']);
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves numeric writes before a later bounds error', () => {
+        const result = compare(`Rows = array "." "..."
+Counts = array 0 0
+for Row in Rows
+  for C i in Row
+    Counts i += 1
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.containers).toContainEqual(['Counts', [2], ['2', '1']]);
+        expect(result.loops).toBe(1);
+    });
+});

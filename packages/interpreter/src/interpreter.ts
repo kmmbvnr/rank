@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly textArrayLoopCompilation?: boolean;
     readonly textLoopCompilation?: boolean;
     readonly absoluteLoopCompilation?: boolean;
     readonly provenIterationTypes?: boolean;
@@ -1027,6 +1028,7 @@ export class Interpreter {
                     };
                 } : undefined,
                 textLoops: this.options.textLoopCompilation !== false,
+                textArrayLoops: this.options.textArrayLoopCompilation !== false,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
                 returns: this.options.loopReturnCompilation !== false,
@@ -1045,9 +1047,9 @@ export class Interpreter {
                 },
                 compoundWrites: this.options.compoundArrayCompilation !== false,
                 arrayIteration: this.options.arrayIterationCompilation !== false,
-                // The region guards integer cells before entry and preserves their type.
-                iterationValues: (binding, source) => this.iterationAtoms(binding, source,
-                    this.options.provenIterationTypes !== false),
+                // The region guards cell types before entry and preserves them.
+                iterationValues: (binding, source, elementType = 'integer') => this.iterationAtoms(binding, source,
+                    this.options.provenIterationTypes !== false ? elementType : undefined),
                 arrayWrites: this.options.arrayWriteCompilation !== false,
                 arrayOffset: this.options.scalarAddressCompilation !== false
                     ? scalarArrayWriteOffset
@@ -2496,6 +2498,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            textArrayLoopCompilation: this.options.textArrayLoopCompilation,
             textLoopCompilation: this.options.textLoopCompilation,
             absoluteLoopCompilation: this.options.absoluteLoopCompilation,
             provenIterationTypes: this.options.provenIterationTypes,
@@ -2598,6 +2601,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            textArrayLoopCompilation: this.options.textArrayLoopCompilation,
             textLoopCompilation: this.options.textLoopCompilation,
             absoluteLoopCompilation: this.options.absoluteLoopCompilation,
             provenIterationTypes: this.options.provenIterationTypes,
@@ -3597,11 +3601,11 @@ export class Interpreter {
         }
     }
 
-    private iterationAtoms(binding: ForBinding, value: RankValue, provenInteger = false): Iterable<RankValue> {
+    private iterationAtoms(binding: ForBinding, value: RankValue, provenType?: 'integer' | 'text'): Iterable<RankValue> {
         validateForBindings(binding.names, 1);
         if (isRankArray(value)) {
-            const types = provenInteger
-                ? new Set(value.items.length ? ['integer'] : []) : typesOf(value.items);
+            const types = provenType
+                ? new Set(value.items.length ? [provenType] : []) : typesOf(value.items);
             this.declareLoopTypes(binding.names, [types, new Set(['integer'])]);
         } else if (isRankQueue(value)) {
             const types = value instanceof RankDeque ? value.iterationTypes(typeName) : typesOf(value.items);
