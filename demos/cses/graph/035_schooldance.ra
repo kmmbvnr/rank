@@ -1,0 +1,57 @@
+rem CSES 1696: School Dance
+rem https://cses.fi/problemset/task/1696
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+Boys = stdin .integer
+Girls = stdin .integer
+K = stdin .integer
+Count = K * 2
+Values = stdin .integer Count array
+Pairs = Values (array K 2) reshape
+Result = Boys Girls Pairs school_dance
+Result .count print
+for Pair in Result .pairs
+  Pair print
+end
+
+
+rem Reduce bipartite matching to flow.
+fun school_dance Boys Girls Pairs
+  Source = 0
+  Sink = Boys + Girls + 1
+  Nodes = 0 to Sink
+  Graph = new graph Nodes .directed
+
+  for Boy in 1 to Boys
+    Graph add Source Boy
+  end
+  for Girl in 1 to Girls
+    Node = Boys + Girl
+    Graph add Node Sink
+  end
+  for Pair in Pairs
+    unpack Boy Girl = Pair
+    Node = Boys + Girl
+    Graph add Boy Node
+  end
+
+  Result = Graph Source Sink maxflow
+  Flow = Result .flow
+  Matched = new queue
+  for Pair in Pairs
+    unpack Boy Girl = Pair
+    Node = Boys + Girl
+    if Flow Boy Node pad 0 equal 1
+      Matched push Pair
+    end
+  end
+  return record
+    .count = Result .value
+    .pairs = Matched
+  end
+end

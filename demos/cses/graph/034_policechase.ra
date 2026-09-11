@@ -1,0 +1,44 @@
+rem CSES 1695: Police Chase
+rem https://cses.fi/problemset/task/1695
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+Closed = N Edges police_chase
+Closed len print
+for Street in Closed
+  Street print
+end
+
+
+rem Find the streets of a minimum cut.
+fun police_chase N Edges
+  Nodes = 1 to N
+  Graph = new graph Nodes .directed
+  for Edge in Edges
+    unpack A B = Edge
+    Graph add A B
+    Graph add B A
+  end
+  Result = Graph 1 N maxflow
+  Cut = Result .cut
+
+  Streets = new queue
+  for Edge in Edges
+    unpack A B = Edge
+    if A in Cut and not (B in Cut)
+      Streets push Edge
+    elif B in Cut and not (A in Cut)
+      Streets push array B A
+    end
+  end
+  return Streets
+end

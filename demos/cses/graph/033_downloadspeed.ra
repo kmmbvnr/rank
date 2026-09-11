@@ -1,0 +1,22 @@
+rem CSES 1694: Download Speed
+rem https://cses.fi/problemset/task/1694
+
+use graph
+use io
+use ranges
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 3
+Values = stdin .integer Count array
+Edges = Values (array M 3) reshape
+N Edges download_speed print
+
+
+rem Compute maximum network throughput.
+fun download_speed N Edges
+  Graph = new graph (1 to N) .directed
+  Graph add Edges
+  Result = Graph 1 N maxflow
+  return Result .value
+end

@@ -1,0 +1,62 @@
+use testing
+
+test "official example has a cut of two"
+  use "034_policechase"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Edges = array shape 5 2
+    1 2
+    1 3
+    2 3
+    3 4
+    1 4
+  end
+  Closed = 4 Edges police_chase
+  Closed len equal 2
+  Closed 0 equal (array 3 4)
+  Closed 1 equal (array 1 4)
+end
+
+test "closes the only street"
+  use "034_policechase"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Edges = array shape 1 2
+    1 2
+  end
+  Closed = 2 Edges police_chase
+  Closed len equal 1
+  Closed 0 equal (array 1 2)
+end
+
+test "returns no streets when separated"
+  use "034_policechase"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Edges = array shape 1 2
+    1 2
+  end
+  Closed = 3 Edges police_chase
+  Closed len equal 0
+end
+
+test "orients streets out of the cut"
+  use "034_policechase"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Edges = array shape 2 2
+    2 1
+    2 3
+  end
+  Closed = 3 Edges police_chase
+  Closed len equal 1
+  Closed 0 equal (array 1 2)
+end

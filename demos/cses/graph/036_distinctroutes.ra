@@ -1,0 +1,72 @@
+rem CSES 1711: Distinct Routes
+rem https://cses.fi/problemset/task/1711
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+Routes = N Edges distinct_routes
+Routes len print
+for Route in Routes
+  Route len print
+  Route print
+end
+
+
+rem Decompose a unit flow into routes.
+fun distinct_routes N Edges
+  Graph = new graph (1 to N) .directed
+  for Edge in Edges
+    unpack From To = Edge
+    Graph add From To
+  end
+  Result = Graph 1 N maxflow
+  Flow = Result .flow
+  Routes = new queue
+
+  for Routes len less Result .value
+    Parent = N Graph Flow flow_path
+    Current = N
+    Path = new deque
+    Path Current pushfront
+    for Current not equal 1
+      Previous = Parent Current
+      Flow Previous Current -= 1
+      Current = Previous
+      Path Current pushfront
+    end
+    Routes push Path
+  end
+  return Routes
+end
+
+
+rem Find one path with positive flow.
+fun flow_path N Graph Flow
+  Parent = array shape (N + 1) pad 0
+  Parent 1 = -1
+  Pending = new queue
+  Pending push 1
+  for Pending len greater 0
+    Current = Pending pop
+    for Next in Graph Current
+      Unseen = Parent Next equal 0
+      Positive = Flow Current Next pad 0
+      if Unseen and Positive greater 0
+        Parent Next = Current
+        if Next equal N
+          return Parent
+        end
+        Pending push Next
+      end
+    end
+  end
+  return Parent
+end

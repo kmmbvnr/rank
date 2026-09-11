@@ -1,0 +1,49 @@
+use testing
+
+test "official example"
+  use "033_downloadspeed"
+  use graph
+  use ranges
+  Edges = array shape 5 3
+    1 2 3
+    2 4 2
+    1 3 4
+    3 4 5
+    4 1 3
+  end
+  4 Edges download_speed equal 6
+end
+
+test "adds parallel capacities"
+  use "033_downloadspeed"
+  use graph
+  use ranges
+  Edges = array shape 3 3
+    1 2 4
+    1 2 7
+    2 3 20
+  end
+  3 Edges download_speed equal 11
+end
+
+test "is limited by a bottleneck"
+  use "033_downloadspeed"
+  use graph
+  use ranges
+  Edges = array shape 3 3
+    1 2 100
+    2 3 2
+    1 3 1
+  end
+  3 Edges download_speed equal 3
+end
+
+test "returns zero without a route"
+  use "033_downloadspeed"
+  use graph
+  use ranges
+  Edges = array shape 1 3
+    1 2 9
+  end
+  3 Edges download_speed equal 0
+end
