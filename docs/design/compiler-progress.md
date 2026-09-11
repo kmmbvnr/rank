@@ -1103,3 +1103,41 @@ match the preceding local-array baseline. One pair takes 27.463 s off and 27.517
 on; no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-loop-return-suite.json).
+
+## Reuse the integer vector proof at loop entry
+
+Compiled vector iteration no longer collects element types after region guards
+have already established homogeneous integer cells. Locally allocated vectors
+have the same proof from their constructor and typed writes. This removes an
+extra linear scan without caching mutable-array type information across runs.
+Binding validation remains at the original loop entry, including empty vectors:
+no element type is inferred, but the ordinal type is still checked.
+
+Three differential regressions cover empty element bindings, empty ordinal
+bindings, and a conflicting element type before the body. All 44 language and
+817 interpreter tests pass. Existing tests retain mutation, aliasing and live
+iteration coverage.
+
+Five alternating samples toggle only `provenIterationTypes`, with counters off;
+all previous compiler stages remain enabled. Times include input construction,
+parse/load, compilation, execution and independent result validation.
+
+| Task | Prior median ms | Reused proof median ms |
+| --- | ---: | ---: |
+| Search fixture, first of 200000 | 6.842 | 5.147 |
+| Search fixture, last of 200000 | 10.837 | 9.174 |
+| Unchanged Increasing Array, 200000 | 12.560 | 10.427 |
+
+The fixture improves about 25% and 15% respectively; Increasing Array takes
+about 17% less time. Coverage records one compiled region in both modes for each
+case, so this measures entry overhead rather than expanded compiler coverage.
+
+[Search samples](../../benchmarks/baselines/2026-09-12-iteration-types-focused.json),
+[Increasing Array](../../benchmarks/baselines/2026-09-12-iteration-types-increase.json),
+[coverage](../../benchmarks/baselines/2026-09-12-iteration-types-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests. Every result digest agrees
+with the preceding return-edge baseline. One pair takes 27.729 s off and 27.878 s
+on; this does not establish any whole-suite speedup.
+
+[Suite results](../../benchmarks/baselines/2026-09-12-iteration-types-suite.json).

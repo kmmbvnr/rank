@@ -735,3 +735,15 @@ Top-level returns, returns inside finally, generator returns and valueless retur
 retain reference validation before evaluating the expression. Unsupported function
 calls in return expressions still fall back, retaining tail-call behavior.
 `loopReturnCompilation: false` disables this control edge only.
+
+
+### Reusing proven iteration types
+
+Compiled integer vector loops reuse the element type established by region entry
+validation or a typed local allocation. The ordinary loop driver still validates
+binding names and fixed variable types, but does not traverse the vector again to
+collect a type set. Empty vectors contribute no element type; their ordinal binding
+still has integer type. The original iterator and live array semantics are retained.
+This proof is local to a synchronous compiled region with typed writes, not a cache
+of arbitrary mutable arrays. `provenIterationTypes: false` restores type collection
+for differential benchmarks; ordinary interpreted loops are unchanged.

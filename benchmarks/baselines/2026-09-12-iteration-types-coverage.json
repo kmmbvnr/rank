@@ -1,0 +1,67 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "iterationtypes",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 91.26150000000001,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 53.16891699999999,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 12.829875000000015,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 24.840375000000023,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 28.67866700000002,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.511000000000024,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 10.85529200000002,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 12.159541999999988,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    }
+  ]
+}

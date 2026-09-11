@@ -1631,3 +1631,39 @@ end
         expect(result.loops).toBe(0);
     });
 });
+
+
+describe('proven integer iteration types', () => {
+    it('does not declare an element type for an empty vector', () => {
+        const result = compare(`A = array shape 0 pad 0
+Value = "kept"
+Total = 0
+for Value i in A
+  Total += 1
+end
+Value`);
+        expect(result.value).toBe('kept');
+        expect(result.loops).toBe(1);
+    });
+
+    it('still checks the ordinal type when the vector is empty', () => {
+        const result = compare(`A = array shape 0 pad 0
+Index = "held"
+Total = 0
+for Value Index in A
+  Total += 1
+end`);
+        expect(result).toHaveProperty('error');
+    });
+
+    it('checks the element binding before executing the body', () => {
+        const result = compare(`A = array 1 2
+Value = "held"
+Total = 0
+for Value in A
+  Total += 1
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.variables).toContainEqual(['Total', '0']);
+    });
+});
