@@ -4170,6 +4170,7 @@ source clause syntax.
 ```rank
 rem Project Euler 2
 rem Sum even Fibonacci terms <= 4e6
+rem https://projecteuler.net/problem=2
 
 use sequences
 use numbers
@@ -4188,6 +4189,7 @@ even terms.
 ```rank
 rem Project Euler 3
 rem Largest prime factor of 600851475143
+rem https://projecteuler.net/problem=3
 
 use numbers
 
@@ -4198,13 +4200,32 @@ Answer = Factors max
 `factors` produces a finite lazy sequence of prime factors. The general `max`
 reduction consumes it without adding a puzzle-specific operation.
 
-## 5. Smallest multiple
+## 4. Largest palindrome product
 
-Euler 4 is deferred until the tensor and rank models are implemented.
+```rank
+rem Project Euler 4
+rem Largest product of two N-digit numbers
+rem https://projecteuler.net/problem=4
+
+Lower = 10 ** (Digits - 1)
+Upper = Lower * 10 - 1
+
+Factors = Lower to Upper
+Products = Factors Factors * outer
+Mask = Products palindrome rank 0
+Answer = Products Mask max
+```
+
+`outer` constructs the multiplication table lazily. Ranked `palindrome` checks
+each scalar product, and its boolean tensor selects the candidates for `max`.
+The helper converts each number to text and compares it with `reverse`.
+
+## 5. Smallest multiple
 
 ```rank
 rem Project Euler 5
 rem Smallest number divisible by 1..20
+rem https://projecteuler.net/problem=5
 
 use ranges
 use numbers
@@ -4220,26 +4241,27 @@ program produces `2520`.
 
 ```rank
 rem Project Euler 6
+rem https://projecteuler.net/problem=6
 
 use ranges
 use numbers
 
 Range = 1 to 100
-Sum = Range sum
-SquareOfSum = Sum * Sum
-Squares = Range * Range
+SquareOfSum = (Range sum) ** 2
+Squares = Range ** 2
 SumOfSquares = Squares sum
 Answer = SquareOfSum - SumOfSquares
 ```
 
-Elementwise multiplication preserves the lazy range shape, and each `sum`
-consumes only its own plan. With an upper boundary of `10`, the result is
-`2640`.
+Scalar extension applies `** 2` to every range value, while the parentheses
+make the first power operate on the reduced sum. With an upper boundary of
+`10`, the result is `2640`.
 
 ## 7. 10001st prime
 
 ```rank
 rem Project Euler 7
+rem https://projecteuler.net/problem=7
 
 use sequences
 
@@ -4256,6 +4278,9 @@ addressing the lazy `primes` source. With `Count = 6`, the result is `13`.
 ## 8. Largest product in a series
 
 ```rank
+rem Project Euler 8
+rem https://projecteuler.net/problem=8
+
 use text
 use sequences
 use numbers
@@ -4276,32 +4301,48 @@ ranked multiplication reduction produces one value per cell. The default width
 ## 9. Special Pythagorean triplet
 
 ```rank
+rem Project Euler 9
+rem https://projecteuler.net/problem=9
+
 use ranges
+use numbers
 
 option Target integer = 1000
 
-Last = Target - 1
-for a in 1 to Last
-  for b in 1 to Last
-    if b greater a
-      C = Target - a - b
-      if C greater b
-        if a * a + b * b equal C * C
-          Answer = a * b * C
-        end
-      end
-    end
-  end
-end
+ALast = (Target - 1) // 3
+BLast = (Target - 1) // 2
+A = (1 to ALast) array
+B = (2 to BLast) array
+PairSums = A B + outer
+C = Target - PairSums
+
+Increasing = A B less outer
+Increasing and= B less C
+
+ASquares = A ** 2
+BSquares = B ** 2
+SquareSums = ASquares BSquares + outer
+Valid = SquareSums equal C ** 2
+Valid and= Increasing
+
+PairProducts = A B * outer
+Products = PairProducts * C
+Candidates = Products Valid
+Answer = Candidates max
 ```
 
-This is deliberately the direct imperative version: it exercises nested blocks
-and integer conditions without introducing a puzzle-specific operation. The
+The bounds follow from `a < Target / 3` and `b < Target / 2`. The `outer`
+operations form pairwise sums and squared sums only inside that search space.
+Trailing-axis broadcasting compares every `b` with the corresponding `c`, and
+the combined boolean tensor keeps only increasing Pythagorean triples. The
 default target produces `31875000`; target 12 produces `60`.
 
 ## 10. Summation of primes
 
 ```rank
+rem Project Euler 10
+rem https://projecteuler.net/problem=10
+
 use sequences
 use numbers
 

@@ -1,4 +1,5 @@
 rem Sum Square Difference
+rem https://projecteuler.net/problem=6
 rem Diff of square-of-sum and sum-of-
 rem squares, 1..100
 
@@ -12,10 +13,9 @@ option Limit integer = 100
 
 Range = 1 to Limit
 
-Sum = Range sum
-SquareOfSum = Sum * Sum
+SquareOfSum = (Range sum) ** 2
 
-Squares = Range * Range
+Squares = Range ** 2
 SumOfSquares = Squares sum
 
 Answer = SquareOfSum - SumOfSquares
