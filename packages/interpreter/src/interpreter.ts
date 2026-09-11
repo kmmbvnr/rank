@@ -1510,8 +1510,13 @@ export class Interpreter {
             const fenwickSum = explicitFenwickSum(parts);
             if (fenwickSum) {
                 return function* (): Execution<RankValue> {
-                    interpreter.requireModule('algo', 'fenwick');
                     const receiver = yield* resume(interpreter.evaluateTask(fenwickSum.receiver));
+                    if (!isRankFenwick(receiver)) {
+                        const remaining = yield* resume(mapExecution(parts.slice(1),
+                            part => interpreter.evaluateTask(part)));
+                        return yield* resume(interpreter.apply([receiver, ...remaining], missing, 0, [], tail));
+                    }
+                    interpreter.requireModule('algo', 'fenwick');
                     const index = yield* resume(interpreter.evaluateTask(fenwickSum.index));
                     return expectFenwick(receiver).sum(expectInteger(index));
                 };

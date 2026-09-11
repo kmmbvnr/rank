@@ -1,7 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
+import { Interpreter } from '../src/index.js';
 
 describe('fenwick tree', () => {
+    it('does not claim ordinary sum pipelines or evaluate their receiver twice', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line));
+        expect(runtime.execute(`
+use numbers
+use io
+fun source N
+  N print
+  return array 1 2 3
+end
+(7 source) sum print
+`)).toBe(6n);
+        expect(output).toEqual(['7', '6']);
+        runtime.execute('use algo\n(array 4 5) sum print');
+        expect(output.at(-1)).toBe('9');
+        runtime.execute('fun replacement A\n  return 99\nend');
+        runtime.variables.set('sum', runtime.variables.get('replacement')!);
+        expect(runtime.execute('(array 1 2) sum print')).toBe(99n);
+        runtime.dispose();
+    });
+
     it('stores integer cells and computes inclusive prefix sums', () => {
         expect(run([
             'use algo',
