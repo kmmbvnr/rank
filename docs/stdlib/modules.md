@@ -717,6 +717,11 @@ Hash = Digest hex
 
 ## File I/O
 
+`print` writes one line using Rank's default value representation and returns
+the value so a pipeline may continue. Scalars and arrays keep their compact
+grader-friendly form. Records include field names and values, for example
+`{.value = 3, .name = root}`, rather than an opaque runtime marker.
+
 `use io` provides symbol-directed access to standard input. `.word` reads one
 whitespace-separated token as text. `.integer` reads the same unit and converts
 it to an arbitrary-precision integer:

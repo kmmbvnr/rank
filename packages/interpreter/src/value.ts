@@ -210,6 +210,10 @@ export function isRankSequenceMask(value: RankValue): value is RankSequenceMask 
 }
 
 export function formatValue(value: RankValue): string {
+    return formatNestedValue(value, new Set());
+}
+
+function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (typeof value === 'bigint') {
         return value.toString();
     }
@@ -240,7 +244,7 @@ export function formatValue(value: RankValue): string {
         return '<index>';
     }
     if (value.kind === 'queue') {
-        return value.items.map(formatValue).join(' ');
+        return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }
     if (value.kind === 'set') {
         return '<set>';
@@ -258,20 +262,26 @@ export function formatValue(value: RankValue): string {
         return '<object>';
     }
     if (value.kind === 'record') {
-        return '<record>';
+        if (active.has(value)) return '<cycle>';
+        active.add(value);
+        const fields = [...value.entries]
+            .map(([name, item]) => `.${name} = ${formatNestedValue(item, active)}`)
+            .join(', ');
+        active.delete(value);
+        return `{${fields}}`;
     }
     if (isRankSequenceMask(value)) {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;
         return [...value.source.plan.iterate()]
-            .map(item => formatValue(value.predicate.test(item)))
+            .map(item => formatNestedValue(value.predicate.test(item), active))
             .join(' ');
     }
     if (value.kind === 'sequence') {
         if (value.plan.size.kind === 'infinite') return `<sequence ${value.plan.name}>`;
-        return [...value.plan.iterate()].map(formatValue).join(' ');
+        return [...value.plan.iterate()].map(item => formatNestedValue(item, active)).join(' ');
     }
     if (isRankBytes(value)) {
         return `0x${[...value.data].map(byte => byte.toString(16).padStart(2, '0')).join('')}`;
     }
-    return value.items.map(formatValue).join(' ');
+    return value.items.map(item => formatNestedValue(item, active)).join(' ');
 }

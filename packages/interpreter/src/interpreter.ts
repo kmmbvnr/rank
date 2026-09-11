@@ -46,6 +46,7 @@ import {
     isUseStatement,
     isYieldStatement,
     type AddressItem,
+    type ArrayExpression,
     type ArrayItem,
     type Expression,
     type FunctionStatement,
@@ -1537,6 +1538,32 @@ export class Interpreter {
                     interpreter.requireModule('algo', 'fenwick');
                     const index = yield* resume(interpreter.evaluateTask(fenwickSum.index));
                     return expectFenwick(receiver).sum(expectInteger(index));
+                };
+            }
+            const materializePipeline = explicitMaterializePipeline(parts);
+            if (materializePipeline) {
+                return function* (): Execution<RankValue> {
+                    const sourceParts = yield* resume(mapExecution(
+                        materializePipeline.source,
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    const source = sourceParts.length === 1
+                        ? sourceParts[0]
+                        : yield* resume(interpreter.apply(sourceParts));
+                    if (isRankSequence(source)) {
+                        let result: RankValue = materializeSequence(source);
+                        for (const item of materializePipeline.steps) {
+                            result = yield* resume(interpreter.apply([
+                                result,
+                                yield* resume(interpreter.evaluateArrayItem(item)),
+                            ], missing, 0, [], tail));
+                        }
+                        return result;
+                    }
+                    const selector = yield* resume(interpreter.evaluateTask(materializePipeline.selector));
+                    return yield* resume(interpreter.apply(
+                        [source, selector], missing, 0, [], tail,
+                    ));
                 };
             }
             const directParts = parts.map(part => isAllAxisExpression(part)
@@ -3925,6 +3952,21 @@ function flattenApplication(expression: Expression): Expression[] {
     ];
 }
 
+function explicitMaterializePipeline(parts: Expression[]): {
+    readonly source: readonly Expression[];
+    readonly selector: ArrayExpression;
+    readonly steps: readonly ArrayItem[];
+} | undefined {
+    const position = parts.findIndex((part, index) => index > 0
+        && isArrayExpression(part)
+        && part.dimensions.length === 0
+        && part.items.length > 0
+        && part.items.every(item => !item.sign));
+    if (position < 0 || position !== parts.length - 1) return undefined;
+    const selector = parts[position] as ArrayExpression;
+    return { source: parts.slice(0, position), selector, steps: selector.items };
+}
+
 function explicitRankApplication(
     parts: Expression[],
 ): { parts: Expression[]; rank: bigint; axes?: readonly number[] } | undefined {
@@ -4222,6 +4264,14 @@ function expectBoolean(value: RankValue): boolean {
 }
 
 function equalValues(left: RankValue, right: RankValue): boolean {
+    return equalNestedValues(left, right, new WeakMap());
+}
+
+function equalNestedValues(
+    left: RankValue,
+    right: RankValue,
+    compared: WeakMap<object, WeakSet<object>>,
+): boolean {
     if ((typeof left === 'bigint' || typeof left === 'number')
         && (typeof right === 'bigint' || typeof right === 'number')) {
         if (typeof left === typeof right) return left === right;
@@ -4235,7 +4285,39 @@ function equalValues(left: RankValue, right: RankValue): boolean {
     if (left.kind === 'label' && right.kind === 'label') {
         return left.name === right.name;
     }
+    if (isRankArray(left) && isRankArray(right)) {
+        if (!sameShape(left.shape, right.shape)) return false;
+        if (alreadyCompared(left, right, compared)) return true;
+        const size = arraySize(left.shape);
+        for (let index = 0; index < size; index += 1) {
+            if (!equalNestedValues(arrayItem(left, index), arrayItem(right, index), compared)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    if (isRankRecord(left) && isRankRecord(right)) {
+        if (left.entries.size !== right.entries.size) return false;
+        if (alreadyCompared(left, right, compared)) return true;
+        for (const [name, value] of left.entries) {
+            const other = right.entries.get(name);
+            if (other === undefined || !equalNestedValues(value, other, compared)) return false;
+        }
+        return true;
+    }
     return left === right;
+}
+
+function alreadyCompared(
+    left: object,
+    right: object,
+    compared: WeakMap<object, WeakSet<object>>,
+): boolean {
+    const matches = compared.get(left);
+    if (matches?.has(right)) return true;
+    if (matches) matches.add(right);
+    else compared.set(left, new WeakSet([right]));
+    return false;
 }
 
 function typeName(value: RankValue): string {

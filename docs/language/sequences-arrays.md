@@ -65,7 +65,18 @@ Copy = Source array    rem materialize
 ```
 
 Values after `array` form a selector; postfix `array` at the end of the
-expression materializes.
+expression materializes. A materialized value may continue through ordinary
+postfix operations on the same line:
+
+```rank
+Count = Values array len
+Values array len print
+```
+
+When `array` has following words, the evaluated receiver resolves the apparent
+overlap: a sequence is materialized and the remaining words continue the
+application chain, while an array uses `array` and its following values as a
+selector. This keeps `A array 2 0` unchanged.
 
 Postfix `copy` accepts a material or lazy array, eagerly evaluates all of its
 cells and returns independent writable dense storage with the same shape:

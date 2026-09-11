@@ -1,7 +1,64 @@
 import { describe, expect, it } from 'vitest';
+import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank records', () => {
+    it('prints records with their fields and values', () => {
+        const output: string[] = [];
+        const interpreter = new Interpreter(line => output.push(line));
+        const result = interpreter.execute([
+            'use io',
+            'Node = record',
+            '  .value = 3',
+            '  .name = "root"',
+            'end',
+            'Node print',
+        ].join('\n'));
+        expect(result).toBe(interpreter.variables.get('Node'));
+        expect(output).toEqual(['{.value = 3, .name = root}']);
+    });
+
+    it('compares records structurally', () => {
+        expect(run([
+            'A = record',
+            '  .point = array 2 3',
+            '  .name = "same"',
+            'end',
+            'B = record',
+            '  .name = "same"',
+            '  .point = array 2 3',
+            'end',
+            'A equal B',
+        ].join('\n'))).toBe('true');
+        expect(run([
+            'A = record',
+            '  .value = 1',
+            'end',
+            'B = record',
+            '  .value = 2',
+            'end',
+            'A equal B',
+        ].join('\n'))).toBe('false');
+    });
+
+    it('uses structural record values in sets', () => {
+        expect(run([
+            'use algo',
+            'use sequences',
+            'A = record',
+            '  .value = 1',
+            '  .name = "same"',
+            'end',
+            'B = record',
+            '  .name = "same"',
+            '  .value = 1',
+            'end',
+            'set add A',
+            'set add B',
+            'B in set and set len equal 1',
+        ].join('\n'))).toBe('true');
+    });
+
     it('constructs closed records and updates typed fields', () => {
         expect(run([
             'Node = record',

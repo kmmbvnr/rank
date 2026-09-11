@@ -264,6 +264,17 @@ Tape 0 .grad += Change
 Node .parent .grad += Change
 ```
 
+Equality is structural even though mutation is shared by reference. Two records
+are equal when they contain the same field names and recursively equal values;
+field declaration order does not matter. Records may therefore be used as set
+elements. `print` includes their fields in declaration order so a result remains
+useful to a person and to a line-oriented grader:
+
+```rank
+Node print
+rem {.data = 2, .grad = 0, .op = .leaf}
+```
+
 Records differ from JSON `object` values and sparse `index` values. An
 `object` is read by dynamic text keys, while a record declares its fields in
 Rank source and accesses them with symbols. An `index` remains open to new
@@ -1610,7 +1621,18 @@ Copy = Source array    rem materialize
 ```
 
 Values after `array` form a selector; postfix `array` at the end of the
-expression materializes.
+expression materializes. A materialized value may continue through ordinary
+postfix operations on the same line:
+
+```rank
+Count = Values array len
+Values array len print
+```
+
+When `array` has following words, the evaluated receiver resolves the apparent
+overlap: a sequence is materialized and the remaining words continue the
+application chain, while an array uses `array` and its following values as a
+selector. This keeps `A array 2 0` unchanged.
 
 Postfix `copy` accepts a material or lazy array, eagerly evaluates all of its
 cells and returns independent writable dense storage with the same shape:
@@ -2398,9 +2420,10 @@ Count = set len
 
 The first use of `set` lazily creates one set in the current function-call
 workspace. `add` is idempotent: adding an equal value again leaves the set
-unchanged. Scalars and arrays can be elements; array identity includes both
-shape and contents. `in` tests membership, and `len` returns the number of
-unique elements.
+unchanged. Scalars, arrays and records can be elements. Array equality includes
+both shape and contents; record equality includes field names and recursively
+equal values. `in` tests membership, and `len` returns the number of unique
+elements.
 
 As with `queue`, separate and recursive function calls receive separate sets.
 A set is iterable in insertion order. Adding an existing value does not move
@@ -3925,6 +3948,11 @@ Hash = Digest hex
 ```
 
 ## File I/O
+
+`print` writes one line using Rank's default value representation and returns
+the value so a pipeline may continue. Scalars and arrays keep their compact
+grader-friendly form. Records include field names and values, for example
+`{.value = 3, .name = root}`, rather than an opaque runtime marker.
 
 `use io` provides symbol-directed access to standard input. `.word` reads one
 whitespace-separated token as text. `.integer` reads the same unit and converts

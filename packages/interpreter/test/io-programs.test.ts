@@ -165,6 +165,24 @@ describe('Rank IO, modules and programs', () => {
             .toThrowError('postfix array expects a sequence');
     });
 
+    it('continues a pipeline after postfix array materialization', () => {
+        const output: string[] = [];
+        const interpreter = new Interpreter(line => output.push(line));
+        const result = interpreter.execute([
+            'use io',
+            'use ranges',
+            'use sequences',
+            'X = 1 to 3',
+            'X array len print',
+        ].join('\n'));
+        expect(formatValue(result!)).toBe('3');
+        expect(output).toEqual(['3']);
+        expect(formatValue(new Interpreter().execute([
+            'A = array 10 20 30',
+            'A array 2 0',
+        ].join('\n'))!)).toBe('30 10');
+    });
+
     it('supports bare return and preserves yielded array values', () => {
         const interpreter = new Interpreter();
         interpreter.execute([

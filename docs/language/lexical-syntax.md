@@ -192,6 +192,17 @@ Tape 0 .grad += Change
 Node .parent .grad += Change
 ```
 
+Equality is structural even though mutation is shared by reference. Two records
+are equal when they contain the same field names and recursively equal values;
+field declaration order does not matter. Records may therefore be used as set
+elements. `print` includes their fields in declaration order so a result remains
+useful to a person and to a line-oriented grader:
+
+```rank
+Node print
+rem {.data = 2, .grad = 0, .op = .leaf}
+```
+
 Records differ from JSON `object` values and sparse `index` values. An
 `object` is read by dynamic text keys, while a record declares its fields in
 Rank source and accesses them with symbols. An `index` remains open to new

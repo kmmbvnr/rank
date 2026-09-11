@@ -518,6 +518,12 @@ describe('Rank grammar', () => {
         expect(isMaterializeExpression(statement.value)).toBe(true);
     });
 
+    it('continues an application after postfix sequence materialization', async () => {
+        const document = await parse('Count = Values array len print');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+    });
+
     it('parses shaped array blocks', async () => {
         const document = await parse([
             'M = array shape 2 3',
