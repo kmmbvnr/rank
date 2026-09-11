@@ -1,0 +1,24 @@
+use testing
+
+test "official zero"
+  use "042_relu"
+  0 relu equal 0
+end
+
+test "official positive"
+  use "042_relu"
+  1 relu equal 1
+end
+
+test "official negative"
+  use "042_relu"
+  (-1) relu equal 0
+end
+
+test "activation maps an array"
+  use "042_relu"
+  Input = array -2 0 3
+  Expected = array 0 0 3
+
+  Input relu equal Expected
+end
