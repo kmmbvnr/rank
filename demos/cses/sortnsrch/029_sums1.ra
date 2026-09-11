@@ -1,0 +1,33 @@
+rem CSES 1660: Subarray Sums I
+rem https://cses.fi/problemset/task/1660
+
+use io
+
+N = stdin .integer
+X = stdin .integer
+A = stdin .integer N array
+
+A X count_positive_sums print
+
+
+rem Count target sums with a positive window.
+fun count_positive_sums A Target
+  Left = 0
+  Sum = 0
+  Answer = 0
+
+  for Value in A
+    Sum += Value
+
+    for Sum greater Target
+      Sum -= A Left
+      Left += 1
+    end
+
+    if Sum equal Target
+      Answer += 1
+    end
+  end
+
+  return Answer
+end

@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "029_sums1"
+  Values = array 2 4 1 2 7
+  Values 7 count_positive_sums equal 3
+end
+
+test "overlapping sums"
+  use "029_sums1"
+  Values = array 1 1 1
+  Values 2 count_positive_sums equal 2
+end
+
+test "whole array"
+  use "029_sums1"
+  Values = array 2 3 4
+  Values 9 count_positive_sums equal 1
+end
+
+test "no matching sum"
+  use "029_sums1"
+  Values = array 2 4 8
+  Values 7 count_positive_sums equal 0
+end
