@@ -748,9 +748,14 @@ export class Interpreter {
             const condition = !binding && statement.condition
                 ? this.compileDirectExpression(statement.condition) : undefined;
             const interpreter = this;
-            // The index names never change, so the loop reads them from one list
-            // rather than slicing the binding on every iteration.
-            const indexNames = binding ? binding.names.slice(1) : [];
+            // The names a binding writes never change, so each gets its write
+            // site once here rather than a name lookup on every iteration.
+            const bindValue = binding && binding.names[0] !== '#'
+                ? this.compileAssign(binding.names[0]) : undefined;
+            const bindIndex = binding
+                ? binding.names.slice(1).map(name =>
+                    name === '#' ? undefined : this.compileAssign(name))
+                : [];
             return { stream: function* (context) {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
@@ -758,13 +763,9 @@ export class Interpreter {
                     const spec = tensorIterationSpec(binding.iterable);
                     const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
                     for (const entry of interpreter.forEntries(binding, iterable)) {
-                        if (binding.names[0] !== '#') {
-                            interpreter.assign(binding.names[0], entry.value);
-                        }
-                        for (let position = 0; position < indexNames.length; position += 1) {
-                            if (indexNames[position] !== '#') {
-                                interpreter.assign(indexNames[position], entry.indices[position]);
-                            }
+                        if (bindValue) bindValue(entry.value);
+                        for (let position = 0; position < bindIndex.length; position += 1) {
+                            bindIndex[position]?.(entry.indices[position]);
                         }
                         try {
                             // A body that finishes on its own needs no task; only
@@ -846,6 +847,8 @@ export class Interpreter {
             } };
         }
         if (isUnpackStatement(statement)) {
+            const writes = statement.names.map(name =>
+                name === '#' ? undefined : this.compileAssign(name));
             return { stream: function* (): Execution<RankValue | undefined> {
                 const result = (yield* resume(interpreter.evaluateTask(statement.value)));
                 if (!isRankArray(result) || result.shape.length !== 1) {
@@ -857,9 +860,9 @@ export class Interpreter {
                         `unpack expects ${statement.names.length} values, got ${unpacked.items.length}`,
                     );
                 }
-                statement.names.forEach((name, index) => {
-                    if (name !== '#') interpreter.assign(name, unpacked.items[index]);
-                });
+                for (let index = 0; index < writes.length; index += 1) {
+                    writes[index]?.(unpacked.items[index]);
+                }
                 return result;
             } };
         }
@@ -1005,12 +1008,13 @@ export class Interpreter {
             const operator = statement.operator === '='
                 ? undefined : assignmentOperator(statement.operator);
             const direct = this.compileDirectExpression(statement.value);
+            const write = this.compileAssign(statement.name);
             if (direct) {
                 return { run: () => {
                     const result = operator === undefined ? direct() : this.evaluateBinary(
                         operator, this.resolveVariable(statement.name), direct(),
                     );
-                    this.assign(statement.name, result);
+                    write(result);
                     return result;
                 } };
             }
@@ -1018,7 +1022,7 @@ export class Interpreter {
                 const previous = operator === undefined ? undefined : this.resolveVariable(statement.name);
                 return mapResult(this.evaluateTask(statement.value), value => {
                     const result = operator === undefined ? value : this.evaluateBinary(operator, previous!, value);
-                    this.assign(statement.name, result);
+                    write(result);
                     return result;
                 });
             } };
@@ -2007,8 +2011,8 @@ export class Interpreter {
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepareFunction(statement).layout);
         statement.parameters.forEach((parameter, index) => {
-            frame.set(parameter, arguments_[index]);
-            frame.types.set(parameter, new Set([typeName(arguments_[index])]));
+            const argument = arguments_[index];
+            frame.define(parameter, argument, new Set([typeName(argument)]));
         });
         return frame;
     }
@@ -2445,40 +2449,77 @@ export class Interpreter {
         return value;
     }
 
-    private assign(name: string, value: RankValue): void {
-        const dot = name.indexOf('.');
-        if (dot < 0) {
-            const frame = this.localFrame?.find(name) ?? this.localFrame;
-            const scope = frame ?? this.variables;
-            const typeScope = frame?.types ?? this.variableTypes;
+    // Repeated writes to one name settle on one frame slot, so the site that
+    // makes them resolves it once and then stores without hashing the name
+    // again. A name that moves scope, changes type or has yet to be defined
+    // reports back from store() and takes the full path below.
+    private compileAssign(name: string): (value: RankValue) => void {
+        if (name.includes('.')) return value => this.assign(name, value);
+        let layout: Map<string, number> | undefined;
+        let slot = -1;
+        let global: ReadonlySet<string> | undefined;
+        return (value: RankValue): void => {
             const received = typeName(value);
-            // A variable that already carries a recorded type needs neither its
-            // previous value nor a rewrite of the type it keeps.
-            const recorded = typeScope.get(name);
-            if (recorded !== undefined) {
-                if (!recorded.has(received)) {
-                    throw new RankError(
-                        `${name} has type ${formatTypes(recorded)} and cannot receive ${received}`,
-                    );
+            const frame = this.localFrame;
+            if (frame === undefined) {
+                // A global keeps the types it first settled on, so the site
+                // remembers them and the write costs one store rather than a
+                // lookup for the types and a second for the value.
+                if (global !== undefined && global.has(received)) {
+                    this.variables.set(name, value);
+                    return;
                 }
-                scope.set(name, value);
+                this.assign(name, value);
+                global = this.variableTypes.get(name);
                 return;
             }
-            const previous = scope.get(name);
-            const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
-            if (expected !== undefined && !expected.has(received)) {
-                throw new RankError(
-                    `${name} has type ${formatTypes(expected)} and cannot receive ${received}`,
-                );
+            if (layout !== frame.layout) {
+                layout = frame.layout;
+                slot = layout.get(name) ?? -1;
             }
-            scope.set(name, value);
-            typeScope.set(name, expected ?? new Set([received]));
+            if (slot >= 0 && frame.store(slot, value, received)) return;
+            this.assign(name, value);
+        };
+    }
+
+    private assign(name: string, value: RankValue): void {
+        const dot = name.indexOf('.');
+        if (dot >= 0) {
+            const alias = name.slice(0, dot);
+            const child = this.aliases.get(alias);
+            if (!child) throw new RankError(`unknown module alias: ${alias}`);
+            child.assign(name.slice(dot + 1), value);
             return;
         }
-        const alias = name.slice(0, dot);
-        const child = this.aliases.get(alias);
-        if (!child) throw new RankError(`unknown module alias: ${alias}`);
-        child.assign(name.slice(dot + 1), value);
+        const frame = this.localFrame?.find(name) ?? this.localFrame;
+        const received = typeName(value);
+        // A variable that already carries a recorded type needs neither its
+        // previous value nor a rewrite of the type it keeps.
+        const recorded = frame ? frame.typeOf(name) : this.variableTypes.get(name);
+        if (recorded !== undefined) {
+            if (!recorded.has(received)) {
+                throw new RankError(
+                    `${name} has type ${formatTypes(recorded)} and cannot receive ${received}`,
+                );
+            }
+            if (frame) frame.set(name, value);
+            else this.variables.set(name, value);
+            return;
+        }
+        const previous = frame ? frame.get(name) : this.variables.get(name);
+        const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
+        if (expected !== undefined && !expected.has(received)) {
+            throw new RankError(
+                `${name} has type ${formatTypes(expected)} and cannot receive ${received}`,
+            );
+        }
+        const settled = expected ?? new Set([received]);
+        if (frame) {
+            frame.define(name, value, settled);
+            return;
+        }
+        this.variables.set(name, value);
+        this.variableTypes.set(name, settled);
     }
 
     private assignRecordField(
@@ -3165,20 +3206,22 @@ export class Interpreter {
         names: readonly string[],
         candidates: readonly ReadonlySet<string>[],
     ): void {
-        const scope = this.localFrame ?? this.variables;
-        const typeScope = this.localFrame?.types ?? this.variableTypes;
+        const frame = this.localFrame;
         names.forEach((name, index) => {
             if (name === '#') return;
             const inferred = candidates[index];
             if (!inferred || inferred.size === 0) return;
-            const previous = typeScope.get(name)
-                ?? (scope.get(name) !== undefined ? new Set([typeName(scope.get(name)!)]) : undefined);
+            const recorded = frame ? frame.typeOf(name) : this.variableTypes.get(name);
+            const held = frame ? frame.get(name) : this.variables.get(name);
+            const previous = recorded
+                ?? (held !== undefined ? new Set([typeName(held)]) : undefined);
             if (previous && [...inferred].some(type => !previous.has(type))) {
                 throw new RankError(
                     `${name} has type ${formatTypes(previous)} and cannot receive ${formatTypes(inferred)}`,
                 );
             }
-            typeScope.set(name, previous ?? inferred);
+            if (frame) frame.declareType(name, previous ?? inferred);
+            else this.variableTypes.set(name, previous ?? inferred);
         });
     }
 
@@ -4911,11 +4954,13 @@ function alreadyCompared(
 }
 
 function typeName(value: RankValue): string {
-    if (value instanceof RankDeque) return value.mode;
-    if (typeof value === 'number') return 'real';
+    // Primitives name themselves far more often than anything else, so they
+    // decide before the class test none of them can ever satisfy.
     if (typeof value === 'bigint') return 'integer';
+    if (typeof value === 'number') return 'real';
     if (typeof value === 'string') return 'text';
     if (typeof value !== 'object') return typeof value;
+    if (value instanceof RankDeque) return value.mode;
     return value.kind === 'label' ? 'symbol' : value.kind;
 }
 

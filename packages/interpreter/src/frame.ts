@@ -4,8 +4,11 @@ import type { RankValue } from './value.js';
 // Closures and suspended generators keep these frames alive by reference.
 export class LocalFrame {
     private mappedValues: Map<string, RankValue> | undefined;
+    private mappedTypes: Map<string, ReadonlySet<string>> | undefined;
     readonly slots: (RankValue | undefined)[] = [];
-    readonly types = new Map<string, ReadonlySet<string>>();
+    // The types a name accepts live in its own slot, so a write that already
+    // knows the slot checks them without looking the name up a second time.
+    private readonly slotTypes: (ReadonlySet<string> | undefined)[] = [];
 
     constructor(
         readonly parent: LocalFrame | undefined,
@@ -16,12 +19,18 @@ export class LocalFrame {
     // Once exposed they remain the source of truth for that frame.
     get values(): Map<string, RankValue> {
         if (!this.mappedValues) {
-            this.mappedValues = new Map();
+            const values = new Map<string, RankValue>();
+            const types = new Map<string, ReadonlySet<string>>();
             for (const [name, slot] of this.layout) {
                 const value = this.slots[slot];
-                if (value !== undefined) this.mappedValues.set(name, value);
+                if (value !== undefined) values.set(name, value);
+                const accepted = this.slotTypes[slot];
+                if (accepted !== undefined) types.set(name, accepted);
             }
+            this.mappedValues = values;
+            this.mappedTypes = types;
             this.slots.length = 0;
+            this.slotTypes.length = 0;
         }
         return this.mappedValues;
     }
@@ -41,18 +50,51 @@ export class LocalFrame {
             this.mappedValues.set(name, value);
             return;
         }
-        let slot = this.layout.get(name);
-        if (slot === undefined) {
-            slot = this.layout.size;
-            this.layout.set(name, slot);
+        this.slots[this.slotFor(name)] = value;
+    }
+
+    // A name arrives with both its value and the types it settles on.
+    define(name: string, value: RankValue, types: ReadonlySet<string>): void {
+        if (this.mappedValues) {
+            this.mappedValues.set(name, value);
+            this.mappedTypes!.set(name, types);
+            return;
         }
+        const slot = this.slotFor(name);
         this.slots[slot] = value;
+        this.slotTypes[slot] = types;
+    }
+
+    // Writing the same name over and over settles on one slot, so a caller that
+    // resolved it once can store straight into it. The write only stands while
+    // this frame still holds the name and keeps the types it already accepts;
+    // anything else reports back and takes the long way through assign.
+    store(slot: number, value: RankValue, received: string): boolean {
+        if (this.slots[slot] === undefined) return false;
+        const accepted = this.slotTypes[slot];
+        if (accepted === undefined || !accepted.has(received)) return false;
+        this.slots[slot] = value;
+        return true;
+    }
+
+    typeOf(name: string): ReadonlySet<string> | undefined {
+        if (this.mappedTypes) return this.mappedTypes.get(name);
+        const slot = this.layout.get(name);
+        return slot === undefined ? undefined : this.slotTypes[slot];
+    }
+
+    declareType(name: string, types: ReadonlySet<string>): void {
+        if (this.mappedTypes) {
+            this.mappedTypes.set(name, types);
+            return;
+        }
+        this.slotTypes[this.slotFor(name)] = types;
     }
 
     reset(): boolean {
         if (this.mappedValues) return false;
         this.slots.length = 0;
-        this.types.clear();
+        this.slotTypes.length = 0;
         return true;
     }
 
@@ -80,5 +122,14 @@ export class LocalFrame {
             scopes.push(frame.values);
         }
         return scopes.reverse();
+    }
+
+    private slotFor(name: string): number {
+        let slot = this.layout.get(name);
+        if (slot === undefined) {
+            slot = this.layout.size;
+            this.layout.set(name, slot);
+        }
+        return slot;
     }
 }
