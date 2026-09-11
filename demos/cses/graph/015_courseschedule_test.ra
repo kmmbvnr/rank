@@ -1,0 +1,49 @@
+use testing
+
+test "official example"
+  use "015_courseschedule"
+  use graph
+  use ranges
+  Graph = new graph (1 to 5) .directed
+  Graph add 1 2
+  Graph add 3 1
+  Graph add 4 5
+  Result = Graph course_schedule
+  Result .possible equal true
+  Result .order equal (array 3 4 1 5 2)
+end
+
+test "cycle makes schedule impossible"
+  use "015_courseschedule"
+  use graph
+  use ranges
+  Graph = new graph (1 to 3) .directed
+  Graph add 1 2
+  Graph add 2 3
+  Graph add 3 1
+  Result = Graph course_schedule
+  Result .possible equal false
+end
+
+test "includes isolated courses"
+  use "015_courseschedule"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .directed
+  Graph add 2 3
+  Result = Graph course_schedule
+  Result .possible equal true
+  Result .order equal (array 1 2 4 3)
+end
+
+test "orders a prerequisite chain"
+  use "015_courseschedule"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .directed
+  Graph add 3 4
+  Graph add 2 3
+  Graph add 1 2
+  Result = Graph course_schedule
+  Result .order equal (array 1 2 3 4)
+end

@@ -1,0 +1,28 @@
+rem CSES 1679: Course Schedule
+rem https://cses.fi/problemset/task/1679
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 2
+Values = stdin .integer ValueCount array
+Edges = Values (array M 2) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Result = Graph course_schedule
+
+if Result .possible
+  Result .order print
+else
+  "IMPOSSIBLE" print
+end
+
+
+rem Order every course after its needs.
+fun course_schedule Graph
+  return Graph topological
+end
