@@ -1,0 +1,179 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "function",
+  "counters": false,
+  "samples": 3,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 5373.926208,
+      "entries": [
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 153.029625,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 36.311874999999986,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 5184.159833,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 4589.782999999999,
+      "entries": [
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 102.83412500000031,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 4.4800420000001395,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 4482.210833000001,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 4463.084000000001,
+      "entries": [
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 97.046792000001,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 4.243209000000206,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 4361.583042,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 7842.183583,
+      "entries": [
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 98.54791699999987,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 3.6377080000002024,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7739.78975,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 7842.348833,
+      "entries": [
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 96.55691599999773,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 3.540959000001749,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7742.093874999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 4549.596541000003,
+      "entries": [
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 99.54616600000008,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/deepml/011_jacobi_test.ra",
+          "ms": 4.056791999999405,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "dd7f9d74627966cc627d43b22556e51f65d2ab1a7012983f27e05a5160a4e76c"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 4445.822082999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    }
+  ]
+}

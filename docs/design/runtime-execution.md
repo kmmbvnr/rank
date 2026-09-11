@@ -472,3 +472,30 @@ Container rebinding anywhere in the region, even in just one branch, declines.
 Shadowing or reassignment of those names prevents specialization. Missing modules
 retain reference execution and its error timing. Index reads, compound index
 writes, other receiver classes and arbitrary calls are not yet lowered.
+
+
+## Compiled function completion
+
+For nongenerator functions ending in a value-returning `return`, the runtime can
+compile a 1–64-command function body using the resumable block compiler. Its
+terminal return hands a value to the existing function-call frame directly,
+avoiding a `ReturnSignal` throw/catch on ordinary completion. Early returns and
+other control signals still use their existing paths. Unsupported body shapes
+or unavailable code generation keep reference execution.
+
+Preparation stays lazy, and suspended expressions resume at the same command
+position. A terminal application retains tail-call handling. Tensor groups that
+span the terminal return, or start at that return itself, retain their kernels.
+Those kernels may still use the existing return signal. Single direct arithmetic
+returns retain their earlier direct-call path.
+
+Lexical frames, call-depth accounting, memoization and resource cleanup remain
+owned by the existing call machinery. This stage does not yet compile whole
+function arithmetic into one typed kernel or hoist integer-loop entry guards.
+It removes a function-completion cost shared by many programs.
+
+`functionBodyCompilation: false` disables this stage independently of ordinary
+block compilation. `onFunctionBodyCompiled` exposes generated dispatch source;
+`onFunctionBodyExecuted` counts block entries, including continuation re-entry,
+not necessarily one event per function call. Options propagate to loaded modules
+and test interpreters.

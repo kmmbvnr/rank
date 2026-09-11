@@ -151,6 +151,10 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Compile function bodies with a terminal return continuation. */
+    readonly functionBodyCompilation?: boolean;
+    readonly onFunctionBodyCompiled?: (source: string) => void;
+    readonly onFunctionBodyExecuted?: () => void;
     readonly integerLoopCompilation?: boolean;
     readonly onIntegerLoopCompiled?: (source: string) => void;
     readonly onIntegerLoopExecuted?: () => void;
@@ -282,6 +286,7 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
+    private readonly functionBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
@@ -542,6 +547,35 @@ export class Interpreter {
             return block ?? undefined;
         }
         return undefined;
+    }
+
+    private compiledFunctionBody(statement: FunctionStatement): CompiledBlock<ExecutionContext> | undefined {
+        if (this.options.functionBodyCompilation === false) return undefined;
+        let body = this.functionBodies.get(statement);
+        if (body === undefined) {
+            const commands = statement.statements;
+            const last = commands.at(-1);
+            body = last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
+                prepare: index => {
+                    if (index !== commands.length - 1) return this.preparedStatement(commands, index);
+                    const tensor = this.preparedStatement(commands, index).tensor;
+                    const direct = this.compileDirectExpression(last.value!);
+                    if (direct) return { run: direct, tensor };
+                    let candidate = last.value!;
+                    while (isParenthesizedExpression(candidate)) candidate = candidate.value;
+                    const value = isApplicationExpression(candidate)
+                        ? this.compileExpression(last.value!, undefined, true)
+                        : () => this.evaluateTask(last.value!);
+                    return { stream: value, tensor };
+                },
+                locate: (error, index) => this.locateError(error, commands[index]),
+                pause: (index, task, context, compiled) => this.continueCompiledBlock(commands, index, task, context, compiled),
+                compiled: this.options.onFunctionBodyCompiled,
+                executed: this.options.onFunctionBodyExecuted,
+            }) ?? null : null;
+            this.functionBodies.set(statement, body);
+        }
+        return body ?? undefined;
     }
 
     private prepareLoopBody(
@@ -2237,6 +2271,12 @@ export class Interpreter {
                 try {
                     this.localFrame = frame;
                     for (const local of prepareFunction(statement).locals) this.defineFunction(local);
+                    const body = this.compiledFunctionBody(statement);
+                    if (body) {
+                        result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
+                            insideFinally: false, insideGenerator: false }));
+                        break;
+                    }
                     yield* resume(this.executeStatementStream(statement.statements));
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
@@ -2393,6 +2433,9 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            functionBodyCompilation: this.options.functionBodyCompilation,
+            onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
+            onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
             integerLoopCompilation: this.options.integerLoopCompilation,
             onIntegerLoopCompiled: this.options.onIntegerLoopCompiled,
             onIntegerLoopExecuted: this.options.onIntegerLoopExecuted,
@@ -2475,6 +2518,9 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            functionBodyCompilation: this.options.functionBodyCompilation,
+            onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
+            onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
             integerLoopCompilation: this.options.integerLoopCompilation,
             onIntegerLoopCompiled: this.options.onIntegerLoopCompiled,
             onIntegerLoopExecuted: this.options.onIntegerLoopExecuted,

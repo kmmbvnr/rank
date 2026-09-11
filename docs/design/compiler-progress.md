@@ -491,3 +491,62 @@ digests match the preceding branch-loop commit. One full-suite comparison took
 and is not evidence of a stable whole-suite gain from container support alone.
 
 [Suite verification](../../benchmarks/baselines/2026-09-11-container-loops-suite.json).
+
+
+## Function body completion without a terminal control exception
+
+The resumable block compiler now prepares an entire eligible function body and
+returns its terminal value directly to the call frame. It reuses existing
+statement preparation, tensor groups, tail-call handling and resource scopes.
+This removes ordinary terminal `ReturnSignal` throw/catch overhead while keeping
+signals for early returns and existing tensor-return kernels. It is a general
+function-level stage, not a Collatz-specific rewrite. Inner loop guards remain.
+
+Fourteen new differential tests cover false/zero/empty results, early returns,
+finally, lexical captures, tail and non-tail recursion, both forms of terminal
+tensor fusion, file ownership, errors and CSP fallback. TypeScript verification
+passes 44 language + 685 interpreter tests.
+
+The benchmark runner accepts backend `function`, independently toggling
+`functionBodyCompilation` while other optimizations stay enabled. Timing runs
+turn callbacks off; comparisons include parsing, loading and result validation.
+The unchanged Euler 14 sample is the main target. Christmas Party and Jacobi are
+controls for a loop-heavy numeric function and a tensor-heavy function.
+
+
+Three alternating full-suite pairs pass 306 files / 1054 tests in every run.
+Complete result digests match the preceding container-loop commit.
+
+| Full suite | Function-body stage off | Function-body stage on |
+| --- | ---: | ---: |
+| Pair 1, seconds | 30.838 | 29.244 |
+| Pair 2, seconds | 32.073 | 29.626 |
+| Pair 3, seconds | 32.105 | 33.498 |
+| Median, seconds | 32.073 | 29.626 |
+
+The median improves about 7.6%, but the third pair regresses and the ranges
+overlap. This is useful evidence of broad potential, not a stable per-run speedup.
+Full-suite order and VM warmup also change individual task timings relative to
+isolated runs; keep those measurements separate.
+
+Largest absolute median reductions within this full-suite workload:
+
+| Test file | Off ms | On ms |
+| --- | ---: | ---: |
+| demos/euler/030_digitpowers_test.ra | 3299.265 | 2627.012 |
+| demos/euler/014_collatz_test.ra | 5365.422 | 4796.884 |
+| demos/euler/004_palproduct_test.ra | 1260.433 | 1004.327 |
+| demos/cses/intro/024_gridpath_test.ra | 2531.431 | 2367.034 |
+
+[Full-suite measurements](../../benchmarks/baselines/2026-09-11-function-body-suite.json).
+
+Final isolated focused measurements, three alternating pairs:
+
+| Test file | Off median ms | On median ms |
+| --- | ---: | ---: |
+| demos/cses/math/014_christmasparty_test.ra | 98.548 | 99.546 |
+| demos/deepml/011_jacobi_test.ra | 3.638 | 4.243 |
+| demos/euler/014_collatz_test.ra | 7739.790 | 4445.822 |
+
+Small control timings are noisy; the large Collatz result is the focused target.
+[Focused measurements](../../benchmarks/baselines/2026-09-11-function-body-focused.json).

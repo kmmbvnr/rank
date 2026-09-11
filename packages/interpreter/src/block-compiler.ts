@@ -23,7 +23,7 @@ const factories = new Map<number, { factory: Factory | null; source: string }>()
 /** Straight-line dispatch with explicit re-entry points for suspended commands.
  * Preparation remains lazy; an unreachable statement is never prepared. */
 export function compileBlock<C extends Context>(length: number, host: Host<C>): CompiledBlock<C> | undefined {
-    if (length < 2 || length > 64) return undefined;
+    if (length < 1 || length > 64) return undefined;
     let template = factories.get(length);
     if (!template) {
         const cases = Array.from({ length }, (_, index) => `case ${index}: {
