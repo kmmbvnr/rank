@@ -1005,3 +1005,81 @@ end`);
         expect(result.loops).toBe(0);
     });
 });
+
+describe('compiled integer extrema', () => {
+    it('preserves infix chains, parentheses and postfix calls', () => {
+        const result = compare(`use ranges
+use numbers
+Total = 0
+for I in -2 to 2
+  X = I max 0 min 1
+  Y = I (0 - I) max
+  Total += X + Y
+end
+Total`);
+        expect(result.value).toBe('8');
+        expect(result.loops).toBe(1);
+    });
+
+    it('combines addressed left operands and exact large integers', () => {
+        const result = compare(`use ranges
+use numbers
+A = array 9007199254740993 9007199254740995
+Total = 0
+for I in 0 until 2
+  X = A I max 9007199254740994
+  Total += X
+end
+Total`);
+        expect(result.value).toBe('18014398509481989');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['min', 'max'])('respects a shadowed %s and missing imports', name => {
+        const result = compare(`use ranges
+use numbers
+fun ${name} A B
+  return A + B
+end
+for I in 1 to 2
+  X = I ${name} 10
+end
+X`);
+        expect(result.value).toBe('12');
+        expect(result.loops).toBe(0);
+        expect(compare(`use ranges
+for I in 0 until 1
+  X = 2 ${name} 3
+end`).loops).toBe(0);
+    });
+
+    it('retains right operand error timing and partial writes', () => {
+        const result = compare(`use ranges
+use numbers
+for I in 0 until 2
+  Done = I
+  X = I max (1 // (1 - I))
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves scalar unary extrema', () => {
+        const result = compare(`use ranges
+use numbers
+for I in 0 until 1
+  X = I max
+end`);
+        expect(result.value).toBe('0');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains skipped malformed chains', () => {
+        const result = compare(`use ranges
+use numbers
+for I in 0 until 0
+  X = 1 max 2 3
+end`);
+        expect(result).not.toHaveProperty('error');
+    });
+});

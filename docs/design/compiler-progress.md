@@ -827,3 +827,39 @@ match the preceding vector-iteration baseline. One pair takes 27.820 s off and
 28.033 s on, so no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-compound-array-suite.json).
+
+## Guarded integer min/max
+
+Integer extrema now compile through the interpreter's existing infix-chain
+normalizer. Binary postfix calls and unary scalar extrema also lower. Guards check
+original numbers-module function identity, preserving user shadowing and fallback
+for noninteger operands. Syntax errors in skipped chains are not raised during
+compiler preparation. Operand order, tie behavior and exact BigInt values remain.
+
+Seven differential cases cover chained infix/postfix calls, addressed operands,
+values beyond Number's exact range, both shadowed names, missing imports, RHS errors,
+scalar unary extrema and skipped malformed chains. TypeScript verification passes
+44 language + 769 interpreter tests.
+
+Five alternating samples use unchanged Rank functions. Independent answers are
+16667 for target 100000 with coins 1 through 6 (ceil(target/6)), and 400 for a
+400-row all-ones triangle. Only extrema lowering is toggled; prior optimizations
+remain enabled. Timing includes input construction, parse/load and validation with
+counters disabled.
+
+| Workload | Off median ms | On median ms |
+| --- | ---: | ---: |
+| CSES Minimizing Coins, target 100000 | 356.454 | 113.930 |
+| Euler 18 function, 400 rows | 48.953 | 23.958 |
+
+These are approximately 3.13x and 2.04x improvements. An instrumented run confirms
+zero versus one compiled region for each function.
+
+[Timings](../../benchmarks/baselines/2026-09-12-loop-extrema-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-loop-extrema-coverage.json).
+
+The full suite passes 306 files / 1054 tests in both modes, with all result digests
+matching the preceding compound-array baseline. One pair takes 27.989 s off and
+28.039 s on; no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-loop-extrema-suite.json).

@@ -626,3 +626,15 @@ the original statement. Aliased reads observe mutations immediately.
 Compound index updates, partial selectors and other element types retain ordinary
 execution. `compoundArrayCompilation: false` disables only compound array writes;
 plain writes, array iteration and reads remain available.
+
+## Integer extrema inside compiled loops
+
+Builtin `min` and `max` with integer operands lower to comparisons within a region.
+The compiler reuses the ordinary infix-chain normalization, including parentheses
+and addressed operands, and supports binary postfix calls and scalar unary extrema.
+Guards require the original numbers-module function identity on every region entry;
+shadowed functions or other operand types retain ordinary execution.
+
+Malformed chains decline compilation so skipped bodies keep their error timing.
+The compiler evaluates operands in order, retains exact BigInt values and uses the
+left operand on ties. `extremaLoopCompilation: false` disables only this lowering.

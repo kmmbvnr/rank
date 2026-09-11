@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly extremaLoopCompilation?: boolean;
     readonly compoundArrayCompilation?: boolean;
     readonly arrayIterationCompilation?: boolean;
     readonly arrayWriteCompilation?: boolean;
@@ -1009,6 +1010,12 @@ export class Interpreter {
                 writer: name => this.compileAssign(name),
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                extrema: this.options.extremaLoopCompilation !== false,
+                extremeParts: expression => {
+                    const parts = flattenApplication(expression);
+                    try { return explicitExtremeApplication(parts) ?? parts; }
+                    catch { return undefined; }
+                },
                 compoundWrites: this.options.compoundArrayCompilation !== false,
                 arrayIteration: this.options.arrayIterationCompilation !== false,
                 iterationValues: (binding, source) => this.iterationAtoms(binding, source),
@@ -2462,6 +2469,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            extremaLoopCompilation: this.options.extremaLoopCompilation,
             compoundArrayCompilation: this.options.compoundArrayCompilation,
             arrayIterationCompilation: this.options.arrayIterationCompilation,
             arrayWriteCompilation: this.options.arrayWriteCompilation,
@@ -2554,6 +2562,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            extremaLoopCompilation: this.options.extremaLoopCompilation,
             compoundArrayCompilation: this.options.compoundArrayCompilation,
             arrayIterationCompilation: this.options.arrayIterationCompilation,
             arrayWriteCompilation: this.options.arrayWriteCompilation,

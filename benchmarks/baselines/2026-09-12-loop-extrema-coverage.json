@@ -1,0 +1,53 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "extrema",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 424.07849999999996,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 361.76754200000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 61.94104200000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 149.22116700000004,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 122.45741600000008,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 26.6048330000001,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        }
+      ]
+    }
+  ]
+}

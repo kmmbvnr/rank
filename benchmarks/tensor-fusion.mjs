@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -48,6 +48,8 @@ function diceAnswer(n) {
   return BigInt(dp[n]);
 }
 const tasks = [
+  { name: 'Minimizing Coins, six coins, Target=100000', path: 'demos/cses/dynamic/002_mincoins.ra', fn: 'minimum_coins', expected: 16667n, args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
+  { name: 'Euler 18, 400 rows of ones', path: 'demos/euler/018_maxpath.ra', fn: 'maximum_path', expected: 400n, args: () => [array(Array(400*401/2).fill(1n)), 400n] },
   { name: 'Coin Combinations I, six coins, Target=100000', path: 'demos/cses/dynamic/003_coincomb1.ra', fn: 'ordered_coin_ways', expected: diceAnswer(100000), args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
   { name: 'Dice Combinations N=1000000', path: 'demos/cses/dynamic/001_dice.ra', fn: 'dice_combinations', expected: diceAnswer(1000000), args: () => [1000000n] },
   { name: 'Indexed integer dot product, 200000 atoms', path: 'benchmarks/programs/array-loop.ra', fn: 'dot', expected: 1200000n, args: () => [array(Array(200000).fill(2n)), array(Array(200000).fill(3n))] },
@@ -83,6 +85,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      extremaLoopCompilation: backend === 'extrema' ? enabled : undefined,
       compoundArrayCompilation: backend === 'compoundarray' ? enabled : undefined,
       arrayIterationCompilation: backend === 'arrayiteration' ? enabled : undefined,
       arrayWriteCompilation: backend === 'arraywrite' ? enabled : undefined,
@@ -94,7 +97,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

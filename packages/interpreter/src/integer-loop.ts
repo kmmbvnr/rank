@@ -22,6 +22,8 @@ interface Host {
     iterationValues(binding: IterationBinding, source: RankArray): Iterable<RankValue>;
     readonly arrayWrites: boolean;
     readonly compoundWrites: boolean;
+    readonly extrema: boolean;
+    extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     iteration(condition: Expression | undefined): IterationBinding | undefined;
@@ -88,6 +90,21 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 return { code: e.operator === '+' ? value.code : `-(${value.code})`, type: 'integer' };
             }
             return undefined;
+        }
+        if (host.extrema && isApplicationExpression(e)) {
+            const parts = host.extremeParts(e);
+            const last = parts?.at(-1);
+            if (parts && [2, 3].includes(parts.length) && last && isNameExpression(last) && ['min', 'max'].includes(last.name)) {
+                const left = emit(parts[0], lines);
+                if (left?.type !== 'integer') return undefined;
+                builtins.set(last.name, 'numbers');
+                if (parts.length === 2) return left;
+                const right = emit(parts[1], lines);
+                if (right?.type !== 'integer') return undefined;
+                const name = `v${serial++}`;
+                lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
+                return { code: name, type: 'integer' };
+            }
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
