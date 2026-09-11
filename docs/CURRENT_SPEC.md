@@ -2882,6 +2882,14 @@ an edge in traversal order. An acyclic graph returns an empty array. Search is
 iterative; self-loops and cycles formed by parallel undirected edges are
 preserved.
 
+`Graph Start euler` returns an Euler trail that begins at `Start` and uses every
+edge exactly once. It works for directed and undirected graphs, infers the end
+vertex from the degree balances, and returns an empty rank-1 array when no such
+trail exists. A graph without edges returns `array Start`. Parallel edges and
+self-loops remain distinct, edge weights do not affect the trail, and equal
+inputs produce insertion-order-stable results. The iterative search takes
+`O(V + E)` time and does not mutate the graph.
+
 `Graph Start bellmanford` accepts negative weights. Its `.distance` and
 `.parent` indices cover vertices reachable from `Start`; `.negative` is a set
 of every reachable vertex whose shortest distance is unbounded below because
@@ -4495,7 +4503,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `floyd`, `cycle`, `topological`, `scc`, `mst`, and `maxflow`
+`bellmanford`, `floyd`, `cycle`, `euler`, `topological`, `scc`, `mst`, and `maxflow`
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
 [Graphs](../language/graphs.md).

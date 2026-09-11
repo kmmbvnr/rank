@@ -921,7 +921,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `floyd`, `cycle`, `topological`, `scc`, `mst`, and `maxflow`
+`bellmanford`, `floyd`, `cycle`, `euler`, `topological`, `scc`, `mst`, and `maxflow`
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
 [Graphs](../language/graphs.md).

@@ -61,6 +61,8 @@ export const graphModule: RuntimeModule = {
         maximumFlowRecord(expectGraph(values[0]), values[1], values[2])),
     cycle: () => native('cycle', 1, values =>
         graphCycle(expectGraph(values[0]))),
+    euler: () => native('euler', 2, values =>
+        eulerTrail(expectGraph(values[0]), values[1])),
     functional: () => native('functional', 1, values =>
         new RankFunctionalGraph(values[0])),
     jump: () => native('jump', 3, values =>
@@ -74,6 +76,95 @@ export const graphModule: RuntimeModule = {
 function expectFunctional(value: RankValue): RankFunctionalGraph {
     if (value instanceof RankFunctionalGraph) return value;
     throw new RankError('functional graph operation expects a functional graph');
+}
+
+function eulerTrail(graph: GraphValue, start: RankValue): RankArray {
+    const startKey = requireVertex(graph, start);
+    const edgeIds = new Set<number>();
+    const indegree = new Map<string, number>();
+    const outdegree = new Map<string, number>();
+    const degree = new Map<string, number>();
+    for (const key of graph.vertices.keys()) {
+        indegree.set(key, 0);
+        outdegree.set(key, 0);
+        degree.set(key, 0);
+    }
+    for (const [from, edges] of graph.adjacency) {
+        for (const edge of edges) {
+            edgeIds.add(edge.id);
+            const to = setValueKey(edge.target);
+            if (graph.directed) {
+                outdegree.set(from, outdegree.get(from)! + 1);
+                indegree.set(to, indegree.get(to)! + 1);
+            } else if (from === to) {
+                degree.set(from, degree.get(from)! + 2);
+            } else {
+                degree.set(from, degree.get(from)! + 1);
+            }
+        }
+    }
+    if (edgeIds.size === 0) return array([start]);
+    const valid = graph.directed
+        ? validDirectedEuler(graph, startKey, indegree, outdegree)
+        : validUndirectedEuler(graph, startKey, degree);
+    if (!valid) return array([]);
+
+    const next = new Map<string, number>();
+    const used = new Set<number>();
+    const stack = [startKey];
+    const reversed: string[] = [];
+    while (stack.length > 0) {
+        const current = stack[stack.length - 1];
+        const edges = graph.adjacency.get(current) ?? [];
+        let position = next.get(current) ?? 0;
+        while (position < edges.length && used.has(edges[position].id)) position += 1;
+        next.set(current, position);
+        if (position === edges.length) {
+            reversed.push(stack.pop()!);
+            continue;
+        }
+        const edge = edges[position];
+        next.set(current, position + 1);
+        used.add(edge.id);
+        stack.push(setValueKey(edge.target));
+    }
+    if (used.size !== edgeIds.size || reversed.length !== edgeIds.size + 1) {
+        return array([]);
+    }
+    reversed.reverse();
+    return array(reversed.map(key => graph.vertices.get(key)!));
+}
+
+function validDirectedEuler(
+    graph: GraphValue,
+    start: string,
+    indegree: ReadonlyMap<string, number>,
+    outdegree: ReadonlyMap<string, number>,
+): boolean {
+    let ends = 0;
+    for (const key of graph.vertices.keys()) {
+        const difference = outdegree.get(key)! - indegree.get(key)!;
+        if (difference === -1) {
+            ends += 1;
+        } else if (difference === 1) {
+            if (key !== start) return false;
+        } else if (difference !== 0) {
+            return false;
+        }
+    }
+    const startDifference = outdegree.get(start)! - indegree.get(start)!;
+    if (startDifference === 1) return ends === 1;
+    return startDifference === 0 && ends === 0 && outdegree.get(start)! > 0;
+}
+
+function validUndirectedEuler(
+    graph: GraphValue,
+    start: string,
+    degree: ReadonlyMap<string, number>,
+): boolean {
+    const odd = [...graph.vertices.keys()].filter(key => degree.get(key)! % 2 === 1);
+    if (odd.length === 2) return odd.includes(start);
+    return odd.length === 0 && degree.get(start)! > 0;
 }
 
 function graphCycle(graph: GraphValue): RankArray {

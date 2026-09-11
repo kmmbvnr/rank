@@ -241,6 +241,49 @@ Graph add 2 3
 `)).toBe('0');
     });
 
+    it('finds directed and undirected Euler trails', () => {
+        expect(run(`${prelude}use ranges
+Directed = new graph (1 to 3) .directed
+Directed add 1 2
+Directed add 1 3
+Directed add 2 1
+Undirected = new graph (1 to 2) .undirected
+Undirected add 1 2
+Undirected add 1 2
+array (Directed 1 euler) (Undirected 1 euler)
+`)).toBe('1 2 1 3 1 2 1');
+    });
+
+    it('handles Euler self-loops and empty graphs', () => {
+        expect(run(`${prelude}use ranges
+Loop = new graph (1 to 1) .undirected
+Loop add 1 1
+Empty = new graph (1 to 2) .directed
+array (Loop 1 euler) (Empty 2 euler)
+`)).toBe('1 1 2');
+    });
+
+    it('rejects incomplete Euler walks', () => {
+        expect(run(`${prelude}use ranges
+Branch = new graph (1 to 3) .directed
+Branch add 1 2
+Branch add 1 3
+Split = new graph (1 to 4) .undirected
+Split add 1 2
+Split add 3 4
+array ((Branch 1 euler) shape) ((Split 1 euler) shape)
+`)).toBe('0 0');
+    });
+
+    it('keeps euler available to user functions', () => {
+        expect(run(`
+fun euler A B
+  return A + B
+end
+3 4 euler
+`)).toBe('7');
+    });
+
     it('finds strongly connected components', () => {
         expect(run(`${prelude}use ranges
 Graph = new graph (1 to 6) .directed

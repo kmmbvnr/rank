@@ -1,0 +1,62 @@
+use testing
+
+test "official example"
+  use "028_maildelivery"
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 6) .undirected
+  Edges = array shape 8 2
+    1 2
+    1 3
+    2 3
+    2 4
+    2 6
+    3 5
+    3 6
+    4 5
+  end
+  Graph add Edges
+  Path = Graph 8 mail_delivery
+  Path equal (array 1 2 3 5 4 2 6 3 1)
+end
+
+test "walks around a simple square"
+  use "028_maildelivery"
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 4) .undirected
+  Graph add 1 2
+  Graph add 2 3
+  Graph add 3 4
+  Graph add 4 1
+  Path = Graph 4 mail_delivery
+  Path equal (array 1 2 3 4 1)
+end
+
+test "rejects odd vertex degrees"
+  use "028_maildelivery"
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 3) .undirected
+  Graph add 1 2
+  Graph add 2 3
+  Path = Graph 2 mail_delivery
+  Path len equal 0
+end
+
+test "rejects a disconnected cycle"
+  use "028_maildelivery"
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 6) .undirected
+  Graph add 1 2
+  Graph add 1 2
+  Graph add 3 4
+  Graph add 3 4
+  Path = Graph 4 mail_delivery
+  Path len equal 0
+end

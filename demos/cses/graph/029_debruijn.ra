@@ -1,0 +1,42 @@
+rem CSES 1692: De Bruijn Sequence
+rem https://cses.fi/problemset/task/1692
+
+use bits
+use graph
+use io
+use ranges
+use sequences
+use text
+
+N = stdin .integer
+N debruijn print
+
+
+rem Read bits from an Euler cycle.
+fun debruijn N
+  if N equal 1
+    return "01"
+  end
+
+  NodeCount = 1 (N - 1) shl
+  Mask = NodeCount - 1
+  Nodes = 0 until NodeCount
+  Graph = new graph Nodes .directed
+  for Node in Nodes
+    Shifted = Node 1 shl
+    Zero = Shifted Mask band
+    Graph add Node Zero
+    Graph add Node (Zero + 1)
+  end
+
+  Path = Graph 0 euler
+  Result = ""
+  for i in 1 until N
+    Result += "0"
+  end
+  for i in 1 until Path len
+    Bit = Path i % 2
+    Result += Bit text
+  end
+  return Result
+end

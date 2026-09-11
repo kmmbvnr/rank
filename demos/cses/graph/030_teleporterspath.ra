@@ -1,0 +1,36 @@
+rem CSES 1693: Teleporters Path
+rem https://cses.fi/problemset/task/1693
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Path = Graph N M teleporters_path
+
+if Path len equal 0
+  "IMPOSSIBLE" print
+else
+  Path print
+end
+
+
+rem Use every teleporter from 1 to N.
+fun teleporters_path Graph N EdgeCount
+  Path = Graph 1 euler
+  if Path len not equal EdgeCount + 1
+    return array shape 0 pad 0
+  end
+  Last = Path len - 1
+  if Path Last not equal N
+    return array shape 0 pad 0
+  end
+  return Path
+end

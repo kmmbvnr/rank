@@ -1,0 +1,49 @@
+use testing
+
+test "official example"
+  use "029_debruijn"
+  use algo
+  use bits
+  use graph
+  use ranges
+  use sequences
+  use text
+  Text = 2 debruijn
+  Text equal "00110"
+end
+
+test "contains both single bits"
+  use "029_debruijn"
+  use algo
+  use bits
+  use graph
+  use ranges
+  use sequences
+  use text
+  Text = 1 debruijn
+  Text equal "01"
+end
+
+test "contains all three-bit words"
+  use "029_debruijn"
+  use algo
+  use bits
+  use graph
+  use ranges
+  use sequences
+  use text
+  Text = 3 debruijn
+  Text equal "0001011100"
+end
+
+test "has minimum length for four bits"
+  use "029_debruijn"
+  use algo
+  use bits
+  use graph
+  use ranges
+  use sequences
+  use text
+  Text = 4 debruijn
+  Text equal "0000100110101111000"
+end

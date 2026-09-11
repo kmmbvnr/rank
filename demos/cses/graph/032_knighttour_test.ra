@@ -33,13 +33,16 @@ test "starts in the board center"
   Board 3 3 equal 1
 end
 
-test "starts in the lower right corner"
+test "solves every starting square"
   use "032_knighttour"
   use algo
   use numbers
   use ranges
   use sequences
-  Board = 8 8 knight_tour
-  Board valid_tour
-  Board 7 7 equal 1
+  for Y in 1 to 8
+    for X in 1 to 8
+      Board = X Y knight_tour
+      Board valid_tour
+    end
+  end
 end
