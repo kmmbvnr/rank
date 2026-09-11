@@ -1,0 +1,86 @@
+use testing
+
+test "official separable samples"
+  use "038_adaboost"
+  use numbers
+  use sequences
+  X = array shape 4 2
+    1 2
+    2 3
+    3 4
+    4 5
+  end
+  Y = array 1 1 -1 -1
+
+  Models = X Y 3 adaboost_fit
+  Models len equal 3
+  for Model in Models
+    Model .polarity equal -1
+    Model .threshold equal 3
+    Model .feature equal 0
+    Model .alpha round 10 equal (
+      11.512925465
+    )
+  end
+end
+
+test "official weighted second stump"
+  use "038_adaboost"
+  use numbers
+  X = array shape 10 2
+    8 7
+    3 4
+    5 9
+    4 0
+    1 0
+    0 7
+    3 8
+    4 2
+    6 8
+    0 2
+  end
+  Y = array 1 -1 1 -1 1 -1 -1 -1 1 1
+
+  Models = X Y 2 adaboost_fit
+  First = Models 0
+  First .polarity equal 1
+  First .threshold equal 5
+  First .feature equal 0
+  Alpha = First .alpha round 10
+  Alpha equal 0.6931471803
+
+  Second = Models 1
+  Second .polarity equal -1
+  Second .threshold equal 3
+  Second .feature equal 0
+  Alpha = Second .alpha round 10
+  Alpha equal 0.549306144
+end
+
+test "zero classifiers returns none"
+  use "038_adaboost"
+  use sequences
+  X = array shape 2 1
+    0
+    1
+  end
+  Y = array -1 1
+
+  Models = X Y 0 adaboost_fit
+  Models len equal 0
+end
+
+test "sample counts must match"
+  use "038_adaboost"
+  X = array shape 2 1 pad 0
+  Y = array 1
+  Raised = false
+
+  try
+    Models = X Y 1 adaboost_fit
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end

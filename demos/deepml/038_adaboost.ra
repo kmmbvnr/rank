@@ -1,0 +1,91 @@
+rem Deep-ML 38: AdaBoost Fit
+rem https://www.deep-ml.com/problems/38
+
+use algo
+use numbers
+use ranges
+use sequences
+
+rem Predict with one decision stump.
+fun stump X Feature Limit Sign
+  N = X len
+  Pred = array shape N pad 1
+  Negative = X axis 1 Feature less Limit
+
+  if Sign equal -1
+    Negative = not Negative
+  end
+  Pred Negative = -1
+  return Pred
+end
+
+rem Fit a sequence of decision stumps.
+fun adaboost_fit X Y Classifiers
+  unpack N Features = X shape
+  if Y len not equal N
+    .DimensionMismatch raise
+  end
+  if N equal 0
+    .EmptyInput raise
+  end
+  if Classifiers less 0
+    .DomainError raise
+  end
+
+  Initial = 1.0 / N
+  Weight = array shape N pad Initial
+
+  for # in 0 until Classifiers
+    Best = record
+      .polarity = 1
+      .threshold = X 0 0
+      .feature = 0
+      .alpha = 0.0
+    end
+    MinError = infinity
+
+    for Feature in 0 until Features
+      Column = X axis 1 Feature
+      Limits = Column unique sort
+
+      for Limit in Limits
+        Polarity = 1
+        F = Feature
+        T = Limit
+        P = Polarity
+        Pred = X F T P stump
+        Wrong = Y not equal Pred
+        Error = (Weight Wrong) sum
+
+        if Error greater 0.5
+          Error = 1.0 - Error
+          Polarity = -1
+        end
+
+        if Error less MinError
+          MinError = Error
+          Best .polarity = Polarity
+          Best .threshold = Limit
+          Best .feature = Feature
+        end
+      end
+    end
+
+    Ratio = (1.0 - MinError) / (
+      MinError + 0.0000000001
+    )
+    Best .alpha = 0.5 * Ratio log
+
+    F = Best .feature
+    T = Best .threshold
+    P = Best .polarity
+    Pred = X F T P stump
+    Alpha = Best .alpha
+    Scale = -Alpha * Y * Pred
+    Weight *= Scale exp
+    Weight /= Weight sum
+    queue push Best
+  end
+
+  return queue
+end
