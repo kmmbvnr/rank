@@ -277,6 +277,15 @@ function numericExtreme(
     }, 'all', [0, 0]);
 }
 
+/** Sum an eager tensor cell by offset, retaining sum's integer-zero seed. */
+export function sumIndexed(size: number, itemAt: (index: number) => RankValue): bigint | number {
+    let total: bigint | number = 0n;
+    for (let index = 0; index < size; index += 1) {
+        total = add(total, expectNumeric(itemAt(index)));
+    }
+    return total;
+}
+
 function add(left: bigint | number, right: bigint | number): bigint | number {
     return typeof left === 'bigint' && typeof right === 'bigint'
         ? left + right

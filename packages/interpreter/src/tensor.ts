@@ -9,13 +9,15 @@ export function mapBroadcastArrays(
     const shape = broadcastShape(left.shape, right.shape);
     const leftStrides = arrayStrides(left.shape);
     const rightStrides = arrayStrides(right.shape);
+    const sameShape = left.shape.length === right.shape.length
+        && left.shape.every((dimension, axis) => dimension === right.shape[axis]);
     const cache = new Map<number, RankValue>();
     const itemAt = (index: number): RankValue => {
         const cached = cache.get(index);
         if (cached !== undefined) return cached;
         const result = operation(
-            arrayItem(left, broadcastOffset(index, shape, left.shape, leftStrides)),
-            arrayItem(right, broadcastOffset(index, shape, right.shape, rightStrides)),
+            arrayItem(left, sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
+            arrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
         );
         cache.set(index, result);
         return result;
