@@ -16,14 +16,17 @@ Queries = Raw (array Q 2) reshape
 Values Queries range_xors print
 
 
-rem Answer inclusive one-based xor ranges.
+rem Answer inclusive xor ranges.
 fun range_xors Values Queries
   Tree = Values bxor segment
-  Answers = array shape (Queries len) pad 0
+  Q = Queries len
+  Answers = array shape Q pad 0
 
   for Query i in Queries
     unpack Left Right = Query
-    Answers i = Tree (Left - 1) (Right - 1) query
+    L = Left - 1
+    R = Right - 1
+    Answers i = Tree L R query
   end
 
   return Answers

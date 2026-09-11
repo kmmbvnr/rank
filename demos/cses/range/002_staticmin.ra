@@ -1,4 +1,5 @@
-rem CSES 1647: Static Range Minimum Queries
+rem CSES 1647
+rem Static Range Minimum Queries
 rem https://cses.fi/problemset/task/1647
 
 use io
@@ -18,10 +19,13 @@ Values Queries range_minimums print
 rem Answer inclusive one-based ranges.
 fun range_minimums Values Queries
   Tree = Values min segment
-  Answers = array shape (Queries len) pad 0
+  Q = Queries len
+  Answers = array shape Q pad 0
   for Query i in Queries
     unpack Left Right = Query
-    Answers i = Tree (Left - 1) (Right - 1) query
+    L = Left - 1
+    R = Right - 1
+    Answers i = Tree L R query
   end
   return Answers
 end

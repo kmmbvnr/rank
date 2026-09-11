@@ -93,7 +93,11 @@ PerSample = Pred Target mse axis 1
 ```
 
 Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
-Binary `rank` application is not yet part of the language.
+Standard binary functions may declare intrinsic ranks. Rank splits array
+arguments into trailing cells, broadcasts their leading frames, and applies
+the function to corresponding cells. An atomic or whole-value argument has an
+empty frame and is reused for every cell of the other argument. Explicit
+binary `rank` overrides are not yet part of the language.
 
 The broader tensor direction includes:
 

@@ -1,0 +1,49 @@
+rem CSES 1734: Distinct Values Queries
+rem https://cses.fi/problemset/task/1734
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Values Queries distinct print
+
+
+rem Sweep query right endpoints.
+rem Keep each value's latest position.
+fun distinct Values Queries
+  Q = Queries len
+  Right = Queries # 1
+  Indices = (0 until Q) array
+  Keys = Right * (Q + 1) + Indices
+  Order = Keys argsort
+  Latest = new index
+  Present = Values len fenwick
+  Answers = array shape Q pad 0
+  Reached = -1
+
+  for QueryIndex in Order
+    Left = Queries QueryIndex 0 - 1
+    Target = Queries QueryIndex 1 - 1
+    for Reached less Target
+      Reached += 1
+      Value = Values Reached
+      if Value in Latest
+        Present (Latest Value) -= 1
+      end
+      Present Reached += 1
+      Latest Value = Reached
+    end
+    High = Present sum Target
+    Low = Present sum (Left - 1)
+    Answers QueryIndex = High - Low
+  end
+
+  return Answers
+end

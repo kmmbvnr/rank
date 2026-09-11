@@ -177,6 +177,61 @@ Planets lengths
 `)).toBe('3 3 3 2 1 2 2 3');
     });
 
+    it('counts increasing vertices through a limit', () => {
+        expect(run(`${prelude}
+Next = array 2 3 5 5 5
+Path = Next functional
+Result = array shape 4
+  (Path 1 3 upto) (Path 1 4 upto)
+  (Path 1 5 upto) (Path 4 5 upto)
+end
+Result
+`)).toBe('3 3 4 2');
+        expect(() => run(`${prelude}
+Path = (array 2 1) functional
+Path 1 2 upto
+`)).toThrow('upto requires increasing successors');
+    });
+
+    it('aggregates increasing weighted paths', () => {
+        expect(run(`${prelude}
+Next = array 2 3 5 5 5
+Cost = array 10 20 30 40 0
+Path = Next Cost weighted
+A = Path 1 3 upto
+B = Path 1 4 upto
+C = Path 4 5 upto
+Result = array shape 9
+  (A .count) (A .sum) (A .last)
+  (B .count) (B .sum) (B .last)
+  (C .count) (C .sum) (C .last)
+end
+Result
+`)).toBe('3 30 3 3 30 3 2 40 5');
+    });
+
+    it('validates weighted paths', () => {
+        expect(() => run(`${prelude}
+Next = array 2 2
+Next (array 1) weighted
+`)).toThrow(
+            'weighted successors and weights must have equal length',
+        );
+        expect(() => run(`${prelude}
+Next = array 2 2
+Next (array 1 "x") weighted
+`)).toThrow('weighted requires numeric weights');
+    });
+
+    it('allows a user function named weighted', () => {
+        expect(run(`${prelude}
+fun weighted A B
+  return A + B
+end
+3 4 weighted
+`)).toBe('7');
+    });
+
     it('validates functional successor arrays', () => {
         expect(() => run(`${prelude}(array 2 4 1) functional`))
             .toThrow('functional successors must be integers from 1 to N');

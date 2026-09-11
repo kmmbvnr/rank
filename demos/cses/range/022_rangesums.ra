@@ -1,0 +1,52 @@
+rem CSES 1735: Range Updates and Sums
+rem https://cses.fi/problemset/task/1735
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Queries = new queue
+for I in 1 to Q
+  Type = stdin .integer
+  Left = stdin .integer
+  Right = stdin .integer
+  if Type less 3
+    Value = stdin .integer
+    Query = array Type Left Right Value
+  else
+    Query = array Type Left Right
+  end
+  Queries push Query
+end
+
+Values Queries range_updates print
+
+
+rem Apply inclusive range operations.
+fun range_updates Values Queries
+  Tree = Values + segment
+  Q = Queries len
+  Answers = array shape Q pad 0
+  Count = 0
+  for Query in Queries
+    Type = Query 0
+    Left = Query 1 - 1
+    Right = Query 2 - 1
+    if Type equal 1
+      Tree Left Right += Query 3
+    else
+      if Type equal 2
+        Tree Left Right = Query 3
+      else
+        Total = Tree Left Right query
+        Answers Count = Total
+        Count += 1
+      end
+    end
+  end
+  return Answers (0 until Count)
+end

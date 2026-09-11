@@ -1,0 +1,18 @@
+use testing
+
+test "official example"
+  use "009_listremovals"
+  Values = array 2 6 1 4 2
+  Positions = array 3 1 3 1 1
+  Actual = Values Positions removals
+  Actual equal array 1 2 2 6 4
+end
+
+test "remove repeatedly from the ends"
+  use "009_listremovals"
+  Values = array 10 20 30 40
+  Positions = array 4 1 2 1
+  Actual = Values Positions removals
+  Expected = array 40 10 30 20
+  Actual equal Expected
+end

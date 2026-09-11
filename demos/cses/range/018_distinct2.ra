@@ -1,0 +1,84 @@
+rem CSES 3356
+rem Distinct Values Queries II
+rem https://cses.fi/problemset/task/3356
+
+use io
+use algo
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 3) array
+Queries = Raw (array Q 3) reshape
+
+Values Queries distinct2 print
+
+
+rem Track the next equal position.
+fun distinct2 Values Queries
+  N = Values len
+  Positions = new index
+  for Value I in Values
+    if not (Value in Positions)
+      Positions Value = new orderedset
+    end
+    Set = Positions Value
+    Set add I
+  end
+
+  Next = array shape N pad N
+  for Value I in Values
+    Set = Positions Value
+    Next I = Set upperbound I pad N
+  end
+  Tree = Next min segment
+
+  Q = Queries len
+  Answers = array shape Q pad ""
+  Count = 0
+  for Query in Queries
+    Type = Query 0
+    if Type equal 1
+      Place = Query 1 - 1
+      New = Query 2
+      Old = Values Place
+      if Old not equal New
+        S = Positions Old
+        Previous = Place - 1
+        Before = S floor Previous pad -1
+        After = S upperbound Place pad N
+        if Before at least 0
+          Tree Before = After
+        end
+        S remove Place
+
+        if not (New in Positions)
+          Positions New = new orderedset
+        end
+        S = Positions New
+        Before = S floor Previous pad -1
+        After = S ceiling Place pad N
+        if Before at least 0
+          Tree Before = Place
+        end
+        Tree Place = After
+        S add Place
+        Values Place = New
+      end
+    else
+      Left = Query 1 - 1
+      Right = Query 2 - 1
+      Repeat = Tree Left Right query
+      if Repeat greater Right
+        Answers Count = "YES"
+      else
+        Answers Count = "NO"
+      end
+      Count += 1
+    end
+  end
+  return Answers (0 until Count)
+end

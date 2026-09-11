@@ -2660,6 +2660,32 @@ Tree Position = Value
 Tree Position += Delta
 ```
 
+A numeric tree built with the standard `+` operation also accepts inclusive
+range assignment and addition:
+
+```rank
+Tree Left Right = Value
+Tree Left Right += Delta
+```
+
+These operations broadcast the numeric value across the range. They use lazy
+propagation internally, so range updates and sum queries take `O(log N)` time.
+Assignment replaces earlier pending additions; later additions apply to the
+assigned value. Other segment operations remain point-update trees.
+
+With `use sequences`, postfix `copy` creates an independent version of a
+numeric `+ segment` tree:
+
+```rank
+Version = Tree copy
+Version Position = Value
+```
+
+The first copy converts the source to persistent storage in `O(N)` time.
+It does not change its values. That copy and all later copies share unchanged
+nodes in `O(1)` time. Updating any persistent version copies only its affected
+root paths in `O(log N)` time; no update changes another version.
+
 `query` reduces an inclusive range while preserving left-to-right operand
 order:
 
@@ -2672,10 +2698,69 @@ Out-of-bounds positions raise `.Missing` and compose with `pad`. No identity
 value is required because an empty range is not a valid query. Empty trees may
 be constructed but cannot be queried or addressed.
 
+`firstatleast` finds the first position where the aggregate of the prefix
+reaches a numeric target:
+
+```rank
+Position = Tree Target firstatleast
+```
+
+It returns `-1` when no prefix reaches the target. Prefix aggregates must be
+monotone relative to the target. Typical valid trees use `max`, or `+` with
+nonnegative values. Rank does not attempt to prove this condition.
+
+`maxsum` is the native numeric profile for prefix and subarray sums:
+
+```rank
+Tree = Values maxsum segment
+State = Tree Left Right query
+```
+
+`State` is a record with `.sum`, `.prefix`, `.suffix` and `.best`. The three
+maxima allow the empty subarray and are therefore never negative. Addressing
+still reads the numeric point, and point assignment accepts a number. The
+profile keeps the standard four-value segment aggregate inside the runtime so
+large queries do not pay for millions of interpreted combining calls.
+
+The built-in is recognized by function identity. A user function named
+`maxsum` remains an ordinary binary operation when used with `segment`.
+
 Construction takes `O(N)` time. Point access is constant time; point updates
 and range queries take `O(log N)` time, excluding the cost of the selected
-operation. With `use sequences`, `len` and `shape` report the fixed size.
+operation. `firstatleast` also takes `O(log N)`. With `use sequences`, `len`
+and `shape` report the fixed size.
 The runtime type is `.segment`.
+
+### Wavelet matrix
+
+A wavelet matrix prepares immutable range-count queries over comparable scalar
+values:
+
+```rank
+Data = Values wavelet
+Count = Data Left Right Low High within
+Sum = Data Left Right Low High sumwithin
+One = Data (array Left Right) missing
+Answers = Data Queries missing
+```
+
+Both position and value ranges are inclusive. `within` counts positions from
+`Left` through `Right` whose values lie from `Low` through `High`. Values must
+all be numbers, text, booleans or symbols of one comparable kind. Bounds of a
+different kind are errors.
+
+`sumwithin` uses the same ranges and sums their matching values. It requires a
+numeric wavelet. Its sum tables are prepared lazily on the first aggregate
+query. `missing` requires positive integer values and returns the smallest
+positive sum that no subset of the selected positions can form. Its right
+argument has intrinsic rank 1: one pair produces one answer, while a `Q 2`
+query matrix produces a length-`Q` answer vector.
+
+Construction takes `O(N log S)` time and memory, where `S` is the number of
+distinct values. `within` and `sumwithin` take `O(log S)` per query. If `T` is
+the returned missing sum, `missing` takes `O(log S log T)`. The prepared value
+cannot be changed. With `use sequences`, `len` and `shape` report its fixed
+size. Its runtime type is `.wavelet`.
 
 
 ### Permutations
@@ -2886,6 +2971,9 @@ Planets = Next functional
 End = Planets jump Start Steps
 Steps = Planets distance From To
 Lengths = Planets lengths
+Count = Planets Start Limit upto
+Weighted = Next Cost weighted
+State = Weighted Start Limit upto
 ```
 
 `jump` follows exactly the requested nonnegative number of transitions and
@@ -2903,10 +2991,28 @@ item is the number of distinct vertices visited from that vertex before the
 first repeated vertex. Construction decomposes the graph into cycles and their
 incoming trees once; queries do not mutate the value.
 
+`upto` counts vertices on the path from `Start` whose numbers do not exceed
+`Limit`, including the start when it is in range. It requires every successor
+to be either its own vertex or a larger vertex. This makes the path monotone,
+so the cached jump table answers each query in `O(log N)` time. It returns zero
+when `Start` exceeds `Limit`. Next-greater links are a typical use.
+
+`Next Cost weighted` prepares the same increasing successor path with one
+numeric outgoing-edge cost per vertex. Its `upto` result is a record:
+
+- `.count` is the number of visited vertices;
+- `.sum` is the sum of traversed edge costs;
+- `.last` is the last visited vertex.
+
+The edge leaving `.last` is not traversed and is not included in `.sum`.
+Integer costs keep an integer sum; any real cost produces a real sum. The
+successor and cost arrays must have equal lengths. Weighted jump sums grow
+alongside the same lazy binary-lifting table.
+
 This API is experimental. It stays in the graph library while examples beyond
 the adjacent CSES functional-graph tasks test whether the prepared object is a
 useful general abstraction. If later programs do not reuse the combined
-`jump`, `distance`, and `lengths` interface, simplify it to independent
+`jump`, `distance`, `lengths`, `upto`, and `weighted` interface, simplify it to independent
 operations or remove it before treating the API as stable.
 
 ## Rooted trees
@@ -3370,7 +3476,11 @@ PerSample = Pred Target mse axis 1
 ```
 
 Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
-Binary `rank` application is not yet part of the language.
+Standard binary functions may declare intrinsic ranks. Rank splits array
+arguments into trailing cells, broadcasts their leading frames, and applies
+the function to corresponding cells. An atomic or whole-value argument has an
+empty frame and is reused for every cell of the other argument. Explicit
+binary `rank` overrides are not yet part of the language.
 
 The broader tensor direction includes:
 
@@ -4187,8 +4297,9 @@ count
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
-storage while preserving its shape. It does not accept a sequence; postfix
-`array` materializes a finite sequence into a rank-1 array.
+storage while preserving its shape. On a numeric `+ segment`, it creates an
+independent persistent version that shares unchanged nodes. It does not accept
+a sequence; postfix `array` materializes a finite sequence into a rank-1 array.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, supports `to` and `until`, and may seek to a
@@ -4657,6 +4768,7 @@ Counts = new counter
 Empty = new multiset
 F = Size fenwick
 Tree = Values min segment
+Data = Values wavelet
 Seen add Value
 Counts add Value
 Bag = Values multiset
@@ -4700,14 +4812,24 @@ operation. `Tree Left Right query` reduces an inclusive range, and addressed
 assignment performs a point update. Construction, bounds and error behavior
 are specified in [Collections](language/collections.md).
 
+`Tree Target firstatleast` finds the first monotone numeric prefix that reaches
+the target. `Values maxsum segment` selects the native prefix/subarray summary
+profile. `Values wavelet` prepares immutable inclusive range counts through
+`Data Left Right Low High within`. Numeric wavelets also provide `sumwithin`
+for range-value sums and `Data Bounds missing` for positive coin values.
+
+Numeric `Values + segment` trees also accept `Tree Left Right = Value` and
+`Tree Left Right += Delta` with lazy `O(log N)` range updates.
+
 ## Graph profile
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
 `bellmanford`, `floyd`, `cycle`, `euler`, `topological`, `scc`, `mst`, and `maxflow`
 algorithms. It also provides the experimental `Next functional` prepared value
-with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
-[Graphs](../language/graphs.md).
+with `jump`, `distance`, `lengths`, and the increasing-path `upto` query.
+`Next Cost weighted` adds numeric edge sums to that path. Their inputs and
+results are specified in [Graphs](../language/graphs.md).
 An undirected tree can be prepared with `Tree Root root`; its postfix
 `ancestor`, `lca`, and `distance` queries and traversal fields follow the
 rooted-tree rules above. `Tree pathlengths` provides a lazy unordered-pair

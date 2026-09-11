@@ -1,0 +1,52 @@
+rem CSES 1664
+rem Movie Festival Queries
+rem https://cses.fi/problemset/task/1664
+
+use io
+use graph
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Raw = stdin .integer (N * 2) array
+Movies = Raw (array N 2) reshape
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Movies Queries movie_queries print
+
+
+rem Greedily jump to earliest endings.
+fun movie_queries Movies Queries
+  LastMovie = Movies max
+  LastQuery = Queries max
+  LastTime = LastMovie max LastQuery
+  Sentinel = LastTime + 1
+  Next = array shape Sentinel pad 0
+  Next # = Sentinel
+
+  for Movie in Movies
+    unpack Start Finish = Movie
+    Place = Start - 1
+    Current = Next Place
+    Next Place = Current min Finish
+  end
+  for Time in LastTime to 1 by -1
+    Place = Time - 1
+    Current = Next Place
+    Later = Next Time
+    Next Place = Current min Later
+  end
+  Path = Next functional
+
+  Q = Queries len
+  Answers = array shape Q pad 0
+  for Query I in Queries
+    unpack Arrive Leave = Query
+    Answers I = Path Arrive Leave upto
+    Answers I -= 1
+  end
+  return Answers
+end

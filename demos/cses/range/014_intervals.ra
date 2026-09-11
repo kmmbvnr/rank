@@ -1,0 +1,32 @@
+rem CSES 3163: Range Interval Queries
+rem https://cses.fi/problemset/task/3163
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 4) array
+Queries = Raw (array Q 4) reshape
+
+Values Queries intervals print
+
+
+rem Count each index-value rectangle.
+fun intervals Values Queries
+  Data = Values wavelet
+  Q = Queries len
+  Answers = array shape Q pad 0
+  for Query I in Queries
+    L = Query 0 - 1
+    R = Query 1 - 1
+    Low = Query 2
+    High = Query 3
+    Count = Data L R Low High within
+    Answers I = Count
+  end
+  return Answers
+end

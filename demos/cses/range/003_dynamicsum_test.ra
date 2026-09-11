@@ -8,10 +8,11 @@ test "official example"
     1 3 1
     2 1 4
   end
-  Values Queries dynamic_sums equal array 11 11
+  Actual = Values Queries dynamic_sums
+  Actual equal array 11 11
 end
 
-test "assignments replace rather than add"
+test "assignments replace values"
   use "003_dynamicsum"
   Values = array 4 5 6
   Queries = array shape 4 3
@@ -20,5 +21,6 @@ test "assignments replace rather than add"
     1 2 -3
     2 1 3
   end
-  Values Queries dynamic_sums equal array 10 7
+  Actual = Values Queries dynamic_sums
+  Actual equal array 10 7
 end

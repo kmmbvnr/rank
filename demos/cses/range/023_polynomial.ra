@@ -1,0 +1,66 @@
+rem CSES 1736: Polynomial Queries
+rem https://cses.fi/problemset/task/1736
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 3) array
+Queries = Raw (array Q 3) reshape
+
+Values Queries polynomial print
+
+
+rem Store doubled prefix coefficients.
+fun polynomial Values Queries
+  N = Values len
+  Prefix = array shape (N + 1) pad 0
+  Prefix (1 to N) = Values + scan
+  Size = N + 2
+  Quad = Size fenwick
+  Line = Size fenwick
+  Base = Size fenwick
+
+  Q = Queries len
+  Answers = array shape Q pad 0
+  Count = 0
+  for Query in Queries
+    unpack Type Left Right = Query
+    if Type equal 1
+      A = 3 - 2 * Left
+      B = (Left - 1) * (Left - 2)
+      Length = Right - Left + 1
+      After = Right + 1
+      Quad Left += 1
+      Line Left += A
+      Base Left += B
+      Quad After -= 1
+      Line After -= A
+      Tail = Length * (Length + 1)
+      Base After += Tail - B
+    else
+      Total = Prefix Right
+      Total -= Prefix (Left - 1)
+      Added = Quad Line Base Right poly
+      X = Left - 1
+      Before = Quad Line Base X poly
+      Total += Added - Before
+      Answers Count = Total
+      Count += 1
+    end
+  end
+  return Answers (0 until Count)
+end
+
+
+rem Evaluate one changed-array prefix.
+fun poly Quad Line Base X
+  A = Quad sum X
+  B = Line sum X
+  C = Base sum X
+  return (A * X * X + B * X + C) // 2
+end

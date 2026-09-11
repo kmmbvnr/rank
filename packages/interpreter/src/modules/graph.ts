@@ -84,6 +84,8 @@ export const graphModule: RuntimeModule = {
         rootedLca(values[0], values[1], values[2])),
     functional: () => native('functional', 1, values =>
         new RankFunctionalGraph(values[0])),
+    weighted: () => native('weighted', 2, values =>
+        new RankFunctionalGraph(values[0], values[1])),
     jump: () => native('jump', 3, values =>
         expectFunctional(values[0]).jump(values[1], values[2])),
     distance: () => native('distance', 3, values => {
@@ -96,6 +98,10 @@ export const graphModule: RuntimeModule = {
         expectFunctional(values[0]).lengths()),
     pathlengths: () => native('pathlengths', 1, values =>
         treePathLengths(expectGraph(values[0]))),
+    upto: () => native('upto', 3, values =>
+        expectFunctional(values[0]).upto(
+            values[1], values[2],
+        )),
 };
 
 interface TreeSnapshot {

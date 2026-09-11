@@ -10,21 +10,26 @@ grammar. Internal implementations may use specialized storage and native loops.
 ## Current base
 
 The current library has heaps, ordered multisets, Fenwick trees, segment trees,
-disjoint-set unions and graph algorithms. Arrays and deques already cover many
-techniques that other contest libraries expose as separate types.
+wavelet matrices, disjoint-set unions and graph algorithms. Arrays and deques
+already cover many techniques that other contest libraries expose as separate
+types. Increasing functional graphs provide `upto` for next-greater paths, and
+`weighted` adds edge aggregates for Increasing Array Queries. Numeric wavelet
+matrices provide range-value sums and missing subset sums.
 
 ## Segment-tree extensions
 
 These extend the current `segment` value instead of creating unrelated trees:
 
-- **tree search** finds the first or last position where a prefix predicate
-  changes. AtCoder calls these operations `max_right` and `min_left`. Hotel
-  Queries and order-statistic selection are the first tests for the Rank form;
-- **lazy range updates** apply one update to a complete interval while keeping
-  range aggregates. Range Updates and Sums and Polynomial Queries should settle
-  the update syntax;
-- **persistent versions** share unchanged nodes between copies. Range Queries
-  and Copies should settle ownership and version addressing.
+- `firstatleast` finds the first position where a monotone numeric prefix
+  aggregate reaches its target. Hotel Queries and List Removals justify this
+  compact form. A future arbitrary-predicate search still needs evidence;
+- `maxsum` stores sum, maximum prefix, suffix and subarray aggregates natively.
+  Prefix Sum Queries and both Subarray Sum Queries justify the profile;
+- numeric `+ segment` trees accept inclusive addressed assignment and addition
+  with lazy propagation. Range Updates and Sums justifies the update syntax;
+- postfix `copy` on a numeric `+ segment` creates an independent persistent
+  version. Versions share unchanged nodes, while updates copy one root path.
+  Range Queries and Copies justifies the ownership model.
 
 Each extension needs its own evidence. Point updates do not require the lazy or
 persistent machinery.
@@ -35,7 +40,6 @@ persistent machinery.
 | --- | --- | --- |
 | Sparse table | immutable idempotent range queries | Is O(1) query faster than `segment` after construction cost? |
 | Dynamic bitset | subset DP, reachability, dense graph sets | Can boolean arrays expose the same word-level speed without a new type? |
-| Wavelet matrix | range rank, count and kth queries | Which two operations form a small readable API? |
 | Rollback DSU | offline dynamic connectivity | How are snapshots represented without exposing an undo log? |
 | Binary or xor trie | prefix lookup and maximum-xor queries | Can text tries and integer-bit tries share a useful model? |
 | Li Chao tree | minimum or maximum line queries | What numeric domain and overflow rules does it promise? |

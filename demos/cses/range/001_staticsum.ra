@@ -20,10 +20,12 @@ fun range_sums Values Queries
   Prefix = array shape (Count + 1) pad 0
   Prefix (1 to Count) = Values + scan
 
-  Answers = array shape (Queries len) pad 0
+  Q = Queries len
+  Answers = array shape Q pad 0
   for Query i in Queries
     unpack Left Right = Query
-    Answers i = Prefix Right - Prefix (Left - 1)
+    Before = Prefix (Left - 1)
+    Answers i = Prefix Right - Before
   end
   return Answers
 end

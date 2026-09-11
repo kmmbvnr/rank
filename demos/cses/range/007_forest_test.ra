@@ -2,13 +2,16 @@ use testing
 
 test "official example"
   use "007_forest"
-  Grid = array ".*.." "*.**" "**.." "****"
+  Grid = array shape 4
+    ".*.." "*.**" "**.." "****"
+  end
   Queries = array shape 3 4
     2 2 3 4
     3 1 3 1
     1 1 2 2
   end
-  Grid Queries forest_queries equal array 3 1 2
+  Actual = Grid Queries forest_queries
+  Actual equal array 3 1 2
 end
 
 test "corners and complete grid"
@@ -20,5 +23,6 @@ test "corners and complete grid"
     1 3 3 3
     2 2 2 2
   end
-  Grid Queries forest_queries equal array 3 1 1 1
+  Actual = Grid Queries forest_queries
+  Actual equal array 3 1 1 1
 end

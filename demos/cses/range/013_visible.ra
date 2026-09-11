@@ -1,0 +1,52 @@
+rem CSES 3304: Visible Buildings Queries
+rem https://cses.fi/problemset/task/3304
+
+use io
+use algo
+use graph
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Heights = stdin .integer N array
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Heights Queries visible print
+
+
+rem Jump through next-greater links.
+fun visible Heights Queries
+  N = Heights len
+  Sentinel = N + 1
+  Next = array shape Sentinel pad 0
+  Next # = Sentinel
+  Stack = new stack
+
+  for I in (N - 1) to 0 by -1
+    for Stack len greater 0
+      Top = Stack peek
+      if Heights Top greater Heights I
+        break
+      end
+      Stack pop
+    end
+    if Stack len greater 0
+      Next I = Stack peek + 1
+    end
+    Stack push I
+  end
+
+  Path = Next functional
+
+  Q = Queries len
+  Answers = array shape Q pad 0
+  for Query I in Queries
+    First = Query 0
+    Last = Query 1
+    Answers I = Path First Last upto
+  end
+  return Answers
+end

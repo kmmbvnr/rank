@@ -15,24 +15,32 @@ Queries = Raw (array Q 4) reshape
 Grid Queries forest_queries print
 
 
-rem Build a two-dimensional prefix sum and answer inclusive rectangles.
+rem Build a two-dimensional prefix sum.
+rem Answer inclusive rectangles.
 fun forest_queries Grid Queries
   Size = Grid len
-  Prefix = array shape (Size + 1) (Size + 1) pad 0
+  Side = Size + 1
+  Prefix = array shape Side Side pad 0
 
   for Row Y in Grid
-    Trees = (46 - Row codepoint rank 0) // 4
+    Codes = Row codepoint rank 0
+    Trees = (46 - Codes) // 4
     Running = Trees + scan
-    Prefix (Y + 1) (1 to Size) = Prefix Y (1 to Size) + Running
+    Columns = 1 to Size
+    Above = Prefix Y Columns
+    Current = Above + Running
+    Prefix (Y + 1) Columns = Current
   end
 
-  Answers = array shape (Queries len) pad 0
+  Q = Queries len
+  Answers = array shape Q pad 0
   for Query I in Queries
     unpack Top Left Bottom Right = Query
     Answers I = Prefix Bottom Right
     Answers I -= Prefix (Top - 1) Right
-    Answers I -= Prefix Bottom (Left - 1)
-    Answers I += Prefix (Top - 1) (Left - 1)
+    Before = Left - 1
+    Answers I -= Prefix Bottom Before
+    Answers I += Prefix (Top - 1) Before
   end
   return Answers
 end

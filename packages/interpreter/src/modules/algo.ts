@@ -3,6 +3,7 @@ import { expectDeque, expectHeap, peekCollection, pushCollection } from '../cont
 import { addToCollection, removeFromCollection } from '../collections.js';
 import { RankFenwick } from '../fenwick.js';
 import { expectSegment } from '../segment.js';
+import { RankWavelet } from '../wavelet.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -20,13 +21,50 @@ import type { RuntimeModule } from './types.js';
 export const algoModule: RuntimeModule = {
     fenwick: () => native('fenwick', 1, arguments_ =>
         new RankFenwick(expectInteger(arguments_[0]))),
+    wavelet: () => native('wavelet', 1, arguments_ =>
+        new RankWavelet(arguments_[0])),
+    within: () => native(
+        'within', 5, arguments_ =>
+            expectWavelet(arguments_[0]).count(
+                expectInteger(arguments_[1]),
+                expectInteger(arguments_[2]),
+                arguments_[3],
+                arguments_[4],
+            ),
+    ),
+    sumwithin: () => native(
+        'sumwithin', 5, arguments_ =>
+            expectWavelet(arguments_[0], 'sumwithin').sum(
+                expectInteger(arguments_[1]),
+                expectInteger(arguments_[2]),
+                arguments_[3],
+                arguments_[4],
+            ),
+    ),
+    missing: () => native(
+        'missing', 2, arguments_ => {
+            const [left, right] = missingBounds(arguments_[1]);
+            return expectWavelet(arguments_[0], 'missing')
+                .missing(left, right);
+        }, 'all', ['all', 1],
+    ),
     segment: () => native('segment', 2, () => {
         throw new RankError('segment must follow a binary operation');
+    }),
+    maxsum: () => native('maxsum', 2, () => {
+        throw new RankError('maxsum must be used with segment');
     }),
     query: () => native('query', 3, arguments_ => expectSegment(arguments_[0]).query(
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
     )),
+    firstatleast: () => native('firstatleast', 2, arguments_ => {
+        const target = arguments_[1];
+        if (typeof target !== 'bigint' && typeof target !== 'number') {
+            throw new RankError('firstatleast expects a numeric target');
+        }
+        return expectSegment(arguments_[0]).firstAtLeast(target);
+    }),
     push: () => native('push', 2, a => pushCollection(a[0], a[1])),
     pop: () => native('pop', 1, a => peekCollection(a[0], true)),
     peek: () => native('peek', 1, a => peekCollection(a[0], false)),
@@ -75,6 +113,22 @@ export const algoModule: RuntimeModule = {
         });
     }),
 };
+
+function expectWavelet(value: RankValue, name = 'within'): RankWavelet {
+    if (value instanceof RankWavelet) return value;
+    throw new RankError(`${name} expects a wavelet matrix`);
+}
+
+function missingBounds(value: RankValue): [bigint, bigint] {
+    if (!isRankArray(value)
+        || value.shape.length !== 1
+        || value.shape[0] !== 2) {
+        throw new RankError('missing expects a two-integer range');
+    }
+    const item = (index: number) =>
+        value.itemAt?.(index) ?? value.items[index];
+    return [expectInteger(item(0)), expectInteger(item(1))];
+}
 
 interface PermutationInput {
     readonly items: readonly RankValue[];

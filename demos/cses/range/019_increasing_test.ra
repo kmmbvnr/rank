@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "019_increasing"
+  Values = array 2 10 4 2 5
+  Queries = array shape 3 2
+    3 5
+    2 2
+    1 4
+  end
+  Actual = Values Queries increase_costs
+  Actual equal array 2 0 14
+end
+
+test "sorted and falling ranges"
+  use "019_increasing"
+  Values = array 1 2 3 3 2 1
+  Queries = array shape 3 2
+    1 6
+    4 6
+    5 6
+  end
+  Actual = Values Queries increase_costs
+  Actual equal array 3 3 1
+end
