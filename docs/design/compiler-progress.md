@@ -1317,3 +1317,37 @@ no whole-suite speedup is established.
 Euler 30 remains a useful coverage target: its hot outer loop calls a helper that
 converts text digits at rank 0, raises their powers and sums them. Compiling isolated
 numeric statements cannot remove that call/pipeline boundary yet.
+
+## Digit conversion inside composable tensor plans
+
+The tensor IR now accepts exact integer `text` and `integer rank 0` on digit text.
+Native identity and ASCII-digit guards precede execution. The emitter reads digits
+from the string while applying maps and reduction, avoiding the intermediate
+integer and mapped arrays. Named and literal inputs work, including inline chains.
+Invalid characters (also trailing newline), signs, native overrides and observable
+intermediates retain reference behavior. The surrounding user-function call is
+still interpreted; arbitrary function calls are not part of numeric regions yet.
+
+Twelve differential cases cover conversion/power/sum composition, large integers,
+empty and leading-zero text, invalid signs/Unicode/space/newline, text and integer
+overrides, escaping intermediates and an inline literal chain. Final verification
+passes 44 language + 853 interpreter tests. The ASCII guard explicitly rejects
+any nondigit rather than using a JavaScript end anchor that could accept a trailing
+newline.
+
+Five alternating final samples toggle only `tensorTextDigits`. The unchanged
+Euler 30 fourth-power solution returns the known sum 19316. Median time falls from
+210.483 ms to 148.089 ms, about 30% less time (1.42x). Timings include loading,
+parsing, compilation, execution and validation with counters off. Separate coverage
+records zero versus 39365 tensor-kernel invocations, one for each helper call.
+
+[Timings](../../benchmarks/baselines/2026-09-12-tensor-digits-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-tensor-digits-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 tests and all digests match the preceding
+scalar-text baseline. One pair takes 27.762 s off and 26.453 s on, about 4.7% lower
+in this pair. This is a measured pair, not a repeated whole-suite speedup claim.
+Final reports were rerun after tightening the newline guard and adding literal
+input coverage.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-tensor-digits-suite.json).

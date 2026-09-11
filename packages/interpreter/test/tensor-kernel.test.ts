@@ -384,3 +384,77 @@ A bad
         expect(result).toHaveProperty('error');
     });
 });
+
+describe('text digits inside tensor kernels', () => {
+    const program = `use text
+use numbers
+use io
+fun digits N Power
+  Text = N text
+  Digits = Text integer rank 0
+  Powers = Digits ** Power
+  return Powers sum
+end
+1634 4 digits`;
+
+    it('fuses integer rendering, rank conversion, powers and reduction', () => {
+        expect(compare(program)).toMatchObject({ value: '1634', kernels: 1 });
+    });
+
+    it('preserves large integer rendering exactly', () => {
+        const input = '9007199254740993';
+        const expected = [...input].reduce((sum, digit) => sum + BigInt(digit), 0n);
+        expect(compare(program.replace('1634 4 digits', `${input} 1 digits`)))
+            .toMatchObject({ value: String(expected), kernels: 1 });
+    });
+
+    it.each(['""', '"00012"'])('reduces digit text %s', input => {
+        const source = `use text
+use numbers
+fun digits Text
+  Digits = Text integer rank 0
+  Shifted = Digits + 1
+  return Shifted sum
+end
+${input} digits`;
+        expect(compare(source)).toMatchObject({ value: input === '""' ? '0' : '8', kernels: 1 });
+    });
+
+    it.each(['-12', '"1😀2"', '"1 2"', '"12\\n"'])('retains conversion errors for %s', input => {
+        const source = typeof input === 'string' && input.startsWith('"')
+            ? program.replace('Text = N text', 'Text = N').replace('1634 4 digits', `${input} 2 digits`)
+            : program.replace('1634 4 digits', `${input} 2 digits`);
+        expect(compare(source)).toHaveProperty('error');
+    });
+
+    it('retains a user integer function under rank 0', () => {
+        const source = program.replace('fun digits N Power', `fun integer X
+  return 2
+end
+fun digits N Power`);
+        expect(compare(source)).toMatchObject({ value: '64' });
+    });
+
+    it('retains a user text function before the digit pipeline', () => {
+        const source = program.replace('fun digits N Power', `fun text X
+  return "99"
+end
+fun digits N Power`);
+        expect(compare(source)).toMatchObject({ value: '13122' });
+    });
+
+    it('does not remove observable intermediate bindings', () => {
+        const source = program.replace('return Powers sum', 'Digits print\n  return Powers sum');
+        expect(compare(source)).toMatchObject({ value: '1634', output: ['1 6 3 4'] });
+    });
+});
+
+
+it('fuses an inline literal digit conversion and reduction', () => {
+    expect(compare(`use text
+use numbers
+fun answer Unused
+  return "1203" integer rank 0 sum
+end
+0 answer`)).toMatchObject({ value: '6', kernels: 1 });
+});

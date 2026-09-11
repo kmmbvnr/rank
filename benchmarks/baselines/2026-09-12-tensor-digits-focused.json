@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "tensordigits",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 277.174458,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 276.881625,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 160.610834,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 160.52404199999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 152.25037499999996,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 152.15870900000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 213.02770799999996,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 212.9404169999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 210.58462500000007,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 210.482667,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 146.00299999999993,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 145.91979100000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 148.19716700000004,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 148.08925,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 209.87650000000008,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 209.78608399999985,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 209.00704200000018,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 208.93150000000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 144.5504159999998,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 144.46629199999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    }
+  ]
+}

@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly tensorTextDigits?: boolean;
     readonly scalarTextCompilation?: boolean;
     readonly directTextIteration?: boolean;
     readonly textArrayLoopCompilation?: boolean;
@@ -645,10 +646,11 @@ export class Interpreter {
     // statements incur no additional name lookup or optimizer-cache lookup.
     private prepareTensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
         const kernel = compileTensorKernel(statements.slice(index), {
+            textDigits: this.options.tensorTextDigits !== false,
             lookup: name => this.findVariable(name),
             compiled: this.options.onTensorKernelCompiled,
             builtin: name => {
-                const module = name === 'mean' ? 'stats'
+                const module = ['text', 'integer'].includes(name) ? 'text' : name === 'mean' ? 'stats'
                     : ['sum', 'min', 'max'].includes(name) ? 'numbers' : 'sequences';
                 if (!this.modules.has(module)) return false;
                 return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]);
@@ -2502,6 +2504,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            tensorTextDigits: this.options.tensorTextDigits,
             scalarTextCompilation: this.options.scalarTextCompilation,
             directTextIteration: this.options.directTextIteration,
             textArrayLoopCompilation: this.options.textArrayLoopCompilation,
@@ -2607,6 +2610,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            tensorTextDigits: this.options.tensorTextDigits,
             scalarTextCompilation: this.options.scalarTextCompilation,
             directTextIteration: this.options.directTextIteration,
             textArrayLoopCompilation: this.options.textArrayLoopCompilation,

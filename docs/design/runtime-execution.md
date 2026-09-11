@@ -811,3 +811,19 @@ currently do not propagate the ASCII proof. Known array length reads the current
 first shape dimension, including after a local reallocation. Unknown collection
 receivers keep their previous guarded or reference paths.
 `scalarTextCompilation: false` disables these lowerings for comparison.
+
+### Text digits inside tensor expression plans
+
+Tensor plans can now include standard integer-to-text conversion and standard
+`integer rank 0` applied to digit text. The binder verifies native identities and
+ASCII digits, then presents the string as a one-dimensional integer source. The
+emitter reads each digit directly while applying maps and reduction, without
+materializing the converted or mapped vectors. Literal and named text inputs are
+supported; exact BigInt rendering preserves integers above the Number safe range.
+Empty text preserves empty-reduction behavior. Signs, whitespace (including a
+trailing newline), non-ASCII input, overrides and escaping intermediates retain
+the reference path and its errors. `tensorTextDigits: false` disables this stage.
+
+The surrounding user-function call still uses the existing function machinery;
+this extends the composable tensor IR rather than compiling arbitrary calls inside
+numeric loop regions.
