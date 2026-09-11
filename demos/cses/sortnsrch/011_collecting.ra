@@ -1,0 +1,21 @@
+rem CSES 2216: Collecting Numbers
+rem https://cses.fi/problemset/task/2216
+
+use io
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+A collecting_rounds print
+
+
+rem Count increasing position runs.
+fun collecting_rounds A
+  Positions = A argsort
+  Pairs = Positions 2 window
+  Left = Pairs # 0
+  Right = Pairs # 1
+  Breaks = Left greater Right
+  return Breaks count + 1
+end

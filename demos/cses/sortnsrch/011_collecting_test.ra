@@ -1,0 +1,24 @@
+use testing
+
+test "official example"
+  use "011_collecting"
+  A = array 4 2 1 5 3
+  A collecting_rounds equal 3
+end
+
+test "already ordered needs one round"
+  use "011_collecting"
+  A = array 1 2 3 4 5
+  A collecting_rounds equal 1
+end
+
+test "reverse order needs every round"
+  use "011_collecting"
+  A = array 5 4 3 2 1
+  A collecting_rounds equal 5
+end
+
+test "one value needs one round"
+  use "011_collecting"
+  (array 1) collecting_rounds equal 1
+end
