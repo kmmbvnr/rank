@@ -1,0 +1,251 @@
+import {
+    isApplicationExpression, isAssignmentStatement, isBinaryExpression,
+    isNameExpression, isNumberLiteral, isBooleanLiteral,
+    isParenthesizedExpression, isUnaryExpression,
+    type Expression, type Statement,
+} from 'rank-language';
+import { type RankValue, isRankArray } from './value.js';
+import { privateTensorNames, tensorReadCount } from './tensor-use.js';
+
+type Reducer = 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
+const reducers = new Set(['sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
+const binary = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor']);
+const comparison: Record<string, string> = { less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==' };
+export type TensorNode =
+    | { kind: 'input'; name?: string; value?: RankValue }
+    | { kind: 'binary'; op: string; left: TensorNode; right: TensorNode }
+    | { kind: 'unary'; op: string; operand: TensorNode }
+    | { kind: 'select'; source: TensorNode; selector: TensorNode };
+export interface TensorKernelHost {
+    lookup(name: string): RankValue | undefined;
+    builtin(name: Reducer): boolean;
+    compiled?(source: string): void;
+}
+const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
+function pair(value: Expression): Expression[] | undefined {
+    const atom = unwrap(value);
+    return isApplicationExpression(atom) && atom.arguments.length === 1 ? [atom.head, atom.arguments[0]] : undefined;
+}
+interface View { items: RankValue[]; offset: number; shape: readonly number[] }
+interface Bound { shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean }
+const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
+const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
+
+/** Composable tensor expression IR. Shape binding is separate from emission;
+ * unsupported layouts/values decline without evaluating user code or lazy data. */
+export function compileTensorKernel(statements: Statement[], host: TensorKernelHost): {
+    count: number; source: string; run(): RankValue | undefined;
+} | undefined {
+    const definitions = new Map<string, TensorNode>();
+    const reads = new Map<string, number>();
+    const names: string[] = [];
+    function parse(expression: Expression): TensorNode | undefined {
+        const e = unwrap(expression);
+        if (isNameExpression(e) && !e.name.includes('.')) {
+            reads.set(e.name, (reads.get(e.name) ?? 0) + 1);
+            return definitions.get(e.name) ?? { kind: 'input', name: e.name };
+        }
+        if (isNumberLiteral(e) || isBooleanLiteral(e)) return { kind: 'input', value: e.value };
+        if (isBinaryExpression(e) && binary.has(e.operator) && !e.step) {
+            // Rank gives power precedence over an unparenthesized sign.
+            if (e.operator === '**' && isUnaryExpression(e.left)
+                && (e.left.operator === '+' || e.left.operator === '-')) {
+                const left = parse(e.left.operand), right = parse(e.right);
+                return left && right ? { kind: 'unary', op: e.left.operator,
+                    operand: { kind: 'binary', op: '**', left, right } } : undefined;
+            }
+            const left = parse(e.left), right = parse(e.right);
+            return left && right ? { kind: 'binary', op: e.operator, left, right } : undefined;
+        }
+        if (isUnaryExpression(e) && ['not', '+', '-'].includes(e.operator)) {
+            const operand = parse(e.operand);
+            return operand ? { kind: 'unary', op: e.operator, operand } : undefined;
+        }
+        const parts = pair(e);
+        if (parts) {
+            const source = parse(parts[0]), selector = parse(parts[1]);
+            return source && selector ? { kind: 'select', source, selector } : undefined;
+        }
+        return undefined;
+    }
+    for (let index = 0; index < Math.min(statements.length, 16); index++) {
+        const statement = statements[index];
+        if (!isAssignmentStatement(statement) || statement.operator !== '=') return undefined;
+        const parts = pair(statement.value);
+        const last = parts && unwrap(parts[1]);
+        if (last && isNameExpression(last) && reducers.has(last.name)) {
+            const root = parse(parts![0]);
+            if (!root || root.kind === 'input' && names.length === 0) return undefined;
+            if (!privateTensorNames(statements[0], names)
+                || names.some(name => tensorReadCount(statements[0], name) !== reads.get(name))) return undefined;
+            // Do not discard independent assignments merely because a later
+            // expression ends with a reduction.
+            const reached = new Set<TensorNode>();
+            const visit = (node: TensorNode): void => {
+                if (reached.has(node)) return;
+                reached.add(node);
+                if (node.kind === 'binary') { visit(node.left); visit(node.right); }
+                if (node.kind === 'unary') visit(node.operand);
+                if (node.kind === 'select') { visit(node.source); visit(node.selector); }
+            };
+            visit(root);
+            if ([...definitions.values()].some(node => !reached.has(node))) return undefined;
+            return build(root, names, last.name as Reducer, index + 1, host);
+        }
+        const value = parse(statement.value);
+        if (!value || definitions.has(statement.name)) return undefined;
+        definitions.set(statement.name, value);
+        names.push(statement.name);
+    }
+    return undefined;
+}
+
+function build(root: TensorNode, names: string[], reducer: Reducer, count: number, host: TensorKernelHost) {
+    let cachedKey: string | undefined;
+    let cachedRun: ((data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | undefined) | undefined;
+    let generated = '';
+    let unavailable = false;
+    return { count, get source() { return generated; }, run(): RankValue | undefined {
+        if (unavailable || names.some(name => host.lookup(name) !== undefined)) return undefined;
+        const bound = new Map<TensorNode, Bound>();
+        const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
+        function bind(node: TensorNode): Bound | undefined {
+            if (bound.has(node)) return bound.get(node);
+            let result: Bound | undefined;
+            if (node.kind === 'input') {
+                const value = node.name === undefined ? node.value : host.lookup(node.name);
+                if (numeric(value) || typeof value === 'boolean') {
+                    result = { scalar: value, boolean: typeof value === 'boolean', slot: scalars.push(value!) - 1 };
+                } else if (value && isRankArray(value) && !('itemAt' in value)) {
+                    const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
+                    if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
+                        || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;
+                    const view = { items, offset: 0, shape: value.shape };
+                    result = { shape: view.shape, view, boolean: typeof items[0] === 'boolean' };
+                }
+            } else if (node.kind === 'binary') {
+                const a = bind(node.left), b = bind(node.right);
+                if (!a || !b || a.shape && b.shape && !same(a.shape, b.shape)) return undefined;
+                result = { shape: a.shape ?? b.shape, boolean: node.op in comparison || ['and', 'or', 'xor'].includes(node.op) };
+            } else if (node.kind === 'unary') {
+                const a = bind(node.operand);
+                if (a) result = { shape: a.shape, boolean: node.op === 'not' };
+            } else {
+                const a = bind(node.source), b = bind(node.selector);
+                if (!a || !b || !a.shape || a.shape.length === 0) return undefined;
+                if (typeof b.scalar === 'bigint' && a.view && b.scalar >= 0n && b.scalar < BigInt(a.shape[0])) {
+                    const shape = a.shape.slice(1);
+                    const stride = shape.reduce((p, n) => p * n, 1);
+                    const view = { ...a.view, shape, offset: a.view.offset + Number(b.scalar) * stride };
+                    if (shape.length === 0) {
+                        const scalar = view.items[view.offset];
+                        if (!numeric(scalar) && typeof scalar !== 'boolean') return undefined;
+                        result = { scalar, boolean: typeof scalar === 'boolean', slot: scalars.push(scalar) - 1 };
+                    } else result = { shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
+                } else if (b.shape && b.boolean && a.shape.length === 1 && same(a.shape, b.shape)) {
+                    result = { shape: a.shape, boolean: a.boolean, filter: true };
+                } else if (b.shape?.length === 1 && !b.boolean && a.view && a.shape.length === 1) {
+                    result = { shape: b.shape, boolean: a.boolean };
+                }
+            }
+            // Scalar computations are evaluated before their surrounding
+            // tensor operation, even for an empty/fully filtered domain. Until
+            // scalar lowering preserves that timing, leave them to reference.
+            if (result && result.shape === undefined && result.scalar === undefined) return undefined;
+            if (result) {
+                if (result.view) {
+                    result.slot = data.push(result.view.items) - 1;
+                    offsets.push(result.view.offset);
+                }
+                bound.set(node, result);
+            }
+            return result;
+        }
+        const output = bind(root);
+        if (!output?.shape || !host.builtin(reducer)) return undefined;
+        const size = output.shape.reduce((p, n) => p * n, 1);
+        // A selection changes cardinality. Other operands must not zip an
+        // unfiltered vector against it. Until domain algebra is implemented,
+        // only scalar maps and gathers can follow a filter.
+        const filtered = new Map<TensorNode, boolean>();
+        function domain(node: TensorNode): boolean {
+            if (filtered.has(node)) return filtered.get(node)!;
+            let value = bound.get(node)?.filter ?? false;
+            if (node.kind === 'unary') value ||= domain(node.operand);
+            if (node.kind === 'select') value ||= domain(node.selector);
+            if (node.kind === 'binary') {
+                const a = domain(node.left), b = domain(node.right);
+                if (a && bound.get(node.right)?.shape || b && bound.get(node.left)?.shape) throw false;
+                value ||= a || b;
+            }
+            filtered.set(node, value);
+            return value;
+        }
+        try { domain(root); } catch { return undefined; }
+        const key = [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
+        if (cachedKey !== key) {
+            const lines: string[] = [];
+            const emitted = new Map<TensorNode, string>();
+            const num = (x: string) => `(typeof ${x} === 'bigint' || typeof ${x} === 'number' && Number.isFinite(${x}))`;
+            function emit(node: TensorNode): string {
+                const existing = emitted.get(node);
+                if (existing) return existing;
+                const info = bound.get(node)!;
+                const name = `v${emitted.size}`;
+                emitted.set(node, name);
+                if (info.scalar !== undefined) lines.push(`const ${name} = scalars[${info.slot}];`);
+                else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + i];`);
+                else if (node.kind === 'binary') {
+                    const a = emit(node.left), b = emit(node.right);
+                    if (['and', 'or', 'xor'].includes(node.op)) {
+                        lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') return undefined;`);
+                        lines.push(`const ${name} = ${a} ${node.op === 'and' ? '&&' : node.op === 'or' ? '||' : '!=='} ${b};`);
+                    } else {
+                        lines.push(`if (!${num(a)} || !${num(b)}) return undefined;`);
+                        if (node.op in comparison) {
+                            lines.push(`if (typeof ${a} !== typeof ${b}) return undefined;`);
+                            lines.push(`const ${name} = ${a} ${comparison[node.op]} ${b};`);
+                        } else {
+                            if (node.op === '/') lines.push(`if (${b} === 0n || ${b} === 0) return undefined;`);
+                            if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) return undefined;`);
+                            const expr = `Number(${a}) ${node.op} Number(${b})`;
+                            lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${a} ${node.op} ${b} : ${expr})`};`);
+                        }
+                    }
+                } else if (node.kind === 'unary') {
+                    const a = emit(node.operand);
+                    lines.push(`if (${node.op === 'not' ? `typeof ${a} !== 'boolean'` : `!${num(a)}`}) return undefined;`);
+                    lines.push(`const ${name} = ${node.op === 'not' ? '!' : node.op === '+' ? '' : '-'}${a};`);
+                } else if (node.kind === 'select') {
+                    const b = emit(node.selector);
+                    if (info.filter) {
+                        lines.push(`if (typeof ${b} !== 'boolean') return undefined; if (!${b}) continue;`);
+                        const a = emit(node.source);
+                        lines.push(`const ${name} = ${a};`);
+                    } else {
+                        const source = bound.get(node.source)!;
+                        lines.push(`if (typeof ${b} !== 'bigint' || ${b} < 0n || ${b} >= BigInt(${source.shape![0]})) return undefined;`);
+                        lines.push(`const ${name} = data[${source.slot}][offsets[${source.slot}] + Number(${b})];`);
+                    }
+                }
+                return name;
+            }
+            const value = emit(root);
+            const isBoolean = ['any', 'all', 'count'].includes(reducer);
+            lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return undefined;`);
+            if (reducer === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
+            if (reducer === 'mean') lines.push(`answer += Number(${value});`);
+            if (reducer === 'count') lines.push(`if (${value}) answer += 1n;`);
+            if (reducer === 'any' || reducer === 'all') lines.push(`answer = answer ${reducer === 'any' ? '||' : '&&'} ${value};`);
+            if (reducer === 'min' || reducer === 'max') lines.push(`if (length === 0 || ${value} ${reducer === 'min' ? '<' : '>'} answer) answer = ${value};`);
+            lines.push('length++;');
+            const initial = reducer === 'mean' ? '0' : reducer === 'all' ? 'true' : reducer === 'any' ? 'false' : '0n';
+            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) {\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(reducer) ? 'if (length === 0) return undefined;' : ''} return ${reducer === 'mean' ? 'answer / length' : 'answer'}; };`;
+            try { cachedRun = new Function(generated)() as typeof cachedRun; }
+            catch { unavailable = true; return undefined; }
+            cachedKey = key;
+            host.compiled?.(generated);
+        }
+        return cachedRun!(data, offsets, scalars, size);
+    } };
+}

@@ -1,3 +1,4 @@
+import { compileTensorKernel } from './tensor-kernel.js';
 import {
     ExecutionStack, completed, emit, flatMapResult, mapExecution, mapPair, mapResult, normalizeStackError,
     resume, runExecution, type Evaluation, type Execution,
@@ -142,6 +143,10 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** General tensor fusion; false selects the reference statement path. */
+    readonly tensorFusion?: boolean;
+    readonly onTensorKernelCompiled?: (source: string) => void;
+    readonly onTensorKernelExecuted?: () => void;
     readonly args?: readonly string[];
     readonly sourceId?: string;
     readonly testing?: boolean;
@@ -173,9 +178,11 @@ interface ExecutionContext {
     readonly tailCallsAllowed?: false;
 }
 
-type PreparedStatement =
+interface TensorGroup { readonly count: number; run(): RankValue | undefined }
+type PreparedStatement = (
     | { readonly run: (context: ExecutionContext) => RankValue | undefined }
-    | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> };
+    | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> }
+) & { readonly tensor?: TensorGroup };
 
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
 const sourceIds = new WeakMap<object, string>();
@@ -471,7 +478,15 @@ export class Interpreter {
         let index = 0;
         try {
             for (; index < statements.length; index += 1) {
-                const prepared = this.preparedStatement(statements[index]);
+                const prepared = this.preparedStatement(statements, index);
+                if (prepared.tensor && !context.insideFinally && !context.insideGenerator) {
+                    const value = prepared.tensor.run();
+                    if (value !== undefined) {
+                        result = value;
+                        index += prepared.tensor.count - 1;
+                        continue;
+                    }
+                }
                 if ('run' in prepared) {
                     result = prepared.run(context);
                 } else {
@@ -486,13 +501,45 @@ export class Interpreter {
         return completed(result);
     }
 
-    private preparedStatement(statement: Statement): PreparedStatement {
+    private preparedStatement(statements: Statement[], index: number): PreparedStatement {
+        const statement = statements[index];
         let prepared = this.statements.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
+            if (this.options.tensorFusion !== false && isAssignmentStatement(statement)) {
+                const tensor = this.prepareTensorGroup(statements, index);
+                if (tensor) prepared = { ...prepared, tensor };
+            }
             this.statements.set(statement, prepared);
         }
         return prepared;
+    }
+
+    // Eligibility is prepared with the statement itself. Ordinary scalar
+    // statements incur no additional name lookup or optimizer-cache lookup.
+    private prepareTensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
+        const kernel = compileTensorKernel(statements.slice(index), {
+            lookup: name => this.findVariable(name),
+            compiled: this.options.onTensorKernelCompiled,
+            builtin: name => {
+                const module = name === 'mean' ? 'stats'
+                    : ['sum', 'min', 'max'].includes(name) ? 'numbers' : 'sequences';
+                if (!this.modules.has(module)) return false;
+                return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]);
+            },
+        });
+        if (!kernel) return undefined;
+        const last = statements[index + kernel.count - 1];
+        if (!isAssignmentStatement(last)) return undefined;
+        const assign = this.compileAssign(last.name);
+        return { count: kernel.count, run: () => {
+            const value = kernel.run();
+            if (value === undefined) return undefined;
+            try { assign(value); }
+            catch (error) { throw this.locateError(error, last); }
+            this.options.onTensorKernelExecuted?.();
+            return value;
+        } };
     }
 
     private *continueStatementStream(
@@ -504,7 +551,15 @@ export class Interpreter {
         try {
             let result = yield* resume(first);
             for (index += 1; index < statements.length; index += 1) {
-                const prepared = this.preparedStatement(statements[index]);
+                const prepared = this.preparedStatement(statements, index);
+                if (prepared.tensor && !context.insideFinally && !context.insideGenerator) {
+                    const value = prepared.tensor.run();
+                    if (value !== undefined) {
+                        result = value;
+                        index += prepared.tensor.count - 1;
+                        continue;
+                    }
+                }
                 result = 'run' in prepared
                     ? prepared.run(context)
                     : yield* resume(prepared.stream(context));
@@ -2216,6 +2271,9 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            tensorFusion: this.options.tensorFusion,
+            onTensorKernelCompiled: this.options.onTensorKernelCompiled,
+            onTensorKernelExecuted: this.options.onTensorKernelExecuted,
             io: this.options.io,
             random: this.random,
             maxCallDepth: this.maxCallDepth,
@@ -2285,6 +2343,9 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            tensorFusion: this.options.tensorFusion,
+            onTensorKernelCompiled: this.options.onTensorKernelCompiled,
+            onTensorKernelExecuted: this.options.onTensorKernelExecuted,
             io: this.options.io,
             random: this.random,
             loadModule: this.options.loadModule,

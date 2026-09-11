@@ -29,6 +29,12 @@ This wiki contains only the current design. Deprecated experiments are omitted.
 12. The `filter ... end` clause is concise source/query syntax, not mutation.
 13. User-facing syntax should stay simple even if implementations use macros,
     compiler extensions or optimized execution plans internally.
+14. Combine compatible tensor operations internally; readable temporary names
+    should not inherently require intermediate arrays.
+
+This is an accepted architectural direction; see
+[Tensor fusion architecture](design/tensor-fusion.md). Optimizations must preserve
+observable behavior, and their coverage will grow incrementally.
 
 The conceptual selection model is:
 

@@ -19,6 +19,7 @@
         "bench:judge": "npm run build && node benchmarks/judge-scale.mjs",
         "bench:extrema": "npm run build && node benchmarks/extrema.mjs",
         "bench:dense": "npm run build && node benchmarks/dense-writes.mjs",
+        "bench:fusion": "npm run build && node benchmarks/tensor-fusion.mjs",
         "bench:numerical": "npm run build && node benchmarks/numerical-demos.mjs",
         "rank": "node packages/cli/bin/cli.js"
     },

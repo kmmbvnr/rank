@@ -4,6 +4,13 @@ The TypeScript interpreter is the reference implementation for developing Rank.
 Its execution helpers must preserve the language's observable behavior, including
 error timing, lexical capture, fixed inferred types and file ownership.
 
+## Architectural direction
+
+[Tensor fusion](tensor-fusion.md) is a core execution direction: compatible
+operations should share a plan and traversal, including across private named
+intermediates. Coverage will grow incrementally without changing observable Rank
+semantics. Compiling loop control flow is independent of tensor fusion.
+
 ## Function environments
 
 `packages/interpreter/src/frame.ts` holds a function invocation's values and

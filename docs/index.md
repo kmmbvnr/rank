@@ -29,6 +29,8 @@ This wiki contains only the current design. Deprecated experiments are omitted.
 12. The `filter ... end` clause is concise source/query syntax, not mutation.
 13. User-facing syntax should stay simple even if implementations use macros,
     compiler extensions or optimized execution plans internally.
+14. Combine compatible tensor operations internally; readable temporary names
+    should not inherently require intermediate arrays.
 
 The conceptual selection model is:
 
@@ -42,6 +44,9 @@ For example:
 Mask = Data .Age greater 18
 Adults = Data Mask
 ```
+
+See [Tensor fusion architecture](design/tensor-fusion.md) for the accepted
+execution direction and its semantic requirements.
 
 ## Current sections
 
