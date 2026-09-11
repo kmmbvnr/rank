@@ -206,3 +206,39 @@ not a universal guarantee or judge timing. The backend is enabled by default;
 `blockCompilation: false` keeps an independently selectable reference dispatcher.
 
 [Focused comparison](../../benchmarks/baselines/2026-09-11-block-compiler-focused.json) · [Full comparison](../../benchmarks/baselines/2026-09-11-block-compiler-suite.json)
+
+## Preparing loop bodies once per invocation
+
+A loop now retains the compiled body and its execution context after the first
+actual iteration. Later iterations need neither a block-cache lookup nor a fresh
+context. A loop with no iterations leaves its body unprepared. Iterator-return
+cleanup ordering and conditional-loop tail-call policy remain unchanged.
+
+Three focused comparisons, counters disabled, all output/result digests matching:
+
+| Task | Preparation off ms | Preparation on ms | Speedup |
+| --- | ---: | ---: | ---: |
+| Sum of Divisors | 785.01 | 743.56 | 1.056x |
+| Christmas Party | 238.10 | 213.53 | 1.115x |
+| Collatz | 7679.25 | 7682.76 | unchanged |
+
+These isolate loop-body preparation with scalar and block compilation enabled in
+both modes. They are not a comparison against an early interpreter revision.
+TypeScript verification passes 44 language + 612 interpreter tests. Three new
+cases compare zero iterations, repeated function invocations and returning through
+a suspended callee before generator/iterator cleanup.
+
+This remains a preparatory step for loop lowering: iteration and conditions still
+run through the existing loop handler.
+
+```sh
+RANK_BENCH_COUNTERS=0 node benchmarks/tensor-fusion.mjs \
+  suite compare 3 '(006_sumdivisors|014_christmasparty)_test' loop
+```
+
+Both full-suite modes pass 306 files / 1054 tests with identical output/result
+digests, also matching the preceding block-compiler revision. One integration
+comparison took 34.438 s off and 34.824 s on. A single pair is not
+a stable estimate of whole-suite performance.
+
+[Focused report](../../benchmarks/baselines/2026-09-11-loop-preparation-focused.json) · [Full-suite check](../../benchmarks/baselines/2026-09-11-loop-preparation-suite.json)

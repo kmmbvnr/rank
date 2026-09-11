@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -52,6 +52,7 @@ for (let sample=0; sample<samples; sample++) {
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
       tensorFusion: backend === 'tensor' ? enabled : true,
+      loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,
       scalarCompilation: backend === 'scalar' ? enabled : undefined,

@@ -401,3 +401,17 @@ runs, since heavily suspending programs may enter millions of blocks.
 
 This compiles block dispatch, including loop bodies. The `for` iterator and loop
 control handler itself are not yet lowered into the generated block.
+
+## Preparing repeated loop-body execution
+
+On the first actual iteration, a loop may bind its compiled body and an execution
+context once, then reuse them for subsequent iterations. This removes a block-cache
+lookup and context allocation per iteration. The binding belongs to a loop
+invocation, not to the function AST, so recursive calls and suspended generators
+retain separate contexts. Zero-iteration loops do not prepare their body.
+
+Iterable loops continue to disable tail-call transfer from their body: the callee
+must finish before the iterator closes. Conditional loops retain their surrounding
+tail-call policy. Break/continue, condition evaluation, bindings and iteration still
+use the existing loop handler. This is preparation of repeated body execution,
+not full lowering of loop control. `loopPreparation: false` disables the reuse.

@@ -150,6 +150,8 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Reuse compiled loop bodies and their execution contexts. */
+    readonly loopPreparation?: boolean;
     /** Compiled command blocks; false retains statement dispatch. */
     readonly blockCompilation?: boolean;
     readonly onBlockCompiled?: (source: string) => void;
@@ -490,21 +492,8 @@ export class Interpreter {
         const context: ExecutionContext = tailCallsAllowed
             ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator }
             : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, tailCallsAllowed: false };
-        if (this.options.blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
-            let block = this.blocks.get(statements);
-            if (block === undefined) {
-                block = compileBlock<ExecutionContext>(statements.length, {
-                    prepare: index => this.preparedStatement(statements, index),
-                    locate: (error, index) => this.locateError(error, statements[index]),
-                    pause: (index, task, context, compiled) => this.continueCompiledBlock(
-                        statements, index, task, context, compiled),
-                    compiled: this.options.onBlockCompiled,
-                    executed: this.options.onBlockExecuted,
-                }) ?? null;
-                this.blocks.set(statements, block);
-            }
-            if (block) return block(context);
-        }
+        const block = this.compiledBlock(statements);
+        if (block) return block(context);
         let result: RankValue | undefined;
         let index = 0;
         try {
@@ -530,6 +519,40 @@ export class Interpreter {
             throw this.locateError(error, statements[index]);
         }
         return completed(result);
+    }
+
+    private compiledBlock(statements: Statement[]): CompiledBlock<ExecutionContext> | undefined {
+        if (this.options.blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
+            let block = this.blocks.get(statements);
+            if (block === undefined) {
+                block = compileBlock<ExecutionContext>(statements.length, {
+                    prepare: index => this.preparedStatement(statements, index),
+                    locate: (error, index) => this.locateError(error, statements[index]),
+                    pause: (index, task, context, compiled) => this.continueCompiledBlock(
+                        statements, index, task, context, compiled),
+                    compiled: this.options.onBlockCompiled,
+                    executed: this.options.onBlockExecuted,
+                }) ?? null;
+                this.blocks.set(statements, block);
+            }
+            return block ?? undefined;
+        }
+        return undefined;
+    }
+
+    private prepareLoopBody(
+        statements: Statement[], context: ExecutionContext, iterable: boolean,
+    ): () => Evaluation<RankValue | undefined> {
+        const block = this.compiledBlock(statements);
+        const tailCallsAllowed = iterable ? false : context.tailCallsAllowed !== false;
+        if (block) {
+            const bodyContext: ExecutionContext = tailCallsAllowed
+                ? { ...context, insideLoop: true }
+                : { ...context, insideLoop: true, tailCallsAllowed: false };
+            return () => block(bodyContext);
+        }
+        return () => this.executeStatementStream(statements, context.assertBooleanExpressions,
+            true, context.insideFinally, context.insideGenerator, tailCallsAllowed);
     }
 
     private *continueCompiledBlock(
@@ -859,6 +882,7 @@ export class Interpreter {
             return { stream: function* (context) {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
+                let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
                 if (binding) {
                     const spec = tensorIterationSpec(binding.iterable);
                     const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
@@ -870,7 +894,9 @@ export class Interpreter {
                         try {
                             // A body that finishes on its own needs no task; only
                             // one that suspends goes back to the driver.
-                            const body = interpreter.executeStatementStream(
+                            const body = interpreter.options.loopPreparation !== false
+                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, true))()
+                                : interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
@@ -899,7 +925,9 @@ export class Interpreter {
                             if (!expectBoolean(test)) break;
                         }
                         try {
-                            const body = interpreter.executeStatementStream(
+                            const body = interpreter.options.loopPreparation !== false
+                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, false))()
+                                : interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
@@ -2346,6 +2374,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            loopPreparation: this.options.loopPreparation,
             blockCompilation: this.options.blockCompilation,
             onBlockCompiled: this.options.onBlockCompiled,
             onBlockExecuted: this.options.onBlockExecuted,
@@ -2424,6 +2453,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            loopPreparation: this.options.loopPreparation,
             blockCompilation: this.options.blockCompilation,
             onBlockCompiled: this.options.onBlockCompiled,
             onBlockExecuted: this.options.onBlockExecuted,

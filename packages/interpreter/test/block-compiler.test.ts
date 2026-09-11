@@ -3,12 +3,12 @@ import { Interpreter, RankError, formatValue } from '../src/index.js';
 import { compileBlock } from '../src/block-compiler.js';
 import { MemoryIo } from './support.js';
 
-function execute(source: string, blockCompilation: boolean) {
+function execute(source: string, blockCompilation: boolean, loopPreparation = true) {
     const output: string[] = [];
     const io = new MemoryIo({ '/input': 'abcdef' });
     let entries = 0;
     const runtime = new Interpreter(line => output.push(line), {
-        blockCompilation, io, onBlockExecuted: () => entries++,
+        blockCompilation, loopPreparation, io, onBlockExecuted: () => entries++,
     });
     try {
         const value = runtime.execute(source);
@@ -140,5 +140,57 @@ Unused = Unknown
                 pause: () => { throw new Error('unexpected pause'); },
             })).toBeUndefined();
         } finally { spy.mockRestore(); }
+    });
+});
+
+
+describe('prepared loop bodies', () => {
+    it.each([
+        `I = 0
+for I less 0
+  A = 1 abs rank Bad
+  B = Unknown
+end
+I
+`,
+        `use ranges
+fun count N
+  Total = 0
+  for I in 1 to N
+    X = I * 2
+    Total += X
+  end
+  return Total
+end
+A = 3 count
+B = 5 count
+array A B
+`,
+        `use io
+fun values X
+  try
+    yield X
+  finally
+    "closed" print
+  end
+end
+fun finish X
+  "callee" print
+  return X + 1
+end
+fun first Values
+  for V in Values
+    A = V + 1
+    return A finish
+  end
+end
+Values = 10 values
+Values first
+`,
+    ])('matches fresh iteration contexts', source => {
+        const reference = execute(source, true, false);
+        const prepared = execute(source, true, true);
+        expect({ ...prepared, entries: 0 }).toEqual({ ...reference, entries: 0 });
+        expect(prepared).not.toHaveProperty('error');
     });
 });
