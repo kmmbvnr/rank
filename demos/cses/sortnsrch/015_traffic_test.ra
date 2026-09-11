@@ -1,0 +1,29 @@
+use testing
+
+test "official example"
+  use "015_traffic"
+  Positions = array 3 6 2
+  Actual = 8 Positions longest_gaps
+  Actual equal array 5 3 3
+end
+
+test "lights inserted from left to right"
+  use "015_traffic"
+  Positions = array 2 4 6 8
+  Actual = 10 Positions longest_gaps
+  Actual equal array 8 6 4 2
+end
+
+test "lights split different segments"
+  use "015_traffic"
+  Positions = array 5 2 8 6
+  Actual = 10 Positions longest_gaps
+  Actual equal array 5 5 3 3
+end
+
+test "one light"
+  use "015_traffic"
+  Positions = array 4
+  Actual = 9 Positions longest_gaps
+  Actual equal array 5
+end

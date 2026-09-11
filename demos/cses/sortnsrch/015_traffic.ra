@@ -1,0 +1,37 @@
+rem CSES 1163: Traffic Lights
+rem https://cses.fi/problemset/task/1163
+
+use io
+use algo
+use numbers
+
+X = stdin .integer
+N = stdin .integer
+P = stdin .integer N array
+
+X P longest_gaps print
+
+
+rem Find the longest segment after each light.
+fun longest_gaps Length Positions
+  Lights = new multiset
+  Gaps = new multiset
+
+  Lights add 0
+  Lights add Length
+  Gaps add Length
+
+  for Position in Positions
+    Left = Lights floor Position
+    Right = Lights ceiling Position
+
+    Gaps remove (Right - Left)
+    Gaps add (Position - Left)
+    Gaps add (Right - Position)
+    Lights add Position
+
+    queue push Gaps max
+  end
+
+  return queue
+end
