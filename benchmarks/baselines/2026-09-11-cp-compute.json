@@ -1,0 +1,146 @@
+{
+  "metadata": {
+    "date": "2026-09-11T08:55:01.417Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "harnessRevision": "422758f416f463fd6f0ffc2b7c9b3a113bc98e84",
+    "runtimeRevision": "422758f416f463fd6f0ffc2b7c9b3a113bc98e84",
+    "size": 200000,
+    "samples": 5,
+    "timing": "first/warm: unchanged function call and output forcing, excluding input construction, parsing and print; sum evaluates its original A sum expression. Preparation is reported separately. Do not subtract these warm times from cold CLI times to estimate IO."
+  },
+  "results": [
+    {
+      "name": "restaurant",
+      "path": "demos/cses/sortnsrch/005_restaurant.ra",
+      "sha256": "5d53cfb378c719361bc93c390322fa946174e0ae2c6b40ddb36b26db13e2d431",
+      "preparationMs": 1275.764916,
+      "firstMs": 301.4129580000001,
+      "warmMs": [
+        281.09695899999997,
+        301.86391700000013,
+        306.355916,
+        318.57225000000017,
+        326.422458
+      ],
+      "medianMs": 306.355916,
+      "memory": {
+        "rss": 1063288832,
+        "heapTotal": 649609216,
+        "heapUsed": 303101616,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      }
+    },
+    {
+      "name": "rooms",
+      "path": "demos/cses/sortnsrch/022_rooms.ra",
+      "sha256": "62cc41341a957d852bcdd2306abaf1800c39b22fb17ad2644ba36e34fd746305",
+      "preparationMs": 33.5207919999998,
+      "firstMs": 1736.0608749999997,
+      "warmMs": [
+        1775.6897910000007,
+        1778.0086250000004,
+        1790.8530410000003,
+        1795.7626249999994,
+        1812.6912499999999
+      ],
+      "medianMs": 1790.8530410000003,
+      "memory": {
+        "rss": 1532788736,
+        "heapTotal": 892403712,
+        "heapUsed": 504106040,
+        "external": 2332356,
+        "arrayBuffers": 29231
+      }
+    },
+    {
+      "name": "playlist",
+      "path": "demos/cses/sortnsrch/013_playlist.ra",
+      "sha256": "0efd0c77c51f907593d3c54226b65871257a06302aebe3fb742a5da08ac37db8",
+      "preparationMs": 15.325583000001643,
+      "firstMs": 287.83591700000034,
+      "warmMs": [
+        278.4037500000013,
+        279.7872500000012,
+        280.17191699999967,
+        280.9057079999984,
+        280.2247500000012
+      ],
+      "medianMs": 280.17191699999967,
+      "memory": {
+        "rss": 1590345728,
+        "heapTotal": 950108160,
+        "heapUsed": 626427224,
+        "external": 2332356,
+        "arrayBuffers": 29231
+      }
+    },
+    {
+      "name": "books",
+      "path": "demos/cses/sortnsrch/025_books.ra",
+      "sha256": "863f447fc04e2143ea9de33e7431e4d5aeb8e201cce0558d304272c1e0a0e3c7",
+      "preparationMs": 8.323083000002953,
+      "firstMs": 5.231874999997672,
+      "warmMs": [
+        4.6941249999981665,
+        2.2798750000001746,
+        2.46362500000032,
+        2.6622500000012224,
+        2.293666999998095
+      ],
+      "medianMs": 2.46362500000032,
+      "memory": {
+        "rss": 1593573376,
+        "heapTotal": 953319424,
+        "heapUsed": 636080080,
+        "external": 2332356,
+        "arrayBuffers": 29231
+      }
+    },
+    {
+      "name": "bounded-sum",
+      "path": "demos/cses/sortnsrch/035_maxsum2.ra",
+      "sha256": "c6a87c0cf898b7164a9946aa9ec990316195e1019f53e8c5e88c0ba48eb686b7",
+      "preparationMs": 6.959917000000132,
+      "firstMs": 484.5084999999999,
+      "warmMs": [
+        476.13079199999993,
+        473.2701670000024,
+        511.63275000000067,
+        472.96454200000153,
+        471.41070799999943
+      ],
+      "medianMs": 473.2701670000024,
+      "memory": {
+        "rss": 1571717120,
+        "heapTotal": 316555264,
+        "heapUsed": 141194672,
+        "external": 2332356,
+        "arrayBuffers": 29231
+      }
+    },
+    {
+      "name": "sum",
+      "path": "benchmarks/programs/sum.ra",
+      "sha256": "73383e12f177295cadd593c87fb7b0931765884bc284d6298174563ca1ee3912",
+      "preparationMs": 7.30266599999959,
+      "firstMs": 1.5819589999991877,
+      "warmMs": [
+        1.1491669999995793,
+        1.1830829999998969,
+        1.1934589999982563,
+        2.7370840000003227,
+        1.1548340000008466
+      ],
+      "medianMs": 1.1830829999998969,
+      "memory": {
+        "rss": 1574928384,
+        "heapTotal": 319766528,
+        "heapUsed": 151550912,
+        "external": 2332356,
+        "arrayBuffers": 29231
+      }
+    }
+  ]
+}

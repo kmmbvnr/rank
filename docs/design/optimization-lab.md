@@ -659,3 +659,41 @@ does not establish that general JIT compilation is ineffective.
 
 After rollback all 473 JS tests passed, and the interpreter source diff against
 972651f was empty. No generated-code path remains in the runtime.
+
+## 14. Separate CSES computation from input and print
+
+Added `benchmarks/cp-compute.mjs` for the six judge workloads. It loads the
+unchanged programs with a valid one-item bootstrap input, then calls their
+existing functions with the same constructed N=200,000 cases as judge-scale.
+The sum workload evaluates its `A sum` expression. Input construction, parsing
+and printing are excluded from compute timing. Restaurant event creation uses
+the original `visit` helper and is included in separately reported preparation.
+Output forcing is timed; independent exact-answer checks follow each sample.
+
+At N=200,000, five warm samples gave these medians:
+
+| Workload | Compute | Preparation |
+| --- | ---: | ---: |
+| restaurant | 306.4 ms | 1275.8 ms |
+| rooms | 1790.9 ms | 33.5 ms |
+| playlist | 280.2 ms | 15.3 ms |
+| books | 2.5 ms | 8.3 ms |
+| bounded-sum | 473.3 ms | 7.0 ms |
+| sum | 1.2 ms | 7.3 ms |
+
+Preparation includes harness work; it is not a measurement of CLI input alone.
+Do not subtract warm compute times from separate cold CLI measurements to
+claim an IO percentage. All six cases also passed at N=1. The harness supports
+`--only`, `--size`, `--samples` and `--checkout` for focused repeats.
+[Raw compute results](../../benchmarks/baselines/2026-09-11-cp-compute.json).
+
+A focused rooms profile attributed 14.9% of self samples to execution-stack
+advancement, 12.8% to GC, 8.0% to statement continuation and 4.9% to `resume`.
+Coordinate decoding and `atArray` were each about 1.7%. Preparation/startup are
+included in the profile; this is evidence for prioritization, not a predicted
+speedup. [Profile summary](../../benchmarks/baselines/2026-09-11-rooms-compute-profile.json).
+
+Next inspect shared statement/condition composition before adding specialized
+heap or selector paths. Restaurant has a separate event-construction cost;
+optimizing its sort alone would miss much of its work. No runtime change was
+made in this measurement step.

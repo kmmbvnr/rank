@@ -1,0 +1,828 @@
+{
+  "revision": "422758f",
+  "command": "node --cpu-prof benchmarks/cp-compute.mjs --only=rooms",
+  "note": "Self sample percentages include preparation and startup. Timed workload uses unchanged allocate_rooms, no input/print in the measured calls.",
+  "totalMs": 14146.417,
+  "frames": [
+    {
+      "name": "advance execution.js:68",
+      "percent": 14.934297497380433
+    },
+    {
+      "name": "(garbage collector) :0",
+      "percent": 12.788559816948702
+    },
+    {
+      "name": "continueStatementStream interpreter.js:289",
+      "percent": 8.027332998878798
+    },
+    {
+      "name": "resume execution.js:24",
+      "percent": 4.890156991696201
+    },
+    {
+      "name": "stream interpreter.js:507",
+      "percent": 3.652309980682741
+    },
+    {
+      "name": "anonymous interpreter.js:1275",
+      "percent": 3.5777469305478555
+    },
+    {
+      "name": "anonymous execution.js:13",
+      "percent": 3.3824112494351044
+    },
+    {
+      "name": "anonymous interpreter.js:1294",
+      "percent": 3.345073172945489
+    },
+    {
+      "name": "stream interpreter.js:483",
+      "percent": 3.0791259723221787
+    },
+    {
+      "name": "anonymous execution.js:39",
+      "percent": 2.483582945420031
+    },
+    {
+      "name": "stream interpreter.js:596",
+      "percent": 2.0811771630936655
+    },
+    {
+      "name": "applySelectors interpreter.js:2815",
+      "percent": 1.9766701349182623
+    },
+    {
+      "name": "(program) :0",
+      "percent": 1.9657415725833616
+    },
+    {
+      "name": "stream interpreter.js:414",
+      "percent": 1.7357186628953465
+    },
+    {
+      "name": "track resource-summary.js:18",
+      "percent": 1.6894595995579658
+    },
+    {
+      "name": "coordinatesAt interpreter.js:2658",
+      "percent": 1.6871621980321942
+    },
+    {
+      "name": "atArray interpreter.js:3107",
+      "percent": 1.6682598851709234
+    },
+    {
+      "name": "next execution.js:57",
+      "percent": 1.5645940594003414
+    },
+    {
+      "name": "resolve interpreter.js:1768",
+      "percent": 1.5360355912030588
+    },
+    {
+      "name": "executeStatementStream interpreter.js:253",
+      "percent": 1.5171686229806458
+    },
+    {
+      "name": "anonymous interpreter.js:889",
+      "percent": 1.4927596153852951
+    },
+    {
+      "name": "anonymous interpreter.js:763",
+      "percent": 1.4797598572133142
+    },
+    {
+      "name": "assign interpreter.js:1836",
+      "percent": 1.436490950323322
+    },
+    {
+      "name": "apply interpreter.js:1878",
+      "percent": 1.4102510904351258
+    },
+    {
+      "name": "evaluateTask interpreter.js:729",
+      "percent": 1.3286473882397218
+    },
+    {
+      "name": "get frame.js:27",
+      "percent": 0.8971812438442893
+    },
+    {
+      "name": "prepareExpression interpreter.js:732",
+      "percent": 0.8426656728696743
+    },
+    {
+      "name": "anonymous interpreter.js:1032",
+      "percent": 0.8141142736001632
+    },
+    {
+      "name": "splitQualified interpreter.js:2527",
+      "percent": 0.7431281009177094
+    },
+    {
+      "name": "evaluateBinary interpreter.js:2207",
+      "percent": 0.6323862784477511
+    },
+    {
+      "name": "arrayOffset interpreter.js:2666",
+      "percent": 0.549891891353125
+    },
+    {
+      "name": "applySelectors interpreter.js:1920",
+      "percent": 0.5383978147964958
+    },
+    {
+      "name": "isNativeFunction value.js:10",
+      "percent": 0.5331314636066503
+    },
+    {
+      "name": "tensorSelection interpreter.js:3064",
+      "percent": 0.4898130742222571
+    },
+    {
+      "name": "stream interpreter.js:675",
+      "percent": 0.4874803280576276
+    },
+    {
+      "name": "indexAt interpreter.js:3080",
+      "percent": 0.47215489264878874
+    },
+    {
+      "name": "forEntries interpreter.js:2376",
+      "percent": 0.4417938478697468
+    },
+    {
+      "name": "preparedStatement interpreter.js:281",
+      "percent": 0.3802446937623852
+    },
+    {
+      "name": "anonymous interpreter.js:1292",
+      "percent": 0.29333222681050614
+    },
+    {
+      "name": "anonymous interpreter.js:2667",
+      "percent": 0.2910136185014198
+    },
+    {
+      "name": "lengthOf sequences.js:379",
+      "percent": 0.2818876327482782
+    },
+    {
+      "name": "offsetAt interpreter.js:3095",
+      "percent": 0.2521345157575943
+    },
+    {
+      "name": "anonymous interpreter.js:737",
+      "percent": 0.24917263502129197
+    },
+    {
+      "name": "arrayItems sequences.js:311",
+      "percent": 0.22000623903565122
+    },
+    {
+      "name": "stream interpreter.js:713",
+      "percent": 0.21208197100368242
+    },
+    {
+      "name": "isKnownFileFree resource-summary.js:5",
+      "percent": 0.1938087927140844
+    },
+    {
+      "name": "invoke interpreter.js:1916",
+      "percent": 0.19321500278126963
+    },
+    {
+      "name": "anonymous interpreter.js:950",
+      "percent": 0.19321500278126963
+    },
+    {
+      "name": "anonymous sequences.js:313",
+      "percent": 0.1890867489626525
+    },
+    {
+      "name": "evaluateAddressItem interpreter.js:1327",
+      "percent": 0.18673279601470819
+    },
+    {
+      "name": "findVariable interpreter.js:1875",
+      "percent": 0.1740864842313075
+    },
+    {
+      "name": "anonymous interpreter.js:677",
+      "percent": 0.168784788402604
+    },
+    {
+      "name": "push containers.js:58",
+      "percent": 0.16021724794341918
+    },
+    {
+      "name": "anonymous interpreter.js:3068",
+      "percent": 0.1596375958661476
+    },
+    {
+      "name": "spawnSync child_process:1128",
+      "percent": 0.12340934103667381
+    },
+    {
+      "name": "resolveVariable interpreter.js:1821",
+      "percent": 0.12311951499803801
+    },
+    {
+      "name": "containedFiles interpreter.js:3882",
+      "percent": 0.11986780822309988
+    },
+    {
+      "name": "isRankSequence value.js:43",
+      "percent": 0.11457318132216801
+    },
+    {
+      "name": "stableOrder sequences.js:334",
+      "percent": 0.11368956535071743
+    },
+    {
+      "name": "compileSourceTextModule utils:316",
+      "percent": 0.10662063757911279
+    },
+    {
+      "name": "arrayItem interpreter.js:2684",
+      "percent": 0.09748758289819959
+    },
+    {
+      "name": "typesOf interpreter.js:3876",
+      "percent": 0.09690793082092801
+    },
+    {
+      "name": "ResourceMap resource-summary.js:32",
+      "percent": 0.09690086189315641
+    },
+    {
+      "name": "set frame.js:33",
+      "percent": 0.09632120981588482
+    },
+    {
+      "name": "anonymous algo.js:21",
+      "percent": 0.09514776780579846
+    },
+    {
+      "name": "isRankQueue value.js:22",
+      "percent": 0.08954210808291597
+    },
+    {
+      "name": "set resource-summary.js:37",
+      "percent": 0.0886584921114654
+    },
+    {
+      "name": "anonymous algo.js:14",
+      "percent": 0.08630453916352106
+    },
+    {
+      "name": "sortableKind sequences.js:325",
+      "percent": 0.0798223323969596
+    },
+    {
+      "name": "mapResult execution.js:10",
+      "percent": 0.07981526346918799
+    },
+    {
+      "name": "anonymous sequences.js:11",
+      "percent": 0.0792285424641448
+    },
+    {
+      "name": "isRankIndex value.js:19",
+      "percent": 0.0792214735363732
+    },
+    {
+      "name": "anonymous sequences.js:276",
+      "percent": 0.07893164749773741
+    },
+    {
+      "name": "anonymous cp-compute.mjs:1",
+      "percent": 0.07835199542046584
+    },
+    {
+      "name": "objEquiv comparisons:960",
+      "percent": 0.07687458951620046
+    },
+    {
+      "name": "anonymous interpreter.js:2934",
+      "percent": 0.07275340462535496
+    },
+    {
+      "name": "isRankArray value.js:1",
+      "percent": 0.07157996261526858
+    },
+    {
+      "name": "anonymous sequences.js:337",
+      "percent": 0.06274380290076279
+    },
+    {
+      "name": "mapExecution execution.js:32",
+      "percent": 0.0533138532534422
+    },
+    {
+      "name": "anonymous interpreter.js:598",
+      "percent": 0.05330678432567059
+    },
+    {
+      "name": "isRankObject value.js:37",
+      "percent": 0.0530169582870348
+    },
+    {
+      "name": "isRankFenwick value.js:34",
+      "percent": 0.05153248345499783
+    },
+    {
+      "name": "getConflictingAltSets all-star-lookahead.js:623",
+      "percent": 0.050663005339090454
+    },
+    {
+      "name": "finishResourceScope interpreter.js:140",
+      "percent": 0.04505734561620798
+    },
+    {
+      "name": "containsPath lookahead.js:440",
+      "percent": 0.044477693538936394
+    },
+    {
+      "name": "argsortValue sequences.js:265",
+      "percent": 0.044477693538936394
+    },
+    {
+      "name": "typeName interpreter.js:3839",
+      "percent": 0.044477693538936394
+    },
+    {
+      "name": "isRankRecord value.js:40",
+      "percent": 0.04447062461116479
+    },
+    {
+      "name": "isRankCounter value.js:28",
+      "percent": 0.044180798572529004
+    },
+    {
+      "name": "flatMapResult execution.js:17",
+      "percent": 0.043890972533893215
+    },
+    {
+      "name": "ownedArray array-storage.js:4",
+      "percent": 0.04300735656244263
+    },
+    {
+      "name": "add dfa.js:20",
+      "percent": 0.04270339266826363
+    },
+    {
+      "name": "callArguments interpreter.js:2964",
+      "percent": 0.035641533824430596
+    },
+    {
+      "name": "indexAt interpreter.js:3071",
+      "percent": 0.035634464896658995
+    },
+    {
+      "name": "anonymous interpreter.js:756",
+      "percent": 0.0353446388580232
+    },
+    {
+      "name": "isRankErrorValue value.js:13",
+      "percent": 0.0353446388580232
+    },
+    {
+      "name": "anonymous interpreter.js:753",
+      "percent": 0.0353446388580232
+    },
+    {
+      "name": "open :0",
+      "percent": 0.027102269076332192
+    },
+    {
+      "name": "readFileUtf8 :0",
+      "percent": 0.026805374109924795
+    },
+    {
+      "name": "resolveSync loader:730",
+      "percent": 0.0265084791435174
+    },
+    {
+      "name": "wrapSafe loader:1721",
+      "percent": 0.0265084791435174
+    },
+    {
+      "name": "anonymous cp-compute.mjs:57",
+      "percent": 0.0265084791435174
+    },
+    {
+      "name": "computeReachSet all-star-lookahead.js:445",
+      "percent": 0.02151074720899292
+    },
+    {
+      "name": "keyCheck comparisons:452",
+      "percent": 0.020620062309770735
+    },
+    {
+      "name": "realpathSync node:fs:2700",
+      "percent": 0.02032316734336334
+    },
+    {
+      "name": "anonymous interpreter.js:3098",
+      "percent": 0.020316098415591736
+    },
+    {
+      "name": "run interpreter.js:669",
+      "percent": 0.01943955137191276
+    },
+    {
+      "name": "ownFiles interpreter.js:203",
+      "percent": 0.01855593540046218
+    },
+    {
+      "name": "compileForInternalLoader realm:383",
+      "percent": 0.017962145467647392
+    },
+    {
+      "name": "internalModuleStat :0",
+      "percent": 0.0176723194290116
+    },
+    {
+      "name": "possiblePathsFrom interpreter.js:162",
+      "percent": 0.0176723194290116
+    },
+    {
+      "name": "isRankMultiset value.js:31",
+      "percent": 0.0176723194290116
+    },
+    {
+      "name": "firstSet all-star-lookahead.js:243",
+      "percent": 0.017375424462604205
+    },
+    {
+      "name": "closure all-star-lookahead.js:549",
+      "percent": 0.016781634529789417
+    },
+    {
+      "name": "compileExpression interpreter.js:825",
+      "percent": 0.015615261447474651
+    },
+    {
+      "name": "addDFAState all-star-lookahead.js:520",
+      "percent": 0.015318366481067255
+    },
+    {
+      "name": "anonymous dfa.js:44",
+      "percent": 0.0132542395717587
+    },
+    {
+      "name": "arrayMap _arrayMap.js:10",
+      "percent": 0.012957344605351306
+    },
+    {
+      "name": "isUniquePrefixHash lookahead.js:351",
+      "percent": 0.009133054680913195
+    },
+    {
+      "name": "objectComparisonStart comparisons:279",
+      "percent": 0.009133054680913195
+    },
+    {
+      "name": "anonymous validators:163",
+      "percent": 0.00912598575314159
+    },
+    {
+      "name": "visitChildren base-regexp-visitor.js:2",
+      "percent": 0.00912598575314159
+    },
+    {
+      "name": "anonymous writable:1",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "get module_map:65",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "getPackageScopeConfig :0",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "resolvePackageTargetString resolve:372",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "#resolveAndMaybeBlockOnLoaderThread loader:710",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "getPackageScopeConfig package_json_reader:192",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "lstat :0",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "readFileSync node:fs:434",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "link module_job:248",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "parse :0",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous loader:926",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "#translate loader:442",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "get protocol url:991",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "finalizeResolution resolve:225",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "splitRoot node:fs:2656",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "#asyncInstantiate module_job:304",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "getRawTag _getRawTag.js:26",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous connection.js:53",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous loader:1239",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "pathToFileURL :0",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous protocol.js:1",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous legacy.js:1",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "normalizeSpawnArguments node:child_process:567",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "linkNode json-serializer.js:144",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous stream.js:161",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous gast_recorder.js:37",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "get definition model.js:15",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "getAlternativesForProd interpreter.js:172",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous checks.js:300",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous lookahead.js:413",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "remainingPathWith interpreter.js:168",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "rootRule recognizer_engine.js:145",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "get offset cst-node-builder.js:144",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous cp-compute.mjs:56",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "compareOrderedValues ordered.js:16",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous array-storage.js:5",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous interpreter.js:2922",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "arraySize interpreter.js:2687",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "call shared.js:13",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous sequences.js:336",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "BreakSignal interpreter.js:44",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous interpreter.js:713",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "orderedKind ordered.js:4",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "isAstNode syntax-tree.js:6",
+      "percent": 0.0088361597145058
+    },
+    {
+      "name": "anonymous fast-utf8-stream:1",
+      "percent": 0.00854633367587001
+    },
+    {
+      "name": "anonymous lookahead.js:371",
+      "percent": 0.00854633367587001
+    },
+    {
+      "name": "innerDeepEqual comparisons:235",
+      "percent": 0.00854633367587001
+    },
+    {
+      "name": "WritableState.onwrite writable:350",
+      "percent": 0.00854633367587001
+    },
+    {
+      "name": "forEach forEach.js:36",
+      "percent": 0.008539264748098406
+    },
+    {
+      "name": "get key dfa.js:35",
+      "percent": 0.008539264748098406
+    },
+    {
+      "name": "anonymous rest.js:7",
+      "percent": 0.007952543743055221
+    },
+    {
+      "name": "performLookahead all-star-lookahead.js:319",
+      "percent": 0.007952543743055221
+    },
+    {
+      "name": "isQuantifier regexp-parser.js:671",
+      "percent": 0.007365822738012035
+    },
+    {
+      "name": "anonymous helpers.js:36",
+      "percent": 0.0070689277716046404
+    },
+    {
+      "name": "process regexp-utils.js:166",
+      "percent": 0.0067720328051972456
+    },
+    {
+      "name": "visit visitor.js:3",
+      "percent": 0.00618531180015406
+    },
+    {
+      "name": "isOptionalProd helpers.js:12",
+      "percent": 0.00559152186733927
+    },
+    {
+      "name": "getFirstNoneTerminal checks.js:160",
+      "percent": 0.00530169582870348
+    },
+    {
+      "name": "anonymous lexer.js:506",
+      "percent": 0.00501186979006769
+    },
+    {
+      "name": "getOptions utils:317",
+      "percent": 0.0038242899244381105
+    },
+    {
+      "name": "getOptimizedStartCodesIndices reg_exp.js:7",
+      "percent": 0.0035344638858023202
+    },
+    {
+      "name": "validateNoLeftRecursion checks.js:129",
+      "percent": 0.0035344638858023202
+    },
+    {
+      "name": "getAssignment langium-parser.js:390",
+      "percent": 0.0035344638858023202
+    },
+    {
+      "name": "defaultLoadSync load:132",
+      "percent": 0.00236102187571595
+    },
+    {
+      "name": "epsilon atn.js:383",
+      "percent": 0.0023539529479443453
+    },
+    {
+      "name": "construct langium-parser.js:303",
+      "percent": 0.0023539529479443453
+    },
+    {
+      "name": "isInstance syntax-tree.js:60",
+      "percent": 0.0023539529479443453
+    },
+    {
+      "name": "iterator stream.js:16",
+      "percent": 0.002064126909308555
+    },
+    {
+      "name": "anonymous checks.js:152",
+      "percent": 0.0017672319429011601
+    },
+    {
+      "name": "checkIsTarget lookahead.js:293",
+      "percent": 0.0017672319429011601
+    },
+    {
+      "name": "anonymous stream.js:24",
+      "percent": 0.0014703369764937652
+    },
+    {
+      "name": "get current cst-node-builder.js:12",
+      "percent": 0.0005867210050431852
+    },
+    {
+      "name": "addTransition atn.js:393",
+      "percent": 0.0002968949664073949
+    },
+    {
+      "name": "isLL1Sequence all-star-lookahead.js:190",
+      "percent": 0.0002968949664073949
+    },
+    {
+      "name": "consume recognizer_api.js:18",
+      "percent": 0.0002968949664073949
+    },
+    {
+      "name": "tokenStructuredMatcher tokens.js:1",
+      "percent": 0.0002968949664073949
+    },
+    {
+      "name": "assertEncoding utils:152",
+      "percent": 0
+    },
+    {
+      "name": "isURL url:771",
+      "percent": 0
+    },
+    {
+      "name": "walkOption rest.js:49",
+      "percent": 0
+    },
+    {
+      "name": "getATNConfigKey dfa.js:43",
+      "percent": 0
+    },
+    {
+      "name": "set astNode cst-node-builder.js:104",
+      "percent": 0
+    },
+    {
+      "name": "parse langium-parser.js:126",
+      "percent": 0
+    },
+    {
+      "name": "isSubtype syntax-tree.js:63",
+      "percent": 0
+    }
+  ]
+}

@@ -6,8 +6,9 @@ raw-result links are in [performance measurements](performance-measurements.md).
 ## Finish the remaining measurements
 
 The unchanged numerical suite, independent oracles, sizes, profiles and gradient
-feature/iteration variants are implemented. Keep them as controls. Separate CSES
-sorting/container compute from input/output before choosing its next hot path.
+feature/iteration variants are implemented. Keep them as controls. CSES compute
+is now measured separately: the rooms profile points to statement/task overhead,
+while restaurant has substantial event-construction work before its sort.
 Keep small-input and named-intermediate controls when widening fusion. The
 latest isolated real snapshot controls retained a 3–4% cost with explicit GC;
 do not add complex producer tracking solely for that gain. Recheck aggregate

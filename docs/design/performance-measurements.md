@@ -19,6 +19,8 @@ node benchmarks/runtime.mjs
 node benchmarks/memo.mjs
 node benchmarks/extrema.mjs --baseline=/path/to/built/baseline
 node benchmarks/numerical-demos.mjs --baseline=/path/to/built/baseline
+node benchmarks/cp-compute.mjs --size=200000
+node benchmarks/cp-compute.mjs --only=rooms --checkout=/path/to/built/baseline
 ```
 
 `--quick` checks all workloads with integer, real and mixed inputs at 100 elements with two
