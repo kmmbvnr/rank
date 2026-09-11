@@ -79,6 +79,32 @@ separate objects and host contexts. Non-function factory results are not cached.
 
 ## Function call stack
 
+### Memoized calls
+
+`memo` shares the function AST and placement rules with `fun`. Each
+`defineFunction` call creates a separate cache captured by that function's
+execution closure. Neither prepared syntax nor an interpreter-wide registry
+owns the cache. Escaping functions retain their caches; unreachable local
+functions and their captured frames can be garbage-collected together.
+
+The wrapper uses `mapResult` to store successful scalar results after the
+ordinary call finishes. Suspended calls still run through `ExecutionStack`.
+Memoized targets are not registered for direct tail-frame replacement, which
+would bypass the cache writer. Ordinary functions retain their existing paths.
+Scalar-only results keep mutable aliases and file ownership out of the cache.
+
+`test/memo.test.ts` checks Fibonacci body counts, explicitly passed index
+caches, closure isolation and escape, scalar key types, failures, tail-position
+calls and recursion through 100,000 active calls.
+
+Run `node benchmarks/memo.mjs` after building. It measures 1,000 Fibonacci
+calls per sample: a fresh explicit index, a fresh local memoized function,
+and a populated memo cache. Parsing is excluded; cold-cache samples create
+a new cache on every outer call. All samples verify the result.
+
+### Scheduling
+
+
 `execution.ts` drives suspended execution tasks with an explicit stack. A child
 expression or function call suspends its caller through `resume`; the driver
 starts the child and later supplies its result or throws its error into the
@@ -250,6 +276,40 @@ Medians of five runs in milliseconds:
 All median differences were below 2.5%, with overlapping sample ranges. This check
 found no measurable slowdown in the named workloads. The full suite passed 250
 tests, and all 102 demo test files passed.
+
+### Memo functions and named indices: 2026-09-11
+
+Compared with `53909b9` on darwin arm64, Node v24.15.0 and V8
+13.6.233.17-node.48. These are medians of five samples in milliseconds:
+
+| Benchmark | Before | Memo support |
+|---|---:|---:|
+| `tree` | 34.5 | 35.1 |
+| `total` | 7.9 | 7.7 |
+| `calls` | 15.0 | 14.8 |
+| `nativecalls` | 12.0 | 11.5 |
+| `conditional` | 10.0 | 9.9 |
+| `addressing` | 13.6 | 13.4 |
+| `tail` | 20.8 | 21.6 |
+| `dyadiccalls` | 18.0 | 17.7 |
+| `tailacc` | 23.8 | 24.1 |
+| `indexwork` | 52.9 | 52.6 |
+
+Repeating the ordinary-function comparison in both orders did not show a
+consistent slowdown. The small differences are not a guarantee for other
+workloads. `indexwork` adds 50,000 implicit index writes and reads to the
+permanent runtime benchmark. Index tuple encoding now preserves boundaries
+even when text keys contain separator-like strings.
+
+The separate memo benchmark measured 1,000 `fib(30)` calls at 116.7 ms with
+fresh explicit caches, 75.6 ms with fresh local memo functions, and about
+0.1 ms with a populated memo cache. Fresh memoization was about 1.5 times
+faster than the manual cache in this example; the populated-cache result
+measures lookup, not Fibonacci calculation.
+
+Validation passed 270 unit tests and all 103 demo test files. Body-count
+tests assert 31 evaluated states for `fib(30)` with either cache mechanism,
+so correctness does not depend on a timing threshold.
 
 ### Earlier measurements
 

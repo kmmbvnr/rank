@@ -1306,6 +1306,58 @@ Functions supplied by standard-library modules are distinct across interpreter
 instances. User bindings can still shadow standard function names; caching does
 not change lookup order.
 
+## Memoized functions
+
+`memo` declares a value-returning function with a cache:
+
+```rank
+memo fib N
+  if N less 2
+    return N
+  end
+  return ((N - 1) fib) + ((N - 2) fib)
+end
+```
+
+Calls use the same syntax as `fun`. The complete, typed argument tuple is the
+cache key. A cache hit returns the stored result without running the body.
+Successful results are stored after the call completes, including its
+`finally` blocks. Errors are not cached.
+
+Arguments and results must be scalar integers, real numbers, booleans, text or
+labels. Integer and real keys are distinct. Collections, functions, files and
+sequences are rejected. A memoized function must not contain `yield`.
+The programmer must ensure that the result stays valid for its arguments:
+changes to captured data do not invalidate the cache, and side effects run
+only on cache misses.
+
+The cache belongs to the function object. Aliases share it; redefining the
+function creates a new cache. Each call of an outer function creates fresh
+local memoized functions:
+
+```rank
+fun solve N
+  return N fib
+
+  memo fib X
+    if X less 2
+      return X
+    end
+    return ((X - 1) fib) + ((X - 2) fib)
+  end
+end
+```
+
+Each `solve` call starts with an empty cache. Once its local function and
+captured workspace are unreachable, the host garbage collector can reclaim
+them and the cache. Returning or saving the local function keeps its cache
+alive. There is no size limit, expiry or explicit clearing operation.
+
+Recursive and mutual calls use the cache and the explicit Rank call stack.
+Calls into memoized functions retain the continuation that stores the result;
+they do not use the frame-replacing tail-call optimization. Ordinary `fun`
+tail calls keep their existing behavior.
+
 ## Local functions and closures
 
 A function may declare functions directly inside its body. Local functions are
@@ -2086,6 +2138,32 @@ The complete tuple is the key, so an `index` can represent a sparse matrix or
 higher-dimensional tensor. It does not infer rectangular dimensions or carry a
 dense shape; programs keep those dimensions separately when needed. The key
 and value types are inferred from uses within the function.
+
+Bare `index` always refers to the current function call's local structure
+(or the module structure at top level), for both reading and writing.
+Recursive calls do not share it, and an outer implicit index is not inherited.
+
+Use an ordinary name to share a dictionary explicitly:
+
+```rank
+use algo
+Index = index
+
+fun store Cache K V
+  Cache K = V
+  return 0
+end
+
+X = Index 7 99 store
+Index 7 rem 99
+```
+
+`Index = index` aliases the current structure; it does not allocate a copy.
+Passing it as `Cache` preserves that reference. Named indices support reads,
+membership, padded reads and writes with the same complete tuple keys as
+implicit indices. Compound writes such as `Cache K += 1` require an existing
+entry. Keys may be integers, booleans, text or labels. A named index can also
+be captured by a local function.
 
 ### Queue
 

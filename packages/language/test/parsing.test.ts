@@ -448,6 +448,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(1);
     });
 
+    it('parses memo declarations as functions, including local declarations', async () => {
+        const document = await parse('fun solve N\n memo fib X\n  return X\n end\n return N fib\nend');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements[0]).toMatchObject({
+            $type: 'FunctionStatement', memo: false,
+            statements: [expect.objectContaining({ $type: 'FunctionStatement', memo: true }), expect.anything()],
+        });
+    });
+
     it('parses generator functions, bare return and typed stdin', async () => {
         const document = await parse([
             'use io',

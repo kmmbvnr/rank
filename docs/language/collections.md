@@ -48,6 +48,32 @@ higher-dimensional tensor. It does not infer rectangular dimensions or carry a
 dense shape; programs keep those dimensions separately when needed. The key
 and value types are inferred from uses within the function.
 
+Bare `index` always refers to the current function call's local structure
+(or the module structure at top level), for both reading and writing.
+Recursive calls do not share it, and an outer implicit index is not inherited.
+
+Use an ordinary name to share a dictionary explicitly:
+
+```rank
+use algo
+Index = index
+
+fun store Cache K V
+  Cache K = V
+  return 0
+end
+
+X = Index 7 99 store
+Index 7 rem 99
+```
+
+`Index = index` aliases the current structure; it does not allocate a copy.
+Passing it as `Cache` preserves that reference. Named indices support reads,
+membership, padded reads and writes with the same complete tuple keys as
+implicit indices. Compound writes such as `Cache K += 1` require an existing
+entry. Keys may be integers, booleans, text or labels. A named index can also
+be captured by a local function.
+
 ### Queue
 
 ```rank

@@ -57,7 +57,7 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement:
-    'fun' name=WORD parameters+=Identifier* NL+
+    ('fun' | memo?='memo') name=WORD parameters+=Identifier* NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 

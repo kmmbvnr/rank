@@ -792,9 +792,22 @@ export class Interpreter {
             return { stream: function* (): Execution<RankValue | undefined> {
                 const target = interpreter.resolveVariable(statement.name);
                 const selectors = yield* resume(mapExecution(statement.indices, index => interpreter.evaluateAddressItem(index)));
+                if (isRankIndex(target)) {
+                    const key = indexKey(selectors);
+                    const value = yield* resume(interpreter.evaluateTask(statement.value));
+                    if (statement.operator === '=') target.entries.set(key, value);
+                    else {
+                        const previous = target.entries.get(key);
+                        if (previous === undefined) throw new MissingValueError('index key not found');
+                        target.entries.set(key, interpreter.evaluateBinary(
+                            assignmentOperator(statement.operator), previous, value,
+                        ));
+                    }
+                    return undefined;
+                }
                 const field = selectors.at(-1);
                 if (field !== undefined && isRankLabel(field) && field.name !== '#') {
-                    let receiver = target;
+                    let receiver: RankValue = target;
                     for (const selector of selectors.slice(0, -1)) {
                         receiver = interpreter.applySelectors([receiver, selector]);
                     }
@@ -1448,13 +1461,26 @@ export class Interpreter {
 
     private defineFunction(statement: FunctionStatement): RankValue {
         const { generator } = prepareFunction(statement);
+        if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.localFrame;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
         const direct = only && isReturnStatement(only) && only.value
             ? this.compileDirectExpression(only.value) : undefined;
-        const execute = (arguments_: RankValue[]): Evaluation<RankValue> => direct
+        const body = (arguments_: RankValue[]): Evaluation<RankValue> => direct
             ? completed(this.callDirectFunction(statement, arguments_, context, direct))
             : this.callFunction(statement, arguments_, context);
+        // The closure owns the cache, so separate local declarations never share it.
+        const cache = statement.memo ? new Map<string, RankValue>() : undefined;
+        const execute = cache ? (arguments_: RankValue[]): Evaluation<RankValue> => {
+            const key = JSON.stringify(arguments_.map(memoScalarKey));
+            const cached = cache.get(key);
+            if (cached !== undefined) return completed(cached);
+            return mapResult(body(arguments_), value => {
+                memoScalarKey(value);
+                cache.set(key, value);
+                return value;
+            });
+        } : body;
         const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
@@ -1468,7 +1494,9 @@ export class Interpreter {
         };
         if (!generator) {
             functionExecutions.set(fn, execute);
-            functionDefinitions.set(fn, { interpreter: this, statement, context, direct });
+            // A memo call must return through its cache writer. Do not bypass it
+            // via the tail-call path that enters an ordinary function body.
+            if (!statement.memo) functionDefinitions.set(fn, { interpreter: this, statement, context, direct });
         }
         this.assign(statement.name, fn);
         return fn;
@@ -1870,12 +1898,12 @@ export class Interpreter {
             if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
             return child.resolveVariable(member);
         }
+        if (name === 'index') return this.localIndex();
         const variable = this.findVariable(name);
         if (variable !== undefined) {
             return variable;
         }
 
-        if (name === 'index') return this.localIndex();
         if (name === 'queue') return this.localQueue();
         if (name === 'set') return this.localSet();
         if (name === 'counter') return this.localCounter();
@@ -3318,13 +3346,20 @@ function isIntegerCollectionSelector(value: RankValue): boolean {
 
 function indexKey(values: readonly RankValue[]): string {
     if (values.length === 0) throw new RankError('index requires at least one key');
-    return values.map(value => {
+    return JSON.stringify(values.map(value => {
         if (typeof value === 'bigint') return `integer:${value}`;
         if (typeof value === 'boolean') return `boolean:${value}`;
         if (typeof value === 'string') return `text:${value}`;
         if (typeof value === 'object' && value.kind === 'label') return `label:${value.name}`;
         throw new RankError('index keys must be scalar values');
-    }).join('|');
+    }));
+}
+
+function memoScalarKey(value: RankValue): string {
+    if (typeof value === 'number' && Object.is(value, -0)) return 'number:-0';
+    if (typeof value !== 'object') return `${typeof value}:${value}`;
+    if (isRankLabel(value)) return `label:${value.name}`;
+    throw new RankError('memo arguments and results must be scalar values');
 }
 
 function assignmentOperator(operator: string): string {

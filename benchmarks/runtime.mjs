@@ -8,6 +8,7 @@ const runtime = new Interpreter();
 runtime.execute(`
 use ranges
 use numbers
+use algo
 
 fun tree N
   if N equal 0
@@ -90,6 +91,15 @@ fun tailacc N Total
   end
   return (N - 1) (Total + 1) tailacc
 end
+
+fun indexwork N
+  Sum = 0
+  for I in 0 until N
+    index I = I
+    Sum += index I
+  end
+  return Sum
+end
 `);
 
 for (const [name, arguments_, expected, warmup] of [
@@ -102,6 +112,7 @@ for (const [name, arguments_, expected, warmup] of [
   ['tail', [50000n], 0n, [1000n]],
   ['dyadiccalls', [50000n], 1250025000n, [1000n]],
   ['tailacc', [50000n, 0n], 50000n, [1000n, 0n]],
+  ['indexwork', [50000n], 1249975000n, [1000n]],
 ]) {
   const fn = runtime.variables.get(name);
   for (let i = 0; i < 2; i++) fn.call(warmup);
