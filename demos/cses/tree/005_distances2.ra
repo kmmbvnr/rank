@@ -1,0 +1,46 @@
+rem CSES 1133: Tree Distances II
+rem https://cses.fi/problemset/task/1133
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Tree distance_sums print
+
+
+rem Reroot one known distance sum.
+fun distance_sums Tree
+  Walk = Tree 1 dfs
+  N = Tree len
+  Sizes = array shape (N + 1) pad 1
+  RootSum = 0
+  for Node in Walk .order
+    RootSum += (Walk .distance) Node
+  end
+
+  Last = Walk .order len - 1
+  for i in Last to 1 by -1
+    Node = (Walk .order) i
+    Parent = (Walk .parent) Node
+    Sizes Parent += Sizes Node
+  end
+
+  Result = array shape N pad 0
+  Result 0 = RootSum
+  for i in 1 until Walk .order len
+    Node = (Walk .order) i
+    Parent = (Walk .parent) Node
+    Previous = Result (Parent - 1)
+    Result (Node - 1) = Previous + N
+    Result (Node - 1) -= 2 * Sizes Node
+  end
+  return Result
+end

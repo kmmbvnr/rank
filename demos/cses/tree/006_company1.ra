@@ -1,0 +1,45 @@
+rem CSES 1687: Company Queries I
+rem https://cses.fi/problemset/task/1687
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Bosses = stdin .integer (N - 1) array
+Company = Bosses prepare_company
+for i in 1 to Q
+  Employee = stdin .integer
+  Levels = stdin .integer
+  Company Employee Levels ancestor print
+end
+
+
+rem Prepare jumps and depths once.
+fun prepare_company Bosses
+  N = Bosses len + 1
+  Next = array shape N pad 1
+  Depth = array shape (N + 1) pad 0
+  for Boss i in Bosses
+    Employee = i + 2
+    Next (Employee - 1) = Boss
+    Depth Employee = Depth Boss + 1
+  end
+  return record
+    .parents = Next functional
+    .depth = Depth
+  end
+end
+
+
+rem Find a boss at the requested level.
+fun ancestor Company Employee Levels
+  Depth = Company .depth
+  if Levels greater Depth Employee
+    return -1
+  end
+  Parents = Company .parents
+  return Parents jump Employee Levels
+end
