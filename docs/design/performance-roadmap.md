@@ -3,31 +3,16 @@
 Only remaining work is listed here. Completed changes, benchmark commands and
 raw-result links are in [performance measurements](performance-measurements.md).
 
-## Next: benchmark and profile unchanged demos
+## Finish the remaining measurements
 
-Extend the [judge-scale suite](judge-scale-benchmarks.md) with numerical demos.
-Keep their source unchanged; vary inputs or call existing functions from a
-benchmark harness. Microbenchmarks explain costs; real programs decide priorities.
+The unchanged numerical suite, independent oracles, sizes, profiles and gradient
+feature/iteration variants are implemented. Keep them as controls. Separate CSES
+sorting/container compute from input/output before choosing its next hot path.
+Investigate the small-input and named-intermediate fusion costs before widening
+fusion. Recheck aggregate demo performance against main before delivery.
 
-- **Euler 006, sum square difference:** increase `Limit`. Its range, `** 2`,
-  named `Squares` intermediate and builtin `sum` check whether optimization
-  reaches ordinary source code rather than only `+ reduce`.
-- **DeepML 004, matrix mean:** measure row and column modes on large matrices.
-  Separate strided reads and cell creation from numeric summation.
-- **DeepML 009, matrix multiplication:** increase matrix dimensions. Its triple
-  loop measures scalar dispatch and multidimensional indexing.
-- **DeepML 015, gradient descent:** vary rows, features and iterations. Profile
-  builtin `matmul`, transpose and temporary arithmetic across iterations.
-- Keep the CSES restaurant, rooms, playlist, books and bounded-sum workloads,
-  plus the sum control. Separate sorting and container work from input/output.
-
-Check results independently; record cold end-to-end and warm compute time where
-applicable at several sizes. Alternate version order without concurrent heavy
-work. Save raw samples, memory measurements and revisions. Investigate small-input
-and named-intermediate timing regressions in the fusion report before widening it.
-
-Why: the current inline arithmetic reduction does not match existing demos.
-A repeatable benefit in unchanged programs is the acceptance criterion.
+Why: timeout smoke checks alone cannot identify a bottleneck or establish that
+an optimization preserves performance elsewhere.
 
 ## Extend fusion to the forms used by demos
 
@@ -40,9 +25,9 @@ three times faster at 512 square. Revise or remove the remaining responsible
 parts and repeat the controls. See
 the [optimization log](optimization-lab.md#4-private-storage-correctness-repaired-performance-costs-remain).
 
-Start with builtin `sum` on arithmetic results. Consider single-use named
-temporaries and range readers if profiles justify them. Euler 006 also needs a
-guarded power operation; supporting `sum` alone will not accelerate it.
+Builtin `sum` on inline arithmetic and Euler's guarded sequence power have been
+implemented and measured. Consider single-use named temporaries and private
+readers if profiles justify them.
 Preserve shadowed functions, sum's seed, lazy read timing and repeated-use caches.
 Fuse named values only after proving the relevant use and effect boundaries.
 
@@ -68,9 +53,9 @@ Use CSES and DeepML 009 profiles to choose one hot path at a time: indexing,
 record fields, container methods or loop dispatch. Retain recursion, tail-call
 and memo benchmarks as regression controls.
 
-Tensor row/column coordinate allocation has been removed and measured. Next
-inspect multidimensional selectors and gradient descent's transpose/materialized
-temporaries; do not count the completed copy-loop change as progress on these.
+Tensor row/column copying and matrix transpose coordinate reuse have been
+measured and improved. Next inspect multidimensional selectors and the remaining
+temporary-array/cache costs in k-means and gradient descent.
 
 Why: array reductions do not cover most scalar CSES algorithms.
 

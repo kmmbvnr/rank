@@ -124,10 +124,23 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     let materialized: RankValue[] | undefined;
     const itemAt = (index: number): RankValue => {
         const output = coordinatesAt(shape, index);
-        const source = Array(value.shape.length).fill(0) as number[];
-        output.forEach((coordinate, axis) => {
-            source[permutation[axis]] = coordinate;
-        });
+        const sourceRank = value.shape.length;
+        let source: number[];
+        if (sourceRank === 2 && output.length === 2) {
+            // These coordinates are fresh and unexposed. Reuse their array,
+            // retaining permutation read/write order for host-backed views.
+            const first = output[0], second = output[1];
+            source = output;
+            source[0] = 0;
+            source[1] = 0;
+            source[permutation[0]] = first;
+            source[permutation[1]] = second;
+        } else {
+            source = Array(sourceRank).fill(0) as number[];
+            output.forEach((coordinate, axis) => {
+                source[permutation[axis]] = coordinate;
+            });
+        }
         const offset = source.reduce(
             (current, coordinate, axis) => current * value.shape[axis] + coordinate,
             0,

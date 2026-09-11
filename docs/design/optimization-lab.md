@@ -381,3 +381,55 @@ These single cold samples are regression smoke checks, not speedup claims.
 Decision: keep the coordinate-copy change and shape-alias repair. Continue with
 the lazy fallback cost, private readers that preserve named caches, and the
 remaining measured scalar/indexing and transpose paths before generated loops.
+
+## 7. Matrix transpose coordinates: kept
+
+A fresh `dffc395` CPU profile of DeepML 015 at 2,048 rows put 22.1% of samples
+in the transpose reader and 17.9% in its coordinate decoder. Transpose
+materialization also appeared separately. The k-means profile instead showed
+17.2% GC, 6.5% broadcast-array construction and 1.4% stride construction, with
+execution-task handling spread across several functions. These are sampled
+profiles including startup, not precise cost partitions or speedup predictions.
+Reproduce with `node --cpu-prof benchmarks/numerical-demos.mjs --worker=gradient
+--scale=2 --samples=30` or the k-means worker with 40 samples.
+
+The transpose reader previously allocated output coordinates and then a second
+source-coordinate array on every read. For a matrix it now retains the two
+coordinate numbers, clears and reuses the first local array, and writes them in
+permutation order. Other ranks keep their original path. No scratch array is
+shared between calls, so a host getter can reenter the reader safely. Source
+shape reads, permutation reads and lazy cell access keep their order. `itemAt`
+remains live after `.items` has separately cached a materialization.
+
+Five-sample results on unchanged DeepML 015, ordinary host inputs:
+
+| Rows / features / steps | Baseline warm | Candidate warm |
+| --- | ---: | ---: |
+| 2,048 / 8 / 20, first comparison to d03c2bd | 75.3 ms | 59.4 ms |
+| 2,048 / 8 / 20, isolated comparison to dffc395 | 83.1 ms | 66.4 ms |
+| 2,048 / 32 / 1, dffc395 | 15.6 ms | 11.6 ms |
+| 2,048 / 2 / 80, dffc395 | 96.0 ms | 77.3 ms |
+
+The default isolated run had cold-process scheduling outliers up to 643 ms;
+do not infer a cold speedup from that run. With two features and 80 steps, cold
+medians were 244.6 to 229.9 ms and peak RSS 378 to 358 MiB. Memory did not
+improve uniformly: the first default pair's peaks were 207 to 212 MiB.
+The narrow/long case also improved in an earlier opposite-order run
+(98.3 to 79.5 ms); the saved full report is the repeat above.
+
+The harness now accepts `--features` and `--steps`; defaults remain 8 and 20.
+Each pair still varies rows through 16/256/2,048. The independent one-hot
+reference accounts for uneven or empty feature groups. At 32 features and one
+step, it exposed an oracle bug: `Math.round` rounded 0.03125 to 0.0313, whereas
+both Rank versions correctly returned tie-to-even 0.0312. The oracle now handles
+ties explicitly, and failures print actual and expected values. A zero-step,
+32-feature worker also passed. This was a benchmark correction, not a Rank bug.
+
+Four new tests cover rectangular and empty matrices, explicit permutations,
+exact host getter order, reentrant reads, and live versus materialized values.
+All 461 JS tests and all 164 demo files passed.
+[Raw comparisons and profile summaries](../../benchmarks/baselines/2026-09-11-transpose-copy.json).
+
+Decision: keep the local coordinate reuse. For k-means, investigate small lazy
+array construction/cache allocations rather than assuming the private-storage
+lookup explains the whole regression. Keep named-cache semantics as a gate.

@@ -10,7 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const script = fileURLToPath(import.meta.url);
 const options = Object.fromEntries(process.argv.slice(2).map(arg => {
-  const match = /^--(baseline|samples|only|worker|checkout|scale|mode|order|storage)=(.+)$/.exec(arg);
+  const match = /^--(baseline|samples|only|worker|checkout|scale|mode|order|storage|features|steps)=(.+)$/.exec(arg);
   assert(match, `Unknown argument: ${arg}`);
   return [match[1], match[2]];
 }));
@@ -25,6 +25,10 @@ const sizes = { euler: [100, 20000, 200000], matvec: [8, 128, 512], row: [8, 128
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const samples = Number(options.samples ?? 5);
 const storage = options.storage ?? 'plain';
+const features = Number(options.features ?? 8), steps = Number(options.steps ?? 20);
+assert(Number.isSafeInteger(features) && features > 0);
+assert(Number.isSafeInteger(steps) && steps >= 0);
+const gradientOptions = [`--features=${features}`, `--steps=${steps}`];
 assert(['plain', 'snapshot'].includes(storage));
 assert(Number.isSafeInteger(samples) && samples >= 3);
 assert(options.order === undefined || ['candidate-first', 'baseline-first'].includes(options.order));
@@ -79,10 +83,16 @@ if (options.worker) {
       }
       run = () => runtime.variables.get('matrixmul').call([a, b]);
     } else {
-      const features = 8, steps = 20, rate = 0.5;
+      const rate = 0.5;
       const x = matrix(size, features, (r, c) => Number(r % features === c));
       const y = array(Array.from({ length: size }, (_, r) => r % features + 1), [size]);
-      expected = Array.from({ length: features }, (_, c) => Math.round((c + 1) * (1 - (1 - rate / features) ** steps) * 10000) / 10000);
+      expected = Array.from({ length: features }, (_, c) => {
+        const count = Math.floor(size / features) + Number(c < size % features);
+        const scaled = (c + 1) * (1 - (1 - rate * count / size) ** steps) * 10000;
+        const nearest = Math.round(scaled);
+        // Rank rounds exact ties to even; Math.round alone rounds them upward.
+        return (nearest - Number(Math.abs(scaled - nearest) === 0.5 && nearest % 2 !== 0)) / 10000;
+      });
       run = () => runtime.variables.get('linear_regression').call([x, y, rate, BigInt(steps)]);
     }
   }
@@ -91,7 +101,8 @@ if (options.worker) {
     else {
       const items = value.items;
       assert.equal(items.length, expected.length);
-      for (let i = 0; i < items.length; i++) assert(Math.abs(Number(items[i]) - expected[i]) < 1e-9, `${name}[${i}]`);
+      for (let i = 0; i < items.length; i++) assert(Math.abs(Number(items[i]) - expected[i]) < 1e-9,
+        `${name}[${i}]: actual ${items[i]}, expected ${expected[i]}`);
       if (name === 'matmul') assert.deepEqual(value.shape, [size, size]);
     }
   };
@@ -112,7 +123,7 @@ if (options.worker) {
 } else {
   const checkouts = { candidate: root, ...(options.baseline ? { baseline: resolve(options.baseline) } : {}) };
   const report = { metadata: { date: new Date().toISOString(), node: process.version, cpu: cpus()[0]?.model,
-    samples, storage, timing: 'cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts',
+    samples, storage, gradient: { features, steps }, timing: 'cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts',
     sources: Object.fromEntries(Object.entries(sources).map(([name, path]) => [name, { path, sha256: createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex') }])) }, versions: {}, results: [] };
   for (const [name, checkout] of Object.entries(checkouts)) report.versions[name] = { checkout,
     revision: execFileSync('git', ['-C', checkout, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
@@ -124,7 +135,7 @@ if (options.worker) {
       if (Boolean(scale % 2) !== (options.order === 'baseline-first')) entries.reverse();
       for (const [version, checkout] of entries) {
         const start = performance.now();
-        const child = spawnSync(process.execPath, [script, `--worker=${name}`, `--scale=${scale}`, `--checkout=${checkout}`, `--samples=${samples}`, `--storage=${storage}`], { encoding: 'utf8', timeout: 120000 });
+        const child = spawnSync(process.execPath, [script, `--worker=${name}`, `--scale=${scale}`, `--checkout=${checkout}`, `--samples=${samples}`, `--storage=${storage}`, ...gradientOptions], { encoding: 'utf8', timeout: 120000 });
         assert.ifError(child.error);
         assert.equal(child.status, 0, child.stderr);
         const result = { name, scale, version, warmProcessMs: performance.now() - start, ...JSON.parse(child.stdout), coldProcessMs: [] };
@@ -135,7 +146,7 @@ if (options.worker) {
         const order = sample % 2 ? [...entries].reverse() : entries;
         for (const [version, checkout] of order) {
           const start = performance.now();
-          const child = spawnSync(process.execPath, [script, `--worker=${name}`, `--scale=${scale}`, `--checkout=${checkout}`, '--mode=cold', `--storage=${storage}`], { encoding: 'utf8', timeout: 120000 });
+          const child = spawnSync(process.execPath, [script, `--worker=${name}`, `--scale=${scale}`, `--checkout=${checkout}`, '--mode=cold', `--storage=${storage}`, ...gradientOptions], { encoding: 'utf8', timeout: 120000 });
           assert.ifError(child.error);
           assert.equal(child.status, 0, child.stderr);
           report.results.find(result => result.name === name && result.scale === scale && result.version === version).coldProcessMs.push(performance.now() - start);
