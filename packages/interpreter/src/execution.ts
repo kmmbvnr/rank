@@ -68,16 +68,29 @@ export function mapExecution<T, R>(
     const results: R[] = [];
     for (let index = 0; index < values.length; index++) {
         const task = operation(values[index]);
-        if ('done' in task) results.push(task.value);
-        else return (function* (): Execution<R[]> {
-            results.push(yield* resume(task));
-            for (index++; index < values.length; index++) {
-                results.push(yield* resume(operation(values[index])));
-            }
-            return results;
-        })();
+        if ('done' in task) {
+            results.push(task.value);
+            continue;
+        }
+        // The suspended tail lives in its own function so that the completed
+        // path above allocates no closure context for `results` and `index`.
+        return resumeMapExecution(results, task, values, operation, index);
     }
     return completed(results);
+}
+
+function* resumeMapExecution<T, R>(
+    results: R[],
+    pending: Execution<R>,
+    values: readonly T[],
+    operation: (value: T) => Evaluation<R>,
+    index: number,
+): Execution<R[]> {
+    results.push(yield* resume(pending));
+    for (index++; index < values.length; index++) {
+        results.push(yield* resume(operation(values[index])));
+    }
+    return results;
 }
 
 interface Frame {
