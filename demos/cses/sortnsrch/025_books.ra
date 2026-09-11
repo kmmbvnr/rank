@@ -1,0 +1,19 @@
+rem CSES 1631: Reading Books
+rem https://cses.fi/problemset/task/1631
+
+use io
+use numbers
+
+N = stdin .integer
+Books = stdin .integer N array
+
+Books minimum_reading_time print
+
+
+rem Keep both readers busy whenever possible.
+fun minimum_reading_time Books
+  Total = Books sum
+  Longest = Books max
+  Twice = Longest * 2
+  return Total Twice max
+end

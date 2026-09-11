@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "025_books"
+  Books = array 2 8 3
+  Books minimum_reading_time equal 16
+end
+
+test "one book"
+  use "025_books"
+  Books = array 7
+  Books minimum_reading_time equal 14
+end
+
+test "balanced reading"
+  use "025_books"
+  Books = array 4 4 4 4
+  Books minimum_reading_time equal 16
+end
+
+test "long book determines the time"
+  use "025_books"
+  Books = array 20 1 2 3
+  Books minimum_reading_time equal 40
+end
