@@ -11,6 +11,7 @@ import {
 import {
     isRankArray,
     isRankMultiset,
+    isRankQueue,
     isRankSequence,
     isRankSet,
     type RankArray,
@@ -33,11 +34,11 @@ export const numbersModule: RuntimeModule = {
     asin: () => unaryMath('asin', Math.asin, unitDomain),
     acos: () => unaryMath('acos', Math.acos, unitDomain),
     atan: () => unaryMath('atan', Math.atan),
-    atan2: () => native('atan2', 2, arguments_ => mapBinaryNumeric(
+    atan2: () => native('atan2', 2, arguments_ => mapBinaryValue(
         arguments_[0],
         arguments_[1],
         'atan2',
-        (left, right) => Math.atan2(left, right),
+        (left, right) => Math.atan2(numericReal(left, 'atan2'), numericReal(right, 'atan2')),
     ), 'all', [0, 0]),
     sinh: () => unaryMath('sinh', Math.sinh),
     cosh: () => unaryMath('cosh', Math.cosh),
@@ -144,14 +145,12 @@ function mapUnaryNumeric(
         operation(numericReal(value.itemAt?.(index) ?? value.items[index], name)));
 }
 
-function mapBinaryNumeric(
+function mapBinaryValue(
     left: RankValue,
     right: RankValue,
     name: string,
-    operation: (left: number, right: number) => number,
+    scalarOperation: (left: RankValue, right: RankValue) => RankValue,
 ): RankValue {
-    const scalarOperation = (a: RankValue, b: RankValue) =>
-        operation(numericReal(a, name), numericReal(b, name));
     if (isRankSequence(left) && isRankSequence(right)) {
         return zipSequences(left, right, name, scalarOperation);
     }
@@ -161,6 +160,8 @@ function mapBinaryNumeric(
     if (isRankSequence(right)) {
         return mapSequence(right, name, item => scalarOperation(left, item));
     }
+    if (isRankQueue(left)) left = { kind: 'array', items: left.items, shape: [left.items.length] };
+    if (isRankQueue(right)) right = { kind: 'array', items: right.items, shape: [right.items.length] };
     if (isRankArray(left) && isRankArray(right)) {
         return mapBroadcastArrays(left, right, scalarOperation);
     }
@@ -270,11 +271,17 @@ function numericExtreme(
     name: 'min' | 'max',
     replaces: (candidate: bigint | number, current: bigint | number) => boolean,
 ) {
+    const binary = (a: RankValue, b: RankValue): RankValue => {
+        if ((typeof a === 'object' || typeof b === 'object')
+            && (isRankArray(a) || isRankArray(b) || isRankSequence(a) || isRankSequence(b)
+                || isRankQueue(a) || isRankQueue(b))) return mapBinaryValue(a, b, name, binary);
+        const left = expectNumeric(a);
+        const right = expectNumeric(b);
+        return replaces(right, left) ? right : left;
+    };
     return native(name, [1, 2], arguments_ => {
         if (arguments_.length === 2) {
-            const left = expectNumeric(arguments_[0]);
-            const right = expectNumeric(arguments_[1]);
-            return replaces(right, left) ? right : left;
+            return binary(arguments_[0], arguments_[1]);
         }
         const value = arguments_[0];
         if (isRankMultiset(value)) {

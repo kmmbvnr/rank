@@ -259,6 +259,10 @@ from main `7e2e4ed`).
 
 ## Direct infix min/max (2026-09-11)
 
+Review follow-up: [ordinary extrema calls and shadowing](extrema-calls.md)
+records a refactoring branch, its added semantic tests and its scalar regression.
+The measurements below describe the earlier syntax-only fast path.
+
 The infix syntax introduced in `9f57f7d` always entered the resumable application
 evaluator, even for two scalar names. It bypassed the existing synchronous path
 used by simple calls through an alias. Correctness tests covered the new syntax,

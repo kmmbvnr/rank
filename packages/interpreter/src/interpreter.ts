@@ -1001,7 +1001,7 @@ export class Interpreter {
         return execute;
     }
 
-    // Arithmetic, conditions and infix extrema with direct operands cannot call
+    // Arithmetic and conditions with direct operands cannot call
     // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
@@ -1038,26 +1038,6 @@ export class Interpreter {
             };
         }
         if (isParenthesizedExpression(expression)) return this.compileDirectExpression(expression.value);
-        if (isApplicationExpression(expression)) {
-            const parts = flattenApplication(expression);
-            // Only the unambiguous binary chain belongs here. Reductions,
-            // selectors and effectful operands retain the application evaluator.
-            if (parts.length < 3 || parts.length % 2 === 0
-                || !parts.every((part, index) => index % 2 === 0 || extremeName(part))) return undefined;
-            const left = this.compileDirectExpression(parts[0]);
-            if (!left) return undefined;
-            const steps: Array<{ operation: 'min' | 'max'; right: () => RankValue }> = [];
-            for (let index = 1; index < parts.length; index += 2) {
-                const right = this.compileDirectExpression(parts[index + 1]);
-                if (!right) return undefined;
-                steps.push({ operation: extremeName(parts[index])!, right });
-            }
-            return () => {
-                let result = left();
-                for (const step of steps) result = this.evaluateBinary(step.operation, result, step.right());
-                return result;
-            };
-        }
         if (isUnaryExpression(expression)) {
             const operand = this.compileDirectExpression(expression.operand);
             return operand ? () => this.evaluateUnary(expression.operator, operand()) : undefined;
@@ -1214,7 +1194,7 @@ export class Interpreter {
         }
         if (isParenthesizedExpression(expression)) {
             if (tail) return this.compileExpression(expression.value, missing, true);
-            return function* (): Execution<RankValue> { return (yield* resume(interpreter.evaluateTask(expression.value))); };
+            return () => interpreter.evaluateTask(expression.value);
         }
         if (isUnaryExpression(expression)) {
             return function* (): Execution<RankValue> {
@@ -1520,35 +1500,21 @@ export class Interpreter {
             }
             const extreme = explicitExtremeApplication(parts);
             if (extreme) {
-                if ('reduction' in extreme) return () => flatMapResult(mapExecution(
-                    extreme.source, part => interpreter.evaluateTask(part),
-                ), sourceParts => {
-                    if (sourceParts.length > 1 && !canApplySelectors(sourceParts)) {
-                        throw new RankError(`binary ${extreme.reduction} uses infix order: A ${extreme.reduction} B`);
-                    }
-                    const source = sourceParts.length === 1
-                        ? completed(sourceParts[0]) : interpreter.apply(sourceParts);
-                    return flatMapResult(source, result => {
-                        const fn = interpreter.resolve(extreme.reduction);
-                        if (!isNativeFunction(fn)) throw new RankError(`unknown operation: ${extreme.reduction}`);
-                        return interpreter.invoke(fn, [result]);
-                    });
-                });
-                return function* (): Execution<RankValue> {
-                    const sourceParts = yield* resume(mapExecution(
-                        extreme.source,
-                        part => interpreter.evaluateTask(part),
-                    ));
-                    let result = sourceParts.length === 1
-                        ? sourceParts[0]
-                        : yield* resume(interpreter.apply(sourceParts));
-                    for (const step of extreme.steps) {
-                        const right = yield* resume(interpreter.evaluateTask(step.right));
-                        result = interpreter.evaluateBinary(step.operation, result, right);
-                    }
-                    return result;
-                };
+                return this.compileApplication(extreme, missing, tail);
             }
+            // Builtin postfix extrema reduce an addressed value (Matrix i max).
+            // A shadowing callable uses the same argument rules as any function.
+            const lastExtreme = extremeName(parts.at(-1)!);
+            if (lastExtreme && parts.length > 2) return () => flatMapResult(mapExecution(
+                parts.slice(0, -1), part => interpreter.evaluateTask(part),
+            ), values => {
+                const fn = interpreter.resolve(lastExtreme);
+                const builtin = interpreter.standardFunctions.get(standardModules.numbers[lastExtreme]);
+                if (fn === builtin && canApplySelectors(values)) {
+                    return interpreter.apply([interpreter.applySelectors(values), fn], missing, 0, [], tail);
+                }
+                return interpreter.apply([...values, fn], missing, 0, [], tail);
+            });
             const axisSelection = explicitAxisSelection(parts);
             if (axisSelection) {
                 return function* (): Execution<RankValue> {
@@ -1692,41 +1658,46 @@ export class Interpreter {
                         ? pending[0] : interpreter.applySelectors(pending, missing);
                 };
             }
-            const directParts = parts.map(part => isAllAxisExpression(part)
-                ? () => ALL_AXIS : this.compileDirectExpression(part));
-            if (directParts.every(part => part !== undefined)) {
-                const last = parts.at(-1)!;
-                if (!tail && (parts.length === 2 || parts.length === 3) && isNameExpression(last)) {
-                    const operands = directParts.slice(0, -1);
-                    return () => {
-                        const arguments_ = operands.map(part => part());
-                        const simple = !arguments_.some(isNativeFunction);
-                        const fn = this.resolve(last.name);
-                        if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
-                            const result = arguments_.length === 1 && fn.monadicRank !== 'all'
-                                ? this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank)
-                                : this.invoke(fn, arguments_);
-                            if ('done' in result) {
-                                this.ownFiles(result.value);
-                                return result;
-                            }
-                            return this.finishApplication(result);
-                        }
-                        return this.apply([...arguments_, fn], missing, 0, [], tail);
-                    };
-                }
-                return () => this.apply(directParts.map(part => part()), missing, 0, [], tail);
-            }
-            return function* (): Execution<RankValue> {
-                const values: RankValue[] = [];
-                for (const part of parts) {
-                    values.push(isAllAxisExpression(part)
-                        ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part)));
-                }
-                return yield* resume(interpreter.apply(values, missing, 0, [], tail));
-            };
+            return this.compileApplication(parts, missing, tail);
         }
         return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
+    }
+
+    private compileApplication(
+        parts: Expression[], missing?: () => RankValue, tail = false,
+    ): () => Evaluation<RankValue> {
+        const interpreter = this;
+        const directParts = parts.map(part => isAllAxisExpression(part)
+            ? () => ALL_AXIS : this.compileDirectExpression(part));
+        if (directParts.every(part => part !== undefined)) {
+            const last = parts.at(-1)!;
+            if (!tail && (parts.length === 2 || parts.length === 3) && isNameExpression(last)) {
+                const [left, right, operation] = directParts;
+                const binary = parts.length === 3;
+                return () => {
+                    const a = left();
+                    const b = binary ? right() : undefined;
+                    const arguments_ = binary ? [a, b!] : [a];
+                    const simple = !isNativeFunction(a) && (b === undefined || !isNativeFunction(b));
+                    const fn = (binary ? operation : right)();
+                    if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
+                        const result = arguments_.length === 1 && fn.monadicRank !== 'all'
+                            ? this.applyUnaryAtRank(arguments_[0], fn, fn.monadicRank)
+                            : this.invoke(fn, arguments_);
+                        if ('done' in result) {
+                            this.ownFiles(result.value);
+                            return result;
+                        }
+                        return this.finishApplication(result);
+                    }
+                    return this.apply([...arguments_, fn], missing, 0, [], tail);
+                };
+            }
+            return () => this.apply(directParts.map(part => part()), missing, 0, [], tail);
+        }
+        return () => flatMapResult(mapExecution(parts, part => isAllAxisExpression(part)
+            ? completed(ALL_AXIS) : interpreter.evaluateTask(part)),
+        values => interpreter.apply(values, missing, 0, [], tail));
     }
 
     private readStdin(mode: 'word' | 'integer'): RankValue {
@@ -4244,33 +4215,13 @@ interface NamedOuterApplication {
     readonly operation: Expression;
 }
 
-interface ExtremeReduction {
-    readonly source: readonly Expression[];
-    readonly reduction: 'min' | 'max';
-}
-
-interface ExtremeChain {
-    readonly source: readonly Expression[];
-    readonly steps: readonly {
-        readonly operation: 'min' | 'max';
-        readonly right: Expression;
-    }[];
-}
-
-type ExtremeApplication = ExtremeReduction | ExtremeChain;
-
-function explicitExtremeApplication(parts: Expression[]): ExtremeApplication | undefined {
+// Infix extrema are left-associative calls, not builtin dispatch. The ordinary
+// application evaluator resolves the name after evaluating both operands.
+function explicitExtremeApplication(parts: Expression[]): Expression[] | undefined {
     const first = parts.findIndex((part, index) => index > 0
         && (isNamed(part, 'min') || isNamed(part, 'max')));
-    if (first < 0) return undefined;
+    if (first < 0 || first === parts.length - 1) return undefined;
 
-    const source = parts.slice(0, first);
-    const firstName = extremeName(parts[first])!;
-    if (first === parts.length - 1) {
-        return { source, reduction: firstName };
-    }
-
-    const steps: Array<{ operation: 'min' | 'max'; right: Expression }> = [];
     for (let index = first; index < parts.length; index += 2) {
         const operation = parts[index];
         const right = parts[index + 1];
@@ -4279,9 +4230,11 @@ function explicitExtremeApplication(parts: Expression[]): ExtremeApplication | u
             throw new RankError('min/max chains require an operation between each value');
         }
         if (!right) throw new RankError(`${operationName} expects a value on the right`);
-        steps.push({ operation: operationName, right });
     }
-    return { source, steps };
+    return [
+        { $type: 'ParenthesizedExpression', value: applicationParts(parts.slice(0, -2)) } as Expression,
+        parts.at(-1)!, parts.at(-2)!,
+    ];
 }
 
 function extremeName(expression: Expression): 'min' | 'max' | undefined {

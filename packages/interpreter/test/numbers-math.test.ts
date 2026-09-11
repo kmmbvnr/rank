@@ -18,10 +18,9 @@ describe('Rank mathematical functions', () => {
             'end',
             'M 0 max',
         ].join('\n'))).toBe('7');
-        expect(() => run('use numbers\n3 2 max'))
-            .toThrowError('binary max uses infix order: A max B');
+        expect(run('use numbers\n3 2 max')).toBe('3');
         expect(() => run('3 max 2'))
-            .toThrowError('max requires: use numbers');
+            .toThrowError('use numbers');
     });
 
     it('reduces numeric sets', () => {

@@ -595,6 +595,13 @@ Clamped = Values max 0
 Binary chains associate from the left. `axis` and `rank` modify the postfix
 reduction; the binary form already follows ordinary elementwise broadcasting.
 
+Infix calls resolve the function normally, after evaluating the left and right
+operands. A user-defined `min` or `max` takes precedence, even without
+`use numbers`. For example, after `fun max A B` returning `A + B`, both
+`3 max 4` and `3 4 max` return `7`. A named builtin (`Op = max`) supports
+the same lazy binary broadcasting as infix calls. Equal numeric operands
+preserve the left operand, including its integer/real representation.
+
 ## Scan
 
 Prefix accumulation:

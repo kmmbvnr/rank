@@ -34,10 +34,17 @@ intermediate values when several arguments require addressing. If the left
 chain cannot form one value, the call has too many arguments and is an error.
 
 For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. Direct binary `min` and
-`max` are the arithmetic-like exceptions: write `A min B` and `A max B`.
-Their postfix forms `A min` and `A max` always reduce the one value on their
-left, including an addressed value such as `Matrix i max`.
+Otherwise Rank tries larger supported arities first. `min` and `max` also
+allow infix calls: `A max B` calls the current `max` with arguments `A` and
+`B`. Chains associate from the left. These names are not reserved; a local
+function or parameter shadows the builtin in both infix and postfix calls.
+
+Builtin postfix extrema retain one addressing rule: `Matrix i max` reduces
+the addressed row. This rule applies only when the resolved function is the
+builtin. Otherwise postfix calls use ordinary arity selection. Two scalar
+arguments are accepted too: `3 4 max` is `4`. Use infix `Matrix max i` for
+elementwise broadcasting, or name the builtin (`Op = max; Matrix i Op`) to
+use ordinary binary argument selection.
 
 The fundamental selection model is:
 
