@@ -429,7 +429,7 @@ fails. Errors carry the original body-command or loop-condition location.
 The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches),
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
-bigint arithmetic. Dynamic or negative exponents retain reference execution. Calls, indexing,
+bigint arithmetic. Dynamic or negative exponents retain reference execution. Other calls and indexing,
 floating-point operations and other iterable loops retain the old path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
@@ -451,5 +451,24 @@ Only selected conditions and bodies execute. Definite assignments after a branch
 are the intersection of all outgoing paths; other reads require an initial
 integer guard or decline compilation. Branch-local writes still use checked
 writers, and errors point to the original nested statement. An empty selected
-branch retains the reference result (`undefined`). This does not yet compile
-container operations, calls, suspension or loop-control commands.
+branch retains the reference result (`undefined`). General calls, suspension and loop-control commands remain on the reference path.
+
+
+### Guarded containers in integer loops
+
+The loop compiler accepts stable named `RankDeque` receivers (queue, deque or
+stack) for `push`, `len` and `pop`, and stable named indexes for integer-key
+membership and plain integer-value indexed assignment, including multiple keys.
+Mutations call the existing container methods and resource-aware index map;
+queue/stack order, empty-pop errors and partial mutations retain runtime behavior.
+
+Before execution, receiver kinds are checked. Any deque used by `pop` must
+contain only integers, verified by one read-only traversal per loop invocation.
+The compiled region can only push integers, so this property survives aliases
+between its deque receivers. Mixed containers fall back before any pop or write.
+Container rebinding anywhere in the region, even in just one branch, declines.
+
+`even`/`odd`, deque `len` and `pop` require their actual standard-library bindings.
+Shadowing or reassignment of those names prevents specialization. Missing modules
+retain reference execution and its error timing. Index reads, compound index
+writes, other receiver classes and arbitrary calls are not yet lowered.

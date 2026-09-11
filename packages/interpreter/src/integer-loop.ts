@@ -1,17 +1,22 @@
 import {
-    isAssignmentStatement, isIfStatement, isBinaryExpression, isUnaryExpression,
+    isAssignmentStatement, isIfStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement,
 } from 'rank-language';
 import { completed, type Completed } from './execution.js';
 import { RankError } from './errors.js';
-import type { RankValue } from './value.js';
+import { isRankIndex, type RankValue } from './value.js';
+import { RankDeque } from './containers.js';
+import { indexKey } from './index-key.js';
+
 
 interface Host {
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;
     locate(error: unknown, statement: Statement): unknown;
     ranges(): boolean;
+    module(name: string): boolean;
+    builtin(module: string, name: string): boolean;
     compiled?(source: string): void;
     executed?(): void;
 }
@@ -31,7 +36,20 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
     const writers: ((value: RankValue) => void)[] = [];
     const binders: ((value: RankValue) => void)[] = [];
+    const written = new Set<string>();
+    const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
+    const builtins = new Map<string, string>();
+    let needsAlgo = false;
     let serial = 0;
+    function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
+        if (name.includes('.')) return undefined;
+        const old = containers.get(name);
+        if (old && old.kind !== kind) return undefined;
+        const info = old ?? { slot: slot(name), kind, integers };
+        info.integers ||= integers;
+        containers.set(name, info);
+        return `r${info.slot}`;
+    }
     function slot(name: string): number {
         let index = names.indexOf(name);
         if (index < 0) { index = names.length; names.push(name); }
@@ -56,7 +74,31 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             }
             return undefined;
         }
+        if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
+            const op = e.arguments[0].name;
+            if (op === 'even' || op === 'odd') {
+                const value = emit(e.head, lines);
+                if (value?.type !== 'integer') return undefined;
+                builtins.set(op, 'numbers');
+                return { code: `((${value.code}) % 2n ${op === 'even' ? '===' : '!=='} 0n)`, type: 'boolean' };
+            }
+            if ((op === 'len' || op === 'pop') && isNameExpression(e.head)) {
+                const receiver = container(e.head.name, 'deque', op === 'pop');
+                if (!receiver) return undefined;
+                builtins.set(op, op === 'len' ? 'sequences' : 'algo');
+                const name = `v${serial++}`;
+                lines.push(`const ${name} = ${op === 'len' ? `BigInt(${receiver}.size)` : `${receiver}.pop()`};`);
+                return { code: name, type: 'integer' };
+            }
+            return undefined;
+        }
         if (!isBinaryExpression(e) || e.step) return undefined;
+        if (e.operator === 'in' && isNameExpression(e.right)) {
+            const receiver = container(e.right.name, 'index');
+            const key = emit(e.left, lines);
+            if (!receiver || key?.type !== 'integer') return undefined;
+            return { code: `${receiver}.entries.has(key([${key.code}]))`, type: 'boolean' };
+        }
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
         if (e.operator === '**') {
             let exponent = e.right;
@@ -116,6 +158,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             bindings += `binders[${binders.length}](${value}); r${target} = ${value};\n`;
             binders.push(host.writer(name));
             assigned.add(name);
+            written.add(name);
         }
     } else {
         const test = emit(statement.condition, tests);
@@ -128,6 +171,34 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             const location = locations.length;
             if (location >= 32) return false;
             locations.push(assignment);
+            if (isPushStatement(assignment)) {
+                if (!isNameExpression(assignment.receiver)) return false;
+                const receiver = container(assignment.receiver.name, 'deque');
+                const lines: string[] = [];
+                const value = emit(assignment.value, lines);
+                if (!receiver || value?.type !== 'integer') return false;
+                needsAlgo = true;
+                body.push(`location = ${location};`, ...lines, `${receiver}.push(${value.code}); result = undefined;`);
+                continue;
+            }
+            if (isArrayAssignmentStatement(assignment)) {
+                if (assignment.operator !== '=') return false;
+                const receiver = container(assignment.name, 'index');
+                if (!receiver) return false;
+                const lines: string[] = [], keys: string[] = [];
+                for (const address of assignment.indices) {
+                    if (address.all || address.sign || !address.value) return false;
+                    const value = emit(address.value, lines);
+                    if (value?.type !== 'integer') return false;
+                    keys.push(value.code);
+                }
+                const name = `key${serial++}`;
+                lines.push(`const ${name} = key([${keys.join(',')}]);`);
+                const value = emit(assignment.value, lines);
+                if (value?.type !== 'integer') return false;
+                body.push(`location = ${location};`, ...lines, `${receiver}.entries.set(${name}, ${value.code}); result = undefined;`);
+                continue;
+            }
             if (isIfStatement(assignment)) {
                 const incoming = new Set(assigned);
                 const outcomes: Set<string>[] = [];
@@ -161,6 +232,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             const index = writers.length;
             if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return false;
             const destination = slot(assignment.name);
+            written.add(assignment.name);
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
             const lines: string[] = [];
             const value = emit(assignment.value, lines);
@@ -187,6 +259,9 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     }
     const body: string[] = [];
     if (!statements(statement.statements, body)) return undefined;
+    // Container bindings must remain stable throughout the compiled region.
+    if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
+    if ([...builtins.keys()].some(name => written.has(name))) return undefined;
     const source = `"use strict"; return function(input) {
         let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};
         let result, location = -1;
@@ -196,18 +271,29 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[]) => RankValue | undefined;
-    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', source)(writers, binders,
+    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', 'key', source)(writers, binders,
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index])); }
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: () => {
         if (iteration && !host.ranges()) return undefined;
+        if (needsAlgo && !host.module('algo')) return undefined;
+        for (const [name, module] of builtins) if (!host.builtin(module, name)) return undefined;
         const values: (RankValue | undefined)[] = [];
         for (const index of required) {
             const value = host.read(names[index]);
             if (typeof value !== 'bigint') return undefined;
             values[index] = value;
+        }
+        for (const [name, info] of containers) {
+            const value = host.read(name);
+            if (value === undefined) return undefined;
+            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return undefined;
+            if (info.integers && value instanceof RankDeque) {
+                for (const item of value.values()) if (typeof item !== 'bigint') return undefined;
+            }
+            values[info.slot] = value;
         }
         host.executed?.();
         return completed(run(values));

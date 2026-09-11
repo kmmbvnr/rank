@@ -5,12 +5,18 @@ function execute(source: string, integerLoopCompilation: boolean) {
     let loops = 0;
     const runtime = new Interpreter(undefined, { integerLoopCompilation,
         onIntegerLoopExecuted: () => loops++ });
+    const containers = () => [...runtime.variables].flatMap<unknown>(([name, value]) => {
+        if (typeof value !== 'object' || value === null) return [];
+        if (value.kind === 'queue') return [[name, value.items.map(formatValue)]];
+        if (value.kind === 'index') return [[name, [...value.entries].map(([key, item]) => [key, formatValue(item)])]];
+        return [];
+    });
     try {
         const value = runtime.execute(source);
-        return { value: value === undefined ? undefined : formatValue(value), loops,
+        return { value: value === undefined ? undefined : formatValue(value), loops, containers: containers(),
             variables: [...runtime.variables].filter(([, v]) => typeof v !== 'object').map(([k, v]) => [k, formatValue(v)]) };
     } catch (error) {
-        return { error: error instanceof RankError ? error.format() : String(error), loops,
+        return { error: error instanceof RankError ? error.format() : String(error), loops, containers: containers(),
             variables: [...runtime.variables].filter(([, v]) => typeof v !== 'object').map(([k, v]) => [k, formatValue(v)]) };
     } finally { runtime.dispose(); }
 }
@@ -297,4 +303,138 @@ for I in 1 to 2
   ${branch}
 end`).loops).toBe(1);
     });
+});
+
+
+describe('compiled container loops', () => {
+    it.each(['stack', 'queue', 'deque'])('pushes and drains a %s through runtime methods', kind => {
+        const result = compare(`use algo
+use sequences
+use ranges
+P = new ${kind}
+Cache = new index
+for I in 1 to 5
+  P push I
+end
+Total = 0
+for P len greater 0
+  V = P pop
+  Total += V
+  Cache V = Total
+end
+Total`);
+        expect(result.value).toBe('15');
+        expect(result.loops).toBe(2);
+    });
+
+    it('compiles the Collatz walk with membership and native predicates', () => {
+        const result = compare(`use algo
+use numbers
+Cache = new index
+Cache 1 = 1
+Path = new stack
+N = 27
+for not (N in Cache)
+  Path push N
+  if N even
+    N //= 2
+  else
+    N = 3 * N + 1
+  end
+end
+N`);
+        expect(result.value).toBe('1');
+        expect(result.loops).toBe(1);
+    });
+
+    it('preserves mutation order for aliased containers', () => {
+        const result = compare(`use algo
+use sequences
+use ranges
+P = new stack
+Q = P
+Cache = new index
+for I in 1 to 3
+  P push I
+  V = Q pop
+  Cache I I = V
+end
+P len`);
+        expect(result.value).toBe('0');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains writes and removals preceding an error', () => {
+        const result = compare(`use algo
+use sequences
+use ranges
+P = new stack
+P push 7
+Cache = new index
+for I in 1 to 2
+  V = P pop
+  Cache I = V
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('declines mixed deque values before destructive reads', () => {
+        const result = compare(`use algo
+use sequences
+P = new stack
+P push 1
+P push "text"
+for P len greater 0
+  V = P pop
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it.each(['even', 'len', 'pop'])('respects a user function shadowing %s', name => {
+        const expr = name === 'even' ? 'N even' : 'P len greater 0';
+        const body = name === 'pop' ? 'V = P pop' : 'N += 1';
+        const result = compare(`use algo
+use sequences
+use numbers
+fun ${name} X
+  return 0
+end
+P = new stack
+N = 0
+for ${expr}
+  ${body}
+end`);
+        expect(result.loops).toBe(0);
+    });
+
+    it('rejects a container binding assigned on just one branch', () => {
+        const result = compare(`use algo
+use ranges
+P = new stack
+for I in 1 to 2
+  P push I
+  if I equal 2
+    P = 1
+  end
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});
+
+
+it('does not retain native bindings reassigned inside a compiled loop', () => {
+    const result = compare(`use numbers
+use ranges
+Total = 0
+for I in 1 to 2
+  even = 1
+  if I even
+    Total += I
+  end
+end`);
+    expect(result).toHaveProperty('error');
+    expect(result.loops).toBe(0);
 });

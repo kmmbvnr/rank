@@ -954,6 +954,12 @@ export class Interpreter {
                 read: name => this.findVariable(name),
                 writer: name => this.compileAssign(name),
                 ranges: () => this.modules.has('ranges'),
+                module: name => this.modules.has(name),
+                builtin: (module, name) => {
+                    if (!this.modules.has(module)) return false;
+                    try { return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]); }
+                    catch { return false; }
+                },
                 locate: (error, command) => this.locateError(error, command),
                 compiled: this.options.onIntegerLoopCompiled,
                 executed: this.options.onIntegerLoopExecuted,

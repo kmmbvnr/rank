@@ -442,3 +442,52 @@ match the preceding committed power-loop baseline. One comparison took
 not only branches; no new sample or stable whole-suite speedup is claimed.
 
 [Suite verification](../../benchmarks/baselines/2026-09-11-integer-branches-suite.json).
+
+
+## Guarded stack, queue and index loops
+
+Whole-loop lowering now handles integer `push`, `pop`, `len`, index membership
+and plain indexed writes. `even`/`odd` are specialized only under native-function
+identity guards. The two loops inside the unchanged Euler 14 `collatz_length`
+now compile. Mutation uses existing deque methods and resource-aware index maps.
+Fixed scalar types, aliasing, binding stability and error locations remain checked.
+
+Twelve new cases cover queue/stack/deque order, the Collatz walk, aliases,
+multidimensional index writes, partial mutations on errors, mixed deque values,
+shadowed functions and bindings reassigned inside branches. Differential tests
+now compare container contents as well as scalar state. TypeScript verification
+passes 44 language + 671 interpreter tests.
+
+The first approach reused `iterationTypes` for the integer-content guard. Its
+three-sample Collatz medians were 7691.951 ms off / 7812.957 ms on. Replacing the
+allocation of a type set and array with a direct read-only traversal reduced
+that entry overhead. Do not keep caches merely because a cache API exists.
+
+| Final measurement | Compiler off median ms | Compiler on median ms |
+| --- | ---: | ---: |
+| Euler 14 tests, three alternating pairs | 7715.676 | 7572.262 |
+| Stack to index, 200000 entries, five pairs | 249.840 | 83.966 |
+
+The long-container fixture improves about 2.98x and checks its result against an
+independent arithmetic formula. Collatz's approximately 1.9% median difference
+is small relative to run variation; no robust Collatz speedup is claimed. A
+separate instrumented run confirms 2000020 compiled loop entries across its tests.
+All timing samples above disable callbacks and include parsing/loading and result
+validation. Existing Euler code is unchanged.
+
+[Initial approach](../../benchmarks/baselines/2026-09-11-container-loops-initial.json),
+[Collatz](../../benchmarks/baselines/2026-09-11-container-loops-collatz.json),
+[long loops](../../benchmarks/baselines/2026-09-11-container-loops-long.json),
+[coverage](../../benchmarks/baselines/2026-09-11-container-loops-coverage.json).
+
+The result distinguishes two workloads: long loops benefit from fused execution,
+but two million tiny loop invocations still pay entry guards and function-level
+runtime overhead. Compiling a larger function region is the next useful direction
+for Collatz; blanket speedup claims from the long-loop fixture would be misleading.
+
+The full suite passes 306 files / 1054 tests in both modes. Complete result
+digests match the preceding branch-loop commit. One full-suite comparison took
+36.826 s off and 37.364 s on; this toggles all integer-loop compilation
+and is not evidence of a stable whole-suite gain from container support alone.
+
+[Suite verification](../../benchmarks/baselines/2026-09-11-container-loops-suite.json).

@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 282.32937499999997,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 282.030667,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 84.04904199999999,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 83.96550000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 92.28024999999997,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 92.19233300000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 254.32945800000005,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 254.24874999999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 241.8174170000001,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 241.73199999999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 80.48308299999985,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 80.39274999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 87.15787499999988,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 87.07112499999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 249.93683299999998,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 249.8400419999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 244.246083,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 244.15824999999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 83.22862499999997,
+      "entries": [
+        {
+          "name": "Stack to index, 200000 entries",
+          "ms": 83.14129200000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "00319bbf94632d8d7c01b2d6c8a11bad50e9fb92e4b41a797896de127fbd3888"
+        }
+      ]
+    }
+  ]
+}
