@@ -4,6 +4,7 @@ import { cpus } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
+import { gridCase } from './dense-write-cases.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const options = Object.fromEntries(process.argv.slice(2).map(option => {
@@ -26,6 +27,7 @@ const summands = Array.from({ length: size }, (_, i) => i % 101 - 50);
 const lines = values => values.join(' ');
 // Expected answers follow from the constructed inputs, not from Rank execution.
 const cases = [
+  gridCase(Math.min(1000, size)),
   { name: 'restaurant', path: 'demos/cses/sortnsrch/005_restaurant.ra',
     input: `${size}\n${Array.from({ length: size }, (_, i) => `${3 * i + 1} ${3 * i + 2}`).join('\n')}\n`, expected: '1' },
   { name: 'rooms', path: 'demos/cses/sortnsrch/022_rooms.ra',

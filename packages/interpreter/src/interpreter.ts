@@ -1725,12 +1725,12 @@ export class Interpreter {
         return this.evaluateUnary(item.sign, value);
     }
 
-    private *evaluateAddressItem(item: AddressItem): Execution<RankValue> {
-        if (item.all) return ALL_AXIS;
+    private evaluateAddressItem(item: AddressItem): Evaluation<RankValue> {
+        if (item.all) return completed(ALL_AXIS);
         if (!item.value) throw new RankError('missing array selector');
-        const value = (yield* resume(this.evaluateTask(item.value)));
-        if (!item.sign) return value;
-        return this.evaluateUnary(item.sign, value);
+        const result = this.evaluateTask(item.value);
+        const sign = item.sign;
+        return sign ? mapResult(result, value => this.evaluateUnary(sign, value)) : result;
     }
 
     private *arrayDimension(item: ArrayItem): Execution<number> {

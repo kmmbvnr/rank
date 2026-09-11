@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "date": "2026-09-11T10:30:33.752Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "source": "\nuse ranges\nfun densewrite N\n A = array shape N pad 0\n for I in 0 until N\n  A I = I\n end\n return A (N - 1)\nend\nfun matrixwrite N\n M = array shape N 1 pad 0\n for I in 0 until N\n  M I 0 = 1\n end\n return M (N - 1) 0\nend\nfun denseupdate N\n A = array shape N pad 0\n for I in 0 until N\n  A I += 1\n end\n return A (N - 1)\nend\nfun denseread N\n A = array shape N pad 1\n Total = 0\n for I in 0 until N\n  Total += A I\n end\n return Total\nend\n",
+    "timing": "parse-once microbenchmarks; cold CLI demos; alternating order",
+    "policy": "candidate/baseline median <= 1.25 for each case",
+    "demos": [
+      {
+        "name": "dice",
+        "path": "demos/cses/dynamic/001_dice.ra",
+        "sourceHash": "f0f36c32d3dae7c5c2d1e1e5a44cf0971bcb9f5c2f0f445979a3696301f4384d",
+        "inputHash": "085c348f64a3b543e973a33749e90ba20847b99016a87e5228847597d61ce582",
+        "expected": "874273980"
+      },
+      {
+        "name": "gridpaths",
+        "path": "demos/cses/dynamic/006_gridpaths.ra",
+        "sourceHash": "94aa5a3fd8d4a84bb721f95b9d7356fcdce5a7a4fc8024c258cfbf563f538ea9",
+        "inputHash": "7619cef73b087d05de1c02fa072f2c41d31c9c2ac90cf89d29259a90f7033fa5",
+        "expected": "965601742"
+      },
+      {
+        "name": "bookshop",
+        "path": "demos/cses/dynamic/007_bookshop.ra",
+        "sourceHash": "24231e049a09ea98dc80832c56adae0414fcef488e29647da8c799837b16a2f5",
+        "inputHash": "4940f53751ce23268d16e9684e3a98620fcfa1948c6a7ba18e762d992d65225a",
+        "expected": "100"
+      },
+      {
+        "name": "editdistance",
+        "path": "demos/cses/dynamic/010_editdistance.ra",
+        "sourceHash": "26c7ca6a9cb76f0e4e7785a99d116b2f9dc7721a082f6aab188beb8a88958fa4",
+        "inputHash": "81a8d8da3cd5276f8831a59ee915fd074f23fa8086f00a43fe628a3f7c3c822f",
+        "expected": "1000"
+      }
+    ]
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-dense-write/",
+      "revision": "d46baaab1efbef01d138c373a8ff9ce6d5f2150a",
+      "dirty": true,
+      "results": {
+        "densewrite": [
+          596.323209,
+          593.6463750000003,
+          597.5670000000027,
+          586.7553750000006,
+          599.9457919999986
+        ],
+        "matrixwrite": [
+          568.0400829999999,
+          600.6474159999998,
+          605.7878339999952,
+          602.2521249999991,
+          603.4782500000001
+        ],
+        "denseupdate": [
+          636.308458,
+          653.3814170000005,
+          654.8780839999963,
+          659.4906249999985,
+          653.3844580000004
+        ],
+        "denseread": [
+          289.6207910000003,
+          291.80083399999785,
+          291.52120899999863,
+          285.46216700000514,
+          287.6396250000107
+        ],
+        "dice": [
+          1126.0247080000008,
+          1195.729958,
+          1127.3912500000006,
+          1144.7552080000023,
+          1159.7284579999978
+        ],
+        "gridpaths": [
+          1667.9982500000006,
+          1673.7200840000005,
+          1692.9832500000048,
+          1675.2512090000018,
+          1691.0331250000017
+        ],
+        "bookshop": [
+          1447.5381249999991,
+          1431.9348339999997,
+          1442.6136249999981,
+          1451.0145409999968,
+          1455.1237919999985
+        ],
+        "editdistance": [
+          1784.2630000000008,
+          1805.4469170000011,
+          1767.2210419999974,
+          1756.0323750000098,
+          1783.982290999993
+        ]
+      },
+      "medians": {
+        "densewrite": 596.323209,
+        "matrixwrite": 602.2521249999991,
+        "denseupdate": 653.3844580000004,
+        "denseread": 289.6207910000003,
+        "dice": 1144.7552080000023,
+        "gridpaths": 1675.2512090000018,
+        "bookshop": 1447.5381249999991,
+        "editdistance": 1783.982290999993
+      }
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-dense-base",
+      "revision": "e9daeb46cdbde353d81806556257486247dff774",
+      "dirty": false,
+      "results": {
+        "densewrite": [
+          736.4737500000001,
+          752.2074159999975,
+          752.4480829999957,
+          774.9294999999984,
+          752.2329170000012
+        ],
+        "matrixwrite": [
+          864.708083,
+          898.5697079999991,
+          906.9512500000055,
+          914.0540840000031,
+          899.5321660000045
+        ],
+        "denseupdate": [
+          799.0517909999999,
+          826.221540999999,
+          839.1681670000035,
+          831.5763329999972,
+          836.3125829999917
+        ],
+        "denseread": [
+          304.4837090000001,
+          309.23216599999796,
+          306.48570800000016,
+          307.54779199999757,
+          300.48441699999967
+        ],
+        "dice": [
+          1396.1457500000006,
+          1371.253125000003,
+          1350.1651249999995,
+          1391.2690829999992,
+          1394.033792000002
+        ],
+        "gridpaths": [
+          2037.837207999999,
+          2064.1360000000022,
+          2092.4170830000003,
+          2097.3557500000024,
+          2106.240875000003
+        ],
+        "bookshop": [
+          1667.9097079999992,
+          1688.5645839999997,
+          1703.4649580000041,
+          1693.716082999992,
+          1695.3231659999874
+        ],
+        "editdistance": [
+          1860.4954589999998,
+          1862.188291999999,
+          1879.257792000004,
+          1880.4336250000051,
+          1908.809958999991
+        ]
+      },
+      "medians": {
+        "densewrite": 752.2329170000012,
+        "matrixwrite": 899.5321660000045,
+        "denseupdate": 831.5763329999972,
+        "denseread": 306.48570800000016,
+        "dice": 1391.2690829999992,
+        "gridpaths": 2092.4170830000003,
+        "bookshop": 1693.716082999992,
+        "editdistance": 1879.257792000004
+      }
+    }
+  },
+  "ratios": {
+    "densewrite": 0.7927374560770505,
+    "matrixwrite": 0.669517053156714,
+    "denseupdate": 0.7857179576562127,
+    "denseread": 0.9449732350978015,
+    "dice": 0.8228136612736063,
+    "gridpaths": 0.8006296749394306,
+    "bookshop": 0.8546521695867996,
+    "editdistance": 0.9493015266954866
+  },
+  "failures": []
+}

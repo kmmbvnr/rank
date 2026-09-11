@@ -18,6 +18,7 @@ node --expose-gc benchmarks/arrays.mjs
 node --expose-gc benchmarks/arrays.mjs --json
 node --expose-gc benchmarks/arrays.mjs --fusion --json
 node benchmarks/runtime.mjs
+node benchmarks/dense-writes.mjs --baseline=/path/to/built/baseline
 node benchmarks/memo.mjs
 node benchmarks/extrema.mjs --baseline=/path/to/built/baseline
 node benchmarks/numerical-demos.mjs --baseline=/path/to/built/baseline
@@ -39,6 +40,11 @@ node --expose-gc benchmarks/arrays.mjs --module=/path/to/checkout/packages/inter
 Build that checkout first: the recorded Git revision does not prove compiled
 output is current. Run comparisons on the same machine and Node version, without
 other CPU-heavy work. Repeat runs before drawing conclusions.
+
+Dense array writes and the four DP controls are described in
+[dense write regression](dense-write-regression.md). Run that comparison when
+changing execution composition or addressing; the judge-scale timeout alone
+does not detect moderate regressions.
 
 ## What the measurements mean
 

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
+import { denseSource, denseCases } from './dense-write-cases.mjs';
 // An optional module path lets the same benchmark compare another checkout.
 const { Interpreter } = await import(process.argv[2] ?? '../packages/interpreter/out/index.js');
 
@@ -101,6 +102,7 @@ fun indexwork N
   return Sum
 end
 `);
+runtime.execute(denseSource);
 
 for (const [name, arguments_, expected, warmup] of [
   ['tree', [14n], 16384n, [10n]],
@@ -113,6 +115,7 @@ for (const [name, arguments_, expected, warmup] of [
   ['dyadiccalls', [50000n], 1250025000n, [1000n]],
   ['tailacc', [50000n, 0n], 50000n, [1000n, 0n]],
   ['indexwork', [50000n], 1249975000n, [1000n]],
+  ...denseCases,
 ]) {
   const fn = runtime.variables.get(name);
   for (let i = 0; i < 2; i++) fn.call(warmup);

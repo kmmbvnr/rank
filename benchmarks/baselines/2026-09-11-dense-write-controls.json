@@ -1,0 +1,80 @@
+{
+  "judge": {
+    "metadata": {
+      "date": "2026-09-11T10:32:41.131Z",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "platform": "darwin",
+      "arch": "arm64",
+      "harnessRevision": "d46baaab1efbef01d138c373a8ff9ce6d5f2150a",
+      "runtimeRevision": "d46baaab1efbef01d138c373a8ff9ce6d5f2150a",
+      "checkout": "/private/tmp/rank-dense-write",
+      "size": 200000,
+      "timeoutMs": 30000,
+      "timing": "one cold CLI process per case, including startup, parsing, input and output"
+    },
+    "results": [
+      {
+        "name": "gridpaths",
+        "ms": 1618.9899999999998,
+        "passed": true
+      },
+      {
+        "name": "restaurant",
+        "ms": 2448.0616670000004,
+        "passed": true
+      },
+      {
+        "name": "rooms",
+        "ms": 1537.8583749999998,
+        "passed": true
+      },
+      {
+        "name": "playlist",
+        "ms": 481.5321670000003,
+        "passed": true
+      },
+      {
+        "name": "books",
+        "ms": 184.95408399999997,
+        "passed": true
+      },
+      {
+        "name": "bounded-sum",
+        "ms": 631.7497920000005,
+        "passed": true
+      },
+      {
+        "name": "sum",
+        "ms": 177.74241699999948,
+        "passed": true
+      }
+    ]
+  },
+  "boundedSum": {
+    "metadata": {
+      "baseline": "d46baaab1efbef01d138c373a8ff9ce6d5f2150a",
+      "candidate": "same revision plus evaluateAddressItem fix",
+      "samples": 5,
+      "order": "alternating",
+      "size": 200000,
+      "command": "node benchmarks/judge-scale.mjs --only=bounded-sum --checkout=PATH"
+    },
+    "samples": {
+      "candidate": [
+        623.36175,
+        630.13675,
+        623.24875,
+        632.155083,
+        624.19525
+      ],
+      "head": [
+        624.1282080000001,
+        621.494792,
+        631.1827079999999,
+        630.240083,
+        633.2579579999999
+      ]
+    }
+  }
+}
