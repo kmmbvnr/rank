@@ -1,0 +1,21 @@
+rem Deep-ML 46: Precision
+rem https://www.deep-ml.com/problems/46
+
+use sequences
+
+fun precision Truth Predicted
+  N = Truth len
+  if Predicted len not equal N
+    .DimensionMismatch raise
+  end
+
+  Positive = Predicted equal 1
+  Guesses = Positive count
+  if Guesses equal 0
+    return 0.0
+  end
+
+  Actual = Truth equal 1
+  Hits = (Actual and Positive) count
+  return Hits / Guesses
+end

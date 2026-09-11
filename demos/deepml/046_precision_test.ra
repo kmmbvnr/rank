@@ -1,0 +1,43 @@
+use testing
+
+test "official perfect precision"
+  use "046_precision"
+  Truth = array 1 0 1 1 0 1
+  Predicted = array 1 0 1 0 0 1
+
+  Score = Truth Predicted precision
+  Score equal 1.0
+end
+
+test "official half precision"
+  use "046_precision"
+  Truth = array 1 0 1 1 0 0
+  Predicted = array 1 0 0 0 0 1
+
+  Score = Truth Predicted precision
+  Score equal 0.5
+end
+
+test "no positive guesses returns zero"
+  use "046_precision"
+  Truth = array 1 0 1
+  Predicted = array 0 0 0
+
+  Score = Truth Predicted precision
+  Score equal 0.0
+end
+
+test "lengths must match"
+  use "046_precision"
+  Truth = array 1 0
+  Predicted = array 1
+  Raised = false
+
+  try
+    Score = Truth Predicted precision
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+
+  Raised
+end
