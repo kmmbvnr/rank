@@ -1,5 +1,7 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankArray, isRankBytes, isRankLabel, type RankArray, type RankValue } from '../value.js';
+import { formatValue, isRankArray, isRankBytes, isRankLabel, isRankQueue, isRankSequence, type RankArray, type RankValue } from '../value.js';
+import { mapSequence } from '../sequence.js';
+import { roundValue } from './numbers.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -7,6 +9,22 @@ const hexadecimalBytes = Array.from({ length: 256 }, (_, byte) =>
     byte.toString(16).padStart(2, '0'));
 
 export const textModule: RuntimeModule = {
+    join: () => native('join', 2, ([value, separator]) => {
+        if (typeof separator !== 'string') throw new RankError('join separator must be text', 'TypeError');
+        let items: Iterable<RankValue>;
+        if (isRankArray(value) && value.shape.length === 1) items = value.items;
+        else if (isRankQueue(value)) items = value.items;
+        else if (isRankSequence(value)) {
+            if (value.plan.size.kind === 'infinite') throw new RankError('join requires a finite sequence', 'TypeError');
+            items = value.plan.iterate();
+        } else throw new RankError('join expects a rank-1 collection; join matrix rows separately', 'TypeError');
+        return Array.from(items, item => {
+            if (typeof item === 'object' && !isRankLabel(item)) {
+                throw new RankError('join expects scalar elements; join nested rows separately', 'TypeError');
+            }
+            return formatValue(item);
+        }).join(separator);
+    }),
     split: () => native('split', 2, arguments_ => {
         const [value, separator] = arguments_;
         if (typeof value !== 'string') {
@@ -82,6 +100,36 @@ export const textModule: RuntimeModule = {
         return BigInt(value);
     }, 1),
 };
+
+export function formattedText(value: RankValue, format: string): RankValue {
+    const match = /^\.(0|[1-9][0-9]*)f$/.exec(format);
+    if (!match) throw new RankError('text format must be .Nf, for example .6f', 'InvalidFormat', format);
+    const places = Number(match[1]);
+    if (places > 100) throw new RankError('text precision must be between 0 and 100', 'InvalidFormat', format);
+    const scalar = (item: RankValue): string => {
+        if (typeof item !== 'number' && typeof item !== 'bigint') {
+            throw new RankError('formatted text expects numeric input', 'TypeError');
+        }
+        if (typeof item === 'number' && !Number.isFinite(item)) return formatValue(item);
+        const rounded = typeof item === 'bigint' || Number.isInteger(item)
+            ? item : roundValue(item, BigInt(places));
+        // Expand the rounded decimal representation instead of toFixed, which
+        // switches to exponential notation for large numbers.
+        const [coefficient, exponent = '0'] = formatValue(rounded).split('e');
+        const negative = coefficient.startsWith('-');
+        const unsigned = negative ? coefficient.slice(1) : coefficient;
+        const [whole, fraction = ''] = unsigned.split('.');
+        const digits = whole + fraction;
+        const point = whole.length + Number(exponent);
+        const integer = point <= 0 ? '0' : digits.slice(0, point).padEnd(point, '0');
+        const decimal = (point < 0 ? '0'.repeat(-point) + digits : digits.slice(point)).padEnd(places, '0').slice(0, places);
+        const sign = negative && /[1-9]/.test(integer + decimal) ? '-' : '';
+        return sign + integer + (places ? '.' + decimal : '');
+    };
+    if (isRankSequence(value)) return mapSequence(value, 'text', scalar);
+    if (isRankArray(value)) return { kind: 'array', shape: value.shape, items: value.items.map(scalar) };
+    return scalar(value);
+}
 
 function textArray(items: string[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
