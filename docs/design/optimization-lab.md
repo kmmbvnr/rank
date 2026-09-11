@@ -620,3 +620,42 @@ registry merely to chase this small residual cost: it would need recursive
 validation and exact preservation of named caches. Keep these controls for
 future fusion or alias-analysis experiments. The remaining cost is recorded;
 it has not been eliminated.
+
+## 13. Generated binary-sum loop: rejected for limited benefit
+
+Built a generated JS loop for the existing private, single-binary `sum` plan.
+It handled `+`, `-` and `*`, inlined primitive mixed/BigInt arithmetic, retained
+the zero seed and left-fold order, and deferred invalid-summand errors until
+arithmetic reads completed. Eligibility and same-shape checks remained in the
+ordinary planner. Only whitelisted operator tokens entered generated source;
+Rank names and input text did not. Each prepared expression cached compilation,
+with fallback if the host prohibited `Function` construction.
+
+Compared against a clean build of 972651f, five samples, unchanged DeepML 001
+with snapshot input, opposite initial version orders:
+
+| Matrix | Before warm | Generated warm | Repeat before | Repeat generated |
+| --- | ---: | ---: | ---: | ---: |
+| 128 square | 1.2 ms | 1.2 ms | 1.2 ms | 1.2 ms |
+| 512 square | 9.89 ms | 9.00 ms | 9.80 ms | 8.35 ms |
+
+At 512 square, cold medians including compilation were 164.1 to 159.9 ms,
+then 164.6 to 157.5 ms. Peak RSS was unchanged in the first pair and slightly
+higher in the second. The prototype only activates for private inputs; it does
+not provide a generated path for arbitrary host arrays or user-function loops.
+[Raw comparisons](../../benchmarks/baselines/2026-09-11-generated-binary-sum.json).
+
+All 476 JS tests passed with the prototype. Three extra tests covered large
+BigInts, mixed types, rounding order, empty sums, NaN, arithmetic-error precedence,
+operator rejection and disabled dynamic code. They are retained with the
+[rejected patch](../../benchmarks/experiments/generated-binary-sum.patch).
+
+Decision: roll back the generator and its integration. A 9–15% warm improvement
+in this eligible case, and about 3–4% cold improvement, do not justify a second
+arithmetic implementation and dynamic-compilation fallback. The simpler common
+execution changes delivered broader and larger gains. Revisit code generation
+only if a larger measured loop can amortize this complexity; this experiment
+does not establish that general JIT compilation is ineffective.
+
+After rollback all 473 JS tests passed, and the interpreter source diff against
+972651f was empty. No generated-code path remains in the runtime.

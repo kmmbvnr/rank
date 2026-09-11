@@ -66,10 +66,12 @@ selectors; previous measurements included the now-removed suspension cost.
 
 Why: array reductions do not cover most scalar CSES algorithms.
 
-## Try generated JS after simpler optimizations
+## Reconsider generated JS only for a larger measured bottleneck
 
-Prototype guarded generated numeric loops if reader/callback overhead remains
-visible. Compare cold compilation plus execution with cached warm runs.
+The private binary-sum loop prototype was measured and rolled back: its limited
+warm gain and smaller cold gain did not justify dynamic code and duplicated
+arithmetic. See the experiment log. Revisit only if profiles show a larger
+candidate than this narrow fold, and compare cold compilation with cached runs.
 Revalidate inputs at each call. Expand to user loops/functions only when demo
 profiles justify it. Preserve deep recursion, tail calls, closures, resource
 cleanup and Rank diagnostics.

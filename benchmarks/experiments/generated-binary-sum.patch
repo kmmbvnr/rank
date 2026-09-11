@@ -1,0 +1,142 @@
+diff --git a/packages/interpreter/src/fused-reduction.ts b/packages/interpreter/src/fused-reduction.ts
+index b2272c9..0cf3444 100644
+--- a/packages/interpreter/src/fused-reduction.ts
++++ b/packages/interpreter/src/fused-reduction.ts
+@@ -3,6 +3,7 @@ import {
+     isUnaryExpression, type Expression,
+ } from 'rank-language';
+ import { numericKernel } from './numeric-kernels.js';
++import { generatedBinarySum } from './generated-sum.js';
+ import { privateArrayStorage } from './array-storage.js';
+ import { expectNumeric } from './modules/shared.js';
+ import { isRankArray, type RankValue } from './value.js';
+@@ -46,7 +47,7 @@ export function compileFusedSum<T>(
+     context: ArithmeticContext,
+     consume: (value: RankValue, sum: (() => RankValue) | undefined) => T,
+ ): (() => T) | undefined {
+-    return compileArithmeticFold(source, context, (value, read, size) => consume(value, read ? () => {
++    return compileArithmeticFold(source, context, (value, read, size, generated) => consume(value, generated ?? (read ? () => {
+         let total: bigint | number = 0n;
+         let invalid: unknown;
+         for (let index = 0; index < size; index += 1) {
+@@ -61,13 +62,14 @@ export function compileFusedSum<T>(
+         }
+         if (invalid !== undefined) throw invalid;
+         return total;
+-    } : undefined));
++    } : undefined)), true);
+ }
+ 
+ function compileArithmeticFold<T>(
+     source: Expression,
+     context: ArithmeticContext,
+-    finish: (value: RankValue, read: Reader | undefined, size: number) => T,
++    finish: (value: RankValue, read: Reader | undefined, size: number, generated?: () => RankValue) => T,
++    generateSum = false,
+ ): (() => T) | undefined {
+     const instructions: Instruction[] = [];
+     const visit = (expression: Expression): number | undefined => {
+@@ -99,6 +101,7 @@ function compileArithmeticFold<T>(
+     const second = instructions[1];
+     const binary = instructions[root];
+     if (instructions.length === 3 && 'read' in first && 'read' in second && !('read' in binary)) {
++        let generated: ReturnType<typeof generatedBinarySum> | null = null;
+         return () => {
+             const left = first.read(), right = second.read();
+             const value = context.binary(binary.operator, left, right);
+@@ -108,8 +111,11 @@ function compileArithmeticFold<T>(
+                 || (a && b && (a.shape.length !== b.shape.length
+                     || a.shape.some((dimension, axis) => dimension !== b.shape[axis])))
+                 || !isRankArray(value)) return finish(value, undefined, 0);
++            const size = value.shape.reduce((size, dimension) => size * dimension, 1);
++            if (generateSum && generated === null) generated = generatedBinarySum(binary.operator, binary.operation);
++            const kernel = generated;
+             return finish(value, index => binary.operation(a ? a.read(index) : left, b ? b.read(index) : right),
+-                value.shape.reduce((size, dimension) => size * dimension, 1));
++                size, kernel ? () => kernel(size, a?.read, b?.read, left, right) : undefined);
+         };
+     }
+ 
+diff --git a/packages/interpreter/src/generated-sum.ts b/packages/interpreter/src/generated-sum.ts
+new file mode 100644
+index 0000000..e9d48b7
+--- /dev/null
++++ b/packages/interpreter/src/generated-sum.ts
+@@ -0,0 +1,41 @@
++import { expectNumeric } from './modules/shared.js';
++import type { RankValue } from './value.js';
++
++type Reader = ((index: number) => RankValue) | undefined;
++type Kernel = (size: number, a: Reader, b: Reader, left: RankValue, right: RankValue) => RankValue;
++
++/** Experimental: source contains only a whitelisted operator, never Rank text. */
++export function generatedBinarySum(
++    operator: string,
++    operation: (left: RankValue, right: RankValue) => RankValue,
++): Kernel | undefined {
++    if (!['+', '-', '*'].includes(operator)) return undefined;
++    try {
++        return new Function('operation', 'numeric', `
++            return function(size, a, b, left, right) {
++                let total = 0n;
++                let invalid;
++                for (let index = 0; index < size; index++) {
++                    const x = a ? a(index) : left;
++                    const y = b ? b(index) : right;
++                    const item = typeof x === 'bigint' && typeof y === 'bigint'
++                        ? x ${operator} y
++                        : (typeof x === 'number' || typeof x === 'bigint')
++                            && (typeof y === 'number' || typeof y === 'bigint')
++                            ? Number(x) ${operator} Number(y) : operation(x, y);
++                    if (invalid !== undefined) continue;
++                    try {
++                        const value = numeric(item);
++                        total = typeof total === 'bigint' && typeof value === 'bigint'
++                            ? total + value : Number(total) + Number(value);
++                    } catch (error) { invalid = error; }
++                }
++                if (invalid !== undefined) throw invalid;
++                return total;
++            };
++        `)(operation, expectNumeric) as Kernel;
++    } catch {
++        // Hosts that prohibit dynamic code keep the ordinary validated fold.
++        return undefined;
++    }
++}
+diff --git a/packages/interpreter/test/generated-sum.test.ts b/packages/interpreter/test/generated-sum.test.ts
+new file mode 100644
+index 0000000..377b252
+--- /dev/null
++++ b/packages/interpreter/test/generated-sum.test.ts
+@@ -0,0 +1,30 @@
++import { describe, expect, it, vi } from 'vitest';
++import { generatedBinarySum } from '../src/generated-sum.js';
++import type { RankValue } from '../src/value.js';
++
++describe('generated sum experiment', () => {
++    it('retains exact integers, mixed arithmetic and left-fold rounding', () => {
++        const kernel = generatedBinarySum('*', () => { throw new Error('unexpected fallback'); })!;
++        const huge = 2n ** 80n;
++        expect(kernel(2, i => [huge, 1n][i], undefined, 0n, 2n)).toBe(huge * 2n + 2n);
++        expect(kernel(3, i => [1e16, 1, -1e16][i], undefined, 0n, 1n)).toBe(0);
++        expect(kernel(2, i => [1n, 0.5][i], undefined, 0n, 2n)).toBe(3);
++        expect(kernel(0, undefined, undefined, 1n, 2n)).toBe(0n);
++        expect(kernel(1, undefined, undefined, NaN, 1n)).toBeNaN();
++    });
++
++    it('retains read order and arithmetic error precedence over bad sum elements', () => {
++        const seen: number[] = [];
++        const kernel = generatedBinarySum('+', () => 'bad')!;
++        const a = (i: number): RankValue => { seen.push(i); if (i === 2) throw new Error('later arithmetic'); return false; };
++        expect(() => kernel(3, a, undefined, 0n, false)).toThrow('later arithmetic');
++        expect(seen).toEqual([0, 1, 2]);
++    });
++
++    it('rejects unknown operators and falls back when dynamic code is disabled', () => {
++        expect(generatedBinarySum('x; throw 1', () => 0n)).toBeUndefined();
++        vi.stubGlobal('Function', function () { throw new Error('dynamic code disabled'); });
++        try { expect(generatedBinarySum('+', () => 0n)).toBeUndefined(); }
++        finally { vi.unstubAllGlobals(); }
++    });
++});
