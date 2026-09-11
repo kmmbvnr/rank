@@ -1,0 +1,27 @@
+rem CSES 1643: Maximum Subarray Sum
+rem https://cses.fi/problemset/task/1643
+
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+A max_subarray print
+
+
+rem Find the largest contiguous sum.
+fun max_subarray A
+  N = A len
+  Current = A 0
+  Best = A 0
+
+  for i in 1 until N
+    Current = A i (Current + A i) max
+    Best = Best Current max
+  end
+
+  return Best
+end
