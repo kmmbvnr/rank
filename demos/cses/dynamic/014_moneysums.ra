@@ -1,0 +1,39 @@
+rem CSES 1745: Money Sums
+rem https://cses.fi/problemset/task/1745
+
+use algo
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Coins = stdin .integer N array
+Sums = Coins money_sums
+
+Sums len print
+Sums print
+
+
+rem Mark sums backwards so each coin is used once.
+fun money_sums Coins
+  Maximum = Coins sum
+  Reachable = array shape (Maximum + 1) pad false
+  Reachable 0 = true
+
+  for Coin in Coins
+    for Total in Maximum to Coin by -1
+      if Reachable (Total - Coin)
+        Reachable Total = true
+      end
+    end
+  end
+
+  Result = new queue
+  for Total in 1 to Maximum
+    if Reachable Total
+      Result push Total
+    end
+  end
+  return Result
+end

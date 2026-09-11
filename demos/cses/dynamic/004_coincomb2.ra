@@ -1,0 +1,30 @@
+rem CSES 1636: Coin Combinations II
+rem https://cses.fi/problemset/task/1636
+
+use io
+use ranges
+
+N = stdin .integer
+Target = stdin .integer
+Coins = stdin .integer N array
+
+Coins Target unordered_coin_ways print
+
+
+rem Add each denomination once to the DP.
+fun unordered_coin_ways Coins Target
+  Ways = array shape (Target + 1) pad 0
+  Ways 0 = 1
+
+  for Coin in Coins
+    if Coin at most Target
+      for Total in Coin to Target
+        Previous = Total - Coin
+        Ways Total += Ways Previous
+        Ways Total %= 1000000007
+      end
+    end
+  end
+
+  return Ways Target
+end

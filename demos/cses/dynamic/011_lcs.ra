@@ -1,0 +1,62 @@
+rem CSES 3403: Longest Common Subsequence
+rem https://cses.fi/problemset/task/3403
+
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+A = stdin .integer N array
+B = stdin .integer M array
+Result = A B longest_common
+Length = Result len
+
+Length print
+Result print
+
+
+rem Build lengths, then trace one best subsequence.
+fun longest_common A B
+  N = A len
+  M = B len
+  Lengths = array shape (N + 1) (M + 1) pad 0
+
+  for i in 1 to N
+    for j in 1 to M
+      if A (i - 1) equal B (j - 1)
+        Lengths i j = Lengths (i - 1) (j - 1) + 1
+      else
+        Above = Lengths (i - 1) j
+        Left = Lengths i (j - 1)
+        Lengths i j = Above max Left
+      end
+    end
+  end
+
+  Size = Lengths N M
+  Result = array shape Size pad 0
+  Position = Size - 1
+  Row = N
+  Column = M
+
+  for Row greater 0 and Column greater 0
+    if A (Row - 1) equal B (Column - 1)
+      Result Position = A (Row - 1)
+      Position -= 1
+      Row -= 1
+      Column -= 1
+    else
+      Above = Lengths (Row - 1) Column
+      Left = Lengths Row (Column - 1)
+      if Above greater Left
+        Row -= 1
+      else
+        Column -= 1
+      end
+    end
+  end
+
+  return Result
+end

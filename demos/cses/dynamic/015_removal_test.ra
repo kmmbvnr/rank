@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "015_removal"
+  Values = array 4 5 1 3
+  Values removal_game equal 8
+end
+
+test "one value"
+  use "015_removal"
+  Values = array 9
+  Values removal_game equal 9
+end
+
+test "take the larger end"
+  use "015_removal"
+  Values = array 10 1 2
+  Values removal_game equal 11
+end
+
+test "negative values"
+  use "015_removal"
+  Values = array -1 -2
+  Values removal_game equal -1
+end

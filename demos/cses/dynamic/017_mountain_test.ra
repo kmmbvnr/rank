@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "017_mountain"
+  Heights = array 20 15 17 35 25 40 12 19 13 12
+  Heights mountain_route equal 5
+end
+
+test "strictly descending range"
+  use "017_mountain"
+  Heights = array 5 4 3 2 1
+  Heights mountain_route equal 5
+end
+
+test "equal heights merge"
+  use "017_mountain"
+  Heights = array 5 5 5
+  Heights mountain_route equal 1
+end
+
+test "equal peaks preserve the best side"
+  use "017_mountain"
+  Heights = array 4 1 2 3 3
+  Heights mountain_route equal 4
+end

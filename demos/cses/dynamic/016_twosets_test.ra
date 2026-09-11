@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "016_twosets"
+  7 two_sets equal 4
+end
+
+test "total sum is odd"
+  use "016_twosets"
+  2 two_sets equal 0
+end
+
+test "smallest partition"
+  use "016_twosets"
+  3 two_sets equal 1
+end
+
+test "eight values"
+  use "016_twosets"
+  8 two_sets equal 7
+end

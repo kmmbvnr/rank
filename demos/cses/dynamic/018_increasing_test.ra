@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "018_increasing"
+  Values = array 7 3 5 3 6 2 9 8
+  Values increasing_length equal 4
+end
+
+test "strictly increasing"
+  use "018_increasing"
+  Values = array 1 2 3 4 5
+  Values increasing_length equal 5
+end
+
+test "strictly decreasing"
+  use "018_increasing"
+  Values = array 5 4 3 2 1
+  Values increasing_length equal 1
+end
+
+test "equal values do not extend"
+  use "018_increasing"
+  Values = array 4 4 4 4
+  Values increasing_length equal 1
+end

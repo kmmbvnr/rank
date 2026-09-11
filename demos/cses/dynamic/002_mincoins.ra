@@ -1,0 +1,36 @@
+rem CSES 1634: Minimizing Coins
+rem https://cses.fi/problemset/task/1634
+
+use io
+use numbers
+use ranges
+
+N = stdin .integer
+Target = stdin .integer
+Coins = stdin .integer N array
+
+Coins Target minimum_coins print
+
+
+rem Find the fewest coins for every sum.
+fun minimum_coins Coins Target
+  Missing = Target + 1
+  Best = array shape (Target + 1) pad Missing
+  Best 0 = 0
+
+  for Total in 1 to Target
+    for Coin in Coins
+      if Coin at most Total
+        Previous = Total - Coin
+        Candidate = Best Previous + 1
+        Best Total = Best Total min Candidate
+      end
+    end
+  end
+
+  Answer = Best Target
+  if Answer equal Missing
+    return -1
+  end
+  return Answer
+end

@@ -1,0 +1,29 @@
+rem CSES 1633: Dice Combinations
+rem https://cses.fi/problemset/task/1633
+
+use io
+use ranges
+
+N = stdin .integer
+N dice_combinations print
+
+
+rem Keep the last six counts in a ring.
+fun dice_combinations N
+  Modulus = 1000000007
+  Ways = array shape 6 pad 0
+  Ways 0 = 1
+  Window = 1
+  Answer = 1
+
+  for Total in 1 to N
+    Slot = Total % 6
+    Expired = Ways Slot
+    Answer = Window
+    Ways Slot = Answer
+    Window += Answer - Expired
+    Window %= Modulus
+  end
+
+  return Answer
+end

@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "023_incsubseq2"
+  Values = array 2 1 3
+  Values increasing_subsequences equal 5
+end
+
+test "strictly increasing"
+  use "023_incsubseq2"
+  Values = array 1 2 3
+  Values increasing_subsequences equal 7
+end
+
+test "strictly decreasing"
+  use "023_incsubseq2"
+  Values = array 3 2 1
+  Values increasing_subsequences equal 3
+end
+
+test "equal values stay separate"
+  use "023_incsubseq2"
+  Values = array 1 2 2
+  Values increasing_subsequences equal 5
+end

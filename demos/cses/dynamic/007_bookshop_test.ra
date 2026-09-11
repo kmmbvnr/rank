@@ -1,0 +1,29 @@
+use testing
+
+test "official example"
+  use "007_bookshop"
+  Prices = array 4 8 5 3
+  Pages = array 5 12 8 1
+  Prices Pages 10 book_shop equal 13
+end
+
+test "a book can be used once"
+  use "007_bookshop"
+  Prices = array 2
+  Pages = array 5
+  Prices Pages 4 book_shop equal 5
+end
+
+test "no affordable book"
+  use "007_bookshop"
+  Prices = array 5 8
+  Pages = array 20 40
+  Prices Pages 3 book_shop equal 0
+end
+
+test "best choice combines books"
+  use "007_bookshop"
+  Prices = array 3 4 5
+  Pages = array 4 5 10
+  Prices Pages 8 book_shop equal 14
+end

@@ -1,0 +1,31 @@
+rem CSES 1637: Removing Digits
+rem https://cses.fi/problemset/task/1637
+
+use io
+use numbers
+use ranges
+use text
+
+N = stdin .integer
+N removing_digits print
+
+
+rem Reuse the best result for every smaller value.
+fun removing_digits N
+  Steps = array shape (N + 1) pad (N + 1)
+  Steps 0 = 0
+
+  for Value in 1 to N
+    Digits = Value text integer rank 0
+
+    for Digit in Digits
+      if Digit greater 0
+        Previous = Value - Digit
+        Candidate = Steps Previous + 1
+        Steps Value = Steps Value min Candidate
+      end
+    end
+  end
+
+  return Steps N
+end

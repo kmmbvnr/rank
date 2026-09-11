@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "010_editdistance"
+  "LOVE" "MOVIE" edit_distance equal 2
+end
+
+test "equal texts"
+  use "010_editdistance"
+  "RANK" "RANK" edit_distance equal 0
+end
+
+test "all operation kinds"
+  use "010_editdistance"
+  "KITTEN" "SITTING" edit_distance equal 3
+end
+
+test "empty left text"
+  use "010_editdistance"
+  "" "ABC" edit_distance equal 3
+end

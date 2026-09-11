@@ -1,0 +1,30 @@
+rem CSES 1097: Removal Game
+rem https://cses.fi/problemset/task/1097
+
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Values = stdin .integer N array
+Values removal_game print
+
+
+rem Store the best score difference for each interval.
+fun removal_game Values
+  N = Values len
+  Difference = Values copy
+
+  for Length in 2 to N
+    for Left in 0 to (N - Length)
+      Right = Left + Length - 1
+      TakeLeft = Values Left - Difference (Left + 1)
+      TakeRight = Values Right - Difference Left
+      Difference Left = TakeLeft max TakeRight
+    end
+  end
+
+  Total = Values sum
+  return (Total + Difference 0) // 2
+end

@@ -1,0 +1,44 @@
+rem CSES 1744: Rectangle Cutting
+rem https://cses.fi/problemset/task/1744
+
+use io
+use numbers
+use ranges
+
+Height = stdin .integer
+Width = stdin .integer
+Height Width rectangle_cuts print
+
+
+rem Try each distinct first cut of every rectangle.
+fun rectangle_cuts Height Width
+  Cuts = array shape (Height + 1) (Width + 1) pad 0
+
+  for H in 1 to Height
+    for W in 1 to Width
+      if H not equal W
+        Best = H * W
+
+        if H greater 1
+          for Split in 1 to (H // 2)
+            Candidate = Cuts Split W
+            Candidate += Cuts (H - Split) W + 1
+            Best = Best min Candidate
+          end
+        end
+
+        if W greater 1
+          for Split in 1 to (W // 2)
+            Candidate = Cuts H Split
+            Candidate += Cuts H (W - Split) + 1
+            Best = Best min Candidate
+          end
+        end
+
+        Cuts H W = Best
+      end
+    end
+  end
+
+  return Cuts Height Width
+end

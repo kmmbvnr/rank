@@ -1,0 +1,62 @@
+rem CSES 3359: Minimal Grid Path
+rem https://cses.fi/problemset/task/3359
+
+use algo
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Grid = stdin .word N array
+Grid minimal_grid_path print
+
+
+rem Keep positions that share the best prefix.
+fun minimal_grid_path Grid
+  Size = Grid len
+  Current = new set
+  Current add 0
+  FirstRow = Grid 0
+  Result = FirstRow 0
+
+  if Size greater 1
+    for Diagonal in 1 to (2 * Size - 2)
+      Candidates = new set
+
+      for Row in Current
+        PreviousColumn = Diagonal - 1 - Row
+
+        if PreviousColumn + 1 less Size
+          Candidates add Row
+        end
+        if Row + 1 less Size
+          Candidates add Row + 1
+        end
+      end
+
+      Best = "Z"
+      for Row in Candidates
+        Column = Diagonal - Row
+        Line = Grid Row
+        Letter = Line Column
+        if Letter less Best
+          Best = Letter
+        end
+      end
+
+      Next = new set
+      for Row in Candidates
+        Column = Diagonal - Row
+        Line = Grid Row
+        if Line Column equal Best
+          Next add Row
+        end
+      end
+
+      Result += Best
+      Current = Next
+    end
+  end
+
+  return Result
+end

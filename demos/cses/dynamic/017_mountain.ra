@@ -1,0 +1,73 @@
+rem CSES 3314: Mountain Range
+rem https://cses.fi/problemset/task/3314
+
+use algo
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+Heights = stdin .integer N array
+Heights mountain_route print
+
+
+rem Collapse valleys into a decreasing stack.
+fun mountain_route Heights
+  Mountains = new stack
+
+  for Height in Heights
+    Current = record
+      .height = Height
+      .path = 1
+    end
+
+    if Mountains len equal 0
+      Mountains push Current
+    else
+      Top = Mountains peek
+
+      if Height less Top .height
+        Mountains push Current
+      elif Height greater Top .height
+        Lower = Mountains pop
+
+        for Mountains len greater 0
+          Top = Mountains peek
+          if Height at most Top .height
+            break
+          end
+          if Lower .path at least Top .path
+            Top .path = Lower .path + 1
+          end
+          Lower = Mountains pop
+        end
+
+        Current .path += Lower .path
+
+        if Mountains len equal 0
+          Mountains push Current
+        else
+          Top = Mountains peek
+          if Height equal Top .height
+            if Current .path greater Top .path
+              Top .path = Current .path
+            end
+          else
+            Mountains push Current
+          end
+        end
+      end
+    end
+  end
+
+  for Mountains len greater 1
+    Lower = Mountains pop
+    Top = Mountains peek
+    if Lower .path at least Top .path
+      Top .path = Lower .path + 1
+    end
+  end
+
+  Top = Mountains pop
+  return Top .path
+end

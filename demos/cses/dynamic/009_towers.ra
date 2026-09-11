@@ -1,0 +1,35 @@
+rem CSES 2413: Counting Towers
+rem https://cses.fi/problemset/task/2413
+
+use io
+use numbers
+use ranges
+
+Tests = stdin .integer
+Heights = stdin .integer Tests array
+Answers = Heights counting_towers
+
+for Answer in Answers
+  Answer print
+end
+
+
+rem Precompute both top-edge states up to the tallest query.
+fun counting_towers Heights
+  Modulus = 1000000007
+  Maximum = Heights max
+  Answers = array shape (Maximum + 1) pad 0
+  Together = 1
+  Separate = 1
+  Answers 1 = 2
+
+  for Height in 2 to Maximum
+    OldTogether = Together
+    OldSeparate = Separate
+    Together = (2 * OldTogether + OldSeparate) % Modulus
+    Separate = (OldTogether + 4 * OldSeparate) % Modulus
+    Answers Height = (Together + Separate) % Modulus
+  end
+
+  return Answers Heights
+end

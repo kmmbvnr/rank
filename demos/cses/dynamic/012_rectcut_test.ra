@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "012_rectcut"
+  3 5 rectangle_cuts equal 3
+end
+
+test "square needs no cut"
+  use "012_rectcut"
+  5 5 rectangle_cuts equal 0
+end
+
+test "one narrow strip"
+  use "012_rectcut"
+  1 4 rectangle_cuts equal 3
+end
+
+test "two by three rectangle"
+  use "012_rectcut"
+  2 3 rectangle_cuts equal 2
+end
