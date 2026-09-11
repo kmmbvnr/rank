@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "016_powerdigits"
+  run
+
+  Answer equal 1366
+end
+
+test "official small power"
+  use "016_powerdigits"
+
+  2 15 power_digit_sum equal 26
+end

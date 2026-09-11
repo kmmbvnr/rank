@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "014_collatz"
+  run
+
+  Answer equal 837799
+end
+
+test "starts below fourteen"
+  use "014_collatz"
+
+  14 longest_collatz equal 9
+end

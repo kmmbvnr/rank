@@ -1,0 +1,30 @@
+rem Factorial Digit Sum
+rem https://projecteuler.net/problem=20
+rem Sum the decimal digits of 100 factorial
+
+use ranges
+use text
+use sequences
+use numbers
+use io
+use cli
+
+option N integer = 100
+
+Answer = N factorial_digit_sum
+Answer print
+
+
+rem Form the factorial with exact integers,
+rem then reduce its decimal digits.
+fun factorial_digit_sum N
+  if N equal 0
+    Factorial = 1
+  else
+    Factorial = (1 to N) * reduce
+  end
+
+  Digits = Factorial text
+  Values = Digits integer rank 0
+  return Values sum
+end

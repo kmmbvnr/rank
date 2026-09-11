@@ -1,0 +1,24 @@
+rem Lattice Paths
+rem https://projecteuler.net/problem=15
+rem Count right-and-down paths through an
+rem N by N grid
+
+use ranges
+use io
+use cli
+
+option Size integer = 20
+
+Answer = Size lattice_paths
+Answer print
+
+
+rem Evaluate the central binomial
+rem coefficient without factorials.
+fun lattice_paths Size
+  Paths = 1
+  for I in 1 to Size
+    Paths = Paths * (Size + I) // I
+  end
+  return Paths
+end

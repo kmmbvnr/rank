@@ -1,0 +1,56 @@
+rem Number Letter Counts
+rem https://projecteuler.net/problem=17
+rem Count letters in British English names
+rem from one through Limit
+
+use ranges
+use sequences
+use io
+use cli
+
+option Limit integer = 1000
+
+Answer = Limit number_letter_total
+Answer print
+
+
+rem Sum name lengths while sharing the word
+rem tables with a local conversion function.
+fun number_letter_total Limit
+  Small = array 0 3 3 5 4 4 3 5 5 4
+  Teens = array 3 6 6 8 8 7 7 9 8 8
+  Tens = array 0 0 6 6 5 5 5 7 6 6
+
+  Total = 0
+  for N in 1 to Limit
+    Total += N letters
+  end
+  return Total
+
+  rem Count letters without constructing the
+  rem spelled-out text or its separators.
+  fun letters Value
+    if Value equal 1000
+      return 11
+    end
+
+    Count = 0
+    N = Value
+    if N at least 100
+      Count += Small (N // 100) + 7
+      N %= 100
+      if N greater 0
+        Count += 3
+      end
+    end
+
+    if N at least 20
+      Count += Tens (N // 10)
+      N %= 10
+    elif N at least 10
+      return Count + Teens (N - 10)
+    end
+
+    return Count + Small N
+  end
+end
