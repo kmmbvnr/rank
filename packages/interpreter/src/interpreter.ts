@@ -154,6 +154,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly compiledScalarTailCalls?: boolean;
     readonly scalarFunctionCompilation?: boolean;
     readonly onScalarFunctionExecuted?: () => void;
     readonly scalarBlockCalls?: boolean;
@@ -249,7 +250,8 @@ interface FunctionDefinition {
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 
 class TailCallSignal {
-    constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[]) {}
+    constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[],
+        readonly compiled?: (arguments_: RankValue[], tail: boolean) => RankValue) {}
 }
 const SEED_RANDOM = Symbol('seedRandom');
 
@@ -1066,7 +1068,10 @@ export class Interpreter {
                             || proof.locals.some(local => active.context?.find(local))) return undefined;
                         const compiled = active.interpreter.prepareScalarFunctionCall(statement);
                         return (arguments_, tail = false) => {
-                            if (tail && active.interpreter === this) throw new TailCallSignal(active, arguments_);
+                            if (tail && active.interpreter === this) {
+                                throw new TailCallSignal(active, arguments_,
+                                    this.options.compiledScalarTailCalls !== false ? compiled : undefined);
+                            }
                             return compiled ? compiled(arguments_) : current.call(arguments_);
                         };
                     } };
@@ -2307,20 +2312,20 @@ export class Interpreter {
         return fn;
     }
 
-    private prepareScalarFunctionCall(statement: FunctionStatement): ((arguments_: RankValue[]) => RankValue) | undefined {
+    private prepareScalarFunctionCall(statement: FunctionStatement): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined {
         if (this.options.scalarFunctionCompilation === false) return undefined;
         const kernel = compileScalarFunction(statement);
         if (!kernel) return undefined;
         const locate = (error: unknown, index: number) => this.locateError(error, kernel.locations[index] ?? statement);
-        return arguments_ => {
-            if (this.callDepth >= this.maxCallDepth) {
+        return (arguments_, tail = false) => {
+            if (!tail && this.callDepth >= this.maxCallDepth) {
                 throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
             }
-            this.callDepth += 1;
+            if (!tail) this.callDepth += 1;
             try {
                 this.options.onScalarFunctionExecuted?.();
                 return kernel.run(arguments_, locate);
-            } finally { this.callDepth -= 1; }
+            } finally { if (!tail) this.callDepth -= 1; }
         };
     }
 
@@ -2397,6 +2402,13 @@ export class Interpreter {
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
+                        if (error.compiled) {
+                            // Keep the tail driver's logical depth and resource scope;
+                            // this proven scalar body needs no new lexical frame.
+                            try { result = error.compiled(error.arguments_, true); }
+                            catch (error) { pending = error; }
+                            break;
+                        }
                         const reusable = statement === error.definition.statement
                             && frame.parent === error.definition.context ? frame : undefined;
                         statement = error.definition.statement;
@@ -2549,6 +2561,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            compiledScalarTailCalls: this.options.compiledScalarTailCalls,
             scalarFunctionCompilation: this.options.scalarFunctionCompilation,
             onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
             scalarBlockCalls: this.options.scalarBlockCalls,
@@ -2659,6 +2672,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            compiledScalarTailCalls: this.options.compiledScalarTailCalls,
             scalarFunctionCompilation: this.options.scalarFunctionCompilation,
             onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
             scalarBlockCalls: this.options.scalarBlockCalls,

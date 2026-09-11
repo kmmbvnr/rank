@@ -1,3 +1,4 @@
+import { MemoryIo } from './support.js';
 import { describe, expect, it, vi } from 'vitest';
 import { isFunctionStatement } from 'rank-language';
 import { compileScalarFunction } from '../src/scalar-function-kernel.js';
@@ -135,4 +136,45 @@ it('declines generated function code when CSP blocks Function', () => {
     const blocked = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
     try { expect(compileScalarFunction(statement)).toBeUndefined(); }
     finally { blocked.mockRestore(); }
+});
+
+
+describe('compiled scalar tail completion', () => {
+    it.each([false, true])('finishes caller resources after tail completion (error=%s)', fails => {
+        const results = [false, true].map(compiledScalarTailCalls => {
+            const io = new MemoryIo({ '/input': 'Rank' });
+            const openDuringKernel: boolean[] = [];
+            const runtime = new Interpreter(undefined, {
+                io, persistentResources: true, maxCallDepth: 1, compiledScalarTailCalls,
+                onScalarFunctionExecuted: () => openDuringKernel.push(!io.handles.at(-1)!.closed),
+            });
+            let value: unknown, error: string | undefined;
+            try {
+                runtime.execute(`use io
+fun helper X
+  Value = X - 3
+  return ${fails ? '10 // Value' : 'Value + 4'}
+end
+fun perform N
+  File = "/input" open
+  for N greater 0
+    return N helper
+  end
+  return 0
+end`);
+                try { value = runtime.execute('3 perform'); }
+                catch (caught) { error = caught instanceof RankError ? caught.format() : String(caught); }
+                const closed = io.handles[0].closed;
+                // Call depth and resource scope must recover after completion/error.
+                const next = runtime.execute('2 perform');
+                expect(io.handles[1].closed).toBe(true);
+                return { value, error, next, closed, openDuringKernel };
+            } finally { runtime.dispose(); }
+        });
+        expect({ ...results[1], openDuringKernel: [] }).toEqual({ ...results[0], openDuringKernel: [] });
+        expect(results[1].closed).toBe(true);
+        expect(results[1].openDuringKernel).toEqual([true, true]);
+        if (fails) expect(results[1].error).toContain('division by zero');
+        else expect(results[1].value).toBe(4n);
+    });
 });

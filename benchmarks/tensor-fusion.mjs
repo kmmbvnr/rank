@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls', 'scalarbodies'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls', 'scalarbodies', 'scalartails'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -61,6 +61,7 @@ function emptyGridPaths(size) {
   return paths % 1000000007n;
 }
 const tasks = [
+  { name: 'Conditional tail into bounded helper, 200000 calls', path: 'benchmarks/programs/block-tail-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
   { name: 'Conditional tail return, 100000 calls', path: 'benchmarks/programs/loop-tail-call.ra', fn: 'tail_scores', expected: 5000150000n, args: () => [100000n] },
   { name: 'Bounded score helper, 200000 calls', path: 'benchmarks/programs/block-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
   { name: 'Euler 45, next common polygonal value', path: 'demos/euler/045_tripolygonal.ra', fn: 'common_polygonal', expected: 1533776805n, args: () => [144n, 166n] },
@@ -110,8 +111,9 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      compiledScalarTailCalls: backend === 'scalartails' ? enabled : undefined,
       scalarFunctionCompilation: backend === 'scalarbodies' ? enabled : undefined,
-      onScalarFunctionExecuted: backend === 'scalarbodies' && counters ? () => kernels++ : undefined,
+      onScalarFunctionExecuted: ['scalarbodies', 'scalartails'].includes(backend) && counters ? () => kernels++ : undefined,
       scalarBlockCalls: backend === 'blockcalls' ? enabled : undefined,
       scalarCallCompilation: backend === 'scalarcalls' ? enabled : undefined,
       tensorTextDigits: backend === 'tensordigits' ? enabled : undefined,

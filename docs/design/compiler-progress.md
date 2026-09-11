@@ -1501,3 +1501,51 @@ preceding tail-fix baseline. One pair takes 26.951 s off and 26.399 s on; no sta
 whole-suite speedup is established from one pair.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-scalar-bodies-suite.json).
+
+## Generated scalar bodies after tail transfer
+
+Eligible same-interpreter tail calls from compiled regions now carry their proven
+scalar body through TailCallSignal. The function driver invokes it at the current
+logical depth, then finishes its existing resource scope on success or failure.
+The lexical/type/collision proof remains unchanged. Unsupported callees and CSP
+failures retain the preceding path. No source-language change is required.
+
+Two differential resource tests verify that an open caller file stays open while
+the generated tail body runs, closes after return or division by zero, and that a
+second invocation succeeds with maxCallDepth 1. Existing tail-context tests cover
+nested conditional/iterable loops, finally and non-tail arithmetic. Verification
+passes 44 language + 891 interpreter tests.
+
+Measurements toggle only `compiledScalarTailCalls`. Parsing, compilation and result
+validation are included; timing runs disable counters and alternate mode order.
+
+| Task | Prior median ms | Compiled tail median ms |
+| --- | ---: | ---: |
+| Conditional tail into bounded helper, 200000 calls | 543.810 | 369.687 |
+| Single-addition tail, 100000 calls, first 5 samples | 173.653 | 166.641 |
+| Single-addition tail, repeat 9 samples | 170.451 | 163.424 |
+| Normal bounded helper, repeat (control) | 7.171 | 7.136 |
+| Euler 45, repeat (control) | 2.870 | 2.775 |
+
+The branching-tail fixture improves about 1.47x. The single-addition fixture gains
+about 4% in both medians; it already had a direct callee path. These are compiler
+fixtures, not contest-demo speedup claims. The unchanged normal-call controls have
+no additional compiler coverage. Separate counters show 0 to 200000 generated
+callee executions for the branching-tail fixture and 0 to 100000 for the simple
+tail fixture. Control counts remain 200000 and 59360 in both modes.
+
+[Initial timings](../../benchmarks/baselines/2026-09-12-scalar-tails-focused.json),
+[repeat](../../benchmarks/baselines/2026-09-12-scalar-tails-repeat.json),
+[coverage](../../benchmarks/baselines/2026-09-12-scalar-tails-coverage.json),
+[branching fixture](../../benchmarks/baselines/2026-09-12-scalar-tails-block.json),
+[branching coverage](../../benchmarks/baselines/2026-09-12-scalar-tails-block-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests. All result digests match the
+preceding scalar-body baseline. One pair takes 26.885 s off and 26.393 s on; this
+single pair does not establish a stable full-suite speedup.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-scalar-tails-suite.json).
+
+Generated callees still require a compiled caller region. Extending safe dispatch
+at ordinary function entry is a next coverage opportunity; the same integer-input
+and private-write proof must hold there before bypassing a Rank frame.

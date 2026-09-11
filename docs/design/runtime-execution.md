@@ -891,7 +891,13 @@ Rank frame or resource scope is needed for this proved subset: it cannot access
 external state, call other functions, receive files or return non-scalar resources.
 The code cache retains AST metadata only. CSP failure retains ordinary execution.
 
-Eligible tail calls still use TailCallSignal and the ordinary function driver;
-this stage optimizes normal calls only. `scalarFunctionCompilation: false` retains
-the preceding normal-call implementation. `onScalarFunctionExecuted` counts actual
-generated callee executions independently of compiled outer-loop entries.
+Eligible tail calls still use TailCallSignal and the ordinary function driver.
+The signal can carry the proven scalar body, which the driver runs at its current
+logical depth without constructing a callee frame. The caller's resource scope
+remains active during the calculation and finishes after its result or error.
+Cross-interpreter calls retain ordinary invocation semantics.
+
+`compiledScalarTailCalls: false` keeps tail transfers on the preceding path.
+`scalarFunctionCompilation: false` disables generated bodies for both normal and
+tail calls. `onScalarFunctionExecuted` counts actual generated callee executions
+independently of compiled outer-loop entries.

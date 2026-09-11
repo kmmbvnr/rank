@@ -1,0 +1,515 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalartails",
+  "counters": false,
+  "samples": 9,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 288.803917,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 261.365542,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 10.431459000000018,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 16.58054199999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 449.94258299999996,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 436.909583,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 8.995124999999916,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 3.806959000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 176.227667,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 166.308,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 6.922749999999951,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.802041999999915,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 186.070292,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 175.81570899999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.171415999999908,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.8701670000000377,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 208.32841700000017,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 198.31566599999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.088541999999961,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.76887499999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 183.10191700000018,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 173.08691700000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.078999999999951,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.8155420000000504,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 173.54245800000012,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 163.56662500000016,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.136291999999912,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.725541999999905,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 176.64212499999985,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 166.48700000000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.293707999999924,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.7224999999998545,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 180.48983399999975,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 170.45066600000018,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.0382079999999405,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.869833000000199,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 173.3876250000003,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 163.42374999999993,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 7.03683299999966,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.8069170000003396,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 5,
+      "ms": 171.20820900000035,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 161.4964160000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 6.937666999999692,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.66858400000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 5,
+      "ms": 177.2275840000002,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 168.9007919999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 5.305249999999887,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.9108750000000327,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 6,
+      "ms": 184.23824999999988,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 170.72687499999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 8.982500000000073,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 4.381458000000293,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 6,
+      "ms": 174.44866699999966,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 162.79566699999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 8.75741700000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.7512500000002547,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 7,
+      "ms": 171.5657500000002,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 160.55237499999976,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 8.149792000000161,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.7354999999997744,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 7,
+      "ms": 176.65887500000008,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 166.64450000000033,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 5.870457999999871,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 4.0141670000002705,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 8,
+      "ms": 180.17729199999985,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 168.84566600000016,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 8.365166999999929,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.820165999999972,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 8,
+      "ms": 177.8612079999998,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 161.79766700000027,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 13.156625000000076,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 2.775000000000091,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    }
+  ]
+}
