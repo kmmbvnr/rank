@@ -1,0 +1,69 @@
+rem CSES 1202: Investigation
+rem https://cses.fi/problemset/task/1202
+
+use algo
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 3
+Values = stdin .integer ValueCount array
+Edges = Values (array M 3) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Graph N investigate print
+
+
+rem Describe all cheapest routes to N.
+fun investigate Graph N
+  Modulus = 1000000007
+  Size = N + 1
+  Dist = array shape Size pad infinity
+  Ways = array shape Size pad 0
+  MinFlights = array shape Size pad 0
+  MaxFlights = array shape Size pad 0
+  Dist 1 = 0
+  Ways 1 = 1
+  Pending = new heap
+  Pending 0 (array 1 0) enqueue
+
+  for Pending len greater 0
+    Item = Pending pop
+    unpack Current Distance = Item
+    if Distance not equal Dist Current
+      continue
+    end
+
+    for Edge in Graph edges Current
+      unpack Next Cost = Edge
+      Candidate = Distance + Cost
+      F = MinFlights Current + 1
+      if Candidate less Dist Next
+        Dist Next = Candidate
+        Ways Next = Ways Current
+        MinFlights Next = F
+        More = MaxFlights Current + 1
+        MaxFlights Next = More
+        Item = array Next Candidate
+        Pending Candidate Item enqueue
+      elif Candidate equal Dist Next
+        Ways Next += Ways Current
+        Ways Next %= Modulus
+        Old = MinFlights Next
+        MinFlights Next = Old min F
+        F = MaxFlights Current + 1
+        Old = MaxFlights Next
+        MaxFlights Next = Old max F
+      end
+    end
+  end
+  Result = array shape 4
+    (Dist N) (Ways N)
+    (MinFlights N) (MaxFlights N)
+  end
+  return Result
+end
