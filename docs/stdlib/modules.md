@@ -754,10 +754,16 @@ Windows = Values Width window
 WindowShape = array 2 3
 Blocks = M WindowShape window
 Columns = M 3 window axis 1
+Strided = M WindowShape window stride 2
+Padded = M WindowShape window padding 1
 ```
 
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
-Only complete windows are produced.
+`stride` and `padding` accept a scalar for all selected axes or one integer per
+axis. Their defaults are one and zero. Strides are positive; padding is
+nonnegative, symmetric, array-only and filled with integer zero. The modifiers
+precede a final `axis` clause when combined. Results remain lazy and contain
+only complete windows of the conceptually padded source.
 
 ## JSON
 

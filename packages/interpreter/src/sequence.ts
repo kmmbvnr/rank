@@ -145,26 +145,39 @@ export function windowValue(
     source: RankValue,
     sizeValue: RankValue,
     axes?: readonly number[],
+    strideValue?: RankValue,
+    paddingValue?: RankValue,
 ): RankValue {
     const widths = windowWidths(sizeValue);
     if (widths.some(width => width <= 0)) {
         throw new RankError('window sizes must be positive integers');
     }
+    const strides = windowGeometry(strideValue, widths.length, 'strides', 1);
+    if (strides.some(stride => stride <= 0)) {
+        throw new RankError('window strides must be positive integers');
+    }
+    const padding = windowGeometry(paddingValue, widths.length, 'padding', 0);
+    if (padding.some(amount => amount < 0)) {
+        throw new RankError('window padding must be nonnegative integers');
+    }
 
     if (typeof source === 'string') {
         validateWindowAxes(1, widths, axes);
+        rejectWindowPadding(padding, 'text');
         const atoms = [...source];
         const width = widths[0];
+        const stride = strides[0];
+        const count = windowCount(atoms.length, width, stride, 0);
         return sequence({
             name: `${width} window over text`,
-            size: { kind: 'exact', value: BigInt(Math.max(0, atoms.length - width + 1)) },
+            size: { kind: 'exact', value: BigInt(count) },
             *iterate() {
-                for (let start = 0; start + width <= atoms.length; start += 1) {
+                for (let start = 0; start + width <= atoms.length; start += stride) {
                     yield atoms.slice(start, start + width).join('');
                 }
             },
             at(index) {
-                const start = Number(index);
+                const start = Number(index) * stride;
                 if (!Number.isSafeInteger(start) || start < 0 || start + width > atoms.length) {
                     return undefined;
                 }
@@ -175,7 +188,10 @@ export function windowValue(
 
     if (isRankSequence(source)) {
         validateWindowAxes(1, widths, axes);
-        if (source.plan.size.kind !== 'exact') return streamingWindows(source, widths[0]);
+        rejectWindowPadding(padding, 'sequence');
+        if (source.plan.size.kind !== 'exact') {
+            return streamingWindows(source, widths[0], strides[0]);
+        }
         const length = safeSize(source.plan.size.value, 'sequence size');
         const sourceItem = cachedSequenceItem(source);
         return arrayWindows(
@@ -183,13 +199,23 @@ export function windowValue(
             sourceItem,
             widths,
             [0],
+            strides,
+            padding,
         );
     }
 
     if (isRankQueue(source)) {
         const items = [...source.items];
         validateWindowAxes(1, widths, axes);
-        return arrayWindows([items.length], index => items[index], widths, [0]);
+        rejectWindowPadding(padding, 'queue');
+        return arrayWindows(
+            [items.length],
+            index => items[index],
+            widths,
+            [0],
+            strides,
+            padding,
+        );
     }
 
     if (!isRankArray(source)) {
@@ -201,6 +227,8 @@ export function windowValue(
         index => source.itemAt?.(index) ?? source.items[index],
         widths,
         selectedAxes,
+        strides,
+        padding,
     );
 }
 
@@ -214,6 +242,33 @@ function windowWidths(value: RankValue): number[] {
         throw new RankError('window size must be an integer or a rank-1 integer array');
     }
     return values.map(item => safeSize(item as bigint, 'window size'));
+}
+
+function windowGeometry(
+    value: RankValue | undefined,
+    count: number,
+    name: string,
+    fallback: number,
+): number[] {
+    if (value === undefined) return Array(count).fill(fallback) as number[];
+    const values = typeof value === 'bigint'
+        ? Array(count).fill(value) as bigint[]
+        : isRankArray(value) && value.shape.length === 1
+            ? value.items
+            : undefined;
+    if (!values || !values.every(item => typeof item === 'bigint')) {
+        throw new RankError(`window ${name} must be integers`);
+    }
+    if (values.length !== count) {
+        throw new RankError(`window has ${count} size value but ${values.length} ${name}`);
+    }
+    return values.map(item => safeSize(item as bigint, `window ${name}`));
+}
+
+function rejectWindowPadding(padding: readonly number[], source: string): void {
+    if (padding.some(amount => amount !== 0)) {
+        throw new RankError(`window padding does not support ${source}`);
+    }
 }
 
 function validateWindowAxes(
@@ -245,10 +300,18 @@ function arrayWindows(
     sourceItem: (index: number) => RankValue,
     widths: readonly number[],
     axes: readonly number[],
+    strides: readonly number[],
+    padding: readonly number[],
 ): RankArray {
     const positionShape = [...sourceShape];
+    const hasPadding = padding.some(amount => amount !== 0);
     axes.forEach((axis, index) => {
-        positionShape[axis] = Math.max(0, sourceShape[axis] - widths[index] + 1);
+        positionShape[axis] = windowCount(
+            sourceShape[axis],
+            widths[index],
+            strides[index],
+            padding[index],
+        );
     });
     const resultShape = [...positionShape, ...widths];
     return lazyArray(resultShape, linear => {
@@ -256,13 +319,26 @@ function arrayWindows(
         const input = output.slice(0, sourceShape.length);
         const offsets = output.slice(sourceShape.length);
         axes.forEach((axis, index) => {
-            input[axis] += offsets[index];
+            input[axis] = input[axis] * strides[index]
+                - padding[index]
+                + offsets[index];
         });
+        if (hasPadding && input.some((coordinate, axis) =>
+            coordinate < 0 || coordinate >= sourceShape[axis])) return 0n;
         return sourceItem(arrayOffset(sourceShape, input));
     });
 }
 
-function streamingWindows(source: RankSequence, width: number): RankSequence {
+function windowCount(length: number, width: number, stride: number, padding: number): number {
+    const available = length + padding * 2 - width;
+    return available < 0 ? 0 : Math.floor(available / stride) + 1;
+}
+
+function streamingWindows(
+    source: RankSequence,
+    width: number,
+    stride: number,
+): RankSequence {
     const sourceSize = source.plan.size;
     const size = sourceSize.kind === 'infinite'
         ? sourceSize
@@ -272,11 +348,15 @@ function streamingWindows(source: RankSequence, width: number): RankSequence {
         size,
         *iterate() {
             const buffer: RankValue[] = [];
+            let start = 0;
             for (const value of source.plan.iterate()) {
                 buffer.push(value);
                 if (buffer.length < width) continue;
                 if (buffer.length > width) buffer.shift();
-                yield { kind: 'array', items: [...buffer], shape: [width] };
+                if (start % stride === 0) {
+                    yield { kind: 'array', items: [...buffer], shape: [width] };
+                }
+                start += 1;
             }
         },
     });

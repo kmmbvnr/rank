@@ -258,6 +258,21 @@ Blocks = T WindowShape window axis 0 2
 There must be one window size for every selected axis. The appended cell axes
 follow the explicit axis order.
 
+Stride and symmetric zero padding are contextual modifiers:
+
+```rank
+Blocks = M WindowShape window stride 2
+Blocks = M WindowShape window padding 1
+Blocks = M WindowShape window stride 2 padding 1
+```
+
+A scalar applies to every selected axis; a rank-1 integer array supplies one
+value per selected axis. Strides are positive, padding is nonnegative, and the
+defaults are one and zero. When `axis` is also present it follows these
+modifiers. Padding is available for arrays and inserts integer zero beyond the
+source boundary. Position axes use the usual convolution formula
+`max(0, floor((N + 2*P - W) / S) + 1)`.
+
 ## Rank-based application
 
 The same `rank` mechanism used for arrays applies to tensor cells:

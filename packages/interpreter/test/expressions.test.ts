@@ -389,6 +389,51 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toThrowError('window has 1 size value but 2 selected axes');
     });
 
+    it('applies window stride and zero padding', () => {
+        expect(run([
+            'use sequences',
+            'A = array 1 2 3 4 5',
+            'A 2 window stride 2',
+        ].join('\n'))).toBe('1 2 3 4');
+        expect(run([
+            'use sequences',
+            'M = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'S = array 2 2',
+            'M S window stride 2 padding 1',
+        ].join('\n'))).toBe([
+            '0 0 0 1 0 0 2 0',
+            '0 3 0 0 4 0 0 0',
+        ].join(' '));
+        expect(run([
+            'use sequences',
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+            'M 2 window stride 2 padding 1 axis 1',
+        ].join('\n'))).toBe('0 1 2 3 0 4 5 6');
+        expect(run([
+            'use sequences',
+            'M = array shape 2 2 pad 1',
+            'S = array 2 2',
+            'Stride = array 1 2',
+            'Pad = array 0 1',
+            'W = M S window stride Stride padding Pad',
+            'W shape',
+        ].join('\n'))).toBe('1 2 2 2');
+        expect(() => run([
+            'use sequences',
+            '(array 1 2) 1 window stride 0',
+        ].join('\n'))).toThrowError('window strides must be positive integers');
+        expect(() => run([
+            'use sequences',
+            '(array 1 2) 1 window padding (-1)',
+        ].join('\n'))).toThrowError('window padding must be nonnegative integers');
+    });
+
     it('reshapes finite values in row-major order', () => {
         const matrix = new Interpreter().execute([
             'use sequences',

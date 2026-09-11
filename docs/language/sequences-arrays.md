@@ -147,9 +147,25 @@ unique. Source axes retain their original order in the position frame; appended
 window axes follow the stated `axis` order. A scalar size without `axis` is
 valid only for a rank-1 value.
 
-Window sizes are positive integers. Only complete windows are returned. If a
-window is larger than its source axis, that position axis is empty. Windows are
-read-only views of their source.
+`stride` moves by more than one position and `padding` adds symmetric zero
+padding before positions are chosen:
+
+```rank
+Blocks = M WindowShape window stride 2
+Blocks = M WindowShape window padding 1
+Blocks = M WindowShape window stride 2 padding 1
+```
+
+Each value may instead be a rank-1 integer array with one item per selected
+axis. `stride` comes before `padding`, and `axis` follows both when they are
+combined. Strides must be positive and padding must be nonnegative. Their
+defaults are one and zero. Nonzero padding is defined only for arrays and
+inserts integer zero outside the source; text, queues and sequences still
+support stride.
+
+For source length `N`, window width `W`, stride `S` and padding `P`, the
+position-axis length is `max(0, floor((N + 2*P - W) / S) + 1)`. Windows remain
+lazy, read-only views of their source and the conceptual zero border.
 
 ## Shape and size
 

@@ -75,18 +75,13 @@ A -1 pad 0
 Current addressing rejects negative indices, including when followed by `pad`.
 The spelling of explicit operations such as `A last` is not yet fixed.
 
-## Extended window geometry
+## Window dilation
 
-The current `window` operation moves by one element and produces only complete
-contiguous cells. Future examples may justify three independent extensions:
-
-- `by` to move the window by a larger stride;
-- padding and a boundary-value policy for positions near tensor edges;
-- dilation to leave gaps between values inside a window.
-
-No syntax is reserved for these extensions yet. They must remain distinct:
-stride moves a window, padding changes its valid position frame, and dilation
-changes the geometry inside each cell.
+`window stride S padding P` now controls movement and a symmetric zero border.
+Dilation, which leaves gaps between values inside each window, remains
+separate and has no reserved syntax. A future proposal must not confuse it with
+stride, which moves the complete window, or padding, which changes its valid
+position frame.
 
 ## Remaining standard-input modes
 

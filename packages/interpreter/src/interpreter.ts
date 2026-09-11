@@ -1642,6 +1642,12 @@ export class Interpreter {
                         (yield* resume(interpreter.evaluateTask(axisWindow.source))),
                         (yield* resume(interpreter.evaluateTask(axisWindow.size))),
                         axisWindow.axes,
+                        axisWindow.stride
+                            ? (yield* resume(interpreter.evaluateTask(axisWindow.stride)))
+                            : undefined,
+                        axisWindow.padding
+                            ? (yield* resume(interpreter.evaluateTask(axisWindow.padding)))
+                            : undefined,
                     );
                 };
             }
@@ -4903,7 +4909,9 @@ const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
 interface AxisWindowApplication {
     readonly source: Expression;
     readonly size: Expression;
-    readonly axes: readonly number[];
+    readonly axes?: readonly number[];
+    readonly stride?: Expression;
+    readonly padding?: Expression;
 }
 
 interface MultisetMethodApplication {
@@ -5028,14 +5036,35 @@ function explicitGraphEdges(parts: Expression[]): GraphEdgesApplication | undefi
 }
 
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
-    if (parts.length < 5 || !isNamed(parts[2], 'window') || !isNamed(parts[3], 'axis')) {
-        return undefined;
+    if (parts.length < 5 || !isNamed(parts[2], 'window')) return undefined;
+    let position = 3;
+    let stride: Expression | undefined;
+    let padding: Expression | undefined;
+    let axes: readonly number[] | undefined;
+
+    if (isNamed(parts[position], 'stride')) {
+        stride = parts[position + 1];
+        if (!stride) return undefined;
+        position += 2;
     }
+    if (isNamed(parts[position], 'padding')) {
+        padding = parts[position + 1];
+        if (!padding) return undefined;
+        position += 2;
+    }
+    if (isNamed(parts[position], 'axis')) {
+        if (position + 1 >= parts.length) return undefined;
+        axes = parts.slice(position + 1).map(axis =>
+            safeDimension(integerLiteral(axis, 'window axis'), 'window axis'));
+        position = parts.length;
+    }
+    if (position !== parts.length || (!stride && !padding && !axes)) return undefined;
     return {
         source: parts[0],
         size: parts[1],
-        axes: parts.slice(4).map(axis =>
-            safeDimension(integerLiteral(axis, 'window axis'), 'window axis')),
+        axes,
+        stride,
+        padding,
     };
 }
 
