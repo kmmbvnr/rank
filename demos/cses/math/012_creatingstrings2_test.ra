@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "012_creatingstrings2"
+  "aabac" string_count equal 20
+end
+
+test "all characters are distinct"
+  use "012_creatingstrings2"
+  "abcde" string_count equal 120
+end
+
+test "one repeated character"
+  use "012_creatingstrings2"
+  "zzzzzz" string_count equal 1
+end
+
+test "several frequencies compose"
+  use "012_creatingstrings2"
+  "mississippi" string_count equal 34650
+end
