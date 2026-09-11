@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "date": "2026-09-11T06:27:03.315Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+    "sources": {
+      "euler": {
+        "path": "demos/euler/006_sumsquarediff.ra",
+        "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+      },
+      "matvec": {
+        "path": "demos/deepml/001_matmul.ra",
+        "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+      },
+      "row": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "column": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "matmul": {
+        "path": "demos/deepml/009_matmul.ra",
+        "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+      },
+      "gradient": {
+        "path": "demos/deepml/015_gd.ra",
+        "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+      }
+    },
+    "note": "Corrected DeepML 001 source, identical numeric runtime to d03c2bd. Compare both versions using this source; do not count the correctness fix as an optimization."
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-demo-roadmap/",
+      "revision": "d03c2bd1c562c311d8203b4c3d27a21fdd9f02d2",
+      "dirty": true
+    }
+  },
+  "results": [
+    {
+      "name": "matvec",
+      "scale": 0,
+      "version": "candidate",
+      "warmProcessMs": 136.296042,
+      "size": 8,
+      "firstMs": 1.9787919999999986,
+      "warmMs": [
+        0.10150000000000148,
+        0.08495800000000031,
+        0.0665830000000085,
+        0.07808299999999235,
+        0.09037500000000875
+      ],
+      "memory": {
+        "rss": 118751232,
+        "heapTotal": 54444032,
+        "heapUsed": 26387376,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 116000,
+      "coldProcessMs": [
+        137.52787499999997,
+        132.79641699999996,
+        138.72462499999995,
+        134.8745,
+        132.67487499999993
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 1,
+      "version": "candidate",
+      "warmProcessMs": 155.82170799999994,
+      "size": 128,
+      "firstMs": 5.436875000000001,
+      "warmMs": [
+        2.4284580000000062,
+        2.5991669999999942,
+        2.1346670000000074,
+        2.509416999999985,
+        2.1514170000000092
+      ],
+      "memory": {
+        "rss": 135938048,
+        "heapTotal": 62193664,
+        "heapUsed": 38084232,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 132752,
+      "coldProcessMs": [
+        140.05316700000003,
+        137.08720800000015,
+        135.830917,
+        136.59387500000003,
+        140.4035409999999
+      ]
+    },
+    {
+      "name": "matvec",
+      "scale": 2,
+      "version": "candidate",
+      "warmProcessMs": 385.29770800000006,
+      "size": 512,
+      "firstMs": 36.06329099999999,
+      "warmMs": [
+        32.26291599999999,
+        26.305000000000007,
+        26.50883299999998,
+        26.450417000000016,
+        26.450333
+      ],
+      "memory": {
+        "rss": 291831808,
+        "heapTotal": 213057536,
+        "heapUsed": 88675648,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 284992,
+      "coldProcessMs": [
+        176.71654100000023,
+        181.79516599999988,
+        182.57004199999983,
+        179.80058400000007,
+        179.51604099999986
+      ]
+    }
+  ]
+}

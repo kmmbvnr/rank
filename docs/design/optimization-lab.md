@@ -87,6 +87,27 @@ are kept; broader fusion remains conditional on a matching demo workload.
 
 ## Remaining experiments
 
+The independent matvec oracle found a correctness bug in DeepML 001:
+`Row * B sum` parses as `Row * (B sum)`. The official example returned nested
+rows `[3, 6]` and `[6, 12]` instead of `[5, 10]`. Its Rank test returned a tensor
+of false values, which the scalar-boolean assertion mechanism did not reject.
+The demo is corrected to `(Row * B) sum` in a separate correctness commit, with
+an internal JS test comparing exact scalar result items. This change is not an
+interpreter optimization and is not counted as a speedup. Future matvec timing
+uses the same corrected source against both runtimes, with source hashes saved.
+Other array-valued demo assertions still need a separate correctness audit.
+Correction commit: `96d1dc2`. The independent JS test passed. The corrected
+matvec baseline at square sizes 8/128/512 was 0.1/2.4/26.5 ms warm; largest
+peak RSS was 278.3 MiB. [Raw samples](../../benchmarks/baselines/2026-09-11-matvec-corrected-before.json).
+
+Next, measure the corrected DeepML 001. It provides a program for builtin-sum
+fusion that the initial four-demo shortlist missed. DeepML 017
+also has `(D * D) sum`, but `D` is a named lazy arithmetic result, so it adds
+cache and effect constraints. Builtin `sum` materializes its array before
+validating numeric elements; the explicit `+ reduce` path reads one element
+at a time. A fusion experiment must preserve this difference, including host
+getters and shadowed `sum` functions.
+
 Continue with builtin-sum fusion where it matches measured array workloads,
 compact numeric storage, measured indexing/transpose paths, guarded generated
 loops, and finally conservative mutation/alias analysis. Record failed attempts
