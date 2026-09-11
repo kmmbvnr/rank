@@ -1,0 +1,58 @@
+rem CSES 1672: Shortest Routes II
+rem https://cses.fi/problemset/task/1672
+
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+NodeCount = stdin .integer
+EdgeCount = stdin .integer
+QueryCount = stdin .integer
+Nodes = 1 to NodeCount
+Graph = new graph Nodes .undirected
+
+for i in 1 to EdgeCount
+  A = stdin .integer
+  B = stdin .integer
+  Cost = stdin .integer
+  Graph add A B Cost
+end
+
+Distances = Graph NodeCount all_pairs
+for i in 1 to QueryCount
+  A = stdin .integer
+  B = stdin .integer
+  if Distances A B equal infinity
+    -1 print
+  else
+    Distances A B print
+  end
+end
+
+
+rem Floyd-Warshall with an outer sum.
+fun all_pairs Graph NodeCount
+  N = NodeCount + 1
+  Dist = array shape N N pad infinity
+
+  for Node in 1 to NodeCount
+    Dist Node Node = 0
+    for Edge in Graph edges Node
+      unpack Next Cost = Edge
+      if Cost less Dist Node Next
+        Dist Node Next = Cost
+      end
+    end
+  end
+
+  for Middle in 1 to NodeCount
+    Column = Dist # Middle
+    Row = Dist Middle
+    Through = Column Row + outer
+    Updated = Dist min Through
+    Dist = Updated copy
+  end
+  return Dist
+end
