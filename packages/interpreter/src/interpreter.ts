@@ -2562,8 +2562,7 @@ export class Interpreter {
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (isRankArray(left) || isRankArray(right) || isRankQueue(left) || isRankQueue(right)) {
-            return mapBinary(left, right, operator,
-                numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b)));
+            return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (operator === 'equal' || operator === 'notequal') {
             const equal = equalValues(left, right);
@@ -3669,15 +3668,16 @@ function mapBinary(
     if (isRankSequence(right)) {
         return mapSequence(right, name, item => operation(left, item));
     }
+    const scalarOperation = numericKernel(name, operation);
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
     if (leftArray && rightArray) {
-        return mapBroadcastArrays(leftArray, rightArray, operation);
+        return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
     }
     const source = leftArray ?? rightArray!;
     return lazyArray(source.shape, index => {
         const item = arrayItem(source, index);
-        return leftArray ? operation(item, right) : operation(left, item);
+        return leftArray ? scalarOperation(item, right) : scalarOperation(left, item);
     });
 }
 
