@@ -1,0 +1,54 @@
+use testing
+
+test "satisfies the official example"
+  use "026_giantpizza"
+  use graph
+  use ranges
+  Clauses = array shape 3 2
+    1 2
+    -1 3
+    4 -2
+  end
+  Result = 5 Clauses giant_pizza
+  Result .possible equal true
+  Choices = Result .included
+  Choices 0 or Choices 1
+  not (Choices 0) or Choices 2
+  Choices 3 or not (Choices 1)
+end
+
+test "includes a required topping"
+  use "026_giantpizza"
+  use graph
+  use ranges
+  Clauses = array shape 1 2
+    1 1
+  end
+  Result = 1 Clauses giant_pizza
+  Result .possible equal true
+  Result .included equal (array true)
+end
+
+test "excludes a rejected topping"
+  use "026_giantpizza"
+  use graph
+  use ranges
+  Clauses = array shape 1 2
+    -1 -1
+  end
+  Result = 1 Clauses giant_pizza
+  Result .possible equal true
+  Result .included equal (array false)
+end
+
+test "detects contradictory wishes"
+  use "026_giantpizza"
+  use graph
+  use ranges
+  Clauses = array shape 2 2
+    1 1
+    -1 -1
+  end
+  Result = 1 Clauses giant_pizza
+  Result .possible equal false
+end

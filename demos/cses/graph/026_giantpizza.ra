@@ -1,0 +1,94 @@
+rem CSES 1684: Giant Pizza
+rem https://cses.fi/problemset/task/1684
+
+use graph
+use io
+use ranges
+
+People = stdin .integer
+Toppings = stdin .integer
+Clauses = array shape People 2 pad 0
+for i in 0 until People
+  SignA = stdin .word
+  A = stdin .integer
+  SignB = stdin .word
+  B = stdin .integer
+  if SignA equal "-"
+    A = -A
+  end
+  if SignB equal "-"
+    B = -B
+  end
+  Clauses i 0 = A
+  Clauses i 1 = B
+end
+
+Result = Toppings Clauses giant_pizza
+if Result .possible
+  Included = Result .included
+  Marks = array shape Toppings pad "-"
+  for Choice i in Included
+    if Choice
+      Marks i = "+"
+    end
+  end
+  Marks print
+else
+  "IMPOSSIBLE" print
+end
+
+
+rem Solve the wishes as a 2-SAT graph.
+fun giant_pizza N Clauses
+  LiteralCount = 2 * N
+  Literals = 1 to LiteralCount
+  Graph = new graph Literals .directed
+  for Clause in Clauses
+    unpack WishA WishB = Clause
+    A = WishA N literal
+    B = WishB N literal
+    NotA = A N opposite
+    NotB = B N opposite
+    Graph add NotA B
+    Graph add NotB A
+  end
+
+  Result = Graph scc
+  Part = Result .component
+  Included = array shape N pad false
+  for Topping i in 1 to N
+    Negative = Topping + N
+    if Part Topping equal Part Negative
+      return record
+        .possible = false
+        .included = Included
+      end
+    end
+    Pos = Part Topping
+    Neg = Part Negative
+    Chosen = Pos greater Neg
+    Included i = Chosen
+  end
+  return record
+    .possible = true
+    .included = Included
+  end
+end
+
+
+rem Map a signed wish to a graph vertex.
+fun literal Wish N
+  if Wish greater 0
+    return Wish
+  end
+  return -Wish + N
+end
+
+
+rem Return the complementary literal.
+fun opposite Literal N
+  if Literal at most N
+    return Literal + N
+  end
+  return Literal - N
+end

@@ -1,0 +1,60 @@
+use testing
+
+test "official example"
+  use "027_coincollector"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Coins = array 4 5 2 7
+  Edges = array shape 4 2
+    1 2
+    2 1
+    1 3
+    2 4
+  end
+  4 Coins Edges collect_coins equal 16
+end
+
+test "chooses the richer branch"
+  use "027_coincollector"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Coins = array 1 10 4 8
+  Edges = array shape 3 2
+    1 2
+    1 3
+    3 4
+  end
+  4 Coins Edges collect_coins equal 13
+end
+
+test "counts every room in a cycle"
+  use "027_coincollector"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Coins = array 3 5 7
+  Edges = array shape 3 2
+    1 2
+    2 3
+    3 1
+  end
+  3 Coins Edges collect_coins equal 15
+end
+
+test "may start at any room"
+  use "027_coincollector"
+  use graph
+  use numbers
+  use ranges
+  use sequences
+  Coins = array 2 100 3
+  Edges = array shape 1 2
+    1 3
+  end
+  3 Coins Edges collect_coins equal 100
+end

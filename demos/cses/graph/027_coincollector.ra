@@ -1,0 +1,56 @@
+rem CSES 1686: Coin Collector
+rem https://cses.fi/problemset/task/1686
+
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Coins = stdin .integer N array
+Count = M * 2
+Values = stdin .integer Count array
+Edges = Values (array M 2) reshape
+N Coins Edges collect_coins print
+
+
+rem Maximize coins on the SCC graph.
+fun collect_coins N Coins Edges
+  Rooms = 1 to N
+  Graph = new graph Rooms .directed
+  Graph add Edges
+  Result = Graph scc
+  Part = Result .component
+  Count = Result .count
+  Sums = array shape (Count + 1) pad 0
+
+  for Room i in Rooms
+    Kingdom = Part Room
+    Sums Kingdom += Coins i
+  end
+
+  Kingdoms = 1 to Count
+  DAG = new graph Kingdoms .directed
+  for Edge in Edges
+    unpack From To = Edge
+    A = Part From
+    B = Part To
+    if A not equal B
+      DAG add A B
+    end
+  end
+
+  Best = Sums copy
+  Sorted = DAG topological
+  for Current in Sorted .order
+    for Next in DAG Current
+      Collected = Best Current
+      Collected += Sums Next
+      Previous = Best Next
+      Best Next = Previous max Collected
+    end
+  end
+  return Best max
+end
