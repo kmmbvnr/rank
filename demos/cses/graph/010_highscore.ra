@@ -29,7 +29,7 @@ fun high_score Edges N
   Back = new graph Nodes .directed
   Graph add Edges
   for Edge in Edges
-    unpack From To Weight = Edge
+    unpack From To # = Edge
     Back add To From
   end
 

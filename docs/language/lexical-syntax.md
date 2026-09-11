@@ -216,6 +216,13 @@ keys and may use tuple keys.
 unpack Length Width Height = array 2 3 4
 ```
 
+`#` discards an item while preserving its position, as it does in a `for`
+binding:
+
+```rank
+unpack From To # = Edge
+```
+
 The number of names and items must match exactly. Unpacking supports only `=`;
 compound assignment always has one target. Each target keeps the same
 inferred-type rule as an ordinary assignment. The explicit keyword keeps a

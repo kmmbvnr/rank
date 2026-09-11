@@ -820,7 +820,9 @@ export class Interpreter {
                         `unpack expects ${statement.names.length} values, got ${unpacked.items.length}`,
                     );
                 }
-                statement.names.forEach((name, index) => interpreter.assign(name, unpacked.items[index]));
+                statement.names.forEach((name, index) => {
+                    if (name !== '#') interpreter.assign(name, unpacked.items[index]);
+                });
                 return result;
             } };
         }

@@ -83,7 +83,6 @@ sum
 queue
 index
 sqrt
-isqrt
 round
 ```
 
@@ -288,6 +287,13 @@ keys and may use tuple keys.
 
 ```rank
 unpack Length Width Height = array 2 3 4
+```
+
+`#` discards an item while preserving its position, as it does in a `for`
+binding:
+
+```rank
+unpack From To # = Edge
 ```
 
 The number of names and items must match exactly. Unpacking supports only `=`;

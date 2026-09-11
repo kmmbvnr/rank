@@ -128,6 +128,16 @@ describe('Rank grammar', () => {
         expect(statement.names).toEqual(['Length', 'Width', 'Height']);
     });
 
+    it('parses discarded unpack positions', async () => {
+        const document = await parse('unpack From To # = Edge');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statement = document.parseResult.value.statements[0];
+        expect(isUnpackStatement(statement)).toBe(true);
+        if (!isUnpackStatement(statement)) return;
+        expect(statement.names).toEqual(['From', 'To', '#']);
+    });
+
     it('reserves a multi-part target for addressed assignment', async () => {
         const document = await parse('A B = array 1 2');
         expect(document.parseResult.lexerErrors).toEqual([]);
