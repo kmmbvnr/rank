@@ -1,0 +1,25 @@
+use testing
+
+test "official examples"
+  use "027_trianglesums"
+  1 triangle_count equal 1
+  2 triangle_count equal 2
+  3 triangle_count equal 1
+  42 triangle_count equal 2
+  1337 triangle_count equal 3
+end
+
+test "needs all three numbers"
+  use "027_trianglesums"
+  5 triangle_count equal 3
+end
+
+test "large triangle number"
+  use "027_trianglesums"
+  500000500000 triangle_count equal 1
+end
+
+test "large sum of two triangles"
+  use "027_trianglesums"
+  1000000000000 triangle_count equal 2
+end

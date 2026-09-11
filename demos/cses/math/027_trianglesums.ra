@@ -1,0 +1,55 @@
+rem CSES 3406: Triangle Number Sums
+rem https://cses.fi/problemset/task/3406
+
+use io
+use numbers
+
+Tests = stdin .integer
+for Test in 1 to Tests
+  N = stdin .integer
+  N triangle_count print
+end
+
+
+rem Use the one, two and three theorems.
+fun triangle_count N
+  if N triangular
+    return 1
+  end
+  Value = 8 * N + 2
+  if Value sum_of_two_squares
+    return 2
+  end
+  return 3
+end
+
+
+rem Recognize a triangle number.
+fun triangular N
+  Value = 8 * N + 1
+  Root = Value isqrt
+  return Root ** 2 equal Value
+end
+
+
+rem Apply the two-squares theorem.
+fun sum_of_two_squares N
+  Previous = 0
+  Exponent = 0
+
+  for Prime in N factors
+    if Prime equal Previous
+      Exponent += 1
+      continue
+    end
+    Bad = Previous % 4 equal 3
+    if Bad and Exponent odd
+      return false
+    end
+    Previous = Prime
+    Exponent = 1
+  end
+
+  BadPrime = Previous % 4 equal 3
+  return not (BadPrime and Exponent odd)
+end

@@ -1,0 +1,42 @@
+rem CSES 1725: Dice Probability
+rem https://cses.fi/problemset/task/1725
+
+use io
+use numbers
+use ranges
+use sequences
+use text
+
+N = stdin .integer
+Low = stdin .integer
+High = stdin .integer
+N Low High probability_text print
+
+
+rem Format an exact-count probability.
+fun probability_text N Low High
+  Chance = N Low High dice_probability
+  return Chance text ".6f"
+end
+
+
+rem Count outcomes before dividing once.
+fun dice_probability N Low High
+  Size = 6 * N + 1
+  Ways = array shape Size pad 0
+  Ways 0 = 1
+
+  for Die in 1 to N
+    Next = array shape Size pad 0
+    Last = 6 * (Die - 1)
+    for Sum in 0 to Last
+      for Face in 1 to 6
+        Next (Sum + Face) += Ways Sum
+      end
+    end
+    Ways = Next
+  end
+
+  Favorable = Ways from Low to High
+  return Favorable sum / 6 ** N
+end

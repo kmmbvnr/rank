@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "028_diceprobability"
+  Expected = "0.194444"
+  2 9 10 probability_text equal Expected
+end
+
+test "all outcomes"
+  use "028_diceprobability"
+  Expected = "1.000000"
+  1 1 6 probability_text equal Expected
+end
+
+test "one face"
+  use "028_diceprobability"
+  Expected = "0.166667"
+  1 3 3 probability_text equal Expected
+end
+
+test "small tail"
+  use "028_diceprobability"
+  Expected = "0.004630"
+  3 3 3 probability_text equal Expected
+end
