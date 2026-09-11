@@ -1,0 +1,47 @@
+rem Deep-ML 33: Random Subsets
+rem https://www.deep-ml.com/problems/33
+
+use algo
+use random
+use ranges
+use sequences
+
+fun random_subsets X Y N Replace Seed
+  Shape = X shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  Rows = Shape 0
+  if Y len not equal Rows
+    .DimensionMismatch raise
+  end
+  if N less 0
+    .DomainError raise
+  end
+
+  Size = Rows // 2
+  if Replace
+    Size = Rows
+  end
+
+  State = Seed seed
+  Pool = (0 until Rows) array
+  Result = new queue
+
+  for # in 0 until N
+    if Replace
+      Ids = Pool Size choices
+    else
+      Order = Pool shuffle
+      Ids = Order from 0 until Size
+    end
+
+    Part = record
+      .x = X Ids
+      .y = Y Ids
+    end
+    Result push Part
+  end
+
+  return Result
+end

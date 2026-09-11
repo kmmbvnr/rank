@@ -1,0 +1,99 @@
+use testing
+
+test "official data without replacement"
+  use "033_subsets"
+  use sequences
+
+  X = array shape 5 2
+    1 2
+    3 4
+    5 6
+    7 8
+    9 10
+  end
+  Y = array 1 2 3 4 5
+  R = X Y 3 false 42 random_subsets
+
+  Ok = R len equal 3
+  for Part in R
+    Rows = Part .x
+    Labels = Part .y
+    Ok and= Labels len equal 2
+    Ok and= Labels unique len equal 2
+    for Label I in Labels
+      Row = Rows I
+      Ok and= Row 0 equal Label * 2 - 1
+      Ok and= Row 1 equal Label * 2
+    end
+  end
+  Ok
+end
+
+test "official data with replacement"
+  use "033_subsets"
+  use sequences
+
+  X = array shape 4 2
+    1 1
+    2 2
+    3 3
+    4 4
+  end
+  Y = array 10 20 30 40
+  R = X Y 1 true 42 random_subsets
+  Part = R 0
+  Rows = Part .x
+  Labels = Part .y
+
+  Ok = Labels len equal 4
+  for Label I in Labels
+    Row = Rows I
+    Ok and= Row 0 * 10 equal Label
+    Ok and= Row 1 equal Row 0
+  end
+  Ok
+end
+
+test "seed repeats the complete result"
+  use "033_subsets"
+
+  X = array shape 3 1
+    1
+    2
+    3
+  end
+  Y = array 10 20 30
+  A = X Y 2 true 7 random_subsets
+  B = X Y 2 true 7 random_subsets
+
+  A0 = A 0
+  A1 = A 1
+  B0 = B 0
+  B1 = B 1
+  Same0 = (A0 .x equal B0 .x) and reduce
+  Same1 = (A1 .x equal B1 .x) and reduce
+  Same0 and Same1
+end
+
+test "zero subsets returns empty queue"
+  use "033_subsets"
+  use sequences
+
+  X = array shape 2 1 pad 0
+  Y = array 1 2
+  R = X Y 0 false 1 random_subsets
+  R len equal 0
+end
+
+test "sample counts must match"
+  use "033_subsets"
+
+  X = array shape 2 1 pad 0
+  Y = array 1
+  try
+    X Y 1 false 1 random_subsets
+    false
+  catch .DimensionMismatch Error
+    true
+  end
+end
