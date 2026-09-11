@@ -3,6 +3,8 @@
 Implemented changes and local measurements. Remaining work is in the
 [performance roadmap](performance-roadmap.md).
 
+The current step-by-step experiments are in the [optimization log](optimization-lab.md).
+
 ## Benchmark commands
 
 From a built checkout:
@@ -16,6 +18,7 @@ node --expose-gc benchmarks/arrays.mjs --fusion --json
 node benchmarks/runtime.mjs
 node benchmarks/memo.mjs
 node benchmarks/extrema.mjs --baseline=/path/to/built/baseline
+node benchmarks/numerical-demos.mjs --baseline=/path/to/built/baseline
 ```
 
 `--quick` checks all workloads with integer, real and mixed inputs at 100 elements with two
