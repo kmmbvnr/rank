@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly loopReturnCompilation?: boolean;
     readonly arrayLocalCompilation?: boolean;
     readonly booleanArrayCompilation?: boolean;
     readonly booleanLoopCompilation?: boolean;
@@ -1024,6 +1025,9 @@ export class Interpreter {
                 } : undefined,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                returns: this.options.loopReturnCompilation !== false,
+                canReturn: () => this.localFrame !== undefined,
+                returnValue: value => { throw new ReturnSignal(value); },
                 arrayLocals: this.options.arrayLocalCompilation !== false,
                 dimension: checkedArrayDimension,
                 booleanArrays: this.options.booleanArrayCompilation !== false,
@@ -1054,7 +1058,7 @@ export class Interpreter {
                 compiled: this.options.onIntegerLoopCompiled,
                 executed: this.options.onIntegerLoopExecuted,
             }, binding) : undefined;
-            return compiled ? { stream: context => compiled.run(context.insideFinally) ?? reference.stream!(context) } : reference;
+            return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator) ?? reference.stream!(context) } : reference;
         }
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
@@ -2485,6 +2489,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            loopReturnCompilation: this.options.loopReturnCompilation,
             arrayLocalCompilation: this.options.arrayLocalCompilation,
             booleanArrayCompilation: this.options.booleanArrayCompilation,
             booleanLoopCompilation: this.options.booleanLoopCompilation,
@@ -2583,6 +2588,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            loopReturnCompilation: this.options.loopReturnCompilation,
             arrayLocalCompilation: this.options.arrayLocalCompilation,
             booleanArrayCompilation: this.options.booleanArrayCompilation,
             booleanLoopCompilation: this.options.booleanLoopCompilation,

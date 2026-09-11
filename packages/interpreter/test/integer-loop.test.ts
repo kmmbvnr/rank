@@ -1534,3 +1534,100 @@ A`);
         expect(loops).toBe(0);
     } finally { runtime.dispose(); }
 });
+
+describe('compiled loop returns', () => {
+    it('returns from both nested loops while keeping prior writes', () => {
+        const result = compare(`use ranges
+fun find N
+  for I in 0 until N
+    for J in 0 until N
+      if I + J equal 5
+        return I * 10 + J
+      end
+    end
+  end
+  return -1
+end
+4 find`);
+        expect(result.value).toBe('23');
+        expect(result.loops).toBe(1);
+    });
+
+    it('returns a created array with its mutations', () => {
+        const result = compare(`use ranges
+fun build N
+  for I in 1 to N
+    Row = array shape 2 pad I
+    Row 1 += 10
+    if I equal 2
+      return Row
+    end
+  end
+  return array 0 0
+end
+4 build`);
+        expect(result.value).toBe('2 12');
+        expect(result.loops).toBe(1);
+    });
+
+    it('runs enclosing finally before completing the return', () => {
+        const result = compare(`use ranges
+fun perform A
+  try
+    for I in 0 until 3
+      A 0 += 1
+      return I
+    end
+  finally
+    A 1 = 9
+  end
+  return -1
+end
+A = array 0 0
+Result = A perform
+A`);
+        expect(result.value).toBe('1 9');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains return expression errors after earlier mutations', () => {
+        const result = compare(`use ranges
+fun perform A
+  for I in 0 until 3
+    A 0 += 1
+    return 1 // I
+  end
+  return 0
+end
+A = array 0
+A perform`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps invalid-context validation before the return expression', () => {
+        const result = compare(`use ranges
+for I in 0 until 1
+  return 1 // 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it('retains the ban on return inside finally', () => {
+        const result = compare(`use ranges
+fun perform N
+  try
+    Result = N
+  finally
+    for I in 0 until 1
+      return 1 // 0
+    end
+  end
+  return Result
+end
+1 perform`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});

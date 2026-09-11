@@ -1,0 +1,53 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "returns",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 72.89175,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 51.906958,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 20.627834000000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 19.18279099999998,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 7.4561669999999935,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 11.631208000000015,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    }
+  ]
+}

@@ -1066,3 +1066,40 @@ digest matches the preceding boolean-array baseline. One pair takes 27.682 s off
 and 27.695 s on; no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-array-locals-suite.json).
+
+## Function return edges inside numeric regions
+
+Scalar values and known arrays can now leave nested compiled loops using the
+existing ReturnSignal. This preserves function completion, enclosing finally blocks,
+resource handling and prior mutations. Top-level/finally/generator/valueless cases
+retain ordinary validation and diagnostics. Arbitrary call expressions still use
+the reference return path and its tail-call support.
+
+Six differential tests cover nested exits, returning a mutated local array,
+enclosing finally execution, RHS errors, invalid top-level context and returns
+inside finally. Verification passes 44 language + 814 interpreter tests.
+
+A compiler fixture searches 200000 integer atoms for a single matching value.
+Five alternating samples toggle return lowering only, retain all previous stages,
+and validate independently known indices. Timings include input construction,
+parse/load and validation; counters are disabled.
+
+| Match position | Reference median ms | Compiled median ms |
+| --- | ---: | ---: |
+| First (index 0) | 5.939 | 6.778 |
+| Last (index 199999) | 20.172 | 10.711 |
+
+The long search improves about 1.88x, while immediate exit is about 14% slower in
+these samples. Entry preparation and array validation remain costs to reduce; do
+not describe this as a universal search speedup or as a result from an unchanged
+contest demo. Separate counters show zero versus one compiled region for both
+fixture cases.
+
+[Timings](../../benchmarks/baselines/2026-09-12-loop-return-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-loop-return-coverage.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes. All digests
+match the preceding local-array baseline. One pair takes 27.463 s off and 27.517 s
+on; no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-loop-return-suite.json).

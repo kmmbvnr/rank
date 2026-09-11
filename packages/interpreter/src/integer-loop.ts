@@ -1,6 +1,6 @@
 import {
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
-    isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
+    isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement,
 } from 'rank-language';
 import { completed, type Completed } from './execution.js';
@@ -26,6 +26,9 @@ interface Host {
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
+    readonly returns: boolean;
+    canReturn(): boolean;
+    returnValue(value: RankValue): never;
     dimension(value: bigint): number;
     extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
@@ -50,7 +53,7 @@ const comparisons: Record<string, string> = {
  * Writers retain fixed-type checks and partial state on errors; optional bound
  * writers specialize repeated known-value stores within one invocation. */
 export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): {
-    run(insideFinally?: boolean): Completed<RankValue | undefined> | undefined;
+    run(insideFinally?: boolean, insideGenerator?: boolean): Completed<RankValue | undefined> | undefined;
 } | undefined {
     if (!statement.statements.length || statement.statements.length > 32) return undefined;
     const localTypes = new Map<string, Term['type']>();
@@ -66,7 +69,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const aliases: [string, string][] = [];
     const iterators: ((source: RankArray) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: Term['type'] }>();
-    let needsAlgo = false, needsRanges = false, hasControl = false;
+    let needsAlgo = false, needsRanges = false, hasControl = false, hasReturn = false;
     let serial = 0;
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
@@ -284,6 +287,25 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 for (const name of incoming) assigned.add(name);
                 continue;
             }
+            if (isReturnStatement(assignment)) {
+                if (!host.returns || !assignment.value) return undefined;
+                hasControl = true; hasReturn = true;
+                const lines: string[] = [];
+                let expression = assignment.value;
+                while (isParenthesizedExpression(expression)) expression = expression.value;
+                const array = isNameExpression(expression) ? arrays.get(expression.name) : undefined;
+                let value: string;
+                if (array && isNameExpression(expression)) {
+                    if (!assigned.has(expression.name)) arrayInputs.add(expression.name);
+                    value = `r${array.slot}`;
+                } else {
+                    const result = emit(expression, lines);
+                    if (!result) return undefined;
+                    value = result.code;
+                }
+                body.push(`location = ${location};`, ...lines, `leave(${value});`);
+                return 'stop';
+            }
             if (isBreakStatement(assignment) || isContinueStatement(assignment)) {
                 hasControl = true;
                 body.push(`location = ${location}; ${isBreakStatement(assignment) ? 'break' : 'continue'};`);
@@ -495,13 +517,14 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension); }
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue); }
     catch { return undefined; }
     host.compiled?.(source);
-    return { run: (insideFinally = false) => {
+    return { run: (insideFinally = false, insideGenerator = false) => {
         if (hasControl && insideFinally) return undefined;
+        if (hasReturn && (insideGenerator || !host.canReturn())) return undefined;
         if (needsRanges && !host.ranges()) return undefined;
         if (needsAlgo && !host.module('algo')) return undefined;
         for (const [name, module] of builtins) if (!host.builtin(module, name)) return undefined;

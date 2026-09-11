@@ -1,0 +1,221 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "returns",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 73.66850000000001,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 52.675791000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 20.622083000000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 18.94620900000001,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 7.388959,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 11.46074999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 19.019333999999986,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 7.058290999999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 11.872709000000015,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 29.36183299999999,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.938915999999978,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 23.335250000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 26.34374999999997,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 6.062166000000019,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 20.172124999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 17.530958999999996,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 6.778292000000022,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 10.711124999999981,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 17.079166000000043,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 6.766124999999988,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 10.273166000000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 25.788374999999974,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.704458000000045,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 20.045500000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 25.60412500000001,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 5.797124999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 19.767334000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 17.409917000000007,
+      "entries": [
+        {
+          "name": "First match, 200000 atoms, first",
+          "ms": 6.678625000000011,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "fd98bc1146551614c4560fc78d1263c04405407d6d76e073b537d56a359e9f48"
+        },
+        {
+          "name": "First match, 200000 atoms, last",
+          "ms": 10.702042000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f746efe4fbe656390774279e6604eda9a9317f226ac39097d6e5350f5bbd9f56"
+        }
+      ]
+    }
+  ]
+}

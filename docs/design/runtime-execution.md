@@ -721,3 +721,17 @@ assignments use checked first writes, and temporary bound stores do not retain o
 invocation frames. General array expressions, unknown aliases and unsupported
 allocation forms still fall back. `arrayLocalCompilation: false` disables these
 array definitions and aliases while retaining earlier compiler stages.
+
+## Return from compiled loops
+
+A supported scalar expression or known array binding can be returned directly from
+inside a compiled loop, including nested loops. Generated code raises the existing
+ReturnSignal after evaluating the value. Ordinary function completion and enclosing
+finally/resource handling therefore remain in charge. Unreachable commands after
+an unconditional return are not compiled, and assignment merging considers only
+branches that continue.
+
+Top-level returns, returns inside finally, generator returns and valueless returns
+retain reference validation before evaluating the expression. Unsupported function
+calls in return expressions still fall back, retaining tail-call behavior.
+`loopReturnCompilation: false` disables this control edge only.
