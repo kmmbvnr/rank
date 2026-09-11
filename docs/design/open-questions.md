@@ -152,6 +152,42 @@ into a higher-rank rectangular value with padding.
 `mix` was rejected as a user-facing name. `stack` is a candidate but is not yet
 fixed.
 
+## Rectangular and ragged construction
+
+Find one coherent construction syntax for rectangular tensors and rows of
+unequal length. The existing `array shape ...` and the proposed
+`array .ragged` use inconsistent forms; `.ragged` is not approved or reserved.
+The design should stay easy to type on a phone and avoid new keywords where
+existing vocabulary can express the distinction clearly.
+
+Euler 18 motivates preserving row boundaries and addressing a triangle by row
+and column. Its current example already writes the input in 15 data lines,
+but stores a flat array and computes triangular offsets manually. Other uses
+include graph adjacency lists and batches of sequences with different lengths.
+
+Before implementation, settle row boundaries and line continuation, shape,
+addressing, and the meaning of `axis` and `rank` on unequal rows. Absent cells
+must remain distinct from numeric zero. Combining rows into a rectangular
+tensor with explicit padding is a separate conversion (see Stack / combine).
+
+## Triangular matrices
+
+Consider upper- and lower-triangular matrix representations and specialized
+algorithms as a future linear-algebra feature. A triangular matrix has a square
+logical shape and zeros on one side of the diagonal; ragged rows have absent
+elements instead. The two concepts need separate semantics even if their
+storage can share implementation techniques.
+
+Potential benefits include forward/back substitution for `solve`, exploiting
+triangular factors from LU or Cholesky, and specialized multiplication and
+determinant evaluation. Structure could be represented by a view or metadata
+without new language keywords. The design must settle validation, mutation,
+storage and how operations preserve or discard that structure. Coordinate this
+with Linear solver dispatch below; no constructor syntax is agreed yet.
+
+Julia's [triangular matrix views](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/#LinearAlgebra.LowerTriangular)
+are a reference for this design.
+
 ## Permutations by tensor axis
 
 The current `permutations` implementation handles text and rank-1 collections.
