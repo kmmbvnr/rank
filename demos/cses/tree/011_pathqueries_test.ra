@@ -1,0 +1,81 @@
+use testing
+
+test "official example"
+  use "011_pathqueries"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 5) .undirected
+  Edges = array shape 4 2
+    1 2
+    1 3
+    3 4
+    3 5
+  end
+  Graph add Edges
+  Values = array 4 2 5 2 1
+  Queries = array shape 3 3
+    2 4 0
+    1 3 2
+    2 4 0
+  end
+  Rooted = Graph 1 root
+  Actual = Values Rooted Queries paths
+  Actual equal (array 11 8)
+end
+
+test "root path contains only root"
+  use "011_pathqueries"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Nodes = array 1
+  Graph = new graph Nodes .undirected
+  Rooted = Graph 1 root
+  Query = array shape 1 3
+    2 1 0
+  end
+  Actual = (array 9) Rooted Query paths
+  Actual equal (array 9)
+end
+
+test "update changes every lower path"
+  use "011_pathqueries"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 3) .undirected
+  Graph add 1 2
+  Graph add 2 3
+  Rooted = Graph 1 root
+  Queries = array shape 3 3
+    2 3 0
+    1 2 10
+    2 3 0
+  end
+  Values = array 1 2 3
+  Actual = Values Rooted Queries paths
+  Actual equal (array 6 14)
+end
+
+test "sibling update stays off path"
+  use "011_pathqueries"
+  use algo
+  use graph
+  use ranges
+  use sequences
+  Graph = new graph (1 to 3) .undirected
+  Graph add 1 2
+  Graph add 1 3
+  Rooted = Graph 1 root
+  Queries = array shape 2 3
+    1 2 20
+    2 3 0
+  end
+  Values = array 1 2 3
+  Actual = Values Rooted Queries paths
+  Actual equal (array 4)
+end

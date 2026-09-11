@@ -1,0 +1,50 @@
+rem CSES 1136: Counting Paths
+rem https://cses.fi/problemset/task/1136
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Values = stdin .integer (M * 2) array
+Paths = Values (array M 2) reshape
+Rooted = Tree 1 root
+Rooted Paths path_counts print
+
+
+rem Add path differences, then merge up.
+fun path_counts Rooted Paths
+  Order = Rooted .order
+  Parents = Rooted .parent
+  Root = Rooted .root
+  N = Order len
+  Counts = array shape (N + 1) pad 0
+
+  for Path in Paths
+    unpack A B = Path
+    Common = Rooted A B lca
+    Counts A += 1
+    Counts B += 1
+    Counts Common -= 1
+    if Common not equal Root
+      Parent = Parents Common
+      Counts Parent -= 1
+    end
+  end
+
+  Last = Order len - 1
+  for i in Last to 1 by -1
+    Node = Order i
+    Parent = Parents Node
+    Counts Parent += Counts Node
+  end
+  return Counts (1 to N)
+end

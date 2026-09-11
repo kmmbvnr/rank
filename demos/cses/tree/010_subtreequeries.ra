@@ -1,0 +1,60 @@
+rem CSES 1137: Subtree Queries
+rem https://cses.fi/problemset/task/1137
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Graph = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Graph add A B
+end
+
+Queries = array shape Q 3 pad 0
+for i in 0 until Q
+  Type = stdin .integer
+  Queries i 0 = Type
+  Queries i 1 = stdin .integer
+  if Type equal 1
+    Queries i 2 = stdin .integer
+  end
+end
+
+Rooted = Graph 1 root
+Answers = Values Rooted Queries subtree
+Answers print
+
+
+rem Flatten subtrees into sum ranges.
+fun subtree Values Rooted Queries
+  Order = Rooted .order
+  Entry = Rooted .entry
+  Sizes = Rooted .size
+  Flat = array shape (Order len) pad 0
+  for Node in Order
+    Value = Values (Node - 1)
+    Flat (Entry Node) = Value
+  end
+  Sums = Flat + segment
+  Answers = new queue
+
+  for Query in Queries
+    unpack Type Node Value = Query
+    Position = Entry Node
+    if Type equal 1
+      Sums Position = Value
+    else
+      Last = Position + Sizes Node - 1
+      Answer = Sums Position Last query
+      Answers push Answer
+    end
+  end
+  return Answers
+end

@@ -1,0 +1,71 @@
+rem CSES 1138: Path Queries
+rem https://cses.fi/problemset/task/1138
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Graph = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Graph add A B
+end
+
+Queries = array shape Q 3 pad 0
+for i in 0 until Q
+  Type = stdin .integer
+  Queries i 0 = Type
+  Queries i 1 = stdin .integer
+  if Type equal 1
+    Queries i 2 = stdin .integer
+  end
+end
+
+Rooted = Graph 1 root
+Answers = Values Rooted Queries paths
+Answers print
+
+
+rem Mark each value across its subtree.
+fun paths Values Rooted Queries
+  Order = Rooted .order
+  Entry = Rooted .entry
+  Sizes = Rooted .size
+  N = Order len
+  Current = Values copy
+  Sums = N fenwick
+
+  for Node in Order
+    Position = Entry Node
+    Value = Current (Node - 1)
+    Sums Position += Value
+    End = Position + Sizes Node
+    if End less N
+      Sums End -= Value
+    end
+  end
+
+  Answers = new queue
+  for Query in Queries
+    unpack Type Node Value = Query
+    Position = Entry Node
+    if Type equal 1
+      Delta = Value - Current (Node - 1)
+      Current (Node - 1) = Value
+      Sums Position += Delta
+      End = Position + Sizes Node
+      if End less N
+        Sums End -= Delta
+      end
+    else
+      Answers push (Sums sum Position)
+    end
+  end
+  return Answers
+end

@@ -1,0 +1,72 @@
+use testing
+
+test "official example"
+  use "009_countpaths"
+  use graph
+  use ranges
+  use sequences
+  Tree = new graph (1 to 5) .undirected
+  Edges = array shape 4 2
+    1 2
+    1 3
+    3 4
+    3 5
+  end
+  Tree add Edges
+  Paths = array shape 3 2
+    1 3
+    2 5
+    1 4
+  end
+  Rooted = Tree 1 root
+  Actual = Rooted Paths path_counts
+  Actual equal (array 3 1 3 1 1)
+end
+
+test "one node may form a path"
+  use "009_countpaths"
+  use graph
+  use ranges
+  use sequences
+  Tree = new graph (array 1) .undirected
+  Rooted = Tree 1 root
+  Paths = array shape 1 2 pad 1
+  Actual = Rooted Paths path_counts
+  Actual equal (array 1)
+end
+
+test "repeated paths accumulate"
+  use "009_countpaths"
+  use graph
+  use ranges
+  use sequences
+  Tree = new graph (1 to 4) .undirected
+  Tree add 1 2
+  Tree add 2 3
+  Tree add 3 4
+  Paths = array shape 2 2
+    1 4
+    1 4
+  end
+  Rooted = Tree 1 root
+  Actual = Rooted Paths path_counts
+  Actual equal (array 2 2 2 2)
+end
+
+test "separate branches meet at root"
+  use "009_countpaths"
+  use graph
+  use ranges
+  use sequences
+  Tree = new graph (1 to 5) .undirected
+  for Node in 2 to 5
+    Tree add 1 Node
+  end
+  Paths = array shape 2 2
+    2 3
+    4 5
+  end
+  Rooted = Tree 1 root
+  Actual = Rooted Paths path_counts
+  Actual equal (array 2 1 1 1 1)
+end
