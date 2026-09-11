@@ -1,0 +1,31 @@
+use testing
+
+test "official example"
+  use "003_buildroads"
+  Roads = array 1 2 3 4
+  Actual = 4 Roads components
+  Actual equal array 1 3
+end
+
+test "connected graph needs no roads"
+  use "003_buildroads"
+  Roads = array 1 2 2 3 3 4
+  Actual = 4 Roads components
+  Actual equal array 1
+end
+
+test "isolated cities"
+  use "003_buildroads"
+  use sequences
+  Roads = array shape 0 pad 0
+  Expected = array 1 2 3 4
+  Actual = 4 Roads components
+  Actual equal Expected
+end
+
+test "union by size"
+  use "003_buildroads"
+  Roads = array 1 2 3 4 2 4
+  Actual = 5 Roads components
+  Actual equal array 1 5
+end
