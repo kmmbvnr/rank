@@ -47,13 +47,15 @@ Fuse named values only after proving the relevant use and effect boundaries.
 Why: this can remove temporary-array work from ordinary programs without asking
 users to rewrite them into a special benchmark form.
 
-## Add compact numeric storage where profiles justify it
+## Revisit compact storage after private consumers exist
 
-Prototype real and boolean storage against the numerical demo profiles. Measure
-conversion costs, strided access and temporary buffers, including small and mixed
-arrays. Design integer storage separately: `Float64Array` loses large-integer
-precision and `BigInt64Array` cannot hold arbitrary-size integers. Bounded
-integer storage needs checked overflow and promotion.
+The real/boolean prototype was measured and rolled back: matvec and row/column
+means became slower, while boolean storage used fewer retained bytes. Results
+and the rejected patch are in the [log](optimization-lab.md#5-compact-realboolean-buffers-rejected-and-rolled-back).
+Revisit only after ordinary numeric consumers can avoid exposing and boxing each
+temporary. A long-lived boolean workload may justify a separate memory tradeoff.
+Bounded integer storage remains conditional on a matching workload and checked
+overflow/promotion; the log records the constraints.
 
 Why: reduced memory traffic can help array kernels. Storage alone cannot remove
 the interpreted triple-loop overhead in DeepML 009.

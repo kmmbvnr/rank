@@ -23,6 +23,24 @@ function call(instance: Interpreter, name: string, input: RankValue) {
 }
 
 describe('private array storage', () => {
+    it('preserves large real, boolean, integer and mixed snapshots through exposure', () => {
+        const real = createArraySnapshot(Array.from({ length: 256 }, (_, i) => i === 0 ? -0 : i / 4));
+        const bool = createArraySnapshot(Array.from({ length: 256 }, (_, i) => i % 2 === 0));
+        expect(Object.is(privateArrayStorage(real)!.read(0), -0)).toBe(true);
+        expect(privateArrayStorage(bool)!.read(0)).toBe(true);
+        expect(privateArrayStorage(bool)!.read(1)).toBe(false);
+        expect(createArraySnapshot([1, 2]).items).toEqual([1, 2]);
+        expect(createArraySnapshot(Array(256).fill(2n ** 100n)).items).toEqual(Array(256).fill(2n ** 100n));
+        const mixed = Array.from({ length: 256 }, (_, i) => i % 2 ? i : BigInt(i));
+        expect(createArraySnapshot(mixed).items).toEqual(mixed);
+        real.items[0] = 2n ** 100n;
+        bool.items[0] = 'mutable';
+        expect(real.items[0]).toBe(2n ** 100n);
+        expect(bool.items[0]).toBe('mutable');
+        expect(privateArrayStorage(real)).toBeUndefined();
+        expect(privateArrayStorage(bool)).toBeUndefined();
+    });
+
     it('rejects unknown and wrapped objects without invoking proxy traps', () => {
         const traps: string[] = [];
         const proxy = (value: RankArray) => new Proxy(value, {

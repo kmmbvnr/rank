@@ -1,0 +1,86 @@
+diff --git a/packages/interpreter/src/array-storage.ts b/packages/interpreter/src/array-storage.ts
+index 8824b7c..56678de 100644
+--- a/packages/interpreter/src/array-storage.ts
++++ b/packages/interpreter/src/array-storage.ts
+@@ -2,6 +2,7 @@ import { RankError } from './errors.js';
+ import type { RankArray, RankValue } from './value.js';
+ 
+ interface Storage {
++    readonly format: 'generic' | 'real64' | 'boolean8';
+     readonly shape: number[];
+     readonly dimensions: readonly number[];
+     readonly read: (index: number) => RankValue;
+@@ -11,6 +12,39 @@ interface Storage {
+ 
+ const owned = new WeakMap<object, Storage>();
+ 
++function backing(items: RankValue[]) {
++    let boxed: RankValue[] | undefined = items;
++    let real: Float64Array | undefined;
++    let bool: Uint8Array | undefined;
++    if (items.length >= 256 && items.every(item => typeof item === 'number')) {
++        real = Float64Array.from(items as number[]);
++        boxed = undefined;
++    } else if (items.length >= 256 && items.every(item => typeof item === 'boolean')) {
++        bool = new Uint8Array(items.length);
++        for (let index = 0; index < items.length; index++) bool[index] = items[index] ? 1 : 0;
++        boxed = undefined;
++    }
++    const format = real ? 'real64' as const : bool ? 'boolean8' as const : 'generic' as const;
++    return {
++        format,
++        read: (index: number): RankValue => boxed ? boxed[index] : real ? real[index] : bool![index] !== 0,
++        expose: (): RankValue[] => {
++            if (!boxed) {
++                boxed = Array<RankValue>((real ?? bool)!.length);
++                if (real) {
++                    for (let index = 0; index < real.length; index++) boxed[index] = real[index];
++                } else {
++                    for (let index = 0; index < bool!.length; index++) boxed[index] = bool![index] !== 0;
++                }
++            }
++            real = undefined;
++            bool = undefined;
++            return boxed;
++        },
++        replace: (replacement: RankValue[]) => { boxed = replacement; real = undefined; bool = undefined; },
++    };
++}
++
+ /** Internal constructor: items must be a freshly allocated, unaliased JS array. */
+ export function ownedArray(items: RankValue[], shape: readonly number[]): RankArray {
+     if (!items.every(item => typeof item === 'number' || typeof item === 'bigint' || typeof item === 'boolean')) {
+@@ -18,27 +52,29 @@ export function ownedArray(items: RankValue[], shape: readonly number[]): RankAr
+     }
+     const dimensions = [...shape];
+     const arrayShape = [...dimensions];
++    const data = backing(items);
+     let storage: Storage;
+     const result: RankArray = {
+         kind: 'array', shape: arrayShape,
+         get items() {
+             storage.exposed = true;
++            const exposed = data.expose();
+             const descriptor = Object.getOwnPropertyDescriptor(result, 'items');
+             if (descriptor?.get === storage.expose && descriptor.configurable) {
+                 // After exposure, ordinary reads should be ordinary data-field
+                 // reads too. Do not replace a host-installed or sealed getter.
+                 Object.defineProperty(result, 'items', {
+-                    value: items, writable: true, configurable: true, enumerable: descriptor.enumerable,
++                    value: exposed, writable: true, configurable: true, enumerable: descriptor.enumerable,
+                 });
+             }
+-            return items;
++            return exposed;
+         },
+-        set items(replacement) { storage.exposed = true; items = replacement; },
++        set items(replacement) { storage.exposed = true; data.replace(replacement); },
+         // Once public storage escapes, it may receive files or accessor cells.
+         get containsFiles() { return privateArrayStorage(result) ? false as const : undefined; },
+     };
+     storage = {
+-        shape: arrayShape, dimensions, exposed: false, read: index => items[index],
++        shape: arrayShape, dimensions, exposed: false, read: data.read, format: data.format,
+         expose: Object.getOwnPropertyDescriptor(result, 'items')!.get!,
+     };
+     owned.set(result, storage);

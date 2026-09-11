@@ -1,0 +1,2663 @@
+{
+  "note": "Rejected compact buffer prototype over 03fd034. Storage1 uses Array.from exposure and Uint8Array.from construction; storage2 and second matvec/row/column use preallocated conversion loops. Candidate changes uncommitted; saved patch in benchmarks/experiments/compact-storage.patch.",
+  "runs": {
+    "compactMatvec1": {
+      "metadata": {
+        "date": "2026-09-11T07:40:58.201Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-demo-roadmap/",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-before-compact-storage",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": false
+        }
+      },
+      "results": [
+        {
+          "name": "matvec",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 129.94125000000003,
+          "size": 8,
+          "firstMs": 1.9999580000000066,
+          "warmMs": [
+            0.08566700000000083,
+            0.08525000000000205,
+            0.07883300000000304,
+            0.07516699999999332,
+            0.08366600000000801
+          ],
+          "memory": {
+            "rss": 118276096,
+            "heapTotal": 55492608,
+            "heapUsed": 27354608,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 115504,
+          "coldProcessMs": [
+            133.111666,
+            131.33495800000003,
+            131.227083,
+            132.49700000000007,
+            135.37266599999998
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 174.104125,
+          "size": 8,
+          "firstMs": 2.1566250000000196,
+          "warmMs": [
+            0.09799999999998477,
+            0.09695800000000077,
+            0.09066699999999628,
+            0.08412500000000023,
+            0.09295800000001009
+          ],
+          "memory": {
+            "rss": 119865344,
+            "heapTotal": 54444032,
+            "heapUsed": 35369008,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 117056,
+          "coldProcessMs": [
+            134.5586249999999,
+            134.072042,
+            131.02999999999997,
+            131.09354199999984,
+            130.58562499999994
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 148.92304200000012,
+          "size": 128,
+          "firstMs": 4.804124999999999,
+          "warmMs": [
+            2.0267499999999927,
+            1.8152080000000126,
+            1.88900000000001,
+            1.536292000000003,
+            1.5157920000000047
+          ],
+          "memory": {
+            "rss": 133988352,
+            "heapTotal": 57737216,
+            "heapUsed": 39081200,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 130848,
+          "coldProcessMs": [
+            135.3994590000002,
+            135.32666699999982,
+            135.69545900000003,
+            136.10145799999964,
+            133.37366599999996
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 148.92270800000006,
+          "size": 128,
+          "firstMs": 4.91225,
+          "warmMs": [
+            2.0941660000000013,
+            1.879667000000012,
+            1.9194999999999993,
+            1.6707919999999774,
+            1.645542000000006
+          ],
+          "memory": {
+            "rss": 133857280,
+            "heapTotal": 57589760,
+            "heapUsed": 39571720,
+            "external": 2436356,
+            "arrayBuffers": 160303
+          },
+          "maxRSSKiB": 130720,
+          "coldProcessMs": [
+            138.70016600000008,
+            136.06441600000016,
+            136.63787500000035,
+            137.80033300000014,
+            135.62237499999992
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 310.157792,
+          "size": 512,
+          "firstMs": 30.353250000000003,
+          "warmMs": [
+            23.593582999999995,
+            21.26845800000001,
+            16.98891599999999,
+            16.786207999999988,
+            16.563916999999947
+          ],
+          "memory": {
+            "rss": 204619776,
+            "heapTotal": 110968832,
+            "heapUsed": 74749256,
+            "external": 21183748,
+            "arrayBuffers": 18907695
+          },
+          "maxRSSKiB": 199824,
+          "coldProcessMs": [
+            172.6275410000003,
+            171.37045800000033,
+            173.60750000000007,
+            173.8835420000005,
+            174.20229199999994
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 295.07629199999974,
+          "size": 512,
+          "firstMs": 27.816374999999994,
+          "warmMs": [
+            19.203542,
+            19.13304099999999,
+            15.329542000000004,
+            15.667500000000018,
+            16.279125000000022
+          ],
+          "memory": {
+            "rss": 194494464,
+            "heapTotal": 183582720,
+            "heapUsed": 74884448,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 189936,
+          "coldProcessMs": [
+            169.96249999999964,
+            165.2842499999997,
+            169.77900000000045,
+            166.53920899999957,
+            193.9501250000003
+          ]
+        }
+      ]
+    },
+    "compactMatvec2": {
+      "metadata": {
+        "date": "2026-09-11T07:42:08.139Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-demo-roadmap/",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-before-compact-storage",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": false
+        }
+      },
+      "results": [
+        {
+          "name": "matvec",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 130.280209,
+          "size": 8,
+          "firstMs": 2.1467499999999973,
+          "warmMs": [
+            0.09104200000000162,
+            0.08987500000000637,
+            0.08066599999999369,
+            0.08366700000000549,
+            0.08416700000000787
+          ],
+          "memory": {
+            "rss": 123453440,
+            "heapTotal": 55230464,
+            "heapUsed": 26987680,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 120560,
+          "coldProcessMs": [
+            132.52245799999997,
+            130.32162499999993,
+            131.11004100000002,
+            133.6712910000001,
+            131.6144999999999
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 130.051875,
+          "size": 8,
+          "firstMs": 1.997833,
+          "warmMs": [
+            0.08925000000000693,
+            0.08749999999999147,
+            0.07741599999999949,
+            0.07637499999999875,
+            0.086166999999989
+          ],
+          "memory": {
+            "rss": 119472128,
+            "heapTotal": 54968320,
+            "heapUsed": 26782000,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 116688,
+          "coldProcessMs": [
+            133.803291,
+            131.42333300000007,
+            134.81570799999997,
+            132.45575000000008,
+            134.7858339999998
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 151.92979200000013,
+          "size": 128,
+          "firstMs": 5.079540999999992,
+          "warmMs": [
+            2.1979589999999973,
+            1.915333000000004,
+            2.104666999999978,
+            1.7389579999999967,
+            1.7032910000000072
+          ],
+          "memory": {
+            "rss": 130613248,
+            "heapTotal": 57851904,
+            "heapUsed": 39494224,
+            "external": 2436356,
+            "arrayBuffers": 160303
+          },
+          "maxRSSKiB": 127552,
+          "coldProcessMs": [
+            134.98070900000016,
+            139.18695799999978,
+            138.21275000000014,
+            135.3544579999998,
+            138.62829200000033
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 151.707541,
+          "size": 128,
+          "firstMs": 4.962708000000006,
+          "warmMs": [
+            2.130625000000009,
+            1.8049159999999915,
+            1.9872079999999812,
+            1.628832999999986,
+            1.6069589999999891
+          ],
+          "memory": {
+            "rss": 134021120,
+            "heapTotal": 57475072,
+            "heapUsed": 39061232,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 130880,
+          "coldProcessMs": [
+            134.26858300000004,
+            134.35408299999972,
+            138.036333,
+            134.2623749999998,
+            133.50679200000013
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 295.32120799999984,
+          "size": 512,
+          "firstMs": 28.640665999999996,
+          "warmMs": [
+            19.20358300000001,
+            19.146625,
+            15.458249999999992,
+            15.261375000000015,
+            16.465666999999996
+          ],
+          "memory": {
+            "rss": 195952640,
+            "heapTotal": 183582720,
+            "heapUsed": 74573696,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 191360,
+          "coldProcessMs": [
+            168.71833400000014,
+            168.20966700000008,
+            165.15729199999987,
+            165.71779199999946,
+            166.54925000000003
+          ]
+        },
+        {
+          "name": "matvec",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 311.6390839999999,
+          "size": 512,
+          "firstMs": 30.888165999999984,
+          "warmMs": [
+            22.173333999999983,
+            21.231833999999992,
+            17.05716700000002,
+            16.827583000000004,
+            16.865124999999978
+          ],
+          "memory": {
+            "rss": 204734464,
+            "heapTotal": 114655232,
+            "heapUsed": 53017896,
+            "external": 21183748,
+            "arrayBuffers": 18907695
+          },
+          "maxRSSKiB": 199936,
+          "coldProcessMs": [
+            172.69879199999968,
+            174.561917,
+            174.03533400000015,
+            173.11133299999983,
+            172.78849999999966
+          ]
+        }
+      ]
+    },
+    "compactColumn1": {
+      "metadata": {
+        "date": "2026-09-11T07:42:29.647Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-demo-roadmap/",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-before-compact-storage",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": false
+        }
+      },
+      "results": [
+        {
+          "name": "column",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 126.747875,
+          "size": 8,
+          "firstMs": 1.6929999999999978,
+          "warmMs": [
+            0.07804199999999639,
+            0.09162500000000762,
+            0.07937499999999886,
+            0.07333400000000267,
+            0.07800000000000296
+          ],
+          "memory": {
+            "rss": 123830272,
+            "heapTotal": 54181888,
+            "heapUsed": 25390560,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 120928,
+          "coldProcessMs": [
+            131.31354200000004,
+            136.59733299999994,
+            130.06295799999998,
+            129.324791,
+            131.49258299999997
+          ]
+        },
+        {
+          "name": "column",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 132.12187500000002,
+          "size": 8,
+          "firstMs": 1.7484579999999994,
+          "warmMs": [
+            0.07966600000000312,
+            0.0954579999999936,
+            0.08508300000001157,
+            0.07904100000000369,
+            0.07904100000000369
+          ],
+          "memory": {
+            "rss": 118407168,
+            "heapTotal": 54444032,
+            "heapUsed": 25428872,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 115632,
+          "coldProcessMs": [
+            128.07691699999998,
+            131.6159580000001,
+            133.859875,
+            132.36133300000006,
+            129.1500000000001
+          ]
+        },
+        {
+          "name": "column",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 148.87216700000022,
+          "size": 128,
+          "firstMs": 4.572209000000001,
+          "warmMs": [
+            2.046166000000028,
+            1.6132499999999936,
+            1.7184580000000267,
+            1.5087080000000128,
+            1.7473329999999976
+          ],
+          "memory": {
+            "rss": 129646592,
+            "heapTotal": 57737216,
+            "heapUsed": 23678792,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 126608,
+          "coldProcessMs": [
+            137.6427920000001,
+            134.20850000000019,
+            133.0761669999997,
+            135.19183299999986,
+            134.98225000000002
+          ]
+        },
+        {
+          "name": "column",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 152.93274999999994,
+          "size": 128,
+          "firstMs": 4.597791999999998,
+          "warmMs": [
+            2.040541999999988,
+            1.6255419999999958,
+            1.8124170000000106,
+            1.5213750000000061,
+            1.5047919999999806
+          ],
+          "memory": {
+            "rss": 133742592,
+            "heapTotal": 57589760,
+            "heapUsed": 37847328,
+            "external": 2436356,
+            "arrayBuffers": 160303
+          },
+          "maxRSSKiB": 130624,
+          "coldProcessMs": [
+            137.5579170000001,
+            136.97325,
+            133.92095900000004,
+            134.10170900000003,
+            135.53049999999985
+          ]
+        },
+        {
+          "name": "column",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 304.07116700000006,
+          "size": 512,
+          "firstMs": 28.623917000000006,
+          "warmMs": [
+            19.495749999999987,
+            19.238957999999997,
+            15.405875000000009,
+            17.196499999999986,
+            17.22970799999996
+          ],
+          "memory": {
+            "rss": 268189696,
+            "heapTotal": 188301312,
+            "heapUsed": 78573920,
+            "external": 4881668,
+            "arrayBuffers": 2605615
+          },
+          "maxRSSKiB": 261904,
+          "coldProcessMs": [
+            169.21158300000025,
+            169.45779200000015,
+            167.3144169999996,
+            175.6876659999998,
+            168.74283300000025
+          ]
+        },
+        {
+          "name": "column",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 286.73566600000004,
+          "size": 512,
+          "firstMs": 23.08325000000002,
+          "warmMs": [
+            18.10487500000002,
+            14.095208999999983,
+            14.255415999999997,
+            13.924749999999989,
+            14.23091599999998
+          ],
+          "memory": {
+            "rss": 191299584,
+            "heapTotal": 115441664,
+            "heapUsed": 60824616,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 186816,
+          "coldProcessMs": [
+            171.10350000000017,
+            172.83791700000074,
+            164.55704200000037,
+            171.73470799999996,
+            168.48654199999964
+          ]
+        }
+      ]
+    },
+    "compactRow1": {
+      "metadata": {
+        "date": "2026-09-11T07:42:46.134Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "e959baf1daf6623f0d0b7ec4b55497b72f79a3fa74243f6c2f422d3f48a9c30a"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "43f2f8bb177acbff834f468b90efc4f62ffbcb6891dd8c1295e40c60a9459208"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-demo-roadmap/",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-before-compact-storage",
+          "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+          "dirty": false
+        }
+      },
+      "results": [
+        {
+          "name": "row",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 130.22912499999998,
+          "size": 8,
+          "firstMs": 1.762790999999993,
+          "warmMs": [
+            0.07600000000000762,
+            0.07545799999999758,
+            0.07566599999999823,
+            0.07329099999999755,
+            0.07716700000000287
+          ],
+          "memory": {
+            "rss": 122175488,
+            "heapTotal": 54444032,
+            "heapUsed": 25593352,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 119328,
+          "coldProcessMs": [
+            133.19458299999997,
+            132.294666,
+            130.31895799999995,
+            132.47920900000008,
+            132.69562500000006
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 131.38420800000003,
+          "size": 8,
+          "firstMs": 1.727917000000005,
+          "warmMs": [
+            0.08016600000000551,
+            0.07658399999999688,
+            0.07579200000000696,
+            0.07920799999999417,
+            0.07804099999999892
+          ],
+          "memory": {
+            "rss": 119521280,
+            "heapTotal": 54444032,
+            "heapUsed": 25265312,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 116720,
+          "coldProcessMs": [
+            129.933,
+            128.630542,
+            130.1639580000001,
+            130.97399999999993,
+            133.1691249999999
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 151.5341249999999,
+          "size": 128,
+          "firstMs": 4.413166000000004,
+          "warmMs": [
+            1.9708749999999782,
+            1.585000000000008,
+            1.811458000000016,
+            1.5191659999999843,
+            1.4796670000000063
+          ],
+          "memory": {
+            "rss": 133578752,
+            "heapTotal": 57851904,
+            "heapUsed": 38142344,
+            "external": 2436356,
+            "arrayBuffers": 160303
+          },
+          "maxRSSKiB": 130448,
+          "coldProcessMs": [
+            137.25116700000012,
+            137.58429099999967,
+            136.4238330000003,
+            134.719791,
+            134.69662500000004
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 151.75854099999992,
+          "size": 128,
+          "firstMs": 4.380750000000006,
+          "warmMs": [
+            2.0119590000000187,
+            1.5801250000000095,
+            1.6927919999999972,
+            1.4707500000000095,
+            1.4558749999999918
+          ],
+          "memory": {
+            "rss": 135741440,
+            "heapTotal": 57212928,
+            "heapUsed": 37531768,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 132560,
+          "coldProcessMs": [
+            135.7749170000002,
+            136.97729100000015,
+            134.9674170000003,
+            135.89137500000015,
+            132.84249999999975
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 284.8996659999998,
+          "size": 512,
+          "firstMs": 22.137584000000004,
+          "warmMs": [
+            18.481416999999993,
+            14.583542000000023,
+            14.346582999999981,
+            14.142125000000021,
+            13.97787500000004
+          ],
+          "memory": {
+            "rss": 191938560,
+            "heapTotal": 115441664,
+            "heapUsed": 60967016,
+            "external": 2305284,
+            "arrayBuffers": 29231
+          },
+          "maxRSSKiB": 187440,
+          "coldProcessMs": [
+            169.11333300000024,
+            171.0302499999998,
+            167.72629099999995,
+            170.20508299999983,
+            168.63791700000002
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 302.2855830000003,
+          "size": 512,
+          "firstMs": 28.303791999999987,
+          "warmMs": [
+            19.13145799999998,
+            18.766291999999993,
+            14.912999999999982,
+            16.546707999999995,
+            16.384124999999983
+          ],
+          "memory": {
+            "rss": 267862016,
+            "heapTotal": 188301312,
+            "heapUsed": 79247024,
+            "external": 4898052,
+            "arrayBuffers": 2621999
+          },
+          "maxRSSKiB": 261584,
+          "coldProcessMs": [
+            164.89837499999976,
+            167.527959,
+            164.3307080000004,
+            167.77841699999954,
+            179.45970800000032
+          ]
+        }
+      ]
+    },
+    "compactStorageBefore": {
+      "metadata": {
+        "date": "2026-09-11T07:41:24.036Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "module": "file:///private/tmp/rank-before-compact-storage/packages/interpreter/out/index.js",
+        "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+        "samples": 5,
+        "timing": "constructor, or constructor plus first public exposure; host source allocated before timing",
+        "memory": "retained deltas after forced GC, before validation; not peak allocation"
+      },
+      "results": [
+        {
+          "kind": "real",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.011250000000003979,
+          "medianHeapDelta": 1816,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.011250000000003979,
+              "heapDelta": -1224,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.01320799999999167,
+              "heapDelta": -13680,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.018583000000006678,
+              "heapDelta": 2656,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.009084000000001424,
+              "heapDelta": 1816,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008583000000001562,
+              "heapDelta": 2208,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.004666999999997756,
+          "medianHeapDelta": 1744,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.019499999999993634,
+              "heapDelta": 19048,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.013709000000005744,
+              "heapDelta": 3992,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.004666999999997756,
+              "heapDelta": 1744,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0037499999999965894,
+              "heapDelta": 1744,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003292000000001849,
+              "heapDelta": 1744,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.10175000000001,
+          "medianHeapDelta": 8001024,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.103332999999992,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.10175000000001,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.083958999999993,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.133291999999983,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.086749999999995,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.098583000000019,
+          "medianHeapDelta": 8000944,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.098583000000019,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.08333300000001,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.096832999999975,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.159458000000001,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.645292000000012,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.008125000000006821,
+          "medianHeapDelta": 1824,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.008125000000006821,
+              "heapDelta": 1824,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.00533300000000736,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.01170799999999872,
+              "heapDelta": 1880,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.005958000000021002,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.012833000000000538,
+              "heapDelta": 1880,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.005708999999967546,
+          "medianHeapDelta": 1800,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0035410000000410946,
+              "heapDelta": -800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.009458999999992557,
+              "heapDelta": 1800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.005166999999971722,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.012541999999996278,
+              "heapDelta": 1800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.005708999999967546,
+              "heapDelta": 5016,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.302999999999997,
+          "medianHeapDelta": 8001024,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.365916999999968,
+              "heapDelta": 8000848,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.372083000000032,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.302999999999997,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.056834000000038,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.095541999999966,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.106166999999971,
+          "medianHeapDelta": 8000944,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.071957999999995,
+              "heapDelta": 8018888,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.106166999999971,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.268083000000047,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.350542000000019,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.076832999999965,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.003500000000030923,
+          "medianHeapDelta": 1824,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.003500000000030923,
+              "heapDelta": 1824,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0028750000000172804,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.00637499999999136,
+              "heapDelta": 1880,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0023749999999722604,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006292000000030384,
+              "heapDelta": 1880,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.004583000000025095,
+          "medianHeapDelta": 1800,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0026669999999739957,
+              "heapDelta": 19568,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006541999999967629,
+              "heapDelta": 1800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0027910000000019863,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.012333000000012362,
+              "heapDelta": 1800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.004583000000025095,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.566125000000056,
+          "medianHeapDelta": 8001024,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.566125000000056,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.566749999999956,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.515792000000033,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.526292000000012,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.808582999999999,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.495083000000022,
+          "medianHeapDelta": 8000944,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.495083000000022,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.4737499999999955,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.793457999999987,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.442584000000011,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.523791999999958,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.004416999999989457,
+          "medianHeapDelta": 1824,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.004416999999989457,
+              "heapDelta": 1824,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003291999999987638,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0071670000000949585,
+              "heapDelta": 1880,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0026249999999663487,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006500000000073669,
+              "heapDelta": 1880,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.003291999999987638,
+          "medianHeapDelta": 48,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0029580000000350992,
+              "heapDelta": -800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006583999999975276,
+              "heapDelta": 1800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0029999999999290594,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0062499999999090505,
+              "heapDelta": 1800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003291999999987638,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.512542000000053,
+          "medianHeapDelta": 8001024,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.282042000000047,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.538209000000052,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.802083000000039,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.512542000000053,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.297290999999973,
+              "heapDelta": 8001024,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.424084000000107,
+          "medianHeapDelta": 8000944,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.424084000000107,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.460832999999866,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.292374999999993,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.467333000000053,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.287707999999839,
+              "heapDelta": 8000944,
+              "buffersDelta": 0
+            }
+          ]
+        }
+      ]
+    },
+    "compactStorage1": {
+      "metadata": {
+        "date": "2026-09-11T07:41:11.977Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "module": "file:///private/tmp/rank-demo-roadmap/packages/interpreter/out/index.js",
+        "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+        "samples": 5,
+        "timing": "constructor, or constructor plus first public exposure; host source allocated before timing",
+        "memory": "retained deltas after forced GC, before validation; not peak allocation"
+      },
+      "results": [
+        {
+          "kind": "real",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.012000000000000455,
+          "medianHeapDelta": 3064,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.016374999999996476,
+              "heapDelta": 1720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.012000000000000455,
+              "heapDelta": -11712,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.01866700000000776,
+              "heapDelta": 4656,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.012000000000000455,
+              "heapDelta": 3064,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.011249999999989768,
+              "heapDelta": 4144,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.006917000000001394,
+          "medianHeapDelta": 1976,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.019333000000003153,
+              "heapDelta": 22552,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.019750000000001933,
+              "heapDelta": 4760,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006917000000001394,
+              "heapDelta": 1976,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.005416999999994232,
+              "heapDelta": 1976,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.005332999999993149,
+              "heapDelta": 1976,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 7.962999999999994,
+          "medianHeapDelta": 1408,
+          "medianBuffersDelta": 8000000,
+          "samples": [
+            {
+              "ms": 7.962999999999994,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.931291000000016,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.963832999999994,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.937125000000009,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 8.184834000000023,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 18.163292000000013,
+          "medianHeapDelta": 11637184,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 18.313874999999996,
+              "heapDelta": 11637120,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 18.475250000000017,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 18.03045899999995,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 18.06691699999999,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 18.163292000000013,
+              "heapDelta": 11637440,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.005208999999979369,
+          "medianHeapDelta": 2056,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.005208999999979369,
+              "heapDelta": 2056,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003375000000005457,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.00970799999998917,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0031250000000113687,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007957999999973708,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.004457999999999629,
+          "medianHeapDelta": 2032,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.004457999999999629,
+              "heapDelta": -800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0095410000000129,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003500000000030923,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007125000000030468,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0029580000000350992,
+              "heapDelta": 5016,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 35.553083000000015,
+          "medianHeapDelta": 1408,
+          "medianBuffersDelta": 1000000,
+          "samples": [
+            {
+              "ms": 35.26758300000006,
+              "heapDelta": 1232,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 35.1088749999999,
+              "heapDelta": 1456,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 36.31016699999998,
+              "heapDelta": 1408,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 35.553083000000015,
+              "heapDelta": 1408,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 35.747584000000074,
+              "heapDelta": 1480,
+              "buffersDelta": 1000000
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 48.29779099999996,
+          "medianHeapDelta": 11637184,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 47.981041000000005,
+              "heapDelta": 11651784,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 47.721083000000135,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 48.98250000000007,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 48.29779099999996,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 49.061833000000206,
+              "heapDelta": 11637184,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.0060829999999896245,
+          "medianHeapDelta": 2056,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0060829999999896245,
+              "heapDelta": 2056,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003000000000156433,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008833000000095126,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.002499999999827196,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007000000000061846,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.0037500000000818545,
+          "medianHeapDelta": 2032,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0037500000000818545,
+              "heapDelta": 19568,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007624999999961801,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0032089999999698193,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006500000000187356,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0029159999999137654,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.550000000000182,
+          "medianHeapDelta": 8001256,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.63995900000009,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.5275420000000395,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.550000000000182,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.763958000000002,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.488125000000082,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.510291999999936,
+          "medianHeapDelta": 8001176,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.461958000000095,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.510291999999936,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.559541999999965,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.5190000000000055,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.448583000000099,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.0054169999998521234,
+          "medianHeapDelta": 2056,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0054169999998521234,
+              "heapDelta": 2056,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0037500000000818545,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007375000000138243,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0029580000000350992,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006790999999793712,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.003624999999829015,
+          "medianHeapDelta": 48,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.003624999999829015,
+              "heapDelta": -800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008375000000114596,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003333999999995285,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007957999999916865,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0030420000000503933,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.332542000000103,
+          "medianHeapDelta": 8001256,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.2746250000000146,
+              "heapDelta": 8001312,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.332542000000103,
+              "heapDelta": 8000432,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.455000000000155,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.303957999999966,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.5944160000001375,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.393582999999808,
+          "medianHeapDelta": 8001176,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.429542000000083,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.506124999999884,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.393582999999808,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.2905000000000655,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.393332999999984,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            }
+          ]
+        }
+      ]
+    },
+    "compactStorage2": {
+      "metadata": {
+        "date": "2026-09-11T07:41:51.132Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "module": "file:///private/tmp/rank-demo-roadmap/packages/interpreter/out/index.js",
+        "revision": "03fd034f60f16947bd5e5178376e61535a8bdb43",
+        "samples": 5,
+        "timing": "constructor, or constructor plus first public exposure; host source allocated before timing",
+        "memory": "retained deltas after forced GC, before validation; not peak allocation"
+      },
+      "results": [
+        {
+          "kind": "real",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.015166999999991049,
+          "medianHeapDelta": 3720,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.015166999999991049,
+              "heapDelta": 2648,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.01604199999999878,
+              "heapDelta": -12384,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.01808299999999008,
+              "heapDelta": 4624,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.013958000000002357,
+              "heapDelta": 3720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.011624999999995111,
+              "heapDelta": 4112,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.007334000000000174,
+          "medianHeapDelta": 1976,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.02020900000000836,
+              "heapDelta": 22120,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.017540999999994256,
+              "heapDelta": 4856,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.005459000000001879,
+              "heapDelta": 1976,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.004374999999996021,
+              "heapDelta": 1976,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007334000000000174,
+              "heapDelta": 1976,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 7.942250000000001,
+          "medianHeapDelta": 1408,
+          "medianBuffersDelta": 8000000,
+          "samples": [
+            {
+              "ms": 7.947374999999994,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.919791000000004,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.942250000000001,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.922374999999988,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            },
+            {
+              "ms": 7.9642080000000135,
+              "heapDelta": 1408,
+              "buffersDelta": 8000000
+            }
+          ]
+        },
+        {
+          "kind": "real",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 10.087541999999985,
+          "medianHeapDelta": 8001176,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 10.087541999999985,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.142792000000043,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.078416999999945,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.012167000000034,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.107875000000035,
+              "heapDelta": 8001432,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.005208000000038737,
+          "medianHeapDelta": 2112,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.005208000000038737,
+              "heapDelta": 2800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008209000000022115,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0037079999999605207,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007457999999985532,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0037090000000148393,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.004834000000016658,
+          "medianHeapDelta": 2032,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.004834000000016658,
+              "heapDelta": 2720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0072920000000067375,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0031249999999545253,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008667000000002645,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003333999999995285,
+              "heapDelta": 5256,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 8.785292000000027,
+          "medianHeapDelta": 1408,
+          "medianBuffersDelta": 1000000,
+          "samples": [
+            {
+              "ms": 9.003791999999976,
+              "heapDelta": 1232,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 8.921125000000018,
+              "heapDelta": 1408,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 8.785292000000027,
+              "heapDelta": 1408,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 8.383416999999952,
+              "heapDelta": 1408,
+              "buffersDelta": 1000000
+            },
+            {
+              "ms": 8.643749999999955,
+              "heapDelta": 1408,
+              "buffersDelta": 1000000
+            }
+          ]
+        },
+        {
+          "kind": "boolean",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 10.469040999999947,
+          "medianHeapDelta": 8001176,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 10.671125000000075,
+              "heapDelta": 8019120,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.15508299999999,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.469040999999947,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 9.752667000000088,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 10.820500000000038,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.004624999999919055,
+          "medianHeapDelta": 2056,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.004624999999919055,
+              "heapDelta": 2056,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003375000000005457,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.009457999999995081,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0037499999999681677,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007875000000012733,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.004291999999963991,
+          "medianHeapDelta": 2032,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.003500000000030923,
+              "heapDelta": 13840,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008458000000018728,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003291999999987638,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007833000000005086,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.004291999999963991,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.541125000000079,
+          "medianHeapDelta": 8001256,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.649791999999934,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.48279100000002,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.5499999999999545,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.530708000000004,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.541125000000079,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "integer",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.529250000000047,
+          "medianHeapDelta": 8001176,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.68100000000004,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.524541999999997,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.48112500000002,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.80762500000003,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.529250000000047,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 100,
+          "mode": "private",
+          "medianMs": 0.004916999999977634,
+          "medianHeapDelta": 2056,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.004916999999977634,
+              "heapDelta": 2056,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.0034580000001369626,
+              "heapDelta": -720,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.008000000000038199,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003582999999935055,
+              "heapDelta": 128,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006624999999985448,
+              "heapDelta": 2112,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 100,
+          "mode": "exposed",
+          "medianMs": 0.003582999999935055,
+          "medianHeapDelta": 48,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 0.0031249999999545253,
+              "heapDelta": -800,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.007250000000112777,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003290999999990163,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.006541999999853942,
+              "heapDelta": 2032,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 0.003582999999935055,
+              "heapDelta": 48,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 1000000,
+          "mode": "private",
+          "medianMs": 4.386375000000044,
+          "medianHeapDelta": 8001256,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.510708999999906,
+              "heapDelta": 8001312,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.386375000000044,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.529667000000018,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.273292000000083,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.305540999999948,
+              "heapDelta": 8001256,
+              "buffersDelta": 0
+            }
+          ]
+        },
+        {
+          "kind": "mixed",
+          "size": 1000000,
+          "mode": "exposed",
+          "medianMs": 4.435083000000077,
+          "medianHeapDelta": 8001176,
+          "medianBuffersDelta": 0,
+          "samples": [
+            {
+              "ms": 4.435083000000077,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.52758300000005,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.295000000000073,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.303707999999915,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            },
+            {
+              "ms": 4.457042000000001,
+              "heapDelta": 8001176,
+              "buffersDelta": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

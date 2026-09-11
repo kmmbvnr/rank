@@ -254,3 +254,67 @@ Next experiments: compact private real/boolean buffers, avoiding coordinate
 generators in measured row/column copies, and prepared private readers that
 retain named lazy caches. Test each independently; do not combine their gains
 with this checkpoint until repeated comparisons cover the resulting code.
+
+## 5. Compact real/boolean buffers: rejected and rolled back
+
+Baseline: private-storage checkpoint `03fd034`. The prototype copied homogeneous
+numeric inputs of at least 256 cells into `Float64Array`, or booleans into
+`Uint8Array`. Small and mixed arrays, and all BigInts, kept generic storage.
+Public exposure converted the buffer back to an ordinary mutable array and
+released the typed buffer. No change to integer precision was attempted.
+
+The new `node --expose-gc benchmarks/storage.mjs` checks construction and first
+exposure separately, at 100 and one million cells for real, boolean, integer
+and mixed values. It measures retained memory after GC, before validation.
+Pass `--module=/path/to/packages/interpreter/out/index.js` to select a runtime.
+The original host source is allocated before timing and remains live in both
+versions. This is a boundary-cost benchmark, not a Rank compute benchmark.
+
+At one million cells, private real storage retained about 8 MB in both versions:
+the old JS backing array already stored these numbers compactly. The prototype
+moved those bytes from the JS heap to an ArrayBuffer. Boolean storage fell from
+8 MB to 1 MB, excluding small object metadata. Neither type gained faster
+construction. Real creation rose from 4.1 to 7.9 ms; boolean creation from
+4.3 to 8.8 ms after improving conversion.
+
+The first prototype used `Uint8Array.from` with a callback and `Array.from` on
+exposure. Boolean creation took 35.6 ms and creation plus exposure 48.3 ms.
+Preallocated conversion loops reduced these to 8.8 and 10.5 ms. Real creation
+plus exposure fell from 18.2 to 10.1 ms, still above the baseline's 4.1 ms.
+Integer and mixed creation/exposure remained around 4.4–4.6 ms. Small cases
+were around hundredths of a millisecond and do not justify a speed claim.
+
+Unchanged numerical demos, snapshot inputs, five samples per size:
+
+| Largest case | Baseline warm, ms | Compact warm, ms |
+| --- | ---: | ---: |
+| DeepML 001 matvec, first pair | 16.3 | 17.0 |
+| DeepML 001 matvec, reversed order | 16.5 | 17.1 |
+| DeepML 004 row mean | 14.3 | 16.5 |
+| DeepML 004 column mean | 14.2 | 17.2 |
+
+At 512 square, matvec's second peak RSS rose from 187 to 195 MiB. Row mean
+rose from 183 to 255 MiB; column mean from 182 to 256 MiB. The row consumer
+exposes each copied temporary, so conversion creates extra buffers rather than
+removing work. This is not evidence that typed arrays are always slower; it is
+evidence against enabling this representation in the current producer/consumer
+paths. The two matvec cold medians in the second pair were 166.5 and 173.1 ms.
+
+Decision: restore production `array-storage.ts` to `03fd034`. Keep the conversion
+benchmark, representation-independent round-trip test, [raw results](../../benchmarks/baselines/2026-09-11-compact-storage.json)
+and [rejected patch](../../benchmarks/experiments/compact-storage.patch). All 453
+JS tests passed on the first prototype and after rollback. The post-rollback
+demo run passed 164 files with zero failures; production source matches `03fd034`.
+The previous private-storage checkpoint still
+has its own unresolved regressions; this rollback does not resolve them.
+
+Revisit buffers only when consumers can read private backing storage without
+boxing every temporary row. A long-lived boolean table might justify a measured
+memory/speed tradeoff; none of these unchanged demos establishes that case.
+For integer storage, any later bounded representation needs tagged promotion:
+retain arbitrary BigInts, check each operation before truncating to 64 bits, and
+promote the whole mutable buffer when a result or assigned value exceeds its
+range. Never use a wrapping typed-array store as the overflow check. Real values
+and nested/file values also require promotion to their appropriate generic
+representation. This design is deferred until a workload justifies conversion
+and promotion costs.

@@ -66,7 +66,8 @@ plain arrays in snapshot mode. Numerical cold timing includes input construction
 array-kernel warm timing does not. Do not combine these two storage modes in a
 single speedup claim. Results are in the [optimization log](optimization-lab.md).
 
-The backing store is still a JS array. Compact real/boolean buffers are the next
-experiment. Internal read/write APIs may later avoid unnecessary exposure, but
+The backing store is still a JS array. The compact real/boolean experiment was
+rolled back after measured conversion costs and slower numerical demos; see
+the optimization log. Internal read/write APIs may avoid unnecessary exposure, but
 must preserve callbacks and file lifetime. A type annotation alone cannot prove
 that a host object is free of getters or proxies.
