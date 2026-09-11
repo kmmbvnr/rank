@@ -22,6 +22,18 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
+    it('parses continue as a statement in nested loop bodies', async () => {
+        const document = await parse('for I in Items\n  if I equal 0\n    continue\n  end\nend');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const loop = document.parseResult.value.statements[0];
+        expect(loop.$type).toBe('ForStatement');
+        if (loop.$type !== 'ForStatement') throw new Error('expected loop');
+        const branch = loop.statements[0];
+        if (branch.$type !== 'IfStatement') throw new Error('expected branch');
+        expect(branch.thenStatements[0].$type).toBe('ContinueStatement');
+    });
+
     it('parses field and function ordering keys', async () => {
         const document = await parse([
             'Fields = Events sort by .time .delta',

@@ -18,6 +18,7 @@ import {
     isBinaryExpression,
     isBooleanLiteral,
     isBreakStatement,
+    isContinueStatement,
     isExpressionStatement,
     isFlagStatement,
     isForStatement,
@@ -183,6 +184,7 @@ class ReturnSignal {
 }
 
 class BreakSignal {}
+class ContinueSignal {}
 
 const raiseFunction: NativeFunction = {
     kind: 'function',
@@ -596,16 +598,17 @@ export class Interpreter {
                 return mapResult(result, value => { throw new ReturnSignal(value); });
             } };
         }
-        if (isBreakStatement(statement)) {
+        if (isBreakStatement(statement) || isContinueStatement(statement)) {
+            const operation = isBreakStatement(statement) ? 'break' : 'continue';
             return { stream: function* (context): Execution<RankValue | undefined> {
                 const { insideLoop, insideFinally } = context;
                 if (insideFinally) {
-                    throw new RankError('break is not valid inside finally');
+                    throw new RankError(`${operation} is not valid inside finally`);
                 }
                 if (!insideLoop) {
-                    throw new RankError('break is only valid inside a for loop');
+                    throw new RankError(`${operation} is only valid inside a for loop`);
                 }
-                throw new BreakSignal();
+                throw operation === 'break' ? new BreakSignal() : new ContinueSignal();
             } };
         }
         if (isTryStatement(statement)) {
@@ -741,6 +744,7 @@ export class Interpreter {
                             ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
+                            if (error instanceof ContinueSignal) continue;
                             throw error;
                         }
                     }
@@ -759,6 +763,7 @@ export class Interpreter {
                             ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
+                            if (error instanceof ContinueSignal) continue;
                             throw error;
                         }
                     }

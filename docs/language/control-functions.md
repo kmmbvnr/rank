@@ -71,6 +71,27 @@ end
 a loop. Rank does not currently have labels or a multi-level form of `break`;
 an outer loop must be ended by its own `break`, condition or `return`.
 
+`continue` skips the rest of the current iteration of the nearest enclosing
+`for`. An iterable loop advances to the next item; a conditional loop checks
+its condition again; a bare `for` starts its next iteration.
+
+```rank
+use ranges
+Sum = 0
+for I in 1 to 5
+  if I % 2 equal 0
+    continue
+  end
+  Sum += I
+end
+rem Sum is 9
+```
+
+Like `break`, `continue` is an error outside a loop and cannot target a caller's
+loop from inside a function. Pending `finally` blocks run before the next
+iteration. A direct `continue` inside `finally` is an error, matching the rules
+for `break` and `return`. `continue` does not close an iterable loop's iterator.
+
 The unparenthesized form `for X in A` is always iteration. Parentheses make a
 membership expression a loop condition when that distinction is needed:
 
@@ -201,17 +222,17 @@ program run.
 
 `finally` runs exactly once after the `try` body and any selected `catch`,
 before control leaves the whole construct. It runs after normal completion and
-also before a pending error, `return` or `break` continues outward. A
+also before a pending error, `return`, `break` or `continue` continues outward. A
 `try / finally / end` block without `catch` is valid and performs cleanup while
 allowing the original error to propagate.
 
-Direct `return` and `break` statements inside `finally` are errors because they
+Direct `return`, `break` and `continue` statements inside `finally` are errors because they
 would hide pending control flow. If cleanup raises an error while another Rank
 error is pending, the cleanup error propagates and its `.Cause` contains the
 original error. An error raised from `finally` cannot be handled by a `catch`
 belonging to the same construct; an enclosing `try` may handle it.
 
-`return` and `break` are control flow rather than errors and are never caught.
+`return`, `break` and `continue` are control flow rather than errors and are never caught.
 Source syntax errors happen before execution begins and therefore cannot be
 caught by a `try` inside that source.
 
