@@ -418,7 +418,7 @@ not full lowering of loop control. `loopPreparation: false` disables the reuse.
 
 ## Whole integer loops
 
-`integer-loop.ts` lowers a conditional loop into one JavaScript loop when the
+`integer-loop.ts` lowers a conditional or inline numeric-range loop into one JavaScript loop when the
 condition and straight-line assignments are supported integer expressions.
 Inputs are guarded before execution; unsupported types or syntax retain the
 reference loop. Register variables hold integer values between operations and
@@ -426,12 +426,19 @@ iterations. Each assignment still calls its existing writer immediately, retaini
 fixed-type checks, lexical binding behavior and partial state if a later operation
 fails. Errors carry the original body-command or loop-condition location.
 
-The initial scope is conditional loops with at most 32 assignment commands,
+The scope includes conditional and `to`/`until` range loops with at most 32 assignment commands,
 integer arithmetic `+ - * // %`, comparisons and boolean conditions. Calls, indexing,
-branches, floating-point operations and iterable loops retain the old path.
+branches, floating-point operations and other iterable loops retain the old path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
 disables this pass; compilation/execution callbacks support diagnostics.
 
 This is the first whole-loop lowering stage. Typed writers deliberately remain
 runtime calls; future optimizations can specialize them with equivalent guards.
+
+Numeric range lowering supports `by`, descending steps, an optional index binding
+and `#` discard bindings. Start, end and step are evaluated once; progression uses
+an internal cursor, independent of assignments to the visible loop variable.
+Empty ranges do not bind variables. Zero-step and binding-type errors preserve
+reference timing and locations. Unused ordinal counters are omitted. Named range
+values and other sequence plans are not yet lowered by this pass.

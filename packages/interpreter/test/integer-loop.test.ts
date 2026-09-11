@@ -96,3 +96,57 @@ array A B
         } finally { spy.mockRestore(); }
     });
 });
+
+
+describe('compiled numeric range loops', () => {
+    it.each(['1 to 5', '1 until 5', '5 to 1 by -2', '5 until 1 by -2',
+        '5 to 1', '1 to 5 by -1', '3 until 3', '3 to 3'])('preserves %s', range => {
+        const result = compare(`use ranges
+Total = 0
+for Value i in ${range}
+  Total += Value + i
+end
+Total
+`);
+        expect(result.loops).toBe(1);
+    });
+
+    it('evaluates bounds once and keeps progression independent of bindings', () => {
+        const result = compare(`use ranges
+N = 3
+Step = 1
+Count = 0
+for I in 0 until N by Step
+  N = 0
+  Step = 10
+  I += 100
+  Count += 1
+end
+array I Count N Step
+`);
+        expect(result.value).toBe('102 3 0 10');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['# i', 'Value #', '# #'])('supports discarded bindings: %s', bindings => {
+        const result = compare(`use ranges
+Count = 0
+for ${bindings} in 1 to 3
+  Count += 1
+end
+Count
+`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each([
+        'use ranges\nI = "text"\nfor I in 1 to 2\n  X = I + 1\nend',
+        'use ranges\nfor I in 1 to 0 by 0\n  X = I + 1\nend',
+        'for I in 1 to 2\n  X = I + 1\nend',
+        'for I in 1 // 0 to 2\n  X = I + 1\nend',
+        'use ranges\nfor I j k in 1 to 2\n  X = I + 1\nend',
+    ])('preserves binding, module and range errors', source => {
+        expect(compare(source)).toHaveProperty('error');
+    });
+});

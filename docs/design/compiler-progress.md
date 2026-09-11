@@ -323,3 +323,39 @@ pair took 36.345 s off and 35.187 s on; a single pair does not establish a stabl
 whole-suite speedup. The final enabled verification took 34.574 s.
 
 [Full-suite comparisons and final verification](../../benchmarks/baselines/2026-09-11-integer-loop-suite.json)
+
+## Numeric range loop lowering
+
+The same whole-loop compiler now handles inline `to`/`until` numeric ranges,
+including `by`, descending steps, an optional index and `#` discards. Bound values
+are captured once. A separate cursor preserves progression if the body changes
+the visible variable, the source bound or the step variable. All writes still use
+the normal typed writers. Range module checks and error timing retain fallback
+where needed; non-range iterables remain on the reference path.
+
+Seventeen new cases cover inclusivity, empty/descending ranges, index bindings,
+discards, changed variables and range/module/type errors. TypeScript verification
+passes 44 language + 639 interpreter tests.
+
+Three alternating focused samples with counters disabled:
+
+| Task | Integer compiler off ms | Integer compiler on ms |
+| --- | ---: | ---: |
+| 006_sumdivisors_test.ra | 805.534 | 365.803 |
+| 014_christmasparty_test.ra | 226.745 | 107.615 |
+| 028_spiraldiagonals_test.ra | 1.944 | 1.984 |
+
+Christmas Party is new coverage: about 2.11x faster on its unchanged solution.
+Sum of Divisors retains the earlier conditional-loop optimization; its improvement
+is not new range-pass coverage. Euler 28 remains a non-fusing control because its
+body contains power, which this integer-loop pass does not yet lower.
+
+[Focused measurements](../../benchmarks/baselines/2026-09-11-range-loop-focused.json)
+
+The full suite passes 306 files / 1054 tests in both modes, with matching complete
+output/result digests, also matching the prior committed implementation. One
+integration comparison took 35.283 s off and 34.933 s on. This toggles the
+whole integer-loop pass, including conditional loops; it does not isolate the
+range extension or establish a stable whole-suite speedup.
+
+[Full-suite verification](../../benchmarks/baselines/2026-09-11-range-loop-suite.json)

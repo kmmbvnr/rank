@@ -11,6 +11,7 @@ interface Host {
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;
     locate(error: unknown, index: number): unknown;
+    ranges(): boolean;
     compiled?(source: string): void;
     executed?(): void;
 }
@@ -21,12 +22,15 @@ const comparisons: Record<string, string> = {
 
 /** Whole numeric loop: keep reads in local registers, but commit each assignment
  * through the normal writer so fixed types and partial state on errors survive. */
-export function compileIntegerLoop(statement: ForStatement, host: Host): {
+export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: {
+    readonly names: readonly string[]; readonly iterable: Expression;
+}): {
     run(): Completed<RankValue | undefined> | undefined;
 } | undefined {
     if (!statement.condition || !statement.statements.length || statement.statements.length > 32) return undefined;
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
     const writers: ((value: RankValue) => void)[] = [];
+    const binders: ((value: RankValue) => void)[] = [];
     let serial = 0;
     function slot(name: string): number {
         let index = names.indexOf(name);
@@ -77,8 +81,34 @@ export function compileIntegerLoop(statement: ForStatement, host: Host): {
         return { code: name, type: 'integer' };
     }
     const tests: string[] = [];
-    const test = emit(statement.condition, tests);
-    if (!test || test.type !== 'boolean') return undefined;
+    let setup = '', header: string, bindings = '';
+    if (iteration) {
+        let range = iteration.iterable;
+        while (isParenthesizedExpression(range)) range = range.value;
+        if (!isBinaryExpression(range) || !['to', 'until'].includes(range.operator)
+            || iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
+            || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
+        const start = emit(range.left, tests), end = emit(range.right, tests);
+        const step = range.step ? emit(range.step, tests) : { code: '1n', type: 'integer' };
+        if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
+        setup = `${tests.join('\n')} const start = ${start.code}, end = ${end.code}, stride = ${step.code};
+            if (stride === 0n) throw badStep();`;
+        const indexed = iteration.names.length === 2 && iteration.names[1] !== '#';
+        header = `for (let cursor = start${indexed ? ', ordinal = 0n' : ''};
+            stride > 0n ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
+            cursor += stride${indexed ? ', ordinal += 1n' : ''}) { location = -1;`;
+        for (const [index, name] of iteration.names.entries()) {
+            if (name === '#') continue;
+            const target = slot(name), value = index === 0 ? 'cursor' : 'ordinal';
+            bindings += `binders[${binders.length}](${value}); r${target} = ${value};\n`;
+            binders.push(host.writer(name));
+            assigned.add(name);
+        }
+    } else {
+        const test = emit(statement.condition, tests);
+        if (!test || test.type !== 'boolean') return undefined;
+        header = `for (;;) { location = -1; ${tests.join('\n')} if (!(${test.code})) break;`;
+    }
     const body: string[] = [];
     for (const [index, assignment] of statement.statements.entries()) {
         if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return undefined;
@@ -108,17 +138,18 @@ export function compileIntegerLoop(statement: ForStatement, host: Host): {
     const source = `"use strict"; return function(input) {
         let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};
         let result, location = -1;
-        try { for (;;) { location = -1; ${tests.join('\n')}
-            if (!(${test.code})) break;
-            ${body.join('\n')}
+        try { ${setup} ${header}
+            ${bindings} ${body.join('\n')}
+            location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[]) => RankValue | undefined;
-    try { run = new Function('writers', 'zero', 'locate', source)(writers,
-        () => new RankError('division by zero'), host.locate); }
+    try { run = new Function('writers', 'binders', 'zero', 'badStep', 'locate', source)(writers, binders,
+        () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'), host.locate); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: () => {
+        if (iteration && !host.ranges()) return undefined;
         const values: (RankValue | undefined)[] = [];
         for (const index of required) {
             const value = host.read(names[index]);
