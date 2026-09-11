@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "014_towers"
+  Cubes = array 3 8 2 1 5
+  Cubes tower_count equal 2
+end
+
+test "increasing cubes start new towers"
+  use "014_towers"
+  Cubes = array 1 2 3 4
+  Cubes tower_count equal 4
+end
+
+test "decreasing cubes share one tower"
+  use "014_towers"
+  Cubes = array 4 3 2 1
+  Cubes tower_count equal 1
+end
+
+test "equal cubes start separate towers"
+  use "014_towers"
+  Cubes = array 5 5 5 5
+  Cubes tower_count equal 4
+end
