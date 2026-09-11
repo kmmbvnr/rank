@@ -499,21 +499,21 @@ describe('Rank IO, modules and programs', () => {
                 name: 'false result',
                 passed: false,
                 output: [],
-                error: 'boolean test expression evaluated to false',
+                error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:9:3\n9 |   1 equal 2\n      ^',
             },
             { name: 'matching arrays', passed: true, output: [] },
             {
                 name: 'different arrays',
                 passed: false,
                 output: [],
-                error: 'boolean test expression evaluated to false',
+                error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:17:3\n17 |   Answer equal array 7 1 8\n       ^',
             },
             { name: 'matching tensors', passed: true, output: [] },
             {
                 name: 'different shapes',
                 passed: false,
                 output: [],
-                error: 'shape mismatch: 2,2 and 3',
+                error: 'RankError [DimensionMismatch]: shape mismatch: 2,2 and 3\n  at /tests/worker_test.ra:34:3\n34 |   Answer equal array 7 0 8\n       ^',
             },
         ]);
     });

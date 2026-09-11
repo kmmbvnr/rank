@@ -1140,6 +1140,24 @@ cell-rank and axis iteration are defined in [Tensors](tensors.md).
 
 ## Errors and exceptions
 
+Runtime diagnostics identify the failing statement by file, line and column
+(counted from one), followed by its source line and a caret:
+
+```text
+RankError [Runtime]: unknown name: abs; did you forget `use numbers`?
+  at solution.ra:2:1
+2 | -5 abs
+    ^
+```
+
+An unknown standard-library name suggests the `use` statement needed to import
+it. Local definitions still take precedence. The CLI writes diagnostics to
+stderr and exits with status 1 for a failed file run, without a JavaScript
+stack trace. `.Message` contains the error message; `.Trace` contains the
+formatted Rank diagnostic. Errors inside functions retain their original
+statement location when propagated or re-raised. This is an error location,
+not a complete function-call stack.
+
 Rank uses structured `try / catch / end` blocks for recoverable runtime errors:
 
 ```rank

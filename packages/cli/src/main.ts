@@ -12,6 +12,15 @@ const packagePath = path.resolve(__dirname, '..', 'package.json');
 const packageContent = await fs.readFile(packagePath, 'utf-8');
 
 export default async function main(): Promise<void> {
+    try {
+        await dispatch();
+    } catch (error) {
+        console.error(error instanceof RankError ? error.format() : String(error));
+        process.exitCode = 1;
+    }
+}
+
+async function dispatch(): Promise<void> {
     const arguments_ = process.argv.slice(2);
     if (arguments_[0] === '--version' || arguments_[0] === '-V') {
         console.log(JSON.parse(packageContent).version);
@@ -82,7 +91,7 @@ async function repl(): Promise<void> {
                         console.log(formatValue(result));
                     }
                 } catch (error) {
-                    const message = error instanceof RankError ? error.message : String(error);
+                    const message = error instanceof RankError ? error.format() : String(error);
                     console.error(chalk.red(`error: ${message}`));
                 }
             }

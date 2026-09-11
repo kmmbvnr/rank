@@ -159,6 +159,7 @@ type PreparedStatement =
     | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> };
 
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
+const sourceIds = new WeakMap<object, string>();
 interface FunctionDefinition {
     readonly interpreter: Interpreter;
     readonly statement: FunctionStatement;
@@ -247,7 +248,8 @@ export class Interpreter {
     }
 
     execute(source: string): RankValue | undefined {
-        const program = parse(source);
+        const program = parse(source, this.options.sourceId);
+        if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
         this.loadedProgram = {
             id: this.options.sourceId ?? '<input>',
             program,
@@ -440,8 +442,9 @@ export class Interpreter {
             ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator }
             : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, tailCallsAllowed: false };
         let result: RankValue | undefined;
+        let index = 0;
         try {
-            for (let index = 0; index < statements.length; index += 1) {
+            for (; index < statements.length; index += 1) {
                 const prepared = this.preparedStatement(statements[index]);
                 if ('run' in prepared) {
                     result = prepared.run(context);
@@ -452,7 +455,7 @@ export class Interpreter {
                 }
             }
         } catch (error) {
-            throw normalizeStackError(error);
+            throw this.locateError(error, statements[index]);
         }
         return completed(result);
     }
@@ -472,14 +475,33 @@ export class Interpreter {
         context: ExecutionContext,
         first: Execution<RankValue | undefined>,
     ): Execution<RankValue | undefined> {
-        let result = yield* resume(first);
-        for (index += 1; index < statements.length; index += 1) {
-            const prepared = this.preparedStatement(statements[index]);
-            result = 'run' in prepared
-                ? prepared.run(context)
-                : yield* resume(prepared.stream(context));
+        try {
+            let result = yield* resume(first);
+            for (index += 1; index < statements.length; index += 1) {
+                const prepared = this.preparedStatement(statements[index]);
+                result = 'run' in prepared
+                    ? prepared.run(context)
+                    : yield* resume(prepared.stream(context));
+            }
+            return result;
+        } catch (error) {
+            throw this.locateError(error, statements[index]);
         }
-        return result;
+    }
+
+    private locateError(error: unknown, node: Statement | Expression): unknown {
+        error = normalizeStackError(error);
+        if (error instanceof RankError && !error.location && node.$cstNode) {
+            const cst = node.$cstNode;
+            const start = cst.range.start;
+            error.location = {
+                sourceId: sourceIds.get(cst.root) ?? this.options.sourceId ?? '<input>',
+                line: start.line + 1,
+                column: start.character + 1,
+                sourceLine: cst.root.fullText.split(/\r?\n/)[start.line] ?? '',
+            };
+        }
+        return error;
     }
 
     // Cache only syntax. Flags and workspaces belong to each execution, including
@@ -914,7 +936,11 @@ export class Interpreter {
     }
 
     evaluate(expression: Expression): RankValue {
-        return runExecution(this.evaluateTask(expression));
+        try {
+            return runExecution(this.evaluateTask(expression));
+        } catch (error) {
+            throw this.locateError(error, expression);
+        }
     }
 
     private evaluateTask(expression: Expression): Evaluation<RankValue> {
@@ -1485,8 +1511,12 @@ export class Interpreter {
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.localFrame;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
-        const direct = only && isReturnStatement(only) && only.value
+        const compiled = only && isReturnStatement(only) && only.value
             ? this.compileDirectExpression(only.value) : undefined;
+        const direct = compiled ? () => {
+            try { return compiled(); }
+            catch (error) { throw this.locateError(error, only!); }
+        } : undefined;
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => direct
             ? completed(this.callDirectFunction(statement, arguments_, context, direct))
             : this.callFunction(statement, arguments_, context);
@@ -1773,7 +1803,8 @@ export class Interpreter {
             throw new RankError(`cannot load module without a loader: ${specifier}`);
         }
         const source = this.options.loadModule(specifier, this.options.sourceId);
-        const loaded = { id: source.id, program: parse(source.source) };
+        const loaded = { id: source.id, program: parse(source.source, source.id) };
+        if (loaded.program.$cstNode) sourceIds.set(loaded.program.$cstNode.root, source.id);
         this.openPrograms.set(specifier, loaded);
         return loaded;
     }
@@ -1826,7 +1857,7 @@ export class Interpreter {
                 name,
                 passed: false,
                 output,
-                error: error instanceof Error ? error.message : String(error),
+                error: error instanceof RankError ? error.format() : String(error),
             });
         }
     }
@@ -1948,7 +1979,13 @@ export class Interpreter {
             }
         }
 
-        throw new RankError(`unknown name: ${name}`);
+        const providers = Object.entries(standardModules)
+            .filter(([module, exports]) => !this.modules.has(module) && Object.prototype.hasOwnProperty.call(exports, name))
+            .map(([module]) => `use ${module}`);
+        const hint = providers.length > 0
+            ? `; did you forget ${providers.map(provider => `\`${provider}\``).join(' or ')}?`
+            : '';
+        throw new RankError(`unknown name: ${name}${hint}`);
     }
 
     private resolveVariable(name: string): RankValue {

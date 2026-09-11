@@ -5,7 +5,7 @@ import { RankError } from './errors.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;
 
-export function parse(source: string): Program {
+export function parse(source: string, sourceId = '<input>'): Program {
     const result = services.parser.LangiumParser.parse<Program>(source);
     const error = result.lexerErrors[0] ?? result.parserErrors[0];
 
@@ -24,7 +24,12 @@ export function parse(source: string): Program {
             column = lines.at(-1)!.length + 1;
         }
         const location = ` at ${line}:${column}`;
-        throw new RankError(`${error.message}${location}`);
+        const diagnostic = new RankError(`${error.message}${location}`, 'Syntax');
+        diagnostic.location = {
+            sourceId, line: line!, column: column!,
+            sourceLine: source.split(/\r?\n/)[line! - 1] ?? '',
+        };
+        throw diagnostic;
     }
 
     return result.value;
