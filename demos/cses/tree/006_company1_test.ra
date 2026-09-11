@@ -8,7 +8,8 @@ test "official example"
   Company = Bosses prepare_company
   Company 4 1 ancestor equal 3
   Company 4 2 ancestor equal 1
-  Company 4 3 ancestor equal -1
+  Missing = Company 4 3 ancestor pad -1
+  Missing equal -1
 end
 
 test "zero levels keeps employee"
@@ -27,7 +28,8 @@ test "chain supports every depth"
   Bosses = array 1 2 3 4
   Company = Bosses prepare_company
   Company 5 4 ancestor equal 1
-  Company 5 5 ancestor equal -1
+  Missing = Company 5 5 ancestor pad -1
+  Missing equal -1
 end
 
 test "branches keep their own ancestors"

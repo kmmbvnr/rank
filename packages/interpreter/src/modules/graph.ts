@@ -1,4 +1,4 @@
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
 import { expectGraph, type GraphValue } from '../graph.js';
@@ -22,6 +22,15 @@ interface SearchState {
     readonly parent: Map<string, RankValue>;
     readonly order: RankValue[];
 }
+
+interface RootedTreeState {
+    readonly vertices: RankValue[];
+    readonly positions: ReadonlyMap<string, number>;
+    readonly depth: readonly number[];
+    readonly jumps: readonly number[][];
+}
+
+const rootedTrees = new WeakMap<RankRecord, RootedTreeState>();
 
 export const graphModule: RuntimeModule = {
     bfs: () => native('bfs', 2, values => {
@@ -63,15 +72,157 @@ export const graphModule: RuntimeModule = {
         graphCycle(expectGraph(values[0]))),
     euler: () => native('euler', 2, values =>
         eulerTrail(expectGraph(values[0]), values[1])),
+    root: () => native('root', 2, values =>
+        rootedTree(expectGraph(values[0]), values[1])),
+    ancestor: () => native('ancestor', 3, values =>
+        rootedAncestor(values[0], values[1], values[2])),
+    lca: () => native('lca', 3, values =>
+        rootedLca(values[0], values[1], values[2])),
     functional: () => native('functional', 1, values =>
         new RankFunctionalGraph(values[0])),
     jump: () => native('jump', 3, values =>
         expectFunctional(values[0]).jump(values[1], values[2])),
-    distance: () => native('distance', 3, values =>
-        expectFunctional(values[0]).distance(values[1], values[2])),
+    distance: () => native('distance', 3, values => {
+        if (isRootedTree(values[0])) {
+            return rootedDistance(values[0], values[1], values[2]);
+        }
+        return expectFunctional(values[0]).distance(values[1], values[2]);
+    }),
     lengths: () => native('lengths', 1, values =>
         expectFunctional(values[0]).lengths()),
 };
+
+function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
+    requireUndirected(graph, 'root');
+    const rootKey = requireVertex(graph, root);
+    const edgeIds = new Set<number>();
+    for (const edges of graph.adjacency.values()) {
+        for (const edge of edges) edgeIds.add(edge.id);
+    }
+    if (edgeIds.size !== graph.size - 1) {
+        throw new RankError('root expects a tree');
+    }
+
+    const search = depthFirst(graph, root);
+    if (search.order.length !== graph.size) {
+        throw new RankError('root expects a connected tree');
+    }
+    const vertices = search.order;
+    const positions = new Map<string, number>();
+    vertices.forEach((vertex, position) => {
+        positions.set(setValueKey(vertex), position);
+    });
+    const parent = vertices.map((_, position) => position);
+    const depth = vertices.map(vertex => Number(search.distance.get(setValueKey(vertex))!));
+    const parentValues = new Map<string, RankValue>();
+    for (let position = 1; position < vertices.length; position += 1) {
+        const key = setValueKey(vertices[position]);
+        const value = search.parent.get(key)!;
+        parentValues.set(key, value);
+        parent[position] = positions.get(setValueKey(value))!;
+    }
+    const sizes = vertices.map(() => 1n);
+    for (let position = vertices.length - 1; position > 0; position -= 1) {
+        sizes[parent[position]] += sizes[position];
+    }
+    const entries = new Map<string, RankValue>();
+    const depths = new Map<string, RankValue>();
+    const subtreeSizes = new Map<string, RankValue>();
+    vertices.forEach((vertex, position) => {
+        const key = setValueKey(vertex);
+        entries.set(key, BigInt(position));
+        depths.set(key, BigInt(depth[position]));
+        subtreeSizes.set(key, sizes[position]);
+    });
+    const jumps = [parent];
+    while (2 ** jumps.length <= Math.max(1, vertices.length)) {
+        const previous = jumps.at(-1)!;
+        jumps.push(previous.map(position => previous[position]));
+    }
+    const result = record({
+        root: graph.vertices.get(rootKey)!,
+        parent: indexFrom(graph, parentValues),
+        depth: indexFrom(graph, depths),
+        order: array(vertices),
+        entry: indexFrom(graph, entries),
+        size: indexFrom(graph, subtreeSizes),
+    });
+    rootedTrees.set(result, { vertices, positions, depth, jumps });
+    return result;
+}
+
+function isRootedTree(value: RankValue): value is RankRecord {
+    return typeof value === 'object' && value.kind === 'record'
+        && rootedTrees.has(value);
+}
+
+function expectRootedTree(value: RankValue): RootedTreeState {
+    if (isRootedTree(value)) return rootedTrees.get(value)!;
+    throw new RankError('operation expects a rooted tree');
+}
+
+function rootedPosition(state: RootedTreeState, value: RankValue): number {
+    const position = state.positions.get(setValueKey(value));
+    if (position === undefined) {
+        throw new MissingValueError('rooted tree does not contain the vertex');
+    }
+    return position;
+}
+
+function rootedAncestor(tree: RankValue, vertex: RankValue, steps: RankValue): RankValue {
+    const state = expectRootedTree(tree);
+    let position = rootedPosition(state, vertex);
+    if (typeof steps !== 'bigint' || steps < 0n) {
+        throw new RankError('ancestor steps must be a nonnegative integer');
+    }
+    if (steps > BigInt(state.depth[position])) {
+        throw new MissingValueError('rooted tree ancestor does not exist');
+    }
+    let remaining = steps;
+    let level = 0;
+    while (remaining > 0n) {
+        if ((remaining & 1n) === 1n) position = state.jumps[level][position];
+        remaining >>= 1n;
+        level += 1;
+    }
+    return state.vertices[position];
+}
+
+function rootedLca(tree: RankValue, left: RankValue, right: RankValue): RankValue {
+    const state = expectRootedTree(tree);
+    let a = rootedPosition(state, left);
+    let b = rootedPosition(state, right);
+    if (state.depth[a] < state.depth[b]) [a, b] = [b, a];
+    a = liftPosition(state, a, state.depth[a] - state.depth[b]);
+    if (a === b) return state.vertices[a];
+    for (let level = state.jumps.length - 1; level >= 0; level -= 1) {
+        if (state.jumps[level][a] === state.jumps[level][b]) continue;
+        a = state.jumps[level][a];
+        b = state.jumps[level][b];
+    }
+    return state.vertices[state.jumps[0][a]];
+}
+
+function rootedDistance(tree: RankRecord, left: RankValue, right: RankValue): bigint {
+    const state = expectRootedTree(tree);
+    const a = rootedPosition(state, left);
+    const b = rootedPosition(state, right);
+    const common = rootedLca(tree, left, right);
+    const parent = rootedPosition(state, common);
+    return BigInt(state.depth[a] + state.depth[b] - 2 * state.depth[parent]);
+}
+
+function liftPosition(state: RootedTreeState, start: number, steps: number): number {
+    let position = start;
+    let remaining = steps;
+    let level = 0;
+    while (remaining > 0) {
+        if (remaining % 2 === 1) position = state.jumps[level][position];
+        remaining = Math.floor(remaining / 2);
+        level += 1;
+    }
+    return position;
+}
 
 function expectFunctional(value: RankValue): RankFunctionalGraph {
     if (value instanceof RankFunctionalGraph) return value;

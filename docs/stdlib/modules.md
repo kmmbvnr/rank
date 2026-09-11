@@ -931,6 +931,9 @@ are specified in [Collections](../language/collections.md).
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
 [Graphs](../language/graphs.md).
+An undirected tree can be prepared with `Tree Root root`; its postfix
+`ancestor`, `lca`, and `distance` queries and traversal fields are specified
+in the same document.
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.
 

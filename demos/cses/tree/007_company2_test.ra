@@ -1,0 +1,52 @@
+use testing
+
+test "official example"
+  use "007_company2"
+  use graph
+  use ranges
+  Tree = new graph (1 to 5) .undirected
+  Edges = array shape 4 2
+    1 2
+    1 3
+    3 4
+    3 5
+  end
+  Tree add Edges
+  Rooted = Tree 1 root
+  Rooted 4 5 lca equal 3
+  Rooted 2 5 lca equal 1
+  Rooted 1 4 lca equal 1
+end
+
+test "node is its own common ancestor"
+  use "007_company2"
+  use graph
+  use ranges
+  Tree = new graph (1 to 3) .undirected
+  Tree add 1 2
+  Tree add 2 3
+  Rooted = Tree 1 root
+  Rooted 3 3 lca equal 3
+end
+
+test "ancestor wins over descendant"
+  use "007_company2"
+  use graph
+  use ranges
+  Tree = new graph (1 to 5) .undirected
+  for Node in 1 until 5
+    Tree add Node (Node + 1)
+  end
+  Rooted = Tree 1 root
+  Rooted 2 5 lca equal 2
+end
+
+test "root may have another value"
+  use "007_company2"
+  use graph
+  Tree = new graph .undirected
+  Tree add "boss" "left"
+  Tree add "boss" "right"
+  Rooted = Tree "boss" root
+  Rooted "left" "right" lca equal "boss"
+end

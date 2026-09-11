@@ -1,0 +1,21 @@
+rem CSES 1688: Company Queries II
+rem https://cses.fi/problemset/task/1688
+
+use graph
+use io
+use ranges
+
+N = stdin .integer
+Q = stdin .integer
+Tree = new graph (1 to N) .undirected
+for Employee in 2 to N
+  Boss = stdin .integer
+  Tree add Boss Employee
+end
+Rooted = Tree 1 root
+
+for i in 1 to Q
+  A = stdin .integer
+  B = stdin .integer
+  Rooted A B lca print
+end

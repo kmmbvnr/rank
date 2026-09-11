@@ -2879,6 +2879,40 @@ useful general abstraction. If later programs do not reuse the combined
 `jump`, `distance`, and `lengths` interface, simplify it to independent
 operations or remove it before treating the API as stable.
 
++## Rooted trees
+
+`Tree Root root` prepares an immutable rooted view of a connected undirected
+tree. The source graph may use any supported scalar vertices. Preparation
+validates that the graph is a tree, takes `O(N log N)` time and snapshots its
+current edges:
+
+```rank
+Rooted = Tree 1 root
+Boss = Rooted Employee K ancestor
+Common = Rooted A B lca
+Length = Rooted A B distance
+```
+
+The query words use the same data-first postfix form as
+`Tree Left Right query`. `ancestor` returns the vertex `K` parent edges above
+the requested vertex. An ancestor above the root is missing and composes with
+`pad`. `lca` returns the lowest common ancestor, and `distance` returns the
+number of edges between two vertices. Each query takes `O(log N)` time.
+
+The prepared value is a record with these fields:
+
+- `.root`: the selected root vertex;
+- `.parent`: an index of parent vertices, with no entry for the root;
+- `.depth`: an index of distances from the root;
+- `.order`: vertices in depth-first preorder;
+- `.entry`: an index of zero-based positions in `.order`;
+- `.size`: an index of subtree sizes.
+
+A vertex's subtree occupies the contiguous half-open interval beginning at its
+`.entry` position and containing `.size` items. This supports flattening
+subtree operations into ordinary range operations. The record and its indices
+are read-only snapshots; later graph mutations do not change them.
+
 ## Basic algorithms
 
 Graph algorithms are ordinary data-first functions exported by `use graph`.
@@ -4553,6 +4587,9 @@ are specified in [Collections](language/collections.md).
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, and `lengths` queries. Their inputs and results are specified in
 [Graphs](../language/graphs.md).
+An undirected tree can be prepared with `Tree Root root`; its postfix
+`ancestor`, `lca`, and `distance` queries and traversal fields follow the
+rooted-tree rules above.
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.
 

@@ -5,6 +5,69 @@ import { run } from './support.js';
 const prelude = 'use graph\nuse sequences\n';
 
 describe('graphs', () => {
+    it('prepares rooted tree traversal data', () => {
+        expect(run(`${prelude}use ranges
+Tree = new graph (1 to 5) .undirected
+Tree add (array shape 4 2
+  1 2
+  1 3
+  3 4
+  3 5
+end)
+Rooted = Tree 1 root
+Parent = Rooted .parent
+Depth = Rooted .depth
+Entry = Rooted .entry
+Size = Rooted .size
+array (Rooted .root) (Rooted .order) (Parent 4) (Depth 4) (Entry 4) (Size 3)
+`)).toBe('1 1 2 3 4 5 3 2 3 3');
+    });
+
+    it('answers rooted ancestor, LCA and distance queries', () => {
+        expect(run(`${prelude}use ranges
+Tree = new graph (1 to 7) .undirected
+Tree add (array shape 6 2
+  1 2
+  1 3
+  2 4
+  2 5
+  3 6
+  6 7
+end)
+Rooted = Tree 1 root
+A = Rooted 7 2 ancestor
+B = Rooted 4 5 lca
+C = Rooted 4 7 lca
+D = Rooted 5 7 distance
+array A B C D
+`)).toBe('3 2 1 5');
+    });
+
+    it('pads a missing rooted ancestor', () => {
+        expect(run(`${prelude}use ranges
+Tree = new graph (1 to 3) .undirected
+Tree add 1 2
+Tree add 2 3
+Rooted = Tree 1 root
+array (Rooted 3 2 ancestor) (Rooted 3 3 ancestor pad -1)
+`)).toBe('1 -1');
+    });
+
+    it('requires an undirected connected tree', () => {
+        expect(() => run(`${prelude}use ranges
+Tree = new graph (1 to 2) .directed
+Tree add 1 2
+Tree 1 root
+`)).toThrow('root expects an undirected graph');
+        expect(() => run(`${prelude}use ranges
+Tree = new graph (1 to 4) .undirected
+Tree add 1 2
+Tree add 1 2
+Tree add 3 4
+Tree 1 root
+`)).toThrow('root expects a connected tree');
+    });
+
     it('prepares and jumps through a functional graph', () => {
         expect(run(`${prelude}
 Next = array 2 3 1 5 5

@@ -1,0 +1,22 @@
+rem CSES 1135: Distance Queries
+rem https://cses.fi/problemset/task/1135
+
+use graph
+use io
+use ranges
+
+N = stdin .integer
+Q = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Rooted = Tree 1 root
+
+for i in 1 to Q
+  A = stdin .integer
+  B = stdin .integer
+  Rooted A B distance print
+end

@@ -11,35 +11,20 @@ Q = stdin .integer
 Bosses = stdin .integer (N - 1) array
 Company = Bosses prepare_company
 for i in 1 to Q
-  Employee = stdin .integer
-  Levels = stdin .integer
-  Company Employee Levels ancestor print
+  X = stdin .integer
+  K = stdin .integer
+  Boss = Company X K ancestor pad -1
+  Boss print
 end
 
 
-rem Prepare jumps and depths once.
+rem Root the hierarchy for fast jumps.
 fun prepare_company Bosses
   N = Bosses len + 1
-  Next = array shape N pad 1
-  Depth = array shape (N + 1) pad 0
+  Tree = new graph (1 to N) .undirected
   for Boss i in Bosses
     Employee = i + 2
-    Next (Employee - 1) = Boss
-    Depth Employee = Depth Boss + 1
+    Tree add Boss Employee
   end
-  return record
-    .parents = Next functional
-    .depth = Depth
-  end
-end
-
-
-rem Find a boss at the requested level.
-fun ancestor Company Employee Levels
-  Depth = Company .depth
-  if Levels greater Depth Employee
-    return -1
-  end
-  Parents = Company .parents
-  return Parents jump Employee Levels
+  return Tree 1 root
 end
