@@ -62,6 +62,7 @@ import { mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { roundValue } from './modules/numbers.js';
+import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
 import {
     argsortAxis,
@@ -1314,6 +1315,22 @@ export class Interpreter {
                         (yield* resume(interpreter.evaluateTask(axisCovariance.source))),
                         axisCovariance.axes,
                     );
+                };
+            }
+            const textFormat = parts.findIndex((part, index) => index > 0
+                && isNamed(part, 'text') && isStringLiteral(parts[index + 1]));
+            if (textFormat >= 0) {
+                const format = parts[textFormat + 1];
+                if (!isStringLiteral(format)) throw new RankError('expected text format');
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('text', 'text');
+                    const values = yield* resume(mapExecution(parts.slice(0, textFormat),
+                        part => interpreter.evaluateTask(part)));
+                    const source = values.length === 1 ? values[0] : yield* resume(interpreter.apply(values));
+                    const result = formattedText(source, format.value);
+                    const remaining = yield* resume(mapExecution(parts.slice(textFormat + 2),
+                        part => interpreter.evaluateTask(part)));
+                    return remaining.length ? yield* resume(interpreter.apply([result, ...remaining], missing, 0, [], tail)) : result;
                 };
             }
             const round = explicitRoundApplication(parts);

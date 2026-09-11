@@ -3766,6 +3766,52 @@ Digits = "1203" integer rank 0
 Arrays and other collections require an explicit mapping rank rather than
 being flattened implicitly.
 
+A literal format after `text` selects fixed decimal output:
+
+```rank
+(2 / 3) text ".6f" print
+rem 0.666667
+12 text ".3f" print
+rem 12.000
+```
+
+The format is `.Nf`, where N is an integer from 0 to 100. It produces exactly
+N digits after the decimal point, with no exponent. Rounding uses the same
+nearest-even rule as `round`; it does not add precision to a real value.
+Integer inputs retain their exact value. A result that rounds to zero has no
+minus sign. Nonfinite reals retain their ordinary text representation.
+Invalid formats raise `.InvalidFormat`; nonnumeric input raises `.TypeError`.
+
+This is a literal modifier, not a second function arity: `text` remains unary.
+A format variable or an alias such as `F = text` does not accept the modifier.
+Formatted arrays keep their shape; formatted sequences are lazy.
+Plain `text` and `print` keep their existing behavior.
+
+`join` takes a rank-1 array, queue-family collection or finite sequence followed
+by a text separator. It converts scalar elements as plain `text` does and
+returns one string. An empty collection produces empty text. An empty separator
+concatenates the elements directly:
+
+```rank
+(array 1 2 3) ", " join print
+rem 1, 2, 3
+(array "ab" "cd") "" join print
+rem abcd
+```
+
+A nontext separator, nonscalar element or higher-rank array raises
+`.TypeError`. Join matrix rows explicitly instead of flattening the matrix:
+
+```rank
+for Row in Matrix
+  Row text ".6f" " " join print
+end
+```
+
+`join` consumes its input. Known infinite sequences are rejected; for a sequence
+whose size is unknown, the caller must ensure that it terminates.
+
+
 `reverse` reverses text by Unicode code point:
 
 ```rank
