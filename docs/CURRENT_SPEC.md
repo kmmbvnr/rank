@@ -2879,7 +2879,7 @@ useful general abstraction. If later programs do not reuse the combined
 `jump`, `distance`, and `lengths` interface, simplify it to independent
 operations or remove it before treating the API as stable.
 
-+## Rooted trees
+## Rooted trees
 
 `Tree Root root` prepares an immutable rooted view of a connected undirected
 tree. The source graph may use any supported scalar vertices. Preparation
@@ -2904,14 +2904,18 @@ The prepared value is a record with these fields:
 - `.root`: the selected root vertex;
 - `.parent`: an index of parent vertices, with no entry for the root;
 - `.depth`: an index of distances from the root;
-- `.order`: vertices in depth-first preorder;
+- `.order`: vertices in heavy-first depth-first preorder;
 - `.entry`: an index of zero-based positions in `.order`;
-- `.size`: an index of subtree sizes.
+- `.size`: an index of subtree sizes;
+- `.head`: an index of heavy-path head vertices.
 
 A vertex's subtree occupies the contiguous half-open interval beginning at its
 `.entry` position and containing `.size` items. This supports flattening
 subtree operations into ordinary range operations. The record and its indices
 are read-only snapshots; later graph mutations do not change them.
+The largest child subtree is visited first. Consequently, vertices from any
+one heavy path also occupy consecutive `.entry` positions; `.head` identifies
+the first vertex of that path for heavy-light decomposition.
 
 ## Basic algorithms
 

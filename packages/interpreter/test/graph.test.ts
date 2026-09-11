@@ -19,8 +19,9 @@ Parent = Rooted .parent
 Depth = Rooted .depth
 Entry = Rooted .entry
 Size = Rooted .size
-array (Rooted .root) (Rooted .order) (Parent 4) (Depth 4) (Entry 4) (Size 3)
-`)).toBe('1 1 2 3 4 5 3 2 3 3');
+Head = Rooted .head
+array (Rooted .root) (Rooted .order) (Parent 4) (Depth 4) (Entry 4) (Size 3) (Head 4) (Head 5)
+`)).toBe('1 1 3 4 5 2 3 2 2 3 1 5');
     });
 
     it('answers rooted ancestor, LCA and distance queries', () => {

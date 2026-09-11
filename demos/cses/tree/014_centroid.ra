@@ -1,0 +1,42 @@
+rem CSES 2079: Finding a Centroid
+rem https://cses.fi/problemset/task/2079
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Rooted = Tree 1 root
+Tree Rooted centroid print
+
+
+rem Follow any subtree larger than half.
+fun centroid Tree Rooted
+  Sizes = Rooted .size
+  Limit = Rooted .order len // 2
+  Current = Rooted .root
+
+  for true
+    Moved = false
+    for Next in Tree Current
+      if Sizes Next greater Limit
+        if Sizes Next less Sizes Current
+          Current = Next
+          Moved = true
+          break
+        end
+      end
+    end
+    if not Moved
+      break
+    end
+  end
+  return Current
+end

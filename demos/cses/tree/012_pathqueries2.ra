@@ -1,0 +1,83 @@
+rem CSES 2134: Path Queries II
+rem https://cses.fi/problemset/task/2134
+
+use algo
+use graph
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Graph = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Graph add A B
+end
+Queries = stdin .integer (Q * 3) array
+Queries = Queries (array Q 3) reshape
+
+Rooted = Graph 1 root
+Answers = Values Rooted Queries maximums
+Answers print
+
+
+rem Query heavy segments of each path.
+fun maximums Values Rooted Queries
+  Entry = Rooted .entry
+  Flat = array shape (Values len) pad 0
+  for Node in Rooted .order
+    Value = Values (Node - 1)
+    Flat (Entry Node) = Value
+  end
+  Maxima = Flat max segment
+  Answers = new queue
+
+  for Query in Queries
+    unpack Type A B = Query
+    if Type equal 1
+      Maxima (Entry A) = B
+    else
+      Part = Rooted Maxima A B path_max
+      Answers push Part
+    end
+  end
+  return Answers
+end
+
+
+rem Climb one heavy path at a time.
+fun path_max Rooted Maxima A B
+  Heads = Rooted .head
+  Depths = Rooted .depth
+  Parents = Rooted .parent
+  Entry = Rooted .entry
+  Position = Entry A
+  Best = Maxima Position
+  HeadA = Heads A
+  HeadB = Heads B
+
+  for HeadA not equal HeadB
+    if Depths HeadA less Depths HeadB
+      Swap = A
+      A = B
+      B = Swap
+      HeadA = Heads A
+      HeadB = Heads B
+    end
+    First = Entry HeadA
+    Last = Entry A
+    Part = Maxima First Last query
+    Best = Best max Part
+    A = Parents HeadA
+    HeadA = Heads A
+  end
+
+  First = (Entry A) min (Entry B)
+  Last = (Entry A) max (Entry B)
+  Part = Maxima First Last query
+  return Best max Part
+end

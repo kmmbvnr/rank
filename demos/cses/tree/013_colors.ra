@@ -1,0 +1,55 @@
+rem CSES 1139: Distinct Colors
+rem https://cses.fi/problemset/task/1139
+
+use algo
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Colors = stdin .integer N array
+Tree = new graph (1 to N) .undirected
+for i in 1 until N
+  A = stdin .integer
+  B = stdin .integer
+  Tree add A B
+end
+Rooted = Tree 1 root
+Colors Rooted distinct_colors print
+
+
+rem Merge smaller color sets upward.
+fun distinct_colors Colors Rooted
+  Order = Rooted .order
+  Parents = Rooted .parent
+  Root = Rooted .root
+  Bags = new index
+  Result = array shape (Order len) pad 0
+
+  for Node in Order
+    Bag = new set
+    Bag add Colors (Node - 1)
+    Bags Node = Bag
+  end
+
+  Last = Order len - 1
+  for i in Last to 0 by -1
+    Node = Order i
+    Bag = Bags Node
+    Result (Node - 1) = Bag len
+    if Node not equal Root
+      Parent = Parents Node
+      ParentBag = Bags Parent
+      if ParentBag len less Bag len
+        Bags Parent = Bag
+        Bag = ParentBag
+        ParentBag = Bags Parent
+      end
+      for Color in Bag
+        ParentBag add Color
+      end
+    end
+  end
+  return Result
+end

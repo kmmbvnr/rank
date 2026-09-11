@@ -107,32 +107,68 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     if (search.order.length !== graph.size) {
         throw new RankError('root expects a connected tree');
     }
-    const vertices = search.order;
-    const positions = new Map<string, number>();
-    vertices.forEach((vertex, position) => {
-        positions.set(setValueKey(vertex), position);
+    const discovered = search.order;
+    const discoveredAt = new Map<string, number>();
+    discovered.forEach((vertex, position) => {
+        discoveredAt.set(setValueKey(vertex), position);
     });
-    const parent = vertices.map((_, position) => position);
-    const depth = vertices.map(vertex => Number(search.distance.get(setValueKey(vertex))!));
+    const discoveredParent = discovered.map((_, position) => position);
+    const children = discovered.map(() => [] as number[]);
     const parentValues = new Map<string, RankValue>();
-    for (let position = 1; position < vertices.length; position += 1) {
-        const key = setValueKey(vertices[position]);
+    for (let position = 1; position < discovered.length; position += 1) {
+        const key = setValueKey(discovered[position]);
         const value = search.parent.get(key)!;
         parentValues.set(key, value);
-        parent[position] = positions.get(setValueKey(value))!;
+        const parent = discoveredAt.get(setValueKey(value))!;
+        discoveredParent[position] = parent;
+        children[parent].push(position);
     }
-    const sizes = vertices.map(() => 1n);
-    for (let position = vertices.length - 1; position > 0; position -= 1) {
-        sizes[parent[position]] += sizes[position];
+    const discoveredSizes = discovered.map(() => 1n);
+    for (let position = discovered.length - 1; position > 0; position -= 1) {
+        discoveredSizes[discoveredParent[position]] += discoveredSizes[position];
     }
+
+    const heavyOrder: number[] = [];
+    const heads = discovered.map(() => 0);
+    const pending = [{ position: 0, head: 0 }];
+    while (pending.length > 0) {
+        const current = pending.pop()!;
+        heavyOrder.push(current.position);
+        heads[current.position] = current.head;
+        const next = children[current.position];
+        let heavy = -1;
+        for (const child of next) {
+            if (heavy < 0 || discoveredSizes[child] > discoveredSizes[heavy]) {
+                heavy = child;
+            }
+        }
+        for (let index = next.length - 1; index >= 0; index -= 1) {
+            const child = next[index];
+            if (child !== heavy) pending.push({ position: child, head: child });
+        }
+        if (heavy >= 0) pending.push({ position: heavy, head: current.head });
+    }
+
+    const vertices = heavyOrder.map(position => discovered[position]);
+    const positions = new Map<string, number>();
+    vertices.forEach((vertex, position) => positions.set(setValueKey(vertex), position));
+    const parent = vertices.map((_, position) => position);
+    const depth = vertices.map(vertex => Number(search.distance.get(setValueKey(vertex))!));
     const entries = new Map<string, RankValue>();
     const depths = new Map<string, RankValue>();
     const subtreeSizes = new Map<string, RankValue>();
+    const pathHeads = new Map<string, RankValue>();
     vertices.forEach((vertex, position) => {
         const key = setValueKey(vertex);
+        const original = heavyOrder[position];
         entries.set(key, BigInt(position));
         depths.set(key, BigInt(depth[position]));
-        subtreeSizes.set(key, sizes[position]);
+        subtreeSizes.set(key, discoveredSizes[original]);
+        pathHeads.set(key, discovered[heads[original]]);
+        if (position > 0) {
+            const value = search.parent.get(key)!;
+            parent[position] = positions.get(setValueKey(value))!;
+        }
     });
     const jumps = [parent];
     while (2 ** jumps.length <= Math.max(1, vertices.length)) {
@@ -146,6 +182,7 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
         order: array(vertices),
         entry: indexFrom(graph, entries),
         size: indexFrom(graph, subtreeSizes),
+        head: indexFrom(graph, pathHeads),
     });
     rootedTrees.set(result, { vertices, positions, depth, jumps });
     return result;
