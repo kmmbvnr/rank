@@ -1,0 +1,42 @@
+rem CSES 2162: Josephus Problem I
+rem https://cses.fi/problemset/task/2162
+
+use io
+use algo
+use numbers
+use ranges
+
+N = stdin .integer
+N josephus print
+
+
+rem Return the order of every second child.
+fun josephus N
+  Order = new queue
+  N 1 0 emit
+  return Order
+
+  rem Map one smaller problem to the rest.
+  fun emit N Mul Add
+    if N equal 1
+      Order push Mul + Add
+      return 0
+    end
+
+    for Value in 2 to N by 2
+      Order push Mul * Value + Add
+    end
+
+    Half = N // 2
+    NextMul = Mul * 2
+
+    if N odd
+      Order push Mul + Add
+      NextAdd = Add + Mul
+    else
+      NextAdd = Add - Mul
+    end
+
+    return Half NextMul NextAdd emit
+  end
+end

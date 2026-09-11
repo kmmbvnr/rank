@@ -1,0 +1,21 @@
+use testing
+
+test "official example"
+  use "018_josephus"
+  7 josephus equal array 2 4 6 1 5 3 7
+end
+
+test "one child"
+  use "018_josephus"
+  1 josephus equal array 1
+end
+
+test "even number of children"
+  use "018_josephus"
+  8 josephus equal array 2 4 6 8 3 7 5 1
+end
+
+test "odd number of children"
+  use "018_josephus"
+  5 josephus equal array 2 4 1 5 3
+end
