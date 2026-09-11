@@ -996,3 +996,35 @@ all other code in these examples is already compiled:
 
 These are existing Rank constructs. Extending compiler coverage does not require
 changing the example algorithms or adding language syntax.
+
+## Boolean array cell plans
+
+Read/write plans can now require boolean cells, using conditions, known array uses,
+assignment operands and boolean compound updates as constraints. Entry guards check
+homogeneous materialized cells for each view, rejecting conflicting alias types
+before execution. Scalar address checks and immediate writes remain unchanged.
+Full matrix boolean writes support `and=`, `or=` and `xor=`. Plain index writes may
+also hold boolean results; compound index updates remain on the reference path.
+
+Eight differential cases cover alias-visible updates, all three matrix compound
+operators, bounds-versus-RHS error order, mixed cells, conflicting alias expectations
+and rejection of boolean values as integer iteration variables. Verification passes
+44 language + 796 interpreter tests.
+
+Five alternating samples run unchanged CSES Money Sums with 100 coins, each worth
+1000. The independent expected result is exactly the 100 multiples of 1000 through
+100000. Median task time is 1274.913 ms off and 148.788 ms on, about 8.57x. Only
+boolean-array lowering is toggled; preceding compiler stages stay enabled. Timings
+include input construction, parse/load and complete result validation with counters
+disabled. A separate coverage run changes from zero compiled regions to two: the
+nested reachability update and the result collection loop.
+
+[Timings](../../benchmarks/baselines/2026-09-12-boolean-arrays-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-boolean-arrays-coverage.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes. All result
+digests match the preceding boolean-local baseline. One pair takes 27.479 s off and
+27.555 s on; no whole-suite speedup is established. Boolean vector binding, unknown
+alias inference, text operations and array creation/rebinding remain compiler gaps.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-boolean-arrays-suite.json).

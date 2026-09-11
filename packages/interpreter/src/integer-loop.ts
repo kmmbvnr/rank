@@ -24,6 +24,7 @@ interface Host {
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
     readonly booleanLocals: boolean;
+    readonly booleanArrays: boolean;
     extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
@@ -58,9 +59,9 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const written = new Set<string>();
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
-    const arrays = new Map<string, { slot: number; rank: number }>();
+    const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
     const iterators: ((source: RankArray) => Iterable<RankValue>)[] = [];
-    const destinations = new Map<string, { slot: number; rank: number; compound: boolean }>();
+    const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: Term['type'] }>();
     let needsAlgo = false, needsRanges = false, hasControl = false;
     let serial = 0;
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
@@ -138,6 +139,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             const [head, ...arguments_] = flatten(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
             const previous = arrays.get(head.name);
+            const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? 'integer';
+            if (hint && hint !== type || type === 'boolean' && !host.booleanArrays) return undefined;
             if (previous && previous.rank !== arguments_.length) return undefined;
             const indices: string[] = [];
             for (const argument of arguments_) {
@@ -145,11 +148,11 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 if (value?.type !== 'integer') return undefined;
                 indices.push(value.code);
             }
-            const info = previous ?? { slot: slot(head.name), rank: indices.length };
+            const info = previous ?? { slot: slot(head.name), rank: indices.length, type };
             arrays.set(head.name, info);
             const name = `v${serial++}`;
             lines.push(`const ${name} = arrayRead(r${info.slot}, [${indices.join(',')}]);`);
-            return { code: name, type: 'integer' };
+            return { code: name, type };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
         if (e.operator === 'in' && isNameExpression(e.right)) {
@@ -215,8 +218,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             if (isNameExpression(range)) {
                 if (!host.arrayIteration || range.name.includes('.')) return undefined;
                 const old = arrays.get(range.name);
-                if (old && old.rank !== 1) return undefined;
-                const info = old ?? { slot: slot(range.name), rank: 1 };
+                if (old && (old.rank !== 1 || old.type !== 'integer')) return undefined;
+                const info = old ?? { slot: slot(range.name), rank: 1, type: 'integer' as const };
                 arrays.set(range.name, info);
                 const binding = iteration;
                 setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
@@ -291,11 +294,12 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             }
             if (isArrayAssignmentStatement(assignment)) {
                 const compound = assignment.operator !== '=';
-                if (compound && (!host.compoundWrites || !['+=', '-=', '*=', '//=', '%='].includes(assignment.operator))) return undefined;
+                const booleanUpdate = ['and=', 'or=', 'xor='].includes(assignment.operator);
+                if (compound && (!host.compoundWrites || !['+=', '-=', '*=', '//=', '%=', 'and=', 'or=', 'xor='].includes(assignment.operator))) return undefined;
                 if (assignment.name.includes('.')) return undefined;
                 const previous = destinations.get(assignment.name);
                 if (previous && previous.rank !== assignment.indices.length) return undefined;
-                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound };
+                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as Term['type'] | undefined };
                 target.compound ||= compound;
                 destinations.set(assignment.name, target);
                 const receiver = `r${target.slot}`;
@@ -309,14 +313,19 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 const name = `key${serial++}`;
                 lines.push(`const ${name} = ${receiver}.kind === 'array'
                     ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
-                const value = emit(assignment.value, lines);
-                if (value?.type !== 'integer') return undefined;
+                const expected = booleanUpdate ? 'boolean' : compound ? 'integer' : target.type ?? arrays.get(assignment.name)?.type;
+                const value = emit(assignment.value, lines, expected);
+                if (!value || value.type === 'boolean' && !host.booleanArrays
+                    || expected && value.type !== expected
+                    || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== value.type) return undefined;
+                target.type = value.type;
                 let result = value.code;
                 if (compound) {
                     const rhs = `operand${serial++}`, old = `old${serial++}`, out = `updated${serial++}`;
                     lines.push(`const ${rhs} = ${value.code}, ${old} = ${receiver}.items[${name}];`);
                     const op = assignment.operator.slice(0, -1);
-                    if (['+', '-', '*'].includes(op)) lines.push(`const ${out} = ${old} ${op} ${rhs};`);
+                    if (booleanUpdate) lines.push(`const ${out} = ${old} ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} ${rhs};`);
+                    else if (['+', '-', '*'].includes(op)) lines.push(`const ${out} = ${old} ${op} ${rhs};`);
                     else {
                         const remainder = `remainder${serial++}`;
                         lines.push(`if (${rhs} === 0n) throw zero(); const ${remainder} = ${old} % ${rhs};`);
@@ -448,7 +457,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.shape.length !== info.rank) return undefined;
             const items = materializedArrayItems(value);
-            if (!items || !items.every(item => typeof item === 'bigint')) return undefined;
+            if (!items || !items.every(item => typeof item === (info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
             values[info.slot] = value;
         }
         for (const [name, info] of destinations) {
@@ -459,7 +468,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
                     || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
                 const items = materializedArrayItems(value);
-                if (!items || !items.every(item => typeof item === 'bigint')) return undefined;
+                if (!items || !items.every(item => typeof item === (info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
             }
             values[info.slot] = value;
         }

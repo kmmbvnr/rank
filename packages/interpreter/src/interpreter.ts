@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly booleanArrayCompilation?: boolean;
     readonly booleanLoopCompilation?: boolean;
     readonly boundIntegerWrites?: boolean;
     readonly scalarAddressCompilation?: boolean;
@@ -1022,6 +1023,7 @@ export class Interpreter {
                 } : undefined,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                booleanArrays: this.options.booleanArrayCompilation !== false,
                 booleanLocals: this.options.booleanLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
                 extremeParts: expression => {
@@ -2484,6 +2486,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            booleanArrayCompilation: this.options.booleanArrayCompilation,
             booleanLoopCompilation: this.options.booleanLoopCompilation,
             boundIntegerWrites: this.options.boundIntegerWrites,
             scalarAddressCompilation: this.options.scalarAddressCompilation,
@@ -2580,6 +2583,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            booleanArrayCompilation: this.options.booleanArrayCompilation,
             booleanLoopCompilation: this.options.booleanLoopCompilation,
             boundIntegerWrites: this.options.boundIntegerWrites,
             scalarAddressCompilation: this.options.scalarAddressCompilation,

@@ -1304,3 +1304,84 @@ end`);
         expect(result.loops).toBe(0);
     });
 });
+
+describe('boolean arrays in compiled regions', () => {
+    it('reads and writes boolean cells through aliases', () => {
+        const result = compare(`use ranges
+A = array true false false false
+B = A
+Count = 0
+for I in 1 until 4
+  if B (I - 1)
+    A I = true
+  end
+  if B I
+    Count += 1
+  end
+end
+Count`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['and=', 'or=', 'xor='])('supports matrix boolean updates with %s', operator => {
+        const result = compare(`use ranges
+A = array shape 2 2
+  true false
+  false true
+end
+for I in 0 until 2
+  for J in 0 until 2
+    A I J ${operator} I equal J
+  end
+end
+A`);
+        expect(result.loops).toBe(1);
+    });
+
+    it('validates an address before the boolean RHS fails', () => {
+        const result = compare(`use ranges
+A = array true false
+for I in 0 until 1
+  A 0 = false
+  A 2 or= (1 // 0) equal 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains ordinary behavior for mixed cells', () => {
+        const result = compare(`use ranges
+A = array true 1
+Count = 0
+for I in 0 until 2
+  if A I
+    Count += 1
+  end
+end`);
+        expect(result.loops).toBe(0);
+    });
+
+    it('declines mixed read/write types through different aliases', () => {
+        const result = compare(`use ranges
+A = array 1 2
+B = A
+for I in 0 until 2
+  X = B I + 1
+  A I = true
+end
+A`);
+        expect(result.loops).toBe(0);
+    });
+
+    it('does not treat an iterated boolean as an integer', () => {
+        const result = compare(`A = array true false
+Total = 0
+for Value in A
+  if A 0
+    Total += Value
+  end
+end`);
+        expect(result.loops).toBe(0);
+    });
+});

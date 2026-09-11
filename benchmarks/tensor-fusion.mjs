@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -55,6 +55,7 @@ function descriptionAnswer(length, maximum) {
   return BigInt(row.reduce((sum, value) => (sum + value) % 1000000007, 0));
 }
 const tasks = [
+  { name: 'Money Sums, 100 coins of value 1000', path: 'demos/cses/dynamic/014_moneysums.ra', fn: 'money_sums', args: () => [array(Array(100).fill(1000n))], verify: value => assert.deepEqual(value.items, Array.from({length:100}, (_,i)=>BigInt((i+1)*1000))) },
   { name: 'Array Description, 1000 unknowns, Maximum=100', path: 'demos/cses/dynamic/008_arraydesc.ra', fn: 'descriptions', expected: descriptionAnswer(1000, 100), args: () => [array(Array(1000).fill(0n)), 100n] },
   { name: 'Minimizing Coins, six coins, Target=100000', path: 'demos/cses/dynamic/002_mincoins.ra', fn: 'minimum_coins', expected: 16667n, args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
   { name: 'Euler 18, 400 rows of ones', path: 'demos/euler/018_maxpath.ra', fn: 'maximum_path', expected: 400n, args: () => [array(Array(400*401/2).fill(1n)), 400n] },
@@ -93,6 +94,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      booleanArrayCompilation: backend === 'booleanarrays' ? enabled : undefined,
       booleanLoopCompilation: backend === 'booleans' ? enabled : undefined,
       boundIntegerWrites: backend === 'writes' ? enabled : undefined,
       scalarAddressCompilation: backend === 'address' ? enabled : undefined,
@@ -108,7 +110,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

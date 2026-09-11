@@ -679,7 +679,23 @@ and retain ordinary error timing. Checked first writes still establish Rank's fi
 variable type before bound stores can specialize later writes.
 
 Operands retain ordinary evaluation order, including eager evaluation of boolean
-compound-assignment operands. Arrays remain integer-only in these regions: boolean
-array cells and general inference for unknown input aliases are future work.
+compound-assignment operands. Known boolean array cells are supported as described below; general inference
+for unknown input aliases remains future work.
 `booleanLoopCompilation: false` disables boolean local lowering while retaining
 existing integer operations and literal/comparison conditions.
+
+
+## Boolean array cells in numeric regions
+
+Array plans can require boolean cells, inferred from conditions, known array uses,
+boolean assignment operands and `and=`/`or=`/`xor=`. The same scalar address and
+immediate-write machinery handles homogeneous stored boolean arrays. Entry guards
+check the expected element type for every read and write view, so incompatible
+alias expectations or mixed cells decline before execution.
+
+Full matrix addresses, alias-visible writes, bounds errors and eager boolean RHS
+evaluation retain ordinary semantics. Lazy inputs still do not get forced by the
+guards. Vector-loop binding remains integer-only; boolean vector iteration and
+unknown input-alias inference need further compiler work. Plain scalar index writes
+can also carry boolean results; compound index updates still retain the reference
+path. `booleanArrayCompilation: false` disables boolean-cell lowering only.
