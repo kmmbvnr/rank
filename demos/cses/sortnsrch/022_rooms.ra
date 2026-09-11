@@ -1,0 +1,62 @@
+rem CSES 1164: Room Allocation
+rem https://cses.fi/problemset/task/1164
+
+use io
+use algo
+use sequences
+
+N = stdin .integer
+Values = stdin .integer (N * 2) array
+Data = Values (array N 2) reshape
+
+Result = Data allocate_rooms
+Result .count print
+Result .rooms print
+
+
+rem Allocate the smallest available room.
+fun allocate_rooms Data
+  Shape = Data shape
+  N = Shape 0
+  Start = Data # 0
+  Finish = Data # 1
+  Order = Start argsort
+
+  Free = new heap
+  Busy = new heap
+  Rooms = array shape N pad 0
+  Count = 0
+
+  for I in Order
+    for Busy len greater 0
+      Guest = Busy peek
+
+      if Guest .finish at least Start I
+        break
+      end
+
+      Busy pop
+      Free push Guest .room
+    end
+
+    if Free len greater 0
+      Room = Free pop
+    else
+      Count += 1
+      Room = Count
+    end
+
+    Rooms I = Room
+    Guest = record
+      .finish = Finish I
+      .room = Room
+    end
+    Busy (Finish I) Guest enqueue
+  end
+
+  Result = record
+    .count = Count
+    .rooms = Rooms
+  end
+  return Result
+end
