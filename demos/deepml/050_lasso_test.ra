@@ -1,0 +1,60 @@
+use testing
+use numbers
+
+test "official three samples"
+  use "050_lasso"
+  use numbers
+
+  X = array shape 3 2
+    0 0
+    1 1
+    2 2
+  end
+  Y = array 0 1 2
+  R = X Y 0.1 0.01 1000 0.0001 lasso
+  Fit = R
+
+  Expected = array 0.42371644 0.42371644
+  Weights = Fit .weights round 8
+  Bias = Fit .bias round 8
+  Matches = Weights equal Expected
+  SameW = Matches and reduce
+  SameW and Bias equal 0.15385068
+end
+
+test "official five samples"
+  use "050_lasso"
+  use numbers
+
+  X = array shape 5 2
+    0 1
+    1 2
+    2 3
+    3 4
+    4 5
+  end
+  Y = array 1 2 3 4 5
+  R = X Y 0.1 0.01 1000 0.0001 lasso
+  Fit = R
+
+  Expected = array 0.27280148 0.68108784
+  Weights = Fit .weights round 8
+  Bias = Fit .bias round 8
+  Matches = Weights equal Expected
+  SameW = Matches and reduce
+  SameW and Bias equal 0.40828636
+end
+
+test "zero steps return zero model"
+  use "050_lasso"
+
+  X = array shape 2 1
+    1
+    2
+  end
+  Y = array 2 4
+  Fit = X Y 0.1 0.01 0 0.0001 lasso
+  Weights = Fit .weights
+  ZeroW = Weights 0 equal 0.0
+  ZeroW and Fit .bias equal 0.0
+end

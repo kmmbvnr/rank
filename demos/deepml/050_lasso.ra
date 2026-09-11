@@ -1,0 +1,43 @@
+rem Deep-ML 50: Lasso Regression
+rem https://www.deep-ml.com/problems/50
+
+use linalg
+use numbers
+use ranges
+use sequences
+use stats
+
+fun lasso X Y L1 Lr N Eps
+  Shape = X shape
+  Rows = Shape 0
+  Cols = Shape 1
+  if Y len not equal Rows
+    .DimensionMismatch raise
+  end
+
+  W = array shape Cols pad 0.0
+  Bias = 0.0
+
+  for # in 0 until N
+    Error = X W matmul + Bias - Y
+    Grad = X transpose Error matmul
+    Grad /= Rows
+
+    Penalty = (W * 0.0) copy
+    Penalty (W greater 0) = L1
+    Penalty (W less 0) = -L1
+    Grad += Penalty
+
+    W -= Lr * Grad
+    Bias -= Lr * Error mean
+
+    if Grad abs sum less Eps
+      break
+    end
+  end
+
+  return record
+    .weights = W
+    .bias = Bias
+  end
+end
