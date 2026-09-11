@@ -1020,7 +1020,9 @@ export class Interpreter {
         }
         if (isBinaryExpression(expression) && expression.operator !== 'pad'
             && expression.operator !== '**'
-            && !isNamed(expression.right, 'reduce') && !isNamed(expression.right, 'outer')) {
+            && !isNamed(expression.right, 'reduce')
+            && !isNamed(expression.right, 'scan')
+            && !isNamed(expression.right, 'outer')) {
             const left = this.compileDirectExpression(expression.left);
             const right = this.compileDirectExpression(expression.right);
             const step = expression.step ? this.compileDirectExpression(expression.step) : undefined;
@@ -1210,6 +1212,15 @@ export class Interpreter {
                         outer.operator,
                         (yield* resume(interpreter.evaluateTask(outer.left))),
                         (yield* resume(interpreter.evaluateTask(outer.right))),
+                    );
+                };
+            }
+            const scan = explicitScanApplication(expression);
+            if (scan) {
+                return function* (): Execution<RankValue> {
+                    return interpreter.evaluateScan(
+                        scan.operator,
+                        (yield* resume(interpreter.evaluateTask(scan.source))),
                     );
                 };
             }
@@ -2332,6 +2343,24 @@ export class Interpreter {
             throw new RankError(`rank ${cellRank} exceeds value rank ${valueRank(value)}`);
         }
         return this.reduceCell(operator, value);
+    }
+
+    private evaluateScan(operator: string, value: RankValue): RankValue {
+        if (valueRank(value) !== 1) {
+            throw new RankError(`${operator} scan expects a rank-1 value`);
+        }
+        if (isRankSequence(value) && value.plan.size.kind === 'infinite') {
+            throw new RankError(`${operator} scan requires a bounded sequence`);
+        }
+        const result: RankValue[] = [];
+        let accumulated: RankValue | undefined;
+        for (const item of reductionValues(value, operator)) {
+            accumulated = accumulated === undefined
+                ? item
+                : this.evaluateBinary(operator, accumulated, item);
+            result.push(accumulated);
+        }
+        return { kind: 'array', items: result, shape: [result.length] };
     }
 
     private evaluateAxisReduction(
@@ -3890,6 +3919,20 @@ interface ReduceApplication {
     readonly operator: string;
     readonly source: Expression;
     readonly rank?: number;
+}
+
+interface ScanApplication {
+    readonly operator: string;
+    readonly source: Expression;
+}
+
+function explicitScanApplication(expression: Expression): ScanApplication | undefined {
+    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
+        return undefined;
+    }
+    const parts = flattenApplication(expression.right);
+    if (parts.length !== 1 || !isNamed(parts[0], 'scan')) return undefined;
+    return { operator: expression.operator, source: expression.left };
 }
 
 function explicitReduceApplication(expression: Expression): ReduceApplication | undefined {

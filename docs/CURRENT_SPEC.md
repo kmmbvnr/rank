@@ -2115,6 +2115,12 @@ Prefix accumulation:
 Prefix = A + scan
 ```
 
+`scan` accepts a rank-1 array, queue, text or bounded sequence and returns a
+material rank-1 array. The first result is the first source value; each later
+result applies the binary operation left-to-right to the previous result and
+the next value. An empty source returns an empty array. Unbounded sequences and
+higher-rank arrays are rejected. `scan` currently has no `rank` or `axis` form.
+
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary

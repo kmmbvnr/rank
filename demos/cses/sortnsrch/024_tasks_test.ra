@@ -1,0 +1,39 @@
+use testing
+
+test "official example"
+  use "024_tasks"
+  Tasks = array shape 3 2
+    6 10
+    8 15
+    5 12
+  end
+  Tasks maximum_reward equal 2
+end
+
+test "one late task"
+  use "024_tasks"
+  Tasks = array shape 1 2
+    5 3
+  end
+  Tasks maximum_reward equal -2
+end
+
+test "short tasks go first"
+  use "024_tasks"
+  Tasks = array shape 3 2
+    3 20
+    1 2
+    2 10
+  end
+  Tasks maximum_reward equal 22
+end
+
+test "equal durations"
+  use "024_tasks"
+  Tasks = array shape 3 2
+    2 4
+    2 8
+    2 5
+  end
+  Tasks maximum_reward equal 5
+end

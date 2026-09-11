@@ -1,0 +1,26 @@
+rem CSES 1630: Tasks and Deadlines
+rem https://cses.fi/problemset/task/1630
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+Values = stdin .integer (N * 2) array
+Tasks = Values (array N 2) reshape
+
+Tasks maximum_reward print
+
+
+rem Finish short tasks first.
+fun maximum_reward Tasks
+  Duration = Tasks # 0
+  Deadline = Tasks # 1
+  Order = Duration argsort
+
+  Duration = Duration Order
+  Deadline = Deadline Order
+  Finished = Duration + scan
+
+  return (Deadline - Finished) sum
+end
