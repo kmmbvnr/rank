@@ -1,0 +1,49 @@
+use testing
+
+test "official example"
+  use "006_movies"
+  use algo
+  Movies = queue
+  Movies push 3 5 movie
+  Movies push 4 9 movie
+  Movies push 5 8 movie
+  Movies watch equal 2
+end
+
+test "touching movies are compatible"
+  use "006_movies"
+  use algo
+  Movies = queue
+  Movies push 1 2 movie
+  Movies push 2 3 movie
+  Movies push 3 4 movie
+  Movies watch equal 3
+end
+
+test "input order does not guide choice"
+  use "006_movies"
+  use algo
+  Movies = queue
+  Movies push 5 7 movie
+  Movies push 1 10 movie
+  Movies push 2 3 movie
+  Movies push 3 5 movie
+  Movies watch equal 3
+end
+
+test "all movies overlap"
+  use "006_movies"
+  use algo
+  Movies = queue
+  Movies push 1 10 movie
+  Movies push 2 9 movie
+  Movies push 3 8 movie
+  Movies watch equal 1
+end
+
+test "empty movie collection"
+  use "006_movies"
+  use algo
+  Movies = queue
+  Movies watch equal 0
+end

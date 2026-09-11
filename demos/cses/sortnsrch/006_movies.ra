@@ -1,0 +1,45 @@
+rem CSES 1629: Movie Festival
+rem https://cses.fi/problemset/task/1629
+
+use io
+use algo
+use ranges
+use sequences
+
+N = stdin .integer
+Movies = queue
+
+for # in 1 to N
+  Start = stdin .integer
+  Finish = stdin .integer
+  Movies push Start Finish movie
+end
+
+Movies watch print
+
+
+rem Describe one scheduled movie.
+fun movie Start Finish
+  Movie = record
+    .start = Start
+    .finish = Finish
+  end
+  return Movie
+end
+
+
+rem Choose movies by earliest finish.
+fun watch Movies
+  Sorted = Movies sort by .finish
+  Last = 0
+  Answer = 0
+
+  for Movie in Sorted
+    if Movie .start at least Last
+      Last = Movie .finish
+      Answer += 1
+    end
+  end
+
+  return Answer
+end
