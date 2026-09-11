@@ -1,0 +1,46 @@
+rem CSES 2428: Distinct Values
+rem Subarrays II
+rem https://cses.fi/problemset/task/2428
+
+use io
+use algo
+
+N = stdin .integer
+K = stdin .integer
+A = stdin .integer N array
+
+A K count_distinct_windows print
+
+
+rem Count windows with at most K values.
+fun count_distinct_windows A K
+  Left = 0
+  Distinct = 0
+  Answer = 0
+
+  for Value Right in A
+    Count = index Value pad 0
+
+    if Count equal 0
+      Distinct += 1
+    end
+
+    index Value = Count + 1
+
+    for Distinct greater K
+      X = A Left
+      Count = index X - 1
+      index X = Count
+
+      if Count equal 0
+        Distinct -= 1
+      end
+
+      Left += 1
+    end
+
+    Answer += Right - Left + 1
+  end
+
+  return Answer
+end
