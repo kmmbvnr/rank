@@ -1028,3 +1028,41 @@ digests match the preceding boolean-local baseline. One pair takes 27.479 s off 
 alias inference, text operations and array creation/rebinding remain compiler gaps.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-boolean-arrays-suite.json).
+
+## Local array allocation and rebinding
+
+Numeric regions now lower `array shape ... pad ...` with integer dimensions and
+integer/boolean fills, plus aliases of known array bindings. Every constructor
+execution creates fresh storage. Dimension validation is shared with the ordinary
+interpreter and remains before fill evaluation; assignments commit afterward.
+Array rank and cell type stay consistent in the plan, while dimensions can change.
+
+Definite assignment distinguishes local arrays from guarded inputs. Alias edges
+propagate write requirements back to inputs so a cached lazy source cannot become
+writable through a local alias. Full scalar destination ranks are checked even for
+new local arrays; partial selections and excess-address cases retain their normal
+semantics. Unsupported array forms, unknown aliases and rank/type changes fall back.
+
+Twelve tests cover fresh storage, old aliases after rebinding, varying dimensions,
+boolean fills, dimension/fill errors, first-write type errors, conditional definitions,
+a cached lazy alias, partial/excess addresses and the array-write toggle. Final
+verification passes 44 language + 808 interpreter tests.
+
+Five alternating samples run unchanged Array Description with 1000 unknown positions
+and maximum value 100, using the existing independent Number row-recurrence oracle.
+Median task times are 15.519 ms off and 11.978 ms on, about 1.30x. Only array-local
+lowering is toggled; previous inner-loop compilation remains enabled in both modes.
+Timing includes input construction, parse/load and validation with counters disabled.
+
+The coverage run changes from 1000 compiled entries to two: initialization and the
+complete outer update loop. Array creation and row replacement now stay inside the
+outer region instead of preparing another inner kernel invocation for every row.
+
+[Timings](../../benchmarks/baselines/2026-09-12-array-locals-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-array-locals-coverage.json).
+
+The final full suite passes 306 files / 1054 tests in both modes, and every result
+digest matches the preceding boolean-array baseline. One pair takes 27.682 s off
+and 27.695 s on; no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-array-locals-suite.json).

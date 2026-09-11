@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "arraylocals",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 90.510292,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 90.24174999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 13.838833999999991,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 13.773750000000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 13.247125000000011,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 13.18549999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 15.597417000000007,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 15.543499999999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 15.575125000000014,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 15.518875000000008,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 12.03925000000001,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 11.978124999999977,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 9.01437500000003,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 8.957459000000028,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 12.418709000000035,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 12.36933399999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 12.177750000000003,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 12.125333000000012,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 9.03741599999995,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 8.992957999999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    }
+  ]
+}

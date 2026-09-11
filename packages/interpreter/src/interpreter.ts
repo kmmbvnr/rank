@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly arrayLocalCompilation?: boolean;
     readonly booleanArrayCompilation?: boolean;
     readonly booleanLoopCompilation?: boolean;
     readonly boundIntegerWrites?: boolean;
@@ -1023,6 +1024,8 @@ export class Interpreter {
                 } : undefined,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                arrayLocals: this.options.arrayLocalCompilation !== false,
+                dimension: checkedArrayDimension,
                 booleanArrays: this.options.booleanArrayCompilation !== false,
                 booleanLocals: this.options.booleanLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
@@ -2200,11 +2203,7 @@ export class Interpreter {
 
     private *arrayDimension(item: ArrayItem): Execution<number> {
         const dimension = expectInteger((yield* resume(this.evaluateArrayItem(item))));
-        if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
-        if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
-            throw new RankError(`array dimension is too large: ${dimension}`);
-        }
-        return Number(dimension);
+        return checkedArrayDimension(dimension);
     }
 
     private useStandard(module: string): void {
@@ -2486,6 +2485,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            arrayLocalCompilation: this.options.arrayLocalCompilation,
             booleanArrayCompilation: this.options.booleanArrayCompilation,
             booleanLoopCompilation: this.options.booleanLoopCompilation,
             boundIntegerWrites: this.options.boundIntegerWrites,
@@ -2583,6 +2583,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            arrayLocalCompilation: this.options.arrayLocalCompilation,
             booleanArrayCompilation: this.options.booleanArrayCompilation,
             booleanLoopCompilation: this.options.booleanLoopCompilation,
             boundIntegerWrites: this.options.boundIntegerWrites,
@@ -4333,6 +4334,14 @@ function isTensorAddress(selectors: readonly RankValue[]): boolean {
         || isCollectionSelector(selector))) return false;
     return selectors.some(isAllAxisSelector)
         || (selectors.length > 1 && selectors.some(isCollectionSelector));
+}
+
+function checkedArrayDimension(dimension: bigint): number {
+    if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
+    if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError(`array dimension is too large: ${dimension}`);
+    }
+    return Number(dimension);
 }
 
 /** Full scalar addresses are guaranteed by the integer-region entry guards.

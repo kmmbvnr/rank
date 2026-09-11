@@ -1,6 +1,6 @@
 import {
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
-    isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
+    isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement,
 } from 'rank-language';
 import { completed, type Completed } from './execution.js';
@@ -25,6 +25,8 @@ interface Host {
     readonly extrema: boolean;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
+    readonly arrayLocals: boolean;
+    dimension(value: bigint): number;
     extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
@@ -46,7 +48,7 @@ const comparisons: Record<string, string> = {
 
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound
- * writers specialize repeated known scalar stores within one invocation. */
+ * writers specialize repeated known-value stores within one invocation. */
 export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): {
     run(insideFinally?: boolean): Completed<RankValue | undefined> | undefined;
 } | undefined {
@@ -60,6 +62,8 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
     const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
+    const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
+    const aliases: [string, string][] = [];
     const iterators: ((source: RankArray) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: Term['type'] }>();
     let needsAlgo = false, needsRanges = false, hasControl = false;
@@ -84,6 +88,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         if (isNumberLiteral(e) && typeof e.value === 'bigint') return { code: `${e.value}n`, type: 'integer' };
         if (isBooleanLiteral(e)) return { code: String(e.value), type: 'boolean' };
         if (isNameExpression(e) && !e.name.includes('.')) {
+            if (arrays.has(e.name)) return undefined;
             const type = localTypes.get(e.name) ?? hint ?? 'integer';
             if (hint && type !== hint || type === 'boolean' && !host.booleanLocals) return undefined;
             localTypes.set(e.name, type);
@@ -150,6 +155,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             }
             const info = previous ?? { slot: slot(head.name), rank: indices.length, type };
             arrays.set(head.name, info);
+            if (!assigned.has(head.name)) arrayInputs.add(head.name);
             const name = `v${serial++}`;
             lines.push(`const ${name} = arrayRead(r${info.slot}, [${indices.join(',')}]);`);
             return { code: name, type };
@@ -221,6 +227,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 if (old && (old.rank !== 1 || old.type !== 'integer')) return undefined;
                 const info = old ?? { slot: slot(range.name), rank: 1, type: 'integer' as const };
                 arrays.set(range.name, info);
+                if (!assigned.has(range.name)) arrayInputs.add(range.name);
                 const binding = iteration;
                 setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(binding, source));
@@ -297,11 +304,14 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 const booleanUpdate = ['and=', 'or=', 'xor='].includes(assignment.operator);
                 if (compound && (!host.compoundWrites || !['+=', '-=', '*=', '//=', '%=', 'and=', 'or=', 'xor='].includes(assignment.operator))) return undefined;
                 if (assignment.name.includes('.')) return undefined;
+                const knownArray = arrays.get(assignment.name);
+                if (knownArray && knownArray.rank !== assignment.indices.length) return undefined;
                 const previous = destinations.get(assignment.name);
                 if (previous && previous.rank !== assignment.indices.length) return undefined;
                 const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as Term['type'] | undefined };
                 target.compound ||= compound;
                 destinations.set(assignment.name, target);
+                if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
                 const receiver = `r${target.slot}`;
                 const lines: string[] = [], keys: string[] = [];
                 for (const address of assignment.indices) {
@@ -375,8 +385,58 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 }
                 continue;
             }
+            if (host.arrayLocals && isAssignmentStatement(assignment) && assignment.operator === '='
+                && !assignment.name.includes('.')) {
+                let expression = assignment.value;
+                while (isParenthesizedExpression(expression)) expression = expression.value;
+                const source = isNameExpression(expression) ? arrays.get(expression.name) : undefined;
+                if (isArrayExpression(expression) || source) {
+                    if (localTypes.has(assignment.name)) return undefined;
+                    const lines: string[] = [];
+                    let rank: number, type: Term['type'], value: string;
+                    if (isArrayExpression(expression)) {
+                        if (!expression.dimensions.length || !expression.fill || expression.rows.length) return undefined;
+                        const dimensions: string[] = [];
+                        for (const item of expression.dimensions) {
+                            if (!item.value) return undefined;
+                            const size = emit(item.value, lines, 'integer');
+                            if (size?.type !== 'integer') return undefined;
+                            const name = `dimension${serial++}`;
+                            lines.push(`const ${name} = dimension(${item.sign === '-' ? `-(${size.code})` : size.code});`);
+                            dimensions.push(name);
+                        }
+                        const shape = `shape${serial++}`, size = `size${serial++}`;
+                        lines.push(`const ${shape} = [${dimensions.join(',')}];`,
+                            `const ${size} = ${shape}.reduce((a,b) => a * BigInt(b), 1n);`);
+                        const fill = emit(expression.fill, lines);
+                        if (!fill || fill.type === 'boolean' && !host.booleanArrays) return undefined;
+                        rank = dimensions.length; type = fill.type;
+                        value = `created${serial++}`;
+                        lines.push(`const ${value} = { kind: 'array', shape: ${shape}, items: Array(Number(${size})).fill(${fill.code}) };`);
+                    } else {
+                        if (!isNameExpression(expression) || !source) return undefined;
+                        const name = expression.name;
+                        if (!assigned.has(name)) arrayInputs.add(name);
+                        aliases.push([assignment.name, name]);
+                        rank = source.rank; type = source.type; value = `r${source.slot}`;
+                    }
+                    const old = arrays.get(assignment.name), target = destinations.get(assignment.name);
+                    if (old && (old.rank !== rank || old.type !== type)
+                        || target && (target.rank !== rank || target.type !== type)) return undefined;
+                    const destination = slot(assignment.name), index = writers.length;
+                    arrays.set(assignment.name, { slot: destination, rank, type });
+                    arrayDefinitions.add(assignment.name);
+                    written.add(assignment.name);
+                    writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
+                    body.push(`location = ${location};`, ...lines,
+                        `writers[${index}](${value}); r${destination} = ${value}; iterationResult = ${value};`);
+                    assigned.add(assignment.name);
+                    continue;
+                }
+            }
             const index = writers.length;
             if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return undefined;
+            if (arrays.has(assignment.name)) return undefined;
             const destination = slot(assignment.name);
             written.add(assignment.name);
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
@@ -415,9 +475,16 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     if (!statements(statement.statements, body)) return undefined;
     // Container bindings must remain stable throughout the compiled region.
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
-    if ([...arrays].some(([name, info]) => written.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
-    if ([...destinations].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
+    if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
+    if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return undefined;
     if ([...builtins.keys()].some(name => written.has(name))) return undefined;
+    const writable = new Set(destinations.keys());
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const [target, source] of aliases) {
+            if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
+        }
+    }
     const source = `"use strict"; return function(input, writers, binders) {
         ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};` : ''}
         let result, location = -1;
@@ -428,9 +495,9 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators); }
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
@@ -454,13 +521,19 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
             values[info.slot] = value;
         }
         for (const [name, info] of arrays) {
+            if (!arrayInputs.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.shape.length !== info.rank) return undefined;
+            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return undefined;
             const items = materializedArrayItems(value);
             if (!items || !items.every(item => typeof item === (info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
             values[info.slot] = value;
         }
         for (const [name, info] of destinations) {
+            if (!arrayInputs.has(name)) {
+                if (!host.arrayWrites) return undefined;
+                continue;
+            }
             const value = host.read(name);
             if (!value) return undefined;
             if (isRankIndex(value) && info.compound) return undefined;

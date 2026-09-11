@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "arraylocals",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 87.52337499999999,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 87.22537500000001,
+          "kernels": 1000,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 13.615999999999985,
+      "entries": [
+        {
+          "name": "Array Description, 1000 unknowns, Maximum=100",
+          "ms": 13.535000000000025,
+          "kernels": 2,
+          "tests": 0,
+          "digest": "313ae3d8156d0da62b86f66229216d35d723c7ebf6fae04909038ffb3c455615"
+        }
+      ]
+    }
+  ]
+}

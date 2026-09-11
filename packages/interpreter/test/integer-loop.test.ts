@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { registerCachedArray } from '../src/array-storage.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
 
 function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true) {
@@ -1384,4 +1385,152 @@ for Value in A
 end`);
         expect(result.loops).toBe(0);
     });
+});
+
+describe('array locals in compiled regions', () => {
+    it('allocates fresh arrays and preserves aliases to earlier objects', () => {
+        const result = compare(`use ranges
+Total = 0
+for I in 0 until 3
+  Current = array shape 2 pad I
+  Saved = Current
+  Current = array shape 2 pad 9
+  Total += Saved 0
+end
+Total`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it('rebinds an input while retaining writes through an old alias', () => {
+        const result = compare(`use ranges
+Source = array 1 1
+Total = 0
+for I in 0 until 2
+  Seen = Source 0
+  Old = Source
+  Source = array shape 2 pad I
+  Old 0 += 10
+  Total += Old 0
+end
+Total`);
+        expect(result.value).toBe('21');
+        expect(result.loops).toBe(1);
+    });
+
+    it('evaluates changing dimensions and boolean fills on every iteration', () => {
+        const result = compare(`use ranges
+Count = 0
+for I in 1 to 3
+  Row = array shape (I + 1) pad I less 3
+  if Row I
+    Count += 1
+  end
+end
+Count`);
+        expect(result.value).toBe('2');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['-1', '9007199254740992'])('checks dimension %s before a failing fill', dimension => {
+        const result = compare(`use ranges
+for I in 0 until 1
+  Done = I
+  Row = array shape (${dimension}) pad (1 // 0)
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps the prior array when a later allocation expression fails', () => {
+        const result = compare(`use ranges
+for I in 0 until 2
+  Row = array shape 2 pad (1 // (1 - I))
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('checks a destination type at the assignment, after earlier writes', () => {
+        const result = compare(`use ranges
+Row = 1
+Done = 0
+for I in 0 until 2
+  Done += 1
+  Row = array shape 2 pad 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('does not assume a conditional array definition executed', () => {
+        const result = compare(`use ranges
+for I in 0 until 1
+  if I greater 0
+    Row = array shape 2 pad 0
+  end
+  Value = Row 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});
+
+
+it('does not make a cached lazy input writable through a local alias', () => {
+    for (const integerLoopCompilation of [false, true]) {
+        let loops = 0;
+        const runtime = new Interpreter(undefined, { integerLoopCompilation,
+            onIntegerLoopExecuted: () => loops++ });
+        const read = vi.fn(() => 1n);
+        runtime.variables.set('Source', registerCachedArray({ kind: 'array', shape: [1],
+            get items() { return [1n]; }, itemAt: read }, () => [1n]));
+        try {
+            expect(() => runtime.execute(`use ranges
+for I in 0 until 1
+  Seen = Source 0
+  Alias = Source
+  Alias 0 = 2
+end`)).toThrow('cannot assign to a lazy array');
+            expect(loops).toBe(0);
+            expect(read).toHaveBeenCalledTimes(1);
+        } finally { runtime.dispose(); }
+    }
+});
+
+
+it('retains partial selection on locally created arrays', () => {
+    const result = compare(`use ranges
+for I in 0 until 1
+  A = array shape 2 2 pad 0
+  A 0 = 1
+end
+A`);
+    expect(result.loops).toBe(0);
+});
+
+it('retains excess-address diagnostics for local arrays', () => {
+    const result = compare(`use ranges
+for I in 0 until 1
+  A = array shape 2 pad 0
+  A 0 0 = 1
+end`);
+    expect(result).toHaveProperty('error');
+    expect(result.loops).toBe(0);
+});
+
+it('honors the array-write toggle for locally created arrays', () => {
+    let loops = 0;
+    const runtime = new Interpreter(undefined, { arrayWriteCompilation: false,
+        onIntegerLoopExecuted: () => loops++ });
+    try {
+        const result = runtime.execute(`use ranges
+for I in 0 until 1
+  A = array shape 2 pad 0
+  A 0 = 7
+end
+A`);
+        expect(formatValue(result!)).toBe('7 0');
+        expect(loops).toBe(0);
+    } finally { runtime.dispose(); }
 });

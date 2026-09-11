@@ -575,7 +575,7 @@ so negative and out-of-bounds indices retain their diagnostics and source locati
 
 Entry guards accept only already materialized integer atoms and the exact number
 of indices for the receiver rank. They do not force lazy readers. Partial addresses,
-noninteger arrays and rebinding the receiver retain ordinary execution. Full-address writes and integer compound assignments are supported as described
+unsupported cell types and unsupported receiver rebindings retain ordinary execution. Full-address writes and integer compound assignments are supported as described
 below. `arrayLoopCompilation: false` disables these
 reads while leaving the preceding integer compiler enabled.
 
@@ -588,8 +588,8 @@ must track mutation correctly before this scan can be safely cached or hoisted.
 
 `A I = Value` and integer compound assignments can join a region, including full matrix
 addresses. The receiver is guarded as a stored integer array with matching rank;
-rebinding, lazy destinations and partial or collection selectors retain ordinary
-execution. The existing indexed-container path remains available through the same
+unsupported rebindings, lazy destinations and partial or collection selectors retain
+ordinary execution. The existing indexed-container path remains available through the same
 statement syntax, selected by receiver kind.
 
 The compiler evaluates coordinates and validates the array selection before the
@@ -609,8 +609,8 @@ iteration, including checking the ordinal's type for an empty vector.
 A native for-of loop advances independently of assignments to the visible binder.
 It reads the live items, so writes to later cells through aliases remain visible.
 Array and numeric-range loops can nest in the same region. Matrix-row iteration,
-heterogeneous or unevaluated lazy inputs, and receiver rebinding retain reference
-execution. `arrayIterationCompilation: false` disables this lowering while keeping
+heterogeneous or unevaluated lazy inputs, and unsupported receiver rebindings retain
+reference execution. `arrayIterationCompilation: false` disables this lowering while keeping
 preceding numeric-range and array read/write optimizations enabled.
 
 
@@ -699,3 +699,25 @@ guards. Vector-loop binding remains integer-only; boolean vector iteration and
 unknown input-alias inference need further compiler work. Plain scalar index writes
 can also carry boolean results; compound index updates still retain the reference
 path. `booleanArrayCompilation: false` disables boolean-cell lowering only.
+
+
+## Array allocation and rebinding in numeric regions
+
+`array shape ... pad ...` with integer dimensions and integer/boolean fill can be
+created inside a compiled region. Each execution allocates a fresh array. Dimensions
+are evaluated and checked in order using the same helper as ordinary execution;
+then the fill is evaluated, storage allocated and the assignment committed.
+Known array aliases and rebinding to these arrays preserve reference identity.
+
+The compiler keeps rank and cell type consistent for each array binding; dimensions
+may vary. Definite assignment distinguishes local arrays from guarded inputs, so a
+conditionally created array cannot be read without the ordinary checks. Full-cell
+writes must still match the known rank. Partial selections and rank/type changes
+retain reference execution.
+
+Write requirements propagate backward through alias edges to input guards. Thus a
+cached lazy source cannot become writable by assigning it to another name. Array
+assignments use checked first writes, and temporary bound stores do not retain old
+invocation frames. General array expressions, unknown aliases and unsupported
+allocation forms still fall back. `arrayLocalCompilation: false` disables these
+array definitions and aliases while retaining earlier compiler stages.
