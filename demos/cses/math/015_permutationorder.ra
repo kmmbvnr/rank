@@ -1,0 +1,80 @@
+rem CSES 3397: Permutation Order
+rem https://cses.fi/problemset/task/3397
+
+use algo
+use io
+use ranges
+use sequences
+
+Tests = stdin .integer
+
+for Test in 1 to Tests
+  Type = stdin .integer
+  N = stdin .integer
+
+  if Type equal 1
+    K = stdin .integer
+    N K kth_permutation print
+  else
+    P = stdin .integer N array
+    P permutation_order print
+  end
+end
+
+
+rem Restore a one-based permutation.
+fun kth_permutation N K
+  Available = (1 to N) multiset
+  Block = (N - 1) factorial
+  K -= 1
+
+  for Remaining in N to 1 by -1
+    Index = K // Block
+    Value = Available Index
+    queue push Value
+    Available remove Value
+
+    if Remaining greater 1
+      K %= Block
+      Block //= Remaining - 1
+    end
+  end
+
+  return queue
+end
+
+
+rem Rank using counts of unused values.
+fun permutation_order P
+  N = P len
+  Available = N fenwick
+  for I in 0 until N
+    Available I = 1
+  end
+
+  Block = (N - 1) factorial
+  Order = 1
+
+  for Value I in P
+    Smaller = Available sum (Value - 2)
+    Order += Smaller * Block
+    Available (Value - 1) = 0
+
+    Remaining = N - I - 1
+    if Remaining greater 0
+      Block //= Remaining
+    end
+  end
+
+  return Order
+end
+
+
+rem Return N factorial.
+fun factorial N
+  Result = 1
+  for Value in 2 to N
+    Result *= Value
+  end
+  return Result
+end

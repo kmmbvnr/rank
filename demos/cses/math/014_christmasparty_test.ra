@@ -1,0 +1,22 @@
+use testing
+
+test "official example"
+  use "014_christmasparty"
+  4 derangements equal 9
+end
+
+test "one child has no valid gift"
+  use "014_christmasparty"
+  1 derangements equal 0
+end
+
+test "small recurrence values"
+  use "014_christmasparty"
+  2 derangements equal 1
+  6 derangements equal 265
+end
+
+test "upper limit stays modular"
+  use "014_christmasparty"
+  1000000 derangements equal 102701088
+end

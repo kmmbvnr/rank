@@ -1,0 +1,26 @@
+rem CSES 1717: Christmas Party
+rem https://cses.fi/problemset/task/1717
+
+use io
+use ranges
+
+N = stdin .integer
+N derangements print
+
+
+rem Count fixed-point-free permutations.
+fun derangements N
+  Mod = 1000000007
+  Previous = 1
+  Current = 0
+
+  for Size in 2 to N
+    Total = Previous + Current
+    Next = (Size - 1) * Total
+    Next %= Mod
+    Previous = Current
+    Current = Next
+  end
+
+  return Current
+end
