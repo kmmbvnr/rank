@@ -797,3 +797,33 @@ digests match the preceding array-write baseline. One pair takes 27.942 s off an
 27.991 s on; no whole-suite speedup is established.
 
 [Suite verification](../../benchmarks/baselines/2026-09-12-array-iteration-suite.json).
+
+## Compound integer-array updates
+
+The integer compiler now lowers full-cell `+=`, `-=`, `*=`, `//=` and `%=`.
+Coordinates are checked before evaluating the right operand; the previous element
+is read afterward, and the update is committed immediately. The statement result
+remains the right operand. Floor division and modulo preserve signed semantics and
+zero-divisor diagnostics. Compound index updates still fall back before execution.
+
+Ten new differential cases cover every operator with all operand-sign combinations,
+aliased matrix updates in nested vector loops, partial writes before zero division,
+address-versus-RHS error order and index fallback. Verification passes 44 language
+and 762 interpreter tests.
+
+Five alternating samples use the unchanged CSES Coin Combinations I function,
+Target=100000 and coins 1 through 6. The independent six-predecessor full-table
+oracle supplies the expected count. Median task times are 398.564 ms off and
+100.360 ms on, about 3.97x. Only compound-array lowering is disabled in the reference
+mode; all preceding compiler stages remain enabled. A separate instrumented run
+confirms zero versus one compiled region. Timing includes input construction,
+parse/load and validation, with counters disabled.
+
+[Timings](../../benchmarks/baselines/2026-09-12-compound-array-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-compound-array-coverage.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes; all digests
+match the preceding vector-iteration baseline. One pair takes 27.820 s off and
+28.033 s on, so no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-compound-array-suite.json).

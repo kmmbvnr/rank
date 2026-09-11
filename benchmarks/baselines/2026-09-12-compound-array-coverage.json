@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "compoundarray",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 411.77425000000005,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 411.49199999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 106.36679199999992,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 106.287959,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    }
+  ]
+}

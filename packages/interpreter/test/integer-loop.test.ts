@@ -946,3 +946,62 @@ Total`);
         expect(result.loops).toBe(0);
     });
 });
+
+describe('compiled compound array assignments', () => {
+    it.each(['+=', '-=', '*=', '//=', '%='])('preserves signed operands and RHS result for %s', operator => {
+        const result = compare(`use ranges
+A = array -7 7 -7 7
+B = array -3 -3 3 3
+for I in 0 until 4
+  A I ${operator} B I
+end`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it('composes nested vector iteration with aliased matrix writes', () => {
+        const result = compare(`use ranges
+A = array shape 2 2 pad 1
+B = A
+Factors = array 2 3
+for I in 0 until 2
+  for Factor j in Factors
+    A I j *= Factor
+    B I j += A I j
+  end
+end
+A`);
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['//=', '%='])('keeps earlier mutations when %s divides by zero', operator => {
+        const result = compare(`use ranges
+A = array 7 7 7
+for I in 0 until 3
+  A I ${operator} (1 - I)
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('checks a bad address before the RHS error', () => {
+        const result = compare(`use ranges
+A = array 7
+for I in 0 until 1
+  A 1 += 1 // 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains reference behavior for compound index updates', () => {
+        const result = compare(`use algo
+use ranges
+A = index
+A 0 = 1
+for I in 0 until 2
+  A 0 += I
+end`);
+        expect(result.loops).toBe(0);
+    });
+});

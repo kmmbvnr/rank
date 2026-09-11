@@ -575,8 +575,8 @@ so negative and out-of-bounds indices retain their diagnostics and source locati
 
 Entry guards accept only already materialized integer atoms and the exact number
 of indices for the receiver rank. They do not force lazy readers. Partial addresses,
-noninteger arrays and rebinding the receiver retain ordinary execution. Plain full-address writes are supported as described below; compound assignments
-retain ordinary execution. `arrayLoopCompilation: false` disables these
+noninteger arrays and rebinding the receiver retain ordinary execution. Full-address writes and integer compound assignments are supported as described
+below. `arrayLoopCompilation: false` disables these
 reads while leaving the preceding integer compiler enabled.
 
 The current type guard scans the materialized atoms on each region entry. This
@@ -586,7 +586,7 @@ must track mutation correctly before this scan can be safely cached or hoisted.
 
 ## Array writes inside compiled numeric loops
 
-Plain `A I = Value` assignments can join an integer region, including full matrix
+`A I = Value` and integer compound assignments can join a region, including full matrix
 addresses. The receiver is guarded as a stored integer array with matching rank;
 rebinding, lazy destinations and partial or collection selectors retain ordinary
 execution. The existing indexed-container path remains available through the same
@@ -612,3 +612,17 @@ Array and numeric-range loops can nest in the same region. Matrix-row iteration,
 heterogeneous or unevaluated lazy inputs, and receiver rebinding retain reference
 execution. `arrayIterationCompilation: false` disables this lowering while keeping
 preceding numeric-range and array read/write optimizations enabled.
+
+
+## Compiled compound array writes
+
+Stored integer arrays support `+=`, `-=`, `*=`, `//=` and `%=` in compiled regions.
+The compiler validates coordinates first, evaluates the right operand once, reads
+the current element and then writes the result. The statement result remains the
+right operand, as in ordinary Rank execution. Signed floor division and modulo
+preserve their existing rules; division by zero keeps all prior writes and reports
+the original statement. Aliased reads observe mutations immediately.
+
+Compound index updates, partial selectors and other element types retain ordinary
+execution. `compoundArrayCompilation: false` disables only compound array writes;
+plain writes, array iteration and reads remain available.

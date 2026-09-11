@@ -21,6 +21,7 @@ interface Host {
     readonly arrayIteration: boolean;
     iterationValues(binding: IterationBinding, source: RankArray): Iterable<RankValue>;
     readonly arrayWrites: boolean;
+    readonly compoundWrites: boolean;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     iteration(condition: Expression | undefined): IterationBinding | undefined;
@@ -52,7 +53,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     const builtins = new Map<string, string>();
     const arrays = new Map<string, { slot: number; rank: number }>();
     const iterators: ((source: RankArray) => Iterable<RankValue>)[] = [];
-    const destinations = new Map<string, { slot: number; rank: number }>();
+    const destinations = new Map<string, { slot: number; rank: number; compound: boolean }>();
     let needsAlgo = false, needsRanges = false, hasControl = false;
     let serial = 0;
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
@@ -253,11 +254,13 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 continue;
             }
             if (isArrayAssignmentStatement(assignment)) {
-                if (assignment.operator !== '=') return undefined;
+                const compound = assignment.operator !== '=';
+                if (compound && (!host.compoundWrites || !['+=', '-=', '*=', '//=', '%='].includes(assignment.operator))) return undefined;
                 if (assignment.name.includes('.')) return undefined;
                 const previous = destinations.get(assignment.name);
                 if (previous && previous.rank !== assignment.indices.length) return undefined;
-                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length };
+                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound };
+                target.compound ||= compound;
                 destinations.set(assignment.name, target);
                 const receiver = `r${target.slot}`;
                 const lines: string[] = [], keys: string[] = [];
@@ -272,9 +275,26 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                     ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
                 const value = emit(assignment.value, lines);
                 if (value?.type !== 'integer') return undefined;
-                body.push(`location = ${location};`, ...lines, `if (${receiver}.kind === 'array') {
-                    ${receiver}.items[${name}] = ${value.code}; iterationResult = ${value.code};
-                } else { ${receiver}.entries.set(${name}, ${value.code}); iterationResult = undefined; }`);
+                let result = value.code;
+                if (compound) {
+                    const rhs = `operand${serial++}`, old = `old${serial++}`, out = `updated${serial++}`;
+                    lines.push(`const ${rhs} = ${value.code}, ${old} = ${receiver}.items[${name}];`);
+                    const op = assignment.operator.slice(0, -1);
+                    if (['+', '-', '*'].includes(op)) lines.push(`const ${out} = ${old} ${op} ${rhs};`);
+                    else {
+                        const remainder = `remainder${serial++}`;
+                        lines.push(`if (${rhs} === 0n) throw zero(); const ${remainder} = ${old} % ${rhs};`);
+                        const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== (${rhs} < 0n))`;
+                        lines.push(`const ${out} = ${op === '%' ? `${remainder} + (${adjust} ? ${rhs} : 0n)` : `${old} / ${rhs} - (${adjust} ? 1n : 0n)`};`);
+                    }
+                    result = out;
+                    body.push(`location = ${location};`, ...lines,
+                        `${receiver}.items[${name}] = ${result}; iterationResult = ${rhs};`);
+                } else {
+                    body.push(`location = ${location};`, ...lines, `if (${receiver}.kind === 'array') {
+                        ${receiver}.items[${name}] = ${result}; iterationResult = ${value.code};
+                    } else { ${receiver}.entries.set(${name}, ${value.code}); iterationResult = undefined; }`);
+                }
                 continue;
             }
             if (isIfStatement(assignment)) {
@@ -390,6 +410,7 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
         for (const [name, info] of destinations) {
             const value = host.read(name);
             if (!value) return undefined;
+            if (isRankIndex(value) && info.compound) return undefined;
             if (!isRankIndex(value)) {
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
                     || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
