@@ -93,6 +93,17 @@ export const numbersModule: RuntimeModule = {
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
     )),
+    binomial: () => native('binomial', 2, arguments_ => mapBinaryValue(
+        arguments_[0],
+        arguments_[1],
+        'binomial',
+        (left, right) => exactBinomial(expectInteger(left), expectInteger(right)),
+    ), 'all', [0, 0]),
+    binomialmod: () => native('binomialmod', 3, arguments_ => modularBinomial(
+        expectInteger(arguments_[0]),
+        expectInteger(arguments_[1]),
+        expectInteger(arguments_[2]),
+    )),
     lcm: () => native('lcm', [1, 2], arguments_ => {
         if (arguments_.length === 2) {
             return leastCommonMultiple(
@@ -357,6 +368,100 @@ function modularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
         power /= 2n;
     }
     return result;
+}
+
+function exactBinomial(n: bigint, k: bigint): bigint {
+    validateBinomial(n, k, 'binomial');
+    const count = k < n - k ? k : n - k;
+    let result = 1n;
+    for (let index = 1n; index <= count; index += 1n) {
+        result = result * (n - count + index) / index;
+    }
+    return result;
+}
+
+interface BinomialCache {
+    readonly factorial: bigint[];
+    readonly inverse: bigint[];
+    readonly inverseFactorial: bigint[];
+}
+
+const binomialCaches = new Map<bigint, BinomialCache>();
+
+function modularBinomial(n: bigint, k: bigint, modulus: bigint): bigint {
+    validateBinomial(n, k, 'binomialmod');
+    if (modulus > 18446744073709551615n) {
+        throw new RankError('binomialmod modulus exceeds the 64-bit limit', 'DomainError');
+    }
+    if (modulus < 2n || !probablePrime(modulus)) {
+        throw new RankError('binomialmod modulus must be prime', 'DomainError');
+    }
+    if (n >= modulus) {
+        throw new RankError('binomialmod requires N less than its modulus', 'DomainError');
+    }
+    const limit = Number(n);
+    if (!Number.isSafeInteger(limit)) {
+        throw new RankError('binomialmod N is too large to cache', 'DomainError');
+    }
+    const cache = binomialCaches.get(modulus) ?? createBinomialCache(modulus);
+    binomialCaches.set(modulus, cache);
+    extendBinomialCache(cache, limit, modulus);
+    const chosen = Number(k);
+    return cache.factorial[limit]
+        * cache.inverseFactorial[chosen] % modulus
+        * cache.inverseFactorial[limit - chosen] % modulus;
+}
+
+function validateBinomial(n: bigint, k: bigint, name: string): void {
+    if (n < 0n || k < 0n || k > n) {
+        throw new RankError(`${name} requires 0 at most K at most N`, 'DomainError');
+    }
+}
+
+function createBinomialCache(modulus: bigint): BinomialCache {
+    return { factorial: [1n], inverse: [0n, 1n], inverseFactorial: [1n] };
+}
+
+function extendBinomialCache(cache: BinomialCache, limit: number, modulus: bigint): void {
+    for (let index = cache.factorial.length; index <= limit; index += 1) {
+        const value = BigInt(index);
+        cache.factorial.push(cache.factorial[index - 1] * value % modulus);
+        const inverse = index === 1
+            ? 1n
+            : modulus - modulus / value * cache.inverse[Number(modulus % value)] % modulus;
+        cache.inverse[index] = inverse;
+        cache.inverseFactorial[index] = cache.inverseFactorial[index - 1] * inverse % modulus;
+    }
+}
+
+function probablePrime(value: bigint): boolean {
+    if (value < 2n) return false;
+    for (const prime of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+        if (value === prime) return true;
+        if (value % prime === 0n) return false;
+    }
+    let odd = value - 1n;
+    let shifts = 0;
+    while (odd % 2n === 0n) {
+        odd /= 2n;
+        shifts += 1;
+    }
+    for (const witness of [2n, 325n, 9375n, 28178n, 450775n, 9780504n, 1795265022n]) {
+        const base = witness % value;
+        if (base === 0n) continue;
+        let power = modularPower(base, odd, value);
+        if (power === 1n || power === value - 1n) continue;
+        let composite = true;
+        for (let step = 1; step < shifts; step += 1) {
+            power = power * power % value;
+            if (power === value - 1n) {
+                composite = false;
+                break;
+            }
+        }
+        if (composite) return false;
+    }
+    return true;
 }
 
 function absolute(value: bigint): bigint {

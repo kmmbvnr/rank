@@ -1,0 +1,18 @@
+rem CSES 1716: Distributing Apples
+rem https://cses.fi/problemset/task/1716
+
+use io
+use numbers
+
+Children = stdin .integer
+Apples = stdin .integer
+
+Children Apples distributions print
+
+
+rem Place separators among apples.
+fun distributions Children Apples
+  Mod = 1000000007
+  Slots = Children + Apples - 1
+  return Slots Apples Mod binomialmod
+end

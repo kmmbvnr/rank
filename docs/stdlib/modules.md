@@ -59,6 +59,8 @@ atanh
 gcd
 lcm
 powmod
+binomial
+binomialmod
 factors
 divisors
 multiple by
@@ -226,6 +228,27 @@ Value = Base Exponent Modulus powmod
 The result is normalized from zero through `Modulus - 1`. The implementation
 uses repeated squaring, so it does not construct the potentially huge value
 `Base ** Exponent` first.
+
+`binomial` returns the exact binomial coefficient for nonnegative integers
+with `0 at most K at most N`:
+
+```rank
+Exact = N K binomial
+```
+
+It has intrinsic ranks `0 0`, so it broadcasts over numeric arrays.
+`binomialmod` has a separate fixed arity and calculates directly modulo a
+prime:
+
+```rank
+Value = N K Modulus binomialmod
+```
+
+The current modular implementation requires `N` to be smaller than the prime
+modulus, a safely indexable `N`, and a modulus within 64 bits. It caches and
+incrementally extends factorial and inverse-factorial tables for each modulus,
+so repeated calls cost `O(MaximumN)` preparation and `O(1)` each afterward.
+Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
 Postfix `min` and `max` reduce one collection. Their direct binary forms are
 infix and return the smaller or larger numeric operand:

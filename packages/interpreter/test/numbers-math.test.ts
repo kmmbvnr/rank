@@ -3,6 +3,25 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank mathematical functions', () => {
+    it('calculates exact and modular binomials', () => {
+        expect(run('use numbers\n5 2 binomial')).toBe('10');
+        expect(run('use numbers\n100 50 binomial')).toBe(
+            '100891344545564193334812497256',
+        );
+        expect(run('use numbers\n5 2 7 binomialmod')).toBe('3');
+        expect(run('use numbers\n(array 5 6) 2 binomial')).toBe('10 15');
+        expect(run('use numbers\n1000000 500000 1000000007 binomialmod'))
+            .toBe('996692777');
+        expect(() => run('use numbers\n4 5 binomial'))
+            .toThrowError('0 at most K at most N');
+        expect(() => run('use numbers\n5 2 8 binomialmod'))
+            .toThrowError('modulus must be prime');
+        expect(() => run('use numbers\n7 2 7 binomialmod'))
+            .toThrowError('requires N less than its modulus');
+        expect(() => run('use numbers\n5 2 18446744073709551629 binomialmod'))
+            .toThrowError('64-bit limit');
+    });
+
     it('enumerates and counts positive divisors', () => {
         expect(run('use numbers\n1 divisors')).toBe('1');
         expect(run('use numbers\n12 divisors')).toBe('1 2 3 4 6 12');
