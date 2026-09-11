@@ -101,5 +101,11 @@ silently reassociate floating-point reductions.
 
 Test empty/mixed inputs, aliases, mutations, effects and Rank positions. Run all
 JS and demo tests plus relevant benchmarks. Report regressions alongside gains.
+For syntax changes, compare equivalent spellings and the affected demos against
+the previous runtime using identical sources and inputs. Add a deterministic
+execution-path test when a synchronous form must avoid generator tasks. Use
+`benchmarks/extrema.mjs --baseline=/path/to/built/checkout` as the first such
+comparison; extend the workloads when introducing other forms. A passing
+judge-scale timeout alone is not evidence of unchanged performance.
 If a targeted unchanged demo shows no repeatable benefit, revise or defer the
 optimization.
