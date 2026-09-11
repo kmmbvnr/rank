@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "008_primemultiples"
+  Primes = array 2 5
+  20 Primes divisible_count equal 12
+end
+
+test "one prime"
+  use "008_primemultiples"
+  Primes = array 3
+  10 Primes divisible_count equal 3
+end
+
+test "overlaps use inclusion exclusion"
+  use "008_primemultiples"
+  Primes = array 2 3 5
+  100 Primes divisible_count equal 74
+end
+
+test "products beyond limit are skipped"
+  use "008_primemultiples"
+  Primes = array 7 11
+  50 Primes divisible_count equal 11
+end

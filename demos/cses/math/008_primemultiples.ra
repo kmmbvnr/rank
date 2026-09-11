@@ -1,0 +1,48 @@
+rem CSES 2185: Prime Multiples
+rem https://cses.fi/problemset/task/2185
+
+use bits
+use io
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+K = stdin .integer
+Primes = stdin .integer K array
+
+N Primes divisible_count print
+
+
+rem Apply inclusion-exclusion to primes.
+fun divisible_count N Primes
+  K = Primes len
+  Subsets = 1 K shl
+  Answer = 0
+
+  for Mask in 1 until Subsets
+    Product = 1
+
+    for I in 0 until K
+      if Mask I bit
+        Prime = Primes I
+        if Product greater N // Prime
+          Product = N + 1
+          break
+        end
+        Product *= Prime
+      end
+    end
+
+    if Product at most N
+      Part = N // Product
+      if Mask popcount odd
+        Answer += Part
+      else
+        Answer -= Part
+      end
+    end
+  end
+
+  return Answer
+end

@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "009_coprimepairs"
+  Values = array 5 4 20 1 16 17 5 15
+  Values coprime_pairs equal 19
+end
+
+test "ones pair with everything"
+  use "009_coprimepairs"
+  Values = array 1 1 1 1
+  Values coprime_pairs equal 6
+end
+
+test "one value forms no pair"
+  use "009_coprimepairs"
+  Values = array 999983
+  Values coprime_pairs equal 0
+end
+
+test "excludes each shared prime"
+  use "009_coprimepairs"
+  Values = array 2 3 4 9 5
+  Values coprime_pairs equal 8
+end
