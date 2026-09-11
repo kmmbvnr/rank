@@ -25,8 +25,9 @@ Pending push 1
 Bag add 1
 ```
 
-The five constructors are `new index`, `new queue`, `new set`, `new counter`
-and `new multiset`. They do not replace the implicit local instance.
+Constructors include `new index`, `new queue`, `new set`, `new counter`,
+`new multiset`, `new orderedset`, `new stack`, `new deque` and `new heap`.
+They do not replace the implicit local instance.
 
 Assignment and argument passing preserve the structure's reference.
 `Alias = Seen` shares `Seen`; `Seen = set` shares the current implicit set.
@@ -115,7 +116,61 @@ implicit indices. Compound writes such as `Cache K += 1` require an existing
 entry. Keys may be integers, booleans, text or labels. A named index can also
 be captured by a local function.
 
-### Queue
+### Queue, stack, deque and heap
+
+All operations below require `use algo`. Use `use sequences` for `len`.
+
+```rank
+Pending = new queue
+Pending push 7
+First = Pending peek
+Removed = Pending pop
+
+Path = new stack
+Path push 3
+Path push 8
+Last = Path pop                 rem 8
+
+Ends = new deque
+Ends 2 pushback
+Ends 1 pushfront
+Left = Ends peekfront
+Right = Ends popback
+
+Work = new heap
+Work 10 "vertex A" enqueue      rem receiver, priority, payload
+Work 3 "vertex B" enqueue
+Next = Work pop                 rem vertex B
+```
+
+`push` appends to a queue or stack. `pop` removes and returns the oldest queue
+entry or the newest stack entry; `peek` returns that entry without removing it.
+A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
+`peekback`. Its plain `push` appends at the back, and `pop`/`peek` use the front.
+Binary functions use postfix syntax, such as `Ends Value pushfront`.
+
+A heap is a stable min-priority queue. `Heap push Value` uses the value itself
+as its priority. `Heap Priority Value enqueue` accepts a separate payload of
+any type. Priorities must be comparable scalars of one ordering family;
+integer and real priorities can mix. NaN priorities are rejected. Equal
+priorities preserve insertion order. For a numeric max-heap, negate priorities
+when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
+
+Empty `pop` and `peek` operations raise a missing-value error, so
+`Pending pop pad -1` supplies a fallback. `len` counts remaining entries.
+Queue, stack and deque indices start at zero at the current front/bottom.
+They retain queue-style array operations. Heap iteration visits payloads in
+internal heap order, not sorted order; repeatedly call `pop` to get priority order.
+Queue iteration can observe entries appended during the loop. Do not remove
+entries while iterating a container; use a conditional `for` with `pop` instead.
+
+End operations use constant expected time with numeric-keyed storage; heap
+insertion and extraction use O(log n) comparisons and `peek` takes O(1).
+Materializing a queue-family container as an array takes O(n). Named containers
+are shared references when assigned, captured or passed to functions. Their
+runtime types are `.queue`, `.stack`, `.deque` and `.heap`.
+
+### Implicit queue
 
 ```rank
 queue push X
@@ -175,6 +230,16 @@ set add array X Y
 ```
 
 ### Ordered multiset
+
+`new orderedset` creates the unique-value variant of a multiset: repeated
+`add` calls for an existing value have no effect. It shares multiset operations
+and the `.multiset` runtime type.
+
+`Bag lowerbound X` (also `Bag X lowerbound`) returns the smallest value >= X;
+it is an alias for `ceiling`. `Bag upperbound X` returns the smallest value > X.
+These return values, not iterator positions. If no value qualifies, they raise
+a missing-value error that can be handled with `pad`. Both use the multiset's
+expected O(log n) tree lookup and preserve exact integer comparisons.
 
 An ordered multiset keeps duplicate comparable scalar values in sorted order.
 It is always named because algorithms often need more than one instance:

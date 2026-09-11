@@ -1102,6 +1102,27 @@ end
 a loop. Rank does not currently have labels or a multi-level form of `break`;
 an outer loop must be ended by its own `break`, condition or `return`.
 
+`continue` skips the rest of the current iteration of the nearest enclosing
+`for`. An iterable loop advances to the next item; a conditional loop checks
+its condition again; a bare `for` starts its next iteration.
+
+```rank
+use ranges
+Sum = 0
+for I in 1 to 5
+  if I % 2 equal 0
+    continue
+  end
+  Sum += I
+end
+rem Sum is 9
+```
+
+Like `break`, `continue` is an error outside a loop and cannot target a caller's
+loop from inside a function. Pending `finally` blocks run before the next
+iteration. A direct `continue` inside `finally` is an error, matching the rules
+for `break` and `return`. `continue` does not close an iterable loop's iterator.
+
 The unparenthesized form `for X in A` is always iteration. Parentheses make a
 membership expression a loop condition when that distinction is needed:
 
@@ -1232,17 +1253,17 @@ program run.
 
 `finally` runs exactly once after the `try` body and any selected `catch`,
 before control leaves the whole construct. It runs after normal completion and
-also before a pending error, `return` or `break` continues outward. A
+also before a pending error, `return`, `break` or `continue` continues outward. A
 `try / finally / end` block without `catch` is valid and performs cleanup while
 allowing the original error to propagate.
 
-Direct `return` and `break` statements inside `finally` are errors because they
+Direct `return`, `break` and `continue` statements inside `finally` are errors because they
 would hide pending control flow. If cleanup raises an error while another Rank
 error is pending, the cleanup error propagates and its `.Cause` contains the
 original error. An error raised from `finally` cannot be handled by a `catch`
 belonging to the same construct; an enclosing `try` may handle it.
 
-`return` and `break` are control flow rather than errors and are never caught.
+`return`, `break` and `continue` are control flow rather than errors and are never caught.
 Source syntax errors happen before execution begins and therefore cannot be
 caught by a `try` inside that source.
 
@@ -2174,8 +2195,9 @@ Pending push 1
 Bag add 1
 ```
 
-The five constructors are `new index`, `new queue`, `new set`, `new counter`
-and `new multiset`. They do not replace the implicit local instance.
+Constructors include `new index`, `new queue`, `new set`, `new counter`,
+`new multiset`, `new orderedset`, `new stack`, `new deque` and `new heap`.
+They do not replace the implicit local instance.
 
 Assignment and argument passing preserve the structure's reference.
 `Alias = Seen` shares `Seen`; `Seen = set` shares the current implicit set.
@@ -2264,7 +2286,61 @@ implicit indices. Compound writes such as `Cache K += 1` require an existing
 entry. Keys may be integers, booleans, text or labels. A named index can also
 be captured by a local function.
 
-### Queue
+### Queue, stack, deque and heap
+
+All operations below require `use algo`. Use `use sequences` for `len`.
+
+```rank
+Pending = new queue
+Pending push 7
+First = Pending peek
+Removed = Pending pop
+
+Path = new stack
+Path push 3
+Path push 8
+Last = Path pop                 rem 8
+
+Ends = new deque
+Ends 2 pushback
+Ends 1 pushfront
+Left = Ends peekfront
+Right = Ends popback
+
+Work = new heap
+Work 10 "vertex A" enqueue      rem receiver, priority, payload
+Work 3 "vertex B" enqueue
+Next = Work pop                 rem vertex B
+```
+
+`push` appends to a queue or stack. `pop` removes and returns the oldest queue
+entry or the newest stack entry; `peek` returns that entry without removing it.
+A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
+`peekback`. Its plain `push` appends at the back, and `pop`/`peek` use the front.
+Binary functions use postfix syntax, such as `Ends Value pushfront`.
+
+A heap is a stable min-priority queue. `Heap push Value` uses the value itself
+as its priority. `Heap Priority Value enqueue` accepts a separate payload of
+any type. Priorities must be comparable scalars of one ordering family;
+integer and real priorities can mix. NaN priorities are rejected. Equal
+priorities preserve insertion order. For a numeric max-heap, negate priorities
+when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
+
+Empty `pop` and `peek` operations raise a missing-value error, so
+`Pending pop pad -1` supplies a fallback. `len` counts remaining entries.
+Queue, stack and deque indices start at zero at the current front/bottom.
+They retain queue-style array operations. Heap iteration visits payloads in
+internal heap order, not sorted order; repeatedly call `pop` to get priority order.
+Queue iteration can observe entries appended during the loop. Do not remove
+entries while iterating a container; use a conditional `for` with `pop` instead.
+
+End operations use constant expected time with numeric-keyed storage; heap
+insertion and extraction use O(log n) comparisons and `peek` takes O(1).
+Materializing a queue-family container as an array takes O(n). Named containers
+are shared references when assigned, captured or passed to functions. Their
+runtime types are `.queue`, `.stack`, `.deque` and `.heap`.
+
+### Implicit queue
 
 ```rank
 queue push X
@@ -2324,6 +2400,16 @@ set add array X Y
 ```
 
 ### Ordered multiset
+
+`new orderedset` creates the unique-value variant of a multiset: repeated
+`add` calls for an existing value have no effect. It shares multiset operations
+and the `.multiset` runtime type.
+
+`Bag lowerbound X` (also `Bag X lowerbound`) returns the smallest value >= X;
+it is an alias for `ceiling`. `Bag upperbound X` returns the smallest value > X.
+These return values, not iterator positions. If no value qualifies, they raise
+a missing-value error that can be handled with `pad`. Both use the multiset's
+expected O(log n) tree lookup and preserve exact integer comparisons.
 
 An ordered multiset keeps duplicate comparable scalar values in sorted order.
 It is always named because algorithms often need more than one instance:
@@ -3908,6 +3994,15 @@ Upper = Bag ceiling Limit
 Routes = Cities permutations
 Pairs = Values 2 combinations
 ```
+
+`new stack`, `new deque` and `new heap` create empty named containers.
+`pop` and `peek` work on queues, stacks, deques and heaps. Deques also provide
+`pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and `peekback`.
+`Heap Priority Value enqueue` inserts a payload with a separate priority into
+a stable min-heap. `Heap push Value` uses the value as its priority.
+`new orderedset` creates a duplicate-free multiset. `lowerbound` returns the
+smallest value >= the query; `upperbound` returns the smallest value > it.
+See [collections](../language/collections.md) for examples and empty-container rules.
 
 `Values multiset` constructs a populated ordered multiset; `new multiset`
 creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted

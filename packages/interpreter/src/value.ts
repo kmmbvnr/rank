@@ -1,5 +1,6 @@
 import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
+import type { RankHeap } from './containers.js';
 
 interface RankArrayValue {
     readonly items: RankValue[];
@@ -138,7 +139,7 @@ export interface RankSequenceMask extends RankSequence {
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
-    RankMultiset | RankFenwick | RankObject | RankRecord | NativeFunction |
+    RankMultiset | RankFenwick | RankHeap | RankObject | RankRecord | NativeFunction |
     RankSequence | RankSequenceMask;
 
 export function isRankArray(value: RankValue): value is RankArray {
@@ -247,8 +248,8 @@ export function formatValue(value: RankValue): string {
     if (value.kind === 'counter') {
         return '<counter>';
     }
-    if (value.kind === 'multiset') {
-        return '<multiset>';
+    if (value.kind === 'multiset' || value.kind === 'heap') {
+        return `<${value.kind}>`;
     }
     if (value.kind === 'fenwick') {
         return '<fenwick>';

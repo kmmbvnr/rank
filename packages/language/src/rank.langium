@@ -20,6 +20,7 @@ Statement:
     YieldStatement |
     ReturnStatement |
     BreakStatement |
+    ContinueStatement |
     TryStatement |
     IfStatement |
     ForStatement |
@@ -69,6 +70,9 @@ YieldStatement:
 
 BreakStatement:
     {infer BreakStatement} 'break';
+
+ContinueStatement:
+    {infer ContinueStatement} 'continue';
 
 TryStatement:
     'try' NL+

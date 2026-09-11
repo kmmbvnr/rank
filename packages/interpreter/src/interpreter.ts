@@ -4,6 +4,7 @@ import {
 } from './execution.js';
 import { LocalFrame } from './frame.js';
 import { addToCollection, expectAddCollection, newStructure } from './collections.js';
+import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import {
     isAddStatement,
@@ -17,6 +18,7 @@ import {
     isBinaryExpression,
     isBooleanLiteral,
     isBreakStatement,
+    isContinueStatement,
     isExpressionStatement,
     isFlagStatement,
     isForStatement,
@@ -184,6 +186,7 @@ class ReturnSignal {
 }
 
 class BreakSignal {}
+class ContinueSignal {}
 
 const raiseFunction: NativeFunction = {
     kind: 'function',
@@ -597,16 +600,17 @@ export class Interpreter {
                 return mapResult(result, value => { throw new ReturnSignal(value); });
             } };
         }
-        if (isBreakStatement(statement)) {
+        if (isBreakStatement(statement) || isContinueStatement(statement)) {
+            const operation = isBreakStatement(statement) ? 'break' : 'continue';
             return { stream: function* (context): Execution<RankValue | undefined> {
                 const { insideLoop, insideFinally } = context;
                 if (insideFinally) {
-                    throw new RankError('break is not valid inside finally');
+                    throw new RankError(`${operation} is not valid inside finally`);
                 }
                 if (!insideLoop) {
-                    throw new RankError('break is only valid inside a for loop');
+                    throw new RankError(`${operation} is only valid inside a for loop`);
                 }
-                throw new BreakSignal();
+                throw operation === 'break' ? new BreakSignal() : new ContinueSignal();
             } };
         }
         if (isTryStatement(statement)) {
@@ -742,6 +746,7 @@ export class Interpreter {
                             ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
+                            if (error instanceof ContinueSignal) continue;
                             throw error;
                         }
                     }
@@ -760,6 +765,7 @@ export class Interpreter {
                             ));
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
+                            if (error instanceof ContinueSignal) continue;
                             throw error;
                         }
                     }
@@ -770,8 +776,8 @@ export class Interpreter {
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
                 const receiver = (yield* resume(interpreter.evaluateTask(statement.receiver)));
-                if (!isRankQueue(receiver)) throw new RankError('push expects a queue receiver');
-                receiver.items.push((yield* resume(interpreter.evaluateTask(statement.value))));
+                interpreter.requireModule('algo', 'push');
+                pushCollection(receiver, (yield* resume(interpreter.evaluateTask(statement.value))));
                 return undefined;
             } };
         }
@@ -1436,6 +1442,7 @@ export class Interpreter {
                         : yield* resume(interpreter.apply(argumentParts));
                     const receiver = expectMultiset(receiverValue);
                     if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
+                    if (multisetMethod.operation === 'upperbound') return receiver.upperBound(argumentValue);
                     return receiver.ceiling(argumentValue);
                 };
             }
@@ -1762,7 +1769,7 @@ export class Interpreter {
             if (!isRankQueue(existing)) throw new RankError('queue name is already in use');
             return existing;
         }
-        const queue: RankQueue = { kind: 'queue', items: [] };
+        const queue: RankQueue = new RankDeque();
         scope.set('queue', queue);
         return queue;
     }
@@ -3025,6 +3032,7 @@ function mapTextAtoms(
 }
 
 function iterationValues(value: RankValue): Iterable<RankValue> {
+    if (value instanceof RankDeque || value instanceof RankHeap) return value.values();
     if (isRankSequence(value)) return sequenceValues(value, 'for');
     if (isRankArray(value)) return value.items;
     if (isRankQueue(value)) return value.items;
@@ -3120,6 +3128,11 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
         const position = values[1];
         if (position < 0n) throw new RankError('queue index must be nonnegative');
+        if (values[0] instanceof RankDeque) {
+            const item = values[0].at(Number(position));
+            if (item === undefined) throw new MissingValueError(`queue index out of bounds: ${position}`);
+            return item;
+        }
         if (position >= BigInt(values[0].items.length)) {
             throw new MissingValueError(`queue index out of bounds: ${position}`);
         }
@@ -3907,7 +3920,7 @@ interface AxisWindowApplication {
 
 interface MultisetMethodApplication {
     readonly receiver: Expression[];
-    readonly operation: 'floor' | 'ceiling';
+    readonly operation: 'floor' | 'ceiling' | 'lowerbound' | 'upperbound';
     readonly argument: Expression[];
 }
 
@@ -3952,7 +3965,7 @@ function explicitCollectionMutation(
 }
 
 function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication | undefined {
-    const operations = ['floor', 'ceiling'] as const;
+    const operations = ['floor', 'ceiling', 'lowerbound', 'upperbound'] as const;
     const position = parts.findIndex((part, index) =>
         index > 0 && index < parts.length - 1
         && operations.some(operation => isNamed(part, operation)));
@@ -4059,6 +4072,7 @@ function equalValues(left: RankValue, right: RankValue): boolean {
 }
 
 function typeName(value: RankValue): string {
+    if (value instanceof RankDeque) return value.mode;
     if (typeof value === 'number') return 'real';
     if (typeof value === 'bigint') return 'integer';
     if (typeof value === 'string') return 'text';
@@ -4080,10 +4094,13 @@ const RUNTIME_TYPE_NAMES = new Set([
     'error',
     'index',
     'queue',
+    'deque',
+    'stack',
     'set',
     'counter',
     'multiset',
     'fenwick',
+    'heap',
     'function',
     'sequence',
 ]);
@@ -4116,6 +4133,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             files.add(item);
         } else if (isRankArray(item) && item.containsFiles === false) {
             continue;
+        } else if (item instanceof RankDeque || item instanceof RankHeap) {
+            pending.push(item.values());
         } else if (isRankArray(item) || isRankQueue(item)) {
             pending.push(item.items.values());
         } else if (isRankIndex(item) || isRankSet(item)

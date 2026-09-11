@@ -808,6 +808,15 @@ Routes = Cities permutations
 Pairs = Values 2 combinations
 ```
 
+`new stack`, `new deque` and `new heap` create empty named containers.
+`pop` and `peek` work on queues, stacks, deques and heaps. Deques also provide
+`pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and `peekback`.
+`Heap Priority Value enqueue` inserts a payload with a separate priority into
+a stable min-heap. `Heap push Value` uses the value as its priority.
+`new orderedset` creates a duplicate-free multiset. `lowerbound` returns the
+smallest value >= the query; `upperbound` returns the smallest value > it.
+See [collections](../language/collections.md) for examples and empty-container rules.
+
 `Values multiset` constructs a populated ordered multiset; `new multiset`
 creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
 occurrence by zero-based index. Its lookup and mutation operations take expected
