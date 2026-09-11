@@ -5,3 +5,5 @@ out/
 **/src/generated/
 **/*.tsbuildinfo
 packages/language/syntaxes/
+.claude/
+.bench/
