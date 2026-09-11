@@ -1,0 +1,88 @@
+rem CSES 3154: Linear Equations
+rem https://cses.fi/problemset/task/3154
+
+use algo
+use io
+use numbers
+use ranges
+use sequences
+
+Rows = stdin .integer
+Variables = stdin .integer
+Size = Rows * (Variables + 1)
+Raw = stdin .integer Size array
+Shape = array Rows (Variables + 1)
+Matrix = Raw Shape reshape
+Rows Variables Matrix solve_mod print
+
+
+rem Reduce a modular system to RREF.
+fun solve_mod Rows Variables Matrix
+  Mod = 1000000007
+  A = Matrix copy
+  Pivots = queue
+  Row = 0
+
+  for Column in 0 until Variables
+    Pivot = -1
+    for Candidate in Row until Rows
+      if A Candidate Column not equal 0
+        Pivot = Candidate
+        break
+      end
+    end
+    if Pivot equal -1
+      continue
+    end
+
+    if Pivot not equal Row
+      Saved = A Row copy
+      A Row = A Pivot
+      A Pivot = Saved
+    end
+
+    Value = A Row Column
+    Inverse = Value (Mod - 2) Mod powmod
+    Normalized = A Row * Inverse % Mod
+    A Row = Normalized
+
+    for Other in 0 until Rows
+      if Other equal Row
+        continue
+      end
+      Factor = A Other Column
+      if Factor equal 0
+        continue
+      end
+      Reduced = A Other - A Row * Factor
+      Reduced %= Mod
+      Reduced += Mod
+      Reduced %= Mod
+      A Other = Reduced
+    end
+
+    Pivots push Column
+    Row += 1
+    if Row equal Rows
+      break
+    end
+  end
+
+  for R in 0 until Rows
+    Equation = A R
+    Indices = 0 until Variables
+    Coefficients = Equation Indices
+    Nonzero = Coefficients not equal 0
+    HasValue = Nonzero any
+    Rhs = A R Variables
+    if not HasValue and Rhs not equal 0
+      return array -1
+    end
+  end
+
+  Answer = array shape Variables pad 0
+  for Column I in Pivots
+    Answer Column = A I Variables
+  end
+  return Answer
+end

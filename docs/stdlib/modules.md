@@ -10,7 +10,6 @@ use random
 use linalg
 use bits
 use ranges
-use collections
 use graph
 use tables
 use stats
