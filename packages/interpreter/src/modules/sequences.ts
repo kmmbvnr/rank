@@ -12,6 +12,7 @@ import {
     isRankObject,
     isRankQueue,
     isRankSequence,
+    isRankSegment,
     isRankSet,
     type RankArray,
     type RankValue,
@@ -270,6 +271,7 @@ export function lengthOfAxis(value: RankValue, axis: number): bigint {
     }
     if (axis !== 0) throw new RankError(`value has no axis ${axis}`);
     if (typeof value === 'string' || isRankQueue(value) || isRankGraph(value) || isRankDsu(value)
+        || isRankSegment(value)
         || isRankMultiset(value) || isRankSequence(value)) {
         return lengthOf(value);
     }
@@ -280,7 +282,7 @@ function shapeOf(value: RankValue): RankValue {
     const dimensions = isRankArray(value)
         ? value.shape.map(dimension => BigInt(dimension))
         : typeof value === 'string' || isRankQueue(value)
-            || isRankMultiset(value) || isRankSequence(value)
+            || isRankMultiset(value) || isRankSegment(value) || isRankSequence(value)
             ? [lengthOf(value)]
             : undefined;
     if (!dimensions) {
@@ -435,6 +437,7 @@ function lengthOf(value: RankValue): bigint {
     if (isRankObject(value)) return BigInt(value.entries.size);
     if (isRankGraph(value)) return BigInt(value.size);
     if (isRankDsu(value)) return BigInt(value.size);
+    if (isRankSegment(value)) return BigInt(value.size);
     if (!isRankSequence(value)) throw new RankError('len expects text or a collection');
     if (value.plan.size.kind === 'infinite') {
         throw new RankError('len requires a finite sequence');

@@ -2,6 +2,7 @@ import { RankError } from '../errors.js';
 import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
 import { addToCollection, removeFromCollection } from '../collections.js';
 import { RankFenwick } from '../fenwick.js';
+import { expectSegment } from '../segment.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -19,6 +20,13 @@ import type { RuntimeModule } from './types.js';
 export const algoModule: RuntimeModule = {
     fenwick: () => native('fenwick', 1, arguments_ =>
         new RankFenwick(expectInteger(arguments_[0]))),
+    segment: () => native('segment', 2, () => {
+        throw new RankError('segment must follow a binary operation');
+    }),
+    query: () => native('query', 3, arguments_ => expectSegment(arguments_[0]).query(
+        expectInteger(arguments_[1]),
+        expectInteger(arguments_[2]),
+    )),
     push: () => native('push', 2, a => pushCollection(a[0], a[1])),
     pop: () => native('pop', 1, a => peekCollection(a[0], true)),
     peek: () => native('peek', 1, a => peekCollection(a[0], false)),

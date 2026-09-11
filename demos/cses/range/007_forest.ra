@@ -1,0 +1,38 @@
+rem CSES 1652: Forest Queries
+rem https://cses.fi/problemset/task/1652
+
+use io
+use ranges
+use sequences
+use text
+
+N = stdin .integer
+Q = stdin .integer
+Grid = stdin .word N array
+Raw = stdin .integer (Q * 4) array
+Queries = Raw (array Q 4) reshape
+
+Grid Queries forest_queries print
+
+
+rem Build a two-dimensional prefix sum and answer inclusive rectangles.
+fun forest_queries Grid Queries
+  Size = Grid len
+  Prefix = array shape (Size + 1) (Size + 1) pad 0
+
+  for Row Y in Grid
+    Trees = (46 - Row codepoint rank 0) // 4
+    Running = Trees + scan
+    Prefix (Y + 1) (1 to Size) = Prefix Y (1 to Size) + Running
+  end
+
+  Answers = array shape (Queries len) pad 0
+  for Query I in Queries
+    unpack Top Left Bottom Right = Query
+    Answers I = Prefix Bottom Right
+    Answers I -= Prefix (Top - 1) Right
+    Answers I -= Prefix Bottom (Left - 1)
+    Answers I += Prefix (Top - 1) (Left - 1)
+  end
+  return Answers
+end

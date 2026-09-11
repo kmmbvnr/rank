@@ -58,6 +58,7 @@ import {
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
+import { RankSegment } from './segment.js';
 import { graphConstructor } from './graph.js';
 import { dsuFrom } from './dsu.js';
 import { indexKey } from './index-key.js';
@@ -115,6 +116,7 @@ import {
     isRankSet,
     isRankSequence,
     isRankSequenceMask,
+    isRankSegment,
     type IntrinsicRank,
     type RankArray,
     type RankCounter,
@@ -861,6 +863,17 @@ export class Interpreter {
                     target.set(selectors[0], result);
                     return result;
                 }
+                if (isRankSegment(target)) {
+                    if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
+                        throw new RankError('segment assignment expects one integer index');
+                    }
+                    const value = yield* resume(interpreter.evaluateTask(statement.value));
+                    const result = statement.operator === '=' ? value : interpreter.evaluateBinary(
+                        assignmentOperator(statement.operator), target.at(selectors[0]), value,
+                    );
+                    target.set(selectors[0], result);
+                    return result;
+                }
                 const field = selectors.at(-1);
                 if (field !== undefined && isRankLabel(field) && field.name !== '#') {
                     let receiver: RankValue = target;
@@ -1056,6 +1069,7 @@ export class Interpreter {
             && expression.operator !== '**'
             && !isNamed(expression.right, 'reduce')
             && !isNamed(expression.right, 'scan')
+            && !isNamed(expression.right, 'segment')
             && !isNamed(expression.right, 'outer')) {
             const left = this.compileDirectExpression(expression.left);
             const right = this.compileDirectExpression(expression.right);
@@ -1249,6 +1263,24 @@ export class Interpreter {
                         outer.operator,
                         (yield* resume(interpreter.evaluateTask(outer.left))),
                         (yield* resume(interpreter.evaluateTask(outer.right))),
+                    );
+                };
+            }
+            const symbolicSegment = explicitSymbolicSegmentApplication(expression);
+            if (symbolicSegment) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('algo', 'segment');
+                    if (!SEGMENT_OPERATORS.has(symbolicSegment.operator)) {
+                        throw new RankError('segment requires an associative operation');
+                    }
+                    const source = yield* resume(interpreter.evaluateTask(symbolicSegment.source));
+                    const values = segmentItems(source);
+                    return new RankSegment(
+                        values,
+                        (left, right) => interpreter.evaluateBinary(
+                            symbolicSegment.operator, left, right,
+                        ),
+                        symbolicSegment.operator,
                     );
                 };
             }
@@ -1513,6 +1545,24 @@ export class Interpreter {
                     return transposeValue(
                         (yield* resume(interpreter.evaluateTask(axisTranspose.source))),
                         axisTranspose.axes,
+                    );
+                };
+            }
+            const namedSegment = explicitNamedSegmentApplication(parts);
+            if (namedSegment) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('algo', 'segment');
+                    const source = yield* resume(interpreter.evaluateTask(namedSegment.source));
+                    const operation = yield* resume(interpreter.evaluateTask(namedSegment.operation));
+                    if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
+                        throw new RankError('segment requires a binary operation');
+                    }
+                    const values = segmentItems(source);
+                    return new RankSegment(
+                        values,
+                        (left, right) => operation.call([left, right]),
+                        operation.name,
+                        operation,
                     );
                 };
             }
@@ -3470,6 +3520,10 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         && typeof values[1] === 'bigint') {
         return values[0].at(values[1]);
     }
+    if (isRankSegment(values[0]) && values.length === 2
+        && typeof values[1] === 'bigint') {
+        return values[0].at(values[1]);
+    }
     if (isRankMultiset(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') {
         return values[0].at(values[1]);
@@ -3607,6 +3661,8 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (isRankIndex(values[0]) && values.length > 1) return true;
     if (isRankCounter(values[0]) && values.length === 2) return true;
     if (isRankFenwick(values[0]) && values.length === 2
+        && typeof values[1] === 'bigint') return true;
+    if (isRankSegment(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') return true;
     if (isRankMultiset(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') return true;
@@ -3896,6 +3952,25 @@ function* reductionValues(value: RankValue, operation: string): IterableIterator
         return;
     }
     yield value;
+}
+
+function segmentItems(value: RankValue): RankValue[] {
+    if (isRankArray(value)) {
+        if (value.shape.length !== 1) throw new RankError('segment expects a rank-1 value');
+        return Array.from(
+            { length: value.shape[0] },
+            (_, index) => value.itemAt?.(index) ?? value.items[index],
+        );
+    }
+    if (isRankQueue(value)) return [...value.items];
+    if (typeof value === 'string') return [...value];
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError('segment requires a bounded sequence');
+        }
+        return [...value.plan.iterate()];
+    }
+    throw new RankError('segment expects a rank-1 value');
 }
 
 function reductionIdentity(operator: string): RankValue {
@@ -4192,8 +4267,9 @@ function modifierPipeline(expression: Expression): Expression | undefined {
         const parts = flattenApplication(expression.right);
         const scan = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'scan');
         const reduce = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'reduce');
+        const segment = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'segment');
         const outer = OUTER_OPERATORS.has(expression.operator) && isNamed(parts[0], 'outer');
-        if (!scan && !reduce && !outer) return undefined;
+        if (!scan && !reduce && !segment && !outer) return undefined;
         const end = reduce && parts[1] && isNamed(parts[1], 'rank') ? 3 : 1;
         if (parts.length <= end) return undefined;
         return continueModified(
@@ -4203,6 +4279,9 @@ function modifierPipeline(expression: Expression): Expression | undefined {
     }
     if (!isApplicationExpression(expression)) return undefined;
     const parts = flattenApplication(expression);
+    if (parts.length > 3 && isNamed(parts[2], 'segment')) {
+        return continueModified(applicationParts(parts.slice(0, 3)), parts.slice(3));
+    }
     const rank = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'rank'));
     if (rank >= 0 && parts.length > rank + 2) {
         return continueModified(applicationParts(parts.slice(0, rank + 2)), parts.slice(rank + 2));
@@ -4344,6 +4423,32 @@ interface ScanApplication {
     readonly source: Expression;
 }
 
+interface SymbolicSegmentApplication {
+    readonly operator: string;
+    readonly source: Expression;
+}
+
+function explicitSymbolicSegmentApplication(
+    expression: Expression,
+): SymbolicSegmentApplication | undefined {
+    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
+        return undefined;
+    }
+    const parts = flattenApplication(expression.right);
+    if (parts.length !== 1 || !isNamed(parts[0], 'segment')) return undefined;
+    return { operator: expression.operator, source: expression.left };
+}
+
+interface NamedSegmentApplication {
+    readonly source: Expression;
+    readonly operation: Expression;
+}
+
+function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {
+    if (parts.length !== 3 || !isNamed(parts[2], 'segment')) return undefined;
+    return { source: parts[0], operation: parts[1] };
+}
+
 function explicitScanApplication(expression: Expression): ScanApplication | undefined {
     if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
         return undefined;
@@ -4372,6 +4477,7 @@ function explicitReduceApplication(expression: Expression): ReduceApplication | 
 }
 
 const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
+const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
 
 interface AxisWindowApplication {
     readonly source: Expression;
@@ -4657,6 +4763,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'counter',
     'multiset',
     'fenwick',
+    'segment',
     'heap',
     'dsu',
     'functional',
@@ -4694,6 +4801,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         } else if (isRankArray(item) && item.containsFiles === false) {
             continue;
         } else if (item instanceof RankDeque || item instanceof RankHeap) {
+            pending.push(item.values());
+        } else if (isRankSegment(item)) {
             pending.push(item.values());
         } else if (isRankArray(item) || isRankQueue(item)) {
             pending.push(item.items.values());

@@ -1,0 +1,24 @@
+use testing
+
+test "official example"
+  use "005_staticxor"
+  Values = array 3 2 4 5 1 1 5 3
+  Queries = array shape 4 2
+    2 4
+    5 6
+    1 8
+    3 3
+  end
+  Values Queries range_xors equal array 3 0 6 4
+end
+
+test "equal values cancel"
+  use "005_staticxor"
+  Values = array 7 7 9
+  Queries = array shape 3 2
+    1 2
+    2 3
+    3 3
+  end
+  Values Queries range_xors equal array 0 14 9
+end

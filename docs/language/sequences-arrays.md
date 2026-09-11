@@ -439,6 +439,7 @@ An operation may be followed by a word that changes how it is applied:
 ```rank
 Total = A + reduce
 Prefix = A + scan
+Tree = A + segment
 Products = A B * outer
 Cells = A F rank 0
 ```
@@ -456,8 +457,9 @@ Total = M sum axis 0 sum
 
 `rank` consumes its integer argument; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
-For example, `A + scan sum` means `(A + scan) sum`. Operands are evaluated
-once. Parentheses remain available to make grouping explicit.
+For example, `A + scan sum` means `(A + scan) sum`. `segment` constructs the
+algorithmic collection described in [Collections](collections.md). Operands are
+evaluated once. Parentheses remain available to make grouping explicit.
 
 
 ## Each

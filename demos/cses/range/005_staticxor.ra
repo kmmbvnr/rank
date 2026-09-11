@@ -1,0 +1,30 @@
+rem CSES 1650: Range Xor Queries
+rem https://cses.fi/problemset/task/1650
+
+use io
+use algo
+use bits
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Values Queries range_xors print
+
+
+rem Answer inclusive one-based xor ranges.
+fun range_xors Values Queries
+  Tree = Values bxor segment
+  Answers = array shape (Queries len) pad 0
+
+  for Query i in Queries
+    unpack Left Right = Query
+    Answers i = Tree (Left - 1) (Right - 1) query
+  end
+
+  return Answers
+end

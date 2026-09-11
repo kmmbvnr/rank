@@ -28,6 +28,9 @@ const lines = values => values.join(' ');
 // Expected answers follow from the constructed inputs, not from Rank execution.
 const cases = [
   gridCase(Math.min(1000, size)),
+  { name: 'static-min', path: 'demos/cses/range/002_staticmin.ra',
+    input: `${size} ${size}\n${lines(Array.from({ length: size }, (_, i) => size - i))}\n${Array.from({ length: size }, () => `1 ${size}`).join('\n')}\n`,
+    expected: lines(Array(size).fill(1)) },
   { name: 'restaurant', path: 'demos/cses/sortnsrch/005_restaurant.ra',
     input: `${size}\n${Array.from({ length: size }, (_, i) => `${3 * i + 1} ${3 * i + 2}`).join('\n')}\n`, expected: '1' },
   { name: 'rooms', path: 'demos/cses/sortnsrch/022_rooms.ra',

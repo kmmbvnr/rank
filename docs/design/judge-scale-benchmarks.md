@@ -6,13 +6,15 @@ Run the size gate separately from unit tests:
 npm run bench:judge
 ```
 
-This builds the checkout and runs six cases at N = 200,000. Each case has its own
+This builds the checkout and runs eight cases at N = 200,000. Each case has its own
 Node CLI process and a 30-second wall-time limit. A timeout kills that child
 process. Wrong answers, runtime failures and timeouts make the command exit with
 status 1. Progress goes to stderr; stdout is a JSON report with metadata and times.
 
 | Case | Input pattern | Main cost exercised |
 | --- | --- | --- |
+| Grid Paths | Open square grid up to 1,000 by 1,000 | Dense dynamic-programming writes |
+| Static Range Minimum Queries | Descending values; every query spans the array | Segment construction, queries and full output |
 | Restaurant Customers | Disjoint intervals | Returning a growing queue of records; sorting events |
 | Room Allocation | All stays overlap | Growing priority queue of record payloads; full allocation output |
 | Playlist | Repeated half-length block | Index updates and lookups |

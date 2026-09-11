@@ -1,0 +1,29 @@
+rem CSES 1646: Static Range Sum Queries
+rem https://cses.fi/problemset/task/1646
+
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 2) array
+Queries = Raw (array Q 2) reshape
+
+Values Queries range_sums print
+
+
+rem Answer inclusive one-based ranges.
+fun range_sums Values Queries
+  Count = Values len
+  Prefix = array shape (Count + 1) pad 0
+  Prefix (1 to Count) = Values + scan
+
+  Answers = array shape (Queries len) pad 0
+  for Query i in Queries
+    unpack Left Right = Query
+    Answers i = Prefix Right - Prefix (Left - 1)
+  end
+  return Answers
+end

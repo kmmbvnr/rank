@@ -1,0 +1,36 @@
+rem CSES 1649: Dynamic Range Minimum Queries
+rem https://cses.fi/problemset/task/1649
+
+use io
+use algo
+use numbers
+use ranges
+use sequences
+
+N = stdin .integer
+Q = stdin .integer
+Values = stdin .integer N array
+Raw = stdin .integer (Q * 3) array
+Queries = Raw (array Q 3) reshape
+
+Values Queries dynamic_minimums print
+
+
+rem Apply point assignments and answer inclusive one-based ranges.
+fun dynamic_minimums Values Queries
+  Tree = Values min segment
+  Answers = array shape (Queries len) pad 0
+  Count = 0
+
+  for Query in Queries
+    unpack Type A B = Query
+    if Type equal 1
+      Tree (A - 1) = B
+    else
+      Answers Count = Tree (A - 1) (B - 1) query
+      Count += 1
+    end
+  end
+
+  return Answers (0 until Count)
+end

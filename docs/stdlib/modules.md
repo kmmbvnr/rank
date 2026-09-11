@@ -879,6 +879,7 @@ Seen = new set
 Counts = new counter
 Empty = new multiset
 F = Size fenwick
+Tree = Values min segment
 Seen add Value
 Counts add Value
 Bag = Values multiset
@@ -916,6 +917,11 @@ zero-based cell access and assignment plus inclusive prefix sums through
 `F sum I`, all as specified in [Collections](../language/collections.md).
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
+
+`Values Operation segment` builds a segment tree for an associative binary
+operation. `Tree Left Right query` reduces an inclusive range, and addressed
+assignment performs a point update. Construction, bounds and error behavior
+are specified in [Collections](../language/collections.md).
 
 ## Graph profile
 

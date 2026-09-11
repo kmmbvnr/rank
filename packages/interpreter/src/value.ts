@@ -1,5 +1,6 @@
 import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
+import type { RankSegment } from './segment.js';
 import type { RankHeap } from './containers.js';
 import type { GraphValue } from './graph.js';
 import type { RankDsu } from './dsu.js';
@@ -146,7 +147,7 @@ export interface RankSequenceMask extends RankSequence {
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
-    RankMultiset | RankFenwick | RankHeap | RankObject | RankRecord | NativeFunction |
+    RankMultiset | RankFenwick | RankSegment | RankHeap | RankObject | RankRecord | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph;
 
 export type RankGraph = GraphValue;
@@ -205,6 +206,10 @@ export function isRankMultiset(value: RankValue): value is RankMultiset {
 
 export function isRankFenwick(value: RankValue): value is RankFenwick {
     return typeof value === 'object' && value.kind === 'fenwick';
+}
+
+export function isRankSegment(value: RankValue): value is RankSegment {
+    return typeof value === 'object' && value.kind === 'segment';
 }
 
 export function isRankObject(value: RankValue): value is RankObject {
@@ -278,6 +283,9 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     }
     if (value.kind === 'fenwick') {
         return '<fenwick>';
+    }
+    if (value.kind === 'segment') {
+        return `<segment ${value.operation}>`;
     }
     if (value.kind === 'graph') {
         const direction = value.directed ? 'directed' : 'undirected';

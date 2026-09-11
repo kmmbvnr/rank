@@ -332,6 +332,49 @@ reduces `A` and then prints the result. Receiver dispatch happens at each applic
 `F sum I print` computes the prefix and then prints it, with or without
 `use numbers`. The receiver and index are evaluated once.
 
+### Segment tree
+
+A segment tree stores a finite rank-1 value under one associative binary
+operation:
+
+```rank
+Tree = Values min segment
+Sums = Values + segment
+Tree = Values Operation segment
+```
+
+`segment` is an operation modifier, like `scan` and `reduce`. The named form
+resolves `Operation` once when the tree is built. It therefore honors a
+user-defined `min` or any other binary function. Rank does not try to prove
+that the operation is associative.
+
+A point uses ordinary zero-based addressing. Assignment changes the point and
+updates its ancestors:
+
+```rank
+Value = Tree Position
+Tree Position = Value
+Tree Position += Delta
+```
+
+`query` reduces an inclusive range while preserving left-to-right operand
+order:
+
+```rank
+Answer = Tree Left Right query
+```
+
+Both bounds must be valid positions and `Left` must not exceed `Right`.
+Out-of-bounds positions raise `.Missing` and compose with `pad`. No identity
+value is required because an empty range is not a valid query. Empty trees may
+be constructed but cannot be queried or addressed.
+
+Construction takes `O(N)` time. Point access is constant time; point updates
+and range queries take `O(log N)` time, excluding the cost of the selected
+operation. With `use sequences`, `len` and `shape` report the fixed size.
+The runtime type is `.segment`.
+
+
 ### Permutations
 
 `permutations` has intrinsic rank 1. It accepts text or a finite rank-1 array,
@@ -393,13 +436,6 @@ explicit names.
 
 ## Design rule
 
-These are general data structures, not puzzle-specific shortcuts. Advanced
-structures may live in modules:
-
-- heaps;
-- disjoint-set union;
-- Fenwick tree;
-- segment tree;
-- bitset;
-- sparse table;
-- graph structures.
+These are general data structures, not puzzle-specific shortcuts. Candidate
+additions are tracked in the
+[competitive-programming library roadmap](../design/competitive-programming-library.md).

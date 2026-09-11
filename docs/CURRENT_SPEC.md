@@ -62,6 +62,7 @@ Adults = Data Mask
 - [TPC-H examples](examples/tpch.md)
 - [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
+- [Competitive-programming library roadmap](design/competitive-programming-library.md)
 
 ## Marketing
 
@@ -2037,6 +2038,7 @@ An operation may be followed by a word that changes how it is applied:
 ```rank
 Total = A + reduce
 Prefix = A + scan
+Tree = A + segment
 Products = A B * outer
 Cells = A F rank 0
 ```
@@ -2054,8 +2056,10 @@ Total = M sum axis 0 sum
 
 `rank` consumes its integer argument; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
-For example, `A + scan sum` means `(A + scan) sum`. Operands are evaluated
-once. Parentheses remain available to make grouping explicit.
+For example, `A + scan sum` means `(A + scan) sum`. `segment` constructs the
+algorithmic collection described in [Collections](language/collections.md).
+Operands are evaluated once. Parentheses remain available to make grouping
+explicit.
 
 
 ## Each
@@ -2601,6 +2605,49 @@ reduces `A` and then prints the result. Receiver dispatch happens at each applic
 `F sum I print` computes the prefix and then prints it, with or without
 `use numbers`. The receiver and index are evaluated once.
 
+### Segment tree
+
+A segment tree stores a finite rank-1 value under one associative binary
+operation:
+
+```rank
+Tree = Values min segment
+Sums = Values + segment
+Tree = Values Operation segment
+```
+
+`segment` is an operation modifier, like `scan` and `reduce`. The named form
+resolves `Operation` once when the tree is built. It therefore honors a
+user-defined `min` or any other binary function. Rank does not try to prove
+that the operation is associative.
+
+A point uses ordinary zero-based addressing. Assignment changes the point and
+updates its ancestors:
+
+```rank
+Value = Tree Position
+Tree Position = Value
+Tree Position += Delta
+```
+
+`query` reduces an inclusive range while preserving left-to-right operand
+order:
+
+```rank
+Answer = Tree Left Right query
+```
+
+Both bounds must be valid positions and `Left` must not exceed `Right`.
+Out-of-bounds positions raise `.Missing` and compose with `pad`. No identity
+value is required because an empty range is not a valid query. Empty trees may
+be constructed but cannot be queried or addressed.
+
+Construction takes `O(N)` time. Point access is constant time; point updates
+and range queries take `O(log N)` time, excluding the cost of the selected
+operation. With `use sequences`, `len` and `shape` report the fixed size.
+The runtime type is `.segment`.
+
+
 ### Permutations
 
 `permutations` has intrinsic rank 1. It accepts text or a finite rank-1 array,
@@ -2662,16 +2709,9 @@ explicit names.
 
 ## Design rule
 
-These are general data structures, not puzzle-specific shortcuts. Advanced
-structures may live in modules:
-
-- heaps;
-- disjoint-set union;
-- Fenwick tree;
-- segment tree;
-- bitset;
-- sparse table;
-- graph structures.
+These are general data structures, not puzzle-specific shortcuts. Candidate
+additions are tracked in the
+[competitive-programming library roadmap](design/competitive-programming-library.md).
 
 ---
 
@@ -4461,6 +4501,7 @@ Seen = new set
 Counts = new counter
 Empty = new multiset
 F = Size fenwick
+Tree = Values min segment
 Seen add Value
 Counts add Value
 Bag = Values multiset
@@ -4498,6 +4539,11 @@ zero-based cell access and assignment plus inclusive prefix sums through
 `F sum I`, all as specified in [Collections](../language/collections.md).
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
+
+`Values Operation segment` builds a segment tree for an associative binary
+operation. `Tree Left Right query` reduces an inclusive range, and addressed
+assignment performs a point update. Construction, bounds and error behavior
+are specified in [Collections](language/collections.md).
 
 ## Graph profile
 
