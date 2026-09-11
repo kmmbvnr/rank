@@ -199,8 +199,14 @@ class ReturnSignal {
     constructor(readonly value?: RankValue) {}
 }
 
+const NO_INDICES: readonly RankValue[] = [];
+
 class BreakSignal {}
 class ContinueSignal {}
+
+// The signals carry nothing, so one of each serves every loop.
+const BREAK_SIGNAL = new BreakSignal();
+const CONTINUE_SIGNAL = new ContinueSignal();
 
 const raiseFunction: NativeFunction = {
     kind: 'function',
@@ -616,15 +622,16 @@ export class Interpreter {
         }
         if (isBreakStatement(statement) || isContinueStatement(statement)) {
             const operation = isBreakStatement(statement) ? 'break' : 'continue';
-            return { stream: function* (context): Execution<RankValue | undefined> {
-                const { insideLoop, insideFinally } = context;
-                if (insideFinally) {
+            const signal = operation === 'break' ? BREAK_SIGNAL : CONTINUE_SIGNAL;
+            // Leaving an iteration never suspends, so it needs no task at all.
+            return { run: (context): RankValue | undefined => {
+                if (context.insideFinally) {
                     throw new RankError(`${operation} is not valid inside finally`);
                 }
-                if (!insideLoop) {
+                if (!context.insideLoop) {
                     throw new RankError(`${operation} is only valid inside a for loop`);
                 }
-                throw operation === 'break' ? new BreakSignal() : new ContinueSignal();
+                throw signal;
             } };
         }
         if (isTryStatement(statement)) {
@@ -2361,9 +2368,10 @@ export class Interpreter {
     }
 
     private resolve(name: string): RankValue {
-        const qualified = splitQualified(name);
-        if (qualified) {
-            const [alias, member] = qualified;
+        const dot = name.indexOf('.');
+        if (dot >= 0) {
+            const alias = name.slice(0, dot);
+            const member = name.slice(dot + 1);
             const child = this.aliases.get(alias);
             if (!child) throw new RankError(`unknown module alias: ${alias}`);
             if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
@@ -2408,12 +2416,13 @@ export class Interpreter {
     }
 
     private resolveVariable(name: string): RankValue {
-        const qualified = splitQualified(name);
-        if (qualified) {
-            const [alias, member] = qualified;
-            const child = this.aliases.get(alias);
-            if (!child) throw new RankError(`unknown module alias: ${alias}`);
-            return child.resolveVariable(member);
+        // Most names are plain, and scanning for the dot here keeps the common
+        // read from calling out and building a pair it throws away.
+        const dot = name.indexOf('.');
+        if (dot >= 0) {
+            const child = this.aliases.get(name.slice(0, dot));
+            if (!child) throw new RankError(`unknown module alias: ${name.slice(0, dot)}`);
+            return child.resolveVariable(name.slice(dot + 1));
         }
         const value = this.findVariable(name);
         if (value === undefined) {
@@ -2423,8 +2432,8 @@ export class Interpreter {
     }
 
     private assign(name: string, value: RankValue): void {
-        const qualified = splitQualified(name);
-        if (!qualified) {
+        const dot = name.indexOf('.');
+        if (dot < 0) {
             const frame = this.localFrame?.find(name) ?? this.localFrame;
             const scope = frame ?? this.variables;
             const typeScope = frame?.types ?? this.variableTypes;
@@ -2452,10 +2461,10 @@ export class Interpreter {
             typeScope.set(name, expected ?? new Set([received]));
             return;
         }
-        const [alias, member] = qualified;
+        const alias = name.slice(0, dot);
         const child = this.aliases.get(alias);
         if (!child) throw new RankError(`unknown module alias: ${alias}`);
-        child.assign(member, value);
+        child.assign(name.slice(dot + 1), value);
     }
 
     private assignRecordField(
@@ -3125,6 +3134,12 @@ export class Interpreter {
         } else if (typeof value === 'string') {
             this.declareLoopTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
         }
+        // A binding without an index name has nowhere to put one, so the walk
+        // neither counts nor carries it.
+        if (binding.names.length === 1) {
+            for (const item of iterationValues(value)) yield { value: item, indices: NO_INDICES };
+            return;
+        }
         let index = 0n;
         for (const item of iterationValues(value)) {
             yield { value: item, indices: [index] };
@@ -3249,11 +3264,6 @@ function validateInputValue(name: string, valueType: string, value: RankValue): 
 
 function kebabCase(name: string): string {
     return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-}
-
-function splitQualified(name: string): [string, string] | undefined {
-    const dot = name.indexOf('.');
-    return dot < 0 ? undefined : [name.slice(0, dot), name.slice(dot + 1)];
 }
 
 function forIteration(
