@@ -17,6 +17,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     bits: bitsModule,
     cli: {},
     crypto: cryptoModule,
+    graph: {},
     io: ioModule,
     json: jsonModule,
     linalg: linalgModule,

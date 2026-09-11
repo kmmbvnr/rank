@@ -6,6 +6,7 @@ import { setValueKey } from '../set.js';
 import {
     isRankArray,
     isRankCounter,
+    isRankGraph,
     isRankMultiset,
     isRankObject,
     isRankQueue,
@@ -254,7 +255,7 @@ export function lengthOfAxis(value: RankValue, axis: number): bigint {
         return BigInt(value.shape[axis]);
     }
     if (axis !== 0) throw new RankError(`value has no axis ${axis}`);
-    if (typeof value === 'string' || isRankQueue(value)
+    if (typeof value === 'string' || isRankQueue(value) || isRankGraph(value)
         || isRankMultiset(value) || isRankSequence(value)) {
         return lengthOf(value);
     }
@@ -418,6 +419,7 @@ function lengthOf(value: RankValue): bigint {
     if (isRankCounter(value)) return BigInt(value.entries.size);
     if (isRankMultiset(value)) return BigInt(value.size);
     if (isRankObject(value)) return BigInt(value.entries.size);
+    if (isRankGraph(value)) return BigInt(value.size);
     if (!isRankSequence(value)) throw new RankError('len expects text or a collection');
     if (value.plan.size.kind === 'infinite') {
         throw new RankError('len requires a finite sequence');

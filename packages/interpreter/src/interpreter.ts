@@ -58,6 +58,7 @@ import {
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
+import { graphConstructor } from './graph.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
@@ -100,6 +101,7 @@ import {
     isRankErrorValue,
     isRankFenwick,
     isRankFile,
+    isRankGraph,
     isRankIndex,
     isRankLabel,
     isRankMultiset,
@@ -933,8 +935,20 @@ export class Interpreter {
             const mutation = explicitCollectionMutation(statement.value);
             if (mutation) {
                 return { stream: function* (): Execution<RankValue | undefined> {
-                    interpreter.requireModule('algo', mutation.operation);
                     const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
+                    if (isRankGraph(target)) {
+                        interpreter.requireModule('graph', mutation.operation);
+                        if (mutation.operation !== 'add') {
+                            throw new RankError('graph does not support remove');
+                        }
+                        const values = yield* resume(mapExecution(
+                            mutation.arguments ?? [mutation.value],
+                            value => interpreter.evaluateTask(value),
+                        ));
+                        target.add(values);
+                        return undefined;
+                    }
+                    interpreter.requireModule('algo', mutation.operation);
                     const receiver = mutation.operation === 'add'
                         ? expectAddCollection(target) : target;
                     const value = yield* resume(interpreter.evaluateTask(mutation.value));
@@ -992,6 +1006,10 @@ export class Interpreter {
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
         if (isNewStructureExpression(expression)) return () => {
+            if (expression.structure === 'graph') {
+                this.requireModule('graph', 'new graph');
+                return graphConstructor();
+            }
             this.requireModule('algo', 'new');
             return newStructure(expression.structure);
         };
@@ -1318,6 +1336,21 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
+            if (isNewStructureExpression(parts[0])
+                && parts[0].structure === 'graph') {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('graph', 'new graph');
+                    const constructor = graphConstructor();
+                    if (!isNativeFunction(constructor)) {
+                        throw new RankError('invalid graph constructor');
+                    }
+                    const arguments_ = yield* resume(mapExecution(
+                        parts.slice(1),
+                        part => interpreter.evaluateTask(part),
+                    ));
+                    return constructor.call(arguments_);
+                };
+            }
             const namedOuter = explicitNamedOuterApplication(parts);
             if (namedOuter) {
                 return function* (): Execution<RankValue> {
@@ -3300,6 +3333,9 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         }
         return value;
     }
+    if (values.length === 2 && isRankGraph(values[0])) {
+        return values[0].neighbors(values[1]);
+    }
     if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
         const atoms = [...values[0]];
         const index = values[1];
@@ -3450,6 +3486,7 @@ function seedableRandom(source?: () => number): SeedableRandom {
 
 function canApplySelectors(values: RankValue[]): boolean {
     if (values.length < 2) return false;
+    if (values.length === 2 && isRankGraph(values[0])) return true;
     if (values.length === 2 && typeof values[0] === 'string'
         && typeof values[1] === 'bigint') return true;
     if (values.length === 2 && typeof values[0] === 'string'
@@ -4284,6 +4321,7 @@ interface CollectionMutationApplication {
     readonly receiver: Expression;
     readonly operation: 'add' | 'remove';
     readonly value: Expression;
+    readonly arguments?: readonly Expression[];
 }
 
 function explicitCollectionMutation(
@@ -4295,6 +4333,7 @@ function explicitCollectionMutation(
         return {
             ...mutation,
             value: { ...expression, left: mutation.value } as Expression,
+            arguments: undefined,
         };
     }
     if (!isApplicationExpression(expression)) return undefined;
@@ -4312,7 +4351,12 @@ function explicitCollectionMutation(
         head: values[0],
         arguments: values.slice(1),
     } as Expression;
-    return { receiver, operation: operation.name, value };
+    return {
+        receiver,
+        operation: operation.name,
+        value,
+        arguments: values,
+    };
 }
 
 function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication | undefined {
