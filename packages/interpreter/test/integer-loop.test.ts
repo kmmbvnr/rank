@@ -1723,3 +1723,97 @@ end`);
         expect(result.loops).toBe(0);
     });
 });
+
+
+describe('compiled text loops', () => {
+    it('iterates Unicode code points with their ordinal indices', () => {
+        const result = compare(`Text = "a😀é😀"
+Total = 0
+for C i in Text
+  if C equal "😀"
+    Total += i
+  end
+end
+Total`);
+        expect(result.value).toBe('5');
+        expect(result.loops).toBe(1);
+    });
+
+    it('compiles text equality in nested loops', () => {
+        const result = compare(`Left = "a😀"
+Right = "😀a😀"
+Total = 0
+for A i in Left
+  for B j in Right
+    if A equal B
+      Total += i + j + 1
+    end
+  end
+end
+Total`);
+        expect(result.value).toBe('8');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps the iterator source when the source variable is reassigned', () => {
+        const result = compare(`Text = "abc"
+Total = 0
+for C i in Text
+  Text = "x"
+  Total += i
+end
+Total`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(1);
+    });
+
+    it('checks the character type even when text is empty', () => {
+        const result = compare(`Text = ""
+C = 1
+Total = 0
+for C in Text
+  Total += 1
+end`);
+        expect(result).toHaveProperty('error');
+    });
+
+    it('checks the ordinal type before an empty text loop', () => {
+        const result = compare(`Text = ""
+Index = "held"
+Total = 0
+for C Index in Text
+  Total += 1
+end`);
+        expect(result).toHaveProperty('error');
+    });
+
+    it('returns text from a compiled loop', () => {
+        const result = compare(`fun choose Text
+  for C in Text
+    if C not equal "x"
+      return C
+    end
+  end
+  return ""
+end
+"xx😀" choose`);
+        expect(result.value).toBe('😀');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps separate guarded variants across calls with different input kinds', () => {
+        const result = compare(`fun count_values Values
+  Total = 0
+  for X i in Values
+    Total += i + 1
+  end
+  return Total
+end
+A = "😀x" count_values
+B = (array 10 20 30) count_values
+C = "q" count_values
+array A B C`);
+        expect(result.value).toBe('3 6 1');
+        expect(result.loops).toBe(3);
+    });
+});

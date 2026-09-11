@@ -1171,3 +1171,41 @@ the preceding proven-iteration-types baseline. One pair takes 27.552 s off and
 A remaining coverage gap is text iteration and text equality. For example,
 Edit Distance iterates over two strings and updates numeric rows; its numeric
 operations already fit the region model, but character values do not yet.
+
+## Text iteration and guarded type variants
+
+Text iteration can now join numeric array updates in one compiled region. The
+compiler adds text literals, scalar assignment, equality/inequality and return
+values. It reuses the reference Unicode code-point iterator and binding validation.
+After numeric guards decline, a bounded cache specializes on which named iterable
+inputs are text. Plans retain type signatures, not invocation values or frames;
+required types are checked again on entry. Unsupported operations retain fallback.
+
+Seven differential tests cover supplementary and combining code points, nested
+loops, source reassignment, empty character/ordinal type errors, text return, and
+reuse across text/array/text calls. All 44 language + 828 interpreter tests pass.
+
+Five alternating samples toggle only `textLoopCompilation`, with counters disabled.
+The unchanged Edit Distance demo receives 300 `a` characters and 300 `b` characters;
+its independent expected distance is 300. Input construction, parsing/loading,
+compilation, execution and result validation are included. Coverage changes from
+zero to one compiled region: both nested character loops and numeric row allocation,
+updates and replacement stay in that region.
+
+| Task | Prior median ms | Text stage median ms |
+| --- | ---: | ---: |
+| Edit Distance, 300 characters each | 66.355 | 10.553 |
+| Stick Lengths, 200000 values (control) | 25.434 | 25.633 |
+| Increasing Array, 200000 values (control) | 11.029 | 10.922 |
+
+Edit Distance improves about 6.29x. Numeric controls remain close in these samples;
+this is not evidence that every program benefits from type specialization.
+
+[Samples](../../benchmarks/baselines/2026-09-12-text-loops-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-text-loops-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests. All result digests agree
+with the preceding integer-absolute baseline. One pair takes 27.476 s off and
+27.692 s on (about 0.8% slower), so no whole-suite speedup is established.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-text-loops-suite.json).

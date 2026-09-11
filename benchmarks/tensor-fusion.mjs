@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -55,6 +55,7 @@ function descriptionAnswer(length, maximum) {
   return BigInt(row.reduce((sum, value) => (sum + value) % 1000000007, 0));
 }
 const tasks = [
+  { name: 'Edit Distance, 300 distinct characters each', path: 'demos/cses/dynamic/010_editdistance.ra', fn: 'edit_distance', expected: 300n, args: () => ['a'.repeat(300), 'b'.repeat(300)] },
   { name: 'Stick Lengths, 200000 alternating lengths', path: 'demos/cses/sortnsrch/009_sticks.ra', fn: 'stick_cost', expected: 100000000n, args: () => [array(Array.from({length:200000}, (_,i)=>i%2?1001n:1n))] },
   ...['first', 'last'].map(position => ({ name: `First match, 200000 atoms, ${position}`, path: 'benchmarks/programs/loop-return.ra', fn: 'first_match', expected: position === 'first' ? 0n : 199999n, args: () => [array(Array.from({length:200000}, (_,i)=>i === (position === 'first' ? 0 : 199999) ? 1n : 0n)), 1n] })),
   { name: 'Money Sums, 100 coins of value 1000', path: 'demos/cses/dynamic/014_moneysums.ra', fn: 'money_sums', args: () => [array(Array(100).fill(1000n))], verify: value => assert.deepEqual(value.items, Array.from({length:100}, (_,i)=>BigInt((i+1)*1000))) },
@@ -96,6 +97,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      textLoopCompilation: backend === 'textloops' ? enabled : undefined,
       absoluteLoopCompilation: backend === 'absolute' ? enabled : undefined,
       provenIterationTypes: backend === 'iterationtypes' ? enabled : undefined,
       loopReturnCompilation: backend === 'returns' ? enabled : undefined,
@@ -116,7 +118,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

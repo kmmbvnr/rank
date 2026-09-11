@@ -152,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly textLoopCompilation?: boolean;
     readonly absoluteLoopCompilation?: boolean;
     readonly provenIterationTypes?: boolean;
     readonly loopReturnCompilation?: boolean;
@@ -1025,6 +1026,7 @@ export class Interpreter {
                         direct = frame ? frame.bindStore(name) : next => { this.variables.set(name, next); };
                     };
                 } : undefined,
+                textLoops: this.options.textLoopCompilation !== false,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
                 returns: this.options.loopReturnCompilation !== false,
@@ -2494,6 +2496,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            textLoopCompilation: this.options.textLoopCompilation,
             absoluteLoopCompilation: this.options.absoluteLoopCompilation,
             provenIterationTypes: this.options.provenIterationTypes,
             loopReturnCompilation: this.options.loopReturnCompilation,
@@ -2595,6 +2598,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            textLoopCompilation: this.options.textLoopCompilation,
             absoluteLoopCompilation: this.options.absoluteLoopCompilation,
             provenIterationTypes: this.options.provenIterationTypes,
             loopReturnCompilation: this.options.loopReturnCompilation,
