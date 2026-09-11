@@ -1,0 +1,98 @@
+rem CSES 1193: Labyrinth
+rem https://cses.fi/problemset/task/1193
+
+use algo
+use io
+use ranges
+use sequences
+use text
+
+Rows = stdin .integer
+Columns = stdin .integer
+Grid = stdin .word Rows array
+Result = Grid labyrinth
+
+if Result .found
+  "YES" print
+  Result .path len print
+  Result .path print
+else
+  "NO" print
+end
+
+
+rem Find one shortest path and reconstruct it from recorded incoming moves.
+fun labyrinth Grid
+  Rows = Grid len
+  Columns = Grid 0 len
+  DYs = array -1 1 0 0
+  DXs = array 0 0 -1 1
+  Moves = array "U" "D" "L" "R"
+  Parent = array shape Rows Columns pad -1
+  Start = -1
+  Target = -1
+
+  for Line Y in Grid
+    for Cell X in Line
+      if Cell equal "A"
+        Start = Y * Columns + X
+      elif Cell equal "B"
+        Target = Y * Columns + X
+      end
+    end
+  end
+
+  StartY = Start // Columns
+  StartX = Start % Columns
+  Parent StartY StartX = -2
+  queue push Start
+  Head = 0
+
+  for Head less queue len
+    Position = queue Head
+    Row = Position // Columns
+    Column = Position % Columns
+
+    for DY Direction in DYs
+      NY = Row + DY
+      NX = Column + DXs Direction
+      Inside = NY at least 0 and NY less Rows
+      Inside and= NX at least 0 and NX less Columns
+
+      if Inside
+        Neighbor = Grid NY
+        Open = Neighbor NX not equal "#"
+        if Open and Parent NY NX equal -1
+          Parent NY NX = Direction
+          queue push NY * Columns + NX
+        end
+      end
+    end
+
+    Head += 1
+  end
+
+  TargetY = Target // Columns
+  TargetX = Target % Columns
+  Found = Parent TargetY TargetX not equal -1
+  Path = ""
+
+  if Found
+    Position = Target
+    for Position not equal Start
+      Row = Position // Columns
+      Column = Position % Columns
+      Direction = Parent Row Column
+      Path += Moves Direction
+      Row -= DYs Direction
+      Column -= DXs Direction
+      Position = Row * Columns + Column
+    end
+    Path = Path reverse
+  end
+
+  return record
+    .found = Found
+    .path = Path
+  end
+end
