@@ -475,3 +475,21 @@ earlier k-means slowdown remain open.
 
 After rollback, all 465 JS tests passed, including the four new cache tests.
 The 164-file demo run passed before rollback; it is not a post-rollback result.
+
+## 9. Scalar matrix multiplication profile
+
+After the cache rollback, a 12-sample DeepML 009 worker at 64 square took
+316.7–324.2 ms warm. The CPU profile attributed 16.5% of self samples to
+execution-stack advancement, 13.2% to the suspended `mapResult` continuation,
+12.1% to GC, 5.5% to selector dispatch and 2.8% to `atArray`.
+[Profile summary and reproduction command](../../benchmarks/baselines/2026-09-11-matmul-profile.json).
+Startup is included; these percentages do not predict an optimization's gain.
+
+This changes the next experiment: inspect shared expression-result composition
+before adding specialized multidimensional selectors. The arithmetic operands
+`A i k` and `B k j` already have synchronous application evaluators, but the
+enclosing arithmetic still uses the general task path. A common composition
+mechanism may avoid suspension for completed operands while retaining the
+existing execution stack for actual Rank calls. Test evaluation order, errors,
+deep recursion and cancellation before measuring it. Do not assume an indexing
+expression cannot contain a function merely because its names look like indices.

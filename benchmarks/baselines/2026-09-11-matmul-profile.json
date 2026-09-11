@@ -1,0 +1,588 @@
+{
+  "revision": "6582797",
+  "command": "node --cpu-prof benchmarks/numerical-demos.mjs --worker=matmul --scale=2 --samples=12",
+  "note": "Self samples include startup; percentages are not predicted speedups. Compiled JS line numbers.",
+  "totalMs": 4985.084,
+  "frames": [
+    {
+      "frame": "advance execution.js:50",
+      "percent": 16.468970231996092
+    },
+    {
+      "frame": "(anonymous) execution.js:13",
+      "percent": 13.220379034736427
+    },
+    {
+      "frame": "(garbage collector) :0",
+      "percent": 12.063527916480444
+    },
+    {
+      "frame": "stream interpreter.js:507",
+      "percent": 6.5270715598774265
+    },
+    {
+      "frame": "applySelectors interpreter.js:2813",
+      "percent": 5.528031222743689
+    },
+    {
+      "frame": "(anonymous) interpreter.js:1273",
+      "percent": 5.12117749670818
+    },
+    {
+      "frame": "continueStatementStream interpreter.js:289",
+      "percent": 3.474625502799953
+    },
+    {
+      "frame": "(anonymous) interpreter.js:1032",
+      "percent": 3.2914992004146773
+    },
+    {
+      "frame": "assign interpreter.js:1834",
+      "percent": 2.9271322208412136
+    },
+    {
+      "frame": "atArray interpreter.js:3105",
+      "percent": 2.819270447599278
+    },
+    {
+      "frame": "evaluateBinary interpreter.js:2205",
+      "percent": 2.436408293220335
+    },
+    {
+      "frame": "(program) :0",
+      "percent": 2.3653763908491814
+    },
+    {
+      "frame": "next execution.js:39",
+      "percent": 2.1948276097253325
+    },
+    {
+      "frame": "resume execution.js:17",
+      "percent": 1.8906802774035503
+    },
+    {
+      "frame": "forEntries interpreter.js:2374",
+      "percent": 1.8638201482663082
+    },
+    {
+      "frame": "executeStatementStream interpreter.js:253",
+      "percent": 1.755236220693573
+    },
+    {
+      "frame": "get frame.js:27",
+      "percent": 1.5814377450811261
+    },
+    {
+      "frame": "evaluateTask interpreter.js:729",
+      "percent": 1.3063972442590737
+    },
+    {
+      "frame": "splitQualified interpreter.js:2525",
+      "percent": 1.2763074804757553
+    },
+    {
+      "frame": "apply interpreter.js:1876",
+      "percent": 1.2168099875548737
+    },
+    {
+      "frame": "iterate interpreter.js:2771",
+      "percent": 1.046461804856247
+    },
+    {
+      "frame": "applySelectors interpreter.js:1918",
+      "percent": 0.932762617440348
+    },
+    {
+      "frame": "isNativeFunction value.js:10",
+      "percent": 0.9076677544450605
+    },
+    {
+      "frame": "stream interpreter.js:675",
+      "percent": 0.8316208914433538
+    },
+    {
+      "frame": "prepareExpression interpreter.js:732",
+      "percent": 0.7338893386751356
+    },
+    {
+      "frame": "resolve interpreter.js:1766",
+      "percent": 0.6745122048093873
+    },
+    {
+      "frame": "resolveVariable interpreter.js:1819",
+      "percent": 0.5265909260505941
+    },
+    {
+      "frame": "compileSourceTextModule utils:316",
+      "percent": 0.4045468441454547
+    },
+    {
+      "frame": "stream interpreter.js:596",
+      "percent": 0.3903244157972062
+    },
+    {
+      "frame": "sequenceValues sequence.js:79",
+      "percent": 0.3268149543718822
+    },
+    {
+      "frame": "set frame.js:33",
+      "percent": 0.2825027622403153
+    },
+    {
+      "frame": "mapExecution execution.js:25",
+      "percent": 0.25494053861479565
+    },
+    {
+      "frame": "offsetAt interpreter.js:3093",
+      "percent": 0.14796139844383766
+    },
+    {
+      "frame": "typeName interpreter.js:3837",
+      "percent": 0.12703898269317027
+    },
+    {
+      "frame": "(anonymous) interpreter.js:677",
+      "percent": 0.12286653544855011
+    },
+    {
+      "frame": "getConflictingAltSets all-star-lookahead.js:623",
+      "percent": 0.11365906773085468
+    },
+    {
+      "frame": "getAlternativesForProd interpreter.js:172",
+      "percent": 0.09947675906765062
+    },
+    {
+      "frame": "tensorSelection interpreter.js:3062",
+      "percent": 0.08023937008884906
+    },
+    {
+      "frame": "tensorIterationSpec interpreter.js:2541",
+      "percent": 0.07688937638763961
+    },
+    {
+      "frame": "getPackageScopeConfig :0",
+      "percent": 0.07522440945829599
+    },
+    {
+      "frame": "evaluateAddressItem interpreter.js:1325",
+      "percent": 0.07522440945829599
+    },
+    {
+      "frame": "preparedStatement interpreter.js:281",
+      "percent": 0.07522440945829599
+    },
+    {
+      "frame": "wrapSafe loader:1721",
+      "percent": 0.07438189607236308
+    },
+    {
+      "frame": "check numerical-demos.mjs:99",
+      "percent": 0.06519448819718986
+    },
+    {
+      "frame": "lookAheadSequenceFromAlternatives lookahead.js:368",
+      "percent": 0.06350946142532403
+    },
+    {
+      "frame": "possiblePathsFrom interpreter.js:162",
+      "percent": 0.06268700788191332
+    },
+    {
+      "frame": "(anonymous) interpreter.js:2665",
+      "percent": 0.050992119691463576
+    },
+    {
+      "frame": "add dfa.js:20",
+      "percent": 0.05097205984894136
+    },
+    {
+      "frame": "read :0",
+      "percent": 0.050149606305530656
+    },
+    {
+      "frame": "internalModuleStat :0",
+      "percent": 0.050149606305530656
+    },
+    {
+      "frame": "firstSet all-star-lookahead.js:243",
+      "percent": 0.050149606305530656
+    },
+    {
+      "frame": "isRankIndex value.js:19",
+      "percent": 0.050149606305530656
+    },
+    {
+      "frame": "isRankArray value.js:1",
+      "percent": 0.050149606305530656
+    },
+    {
+      "frame": "(anonymous) interpreter.js:3066",
+      "percent": 0.050149606305530656
+    },
+    {
+      "frame": "addDFAState all-star-lookahead.js:520",
+      "percent": 0.04930709291959774
+    },
+    {
+      "frame": "visitChildren base-regexp-visitor.js:2",
+      "percent": 0.043469678745633976
+    },
+    {
+      "frame": "(anonymous) interpreter.js:818",
+      "percent": 0.03343975748452784
+    },
+    {
+      "frame": "realpathSync node:fs:2700",
+      "percent": 0.03261730394111714
+    },
+    {
+      "frame": "isOptionalProd helpers.js:12",
+      "percent": 0.02675982992463116
+    },
+    {
+      "frame": "link module_job:248",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "lstat :0",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "getOrCreateModuleJob loader:592",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "readFileUtf8 :0",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "(anonymous) legacy.js:1",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "tokenize lexer_public.js:246",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "push cst-node-builder.js:192",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "(anonymous) interpreter.js:763",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "createWriteWrap stream_base_commons:108",
+      "percent": 0.025917316538698245
+    },
+    {
+      "frame": "defaultResolve resolve:943",
+      "percent": 0.025897256696176034
+    },
+    {
+      "frame": "(anonymous) apply_mixins.js:4",
+      "percent": 0.025897256696176034
+    },
+    {
+      "frame": "(anonymous) main.js:1",
+      "percent": 0.025897256696176034
+    },
+    {
+      "frame": "internalBinding realm:182",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "URL url:803",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "compileForInternalLoader realm:383",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "#instantiate module_job:297",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "resolve node:path:1245",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "open :0",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "extname get_format:117",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "#asyncInstantiate module_job:304",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) messages.js:1",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) jsdoc.js:1",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "wrapModuleLoad loader:238",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "getNearestParentPackageJSON :0",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "__exportStar api.js:17",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "DefaultLexer lexer.js:17",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "appendOptional regexp-utils.js:172",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) lexer_public.js:95",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "property ast-utils.js:111",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) stream.js:445",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "pickOnlyDefined model.js:223",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) gast_recorder.js:104",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "visitAlternation checks.js:205",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) lookahead.js:371",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) lookahead.js:415",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "remainingPathWith interpreter.js:168",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "tokenRef atn.js:343",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "getATNConfigKey dfa.js:43",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "get key dfa.js:35",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "buildCompositeNode cst-node-builder.js:21",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "isRankFenwick value.js:34",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) interpreter.js:737",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "(anonymous) interpreter.js:870",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "callFunction interpreter.js:1432",
+      "percent": 0.025074803152765328
+    },
+    {
+      "frame": "allocate node:buffer:479",
+      "percent": 0.024252349609354625
+    },
+    {
+      "frame": "getPathFromURLPosix url:1559",
+      "percent": 0.024252349609354625
+    },
+    {
+      "frame": "isFileType node:fs:203",
+      "percent": 0.024232289766832414
+    },
+    {
+      "frame": "parse :0",
+      "percent": 0.024232289766832414
+    },
+    {
+      "frame": "RankGrammar grammar.js:7",
+      "percent": 0.024232289766832414
+    },
+    {
+      "frame": "pathToHashKeys lookahead.js:331",
+      "percent": 0.024232289766832414
+    },
+    {
+      "frame": "mapResult execution.js:10",
+      "percent": 0.024232289766832414
+    },
+    {
+      "frame": "iterator stream.js:16",
+      "percent": 0.020902355908145178
+    },
+    {
+      "frame": "getEpsilonTarget all-star-lookahead.js:581",
+      "percent": 0.018394875592868645
+    },
+    {
+      "frame": "getOptions utils:317",
+      "percent": 0.016709848821002817
+    },
+    {
+      "frame": "closure all-star-lookahead.js:549",
+      "percent": 0.01506494173418141
+    },
+    {
+      "frame": "(anonymous) checks.js:152",
+      "percent": 0.015044881891659197
+    },
+    {
+      "frame": "first first.js:2",
+      "percent": 0.012537401576382664
+    },
+    {
+      "frame": "arrayMap _arrayMap.js:10",
+      "percent": 0.012537401576382664
+    },
+    {
+      "frame": "tokenStructuredMatcher tokens.js:1",
+      "percent": 0.012537401576382664
+    },
+    {
+      "frame": "isKnownFileFree resource-summary.js:5",
+      "percent": 0.012537401576382664
+    },
+    {
+      "frame": "(anonymous) stream.js:24",
+      "percent": 0.010852374804516835
+    },
+    {
+      "frame": "(anonymous) rest.js:7",
+      "percent": 0.010852374804516835
+    },
+    {
+      "frame": "computeReachSet all-star-lookahead.js:445",
+      "percent": 0.008364954331762514
+    },
+    {
+      "frame": "(anonymous) numerical-demos.mjs:1",
+      "percent": 0.008364954331762514
+    },
+    {
+      "frame": "(anonymous) dfa.js:44",
+      "percent": 0.006679927559896684
+    },
+    {
+      "frame": "walk rest.js:6",
+      "percent": 0.006679927559896684
+    },
+    {
+      "frame": "executeProgram interpreter.js:224",
+      "percent": 0.005857474016485981
+    },
+    {
+      "frame": "(anonymous) regexp-utils.js:138",
+      "percent": 0.005014960630553066
+    },
+    {
+      "frame": "getRegExpAst reg_exp_parser.js:4",
+      "percent": 0.005014960630553066
+    },
+    {
+      "frame": "map map.js:48",
+      "percent": 0.005014960630553066
+    },
+    {
+      "frame": "isInstance syntax-tree.js:60",
+      "percent": 0.005014960630553066
+    },
+    {
+      "frame": "checkIsTarget lookahead.js:293",
+      "percent": 0.0041925070871423635
+    },
+    {
+      "frame": "(anonymous) lexer.js:148",
+      "percent": 0.002507480315276533
+    },
+    {
+      "frame": "epsilon atn.js:383",
+      "percent": 0.002507480315276533
+    },
+    {
+      "frame": "walkOption rest.js:49",
+      "percent": 0.0008425133859329151
+    },
+    {
+      "frame": "coordinatesAt interpreter.js:2656",
+      "percent": 0.0008425133859329151
+    },
+    {
+      "frame": "visit visitor.js:3",
+      "percent": 0.0008224535434107028
+    },
+    {
+      "frame": "addTransition atn.js:393",
+      "percent": 0.0008224535434107028
+    },
+    {
+      "frame": "get current cst-node-builder.js:12",
+      "percent": 0.0008224535434107028
+    },
+    {
+      "frame": "assertEncoding utils:152",
+      "percent": 0
+    },
+    {
+      "frame": "isURL url:771",
+      "percent": 0
+    },
+    {
+      "frame": "getFirstNoneTerminal checks.js:160",
+      "percent": 0
+    },
+    {
+      "frame": "set astNode cst-node-builder.js:104",
+      "percent": 0
+    },
+    {
+      "frame": "isSubtype syntax-tree.js:63",
+      "percent": 0
+    },
+    {
+      "frame": "find frame.js:52",
+      "percent": 0
+    },
+    {
+      "frame": "arraySize interpreter.js:2685",
+      "percent": 0
+    }
+  ]
+}
