@@ -586,3 +586,46 @@ digests match the preceding function-body commit. The single pair took
 speedup.
 
 [Suite verification](../../benchmarks/baselines/2026-09-11-direct-iteration-suite.json).
+
+
+## Compiled coordinate routing for tensor cells
+
+Tensor iteration now compiles the repeated coordinate decoder and offset
+expression for each cell-axis configuration. The compiler keeps dimensions and
+storage dynamic, preserving reads from mutable or lazy host arrays. This is a
+copy kernel for array-valued cells, not a new indexing rule or numeric format.
+
+Eleven new cases cover shape mutation between and during cells, independent
+copies, accessor read counts/errors, changed coordinate rank, mixed values and
+CSP fallback. The independent coordinate-grouping test now runs both modes for
+all its axis permutations, ranks, empty shapes and source forms. TypeScript
+verification passes 44 language + 709 interpreter tests.
+
+Five alternating samples use unchanged DeepML functions on 1024x1024 matrices.
+Counters are off and results are checked against independent expected vectors.
+Timings include parsing, loading, input construction, evaluation and validation.
+
+| Workload | Reference median ms | Compiled median ms |
+| --- | ---: | ---: |
+| Matrix Mean, row | 36.741 | 27.924 |
+| Matrix Mean, column | 34.550 | 28.845 |
+| Matrix-vector product | 45.827 | 35.285 |
+
+These measurements reduce elapsed time by approximately 24%, 17% and 23%.
+
+[Focused measurements](../../benchmarks/baselines/2026-09-12-tensor-cell-focused.json).
+
+A scalar-cell control (512x512, `rank 0`) did not benefit: median task times were
+50.763 ms reference and 52.066 ms compiled. The final implementation therefore
+does not invoke the copy kernel for scalar cells. Keep this evidence when later
+compiling the complete tensor traversal; do not infer a scalar-loop speedup from
+larger-cell results.
+
+[Rejected scalar-copy specialization](../../benchmarks/baselines/2026-09-12-tensor-cell-scalar-experiment.json).
+
+Final full-suite verification (after excluding scalar cells) passes 306 files /
+1054 tests in both modes. All result digests match the preceding direct-iteration
+commit. The single pair took 28.558 s off and 31.970 s on; this does not
+establish a stable whole-suite speedup.
+
+[Final suite](../../benchmarks/baselines/2026-09-12-tensor-cell-suite.json).

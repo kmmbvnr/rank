@@ -1,0 +1,291 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "cells",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 192.205583,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 92.78925,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 43.37175000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 55.565499999999986,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 104.58979099999999,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 32.500917000000015,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 29.605124999999987,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 42.22620900000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 99.31395900000001,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 28.826374999999985,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 29.924125000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 40.34716700000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 127.26950000000005,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 39.17787500000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 41.11466599999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 46.7348750000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 114.31004199999995,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 33.74950000000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 34.54975000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 45.82687499999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 92.22891700000002,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 27.923958999999968,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 28.845416,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 35.28487499999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 89.17929100000003,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 26.52208399999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 28.580499999999915,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 33.937082999999916,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 111.18299999999999,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 36.74062500000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 33.822542,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 40.44945899999993,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 106.65816700000005,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 32.73891600000013,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 33.868666000000076,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 39.89320799999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 87.7928750000001,
+      "entries": [
+        {
+          "name": "Matrix Mean 1024x1024 row",
+          "ms": 26.940624999999955,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a1c4f57f323aea47852f33bc6661b9ea168d87dfb622a5c3440efcabb8b967ed"
+        },
+        {
+          "name": "Matrix Mean 1024x1024 column",
+          "ms": 26.889290999999957,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ee89ab6747db1153a174585733605a8b31a4d133d20515e36d53930e6002004c"
+        },
+        {
+          "name": "Matrix Vector 1024x1024",
+          "ms": 33.81708299999991,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ef0beb15ec68721fb474fadcb8f5e6edae6003ce1802f4b490cf8fc23ad46c97"
+        }
+      ]
+    }
+  ]
+}

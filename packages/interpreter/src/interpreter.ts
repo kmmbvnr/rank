@@ -1,3 +1,4 @@
+import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileScalarExpression } from './scalar-compiler.js';
@@ -151,6 +152,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly tensorCellCompilation?: boolean;
     /** Iterate scalar streams without per-element entry wrappers. */
     readonly directIteration?: boolean;
     /** Compile function bodies with a terminal return continuation. */
@@ -2446,6 +2448,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            tensorCellCompilation: this.options.tensorCellCompilation,
             directIteration: this.options.directIteration,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
@@ -2532,6 +2535,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            tensorCellCompilation: this.options.tensorCellCompilation,
             directIteration: this.options.directIteration,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
@@ -3479,7 +3483,7 @@ export class Interpreter {
                 spec.cellRank === 0 ? typesOf(value.items) : new Set(['array']),
                 ...frameAxes.map(() => new Set(['integer'])),
             ]);
-            yield* tensorEntries(value, frameAxes);
+            yield* tensorEntries(value, frameAxes, this.options.tensorCellCompilation !== false);
             return;
         }
 
@@ -3497,7 +3501,7 @@ export class Interpreter {
         if (isRankArray(value) && value.shape.length > 1) {
             validateForBindings(binding.names, 1);
             this.declareLoopTypes(binding.names, [new Set(['array']), new Set(['integer'])]);
-            yield* tensorEntries(value, [0]);
+            yield* tensorEntries(value, [0], this.options.tensorCellCompilation !== false);
             return;
         }
 
@@ -3739,19 +3743,22 @@ function validateForBindings(names: readonly string[], frameRank: number): void 
     }
 }
 
-function* tensorEntries(source: RankArray, frameAxes: readonly number[]): IterableIterator<ForEntry> {
+function* tensorEntries(source: RankArray, frameAxes: readonly number[], compiled: boolean): IterableIterator<ForEntry> {
     const frameShape = frameAxes.map(axis => source.shape[axis]);
     const frameSet = new Set(frameAxes);
     const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
     const cellShape = cellAxes.map(axis => source.shape[axis]);
+    const copy = compiled && cellAxes.length > 0
+        ? compileTensorCellCopy(frameAxes.length + cellAxes.length, cellAxes) : undefined;
 
     for (const frameCoordinates of coordinates(frameShape)) {
         const fullCoordinates = Array(source.shape.length).fill(0) as number[];
         frameAxes.forEach((axis, position) => {
             fullCoordinates[axis] = frameCoordinates[position];
         });
-        const items: RankValue[] = [];
-        const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
+        const copied = copy?.(source, fullCoordinates, cellShape);
+        const items: RankValue[] = copied ?? [];
+        const cellSize = copied === undefined ? cellShape.reduce((product, dimension) => product * dimension, 1) : 0;
         for (let linear = 0; linear < cellSize; linear++) {
             if (cellShape.length !== cellAxes.length) {
                 // A host callback can resize the shared cell shape. Preserve

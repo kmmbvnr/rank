@@ -521,3 +521,24 @@ materialization behavior.
 propagates to imported modules and test interpreters. This removes runtime
 iteration overhead beneath compiled blocks; it is not whole-loop arithmetic
 compilation.
+
+
+## Compiled tensor cell copying
+
+For array-valued cells in tensor iteration, `tensor-cell-compiler.ts` specializes
+the coordinate decoder and linear offset expression for the source rank and
+cell axes. It does not specialize dimensions, element types or values. Kernels
+are shared by rank/axis routing; each cell still receives a new items array.
+Frame order, shared cell-shape behavior and ordinary binding checks are unchanged.
+
+Storage and source shape are read in the same order for every atom. A changed
+coordinate rank declines before touching storage. A shared cell shape resized
+during copying uses the ordinary dynamic coordinate path inside the kernel,
+without replaying reads. Host getter failures retain their location and timing.
+Ranks above 16 and unavailable code generation retain the reference copy loop.
+
+Scalar `rank 0` cells keep the reference path: the isolated copy call did not
+improve their benchmark. Their next optimization should include the surrounding
+traversal and body rather than adding a kernel boundary around a single read.
+`tensorCellCompilation: false` disables cell-copy compilation; the option
+propagates to loaded modules and test interpreters.

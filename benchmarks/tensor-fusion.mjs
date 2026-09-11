@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -38,6 +38,9 @@ function recurrenceAnswer(limit) {
   return total;
 }
 const tasks = [
+  { name: 'Tensor rank-0 traversal, 512x512', path: 'benchmarks/programs/tensor-scan.ra', fn: 'tensor_sum', expected: 262144n, args: () => [array(Array(512*512).fill(1n), [512,512])] },
+  ...['row', 'column'].map(direction => ({ name: `Matrix Mean 1024x1024 ${direction}`, path: 'demos/deepml/004_mean.ra', fn: 'matrix_mean', args: () => [array(Array.from({length:1024*1024}, (_,i)=>i%1024), [1024,1024]), direction], verify: value => assert.deepEqual(value.items, Array.from({length:1024}, (_,i)=>direction === 'row' ? 511.5 : i)) })),
+  { name: 'Matrix Vector 1024x1024', path: 'demos/deepml/001_matmul.ra', fn: 'matrix_dot_vector', args: () => [array(Array.from({length:1024*1024}, (_,i)=>i%1024), [1024,1024]), array(Array(1024).fill(1))], verify: value => assert.deepEqual(value.items, Array(1024).fill(523776)) },
   { name: 'Increasing Array, 200000 alternating values', path: 'demos/cses/intro/004_increase.ra', fn: 'moves', expected: 100000n, args: () => [array(Array.from({length:200000}, (_,i)=>i%2?0n:1n))] },
   { name: 'Triangle Words, 200000 characters', path: 'demos/euler/042_trianglewords.ra', fn: 'word_value', expected: 200000n, args: () => ['A'.repeat(200000)] },
   { name: 'Stack to index, 200000 entries', path: 'benchmarks/programs/container-loops.ra', fn: 'drain', expected: 200000n * 200001n / 2n, args: () => [200000n] },
@@ -65,6 +68,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      tensorCellCompilation: backend === 'cells' ? enabled : undefined,
       directIteration: backend === 'iteration' ? enabled : undefined,
       functionBodyCompilation: backend === 'function' ? enabled : undefined,
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
@@ -85,6 +89,7 @@ for (let sample=0; sample<samples; sample++) {
     try {
       let value = runtime.execute(item.fn ? `use ${JSON.stringify(path)}` : readFileSync(path,'utf8'));
       if (item.fn) value = runtime.variables.get(item.fn).call(item.args());
+      item.verify?.(value);
       if ('expected' in item) assert.equal(value, item.expected, `independent answer: ${item.name}`);
       if (mode === 'suite') {
         tests=runtime.testResults.length;
