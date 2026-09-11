@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
 import { addToCollection } from '../collections.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
@@ -15,6 +16,18 @@ import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const algoModule: RuntimeModule = {
+    push: () => native('push', 2, a => pushCollection(a[0], a[1])),
+    pop: () => native('pop', 1, a => peekCollection(a[0], true)),
+    peek: () => native('peek', 1, a => peekCollection(a[0], false)),
+    pushfront: () => native('pushfront', 2, a => expectDeque(a[0]).pushFront(a[1])),
+    pushback: () => native('pushback', 2, a => expectDeque(a[0]).push(a[1])),
+    popfront: () => native('popfront', 1, a => expectDeque(a[0]).pop(false)),
+    popback: () => native('popback', 1, a => expectDeque(a[0]).pop(true)),
+    peekfront: () => native('peekfront', 1, a => expectDeque(a[0]).peek(false)),
+    peekback: () => native('peekback', 1, a => expectDeque(a[0]).peek(true)),
+    enqueue: () => native('enqueue', 3, a => expectHeap(a[0]).push(a[2], a[1])),
+    lowerbound: () => native('lowerbound', 2, a => expectMultiset(a[0]).ceiling(a[1])),
+    upperbound: () => native('upperbound', 2, a => expectMultiset(a[0]).upperBound(a[1])),
     multiset: () => native('multiset', 1, arguments_ => multisetValue(arguments_[0])),
     add: () => native('add', 2, arguments_ =>
         addToCollection(arguments_[0], arguments_[1])),

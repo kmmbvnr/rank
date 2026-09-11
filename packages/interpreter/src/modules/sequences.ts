@@ -1,4 +1,5 @@
 import { RankError } from '../errors.js';
+import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
 import { sequence, windowValue } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -70,6 +71,7 @@ function countTrue(value: RankValue): bigint {
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
+    if (value instanceof RankDeque || value instanceof RankHeap) { yield* value.values(); return; }
     if (isRankArray(value)) {
         const size = value.shape.reduce((product, dimension) => product * dimension, 1);
         for (let index = 0; index < size; index += 1) {
@@ -408,6 +410,7 @@ function reshapeItems(value: RankValue): RankValue[] {
 }
 
 function lengthOf(value: RankValue): bigint {
+    if (value instanceof RankDeque || value instanceof RankHeap) return BigInt(value.size);
     if (typeof value === 'string') return BigInt([...value].length);
     if (isRankArray(value)) return BigInt(value.shape[0] ?? 0);
     if (isRankQueue(value)) return BigInt(value.items.length);

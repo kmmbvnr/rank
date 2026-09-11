@@ -25,11 +25,14 @@ export class RankMultiset {
     private total = 0;
     private priorityState = 0x9e3779b9;
 
+    constructor(readonly unique = false) {}
+
     get size(): number {
         return this.total;
     }
 
     add(value: RankValue): this {
+        if (this.unique && this.has(value)) return this;
         const kind = orderedKind(value);
         if (this.valueKind !== undefined && kind !== this.valueKind) {
             throw new RankError('multiset values must have one comparable type');
@@ -70,6 +73,19 @@ export class RankMultiset {
 
     ceiling(value: RankValue): RankValue {
         return this.bound(value, 'ceiling');
+    }
+
+    upperBound(value: RankValue): RankValue {
+        if (!this.root) throw new MissingValueError('multiset has no upperbound value');
+        this.assertComparable(value);
+        let node: Node | undefined = this.root;
+        let result: RankValue | undefined;
+        while (node) {
+            if (this.compare(value, node.value) < 0) { result = node.value; node = node.left; }
+            else node = node.right;
+        }
+        if (result === undefined) throw new MissingValueError('multiset has no upperbound value');
+        return result;
     }
 
     min(): RankValue | undefined {
