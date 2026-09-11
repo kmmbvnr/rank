@@ -1,0 +1,19 @@
+rem Deep-ML 55: 2D Translation
+rem https://www.deep-ml.com/problems/55
+
+use sequences
+
+fun translate_object Points Tx Ty
+  Shape = Points shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  if Shape 1 not equal 2
+    .DimensionMismatch raise
+  end
+
+  rem Broadcasting is equivalent to the
+  rem homogeneous translation matrix.
+  Offset = array Tx Ty
+  return Points + Offset
+end

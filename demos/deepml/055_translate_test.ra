@@ -1,0 +1,62 @@
+use testing
+
+test "official triangle"
+  use "055_translate"
+
+  Points = array shape 3 2
+    0.0 0.0
+    1.0 0.0
+    0.5 1.0
+  end
+  Actual = Points 2 3 translate_object
+  Expected = array shape 3 2
+    2.0 3.0
+    3.0 3.0
+    2.5 4.0
+  end
+  (Actual equal Expected) and reduce
+end
+
+test "official square"
+  use "055_translate"
+
+  Points = array shape 4 2
+    0.0 0.0
+    1.0 0.0
+    1.0 1.0
+    0.0 1.0
+  end
+  Tx = -1
+  Ty = 2
+  Actual = Points Tx Ty translate_object
+  Expected = array shape 4 2
+    -1.0 2.0
+    0.0 2.0
+    0.0 3.0
+    -1.0 3.0
+  end
+  (Actual equal Expected) and reduce
+end
+
+test "empty point set keeps its shape"
+  use "055_translate"
+  use sequences
+
+  Points = array shape 0 2 pad 0.0
+  Tx = 4
+  Ty = -3
+  Actual = Points Tx Ty translate_object
+  Actual shape equal array 0 2
+end
+
+test "points must have two coordinates"
+  use "055_translate"
+
+  Points = array shape 1 3 pad 0.0
+  try
+    Points 1 2 translate_object
+    false
+  catch .DimensionMismatch Error
+    true
+  end
+end
