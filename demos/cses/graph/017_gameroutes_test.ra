@@ -1,0 +1,54 @@
+use testing
+
+test "official example"
+  use "017_gameroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .directed
+  Edges = array shape 5 2
+    1 2
+    2 4
+    1 3
+    3 4
+    1 4
+  end
+  Graph add Edges
+  Graph 4 game_routes equal 3
+end
+
+test "counts parallel teleporters"
+  use "017_gameroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 2) .directed
+  Graph add 1 2
+  Graph add 1 2
+  Graph 2 game_routes equal 2
+end
+
+test "unreachable end has no route"
+  use "017_gameroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 4) .directed
+  Graph add 1 2
+  Graph add 3 4
+  Graph 4 game_routes equal 0
+end
+
+test "combines paths at later levels"
+  use "017_gameroutes"
+  use graph
+  use ranges
+  Graph = new graph (1 to 5) .directed
+  Edges = array shape 6 2
+    1 2
+    1 3
+    2 4
+    3 4
+    2 5
+    4 5
+  end
+  Graph add Edges
+  Graph 5 game_routes equal 3
+end

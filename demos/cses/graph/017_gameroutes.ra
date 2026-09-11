@@ -1,0 +1,33 @@
+rem CSES 1681: Game Routes
+rem https://cses.fi/problemset/task/1681
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 2
+Values = stdin .integer ValueCount array
+Edges = Values (array M 2) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Graph N game_routes print
+
+
+rem Count paths from 1 through a DAG.
+fun game_routes Graph N
+  Modulus = 1000000007
+  Ways = array shape (N + 1) pad 0
+  Ways 1 = 1
+  Sorted = Graph topological
+
+  for Current in Sorted .order
+    for Next in Graph Current
+      Ways Next += Ways Current
+      Ways Next %= Modulus
+    end
+  end
+  return Ways N
+end
