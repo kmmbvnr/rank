@@ -331,3 +331,56 @@ Answer
         expect(result.kernels).toBe(0);
     });
 });
+
+
+describe('tensor return terminals', () => {
+    it('fuses a named pipeline ending in return', () => {
+        const result = compare(`use numbers
+fun squares A
+  Squared = A * A
+  return Squared sum
+end
+A = array 2 3 4
+A squares
+`);
+        expect(result.value).toBe('29');
+        expect(result.kernels).toBe(1);
+    });
+
+    it('fuses inline returns and still executes finally', () => {
+        const result = compare(`use numbers
+use io
+fun squares A
+  try
+    return (A * A) sum
+  finally
+    "finished" print
+  end
+end
+A = array 2 3 4
+A squares
+`);
+        expect(result.value).toBe('29');
+        expect(result.output).toEqual(['finished']);
+        expect(result.kernels).toBe(1);
+    });
+
+    it.each([
+        'use numbers\nA = array 1 2\nreturn (A * A) sum',
+        'use numbers\nfun bad A\n  try\n    return 1\n  finally\n    return (A * A) sum\n  end\nend\nA = array 1 2\nA bad',
+        'use numbers\nfun bad A\n  yield 1\n  return (A * A) sum\nend\nA = array 1 2\nB = A bad\nB array',
+    ])('preserves invalid return diagnostics', source => {
+        expect(compare(source)).toHaveProperty('error');
+    });
+
+    it('preserves reducer failures at the return statement', () => {
+        const result = compare(`use numbers
+fun bad A
+  return (A / 0) sum
+end
+A = array 1 2
+A bad
+`);
+        expect(result).toHaveProperty('error');
+    });
+});

@@ -26,6 +26,7 @@ const files = path => readdirSync(path, { withFileTypes: true }).flatMap(e => {
 }).sort();
 const array = (items, shape = [items.length]) => ({ kind: 'array', items, shape });
 const tasks = [
+  { name: 'Four Squares square_sum helper, 200000 values', path: 'demos/cses/math/026_foursquares.ra', fn: 'square_sum', expected: 199999n * 200000n * 399999n / 6n, args: () => [array(Array.from({length:200000}, (_,i)=>BigInt(i)))] },
   { name: 'Stick Game n=100000 k=100', path: 'demos/cses/math/032_stickgame.ra', input: `100000 100 ${Array.from({length:100}, (_,i)=>i+1).join(' ')}` },
   { name: 'Jacobi 128x128, 10 iterations', path: 'demos/deepml/011_jacobi.ra', fn: 'jacobi', args: () => [array(Array.from({length:128*128}, (_,i)=>i%129===0?2:0), [128,128]), array(Array(128).fill(2)), 10n] },
   { name: 'Linear SVM 32x64, 3 iterations', path: 'demos/deepml/021_svm.ra', fn: 'pegasos', args: () => [array(Array.from({length:32*64}, (_,i)=>(i%17-8)/16), [32,64]), array(Array.from({length:32}, (_,i)=>i%2?1:-1)), 'linear', 0.1, 3n, 1.0] },
@@ -56,6 +57,7 @@ for (let sample=0; sample<samples; sample++) {
     try {
       let value = runtime.execute(item.fn ? `use ${JSON.stringify(path)}` : readFileSync(path,'utf8'));
       if (item.fn) value = runtime.variables.get(item.fn).call(item.args());
+      if ('expected' in item) assert.equal(value, item.expected, `independent answer: ${item.name}`);
       if (mode === 'suite') {
         tests=runtime.testResults.length;
         const failures=runtime.testResults.filter(t=>!t.passed);

@@ -68,3 +68,28 @@ revision. Single-run wall times (not a stable small-speedup estimate):
 - Fusion on: 36.655 s.
 
 [Full suite report](../../benchmarks/baselines/2026-09-11-cached-tensor-suite.json)
+
+## Return terminals
+
+Tensor pipelines may now end in a function return as well as an assignment.
+The same IR, numeric guards, builtin identity checks and storage binding serve
+both. A successful terminal uses the existing return signal, so enclosing finally
+blocks and resource cleanup still run. Invalid top-level/finally/generator returns
+retain their reference diagnostics. Unsupported inputs fall back before execution.
+
+The unchanged `square_sum` helper from CSES Four Squares is benchmarked with
+200000 integer values. Five alternating samples give **17.341 → 12.446 ms
+(1.39x)** with one generated kernel per call. The expected result is independently
+checked against the sum-of-squares formula. This scales the helper, not the entire
+Four Squares solver; its ordinary four-value tests are correctness coverage.
+
+TypeScript tests: 44 language + 590 interpreter, all passing. Six new cases cover
+named pipelines, inline return, finally, illegal returns and reducer failures.
+An older inline-only optimization test explicitly disables tensor fusion so it
+continues to test its original reference-vs-inline distinction.
+
+The full 306-file / 1054-test demo suite passes in 35.838 s. Complete
+result/output digests match the preceding reference-mode suite. This one run
+is a correctness check, not evidence of a whole-suite speedup.
+
+[Task report](../../benchmarks/baselines/2026-09-11-tensor-return-tasks.json) · [Suite report](../../benchmarks/baselines/2026-09-11-tensor-return-suite.json)

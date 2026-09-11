@@ -511,7 +511,8 @@ export class Interpreter {
         let prepared = this.statements.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
-            if (this.options.tensorFusion !== false && isAssignmentStatement(statement)) {
+            if (this.options.tensorFusion !== false
+                && (isAssignmentStatement(statement) || isReturnStatement(statement))) {
                 const tensor = this.prepareTensorGroup(statements, index);
                 if (tensor) prepared = { ...prepared, tensor };
             }
@@ -535,14 +536,16 @@ export class Interpreter {
         });
         if (!kernel) return undefined;
         const last = statements[index + kernel.count - 1];
-        if (!isAssignmentStatement(last)) return undefined;
-        const assign = this.compileAssign(last.name);
+        if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
+        const assign = isAssignmentStatement(last) ? this.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
+            if (!assign && this.localFrame === undefined) return undefined;
             const value = kernel.run();
             if (value === undefined) return undefined;
-            try { assign(value); }
+            try { assign?.(value); }
             catch (error) { throw this.locateError(error, last); }
             this.options.onTensorKernelExecuted?.();
+            if (!assign) throw new ReturnSignal(value);
             return value;
         } };
     }

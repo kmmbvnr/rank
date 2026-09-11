@@ -1,5 +1,5 @@
 import {
-    isApplicationExpression, isAssignmentStatement, isBinaryExpression,
+    isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral, isBooleanLiteral,
     isParenthesizedExpression, isUnaryExpression,
     type Expression, type Statement,
@@ -71,7 +71,8 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     }
     for (let index = 0; index < Math.min(statements.length, 16); index++) {
         const statement = statements[index];
-        if (!isAssignmentStatement(statement) || statement.operator !== '=') return undefined;
+        const assignment = isAssignmentStatement(statement) && statement.operator === '=';
+        if ((!assignment && !isReturnStatement(statement)) || !statement.value) return undefined;
         const parts = pair(statement.value);
         const last = parts && unwrap(parts[1]);
         if (last && isNameExpression(last) && reducers.has(last.name)) {
@@ -93,6 +94,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             if ([...definitions.values()].some(node => !reached.has(node))) return undefined;
             return build(root, names, last.name as Reducer, index + 1, host);
         }
+        if (!isAssignmentStatement(statement)) return undefined;
         const value = parse(statement.value);
         if (!value || definitions.has(statement.name)) return undefined;
         definitions.set(statement.name, value);

@@ -23,8 +23,8 @@ fun replacement A
 end`;
 
 describe('builtin sum semantics required by fusion', () => {
-    it('fuses eager inputs while named intermediates retain ordinary evaluation', () => {
-        const runtime = new Interpreter();
+    it('keeps named intermediates on the reference path when tensor fusion is disabled', () => {
+        const runtime = new Interpreter(undefined, { tensorFusion: false });
         runtime.execute(source);
         const input = createArraySnapshot([1n, 2n]);
         const apply = vi.spyOn(runtime as unknown as {
