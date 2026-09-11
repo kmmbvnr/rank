@@ -1,0 +1,31 @@
+rem CSES 1620: Factory Machines
+rem https://cses.fi/problemset/task/1620
+
+use io
+use numbers
+
+N = stdin .integer
+Target = stdin .integer
+Machines = stdin .integer N array
+
+Machines Target minimum_time print
+
+
+rem Find the first sufficient time.
+fun minimum_time Machines Target
+  Low = 0
+  High = Machines min * Target
+
+  for Low less High
+    Mid = (Low + High) // 2
+    Made = (Mid // Machines) sum
+
+    if Made at least Target
+      High = Mid
+    else
+      Low = Mid + 1
+    end
+  end
+
+  return Low
+end
