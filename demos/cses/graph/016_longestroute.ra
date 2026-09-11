@@ -1,0 +1,66 @@
+rem CSES 1680: Longest Flight Route
+rem https://cses.fi/problemset/task/1680
+
+use graph
+use io
+use ranges
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 2
+Values = stdin .integer ValueCount array
+Edges = Values (array M 2) reshape
+Graph = new graph (1 to N) .directed
+Graph add Edges
+Result = Graph N longest_route
+
+if Result .found
+  Result .path len print
+  Result .path print
+else
+  "IMPOSSIBLE" print
+end
+
+
+rem Find a longest path from 1 in a DAG.
+fun longest_route Graph N
+  Size = N + 1
+  Distance = array shape Size pad -1
+  Parent = array shape Size pad 0
+  Distance 1 = 1
+  Sorted = Graph topological
+
+  for Current in Sorted .order
+    if Distance Current less 0
+      continue
+    end
+    for Next in Graph Current
+      Candidate = Distance Current + 1
+      if Candidate greater Distance Next
+        Distance Next = Candidate
+        Parent Next = Current
+      end
+    end
+  end
+
+  if Distance N less 0
+    return record
+      .found = false
+      .path = array shape 0 pad 0
+    end
+  end
+
+  Length = Distance N
+  Path = array shape Length pad 0
+  Current = N
+  for i in 1 to Length
+    Position = Length - i
+    Path Position = Current
+    Current = Parent Current
+  end
+  return record
+    .found = true
+    .path = Path
+  end
+end
