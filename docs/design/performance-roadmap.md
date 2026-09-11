@@ -1,7 +1,8 @@
 # Array performance roadmap
 
-Status: proposed optimizations; benchmark harness implemented. No speedup targets
-have been measured yet. Runtime behavior remains the reference for every fast path.
+Status: array benchmarks and the first numeric-kernel batch are implemented.
+Fusion, packed storage and code generation remain proposed. Runtime behavior
+remains the reference for every fast path.
 
 ## Goal
 
@@ -19,10 +20,12 @@ The interpreter already caches expression handlers, uses local slots and direct
 call paths, and runs deep recursion on an explicit execution stack. Array work
 still has costs that these changes do not remove:
 
-- `reduceCell` and `evaluateScan` dispatch through `evaluateBinary` per element.
+- Array reduction and scan now use indexed loops. `+`, `-` and `*` select a guarded
+  numeric callback once per operation; unsupported pairs use `evaluateBinary`.
 - Lazy arithmetic avoids some intermediate allocations but retains callback chains
   and scalar dispatch. Laziness is not the same as a fused numeric loop.
-- Axis reductions build temporary cell arrays and coordinate arrays.
+- Axis reductions traverse by strides. Builtin `sum` over eager arrays no longer
+  copies cells; lazy inputs and other reducers retain cell materialization.
 - Ordinary arrays expose `RankValue[]`; byte arrays already have compact storage.
 
 See [execution model](runtime-execution.md) for implemented runtime optimizations.
@@ -67,9 +70,9 @@ node benchmarks/runtime.mjs
 node benchmarks/memo.mjs
 ```
 
-`--quick` checks all workloads and both numeric types at 100 elements with two
+`--quick` checks all workloads with integer, real and mixed inputs at 100 elements with two
 samples. The full run uses 100, 10,000 and 1,000,000 elements, two warmups per case
-and five samples. `--json` emits metadata and every sample for future comparisons.
+and five samples (63 cases). `--json` emits metadata and every sample for future comparisons.
 Use the same harness against another built checkout:
 
 ```sh
@@ -87,6 +90,8 @@ and correctness assertions are excluded. Each timed call gets the same eager
 input arrays and produces a fresh result; every result array is fully materialized
 inside the timer. Assertions compare all output elements and shape after every
 warmup and sample. Real inputs use exact quarter fractions to permit exact checks.
+Mixed inputs alternate integers and reals, including an integer-to-real transition
+inside reduction and scan. The initial baseline below predates these mixed cases.
 
 The timer includes function dispatch, computation and output materialization.
 These are warm-operation benchmarks, not parser, startup or input-generation tests.
@@ -126,6 +131,91 @@ other machine activity was not controlled. These are local observations, not
 performance guarantees or speedup measurements. In this workload, the arithmetic
 chain plus reduction costs much more than a plain sum; profiling is still needed
 to separate dispatch, allocation and traversal costs.
+
+## First numeric-kernel batch
+
+Runtime commits: `07a2b71` and `f5ca982`. This batch covers `+`, `-` and `*` in array arithmetic,
+reduction and scan. Scalar expression dispatch is unchanged. Array reductions use
+indexed loops, including trailing rank-selected cells. Equal-shaped array pairs
+skip broadcast-coordinate conversion but retain the existing per-index cache.
+Other operators and nonnumeric values use the general implementation.
+Kernel selection lives in the collection helper so the scalar binary dispatcher
+retains its previous body.
+
+The numeric callbacks guard each consumed pair. There is no whole-array type
+prepass or cached type assumption: inputs can mix types, lazy readers can have
+effects, and backing arrays can change. Integer arithmetic remains arbitrary-size
+BigInt; mixed pairs convert to real at the same point as scalar evaluation.
+Reduction starts with the first item, while builtin `sum` keeps its integer-zero
+seed. Floating-point operations are not reassociated.
+
+Axis traversal uses strides without allocating coordinate arrays per item.
+Builtin `sum` reads eager cells directly, with an identity check to preserve
+shadowed functions. Lazy cells still materialize before numeric validation, so a
+later read error is not replaced by an earlier type error. Other axis reducers
+keep their existing cell inputs. Packed storage and fused loops are not included.
+
+The added JS tests compare collection results against scalar execution, including
+large integers, mixed types, NaN, infinities and signed zero. They also cover
+empty cells, rank-selected cells, broadcasting, shadowed `sum`, lazy read order,
+partial consumption, cache behavior after mutation, fallback and Rank positions.
+
+### Array measurements
+
+Compared baseline `5bdacc2` with `f5ca982` on the same Apple M5 / Node 24.15.0
+machine. Both checkouts were built first. Two sequential baseline/candidate pairs
+ran after unit tests, with no assistant-launched tests or other benchmarks running
+alongside them. Unrelated machine activity was not controlled. Each process used
+the same 63-case harness, two warmups and five samples per case, with `--expose-gc`.
+
+First pair, median milliseconds at 1,000,000 elements (before → after):
+
+| Operation | Integer | Real |
+| --- | ---: | ---: |
+| Sum reduction | 25.9 → 7.9 | 25.3 → 8.0 |
+| Array addition | 127.0 → 94.0 | 104.5 → 93.3 |
+| Multiply then add | 173.3 → 125.5 | 153.7 → 106.8 |
+| Multiply, add, reduce | 175.9 → 96.0 | 180.9 → 88.1 |
+| Prefix scan | 53.2 → 25.4 | 55.3 → 20.5 |
+| Sort | 158.9 → 168.2 | 157.0 → 159.0 |
+| Row sum (10 columns) | 68.7 → 19.9 | 64.2 → 18.4 |
+
+Both pairs showed faster million-element arithmetic and reductions. Sum reduction
+was 3.1–3.9× faster for homogeneous numeric inputs; row sums were 3.3–3.5× faster.
+Mixed-input reduction was 2.4–2.6× faster, scan 2.7–2.9× and row sums 3.4–3.5×.
+This is not a claim that every array operation or size improved:
+
+- Sort was about 1–6% slower across the million-element comparisons. Its algorithm
+  was not changed; these runs do not establish the cause of the difference.
+- At 100 elements, mixed sum reduction rose from 27/33 microseconds to 33/41
+  microseconds (about 22–24% slower). This short-call cost remains unresolved.
+- At 10,000 elements, real addition was 4% faster in one pair and 12% slower in
+  the other. The per-sample spread is too wide to claim a gain there.
+
+Heap deltas also moved in both directions. For example, integer sum reduction
+fell from 57.6 to 37.7 MiB, but integer row sum rose from 19.5 to about 50 MiB;
+real scan rose from 41.6 to about 80 MiB. These are retained heap changes around
+the call, not allocation totals or peaks. A loop allocating less can trigger fewer
+collections and leave a larger end-of-call delta. No blanket memory improvement
+is claimed. The report retains RSS and array-buffer deltas as well.
+
+[Raw array and scalar comparisons](../../benchmarks/baselines/2026-09-11-numeric-kernels.json)
+contain both pairs, all sizes, per-sample timings and array memory measurements.
+All 394 JS tests and the demo tests passed for this batch.
+
+### Scalar checks
+
+The unchanged `runtime.mjs` and `memo.mjs` ran twice against each version, in
+separate Node processes, with each baseline followed by the candidate. Counted
+summation measured 7.8/7.9 ms before and 7.8/7.7 ms after. Recursive tree calls
+measured 37.6/37.9 ms before and 37.9/37.9 ms after. Across the scalar scenarios,
+individual paired changes ranged from about 4% faster to 5% slower; this does not
+establish a consistent scalar slowdown or guarantee identical speed.
+
+The manual memo-cache workload measured 121.3/118.2 ms before and 123.7/119.5 ms
+after (about 1–2% slower). Fresh memo functions stayed around 78 ms. Cached calls
+rounded to 0.1 ms in both versions; that resolution is too low for a useful ratio.
+These results do not show a scalar speedup, nor is one expected from this batch.
 
 ## Acceptance gates
 
