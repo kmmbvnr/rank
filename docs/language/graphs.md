@@ -180,3 +180,13 @@ algorithm. It returns `.connected`, `.components`, total `.weight`, and
 `.edges` as an `M` by `3` array. For a disconnected graph these fields describe
 the minimum spanning forest and `.connected` is false. Parallel edges are
 eligible independently; self-loops are never selected.
+
+`Graph Source Sink maxflow` accepts a directed graph whose weights are finite,
+nonnegative capacities. Source and sink must differ. It uses a level-graph
+blocking-flow algorithm and returns:
+
+- `.value`, the maximum flow value;
+- `.flow`, a two-key index addressed by `Flow From To`, with parallel-edge
+  flows aggregated and absent pairs readable through `pad 0`;
+- `.cut`, the set of vertices reachable from `Source` in the final residual
+  graph, which is the source side of a minimum cut.

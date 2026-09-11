@@ -2858,6 +2858,16 @@ algorithm. It returns `.connected`, `.components`, total `.weight`, and
 the minimum spanning forest and `.connected` is false. Parallel edges are
 eligible independently; self-loops are never selected.
 
+`Graph Source Sink maxflow` accepts a directed graph whose weights are finite,
+nonnegative capacities. Source and sink must differ. It uses a level-graph
+blocking-flow algorithm and returns:
+
+- `.value`, the maximum flow value;
+- `.flow`, a two-key index addressed by `Flow From To`, with parallel-edge
+  flows aggregated and absent pairs readable through `pad 0`;
+- `.cut`, the set of vertices reachable from `Source` in the final residual
+  graph, which is the source side of a minimum cut.
+
 ---
 
 # Tables
@@ -4445,7 +4455,7 @@ reserve the word in other application chains.
 
 `use graph` provides the `new graph` constructor, graph-specific `add` and
 `edges` dispatch, and the `bfs`, `dfs`, `components`, `bipartite`, `dijkstra`,
-`bellmanford`, `floyd`, `topological`, `scc`, and `mst` algorithms. Their inputs and result records are specified in
+`bellmanford`, `floyd`, `topological`, `scc`, `mst`, and `maxflow` algorithms. Their inputs and result records are specified in
 [Graphs](../language/graphs.md).
 The same module provides closed and open `new dsu` structures with contextual
 `merge`, `find`, and `connected` methods plus `components` and `len` queries.

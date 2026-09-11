@@ -221,6 +221,45 @@ array (Result .connected) (Result .components) (Result .weight)
 `)).toBe('false 2 11');
     });
 
+    it('computes maximum flow and a minimum cut', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 4) .directed
+Graph add 1 2 3
+Graph add 1 3 2
+Graph add 2 3 1
+Graph add 2 4 2
+Graph add 3 4 4
+Result = Graph 1 4 maxflow
+Flow = Result .flow
+Cut = Result .cut
+array (Result .value) (Flow 1 2) (Flow 1 3) (1 in Cut) (2 in Cut)
+`)).toBe('5 3 2 true false');
+    });
+
+    it('aggregates parallel flow edges', () => {
+        expect(run(`${prelude}use ranges
+Graph = new graph (1 to 2) .directed
+Graph add 1 2 2
+Graph add 1 2 3
+Result = Graph 1 2 maxflow
+Flow = Result .flow
+array (Result .value) (Flow 1 2)
+`)).toBe('5 5');
+    });
+
+    it('validates maximum-flow networks', () => {
+        expect(() => run(`${prelude}
+Graph = new graph .undirected
+Graph add 1 2 3
+Graph 1 2 maxflow
+`)).toThrow('maxflow expects a directed graph');
+        expect(() => run(`${prelude}
+Graph = new graph .directed
+Graph add 1 2 (-1)
+Graph 1 2 maxflow
+`)).toThrow('maxflow requires finite nonnegative capacities');
+    });
+
     it('validates graph algorithm domains', () => {
         expect(() => run(`${prelude}
 Graph = new graph .directed
