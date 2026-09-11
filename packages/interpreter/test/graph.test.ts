@@ -75,8 +75,8 @@ Graph 3
             .toThrow('new graph expects .directed or .undirected');
         expect(() => run(prelude + `
 Graph = new graph .directed
-Graph add (array shape 2 3 pad 0)
-`)).toThrow('graph edge array must have shape M by 2');
+Graph add (array shape 2 4 pad 0)
+`)).toThrow('graph edge array must have shape M by 2 or M by 3');
         expect(() => run(prelude + `
 Graph = new graph .directed
 Graph add (array shape 1 1 1 pad 0)
@@ -91,6 +91,44 @@ fun add A B
   return A + B
 end
 3 4 add
+`)).toBe('7');
+    });
+
+    it('stores weighted edges and exposes lazy pairs', () => {
+        expect(run(prelude + `
+Graph = new graph .directed
+Graph add 1 2 7
+Graph add 1 3
+Edges = Graph edges 1
+First = Edges 0
+Second = Edges 1
+array (First 0) (First 1) (Second 0) (Second 1)
+`)).toBe('2 7 3 1');
+    });
+
+    it('adds weighted M by 3 edge arrays', () => {
+        expect(run(prelude + `
+Graph = new graph .undirected
+Edges = array shape 2 3
+  1 2 11
+  2 3 -4
+end
+Graph add Edges
+Back = Graph edges 2
+array ((Back 0) 0) ((Back 0) 1) ((Back 1) 0) ((Back 1) 1)
+`)).toBe('1 11 3 -4');
+    });
+
+    it('requires numeric weights and keeps edges contextual', () => {
+        expect(() => run(prelude + `
+Graph = new graph .directed
+Graph add 1 2 "heavy"
+`)).toThrow('graph edge weight must be numeric');
+        expect(run(`
+fun edges A B
+  return A + B
+end
+3 edges 4
 `)).toBe('7');
     });
 });

@@ -119,9 +119,21 @@ Block = A Rows Columns
 
 The result has one preserved axis for every collection selector and every `#`,
 followed by all omitted trailing axes. Tensor selections are lazy and cached.
-Too many selectors, invalid indices and masks whose length differs from their
-axis are errors. Outside tensor addressing, `#` is valid only as a discarded
-`for` binding.
+
+Integer addressing may continue into a nested selected value after consuming
+all axes of the current tensor:
+
+```rank
+Rows = array "abc" "xyz"
+Letter = Rows 1 2
+rem z
+```
+
+For a true tensor, selectors first consume its axes together. Any remaining
+integer selectors then address the resulting value from left to right. The
+chain fails if that value is not addressable. Invalid indices and masks whose
+length differs from their axis are errors. Outside tensor addressing, `#` is
+valid only as a discarded `for` binding.
 
 `axis` remains the explicit form when an operation consumes or selects a named
 axis:

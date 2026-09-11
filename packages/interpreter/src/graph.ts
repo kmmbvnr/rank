@@ -12,11 +12,16 @@ import { native } from './modules/shared.js';
 
 type GraphDirection = 'directed' | 'undirected';
 
+interface GraphEdge {
+    readonly target: RankValue;
+    readonly weight: bigint | number;
+}
+
 /** Mutable adjacency storage behind Rank's graph value. */
 export class GraphValue implements RankGraph {
     readonly kind = 'graph' as const;
     readonly vertices = new Map<string, RankValue>();
-    readonly adjacency = new Map<string, RankValue[]>();
+    readonly adjacency = new Map<string, GraphEdge[]>();
 
     constructor(
         readonly directed: boolean,
@@ -32,7 +37,8 @@ export class GraphValue implements RankGraph {
         this.adjacency.set(key, []);
     }
 
-    addEdge(left: RankValue, right: RankValue): void {
+    addEdge(left: RankValue, right: RankValue, weight: RankValue = 1n): void {
+        const numericWeight = graphWeight(weight);
         if (this.open) {
             this.addVertex(left);
             this.addVertex(right);
@@ -40,15 +46,15 @@ export class GraphValue implements RankGraph {
             this.requireVertex(left);
             this.requireVertex(right);
         }
-        this.adjacency.get(graphKey(left))!.push(right);
+        this.adjacency.get(graphKey(left))!.push({ target: right, weight: numericWeight });
         if (!this.directed && graphKey(left) !== graphKey(right)) {
-            this.adjacency.get(graphKey(right))!.push(left);
+            this.adjacency.get(graphKey(right))!.push({ target: left, weight: numericWeight });
         }
     }
 
     add(arguments_: readonly RankValue[]): void {
-        if (arguments_.length === 2) {
-            this.addEdge(arguments_[0], arguments_[1]);
+        if (arguments_.length === 2 || arguments_.length === 3) {
+            this.addEdge(arguments_[0], arguments_[1], arguments_[2]);
             return;
         }
         if (arguments_.length !== 1) {
@@ -56,11 +62,17 @@ export class GraphValue implements RankGraph {
         }
         const value = arguments_[0];
         if (isRankArray(value) && value.shape.length === 2) {
-            if (value.shape[1] !== 2) {
-                throw new RankError('graph edge array must have shape M by 2');
+            const width = value.shape[1];
+            if (width !== 2 && width !== 3) {
+                throw new RankError('graph edge array must have shape M by 2 or M by 3');
             }
             for (let row = 0; row < value.shape[0]; row += 1) {
-                this.addEdge(arrayItem(value, row * 2), arrayItem(value, row * 2 + 1));
+                const offset = row * width;
+                this.addEdge(
+                    arrayItem(value, offset),
+                    arrayItem(value, offset + 1),
+                    width === 3 ? arrayItem(value, offset + 2) : 1n,
+                );
             }
             return;
         }
@@ -75,13 +87,37 @@ export class GraphValue implements RankGraph {
         if (!this.vertices.has(key) && !this.open) {
             throw new MissingValueError('graph does not contain the vertex');
         }
-        const neighbors = [...this.adjacency.get(key) ?? []];
+        const neighbors = [...this.adjacency.get(key) ?? []].map(edge => edge.target);
         return {
             kind: 'sequence',
             plan: {
                 name: 'graph neighbors',
                 size: { kind: 'exact', value: BigInt(neighbors.length) },
                 *iterate() { yield* neighbors; },
+            },
+        };
+    }
+
+    edges(vertex: RankValue): RankSequence {
+        const key = graphKey(vertex);
+        if (!this.vertices.has(key) && !this.open) {
+            throw new MissingValueError('graph does not contain the vertex');
+        }
+        const edges = [...this.adjacency.get(key) ?? []];
+        return {
+            kind: 'sequence',
+            plan: {
+                name: 'graph edges',
+                size: { kind: 'exact', value: BigInt(edges.length) },
+                *iterate() {
+                    for (const edge of edges) {
+                        yield {
+                            kind: 'array',
+                            items: [edge.target, edge.weight],
+                            shape: [2],
+                        };
+                    }
+                },
             },
         };
     }
@@ -137,6 +173,11 @@ function graphKey(value: RankValue): string {
         || typeof value === 'boolean' || typeof value === 'string'
         || isRankLabel(value)) return setValueKey(value);
     throw new RankError('graph vertices must be scalar values');
+}
+
+function graphWeight(value: RankValue): bigint | number {
+    if (typeof value === 'bigint' || typeof value === 'number') return value;
+    throw new RankError('graph edge weight must be numeric');
 }
 
 function arrayItem(value: Extract<RankValue, { kind: 'array' | 'bytes' }>, index: number): RankValue {

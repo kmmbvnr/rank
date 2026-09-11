@@ -47,6 +47,23 @@ end
 Graph add Edges
 ```
 
+An edge has weight `1` unless `add` supplies a numeric weight. Weighted bulk
+input has shape `M 3`, with source, target and weight columns:
+
+```rank
+Graph add From To Cost
+
+Flights = array shape 2 3
+  1 2 6
+  2 3 -4
+end
+Graph add Flights
+```
+
+Integer and real weights are accepted. Negative weights are preserved for
+algorithms such as Bellman-Ford; the graph does not choose an algorithm or
+interpret their sign.
+
 `Graph add A B` and `Graph add Edges` dispatch only after `Graph` evaluates to
 a graph. The word `add` remains available to user functions and other
 collections.
@@ -65,6 +82,20 @@ end
 The sequence is a snapshot of that vertex's neighbors when `Graph Current` is
 evaluated. Later graph mutations do not change an existing sequence. Neighbor
 order follows edge insertion order.
+
+The contextual `edges` method returns the same outgoing entries as lazy
+rank-1 pairs `array Next Cost`. `unpack` gives readable access without changing
+the compact neighbor form:
+
+```rank
+for Edge in Graph edges Current
+  unpack Next Cost = Edge
+end
+```
+
+For an undirected graph, the reverse entry has the same weight. Unweighted
+entries appear with cost `1`. Like `add`, `edges` dispatches only when its
+receiver evaluates to a graph and does not reserve the word for other values.
 
 For an open graph, an unknown vertex has an empty neighbor sequence and does not
 register the vertex. A closed graph raises `.Missing` for an unknown vertex.

@@ -1553,6 +1553,31 @@ export class Interpreter {
                     );
                 };
             }
+            const graphEdges = explicitGraphEdges(parts);
+            if (graphEdges) {
+                return function* (): Execution<RankValue> {
+                    const receiver = yield* resume(interpreter.evaluateTask(
+                        graphEdges.receiver,
+                    ));
+                    const argument = yield* resume(interpreter.evaluateTask(
+                        graphEdges.argument,
+                    ));
+                    if (isRankGraph(receiver)) {
+                        interpreter.requireModule('graph', 'edges');
+                        return receiver.edges(argument);
+                    }
+                    const operation = yield* resume(interpreter.evaluateTask(
+                        graphEdges.operation,
+                    ));
+                    return yield* resume(interpreter.apply(
+                        [receiver, argument, operation],
+                        missing,
+                        0,
+                        [],
+                        tail,
+                    ));
+                };
+            }
             const multisetMethod = explicitMultisetMethod(parts);
             if (multisetMethod) {
                 return function* (): Execution<RankValue> {
@@ -3410,7 +3435,13 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     }
     if (isRankArray(values[0]) && values.length > 1
         && values.slice(1).every(value => typeof value === 'bigint')) {
-        return atArray(values[0], values.slice(1) as bigint[]);
+        const source = values[0];
+        const indices = values.slice(1) as bigint[];
+        if (source.shape.length > 0 && indices.length > source.shape.length) {
+            const selected = atArray(source, indices.slice(0, source.shape.length));
+            return applySelectors([selected, ...indices.slice(source.shape.length)], missing);
+        }
+        return atArray(source, indices);
     }
     if (values.length === 2 && isRankArray(values[0])
         && isIntegerCollectionSelector(values[1])) {
@@ -4370,6 +4401,21 @@ function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication 
         receiver: parts.slice(0, position),
         operation,
         argument: parts.slice(position + 1),
+    };
+}
+
+interface GraphEdgesApplication {
+    readonly receiver: Expression;
+    readonly operation: Expression;
+    readonly argument: Expression;
+}
+
+function explicitGraphEdges(parts: Expression[]): GraphEdgesApplication | undefined {
+    if (parts.length !== 3 || !isNamed(parts[1], 'edges')) return undefined;
+    return {
+        receiver: parts[0],
+        operation: parts[1],
+        argument: parts[2],
     };
 }
 

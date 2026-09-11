@@ -18,6 +18,19 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('array shape 2 3 expects 6 elements, got 3');
     });
 
+    it('continues integer addressing into nested values', () => {
+        expect(run([
+            'Rows = array "abc" "xyz"',
+            'Rows 1 2',
+        ].join('\n'))).toBe('z');
+        expect(run([
+            'T = array shape 2 1',
+            '  "ab" "cd"',
+            'end',
+            'T 1 0 1',
+        ].join('\n'))).toBe('d');
+    });
+
     it('reports complete shapes and individual axis lengths', () => {
         expect(run([
             'use sequences',
