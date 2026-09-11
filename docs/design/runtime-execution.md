@@ -499,3 +499,25 @@ block compilation. `onFunctionBodyCompiled` exposes generated dispatch source;
 `onFunctionBodyExecuted` counts block entries, including continuation re-entry,
 not necessarily one event per function call. Options propagate to loaded modules
 and test interpreters.
+
+
+## Direct scalar iteration
+
+Plain scalar iteration now enters `iterationValues` directly instead of wrapping
+each value in a `ForEntry` object and allocating an index array. Binding validation
+and type declarations run once through a shared preparation method. A private
+ordinal is maintained only when an index binding is actually used, including
+when the visible index variable is reassigned by the body.
+
+This covers ordinary arrays of rank zero/one, text, sequences and supported
+scalar collections. It preserves their existing iterators and mutation semantics.
+The `for...of` boundary still closes an iterator on break, return or error, and a
+return callee finishes before that close. Unicode iteration retains code-point
+semantics. Explicit `axis`/`rank`, matrix row iteration and object-key iteration
+retain `forEntries`; this change does not redefine tensor traversal or force new
+materialization behavior.
+
+`directIteration: false` keeps the wrapper path for comparison. The option
+propagates to imported modules and test interpreters. This removes runtime
+iteration overhead beneath compiled blocks; it is not whole-loop arithmetic
+compilation.

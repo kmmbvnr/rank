@@ -550,3 +550,39 @@ Final isolated focused measurements, three alternating pairs:
 
 Small control timings are noisy; the large Collatz result is the focused target.
 [Focused measurements](../../benchmarks/baselines/2026-09-11-function-body-focused.json).
+
+
+## Direct scalar iteration without entry wrappers
+
+The reference `forEntries` adapter creates `{value, indices}` for each scalar
+and an extra array for each index. Ordinary scalar iteration now bypasses that
+adapter, sharing the same once-per-loop binding/type preparation and underlying
+iterator. Tensor-axis, matrix-row and object-key traversal retain the old path.
+Only an actually used index requires ordinal increments.
+
+Thirteen differential tests cover live array/queue mutation, changed visible
+indices, all discard forms, Unicode code points, empty-source validation,
+incompatible bindings, break/continue, generator cleanup after a return callee
+and on an error, and ranked tensor fallback. TypeScript verification passes
+44 language + 698 interpreter tests.
+
+Five alternating focused samples, counters disabled, run unchanged demo functions:
+
+| Workload | Wrapper path median ms | Direct path median ms |
+| --- | ---: | ---: |
+| CSES Increasing Array, 200000 alternating values | 37.925 | 34.105 |
+| Euler 42 word_value, 200000 characters | 35.387 | 31.218 |
+
+These are about 10.1% and 11.8% lower elapsed time respectively. Independent
+expected results check both workloads; timing includes parse/load, evaluation
+and validation. No sample rewrite or arithmetic representation change was needed.
+The benchmark backend `iteration` toggles only `directIteration`.
+
+[Focused measurements](../../benchmarks/baselines/2026-09-11-direct-iteration-focused.json).
+
+Full-suite verification passes 306 files / 1054 tests in both modes. All result
+digests match the preceding function-body commit. The single pair took
+28.677 s off and 28.644 s on; this does not establish a stable whole-suite
+speedup.
+
+[Suite verification](../../benchmarks/baselines/2026-09-11-direct-iteration-suite.json).

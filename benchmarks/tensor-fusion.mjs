@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -38,6 +38,8 @@ function recurrenceAnswer(limit) {
   return total;
 }
 const tasks = [
+  { name: 'Increasing Array, 200000 alternating values', path: 'demos/cses/intro/004_increase.ra', fn: 'moves', expected: 100000n, args: () => [array(Array.from({length:200000}, (_,i)=>i%2?0n:1n))] },
+  { name: 'Triangle Words, 200000 characters', path: 'demos/euler/042_trianglewords.ra', fn: 'word_value', expected: 200000n, args: () => ['A'.repeat(200000)] },
   { name: 'Stack to index, 200000 entries', path: 'benchmarks/programs/container-loops.ra', fn: 'drain', expected: 200000n * 200001n / 2n, args: () => [200000n] },
   { name: 'Branching recurrence, 200000 steps', path: 'benchmarks/programs/integer-branches.ra', fn: 'recurrence', expected: recurrenceAnswer(200000), args: () => [200000n] },
   { name: 'Euler 28 Size=200001', path: 'demos/euler/028_spiraldiagonals.ra', fn: 'spiral_diagonal_sum', expected: 1n + 16n * 100000n * 100001n * 200001n / 6n + 4n * 100000n * 100001n / 2n + 4n * 100000n, args: () => [200001n] },
@@ -63,6 +65,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      directIteration: backend === 'iteration' ? enabled : undefined,
       functionBodyCompilation: backend === 'function' ? enabled : undefined,
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,

@@ -151,6 +151,8 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Iterate scalar streams without per-element entry wrappers. */
+    readonly directIteration?: boolean;
     /** Compile function bodies with a terminal return continuation. */
     readonly functionBodyCompilation?: boolean;
     readonly onFunctionBodyCompiled?: (source: string) => void;
@@ -924,10 +926,21 @@ export class Interpreter {
                 if (binding) {
                     const spec = tensorIterationSpec(binding.iterable);
                     const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
-                    for (const entry of interpreter.forEntries(binding, iterable)) {
-                        if (bindValue) bindValue(entry.value);
-                        for (let position = 0; position < bindIndex.length; position += 1) {
-                            bindIndex[position]?.(entry.indices[position]);
+                    const flat = interpreter.options.directIteration !== false && !spec
+                        && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
+                    const entries = flat ? interpreter.iterationAtoms(binding, iterable)
+                        : interpreter.forEntries(binding, iterable);
+                    let ordinal = 0n;
+                    for (const entry of entries) {
+                        if (flat) {
+                            if (bindValue) bindValue(entry as RankValue);
+                            if (bindIndex[0]) bindIndex[0](ordinal++);
+                        } else {
+                            const cell = entry as ForEntry;
+                            if (bindValue) bindValue(cell.value);
+                            for (let position = 0; position < bindIndex.length; position += 1) {
+                                bindIndex[position]?.(cell.indices[position]);
+                            }
                         }
                         try {
                             // A body that finishes on its own needs no task; only
@@ -2433,6 +2446,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            directIteration: this.options.directIteration,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
             onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
@@ -2518,6 +2532,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            directIteration: this.options.directIteration,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
             onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
@@ -3486,6 +3501,21 @@ export class Interpreter {
             return;
         }
 
+        const values = this.iterationAtoms(binding, value);
+        // A binding without an index name has nowhere to put one, so the walk
+        // neither counts nor carries it.
+        if (binding.names.length === 1) {
+            for (const item of values) yield { value: item, indices: NO_INDICES };
+            return;
+        }
+        let index = 0n;
+        for (const item of values) {
+            yield { value: item, indices: [index] };
+            index += 1n;
+        }
+    }
+
+    private iterationAtoms(binding: ForBinding, value: RankValue): Iterable<RankValue> {
         validateForBindings(binding.names, 1);
         if (isRankArray(value)) {
             this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
@@ -3500,17 +3530,7 @@ export class Interpreter {
         } else if (typeof value === 'string') {
             this.declareLoopTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
         }
-        // A binding without an index name has nowhere to put one, so the walk
-        // neither counts nor carries it.
-        if (binding.names.length === 1) {
-            for (const item of iterationValues(value)) yield { value: item, indices: NO_INDICES };
-            return;
-        }
-        let index = 0n;
-        for (const item of iterationValues(value)) {
-            yield { value: item, indices: [index] };
-            index += 1n;
-        }
+        return iterationValues(value);
     }
 
     private declareLoopTypes(

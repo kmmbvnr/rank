@@ -1,0 +1,221 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "iteration",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 140.773208,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 96.919458,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 43.49225000000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 73.09687500000001,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 36.658625,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 36.26820799999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 70.38204200000001,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 35.858375000000024,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 34.356334000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 73.41762500000004,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 38.021457999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 35.26962499999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 72.07491599999997,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 36.69666599999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 35.222249999999974,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 65.16416600000002,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 33.882082999999966,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 31.190958000000023,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 65.27650000000006,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 34.05049999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 31.14141600000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 72.50841600000001,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 36.910708,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 35.50116600000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 73.42025000000001,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 37.925250000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 35.387249999999995,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 65.40795800000001,
+      "entries": [
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 34.10541699999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        },
+        {
+          "name": "Triangle Words, 200000 characters",
+          "ms": 31.2181250000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "2d0606b4d2dc0b4e52c2f040595c5a216c4968d63fd8345f3feba2abe9bfec83"
+        }
+      ]
+    }
+  ]
+}
