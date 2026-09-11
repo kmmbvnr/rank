@@ -3779,16 +3779,16 @@ function mapBinary(
     name: string,
     operation: (left: RankValue, right: RankValue) => RankValue,
 ): RankValue {
+    const scalarOperation = numericKernel(name, operation);
     if (isRankSequence(left) && isRankSequence(right)) {
-        return zipSequences(left, right, name, operation);
+        return zipSequences(left, right, name, scalarOperation);
     }
     if (isRankSequence(left)) {
-        return mapSequence(left, name, item => operation(item, right));
+        return mapSequence(left, name, item => scalarOperation(item, right));
     }
     if (isRankSequence(right)) {
-        return mapSequence(right, name, item => operation(left, item));
+        return mapSequence(right, name, item => scalarOperation(left, item));
     }
-    const scalarOperation = numericKernel(name, operation);
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
     if (leftArray && rightArray) {

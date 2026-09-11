@@ -1,0 +1,225 @@
+{
+  "metadata": {
+    "date": "2026-09-11T06:17:50.073Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+    "sources": {
+      "euler": {
+        "path": "demos/euler/006_sumsquarediff.ra",
+        "sha256": "b2429c6a75387fef726f14b88cbfac2be34cf40e8a906526be0fb110aadaa121"
+      },
+      "row": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "column": {
+        "path": "demos/deepml/004_mean.ra",
+        "sha256": "87ff6738797a0fc1854961480fe0ce8b6f66fe577e2eed6724b2d97e6b403edc"
+      },
+      "matmul": {
+        "path": "demos/deepml/009_matmul.ra",
+        "sha256": "1072b732151ee9c39233aa1375538a2566f067d3c0334da39dd01e905f318b15"
+      },
+      "gradient": {
+        "path": "demos/deepml/015_gd.ra",
+        "sha256": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0"
+      }
+    }
+  },
+  "versions": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-demo-roadmap/",
+      "revision": "f8625d47e3be6637521432276b95009c550bd863",
+      "dirty": true
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-roadmap-baseline",
+      "revision": "f257042108894a6e81a6c0d4184388a578d6cca5",
+      "dirty": false
+    }
+  },
+  "results": [
+    {
+      "name": "euler",
+      "scale": 0,
+      "version": "candidate",
+      "warmProcessMs": 130.57987500000002,
+      "size": 100,
+      "firstMs": 47.94024999999999,
+      "warmMs": [
+        0.5860839999999996,
+        0.5270840000000021,
+        0.5054999999999978,
+        0.5722499999999968,
+        0.8876249999999999
+      ],
+      "memory": {
+        "rss": 121815040,
+        "heapTotal": 54444032,
+        "heapUsed": 21224448,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 118960,
+      "coldProcessMs": [
+        126.93237500000004,
+        126.01741700000002,
+        125.83487500000001,
+        125.07729199999994,
+        129.07174999999984
+      ]
+    },
+    {
+      "name": "euler",
+      "scale": 0,
+      "version": "baseline",
+      "warmProcessMs": 134.50424999999998,
+      "size": 100,
+      "firstMs": 47.071417,
+      "warmMs": [
+        0.6471250000000026,
+        0.5357500000000073,
+        0.5300829999999905,
+        0.5114170000000087,
+        0.9032920000000075
+      ],
+      "memory": {
+        "rss": 121700352,
+        "heapTotal": 54968320,
+        "heapUsed": 21172528,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 118848,
+      "coldProcessMs": [
+        127.191417,
+        126.513417,
+        129.26966700000003,
+        125.40095799999995,
+        129.64212499999985
+      ]
+    },
+    {
+      "name": "euler",
+      "scale": 1,
+      "version": "baseline",
+      "warmProcessMs": 143.8985,
+      "size": 20000,
+      "firstMs": 48.75666600000001,
+      "warmMs": [
+        2.139917000000011,
+        2.1472089999999895,
+        2.0883329999999916,
+        1.9262080000000026,
+        2.28045800000001
+      ],
+      "memory": {
+        "rss": 127860736,
+        "heapTotal": 54968320,
+        "heapUsed": 28105304,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 124864,
+      "coldProcessMs": [
+        130.13662499999987,
+        129.3325829999999,
+        132.15729199999987,
+        130.75141699999995,
+        129.5671669999997
+      ]
+    },
+    {
+      "name": "euler",
+      "scale": 1,
+      "version": "candidate",
+      "warmProcessMs": 142.4910420000001,
+      "size": 20000,
+      "firstMs": 49.85766699999999,
+      "warmMs": [
+        2.0559169999999938,
+        1.6325000000000074,
+        1.8987079999999992,
+        1.5913749999999993,
+        1.6878329999999835
+      ],
+      "memory": {
+        "rss": 131301376,
+        "heapTotal": 54706176,
+        "heapUsed": 36593960,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 128224,
+      "coldProcessMs": [
+        128.09370799999988,
+        141.9337919999998,
+        130.41441699999996,
+        126.0773750000003,
+        130.73649999999998
+      ]
+    },
+    {
+      "name": "euler",
+      "scale": 2,
+      "version": "candidate",
+      "warmProcessMs": 217.7861670000002,
+      "size": 200000,
+      "firstMs": 58.09308299999999,
+      "warmMs": [
+        11.228624999999994,
+        11.04879200000002,
+        11.416665999999992,
+        10.832374999999985,
+        10.904375000000016
+      ],
+      "memory": {
+        "rss": 126894080,
+        "heapTotal": 55492608,
+        "heapUsed": 33479688,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 123920,
+      "coldProcessMs": [
+        138.53841600000032,
+        138.71195799999987,
+        136.15066699999988,
+        137.99366700000064,
+        138.04291699999976
+      ]
+    },
+    {
+      "name": "euler",
+      "scale": 2,
+      "version": "baseline",
+      "warmProcessMs": 255.643458,
+      "size": 200000,
+      "firstMs": 64.160958,
+      "warmMs": [
+        16.08533399999999,
+        15.694874999999996,
+        15.780582999999979,
+        15.058166999999997,
+        15.09941600000002
+      ],
+      "memory": {
+        "rss": 129220608,
+        "heapTotal": 54968320,
+        "heapUsed": 27892440,
+        "external": 2305284,
+        "arrayBuffers": 29231
+      },
+      "maxRSSKiB": 126192,
+      "coldProcessMs": [
+        144.4630830000001,
+        143.33341700000028,
+        143.28291699999954,
+        141.1869999999999,
+        142.34045799999967
+      ]
+    }
+  ]
+}

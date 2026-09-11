@@ -10,7 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const script = fileURLToPath(import.meta.url);
 const options = Object.fromEntries(process.argv.slice(2).map(arg => {
-  const match = /^--(baseline|samples|only|worker|checkout|scale|mode)=(.+)$/.exec(arg);
+  const match = /^--(baseline|samples|only|worker|checkout|scale|mode|order)=(.+)$/.exec(arg);
   assert(match, `Unknown argument: ${arg}`);
   return [match[1], match[2]];
 }));
@@ -22,6 +22,7 @@ const sizes = { euler: [100, 20000, 200000], row: [8, 128, 512],
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const samples = Number(options.samples ?? 5);
 assert(Number.isSafeInteger(samples) && samples >= 3);
+assert(options.order === undefined || ['candidate-first', 'baseline-first'].includes(options.order));
 if (options.worker) {
   const name = options.worker;
   assert(name in sources);
@@ -99,7 +100,7 @@ if (options.worker) {
   for (const name of Object.keys(sources).filter(name => !options.only || name === options.only)) {
     for (let scale = 0; scale < 3; scale++) {
       const entries = Object.entries(checkouts);
-      if (scale % 2) entries.reverse();
+      if (Boolean(scale % 2) !== (options.order === 'baseline-first')) entries.reverse();
       for (const [version, checkout] of entries) {
         const start = performance.now();
         const child = spawnSync(process.execPath, [script, `--worker=${name}`, `--scale=${scale}`, `--checkout=${checkout}`, `--samples=${samples}`], { encoding: 'utf8', timeout: 120000 });
