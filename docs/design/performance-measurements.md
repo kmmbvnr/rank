@@ -246,4 +246,5 @@ direction (165 → 177 ms, then 196 → 174 ms). Cold runs include startup and I
 [Raw array, scalar and memo pairs](../../benchmarks/baselines/2026-09-11-fused-reductions.json)
 and [additional scalar and judge checks](../../benchmarks/baselines/2026-09-11-fused-reductions-checks.json)
 retain every sample. After incorporating main's additional Euler tests, the
-build, all 424 JS tests and all 144 demo files passed.
+build, all 424 JS tests and all 154 demo files passed (including Euler 21–30
+from main `7e2e4ed`).
