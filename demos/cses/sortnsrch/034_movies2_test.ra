@@ -1,0 +1,44 @@
+use testing
+
+test "official example"
+  use "034_movies2"
+  Movies = array shape 5 2
+    1 5
+    8 10
+    3 6
+    2 5
+    6 9
+  end
+  Movies 2 maximum_movies equal 4
+end
+
+test "one viewer"
+  use "034_movies2"
+  Movies = array shape 3 2
+    1 4
+    2 3
+    3 5
+  end
+  Movies 1 maximum_movies equal 2
+end
+
+test "touching movies are compatible"
+  use "034_movies2"
+  Movies = array shape 4 2
+    1 2
+    1 2
+    2 3
+    2 3
+  end
+  Movies 2 maximum_movies equal 4
+end
+
+test "extra viewers do not change count"
+  use "034_movies2"
+  Movies = array shape 3 2
+    1 10
+    2 9
+    3 8
+  end
+  Movies 5 maximum_movies equal 3
+end
