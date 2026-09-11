@@ -1,0 +1,19 @@
+rem Deep-ML 43: Ridge Loss
+rem https://www.deep-ml.com/problems/43
+
+use linalg
+use numbers
+use sequences
+use stats
+
+fun ridge_loss X W Truth Alpha
+  Predicted = X W matmul
+  if Predicted len not equal Truth len
+    .DimensionMismatch raise
+  end
+
+  Error = Truth - Predicted
+  Mse = (Error * Error) mean
+  Penalty = Alpha * (W * W) sum
+  return Mse + Penalty
+end
