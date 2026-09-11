@@ -153,6 +153,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarBlockCalls?: boolean;
     readonly scalarCallCompilation?: boolean;
     readonly tensorTextDigits?: boolean;
     readonly scalarTextCompilation?: boolean;
@@ -1051,12 +1052,15 @@ export class Interpreter {
                     const definition = value && isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
                     if (!definition || definition.statement.parameters.length !== arity) return undefined;
                     const statement = definition.statement;
-                    const type = scalarFunctionResult(statement);
-                    if (!type) return undefined;
-                    return { type, bind: () => {
+                    const proof = scalarFunctionResult(statement, this.options.scalarBlockCalls !== false);
+                    if (!proof) return undefined;
+                    const captures = definition.context !== undefined;
+                    return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
                         const current = this.findVariable(name);
-                        if (!current || !isNativeFunction(current)
-                            || functionDefinitions.get(current)?.statement !== statement) return undefined;
+                        if (!current || !isNativeFunction(current)) return undefined;
+                        const active = functionDefinitions.get(current);
+                        if (active?.statement !== statement || (active.context !== undefined) !== captures
+                            || proof.locals.some(local => active.context?.find(local))) return undefined;
                         return arguments_ => current.call(arguments_);
                     } };
                 },
@@ -2521,6 +2525,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarBlockCalls: this.options.scalarBlockCalls,
             scalarCallCompilation: this.options.scalarCallCompilation,
             tensorTextDigits: this.options.tensorTextDigits,
             scalarTextCompilation: this.options.scalarTextCompilation,
@@ -2628,6 +2633,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarBlockCalls: this.options.scalarBlockCalls,
             scalarCallCompilation: this.options.scalarCallCompilation,
             tensorTextDigits: this.options.tensorTextDigits,
             scalarTextCompilation: this.options.scalarTextCompilation,

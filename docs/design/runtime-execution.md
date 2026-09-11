@@ -843,3 +843,20 @@ AST metadata, not invocation frames. Calls continue through the ordinary functio
 machinery, preserving lexical/resource scopes, fixed parameter types, diagnostics
 and call-depth limits. No inlining is performed. A changed definition falls back
 before any region writes. `scalarCallCompilation: false` disables this stage.
+
+### Scalar function blocks and closure-write guards
+
+The scalar-call proof also accepts local assignments (including supported compound
+updates), parameter updates, if/elif/else branches and early returns. Reads must be
+defined on every continuing path, assigned names must keep one type, and all return
+paths must agree on integer or boolean output. Loops, nested calls and other syntax
+still decline. Unreachable trailing syntax is rejected as well, because local
+function declarations can be hoisted before execution.
+
+A name written by a nested helper is not automatically private: Rank may resolve it
+to an existing closure binding. Entry guards therefore reject an existing captured
+assignment target. The compiler also rejects conflicts with names the enclosing
+region can write, even if those names have no value at entry yet. Global functions
+without a closure context may reuse caller-local names; the context kind is guarded
+on entry too. Function execution remains on the ordinary call path. The
+`scalarBlockCalls: false` switch retains the preceding single-return proof only.

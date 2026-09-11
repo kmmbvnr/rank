@@ -2130,3 +2130,164 @@ end
         expect(errors[1]).toContain('RecursionLimit');
     });
 });
+
+describe('proven scalar function blocks', () => {
+    it('tracks local assignments and early return branches', () => {
+        const result = compare(`use ranges
+fun bounded X
+  Value = X - 2
+  if Value less 0
+    return 0
+  elif Value greater 2
+    Value = 2
+  end
+  return Value
+end
+Total = 0
+for I in 0 to 5
+  Total += I bounded
+end
+Total`);
+        expect(result.value).toBe('5');
+        expect(result.loops).toBe(1);
+    });
+
+    it('merges definitions from both continuing branches', () => {
+        const result = compare(`use ranges
+fun magnitude X
+  if X less 0
+    Value = -X
+  else
+    Value = X
+  end
+  return Value
+end
+Total = 0
+for I in -2 to 2
+  Total += I magnitude
+end
+Total`);
+        expect(result.value).toBe('6');
+        expect(result.loops).toBe(1);
+    });
+
+    it('does not mutate a captured assignment through a compiled call', () => {
+        const result = compare(`use ranges
+fun perform N
+  Shared = 10
+  fun helper X
+    Shared = X + 1
+    return Shared
+  end
+  Total = 0
+  for I in 1 to N
+    Total += I helper
+  end
+  return Shared
+end
+3 perform`);
+        expect(result.value).toBe('4');
+        expect(result.loops).toBe(0);
+    });
+
+    it('rejects a collision created later by the caller region', () => {
+        const result = compare(`use ranges
+fun perform N
+  fun helper X
+    Shared = X + 1
+    return Shared
+  end
+  Total = 0
+  for I in 1 to N
+    Value = I helper
+    Total += Value
+    Shared = 100
+  end
+  return array Total Shared
+end
+2 perform`);
+        expect(result.value).toBe('5 100');
+        expect(result.loops).toBe(0);
+    });
+
+    it('allows parameter writes without changing caller bindings', () => {
+        const result = compare(`use ranges
+fun increment X
+  X += 1
+  return X
+end
+Total = 0
+for I in 1 to 3
+  Total += I increment
+end
+array Total I`);
+        expect(result.value).toBe('9 3');
+        expect(result.loops).toBe(1);
+    });
+
+    it('requires local reads to be defined on every continuing path', () => {
+        const result = compare(`use ranges
+fun helper X
+  if X greater 0
+    Value = X
+  end
+  return Value
+end
+Total = 0
+for I in 0 to 1
+  Total += I helper
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it('keeps block function errors after prior caller writes', () => {
+        const result = compare(`use ranges
+fun helper X
+  Value = X - 1
+  return 10 // Value
+end
+A = array 0
+for I in 2 to 1 by -1
+  A 0 += 1
+  Result = I helper
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.containers).toContainEqual(['A', [1], ['2']]);
+        expect(result.loops).toBe(1);
+    });
+
+    it('rejects hoisted declarations after a terminal return', () => {
+        const result = compare(`use ranges
+fun helper X
+  return X
+  fun nested Y
+    return Y
+  end
+end
+Total = 0
+for I in 1 to 2
+  Total += I helper
+end
+Total`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(0);
+    });
+});
+
+
+it('allows independent local names in a global helper and its caller', () => {
+    const result = compare(`use ranges
+fun helper X
+  Value = X + 1
+  return Value
+end
+Total = 0
+for I in 1 to 3
+  Value = I helper
+  Total += Value
+end
+Total`);
+    expect(result.value).toBe('9');
+    expect(result.loops).toBe(1);
+});

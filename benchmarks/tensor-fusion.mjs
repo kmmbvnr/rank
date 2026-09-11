@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls'].includes(backend));
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -61,6 +61,7 @@ function emptyGridPaths(size) {
   return paths % 1000000007n;
 }
 const tasks = [
+  { name: 'Bounded score helper, 200000 calls', path: 'benchmarks/programs/block-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
   { name: 'Euler 45, next common polygonal value', path: 'demos/euler/045_tripolygonal.ra', fn: 'common_polygonal', expected: 1533776805n, args: () => [144n, 166n] },
   { name: 'Euler 30, fourth power digit numbers', path: 'demos/euler/030_digitpowers.ra', fn: 'digit_power_numbers', expected: 19316n, args: () => [4n] },
   { name: 'Euler 25, first 1000-digit Fibonacci index', path: 'demos/euler/025_fibdigits.ra', fn: 'first_fibonacci_index', expected: 4782n, args: () => [1000n] },
@@ -108,6 +109,7 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
+      scalarBlockCalls: backend === 'blockcalls' ? enabled : undefined,
       scalarCallCompilation: backend === 'scalarcalls' ? enabled : undefined,
       tensorTextDigits: backend === 'tensordigits' ? enabled : undefined,
       scalarTextCompilation: backend === 'scalartext' ? enabled : undefined,
@@ -134,7 +136,7 @@ for (let sample=0; sample<samples; sample++) {
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
-      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls'].includes(backend) && counters ? () => kernels++ : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls'].includes(backend) && counters ? () => kernels++ : undefined,
       loopPreparation: backend === 'loop' ? enabled : undefined,
       blockCompilation: backend === 'block' ? enabled : undefined,
       onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,

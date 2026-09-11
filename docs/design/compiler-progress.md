@@ -1383,3 +1383,38 @@ this single pair does not establish a stable whole-suite speedup or attribute al
 of that difference to this stage.
 
 [Suite results](../../benchmarks/baselines/2026-09-12-scalar-calls-suite.json).
+
+## Scalar helper blocks with definite assignment and closure guards
+
+The scalar-call proof now handles local/parameter assignments, supported compound
+updates, branches and early returns. It intersects definitions on continuing paths
+and requires a consistent result type. Nested helper writes require runtime closure
+checks and a static check against all names the caller region might write, including
+names created after entry. Global helpers may reuse independent caller-local names.
+Unreachable trailing syntax is rejected to avoid overlooking hoisted declarations.
+
+Nine regression cases cover local early-return blocks, branch merges, existing and
+future closure collisions, parameter updates, undefined local paths, error state,
+hoisted declarations and independent global-helper local names. Final checks pass
+44 language + 870 interpreter tests.
+
+A compiler fixture calls a helper 200000 times. The helper computes X - 100000,
+returns zero below zero, and caps values above 50000. The independently expected
+sum is 3749975000 (sum 0..50000 plus 49999 copies of 50000). Five alternating samples
+toggle only `scalarBlockCalls`; all earlier stages stay enabled. Timing includes
+loading/parsing, compilation, execution and validation with counters disabled.
+
+The fixture median drops from 372.742 ms to 206.148 ms, about 1.81x. This is a
+compiler fixture, not an unchanged contest solution. Coverage changes from zero
+to one compiled caller region. Euler 45 is an unchanged single-return control:
+its coverage stays at one in both modes; medians are 9.024 and 7.861 ms, and that
+variation should not be attributed to newly supported function bodies.
+
+[Timings](../../benchmarks/baselines/2026-09-12-block-calls-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-block-calls-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 demo tests, with every digest matching
+the preceding scalar-call baseline. One pair takes 27.089 s off and 26.585 s on;
+this does not establish a stable whole-suite gain.
+
+[Suite verification](../../benchmarks/baselines/2026-09-12-block-calls-suite.json).

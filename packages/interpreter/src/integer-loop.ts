@@ -29,6 +29,7 @@ interface Host {
     readonly scalarText: boolean;
     scalarFunction(name: string, arity: number): {
         type: 'integer' | 'boolean';
+        locals: readonly string[];
         bind(): ((arguments_: RankValue[]) => RankValue) | undefined;
     } | undefined;
     readonly booleanLocals: boolean;
@@ -117,7 +118,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     const written = new Set<string>();
     const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
     const builtins = new Map<string, string>();
-    const calls: { name: string; bind(): ((arguments_: RankValue[]) => RankValue) | undefined }[] = [];
+    const calls: { name: string; locals: readonly string[]; bind(): ((arguments_: RankValue[]) => RankValue) | undefined }[] = [];
     const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
@@ -245,7 +246,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                         arguments_.push(value.code);
                     }
                     const name = `v${serial++}`, index = calls.length;
-                    calls.push({ name: last.name, bind: callable.bind });
+                    calls.push({ name: last.name, locals: callable.locals, bind: callable.bind });
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
                     return { code: name, type: callable.type };
                 }
@@ -623,7 +624,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return undefined;
-    if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name))) return undefined;
+    if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return undefined;
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
