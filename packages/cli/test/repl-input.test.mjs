@@ -6,7 +6,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import {
-    EMPTY_CELL, addLine, cellSource, closeCell, collapseSpaces, expandAssignKey,
+    EMPTY_CELL, addLine, cellSource, cellStarts, closeCell, collapseSpaces, expandAssignKey,
     expandCompoundKeywords, expandOperators, formatLine, formatTyping, insideText,
     isComplete, isEmpty, nextIndent, promptFor, scanLine, spaceOperators, startsDedent,
     tokenize, wrapSource,
@@ -224,6 +224,17 @@ test('prompt and indentation report what is open', () => {
     assert.equal(promptFor(cell('A = 1 +')), '....> ');
     assert.equal(promptFor(cell('A = record')), 'reco> ');
     assert.equal(isEmpty(EMPTY_CELL), true);
+});
+
+test('finds the line each statement of a file begins at', () => {
+    assert.deepEqual(cellStarts([]), []);
+    assert.deepEqual(cellStarts(['A = 1', 'B = 2']), [0, 1]);
+    // A block is one statement, whatever its body; a blank line is its own.
+    assert.deepEqual(
+        cellStarts(['fun triple X', '  return X * 3', 'end', '', 'B = 1']),
+        [0, 3, 4]);
+    // A folded line reaches its end before the next statement starts.
+    assert.deepEqual(cellStarts(['A = 1 +', '2', 'B = 3']), [0, 2]);
 });
 
 test('wraps a wide line into brackets and narrow lines', () => {

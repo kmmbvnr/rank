@@ -39,14 +39,16 @@ test('rows out of reach are left alone rather than erased', () => {
  * line that ran is printed again with no prompt in front of it, which is what
  * makes the screen read as the file the session is writing.
  */
+const KEYS = { '<TAB>': '\\t', '<UP>': '\\033\\[A', '<DOWN>': '\\033\\[B', '<BS>': '\\177' };
+
 function transcript(lines) {
     const steps = lines.flatMap(line => [
-        // Readline reads a tab arriving inside a burst as plain text, so each
-        // one is sent on its own; the listing needs the second of two.
-        ...line.split('<TAB>').flatMap((piece, index) => [
-            ...(index > 0 ? ['send "\\t"', 'sleep 0.3'] : []),
-            ...(piece === '' ? [] : [`send ${JSON.stringify(piece)}`, 'sleep 0.2']),
-        ]),
+        // Readline reads a key arriving inside a burst as plain text, so each
+        // one is sent on its own; a listing needs the second of two tabs.
+        ...line.split(/(<[A-Z]+>)/).filter(piece => piece !== '').flatMap(piece =>
+            KEYS[piece] === undefined
+                ? [`send ${JSON.stringify(piece)}`, 'sleep 0.2']
+                : [`send "${KEYS[piece]}"`, 'sleep 0.3']),
         'send "\\r"',
         'sleep 0.3',
     ]);
@@ -82,6 +84,21 @@ test('a second listing replaces the first rather than piling on it', () => {
     const erased = [...session.matchAll(/\x1b\[(\d+)A/g)].map(found => Number(found[1]));
     const listings = erased.filter(rows => rows > 3);
     assert.equal(listings.length, 2, `erased ${JSON.stringify(erased)}`);
+});
+
+test('the arrows step back into the file and Enter walks forward again', () => {
+    // Up twice reaches the first statement, which is then fixed; the Enter
+    // that ends the line runs it, and the next Enter runs the line below with
+    // the value the fix gave it.
+    const session = transcript(['A, 3', 'B, A * 2', '<UP><UP><BS>5', '', 'list']);
+    assert.match(session, / {3}1> /, 'the prompt never named the line');
+    assert.match(session, /\x1b\[0JA = 5\r\n/);
+    assert.match(session, /\x1b\[2m10/, 'B was not worked out again');
+    // The file is the two lines it always was: the fix replaced one. `list`
+    // dims the number, so the escape that ends it sits inside the line.
+    assert.match(session, /\x1b\[2m {2}1 \x1b\[22m A = 5/);
+    assert.match(session, /\x1b\[2m {2}2 \x1b\[22m B = A \* 2/);
+    assert.doesNotMatch(session, /\x1b\[2m {2}3 /);
 });
 
 test('a blank line between statements is part of the file', () => {

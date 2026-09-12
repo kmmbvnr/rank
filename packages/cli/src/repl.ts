@@ -16,7 +16,7 @@ import { preview } from './preview.js';
 import { countRows, eraseRows, screenRows } from './screen.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine,
-    cellSource, closeCell,
+    cellSource, cellStarts, closeCell,
     expandCompoundKeywords, expandOperators, formatLine, formatTyping, isComplete,
     isEmpty, nextIndent, promptFor, startsDedent, wrapSource, type CellState,
 } from './repl-input.js';
@@ -26,7 +26,8 @@ const HISTORY_LIMIT = 500;
 const WIDTH = 40;
 
 const COMMANDS = [
-    'help', 'forms', 'ops', 'vars', 'full', 'save', 'load', 'alias', 'exit', 'quit',
+    'help', 'forms', 'ops', 'vars', 'full', 'list', 'save', 'load', 'alias',
+    'exit', 'quit',
 ];
 
 export async function startRepl(): Promise<void> {
@@ -41,10 +42,16 @@ export async function startRepl(): Promise<void> {
     let state = EMPTY_CELL;
     let aliases = true;
     let last: RankValue | undefined;
-    const accepted: string[] = [];
+    // The file the session is writing, and the line of it the prompt stands
+    // on. At the end of the file the prompt appends; anywhere else it is
+    // editing a line that is already there.
+    const file: string[] = [];
+    let cursor = 0;
+    let cellStart = 0;
     const session = (): Session => ({
         interpreter,
-        accepted,
+        file,
+        cursor,
         aliases,
         setAliases: value => { aliases = value; },
         last,
@@ -80,17 +87,67 @@ export async function startRepl(): Promise<void> {
     });
 
     if (terminal) {
-        // Runs after readline's own handler, so the listing is already printed.
+        // The first listener sees the line as it stood before readline could
+        // recall a history entry over it; the rest run after readline, where
+        // a completion listing is already printed.
+        let before = '';
+        process.stdin.prependListener('keypress', () => { before = input.line; });
         process.stdin.on('keypress', counted.disarm);
+        process.stdin.on('keypress', (_chunk, key: KeyPress | undefined) => step(key, before));
         watchTyping(input, () => state);
     }
 
+    // A line already in the file is named by its number, the way an editor
+    // names it; past the end the prompt is the ordinary one.
+    const promptNow = (): string =>
+        cursor < file.length ? `${String(cursor + 1).padStart(4)}> ` : promptFor(state);
+
     const draw = (): void => {
         if (!terminal) return;
-        input.setPrompt(promptFor(state));
+        input.setPrompt(promptNow());
         input.prompt();
-        const indent = nextIndent(state);
-        if (indent !== '') input.write(indent);
+        const text = cursor < file.length ? file[cursor] : nextIndent(state);
+        if (text !== '') input.write(text);
+    };
+
+    /** Replaces what stands on the prompt line, as if it had been typed. */
+    const setLine = (text: string): void => {
+        input.write(null, { ctrl: true, name: 'a' });
+        input.write(null, { ctrl: true, name: 'k' });
+        if (text !== '') input.write(text);
+        else input.prompt(true);
+    };
+
+    /**
+     * Walks the file a statement at a time. Stepping into the middle of a
+     * block would offer a body line with nothing holding it, so the arrows
+     * move between the lines a statement starts on and the cell machinery
+     * carries the lines between them.
+     *
+     * Nothing is replayed on the way back: a line above may have written a
+     * file or read a port, and running it twice is not the REPL's to decide.
+     * The state is the one the session already has; what changes is the line
+     * under the cursor and everything the user then steps forward through.
+     */
+    const step = (key: KeyPress | undefined, before: string): void => {
+        if (!key || key.ctrl || key.meta) return;
+        if (key.name !== 'up' && key.name !== 'down') return;
+        // A half-built cell owns the arrows; so does an empty file, where they
+        // stay with readline and walk the typed history as they always have.
+        if (!isEmpty(state)) return;
+        const starts = cellStarts(file);
+        if (starts.length === 0) return;
+        if (key.name === 'up') input.write(null, { name: 'down' });
+
+        // Whatever was typed on the line being left stays on it.
+        if (cursor < file.length) file[cursor] = before.trim();
+        const next = key.name === 'up'
+            ? starts.filter(start => start < cursor).at(-1) ?? starts[0]
+            : starts.filter(start => start > cursor)[0] ?? file.length;
+        cursor = next;
+        cellStart = next;
+        input.setPrompt(promptNow());
+        setLine(cursor < file.length ? file[cursor] : '');
     };
 
     if (terminal) {
@@ -119,9 +176,15 @@ export async function startRepl(): Promise<void> {
         };
         const settle = (): void => { settled = 0; open = 0; managed = true; };
 
+        /** Puts a finished cell where it began, over the lines it was editing. */
+        const write = (lines: readonly string[]): void => {
+            file.splice(cellStart, cursor - cellStart, ...lines);
+            cursor = cellStart + lines.length;
+        };
+
         for await (const raw of input) {
             if (terminal) {
-                open += screenRows(promptFor(state).length + raw.length, columns())
+                open += screenRows(promptNow().length + raw.length, columns())
                     + counted.taken();
             }
             const text = raw.trim();
@@ -138,7 +201,11 @@ export async function startRepl(): Promise<void> {
                     // With something open it still closes it, which is the
                     // only gesture that can.
                     if (terminal && eraseRows(process.stdout, open)) console.log('');
-                    if (isEmpty(state)) accepted.push('');
+                    if (isEmpty(state)) {
+                        cellStart = cursor;
+                        cursor += 1;
+                        write(['']);
+                    }
                     settle();
                     draw();
                     continue;
@@ -153,8 +220,10 @@ export async function startRepl(): Promise<void> {
                 draw();
                 continue;
             } else {
+                if (isEmpty(state)) cellStart = cursor;
                 const keyed = formatLine(text);
                 state = addLine(state, aliases ? expand(keyed, interpreter) : keyed);
+                cursor += 1;
             }
 
             if (terminal && managed && eraseRows(process.stdout, open)) {
@@ -180,13 +249,17 @@ export async function startRepl(): Promise<void> {
                 && eraseRows(process.stdout, settled)) put(source.split('\n'));
             settle();
             state = EMPTY_CELL;
-            if (run(interpreter, source, session())) accepted.push(source);
+            const ran = run(interpreter, source, session());
+            // A line that fails is not written; a line already in the file
+            // keeps the edit, so a broken fix can be fixed again.
+            if (ran || cellStart < file.length) write(source.split('\n'));
+            else cursor = cellStart;
             draw();
         }
 
         if (!isEmpty(state)) {
             const source = narrow(cellSource(closeCell(state)));
-            if (run(interpreter, source, session())) accepted.push(source);
+            if (run(interpreter, source, session())) write(source.split('\n'));
         }
     } finally {
         input.close();
@@ -198,8 +271,9 @@ export async function startRepl(): Promise<void> {
 /** Dim, as a plain function the printer can be handed. */
 const dim = (line: string): string => chalk.dim(line);
 
+/** A terminal that reports no width is taken for an ordinary one. */
 function columns(): number {
-    return process.stdout.columns ?? 80;
+    return process.stdout.columns || 80;
 }
 
 /**
@@ -268,6 +342,7 @@ function reindent(input: readline.Interface, indent: string, wanted: string): vo
 }
 
 interface KeyPress {
+    readonly name?: string;
     readonly sequence?: string;
     readonly ctrl?: boolean;
     readonly meta?: boolean;
@@ -320,7 +395,10 @@ function show(value: RankValue): void {
 
 interface Session {
     readonly interpreter: Interpreter;
-    readonly accepted: string[];
+    /** The file the session has written, as its lines. */
+    readonly file: string[];
+    /** The line the prompt stands on, or the length of the file at its end. */
+    readonly cursor: number;
     readonly aliases: boolean;
     readonly setAliases: (value: boolean) => void;
     readonly last: RankValue | undefined;
@@ -349,22 +427,35 @@ async function command(text: string, session: Session): Promise<void> {
     else if (name === 'alias') {
         if (rest[0] === 'on' || rest[0] === 'off') session.setAliases(rest[0] === 'on');
         else console.log(`alias is ${session.aliases ? 'on' : 'off'}; use 'alias off'`);
-    } else if (name === 'save') await save(session.accepted, rest[0]);
+    } else if (name === 'list') printFile(session.file, session.cursor);
+    else if (name === 'save') await save(session.file, rest[0]);
     else if (name === 'load') await load(session, rest[0]);
 }
 
-async function save(accepted: readonly string[], target: string | undefined): Promise<void> {
+async function save(lines: readonly string[], target: string | undefined): Promise<void> {
     if (!target) {
         console.error(chalk.red('save needs a file name'));
         return;
     }
-    const file = path.extname(target) === '' ? `${target}.ra` : target;
-    const source = accepted.join('\n') + (accepted.length > 0 ? '\n' : '');
+    const name = path.extname(target) === '' ? `${target}.ra` : target;
+    const source = lines.join('\n') + (lines.length > 0 ? '\n' : '');
     try {
-        await fs.writeFile(file, source, 'utf8');
-        console.log(`${accepted.length} statements to ${file}`);
+        await fs.writeFile(name, source, 'utf8');
+        console.log(`${lines.length} lines to ${name}`);
     } catch (error) {
         console.error(chalk.red(String(error)));
+    }
+}
+
+/** The file so far, numbered, with a mark on the line the prompt stands on. */
+function printFile(lines: readonly string[], cursor: number): void {
+    if (lines.length === 0) {
+        console.log(chalk.dim('nothing written yet'));
+        return;
+    }
+    for (const [index, line] of lines.entries()) {
+        const number = `${String(index + 1).padStart(3)}${index === cursor ? '>' : ' '}`;
+        console.log(`${chalk.dim(number)} ${line}`);
     }
 }
 
@@ -410,6 +501,16 @@ function printHelp(aliases: boolean): void {
         '  the run produced is dim, so the plain',
         "  text is the file 'save' writes.",
         '',
+        'Going back',
+        '  Up steps to the statement above and',
+        '  puts it back at the prompt to edit.',
+        '  Enter runs it and offers the next',
+        '  one, so Enter walks to the end.',
+        '  Down steps forward. Nothing above is',
+        '  run again, so a line that wrote a',
+        '  file does not write it twice.',
+        "  Ctrl-P still walks what you typed.",
+        '',
         'Results',
         '  A result is one line: a long one',
         '  keeps its two ends and counts the',
@@ -435,6 +536,7 @@ function printHelp(aliases: boolean): void {
         '  ops     names you can call now',
         '  ops N   what one name does',
         '  full    the last result in full',
+        '  list    the file so far, numbered',
         '  vars    names you have bound',
         '  save F  write the session to F.ra',
         '  load F  run F.ra in this session',

@@ -608,3 +608,23 @@ function breaksBefore(inner: readonly Token[], index: number): boolean {
     // `not equal` is one operator, and `sort by` is one token.
     return !(previous.kind === 'word' && previous.text === 'not');
 }
+
+/**
+ * The line each statement of a file begins at.
+ *
+ * A statement is what the REPL can put back at a prompt: stepping into the
+ * middle of a block would offer a body line with nothing holding it, so
+ * walking a file backwards moves between these and lets the cell machinery
+ * carry the lines between them.
+ */
+export function cellStarts(lines: readonly string[]): number[] {
+    const starts: number[] = [];
+    let state = EMPTY_CELL;
+    for (const [index, line] of lines.entries()) {
+        if (isEmpty(state)) starts.push(index);
+        const text = line.trim();
+        if (text !== '') state = addLine(state, text);
+        if (isComplete(state)) state = EMPTY_CELL;
+    }
+    return starts;
+}

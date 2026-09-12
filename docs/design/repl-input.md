@@ -175,6 +175,36 @@ line that ran is all that is left where both of them stood. A second tab
 replaces the listing rather than stacking another under it: only the newest one
 answers what has been typed.
 
+**Up steps back into the file.** With something already written, the up arrow
+leaves the prompt at the end of the file and puts the statement above it back
+where it can be edited, named by its number:
+
+```console
+   1> A = 3
+```
+
+Enter accepts the line as it stands, runs it, and offers the next one, so Enter
+walks forward to the end of the file and out to an ordinary prompt again. Down
+steps forward without editing. A statement is the unit, not a line: stepping
+into the middle of a block would offer a body line with nothing holding it, so
+the arrows move between the lines a statement starts on and the cell machinery
+carries the lines between them.
+
+**Nothing above the cursor is replayed.** A line further up may have written a
+file, read a port or asked a question, and running it again is not the REPL's
+to decide. The state is the one the session already has; what changes is the
+line under the cursor and everything the user then steps forward through. So a
+fix is worth what the lines below it are worth — which, for the small programs
+this prompt is for, is usually all of it, and `list` shows what the file now
+says either way.
+
+A line that fails is not written to the file, but a line already in the file
+keeps the edit that broke it, so a bad fix can be fixed again.
+
+`Ctrl-P` still walks the typed history, which is what the up arrow used to do.
+The two had been the same key; now one walks the program and the other walks
+what was typed, including the commands and the sessions before this one.
+
 **A result is one line.** A long one keeps its two ends with the count
 underneath, and the two ends are cut to the width of the screen: a value that
 wraps over four rows of a narrow screen is no more readable than one that never
@@ -226,8 +256,9 @@ operator completes whole, so `mul` finishes as `multiple by`.
 
 **The commands answer without leaving the prompt:** `help` for the input rules,
 `forms` for how to type each construct, `ops [module]` for the names callable
-now, `vars` for the names bound and their types, `save F` and `load F` for a
-real `.ra` file, `alias on|off`, `exit`. Every line of output fits 40 columns.
+now, `vars` for the names bound and their types, `list` for the file so far with
+its line numbers, `save F` and `load F` for a real `.ra` file, `alias on|off`,
+`exit`. Every line of output fits 40 columns.
 
 **History persists** in `~/.rank_history`, because retyping on a phone is the
 most expensive thing there is.
@@ -256,6 +287,9 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
   It was never valid Rank, but the error it gives is now a stranger one.
 - A blank line inside a block is unavailable interactively, since that is the
   gesture that closes blocks.
+- Stepping back and running a line again leaves the earlier run above it on
+  screen, so the same line can appear twice with different answers. `list` is
+  the file; the screen is the file and every take of it.
 - A statement that raised stays in plain text although `save` will not write it.
   It is printed before it runs, and the red error under it is the only sign.
 
