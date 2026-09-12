@@ -97,6 +97,11 @@ Train .Number = Parts 1
 Train .Side = Parts 2
 ```
 
+The [runnable numeric baseline](../../demos/kaggle/003_spaceship.ra) fills the
+five spending columns and age from training medians, derives total spending,
+fits the Rank logistic regression, and writes boolean predictions. Its tests
+use in-memory rows and cover missing test values.
+
 ## Digit Recognizer
 
 Get all pixel columns except the target:

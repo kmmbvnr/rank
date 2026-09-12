@@ -1,0 +1,38 @@
+use testing
+
+test "fills spending and builds total spend"
+  use json
+  use sequences
+  use "003_spaceship"
+  Train = "[{\"Age\":20,\"CryoSleep\":true,\"VIP\":false,\"RoomService\":1,\"FoodCourt\":2,\"ShoppingMall\":3,\"Spa\":4,\"VRDeck\":5}, {\"Age\":30,\"CryoSleep\":false,\"VIP\":true,\"RoomService\":3,\"FoodCourt\":4,\"ShoppingMall\":5,\"Spa\":6}]" json
+  Test = "[{\"CryoSleep\":false,\"RoomService\":2,\"FoodCourt\":3,\"ShoppingMall\":4,\"Spa\":5,\"VRDeck\":6}]" json
+
+  unpack X Xtest = Train Test spending_features
+  Expected = array shape 1 4
+    0 0 25.0 20
+  end
+  Shape = X shape
+  CorrectShape = Shape 0 equal 2 and Shape 1 equal 4
+  CorrectShape and Xtest equal Expected
+end
+
+test "builds a boolean transport submission"
+  use json
+  use sequences
+  use "003_spaceship"
+  Train = "[{\"PassengerId\":\"a\",\"Transported\":true,\"Age\":20,\"CryoSleep\":true,\"VIP\":false,\"RoomService\":0,\"FoodCourt\":0,\"ShoppingMall\":0,\"Spa\":0,\"VRDeck\":0}, {\"PassengerId\":\"b\",\"Transported\":false,\"Age\":40,\"CryoSleep\":false,\"VIP\":true,\"RoomService\":10,\"FoodCourt\":10,\"ShoppingMall\":10,\"Spa\":10,\"VRDeck\":10}]" json
+  Test = "[{\"PassengerId\":\"c\",\"Age\":20,\"CryoSleep\":true,\"VIP\":false,\"RoomService\":0,\"FoodCourt\":0,\"ShoppingMall\":0,\"Spa\":0,\"VRDeck\":0}]" json
+
+  Result = Train Test 0.1 300 solve
+  Result shape equal array 1 2 and Result 0 1 equal true
+end
+
+test "uses training medians for missing test values"
+  use json
+  use "003_spaceship"
+  Train = "[{\"Age\":20,\"RoomService\":1,\"FoodCourt\":2,\"ShoppingMall\":3,\"Spa\":4,\"VRDeck\":5}]" json
+  Test = "[{\"Age\":30}]" json
+
+  unpack X Xtest = Train Test spending_features
+  Xtest 0 3 equal 15.0
+end
