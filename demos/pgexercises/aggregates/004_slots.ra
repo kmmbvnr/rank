@@ -1,0 +1,17 @@
+rem PostgreSQL Exercises: aggregates 4
+rem https://pgexercises.com/questions/aggregates/fachours.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_004.csv"
+
+Db = DbPath sqlite
+R = Db .bookings
+G = R group by .facid
+Result = G .slots sum
+Result = Result sort by .facid
+Result OutputPath csv

@@ -76,7 +76,7 @@ export const numbersModule: RuntimeModule = {
         const value = arguments_[0];
         if (isRankSqliteExpression(value)) return sumSqlite(value);
         if (isRankGroupedColumn(value)) {
-            return aggregateGroupedColumn(value, values => sumArray(values.items));
+            return aggregateGroupedColumn(value, values => sumArray(values.items), false, 'sum');
         }
         if (isRankSequence(value)) {
             const planned = reduceSequence(value, 'sum');

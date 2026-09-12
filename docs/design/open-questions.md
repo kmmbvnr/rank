@@ -2,6 +2,44 @@
 
 These are active design questions, not alternate historical syntaxes.
 
+## PostgreSQL Exercises aggregates
+
+The first thirteen runnable [aggregation solutions](../../demos/pgexercises/aggregates/README.md)
+use the same Rank source on SQLite views and arrays. The remaining exercises
+expose gaps in grouped counts, several aggregates per group, subtotals and
+window calculations. These examples are proposals, not current syntax:
+
+```rank
+G = Members group by .recommendedby
+Counts = G count
+
+G = Bookings group by .facid
+Totals = G select
+  .visits = count
+  .slots = .slots sum
+end
+
+G = Bookings rollup by .facid .month
+Totals = G .slots sum
+
+R = Members rownumber by .joindate
+R = R rank by .hours descending
+R = R 3 tile by .revenue descending
+```
+
+`G count` would return key columns and a `.count` column containing all rows
+in each group. `G .field count` would count present cells, matching SQL
+`COUNT(field)`; ordinary boolean `count` would keep its current meaning.
+Grouped `select` would calculate several aggregates in one lazy query and
+carry the keys automatically. `rollup by` would add key-prefix subtotal rows
+with absent keys. Window operations would add one named column to a new view;
+`rownumber` numbers rows, `rank` leaves gaps after ties, and `N tile` assigns
+nearly equal bands. All would work on arrays and SQLite without reading the
+full source during SQL planning. Their exact ordering and missing-value rules
+need the language owner's decision before implementation. The final rolling
+revenue exercise also needs date ranges and a rolling-window rule that counts
+days with zero bookings.
+
 ## Pattern matching
 
 `match / case` is a candidate for readable branching over labels, union types

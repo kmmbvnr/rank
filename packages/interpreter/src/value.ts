@@ -67,6 +67,7 @@ export interface RankSqliteTable {
     readonly scopes?: ReadonlyMap<string, readonly string[]>;
     readonly booleanColumns?: ReadonlySet<string>;
     readonly textColumns?: ReadonlySet<string>;
+    readonly orderBy?: readonly { field: string; descending: boolean }[];
 }
 
 /** A named role for one side of a table join. */
@@ -91,6 +92,7 @@ export interface RankSqliteExpression {
     readonly params: readonly SqliteScalar[];
     readonly boolean: boolean;
     readonly textual?: boolean;
+    readonly calendar?: 'date' | 'datetime';
 }
 
 export interface RankLabel {
@@ -161,6 +163,7 @@ export interface RankGroupedTable {
     readonly kind: 'grouped-table';
     readonly fields: readonly string[];
     readonly groups: readonly RankTableGroup[];
+    readonly sqliteSource?: RankSqliteTable;
 }
 
 export interface RankGroupedColumn {

@@ -114,7 +114,7 @@ import { covarianceValue, errorMetricValue, statisticsCell } from './modules/sta
 import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectTable } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
-    materializeSqliteExpression, projectSqlite, sortSqlite, sqliteColumn, sqliteScope,
+    materializeSqliteExpression, projectSqlite, sliceSqlite, sortSqlite, sqliteColumn, sqliteScope,
     sqliteScopedColumn, sqliteTable,
     sqliteWrite, executeSqliteWrite, inSqlite,
 } from './modules/sqlite.js';
@@ -5084,6 +5084,10 @@ function sliceValue(
     end: bigint,
     inclusive: boolean,
 ): RankValue {
+    if (isRankSqliteTable(source)) {
+        if (axis !== 0) throw new RankError(`SQLite view has no axis ${axis}`);
+        return sliceSqlite(source, start, inclusive ? end + 1n : end);
+    }
     const size = axisSize(source, axis);
     const indices = sliceIndices(size, start, end, inclusive);
     return selectAxis(source, axis, array(indices));

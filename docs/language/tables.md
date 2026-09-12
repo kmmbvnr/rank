@@ -131,7 +131,9 @@ scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,
 `innerjoin by/on`, `leftjoin by/on`, `select`, `lookup`, `unique` and field-keyed `sort by` also
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
-or a product of expressions uses SQL `SUM`. `array`, `print` and CSV output execute the
+or a product of expressions uses SQL `SUM`. `View from 0 until N` keeps the
+first `N` rows as a SQLite `LIMIT` query and checks the bounds against `len`.
+`array`, `print` and CSV output execute the
 view. `sql` and `explain` inspect the current plan without loading its result
 rows. Generated comparisons use bound parameters; field names are checked
 against the source schema and quoted. A predicate must come from the exact
@@ -145,8 +147,9 @@ The supported SQLite expression operators are `equal`, `notequal`, `less`,
 terminal operation. Other array operations require explicit `array` for now.
 SQLite `NULL` fields are absent when rows are materialized. The database view
 cannot be used as a destination for field assignment. SQL
-ordering is guaranteed only when `sort by` is the final operation before the
-terminal read.
+ordering is guaranteed when `sort by` is the final operation before the
+terminal read, or when a sorted view is immediately sliced with
+`from 0 until N`.
 
 For a query that cannot yet be expressed through Rank's table operations, use
 an explicit read-only SQL source with positional bound parameters:
@@ -469,6 +472,13 @@ reductions skip missing values; when a group has none, its aggregate cell is
 missing and may be filled with `pad`. `sum` retains its integer-zero result for
 an empty group. Keys must be scalar and cannot be NaN; repeated key fields are
 errors.
+
+For SQLite views, the same `group by` spelling builds a lazy grouped plan.
+`Groups .slots sum` returns a SQLite view with key columns and a summed
+`.slots` column; `sql` and `explain` inspect the generated `GROUP BY` query.
+Use a following `filter` for conditions on the totals and `sort by` for a
+defined output order. SQLite grouping does not promise first-seen order.
+Other grouped reductions still require array tables.
 
 ## Join
 

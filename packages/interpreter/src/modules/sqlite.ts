@@ -203,7 +203,26 @@ export function sortSqlite(
         booleanColumns: table.booleanColumns, textColumns: table.textColumns,
         text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map((field, index) =>
             quote(field) + (descending[index] ? ' DESC' : '')).join(', ')}`,
-        params: table.params };
+        params: table.params,
+        orderBy: fields.map((field, index) => ({ field, descending: descending[index] ?? false })) };
+}
+
+export function sliceSqlite(table: RankSqliteTable, start: bigint, stop: bigint): RankSqliteTable {
+    if (start < 0n || stop < 0n) {
+        throw new RankError('slice bounds must be nonnegative', 'TypeError');
+    }
+    const size = lengthSqlite(table);
+    if (start > size || stop > size) {
+        throw new RankError(`slice ${start} until ${stop} exceeds axis size ${size}`);
+    }
+    return { kind: 'sqlite-table', database: table.database,
+        text: `SELECT * FROM (${table.text}) AS source`
+            + (table.orderBy ? ` ORDER BY ${table.orderBy.map(({ field, descending }) =>
+                quote(field) + (descending ? ' DESC' : '')).join(', ')}` : '')
+            + ' LIMIT ? OFFSET ?',
+        params: [...table.params, stop > start ? stop - start : 0n, start],
+        booleanColumns: table.booleanColumns, textColumns: table.textColumns,
+        orderBy: table.orderBy };
 }
 
 export function uniqueSqlite(table: RankSqliteTable): RankSqliteTable {
@@ -390,6 +409,24 @@ export function sumSqlite(expression: RankSqliteExpression): RankValue {
         }
         return value;
     });
+}
+
+/** Return one lazy row per key; no source rows are read while planning. */
+export function aggregateSqlite(
+    source: RankSqliteTable, keys: readonly string[], field: string,
+): RankSqliteTable {
+    requireColumn(source, field);
+    if (keys.includes(field)) {
+        throw new RankError(`grouped aggregate field .${field} is also a key`, 'TypeError');
+    }
+    const keyColumns = keys.map(quote);
+    const aggregate = `COALESCE(SUM(${quote(field)}), 0) AS ${quote(field)}`;
+    return { kind: 'sqlite-table', database: source.database,
+        text: `SELECT ${[...keyColumns, aggregate].join(', ')} FROM (${source.text}) AS source`
+            + (keys.length ? ` GROUP BY ${keyColumns.join(', ')}` : ''),
+        params: source.params,
+        booleanColumns: new Set(keys.filter(key => source.booleanColumns?.has(key))),
+        textColumns: new Set(keys.filter(key => source.textColumns?.has(key))) };
 }
 
 export function maxSqlite(expression: RankSqliteExpression): RankValue {

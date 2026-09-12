@@ -3289,7 +3289,10 @@ subquery with bound parameters; no match or SQL `NULL` returns an absent field.
 Without an explicit source order, repeated SQLite keys have no stable first
 match. The view is read only and the lookup does not execute until demanded.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
-expression runs SQL `SUM`. Field names are schema-checked and quoted; values
+expression runs SQL `SUM`. `group by` on a SQLite view is lazy; grouped `sum`
+returns a view of key columns and the total. A following `filter` narrows the
+totals, and `sort by` defines their output order. `View from 0 until N` adds
+SQL `LIMIT` after checking bounds with `len`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
 join keys compare by numeric value, while text and numeric keys do not match.
 `sql` exposes the current query and ordered parameters; `explain` inspects its
@@ -3596,7 +3599,8 @@ runs. Missing key cells form one group per key combination. The statistical
 reductions skip missing values; when a group has none, its aggregate cell is
 missing and may be filled with `pad`. `sum` retains its integer-zero result for
 an empty group. Keys must be scalar and cannot be NaN; repeated key fields are
-errors.
+errors. On SQLite views, grouping stays lazy and grouped `sum` builds SQL;
+other grouped reductions currently require array tables.
 
 ## Join
 
@@ -4716,6 +4720,7 @@ retained even for empty columns and zero data rows. For object arrays without
 CSV headers, it unions keys in first-appearance order. `group by` builds a
 grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
 over a grouped column produce a flat table with the keys and aggregate.
+On SQLite views, grouped `sum` builds a lazy `GROUP BY` query.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 `sqlite` opens an existing database; `Db .table` returns a lazy table view
@@ -5175,6 +5180,11 @@ Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
 sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
 A missing projected table cell remains `.Missing` and can be handled with
 `pad` before parsing.
+
+On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
+builds a lazy `strftime` expression. This path expects canonical date text;
+unlike array parsing it does not validate each source cell when building the
+query, and invalid SQLite date text produces a missing result.
 
 ```rank
 Days = (Train .date pad "2024-01-01") date

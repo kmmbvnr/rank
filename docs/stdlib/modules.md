@@ -582,6 +582,8 @@ retained even for empty columns and zero data rows. For object arrays without
 CSV headers, it unions keys in first-appearance order. `group by` builds a
 grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
 over a grouped column produce a flat table with the keys and aggregate.
+On a SQLite view, grouped `sum` produces a lazy SQL plan; other grouped
+reductions currently require an array table.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 See [Tables](../language/tables.md) for missing keys, row order and collisions.
@@ -1042,6 +1044,11 @@ Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
 sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
 A missing projected table cell remains `.Missing` and can be handled with
 `pad` before parsing.
+
+On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
+builds a lazy `strftime` expression. The source column must contain canonical
+date text; unlike array parsing, this SQL path does not validate each date
+when the query is built. Invalid SQLite date text produces a missing result.
 
 ```rank
 Days = (Train .date pad "2024-01-01") date

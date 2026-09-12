@@ -1,0 +1,24 @@
+rem PostgreSQL Exercises: aggregates 13
+rem https://pgexercises.com/questions/aggregates/fachours3.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_013.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+F = Db .facilities
+R = B F innerjoin by .facid
+R = R select
+  .facid = .facid
+  .name = .name
+  .hours = .slots * 0.5
+end
+G = R group by .facid .name
+Result = G .hours sum
+Result = Result sort by .facid
+Result OutputPath csv

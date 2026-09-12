@@ -1,0 +1,135 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import Database from 'better-sqlite3';
+import test from 'node:test';
+
+const root = fileURLToPath(new URL('../../..', import.meta.url));
+const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
+const examples = path.join(root, 'demos/pgexercises/aggregates');
+
+const cases = [
+    ['001_count.ra', 'SELECT COUNT(*) FROM facilities'],
+    ['002_costly.ra', 'SELECT COUNT(*) FROM facilities WHERE guestcost >= 10'],
+    ['007_booked.ra', 'SELECT COUNT(DISTINCT memid) FROM bookings'],
+];
+
+const grouped = [
+    ['003_recs.ra', 'SELECT recommendedby, COUNT(*) AS count FROM members '
+        + 'WHERE recommendedby IS NOT NULL GROUP BY recommendedby ORDER BY recommendedby'],
+    ['004_slots.ra', 'SELECT facid, SUM(slots) AS slots FROM bookings '
+        + 'GROUP BY facid ORDER BY facid'],
+    ['005_sept.ra', 'SELECT facid, SUM(slots) AS slots FROM bookings '
+        + "WHERE starttime >= '2012-09-01' AND starttime < '2012-10-01' "
+        + 'GROUP BY facid ORDER BY slots'],
+    ['006_months.ra', 'SELECT facid, CAST(strftime(\'%m\',starttime) AS INTEGER) AS month, '
+        + 'SUM(slots) AS slots FROM bookings '
+        + "WHERE starttime >= '2012-01-01' AND starttime < '2013-01-01' "
+        + 'GROUP BY facid, month ORDER BY facid, month'],
+    ['008_over1k.ra', 'SELECT facid, SUM(slots) AS slots FROM bookings '
+        + 'GROUP BY facid HAVING SUM(slots) > 1000 ORDER BY facid'],
+    ['009_rev.ra', 'SELECT f.name, SUM(b.slots * CASE WHEN b.memid = 0 '
+        + 'THEN f.guestcost ELSE f.membercost END) AS revenue '
+        + 'FROM bookings b JOIN facilities f ON b.facid = f.facid '
+        + 'GROUP BY f.name ORDER BY revenue'],
+    ['010_lowrev.ra', 'SELECT f.name, SUM(b.slots * CASE WHEN b.memid = 0 '
+        + 'THEN f.guestcost ELSE f.membercost END) AS revenue '
+        + 'FROM bookings b JOIN facilities f ON b.facid = f.facid '
+        + 'GROUP BY f.name HAVING revenue < 1000 ORDER BY revenue'],
+    ['011_top.ra', 'SELECT facid, SUM(slots) AS slots FROM bookings '
+        + 'GROUP BY facid ORDER BY slots DESC LIMIT 1'],
+    ['013_hours.ra', 'SELECT b.facid, f.name, SUM(b.slots / 2.0) AS hours '
+        + 'FROM bookings b JOIN facilities f ON b.facid = f.facid '
+        + 'GROUP BY b.facid, f.name ORDER BY b.facid'],
+    ['017_ties.ra', 'WITH totals AS (SELECT facid, SUM(slots) AS total '
+        + 'FROM bookings GROUP BY facid) SELECT facid, total FROM totals '
+        + 'WHERE total = (SELECT MAX(total) FROM totals)'],
+];
+
+function csvRows(file) {
+    return fs.readFileSync(file, 'utf8').trimEnd().split('\n').map(line => line.split(','));
+}
+
+test('aggregate count programs match SQLite on empty and repeated data', async t => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-aggregates-'));
+    const dbPath = path.join(dir, 'club.sqlite3');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE facilities (facid INTEGER, guestcost REAL); '
+            + 'CREATE TABLE bookings (memid INTEGER)');
+        for (const [phase, populate] of [['empty', false], ['filled', true]]) {
+            if (populate) {
+                db.exec('INSERT INTO facilities VALUES (1, 5), (2, 10), (3, 10.5); '
+                    + 'INSERT INTO bookings VALUES (1), (1), (2), (0), (0)');
+            }
+            for (const [file, sql] of cases) {
+                await t.test(`${phase}: ${file}`, () => {
+                    const result = spawnSync(process.execPath,
+                        [cli, path.join(examples, file), dbPath],
+                        { cwd: root, encoding: 'utf8' });
+                    assert.equal(result.status, 0, result.stderr);
+                    assert.equal(result.stdout.trim(), String(db.prepare(sql).pluck().get()));
+                });
+            }
+        }
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});
+
+test('grouped aggregate programs match SQLite without reading source rows early', async t => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-groups-'));
+    const dbPath = path.join(dir, 'club.sqlite3');
+    const output = path.join(dir, 'out.csv');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE members (memid INTEGER, recommendedby INTEGER); '
+            + 'CREATE TABLE facilities (facid INTEGER, name TEXT, membercost REAL, guestcost REAL); '
+            + 'CREATE TABLE bookings (facid INTEGER, memid INTEGER, slots INTEGER, starttime TEXT); '
+            + 'INSERT INTO members VALUES (1,NULL),(2,1),(3,1),(4,2),(5,NULL); '
+            + "INSERT INTO facilities VALUES (0,'Court',5,20),(1,'Pool',0,10); "
+            + "INSERT INTO bookings VALUES (0,1,2,'2012-08-31 00:00:00'),"
+            + "(0,2,3,'2012-09-01 00:00:00'),(1,1,4,'2012-09-10 00:00:00'),"
+            + "(0,3,5,'2012-09-30 00:00:00'),(1,2,6,'2012-10-01 00:00:00'),"
+            + "(0,0,1100,'2012-09-12 00:00:00')");
+        for (const [file, sql] of grouped) {
+            for (const storage of ['sqlite', 'array']) {
+                await t.test(`${file} (${storage})`, () => {
+                    let source = path.join(examples, file);
+                    if (storage === 'array') {
+                        const tables = Object.fromEntries(['members', 'facilities', 'bookings']
+                            .map(name => [name, db.prepare(`SELECT * FROM ${name}`).all()]));
+                        const program = fs.readFileSync(source, 'utf8')
+                            .replace('Db = DbPath sqlite',
+                                `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`);
+                        source = path.join(dir, 'array.ra');
+                        fs.writeFileSync(source, program);
+                    }
+                    const result = spawnSync(process.execPath,
+                        [cli, source, dbPath, output],
+                        { cwd: root, encoding: 'utf8' });
+                    assert.equal(result.status, 0, result.stderr);
+                    const expected = db.prepare(sql).all().map(row => Object.values(row).map(String));
+                    assert.deepEqual(csvRows(output).slice(1), expected);
+                });
+            }
+        }
+        const source = path.join(dir, 'inspect.ra');
+        fs.writeFileSync(source, `use io\nuse numbers\nuse sequences\nuse tables\n`
+            + `Db = ${JSON.stringify(dbPath)} sqlite\n`
+            + 'R = Db .bookings\nG = R group by .facid\n'
+            + 'S = G .slots sum\nQ = S sql\nQ .text print\n');
+        const result = spawnSync(process.execPath, [cli, source],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        assert.match(result.stdout, /GROUP BY "facid"/);
+        assert.match(result.stdout, /SUM\("slots"\)/);
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});

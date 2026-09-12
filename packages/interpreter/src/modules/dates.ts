@@ -3,10 +3,12 @@ import { mapSequence } from '../sequence.js';
 import {
     isRankArray,
     isRankDate,
+    isRankSqliteExpression,
     isRankSequence,
     type RankArray,
     type RankDate,
     type RankDateTime,
+    type RankSqliteExpression,
     type RankValue,
 } from '../value.js';
 import { native } from './shared.js';
@@ -17,19 +19,31 @@ const DATETIME = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/;
 const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
 
 export const datesModule: RuntimeModule = {
-    date: () => native('date', 1, ([value]) => mapDates(value, 'date', parseDate)),
-    datetime: () => native('datetime', 1, ([value]) => mapDates(value, 'datetime', parseDateTime)),
-    year: () => component('year', value => BigInt(value.year)),
-    month: () => component('month', value => BigInt(value.month)),
-    day: () => component('day', value => BigInt(value.day)),
+    date: () => native('date', 1, ([value]) => isRankSqliteExpression(value)
+        ? { ...value, calendar: 'date' } as RankSqliteExpression
+        : mapDates(value, 'date', parseDate)),
+    datetime: () => native('datetime', 1, ([value]) => isRankSqliteExpression(value)
+        ? { ...value, calendar: 'datetime' } as RankSqliteExpression
+        : mapDates(value, 'datetime', parseDateTime)),
+    year: () => component('year', value => BigInt(value.year), '%Y'),
+    month: () => component('month', value => BigInt(value.month), '%m'),
+    day: () => component('day', value => BigInt(value.day), '%d'),
     weekday: () => component('weekday', value => BigInt(weekday(value))),
     hour: () => timeComponent('hour', value => BigInt(value.hour)),
     minute: () => timeComponent('minute', value => BigInt(value.minute)),
     second: () => timeComponent('second', value => BigInt(value.second)),
 };
 
-function component(name: string, read: (value: RankDate | RankDateTime) => bigint): RankValue {
+function component(
+    name: string, read: (value: RankDate | RankDateTime) => bigint, format?: string,
+): RankValue {
     return native(name, 1, ([value]) => {
+        if (isRankSqliteExpression(value) && value.calendar) {
+            if (!format) throw new RankError(`${name} is unavailable for SQLite views`, 'TypeError');
+            return { kind: 'sqlite-expression', table: value.table,
+                text: `CAST(strftime('${format}', ${value.text}) AS INTEGER)`,
+                params: value.params, boolean: false } as RankSqliteExpression;
+        }
         if (!isRankDate(value)) throw new RankError(`${name} expects a date or datetime`, 'TypeError');
         return read(value);
     }, 0);

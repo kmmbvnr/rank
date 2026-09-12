@@ -2,7 +2,7 @@ import { derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-s
 import { MissingValueError, RankError } from '../errors.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import { readTextFile, writeTextFile } from './io.js';
-import { lookupSqlite, materializeSqlite, selectSqlite } from './sqlite.js';
+import { aggregateSqlite, lookupSqlite, materializeSqlite, selectSqlite, sqliteColumns } from './sqlite.js';
 import {
     formatDate,
     isRankObject,
@@ -173,10 +173,20 @@ function tableKey(
 }
 
 export function groupTable(source: RankValue, fields: readonly string[]): RankGroupedTable {
-    const rows = tableRows(source, 'group by');
     if (new Set(fields).size !== fields.length) {
         throw new RankError('group by fields must be unique', 'TypeError');
     }
+    const input = isRankTableAlias(source) ? source.source : source;
+    if (isRankSqliteTable(input)) {
+        const columns = sqliteColumns(input);
+        for (const field of fields) {
+            if (!columns.includes(field)) {
+                throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
+            }
+        }
+        return { kind: 'grouped-table', fields, groups: [], sqliteSource: input };
+    }
+    const rows = tableRows(input, 'group by');
     const groups: { keys: (RankValue | undefined)[]; rows: RankObject[] }[] = [];
     const positions = new Map<string, number>();
     for (const sourceRow of rows) {
@@ -198,10 +208,17 @@ export function aggregateGroupedColumn(
     column: RankGroupedColumn,
     reduce: (values: RankArray) => RankValue,
     emptyIsMissing = false,
-): RankArray {
+    sqlAggregate?: 'sum',
+): RankValue {
     const { table, field } = column;
     if (table.fields.includes(field)) {
         throw new RankError(`grouped aggregate field .${field} is also a key`, 'TypeError');
+    }
+    if (table.sqliteSource) {
+        if (!sqlAggregate) {
+            throw new RankError('this grouped aggregate is not available for SQLite views', 'TypeError');
+        }
+        return aggregateSqlite(table.sqliteSource, table.fields, field);
     }
     const items: RankValue[] = table.groups.map(group => {
         const entries = new Map<string, RankValue>();

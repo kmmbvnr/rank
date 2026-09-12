@@ -1,0 +1,21 @@
+rem PostgreSQL Exercises: aggregates 5
+rem https://pgexercises.com/questions/aggregates/fachoursbymonth.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_005.csv"
+
+Db = DbPath sqlite
+R = Db .bookings
+R = R filter
+  .starttime at least "2012-09-01"
+  .starttime less "2012-10-01"
+end
+G = R group by .facid
+Result = G .slots sum
+Result = Result sort by .slots
+Result OutputPath csv

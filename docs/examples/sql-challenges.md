@@ -8,10 +8,12 @@ We will solve these collections in order, using the
    expected SQL results give us small relational examples. Solve them against
    a local SQLite copy. All twelve [Basic](../../demos/pgexercises/basic/README.md)
    eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md), and
-   nine [Updates](../../demos/pgexercises/updates/README.md) exercises now have
-   runnable Rank solutions and SQLite reference tests. The
+   nine [Updates](../../demos/pgexercises/updates/README.md) exercises and
+   thirteen [Aggregates](../../demos/pgexercises/aggregates/README.md)
+   exercises now have runnable Rank solutions and SQLite reference tests. The
    [SQLite table interface](../language/tables.md#sqlite) now translates
-   projection, masks, joins, distinct and ordering; further operations remain.
+   projection, masks, joins, distinct, ordering, grouped sums and sorted
+   slices; further operations remain.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve
    the investigation against its SQLite database. This stage will reuse the
    SQLite table source and exercise joins and other translations added during

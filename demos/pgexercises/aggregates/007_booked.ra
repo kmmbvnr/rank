@@ -1,0 +1,15 @@
+rem PostgreSQL Exercises: aggregates 7
+rem https://pgexercises.com/questions/aggregates/members1.html
+
+use cli
+use io
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+
+Db = DbPath sqlite
+Ids = Db .bookings select .memid
+Unique = Ids unique
+Count = Unique len
+Count print
