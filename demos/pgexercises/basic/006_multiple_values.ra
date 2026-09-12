@@ -1,0 +1,25 @@
+rem PostgreSQL Exercises: basic 6
+rem https://pgexercises.com/questions/basic/where4.html
+
+use cli
+use algo
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/006_multiple_values.csv"
+
+Db = DbPath sqlite
+Rows = (Db .facilities) array
+Wanted = new set
+Wanted add 1
+Wanted add 5
+Matches = new queue
+for Row in Rows
+  Id = Row "facid"
+  if Id in Wanted
+    Matches push Row
+  end
+end
+Result = Matches (array (Matches len)) reshape
+Result OutputPath csv

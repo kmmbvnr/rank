@@ -1,0 +1,18 @@
+rem PostgreSQL Exercises: basic 11
+rem https://pgexercises.com/questions/basic/agg.html
+
+use cli
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/011_latest_date.csv"
+
+Db = DbPath sqlite
+Rows = (Db .members) array
+Dates = Rows .joindate sort
+Latest = Dates (Dates len - 1)
+Result = Rows (array 0)
+Result .latest = Latest
+Result = Result (array .latest)
+Result OutputPath csv

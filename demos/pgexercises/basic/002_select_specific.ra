@@ -1,0 +1,13 @@
+rem PostgreSQL Exercises: basic 2
+rem https://pgexercises.com/questions/basic/selectspecific.html
+
+use cli
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/002_select_specific.csv"
+
+Db = DbPath sqlite
+Rows = (Db .facilities) array
+Result = Rows (array .name .membercost)
+Result OutputPath csv

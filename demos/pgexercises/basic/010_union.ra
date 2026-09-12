@@ -1,0 +1,31 @@
+rem PostgreSQL Exercises: basic 10
+rem https://pgexercises.com/questions/basic/union.html
+
+use cli
+use algo
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/010_union.csv"
+
+Db = DbPath sqlite
+Members = (Db .members) array
+Facilities = (Db .facilities) array
+Facilities .surname = Facilities .name
+All = new queue
+for Row in Members
+  All push Row
+end
+for Row in Facilities
+  All push Row
+end
+Rows = All (array (All len)) reshape
+Names = Rows .surname unique
+Result = new queue
+for Name in Names
+  Matching = (Rows (Rows .surname equal Name)) array
+  Result push (Matching 0)
+end
+Selected = Result (array (Result len)) reshape
+Selected (array .surname) OutputPath csv

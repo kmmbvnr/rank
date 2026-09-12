@@ -18,7 +18,11 @@ capability on `RankIo`; the CLI supplies a read-only prepared-statement driver
 compatible with Rank's Node 20 minimum. The first exercise has a CLI test that
 creates a temporary SQLite database and checks the materialized result.
 
-The next exercises should add translation in the order they need it:
+All twelve [Basic exercises](../../demos/pgexercises/basic/README.md) now have
+working array-based solutions and a test against reference SQL. Task 5 uses
+bound `sqlquery` for `LIKE`. This completes the Basic answers but does not
+implement SQL pushdown for Rank projections, masks, ordering or aggregation.
+The translation work remains, in this order:
 
 1. Column projection and source-bound filters, keeping values as bound
    parameters and making `sql` show the actual pushed-down query.

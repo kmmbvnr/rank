@@ -1,0 +1,13 @@
+rem PostgreSQL Exercises: basic 5
+rem https://pgexercises.com/questions/basic/where3.html
+
+use cli
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/005_string_search.csv"
+
+Db = DbPath sqlite
+Query = Db "SELECT * FROM facilities WHERE name LIKE ?" (array "%Tennis%") sqlquery
+Result = Query array
+Result OutputPath csv

@@ -1,0 +1,15 @@
+rem PostgreSQL Exercises: basic 4
+rem https://pgexercises.com/questions/basic/where2.html
+
+use cli
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/004_where2.csv"
+
+Db = DbPath sqlite
+Rows = (Db .facilities) array
+Mask = (Rows .membercost greater 0) and (Rows .membercost less (Rows .monthlymaintenance / 50.0))
+Selected = (Rows Mask) array
+Result = Selected (array .facid .name .membercost .monthlymaintenance)
+Result OutputPath csv
