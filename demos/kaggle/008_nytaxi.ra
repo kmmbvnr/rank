@@ -1,81 +1,65 @@
 rem Kaggle: NYC Taxi Trip Duration
-rem Predict taxi trip duration
-rem in seconds.
-rem
-rem Target: trip_duration
-rem Metric: RMSLE
+rem https://www.kaggle.com/competitions/nyc-taxi-trip-duration
+rem Fit log duration from pickup time,
+rem passenger count and planar distance.
 
+use "002_prices" as Regression
+use "006_storesales" as Calendar
+use cli
+use numbers
+use ranges
+use sequences
 use tables
-use dates
-use math
-use ml
+use text
 
-Train = csv "train.csv"
-Test = csv "test.csv"
+argument TrainPath path = "demos/kaggle/data/nyc-taxi/train.csv"
+argument TestPath path = "demos/kaggle/data/nyc-taxi/test.csv"
+argument OutputPath path = "demos/kaggle/submissions/nyc-taxi.csv"
 
-rem Extract time features
-
-Date = Train .pickup_datetime
-
-Train .hour = Date hour
-Train .weekday = Date weekday
-Train .month = Date month
-
-Date = Test .pickup_datetime
-
-Test .hour = Date hour
-Test .weekday = Date weekday
-Test .month = Date month
-
-Geo =
-  Train .pickup_latitude
-  .pickup_longitude
-  .dropoff_latitude
-  .dropoff_longitude
-
-Train .distance =
-  Geo distance rank 1
-
-Geo =
-  Test .pickup_latitude
-  .pickup_longitude
-  .dropoff_latitude
-  .dropoff_longitude
-
-Test .distance =
-  Geo distance rank 1
-
-Features =
-  .distance .hour .weekday .month
-  .passenger_count
-
-X = Train Features
-Xtest = Test Features
-
-Y = Train .trip_duration + 1
-Y = Y log each
-
-Model = X Y linear
-Pred = Model Xtest predict
-
-Pred = Pred exp each
-Pred = Pred - 1
-
-Test .trip_duration = Pred
-
-Out = Test .id .trip_duration
-
-csv "submission.csv" = Out
+Train = TrainPath csv
+Test = TestPath csv
+Submission = Train Test 0.03 1200 solve
+Submission OutputPath csv
 
 
+rem Approximate kilometers using 111 km per degree.
 fun distance Point
-  Lat1 = Point 0
-  Lon1 = Point 1
-  Lat2 = Point 2
-  Lon2 = Point 3
+  unpack Lat1 Lon1 Lat2 Lon2 = Point
+  DLat = Lat2 - Lat1
+  DLon = Lon2 - Lon1
+  return ((DLat * DLat + DLon * DLon) sqrt) * 111.0
+end
 
-  X = Lon2 - Lon1
-  Y = Lat2 - Lat1
 
-  return sqrt X * X + Y * Y
+fun taxi_features Data
+  Dates = Data .pickup_datetime
+  GeoFields = array .pickup_latitude .pickup_longitude .dropoff_latitude .dropoff_longitude
+  Geo = Data GeoFields
+  Passengers = Data .passenger_count
+  Rows = Dates len
+  Result = array shape Rows 5 pad 0.0
+
+  for Date i in Dates
+    Pattern = "/integer-/integer-/integer /integer:/integer:/integer"
+    unpack Year Month Day Hour # # = Date Pattern parse
+    DateOnly = Date from 0 until 10
+    Result i 0 = Geo i # distance
+    Result i 1 = Hour
+    Result i 2 = DateOnly Calendar.weekday
+    Result i 3 = Month
+    Result i 4 = Passengers i
+  end
+  return Result
+end
+
+
+fun solve Train Test Rate Steps
+  X = Train taxi_features
+  Xtest = Test taxi_features
+  Y = (Train .trip_duration + 1) log
+  Model = X Y Rate Steps Regression.linear
+  Pred = ((Xtest Model Regression.linear_predict) exp - 1) copy
+  Pred (Pred less 0) = 0.0
+  Test .trip_duration = Pred
+  return Test (array .id .trip_duration)
 end

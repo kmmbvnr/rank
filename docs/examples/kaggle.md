@@ -194,6 +194,11 @@ Train .distance =
   Geo distance rank 1
 ```
 
+The [runnable NYC Taxi baseline](../../demos/kaggle/008_nytaxi.ra) builds the
+five-feature matrix directly, computes a documented planar distance in Rank,
+reuses the log-linear model, and writes `id,trip_duration`. Tests cover the
+distance, datetime extraction and complete prediction path.
+
 ## Dogs vs Cats
 
 Images should become ordinary tensor data:
