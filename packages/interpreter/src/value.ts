@@ -51,6 +51,20 @@ export interface RankLabel {
     readonly name: string;
 }
 
+export interface RankDate {
+    readonly kind: 'date';
+    readonly year: number;
+    readonly month: number;
+    readonly day: number;
+}
+
+export interface RankDateTime extends Omit<RankDate, 'kind'> {
+    readonly kind: 'datetime';
+    readonly hour: number;
+    readonly minute: number;
+    readonly second: number;
+}
+
 export interface RankErrorValue {
     readonly kind: 'error';
     readonly errorKind: RankLabel;
@@ -168,7 +182,7 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
+    RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
     RankWavelet;
@@ -205,6 +219,16 @@ export function isRankErrorValue(value: RankValue): value is RankErrorValue {
 
 export function isRankLabel(value: RankValue): value is RankLabel {
     return typeof value === 'object' && value.kind === 'label';
+}
+
+export function isRankDate(value: RankValue): value is RankDate | RankDateTime {
+    return typeof value === 'object' && (value.kind === 'date' || value.kind === 'datetime');
+}
+
+export function formatDate(value: RankDate | RankDateTime): string {
+    const calendar = `${String(value.year).padStart(4, '0')}-${String(value.month).padStart(2, '0')}-${String(value.day).padStart(2, '0')}`;
+    return value.kind === 'date' ? calendar
+        : `${calendar} ${String(value.hour).padStart(2, '0')}:${String(value.minute).padStart(2, '0')}:${String(value.second).padStart(2, '0')}`;
 }
 
 export function isRankIndex(value: RankValue): value is RankIndex {
@@ -284,6 +308,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'label') {
         return `.${value.name}`;
     }
+    if (isRankDate(value)) return formatDate(value);
     if (value.kind === 'error') {
         return `<error .${value.errorKind.name}: ${value.message}>`;
     }

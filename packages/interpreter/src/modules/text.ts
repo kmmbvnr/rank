@@ -1,5 +1,5 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankArray, isRankBytes, isRankLabel, isRankQueue, isRankSequence, type RankArray, type RankValue } from '../value.js';
+import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, type RankArray, type RankValue } from '../value.js';
 import { mapSequence } from '../sequence.js';
 import { roundValue } from './numbers.js';
 import { native } from './shared.js';
@@ -41,7 +41,7 @@ export const textModule: RuntimeModule = {
             items = value.plan.iterate();
         } else throw new RankError('join expects a rank-1 collection; join matrix rows separately', 'TypeError');
         return Array.from(items, item => {
-            if (typeof item === 'object' && !isRankLabel(item)) {
+            if (typeof item === 'object' && !isRankLabel(item) && !isRankDate(item)) {
                 throw new RankError('join expects scalar elements; join nested rows separately', 'TypeError');
             }
             return formatValue(item);
@@ -86,7 +86,7 @@ export const textModule: RuntimeModule = {
     }),
     text: () => native('text', 1, arguments_ => {
         const value = arguments_[0];
-        if (typeof value === 'object' && !isRankLabel(value)) {
+        if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {
             throw new RankError('text expects a scalar value');
         }
         return formatValue(value);

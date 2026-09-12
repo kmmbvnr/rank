@@ -986,13 +986,48 @@ picker, virtual file system or another implementation with the same semantics.
 
 ## Dates
 
-Examples:
+`use dates` parses calendar dates and local date-times explicitly:
 
 ```rank
-hour
-weekday
-month
-year
+use dates
+
+Day = "2024-02-29" date
+Moment = "2024-02-29 13:05:09" datetime
+Day weekday
+Moment hour
+```
+
+`date` accepts exactly `YYYY-MM-DD`. `datetime` accepts exactly
+`YYYY-MM-DD HH:MM:SS` or `YYYY-MM-DDTHH:MM:SS`. Both use the proleptic
+Gregorian calendar and years `0001` through `9999`. `datetime` is a local
+wall-clock value without a time zone or UTC offset. Invalid syntax, dates and
+times raise `.InvalidDate`; a non-text input raises `.TypeError`.
+
+`date` and `datetime` are distinct immutable scalar types. They compare for
+equality by type and value and order chronologically within their own type.
+Ordering one against the other raises `.TypeError`. They are valid set and
+index keys, and `text` and CSV output render their canonical forms using a
+space between date and time. Parsing a CSV column does not change the original
+text column unless it is explicitly assigned back.
+
+`year`, `month`, `day` and `weekday` accept either type. `hour`, `minute` and
+`second` require `datetime`. Each returns an `integer`; `weekday` numbers
+Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
+sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
+A missing projected table cell remains `.Missing` and can be handled with
+`pad` before parsing.
+
+```rank
+Days = (Train .date pad "2024-01-01") date
+```
+
+```rank
+Days = Train .date date
+Train .weekday = Days weekday
+
+Times = Train .datetime datetime
+Train .hour = Times hour
+Train .month = Times month
 ```
 
 ## Algorithm profile

@@ -251,11 +251,15 @@ Rank does not require a pandas-like `.str` namespace.
 
 ## Date columns
 
-Date operations also lift naturally:
+CSV date columns remain text until explicitly parsed. Date operations then
+lift over the resulting column:
 
 ```rank
-Data .hour = Data .datetime hour
-Data .weekday = Data .datetime weekday
-Data .month = Data .datetime month
-Data .year = Data .datetime year
+use dates
+
+Times = Data .datetime datetime
+Data .hour = Times hour
+Data .weekday = Times weekday
+Data .month = Times month
+Data .year = Times year
 ```

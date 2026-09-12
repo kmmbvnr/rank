@@ -1,8 +1,10 @@
 import { MissingValueError, RankError } from '../errors.js';
 import { readTextFile, writeTextFile } from './io.js';
 import {
+    formatDate,
     isRankObject,
     isRankArray,
+    isRankDate,
     isRankLabel,
     type RankArray,
     type RankObject,
@@ -288,6 +290,7 @@ function objectRow(value: RankValue): RankObject {
 
 function csvScalar(value: RankValue): string {
     if (typeof value === 'string') return csvField(value);
+    if (isRankDate(value)) return formatDate(value);
     if (typeof value === 'number' && !Number.isFinite(value)) {
         throw new RankError('csv output numbers must be finite');
     }

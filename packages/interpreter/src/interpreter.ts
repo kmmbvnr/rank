@@ -117,6 +117,7 @@ import {
     isNativeFunction,
     isRankArray,
     isRankCounter,
+    isRankDate,
     isRankDsu,
     isRankFunctionalGraph,
     isRankErrorValue,
@@ -4832,6 +4833,7 @@ function memoScalarKey(value: RankValue): string {
     if (typeof value === 'number' && Object.is(value, -0)) return 'number:-0';
     if (typeof value !== 'object') return `${typeof value}:${value}`;
     if (isRankLabel(value)) return `label:${value.name}`;
+    if (isRankDate(value)) return `${value.kind}:${formatValue(value)}`;
     throw new RankError('memo arguments and results must be scalar values');
 }
 
@@ -5671,6 +5673,9 @@ function equalNestedValues(
     if (left.kind === 'label' && right.kind === 'label') {
         return left.name === right.name;
     }
+    if (isRankDate(left) && isRankDate(right)) {
+        return left.kind === right.kind && formatValue(left) === formatValue(right);
+    }
     if (isRankArray(left) && isRankArray(right)) {
         if (!sameShape(left.shape, right.shape)) return false;
         if (alreadyCompared(left, right, compared)) return true;
@@ -5722,6 +5727,8 @@ const RUNTIME_TYPE_NAMES = new Set([
     'real',
     'boolean',
     'text',
+    'date',
+    'datetime',
     'array',
     'bytes',
     'symbol',

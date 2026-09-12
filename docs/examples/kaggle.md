@@ -164,15 +164,17 @@ Forecast = Test Keys Means join
 The [runnable Store Sales baseline](../../demos/kaggle/006_storesales.ra)
 implements the same grouping with an ordinary `index`: `(store, family,
 weekday)` is a three-part key expanded by `unpack`. An unseen test key falls
-back to the global training mean. The ISO-date weekday calculation and grouped
-forecast both have focused tests.
+back to the global training mean. `use dates` computes Monday-first weekdays
+from the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing
 
 Date operations lift over columns:
 
 ```rank
-Date = Train .datetime
+use dates
+
+Date = Train .datetime datetime
 
 Train .hour = Date hour
 Train .weekday = Date weekday
@@ -188,8 +190,8 @@ Pred Negative = 0
 ```
 
 The [runnable Bike Sharing baseline](../../demos/kaggle/007_bakishare.ra)
-parses the fixed Kaggle datetime format in Rank, combines four calendar and
-eight numeric features, reuses the tested linear regression, clamps negative
+parses the fixed Kaggle datetime format with `use dates`, combines four calendar
+and eight numeric features, reuses the tested linear regression, clamps negative
 predictions, and writes the required two-column submission.
 
 ## NYC Taxi
@@ -210,7 +212,7 @@ Train .distance =
 The [runnable NYC Taxi baseline](../../demos/kaggle/008_nytaxi.ra) builds the
 five-feature matrix directly, computes a documented planar distance in Rank,
 reuses the log-linear model, and writes `id,trip_duration`. Tests cover the
-distance, datetime extraction and complete prediction path.
+distance, datetime extraction through `use dates`, and complete prediction path.
 
 ## Dogs vs Cats
 

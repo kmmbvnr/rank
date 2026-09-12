@@ -1,0 +1,124 @@
+import { RankError } from '../errors.js';
+import { mapSequence } from '../sequence.js';
+import {
+    isRankArray,
+    isRankDate,
+    isRankSequence,
+    type RankArray,
+    type RankDate,
+    type RankDateTime,
+    type RankValue,
+} from '../value.js';
+import { native } from './shared.js';
+import type { RuntimeModule } from './types.js';
+
+const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const DATETIME = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/;
+const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+export const datesModule: RuntimeModule = {
+    date: () => native('date', 1, ([value]) => mapDates(value, 'date', parseDate)),
+    datetime: () => native('datetime', 1, ([value]) => mapDates(value, 'datetime', parseDateTime)),
+    year: () => component('year', value => BigInt(value.year)),
+    month: () => component('month', value => BigInt(value.month)),
+    day: () => component('day', value => BigInt(value.day)),
+    weekday: () => component('weekday', value => BigInt(weekday(value))),
+    hour: () => timeComponent('hour', value => BigInt(value.hour)),
+    minute: () => timeComponent('minute', value => BigInt(value.minute)),
+    second: () => timeComponent('second', value => BigInt(value.second)),
+};
+
+function component(name: string, read: (value: RankDate | RankDateTime) => bigint): RankValue {
+    return native(name, 1, ([value]) => {
+        if (!isRankDate(value)) throw new RankError(`${name} expects a date or datetime`, 'TypeError');
+        return read(value);
+    }, 0);
+}
+
+function timeComponent(name: string, read: (value: RankDateTime) => bigint): RankValue {
+    return native(name, 1, ([value]) => {
+        if (!isRankDate(value) || value.kind !== 'datetime') {
+            throw new RankError(`${name} expects a datetime`, 'TypeError');
+        }
+        return read(value);
+    }, 0);
+}
+
+function mapDates(value: RankValue, name: string, parse: (value: RankValue) => RankValue): RankValue {
+    if (isRankSequence(value)) return mapSequence(value, name, parse);
+    if (!isRankArray(value)) return parse(value);
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    const cache = new Map<number, RankValue>();
+    const itemAt = (index: number): RankValue => {
+        const cached = cache.get(index);
+        if (cached !== undefined) return cached;
+        const result = parse(value.itemAt?.(index) ?? value.items[index]);
+        cache.set(index, result);
+        return result;
+    };
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape: value.shape,
+        itemAt,
+        containsFiles: false,
+        get items() {
+            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
+            return materialized;
+        },
+    } as RankArray;
+}
+
+function parseDate(value: RankValue): RankDate {
+    if (typeof value !== 'string') throw new RankError('date expects text', 'TypeError');
+    const parts = DATE.exec(value);
+    if (!parts) throw invalidDate(value);
+    const year = Number(parts[1]);
+    const month = Number(parts[2]);
+    const day = Number(parts[3]);
+    validateCalendar(year, month, day, value);
+    return { kind: 'date', year, month, day };
+}
+
+function parseDateTime(value: RankValue): RankDateTime {
+    if (typeof value !== 'string') throw new RankError('datetime expects text', 'TypeError');
+    const parts = DATETIME.exec(value);
+    if (!parts) throw invalidDate(value);
+    const year = Number(parts[1]);
+    const month = Number(parts[2]);
+    const day = Number(parts[3]);
+    const hour = Number(parts[4]);
+    const minute = Number(parts[5]);
+    const second = Number(parts[6]);
+    validateCalendar(year, month, day, value);
+    if (hour > 23 || minute > 59 || second > 59) throw invalidDate(value);
+    return { kind: 'datetime', year, month, day, hour, minute, second };
+}
+
+function validateCalendar(year: number, month: number, day: number, source: string): void {
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) {
+        throw invalidDate(source);
+    }
+}
+
+function daysInMonth(year: number, month: number): number {
+    if (month === 2) return leapYear(year) ? 29 : 28;
+    return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function leapYear(year: number): boolean {
+    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function weekday(value: RankDate | RankDateTime): number {
+    const before = value.year - 1;
+    const ordinal = before * 365 + Math.floor(before / 4)
+        - Math.floor(before / 100) + Math.floor(before / 400)
+        + DAYS_BEFORE_MONTH[value.month - 1]
+        + (leapYear(value.year) && value.month > 2 ? 1 : 0) + value.day;
+    return (ordinal - 1) % 7;
+}
+
+function invalidDate(value: string): RankError {
+    return new RankError(`invalid date: ${value}`, 'InvalidDate', value);
+}

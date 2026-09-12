@@ -11,7 +11,7 @@ test "extracts taxi features"
   use "008_nytaxi"
   Rows = "[{\"pickup_datetime\":\"2024-01-07 13:00:00\",\"pickup_latitude\":40.0,\"pickup_longitude\":-73.0,\"dropoff_latitude\":40.0,\"dropoff_longitude\":-72.0,\"passenger_count\":2}]" json
   Expected = array shape 1 5
-    111.0 13 0 1 2
+    111.0 13 6 1 2
   end
   Rows taxi_features equal Expected
 end

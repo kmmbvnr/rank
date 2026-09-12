@@ -23,7 +23,7 @@ use dates
 
 L = "lineitem.csv" csv
 filter
-.l_shipdate year equal 1994
+.l_shipdate date year equal 1994
 .l_discount at least 0.05
 .l_discount at most 0.07
 .l_quantity less 24

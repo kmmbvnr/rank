@@ -335,11 +335,14 @@ is
 `at least` means `>=`; `at most` means `<=`.
 
 Ordering comparisons accept two scalars from one comparable family: numeric,
-text, boolean or symbol. Integers and reals share the numeric family. Text and
-symbols use a case-sensitive lexicographic order by Unicode code point; a
-shared prefix sorts before its longer continuation. Booleans order `false`
-before `true`. The same order is used by `sort`, heaps and ordered multisets.
-Different families and non-scalar values raise `.TypeError`.
+text, boolean, symbol, date or datetime. Integers and reals share the numeric
+family. Text and symbols use a case-sensitive lexicographic order by Unicode
+code point. A shared prefix sorts before its longer continuation. Booleans
+order `false` before `true`. The same order is used by `sort`, heaps and ordered
+multisets.
+Different families and non-scalar values raise `.TypeError`. Dates and
+datetimes order chronologically within their own type; they do not implicitly
+compare with each other or with text.
 
 Comparisons remain scalar operations and therefore apply elementwise to arrays
 and sequences, using the ordinary broadcasting rules:
@@ -378,9 +381,10 @@ conversion is intended.
 
 ## Scalar types
 
-Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
-and `symbol`. Integers have arbitrary precision. `real` is currently an IEEE 754
-binary64 value and decimal literals contain a decimal point:
+Rank currently has seven scalar value types: `integer`, `real`, `boolean`, `text`,
+`symbol`, `date` and `datetime`. Integers have arbitrary precision. `real` is
+currently an IEEE 754 binary64 value, and decimal literals contain a decimal
+point:
 
 ```rank
 Count = 2

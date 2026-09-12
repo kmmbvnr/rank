@@ -1,9 +1,10 @@
 use testing
 
-test "computes Gregorian weekdays"
+test "parses Gregorian dates and uses Monday-first weekdays"
+  use dates
   use "006_storesales"
   Dates = array "2024-01-01" "2024-01-07" "2000-02-29"
-  Dates weekdays equal array 1 0 2
+  Dates date weekday equal array 0 6 1
 end
 
 test "averages matching store family and weekday keys"

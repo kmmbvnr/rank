@@ -5,6 +5,7 @@ rem historical mean on the same weekday.
 
 use algo
 use cli
+use dates
 use numbers
 use sequences
 use stats
@@ -30,27 +31,6 @@ Submission = Test (array .id .sales)
 Submission OutputPath csv
 
 
-rem Sunday is 0 and Saturday is 6.
-fun weekday Date
-  unpack Year Month Day = Date "/integer-/integer-/integer" parse
-  Offset = array 0 3 2 5 0 3 5 1 4 6 2 4
-  if Month less 3
-    Year -= 1
-  end
-  return (Year + Year // 4 - Year // 100 + Year // 400
-    + Offset (Month - 1) + Day) % 7
-end
-
-
-fun weekdays Dates
-  Result = array shape (Dates len) pad 0
-  for Date i in Dates
-    Result i = Date weekday
-  end
-  return Result
-end
-
-
 rem Use the global training mean for a key absent from Train.
 fun forecast Stores Families Dates Sales TestStores TestFamilies TestDates
   Count = Stores len
@@ -61,7 +41,7 @@ fun forecast Stores Families Dates Sales TestStores TestFamilies TestDates
     .DimensionMismatch raise
   end
 
-  Days = Dates weekdays
+  Days = Dates date weekday
   Sums = new index
   Counts = new index
   for Sale i in Sales
@@ -79,7 +59,7 @@ fun forecast Stores Families Dates Sales TestStores TestFamilies TestDates
   if TestFamilies len not equal TestCount or TestDates len not equal TestCount
     .DimensionMismatch raise
   end
-  TestDays = TestDates weekdays
+  TestDays = TestDates date weekday
   Global = Sales mean
   Result = array shape TestCount pad Global
   for Value i in Result

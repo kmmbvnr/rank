@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-11**
+**Current language snapshot — 2026-09-12**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -415,11 +415,14 @@ is
 `at least` means `>=`; `at most` means `<=`.
 
 Ordering comparisons accept two scalars from one comparable family: numeric,
-text, boolean or symbol. Integers and reals share the numeric family. Text and
-symbols use a case-sensitive lexicographic order by Unicode code point; a
-shared prefix sorts before its longer continuation. Booleans order `false`
-before `true`. The same order is used by `sort`, heaps and ordered multisets.
-Different families and non-scalar values raise `.TypeError`.
+text, boolean, symbol, date or datetime. Integers and reals share the numeric
+family. Text and symbols use a case-sensitive lexicographic order by Unicode
+code point. A shared prefix sorts before its longer continuation. Booleans
+order `false` before `true`. The same order is used by `sort`, heaps and ordered
+multisets.
+Different families and non-scalar values raise `.TypeError`. Dates and
+datetimes order chronologically within their own type; they do not implicitly
+compare with each other or with text.
 
 Comparisons remain scalar operations and therefore apply elementwise to arrays
 and sequences, using the ordinary broadcasting rules:
@@ -458,9 +461,10 @@ conversion is intended.
 
 ## Scalar types
 
-Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
-and `symbol`. Integers have arbitrary precision. `real` is currently an IEEE 754
-binary64 value and decimal literals contain a decimal point:
+Rank currently has seven scalar value types: `integer`, `real`, `boolean`, `text`,
+`symbol`, `date` and `datetime`. Integers have arbitrary precision. `real` is
+currently an IEEE 754 binary64 value, and decimal literals contain a decimal
+point:
 
 ```rank
 Count = 2
@@ -3459,13 +3463,17 @@ Rank does not require a pandas-like `.str` namespace.
 
 ## Date columns
 
-Date operations also lift naturally:
+CSV date columns remain text until explicitly parsed. Date operations then
+lift over the resulting column:
 
 ```rank
-Data .hour = Data .datetime hour
-Data .weekday = Data .datetime weekday
-Data .month = Data .datetime month
-Data .year = Data .datetime year
+use dates
+
+Times = Data .datetime datetime
+Data .hour = Times hour
+Data .weekday = Times weekday
+Data .month = Times month
+Data .year = Times year
 ```
 
 ---
@@ -4921,13 +4929,48 @@ picker, virtual file system or another implementation with the same semantics.
 
 ## Dates
 
-Examples:
+`use dates` parses calendar dates and local date-times explicitly:
 
 ```rank
-hour
-weekday
-month
-year
+use dates
+
+Day = "2024-02-29" date
+Moment = "2024-02-29 13:05:09" datetime
+Day weekday
+Moment hour
+```
+
+`date` accepts exactly `YYYY-MM-DD`. `datetime` accepts exactly
+`YYYY-MM-DD HH:MM:SS` or `YYYY-MM-DDTHH:MM:SS`. Both use the proleptic
+Gregorian calendar and years `0001` through `9999`. `datetime` is a local
+wall-clock value without a time zone or UTC offset. Invalid syntax, dates and
+times raise `.InvalidDate`; a non-text input raises `.TypeError`.
+
+`date` and `datetime` are distinct immutable scalar types. They compare for
+equality by type and value and order chronologically within their own type.
+Ordering one against the other raises `.TypeError`. They are valid set and
+index keys, and `text` and CSV output render their canonical forms using a
+space between date and time. Parsing a CSV column does not change the original
+text column unless it is explicitly assigned back.
+
+`year`, `month`, `day` and `weekday` accept either type. `hour`, `minute` and
+`second` require `datetime`. Each returns an `integer`; `weekday` numbers
+Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
+sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
+A missing projected table cell remains `.Missing` and can be handled with
+`pad` before parsing.
+
+```rank
+Days = (Train .date pad "2024-01-01") date
+```
+
+```rank
+Days = Train .date date
+Train .weekday = Days weekday
+
+Times = Train .datetime datetime
+Train .hour = Times hour
+Train .month = Times month
 ```
 
 ## Algorithm profile
@@ -6213,15 +6256,17 @@ Forecast = Test Keys Means join
 The [runnable Store Sales baseline](../demos/kaggle/006_storesales.ra)
 implements the same grouping with an ordinary `index`: `(store, family,
 weekday)` is a three-part key expanded by `unpack`. An unseen test key falls
-back to the global training mean. The ISO-date weekday calculation and grouped
-forecast both have focused tests.
+back to the global training mean. `use dates` computes Monday-first weekdays
+from the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing
 
 Date operations lift over columns:
 
 ```rank
-Date = Train .datetime
+use dates
+
+Date = Train .datetime datetime
 
 Train .hour = Date hour
 Train .weekday = Date weekday
@@ -6237,8 +6282,8 @@ Pred Negative = 0
 ```
 
 The [runnable Bike Sharing baseline](../demos/kaggle/007_bakishare.ra)
-parses the fixed Kaggle datetime format in Rank, combines four calendar and
-eight numeric features, reuses the tested linear regression, clamps negative
+parses the fixed Kaggle datetime format with `use dates`, combines four calendar
+and eight numeric features, reuses the tested linear regression, clamps negative
 predictions, and writes the required two-column submission.
 
 ## NYC Taxi
@@ -6259,7 +6304,7 @@ Train .distance =
 The [runnable NYC Taxi baseline](../demos/kaggle/008_nytaxi.ra) builds the
 five-feature matrix directly, computes a documented planar distance in Rank,
 reuses the log-linear model, and writes `id,trip_duration`. Tests cover the
-distance, datetime extraction and complete prediction path.
+distance, datetime extraction through `use dates`, and complete prediction path.
 
 ## Dogs vs Cats
 
@@ -6322,7 +6367,7 @@ use dates
 
 L = "lineitem.csv" csv
 filter
-.l_shipdate year equal 1994
+.l_shipdate date year equal 1994
 .l_discount at least 0.05
 .l_discount at most 0.07
 .l_quantity less 24
