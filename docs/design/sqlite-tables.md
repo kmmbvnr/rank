@@ -18,25 +18,25 @@ capability on `RankIo`; the CLI supplies a read-only prepared-statement driver
 compatible with Rank's Node 20 minimum. The first exercise has a CLI test that
 creates a temporary SQLite database and checks the materialized result.
 
-The [Basic exercises](../../demos/pgexercises/basic/README.md) still show
-array-based solutions. [Joins and Subqueries](../../demos/pgexercises/joins/README.md)
-now exercise SQL translation for selection, masks, keyed joins, distinct and
-ordering. Q6 has a [SQLite program](../../demos/tpch/001_q6_sqlite.ra) that
-pushes filters and a scalar `SUM` into the database. These programs and the
-SQLite CLI tests compare results with reference SQL on temporary data.
+The [Basic exercises](../../demos/pgexercises/basic/README.md) now keep tasks
+1–8 in SQLite until output; task 5 still uses a bound LIKE query. Tasks 9–12
+retain explicit local work for limits, union and latest-date calculations.
+[Joins and Subqueries](../../demos/pgexercises/joins/README.md) runs all eight
+solutions both against SQLite and array tables using the same source and SQL
+oracles. Q6 also has a [SQLite program](../../demos/tpch/001_q6_sqlite.ra).
 
-`View Cols select`, where `Cols` is a `record`, now names and computes output
-columns in SQL. Tasks 2, 4 and 5 use it to defer the only row read until CSV.
-Tasks 6 and 8 use `choose` for their row-dependent guest/member price and
-stay in SQL through filtering and sorting. Their final `array` read drops a
-temporary negative-cost sort column. Task 7 uses `lookup` to compile a
-correlated scalar subquery from ordinary Rank columns, without a join or early
-materialization. The next steps are grouped aggregates and limits.
-Preserve an explicit
-ordering contract when adding operations after `sort by`; a SQLite subquery
-does not promise to retain its source order.
-Multiway aliased joins need qualified keys and recursive nested scopes before
-a joined view can become another aliased input.
+Contextual `filter` and `select` blocks build on boolean masks and named
+projections. `View select Cols` retains dynamic records while replacing the
+old postfix select function. Descending sort removes the negative-cost column
+and cleanup materialization from Joins 6 and 8. Task 7 uses `lookup` for a
+correlated scalar subquery without a join or early row read. The
+[ergonomics decision](table-query-ergonomics.md) records the change.
+
+The next steps are grouped aggregates, limits, table union, text matching and
+scalar aggregates inside query expressions. Preserve an explicit ordering
+contract when adding operations after `sort by`; a SQLite subquery does not
+promise to retain its source order. Multiway aliased joins need qualified keys
+and recursive nested scopes before a joined view can become another input.
 
 For each step, compare generated SQL and result rows with the reference SQLite
 query on small data. Operations that cannot yet be translated should either

@@ -9,9 +9,10 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/007_classify.csv"
 
 Db = DbPath sqlite
-Rows = (Db .facilities) array
-Cost = array shape (Rows len) pad "cheap"
-Cost (Rows .monthlymaintenance greater 100) = "expensive"
-Rows .cost = Cost
-Result = Rows (array .name .cost)
+R = Db .facilities
+Result = R select
+  High = .monthlymaintenance greater 100
+  .name = .name
+  .cost = High "expensive" "cheap" choose
+end
 Result OutputPath csv

@@ -9,33 +9,23 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_006.csv"
 
 Db = DbPath sqlite
-Bookings = Db .bookings
-Members = Db .members
-Facilities = Db .facilities
-WithMembers = Bookings Members innerjoin by .memid
-Joined = WithMembers Facilities innerjoin by .facid
-Lower = "2012-09-14"
-Upper = "2012-09-15"
-After = Joined .starttime greater Lower
-Before = Joined .starttime less Upper
-D = Joined (After and Before)
-Guest = D .memid equal 0
-GCost = D .slots * D .guestcost
-MCost = D .slots * D .membercost
-Cost = Guest GCost MCost choose
-First = D .firstname + " "
-Name = First + D .surname
-Cols = record
-  .member = Name
-  .facility = D .name
-  .cost = Cost
-  .sortcost = 0 - Cost
+R = Db .bookings
+M = Db .members
+F = Db .facilities
+R = R M innerjoin by .memid
+R = R F innerjoin by .facid
+R = R filter
+  .starttime at least "2012-09-14"
+  .starttime less "2012-09-15"
 end
-Priced = D Cols select
-High = Priced .cost greater 30
-Costly = Priced High
-Ordered = Costly sort by .sortcost
-Rows = Ordered array
-Fields = array .member .facility .cost
-Result = Rows Fields
+R = R select
+  Guest = .memid equal 0
+  GCost = .slots * .guestcost
+  MCost = .slots * .membercost
+  .member = .firstname + " " + .surname
+  .facility = .name
+  .cost = Guest GCost MCost choose
+end
+R = R filter .cost greater 30
+Result = R sort by .cost descending
 Result OutputPath csv

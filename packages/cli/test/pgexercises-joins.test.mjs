@@ -88,37 +88,48 @@ test('all 8 PostgreSQL Exercises Joins programs match SQLite reference queries',
     try {
         const programs = fs.readdirSync(joins).filter(name => /^\d{3}_.*\.ra$/.test(name)).sort();
         assert.equal(programs.length, reference.length);
+        const tables = Object.fromEntries(['members', 'bookings', 'facilities'].map(name =>
+            [name, db.prepare(`SELECT * FROM ${name}`).all()]));
         for (const [index, program] of programs.entries()) {
-            await t.test(program, () => {
-                assert.equal(Number(program.slice(0, 3)), index + 1);
-                const output = path.join(directory, 'out.csv');
-                const result = spawnSync(process.execPath, [cli, path.join(joins, program), dbPath, output], {
-                    cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024,
-                });
-                assert.equal(result.status, 0, result.stderr);
-                const actual = rowsFromCsv(fs.readFileSync(output, 'utf8'));
-                const statement = db.prepare(reference[index]);
-                const expected = [statement.columns().map(column => column.name),
-                    ...statement.all().map(row => Object.values(row).map(value => value === null ? '' : String(value)))];
-                assert.deepEqual(actual[0], expected[0]);
-                if (index === 5 || index === 7) {
-                    for (const rows of [actual, expected]) {
-                        for (const row of rows.slice(1)) row[2] = String(Number(row[2]));
+            for (const storage of ['sqlite', 'array']) {
+                await t.test(`${program} (${storage})`, () => {
+                    assert.equal(Number(program.slice(0, 3)), index + 1);
+                    const output = path.join(directory, 'out.csv');
+                    let source = path.join(joins, program);
+                    if (storage === 'array') {
+                        const text = fs.readFileSync(source, 'utf8').replace('Db = DbPath sqlite',
+                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`);
+                        source = path.join(directory, 'array.ra');
+                        fs.writeFileSync(source, text);
                     }
-                }
-                assert.deepEqual(actual.slice(1).sort(), expected.slice(1).sort());
-                if ([1, 2, 3, 4, 6].includes(index)) {
-                    const key = row => index === 1 ? row[0]
-                        : index === 2 ? `${row[1]}\0${row[0]}`
-                            : index === 3 ? `${row[1]}\0${row[0]}`
-                                : row[0] + (index === 4 ? `\0${row[1]}` : '');
-                    assert.deepEqual(actual.slice(1).map(key), expected.slice(1).map(key));
-                }
-                if (index === 5 || index === 7) {
-                    const costs = actual.slice(1).map(row => Number(row[2]));
-                    assert.deepEqual(costs, [...costs].sort((a, b) => b - a));
-                }
-            });
+                    const result = spawnSync(process.execPath, [cli, source, dbPath, output], {
+                        cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024,
+                    });
+                    assert.equal(result.status, 0, result.stderr);
+                    const actual = rowsFromCsv(fs.readFileSync(output, 'utf8'));
+                    const statement = db.prepare(reference[index]);
+                    const expected = [statement.columns().map(column => column.name),
+                        ...statement.all().map(row => Object.values(row).map(value => value === null ? '' : String(value)))];
+                    assert.deepEqual(actual[0], expected[0]);
+                    if (index === 5 || index === 7) {
+                        for (const rows of [actual, expected]) {
+                            for (const row of rows.slice(1)) row[2] = String(Number(row[2]));
+                        }
+                    }
+                    assert.deepEqual(actual.slice(1).sort(), expected.slice(1).sort());
+                    if ([1, 2, 3, 4, 6].includes(index)) {
+                        const key = row => index === 1 ? row[0]
+                            : index === 2 ? `${row[1]}\0${row[0]}`
+                                : index === 3 ? `${row[1]}\0${row[0]}`
+                                    : row[0] + (index === 4 ? `\0${row[1]}` : '');
+                        assert.deepEqual(actual.slice(1).map(key), expected.slice(1).map(key));
+                    }
+                    if (index === 5 || index === 7) {
+                        const costs = actual.slice(1).map(row => Number(row[2]));
+                        assert.deepEqual(costs, [...costs].sort((a, b) => b - a));
+                    }
+                });
+            }
         }
     } finally {
         db.close();

@@ -9,16 +9,14 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_007.csv"
 
 Db = DbPath sqlite
-Members = Db .members
-Ids = Members .recommendedby
-Keys = Members .memid
-First = Members .firstname + " "
-Names = First + Members .surname
-Rec = Ids Keys Names lookup
-Cols = record
+M = Db .members
+R = M select
+  Ids = .recommendedby
+  Keys = .memid
+  Names = .firstname + " " + .surname
   .member = Names
-  .recommender = Rec
+  .recommender = Ids Keys Names lookup
 end
-Pairs = Members Cols select
-Result = (Pairs unique) sort by .member
+R = R unique
+Result = R sort by .member
 Result OutputPath csv

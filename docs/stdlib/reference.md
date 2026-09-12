@@ -290,6 +290,7 @@ These need `use sequences` but have no name to look up.
 | --- | --- |
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
+| `Values sort descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
 
 ## stats
 
@@ -314,7 +315,6 @@ CSV, SQLite, grouping and joins.
 | `Query explain` | table, io | SQLite query plan rows for a prepared query view. |
 | `Table labels` | array | Ordered column labels of a rank-1 table. |
 | `Ids Keys Values lookup` | value, lazy | First keyed match; SQLite expressions become a correlated subquery. |
-| `Rows Cols select` | table, lazy | Named computed columns; lazy on SQLite views. |
 | `Query sql` | record | Statement text and bound parameters of a query view. |
 | `Path sqlite` | database, io | Opens an existing SQLite database read-only. |
 | `Db Text Parameters sqlquery` | table, io | Read-only SELECT view with bound positional parameters. |
@@ -324,6 +324,10 @@ These need `use tables` but have no name to look up.
 | Form | Summary |
 | --- | --- |
 | `Rows group by .field` | Grouped view that mean, median, std and sum aggregate. |
+| `Rows filter .field greater Limit` | Filters a table with implicit input columns; condition lines in a block use AND. |
+| `Rows select .first .second` | Selects named columns into a rank-1 table, including a single column. |
+| `Rows select ... end` | Computes named columns with block-local calculations and an implicit input table. |
+| `Rows select Cols` | Selects columns from an ordered record of expressions. |
 | `Left Right leftjoin by .id` | Join on shared fields after by, or on field pairs after on. |
 | `Db .members alias .m` | Name one side of a join so matching column names remain distinct. |
 | `Table .column` | Projects one column of a table. |

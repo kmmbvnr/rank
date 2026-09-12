@@ -45,7 +45,7 @@ it('names a SQLite column without reading rows before materialization', () => {
     const runtime = new Interpreter(undefined, { io });
     runtime.execute('use tables\nDb = "club.sqlite3" sqlite\nFacilities = Db .facilities\n'
         + 'Cols = record\n  .title = Facilities .name\nend\n'
-        + 'Out = Facilities Cols select\nStatement = Out sql');
+        + 'Out = Facilities select Cols\nStatement = Out sql');
     expect(io.reads).toEqual([]);
     expect(formatValue(runtime.execute('Statement .text')!)).toContain('AS "title"');
     runtime.execute('Rows = Out array');
@@ -61,7 +61,7 @@ it('keeps choose as a SQLite expression until a row is requested', () => {
         + 'Flag = Rows .name equal "Tennis Court 1"\n'
         + 'Value = Flag "yes" "no" choose\n'
         + 'Cols = record\n  .title = Value\nend\n'
-        + 'Out = Rows Cols select\nStatement = Out sql');
+        + 'Out = Rows select Cols\nStatement = Out sql');
     expect(io.reads).toEqual([]);
     expect(formatValue(runtime.execute('Statement .text')!)).toContain('CASE WHEN');
 });
@@ -74,7 +74,26 @@ it('keeps a correlated lookup in the plan until a row is requested', () => {
         + 'Ids = Rows .name\nKeys = Rows .name\n'
         + 'Found = Ids Keys Keys lookup\n'
         + 'Cols = record\n  .title = Found\nend\n'
-        + 'Out = Rows Cols select\nStatement = Out sql');
+        + 'Out = Rows select Cols\nStatement = Out sql');
     expect(io.reads).toEqual([]);
     expect(formatValue(runtime.execute('Statement .text')!)).toContain('AS found');
+});
+
+it('keeps contextual filters, calculations and descending sort in a bound plan', () => {
+    const io = new CountingSqliteIo({});
+    const runtime = new Interpreter(undefined, { io });
+    runtime.execute('use tables\nuse sequences\nDb = "club.sqlite3" sqlite\n'
+        + 'R = Db .facilities filter .name equal "Tennis Court 1"\n'
+        + 'R = R select\n  Flag = .name equal "Tennis Court 1"\n'
+        + '  .title = Flag .name "fallback" choose\nend\n'
+        + 'R = R sort by .title descending\nStatement = R sql');
+    expect(io.reads).toEqual([]);
+    const text = formatValue(runtime.execute('Statement .text')!);
+    expect(text).toContain('WHERE');
+    expect(text).toContain('CASE WHEN');
+    expect(text).toContain('"title" DESC');
+    expect(text).not.toContain('Tennis Court 1');
+    expect(formatValue(runtime.execute('Statement .params')!)).toContain('Tennis Court 1');
+    runtime.execute('Rows = R array');
+    expect(io.reads).toHaveLength(1);
 });

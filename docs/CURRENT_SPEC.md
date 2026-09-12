@@ -2022,6 +2022,24 @@ places the local source positions in the same tensor shape. The source is not
 changed. A missing axis or mixed incomparable values in one vector is an
 error.
 
+Directions may be written for the whole sort or for individual keys:
+
+```rank
+Sorted = Values sort descending
+Order = Values argsort descending
+Rows = Events sort by .cost descending .name
+```
+
+`ascending` is the explicit spelling of the default direction. In `sort by`
+and `argsort by`, a direction belongs to the preceding field or function key.
+Descending reverses comparison, preserving the order of ties in arrays. It
+works for text and date keys as well as numbers. Plain directions also compose
+with intrinsic rank, explicit rank, and `argsort axis`; put direction after
+the modifiers. Named array tables retain their header through field sorting.
+SQLite emits DESC for descending keys and still needs explicit tie-breakers
+for a deterministic order among equal keys. Keep sorting as the final SQL
+operation before output when order is required.
+
 `sort by` orders a finite rank-1 collection by a separate key. A sequence of
 field symbols forms a lexicographic key for records:
 
@@ -2047,7 +2065,7 @@ Every key component must be a comparable scalar. Values at the same key keep
 their source order, and a key function runs exactly once per value in source
 order. The operation materializes a new rank-1 array and does not change its
 source. It accepts rank-1 arrays, queues, sets, multisets and finite sequences;
-an unbounded sequence is an error. Field sorting requires records and reports a
+an unbounded sequence is an error. Field sorting requires object rows or records and reports a
 missing field as `.Missing`. A compound source expression must be parenthesized.
 
 ## Elementwise arithmetic
@@ -3254,7 +3272,7 @@ the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
 `pad` after materialization. The SQL join remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
-`Cols = record ... end` followed by `Out = View Cols select` builds an ordered,
+`Cols = record ... end` followed by `Out = View select Cols` builds an ordered,
 named projection. SQLite expressions must belong to `View`; constants become
 bound parameters. It returns a flat lazy SQLite view without changing its
 source. An array source produces lazy rank-1 object rows from scalar fields or
@@ -3450,48 +3468,104 @@ Data = Data Mask
 
 ## Filter clause
 
-A table source may be refined as part of its definition:
+`filter` returns another table using a predicate over the input columns:
 
 ```rank
-Data = "data.csv" csv
-filter
-.Age greater 18
-.Score greater 0
+Adults = Data filter .Age greater 18
+
+Selected = Data filter
+  .Age greater 18
+  .Score greater 0
 end
 ```
 
-The clause continues the construction of `Data`. It is not a later mutation of
-an already-defined table.
+The input is evaluated once. A leading field path in a condition reads that
+input: `.Age` means `Data .Age`. Each condition line uses normal precedence;
+the complete lines are combined with AND. An explicit OR stays within its
+line. Parentheses allow an expression to span several lines. Empty filter
+blocks and assignment in a condition are errors.
 
-Inside the clause, the current collection is implicit. Therefore:
+The array predicate must be a rank-1 boolean mask with one value per row.
+Applying it fixes the matching row positions, as ordinary array masks do.
+The result is a rank-1 array view whose rows remain lazy; it retains the table
+header, including when no row matches. The input rows are not copied or
+changed. SQLite extends its parameterized WHERE plan without reading rows.
+Existing missing-cell and SQL NULL predicate behavior is unchanged.
+
+Use `Data = Data filter ...` to keep the next step under the same variable
+name. Other references to the input retain the preceding table. The earlier
+wiki sketch with `filter` on a separate line after a completed assignment
+has been replaced by the forms above.
+
+## Select columns
+
+A short list selects a rank-1 named table, including the one-column case:
 
 ```rank
-.Age greater 18
+Names = Data select .firstname .surname
+One = Data select .surname
 ```
 
-means the condition on the `.Age` column of the current table without repeating
-`Data`.
+This is different from a multi-column address such as
+`Data (array .Age .Fare)`, which produces a rank-2 numerical matrix.
 
-Multiple condition lines are combined with logical AND:
+A block names computed output columns and may use local calculations:
 
 ```rank
-filter
-.A greater 0
-.B less 10
+Out = Rows select
+  Guest = .memid equal 0
+  GCost = .slots * .guestcost
+  MCost = .slots * .membercost
+  .member = .firstname + " " + .surname
+  .cost = Guest GCost MCost choose
 end
+Out = Out filter .cost greater 30
 ```
 
-corresponds to the combined condition:
+The input is evaluated once. Field paths at the start of operands read it;
+`.m .firstname` reads a nested alias. Explicit receivers such as
+`Other .firstname` keep ordinary addressing. Function arity establishes the
+argument boundaries before implicit receivers are inserted. Literal labels
+used as data can be bound outside the block and passed through a variable.
+
+Uppercase local names see earlier calculations and outer variables, then
+shadow them within the block. Their types stay fixed and the bindings do not
+escape. Output field definitions all read the original input: defining
+`.cost` does not change what `.cost` means later in the same block. Use a
+local `Cost` to share its expression, or a following table step to read the
+output column. Defining a field changes neither the input nor the database.
+
+Expressions support arithmetic, comparisons, parentheses, arrays, field
+access, and pure standard-library calls such as `choose` and `lookup`.
+Arbitrary Rank function calls, I/O, random operations, mutation, and nested
+query blocks are not supported inside contextual expressions. Function aliases
+are checked against the resolved function, so renaming an effectful function
+does not bypass the rule. SQLite aggregates inside these expressions are not
+supported yet; they must not cause an implicit early query.
+
+Fields may be scalars or rank-1 columns aligned with the input. SQLite column
+expressions must come from that input view. Missing source cells stay absent;
+scalar values broadcast. Empty output schemas, duplicate names and mismatched
+column shapes are errors. Column order follows the source text. Array rows
+are lazy and follow source revisions; SQLite builds a bound SELECT plan.
+
+For dynamic columns, use an ordered record of expressions:
 
 ```rank
-.A greater 0 and .B less 10
+Cols = record
+  .name = Rows .firstname
+end
+Out = Rows select Cols
 ```
 
-Separate lines are preferred when AND is all that is needed.
+`Rows select Cols` uses the same projection implementation as the block form.
+It replaces the former postfix `Rows Cols select` function call; `select` is
+now table syntax. General `record`, `choose`, `lookup`, aliases and boolean
+addressing retain their independent uses.
 
-The exact interaction between implicit AND and explicit `or` is not yet fixed.
-For complex OR conditions, first-class boolean masks remain the primary,
-unambiguous mechanism.
+Named array tables also preserve their header through `unique` and field-keyed
+sorts. `unique` compares the named cells, treats absent cells alike, and keeps
+the first matching row. Field sorting accepts object rows as well as records.
 
 ## Grouping
 

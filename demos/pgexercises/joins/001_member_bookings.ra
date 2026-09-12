@@ -8,9 +8,12 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_001.csv"
 
 Db = DbPath sqlite
-Bookings = (Db .bookings) (array .memid .starttime)
-Members = (Db .members) (array .memid .firstname .surname)
-Joined = Bookings Members innerjoin by .memid
-David = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
-Result = (Joined David) (array .starttime)
+B = Db .bookings
+M = Db .members
+R = B M innerjoin by .memid
+R = R filter
+  .firstname equal "David"
+  .surname equal "Farrell"
+end
+Result = R select .starttime
 Result OutputPath csv

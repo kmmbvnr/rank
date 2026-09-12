@@ -13,6 +13,7 @@ import {
     isKeyedJoinExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isStdinExpression, isStringLiteral, isUnaryExpression,
+    isTableFilterExpression, isTableSelectExpression,
     type Expression,
 } from '../generated/ast.js';
 import { findOperation, type Operation, type ResultKind } from '../operations.js';
@@ -113,6 +114,9 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isLabelLiteral(expression)) return ['symbol'];
     if (isArrayExpression(expression) || isMaterializeExpression(expression)) return ['array'];
     if (isRecordExpression(expression)) return ['record'];
+    if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {
+        return expression.sourceFields.length === 0 ? typeOf(expression.source, lookup) : UNKNOWN;
+    }
     if (isKeyedSortExpression(expression) || isKeyedJoinExpression(expression)) return ['array'];
     if (isNewStructureExpression(expression)) {
         const type = STRUCTURES[expression.structure];

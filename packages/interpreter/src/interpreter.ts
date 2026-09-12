@@ -14,6 +14,7 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
+import { TABLE_INPUT, tableExpression } from './table-expression.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
@@ -50,6 +51,9 @@ import {
     isParenthesizedExpression,
     isPushStatement,
     isRecordExpression,
+    isRecordField,
+    isTableFilterExpression,
+    isTableSelectExpression,
     isRunStatement,
     isReturnStatement,
     isKeyedSortExpression,
@@ -71,6 +75,7 @@ import {
     type FunctionStatement,
     type Program,
     type Statement,
+    findOperation,
 } from 'rank-language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
@@ -96,13 +101,15 @@ import { randomFromSeed, shuffleValue } from './modules/random.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     argsortAxis,
+    argsortValue,
     lengthOfAxis,
     sortByItems,
     sortByKeys,
+    sortValue,
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
-import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields } from './modules/tables.js';
+import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectTable } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sortSqlite, sqliteColumn, sqliteScope,
@@ -1643,6 +1650,85 @@ export class Interpreter {
                 return ownedArray(items, shape);
             };
         }
+        if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', isTableFilterExpression(expression) ? 'filter' : 'select');
+                let source = yield* resume(interpreter.evaluateTask(expression.source));
+                for (const field of expression.sourceFields) {
+                    source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
+                }
+                if (isRankTableAlias(source)) source = source.source;
+                if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
+                    throw new RankError('filter/select expects a rank-1 table or SQLite view', 'TypeError');
+                }
+                const previous = interpreter.localFrame;
+                const frame = new LocalFrame(previous);
+                frame.set(TABLE_INPUT, source);
+                interpreter.localFrame = frame;
+                const contextual = (node: Expression): Evaluation<RankValue> => {
+                    const lowered = tableExpression(node, name => {
+                        const value = interpreter.resolve(name);
+                        if (!isNativeFunction(value)) return undefined;
+                        const operation = findOperation(value.name);
+                        if (!operation || operation.effects?.length
+                            || interpreter.standardFunctions.get(standardModules[operation.module]?.[operation.name]) !== value) {
+                            throw new RankError('table expressions accept only pure standard-library functions', 'TypeError');
+                        }
+                        if (isRankSqliteTable(source) && ['sum', 'len'].includes(operation.name)) {
+                            throw new RankError('SQLite aggregates inside filter/select expressions are not supported yet', 'TypeError');
+                        }
+                        return value.arities;
+                    });
+                    return interpreter.evaluateTask(lowered);
+                };
+                try {
+                    if (isTableFilterExpression(expression)) {
+                        const conditions = expression.condition ? [expression.condition] : expression.conditions;
+                        let mask = yield* resume(contextual(conditions[0]));
+                        for (const condition of conditions.slice(1)) {
+                            mask = interpreter.evaluateBinary('and', mask, yield* resume(contextual(condition)));
+                        }
+                        if (isRankArray(source)) {
+                            if (!isRankArray(mask) || mask.shape.length !== 1
+                                || mask.shape[0] !== source.shape[0]
+                                || !mask.items.every(value => typeof value === 'boolean')) {
+                                throw new RankError('filter requires a boolean mask with one value per row', 'TypeError');
+                            }
+                            const selected = selectAxis(source, 0, mask) as RankArray;
+                            if (source.columnNames) Object.defineProperty(selected, 'columnNames', { value: source.columnNames });
+                            if (source.tableScopes) Object.defineProperty(selected, 'tableScopes', { value: source.tableScopes });
+                            return selected;
+                        }
+                        return interpreter.applySelectors([source, mask]);
+                    }
+                    if (expression.columns) return selectTable(source, yield* resume(interpreter.evaluateTask(expression.columns)));
+                    const entries = new ResourceMap<RankValue>(value => value);
+                    const record: RankRecord = entries.resources.track({ kind: 'record', entries, types: new Map() });
+                    const add = (name: string, value: RankValue): void => {
+                        if (entries.has(name)) throw new RankError(`duplicate select field: .${name}`, 'TypeError');
+                        entries.set(name, value);
+                        record.types.set(name, typeName(value));
+                    };
+                    for (const field of expression.fields) {
+                        add(field.name, interpreter.applySelectors([source, { kind: 'label', name: field.name }]));
+                    }
+                    for (const entry of expression.entries) {
+                        const value = yield* resume(contextual(entry.value));
+                        if (isRecordField(entry)) add(entry.name, value);
+                        else {
+                            const previous = frame.get(entry.name);
+                            if (previous !== undefined && typeName(previous) !== typeName(value)) {
+                                throw new RankError(`select local ${entry.name} cannot change type`, 'TypeError');
+                            }
+                            frame.define(entry.name, value, new Set([typeName(value)]));
+                        }
+                    }
+                    return selectTable(source, record);
+                } finally {
+                    interpreter.localFrame = previous;
+                }
+            };
+        }
         if (isRecordExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const entries = new ResourceMap<RankValue>(value => value);
@@ -1667,10 +1753,7 @@ export class Interpreter {
                 interpreter.requireModule('tables', 'alias');
                 let source = yield* resume(interpreter.evaluateTask(expression.source));
                 if (expression.field) {
-                    if (!isRankSqliteDatabase(source)) {
-                        throw new RankError('alias source field expects a SQLite database', 'TypeError');
-                    }
-                    source = sqliteTable(source, expression.field.name);
+                    source = interpreter.applySelectors([source, { kind: 'label', name: expression.field.name }]);
                 }
                 if (isRankSqliteTable(source) && source.scopes) {
                     throw new RankError('alias of a joined SQLite view is not supported yet', 'TypeError');
@@ -1690,23 +1773,31 @@ export class Interpreter {
                 interpreter.requireModule('sequences', operation);
                 const source = yield* resume(interpreter.evaluateTask(expression.source));
                 if (isRankSqliteTable(source) && !indices && expression.fields.length > 0) {
-                    return sortSqlite(source, expression.fields.map(field => field.name));
+                    return sortSqlite(source, expression.fields.map(field => field.field.name),
+                        expression.fields.map(field => sortDescending(field.direction)));
                 }
                 const items = sortByItems(source, operation);
+                const resultWithSchema = (result: RankArray): RankArray => {
+                    if (!indices && isRankArray(source) && source.columnNames) {
+                        Object.defineProperty(result, 'columnNames', { value: source.columnNames });
+                    }
+                    return result;
+                };
                 if (expression.fields.length > 0) {
                     const keys = items.map(item => expression.fields.map(field => {
-                        if (!isRankRecord(item)) {
+                        if (!isRankRecord(item) && !isRankObject(item)) {
                             throw new RankError(`${operation} fields expects records`, 'TypeError');
                         }
-                        const value = item.entries.get(field.name);
+                        const value = item.entries.get(field.field.name);
                         if (value === undefined) {
                             throw new MissingValueError(
-                                `${operation} record is missing field .${field.name}`,
+                                `${operation} record is missing field .${field.field.name}`,
                             );
                         }
                         return value;
                     }));
-                    return sortByKeys(items, keys, operation, indices);
+                    return resultWithSchema(sortByKeys(items, keys, operation, indices,
+                        expression.fields.map(field => sortDescending(field.direction))));
                 }
                 if (!expression.key) throw new RankError(`${operation} requires a key`);
                 const key = yield* resume(interpreter.evaluateTask(expression.key));
@@ -1719,7 +1810,7 @@ export class Interpreter {
                     interpreter.ownFiles(value);
                     keys.push([value]);
                 }
-                return sortByKeys(items, keys, operation, indices);
+                return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortDescending(expression.direction)]));
             };
         }
         if (isKeyedGroupExpression(expression)) {
@@ -1934,6 +2025,36 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
+            const direction = parts.at(-1);
+            if (direction && isNameExpression(direction)
+                && ['ascending', 'descending'].includes(direction.name)
+                && parts.some(part => isNamed(part, 'sort') || isNamed(part, 'argsort'))) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('sequences', 'sort direction');
+                    const parts = flattenApplication(expression).slice(0, -1);
+                    const axis = explicitAxisArgsort(parts);
+                    const ranked = explicitRankApplication(parts);
+                    const operation = axis ? 'argsort' : (ranked?.parts ?? parts).at(-1);
+                    const name = typeof operation === 'string' ? operation
+                        : operation && isNameExpression(operation) ? operation.name : undefined;
+                    if (name !== 'sort' && name !== 'argsort') {
+                        throw new RankError('ascending/descending must follow sort or argsort', 'TypeError');
+                    }
+                    const fn = interpreter.resolve(name);
+                    if (fn !== interpreter.standardFunctions.get(standardModules.sequences[name]) || !isNativeFunction(fn)) {
+                        throw new RankError('sort direction requires the standard sort or argsort', 'TypeError');
+                    }
+                    const descending = direction.name === 'descending';
+                    if (axis) return argsortAxis(yield* resume(interpreter.evaluateTask(axis.source)), axis.axis, descending);
+                    const source = yield* resume(interpreter.evaluateTask(applicationParts((ranked?.parts ?? parts).slice(0, -1))));
+                    const directed: NativeFunction = { ...fn, call: args => name === 'sort'
+                        ? sortValue(args[0], descending) : argsortValue(args[0], descending) };
+                    return yield* resume(ranked
+                        ? interpreter.applyAtRank([source, directed], ranked.rank, ranked.axes)
+                        : interpreter.applyIntrinsicRank(directed, [source]));
+                };
+            }
+
             if (parts.some(isUnpackExpression)) {
                 return function* (): Execution<RankValue> {
                     const values: RankValue[] = [];
@@ -4587,11 +4708,12 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         return values[0].at(values[1]);
     }
     if (isRankObject(values[0])) {
-        if (values.length !== 2 || typeof values[1] !== 'string') {
+        if (values.length !== 2 || (typeof values[1] !== 'string' && !isRankLabel(values[1]))) {
             throw new RankError('object addressing expects one text key');
         }
-        const value = values[0].entries.get(values[1]);
-        if (value === undefined) throw new MissingValueError(`missing object key: ${values[1]}`);
+        const key = isRankLabel(values[1]) ? values[1].name : values[1];
+        const value = values[0].entries.get(key);
+        if (value === undefined) throw new MissingValueError(`missing object key: ${key}`);
         return value;
     }
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
@@ -5443,6 +5565,13 @@ function modifierPipeline(expression: Expression): Expression | undefined {
     }
     if (!isApplicationExpression(expression)) return undefined;
     const parts = flattenApplication(expression);
+    const direction = parts.findIndex((part, index) => index > 1
+        && (isNamed(part, 'ascending') || isNamed(part, 'descending'))
+        && parts.slice(0, index).some(p => isNamed(p, 'sort') || isNamed(p, 'argsort')));
+    if (direction >= 0) {
+        return direction === parts.length - 1 ? undefined
+            : continueModified(applicationParts(parts.slice(0, direction + 1)), parts.slice(direction + 1));
+    }
     if (parts.length > 6 && explicitNamedSegmentApplication(parts.slice(0, 6))) {
         return continueModified(applicationParts(parts.slice(0, 6)), parts.slice(6));
     }
@@ -6027,4 +6156,11 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         }
     }
     return files;
+}
+
+function sortDescending(direction: string | undefined): boolean {
+    if (direction !== undefined && direction !== 'ascending' && direction !== 'descending') {
+        throw new RankError('sort direction must be ascending or descending', 'TypeError');
+    }
+    return direction === 'descending';
 }

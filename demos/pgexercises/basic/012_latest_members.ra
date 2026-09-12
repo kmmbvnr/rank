@@ -12,6 +12,10 @@ Db = DbPath sqlite
 Rows = (Db .members) array
 Dates = Rows .joindate sort
 Latest = Dates (Dates len - 1)
-Selected = (Rows (Rows .joindate equal Latest)) array
-Result = Selected (array .firstname .surname .joindate)
+R = Rows filter .joindate equal Latest
+Result = R select
+  .firstname = .firstname
+  .surname = .surname
+  .joindate = .joindate
+end
 Result OutputPath csv

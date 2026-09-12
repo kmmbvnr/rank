@@ -8,6 +8,6 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/003_where.csv"
 
 Db = DbPath sqlite
-Rows = (Db .facilities) array
-Result = (Rows (Rows .membercost greater 0)) array
+R = Db .facilities
+Result = R filter .membercost greater 0
 Result OutputPath csv

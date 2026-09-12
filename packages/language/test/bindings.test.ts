@@ -26,6 +26,20 @@ function named(result: ProgramFacts, scope: string, name: string): Binding {
 }
 
 describe('binding facts', () => {
+    it('tracks select locals separately and resolves an initializer against preceding bindings', async () => {
+        const result = await facts([
+            'use tables', 'Cost = 9', 'Rows = Input',
+            'Out = Rows select', '  Cost = .cost + Cost', '  .total = Cost', 'end',
+            'After = Cost',
+        ], ['Input']);
+        expect(result.words).toEqual([]);
+        expect(named(result, 'program', 'Cost').reassigned).toBe(false);
+        expect(named(result, 'program', 'Cost').reads).toHaveLength(2);
+        expect(named(result, 'select', 'Cost').shadows).toBe(true);
+        expect(named(result, 'select', 'Cost').reads).toHaveLength(1);
+        expect(named(result, 'select', 'Cost').types).toEqual([]);
+    });
+
     it('separates a name written once from one written again', async () => {
         const result = await facts(['A = 1', 'B = 2', 'B = 3', 'C = A + B']);
         expect(named(result, 'program', 'A').reassigned).toBe(false);

@@ -9,11 +9,12 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_003.csv"
 
 Db = DbPath sqlite
-Refs = (Db .members) (array .recommendedby)
-Recs = (Db .members) (array .memid .firstname .surname)
-Matched = Refs Recs innerjoin on
+M = Db .members select .recommendedby
+R = Db .members
+R = R select .memid .firstname .surname
+J = M R innerjoin on
   .recommendedby equal .memid
-Names = Matched (array .firstname .surname)
-Ordered = (Names unique) sort by .surname .firstname
-Result = Ordered
+R = J select .firstname .surname
+R = R unique
+Result = R sort by .surname .firstname
 Result OutputPath csv

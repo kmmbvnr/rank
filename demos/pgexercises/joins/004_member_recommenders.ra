@@ -13,12 +13,11 @@ M = Db .members alias .m
 R = Db .members alias .r
 J = M R leftjoin on
   .recommendedby equal .memid
-Cols = record
-  .memfname = J .m .firstname
-  .memsname = J .m .surname
-  .recfname = J .r .firstname
-  .recsname = J .r .surname
+Out = J select
+  .memfname = .m .firstname
+  .memsname = .m .surname
+  .recfname = .r .firstname
+  .recsname = .r .surname
 end
-Out = J Cols select
 Result = Out sort by .memsname .memfname
 Result OutputPath csv

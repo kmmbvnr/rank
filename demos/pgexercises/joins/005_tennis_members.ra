@@ -9,19 +9,19 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_005.csv"
 
 Db = DbPath sqlite
-Bookings = Db .bookings
-Members = Db .members
-Facilities = Db .facilities
-WithMembers = Bookings Members innerjoin by .memid
-Joined = WithMembers Facilities innerjoin by .facid
-Court = (Joined .name equal "Tennis Court 1") or (Joined .name equal "Tennis Court 2")
-Filtered = Joined Court
-First = Filtered .firstname + " "
-Name = First + Filtered .surname
-Cols = record
-  .member = Name
-  .facility = Filtered .name
+R = Db .bookings
+M = Db .members
+F = Db .facilities
+R = R M innerjoin by .memid
+R = R F innerjoin by .facid
+R = R filter
+  (.name equal "Tennis Court 1"
+    or .name equal "Tennis Court 2")
 end
-Pairs = Filtered Cols select
-Result = (Pairs unique) sort by .member .facility
+R = R select
+  .member = .firstname + " " + .surname
+  .facility = .name
+end
+R = R unique
+Result = R sort by .member .facility
 Result OutputPath csv

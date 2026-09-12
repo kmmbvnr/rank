@@ -186,11 +186,14 @@ export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpres
         params: [...table.params, ...predicate.params] };
 }
 
-export function sortSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
+export function sortSqlite(
+    table: RankSqliteTable, fields: readonly string[], descending: readonly boolean[] = [],
+): RankSqliteTable {
     for (const field of fields) requireColumn(table, field);
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
         booleanColumns: table.booleanColumns, textColumns: table.textColumns,
-        text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map(quote).join(', ')}`,
+        text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map((field, index) =>
+            quote(field) + (descending[index] ? ' DESC' : '')).join(', ')}`,
         params: table.params };
 }
 

@@ -470,6 +470,7 @@ function printForms(): void {
         'Blocks that need end',
         '  for  if  try  test  fun  memo',
         '  record',
+        '  Rows filter  Rows select (block forms)',
         '  array shape 2 3 (rows, then end)',
         '  array shape 2 3 pad 0 needs none',
     ].join('\n'));

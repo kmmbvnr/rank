@@ -31,10 +31,13 @@ reference SQL. It checks duplicate bookings, duplicate member names, absent
 recommenders, date boundaries, ordering, and member versus guest prices without
 downloaded data.
 
-All eight tasks use Rank operations on lazy SQLite views. Task 4 uses short
-aliases for a self join; tasks 6 and 8 use `choose` for guest/member prices.
-Their filter and sort run in SQLite; a final `array` drops a temporary sort
-column before CSV. Task 7 uses `lookup` for a correlated scalar subquery
-without a join or early materialization. Task 8 names the priced intermediate
-before filtering, corresponding to the SQL subquery.
+All eight tasks use Rank operations on lazy SQLite views. Contextual `filter`
+and `select` blocks remove repeated table prefixes and separate column-record
+variables. Task 4 keeps short role aliases for its self join. Tasks 6 and 8
+use `choose` and `sort by .cost descending`; their full results stay in SQLite
+until CSV, with no sort helper column or cleanup materialization. Task 7 uses
+`lookup` for a correlated scalar subquery. Task 8 names its priced intermediate.
+
+The CLI oracle also runs the same eight sources against ordinary array tables
+and compares them with the SQL references, including order and absent fields.
 See the [translation roadmap](../../../docs/design/sqlite-tables.md).

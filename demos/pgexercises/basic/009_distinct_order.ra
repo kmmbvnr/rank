@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: basic 9
 rem https://pgexercises.com/questions/basic/unique.html
 
 use cli
-use algo
 use sequences
 use tables
 
@@ -10,12 +9,9 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/009_distinct_order.csv"
 
 Db = DbPath sqlite
-Rows = (Db .members) array
-Names = (Rows .surname unique sort) from 0 until 10
-Result = new queue
-for Name in Names
-  Matching = (Rows (Rows .surname equal Name)) array
-  Result push (Matching 0)
-end
-Selected = Result (array (Result len)) reshape
-Selected (array .surname) OutputPath csv
+R = Db .members select .surname
+R = R unique
+R = R sort by .surname
+Rows = R array
+Result = Rows from 0 until 10
+Result OutputPath csv

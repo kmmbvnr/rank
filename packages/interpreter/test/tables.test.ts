@@ -135,7 +135,7 @@ describe('Rank tables', () => {
             '  .member = Rows .name',
             '  .points = Rows .score',
             'end',
-            'Out = Rows Cols select',
+            'Out = Rows select Cols',
         ].join('\n'));
         expect(formatValue(runtime.execute('Out labels')!)).toBe('.member .points');
         expect(formatValue(runtime.execute('Out .member')!)).toBe('Ada Bea');

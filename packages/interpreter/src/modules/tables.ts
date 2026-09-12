@@ -60,13 +60,6 @@ export const tablesModule: RuntimeModule = {
         return derivedArray(requested.shape, [requested, keys, values],
             index => find(readArrayItem(requested, index)), fileFree);
     }),
-    select: () => native('select', 2, ([input, fields]) => {
-        if (!isRankRecord(fields)) throw new RankError('select expects a record of columns', 'TypeError');
-        const source = isRankTableAlias(input) ? input.source : input;
-        if (isRankSqliteTable(source)) return selectSqlite(source, fields);
-        if (isRankArray(source)) return selectArray(source, fields);
-        throw new RankError('select expects a rank-1 table or SQLite view', 'TypeError');
-    }),
     labels: () => native('labels', 1, ([value]) => {
         if (!isRankArray(value) || value.shape.length !== 1) {
             throw new RankError('labels expects a rank-1 table', 'DimensionMismatch');
@@ -91,6 +84,14 @@ export const tablesModule: RuntimeModule = {
         return arguments_[0];
     }),
 };
+
+export function selectTable(input: RankValue, fields: RankValue): RankValue {
+    if (!isRankRecord(fields)) throw new RankError('select expects a record of columns', 'TypeError');
+    const source = isRankTableAlias(input) ? input.source : input;
+    if (isRankSqliteTable(source)) return selectSqlite(source, fields);
+    if (isRankArray(source)) return selectArray(source, fields);
+    throw new RankError('select expects a rank-1 table or SQLite view', 'TypeError');
+}
 
 function selectArray(source: RankArray, fields: RankRecord): RankArray {
     if (source.shape.length !== 1) {

@@ -25,6 +25,38 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
+    it('parses contextual table blocks, field lists, records and per-key directions', async () => {
+        const document = await parse([
+            'R = Db .members filter .id greater 0',
+            'R = R filter',
+            '  .id equal 1 or .id equal 2',
+            '  .cost greater 10',
+            'end',
+            'R = R select',
+            '  Cost = .cost * 2',
+            '  .total = Cost',
+            'end',
+            'One = R select .total',
+            'Dynamic = R select Cols',
+            'S = R sort by .total descending .name ascending',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(6);
+        const statement = document.parseResult.value.statements[5];
+        if (!isAssignmentStatement(statement) || !isKeyedSortExpression(statement.value)) throw new Error('expected sort');
+        expect(statement.value.fields.map(field => [field.field.name, field.direction]))
+            .toEqual([['total', 'descending'], ['name', 'ascending']]);
+    });
+
+    it('rejects empty table blocks, condition assignment and the superseded select call', async () => {
+        for (const source of ['R = Rows filter\nend', 'R = Rows select\nend',
+            'R = Rows filter .x = 1', 'R = Rows Cols select']) {
+            const document = await parse(source);
+            expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
+        }
+    });
+
     it('parses continue as a statement in nested loop bodies', async () => {
         const document = await parse('for I in Items\n  if I equal 0\n    continue\n  end\nend');
         expect(document.parseResult.lexerErrors).toEqual([]);
@@ -54,7 +86,7 @@ describe('Rank grammar', () => {
         expect(isKeyedSortExpression(fields.value)).toBe(true);
         expect(isKeyedSortExpression(key.value)).toBe(true);
         if (!isKeyedSortExpression(fields.value) || !isKeyedSortExpression(key.value)) return;
-        expect(fields.value.fields.map(field => field.name)).toEqual(['time', 'delta']);
+        expect(fields.value.fields.map(field => field.field.name)).toEqual(['time', 'delta']);
         expect(key.value.key?.name).toBe('eventkey');
         expect(document.parseResult.value.statements).toHaveLength(3);
     });

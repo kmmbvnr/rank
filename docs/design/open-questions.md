@@ -55,13 +55,13 @@ disputed. `with` is not reserved as current syntax. A replacement should wait
 for the first real multi-argument method and must remain distinguishable from a
 method with no arguments followed by ordinary statements.
 
-## Compound conditions in table source clauses
+## Contextual table expressions
 
-Multiple condition lines in a table source clause currently mean implicit AND.
-
-The exact interaction between that implicit AND and explicit `or` is not yet
-fixed. Complex OR expressions should currently be expressed with first-class
-boolean masks where their semantics are unambiguous.
+The [table ergonomics decision](table-query-ergonomics.md) implements `filter`,
+`select` and sort directions. Filter condition lines use normal precedence
+within a line, then AND between complete lines. Arbitrary pure Rank functions
+inside contextual expressions, grouped SQL aggregates and further backend
+operations remain future work.
 
 ## Negative indexing
 
@@ -135,7 +135,7 @@ The exact diagnostic policy and any source annotation remain undecided.
 arrays and SQLite views. Short table aliases preserve colliding fields in
 nested row scopes; flat joins still reject duplicate non-key names. Remaining
 questions are right/full joins, optional cardinality validation, ordering
-after SQL joins, and lazy output field naming for nested views.
+after SQL joins. Contextual select blocks now name nested output fields.
 
 ## Stack / combine
 

@@ -171,6 +171,31 @@ test('knows which array and record forms need an end', () => {
     assert.deepEqual(scanLine('X = 1 fun').opens, []);
 });
 
+test('collects table blocks without delaying inline select and filter', () => {
+    assert.deepEqual(scanLine('R = Rows filter').opens, ['filter']);
+    assert.deepEqual(scanLine('R = Rows select rem columns follow').opens, ['select']);
+    assert.deepEqual(scanLine('R = Rows filter .id greater 0').opens, []);
+    assert.deepEqual(scanLine('R = Rows select .name').opens, []);
+    assert.deepEqual(scanLine('R = Rows select Cols').opens, []);
+    assert.deepEqual(scanLine('Label = .select').opens, []);
+    const state = cell('R = Rows select', 'Cost = .price * 2', '.cost = Cost');
+    assert.equal(isComplete(state), false);
+    assert.equal(cellSource(closeCell(state)), 'R = Rows select\n  Cost = .price * 2\n  .cost = Cost\nend');
+});
+
+test('executes contextual table blocks entered through the REPL', () => {
+    const rows = JSON.stringify(JSON.stringify([{ id: 1, cost: 10 }, { id: 2, cost: 20 }]));
+    const input = ['use tables', 'use json', 'use numbers', `R = ${rows} json`,
+        'R = R filter', '.id equal 2', 'end',
+        'R = R select', 'Cost = .cost * 2', '.total = Cost', 'end',
+        'R .total sum', '',
+    ].join('\n');
+    const result = spawnSync(process.execPath, [cli], { input, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stderr, '');
+    assert.match(result.stdout, /40\s*$/);
+});
+
 test('a blank line finishes every open construct', () => {
     const open = cell('fun double X', 'return X * 2');
     assert.equal(isComplete(open), false);

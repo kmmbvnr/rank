@@ -15,6 +15,7 @@ import {
     isForStatement, isFunctionStatement, isIfStatement, isIndexAssignmentStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
+    isTableFilterExpression, isTableSelectExpression, isSelectLocal,
     isPushStatement, isRecordExpression, isReturnStatement, isStdinExpression,
     isTestStatement, isTryStatement, isUnaryExpression, isUnpackExpression,
     isUnpackStatement, isUseStatement, isYieldStatement,
@@ -60,7 +61,7 @@ export interface Binding {
     readonly types: Types;
 }
 
-export type ScopeKind = 'program' | 'function' | 'test';
+export type ScopeKind = 'program' | 'function' | 'test' | 'select';
 
 export interface ScopeFacts {
     readonly kind: ScopeKind;
@@ -126,7 +127,7 @@ const METHODS = new Set([
 
 const MODIFIERS = new Set([
     'axis', 'rank', 'by', 'with', 'reduce', 'scan', 'outer', 'stride', 'padding',
-    'array', 'shape', 'index', 'type', 'edges', 'value', 'key', 'from',
+    'ascending', 'descending', 'array', 'shape', 'index', 'type', 'edges', 'value', 'key', 'from',
     'queue', 'stack', 'deque', 'heap', 'set', 'counter', 'orderedset',
     'graph', 'dsu', 'multiset', 'fenwick', 'segment', 'wavelet',
 ]);
@@ -206,6 +207,7 @@ class Analyzer {
     private readonly scopes: ScopeState[] = [];
     private readonly pending: PendingRead[] = [];
     private readonly free = new Map<string, Site[]>();
+    private readonly expressionScopes: ScopeState[] = [];
     private program!: ScopeState;
     private loopDepth = 0;
 
@@ -236,7 +238,7 @@ class Analyzer {
         return {
             imports: this.imports,
             modules: this.modules,
-            scopes: [this.program, ...nested].map(scope => finish(scope)),
+            scopes: [this.program, ...nested, ...this.expressionScopes].map(scope => finish(scope)),
             operations, missing, words,
         };
     }
@@ -427,6 +429,34 @@ class Analyzer {
         }
         if (isMaterializeExpression(expression)) {
             this.expression(expression.source);
+            return;
+        }
+        if (isTableFilterExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.condition);
+            for (const condition of expression.conditions) this.expression(condition);
+            return;
+        }
+        if (isTableSelectExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.columns);
+            const scope: ScopeState = {
+                kind: 'select', name: 'select', at: site(expression), slots: new Map(),
+            };
+            this.expressionScopes.push(scope);
+            this.scopes.push(scope);
+            for (const entry of expression.entries) {
+                // A calculation sees only earlier select locals, not later ones.
+                const before = this.pending.length;
+                this.expression(entry.value);
+                const visible = { ...scope, slots: new Map(scope.slots) };
+                for (let i = before; i < this.pending.length; i += 1) {
+                    const read = this.pending[i];
+                    this.pending[i] = { ...read, chain: read.chain.map(s => s === scope ? visible : s) };
+                }
+                if (isSelectLocal(entry)) this.bind(entry.name, 'assignment', entry);
+            }
+            this.scopes.pop();
             return;
         }
         if (isKeyedSortExpression(expression)) {

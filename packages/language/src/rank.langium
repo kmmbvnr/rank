@@ -219,6 +219,8 @@ PowerExpression returns Expression:
         operator='**' right=PowerExpression)?;
 
 ApplicationExpression returns Expression:
+    TableFilterExpression |
+    TableSelectExpression |
     AliasedTableExpression |
     KeyedSortExpression |
     KeyedGroupExpression |
@@ -228,13 +230,32 @@ ApplicationExpression returns Expression:
         arguments+=ApplicationArgument)*
     ({infer MaterializeExpression.source=current} 'array')?;
 
+TableFilterExpression:
+    source=PrimaryExpression sourceFields+=LabelLiteral?
+    'filter' (condition=Expression |
+        NL+ (conditions+=Expression NL+)+ 'end');
+
+TableSelectExpression:
+    source=PrimaryExpression sourceFields+=LabelLiteral?
+    'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
+        NL+ (entries+=SelectEntry NL+)+ 'end');
+
+SelectEntry:
+    RecordField | SelectLocal;
+
+SelectLocal:
+    name=VARIABLE '=' value=Expression;
+
+SortField:
+    field=LabelLiteral direction=WORD?;
+
 AliasedTableExpression:
     source=PrimaryExpression field=LabelLiteral?
     'alias' name=LabelLiteral;
 
 KeyedSortExpression:
     source=PrimaryExpression operator=(SORT_BY | ARGSORT_BY)
-    (fields+=LabelLiteral+ | key=NameExpression);
+    (fields+=SortField+ | key=NameExpression direction=WORD?);
 
 KeyedGroupExpression:
     source=PrimaryExpression operator=GROUP_BY fields+=LabelLiteral+;
@@ -354,7 +375,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD;
+    VARIABLE | WORD | 'filter' | 'select';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;

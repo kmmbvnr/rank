@@ -37,13 +37,17 @@ inside the ignored `data/` directory.
 | 12 | [Latest members](https://pgexercises.com/questions/basic/agg2.html) | [012](012_latest_members.ra) |
 
 Each numbered `.ra` file opens the database, computes one answer and writes a
-CSV result to `../data/`. The programs cover selection, projection, masks,
-membership, computed columns, dates, distinct/order/limit, union and maximum
-date. [Task 5](005_string_search.ra) uses the parameterized `sqlquery` escape
-hatch for SQLite `LIKE`: Rank has no equivalent case-insensitive substring
-operation yet. The other tasks materialize the source table and use ordinary
-Rank arrays. They do not claim that these operations are pushed down into SQL;
-see the [translation roadmap](../../../docs/design/sqlite-tables.md).
+CSV result to `../data/`. Tasks 1–8 stay in SQLite until output. Task 4 compares
+fifty times the member cost with maintenance; task 6 uses an OR filter, and
+task 7 uses a contextual select with `choose`.
+[Task 5](005_string_search.ra) still uses bound `sqlquery` for SQLite LIKE;
+Rank has no equivalent case-insensitive substring operation yet.
+
+Task 9 projects, deduplicates and sorts in SQLite, then takes the first ten
+rows locally. Task 10 reads only the projected name columns for its local
+union. Tasks 11 and 12 still read members for their latest-date calculation.
+These remaining materialization boundaries are explicit; see the
+[translation roadmap](../../../docs/design/sqlite-tables.md).
 
 Run all answers from the repository root:
 

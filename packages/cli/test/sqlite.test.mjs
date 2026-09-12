@@ -201,7 +201,7 @@ test('named computed columns stay in SQL with bound parameters', () => fixture((
         + '  .ok = Filtered .facid equal 0\n'
         + '  .price = Filtered .membercost + 1\n'
         + 'end\n'
-        + 'Out = Filtered Cols select\n'
+        + 'Out = Filtered select Cols\n'
         + 'Q = Out sql\nQ .text print\nQ .params len print\n'
         + `Out ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
@@ -229,7 +229,7 @@ test('choose stays in SQL and leaves an unknown condition missing', () => fixtur
         + 'Value = Flag "yes" "no" choose\n'
         + 'Ok = Flag true false choose\n'
         + 'Cols = record\n  .id = Rows .id\n  .value = Value\n  .ok = Ok\nend\n'
-        + 'Out = (Rows Cols select) sort by .id\n'
+        + 'Out = (Rows select Cols) sort by .id\n'
         + 'Q = Out sql\nQ .text print\n'
         + `Out ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
@@ -257,7 +257,7 @@ test('lookup builds a correlated self-query without joining or reading rows', ()
         + 'Member = M .name + "!"\n'
         + 'Rec = Ids Keys Names lookup\n'
         + 'Cols = record\n  .member = Member\n  .recommender = Rec\nend\n'
-        + 'Out = (M Cols select) sort by .member\n'
+        + 'Out = (M select Cols) sort by .member\n'
         + 'Q = Out sql\nQ .text print\nQ .params len print\n'
         + `Out ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);

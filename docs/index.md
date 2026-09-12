@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-11**
+**Current language snapshot — 2026-09-12**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -79,6 +79,7 @@ execution direction and its semantic requirements.
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
 - [SQLite query translation roadmap](design/sqlite-tables.md)
+- [Simpler table programs: design decision](design/table-query-ergonomics.md)
 - [Performance roadmap: remaining work](design/performance-roadmap.md)
 - [Tensor fusion improvement plan](design/tensor-fusion-plan.md)
 - [Parallel tensor worker results](design/tensor-workers-results.md)

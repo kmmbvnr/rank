@@ -252,6 +252,7 @@ export function sortByKeys(
     keys: readonly (readonly RankValue[])[],
     operation = 'sort by',
     indices = false,
+    descending: readonly boolean[] = [],
 ): RankArray {
     if (items.length !== keys.length) throw new RankError(`${operation} key count mismatch`);
     const width = keys[0]?.length ?? 0;
@@ -276,7 +277,7 @@ export function sortByKeys(
                 right.keys[column],
                 kinds[column]!,
             );
-            if (order !== 0) return order;
+            if (order !== 0) return descending[column] ? -order : order;
         }
         return left.position - right.position;
     });
@@ -284,7 +285,7 @@ export function sortByKeys(
 }
 
 /** Return stable indices that order a tensor along one axis. */
-export function argsortAxis(value: RankValue, axis: number): RankArray {
+export function argsortAxis(value: RankValue, axis: number, descending = false): RankArray {
     if (!isRankArray(value)) throw new RankError('argsort axis expects an array');
     if (axis < 0 || axis >= value.shape.length) {
         throw new RankError(`argsort axis out of bounds: ${axis}`, 'DimensionMismatch');
@@ -306,7 +307,7 @@ export function argsortAxis(value: RankValue, axis: number): RankArray {
                 ?? value.items[offsetAt(shape, source)];
         });
         const kind = sortableKind(values, 'argsort');
-        const order = stableOrder(values, kind);
+        const order = stableOrder(values, kind, descending);
         for (let coordinate = 0; coordinate < shape[axis]; coordinate += 1) {
             source[axis] = coordinate;
             result[offsetAt(shape, source)] = BigInt(order[coordinate]);
@@ -352,28 +353,29 @@ function shapeOf(value: RankValue): RankValue {
     return ownedArray(dimensions);
 }
 
-function sortValue(value: RankValue): RankValue {
+export function sortValue(value: RankValue, descending = false): RankValue {
+    const direction = descending ? -1 : 1;
     if (typeof value === 'string') {
         return [...value].sort((left, right) =>
-            compareOrderedValues(left, right, 'text')).join('');
+            direction * compareOrderedValues(left, right, 'text')).join('');
     }
     if (!isRankArray(value) || value.shape.length !== 1) {
         throw new RankError('sort expects text or a rank-1 array');
     }
     const items = arrayItems(value);
     const kind = sortableKind(items, 'sort');
-    items.sort((left, right) => compareOrderedValues(left, right, kind));
+    items.sort((left, right) => direction * compareOrderedValues(left, right, kind));
     return ownedArray(items);
 }
 
-function argsortValue(value: RankValue): RankArray {
+export function argsortValue(value: RankValue, descending = false): RankArray {
     const items = typeof value === 'string'
         ? [...value]
         : isRankArray(value) && value.shape.length === 1
             ? arrayItems(value)
             : undefined;
     if (!items) throw new RankError('argsort expects text or a rank-1 array');
-    const order = stableOrder(items, sortableKind(items, 'argsort'));
+    const order = stableOrder(items, sortableKind(items, 'argsort'), descending);
     return ownedArray(order.map(index => BigInt(index)));
 }
 
@@ -381,6 +383,22 @@ function uniqueValue(value: RankValue): RankValue {
     if (typeof value === 'string') return uniqueItems([...value]).join('');
     if (isRankArray(value)) {
         if (value.shape.length !== 1) throw new RankError('unique expects a rank-1 array');
+        if (value.columnNames) {
+            const seen = new Set<string>();
+            const items = arrayItems(value).filter(row => {
+                if (!isRankObject(row)) throw new RankError('table unique expects object rows', 'TypeError');
+                const key = JSON.stringify(value.columnNames!.map(name => {
+                    const cell = row.entries.get(name);
+                    return cell === undefined ? null : setValueKey(cell);
+                }));
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+            const result = ownedArray(items);
+            Object.defineProperty(result, 'columnNames', { value: value.columnNames });
+            return result;
+        }
         const items = uniqueItems(arrayItems(value));
         return ownedArray(items);
     }
@@ -428,11 +446,11 @@ function sortableKind(items: readonly RankValue[], operation: string): OrderedKi
     return [...kinds][0];
 }
 
-function stableOrder(items: readonly RankValue[], kind: OrderedKind): number[] {
+function stableOrder(items: readonly RankValue[], kind: OrderedKind, descending = false): number[] {
     return items
         .map((_, position) => position)
         .sort((left, right) =>
-            compareOrderedValues(items[left], items[right], kind) || left - right);
+            (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right);
 }
 
 function arraySize(shape: readonly number[]): number {

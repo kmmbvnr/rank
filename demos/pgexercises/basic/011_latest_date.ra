@@ -12,7 +12,8 @@ Db = DbPath sqlite
 Rows = (Db .members) array
 Dates = Rows .joindate sort
 Latest = Dates (Dates len - 1)
-Result = Rows (array 0)
-Result .latest = Latest
-Result = Result (array .latest)
+First = Rows from 0 until 1
+Result = First select
+  .latest = Latest
+end
 Result OutputPath csv

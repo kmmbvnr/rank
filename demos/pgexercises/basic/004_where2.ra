@@ -8,8 +8,15 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/004_where2.csv"
 
 Db = DbPath sqlite
-Rows = (Db .facilities) array
-Mask = (Rows .membercost greater 0) and (Rows .membercost less (Rows .monthlymaintenance / 50.0))
-Selected = (Rows Mask) array
-Result = Selected (array .facid .name .membercost .monthlymaintenance)
+R = Db .facilities
+R = R filter
+  .membercost greater 0
+  .membercost * 50 less .monthlymaintenance
+end
+Result = R select
+  .facid = .facid
+  .name = .name
+  .membercost = .membercost
+  .monthlymaintenance = .monthlymaintenance
+end
 Result OutputPath csv

@@ -8,6 +8,6 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/002_select_specific.csv"
 
 Db = DbPath sqlite
-Rows = (Db .facilities) array
-Result = Rows (array .name .membercost)
+R = Db .facilities
+Result = R select .name .membercost
 Result OutputPath csv

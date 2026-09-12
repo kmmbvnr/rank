@@ -83,7 +83,7 @@ export const OPERATOR_KEYWORDS = [
     'at least', 'at most', 'multiple by', 'in', 'is', 'to', 'until', 'by',
     'pad', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
-    'innerjoin on', 'set add', 'counter add',
+    'innerjoin on', 'set add', 'counter add', 'filter', 'select', 'ascending', 'descending',
 ];
 
 export const STATEMENT_KEYWORDS = [
@@ -344,6 +344,11 @@ export function scanLine(line: string): LineScan {
         }
         if (current.text === 'record') {
             opens.push('record');
+            continue;
+        }
+        if (index > 0 && index === tokens.length - 1
+            && (current.text === 'filter' || current.text === 'select')) {
+            opens.push(current.text);
             continue;
         }
         if (current.text === 'array' && tokens[index + 1]?.text === 'shape'

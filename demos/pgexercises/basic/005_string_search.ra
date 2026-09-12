@@ -8,6 +8,7 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/005_string_search.csv"
 
 Db = DbPath sqlite
-Query = Db "SELECT * FROM facilities WHERE name LIKE ?" (array "%Tennis%") sqlquery
-Result = Query array
+Text = "SELECT * FROM facilities WHERE name LIKE ?"
+Params = array "%Tennis%"
+Result = Db Text Params sqlquery
 Result OutputPath csv

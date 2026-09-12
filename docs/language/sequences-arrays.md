@@ -459,6 +459,24 @@ Order = Events argsort by .time .delta
 Order = Values argsort by magnitude
 ```
 
+Directions may be written for the whole sort or for individual keys:
+
+```rank
+Sorted = Values sort descending
+Order = Values argsort descending
+Rows = Events sort by .cost descending .name
+```
+
+`ascending` is the explicit spelling of the default direction. In `sort by`
+and `argsort by`, a direction belongs to the preceding field or function key.
+Descending reverses comparison, preserving the order of ties in arrays. It
+works for text and date keys as well as numbers. Plain directions also compose
+with intrinsic rank, explicit rank, and `argsort axis`; put direction after
+the modifiers. Named array tables retain their header through field sorting.
+SQLite emits DESC for descending keys and still needs explicit tie-breakers
+for a deterministic order among equal keys. Keep sorting as the final SQL
+operation before output when order is required.
+
 `Mask TrueValues FalseValues choose` selects a value at each position. A
 scalar boolean selects one branch; arrays broadcast by the usual trailing-axis
 rules and produce a lazy array. Only the chosen branch is read at each cell.
@@ -477,7 +495,7 @@ Every key component must be a comparable scalar. Values at the same key keep
 their source order, and a key function runs exactly once per value in source
 order. The operation materializes a new rank-1 array and does not change its
 source. It accepts rank-1 arrays, queues, sets, multisets and finite sequences;
-an unbounded sequence is an error. Field sorting requires records and reports a
+an unbounded sequence is an error. Field sorting requires object rows or records and reports a
 missing field as `.Missing`. A compound source expression must be parenthesized.
 
 ## Elementwise arithmetic
