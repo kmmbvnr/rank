@@ -32,16 +32,33 @@ export function filterSequence(
     const planned = source.plan.withFilter?.(predicate);
     if (planned) return sequence(planned);
 
-    const sourcePlan = source.plan;
-    return sequence({
-        name: `${sourcePlan.name} where ${predicate.name}`,
-        size: filteredSize(sourcePlan.size),
+    return sequence(filteredPlan(source.plan, predicate));
+}
+
+/**
+ * A value bound and a filter keep the same items whichever order they run in,
+ * so a filtered plan can offer the bounds its source offers. Without this a
+ * mask over an endless source has nothing to stop it: `primes multiple by 5`
+ * could not then be bounded by `until`.
+ */
+function filteredPlan(source: SequencePlan, predicate: SequencePredicate): SequencePlan {
+    return {
+        name: `${source.name} where ${predicate.name}`,
+        size: filteredSize(source.size),
         *iterate() {
-            for (const value of sourcePlan.iterate()) {
+            for (const value of source.iterate()) {
                 if (predicate.test(value)) yield value;
             }
         },
-    });
+        ...(source.withUpperBound && {
+            withUpperBound: (limit: bigint, inclusive: boolean) =>
+                filteredPlan(source.withUpperBound!(limit, inclusive), predicate),
+        }),
+        ...(source.withLowerBound && {
+            withLowerBound: (limit: bigint, inclusive: boolean) =>
+                filteredPlan(source.withLowerBound!(limit, inclusive), predicate),
+        }),
+    };
 }
 
 export function boundSequence(

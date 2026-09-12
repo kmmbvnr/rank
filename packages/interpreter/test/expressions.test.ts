@@ -607,6 +607,27 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toBe('42');
     });
 
+    it('bounds a mask over an endless sequence', () => {
+        // A value bound and a filter keep the same items in either order, so a
+        // mask offers the bounds its source offers.
+        expect(run('use sequences\nuse numbers\n(primes multiple by 5) until 100'))
+            .toBe('5');
+        expect(run('use sequences\nuse numbers\n(fibonacci multiple by 2) until 100'))
+            .toBe('2 8 34');
+        expect(run('use sequences\nuse numbers\nB = primes multiple by 3\nB until 20'))
+            .toBe('3');
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'F = fibonacci multiple by 2',
+            'G = F from 10',
+            'G until 100',
+        ].join('\n'))).toBe('34');
+        // A source without bounds still says so rather than running forever.
+        expect(() => run('use ranges\nuse numbers\n(1 until 20 multiple by 3) until 10'))
+            .toThrowError('does not support until');
+    });
+
     it('does not reduce an unbounded sequence', () => {
         expect(() => run('use sequences\nuse numbers\nfibonacci sum'))
             .toThrowError('sum requires a bounded sequence');

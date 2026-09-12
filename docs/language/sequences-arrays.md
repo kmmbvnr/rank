@@ -70,7 +70,9 @@ with shape `0`. A single-pass generator is consumed by this operation.
 A sequence known to be infinite is rejected. A sequence whose finiteness is
 unknown is evaluated until it ends, so materialization may raise a delayed
 error or fail to terminate. No module import is required because `array` is the
-core array constructor and conversion.
+core array constructor and conversion. A SQLite-backed table view also uses
+postfix `array` to execute its query and produce a rank-1 array of object rows;
+see [Tables](tables.md#sqlite).
 
 Position disambiguates the three uses of `array`:
 
@@ -384,7 +386,9 @@ Answer = Fib even sum
 ```
 
 Iteration, indexing, reductions and transformations such as `window` consume
-the matching source values. Boolean composition still combines the deferred
+the matching source values. So do the bounds `to`, `until` and `from`, whenever
+the source itself accepts them: a bound and a mask keep the same items in either
+order, so `(primes multiple by 5) until 100` is bounded rather than endless. Boolean composition still combines the deferred
 predicates. A materialized boolean array does not retain a source and therefore
 still needs an explicit value on its left when used for selection.
 
