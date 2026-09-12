@@ -1,0 +1,853 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "commit": "c20dc62f6b65eddd3fca765b5e7066b80a253f61",
+  "results": [
+    {
+      "form": "inline",
+      "size": 0,
+      "fused": false,
+      "prepareMs": 49.054249999999996,
+      "coldMs": 1.225875000000002,
+      "samplesMs": [
+        0.029583000000002357,
+        0.015833000000014863,
+        0.009791000000006989,
+        0.00866600000000517,
+        0.01033299999997439
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 0,
+      "fused": true,
+      "prepareMs": 0.498958000000016,
+      "coldMs": 0.6383750000000248,
+      "samplesMs": [
+        0.023917000000011512,
+        0.014000000000010004,
+        0.009167000000019243,
+        0.00791700000002038,
+        0.011458000000004631
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 0,
+      "fused": "js",
+      "samplesMs": [
+        0.0002920000000017353,
+        0.0002089999999839165,
+        0.0002499999999940883,
+        0.00016700000000469117,
+        0.0002090000000123382
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 0,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "inline",
+      "size": 1,
+      "fused": false,
+      "prepareMs": 0.28274999999999295,
+      "coldMs": 0.10345899999998664,
+      "samplesMs": [
+        0.011625000000009322,
+        0.00970799999998917,
+        0.007083000000022821,
+        0.006165999999979022,
+        0.00820800000002464
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1,
+      "fused": true,
+      "prepareMs": 0.2609999999999957,
+      "coldMs": 0.06833399999999301,
+      "samplesMs": [
+        0.014000000000010004,
+        0.009000000000014552,
+        0.00866600000000517,
+        0.007542000000000826,
+        0.007875000000012733
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1,
+      "fused": "js",
+      "samplesMs": [
+        0.0009170000000153777,
+        0.00020799999998644125,
+        0.0002499999999940883,
+        0.00016700000000469117,
+        0.0002499999999940883
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "inline",
+      "size": 1000,
+      "fused": false,
+      "prepareMs": 0.248958000000016,
+      "coldMs": 0.3552920000000199,
+      "samplesMs": [
+        0.15370900000002052,
+        0.16374999999999318,
+        0.22512499999999136,
+        0.19925000000000637,
+        0.19524999999998727
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1000,
+      "fused": true,
+      "prepareMs": 0.24654100000000767,
+      "coldMs": 0.20895800000002396,
+      "samplesMs": [
+        0.049000000000006594,
+        0.04795799999999417,
+        0.07783399999999574,
+        0.068916999999999,
+        0.05595800000000395
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1000,
+      "fused": "js",
+      "samplesMs": [
+        0.0010000000000047748,
+        0.0010830000000225937,
+        0.0018750000000125056,
+        0.0014590000000112013,
+        0.0014170000000035543
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "inline",
+      "size": 10000,
+      "fused": false,
+      "prepareMs": 0.23075000000000045,
+      "coldMs": 1.4899160000000222,
+      "samplesMs": [
+        1.3813749999999914,
+        1.426542000000012,
+        1.4086250000000007,
+        1.4078340000000082,
+        1.354750000000024
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 10000,
+      "fused": true,
+      "prepareMs": 0.26949999999999363,
+      "coldMs": 0.5249999999999773,
+      "samplesMs": [
+        0.09920899999997346,
+        0.09591599999998834,
+        0.10420799999999986,
+        0.8240419999999915,
+        0.10283300000000395
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 10000,
+      "fused": "js",
+      "samplesMs": [
+        0.007708000000008042,
+        0.007542000000000826,
+        0.006875000000007958,
+        0.007125000000002046,
+        0.006916999999987183
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 10000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "inline",
+      "size": 100000,
+      "fused": false,
+      "prepareMs": 0.1745830000000126,
+      "coldMs": 17.70512500000001,
+      "samplesMs": [
+        16.884416999999985,
+        15.006042000000036,
+        18.702291000000002,
+        14.32104099999998,
+        17.890457999999967
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 100000,
+      "fused": true,
+      "prepareMs": 0.35170800000000213,
+      "coldMs": 3.951125000000019,
+      "samplesMs": [
+        0.9537079999999492,
+        1.1097919999999704,
+        0.9540419999999585,
+        0.9452919999999949,
+        0.95637499999998
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 100000,
+      "fused": "js",
+      "samplesMs": [
+        0.135249999999985,
+        0.1309999999999718,
+        0.11670900000001438,
+        0.09495899999996027,
+        0.09829199999995808
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 100000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "inline",
+      "size": 1000000,
+      "fused": false,
+      "prepareMs": 0.339416999999969,
+      "coldMs": 278.14516699999996,
+      "samplesMs": [
+        252.99562500000002,
+        245.0781669999999,
+        231.03854100000012,
+        255.20800000000008,
+        250.09249999999975
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1000000,
+      "fused": true,
+      "prepareMs": 0.33845799999994597,
+      "coldMs": 11.297041000000036,
+      "samplesMs": [
+        10.44054099999994,
+        9.321250000000191,
+        10.549833000000035,
+        9.10183300000017,
+        9.267084000000068
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1000000,
+      "fused": "js",
+      "samplesMs": [
+        0.9937499999998636,
+        0.9640830000000733,
+        0.9664580000003298,
+        0.9687920000001213,
+        1.0304999999998472
+      ]
+    },
+    {
+      "form": "inline",
+      "size": 1000000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "named",
+      "size": 0,
+      "fused": false,
+      "prepareMs": 3.12695900000017,
+      "coldMs": 0.34875000000010914,
+      "samplesMs": [
+        0.015332999999827734,
+        0.007584000000406377,
+        0.006082999999762251,
+        0.0060840000001007866,
+        0.009958999999980733
+      ]
+    },
+    {
+      "form": "named",
+      "size": 0,
+      "fused": true,
+      "prepareMs": 0.20666699999992488,
+      "coldMs": 0.19408400000020265,
+      "samplesMs": [
+        0.008458000000246102,
+        0.007000000000061846,
+        0.006957999999940512,
+        0.006542000000081316,
+        0.009915999999975611
+      ]
+    },
+    {
+      "form": "named",
+      "size": 0,
+      "fused": "js",
+      "samplesMs": [
+        0.00016700000014679972,
+        0.00008299999990413198,
+        0.00008299999990413198,
+        0.00004200000012133387,
+        0.00012500000002546585
+      ]
+    },
+    {
+      "form": "named",
+      "size": 0,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "named",
+      "size": 1,
+      "fused": false,
+      "prepareMs": 0.16391699999985576,
+      "coldMs": 0.08474999999998545,
+      "samplesMs": [
+        0.020207999999911408,
+        0.009250000000065484,
+        0.006334000000151718,
+        0.006624999999985448,
+        0.00837500000034197
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1,
+      "fused": true,
+      "prepareMs": 0.20641699999987395,
+      "coldMs": 0.05349999999998545,
+      "samplesMs": [
+        0.011542000000190455,
+        0.010166000000026543,
+        0.008124999999836291,
+        0.007791999999881227,
+        0.009917000000314147
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1,
+      "fused": "js",
+      "samplesMs": [
+        0.0003329999999550637,
+        0.0001249999995707185,
+        0.00008400000024266774,
+        0.00004200000012133387,
+        0.00008300000035887933
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "named",
+      "size": 1000,
+      "fused": false,
+      "prepareMs": 0.15049999999973807,
+      "coldMs": 0.3779589999999189,
+      "samplesMs": [
+        0.14570800000001327,
+        0.135707999999795,
+        0.1362500000000182,
+        0.13391700000011042,
+        0.13245800000004238
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1000,
+      "fused": true,
+      "prepareMs": 0.3124580000003334,
+      "coldMs": 0.22125000000005457,
+      "samplesMs": [
+        0.04879099999971004,
+        0.049958000000060565,
+        0.049209000000246306,
+        0.05516700000043784,
+        0.04920799999990777
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1000,
+      "fused": "js",
+      "samplesMs": [
+        0.0007499999996980478,
+        0.0006250000001273293,
+        0.0006659999999101274,
+        0.0006250000001273293,
+        0.0006250000001273293
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "named",
+      "size": 10000,
+      "fused": false,
+      "prepareMs": 0.1327499999997599,
+      "coldMs": 1.4576250000000073,
+      "samplesMs": [
+        1.4095409999999902,
+        1.3649169999998776,
+        1.4335000000000946,
+        1.3459590000002208,
+        1.3719999999998436
+      ]
+    },
+    {
+      "form": "named",
+      "size": 10000,
+      "fused": true,
+      "prepareMs": 0.20154200000024503,
+      "coldMs": 0.4642909999997755,
+      "samplesMs": [
+        0.10158300000011877,
+        0.09491699999989578,
+        0.1056669999998121,
+        0.09395899999981339,
+        0.09799999999995634
+      ]
+    },
+    {
+      "form": "named",
+      "size": 10000,
+      "fused": "js",
+      "samplesMs": [
+        0.005540999999993801,
+        0.005417000000306871,
+        0.005709000000024389,
+        0.005583000000115135,
+        0.005583999999998923
+      ]
+    },
+    {
+      "form": "named",
+      "size": 10000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "named",
+      "size": 100000,
+      "fused": false,
+      "prepareMs": 0.20449999999982538,
+      "coldMs": 13.826624999999694,
+      "samplesMs": [
+        16.76175000000012,
+        14.129374999999982,
+        13.95895900000005,
+        17.30083300000024,
+        14.136875000000146
+      ]
+    },
+    {
+      "form": "named",
+      "size": 100000,
+      "fused": true,
+      "prepareMs": 0.286750000000211,
+      "coldMs": 1.9514169999997648,
+      "samplesMs": [
+        0.971791999999823,
+        0.943000000000211,
+        0.9712079999999332,
+        0.9445420000001832,
+        0.9524999999998727
+      ]
+    },
+    {
+      "form": "named",
+      "size": 100000,
+      "fused": "js",
+      "samplesMs": [
+        0.10337499999968713,
+        0.1016250000002401,
+        0.10170900000002803,
+        0.11737500000026557,
+        0.10095799999999144
+      ]
+    },
+    {
+      "form": "named",
+      "size": 100000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "named",
+      "size": 1000000,
+      "fused": false,
+      "prepareMs": 0.32387500000004366,
+      "coldMs": 246.9984159999999,
+      "samplesMs": [
+        242.97495899999967,
+        240.06054099999983,
+        231.7862500000001,
+        250.9565419999999,
+        248.47204199999942
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1000000,
+      "fused": true,
+      "prepareMs": 0.3042080000000169,
+      "coldMs": 11.224290999999994,
+      "samplesMs": [
+        10.347917000000052,
+        9.331625000000713,
+        10.408833000000413,
+        9.307000000000698,
+        9.306041999999252
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1000000,
+      "fused": "js",
+      "samplesMs": [
+        0.981499999999869,
+        0.9690000000000509,
+        0.9794580000007045,
+        0.9994159999996555,
+        1.012959000000592
+      ]
+    },
+    {
+      "form": "named",
+      "size": 1000000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "assignment",
+      "size": 0,
+      "fused": false,
+      "prepareMs": 5.158084000000599,
+      "coldMs": 0.1860420000002705,
+      "samplesMs": [
+        0.007083999999849766,
+        0.005083000000013271,
+        0.004500000000007276,
+        0.004500000000007276,
+        0.010209000000031665
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 0,
+      "fused": true,
+      "prepareMs": 0.15583299999980227,
+      "coldMs": 0.05870800000047893,
+      "samplesMs": [
+        0.0057500000002619345,
+        0.004791000000295753,
+        0.005083000000013271,
+        0.005167000000255939,
+        0.009375000000545697
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 0,
+      "fused": "js",
+      "samplesMs": [
+        0.0001250000004802132,
+        0.00004200000057608122,
+        0.000041000000237545464,
+        0.00004199999966658652,
+        0.0001250000004802132
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 0,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "assignment",
+      "size": 1,
+      "fused": false,
+      "prepareMs": 0.11995900000056281,
+      "coldMs": 0.04170799999974406,
+      "samplesMs": [
+        0.006583999999747903,
+        0.005041999999775726,
+        0.013458000000355241,
+        0.008084000000053493,
+        0.008333000000675383
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1,
+      "fused": true,
+      "prepareMs": 0.12579100000039034,
+      "coldMs": 0.03929199999947741,
+      "samplesMs": [
+        0.00537499999973079,
+        0.005083999999442312,
+        0.009541999999783002,
+        0.008374999999432475,
+        0.005458000000544416
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1,
+      "fused": "js",
+      "samplesMs": [
+        0.0001250000004802132,
+        0.00004200000057608122,
+        0.00008299999990413198,
+        0.00008300000081362668,
+        0.00008400000024266774
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "assignment",
+      "size": 1000,
+      "fused": false,
+      "prepareMs": 0.12733399999979156,
+      "coldMs": 0.3273749999998472,
+      "samplesMs": [
+        0.13758299999972223,
+        0.13304100000004837,
+        0.13133300000026793,
+        0.13862500000050204,
+        0.1347909999994954
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1000,
+      "fused": true,
+      "prepareMs": 0.12583399999948597,
+      "coldMs": 0.1815839999999298,
+      "samplesMs": [
+        0.0470420000001468,
+        0.04379200000039418,
+        0.04445899999973335,
+        0.04475000000002183,
+        0.046542000000044936
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1000,
+      "fused": "js",
+      "samplesMs": [
+        0.0007080000004862086,
+        0.0006249999996725819,
+        0.0006249999996725819,
+        0.0005840000003445311,
+        0.0007089999999152496
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "assignment",
+      "size": 10000,
+      "fused": false,
+      "prepareMs": 0.11333399999966787,
+      "coldMs": 1.4511670000001686,
+      "samplesMs": [
+        1.341167000000496,
+        1.3972090000006574,
+        1.3850000000002183,
+        1.3583330000001297,
+        1.3468330000005153
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 10000,
+      "fused": true,
+      "prepareMs": 0.11570800000026793,
+      "coldMs": 0.40795800000068994,
+      "samplesMs": [
+        0.09229200000027049,
+        0.09125000000040018,
+        0.10245900000063557,
+        0.11662500000056752,
+        0.0939169999992373
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 10000,
+      "fused": "js",
+      "samplesMs": [
+        0.005458999999973457,
+        0.005541000000448548,
+        0.0055840000004536705,
+        0.005666999999448308,
+        0.005500000000211003
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 10000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "assignment",
+      "size": 100000,
+      "fused": false,
+      "prepareMs": 0.15524999999979627,
+      "coldMs": 17.6532500000003,
+      "samplesMs": [
+        14.809374999999818,
+        17.591875000000073,
+        15.049082999999882,
+        18.35033300000032,
+        15.262500000000728
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 100000,
+      "fused": true,
+      "prepareMs": 0.23658400000022084,
+      "coldMs": 1.9013749999994616,
+      "samplesMs": [
+        1.017917000000125,
+        0.9905829999997877,
+        1.002082999999402,
+        0.9780000000000655,
+        1.0167080000001079
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 100000,
+      "fused": "js",
+      "samplesMs": [
+        0.10570900000038819,
+        0.10895799999980227,
+        0.14295799999945302,
+        0.10166599999956816,
+        0.10729200000059791
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 100000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    },
+    {
+      "form": "assignment",
+      "size": 1000000,
+      "fused": false,
+      "prepareMs": 0.2497910000001866,
+      "coldMs": 239.64237499999945,
+      "samplesMs": [
+        248.81433300000026,
+        230.2086670000008,
+        230.64370899999994,
+        251.34604200000012,
+        238.22812499999964
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1000000,
+      "fused": true,
+      "prepareMs": 0.31512500000008004,
+      "coldMs": 11.305457999999817,
+      "samplesMs": [
+        9.266499999999724,
+        9.075832999999875,
+        9.14562500000011,
+        10.579374999999345,
+        10.316749999999956
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1000000,
+      "fused": "js",
+      "samplesMs": [
+        1.0004579999995258,
+        0.9623330000003989,
+        1.0131250000004002,
+        0.9292500000001382,
+        1.0219159999996918
+      ]
+    },
+    {
+      "form": "assignment",
+      "size": 1000000,
+      "coverage": true,
+      "kernels": 1,
+      "generated": "\"use strict\"; return function(data, offsets, scalars, size) { let answer = new Array(size), length = 0; for (let i = 0; i < size; i++) {\nconst v3 = data[0][offsets[0] + i];\nconst v4 = data[1][offsets[1] + i];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return undefined;\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? v3 * v4 : Number(v3) * Number(v4));\nconst v6 = data[2][offsets[2] + i];\nconst v7 = scalars[0];\nif (!(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6)) || !(typeof v7 === 'bigint' || typeof v7 === 'number' && Number.isFinite(v7))) return undefined;\nconst v5 = (typeof v6 === 'bigint' && typeof v7 === 'bigint' ? v6 * v7 : Number(v6) * Number(v7));\nif (!(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return undefined;\nconst v1 = (typeof v2 === 'bigint' && typeof v5 === 'bigint' ? v2 + v5 : Number(v2) + Number(v5));\nconst v8 = scalars[1];\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v8 === 'bigint' || typeof v8 === 'number' && Number.isFinite(v8))) return undefined;\nconst v0 = (typeof v1 === 'bigint' && typeof v8 === 'bigint' ? v1 + v8 : Number(v1) + Number(v8));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return undefined;\nanswer[i] = v0;\nlength++;\n}  return answer; };"
+    }
+  ]
+}

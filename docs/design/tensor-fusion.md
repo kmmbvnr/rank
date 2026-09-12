@@ -124,3 +124,6 @@ See [compiler progress](compiler-progress.md) for subsequent optimizations,
 including cached queue type summaries and compiled access to completed lazy
 `round` caches. These extend the initial eager-input coverage without forcing
 previously unevaluated values.
+
+See [explicit copy fusion](array-output-fusion.md) for the first array-output
+implementation and its measurements.
