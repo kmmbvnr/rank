@@ -786,6 +786,19 @@ end`);
 });
 
 describe('array writes in compiled integer loops', () => {
+    it.each(['-1', '2', '9007199254740993', '999999999999999999999999999999999999'])('keeps matrix write bounds and error order at %s', index => {
+        const result = compare(`use ranges
+A = array shape 2 2 pad 0
+for I in 0 until 2
+  A I 0 = 9
+  A I (${index}) = 1 // 0
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.error).toContain('axis 1');
+        expect(result.loops).toBe(1);
+        expect(result.containers).toContainEqual(['A', [2, 2], ['9', '0', '0', '0']]);
+    });
+
     it('reads earlier writes through an alias', () => {
         const result = compare(`use ranges
 A = array shape 6 pad 0

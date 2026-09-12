@@ -4,7 +4,7 @@ import {
     type Expression, type ForStatement, type Statement,
 } from 'rank-language';
 import { completed, type Completed } from './execution.js';
-import { RankError } from './errors.js';
+import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
@@ -23,6 +23,7 @@ interface Host {
     readonly arrayIteration: boolean;
     iterationValues(binding: IterationBinding, source: RankArray | string, elementType?: 'integer' | 'text'): Iterable<RankValue>;
     readonly arrayWrites: boolean;
+    readonly inlineWriteOffsets: boolean;
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
     readonly absolute: boolean;
@@ -469,8 +470,21 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     keys.push(value.code);
                 }
                 const name = `key${serial++}`;
-                lines.push(`const ${name} = ${receiver}.kind === 'array'
-                    ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
+                if (host.inlineWriteOffsets) {
+                    // Shape dimensions are safe integers. Convert each scalar index
+                    // once; an out-of-range BigInt cannot round into this range.
+                    lines.push(`let ${name}; if (${receiver}.kind === 'array') { ${name} = 0;`);
+                    keys.forEach((value, axis) => {
+                        const coordinate = `coordinate${serial++}`;
+                        lines.push(`const ${coordinate} = Number(${value});
+                            if (${value} < 0n || ${coordinate} >= ${receiver}.shape[${axis}]) throw badIndex(${value}, ${axis});
+                            ${name} = ${name} * ${receiver}.shape[${axis}] + ${coordinate};`);
+                    });
+                    lines.push(`} else { ${name} = key([${keys.join(',')}]); }`);
+                } else {
+                    lines.push(`const ${name} = ${receiver}.kind === 'array'
+                        ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
+                }
                 const expected = booleanUpdate ? 'boolean' : compound ? 'integer' : target.type ?? arrays.get(assignment.name)?.type;
                 const value = emit(assignment.value, lines, expected);
                 if (!value || value.type === 'text' || value.type === 'boolean' && !host.booleanArrays
@@ -643,9 +657,12 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue); }
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
+        (index: bigint, axis: number) => index < 0n
+            ? new RankError(`array index must be nonnegative on axis ${axis}`)
+            : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`)); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
