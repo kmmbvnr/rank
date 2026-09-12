@@ -148,6 +148,12 @@ Means = Groups .sales mean
 Forecast = Test Keys Means join
 ```
 
+The [runnable Store Sales baseline](../../demos/kaggle/006_storesales.ra)
+implements the same grouping with an ordinary `index`: `(store, family,
+weekday)` is a three-part key expanded by `unpack`. An unseen test key falls
+back to the global training mean. The ISO-date weekday calculation and grouped
+forecast both have focused tests.
+
 ## Bike Sharing
 
 Date operations lift over columns:
