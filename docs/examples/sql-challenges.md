@@ -5,9 +5,10 @@ We will solve these collections in order, using the
 
 1. [PostgreSQL Exercises](https://www.pgexercises.com/) — start with selection,
    then joins, aggregates and later window queries. Its country-club data and
-   expected SQL results give us small relational examples. Adapt the source
-   data to Rank tables or local fixtures as needed; this stage does not require
-   a PostgreSQL connector.
+   expected SQL results give us small relational examples. Solve them against
+   a local SQLite copy, beginning with the [basic series](../../demos/pgexercises/basic/README.md).
+   The [SQLite table interface](../design/sqlite-tables.md) is being designed
+   before the first Rank solution; a PostgreSQL connector is not required.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve
    the investigation against its SQLite database. This stage should exercise
    a SQLite-backed table source once its interface is agreed and implemented.

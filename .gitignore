@@ -11,3 +11,4 @@ demos/kaggle/data/
 demos/kaggle/submissions/
 demos/kaggle/*.csv
 demos/kaggle/*.zip
+demos/pgexercises/data/
