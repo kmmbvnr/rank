@@ -1,5 +1,6 @@
 import {
-    Interpreter, RankError, formatValue, isRankArray, standardModules, type RankValue,
+    Interpreter, RankError, formatValue, isRankArray, parse, standardModules,
+    type RankValue,
 } from 'rank-interpreter';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
@@ -11,7 +12,7 @@ import { NodeInput, nodeIo } from './node-io.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource, closeCell,
     expandCompoundKeywords, expandOperators, formatLine, formatTyping, isComplete,
-    isEmpty, nextIndent, promptFor, startsDedent, type CellState,
+    isEmpty, nextIndent, promptFor, startsDedent, wrapSource, type CellState,
 } from './repl-input.js';
 
 const HISTORY_FILE = path.join(os.homedir(), '.rank_history');
@@ -96,7 +97,9 @@ export async function startRepl(): Promise<void> {
                 continue;
             }
 
-            const source = cellSource(state);
+            const plain = cellSource(state);
+            const source = narrow(plain);
+            rewritten ||= source !== plain;
             state = EMPTY_CELL;
             if (terminal && rewritten) {
                 for (const line of source.split('\n')) console.log(chalk.dim(`    ${line}`));
@@ -107,7 +110,7 @@ export async function startRepl(): Promise<void> {
         }
 
         if (!isEmpty(state)) {
-            const source = cellSource(closeCell(state));
+            const source = narrow(cellSource(closeCell(state)));
             if (run(interpreter, source)) accepted.push(source);
         }
     } finally {
@@ -177,6 +180,22 @@ interface KeyPress {
     readonly sequence?: string;
     readonly ctrl?: boolean;
     readonly meta?: boolean;
+}
+
+/**
+ * Breaks lines too wide for a small screen. Rank only continues an expression
+ * inside brackets, so the wrap is checked against the parser and dropped whole
+ * if it did not produce the same program shape.
+ */
+function narrow(source: string): string {
+    const wrapped = wrapSource(source);
+    if (wrapped === source) return source;
+    try {
+        parse(wrapped);
+        return wrapped;
+    } catch {
+        return source;
+    }
 }
 
 function isExit(text: string, interpreter: Interpreter): boolean {

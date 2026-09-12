@@ -454,3 +454,135 @@ export function promptFor(state: CellState): string {
 function indent(depth: number): string {
     return '  '.repeat(Math.max(0, depth));
 }
+
+/** A stored line wider than this is wrapped; the wrap aims for WRAP_WIDTH. */
+export const WRAP_LIMIT = 50;
+export const WRAP_WIDTH = 40;
+
+/**
+ * Operators a wrap may break before. Rank only allows a line break inside
+ * brackets, and only around these, so the set is exactly the multiline grammar:
+ * assignment, application and unary operators are not in it.
+ */
+const BREAK_SYMBOLS = new Set(['+', '-', '*', '/', '//', '%', '**']);
+const BREAK_WORDS = new Set([
+    'or', 'xor', 'and', 'equal', 'less', 'greater', 'in', 'is', 'pad',
+    'to', 'until', 'at', 'multiple',
+]);
+
+/** Keywords whose statement is one expression the wrap can bracket. */
+const EXPRESSION_KEYWORDS = new Set(['if', 'elif', 'return', 'yield', 'for']);
+const ASSIGNMENT_SYMBOLS = new Set([
+    '=', '+=', '-=', '*=', '/=', '//=', '%=', '**=',
+]);
+/** Clauses that spell a label pair with `=`, which is not an assignment. */
+const JOIN_WORDS = new Set(['group', 'leftjoin', 'innerjoin']);
+
+/**
+ * Breaks one long line into a bracketed group of narrow ones. Rank continues an
+ * expression across lines only inside brackets, so the wrap adds the brackets
+ * and breaks before operators the multiline grammar allows. A line it cannot
+ * break — an application chain, say — is returned unchanged.
+ */
+export function wrapLine(
+    line: string, indent = '', width = WRAP_WIDTH, limit = WRAP_LIMIT,
+): string[] {
+    const full = indent + line;
+    if (full.length <= limit) return [full];
+    const tokens = tokenize(line);
+    const start = expressionStart(tokens);
+    if (start === undefined || start >= tokens.length) return [full];
+
+    const body = tokens.slice(start);
+    const bracketed = isBracketed(body);
+    const inner = bracketed ? body.slice(1, -1) : body;
+    const chunks = breakChunks(line, inner);
+    if (chunks.length < 2) return [full];
+
+    const head = line.slice(0, (bracketed ? body[0] : inner[0]).start).trimEnd();
+    const nested = indent + '  ';
+    const lines = [head === '' ? `${indent}(` : `${indent}${head} (`];
+    let current = '';
+    for (const chunk of chunks) {
+        const candidate = current === '' ? chunk : `${current} ${chunk}`;
+        if (current !== '' && (nested + candidate).length > width) {
+            lines.push(nested + current);
+            current = chunk;
+        } else {
+            current = candidate;
+        }
+    }
+    if (current !== '') lines.push(nested + current);
+    lines.push(`${indent})`);
+    return lines;
+}
+
+/** Wraps every long line of a cell, keeping the indentation each one has. */
+export function wrapSource(source: string, width = WRAP_WIDTH, limit = WRAP_LIMIT): string {
+    return source.split('\n').flatMap(line => {
+        const indent = /^ */.exec(line)![0];
+        return wrapLine(line.slice(indent.length), indent, width, limit);
+    }).join('\n');
+}
+
+/** Index of the first token of the expression this statement can bracket. */
+function expressionStart(tokens: readonly Token[]): number | undefined {
+    let depth = 0;
+    for (let index = 0; index < tokens.length; index += 1) {
+        const item = tokens[index];
+        if (item.kind === 'symbol') {
+            if (item.text === '(') depth += 1;
+            else if (item.text === ')') depth -= 1;
+            else if (depth === 0 && ASSIGNMENT_SYMBOLS.has(item.text)) return index + 1;
+            continue;
+        }
+        if (depth !== 0 || item.kind !== 'word') continue;
+        // `leftjoin on .x = .y` spells a pair with `=`; nothing before it assigns.
+        if (JOIN_WORDS.has(item.text)) return undefined;
+        if (item.text === 'push') return index + 1;
+        if (index === 0 && EXPRESSION_KEYWORDS.has(item.text)) return 1;
+    }
+    return tokens.length === 0 ? undefined : 0;
+}
+
+function isBracketed(body: readonly Token[]): boolean {
+    if (body.length < 3 || body[0].text !== '(' || body.at(-1)!.text !== ')') return false;
+    let depth = 0;
+    for (let index = 0; index < body.length - 1; index += 1) {
+        if (body[index].text === '(') depth += 1;
+        else if (body[index].text === ')') depth -= 1;
+        if (depth === 0) return false;
+    }
+    return true;
+}
+
+/** Source chunks of the expression, cut before every operator it may break at. */
+function breakChunks(line: string, inner: readonly Token[]): string[] {
+    if (inner.length === 0) return [];
+    const starts = [0];
+    let depth = 0;
+    for (let index = 1; index < inner.length; index += 1) {
+        const item = inner[index];
+        if (item.kind === 'symbol') {
+            if (item.text === '(') depth += 1;
+            else if (item.text === ')') depth -= 1;
+        }
+        if (depth !== 0 || !breaksBefore(inner, index)) continue;
+        starts.push(index);
+    }
+    return starts.map((from, position) => {
+        const to = position + 1 < starts.length ? starts[position + 1] - 1 : inner.length - 1;
+        return line.slice(inner[from].start, inner[to].end);
+    });
+}
+
+function breaksBefore(inner: readonly Token[], index: number): boolean {
+    const item = inner[index];
+    const previous = inner[index - 1];
+    if (item.kind === 'symbol') {
+        return BREAK_SYMBOLS.has(item.text) && endsOperand(previous);
+    }
+    if (item.kind !== 'word' || !BREAK_WORDS.has(item.text)) return false;
+    // `not equal` is one operator, and `sort by` is one token.
+    return !(previous.kind === 'word' && previous.text === 'not');
+}

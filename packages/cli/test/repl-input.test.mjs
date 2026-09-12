@@ -6,7 +6,7 @@ import {
     EMPTY_CELL, addLine, cellSource, closeCell, collapseSpaces, expandAssignKey,
     expandCompoundKeywords, expandOperators, formatLine, formatTyping, insideText,
     isComplete, isEmpty, nextIndent, promptFor, scanLine, spaceOperators, startsDedent,
-    tokenize,
+    tokenize, wrapSource,
 } from '../out/repl-input.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -198,6 +198,38 @@ test('prompt and indentation report what is open', () => {
     assert.equal(isEmpty(EMPTY_CELL), true);
 });
 
+test('wraps a wide line into brackets and narrow lines', () => {
+    // Under the limit nothing moves, even over the target width.
+    assert.equal(wrapSource('A = Price * Discount + Quantity'),
+        'A = Price * Discount + Quantity');
+    assert.equal(wrapSource('Revenue = Price * Discount + Quantity * Extra + More'), [
+        'Revenue = (',
+        '  Price * Discount + Quantity * Extra',
+        '  + More',
+        ')',
+    ].join('\n'));
+    // Brackets already there are reused rather than doubled.
+    assert.equal(wrapSource('Revenue = (Price * Discount + Quantity * Extra + More)'), [
+        'Revenue = (',
+        '  Price * Discount + Quantity * Extra',
+        '  + More',
+        ')',
+    ].join('\n'));
+    // The line keeps the indentation of its block.
+    assert.equal(wrapSource('  Revenue = Price * Discount + Quantity * Extra + More'), [
+        '  Revenue = (',
+        '    Price * Discount + Quantity * Extra',
+        '    + More',
+        '  )',
+    ].join('\n'));
+    // An application chain has no place to break, so it stays one line.
+    const chain = 'Total = Values sum print with a very long chain of names here';
+    assert.equal(wrapSource(chain), chain);
+    // `leftjoin on` spells pairs with `=`; none of them is an assignment.
+    const join = 'Joined = Left Right leftjoin on .store = .family .a = .b .c = .d';
+    assert.equal(wrapSource(join), join);
+});
+
 test('runs blocks, folded lines and aliases through the real REPL', () => {
     const source = [
         'use numbers',
@@ -219,11 +251,12 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
         '  4 5 6',
         'end',
         'M every 1',
+        'Wide, 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12',
     ].join('\n');
     const result = spawnSync(process.execPath, [cli], { input: source, encoding: 'utf8' });
     assert.equal(result.status, 0);
     assert.deepEqual(result.stdout.trim().split('\n'), [
         '<function double>', '10', '3', '3', 'text', 'text',
-        'at 12:30', 'at 12:30', '4', '4', '1 2 3 4 5 6', '2 5',
+        'at 12:30', 'at 12:30', '4', '4', '1 2 3 4 5 6', '2 5', '78',
     ]);
 });

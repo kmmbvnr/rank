@@ -127,6 +127,26 @@ fun.>
 **A quote and a bracket close themselves** at the end of a line, so each costs
 only its opening keystroke. `A gets (1 plus 2` runs `A = (1 + 2)`.
 
+**A wide line is wrapped into brackets.** A stored line over 50 characters is
+broken to about 40, which is the target of principle 1:
+
+```text
+Revenue = (
+  Price * Discount + Quantity * Extra
+  + More
+)
+```
+
+Rank continues an expression across lines only inside brackets, so the wrap adds
+them and breaks only before the operators the multiline grammar allows — never
+inside an application chain, a `sort by`, or a `not equal`. Brackets already
+there are reused rather than doubled, and a line with nowhere to break, such as
+a long chain of names, is left alone rather than mangled.
+
+The wrap is then checked against the parser and dropped whole if the result does
+not parse, so a rule that turns out to be wrong costs a wide line and never a
+broken one.
+
 **The REPL owns indentation.** Every line is indented two spaces per open block
 as it is typed and again when it is stored. Typing leading spaces is never
 necessary and never wrong.
@@ -190,10 +210,8 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
 
 ## What is still awkward
 
-- A folded statement is saved as one long line. Rank can only continue an
-  expression across lines inside brackets, so `save` cannot reproduce the fold,
-  and a long statement fights the 40-column target. Writing brackets by hand is
-  still the way to keep a wide expression narrow.
+- A statement with no operator to break at stays wide: an application chain has
+  no place a line may end.
 - `.` before a label, `"` to open text, and the digits have no cheaper form.
   `.` is usually on the letters layer and `"` on the first symbol layer, so
   neither costs what `=` did.
@@ -212,8 +230,8 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
   source read worse, which was the objection that produced the colon key.
 - Should the `=` keys work in the HTML editor too, or does a custom keyboard row
   there make them unnecessary?
-- Should the formatter also break a long line at its operators, so the stored
-  source keeps to 40 columns without hand-written brackets?
+- Should the wrap ever break an application chain, which would need a
+  continuation form the language does not have?
 - Should `save` insert brackets so a folded statement survives as several narrow
   lines?
 - Should the REPL keep a cell history that the editor can open, or is a `.ra`
