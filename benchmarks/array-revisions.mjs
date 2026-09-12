@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
@@ -9,6 +10,7 @@ const baseline = process.argv[2];
 if (!baseline) throw Error('Pass the baseline checkout path');
 const checkouts = { candidate: process.cwd(), baseline: resolve(baseline) };
 const results = {}, cases = {};
+const pcaSource = readFileSync(new URL('../demos/deepml/019_pca.ra', import.meta.url), 'utf8');
 for (const [name, checkout] of Object.entries(checkouts)) {
   const { Interpreter, createArraySnapshot } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
   const runtime = new Interpreter();
@@ -23,11 +25,18 @@ end
 ${denseSource}`);
   const input = createArraySnapshot(Array.from({ length: 1000000 }, (_, i) => i % 100 / 8));
   const matrix = createArraySnapshot(Array.from({ length: 2048 * 2 }, (_, i) => i % 4), [2048, 2]);
+  runtime.execute(pcaSource);
+  const pcaInput = createArraySnapshot(Array.from({ length: 2048 * 2 }, (_, i) => Math.floor(i / 2) + i % 2), [2048, 2]);
   const polynomial = runtime.variables.get('polynomial');
   const means = runtime.variables.get('columns').call([matrix]);
   const tasks = {
     copy: () => { const result = polynomial.call([input]); assert.equal(result.items[0], 1); },
     repeatedColumns: () => { for (let i = 0; i < 2048; i++) assert.equal(means.itemAt(0), 1); },
+    pca2048: () => {
+      const result = runtime.variables.get('pca').call([pcaInput, 1n]);
+      assert.deepEqual(result.shape, [2, 1]);
+      assert.deepEqual(result.items, [0.7071, 0.7071]);
+    },
   };
   for (const [task, args, expected] of denseCases) {
     tasks[task] = () => assert.equal(runtime.variables.get(task).call(args), expected);

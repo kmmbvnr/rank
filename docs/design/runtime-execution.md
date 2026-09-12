@@ -11,6 +11,9 @@ operations should share a plan and traversal, including across private named
 intermediates. Coverage will grow incrementally without changing observable Rank
 semantics. Compiling loop control flow is independent of tensor fusion.
 
+[Array revisions](array-revisions.md) describes demand-driven cache validation,
+resource metadata and the measured tradeoff between reuse and write overhead.
+
 ## Function environments
 
 `packages/interpreter/src/frame.ts` holds a function invocation's values and
