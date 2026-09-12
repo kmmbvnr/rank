@@ -72,10 +72,29 @@ The alias changes only the Rank result shape, never the database schema.
 An already joined SQLite view cannot itself be aliased yet; multiway joins of
 nested views need qualified join keys and nested scope composition.
 
+An ordered `record` names output columns and holds their source expressions:
+
+```rank
+Cols = record
+  .memfname = J .m .firstname
+  .recfname = J .r .firstname
+end
+Out = J Cols select
+```
+
+`select` returns a new flat view with only those fields, in record order. For a
+SQLite view, every expression must come from that exact view; scalar values
+are bound parameters. The operation builds `SELECT expression AS name` without
+reading rows or changing the database. SQL `NULL` leaves the output field
+absent, so CSV writes an empty cell. On an array table, fields may be scalars
+or rank-1 arrays with one value per row; the output rows are read lazily and
+missing source cells remain missing. The source table is unchanged. Put
+`sort by` after `select` when the exported rows need a guaranteed order.
+
 Selecting one field creates a lazy column expression. Comparing it with a
 scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,
-`innerjoin by/on`, `leftjoin by/on`, `unique` and field-keyed `sort by` also
+`innerjoin by/on`, `leftjoin by/on`, `select`, `unique` and field-keyed `sort by` also
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
 or a product of expressions uses SQL `SUM`. `array`, `print` and CSV output execute the
 view. `sql` and `explain` inspect the current plan without loading its result

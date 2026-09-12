@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: joins 5
 rem https://pgexercises.com/questions/joins/threejoin.html
 
 use cli
-use algo
 use sequences
 use tables
 
@@ -16,18 +15,13 @@ Facilities = Db .facilities
 WithMembers = Bookings Members innerjoin by .memid
 Joined = WithMembers Facilities innerjoin by .facid
 Court = (Joined .name equal "Tennis Court 1") or (Joined .name equal "Tennis Court 2")
-Rows = (Joined Court) array
-Rows .member = Rows .firstname + " " + Rows .surname
-Rows .facility = Rows .name
-Pairs = Rows .member + "|" + Rows .facility
-Unique = Pairs unique
-Chosen = new queue
-for Pair in Unique
-  Matches = (Rows (Pairs equal Pair)) array
-  Chosen push (Matches 0)
+Filtered = Joined Court
+First = Filtered .firstname + " "
+Name = First + Filtered .surname
+Cols = record
+  .member = Name
+  .facility = Filtered .name
 end
-Distinct = Chosen (array (Chosen len)) reshape
-Keys = Distinct .member + "|" + Distinct .facility
-Ordered = Distinct (Keys argsort)
-Result = Ordered (array .member .facility)
+Pairs = Filtered Cols select
+Result = (Pairs unique) sort by .member .facility
 Result OutputPath csv

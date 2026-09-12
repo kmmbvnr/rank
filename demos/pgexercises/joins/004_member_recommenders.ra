@@ -13,20 +13,12 @@ M = Db .members alias .m
 R = Db .members alias .r
 J = M R leftjoin on
   .recommendedby equal .memid
-Rows = J array
-Rows .memfname = Rows .m .firstname
-Rows .memsname = Rows .m .surname
-RF = Rows .r .firstname pad ""
-RS = Rows .r .surname pad ""
-Rows .recfname = RF
-Rows .recsname = RS
-Last = Rows .memsname
-First = Rows .memfname
-Names = Last + " " + First
-Ordered = Rows (Names argsort)
-Cols = array shape 4
-  .memfname .memsname
-  .recfname .recsname
+Cols = record
+  .memfname = J .m .firstname
+  .memsname = J .m .surname
+  .recfname = J .r .firstname
+  .recsname = J .r .surname
 end
-Result = Ordered Cols
+Out = J Cols select
+Result = Out sort by .memsname .memfname
 Result OutputPath csv

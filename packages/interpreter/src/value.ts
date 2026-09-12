@@ -60,6 +60,8 @@ export interface RankSqliteTable {
     readonly text: string;
     readonly params: readonly SqliteScalar[];
     readonly scopes?: ReadonlyMap<string, readonly string[]>;
+    readonly booleanColumns?: ReadonlySet<string>;
+    readonly textColumns?: ReadonlySet<string>;
 }
 
 /** A named role for one side of a table join. */
@@ -83,6 +85,7 @@ export interface RankSqliteExpression {
     readonly text: string;
     readonly params: readonly SqliteScalar[];
     readonly boolean: boolean;
+    readonly textual?: boolean;
 }
 
 export interface RankLabel {

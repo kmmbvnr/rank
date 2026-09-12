@@ -461,6 +461,8 @@ export const operations: readonly Operation[] = [
         effects: ['io'], summary: 'SQLite query plan rows for a prepared query view.' },
     { name: 'labels', module: 'tables', arities: [1], form: 'Table labels', result: 'array',
         summary: 'Ordered column labels of a rank-1 table.' },
+    { name: 'select', module: 'tables', arities: [2], form: 'Rows Cols select', result: 'table',
+        lazy: true, summary: 'Named computed columns; lazy on SQLite views.' },
     { name: 'sql', module: 'tables', arities: [1], form: 'Query sql', result: 'record',
         summary: 'Statement text and bound parameters of a query view.' },
     { name: 'sqlite', module: 'tables', arities: [1], form: 'Path sqlite', result: 'database',

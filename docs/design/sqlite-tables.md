@@ -25,11 +25,11 @@ ordering. Q6 has a [SQLite program](../../demos/tpch/001_q6_sqlite.ra) that
 pushes filters and a scalar `SUM` into the database. These programs and the
 SQLite CLI tests compare results with reference SQL on temporary data.
 
-The next steps are computed/output-named columns on a lazy view, followed by
-grouped aggregates, correlated lookups and limits. Task 4 now compiles its
-self join with `Db .members alias .m` and `.r`; it still materializes before
-naming output fields and sorting. Tasks 2 and 5–6, 8 materialize for computed
-output columns. Task 7 uses an in-memory lookup. Preserve an explicit
+`View Cols select`, where `Cols` is a `record`, now names and computes output
+columns in SQL. Tasks 2, 4 and 5 use it to defer the only row read until CSV.
+Tasks 6 and 8 still materialize for their row-dependent guest/member price;
+task 7 uses an in-memory correlated lookup. The next steps are a conditional
+column expression, grouped aggregates, correlated lookups and limits. Preserve an explicit
 ordering contract when adding operations after `sort by`; a SQLite subquery
 does not promise to retain its source order.
 Multiway aliased joins need qualified keys and recursive nested scopes before

@@ -189,6 +189,30 @@ test('aliased self join stays in SQLite and exposes nested fields', () => fixtur
     assert.equal(lines[3], ' Ada');
 }));
 
+test('named computed columns stay in SQL with bound parameters', () => fixture((directory, dbPath) => {
+    const output = path.join(directory, 'selected.csv');
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
+        + `Db = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Rows = Db .facilities\n'
+        + 'Filtered = Rows (Rows .name equal "Tennis Court 1")\n'
+        + 'Caption = Filtered .name + "!"\n'
+        + 'Cols = record\n'
+        + '  .caption = Caption\n'
+        + '  .ok = Filtered .facid equal 0\n'
+        + '  .price = Filtered .membercost + 1\n'
+        + 'end\n'
+        + 'Out = Filtered Cols select\n'
+        + 'Q = Out sql\nQ .text print\nQ .params len print\n'
+        + `Out ${JSON.stringify(output)} csv\n`);
+    assert.equal(result.status, 0, result.stderr);
+    const lines = result.stdout.trimEnd().split('\n');
+    assert.match(lines[0], /AS "caption"/);
+    assert.match(lines[0], /AS "ok"/);
+    assert.doesNotMatch(lines[0], /Tennis Court 1/);
+    assert.equal(lines[1], '8');
+    assert.equal(fs.readFileSync(output, 'utf8'), 'caption,ok,price\nTennis Court 1!,true,6\n');
+}));
+
 test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture((directory, dbPath) => {
     const db = new Database(dbPath);
     db.exec('CREATE TABLE lineitem (l_shipdate TEXT, l_discount REAL, '

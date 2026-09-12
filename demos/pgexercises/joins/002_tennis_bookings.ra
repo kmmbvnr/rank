@@ -15,8 +15,10 @@ Joined = Bookings Facilities innerjoin by .facid
 Court = (Joined .name equal "Tennis Court 1") or (Joined .name equal "Tennis Court 2")
 Day = (Joined .starttime greater "2012-09-21") and (Joined .starttime less "2012-09-22")
 Filtered = Joined (Court and Day)
-Ordered = Filtered sort by .starttime
-Rows = Ordered array
-Rows .start = Rows .starttime
-Result = Rows (array .start .name)
+Cols = record
+  .start = Filtered .starttime
+  .name = Filtered .name
+end
+Out = Filtered Cols select
+Result = Out sort by .start
 Result OutputPath csv

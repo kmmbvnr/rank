@@ -1,7 +1,7 @@
 import { derivedArray, ownedArray, ownedObject } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { readTextFile, writeTextFile } from './io.js';
-import { materializeSqlite } from './sqlite.js';
+import { materializeSqlite, selectSqlite } from './sqlite.js';
 import {
     formatDate,
     isRankObject,
@@ -9,11 +9,14 @@ import {
     isRankDate,
     isRankLabel,
     isRankSqliteTable,
+    isRankSqliteExpression,
     isRankTableAlias,
+    isRankRecord,
     type RankGroupedColumn,
     type RankGroupedTable,
     type RankArray,
     type RankObject,
+    type RankRecord,
     type RankValue,
 } from '../value.js';
 import { setValueKey } from '../set.js';
@@ -21,6 +24,13 @@ import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const tablesModule: RuntimeModule = {
+    select: () => native('select', 2, ([input, fields]) => {
+        if (!isRankRecord(fields)) throw new RankError('select expects a record of columns', 'TypeError');
+        const source = isRankTableAlias(input) ? input.source : input;
+        if (isRankSqliteTable(source)) return selectSqlite(source, fields);
+        if (isRankArray(source)) return selectArray(source, fields);
+        throw new RankError('select expects a rank-1 table or SQLite view', 'TypeError');
+    }),
     labels: () => native('labels', 1, ([value]) => {
         if (!isRankArray(value) || value.shape.length !== 1) {
             throw new RankError('labels expects a rank-1 table', 'DimensionMismatch');
@@ -45,6 +55,41 @@ export const tablesModule: RuntimeModule = {
         return arguments_[0];
     }),
 };
+
+function selectArray(source: RankArray, fields: RankRecord): RankArray {
+    if (source.shape.length !== 1) {
+        throw new RankError('select expects a rank-1 table', 'DimensionMismatch');
+    }
+    if (fields.entries.size === 0) throw new RankError('select requires at least one field', 'TypeError');
+    const entries = [...fields.entries];
+    const dependencies = [source];
+    for (const [name, value] of entries) {
+        if (isRankSqliteExpression(value)) {
+            throw new RankError(`select field .${name} belongs to a SQLite view`, 'TypeError');
+        }
+        if (!isRankArray(value)) continue;
+        if (value.shape.length !== 1 || value.shape[0] !== source.shape[0]) {
+            throw new RankError(`select field .${name} must have one value per row`, 'DimensionMismatch');
+        }
+        dependencies.push(value);
+    }
+    const result = derivedArray(source.shape, dependencies, position => {
+        const row = source.itemAt?.(position) ?? source.items[position];
+        if (!isRankObject(row)) throw new RankError('select expects object rows', 'TypeError');
+        const selected = new Map<string, RankValue>();
+        for (const [name, column] of entries) {
+            try {
+                selected.set(name, isRankArray(column)
+                    ? column.itemAt?.(position) ?? column.items[position] : column);
+            } catch (error) {
+                if (!(error instanceof MissingValueError)) throw error;
+            }
+        }
+        return ownedObject(selected);
+    });
+    Object.defineProperty(result, 'columnNames', { value: entries.map(([name]) => name) });
+    return result;
+}
 
 function tableRows(value: RankValue, operation: string): RankObject[] {
     if (!isRankArray(value) || value.shape.length !== 1) {

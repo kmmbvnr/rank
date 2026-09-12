@@ -16,6 +16,7 @@ import {
     type RankSqliteExpression,
     type RankSqliteTable,
     type RankSqliteScope,
+    type RankRecord,
     type RankValue,
 } from '../value.js';
 import { native } from './shared.js';
@@ -80,7 +81,7 @@ export function sqliteTable(database: RankSqliteDatabase, name: string): RankSql
 
 export function materializeSqlite(table: RankSqliteTable): RankArray {
     return withConnection(table.database, connection =>
-        resultRows(connection.prepare(table.text), table.params, table.scopes));
+        resultRows(connection.prepare(table.text), table.params, table.scopes, table.booleanColumns));
 }
 
 export function sqliteColumns(table: RankSqliteTable): readonly string[] {
@@ -110,7 +111,9 @@ function requireColumn(table: RankSqliteTable, name: string): void {
 
 export function sqliteColumn(table: RankSqliteTable, name: string): RankSqliteExpression {
     requireColumn(table, name);
-    return { kind: 'sqlite-expression', table, text: quote(name), params: [], boolean: false };
+    return { kind: 'sqlite-expression', table, text: quote(name), params: [],
+        boolean: table.booleanColumns?.has(name) ?? false,
+        textual: table.textColumns?.has(name) ?? false };
 }
 
 export function sqliteScope(table: RankSqliteTable, name: string): RankSqliteScope {
@@ -123,7 +126,9 @@ export function sqliteScopedColumn(scope: RankSqliteScope, name: string): RankSq
         throw new RankError(`SQLite column does not exist: .${scope.name} .${name}`, 'Missing');
     }
     return { kind: 'sqlite-expression', table: scope.table,
-        text: quote(`${scope.name}.${name}`), params: [], boolean: false };
+        text: quote(`${scope.name}.${name}`), params: [],
+        boolean: scope.table.booleanColumns?.has(`${scope.name}.${name}`) ?? false,
+        textual: scope.table.textColumns?.has(`${scope.name}.${name}`) ?? false };
 }
 
 export function projectSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
@@ -136,7 +141,39 @@ export function projectSqlite(table: RankSqliteTable, fields: readonly string[])
     for (const field of fields) requireColumn(table, field);
     return { kind: 'sqlite-table', database: table.database,
         text: `SELECT ${fields.map(quote).join(', ')} FROM (${table.text}) AS source`,
-        params: table.params };
+        params: table.params,
+        booleanColumns: new Set(fields.filter(field => table.booleanColumns?.has(field))),
+        textColumns: new Set(fields.filter(field => table.textColumns?.has(field))) };
+}
+
+/** Give expressions final column names without reading rows. */
+export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSqliteTable {
+    if (fields.entries.size === 0) {
+        throw new RankError('select requires at least one field', 'TypeError');
+    }
+    const columns: string[] = [];
+    const params: SqliteScalar[] = [];
+    const booleanColumns = new Set<string>();
+    const textColumns = new Set<string>();
+    for (const [name, value] of fields.entries) {
+        if (isRankSqliteExpression(value)) {
+            if (value.table !== table) {
+                throw new RankError(`select field .${name} belongs to another SQLite view`, 'TypeError');
+            }
+            columns.push(`${value.text} AS ${quote(name)}`);
+            params.push(...value.params);
+            if (value.boolean) booleanColumns.add(name);
+            if (value.textual) textColumns.add(name);
+        } else {
+            columns.push(`? AS ${quote(name)}`);
+            params.push(toSqlite(value));
+            if (typeof value === 'boolean') booleanColumns.add(name);
+            if (typeof value === 'string') textColumns.add(name);
+        }
+    }
+    return { kind: 'sqlite-table', database: table.database,
+        text: `SELECT ${columns.join(', ')} FROM (${table.text}) AS source`,
+        params: [...params, ...table.params], booleanColumns, textColumns };
 }
 
 export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpression): RankSqliteTable {
@@ -144,6 +181,7 @@ export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpres
         throw new RankError('SQLite filter expects a boolean expression from this table', 'TypeError');
     }
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
+        booleanColumns: table.booleanColumns, textColumns: table.textColumns,
         text: `SELECT * FROM (${table.text}) AS source WHERE ${predicate.text}`,
         params: [...table.params, ...predicate.params] };
 }
@@ -151,6 +189,7 @@ export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpres
 export function sortSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
     for (const field of fields) requireColumn(table, field);
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
+        booleanColumns: table.booleanColumns, textColumns: table.textColumns,
         text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map(quote).join(', ')}`,
         params: table.params };
 }
@@ -158,6 +197,7 @@ export function sortSqlite(table: RankSqliteTable, fields: readonly string[]): R
 export function uniqueSqlite(table: RankSqliteTable): RankSqliteTable {
     sqliteColumns(table);
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
+        booleanColumns: table.booleanColumns, textColumns: table.textColumns,
         text: `SELECT DISTINCT * FROM (${table.text}) AS source`, params: table.params };
 }
 
@@ -186,9 +226,14 @@ export function joinSqlite(
     ].join(', ');
     const keys = leftFields.map((name, index) =>
         compatibleEquality(`l.${quote(name)}`, `r.${quote(rightFields[index])}`)).join(' AND ');
+    const typed = (kind: 'booleanColumns' | 'textColumns') => new Set([
+        ...leftNames.filter(name => left[kind]?.has(name)),
+        ...rightValues.filter(name => right[kind]?.has(name)),
+    ]);
     return { kind: 'sqlite-table', database: left.database,
         text: `SELECT ${select} FROM (${left.text}) AS l ${mode === 'leftjoin' ? 'LEFT' : 'INNER'} JOIN (${right.text}) AS r ON ${keys}`,
-        params: [...left.params, ...right.params] };
+        params: [...left.params, ...right.params],
+        booleanColumns: typed('booleanColumns'), textColumns: typed('textColumns') };
 }
 
 export function joinAliasedSqlite(
@@ -213,10 +258,15 @@ export function joinAliasedSqlite(
     ].join(', ');
     const keys = leftFields.map((name, index) =>
         compatibleEquality(`${l}.${quote(name)}`, `${r}.${quote(rightFields[index])}`)).join(' AND ');
+    const typed = (kind: 'booleanColumns' | 'textColumns') => new Set([
+        ...leftNames.filter(name => left[kind]?.has(name)).map(name => `${leftName}.${name}`),
+        ...rightNames.filter(name => right[kind]?.has(name)).map(name => `${rightName}.${name}`),
+    ]);
     return { kind: 'sqlite-table', database: left.database,
         text: `SELECT ${select} FROM (${left.text}) AS ${l} ${mode === 'leftjoin' ? 'LEFT' : 'INNER'} JOIN (${right.text}) AS ${r} ON ${keys}`,
         params: [...left.params, ...right.params],
         scopes: new Map([[leftName, leftNames], [rightName, rightNames]]),
+        booleanColumns: typed('booleanColumns'), textColumns: typed('textColumns'),
     };
 }
 
@@ -244,7 +294,8 @@ export function binarySqlite(
         isRankSqliteExpression(value) ? value : { text: '?', params: [toSqlite(value)] };
     const a = operand(left);
     const b = operand(right);
-    const textOperator = operator === '+' && (typeof left === 'string' || typeof right === 'string')
+    const textOperator = operator === '+' && (typeof left === 'string' || typeof right === 'string'
+        || leftExpr?.textual || rightExpr?.textual)
         ? '||' : op;
     if (operator === 'equal' || operator === 'notequal') {
         const equality = compatibleEquality(a.text, b.text);
@@ -255,6 +306,7 @@ export function binarySqlite(
     }
     return { kind: 'sqlite-expression', table,
         text: `(${a.text} ${textOperator} ${b.text})`, params: [...a.params, ...b.params],
+        textual: textOperator === '||',
         boolean: ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'and', 'or'].includes(operator) };
 }
 
@@ -298,6 +350,7 @@ function resultRows(
     statement: ReturnType<RankSqliteConnection['prepare']>,
     params: readonly SqliteScalar[],
     scopes?: ReadonlyMap<string, readonly string[]>,
+    booleanColumns?: ReadonlySet<string>,
 ): RankArray {
     const columns = [...statement.columns()];
     if (new Set(columns).size !== columns.length) {
@@ -311,7 +364,9 @@ function resultRows(
                 const nested = new Map<string, RankValue>();
                 for (const field of fields) {
                     const value = row[`${scope}.${field}`];
-                    if (value !== null && value !== undefined) nested.set(field, fromSqlite(value));
+                    if (value !== null && value !== undefined) {
+                        nested.set(field, fromColumn(value, `${scope}.${field}`, booleanColumns));
+                    }
                 }
                 if (nested.size > 0 || scope === firstScope) {
                     entries.set(scope, { kind: 'object', entries: nested });
@@ -322,13 +377,25 @@ function resultRows(
         const entries = new Map<string, RankValue>();
         for (const name of columns) {
             const value = row[name];
-            if (value !== null && value !== undefined) entries.set(name, fromSqlite(value));
+            if (value !== null && value !== undefined) {
+                entries.set(name, fromColumn(value, name, booleanColumns));
+            }
         }
         return { kind: 'object', entries } satisfies RankObject;
     });
     return { kind: 'array', items, shape: [items.length],
         columnNames: scopes ? [...scopes.keys()] : columns,
         tableScopes: scopes ? [...scopes.keys()] : undefined };
+}
+
+function fromColumn(value: SqliteScalar, name: string, booleanColumns?: ReadonlySet<string>): RankValue {
+    if (booleanColumns?.has(name)) {
+        if (typeof value !== 'bigint' && typeof value !== 'number') {
+            throw new RankError(`SQLite boolean column .${name} is not numeric`, 'TypeError');
+        }
+        return value !== 0 && value !== 0n;
+    }
+    return fromSqlite(value);
 }
 
 function toSqlite(value: RankValue): SqliteScalar {

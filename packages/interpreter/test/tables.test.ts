@@ -125,6 +125,23 @@ describe('Rank tables', () => {
         expect(() => runtime.execute('M Data leftjoin by .memid'))
             .toThrowError('requires aliases on both sides');
     });
+
+    it('selects named array columns lazily and leaves missing cells absent', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables',
+            'Rows = "[{\\"name\\":\\"Ada\\",\\"score\\":2},{\\"name\\":\\"Bea\\"}]" json',
+            'Cols = record',
+            '  .member = Rows .name',
+            '  .points = Rows .score',
+            'end',
+            'Out = Rows Cols select',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Out labels')!)).toBe('.member .points');
+        expect(formatValue(runtime.execute('Out .member')!)).toBe('Ada Bea');
+        expect(formatValue(runtime.execute('Out .points pad 0')!)).toBe('2 0');
+        expect(formatValue(runtime.execute('Rows labels')!)).toBe('.name .score');
+    });
     it('keeps CSV header order, including empty columns and empty tables', () => {
         const io = new MemoryIo({
             '/rows.csv': 'z,empty,a\n1,,2\n3,,4\n',

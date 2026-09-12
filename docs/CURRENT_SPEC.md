@@ -3240,7 +3240,7 @@ operations apply. SQLite `NULL` becomes an absent object field, integer 0/1
 stays integer, and row order is unspecified unless the SQL query orders it.
 
 SQLite table views support lazy field projection, comparisons and boolean
-masks, `innerjoin by/on`, `leftjoin by/on`, `unique` and field-keyed `sort by`.
+masks, `innerjoin by/on`, `leftjoin by/on`, `select`, `unique` and field-keyed `sort by`.
 `M = Db .members alias .m` gives a table view a join role without reading or
 renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under
@@ -3248,6 +3248,13 @@ the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
 `pad` after materialization. The SQL join remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
+`Cols = record ... end` followed by `Out = View Cols select` builds an ordered,
+named projection. SQLite expressions must belong to `View`; constants become
+bound parameters. It returns a flat lazy SQLite view without changing its
+source. An array source produces lazy rank-1 object rows from scalar fields or
+same-length rank-1 columns. Missing array cells and SQLite `NULL` omit the
+corresponding output field. Boolean SQL expressions materialize as Rank
+booleans. A final `sort by` after `select` orders the exported rows.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
 expression runs SQL `SUM`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
