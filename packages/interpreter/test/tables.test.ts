@@ -68,6 +68,32 @@ describe('Rank tables', () => {
             .toBe('Ada, A. Lin');
     });
 
+    it('writes selected columns with their table headers', () => {
+        const io = new MemoryIo({});
+        const runtime = new Interpreter(undefined, { io });
+        runtime.execute([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"id\\":1,\\"name\\":\\"Ada\\",\\"extra\\":9},',
+            '  {\\"id\\":2,\\"name\\":\\"Lin\\",\\"extra\\":8}]" json',
+            'Out = Rows (array .name .id)',
+            'Out "/submission.csv" csv',
+        ].join('\n'));
+        expect(new TextDecoder().decode(io.file('/submission.csv')))
+            .toBe('name,id\nAda,1\nLin,2\n');
+    });
+
+    it('rejects ambiguous selected-column CSV headers', () => {
+        const runtime = new Interpreter(undefined, { io: new MemoryIo({}) });
+        expect(() => runtime.execute([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1}]" json',
+            'Out = Rows (array .x .x)',
+            'Out "/bad.csv" csv',
+        ].join('\n'))).toThrowError('csv output columns must have unique names');
+    });
+
     it('validates CSV headers and row widths', () => {
         const duplicate = new Interpreter(undefined, {
             io: new MemoryIo({ '/bad.csv': 'id,id\n1,2\n' }),

@@ -3294,6 +3294,18 @@ are preserved. An empty field array produces an `N × 0` matrix without reading
 any row. Selected cells stay lazy: a demanded non-object row raises
 `.TypeError`, and a demanded missing field raises `.Missing`.
 
+The selected matrix retains its column names while it remains unchanged.
+Writing it with `csv` uses those names as the header, which makes a submission
+table a direct column selection:
+
+```rank
+Out = Test (array .PassengerId .Survived)
+Out "submission.csv" csv
+```
+
+CSV output requires selected column names to be unique. Ordinary array
+operations return ordinary arrays without the table header metadata.
+
 The same selector can be reused:
 
 ```rank

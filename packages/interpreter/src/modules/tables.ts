@@ -98,6 +98,7 @@ export function projectFields(source: RankArray, fields: RankArray): RankArray {
     return {
         kind: 'array',
         shape: [source.shape[0], columns],
+        columnNames: names,
         itemAt,
         containsFiles: false,
         get items() {
@@ -225,8 +226,11 @@ function csvValue(value: string, kind: CsvColumnKind): RankValue {
 }
 
 function formatCsv(value: RankValue): string {
+    if (isRankArray(value) && value.shape.length === 2 && value.columnNames !== undefined) {
+        return formatSelectedColumns(value);
+    }
     if (!isRankArray(value) || value.shape.length !== 1) {
-        throw new RankError('csv output expects a rank-1 table');
+        throw new RankError('csv output expects a table or selected table columns');
     }
     if (value.items.length === 0) throw new RankError('csv output requires at least one row');
     const first = objectRow(value.items[0]);
@@ -243,6 +247,24 @@ function formatCsv(value: RankValue): string {
             const cell = row.entries.get(header);
             return cell === undefined ? '' : csvScalar(cell);
         }).join(','));
+    }
+    return `${lines.join('\n')}\n`;
+}
+
+function formatSelectedColumns(value: RankArray): string {
+    const headers = value.columnNames!;
+    if (headers.length !== value.shape[1]) {
+        throw new RankError('selected table column schema does not match its shape');
+    }
+    if (headers.length === 0) throw new RankError('csv output requires at least one column');
+    if (new Set(headers).size !== headers.length) {
+        throw new RankError('csv output columns must have unique names');
+    }
+    const lines = [headers.map(csvField).join(',')];
+    for (let row = 0; row < value.shape[0]; row += 1) {
+        lines.push(headers.map((_, column) =>
+            csvScalar(value.itemAt?.(row * headers.length + column)
+                ?? value.items[row * headers.length + column])).join(','));
     }
     return `${lines.join('\n')}\n`;
 }
