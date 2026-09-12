@@ -47,6 +47,19 @@ X = Train Features
 Xtest = Test Features
 ```
 
+The [runnable Titanic baseline](../../demos/kaggle/001_titanic.ra) implements
+the preprocessing, logistic regression and submission output in Rank. Its
+three positional paths default to ignored local directories:
+
+```text
+demos/kaggle/data/titanic/train.csv
+demos/kaggle/data/titanic/test.csv
+demos/kaggle/submissions/titanic.csv
+```
+
+The neighboring test uses small in-memory rows, so the repository test suite
+does not require a Kaggle account or downloaded competition data.
+
 ## House Prices
 
 Reusable feature selectors:

@@ -1,0 +1,47 @@
+use testing
+
+test "prepares numeric features with training medians"
+  use json
+  use "001_titanic"
+  Train = "[{\"Sex\":\"female\",\"Pclass\":1,\"Age\":20,\"Fare\":10},{\"Sex\":\"male\",\"Pclass\":0}]" json
+  Test = "[{\"Sex\":\"male\",\"Pclass\":3}]" json
+
+  unpack X Xtest = Train Test prepare_features
+  Expected = array shape 2 4
+    1 1 20 10
+    0 0 20 10
+  end
+  TestExpected = array shape 1 4
+    0 3 20 10
+  end
+  X equal Expected and Xtest equal TestExpected
+end
+
+test "learns the small separable passenger sample"
+  use json
+  use "001_titanic"
+  Train = "[{\"PassengerId\":1,\"Survived\":1,\"Sex\":\"female\",\"Pclass\":1,\"Age\":30,\"Fare\":80}, {\"PassengerId\":2,\"Survived\":1,\"Sex\":\"female\",\"Pclass\":3,\"Age\":20,\"Fare\":10}, {\"PassengerId\":3,\"Survived\":0,\"Sex\":\"male\",\"Pclass\":1,\"Age\":40,\"Fare\":70}, {\"PassengerId\":4,\"Survived\":0,\"Sex\":\"male\",\"Pclass\":3,\"Age\":25}]" json
+  Test = "[{\"PassengerId\":5,\"Sex\":\"female\",\"Pclass\":2,\"Fare\":30}, {\"PassengerId\":6,\"Sex\":\"male\",\"Pclass\":2,\"Age\":35,\"Fare\":50}]" json
+
+  Result = Train Test 0.1 500 solve
+  Expected = array shape 2 2
+    5 1
+    6 0
+  end
+  Result equal Expected
+end
+
+test "logistic regression checks observation counts"
+  use "001_titanic"
+  X = array shape 2 1
+    0
+    1
+  end
+  Raised = false
+  try
+    Model = X (array 1) 0.1 1 logistic
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+  Raised
+end

@@ -1,33 +1,111 @@
-гыу csv
-use tables
+rem Kaggle: Titanic
+rem https://www.kaggle.com/competitions/titanic
+rem Train a logistic-regression baseline from
+rem sex, passenger class, age and fare.
+
+use cli
+use linalg
+use numbers
+use ranges
+use sequences
 use stats
-use ml
+use tables
 
-Train = csv "train.csv"
-Test = csv "test.csv"
+argument TrainPath path = "demos/kaggle/data/titanic/train.csv"
+argument TestPath path = "demos/kaggle/data/titanic/test.csv"
+argument OutputPath path = "demos/kaggle/submissions/titanic.csv"
 
-Age = Train .Age median
-Train .Age = Train .Age pad Age
-Test .Age = Test .Age pad Age
+Train = TrainPath csv
+Test = TestPath csv
+Submission = Train Test 0.1 1000 solve
+Submission OutputPath csv
 
-Fare = Train .Fare median
-Train .Fare = Train .Fare pad Fare
-Test .Fare = Test .Fare pad Fare
 
-Train .Female =
-  Train .Sex equal "female"
-Test .Female =
-  Test .Sex equal "female"
+rem Prepare the four numeric baseline features.
+rem Training medians also fill the test columns.
+fun prepare_features Train Test
+  Age = Train .Age median
+  Train .Age = Train .Age pad Age
+  Test .Age = Test .Age pad Age
 
-X = Train .Female .Pclass .Age .Fare
-Y = Train .Survived
-Model = X Y logistic
+  Fare = Train .Fare median
+  Train .Fare = Train .Fare pad Fare
+  Test .Fare = Test .Fare pad Fare
 
-Xtest = Test .Female .Pclass .Age .Fare
-Pred = Model Xtest predict
-Test .Survived = Pred
+  Train .Female = (Train .Sex equal "female") binary
+  Test .Female = (Test .Sex equal "female") binary
 
-Submission =
-    Test .PassengerId .Survived
+  Features = array .Female .Pclass .Age .Fare
+  return array (Train Features) (Test Features)
+end
 
-csv "submission.csv" = Submission
+
+rem Train a full-batch binary logistic regression.
+fun logistic X Y Rate Steps
+  XShape = X shape
+  YShape = Y shape
+  if XShape len not equal 2 or YShape len not equal 1
+    .DimensionMismatch raise
+  end
+  Rows = XShape 0
+  Columns = XShape 1
+  if Rows equal 0
+    .DomainError raise
+  end
+  if YShape 0 not equal Rows
+    .DimensionMismatch raise
+  end
+
+  Center = X mean axis 0
+  Scale = X std axis 0 copy
+  Scale (Scale equal 0) = 1.0
+  Z = (X - Center) / Scale
+
+  Weights = array shape Columns pad 0.0
+  Bias = 0.0
+  Zt = Z transpose
+  for # in 0 until Steps
+    Probability = (Z Weights matmul + Bias) sigmoid
+    Error = Probability - Y
+    Gradient = Zt Error matmul / Rows
+    Weights -= Rate * Gradient
+    Bias -= Rate * Error mean
+  end
+
+  return record
+    .weights = Weights
+    .bias = Bias
+    .center = Center
+    .scale = Scale
+  end
+end
+
+
+rem Predict integer classes with a 0.5 threshold.
+fun logistic_predict X Model
+  Z = (X - Model .center) / Model .scale
+  Score = Z (Model .weights) matmul + Model .bias
+  return (Score sigmoid greater 0.5) binary
+end
+
+
+fun sigmoid Value
+  return 1 / (1 + (-Value) exp)
+end
+
+
+fun binary Mask
+  Result = array shape (Mask len) pad 0
+  Result Mask = 1
+  return Result
+end
+
+
+rem Return only the two columns required by Kaggle.
+fun solve Train Test Rate Steps
+  unpack X Xtest = Train Test prepare_features
+  Y = Train .Survived
+  Model = X Y Rate Steps logistic
+  Test .Survived = Xtest Model logistic_predict
+  return Test (array .PassengerId .Survived)
+end
