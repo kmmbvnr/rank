@@ -1,39 +1,68 @@
-rem Kaggle: Disaster Tweets
-rem Classify whether a tweet
-rem describes a real disaster.
-rem
-rem Target: target
-rem Metric: F1
+rem Kaggle: Natural Language Processing with Disaster Tweets
+rem https://www.kaggle.com/competitions/nlp-getting-started
+rem Build TF-IDF features for a fixed vocabulary
+rem and fit logistic regression in Rank.
 
-use tables
+use "001_titanic" as Classifier
+use numbers
+use ranges
+use sequences
 use text
-use ml
 
-Train = csv "train.csv"
-Test = csv "test.csv"
 
-rem Build vocabulary on Train only
+rem Count exact space-separated vocabulary terms.
+fun term_counts Texts Vocab
+  Rows = Texts len
+  Columns = Vocab len
+  Counts = array shape Rows Columns pad 0.0
+  for Text Row in Texts
+    Words = Text " " split
+    for Word in Words
+      for Term Column in Vocab
+        if Word equal Term
+          Counts Row Column += 1.0
+        end
+      end
+    end
+  end
+  return Counts
+end
 
-Texts = Train .text
-Vocab = Texts vocab
 
-rem Convert text to TF-IDF features
+rem Fit smoothed inverse document frequencies on Train only.
+fun tfidf_fit Texts Vocab
+  Counts = Texts Vocab term_counts
+  Documents = Texts len
+  Terms = Vocab len
+  Present = Counts copy
+  for Row in 0 until Documents
+    for Column in 0 until Terms
+      if Counts Row Column greater 0
+        Present Row Column = 1.0
+      else
+        Present Row Column = 0.0
+      end
+    end
+  end
+  Frequency = Present sum axis 0
+  Idf = ((Documents + 1.0) / (Frequency + 1.0)) log + 1.0
+  return record
+    .vocab = Vocab
+    .idf = Idf
+  end
+end
 
-X = Train .text Vocab tfidf
-Xtest = Test .text Vocab tfidf
 
-Y = Train .target
+fun tfidf_transform Texts Model
+  Counts = Texts (Model .vocab) term_counts
+  return Counts * Model .idf
+end
 
-rem Train classifier
-rem logistic will be implemented
-rem in Rank later
 
-Model = X Y logistic
-Pred = Model Xtest predict
-
-rem Build Kaggle submission
-
-Test .target = Pred
-Out = Test .id .target
-
-csv "submission.csv" = Out
+fun solve TrainTexts Y TestTexts Vocab Rate Steps
+  TextModel = TrainTexts Vocab tfidf_fit
+  X = TrainTexts TextModel tfidf_transform
+  Xtest = TestTexts TextModel tfidf_transform
+  Model = X Y Rate Steps Classifier.logistic
+  return Xtest Model Classifier.logistic_predict
+end

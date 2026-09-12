@@ -1,0 +1,29 @@
+use testing
+
+test "counts vocabulary terms per document"
+  use "005_distweets"
+  Texts = array "fire fire safe" "safe road"
+  Vocab = array "fire" "safe" "road"
+  Expected = array shape 2 3
+    2.0 1.0 0.0
+    0.0 1.0 1.0
+  end
+  Texts Vocab term_counts equal Expected
+end
+
+test "fits training-only inverse document frequencies"
+  use numbers
+  use "005_distweets"
+  Texts = array "fire safe" "safe road"
+  Model = Texts (array "fire" "safe" "road") tfidf_fit
+  Model .idf round 4 equal array 1.4055 1.0 1.4055
+end
+
+test "classifies a small keyword-separated sample"
+  use "005_distweets"
+  Train = array "fire smoke" "flood water" "picnic music" "party music"
+  Y = array 1 1 0 0
+  Test = array "fire water" "picnic party"
+  Vocab = array "fire" "smoke" "flood" "water" "picnic" "music" "party"
+  Train Y Test Vocab 0.1 500 solve equal array 1 0
+end
