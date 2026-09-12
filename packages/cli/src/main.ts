@@ -1,4 +1,4 @@
-import { Interpreter, RankError } from 'rank-interpreter';
+import { Interpreter, RankError, parse } from 'rank-interpreter';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -30,6 +30,10 @@ async function dispatch(): Promise<void> {
         printHelp();
         return;
     }
+    if (arguments_[0] === 'check') {
+        await checkFiles(arguments_[1] ?? '.');
+        return;
+    }
     if (arguments_[0] === 'test') {
         await runTests(arguments_[1] ?? '.');
         return;
@@ -58,8 +62,26 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
     }
 }
 
+/** Parses every program under a path. The gate a repository can run in CI. */
+async function checkFiles(target: string): Promise<void> {
+    const files = await findFiles(path.resolve(target), name => name.endsWith('.ra'));
+    if (files.length === 0) throw new RankError(`no *.ra files found in ${target}`);
+
+    let failed = 0;
+    for (const file of files) {
+        try {
+            parse(await fs.readFile(file, 'utf8'), path.relative(process.cwd(), file));
+        } catch (error) {
+            failed += 1;
+            console.error(error instanceof RankError ? error.format() : String(error));
+        }
+    }
+    console.log(`${files.length} files, ${failed} failed`);
+    if (failed > 0) process.exitCode = 1;
+}
+
 async function runTests(target: string): Promise<void> {
-    const files = await findTestFiles(path.resolve(target));
+    const files = await findFiles(path.resolve(target), name => name.endsWith('_test.ra'));
     if (files.length === 0) {
         throw new RankError(`no *_test.ra files found in ${target}`);
     }
@@ -92,16 +114,18 @@ async function runTests(target: string): Promise<void> {
     if (failed > 0) process.exitCode = 1;
 }
 
-async function findTestFiles(target: string): Promise<string[]> {
+async function findFiles(
+    target: string, matches: (name: string) => boolean,
+): Promise<string[]> {
     const stat = await fs.stat(target);
-    if (stat.isFile()) return target.endsWith('_test.ra') ? [target] : [];
+    if (stat.isFile()) return matches(target) ? [target] : [];
     const entries = await fs.readdir(target, { withFileTypes: true });
     const nested = await Promise.all(entries
         .filter(entry => entry.name !== 'node_modules' && !entry.name.startsWith('.'))
         .map(entry => {
             const child = path.join(target, entry.name);
-            if (entry.isDirectory()) return findTestFiles(child);
-            return Promise.resolve(entry.name.endsWith('_test.ra') ? [child] : []);
+            if (entry.isDirectory()) return findFiles(child, matches);
+            return Promise.resolve(matches(entry.name) ? [child] : []);
         }));
     return nested.flat().sort();
 }
@@ -111,6 +135,7 @@ function printHelp(): void {
         'Usage:',
         '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
+        '  rank check [path]            Parse every *.ra file',
         '  rank test [path]             Run *_test.ra files',
         '  rank --version               Show the version',
     ].join('\n'));
