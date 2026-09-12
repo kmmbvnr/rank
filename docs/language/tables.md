@@ -91,6 +91,19 @@ or rank-1 arrays with one value per row; the output rows are read lazily and
 missing source cells remain missing. The source table is unchanged. Put
 `sort by` after `select` when the exported rows need a guaranteed order.
 
+For a row-dependent column, build a boolean expression and choose between two
+values from the same view:
+
+```rank
+Guest = Rows .memid equal 0
+GCost = Rows .slots * Rows .guestcost
+MCost = Rows .slots * Rows .membercost
+Cost = Guest GCost MCost choose
+```
+
+This stays in SQL as a bound `CASE` expression. An unknown SQL condition gives
+an absent cost. `select` can then name the computed column.
+
 Selecting one field creates a lazy column expression. Comparing it with a
 scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,

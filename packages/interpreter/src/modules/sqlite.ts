@@ -310,6 +310,35 @@ export function binarySqlite(
         boolean: ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'and', 'or'].includes(operator) };
 }
 
+/** Preserve a missing condition as NULL instead of taking the false branch. */
+export function chooseSqlite(
+    condition: RankValue, whenTrue: RankValue, whenFalse: RankValue,
+): RankSqliteExpression {
+    const expressions = [condition, whenTrue, whenFalse].filter(isRankSqliteExpression);
+    const table = expressions[0]?.table;
+    if (!table || expressions.some(expression => expression.table !== table)) {
+        throw new RankError('SQLite choose operands must come from one table', 'TypeError');
+    }
+    if (isRankSqliteExpression(condition) ? !condition.boolean : typeof condition !== 'boolean') {
+        throw new RankError('choose expects a boolean condition', 'TypeError');
+    }
+    const operand = (value: RankValue) => isRankSqliteExpression(value)
+        ? { text: value.text, params: value.params }
+        : { text: '?', params: [toSqlite(value)] };
+    const test = operand(condition);
+    const yes = operand(whenTrue);
+    const no = operand(whenFalse);
+    const knownBoolean = (value: RankValue) => typeof value === 'boolean'
+        || (isRankSqliteExpression(value) && value.boolean);
+    const knownText = (value: RankValue) => typeof value === 'string'
+        || (isRankSqliteExpression(value) && value.textual === true);
+    return { kind: 'sqlite-expression', table,
+        text: `CASE WHEN ${test.text} THEN ${yes.text} WHEN NOT (${test.text}) THEN ${no.text} END`,
+        params: [...test.params, ...yes.params, ...test.params, ...no.params],
+        boolean: knownBoolean(whenTrue) && knownBoolean(whenFalse),
+        textual: knownText(whenTrue) && knownText(whenFalse) };
+}
+
 export function sumSqlite(expression: RankSqliteExpression): RankValue {
     const table = expression.table;
     return withConnection(table.database, connection => {

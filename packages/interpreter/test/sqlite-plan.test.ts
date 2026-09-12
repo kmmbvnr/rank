@@ -52,3 +52,16 @@ it('names a SQLite column without reading rows before materialization', () => {
     expect(formatValue(runtime.execute('Rows .title')!)).toBe('Tennis Court 1');
     expect(io.reads).toHaveLength(1);
 });
+
+it('keeps choose as a SQLite expression until a row is requested', () => {
+    const io = new CountingSqliteIo({});
+    const runtime = new Interpreter(undefined, { io });
+    runtime.execute('use sequences\nuse tables\nDb = "club.sqlite3" sqlite\n'
+        + 'Rows = Db .facilities\n'
+        + 'Flag = Rows .name equal "Tennis Court 1"\n'
+        + 'Value = Flag "yes" "no" choose\n'
+        + 'Cols = record\n  .title = Value\nend\n'
+        + 'Out = Rows Cols select\nStatement = Out sql');
+    expect(io.reads).toEqual([]);
+    expect(formatValue(runtime.execute('Statement .text')!)).toContain('CASE WHEN');
+});

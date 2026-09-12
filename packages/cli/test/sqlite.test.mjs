@@ -213,6 +213,32 @@ test('named computed columns stay in SQL with bound parameters', () => fixture((
     assert.equal(fs.readFileSync(output, 'utf8'), 'caption,ok,price\nTennis Court 1!,true,6\n');
 }));
 
+test('choose stays in SQL and leaves an unknown condition missing', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE choices (id INTEGER, marked INTEGER)');
+    const insert = db.prepare('INSERT INTO choices VALUES (?, ?)');
+    insert.run(1, 1);
+    insert.run(2, 0);
+    insert.run(3, null);
+    db.close();
+    const output = path.join(directory, 'choices.csv');
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
+        + `Db = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Rows = Db .choices\n'
+        + 'Flag = Rows .marked greater 0\n'
+        + 'Value = Flag "yes" "no" choose\n'
+        + 'Ok = Flag true false choose\n'
+        + 'Cols = record\n  .id = Rows .id\n  .value = Value\n  .ok = Ok\nend\n'
+        + 'Out = (Rows Cols select) sort by .id\n'
+        + 'Q = Out sql\nQ .text print\n'
+        + `Out ${JSON.stringify(output)} csv\n`);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /CASE WHEN/);
+    assert.doesNotMatch(result.stdout, /yes|no/);
+    assert.equal(fs.readFileSync(output, 'utf8'),
+        'id,value,ok\n1,yes,true\n2,no,false\n3,,\n');
+}));
+
 test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture((directory, dbPath) => {
     const db = new Database(dbPath);
     db.exec('CREATE TABLE lineitem (l_shipdate TEXT, l_discount REAL, '

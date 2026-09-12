@@ -1,11 +1,13 @@
-import { ownedArray, derivedArray } from '../array-storage.js';
+import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
 import { sequence, windowValue } from '../sequence.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
-import { lengthSqlite, uniqueSqlite } from './sqlite.js';
+import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
+import { broadcastShape } from '../tensor.js';
+import { isKnownFileFree } from '../resource-summary.js';
 import {
     isRankArray,
     isRankCounter,
@@ -16,6 +18,7 @@ import {
     isRankQueue,
     isRankSequence,
     isRankSequenceMask,
+    isRankSqliteExpression,
     isRankSqliteTable,
     isRankTableAlias,
     isRankSegment,
@@ -35,6 +38,8 @@ interface Boundary {
 }
 
 export const sequencesModule: RuntimeModule = {
+    choose: () => native('choose', 3, ([condition, whenTrue, whenFalse]) =>
+        chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
@@ -62,6 +67,46 @@ export const sequencesModule: RuntimeModule = {
     any: () => native('any', 1, arguments_ => booleanReduction(arguments_[0], 'any')),
     count: () => native('count', 1, arguments_ => countTrue(arguments_[0])),
 };
+
+function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
+    const values = [condition, whenTrue, whenFalse];
+    if (values.some(isRankSqliteExpression)) {
+        return chooseSqlite(condition, whenTrue, whenFalse);
+    }
+    const arrays = values.filter(isRankArray);
+    if (arrays.length === 0) {
+        if (typeof condition !== 'boolean') {
+            throw new RankError('choose expects a boolean condition', 'TypeError');
+        }
+        return condition ? whenTrue : whenFalse;
+    }
+    const shape = arrays.reduce<readonly number[]>(
+        (current, array) => broadcastShape(current, array.shape), []);
+    const read = (value: RankValue, index: number): RankValue => {
+        if (!isRankArray(value)) return value;
+        let remaining = index;
+        let offset = 0;
+        let stride = 1;
+        for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+            const coordinate = remaining % shape[axis];
+            remaining = Math.floor(remaining / shape[axis]);
+            const sourceAxis = axis - (shape.length - value.shape.length);
+            if (sourceAxis < 0) continue;
+            if (value.shape[sourceAxis] !== 1) offset += coordinate * stride;
+            stride *= value.shape[sourceAxis];
+        }
+        return readArrayItem(value, offset);
+    };
+    const fileFree = [whenTrue, whenFalse].every(value => isKnownFileFree(value)
+        || (isRankArray(value) && value.containsFiles === false));
+    return derivedArray(shape, arrays, index => {
+        const selected = read(condition, index);
+        if (typeof selected !== 'boolean') {
+            throw new RankError('choose expects a boolean condition', 'TypeError');
+        }
+        return read(selected ? whenTrue : whenFalse, index);
+    }, fileFree);
+}
 
 function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
     const expected = operation === 'all';

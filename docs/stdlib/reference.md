@@ -270,6 +270,7 @@ Shapes, orderings, windows and lazy sources.
 | `Mask all` | boolean | True when every boolean cell is true; empty collections are true. |
 | `Mask any` | boolean | True when one boolean cell is true; empty collections are false. |
 | `Values argsort` | array | Stable zero-based positions that put the values in order. |
+| `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Values copy` | array | Independent writable dense copy of an array, its shape preserved. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, until or from. |

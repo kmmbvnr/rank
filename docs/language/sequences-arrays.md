@@ -459,6 +459,20 @@ Order = Events argsort by .time .delta
 Order = Values argsort by magnitude
 ```
 
+`Mask TrueValues FalseValues choose` selects a value at each position. A
+scalar boolean selects one branch; arrays broadcast by the usual trailing-axis
+rules and produce a lazy array. Only the chosen branch is read at each cell.
+The mask must contain booleans, and an absent mask cell gives an absent result
+cell. Incompatible shapes are errors.
+
+```rank
+Rate = Guest GuestRate MemberRate choose
+```
+
+When the operands are SQLite expressions from one view, `choose` builds a
+parameterized `CASE` expression. It does not read rows. An SQL `NULL` condition
+stays `NULL` instead of selecting the false branch.
+
 Every key component must be a comparable scalar. Values at the same key keep
 their source order, and a key function runs exactly once per value in source
 order. The operation materializes a new rank-1 array and does not change its

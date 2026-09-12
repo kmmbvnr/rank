@@ -3241,6 +3241,12 @@ stays integer, and row order is unspecified unless the SQL query orders it.
 
 SQLite table views support lazy field projection, comparisons and boolean
 masks, `innerjoin by/on`, `leftjoin by/on`, `select`, `unique` and field-keyed `sort by`.
+`Mask TrueValues FalseValues choose` selects only the demanded branch of each
+array cell, broadcasting array operands by trailing axes. A missing mask cell
+gives a missing result cell. SQLite expressions from the same view compile to
+parameterized `CASE WHEN ... THEN ... WHEN NOT ... THEN ... END`; a SQL `NULL`
+condition leaves the result `NULL`. A nonboolean mask or mismatched array
+shapes are errors.
 `M = Db .members alias .m` gives a table view a join role without reading or
 renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under
