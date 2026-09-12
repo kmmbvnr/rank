@@ -6,10 +6,13 @@ import {
     isRankArray,
     isRankDate,
     isRankLabel,
+    type RankGroupedColumn,
+    type RankGroupedTable,
     type RankArray,
     type RankObject,
     type RankValue,
 } from '../value.js';
+import { setValueKey } from '../set.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -36,6 +39,157 @@ export const tablesModule: RuntimeModule = {
         return arguments_[0];
     }),
 };
+
+function tableRows(value: RankValue, operation: string): RankObject[] {
+    if (!isRankArray(value) || value.shape.length !== 1) {
+        throw new RankError(`${operation} expects a rank-1 table`, 'DimensionMismatch');
+    }
+    const rows = Array.from({ length: value.shape[0] }, (_, index) =>
+        value.itemAt?.(index) ?? value.items[index]);
+    if (!rows.every(isRankObject)) {
+        throw new RankError(`${operation} expects object rows`, 'TypeError');
+    }
+    return rows;
+}
+
+function tableColumns(value: RankArray, rows: readonly RankObject[]): string[] {
+    const names = new Set(value.columnNames ?? []);
+    for (const row of rows) for (const name of row.entries.keys()) names.add(name);
+    return [...names];
+}
+
+function tableKey(
+    row: RankObject,
+    fields: readonly string[],
+    keepMissing = false,
+): string | undefined {
+    const parts: (string | null)[] = [];
+    for (const field of fields) {
+        const value = row.entries.get(field);
+        if (value === undefined) {
+            if (!keepMissing) return undefined;
+            parts.push(null);
+            continue;
+        }
+        if (!(typeof value === 'bigint' || typeof value === 'number'
+            || typeof value === 'boolean' || typeof value === 'string'
+            || isRankLabel(value) || isRankDate(value))) {
+            throw new RankError(`table key .${field} must be scalar`, 'TypeError');
+        }
+        if (typeof value === 'number' && Number.isNaN(value)) {
+            throw new RankError(`table key .${field} cannot be NaN`, 'DomainError');
+        }
+        parts.push(setValueKey(value));
+    }
+    return JSON.stringify(parts);
+}
+
+export function groupTable(source: RankValue, fields: readonly string[]): RankGroupedTable {
+    const rows = tableRows(source, 'group by');
+    if (new Set(fields).size !== fields.length) {
+        throw new RankError('group by fields must be unique', 'TypeError');
+    }
+    const groups: { keys: (RankValue | undefined)[]; rows: RankObject[] }[] = [];
+    const positions = new Map<string, number>();
+    for (const sourceRow of rows) {
+        const row: RankObject = { kind: 'object', entries: new Map(sourceRow.entries) };
+        const keys = fields.map(field => row.entries.get(field));
+        const id = tableKey(row, fields, true)!;
+        let position = positions.get(id);
+        if (position === undefined) {
+            position = groups.length;
+            positions.set(id, position);
+            groups.push({ keys, rows: [] });
+        }
+        groups[position].rows.push(row);
+    }
+    return { kind: 'grouped-table', fields, groups };
+}
+
+export function aggregateGroupedColumn(
+    column: RankGroupedColumn,
+    reduce: (values: RankArray) => RankValue,
+    emptyIsMissing = false,
+): RankArray {
+    const { table, field } = column;
+    if (table.fields.includes(field)) {
+        throw new RankError(`grouped aggregate field .${field} is also a key`, 'TypeError');
+    }
+    const items: RankValue[] = table.groups.map(group => {
+        const entries = new Map<string, RankValue>();
+        table.fields.forEach((name, index) => {
+            const key = group.keys[index];
+            if (key !== undefined) entries.set(name, key);
+        });
+        const values = group.rows.flatMap(row => {
+            const value = row.entries.get(field);
+            return value === undefined ? [] : [value];
+        });
+        if (values.length > 0 || !emptyIsMissing) {
+            entries.set(field, reduce({ kind: 'array', items: values, shape: [values.length] }));
+        }
+        return { kind: 'object', entries };
+    });
+    return { kind: 'array', items, shape: [items.length], columnNames: [...table.fields, field] };
+}
+
+export function joinTables(
+    left: RankValue,
+    right: RankValue,
+    leftFields: readonly string[],
+    mode: 'leftjoin' | 'innerjoin',
+    rightFields: readonly string[] = leftFields,
+): RankArray {
+    if (leftFields.length !== rightFields.length
+        || new Set(leftFields).size !== leftFields.length
+        || new Set(rightFields).size !== rightFields.length) {
+        throw new RankError(`${mode} key fields must be distinct and aligned`, 'TypeError');
+    }
+    const leftRows = tableRows(left, mode);
+    const rightRows = tableRows(right, mode);
+    const leftNames = tableColumns(left as RankArray, leftRows);
+    const rightNames = tableColumns(right as RankArray, rightRows);
+    for (const field of leftFields) {
+        if (!leftNames.includes(field)) throw new MissingValueError(`${mode} left key .${field} is missing`);
+    }
+    for (const field of rightFields) {
+        if (!rightNames.includes(field)) throw new MissingValueError(`${mode} right key .${field} is missing`);
+    }
+    const rightValues = rightNames.filter(name => !rightFields.includes(name));
+    for (const name of rightValues) {
+        if (leftNames.includes(name)) {
+            throw new RankError(`${mode} has duplicate non-key column .${name}`, 'TypeError');
+        }
+    }
+    const matches = new Map<string, RankObject[]>();
+    for (const row of rightRows) {
+        const key = tableKey(row, rightFields);
+        if (key === undefined) continue;
+        const bucket = matches.get(key) ?? [];
+        bucket.push(row);
+        matches.set(key, bucket);
+    }
+    const items: RankValue[] = [];
+    for (const row of leftRows) {
+        const key = tableKey(row, leftFields);
+        const hits = key === undefined ? undefined : matches.get(key);
+        if (hits === undefined) {
+            if (mode === 'leftjoin') items.push({ kind: 'object', entries: new Map(row.entries) });
+            continue;
+        }
+        for (const hit of hits) {
+            const entries = new Map(row.entries);
+            for (const [name, value] of hit.entries) {
+                if (!rightFields.includes(name)) entries.set(name, value);
+            }
+            items.push({ kind: 'object', entries });
+        }
+    }
+    return {
+        kind: 'array', items, shape: [items.length],
+        columnNames: [...leftNames, ...rightValues],
+    };
+}
 
 /** Lazily project one named field from every object cell in an array. */
 export function projectField(

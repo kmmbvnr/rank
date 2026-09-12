@@ -10,6 +10,8 @@ import {
     isBinaryExpression,
     isExpressionStatement,
     isKeyedSortExpression,
+    isKeyedGroupExpression,
+    isKeyedJoinExpression,
     isMaterializeExpression,
     isUnpackStatement,
     isUnaryExpression,
@@ -54,6 +56,34 @@ describe('Rank grammar', () => {
         expect(fields.value.fields.map(field => field.name)).toEqual(['time', 'delta']);
         expect(key.value.key?.name).toBe('eventkey');
         expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
+    it('parses one or several table keys without array construction', async () => {
+        const document = await parse([
+            'One = Rows group by .store',
+            'Several = Rows group by .store .family .weekday',
+            'Left = Test Means leftjoin by .store .family .weekday',
+            'Inner = Orders Customers innerjoin by .custkey',
+            'Mapped = Orders Customers innerjoin on .o_custkey = .c_custkey',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statements = document.parseResult.value.statements;
+        if (!statements.every(isAssignmentStatement)) throw new Error('expected assignments');
+        expect(isKeyedGroupExpression(statements[0].value)).toBe(true);
+        expect(isKeyedGroupExpression(statements[1].value)).toBe(true);
+        expect(isKeyedJoinExpression(statements[2].value)).toBe(true);
+        expect(isKeyedJoinExpression(statements[3].value)).toBe(true);
+        expect(isKeyedJoinExpression(statements[4].value)).toBe(true);
+        if (!isKeyedGroupExpression(statements[1].value)
+            || !isKeyedJoinExpression(statements[2].value)) return;
+        expect(statements[1].value.fields.map(field => field.name))
+            .toEqual(['store', 'family', 'weekday']);
+        expect(statements[2].value.fields.map(field => field.name))
+            .toEqual(['store', 'family', 'weekday']);
+        if (!isKeyedJoinExpression(statements[4].value)) return;
+        expect(statements[4].value.pairs.map(pair => [pair.left.name, pair.right.name]))
+            .toEqual([['o_custkey', 'c_custkey']]);
     });
 
     it('parses a program and preserves operator precedence', async () => {

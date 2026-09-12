@@ -8,8 +8,10 @@ It complements the other problem suites:
 - Kaggle tests data processing and ML;
 - TPC-H tests relational analytics.
 
-For now the wiki contains only Q6. Later queries will be added as `group`,
-`join`, sorting and related table primitives become more precise.
+For now the wiki contains only Q6. `group by`, `leftjoin` and `innerjoin` now
+work on arrays of rows; further queries can exercise them before a SQLite
+table source is added. SQL pushdown and ordering for database sources are
+still open.
 
 ## Q6. Forecasting Revenue Change
 

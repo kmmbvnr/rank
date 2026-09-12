@@ -3,6 +3,109 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { MemoryIo, run } from './support.js';
 
 describe('Rank tables', () => {
+    it('groups one and several fields into flat aggregate tables', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use stats', 'use numbers',
+            'Rows = "[{\\"store\\":1,\\"family\\":\\"A\\",\\"sales\\":2},',
+            '  {\\"store\\":2,\\"family\\":\\"A\\",\\"sales\\":10},',
+            '  {\\"store\\":1,\\"family\\":\\"A\\",\\"sales\\":4},',
+            '  {\\"store\\":1,\\"family\\":\\"B\\",\\"sales\\":8}]" json',
+            'One = Rows group by .store',
+            'Two = Rows group by .store .family',
+            'Means = Two .sales mean',
+            'Sums = One .sales sum',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Means .store')!)).toBe('1 2 1');
+        expect(formatValue(runtime.execute('Means .family')!)).toBe('A A B');
+        expect(formatValue(runtime.execute('Means .sales')!)).toBe('3 10 8');
+        expect(formatValue(runtime.execute('Sums .sales')!)).toBe('14 10');
+    });
+
+    it('left joins in left-row order and expands duplicate right keys', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables',
+            'Left = "[{\\"id\\":1,\\"key\\":\\"a\\"},',
+            '  {\\"id\\":2,\\"key\\":\\"b\\"},',
+            '  {\\"id\\":3,\\"key\\":\\"a\\"}]" json',
+            'Right = "[{\\"key\\":\\"a\\",\\"value\\":10},',
+            '  {\\"key\\":\\"a\\",\\"value\\":20}]" json',
+            'Joined = Left Right leftjoin by .key',
+            'Inner = Left Right innerjoin by .key',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Joined .id')!)).toBe('1 1 2 3 3');
+        expect(formatValue(runtime.execute('Joined .value pad 0')!)).toBe('10 20 0 10 20');
+        expect(formatValue(runtime.execute('Inner .id')!)).toBe('1 1 3 3');
+    });
+
+    it('keeps missing group keys together but never matches them in a join', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use stats',
+            'Rows = "[{\\"key\\":\\"a\\",\\"value\\":2},',
+            '  {\\"value\\":4},{\\"value\\":6}]" json',
+            'Groups = Rows group by .key',
+            'Means = Groups .value mean',
+            'Left = "[{\\"key\\":\\"a\\",\\"id\\":1},',
+            '  {\\"id\\":2},{\\"id\\":3}]" json',
+            'Joined = Left Means leftjoin by .key',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Means .value')!)).toBe('2 5');
+        expect(formatValue(runtime.execute('Means .key pad "missing"')!))
+            .toBe('a missing');
+        expect(formatValue(runtime.execute('Joined .value pad 0')!)).toBe('2 0 0');
+    });
+
+    it('keeps an all-missing aggregate cell available for pad', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use stats', 'use numbers',
+            'Rows = "[{\\"key\\":1},{\\"key\\":1,\\"value\\":4},',
+            '  {\\"key\\":2}]" json',
+            'Groups = Rows group by .key',
+            'Means = Groups .value mean',
+            'Sums = Groups .value sum',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Means .value pad 0')!)).toBe('4 0');
+        expect(formatValue(runtime.execute('Sums .value')!)).toBe('4 0');
+    });
+
+    it('rejects duplicate non-key columns in relational joins', () => {
+        expect(() => run([
+            'use json', 'use tables',
+            'A = "[{\\"k\\":1,\\"v\\":2}]" json',
+            'B = "[{\\"k\\":1,\\"v\\":3}]" json',
+            'A B leftjoin by .k',
+        ].join('\n'))).toThrowError('duplicate non-key column .v');
+    });
+
+    it('joins differently named TPC-H keys without temporary columns', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables',
+            'Orders = "[{\\"o_orderkey\\":1,\\"o_custkey\\":7},',
+            '  {\\"o_orderkey\\":2,\\"o_custkey\\":8}]" json',
+            'Customers = "[{\\"c_custkey\\":7,\\"c_name\\":\\"Ada\\"}]" json',
+            'Result = Orders Customers innerjoin on .o_custkey = .c_custkey',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Result .o_orderkey')!)).toBe('1');
+        expect(formatValue(runtime.execute('Result .c_name')!)).toBe('Ada');
+        expect(formatValue(runtime.execute('Result labels')!))
+            .toBe('.o_orderkey .o_custkey .c_name');
+    });
+
+    it('matches every explicit key pair in a multi-column join', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables',
+            'A = "[{\\"left_a\\":1,\\"left_b\\":2,\\"id\\":7},',
+            '  {\\"left_a\\":1,\\"left_b\\":3,\\"id\\":8}]" json',
+            'B = "[{\\"right_a\\":1,\\"right_b\\":2,\\"name\\":\\"yes\\"}]" json',
+            'C = A B leftjoin on .left_a = .right_a .left_b = .right_b',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('C .name pad "no"')!)).toBe('yes no');
+    });
     it('keeps CSV header order, including empty columns and empty tables', () => {
         const io = new MemoryIo({
             '/rows.csv': 'z,empty,a\n1,,2\n3,,4\n',

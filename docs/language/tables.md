@@ -200,24 +200,47 @@ unambiguous mechanism.
 ## Grouping
 
 ```rank
-Keys =
-  .Sex .Pclass
-
-Groups = Data Keys group
+Groups = Data group by .Sex .Pclass
 Rate = Groups .Survived mean
 ```
 
-`group` returns a grouped view suitable for reductions.
+`group by` takes one or more field labels separated by spaces. A single key is
+`Data group by .Sex`. It returns a grouped view, not nested arrays of rows.
+`Groups .Survived mean`, `median`, `std` and `sum` return ordinary rank-1 tables:
+one row per key, with the key fields followed by the aggregate field. Groups
+appear in first-seen order, and the source rows are captured when `group by`
+runs. Missing key cells form one group per key combination. The statistical
+reductions skip missing values; when a group has none, its aggregate cell is
+missing and may be filled with `pad`. `sum` retains its integer-zero result for
+an empty group. Keys must be scalar and cannot be NaN; repeated key fields are
+errors.
 
 ## Join
 
-Relational joins are fundamental table operations:
+Use `leftjoin by` when every left row must remain, or `innerjoin by` for only
+matched rows. The same field names on both sides are listed without `array`:
 
 ```rank
-Forecast = Test Keys Means join
+Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
 
-Exact join variants and collision rules remain an open design detail.
+When corresponding fields have different names, list explicit pairs:
+
+```rank
+Matched = Orders Customers innerjoin on .o_custkey = .c_custkey
+```
+
+Several pairs may follow `on` in left-to-right order. Keys use Rank's value
+equality, so integer `1` and real `1.0` match but text `"1"` does not. Missing
+join keys never match. Repeated right keys multiply matching rows. Array-backed
+joins preserve left row order and, within each left row, right row order. The
+right key columns are omitted; a shared non-key column name raises `.TypeError`
+instead of being renamed automatically. Unmatched right fields are missing and
+can be projected with `pad`. A nonexistent key field raises `.Missing`.
+
+These operations currently work on rank-1 arrays of object rows. SQLite-backed
+table sources and SQL pushdown are future work; a database source will need an
+explicit ordering contract where row order matters.
 
 ## Labels
 

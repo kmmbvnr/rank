@@ -20,8 +20,7 @@ use stats
 
 Data = "train.csv" csv
 
-Keys = .Sex .Pclass
-Groups = Data Keys group
+Groups = Data group by .Sex .Pclass
 Rate = Groups .Survived mean
 
 Rate print
@@ -152,20 +151,16 @@ local paths are `data/disaster-tweets/{train,test}.csv` and
 Grouping and join:
 
 ```rank
-Keys =
-  array .store_nbr .family .weekday
-
-Groups = Train Keys group
+Groups = Train group by .store_nbr .family .weekday
 Means = Groups .sales mean
 
-Forecast = Test Keys Means join
+Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
 
 The [runnable Store Sales baseline](../../demos/kaggle/006_storesales.ra)
-implements the same grouping with an ordinary `index`: `(store, family,
-weekday)` is a three-part key expanded by `unpack`. An unseen test key falls
-back to the global training mean. `use dates` computes Monday-first weekdays
-from the date column. The grouping and forecast both have focused tests.
+uses these table operations. An unseen test key falls back to the global
+training mean through `pad`. `use dates` computes Monday-first weekdays from
+the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing
 

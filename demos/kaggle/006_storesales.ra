@@ -3,14 +3,10 @@ rem https://www.kaggle.com/competitions/store-sales-time-series-forecasting
 rem Forecast each store and family from its
 rem historical mean on the same weekday.
 
-use algo
 use cli
 use dates
-use numbers
-use sequences
 use stats
 use tables
-use text
 
 argument TrainPath path = "demos/kaggle/data/store-sales/train.csv"
 argument TestPath path = "demos/kaggle/data/store-sales/test.csv"
@@ -18,57 +14,19 @@ argument OutputPath path = "demos/kaggle/submissions/store-sales.csv"
 
 Train = TrainPath csv
 Test = TestPath csv
-Stores = Train .store_nbr
-Families = Train .family
-Dates = Train .date
-Sales = Train .sales
-TestStores = Test .store_nbr
-TestFamilies = Test .family
-TestDates = Test .date
-Pred = Stores Families Dates Sales TestStores TestFamilies TestDates forecast
+Pred = Train Test forecast
 Test .sales = Pred
 Submission = Test (array .id .sales)
 Submission OutputPath csv
 
 
 rem Use the global training mean for a key absent from Train.
-fun forecast Stores Families Dates Sales TestStores TestFamilies TestDates
-  Count = Stores len
-  if Families len not equal Count or Dates len not equal Count
-    .DimensionMismatch raise
-  end
-  if Sales len not equal Count
-    .DimensionMismatch raise
-  end
-
-  Days = Dates date weekday
-  Sums = new index
-  Counts = new index
-  for Sale i in Sales
-    Key = array (Stores i) (Families i) (Days i)
-    try
-      Sums unpack Key += Sale
-      Counts unpack Key += 1
-    catch .Missing Error
-      Sums unpack Key = Sale
-      Counts unpack Key = 1
-    end
-  end
-
-  TestCount = TestStores len
-  if TestFamilies len not equal TestCount or TestDates len not equal TestCount
-    .DimensionMismatch raise
-  end
-  TestDays = TestDates date weekday
-  Global = Sales mean
-  Result = array shape TestCount pad Global
-  for Value i in Result
-    Key = array (TestStores i) (TestFamilies i) (TestDays i)
-    try
-      Result i = Sums unpack Key / Counts unpack Key
-    catch .Missing Error
-      rem Keep the global fallback.
-    end
-  end
-  return Result
+fun forecast Train Test
+  Global = Train .sales mean
+  Train .weekday = Train .date date weekday
+  Test .weekday = Test .date date weekday
+  Groups = Train group by .store_nbr .family .weekday
+  Means = Groups .sales mean
+  Joined = Test Means leftjoin by .store_nbr .family .weekday
+  return Joined .sales pad Global
 end

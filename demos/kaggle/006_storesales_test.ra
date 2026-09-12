@@ -8,25 +8,29 @@ test "parses Gregorian dates and uses Monday-first weekdays"
 end
 
 test "averages matching store family and weekday keys"
+  use json
   use "006_storesales"
-  Stores = array 1 1 1 2
-  Families = array "A" "A" "A" "A"
-  Dates = array "2024-01-01" "2024-01-08" "2024-01-02" "2024-01-01"
-  Sales = array 10 20 90 50
-  TestStores = array 1 2 9
-  TestFamilies = array "A" "A" "A"
-  TestDates = array "2024-01-15" "2024-01-08" "2024-01-01"
+  Train = "[{\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-01\",\"sales\":10},
+    {\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-08\",\"sales\":20},
+    {\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-02\",\"sales\":90},
+    {\"store_nbr\":2,\"family\":\"A\",\"date\":\"2024-01-01\",\"sales\":50}]" json
+  Test = "[{\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-15\"},
+    {\"store_nbr\":2,\"family\":\"A\",\"date\":\"2024-01-08\"},
+    {\"store_nbr\":9,\"family\":\"A\",\"date\":\"2024-01-01\"}]" json
 
-  Result = Stores Families Dates Sales TestStores TestFamilies TestDates forecast
+  Result = Train Test forecast
   Result equal array 15.0 50.0 42.5
 end
 
-test "checks aligned training columns"
+test "rejects invalid calendar dates"
+  use json
   use "006_storesales"
+  Train = "[{\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-01\",\"sales\":1}]" json
+  Test = "[{\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-02-30\"}]" json
   Raised = false
   try
-    Result = (array 1) (array "A" "B") (array "2024-01-01") (array 1) (array 1) (array "A") (array "2024-01-01") forecast
-  catch .DimensionMismatch Error
+    Result = Train Test forecast
+  catch .InvalidDate Error
     Raised = true
   end
   Raised

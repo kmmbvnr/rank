@@ -131,18 +131,11 @@ The exact diagnostic policy and any source annotation remain undecided.
 
 ## Join variants
 
-The compact form:
-
-```rank
-A B join
-```
-
-is current, but exact rules for:
-- inner/left/right/full joins;
-- key inference;
-- duplicate column names
-
-still need specification.
+`leftjoin by`, `innerjoin by` and explicit key pairs with `on` are current for
+array-backed tables. Remaining questions are right/full joins, optional
+cardinality validation, and how a SQLite-backed source declares row order and
+translates supported expressions into SQL. Duplicate non-key names currently
+raise `.TypeError` until an explicit rename operation is designed.
 
 ## Stack / combine
 

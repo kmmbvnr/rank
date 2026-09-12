@@ -105,6 +105,23 @@ export interface RankObject {
     readonly entries: Map<string, RankValue>;
 }
 
+export interface RankTableGroup {
+    readonly keys: readonly (RankValue | undefined)[];
+    readonly rows: readonly RankObject[];
+}
+
+export interface RankGroupedTable {
+    readonly kind: 'grouped-table';
+    readonly fields: readonly string[];
+    readonly groups: readonly RankTableGroup[];
+}
+
+export interface RankGroupedColumn {
+    readonly kind: 'grouped-column';
+    readonly table: RankGroupedTable;
+    readonly field: string;
+}
+
 export interface RankRecord {
     readonly kind: 'record';
     readonly entries: Map<string, RankValue>;
@@ -183,7 +200,8 @@ export interface RankSequenceMask extends RankSequence {
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
-    RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord | NativeFunction |
+    RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
+    RankGroupedTable | RankGroupedColumn | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
     RankWavelet;
 
@@ -267,6 +285,14 @@ export function isRankObject(value: RankValue): value is RankObject {
     return typeof value === 'object' && value.kind === 'object';
 }
 
+export function isRankGroupedTable(value: RankValue): value is RankGroupedTable {
+    return typeof value === 'object' && value.kind === 'grouped-table';
+}
+
+export function isRankGroupedColumn(value: RankValue): value is RankGroupedColumn {
+    return typeof value === 'object' && value.kind === 'grouped-column';
+}
+
 export function isRankRecord(value: RankValue): value is RankRecord {
     return typeof value === 'object' && value.kind === 'record';
 }
@@ -321,6 +347,8 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'index') {
         return '<index>';
     }
+    if (value.kind === 'grouped-table') return '<grouped table>';
+    if (value.kind === 'grouped-column') return `<grouped column .${value.field}>`;
     if (value.kind === 'queue') {
         return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }
