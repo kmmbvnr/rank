@@ -6,7 +6,9 @@ syntax. Stage delivery and measurements are recorded separately below.
 The first [explicit copy implementation](array-output-fusion.md) covers equal-shaped
 materialized inputs and safe private intermediates. The next
 [broadcasting stage and workload profiles](fusion-domains.md) extend explicit
-copy/reduction domains. Axis/rank and window extensions remain pending.
+copy/reduction domains. [Window-cell folds](window-reduction-fusion.md) now
+compose window geometry with ranked reductions. General axis-reduction fusion
+and the final worker comparison remain pending.
 
 The [worker experiment](tensor-workers-results.md) measured about 252 ms for
 `(A * A + A * 2.0 + 1.0) copy` on one million real elements. Four workers reduced

@@ -15,6 +15,7 @@ import { addToCollection, expectAddCollection, newStructure, removeFromCollectio
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import { isKnownFileFree, ResourceMap } from './resource-summary.js';
+import { reduceWindowCell } from './sequence.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
@@ -3504,6 +3505,10 @@ export class Interpreter {
     private reduceArrayCell(operator: string, value: RankArray, start: number, size: number): RankValue {
         if (size === 0) return reductionIdentity(operator);
         const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
+        if (this.options.tensorFusion !== false) {
+            const folded = reduceWindowCell(value, start, size, operation);
+            if (folded !== undefined) return folded;
+        }
         let result = arrayItem(value, start);
         const end = start + size;
         for (let index = start + 1; index < end; index += 1) {

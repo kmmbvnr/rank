@@ -69,8 +69,9 @@ source can change an already-read result. Caching demanded cells would improve
 reuse but change that behavior. This needs a user decision before implementation;
 the broadcasting compiler change does not alter it.
 
-The [main fusion plan](tensor-fusion-plan.md) still includes axis/rank traversal,
-window reductions, completed storage and a new worker comparison.
+The [window-cell fold stage](window-reduction-fusion.md) addresses the next
+window traversal cost. The [main fusion plan](tensor-fusion-plan.md) still includes
+axis-reduction traversal, completed storage and a new worker comparison.
 
 ## Validation
 

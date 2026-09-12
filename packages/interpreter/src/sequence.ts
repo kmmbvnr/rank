@@ -295,6 +295,20 @@ function validateWindowAxes(
     return selected;
 }
 
+type CellFold = (start: number, operation: (a: RankValue, b: RankValue) => RankValue) => RankValue;
+const windowCells = new WeakMap<RankArray, { size: number; fold: CellFold }>();
+
+/** Compose a complete appended window cell with a left fold. No values are
+ * cached or forced while selecting this path; readers keep their usual order. */
+export function reduceWindowCell(
+    value: RankArray, start: number, size: number,
+    operation: (a: RankValue, b: RankValue) => RankValue,
+): RankValue | undefined {
+    const plan = windowCells.get(value);
+    if (!plan || size !== plan.size || start % size !== 0) return undefined;
+    return plan.fold(start / size, operation);
+}
+
 function arrayWindows(
     sourceShape: readonly number[],
     sourceItem: (index: number) => RankValue,
@@ -314,7 +328,7 @@ function arrayWindows(
         );
     });
     const resultShape = [...positionShape, ...widths];
-    return lazyArray(resultShape, linear => {
+    const result = lazyArray(resultShape, linear => {
         const output = arrayCoordinates(resultShape, linear);
         const input = output.slice(0, sourceShape.length);
         const offsets = output.slice(sourceShape.length);
@@ -327,6 +341,47 @@ function arrayWindows(
             coordinate < 0 || coordinate >= sourceShape[axis])) return 0n;
         return sourceItem(arrayOffset(sourceShape, input));
     });
+    const size = arraySize(widths);
+    windowCells.set(result, { size, fold(frameIndex, operation) {
+        if (sourceShape.length === 1 && widths.length === 1 && !hasPadding) {
+            const start = frameIndex * strides[0];
+            let answer = sourceItem(start);
+            for (let index = 1; index < size; index++) {
+                answer = operation(answer, sourceItem(start + index));
+            }
+            return answer;
+        }
+        const origin = arrayCoordinates(positionShape, frameIndex);
+        axes.forEach((axis, index) => {
+            origin[axis] = origin[axis] * strides[index] - padding[index];
+        });
+        const coordinates = [...origin];
+        const cell = Array(widths.length).fill(0) as number[];
+        // Use current source geometry, just as the ordinary window reader does.
+        const sourceStrides = sourceShape.map(() => 1);
+        for (let axis = sourceShape.length - 2; axis >= 0; axis--) {
+            sourceStrides[axis] = sourceStrides[axis + 1] * sourceShape[axis + 1];
+        }
+        let offset = arrayOffset(sourceShape, coordinates);
+        const read = () => hasPadding && coordinates.some((coordinate, axis) =>
+            coordinate < 0 || coordinate >= sourceShape[axis]) ? 0n : sourceItem(offset);
+        let answer = read();
+        for (let index = 1; index < size; index++) {
+            for (let axis = widths.length - 1; axis >= 0; axis--) {
+                const sourceAxis = axes[axis];
+                cell[axis]++;
+                coordinates[sourceAxis]++;
+                offset += sourceStrides[sourceAxis];
+                if (cell[axis] < widths[axis]) break;
+                cell[axis] = 0;
+                coordinates[sourceAxis] -= widths[axis];
+                offset -= widths[axis] * sourceStrides[sourceAxis];
+            }
+            answer = operation(answer, read());
+        }
+        return answer;
+    } });
+    return result;
 }
 
 function windowCount(length: number, width: number, stride: number, padding: number): number {
