@@ -6,7 +6,7 @@ use sequences
 use tables
 
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/009_distinct_order.csv"
+argument OutputPath path = "demos/pgexercises/data/009_unique.csv"
 
 Db = DbPath sqlite
 R = Db .members select .surname

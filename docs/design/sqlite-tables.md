@@ -1,7 +1,7 @@
 # SQLite query translation roadmap
 
 The [current SQLite interface](../language/tables.md#sqlite) was introduced for
-[PostgreSQL Exercises basic 1](../../demos/pgexercises/basic/001_select_all.ra).
+[PostgreSQL Exercises basic 1](../../demos/pgexercises/basic/001_all.ra).
 It keeps a database path and a SQL query in a table-view value instead of
 loading the whole table into a Rank array. The first view, `Db .facilities`,
 compiles to `SELECT * FROM "facilities"`. `sql` exposes that exact text and its

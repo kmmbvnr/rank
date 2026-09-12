@@ -5,7 +5,7 @@ use cli
 use tables
 
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/005_string_search.csv"
+argument OutputPath path = "demos/pgexercises/data/005_like.csv"
 
 Db = DbPath sqlite
 Text = "SELECT * FROM facilities WHERE name LIKE ?"

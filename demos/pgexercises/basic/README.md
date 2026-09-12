@@ -23,24 +23,24 @@ inside the ignored `data/` directory.
 
 | # | Question | Rank program |
 |---|---|---|
-| 1 | [All columns](https://pgexercises.com/questions/basic/selectall.html) | [001](001_select_all.ra) |
-| 2 | [Specific columns](https://pgexercises.com/questions/basic/selectspecific.html) | [002](002_select_specific.ra) |
+| 1 | [All columns](https://pgexercises.com/questions/basic/selectall.html) | [001](001_all.ra) |
+| 2 | [Specific columns](https://pgexercises.com/questions/basic/selectspecific.html) | [002](002_cols.ra) |
 | 3 | [Filter rows](https://pgexercises.com/questions/basic/where.html) | [003](003_where.ra) |
 | 4 | [Combined conditions](https://pgexercises.com/questions/basic/where2.html) | [004](004_where2.ra) |
-| 5 | [String search](https://pgexercises.com/questions/basic/where3.html) | [005](005_string_search.ra) |
-| 6 | [Multiple values](https://pgexercises.com/questions/basic/where4.html) | [006](006_multiple_values.ra) |
-| 7 | [Classify rows](https://pgexercises.com/questions/basic/classify.html) | [007](007_classify.ra) |
+| 5 | [String search](https://pgexercises.com/questions/basic/where3.html) | [005](005_like.ra) |
+| 6 | [Multiple values](https://pgexercises.com/questions/basic/where4.html) | [006](006_in.ra) |
+| 7 | [Classify rows](https://pgexercises.com/questions/basic/classify.html) | [007](007_case.ra) |
 | 8 | [Dates](https://pgexercises.com/questions/basic/date.html) | [008](008_dates.ra) |
-| 9 | [Distinct and order](https://pgexercises.com/questions/basic/unique.html) | [009](009_distinct_order.ra) |
+| 9 | [Distinct and order](https://pgexercises.com/questions/basic/unique.html) | [009](009_unique.ra) |
 | 10 | [Union](https://pgexercises.com/questions/basic/union.html) | [010](010_union.ra) |
-| 11 | [Latest date](https://pgexercises.com/questions/basic/agg.html) | [011](011_latest_date.ra) |
-| 12 | [Latest members](https://pgexercises.com/questions/basic/agg2.html) | [012](012_latest_members.ra) |
+| 11 | [Latest date](https://pgexercises.com/questions/basic/agg.html) | [011](011_latest.ra) |
+| 12 | [Latest members](https://pgexercises.com/questions/basic/agg2.html) | [012](012_lastmem.ra) |
 
 Each numbered `.ra` file opens the database, computes one answer and writes a
 CSV result to `../data/`. Tasks 1–8 stay in SQLite until output. Task 4 compares
 fifty times the member cost with maintenance; task 6 uses an OR filter, and
 task 7 uses a contextual select with `choose`.
-[Task 5](005_string_search.ra) still uses bound `sqlquery` for SQLite LIKE;
+[Task 5](005_like.ra) still uses bound `sqlquery` for SQLite LIKE;
 Rank has no equivalent case-insensitive substring operation yet.
 
 Task 9 projects, deduplicates and sorts in SQLite, then takes the first ten

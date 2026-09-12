@@ -6,7 +6,7 @@ use sequences
 use tables
 
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/007_classify.csv"
+argument OutputPath path = "demos/pgexercises/data/007_case.csv"
 
 Db = DbPath sqlite
 R = Db .facilities

@@ -7,22 +7,22 @@ an existing SQLite database. The official club database is prepared as in
 
 | # | Question | Rank program |
 |---|---|---|
-| 1 | [Insert one facility](https://www.pgexercises.com/questions/updates/insert.html) | [001](001_insert_one.ra) |
-| 2 | [Insert two facilities](https://www.pgexercises.com/questions/updates/insert2.html) | [002](002_insert_two.ra) |
-| 3 | [Calculated facility ID](https://www.pgexercises.com/questions/updates/insert3.html) | [003](003_insert_calculated.ra) |
-| 4 | [Fix initial outlay](https://www.pgexercises.com/questions/updates/update.html) | [004](004_update_one.ra) |
-| 5 | [Update both tennis courts](https://www.pgexercises.com/questions/updates/updatemultiple.html) | [005](005_update_two.ra) |
-| 6 | [Price from another row](https://www.pgexercises.com/questions/updates/updatecalculated.html) | [006](006_update_calculated.ra) |
-| 7 | [Delete bookings](https://www.pgexercises.com/questions/updates/delete.html) | [007](007_delete_all.ra) |
-| 8 | [Delete member 37](https://www.pgexercises.com/questions/updates/deletewh.html) | [008](008_delete_one.ra) |
-| 9 | [Delete unused members](https://www.pgexercises.com/questions/updates/deletewh2.html) | [009](009_delete_unused.ra) |
+| 1 | [Insert one facility](https://www.pgexercises.com/questions/updates/insert.html) | [001](001_spa.ra) |
+| 2 | [Insert two facilities](https://www.pgexercises.com/questions/updates/insert2.html) | [002](002_spa2.ra) |
+| 3 | [Calculated facility ID](https://www.pgexercises.com/questions/updates/insert3.html) | [003](003_nextid.ra) |
+| 4 | [Fix initial outlay](https://www.pgexercises.com/questions/updates/update.html) | [004](004_outlay.ra) |
+| 5 | [Update both tennis courts](https://www.pgexercises.com/questions/updates/updatemultiple.html) | [005](005_prices.ra) |
+| 6 | [Price from another row](https://www.pgexercises.com/questions/updates/updatecalculated.html) | [006](006_from1.ra) |
+| 7 | [Delete bookings](https://www.pgexercises.com/questions/updates/delete.html) | [007](007_clear.ra) |
+| 8 | [Delete member 37](https://www.pgexercises.com/questions/updates/deletewh.html) | [008](008_mem37.ra) |
+| 9 | [Delete unused members](https://www.pgexercises.com/questions/updates/deletewh2.html) | [009](009_unused.ra) |
 
 Each program changes its database. To run one against the official data,
 copy the database first:
 
 ```sh
 cp demos/pgexercises/data/club.sqlite3 demos/pgexercises/data/updates_trial.sqlite3
-npm run rank -- demos/pgexercises/updates/001_insert_one.ra \
+npm run rank -- demos/pgexercises/updates/001_spa.ra \
   demos/pgexercises/data/updates_trial.sqlite3
 ```
 

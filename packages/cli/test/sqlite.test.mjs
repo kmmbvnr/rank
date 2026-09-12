@@ -38,7 +38,7 @@ function runSource(directory, source) {
 test('PostgreSQL Exercises basic 1 reads every facility column from SQLite', () => fixture((directory, dbPath) => {
     const output = path.join(directory, 'result.csv');
     const result = spawnSync(process.execPath, [cli,
-        path.join(root, 'demos/pgexercises/basic/001_select_all.ra'), dbPath, output,
+        path.join(root, 'demos/pgexercises/basic/001_all.ra'), dbPath, output,
     ], { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
     assert.equal(result.status, 0, result.stderr);
     const lines = fs.readFileSync(output, 'utf8').trimEnd().split('\n');

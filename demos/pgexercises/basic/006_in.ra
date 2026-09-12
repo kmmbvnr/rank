@@ -5,7 +5,7 @@ use cli
 use tables
 
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/006_multiple_values.csv"
+argument OutputPath path = "demos/pgexercises/data/006_in.csv"
 
 Db = DbPath sqlite
 R = Db .facilities

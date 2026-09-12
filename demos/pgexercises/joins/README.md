@@ -7,14 +7,14 @@ CSV files stay in the ignored `../data/` directory.
 
 | # | Question | Rank program |
 |---|---|---|
-| 1 | [Member bookings](https://pgexercises.com/questions/joins/simplejoin.html) | [001](001_member_bookings.ra) |
-| 2 | [Tennis bookings](https://pgexercises.com/questions/joins/simplejoin2.html) | [002](002_tennis_bookings.ra) |
-| 3 | [Members who recommend](https://pgexercises.com/questions/joins/self.html) | [003](003_recommenders.ra) |
-| 4 | [Members and recommenders](https://pgexercises.com/questions/joins/self2.html) | [004](004_member_recommenders.ra) |
-| 5 | [Tennis court users](https://pgexercises.com/questions/joins/threejoin.html) | [005](005_tennis_members.ra) |
-| 6 | [Costly bookings](https://pgexercises.com/questions/joins/threejoin2.html) | [006](006_costly_bookings.ra) |
-| 7 | [Recommenders without joins](https://pgexercises.com/questions/joins/sub.html) | [007](007_recommenders_without_join.ra) |
-| 8 | [Costly bookings with a subquery](https://pgexercises.com/questions/joins/tjsub.html) | [008](008_costly_bookings_subquery.ra) |
+| 1 | [Member bookings](https://pgexercises.com/questions/joins/simplejoin.html) | [001](001_book.ra) |
+| 2 | [Tennis bookings](https://pgexercises.com/questions/joins/simplejoin2.html) | [002](002_tennis.ra) |
+| 3 | [Members who recommend](https://pgexercises.com/questions/joins/self.html) | [003](003_recs.ra) |
+| 4 | [Members and recommenders](https://pgexercises.com/questions/joins/self2.html) | [004](004_memrec.ra) |
+| 5 | [Tennis court users](https://pgexercises.com/questions/joins/threejoin.html) | [005](005_users.ra) |
+| 6 | [Costly bookings](https://pgexercises.com/questions/joins/threejoin2.html) | [006](006_costs.ra) |
+| 7 | [Recommenders without joins](https://pgexercises.com/questions/joins/sub.html) | [007](007_subrec.ra) |
+| 8 | [Costly bookings with a subquery](https://pgexercises.com/questions/joins/tjsub.html) | [008](008_subcost.ra) |
 
 Run the programs from the repository root:
 
