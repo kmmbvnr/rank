@@ -1,0 +1,14 @@
+rem PostgreSQL Exercises: basic 1
+rem https://pgexercises.com/questions/basic/selectall.html
+rem Retrieve every facility and all six columns.
+
+use cli
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/001_select_all.csv"
+
+Db = DbPath sqlite
+Facilities = Db .facilities
+Rows = Facilities array
+Rows OutputPath csv

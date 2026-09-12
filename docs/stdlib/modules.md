@@ -558,6 +558,10 @@ Includes concepts such as:
 
 ```rank
 csv
+sqlite
+sql
+explain
+sqlquery
 labels
 group by
 leftjoin by
@@ -574,6 +578,10 @@ over a grouped column produce a flat table with the keys and aggregate.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 See [Tables](../language/tables.md) for missing keys, row order and collisions.
+`sqlite` opens an existing database read-only; `Db .table` returns a table view
+that postfix `array` materializes. `sql` inspects its parameterized statement,
+`explain` returns SQLite plan rows, and `sqlquery` creates a read-only query
+with bound positional parameters.
 
 ## Images
 

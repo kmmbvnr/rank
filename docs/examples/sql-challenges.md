@@ -7,19 +7,20 @@ We will solve these collections in order, using the
    then joins, aggregates and later window queries. Its country-club data and
    expected SQL results give us small relational examples. Solve them against
    a local SQLite copy, beginning with the [basic series](../../demos/pgexercises/basic/README.md).
-   The [SQLite table interface](../design/sqlite-tables.md) is being designed
-   before the first Rank solution; a PostgreSQL connector is not required.
+   The [SQLite table interface](../language/tables.md#sqlite) supports the first
+   Rank solution; a PostgreSQL connector is not required.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve
-   the investigation against its SQLite database. This stage should exercise
-   a SQLite-backed table source once its interface is agreed and implemented.
-   Until then, individual queries can be tested against prepared table rows.
+   the investigation against its SQLite database. This stage will reuse the
+   SQLite table source and exercise joins and other translations added during
+   PostgreSQL Exercises.
 3. [TPC-H](tpch.md) — work through the analytical queries, beginning by
    turning the existing Q6 sketch into a runnable Rank program with tests.
    Generated data and reference SQL results provide a larger check after the
    small in-memory tests.
 
 For every task, record the source and expected result, write a Rank solution,
-and add a neighboring `_test.ra` file with small deterministic data. Compare
+and add a neighboring `_test.ra` file, or a CLI test when opening a database is
+the behavior under test. Use small deterministic data. Compare
 results with the reference SQL query, including duplicate rows, missing values
 and ordering when the query specifies an order. Keep downloaded databases and
 generated large data local rather than committing them. Propose any new

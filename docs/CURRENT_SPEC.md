@@ -1696,7 +1696,9 @@ with shape `0`. A single-pass generator is consumed by this operation.
 A sequence known to be infinite is rejected. A sequence whose finiteness is
 unknown is evaluated until it ends, so materialization may raise a delayed
 error or fail to terminate. No module import is required because `array` is the
-core array constructor and conversion.
+core array constructor and conversion. A SQLite-backed table view also uses
+postfix `array` to execute its query and produce a rank-1 array of object rows;
+see [Tables](language/tables.md#sqlite).
 
 Position disambiguates the three uses of `array`:
 
@@ -3214,6 +3216,49 @@ blocking-flow algorithm and returns:
 
 Tables reuse Rank's normal addressing model.
 
+## SQLite
+
+With `use tables`, an existing SQLite database can be opened read-only:
+
+```rank
+Db = "demos/pgexercises/data/club.sqlite3" sqlite
+Facilities = Db .facilities
+Query = Facilities sql
+Rows = Facilities array
+```
+
+To inspect the SQL and plan in a program, add `use io` and print
+`Query .text` or `(Facilities explain) .detail`.
+
+`Db .facilities` validates the table name and returns a SQLite-backed table
+view without loading rows. The variable keeps the database path and query plan.
+`Query` is a record with `.text` (parameterized SQL) and `.params` (an ordered
+array of bound values). `Facilities explain` runs `EXPLAIN QUERY PLAN` and
+returns an ordinary Rank table of plan rows. Postfix `array` executes the query
+and returns a rank-1 array of object rows; after that, normal Rank table
+operations apply. SQLite `NULL` becomes an absent object field, integer 0/1
+stays integer, and row order is unspecified unless the SQL query orders it.
+
+For a query that cannot yet be expressed through Rank's table operations, use
+an explicit read-only SQL source with positional bound parameters:
+
+```rank
+Text = "SELECT * FROM facilities WHERE facid = ?"
+Params = array FacilityId
+Result = Db Text Params sqlquery
+Rows = Result array
+```
+
+`sqlquery` requires exactly one `SELECT` or read-only `WITH` query and a rank-1
+parameter array, including an empty array when there are no placeholders.
+Values are bound by the SQLite driver, never interpolated into SQL text. Wrong
+parameter counts, duplicate result column names and unsupported parameter
+types are errors. Table names are selected with labels, checked against the
+schema and quoted as identifiers. A SQLite-backed view is read-only; changing
+its materialized array never writes to the database. Projection, filtering and
+other Rank operations on the view itself will gain SQL translation in later
+exercises; materialize with `array` before using them today.
+
 ## CSV
 
 Current I/O form:
@@ -4524,6 +4569,10 @@ Includes concepts such as:
 
 ```rank
 csv
+sqlite
+sql
+explain
+sqlquery
 labels
 group by
 leftjoin by
@@ -4539,6 +4588,10 @@ grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
 over a grouped column produce a flat table with the keys and aggregate.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
+`sqlite` opens an existing database read-only; `Db .table` returns a table view
+that postfix `array` materializes. `sql` inspects its parameterized statement,
+`explain` returns SQLite plan rows, and `sqlquery` creates a read-only query
+with bound positional parameters.
 
 ## Images
 

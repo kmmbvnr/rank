@@ -99,6 +99,7 @@ import {
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
 import { groupTable, joinTables, projectField, projectFields } from './modules/tables.js';
+import { materializeSqlite, sqliteTable } from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -132,6 +133,8 @@ import {
     isRankLabel,
     isRankMultiset,
     isRankObject,
+    isRankSqliteDatabase,
+    isRankSqliteTable,
     isRankQueue,
     isRankRecord,
     isRankSet,
@@ -1841,9 +1844,8 @@ export class Interpreter {
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(interpreter.evaluateTask(expression.source)));
-                if (!isRankSequence(source)) {
-                    throw new RankError('postfix array expects a sequence');
-                }
+                if (isRankSqliteTable(source)) return materializeSqlite(source);
+                if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence or SQLite table');
                 return materializeSequence(source);
             };
         }
@@ -3170,6 +3172,10 @@ export class Interpreter {
     }
 
     private applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+        if (values.length === 2 && isRankSqliteDatabase(values[0]) && isRankLabel(values[1])) {
+            this.requireModule('tables', 'SQLite table selection');
+            return sqliteTable(values[0], values[1].name);
+        }
         if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])
             && isTableFieldList(values[1], this.modules.has('tables'))) {
             this.requireModule('tables', 'table column selection');

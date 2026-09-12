@@ -6,6 +6,7 @@ import type { GraphValue } from './graph.js';
 import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
+import type { RankIo, SqliteScalar } from './io.js';
 
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
@@ -44,6 +45,19 @@ export interface RankFile {
     readonly kind: 'file';
     readonly handle: RankFileHandle;
     closed: boolean;
+}
+
+export interface RankSqliteDatabase {
+    readonly kind: 'sqlite-database';
+    readonly path: string;
+    readonly io: RankIo;
+}
+
+export interface RankSqliteTable {
+    readonly kind: 'sqlite-table';
+    readonly database: RankSqliteDatabase;
+    readonly text: string;
+    readonly params: readonly SqliteScalar[];
 }
 
 export interface RankLabel {
@@ -199,6 +213,7 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
+    RankSqliteDatabase | RankSqliteTable |
     RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankGroupedColumn | NativeFunction |
@@ -217,6 +232,14 @@ export function isRankFunctionalGraph(value: RankValue): value is RankFunctional
 
 export function isRankArray(value: RankValue): value is RankArray {
     return typeof value === 'object' && (value.kind === 'array' || value.kind === 'bytes');
+}
+
+export function isRankSqliteDatabase(value: RankValue): value is RankSqliteDatabase {
+    return typeof value === 'object' && value.kind === 'sqlite-database';
+}
+
+export function isRankSqliteTable(value: RankValue): value is RankSqliteTable {
+    return typeof value === 'object' && value.kind === 'sqlite-table';
 }
 
 export function isRankBytes(value: RankValue): value is RankBytes {
@@ -349,6 +372,8 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     }
     if (value.kind === 'grouped-table') return '<grouped table>';
     if (value.kind === 'grouped-column') return `<grouped column .${value.field}>`;
+    if (value.kind === 'sqlite-database') return `<sqlite ${value.path}>`;
+    if (value.kind === 'sqlite-table') return '<sqlite table>';
     if (value.kind === 'queue') {
         return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }

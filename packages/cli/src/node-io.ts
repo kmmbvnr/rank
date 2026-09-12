@@ -2,7 +2,30 @@ import * as fs from 'node:fs';
 import * as pathModule from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import type { RankFileHandle, RankFileMode, RankInput, RankIo } from 'rank-interpreter';
+import { createRequire } from 'node:module';
+import type {
+    RankFileHandle, RankFileMode, RankInput, RankIo,
+    RankSqliteConnection, SqliteScalar,
+} from 'rank-interpreter';
+
+interface NativeSqliteStatement {
+    readonly readonly: boolean;
+    readonly reader: boolean;
+    safeIntegers(enabled: boolean): NativeSqliteStatement;
+    columns(): readonly { name: string }[];
+    all(...parameters: readonly SqliteScalar[]): readonly Record<string, SqliteScalar>[];
+}
+
+interface NativeSqliteDatabase {
+    prepare(text: string): NativeSqliteStatement;
+    close(): void;
+}
+
+const require = createRequire(import.meta.url);
+const Sqlite = require('better-sqlite3') as new (
+    path: string,
+    options: { readonly: boolean; fileMustExist: boolean },
+) => NativeSqliteDatabase;
 
 export class NodeInput implements RankInput {
     private readonly buffer = Buffer.allocUnsafe(64 * 1024);
@@ -33,6 +56,21 @@ export class NodeInput implements RankInput {
 }
 
 export const nodeIo: RankIo = {
+    openSqlite(path): RankSqliteConnection {
+        const database = new Sqlite(path, { readonly: true, fileMustExist: true });
+        return {
+            prepare(text) {
+                const statement = database.prepare(text).safeIntegers(true);
+                return {
+                    readonly: statement.readonly,
+                    reader: statement.reader,
+                    columns: () => statement.columns().map(column => column.name),
+                    all: parameters => statement.all(...parameters),
+                };
+            },
+            close: () => database.close(),
+        };
+    },
     listImages(directory) {
         return fs.readdirSync(directory, { withFileTypes: true })
             .filter(entry => entry.isFile() && /\.(?:jpe?g|png)$/i.test(entry.name))

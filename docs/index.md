@@ -77,7 +77,7 @@ execution direction and its semantic requirements.
 - [REPL input on a phone keyboard](design/repl-input.md)
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
-- [SQLite-backed tables proposal](design/sqlite-tables.md)
+- [SQLite query translation roadmap](design/sqlite-tables.md)
 - [Performance roadmap: remaining work](design/performance-roadmap.md)
 - [Tensor fusion improvement plan](design/tensor-fusion-plan.md)
 - [Parallel tensor worker results](design/tensor-workers-results.md)

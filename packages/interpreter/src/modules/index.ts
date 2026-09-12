@@ -10,6 +10,7 @@ import { linalgModule } from './linalg.js';
 import { numbersModule } from './numbers.js';
 import { randomModule } from './random.js';
 import { sequencesModule } from './sequences.js';
+import { sqliteModule } from './sqlite.js';
 import { statsModule } from './stats.js';
 import { tablesModule } from './tables.js';
 import { textModule } from './text.js';
@@ -31,7 +32,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     ranges: {},
     sequences: sequencesModule,
     stats: statsModule,
-    tables: tablesModule,
+    tables: { ...tablesModule, ...sqliteModule },
     testing: {},
     text: textModule,
 };
