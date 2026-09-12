@@ -107,6 +107,11 @@ export function readTextFile(io: RankIo | undefined, value: RankValue): string {
     return decodeUtf8(ioCall(path, () => host(io).read(path)));
 }
 
+export function writeTextFile(io: RankIo | undefined, path: string, text: string): void {
+    if (typeof path !== 'string') throw new RankError('file path must be text');
+    ioCall(path, () => host(io).write(path, encoder.encode(text), false));
+}
+
 function host(io: RankIo | undefined): RankIo {
     if (!io) throw new RankError('filesystem access is unavailable in this host', 'IO');
     return io;

@@ -1,4 +1,5 @@
 import { compileScalarFunction } from './scalar-function-kernel.js';
+import { createArraySnapshot } from './array-storage.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -1728,6 +1729,15 @@ export class Interpreter {
                         // Prepare on first use to preserve operand/error ordering.
                         left ??= interpreter.compileExpression(expression.left, () => absent);
                         const value = yield* resume(left());
+                        if (isRankArray(value)) {
+                            const items = value.items;
+                            if (!items.includes(absent)) return value;
+                            const fallback = yield* resume(interpreter.evaluateTask(expression.right));
+                            return createArraySnapshot(
+                                items.map(item => item === absent ? fallback : item),
+                                value.shape,
+                            );
+                        }
                         if (value !== absent) return value;
                     } catch (error) {
                         if (!(error instanceof MissingValueError)) throw error;
@@ -3061,7 +3071,7 @@ export class Interpreter {
             && (typeof values[1] === 'string' || isRankLabel(values[1]))) {
             this.requireModule('tables', 'table projection');
             const field = typeof values[1] === 'string' ? values[1] : values[1].name;
-            return projectField(values[0], field);
+            return projectField(values[0], field, missing);
         }
         return applySelectors(values, missing);
     }

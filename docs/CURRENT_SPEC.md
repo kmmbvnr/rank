@@ -3201,11 +3201,31 @@ Current I/O form:
 Data = "train.csv" csv
 ```
 
+`csv` reads UTF-8 comma-separated data with a header row and returns a rank-1
+array of object rows. Quoted fields may contain commas, line endings and escaped
+double quotes. Every data row must have the same field count as the header;
+empty and duplicate header names are errors.
+
+Rank infers one fixed type for each column from its nonempty cells. A column is
+integer when every value is an integer without ambiguous leading zeroes, real
+when every value is numeric, and boolean when every value is exactly `true` or
+`false`; otherwise it is text. Empty cells are absent fields and therefore
+compose with `pad` when the column is projected:
+
+```rank
+Age = Data .Age pad Median
+```
+
 Writing mirrors assignment:
 
 ```rank
 Out "submission.csv" csv
 ```
+
+Output must be a rank-1 array of object rows. The first row determines column
+order. A missing field produces an empty cell, an unexpected field is an error,
+and text is quoted when CSV escaping requires it. The file ends with a line
+ending.
 
 ## Column labels
 

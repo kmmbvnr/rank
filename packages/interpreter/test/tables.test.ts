@@ -1,8 +1,98 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter } from '../src/index.js';
-import { run } from './support.js';
+import { Interpreter, formatValue } from '../src/index.js';
+import { MemoryIo, run } from './support.js';
 
 describe('Rank tables', () => {
+    it('reads typed CSV rows with quoted fields', () => {
+        const io = new MemoryIo({
+            '/train.csv': [
+                'id,score,active,name,notes',
+                '1,2.5,true,Ada,"first, row"',
+                '2,-3,false,Lin,"two""quotes"""',
+            ].join('\r\n'),
+        });
+        const runtime = new Interpreter(undefined, { io });
+        runtime.execute('use tables\nRows = "/train.csv" csv');
+
+        expect(formatValue(runtime.execute('Rows .id')!)).toBe('1 2');
+        expect(formatValue(runtime.execute('Rows .score')!)).toBe('2.5 -3');
+        expect(formatValue(runtime.execute('Rows .active')!)).toBe('true false');
+        expect(formatValue(runtime.execute('Rows .name')!)).toBe('Ada Lin');
+        expect(formatValue(runtime.execute('Rows .notes')!)).toBe('first, row two"quotes"');
+    });
+
+    it('infers one type for each CSV column and preserves leading zeroes', () => {
+        const io = new MemoryIo({
+            '/data.csv': 'code,measure,mixed\n001,2,3\n002,2.5,text\n',
+        });
+        const runtime = new Interpreter(undefined, { io });
+        runtime.execute('use tables\nRows = "/data.csv" csv');
+        expect(formatValue(runtime.execute('Rows .code')!)).toBe('001 002');
+        expect(formatValue(runtime.execute('Rows .measure')!)).toBe('2 2.5');
+        expect(formatValue(runtime.execute('Rows .mixed')!)).toBe('3 text');
+    });
+
+    it('pads empty CSV cells when the projected column is demanded', () => {
+        const io = new MemoryIo({ '/train.csv': 'name,age\nAda,37\nLin,\n' });
+        const runtime = new Interpreter(undefined, { io });
+        expect(formatValue(runtime.execute([
+            'use tables',
+            'Rows = "/train.csv" csv',
+            'Rows .age pad 0',
+        ].join('\n'))!)).toBe('37 0');
+    });
+
+    it('does not evaluate a column fallback when every CSV cell is present', () => {
+        const io = new MemoryIo({ '/train.csv': 'age\n37\n28\n' });
+        const runtime = new Interpreter(undefined, { io });
+        expect(formatValue(runtime.execute([
+            'use tables',
+            'Rows = "/train.csv" csv',
+            'Rows .age pad 1 / 0',
+        ].join('\n'))!)).toBe('37 28');
+    });
+
+    it('writes object rows as CSV and can read them back', () => {
+        const io = new MemoryIo({});
+        const runtime = new Interpreter(undefined, { io });
+        runtime.execute([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"id\\":1,\\"name\\":\\"Ada, A.\\"},',
+            '  {\\"id\\":2,\\"name\\":\\"Lin\\"}]" json',
+            'Rows "/submission.csv" csv',
+        ].join('\n'));
+        expect(new TextDecoder().decode(io.file('/submission.csv')))
+            .toBe('id,name\n1,"Ada, A."\n2,Lin\n');
+        expect(formatValue(runtime.execute('Again = "/submission.csv" csv\nAgain .name')!))
+            .toBe('Ada, A. Lin');
+    });
+
+    it('validates CSV headers and row widths', () => {
+        const duplicate = new Interpreter(undefined, {
+            io: new MemoryIo({ '/bad.csv': 'id,id\n1,2\n' }),
+        });
+        expect(() => duplicate.execute('use tables\n"/bad.csv" csv'))
+            .toThrowError('duplicate CSV header: id');
+
+        const short = new Interpreter(undefined, {
+            io: new MemoryIo({ '/bad.csv': 'id,name\n1\n' }),
+        });
+        expect(() => short.execute('use tables\n"/bad.csv" csv'))
+            .toThrowError('CSV row 2 has 1 field, expected 2');
+
+        const quote = new Interpreter(undefined, {
+            io: new MemoryIo({ '/bad.csv': 'id,name\n1,"Ada\n' }),
+        });
+        expect(() => quote.execute('use tables\n"/bad.csv" csv'))
+            .toThrowError('unterminated quoted CSV field');
+    });
+
+    it('requires filesystem access for CSV', () => {
+        expect(() => run('use tables\n"train.csv" csv'))
+            .toThrowError('filesystem access is unavailable in this host');
+    });
+
     it('projects text and label fields while preserving shape', () => {
         expect(run([
             'use json',
