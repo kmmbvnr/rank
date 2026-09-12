@@ -4,6 +4,7 @@ rem Build TF-IDF features for a fixed vocabulary
 rem and fit logistic regression in Rank.
 
 use "001_titanic" as Classifier
+use algo
 use cli
 use numbers
 use ranges
@@ -37,11 +38,18 @@ fun term_counts Texts Vocab
   Rows = Texts len
   Columns = Vocab len
   Counts = array shape Rows Columns pad 0.0
+  Positions = new index
+  for Term Column in Vocab
+    if not (Term in Positions)
+      Positions Term = new queue
+    end
+    (Positions Term) push Column
+  end
   for Text Row in Texts
     Words = Text words
     for Word in Words
-      for Term Column in Vocab
-        if Word equal Term
+      if Word in Positions
+        for Column in (Positions Word)
           Counts Row Column += 1.0
         end
       end

@@ -141,7 +141,9 @@ Xtest = (Test .text pad "") Model tfidf_transform
 
 `words` and `vocab` are text-library words. The TF-IDF fitting and transform
 remain [Rank functions](../../demos/kaggle/005_distweets.ra): the vocabulary
-and inverse document frequencies come only from training text. The runnable
+and inverse document frequencies come only from training text. `term_counts`
+uses an `index` from each word to its vocabulary column positions, so counting
+does not scan the full vocabulary for every word. The runnable
 baseline fits Rank logistic regression and writes `id,target`. Its default
 local paths are `data/disaster-tweets/{train,test}.csv` and
 `submissions/disaster-tweets.csv` under `demos/kaggle/`.

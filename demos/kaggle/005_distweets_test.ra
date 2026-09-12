@@ -11,6 +11,26 @@ test "counts vocabulary terms per document"
   Texts Vocab term_counts equal Expected
 end
 
+test "keeps duplicate vocabulary columns and ignores unknown words"
+  use "005_distweets"
+  Texts = array "fire smoke fire" "unknown"
+  Vocab = array "fire" "safe" "fire"
+  Expected = array shape 2 3
+    2.0 0.0 2.0
+    0.0 0.0 0.0
+  end
+  Texts Vocab term_counts equal Expected
+end
+
+test "accepts an empty vocabulary"
+  use sequences
+  use "005_distweets"
+  Texts = array "fire" "safe"
+  Vocab = array shape 0 pad ""
+  Counts = Texts Vocab term_counts
+  Counts shape equal array 2 0
+end
+
 test "normalizes punctuation and builds vocabulary from training rows"
   use json
   use tables
