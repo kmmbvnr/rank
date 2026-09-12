@@ -73,6 +73,7 @@ execution direction and its semantic requirements.
 ## Development workflow
 
 - [Console, editor and the analysis core](design/editor-plan.md)
+- [REPL input on a phone keyboard](design/repl-input.md)
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
 - [Performance roadmap: remaining work](design/performance-roadmap.md)
