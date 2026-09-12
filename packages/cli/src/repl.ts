@@ -13,6 +13,7 @@ import * as readline from 'node:readline';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import { preview } from './preview.js';
+import { eraseRows, screenRows } from './screen.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine,
     cellSource, closeCell,
@@ -29,7 +30,7 @@ const COMMANDS = [
 ];
 
 export async function startRepl(): Promise<void> {
-    const interpreter = new Interpreter(console.log, {
+    const interpreter = new Interpreter(emit, {
         input: new NodeInput(),
         io: nodeIo,
         persistentResources: true,
@@ -80,27 +81,64 @@ export async function startRepl(): Promise<void> {
     draw();
 
     try {
-        let rewritten = false;
-        for await (const raw of input) {
-            const text = raw.trim();
-            if (isEmpty(state) && isExit(text, interpreter)) break;
+        // The screen as a file. `settled` counts the rows this cell has already
+        // taken as source, `open` the rows below them that are still an echo:
+        // readline's copy of the line just typed, and the dim copy of a
+        // statement that is still folding. `managed` goes false when a cell
+        // grows past the screen, where reaching back for its rows would erase
+        // whatever scrolled into their place; then the echo stands as it is.
+        let settled = 0;
+        let open = 0;
+        let managed = true;
+        const put = (lines: readonly string[], paint = (line: string) => line): number => {
+            let taken = 0;
+            for (const line of lines) {
+                console.log(paint(line));
+                taken += screenRows(line.length, columns());
+            }
+            return taken;
+        };
+        const settle = (): void => { settled = 0; open = 0; managed = true; };
 
+        for await (const raw of input) {
+            if (terminal) open += screenRows(promptFor(state).length + raw.length, columns());
+            const text = raw.trim();
+            if (isEmpty(state) && isExit(text, interpreter)) {
+                if (terminal) eraseRows(process.stdout, open);
+                break;
+            }
+
+            const before = state.lines.length;
             if (text === '') {
                 if (!terminal || isEmpty(state)) {
+                    // A prompt answered with nothing belongs to no file.
+                    if (terminal) eraseRows(process.stdout, open);
+                    settle();
                     draw();
                     continue;
                 }
                 state = closeCell(state);
-                rewritten = true;
-            } else if (isEmpty(state) && await command(text, session())) {
+            } else if (isEmpty(state) && isCommand(text, interpreter)) {
+                // A command is a question for the prompt, not a line of the
+                // program, so it is dim and `save` never sees it.
+                if (terminal && eraseRows(process.stdout, open)) put([text], dim);
+                settle();
+                await command(text, session());
                 draw();
                 continue;
             } else {
                 const keyed = formatLine(text);
-                const expanded = aliases ? expand(keyed, interpreter) : keyed;
-                // Tidied spacing is not worth an echo; a rewritten symbol is.
-                rewritten ||= expanded !== formatLine(text);
-                state = addLine(state, expanded);
+                state = addLine(state, aliases ? expand(keyed, interpreter) : keyed);
+            }
+
+            if (terminal && managed && eraseRows(process.stdout, open)) {
+                settled += put(state.lines.slice(before));
+                open = state.pending === ''
+                    ? 0
+                    : put([nextIndent({ ...state, pending: '' }) + state.pending], dim);
+            } else if (terminal) {
+                managed = false;
+                open = 0;
             }
 
             if (!isComplete(state)) {
@@ -110,12 +148,12 @@ export async function startRepl(): Promise<void> {
 
             const plain = cellSource(state);
             const source = narrow(plain);
-            rewritten ||= source !== plain;
+            // Wrapping is decided for the whole cell, so a wrapped line only
+            // reaches the screen by printing the cell again.
+            if (terminal && managed && source !== plain
+                && eraseRows(process.stdout, settled)) put(source.split('\n'));
+            settle();
             state = EMPTY_CELL;
-            if (terminal && rewritten) {
-                for (const line of source.split('\n')) console.log(chalk.dim(`    ${line}`));
-            }
-            rewritten = false;
             if (run(interpreter, source, session())) accepted.push(source);
             draw();
         }
@@ -129,6 +167,22 @@ export async function startRepl(): Promise<void> {
         interpreter.dispose();
         if (terminal) await writeHistory(input);
     }
+}
+
+/** Dim, as a plain function the printer can be handed. */
+const dim = (line: string): string => chalk.dim(line);
+
+function columns(): number {
+    return process.stdout.columns ?? 80;
+}
+
+/**
+ * Everything the program produced. It is dim, because the plain text on screen
+ * is the program itself: what a line printed is an answer next to it, the way a
+ * result is, and never a line anyone would save.
+ */
+function emit(text: string): void {
+    for (const line of text.split('\n')) console.log(chalk.dim(line));
 }
 
 /**
@@ -234,7 +288,7 @@ function run(interpreter: Interpreter, source: string, session: Session): boolea
 /** A result as an answer to read: long ones keep their two ends. */
 function show(value: RankValue): void {
     const { text, note } = preview(value);
-    console.log(text);
+    emit(text);
     if (note !== '') console.log(chalk.dim(note));
 }
 
@@ -247,16 +301,21 @@ interface Session {
     readonly setLast: (value: RankValue | undefined) => void;
 }
 
-/** Returns true when the line was a REPL command rather than Rank source. */
-async function command(text: string, session: Session): Promise<boolean> {
-    const [name, ...rest] = text.split(/\s+/);
-    if (!COMMANDS.includes(name)) return false;
-    // A session that binds the name owns it; the command steps aside.
-    if (session.interpreter.variables.has(name)) return false;
+/**
+ * True when the line asks the prompt something rather than adding a line to the
+ * program. A session that binds the name owns it; the command steps aside.
+ */
+function isCommand(text: string, interpreter: Interpreter): boolean {
+    const name = text.split(/\s+/)[0];
+    return COMMANDS.includes(name) && !interpreter.variables.has(name);
+}
 
+/** Answers one command. Only ever called for a line `isCommand` accepted. */
+async function command(text: string, session: Session): Promise<void> {
+    const [name, ...rest] = text.split(/\s+/);
     if (name === 'full') {
         if (session.last === undefined) console.log(chalk.dim('no result to show'));
-        else console.log(formatValue(session.last));
+        else emit(formatValue(session.last));
     } else if (name === 'help') printHelp(session.aliases);
     else if (name === 'forms') printForms();
     else if (name === 'ops') printOperations(session.interpreter, rest[0]);
@@ -266,7 +325,6 @@ async function command(text: string, session: Session): Promise<boolean> {
         else console.log(`alias is ${session.aliases ? 'on' : 'off'}; use 'alias off'`);
     } else if (name === 'save') await save(session.accepted, rest[0]);
     else if (name === 'load') await load(session, rest[0]);
-    return true;
 }
 
 async function save(accepted: readonly string[], target: string | undefined): Promise<void> {
@@ -318,6 +376,12 @@ function printHelp(aliases: boolean): void {
         '  lines take their indent while',
         '  you type. A,B+1 stores as',
         '  A = B + 1.',
+        '',
+        'The screen',
+        '  A line that ran loses its prompt and',
+        '  stands as the source it became. What',
+        '  the run produced is dim, so the plain',
+        "  text is the file 'save' writes.",
         '',
         'Results',
         '  A long result keeps its two ends',

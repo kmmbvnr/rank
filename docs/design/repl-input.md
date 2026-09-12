@@ -103,7 +103,12 @@ joined line is ordinary source.
 ```console
 rank> A gets 5 plus
 ....>   6
-    A = 5 + 6
+```
+
+Once it runs, the prompts are gone and the statement stands as one line:
+
+```console
+A = 5 + 6
 11
 ```
 
@@ -118,9 +123,12 @@ open block:
 rank> fun triple X
 fun.>   return X * 3
 fun.>
-    fun triple X
-      return X * 3
-    end
+```
+
+```console
+fun triple X
+  return X * 3
+end
 <function triple>
 ```
 
@@ -147,6 +155,12 @@ The wrap is then checked against the parser and dropped whole if the result does
 not parse, so a rule that turns out to be wrong costs a wide line and never a
 broken one.
 
+**The screen is the file.** A line that has run loses its prompt and is printed
+back as the source it became, so the session builds up on screen as the program
+it is writing. Everything else is dim: a result, whatever the program printed,
+and a command such as `vars`, none of which `save` would write. So the plain
+text on screen is the file, and the grey next to it is what the file did.
+
 **The REPL owns indentation.** Every line is indented two spaces per open block
 as it is typed and again when it is stored. Typing leading spaces is never
 necessary and never wrong.
@@ -155,9 +169,9 @@ necessary and never wrong.
 typed, so the line on screen is always the Rank that will run:
 
 ```console
-rank> Total, 6
+Total = 6
 6
-rank> Total *, 7
+Total *= 7
 42
 ```
 
@@ -184,8 +198,8 @@ every #
 
 `gets` is the fallback for `=`; the comma key is usually the better one.
 
-`times gets` becomes `*=`, and `and gets` becomes `and=`. Whatever was rewritten
-is echoed as real Rank before it runs, so the symbol form is what gets learned.
+`times gets` becomes `*=`, and `and gets` becomes `and=`. Every line is printed
+back as real Rank before it runs, so the symbol form is what gets learned.
 
 **Tab completes** module names after `use`, otherwise session names, the names
 of every module in use, keywords, the alias words, and the commands.
@@ -222,6 +236,8 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
   It was never valid Rank, but the error it gives is now a stranger one.
 - A blank line inside a block is unavailable interactively, since that is the
   gesture that closes blocks.
+- A statement that raised stays in plain text although `save` will not write it.
+  It is printed before it runs, and the red error under it is the only sign.
 
 ## Open questions
 
