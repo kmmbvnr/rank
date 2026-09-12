@@ -1,0 +1,31 @@
+use testing
+
+test "extracts calendar and numeric bike features"
+  use json
+  use "007_bakishare"
+  Rows = "[{\"datetime\":\"2024-01-07 13:00:00\",\"season\":1,\"holiday\":0,\"workingday\":0,\"weather\":2,\"temp\":10.5,\"atemp\":11.0,\"humidity\":80,\"windspeed\":5.0}]" json
+  Expected = array shape 1 12
+    13 0 1 2024 1 0 0 2 10.5 11.0 80 5.0
+  end
+  Rows bike_features equal Expected
+end
+
+test "builds a nonnegative demand submission"
+  use json
+  use sequences
+  use "007_bakishare"
+  Train = "[{\"datetime\":\"2024-01-01 08:00:00\",\"season\":1,\"holiday\":0,\"workingday\":1,\"weather\":1,\"temp\":10,\"atemp\":10,\"humidity\":50,\"windspeed\":3,\"count\":10}, {\"datetime\":\"2024-01-02 18:00:00\",\"season\":1,\"holiday\":0,\"workingday\":1,\"weather\":1,\"temp\":15,\"atemp\":15,\"humidity\":40,\"windspeed\":4,\"count\":30}]" json
+  Test = "[{\"datetime\":\"2024-01-03 12:00:00\",\"season\":1,\"holiday\":0,\"workingday\":1,\"weather\":1,\"temp\":12,\"atemp\":12,\"humidity\":45,\"windspeed\":3}]" json
+
+  Result = Train Test 0.03 300 solve
+  Result shape equal array 1 2 and Result 0 1 at least 0
+end
+
+test "keeps the requested submission column order"
+  use json
+  use "007_bakishare"
+  Train = "[{\"datetime\":\"2024-01-01 08:00:00\",\"season\":1,\"holiday\":0,\"workingday\":1,\"weather\":1,\"temp\":10,\"atemp\":10,\"humidity\":50,\"windspeed\":3,\"count\":10}]" json
+  Test = "[{\"datetime\":\"2024-01-01 09:00:00\",\"season\":1,\"holiday\":0,\"workingday\":1,\"weather\":1,\"temp\":10,\"atemp\":10,\"humidity\":50,\"windspeed\":3}]" json
+  Result = Train Test 0.01 1 solve
+  Result 0 0 equal "2024-01-01 09:00:00"
+end

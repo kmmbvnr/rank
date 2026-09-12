@@ -1,59 +1,57 @@
 rem Kaggle: Bike Sharing Demand
-rem Predict hourly bike rentals.
-rem
-rem Target: count
-rem Metric: RMSLE
+rem https://www.kaggle.com/competitions/bike-sharing-demand
+rem Fit log demand from calendar, weather
+rem and numeric ride conditions.
 
+use "002_prices" as Regression
+use "006_storesales" as Calendar
+use cli
+use numbers
+use ranges
+use sequences
 use tables
-use dates
-use ml
+use text
 
-Train = csv "train.csv"
-Test = csv "test.csv"
+argument TrainPath path = "demos/kaggle/data/bike-sharing/train.csv"
+argument TestPath path = "demos/kaggle/data/bike-sharing/test.csv"
+argument OutputPath path = "demos/kaggle/submissions/bike-sharing.csv"
 
-rem Extract time features
+Train = TrainPath csv
+Test = TestPath csv
+Submission = Train Test 0.03 1200 solve
+Submission OutputPath csv
 
-Date = Train .datetime
 
-Train .hour = Date hour
-Train .weekday = Date weekday
-Train .month = Date month
-Train .year = Date year
+fun bike_features Data
+  Dates = Data .datetime
+  Rows = Dates len
+  NumericFields = array .season .holiday .workingday .weather .temp .atemp .humidity .windspeed
+  Numeric = Data NumericFields
+  Result = array shape Rows 12 pad 0.0
 
-Date = Test .datetime
+  for Date i in Dates
+    Pattern = "/integer-/integer-/integer /integer:/integer:/integer"
+    unpack Year Month Day Hour # # = Date Pattern parse
+    DateOnly = Date from 0 until 10
+    Result i 0 = Hour
+    Result i 1 = DateOnly Calendar.weekday
+    Result i 2 = Month
+    Result i 3 = Year
+  end
+  for Column in 0 until 8
+    Result # (Column + 4) = Numeric # Column
+  end
+  return Result
+end
 
-Test .hour = Date hour
-Test .weekday = Date weekday
-Test .month = Date month
-Test .year = Date year
 
-rem Choose features
-
-Features =
-  .hour .weekday .month .year
-  .season .holiday .workingday
-  .weather .temp .atemp
-  .humidity .windspeed
-
-X = Train Features
-Xtest = Test Features
-
-rem Train on logarithmic target
-
-Y = Train .count + 1
-Y = Y log each
-
-Model = X Y linear
-Pred = Model Xtest predict
-
-Pred = Pred exp each
-Pred = Pred - 1
-Negative = Pred less 0
-Pred Negative = 0
-
-rem Build submission
-
-Test .count = Pred
-Out = Test .datetime .count
-
-csv "submission.csv" = Out
+fun solve Train Test Rate Steps
+  X = Train bike_features
+  Xtest = Test bike_features
+  Y = (Train .count + 1) log
+  Model = X Y Rate Steps Regression.linear
+  Pred = ((Xtest Model Regression.linear_predict) exp - 1) copy
+  Pred (Pred less 0) = 0.0
+  Test .count = Pred
+  return Test (array .datetime .count)
+end

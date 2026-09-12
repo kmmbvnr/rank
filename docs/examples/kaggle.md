@@ -174,6 +174,11 @@ Negative = Pred less 0
 Pred Negative = 0
 ```
 
+The [runnable Bike Sharing baseline](../../demos/kaggle/007_bakishare.ra)
+parses the fixed Kaggle datetime format in Rank, combines four calendar and
+eight numeric features, reuses the tested linear regression, clamps negative
+predictions, and writes the required two-column submission.
+
 ## NYC Taxi
 
 Apply a function to each row/cell:
