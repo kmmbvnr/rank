@@ -1,3 +1,9 @@
+# TPC-H Q6: earlier syntax draft
+
+This draft records the original notation experiment. Its `filter` form is not
+current Rank syntax. Run [the SQLite solution](001_q6_sqlite.ra) instead.
+
+```rank
 rem TPC-H Q6
 rem Forecasting Revenue Change
 rem Source: TPC-H 3.0.1, section 2.4.6
@@ -45,3 +51,4 @@ Increase =
 Revenue = sum Increase
 
 print Revenue
+```

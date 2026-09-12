@@ -17,7 +17,7 @@ database belongs in the ignored `demos/tpch/data/` directory.
 
 ## Q6. Forecasting Revenue Change
 
-The [earlier draft](../../demos/tpch/001_q6_revchange.ra) used a `filter`
+The [earlier draft](../../demos/tpch/001_q6_revchange.md) used a `filter`
 clause that is not current Rank syntax. The runnable version uses first-class
 boolean masks and explicit date bounds:
 
