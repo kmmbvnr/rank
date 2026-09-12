@@ -565,12 +565,13 @@ labels
 
 ## Stats
 
-`use stats` provides arithmetic mean, population standard deviation, error
-metrics and sample covariance:
+`use stats` provides arithmetic mean, median, population standard deviation,
+error metrics and sample covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
+Middle = Values median
 Spread = Values std
 Columns = Matrix std axis 0
 Loss = Pred Target mse
@@ -579,11 +580,14 @@ Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
 
-`mean` and `std` accept a numeric array or finite sequence and always return a
-`real`. `std` divides by the population denominator `N`. An empty input raises
-`.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
-is described in [Tensors](../language/tensors.md). `std` rejects nonfinite
-cells with `.DomainError`.
+`mean`, `median` and `std` accept a numeric array or finite sequence and always
+return a `real`. They skip missing cells in a projected table column. An empty
+input, including a column containing only missing cells, raises
+`.EmptyReduction`. `median` sorts a copy, selects the middle value for an odd
+count and averages the two middle values for an even count. `std` divides by
+the population denominator `N`. All three operations support `rank` and `axis`;
+tensor behavior is described in [Tensors](../language/tensors.md). `median` and
+`std` reject nonfinite cells with `.DomainError`.
 
 `mse` and `mae` calculate mean squared error and mean absolute error between
 two numeric values, finite sequences or arrays:

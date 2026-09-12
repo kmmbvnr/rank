@@ -2,6 +2,58 @@ import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
 describe('Rank statistics', () => {
+    it('calculates odd and even medians without changing the source', () => {
+        expect(run([
+            'use stats',
+            'Values = array 9 1 4',
+            'Result = Values median',
+            'array Result Values',
+        ].join('\n'))).toBe('4 9 1 4');
+        expect(run('use stats\n(array 8 2 4 6) median')).toBe('5');
+    });
+
+    it('skips missing table cells in statistical reductions', () => {
+        const source = [
+            'use json',
+            'use stats',
+            'use tables',
+            'Rows = "[{\\"x\\":1},{},{\\"x\\":3}]" json',
+        ];
+        expect(run([...source, 'Rows .x median'].join('\n'))).toBe('2');
+        expect(run([...source, 'Rows .x mean'].join('\n'))).toBe('2');
+        expect(run([...source, 'Rows .x std'].join('\n'))).toBe('1');
+        expect(run([...source, '(Rows .x) median axis 0'].join('\n'))).toBe('2');
+        expect(run([...source, '(Rows .x) mean axis 0'].join('\n'))).toBe('2');
+    });
+
+    it('validates median input and remaining values', () => {
+        expect(() => run('use stats\n(array 1 "bad") median'))
+            .toThrowError('expected numeric input');
+        expect(() => run('use stats\n(array shape 0 pad 0) median'))
+            .toThrowError('median requires at least one value');
+        expect(() => run([
+            'use json',
+            'use stats',
+            'use tables',
+            'Rows = "[{},{}]" json',
+            'Rows .x median',
+        ].join('\n'))).toThrowError('median requires at least one value');
+        expect(() => run('(array 1 2) median'))
+            .toThrowError('unknown name: median');
+    });
+
+    it('applies median by rank and axis', () => {
+        const source = [
+            'use stats',
+            'M = array shape 2 3',
+            '  9 1 4',
+            '  2 8 6',
+            'end',
+        ];
+        expect(run([...source, 'M median rank 1'].join('\n'))).toBe('4 6');
+        expect(run([...source, 'M median axis 0'].join('\n'))).toBe('5.5 4.5 5');
+    });
+
     it('calculates population standard deviation', () => {
         expect(run([
             'use numbers',

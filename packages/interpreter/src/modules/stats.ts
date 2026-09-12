@@ -1,4 +1,4 @@
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import {
@@ -12,6 +12,7 @@ import type { RuntimeModule } from './types.js';
 
 export const statsModule: RuntimeModule = {
     mean: () => native('mean', 1, arguments_ => meanValue(arguments_[0])),
+    median: () => native('median', 1, arguments_ => medianValue(arguments_[0])),
     std: () => native('std', 1, arguments_ => standardDeviation(arguments_[0])),
     mse: () => native('mse', 2, arguments_ => errorMetricValue(
         arguments_[0],
@@ -143,7 +144,7 @@ function lazyNumericArray(
 }
 
 function standardDeviation(value: RankValue): number {
-    const items = isRankArray(value) ? value.items : [...sequenceValues(value, 'std')];
+    const items = presentValues(value, 'std');
     if (items.length === 0) {
         throw new RankError('std requires at least one value', 'EmptyReduction');
     }
@@ -257,13 +258,44 @@ export function covarianceValue(
 }
 
 function meanValue(value: RankValue): number {
-    const items = isRankArray(value) ? value.items : [...sequenceValues(value, 'mean')];
+    const items = presentValues(value, 'mean');
     if (items.length === 0) {
         throw new RankError('mean requires at least one value', 'EmptyReduction');
     }
     let total = 0;
     for (const item of items) total += Number(expectNumeric(item));
     return total / items.length;
+}
+
+function medianValue(value: RankValue): number {
+    const values = presentValues(value, 'median').map(item => {
+        const numeric = Number(expectNumeric(item));
+        if (!Number.isFinite(numeric)) {
+            throw new RankError('median expects finite values', 'DomainError');
+        }
+        return numeric;
+    });
+    if (values.length === 0) {
+        throw new RankError('median requires at least one value', 'EmptyReduction');
+    }
+    values.sort((left, right) => left - right);
+    const middle = Math.floor(values.length / 2);
+    return values.length % 2 === 1
+        ? values[middle]
+        : (values[middle - 1] + values[middle]) / 2;
+}
+
+function presentValues(value: RankValue, operation: string): RankValue[] {
+    if (!isRankArray(value)) return [...sequenceValues(value, operation)];
+    const items: RankValue[] = [];
+    for (let index = 0; index < arraySize(value.shape); index += 1) {
+        try {
+            items.push(arrayItem(value, index));
+        } catch (error) {
+            if (!(error instanceof MissingValueError)) throw error;
+        }
+    }
+    return items;
 }
 
 function validateCovarianceAxis(shape: readonly number[], axis: number): void {

@@ -242,10 +242,9 @@ explicit `rank` modifier remain to be specified before implementation.
 
 ## Missing values
 
-`pad` is the current common mechanism for absent data.
-
-Statistical reductions over table columns are expected to skip missing values by
-default, but the exact generic missing-value policy still needs a formal spec.
+`pad` is the current common mechanism for absent data. `mean`, `median` and
+`std` skip missing cells in projected table columns. Missing-value behavior for
+other reductions and operations remains open.
 
 ## Optional results and `maybe`
 

@@ -111,8 +111,8 @@ Median = Data .Age median
 Data .Age = Data .Age pad Median
 ```
 
-Statistical reductions on table columns are expected to ignore `missing` by
-default unless explicitly configured otherwise.
+The `mean`, `median` and `std` statistical reductions ignore missing cells in a
+projected table column. If no cells remain, they raise `.EmptyReduction`.
 
 ## Boolean rows
 

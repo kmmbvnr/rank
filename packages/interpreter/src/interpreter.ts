@@ -1949,6 +1949,7 @@ export class Interpreter {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule(
                         axisReduction.operation === 'mean'
+                            || axisReduction.operation === 'median'
                             || axisReduction.operation === 'std'
                             ? 'stats'
                             : axisReduction.operation === 'all'
@@ -3344,7 +3345,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count',
+        operation: 'sum' | 'mean' | 'median' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count',
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -3388,9 +3389,17 @@ export class Interpreter {
             if (directSum) return sumIndexed(reducedSize, itemAt);
             const items: RankValue[] = [];
             for (let index = 0; index < reducedSize; index += 1) {
-                items.push(itemAt(index));
+                try {
+                    items.push(itemAt(index));
+                } catch (error) {
+                    if (!(error instanceof MissingValueError)
+                        || (operation !== 'mean' && operation !== 'median' && operation !== 'std')) {
+                        throw error;
+                    }
+                }
             }
-            return reducer.call([{ kind: 'array', items, shape: reducedShape }]);
+            const shape = items.length === reducedSize ? reducedShape : [items.length];
+            return reducer.call([{ kind: 'array', items, shape }]);
         };
 
         return frameShape.length === 0 ? reduceAt(0) : lazyArray(frameShape, reduceAt);
@@ -4954,12 +4963,12 @@ function explicitAxisReduction(
     parts: Expression[],
 ): {
     source: Expression;
-    operation: 'sum' | 'mean' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count';
+    operation: 'sum' | 'mean' | 'median' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count';
     axes: readonly number[];
 } | undefined {
     if (parts.length < 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
-    if ((operation !== 'sum' && operation !== 'mean' && operation !== 'std'
+    if ((operation !== 'sum' && operation !== 'mean' && operation !== 'median' && operation !== 'std'
         && operation !== 'min' && operation !== 'max'
         && operation !== 'all' && operation !== 'any' && operation !== 'count')
         || !isNamed(parts[2], 'axis')) return undefined;

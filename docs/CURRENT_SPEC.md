@@ -3302,8 +3302,8 @@ Median = Data .Age median
 Data .Age = Data .Age pad Median
 ```
 
-Statistical reductions on table columns are expected to ignore `missing` by
-default unless explicitly configured otherwise.
+The `mean`, `median` and `std` statistical reductions ignore missing cells in a
+projected table column. If no cells remain, they raise `.EmptyReduction`.
 
 ## Boolean rows
 
@@ -3487,7 +3487,8 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Axis reductions
 
-`sum`, `mean`, `std`, `min`, `max`, `all`, `any` and `count` without modifiers
+`sum`, `mean`, `median`, `std`, `min`, `max`, `all`, `any` and `count` without
+modifiers
 reduce every element. `axis` reduces only the named axes and preserves the
 remaining axes in their original order:
 
@@ -3495,6 +3496,7 @@ remaining axes in their original order:
 Total = A sum
 Rows = A mean axis 1
 Columns = A mean axis 0
+Middle = A median axis 0
 Spread = A std axis 0
 Planes = T sum axis 0 2
 Lows = A min axis 0
@@ -3509,8 +3511,9 @@ RowLoss = Pred Target mae axis 1
 An axis list is treated as a set, so its written order does not affect the
 result. Every axis must exist and may appear only once. Empty `sum` and `count`
 cells return zero; empty `all` and `any` cells return `true` and `false`; an
-empty `mean`, `std`, `min` or `max` raises `.EmptyReduction`. `mean` and `std`
-always return real values. `std` uses the population denominator `N`.
+empty `mean`, `median`, `std`, `min` or `max` raises `.EmptyReduction`. `mean`,
+`median` and `std` always return real values. `std` uses the population
+denominator `N`.
 
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
@@ -4457,12 +4460,13 @@ labels
 
 ## Stats
 
-`use stats` provides arithmetic mean, population standard deviation, error
-metrics and sample covariance:
+`use stats` provides arithmetic mean, median, population standard deviation,
+error metrics and sample covariance:
 
 ```rank
 Average = Values mean
 Rows = Matrix mean axis 1
+Middle = Values median
 Spread = Values std
 Columns = Matrix std axis 0
 Loss = Pred Target mse
@@ -4471,11 +4475,14 @@ Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
 
-`mean` and `std` accept a numeric array or finite sequence and always return a
-`real`. `std` divides by the population denominator `N`. An empty input raises
-`.EmptyReduction`. Both operations support `rank` and `axis`; tensor behavior
-is described in [Tensors](../language/tensors.md). `std` rejects nonfinite
-cells with `.DomainError`.
+`mean`, `median` and `std` accept a numeric array or finite sequence and always
+return a `real`. They skip missing cells in a projected table column. An empty
+input, including a column containing only missing cells, raises
+`.EmptyReduction`. `median` sorts a copy, selects the middle value for an odd
+count and averages the two middle values for an even count. `std` divides by
+the population denominator `N`. All three operations support `rank` and `axis`;
+tensor behavior is described in [Tensors](../language/tensors.md). `median` and
+`std` reject nonfinite cells with `.DomainError`.
 
 `mse` and `mae` calculate mean squared error and mean absolute error between
 two numeric values, finite sequences or arrays:
