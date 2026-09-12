@@ -5887,7 +5887,8 @@ function alreadyCompared(
     return false;
 }
 
-function typeName(value: RankValue): string {
+/** The name `type` reports, and the vocabulary static analysis mirrors. */
+export function typeName(value: RankValue): string {
     // Primitives name themselves far more often than anything else, so they
     // decide before the class test none of them can ever satisfy.
     if (typeof value === 'bigint') return 'integer';

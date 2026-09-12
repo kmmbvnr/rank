@@ -1,6 +1,6 @@
 import { Interpreter, RankError, parse } from 'rank-interpreter';
 import {
-    analyzeWithImports, moduleForms, moduleOperations, modules,
+    analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
 } from 'rank-language';
 import chalk from 'chalk';
@@ -208,7 +208,9 @@ function bindingLine(binding: Binding): string {
         ...(binding.unused ? ['never read'] : [`read ${binding.reads.length}x`]),
     ];
     const where = `${binding.bound.line}:${binding.bound.column}`;
+    const types = describeTypes(binding.types);
     return `${binding.name.padEnd(16)} ${binding.kind.padEnd(10)} ${where.padEnd(8)} `
+        + `${types === 'unknown' ? chalk.dim(types.padEnd(16)) : types.padEnd(16)} `
         + chalk.dim(flags.join(', '));
 }
 

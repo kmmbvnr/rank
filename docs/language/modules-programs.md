@@ -112,10 +112,16 @@ standard-library names the program calls, the ones whose module it forgot to
 open, and any word that is neither. Reading a source module with `use "file"`
 brings that module's names along, so a test file resolves the names it borrows.
 
-The facts come from the syntax tree and the operation catalogue, so they are
-exact rather than inferred: nothing here guesses a type. A name reported under
-`needs a use` is a program that cannot run, and `rank explain` exits nonzero
-when it reports one.
+Each name also carries the runtime types it may hold, taken from literals,
+constructors, declared `option` and `argument` types, operators and the
+catalogue. Rank states no types, so many names report `unknown`, and that is the
+intended answer rather than a gap to fill with a guess: a parameter, a loop
+value and anything a user function returns all report it. What the pass does
+say is checked against the runtime over the whole demo corpus, so a reported
+type is one the program will really produce.
+
+A name reported under `needs a use` is a program that cannot run, and
+`rank explain` exits nonzero when it reports one.
 
 ## Program inputs
 

@@ -5,3 +5,4 @@ export * from './generated/grammar.js';
 export * from './generated/module.js';
 export * from './operations.js';
 export * from './analysis/bindings.js';
+export * from './analysis/types.js';

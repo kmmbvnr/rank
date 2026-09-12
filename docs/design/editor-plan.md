@@ -218,17 +218,28 @@ false positive by construction, and the suite asserts there are none. Getting
 there found five CSES graph demos that call `reshape` without `use sequences`
 and could never have run; `rank check` passed all five, because they parse.
 
-### B3 — type facts (medium)
+### B3 — type facts (landed, first pass)
 
-A lattice over the runtime's own `typeName` strings plus an explicit `unknown`.
-Propagate through literals, operators and the catalogue's result kinds; record
-per name whether one type is settled or several are possible.
+`packages/language/src/analysis/types.ts` propagates the runtime's own type
+names through literals, constructors, declared inputs, operators and the
+catalogue's result kinds. Each binding carries the set of types it may hold, and
+an empty set means `unknown`, which `rank explain` prints as a word of its own.
 
-Two rules keep it honest. `unknown` is a first-class answer and the surface must
-show it — Rank has no type annotations, so a static pass will often have nothing
-to say, and a guessed type is worse than a blank. And the analyzer must never
-contradict the runtime: every inferred fact is checked against A3's observed
-facts over the corpus, and a disagreement is an inference bug.
+The two rules held. `unknown` is a first-class answer: a parameter, a loop value
+and anything a user function returns all report it, and roughly a fifth of
+program names still do. And the analyzer never contradicts the runtime, which is
+not an aspiration but a test: `types.test.ts` runs every demo that needs no host
+— 453 of them — and checks each program name against the value its run
+produced. Zero contradictions, four names in five settled.
+
+That harness paid for itself immediately. It caught `(Range sum) ** 2` inferred
+as real when integers can stay integer, and the coverage number it reports
+exposed that the two-word comparisons reach the tree joined, so `multipleby` and
+`atleast` had silently matched nothing at all.
+
+Still open, and each would lift coverage: the return type of a user function,
+the element type of a loop, and rank-aware broadcasting between an array and a
+sequence.
 
 ### B4 — shape and rank inference (large, last)
 

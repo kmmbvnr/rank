@@ -133,3 +133,108 @@ describe('binding facts', () => {
         expect(named(result, 'program', 'Models').reads).toHaveLength(1);
     });
 });
+
+describe('type facts', () => {
+    it('reads literals, constructors and declared inputs', async () => {
+        const result = await facts([
+            'use algo',
+            'option Limit integer = 10',
+            'flag Verbose',
+            'N = 3',
+            'R = 1.5',
+            'T = "text"',
+            'L = .missing',
+            'A = array 1 2',
+            'Q = new queue',
+        ]);
+        expect(named(result, 'program', 'Limit').types).toEqual(['integer']);
+        expect(named(result, 'program', 'Verbose').types).toEqual(['boolean']);
+        expect(named(result, 'program', 'N').types).toEqual(['integer']);
+        expect(named(result, 'program', 'R').types).toEqual(['real']);
+        expect(named(result, 'program', 'T').types).toEqual(['text']);
+        expect(named(result, 'program', 'L').types).toEqual(['symbol']);
+        expect(named(result, 'program', 'A').types).toEqual(['array']);
+        expect(named(result, 'program', 'Q').types).toEqual(['queue']);
+    });
+
+    it('follows the arithmetic the runtime performs', async () => {
+        const result = await facts([
+            'Sum = 1 + 2',
+            'Mixed = 1 + 2.5',
+            'Ratio = 4 / 2',
+            'Whole = 7 // 2',
+            'Power = 2 ** 3',
+            'Joined = "a" + "b"',
+            'Test = 3 less 4',
+        ]);
+        expect(named(result, 'program', 'Sum').types).toEqual(['integer']);
+        expect(named(result, 'program', 'Mixed').types).toEqual(['real']);
+        // Exact division still produces a real.
+        expect(named(result, 'program', 'Ratio').types).toEqual(['real']);
+        expect(named(result, 'program', 'Whole').types).toEqual(['integer']);
+        // A negative exponent would make this real, and that is a value.
+        expect(named(result, 'program', 'Power').types).toEqual(['integer', 'real']);
+        expect(named(result, 'program', 'Joined').types).toEqual(['text']);
+        expect(named(result, 'program', 'Test').types).toEqual(['boolean']);
+    });
+
+    it('keeps the shape of an operator over a collection', async () => {
+        const result = await facts([
+            'use ranges', 'use numbers',
+            'Range = 1 until 10',
+            'Mask = Range multiple by 3',
+            'Values = array 1 2 3',
+            'Shifted = Values + 1',
+            'Flags = Values greater 1',
+        ]);
+        expect(named(result, 'program', 'Range').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Mask').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Shifted').types).toEqual(['array']);
+        expect(named(result, 'program', 'Flags').types).toEqual(['array']);
+    });
+
+    it('takes the result kind from the catalogue', async () => {
+        const result = await facts([
+            'use numbers', 'use text', 'use sequences',
+            'Root = 9 sqrt',
+            'Parts = "a b" " " split',
+            'Divisors = 12 divisors',
+            'Size = Parts len',
+        ]);
+        expect(named(result, 'program', 'Root').types).toEqual(['real']);
+        expect(named(result, 'program', 'Parts').types).toEqual(['array']);
+        expect(named(result, 'program', 'Divisors').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Size').types).toEqual(['integer']);
+    });
+
+    it('says nothing where nothing is proved', async () => {
+        const result = await facts([
+            'fun choose Flag',
+            '  if Flag',
+            '    return 1',
+            '  end',
+            '  return "one"',
+            'end',
+            'Either = true choose',
+            'Element = (array 1 2) 0',
+        ]);
+        expect(named(result, 'program', 'Either').types).toEqual([]);
+        expect(named(result, 'program', 'Element').types).toEqual([]);
+        // A parameter hides the catalogue word of the same spelling; only a
+        // variable may be assigned, so shadowing happens through binding forms.
+        const shadowed = await facts([
+            'use numbers',
+            'fun apply sqrt',
+            '  A = 9 sqrt',
+            '  return A',
+            'end',
+        ]);
+        expect(named(shadowed, 'apply', 'A').types).toEqual([]);
+    });
+
+    it('widens a name that is written twice', async () => {
+        const result = await facts(['A = 1', 'A = 2', 'B = 1', 'B = "text"']);
+        expect(named(result, 'program', 'A').types).toEqual(['integer']);
+        expect(named(result, 'program', 'B').types).toEqual(['integer', 'text']);
+    });
+});

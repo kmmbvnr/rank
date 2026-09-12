@@ -22,6 +22,9 @@ import {
 } from '../generated/ast.js';
 import type { AstNode } from 'langium';
 import { findOperation } from '../operations.js';
+import {
+    compoundType, declaredType, typeOf, unionTypes, UNKNOWN, type Types,
+} from './types.js';
 
 /** A one-based position in the source. */
 export interface Site {
@@ -49,6 +52,12 @@ export interface Binding {
     readonly loopCarried: boolean;
     /** Hides a name of the same spelling in the program scope. */
     readonly shadows: boolean;
+    /**
+     * Runtime types the name may hold. Empty means unknown, which is the
+     * honest answer for a parameter, a loop value or anything a user function
+     * returns: Rank states no types, so most names have none to report.
+     */
+    readonly types: Types;
 }
 
 export type ScopeKind = 'program' | 'function' | 'test';
@@ -144,6 +153,7 @@ interface Slot {
     readonly writeDepths: Set<number>;
     readonly readDepths: Set<number>;
     shadows: boolean;
+    types: Types;
 }
 
 interface ScopeState {
@@ -237,7 +247,9 @@ class Analyzer {
      */
     private block(statements: readonly Statement[], nested: ScopeState[]): void {
         for (const statement of statements) {
-            if (isFunctionStatement(statement)) this.bind(statement.name, 'function', statement);
+            if (isFunctionStatement(statement)) {
+                this.bind(statement.name, 'function', statement, ['function']);
+            }
         }
         for (const statement of statements) this.statement(statement, nested);
     }
@@ -277,7 +289,11 @@ class Analyzer {
             // A compound operator reads the name before it writes it.
             if (statement.operator !== '=') this.read(statement.name, statement);
             this.expression(statement.value);
-            this.bind(statement.name, 'assignment', statement);
+            const value = this.typeOf(statement.value);
+            this.bind(statement.name, 'assignment', statement, statement.operator === '='
+                ? value
+                : compoundType(statement.operator,
+                    this.lookup(statement.name)?.types ?? UNKNOWN, value));
             return;
         }
         if (isArrayAssignmentStatement(statement)) {
@@ -320,11 +336,11 @@ class Analyzer {
         if (isOptionStatement(statement) || isArgumentStatement(statement)) {
             if (statement.defaultValue) this.expression(statement.defaultValue);
             this.bind(statement.name, isOptionStatement(statement) ? 'option' : 'argument',
-                statement);
+                statement, declaredType(statement.valueType, statement.many === true));
             return;
         }
         if (isFlagStatement(statement)) {
-            this.bind(statement.name, 'flag', statement);
+            this.bind(statement.name, 'flag', statement, ['boolean']);
             return;
         }
         if (isPushStatement(statement)) {
@@ -443,12 +459,12 @@ class Analyzer {
         if (isStdinExpression(expression)) this.expression(expression.count);
     }
 
-    private bind(name: string, kind: BindingKind, node: AstNode): void {
+    private bind(name: string, kind: BindingKind, node: AstNode, types: Types = UNKNOWN): void {
         const scope = this.scopes.at(-1)!;
         const existing = scope.slots.get(name);
         if (existing === undefined) {
             scope.slots.set(name, {
-                name, kind, bound: site(node),
+                name, kind, bound: site(node), types,
                 writes: [site(node)], reads: [],
                 writeDepths: new Set([this.loopDepth]), readDepths: new Set(),
                 shadows: scope !== this.program && this.program.slots.has(name),
@@ -457,8 +473,16 @@ class Analyzer {
         }
         existing.writes.push(site(node));
         existing.writeDepths.add(this.loopDepth);
+        // A second write widens the fact rather than replacing it.
+        existing.types = unionTypes(existing.types, types);
     }
 
+    /** The type of an expression, read against the scopes now in force. */
+    private typeOf(expression: Expression | undefined): Types {
+        return typeOf(expression, name => this.lookup(name)?.types);
+    }
+
+    /** An element or field write: the name keeps its kind but loses its type. */
     private write(name: string, node: AstNode): void {
         const slot = this.lookup(name);
         if (slot === undefined) {
@@ -551,6 +575,7 @@ function finish(scope: ScopeState): ScopeFacts {
         loopCarried: [...slot.writeDepths].some(depth =>
             depth > 0 && slot.readDepths.has(depth)),
         shadows: slot.shadows,
+        types: slot.types,
     }));
     return { kind: scope.kind, name: scope.name, at: scope.at, bindings };
 }
