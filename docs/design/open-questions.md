@@ -131,11 +131,11 @@ The exact diagnostic policy and any source annotation remain undecided.
 
 ## Join variants
 
-`leftjoin by`, `innerjoin by` and explicit key pairs with `on` are current for
-array-backed tables. Remaining questions are right/full joins, optional
-cardinality validation, and how the current SQLite-backed source translates
-joins into SQL and declares row order. Duplicate non-key names currently
-raise `.TypeError` until an explicit rename operation is designed.
+`leftjoin by`, `innerjoin by` and explicit `equal` key pairs with `on` work on
+arrays and SQLite views. Short table aliases preserve colliding fields in
+nested row scopes; flat joins still reject duplicate non-key names. Remaining
+questions are right/full joins, optional cardinality validation, ordering
+after SQL joins, and lazy output field naming for nested views.
 
 ## Stack / combine
 

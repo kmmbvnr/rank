@@ -9,11 +9,13 @@ import {
     isRankSqliteDatabase,
     isRankSqliteExpression,
     isRankSqliteTable,
+    isRankTableAlias,
     type RankArray,
     type RankObject,
     type RankSqliteDatabase,
     type RankSqliteExpression,
     type RankSqliteTable,
+    type RankSqliteScope,
     type RankValue,
 } from '../value.js';
 import { native } from './shared.js';
@@ -78,7 +80,7 @@ export function sqliteTable(database: RankSqliteDatabase, name: string): RankSql
 
 export function materializeSqlite(table: RankSqliteTable): RankArray {
     return withConnection(table.database, connection =>
-        resultRows(connection.prepare(table.text), table.params));
+        resultRows(connection.prepare(table.text), table.params, table.scopes));
 }
 
 export function sqliteColumns(table: RankSqliteTable): readonly string[] {
@@ -111,6 +113,19 @@ export function sqliteColumn(table: RankSqliteTable, name: string): RankSqliteEx
     return { kind: 'sqlite-expression', table, text: quote(name), params: [], boolean: false };
 }
 
+export function sqliteScope(table: RankSqliteTable, name: string): RankSqliteScope {
+    if (!table.scopes?.has(name)) throw new RankError(`SQLite scope does not exist: .${name}`, 'Missing');
+    return { kind: 'sqlite-scope', table, name };
+}
+
+export function sqliteScopedColumn(scope: RankSqliteScope, name: string): RankSqliteExpression {
+    if (!scope.table.scopes?.get(scope.name)?.includes(name)) {
+        throw new RankError(`SQLite column does not exist: .${scope.name} .${name}`, 'Missing');
+    }
+    return { kind: 'sqlite-expression', table: scope.table,
+        text: quote(`${scope.name}.${name}`), params: [], boolean: false };
+}
+
 export function projectSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
     if (fields.length === 0) {
         throw new RankError('SQLite projection requires at least one field', 'TypeError');
@@ -128,21 +143,21 @@ export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpres
     if (predicate.table !== table || !predicate.boolean) {
         throw new RankError('SQLite filter expects a boolean expression from this table', 'TypeError');
     }
-    return { kind: 'sqlite-table', database: table.database,
+    return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
         text: `SELECT * FROM (${table.text}) AS source WHERE ${predicate.text}`,
         params: [...table.params, ...predicate.params] };
 }
 
 export function sortSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
     for (const field of fields) requireColumn(table, field);
-    return { kind: 'sqlite-table', database: table.database,
+    return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
         text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map(quote).join(', ')}`,
         params: table.params };
 }
 
 export function uniqueSqlite(table: RankSqliteTable): RankSqliteTable {
     sqliteColumns(table);
-    return { kind: 'sqlite-table', database: table.database,
+    return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
         text: `SELECT DISTINCT * FROM (${table.text}) AS source`, params: table.params };
 }
 
@@ -174,6 +189,35 @@ export function joinSqlite(
     return { kind: 'sqlite-table', database: left.database,
         text: `SELECT ${select} FROM (${left.text}) AS l ${mode === 'leftjoin' ? 'LEFT' : 'INNER'} JOIN (${right.text}) AS r ON ${keys}`,
         params: [...left.params, ...right.params] };
+}
+
+export function joinAliasedSqlite(
+    left: RankSqliteTable, right: RankSqliteTable, leftName: string, rightName: string,
+    leftFields: readonly string[], rightFields: readonly string[], mode: 'leftjoin' | 'innerjoin',
+): RankSqliteTable {
+    if (leftName === rightName) throw new RankError(`${mode} aliases must differ`, 'TypeError');
+    if (left.database.path !== right.database.path || leftFields.length !== rightFields.length
+        || new Set(leftFields).size !== leftFields.length
+        || new Set(rightFields).size !== rightFields.length) {
+        throw new RankError('SQLite join expects one database and distinct aligned keys', 'TypeError');
+    }
+    const leftNames = sqliteColumns(left);
+    const rightNames = sqliteColumns(right);
+    for (const field of leftFields) if (!leftNames.includes(field)) requireColumn(left, field);
+    for (const field of rightFields) if (!rightNames.includes(field)) requireColumn(right, field);
+    const l = quote(leftName);
+    const r = quote(rightName);
+    const select = [
+        ...leftNames.map(name => `${l}.${quote(name)} AS ${quote(`${leftName}.${name}`)}`),
+        ...rightNames.map(name => `${r}.${quote(name)} AS ${quote(`${rightName}.${name}`)}`),
+    ].join(', ');
+    const keys = leftFields.map((name, index) =>
+        compatibleEquality(`${l}.${quote(name)}`, `${r}.${quote(rightFields[index])}`)).join(' AND ');
+    return { kind: 'sqlite-table', database: left.database,
+        text: `SELECT ${select} FROM (${left.text}) AS ${l} ${mode === 'leftjoin' ? 'LEFT' : 'INNER'} JOIN (${right.text}) AS ${r} ON ${keys}`,
+        params: [...left.params, ...right.params],
+        scopes: new Map([[leftName, leftNames], [rightName, rightNames]]),
+    };
 }
 
 const sqlOperators: Readonly<Record<string, string>> = {
@@ -253,12 +297,28 @@ export function materializeSqliteExpression(expression: RankSqliteExpression): R
 function resultRows(
     statement: ReturnType<RankSqliteConnection['prepare']>,
     params: readonly SqliteScalar[],
+    scopes?: ReadonlyMap<string, readonly string[]>,
 ): RankArray {
     const columns = [...statement.columns()];
     if (new Set(columns).size !== columns.length) {
         throw new RankError('SQLite result columns must have unique names', 'TypeError');
     }
+    const firstScope = scopes?.keys().next().value;
     const items: RankValue[] = statement.all(params).map(row => {
+        if (scopes) {
+            const entries = new Map<string, RankValue>();
+            for (const [scope, fields] of scopes) {
+                const nested = new Map<string, RankValue>();
+                for (const field of fields) {
+                    const value = row[`${scope}.${field}`];
+                    if (value !== null && value !== undefined) nested.set(field, fromSqlite(value));
+                }
+                if (nested.size > 0 || scope === firstScope) {
+                    entries.set(scope, { kind: 'object', entries: nested });
+                }
+            }
+            return { kind: 'object', entries } satisfies RankObject;
+        }
         const entries = new Map<string, RankValue>();
         for (const name of columns) {
             const value = row[name];
@@ -266,7 +326,9 @@ function resultRows(
         }
         return { kind: 'object', entries } satisfies RankObject;
     });
-    return { kind: 'array', items, shape: [items.length], columnNames: columns };
+    return { kind: 'array', items, shape: [items.length],
+        columnNames: scopes ? [...scopes.keys()] : columns,
+        tableScopes: scopes ? [...scopes.keys()] : undefined };
 }
 
 function toSqlite(value: RankValue): SqliteScalar {
@@ -285,6 +347,7 @@ function fromSqlite(value: SqliteScalar): RankValue {
 }
 
 function expectTable(value: RankValue, operation: string): RankSqliteTable {
+    if (isRankTableAlias(value)) value = value.source;
     if (!isRankSqliteTable(value)) throw new RankError(`${operation} expects a SQLite table`, 'TypeError');
     return value;
 }

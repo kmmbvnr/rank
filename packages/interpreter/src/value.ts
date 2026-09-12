@@ -17,6 +17,7 @@ interface RankArrayValue {
     readonly itemAt?: (index: number) => RankValue;
     readonly containsFiles?: false;
     readonly columnNames?: readonly string[];
+    readonly tableScopes?: readonly string[];
 }
 
 export interface RankPlainArray extends RankArrayValue {
@@ -58,6 +59,21 @@ export interface RankSqliteTable {
     readonly database: RankSqliteDatabase;
     readonly text: string;
     readonly params: readonly SqliteScalar[];
+    readonly scopes?: ReadonlyMap<string, readonly string[]>;
+}
+
+/** A named role for one side of a table join. */
+export interface RankTableAlias {
+    readonly kind: 'table-alias';
+    readonly name: string;
+    readonly source: RankArray | RankSqliteTable;
+}
+
+/** A column namespace in a lazy SQLite join result. */
+export interface RankSqliteScope {
+    readonly kind: 'sqlite-scope';
+    readonly table: RankSqliteTable;
+    readonly name: string;
 }
 
 /** An unevaluated column or predicate tied to one SQLite table view. */
@@ -222,7 +238,7 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankSqliteDatabase | RankSqliteTable | RankSqliteExpression |
+    RankSqliteDatabase | RankSqliteTable | RankSqliteExpression | RankTableAlias | RankSqliteScope |
     RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankGroupedColumn | NativeFunction |
@@ -253,6 +269,14 @@ export function isRankSqliteTable(value: RankValue): value is RankSqliteTable {
 
 export function isRankSqliteExpression(value: RankValue): value is RankSqliteExpression {
     return typeof value === 'object' && value.kind === 'sqlite-expression';
+}
+
+export function isRankTableAlias(value: RankValue): value is RankTableAlias {
+    return typeof value === 'object' && value.kind === 'table-alias';
+}
+
+export function isRankSqliteScope(value: RankValue): value is RankSqliteScope {
+    return typeof value === 'object' && value.kind === 'sqlite-scope';
 }
 
 export function isRankBytes(value: RankValue): value is RankBytes {
@@ -388,6 +412,8 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'sqlite-database') return `<sqlite ${value.path}>`;
     if (value.kind === 'sqlite-table') return '<sqlite table>';
     if (value.kind === 'sqlite-expression') return '<sqlite expression>';
+    if (value.kind === 'sqlite-scope') return `<sqlite scope .${value.name}>`;
+    if (value.kind === 'table-alias') return `<table alias .${value.name}>`;
     if (value.kind === 'queue') {
         return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }

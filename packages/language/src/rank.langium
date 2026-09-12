@@ -219,6 +219,7 @@ PowerExpression returns Expression:
         operator='**' right=PowerExpression)?;
 
 ApplicationExpression returns Expression:
+    AliasedTableExpression |
     KeyedSortExpression |
     KeyedGroupExpression |
     KeyedJoinExpression |
@@ -226,6 +227,10 @@ ApplicationExpression returns Expression:
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
     ({infer MaterializeExpression.source=current} 'array')?;
+
+AliasedTableExpression:
+    source=PrimaryExpression field=LabelLiteral?
+    'alias' name=LabelLiteral;
 
 KeyedSortExpression:
     source=PrimaryExpression operator=(SORT_BY | ARGSORT_BY)
@@ -237,10 +242,10 @@ KeyedGroupExpression:
 KeyedJoinExpression:
     left=PrimaryExpression right=PrimaryExpression
     (operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
-     operator=(LEFTJOIN_ON | INNERJOIN_ON) pairs+=JoinFieldPair+);
+     operator=(LEFTJOIN_ON | INNERJOIN_ON) NL* pairs+=JoinFieldPair+);
 
 JoinFieldPair:
-    left=LabelLiteral '=' right=LabelLiteral;
+    left=LabelLiteral 'equal' right=LabelLiteral;
 
 UnaryExpression returns Expression:
     UnpackExpression |

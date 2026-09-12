@@ -161,11 +161,32 @@ test('left join keeps absent right columns in an empty-first-row CSV', () => fix
     const output = path.join(directory, 'joined.csv');
     const result = runSource(directory, `use tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
         + 'Requests = Db .requests\nRecs = Db .recommenders\n'
-        + 'Joined = Requests Recs leftjoin on .recommendedby = .memid\n'
+        + 'Joined = Requests Recs leftjoin on .recommendedby equal .memid\n'
         + 'Result = Joined (array .requestid .recname)\n'
         + `Result ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(fs.readFileSync(output, 'utf8'), 'requestid,recname\n1,\n2,Anne\n');
+}));
+
+test('aliased self join stays in SQLite and exposes nested fields', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE members (memid INTEGER, firstname TEXT, recommendedby INTEGER); '
+        + "INSERT INTO members VALUES (1, 'Ada', NULL), (2, 'Bea', 1)");
+    db.close();
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'M = Db .members alias .m\nR = Db .members alias .r\n'
+        + 'J = M R leftjoin on\n  .recommendedby equal .memid\n'
+        + 'Q = J sql\nQ .text print\n'
+        + 'F = J (J .m .firstname equal "Bea")\nF len print\nRows = J array\n'
+        + 'Rows .m .firstname print\nRF = Rows .r .firstname pad ""\nRF print\n');
+    assert.equal(result.status, 0, result.stderr);
+    const lines = result.stdout.trimEnd().split('\n');
+    assert.match(lines[0], /LEFT JOIN/);
+    assert.match(lines[0], /AS "m\.firstname"/);
+    assert.match(lines[0], /AS "r\.firstname"/);
+    assert.equal(lines[1], '1');
+    assert.equal(lines[2], 'Ada Bea');
+    assert.equal(lines[3], ' Ada');
 }));
 
 test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture((directory, dbPath) => {

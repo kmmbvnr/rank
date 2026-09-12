@@ -3241,6 +3241,13 @@ stays integer, and row order is unspecified unless the SQL query orders it.
 
 SQLite table views support lazy field projection, comparisons and boolean
 masks, `innerjoin by/on`, `leftjoin by/on`, `unique` and field-keyed `sort by`.
+`M = Db .members alias .m` gives a table view a join role without reading or
+renaming columns. Two aliased operands must have distinct names and both be
+rank-1 array tables or SQLite views. Their join keeps each row's fields under
+the corresponding nested label, for example `J .m .firstname` and
+`J .r .firstname`; an unmatched right scope is absent and can be filled with
+`pad` after materialization. The SQL join remains lazy until a terminal read.
+Aliasing an already scoped SQLite join is currently an error.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
 expression runs SQL `SUM`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
@@ -3491,23 +3498,27 @@ matched rows. The same field names on both sides are listed without `array`:
 Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
 
-When corresponding fields have different names, list explicit pairs:
+When corresponding fields have different names, list explicit `equal` pairs:
 
 ```rank
-Matched = Orders Customers innerjoin on .o_custkey = .c_custkey
+Matched = Orders Customers innerjoin on
+  .o_custkey equal .c_custkey
 ```
 
-Several pairs may follow `on` in left-to-right order. Keys use Rank's value
-equality, so integer `1` and real `1.0` match but text `"1"` does not. Missing
+Several pairs may follow `on` in left-to-right order, and the line may break
+immediately after `on`. Aliased table joins retain two nested row objects; the
+flat collision rule below applies to joins without aliases. Keys use Rank's
+value equality, so integer `1` and real `1.0` match but text `"1"` does not. Missing
 join keys never match. Repeated right keys multiply matching rows. Array-backed
 joins preserve left row order and, within each left row, right row order. The
-right key columns are omitted; a shared non-key column name raises `.TypeError`
-instead of being renamed automatically. Unmatched right fields are missing and
+right key columns of a flat join are omitted; a shared non-key column name
+raises `.TypeError` instead of being renamed automatically. Unmatched right
+fields are missing and
 can be projected with `pad`. A nonexistent key field raises `.Missing`.
 
-These operations currently work on rank-1 arrays of object rows. SQLite-backed
-table sources and SQL pushdown are future work; a database source will need an
-explicit ordering contract where row order matters.
+The same joins compile to SQL for SQLite-backed table views. A nested aliased
+result must be materialized before sorting by its nested fields. A database
+source needs an explicit ordering contract where row order matters.
 
 ## Labels
 

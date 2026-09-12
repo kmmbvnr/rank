@@ -21,6 +21,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     isAddStatement,
+    isAliasedTableExpression,
     isAllAxisExpression,
     isArrayAssignmentStatement,
     isArrayExpression,
@@ -99,10 +100,11 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
-import { groupTable, joinTables, projectField, projectFields } from './modules/tables.js';
+import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields } from './modules/tables.js';
 import {
-    binarySqlite, filterSqlite, joinSqlite, materializeSqlite,
-    materializeSqliteExpression, projectSqlite, sortSqlite, sqliteColumn, sqliteTable,
+    binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
+    materializeSqliteExpression, projectSqlite, sortSqlite, sqliteColumn, sqliteScope,
+    sqliteScopedColumn, sqliteTable,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -140,6 +142,8 @@ import {
     isRankSqliteDatabase,
     isRankSqliteExpression,
     isRankSqliteTable,
+    isRankSqliteScope,
+    isRankTableAlias,
     isRankQueue,
     isRankRecord,
     isRankSet,
@@ -1638,6 +1642,25 @@ export class Interpreter {
                 return record;
             };
         }
+        if (isAliasedTableExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', 'alias');
+                let source = yield* resume(interpreter.evaluateTask(expression.source));
+                if (expression.field) {
+                    if (!isRankSqliteDatabase(source)) {
+                        throw new RankError('alias source field expects a SQLite database', 'TypeError');
+                    }
+                    source = sqliteTable(source, expression.field.name);
+                }
+                if (isRankSqliteTable(source) && source.scopes) {
+                    throw new RankError('alias of a joined SQLite view is not supported yet', 'TypeError');
+                }
+                if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
+                    throw new RankError('alias expects a rank-1 table or SQLite view', 'TypeError');
+                }
+                return { kind: 'table-alias', source, name: expression.name.name };
+            };
+        }
         if (isKeyedSortExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const operation = expression.operator.startsWith('argsort')
@@ -1698,6 +1721,20 @@ export class Interpreter {
                 const rightFields = expression.pairs.length > 0
                     ? expression.pairs.map(pair => pair.right.name)
                     : leftFields;
+                if (isRankTableAlias(left) && isRankTableAlias(right)) {
+                    if (isRankSqliteTable(left.source) && isRankSqliteTable(right.source)) {
+                        return joinAliasedSqlite(left.source, right.source, left.name, right.name,
+                            leftFields, rightFields, mode);
+                    }
+                    if (isRankArray(left.source) && isRankArray(right.source)) {
+                        return joinAliasedTables(left.source, right.source, left.name, right.name,
+                            leftFields, rightFields, mode);
+                    }
+                    throw new RankError(`${mode} expects two aliases of the same table kind`, 'TypeError');
+                }
+                if (isRankTableAlias(left) || isRankTableAlias(right)) {
+                    throw new RankError(`${mode} requires aliases on both sides`, 'TypeError');
+                }
                 if (isRankSqliteTable(left) && isRankSqliteTable(right)) {
                     return joinSqlite(left, right, leftFields, rightFields, mode);
                 }
@@ -1863,6 +1900,9 @@ export class Interpreter {
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(interpreter.evaluateTask(expression.source)));
+                if (isRankTableAlias(source) && isRankSqliteTable(source.source)) {
+                    return materializeSqlite(source.source);
+                }
                 if (isRankSqliteTable(source)) return materializeSqlite(source);
                 if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
                 if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence or SQLite table');
@@ -3194,6 +3234,21 @@ export class Interpreter {
     }
 
     private applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+        if (isScopedSelectorChain(values)) {
+            if (values.length === 3 && isRankArray(values[0])) {
+                const scope = isRankLabel(values[1]) ? values[1].name : values[1] as string;
+                const field = isRankLabel(values[2]) ? values[2].name : values[2] as string;
+                return projectAliasedField(values[0], scope, field, missing);
+            }
+            let selected = values[0];
+            for (const selector of values.slice(1)) {
+                selected = this.applySelectors([selected, selector], missing);
+            }
+            return selected;
+        }
+        if (values.length === 2 && isRankTableAlias(values[0])) {
+            return this.applySelectors([values[0].source, values[1]], missing);
+        }
         if (values.length === 2 && isRankSqliteDatabase(values[0]) && isRankLabel(values[1])) {
             this.requireModule('tables', 'SQLite table selection');
             return sqliteTable(values[0], values[1].name);
@@ -3203,6 +3258,9 @@ export class Interpreter {
             const table = values[0];
             const selector = values[1];
             if (isRankLabel(selector) || typeof selector === 'string') {
+                if (table.scopes?.has(isRankLabel(selector) ? selector.name : selector)) {
+                    return sqliteScope(table, isRankLabel(selector) ? selector.name : selector);
+                }
                 return sqliteColumn(table, isRankLabel(selector) ? selector.name : selector);
             }
             if (isRankArray(selector) && isTableFieldList(selector, true)) {
@@ -3210,6 +3268,10 @@ export class Interpreter {
                     isRankLabel(item) ? item.name : item as string));
             }
             if (isRankSqliteExpression(selector)) return filterSqlite(table, selector);
+        }
+        if (values.length === 2 && isRankSqliteScope(values[0])
+            && (isRankLabel(values[1]) || typeof values[1] === 'string')) {
+            return sqliteScopedColumn(values[0], isRankLabel(values[1]) ? values[1].name : values[1]);
         }
         if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])
             && isTableFieldList(values[1], this.modules.has('tables'))) {
@@ -4595,6 +4657,13 @@ function seedableRandom(source?: () => number): SeedableRandom {
 }
 
 function canApplySelectors(values: RankValue[]): boolean {
+    if (isScopedSelectorChain(values)) return true;
+    if (values.length === 2 && isRankTableAlias(values[0])) {
+        return canApplySelectors([values[0].source, values[1]]);
+    }
+    if (values.length === 2 && isRankSqliteScope(values[0])) {
+        return isRankLabel(values[1]) || typeof values[1] === 'string';
+    }
     if (values.length === 2 && isRankGroupedTable(values[0]) && isRankLabel(values[1])) return true;
     if (values.length === 2 && isRankSqliteTable(values[0])) {
         return isRankLabel(values[1]) || typeof values[1] === 'string'
@@ -4646,6 +4715,16 @@ function canApplySelectors(values: RankValue[]): boolean {
         return canApplySelectors(values.slice(0, -1));
     }
     return false;
+}
+
+function isScopedSelectorChain(values: readonly RankValue[]): boolean {
+    if (values.length < 3 || !values.slice(1).every(value =>
+        isRankLabel(value) || typeof value === 'string')) return false;
+    const source = values[0];
+    const first = values[1];
+    const name = isRankLabel(first) ? first.name : first as string;
+    return (isRankSqliteTable(source) && source.scopes?.has(name) === true)
+        || (isRankArray(source) && source.tableScopes?.includes(name) === true);
 }
 
 function unpackApplicationItems(value: RankValue): RankValue[] {

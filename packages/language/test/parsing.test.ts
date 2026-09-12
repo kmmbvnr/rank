@@ -5,6 +5,7 @@ import {
     type Program,
     createRankServices,
     isApplicationExpression,
+    isAliasedTableExpression,
     isArrayAssignmentStatement,
     isAssignmentStatement,
     isBinaryExpression,
@@ -64,7 +65,7 @@ describe('Rank grammar', () => {
             'Several = Rows group by .store .family .weekday',
             'Left = Test Means leftjoin by .store .family .weekday',
             'Inner = Orders Customers innerjoin by .custkey',
-            'Mapped = Orders Customers innerjoin on .o_custkey = .c_custkey',
+            'Mapped = Orders Customers innerjoin on .o_custkey equal .c_custkey',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -84,6 +85,22 @@ describe('Rank grammar', () => {
         if (!isKeyedJoinExpression(statements[4].value)) return;
         expect(statements[4].value.pairs.map(pair => [pair.left.name, pair.right.name]))
             .toEqual([['o_custkey', 'c_custkey']]);
+    });
+
+    it('parses table aliases without parentheses and a folded equal join', async () => {
+        const document = await parse([
+            'M = Db .members alias .m',
+            'R = Db .members alias .r',
+            'J = M R leftjoin on',
+            '  .recommendedby equal .memid',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statements = document.parseResult.value.statements;
+        if (!statements.every(isAssignmentStatement)) throw new Error('expected assignments');
+        expect(isAliasedTableExpression(statements[0].value)).toBe(true);
+        expect(isAliasedTableExpression(statements[1].value)).toBe(true);
+        expect(isKeyedJoinExpression(statements[2].value)).toBe(true);
     });
 
     it('parses a program and preserves operator precedence', async () => {

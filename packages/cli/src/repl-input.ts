@@ -220,8 +220,10 @@ export function expandAssignKey(line: string): string {
         const before = line.slice(at, start);
         const spaceLeft = !compound && before !== '' && !before.endsWith(' ');
         const spaceRight = item.end < line.length && line[item.end] !== ' ';
+        const joinPair = /\b(?:leftjoin|innerjoin)\s+on\b/.test(line.slice(0, item.start));
         result += before + (spaceLeft ? ' ' : '')
-            + (compound ? previous.text : '') + '=' + (spaceRight ? ' ' : '');
+            + (joinPair ? 'equal' : (compound ? previous.text : '') + '=')
+            + (spaceRight ? ' ' : '');
         at = item.end;
     }
     return at === 0 ? line : result + line.slice(at);
@@ -489,6 +491,9 @@ export function wrapLine(
 ): string[] {
     const full = indent + line;
     if (full.length <= limit) return [full];
+    // A join key pair is not a general comparison expression; its optional
+    // line break belongs after `on`, not before `equal`.
+    if (/\b(?:leftjoin|innerjoin)\s+on\b/.test(line)) return [full];
     const tokens = tokenize(line);
     const start = expressionStart(tokens);
     if (start === undefined || start >= tokens.length) return [full];
@@ -537,7 +542,7 @@ function expressionStart(tokens: readonly Token[]): number | undefined {
             continue;
         }
         if (depth !== 0 || item.kind !== 'word') continue;
-        // `leftjoin on .x = .y` spells a pair with `=`; nothing before it assigns.
+        // A join condition is an expression, even when the statement begins with assignment.
         if (JOIN_WORDS.has(item.text)) return undefined;
         if (item.text === 'push') return index + 1;
         if (index === 0 && EXPRESSION_KEYWORDS.has(item.text)) return 1;

@@ -25,12 +25,15 @@ ordering. Q6 has a [SQLite program](../../demos/tpch/001_q6_sqlite.ra) that
 pushes filters and a scalar `SUM` into the database. These programs and the
 SQLite CLI tests compare results with reference SQL on temporary data.
 
-The next steps are computed/renamed columns on a lazy view, followed by grouped
-aggregates, correlated lookups and limits. Task 4 still needs a SQL projection
-to rename self-join columns, while tasks 2 and 5–6, 8 materialize for computed
+The next steps are computed/output-named columns on a lazy view, followed by
+grouped aggregates, correlated lookups and limits. Task 4 now compiles its
+self join with `Db .members alias .m` and `.r`; it still materializes before
+naming output fields and sorting. Tasks 2 and 5–6, 8 materialize for computed
 output columns. Task 7 uses an in-memory lookup. Preserve an explicit
 ordering contract when adding operations after `sort by`; a SQLite subquery
 does not promise to retain its source order.
+Multiway aliased joins need qualified keys and recursive nested scopes before
+a joined view can become another aliased input.
 
 For each step, compare generated SQL and result rows with the reference SQLite
 query on small data. Operations that cannot yet be translated should either

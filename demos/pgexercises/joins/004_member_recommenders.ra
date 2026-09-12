@@ -9,15 +9,24 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_004.csv"
 
 Db = DbPath sqlite
-NoParams = array shape 0 pad 0
-MembersQuery = Db "SELECT recommendedby, firstname AS memfname, surname AS memsname FROM members" NoParams sqlquery
-RecsQuery = Db "SELECT memid AS recid, firstname AS recfname, surname AS recsname FROM members" NoParams sqlquery
-Members = MembersQuery array
-Recs = RecsQuery array
-Joined = Members Recs leftjoin on .recommendedby = .recid
-Joined .recfname = Joined .recfname pad ""
-Joined .recsname = Joined .recsname pad ""
-Names = Joined .memsname + " " + Joined .memfname
-Ordered = Joined (Names argsort)
-Result = Ordered (array .memfname .memsname .recfname .recsname)
+M = Db .members alias .m
+R = Db .members alias .r
+J = M R leftjoin on
+  .recommendedby equal .memid
+Rows = J array
+Rows .memfname = Rows .m .firstname
+Rows .memsname = Rows .m .surname
+RF = Rows .r .firstname pad ""
+RS = Rows .r .surname pad ""
+Rows .recfname = RF
+Rows .recsname = RS
+Last = Rows .memsname
+First = Rows .memfname
+Names = Last + " " + First
+Ordered = Rows (Names argsort)
+Cols = array shape 4
+  .memfname .memsname
+  .recfname .recsname
+end
+Result = Ordered Cols
 Result OutputPath csv

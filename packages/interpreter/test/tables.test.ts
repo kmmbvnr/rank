@@ -87,7 +87,7 @@ describe('Rank tables', () => {
             'Orders = "[{\\"o_orderkey\\":1,\\"o_custkey\\":7},',
             '  {\\"o_orderkey\\":2,\\"o_custkey\\":8}]" json',
             'Customers = "[{\\"c_custkey\\":7,\\"c_name\\":\\"Ada\\"}]" json',
-            'Result = Orders Customers innerjoin on .o_custkey = .c_custkey',
+            'Result = Orders Customers innerjoin on .o_custkey equal .c_custkey',
         ].join('\n'));
         expect(formatValue(runtime.execute('Result .o_orderkey')!)).toBe('1');
         expect(formatValue(runtime.execute('Result .c_name')!)).toBe('Ada');
@@ -102,9 +102,28 @@ describe('Rank tables', () => {
             'A = "[{\\"left_a\\":1,\\"left_b\\":2,\\"id\\":7},',
             '  {\\"left_a\\":1,\\"left_b\\":3,\\"id\\":8}]" json',
             'B = "[{\\"right_a\\":1,\\"right_b\\":2,\\"name\\":\\"yes\\"}]" json',
-            'C = A B leftjoin on .left_a = .right_a .left_b = .right_b',
+            'C = A B leftjoin on .left_a equal .right_a .left_b equal .right_b',
         ].join('\n'));
         expect(formatValue(runtime.execute('C .name pad "no"')!)).toBe('yes no');
+    });
+
+    it('keeps self-join fields under short table aliases', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables',
+            'Data = "[{\\"memid\\":1,\\"firstname\\":\\"Ada\\"},',
+            '  {\\"memid\\":2,\\"firstname\\":\\"Bea\\",\\"recommendedby\\":1}]" json',
+            'M = Data alias .m',
+            'R = Data alias .r',
+            'J = M R leftjoin on',
+            '  .recommendedby equal .memid',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('J .m .firstname')!)).toBe('Ada Bea');
+        expect(formatValue(runtime.execute('J .r .firstname pad ""')!)).toBe(' Ada');
+        expect(() => runtime.execute('M M leftjoin by .memid'))
+            .toThrowError('aliases must differ');
+        expect(() => runtime.execute('M Data leftjoin by .memid'))
+            .toThrowError('requires aliases on both sides');
     });
     it('keeps CSV header order, including empty columns and empty tables', () => {
         const io = new MemoryIo({

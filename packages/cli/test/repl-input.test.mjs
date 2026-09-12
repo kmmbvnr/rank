@@ -82,7 +82,7 @@ test('gives every binary operator one space on each side', () => {
 test('formats a whole line and a line still being typed', () => {
     assert.equal(formatLine('A,B+1'), 'A = B + 1');
     assert.equal(formatLine('A  =   3'), 'A = 3');
-    assert.equal(formatLine('A B leftjoin on .x, .y'), 'A B leftjoin on .x = .y');
+    assert.equal(formatLine('A B leftjoin on .x, .y'), 'A B leftjoin on .x equal .y');
     // While typing, an operator keeps the space that separates what comes next.
     assert.equal(formatTyping('A,'), 'A = ');
     assert.equal(formatTyping('A = 1+'), 'A = 1 + ');
@@ -225,8 +225,8 @@ test('wraps a wide line into brackets and narrow lines', () => {
     // An application chain has no place to break, so it stays one line.
     const chain = 'Total = Values sum print with a very long chain of names here';
     assert.equal(wrapSource(chain), chain);
-    // `leftjoin on` spells pairs with `=`; none of them is an assignment.
-    const join = 'Joined = Left Right leftjoin on .store = .family .a = .b .c = .d';
+    // Join key pairs are kept intact by the generic line wrapper.
+    const join = 'Joined = Left Right leftjoin on .store equal .family .a equal .b .c equal .d';
     assert.equal(wrapSource(join), join);
 });
 

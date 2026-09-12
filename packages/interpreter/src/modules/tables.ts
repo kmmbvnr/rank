@@ -9,6 +9,7 @@ import {
     isRankDate,
     isRankLabel,
     isRankSqliteTable,
+    isRankTableAlias,
     type RankGroupedColumn,
     type RankGroupedTable,
     type RankArray,
@@ -38,8 +39,8 @@ export const tablesModule: RuntimeModule = {
         }
         const path = arguments_[1];
         if (typeof path !== 'string') throw new RankError('file path must be text');
-        const value = isRankSqliteTable(arguments_[0])
-            ? materializeSqlite(arguments_[0]) : arguments_[0];
+        const source = isRankTableAlias(arguments_[0]) ? arguments_[0].source : arguments_[0];
+        const value = isRankSqliteTable(source) ? materializeSqlite(source) : source;
         writeTextFile(context.io, path, formatCsv(value));
         return arguments_[0];
     }),
@@ -191,6 +192,78 @@ export function joinTables(
         }
     }
     return ownedArray(items, [items.length], false, [...leftNames, ...rightValues]);
+}
+
+export function joinAliasedTables(
+    left: RankArray, right: RankArray, leftName: string, rightName: string,
+    leftFields: readonly string[], rightFields: readonly string[], mode: 'leftjoin' | 'innerjoin',
+): RankArray {
+    if (leftName === rightName) throw new RankError(`${mode} aliases must differ`, 'TypeError');
+    if (leftFields.length !== rightFields.length
+        || new Set(leftFields).size !== leftFields.length
+        || new Set(rightFields).size !== rightFields.length) {
+        throw new RankError(`${mode} key fields must be distinct and aligned`, 'TypeError');
+    }
+    const leftRows = tableRows(left, mode);
+    const rightRows = tableRows(right, mode);
+    const leftNames = tableColumns(left, leftRows);
+    const rightNames = tableColumns(right, rightRows);
+    for (const field of leftFields) {
+        if (!leftNames.includes(field)) throw new MissingValueError(`${mode} left key .${field} is missing`);
+    }
+    for (const field of rightFields) {
+        if (!rightNames.includes(field)) throw new MissingValueError(`${mode} right key .${field} is missing`);
+    }
+    const matches = new Map<string, RankObject[]>();
+    for (const row of rightRows) {
+        const key = tableKey(row, rightFields);
+        if (key === undefined) continue;
+        const bucket = matches.get(key) ?? [];
+        bucket.push(row);
+        matches.set(key, bucket);
+    }
+    const items: RankValue[] = [];
+    for (const row of leftRows) {
+        const key = tableKey(row, leftFields);
+        const hits = key === undefined ? undefined : matches.get(key);
+        if (!hits) {
+            if (mode === 'leftjoin') {
+                items.push(ownedObject(new Map([[leftName, ownedObject(row.entries)]])));
+            }
+            continue;
+        }
+        for (const hit of hits) {
+            items.push(ownedObject(new Map([
+                [leftName, ownedObject(row.entries)],
+                [rightName, ownedObject(hit.entries)],
+            ])));
+        }
+    }
+    const result = ownedArray(items, [items.length], false, [leftName, rightName]);
+    Object.defineProperty(result, 'tableScopes', { value: [leftName, rightName] });
+    return result;
+}
+
+export function projectAliasedField(
+    source: RankArray, scope: string, field: string, missing?: () => RankValue,
+): RankArray {
+    const itemAt = (position: number): RankValue => {
+        const row = source.itemAt?.(position) ?? source.items[position];
+        if (!isRankObject(row)) throw new RankError('table projection expects object rows', 'TypeError');
+        const nested = row.entries.get(scope);
+        if (nested === undefined) {
+            if (missing) return missing();
+            throw new MissingValueError(`missing object key: ${scope}`);
+        }
+        if (!isRankObject(nested)) throw new RankError('table projection expects object rows', 'TypeError');
+        const value = nested.entries.get(field);
+        if (value === undefined) {
+            if (missing) return missing();
+            throw new MissingValueError(`missing object key: ${field}`);
+        }
+        return value;
+    };
+    return derivedArray(source.shape, [source], itemAt, true);
 }
 
 /** Lazily project one named field from every object cell in an array. */

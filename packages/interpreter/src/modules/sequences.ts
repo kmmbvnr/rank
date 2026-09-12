@@ -17,6 +17,7 @@ import {
     isRankSequence,
     isRankSequenceMask,
     isRankSqliteTable,
+    isRankTableAlias,
     isRankSegment,
     isRankWavelet,
     isRankSet,
@@ -435,6 +436,7 @@ function reshapeItems(value: RankValue): RankValue[] {
 }
 
 function lengthOf(value: RankValue): bigint {
+    if (isRankTableAlias(value)) return lengthOf(value.source);
     if (isRankSqliteTable(value)) return lengthSqlite(value);
     if (value instanceof RankDeque || value instanceof RankHeap) return BigInt(value.size);
     if (typeof value === 'string') return BigInt([...value].length);

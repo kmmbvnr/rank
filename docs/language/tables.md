@@ -51,6 +51,27 @@ Statement = Result sql
 Result "bookings.csv" csv
 ```
 
+For a self join, give each use of a table a short role name:
+
+```rank
+M = Db .members alias .m
+R = Db .members alias .r
+J = M R leftjoin on
+  .recommendedby equal .memid
+Rows = J array
+Names = Rows .r .firstname pad ""
+```
+
+`alias` accepts a rank-1 array table or SQLite view. Both sides of an aliased
+join must have different aliases and the same storage kind. Each result row has
+one nested object per matched side: `.m .firstname` and `.r .firstname` remain
+distinct without renaming either source column. A left row with no match has no
+`.r` object, so a nested projection can use `pad`. For a SQLite view, `J` is
+still lazy and `J sql` shows a query with the self join; `array` reads its rows.
+The alias changes only the Rank result shape, never the database schema.
+An already joined SQLite view cannot itself be aliased yet; multiway joins of
+nested views need qualified join keys and nested scope composition.
+
 Selecting one field creates a lazy column expression. Comparing it with a
 scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,
@@ -314,23 +335,29 @@ matched rows. The same field names on both sides are listed without `array`:
 Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
 
-When corresponding fields have different names, list explicit pairs:
+When corresponding fields have different names, list explicit `equal` pairs:
 
 ```rank
-Matched = Orders Customers innerjoin on .o_custkey = .c_custkey
+Matched = Orders Customers innerjoin on
+  .o_custkey equal .c_custkey
 ```
 
-Several pairs may follow `on` in left-to-right order. Keys use Rank's value
-equality, so integer `1` and real `1.0` match but text `"1"` does not. Missing
+Several pairs may follow `on` in left-to-right order; the line may break just
+after `on` to keep the source narrow. With two distinct table aliases, a join
+returns nested objects named by those aliases instead of flattening their
+columns. Without aliases, the flat result and duplicate-name check remain.
+Keys use Rank's value equality, so integer `1` and real `1.0` match but text
+`"1"` does not. Missing
 join keys never match. Repeated right keys multiply matching rows. Array-backed
 joins preserve left row order and, within each left row, right row order. The
-right key columns are omitted; a shared non-key column name raises `.TypeError`
-instead of being renamed automatically. Unmatched right fields are missing and
+right key columns of a flat join are omitted; a shared non-key column name
+raises `.TypeError` instead of being renamed automatically. Unmatched right
+fields are missing and
 can be projected with `pad`. A nonexistent key field raises `.Missing`.
 
-These operations currently work on rank-1 arrays of object rows. SQLite-backed
-table sources and SQL pushdown are future work; a database source will need an
-explicit ordering contract where row order matters.
+The same joins work on SQLite-backed views and compile to SQL. Sorting a nested
+aliased result by its fields still requires materialization; a database source
+has no reliable row order without an explicit final sort.
 
 ## Labels
 
