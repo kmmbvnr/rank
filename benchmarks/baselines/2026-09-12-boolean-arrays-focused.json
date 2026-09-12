@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "booleanarrays",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 1111.40425,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 1111.122792,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 142.31729100000007,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 142.21320800000012,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 149.38695800000005,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 149.31595800000014,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 1274.994,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 1274.9125000000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 1278.920459,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 1278.8229999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 161.8367500000004,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 161.74470800000017,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 148.8719999999994,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 148.7883750000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 1275.7868330000001,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 1275.699791,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 1264.0544579999996,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 1263.958458,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 147.5811250000006,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 147.51670899999954,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    }
+  ]
+}

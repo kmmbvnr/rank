@@ -1,0 +1,291 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "textloops",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 177.70491699999997,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 132.146542,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 30.208624999999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 14.927958000000046,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 52.24316700000003,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 12.822583000000009,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 27.176916000000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 12.059166000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 48.33129100000002,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 11.626041999999984,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 25.632667000000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 10.922124999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 104.08916699999997,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 70.51175,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 23.709374999999966,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 9.707290999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 96.69666600000005,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 63.47870799999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 23.289833000000044,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 9.793541000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 41.679917000000046,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.656165999999985,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 23.288667000000032,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 9.676333,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 47.05008399999997,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 8.582250000000045,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 27.077958999999964,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 11.307458999999994,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 104.13774999999998,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 66.35462500000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 25.60533399999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 12.069375000000036,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 102.051875,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 65.48062500000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 25.434292000000028,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 11.029458999999974,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 43.650540999999976,
+      "entries": [
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 10.552874999999972,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        },
+        {
+          "name": "Stick Lengths, 200000 alternating lengths",
+          "ms": 23.00420900000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "a250c6d3159c2c18d619636e0c8faaede68816f7e0b3e61b8c62c423decec44b"
+        },
+        {
+          "name": "Increasing Array, 200000 alternating values",
+          "ms": 10.01724999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c72730ce10a2666fa43fc2b6018212093ce8d9eccfa9632b0734bd63998062a9"
+        }
+      ]
+    }
+  ]
+}

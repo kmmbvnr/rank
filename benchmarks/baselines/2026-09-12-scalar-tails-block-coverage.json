@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalartails",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 526.8685409999999,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 526.574042,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 383.35075000000006,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 383.2540829999999,
+          "kernels": 200000,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    }
+  ]
+}

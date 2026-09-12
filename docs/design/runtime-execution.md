@@ -354,3 +354,570 @@ reads individual integer atoms; requesting `items` materializes and caches the
 Rank array. Byte tensors cannot contain file handles, so ownership traversal skips
 them. Binary formatting and writing continue to use the original byte buffer.
 The test inputs and iteration counts remain unchanged.
+
+## Compiled scalar expressions
+
+`scalar-compiler.ts` emits JavaScript for compound arithmetic expressions with at
+least two supported operations. It currently handles `+`, `-`, `*`, integer floor
+division/modulo, integer comparisons and unary signs/not. Number arithmetic keeps
+JavaScript/Rank floating-point order; mixed types and non-scalars delegate to the
+reference operator with operands already evaluated. There is no retry of an
+expression after partial execution, and no reassociation or common-subexpression
+elimination of name reads.
+
+Factories are weakly cached by AST identity. Local declarations bind new readers
+and environments to the shared code, so separate closures never share values.
+Literals and user names are not interpolated into generated JavaScript. Unsupported
+syntax retains prepared handlers; browser CSP rejection also retains that path.
+
+This stage compiles expression evaluation inside assignments, returns and loop
+conditions. It does not compile loop control flow, calls, suspension or resource
+ownership. `scalarCompilation: false` selects the old expression path, independently
+of `tensorFusion`. `onScalarCompiled` reports generated code and `onScalarExecuted`
+counts entries into compiled expressions, including entries that delegate operators.
+
+See [compiler progress](compiler-progress.md) for measurements and current limits.
+
+## Compiled command blocks
+
+`block-compiler.ts` generates straight-line command dispatch with explicit command
+positions. A completed command falls through to the next case. A fused tensor
+group can jump over its eliminated assignments, and a suspended command returns
+to the existing execution stack. Resumption re-enters the generated block at the
+following command, retaining its result and execution context.
+
+Each command handler is prepared lazily and retained in its own block slot.
+Errors are attributed to the current command position. Return/break/continue
+signals, finally handling, iterator cleanup and file ownership remain in the
+existing execution machinery. Tests compare output, errors, suspension and file
+closure with the original dispatcher. The generated template contains positions
+only; command handlers and environments are bound per interpreter/block.
+
+The initial implementation covers blocks of 2–64 commands; other block sizes and
+CSP rejection retain the reference dispatcher. Scalar and tensor compilers are
+independent options. `blockCompilation: false` selects reference block dispatch.
+`onBlockExecuted` counts entries and resumptions; it should be disabled in timing
+runs, since heavily suspending programs may enter millions of blocks.
+
+This compiles block dispatch, including loop bodies. The `for` iterator and loop
+control handler itself are not yet lowered into the generated block.
+
+## Preparing repeated loop-body execution
+
+On the first actual iteration, a loop may bind its compiled body and an execution
+context once, then reuse them for subsequent iterations. This removes a block-cache
+lookup and context allocation per iteration. The binding belongs to a loop
+invocation, not to the function AST, so recursive calls and suspended generators
+retain separate contexts. Zero-iteration loops do not prepare their body.
+
+Iterable loops continue to disable tail-call transfer from their body: the callee
+must finish before the iterator closes. Conditional loops retain their surrounding
+tail-call policy. Break/continue, condition evaluation, bindings and iteration still
+use the existing loop handler. This is preparation of repeated body execution,
+not full lowering of loop control. `loopPreparation: false` disables the reuse.
+
+## Whole integer loops
+
+`integer-loop.ts` lowers conditional, inline numeric-range and stored integer-vector
+loops into JavaScript regions when the conditions and bodies are supported.
+Inputs are guarded before execution; unsupported types or syntax retain the
+reference loop. Register variables hold integer values between operations and
+iterations. Scalar assignments commit immediately, retaining fixed-type checks,
+lexical binding behavior and partial state if a later operation fails. The
+invocation-bound writer optimization below avoids repeating known type checks. Errors carry the original body-command or loop-condition location.
+
+The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches and loops),
+integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
+comparisons and boolean conditions. Power preserves sign precedence and exact
+bigint arithmetic. Guarded array reads/writes, containers and vector iteration are
+described below. Dynamic or negative exponents, unsupported calls/selectors,
+floating-point operations and other iterable loops retain the reference path.
+Modifier spellings such as `scan` must not be mistaken for integer operands.
+CSP rejection retains reference execution. `integerLoopCompilation: false`
+disables this pass; compilation/execution callbacks support diagnostics.
+
+Typed writes remain runtime calls; invocation-bound integer writers specialize
+the checks as described below.
+
+Numeric range lowering supports `by`, descending steps, an optional index binding
+and `#` discard bindings. Start, end and step are evaluated once; progression uses
+an internal cursor, independent of assignments to the visible loop variable.
+Empty ranges do not bind variables. Zero-step and binding-type errors preserve
+reference timing and locations. Unused ordinal counters are omitted. Named range
+values and other sequence plans are not yet lowered by this pass.
+
+
+Integer-loop lowering also supports `if`/`elif`/`else`, including nested branches.
+Only selected conditions and bodies execute. Definite assignments after a branch
+are the intersection of all outgoing paths; other reads require an initial
+integer guard or decline compilation. Branch-local writes still use checked
+writers, and errors point to the original nested statement. An empty selected
+branch retains the reference result (`undefined`). General calls and suspension remain on the reference path.
+
+
+### Guarded containers in integer loops
+
+The loop compiler accepts stable named `RankDeque` receivers (queue, deque or
+stack) for `push`, `len` and `pop`, and stable named indexes for integer-key
+membership and plain integer-value indexed assignment, including multiple keys.
+Mutations call the existing container methods and resource-aware index map;
+queue/stack order, empty-pop errors and partial mutations retain runtime behavior.
+
+Before execution, receiver kinds are checked. Any deque used by `pop` must
+contain only integers, verified by one read-only traversal per loop invocation.
+The compiled region can only push integers, so this property survives aliases
+between its deque receivers. Mixed containers fall back before any pop or write.
+Container rebinding anywhere in the region, even in just one branch, declines.
+
+`even`/`odd`, deque `len` and `pop` require their actual standard-library bindings.
+Shadowing or reassignment of those names prevents specialization. Missing modules
+retain reference execution and its error timing. Index reads, compound index
+writes, other receiver classes and arbitrary calls are not yet lowered.
+
+
+## Compiled function completion
+
+For nongenerator functions ending in a value-returning `return`, the runtime can
+compile a 1–64-command function body using the resumable block compiler. Its
+terminal return hands a value to the existing function-call frame directly,
+avoiding a `ReturnSignal` throw/catch on ordinary completion. Early returns and
+other control signals still use their existing paths. Unsupported body shapes
+or unavailable code generation keep reference execution.
+
+Preparation stays lazy, and suspended expressions resume at the same command
+position. A terminal application retains tail-call handling. Tensor groups that
+span the terminal return, or start at that return itself, retain their kernels.
+Those kernels may still use the existing return signal. Single direct arithmetic
+returns retain their earlier direct-call path.
+
+Lexical frames, call-depth accounting, memoization and resource cleanup remain
+owned by the existing call machinery. This stage does not yet compile whole
+function arithmetic into one typed kernel or hoist integer-loop entry guards.
+It removes a function-completion cost shared by many programs.
+
+`functionBodyCompilation: false` disables this stage independently of ordinary
+block compilation. `onFunctionBodyCompiled` exposes generated dispatch source;
+`onFunctionBodyExecuted` counts block entries, including continuation re-entry,
+not necessarily one event per function call. Options propagate to loaded modules
+and test interpreters.
+
+
+## Direct scalar iteration
+
+Plain scalar iteration now enters `iterationValues` directly instead of wrapping
+each value in a `ForEntry` object and allocating an index array. Binding validation
+and type declarations run once through a shared preparation method. A private
+ordinal is maintained only when an index binding is actually used, including
+when the visible index variable is reassigned by the body.
+
+This covers ordinary arrays of rank zero/one, text, sequences and supported
+scalar collections. It preserves their existing iterators and mutation semantics.
+The `for...of` boundary still closes an iterator on break, return or error, and a
+return callee finishes before that close. Unicode iteration retains code-point
+semantics. Explicit `axis`/`rank`, matrix row iteration and object-key iteration
+retain `forEntries`; this change does not redefine tensor traversal or force new
+materialization behavior.
+
+`directIteration: false` keeps the wrapper path for comparison. The option
+propagates to imported modules and test interpreters. This removes runtime
+iteration overhead beneath compiled blocks; it is not whole-loop arithmetic
+compilation.
+
+
+## Compiled tensor cell copying
+
+For array-valued cells in tensor iteration, `tensor-cell-compiler.ts` specializes
+the coordinate decoder and linear offset expression for the source rank and
+cell axes. It does not specialize dimensions, element types or values. Kernels
+are shared by rank/axis routing; each cell still receives a new items array.
+Frame order, shared cell-shape behavior and ordinary binding checks are unchanged.
+
+Storage and source shape are read in the same order for every atom. A changed
+coordinate rank declines before touching storage. A shared cell shape resized
+during copying uses the ordinary dynamic coordinate path inside the kernel,
+without replaying reads. Host getter failures retain their location and timing.
+Ranks above 16 and unavailable code generation retain the reference copy loop.
+
+Scalar `rank 0` cells keep the reference path: the isolated copy call did not
+improve their benchmark. Their next optimization should include the surrounding
+traversal and body rather than adding a kernel boundary around a single read.
+`tensorCellCompilation: false` disables cell-copy compilation; the option
+propagates to loaded modules and test interpreters.
+
+
+## Compiled loop-control edges
+
+The integer-loop compiler lowers `break` and `continue` to JavaScript control
+edges, including within `if`/`elif`/`else`. Bare `for` loops can also compile.
+The body result is committed only after an iteration completes: a break or
+continue retains the preceding completed iteration's result while preserving all
+writes already made by the interrupted body. Range cursors and ordinals advance
+normally on continue and stop on break.
+
+Definite-assignment merging considers only branches that reach the next command.
+Commands following unconditional control are not prepared. The compiler can also
+handle a loop without any register variables. Control inside `finally` declines
+before execution so the ordinary path retains its validation and exact diagnostic.
+Nested numeric loops can compile as one region with shared integer registers.
+Each range captures its bounds and stride on entry and maintains an independent
+cursor. Break and continue target the nearest loop; each loop retains its own
+last completed result. Assignments made only inside a possibly empty inner loop
+are not considered definite after it. Unsupported inner constructs retain the
+reference outer loop, with eligible inner loops compiled independently.
+`nestedLoopCompilation: false` disables only region nesting for comparisons.
+
+## Array reads inside compiled numeric loops
+
+The integer compiler can read a stable named integer array with a complete scalar
+address, including matrix and higher-dimensional coordinates. Parenthesized index
+expressions remain separate operands. It calls the existing checked array reader,
+so negative and out-of-bounds indices retain their diagnostics and source locations.
+
+Entry guards accept only already materialized integer atoms and the exact number
+of indices for the receiver rank. They do not force lazy readers. Partial addresses,
+unsupported cell types and unsupported receiver rebindings retain ordinary execution. Full-address writes and integer compound assignments are supported as described
+below. `arrayLoopCompilation: false` disables these
+reads while leaving the preceding integer compiler enabled.
+
+The current type guard scans the materialized atoms on each region entry. This
+cost can dominate a short loop over a large array. Future storage type summaries
+must track mutation correctly before this scan can be safely cached or hoisted.
+
+
+## Array writes inside compiled numeric loops
+
+`A I = Value` and integer compound assignments can join a region, including full matrix
+addresses. The receiver is guarded as a stored integer array with matching rank;
+unsupported rebindings, lazy destinations and partial or collection selectors retain
+ordinary execution. The existing indexed-container path remains available through the same
+statement syntax, selected by receiver kind.
+
+The compiler evaluates coordinates and validates the array selection before the
+right operand, then writes immediately. Full scalar addresses use the checked offset helper described below, retaining
+tensor selection's bounds diagnostics. Aliases see earlier writes, including on a later error or
+break. An array assignment contributes its right operand to the statement result;
+an index assignment still contributes no result. `arrayWriteCompilation: false`
+disables array writes while retaining array reads and existing index writes.
+
+## Compiled iteration over stored vectors
+
+`for Value i in A` can join a numeric region when A is a stable named,
+already-materialized integer vector. The optional ordinal and `#` discards retain
+their existing meaning. The compiler uses the normal loop-type declaration before
+iteration, including checking the ordinal's type for an empty vector.
+
+A native for-of loop advances independently of assignments to the visible binder.
+It reads the live items, so writes to later cells through aliases remain visible.
+Array and numeric-range loops can nest in the same region. Matrix-row iteration,
+heterogeneous or unevaluated lazy inputs, and unsupported receiver rebindings retain
+reference execution. `arrayIterationCompilation: false` disables this lowering while keeping
+preceding numeric-range and array read/write optimizations enabled.
+
+
+## Compiled compound array writes
+
+Stored integer arrays support `+=`, `-=`, `*=`, `//=` and `%=` in compiled regions.
+The compiler validates coordinates first, evaluates the right operand once, reads
+the current element and then writes the result. The statement result remains the
+right operand, as in ordinary Rank execution. Signed floor division and modulo
+preserve their existing rules; division by zero keeps all prior writes and reports
+the original statement. Aliased reads observe mutations immediately.
+
+Compound index updates, partial selectors and other element types retain ordinary
+execution. `compoundArrayCompilation: false` disables only compound array writes;
+plain writes, array iteration and reads remain available.
+
+## Integer extrema inside compiled loops
+
+Builtin `min` and `max` with integer operands lower to comparisons within a region.
+The compiler reuses the ordinary infix-chain normalization, including parentheses
+and addressed operands, and supports binary postfix calls and scalar unary extrema.
+Guards require the original numbers-module function identity on every region entry;
+shadowed functions or other operand types retain ordinary execution.
+
+Malformed chains decline compilation so skipped bodies keep their error timing.
+The compiler evaluates operands in order, retains exact BigInt values and uses the
+left operand on ties. `extremaLoopCompilation: false` disables only this lowering.
+
+
+## Scalar write-address lowering
+
+Compiled full-cell writes compute their row-major offset directly in
+`scalarArrayWriteOffset`. The region guards already establish the receiver rank
+and integer coordinates. The helper checks each axis in order, comparing bounds
+in BigInt space, and computes the offset without selector objects, closures or an
+output-shape plan. Validation still happens before the right operand.
+
+General slices keep tensor selection. `scalarAddressCompilation: false` routes
+compiled writes through the prior tensor-selection helper for differential tests
+and benchmarks; the same numeric region still compiles in both modes.
+
+
+## Invocation-bound integer writers
+
+Synchronous integer regions prepare temporary writers for their scalar assignments
+and loop bindings. Each site's first actual write uses the ordinary checked writer.
+Only after that succeeds does the site bind a direct store to the owning frame slot
+or mapped capture; global writes retain the resource-aware variable map. Skipped
+assignments are not checked early, and later failures keep earlier mutations.
+
+These writers exist only for one region invocation. They never cache a previous
+call's frame in the compiled AST, and they are recreated for recursion or another
+function call. Captured frames retain their mapped-value representation. This relies
+on the region's integer guards and absence of arbitrary user calls or suspension;
+it is not an unchecked writer for general execution. `boundIntegerWrites: false`
+keeps the original per-assignment checks for comparisons.
+
+
+## Boolean locals in numeric regions
+
+Numeric regions can store known boolean values from literals and comparisons,
+combine them with `and=`, `or=` and `xor=`, and use them in conditions or boolean
+equality tests. Incoming named conditions receive boolean guards. Local register
+types remain consistent throughout the region; conflicting types decline compilation
+and retain ordinary error timing. Checked first writes still establish Rank's fixed
+variable type before bound stores can specialize later writes.
+
+Operands retain ordinary evaluation order, including eager evaluation of boolean
+compound-assignment operands. Known boolean array cells are supported as described below; general inference
+for unknown input aliases remains future work.
+`booleanLoopCompilation: false` disables boolean local lowering while retaining
+existing integer operations and literal/comparison conditions.
+
+
+## Boolean array cells in numeric regions
+
+Array plans can require boolean cells, inferred from conditions, known array uses,
+boolean assignment operands and `and=`/`or=`/`xor=`. The same scalar address and
+immediate-write machinery handles homogeneous stored boolean arrays. Entry guards
+check the expected element type for every read and write view, so incompatible
+alias expectations or mixed cells decline before execution.
+
+Full matrix addresses, alias-visible writes, bounds errors and eager boolean RHS
+evaluation retain ordinary semantics. Lazy inputs still do not get forced by the
+guards. Vector-loop binding remains integer-only; boolean vector iteration and
+unknown input-alias inference need further compiler work. Plain scalar index writes
+can also carry boolean results; compound index updates still retain the reference
+path. `booleanArrayCompilation: false` disables boolean-cell lowering only.
+
+
+## Array allocation and rebinding in numeric regions
+
+`array shape ... pad ...` with integer dimensions and integer/boolean fill can be
+created inside a compiled region. Each execution allocates a fresh array. Dimensions
+are evaluated and checked in order using the same helper as ordinary execution;
+then the fill is evaluated, storage allocated and the assignment committed.
+Known array aliases and rebinding to these arrays preserve reference identity.
+
+The compiler keeps rank and cell type consistent for each array binding; dimensions
+may vary. Definite assignment distinguishes local arrays from guarded inputs, so a
+conditionally created array cannot be read without the ordinary checks. Full-cell
+writes must still match the known rank. Partial selections and rank/type changes
+retain reference execution.
+
+Write requirements propagate backward through alias edges to input guards. Thus a
+cached lazy source cannot become writable by assigning it to another name. Array
+assignments use checked first writes, and temporary bound stores do not retain old
+invocation frames. General array expressions, unknown aliases and unsupported
+allocation forms still fall back. `arrayLocalCompilation: false` disables these
+array definitions and aliases while retaining earlier compiler stages.
+
+## Return from compiled loops
+
+A supported scalar expression or known array binding can be returned directly from
+inside a compiled loop, including nested loops. Generated code raises the existing
+ReturnSignal after evaluating the value. Ordinary function completion and enclosing
+finally/resource handling therefore remain in charge. Unreachable commands after
+an unconditional return are not compiled, and assignment merging considers only
+branches that continue.
+
+Top-level returns, returns inside finally, generator returns and valueless returns
+retain reference validation before evaluating the expression. Unsupported function
+calls in return expressions still fall back, retaining tail-call behavior.
+`loopReturnCompilation: false` disables this control edge only.
+
+
+### Reusing proven iteration types
+
+Compiled integer vector loops reuse the element type established by region entry
+validation or a typed local allocation. The ordinary loop driver still validates
+binding names and fixed variable types, but does not traverse the vector again to
+collect a type set. Empty vectors contribute no element type; their ordinal binding
+still has integer type. The original iterator and live array semantics are retained.
+This proof is local to a synchronous compiled region with typed writes, not a cache
+of arbitrary mutable arrays. `provenIterationTypes: false` restores type collection
+for differential benchmarks; ordinary interpreted loops are unchanged.
+
+
+### Integer absolute values inside regions
+
+The compiler lowers the standard numeric `abs` applied to a proven integer into
+an exact BigInt sign test. Operands are evaluated once, including destructive
+container reads. Entry guards verify the standard function identity and input
+types before any writes. Shadowed functions, missing imports and noninteger
+inputs retain reference execution. `absoluteLoopCompilation: false` disables
+this lowering independently for benchmarks.
+
+### Text loop specialization
+
+Named text inputs can now specialize a loop region alongside integer and boolean
+locals and numeric arrays. The existing text iterator supplies Unicode code points
+and ordinal indices; empty text still declares text/integer binding types. Text
+literals, assignment, equality/inequality and returns are supported in these
+regions. Concatenation, text indexing and arbitrary text function calls are not
+yet lowered by this pass. Text-vector iteration is described below.
+
+The numeric plan remains the first path. If its guards decline before execution,
+the dispatcher observes which named iterable inputs are strings and builds a
+variant for that signature. At most eight variants (including declined signatures)
+are cached per loop. Only generated plans and type signatures are retained, never
+input values or invocation frames. Each plan guards required input types before
+executing and uses checked writes. Unsupported signatures use reference execution.
+A string source assigned only inside the region may still lack an entry-time type
+proof and fall back. `textLoopCompilation: false` disables this stage independently.
+
+
+### Text vectors feeding nested character loops
+
+A materialized one-dimensional array of strings can now supply text bindings to
+nested compiled loops. Signature selection inspects the first element only to
+choose a candidate; the region guard checks every element before execution.
+Unknown lazy readers are not forced. The proven element type passes into ordinary
+binding validation, avoiding a second type scan. Nested loops can use text types
+inferred from an enclosing binding, rather than requiring an entry-time variable.
+
+Mixed arrays decline before writes. Empty vectors retain ordinary behavior when
+no element type can be inferred. Text-array mutation and creation are not yet
+lowered. `textArrayLoopCompilation: false` disables the text-vector specialization
+while keeping scalar text loops available.
+
+### Direct text iteration in compiled regions
+
+Compiled text loops can use JavaScript's string iterator directly after the usual
+binding checks. Both it and the previous code-point array preserve Unicode code
+points (including lone surrogates); immutable strings preserve the source when its
+variable is reassigned. An early exit no longer needs to allocate an array for the
+unvisited suffix. Interpreted loops keep their existing iterator path.
+`directTextIteration: false` restores code-point array construction for comparison.
+
+### Scalar text conversion and length
+
+The compiler can lower standard `text` on a proven integer and standard `len` on
+known text or array values. Native identity guards preserve shadowing and missing
+imports. Integer rendering uses exact decimal BigInt text. Its expression carries
+an ASCII proof, so a following `len` can read the string length without creating a
+code-point array. Arbitrary text retains Unicode code-point counting; local aliases
+currently do not propagate the ASCII proof. Known array length reads the current
+first shape dimension, including after a local reallocation. Unknown collection
+receivers keep their previous guarded or reference paths.
+`scalarTextCompilation: false` disables these lowerings for comparison.
+
+### Text digits inside tensor expression plans
+
+Tensor plans can now include standard integer-to-text conversion and standard
+`integer rank 0` applied to digit text. The binder verifies native identities and
+ASCII digits, then presents the string as a one-dimensional integer source. The
+emitter reads each digit directly while applying maps and reduction, without
+materializing the converted or mapped vectors. Literal and named text inputs are
+supported; exact BigInt rendering preserves integers above the Number safe range.
+Empty text preserves empty-reduction behavior. Signs, whitespace (including a
+trailing newline), non-ASCII input, overrides and escaping intermediates retain
+the reference path and its errors. `tensorTextDigits: false` disables this stage.
+
+The surrounding user-function call still uses the existing function machinery;
+this extends the composable tensor IR rather than compiling arbitrary calls inside
+numeric loop regions.
+
+### Proven scalar user calls from loop regions
+
+A compiled loop may call a user function whose body is one return expression
+containing only integer parameters, integer/boolean literals, supported arithmetic,
+comparisons and boolean operators. A syntax proof establishes an integer or boolean
+result and excludes effects on caller state. Arguments must be proven integers.
+External names, nested calls, memo/generator functions and other bodies decline.
+This is a conservative proof, not the language's complete purity analysis.
+
+Entry binding checks the active function definition against the proved AST and
+retains the actual closure only for that region invocation. Cached plans retain
+AST metadata, not invocation frames. Calls continue through the ordinary function
+machinery, preserving lexical/resource scopes, fixed parameter types, diagnostics
+and call-depth limits. No inlining is performed. A changed definition falls back
+before any region writes. `scalarCallCompilation: false` disables this stage.
+
+### Scalar function blocks and closure-write guards
+
+The scalar-call proof also accepts local assignments (including supported compound
+updates), parameter updates, if/elif/else branches and early returns. Reads must be
+defined on every continuing path, assigned names must keep one type, and all return
+paths must agree on integer or boolean output. Loops, nested calls and other syntax
+still decline. Unreachable trailing syntax is rejected as well, because local
+function declarations can be hoisted before execution.
+
+A name written by a nested helper is not automatically private: Rank may resolve it
+to an existing closure binding. Entry guards therefore reject an existing captured
+assignment target. The compiler also rejects conflicts with names the enclosing
+region can write, even if those names have no value at entry yet. Global functions
+without a closure context may reuse caller-local names; the context kind is guarded
+on entry too. Function execution remains on the ordinary call path. The
+`scalarBlockCalls: false` switch retains the preceding single-return proof only.
+
+### Tail position across compiled loops
+
+A returned proven user call now receives the same tail-call context as reference
+execution. Conditional loops preserve it; entering an iterable loop disables it,
+and enclosing handlers/finally can disable it through the execution context.
+Arithmetic or another operation after the call is not tail position. Eligible calls
+to functions owned by the same interpreter throw the ordinary TailCallSignal so the
+function driver transfers control without adding a call-depth level. Cross-interpreter
+calls keep ordinary invocation. Prior writes and source locations are preserved.
+
+This fixes a compiler discrepancy: with maxCallDepth 1, a function returning a
+helper call from a conditional loop previously failed while reference execution
+succeeded. It is a correctness requirement, independent of performance on short
+loops that exit on their first iteration.
+
+### Generated bodies for proven scalar functions
+
+Ordinary calls from compiled regions can now execute a generated body for functions
+accepted by the scalar-call proof. The emitter uses private JavaScript slots for
+parameters and locals, exact BigInt operations, eager boolean operands, branches
+and explicit returns. Duplicate parameter names retain the existing last-binding
+behavior. Generated code has no access to the lexical environment.
+
+The existing definition/context/collision and argument-type guards still apply.
+The owning interpreter checks and restores logical call depth, and errors are
+located at the original callee statements, including imported modules. No separate
+Rank frame or resource scope is needed for this proved subset: it cannot access
+external state, call other functions, receive files or return non-scalar resources.
+The code cache retains AST metadata only. CSP failure retains ordinary execution.
+
+Eligible tail calls still use TailCallSignal and the ordinary function driver.
+The signal can carry the proven scalar body, which the driver runs at its current
+logical depth without constructing a callee frame. The caller's resource scope
+remains active during the calculation and finishes after its result or error.
+Cross-interpreter calls retain ordinary invocation semantics.
+
+`compiledScalarTailCalls: false` keeps tail transfers on the preceding path.
+`scalarFunctionCompilation: false` disables generated bodies for both normal and
+tail calls. `onScalarFunctionExecuted` counts actual generated callee executions
+independently of compiled outer-loop entries.
+
+### Scalar compilation at ordinary function entry
+
+The same proven scalar bodies are now available through ordinary function calls,
+including callbacks used by rank application. At declaration time the interpreter
+prepares a candidate; every invocation checks exact arity, BigInt arguments and
+absence of captured bindings for assigned local names. Closure checks repeat on
+every call because an enclosing scope can create such a binding after declaration.
+Rejected guards use the existing function path, without executing/replaying effects.
+
+The memo wrapper remains outside dispatch, so cache hits do not execute a kernel.
+Generators keep their existing path. The owning interpreter still manages call
+depth and callee error locations; proof restrictions exclude resource operations.
+Zero-parameter and duplicate-parameter behavior is preserved. Non-integer calls,
+including array broadcasting, retain ordinary evaluation. Tail-frame replacement
+continues through its dedicated driver; ordinary entry does not intercept it.
+
+`scalarEntryCompilation: false` disables this entry dispatch while keeping earlier
+compiled-loop calls available. `scalarFunctionCompilation: false` disables the
+underlying scalar bodies for both entry and compiled-loop dispatch.

@@ -10,6 +10,9 @@ import { nodeIo } from '../packages/cli/out/node-io.js';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
+const backend = process.argv[6] ?? 'tensor';
+const counters = process.env.RANK_BENCH_COUNTERS !== '0';
+assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls', 'scalarbodies', 'scalartails', 'scalarentry'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -25,7 +28,69 @@ const files = path => readdirSync(path, { withFileTypes: true }).flatMap(e => {
   return e.isDirectory() ? files(p) : p.endsWith('_test.ra') ? [p] : [];
 }).sort();
 const array = (items, shape = [items.length]) => ({ kind: 'array', items, shape });
+// Independent scalar oracle for the branching compiler fixture.
+function recurrenceAnswer(limit) {
+  let n = 837799n, total = 0n;
+  for (let i = 0; i < limit; i++) {
+    n = n === 1n ? 837799n : n % 2n === 0n ? n / 2n : 3n * n + 1n;
+    total += n;
+  }
+  return total;
+}
+function diceAnswer(n) {
+  const dp = new Float64Array(n + 1);
+  dp[0] = 1;
+  for (let i = 1; i <= n; i++) {
+    let sum = 0;
+    for (let k = 1; k <= 6 && k <= i; k++) sum += dp[i-k];
+    dp[i] = sum % 1000000007;
+  }
+  return BigInt(dp[n]);
+}
+function descriptionAnswer(length, maximum) {
+  let row = Array(maximum).fill(1);
+  for (let i = 1; i < length; i++) {
+    row = row.map((value, j) => (value + (row[j-1] ?? 0) + (row[j+1] ?? 0)) % 1000000007);
+  }
+  return BigInt(row.reduce((sum, value) => (sum + value) % 1000000007, 0));
+}
+function emptyGridPaths(size) {
+  // On an obstacle-free square the answer is the central binomial coefficient.
+  let paths = 1n;
+  for (let i = 1n; i < BigInt(size); i++) paths = paths * (BigInt(size - 1) + i) / i;
+  return paths % 1000000007n;
+}
 const tasks = [
+  { name: 'Ranked bounded helper, 200000 cells', path: 'benchmarks/programs/ranked-scalar-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
+  { name: 'Conditional tail into bounded helper, 200000 calls', path: 'benchmarks/programs/block-tail-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
+  { name: 'Conditional tail return, 100000 calls', path: 'benchmarks/programs/loop-tail-call.ra', fn: 'tail_scores', expected: 5000150000n, args: () => [100000n] },
+  { name: 'Bounded score helper, 200000 calls', path: 'benchmarks/programs/block-call.ra', fn: 'scores', expected: 3749975000n, args: () => [200000n] },
+  { name: 'Euler 45, next common polygonal value', path: 'demos/euler/045_tripolygonal.ra', fn: 'common_polygonal', expected: 1533776805n, args: () => [144n, 166n] },
+  { name: 'Euler 30, fourth power digit numbers', path: 'demos/euler/030_digitpowers.ra', fn: 'digit_power_numbers', expected: 19316n, args: () => [4n] },
+  { name: 'Euler 25, first 1000-digit Fibonacci index', path: 'demos/euler/025_fibdigits.ra', fn: 'first_fibonacci_index', expected: 4782n, args: () => [1000n] },
+  ...['first', 'last'].map(position => ({ name: `Text first match, 200000 code points, ${position}`, path: 'benchmarks/programs/loop-return.ra', fn: 'first_match', expected: position === 'first' ? 0n : 199999n, args: () => [position === 'first' ? '😀' + 'a'.repeat(199999) : 'a'.repeat(199999) + '😀', '😀'] })),
+  { name: 'Grid Paths, 500 by 500 open cells', path: 'demos/cses/dynamic/006_gridpaths.ra', fn: 'grid_paths', expected: emptyGridPaths(500), args: () => [array(Array(500).fill('.'.repeat(500)))] },
+  { name: 'Edit Distance, 300 distinct characters each', path: 'demos/cses/dynamic/010_editdistance.ra', fn: 'edit_distance', expected: 300n, args: () => ['a'.repeat(300), 'b'.repeat(300)] },
+  { name: 'Stick Lengths, 200000 alternating lengths', path: 'demos/cses/sortnsrch/009_sticks.ra', fn: 'stick_cost', expected: 100000000n, args: () => [array(Array.from({length:200000}, (_,i)=>i%2?1001n:1n))] },
+  ...['first', 'last'].map(position => ({ name: `First match, 200000 atoms, ${position}`, path: 'benchmarks/programs/loop-return.ra', fn: 'first_match', expected: position === 'first' ? 0n : 199999n, args: () => [array(Array.from({length:200000}, (_,i)=>i === (position === 'first' ? 0 : 199999) ? 1n : 0n)), 1n] })),
+  { name: 'Money Sums, 100 coins of value 1000', path: 'demos/cses/dynamic/014_moneysums.ra', fn: 'money_sums', args: () => [array(Array(100).fill(1000n))], verify: value => assert.deepEqual(value.items, Array.from({length:100}, (_,i)=>BigInt((i+1)*1000))) },
+  { name: 'Array Description, 1000 unknowns, Maximum=100', path: 'demos/cses/dynamic/008_arraydesc.ra', fn: 'descriptions', expected: descriptionAnswer(1000, 100), args: () => [array(Array(1000).fill(0n)), 100n] },
+  { name: 'Minimizing Coins, six coins, Target=100000', path: 'demos/cses/dynamic/002_mincoins.ra', fn: 'minimum_coins', expected: 16667n, args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
+  { name: 'Euler 18, 400 rows of ones', path: 'demos/euler/018_maxpath.ra', fn: 'maximum_path', expected: 400n, args: () => [array(Array(400*401/2).fill(1n)), 400n] },
+  { name: 'Coin Combinations I, six coins, Target=100000', path: 'demos/cses/dynamic/003_coincomb1.ra', fn: 'ordered_coin_ways', expected: diceAnswer(100000), args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
+  { name: 'Dice Combinations N=1000000', path: 'demos/cses/dynamic/001_dice.ra', fn: 'dice_combinations', expected: diceAnswer(1000000), args: () => [1000000n] },
+  { name: 'Indexed integer dot product, 200000 atoms', path: 'benchmarks/programs/array-loop.ra', fn: 'dot', expected: 1200000n, args: () => [array(Array(200000).fill(2n)), array(Array(200000).fill(3n))] },
+  { name: 'Nested dependent ranges, 200000x3', path: 'benchmarks/programs/nested-loops.ra', fn: 'nested_sum', expected: 3n * 200000n * 200001n / 2n + 3n * 200000n, args: () => [200000n] },
+  { name: 'Trial divisors of 10^10', path: 'benchmarks/programs/loop-control.ra', fn: 'trial_divisors', expected: 121n, args: () => [10000000000n] },
+  { name: 'Tensor rank-0 traversal, 512x512', path: 'benchmarks/programs/tensor-scan.ra', fn: 'tensor_sum', expected: 262144n, args: () => [array(Array(512*512).fill(1n), [512,512])] },
+  ...['row', 'column'].map(direction => ({ name: `Matrix Mean 1024x1024 ${direction}`, path: 'demos/deepml/004_mean.ra', fn: 'matrix_mean', args: () => [array(Array.from({length:1024*1024}, (_,i)=>i%1024), [1024,1024]), direction], verify: value => assert.deepEqual(value.items, Array.from({length:1024}, (_,i)=>direction === 'row' ? 511.5 : i)) })),
+  { name: 'Matrix Vector 1024x1024', path: 'demos/deepml/001_matmul.ra', fn: 'matrix_dot_vector', args: () => [array(Array.from({length:1024*1024}, (_,i)=>i%1024), [1024,1024]), array(Array(1024).fill(1))], verify: value => assert.deepEqual(value.items, Array(1024).fill(523776)) },
+  { name: 'Increasing Array, 200000 alternating values', path: 'demos/cses/intro/004_increase.ra', fn: 'moves', expected: 100000n, args: () => [array(Array.from({length:200000}, (_,i)=>i%2?0n:1n))] },
+  { name: 'Triangle Words, 200000 characters', path: 'demos/euler/042_trianglewords.ra', fn: 'word_value', expected: 200000n, args: () => ['A'.repeat(200000)] },
+  { name: 'Stack to index, 200000 entries', path: 'benchmarks/programs/container-loops.ra', fn: 'drain', expected: 200000n * 200001n / 2n, args: () => [200000n] },
+  { name: 'Branching recurrence, 200000 steps', path: 'benchmarks/programs/integer-branches.ra', fn: 'recurrence', expected: recurrenceAnswer(200000), args: () => [200000n] },
+  { name: 'Euler 28 Size=200001', path: 'demos/euler/028_spiraldiagonals.ra', fn: 'spiral_diagonal_sum', expected: 1n + 16n * 100000n * 100001n * 200001n / 6n + 4n * 100000n * 100001n / 2n + 4n * 100000n, args: () => [200001n] },
+  { name: 'Four Squares square_sum helper, 200000 values', path: 'demos/cses/math/026_foursquares.ra', fn: 'square_sum', expected: 199999n * 200000n * 399999n / 6n, args: () => [array(Array.from({length:200000}, (_,i)=>BigInt(i)))] },
   { name: 'Stick Game n=100000 k=100', path: 'demos/cses/math/032_stickgame.ra', input: `100000 100 ${Array.from({length:100}, (_,i)=>i+1).join(' ')}` },
   { name: 'Jacobi 128x128, 10 iterations', path: 'demos/deepml/011_jacobi.ra', fn: 'jacobi', args: () => [array(Array.from({length:128*128}, (_,i)=>i%129===0?2:0), [128,128]), array(Array(128).fill(2)), 10n] },
   { name: 'Linear SVM 32x64, 3 iterations', path: 'demos/deepml/021_svm.ra', fn: 'pegasos', args: () => [array(Array.from({length:32*64}, (_,i)=>(i%17-8)/16), [32,64]), array(Array.from({length:32}, (_,i)=>i%2?1:-1)), 'linear', 0.1, 3n, 1.0] },
@@ -47,7 +112,44 @@ for (let sample=0; sample<samples; sample++) {
     let offset=0, kernels=0;
     const output=[];
     const runtime = new Interpreter(line => output.push(line), {
-      tensorFusion: enabled, onTensorKernelExecuted: () => kernels++,
+      scalarEntryCompilation: backend === 'scalarentry' ? enabled : undefined,
+      compiledScalarTailCalls: backend === 'scalartails' ? enabled : undefined,
+      scalarFunctionCompilation: backend === 'scalarbodies' ? enabled : undefined,
+      onScalarFunctionExecuted: ['scalarbodies', 'scalartails', 'scalarentry'].includes(backend) && counters ? () => kernels++ : undefined,
+      scalarBlockCalls: backend === 'blockcalls' ? enabled : undefined,
+      scalarCallCompilation: backend === 'scalarcalls' ? enabled : undefined,
+      tensorTextDigits: backend === 'tensordigits' ? enabled : undefined,
+      scalarTextCompilation: backend === 'scalartext' ? enabled : undefined,
+      directTextIteration: backend === 'textiteration' ? enabled : undefined,
+      textArrayLoopCompilation: backend === 'textarrays' ? enabled : undefined,
+      textLoopCompilation: backend === 'textloops' ? enabled : undefined,
+      absoluteLoopCompilation: backend === 'absolute' ? enabled : undefined,
+      provenIterationTypes: backend === 'iterationtypes' ? enabled : undefined,
+      loopReturnCompilation: backend === 'returns' ? enabled : undefined,
+      arrayLocalCompilation: backend === 'arraylocals' ? enabled : undefined,
+      booleanArrayCompilation: backend === 'booleanarrays' ? enabled : undefined,
+      booleanLoopCompilation: backend === 'booleans' ? enabled : undefined,
+      boundIntegerWrites: backend === 'writes' ? enabled : undefined,
+      scalarAddressCompilation: backend === 'address' ? enabled : undefined,
+      extremaLoopCompilation: backend === 'extrema' ? enabled : undefined,
+      compoundArrayCompilation: backend === 'compoundarray' ? enabled : undefined,
+      arrayIterationCompilation: backend === 'arrayiteration' ? enabled : undefined,
+      arrayWriteCompilation: backend === 'arraywrite' ? enabled : undefined,
+      arrayLoopCompilation: backend === 'arrayloop' ? enabled : undefined,
+      nestedLoopCompilation: backend === 'nested' ? enabled : undefined,
+      tensorCellCompilation: backend === 'cells' ? enabled : undefined,
+      directIteration: backend === 'iteration' ? enabled : undefined,
+      functionBodyCompilation: backend === 'function' ? enabled : undefined,
+      onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
+      tensorFusion: backend === 'tensor' ? enabled : true,
+      integerLoopCompilation: backend === 'integer' ? enabled : undefined,
+      onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls'].includes(backend) && counters ? () => kernels++ : undefined,
+      loopPreparation: backend === 'loop' ? enabled : undefined,
+      blockCompilation: backend === 'block' ? enabled : undefined,
+      onBlockExecuted: backend === 'block' && counters ? () => kernels++ : undefined,
+      scalarCompilation: backend === 'scalar' ? enabled : undefined,
+      onTensorKernelExecuted: ['tensor', 'tensordigits'].includes(backend) && counters ? () => kernels++ : undefined,
+      onScalarExecuted: backend === 'scalar' && counters ? () => kernels++ : undefined,
       sourceId:path, loadModule, io:nodeIo, testing: mode === 'suite',
       args: item.cli ?? [], input:{readToken:()=>tokens[offset++]},
     });
@@ -56,6 +158,8 @@ for (let sample=0; sample<samples; sample++) {
     try {
       let value = runtime.execute(item.fn ? `use ${JSON.stringify(path)}` : readFileSync(path,'utf8'));
       if (item.fn) value = runtime.variables.get(item.fn).call(item.args());
+      item.verify?.(value);
+      if ('expected' in item) assert.equal(value, item.expected, `independent answer: ${item.name}`);
       if (mode === 'suite') {
         tests=runtime.testResults.length;
         const failures=runtime.testResults.filter(t=>!t.passed);
@@ -72,4 +176,4 @@ for (let sample=0; sample<samples; sample++) {
   records.push({enabled, sample, ms:performance.now()-start, entries});
  }
 }
-console.log(JSON.stringify({node:process.version, mode, setting, samples, timing:"fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order", records},null,2));
+console.log(JSON.stringify({node:process.version, mode, setting, backend, counters, samples, timing:"fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order", records},null,2));

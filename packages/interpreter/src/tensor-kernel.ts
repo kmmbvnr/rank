@@ -1,10 +1,11 @@
 import {
-    isApplicationExpression, isAssignmentStatement, isBinaryExpression,
-    isNameExpression, isNumberLiteral, isBooleanLiteral,
+    isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
+    isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     isParenthesizedExpression, isUnaryExpression,
     type Expression, type Statement,
 } from 'rank-language';
 import { type RankValue, isRankArray } from './value.js';
+import { materializedArrayItems } from './array-storage.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Reducer = 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
@@ -17,8 +18,9 @@ export type TensorNode =
     | { kind: 'unary'; op: string; operand: TensorNode }
     | { kind: 'select'; source: TensorNode; selector: TensorNode };
 export interface TensorKernelHost {
+    readonly textDigits?: boolean;
     lookup(name: string): RankValue | undefined;
-    builtin(name: Reducer): boolean;
+    builtin(name: Reducer | 'text' | 'integer'): boolean;
     compiled?(source: string): void;
 }
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
@@ -27,7 +29,7 @@ function pair(value: Expression): Expression[] | undefined {
     return isApplicationExpression(atom) && atom.arguments.length === 1 ? [atom.head, atom.arguments[0]] : undefined;
 }
 interface View { items: RankValue[]; offset: number; shape: readonly number[] }
-interface Bound { shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean }
+interface Bound { shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
 
@@ -45,7 +47,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             reads.set(e.name, (reads.get(e.name) ?? 0) + 1);
             return definitions.get(e.name) ?? { kind: 'input', name: e.name };
         }
-        if (isNumberLiteral(e) || isBooleanLiteral(e)) return { kind: 'input', value: e.value };
+        if (isNumberLiteral(e) || isBooleanLiteral(e) || host.textDigits && isStringLiteral(e)) return { kind: 'input', value: e.value };
         if (isBinaryExpression(e) && binary.has(e.operator) && !e.step) {
             // Rank gives power precedence over an unparenthesized sign.
             if (e.operator === '**' && isUnaryExpression(e.left)
@@ -61,6 +63,21 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             const operand = parse(e.operand);
             return operand ? { kind: 'unary', op: e.operator, operand } : undefined;
         }
+        if (host.textDigits) {
+            const flatten = (node: Expression): Expression[] => isApplicationExpression(node)
+                ? [...flatten(node.head), ...node.arguments.flatMap(flatten)] : [node];
+            const parts = flatten(e);
+            if (parts.length === 4 && isNameExpression(parts[1]) && parts[1].name === 'integer'
+                && isNameExpression(parts[2]) && parts[2].name === 'rank'
+                && isNumberLiteral(parts[3]) && parts[3].value === 0n) {
+                const operand = parse(parts[0]);
+                return operand ? { kind: 'unary', op: 'integer0', operand } : undefined;
+            }
+            if (parts.length === 2 && isNameExpression(parts[1]) && parts[1].name === 'text') {
+                const operand = parse(parts[0]);
+                return operand ? { kind: 'unary', op: 'text', operand } : undefined;
+            }
+        }
         const parts = pair(e);
         if (parts) {
             const source = parse(parts[0]), selector = parse(parts[1]);
@@ -70,7 +87,8 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     }
     for (let index = 0; index < Math.min(statements.length, 16); index++) {
         const statement = statements[index];
-        if (!isAssignmentStatement(statement) || statement.operator !== '=') return undefined;
+        const assignment = isAssignmentStatement(statement) && statement.operator === '=';
+        if ((!assignment && !isReturnStatement(statement)) || !statement.value) return undefined;
         const parts = pair(statement.value);
         const last = parts && unwrap(parts[1]);
         if (last && isNameExpression(last) && reducers.has(last.name)) {
@@ -92,6 +110,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             if ([...definitions.values()].some(node => !reached.has(node))) return undefined;
             return build(root, names, last.name as Reducer, index + 1, host);
         }
+        if (!isAssignmentStatement(statement)) return undefined;
         const value = parse(statement.value);
         if (!value || definitions.has(statement.name)) return undefined;
         definitions.set(statement.name, value);
@@ -114,10 +133,10 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
             let result: Bound | undefined;
             if (node.kind === 'input') {
                 const value = node.name === undefined ? node.value : host.lookup(node.name);
-                if (numeric(value) || typeof value === 'boolean') {
+                if (numeric(value) || typeof value === 'boolean' || host.textDigits && typeof value === 'string') {
                     result = { scalar: value, boolean: typeof value === 'boolean', slot: scalars.push(value!) - 1 };
-                } else if (value && isRankArray(value) && !('itemAt' in value)) {
-                    const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
+                } else if (value && isRankArray(value)) {
+                    const items = materializedArrayItems(value);
                     if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
                         || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;
                     const view = { items, offset: 0, shape: value.shape };
@@ -129,7 +148,16 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
                 result = { shape: a.shape ?? b.shape, boolean: node.op in comparison || ['and', 'or', 'xor'].includes(node.op) };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
-                if (a) result = { shape: a.shape, boolean: node.op === 'not' };
+                if (node.op === 'text') {
+                    if (a && typeof a.scalar === 'bigint' && host.builtin('text')) {
+                        const value = a.scalar.toString();
+                        result = { scalar: value, boolean: false, slot: scalars.push(value) - 1 };
+                    }
+                } else if (node.op === 'integer0') {
+                    if (a && typeof a.scalar === 'string' && !/[^0-9]/.test(a.scalar) && host.builtin('integer')) {
+                        result = { shape: [a.scalar.length], boolean: false, digits: true, slot: scalars.push(a.scalar) - 1 };
+                    }
+                } else if (a) result = { shape: a.shape, boolean: node.op === 'not' };
             } else {
                 const a = bind(node.source), b = bind(node.selector);
                 if (!a || !b || !a.shape || a.shape.length === 0) return undefined;
@@ -194,6 +222,7 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
                 const name = `v${emitted.size}`;
                 emitted.set(node, name);
                 if (info.scalar !== undefined) lines.push(`const ${name} = scalars[${info.slot}];`);
+                else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(i) - 48);`);
                 else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + i];`);
                 else if (node.kind === 'binary') {
                     const a = emit(node.left), b = emit(node.right);

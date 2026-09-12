@@ -1,0 +1,53 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "textarrays",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 112.09600000000002,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 83.825042,
+          "kernels": 500,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 27.91624999999999,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 33.36891700000001,
+      "entries": [
+        {
+          "name": "Grid Paths, 500 by 500 open cells",
+          "ms": 20.43704199999999,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "b9b37cc8489d91d0887ed87886dcdf8ad33da6de994a4fb724eaeeada447515b"
+        },
+        {
+          "name": "Edit Distance, 300 distinct characters each",
+          "ms": 12.807749999999999,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "870bc432aee61adacbb3e32b8cdbe58e394b534876a70696fc097e0bfbb4becd"
+        }
+      ]
+    }
+  ]
+}

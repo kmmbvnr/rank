@@ -1,0 +1,221 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "scalarentry",
+  "counters": false,
+  "samples": 3,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 9986.580375,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2534.223125,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4316.115083000001,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1289.9287080000004,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1845.4359170000007,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 9737.196166,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2587.4752500000013,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4102.654917000002,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1201.8864170000015,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1844.4630419999994,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 9804.926583,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2601.0015829999975,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4151.1624999999985,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1211.8113339999982,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1840.5877499999988,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 9743.198249999998,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2588.0981250000004,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4134.905708000002,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1192.7038329999996,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1826.8439160000053,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 9807.76025,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2601.1430839999957,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4139.092124999996,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1218.3302089999997,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1848.8912090000013,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 9743.792500000003,
+      "entries": [
+        {
+          "name": "demos/aoc/2015/004_md5_test.ra",
+          "ms": 2582.978332999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "8f6eb34b98788d2945a15e23ae7664ee3098d8f0cc7d0963333707cdd443c1c3"
+        },
+        {
+          "name": "demos/aoc/2015/006_lights_test.ra",
+          "ms": 4150.458416000001,
+          "kernels": 0,
+          "tests": 3,
+          "digest": "d95ce8226346a95458f129d33e6eb7fb80a8f33f89c74d663e9bf645aa9f822f"
+        },
+        {
+          "name": "demos/aoc/2015/010_looksay_test.ra",
+          "ms": 1203.794458999997,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "2e8d7d8077b7e18327399c05aed46471482ee375443a494c2e323b582c2edcab"
+        },
+        {
+          "name": "demos/cses/intro/024_gridpath_test.ra",
+          "ms": 1805.954792000004,
+          "kernels": 0,
+          "tests": 5,
+          "digest": "2dd9644756813cd7473d3c19be0a575d010add04da050ee4cbf9fc5d742b80f8"
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@ export class RankDeque {
     private readonly entries = new Map<number, RankValue>();
     private first = 0;
     private last = 0;
+    private typeSummary?: { classify: (value: RankValue) => string; types: ReadonlySet<string> };
 
     constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {
         this.resources.track(this);
@@ -21,13 +22,22 @@ export class RankDeque {
     *values(): IterableIterator<RankValue> {
         for (let index = this.first; index < this.last; index++) yield this.entries.get(index)!;
     }
+    /** A snapshot: loop declarations may retain this set after mutation. */
+    iterationTypes(classify: (value: RankValue) => string): ReadonlySet<string> {
+        if (this.typeSummary?.classify !== classify) {
+            this.typeSummary = { classify, types: new Set(Array.from(this.values(), classify)) };
+        }
+        return this.typeSummary.types;
+    }
     push(value: RankValue): this {
         this.resources.include(value);
+        this.typeSummary = undefined;
         this.entries.set(this.last++, value);
         return this;
     }
     pushFront(value: RankValue): this {
         this.resources.include(value);
+        this.typeSummary = undefined;
         this.entries.set(--this.first, value);
         return this;
     }
@@ -37,6 +47,7 @@ export class RankDeque {
     }
     pop(back = this.mode === 'stack'): RankValue {
         const value = this.peek(back);
+        this.typeSummary = undefined;
         this.entries.delete(back ? --this.last : this.first++);
         if (!this.size) this.first = this.last = 0;
         return value;

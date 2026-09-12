@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "booleanarrays",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 1110.576833,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 1110.29425,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 142.28612500000008,
+      "entries": [
+        {
+          "name": "Money Sums, 100 coins of value 1000",
+          "ms": 142.18962499999998,
+          "kernels": 2,
+          "tests": 0,
+          "digest": "4cb54c8dd16c3763708b01d222e94ccc1d85b257d51267923f1b76a1b9368d0e"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+rem Push integers, then index running sums.
+use algo
+use sequences
+use ranges
+
+fun drain Limit
+  Path = new stack
+  Cache = new index
+  for I in 1 to Limit
+    Path push I
+  end
+  Total = 0
+  for Path len greater 0
+    V = Path pop
+    Total += V
+    Cache V = Total
+  end
+  return Cache 1
+end

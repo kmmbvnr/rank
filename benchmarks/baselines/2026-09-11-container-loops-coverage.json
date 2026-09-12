@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 7339.577834000001,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7338.997791999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 7745.811417000001,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7745.724875,
+          "kernels": 2000020,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    }
+  ]
+}

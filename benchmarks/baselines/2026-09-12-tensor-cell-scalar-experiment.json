@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "cells",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 103.00974999999998,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 102.729041,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 55.58562499999999,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 55.506917000000016,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 52.42279099999999,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 52.341958000000005,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 51.612832999999966,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 51.53112500000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 49.74258400000002,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 49.66204099999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 49.895167000000015,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 49.80824999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 52.151250000000005,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 52.06554199999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 50.84829199999996,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 50.76274999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 48.678083000000015,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 48.607709,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 50.13316700000007,
+      "entries": [
+        {
+          "name": "Tensor rank-0 traversal, 512x512",
+          "ms": 50.06358399999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ae05a11798a204b5a331156dd253a8a05b690f370e25b5296a8b5b32dad40ec6"
+        }
+      ]
+    }
+  ]
+}

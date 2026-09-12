@@ -1,0 +1,179 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "control",
+  "counters": false,
+  "samples": 3,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 8255.433125,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 731.564167,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 221.86866699999996,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7301.573042,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 8351.049959,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 722.5984160000007,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 222.82424999999967,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7405.345375000001,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 8322.324,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 729.6979159999973,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 216.57529199999772,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7375.793583999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 8506.509458,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 728.2462089999972,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 217.3870420000021,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7560.622458000002,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 8679.033958,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 726.2477080000026,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 217.72704099999828,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7734.859749999996,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 8438.042875,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 746.5169999999998,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 219.68533300000126,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        },
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7471.653917000003,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    }
+  ]
+}

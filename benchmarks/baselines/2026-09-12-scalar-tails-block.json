@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalartails",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 527.351083,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 527.061541,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 381.887292,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 381.788625,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 374.17591600000014,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 374.07741699999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 645.650958,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 645.5572499999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 533.9401250000001,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 533.838708,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 369.7773339999999,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 369.686917,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 335.86512500000026,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 335.7590829999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 552.862666,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 552.7612910000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 543.8965000000003,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 543.8104159999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 335.83129199999985,
+      "entries": [
+        {
+          "name": "Conditional tail into bounded helper, 200000 calls",
+          "ms": 335.74945800000023,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        }
+      ]
+    }
+  ]
+}

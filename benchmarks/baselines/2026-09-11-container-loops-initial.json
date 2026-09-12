@@ -1,0 +1,95 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": false,
+  "samples": 3,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 7430.095125,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7429.52325,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 7824.139709000001,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7824.044,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 7813.042583,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7812.956875,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 7737.3633329999975,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7737.271457999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 7692.029666999999,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7691.951417,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 7805.581166000004,
+      "entries": [
+        {
+          "name": "demos/euler/014_collatz_test.ra",
+          "ms": 7805.501584000005,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "2479f1a841da97d826c1f936ff1419f8e7eca76806f862a0f2da01d9df24bf58"
+        }
+      ]
+    }
+  ]
+}

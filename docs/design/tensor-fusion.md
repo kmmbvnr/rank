@@ -112,3 +112,10 @@ semantic boundaries rather than require programmers to rewrite clear examples.
 
 See [fusion measurements](tensor-fusion-results.md) for reproducible timings,
 coverage and known limitations of the current revision.
+
+## Incremental implementation results
+
+See [compiler progress](compiler-progress.md) for subsequent optimizations,
+including cached queue type summaries and compiled access to completed lazy
+`round` caches. These extend the initial eager-input coverage without forcing
+previously unevaluated values.

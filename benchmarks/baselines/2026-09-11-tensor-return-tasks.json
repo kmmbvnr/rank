@@ -1,0 +1,149 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 84.17837499999999,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 83.92279200000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 14.966791,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 14.905417,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 12.498083000000008,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 12.445750000000004,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 17.044624999999996,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 16.975166,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 17.40016700000001,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 17.34129200000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 12.024000000000001,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 11.975416999999993,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 14.260209000000003,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 14.192374999999998,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 15.832458000000031,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 15.778875,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 26.67070799999999,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 26.585667,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 12.211374999999975,
+      "entries": [
+        {
+          "name": "Four Squares square_sum helper, 200000 values",
+          "ms": 12.158041999999966,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "052cd58caa14b0607168e2e213b1ffb5fc240cb3385e220615ae72cb067640e4"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "writes",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 343.504083,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 157.584375,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 33.945333000000005,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 135.72825,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 15.702292,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 143.35687499999995,
+      "entries": [
+        {
+          "name": "Minimizing Coins, six coins, Target=100000",
+          "ms": 53.62737499999997,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "cde34d1d7186ca195ae28e04ddb2ef27bcff27a7681e2ea8ca230effdd7d9b97"
+        },
+        {
+          "name": "Euler 18, 400 rows of ones",
+          "ms": 15.390459000000021,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "76f57839e193cb533b1f3bc9f0c3fe2f3669a5571a6207686ee930b4b732435f"
+        },
+        {
+          "name": "Dice Combinations N=1000000",
+          "ms": 65.90833299999997,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "57180365b2e8450dd95c3d9ee160396579a27c7be844ef37e5d0f12a1c66d456"
+        },
+        {
+          "name": "Branching recurrence, 200000 steps",
+          "ms": 8.138916999999992,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "b93bd77bf8998a408521601312b574d8a68b04e62f22004ce76d31847c1952f2"
+        }
+      ]
+    }
+  ]
+}

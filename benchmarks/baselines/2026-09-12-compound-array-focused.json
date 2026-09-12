@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "compoundarray",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 412.71837500000004,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 412.41812500000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 104.92979099999997,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 104.85420799999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 100.43650000000002,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 100.36004100000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 399.443,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 399.3567089999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 393.406334,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 393.3086249999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 101.39737500000001,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 101.30420800000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 100.04999999999995,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 99.96350000000007,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 392.0657920000001,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 391.9792500000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 398.65262500000017,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 398.5635830000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 100.33750000000009,
+      "entries": [
+        {
+          "name": "Coin Combinations I, six coins, Target=100000",
+          "ms": 100.26029200000039,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "8752fbb145446a8516deb8b220b355fa21497d9f9148dca14c77f3c1c634eb12"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalarcalls",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 365.090708,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 328.700833,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 35.99995799999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 287.299458,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 278.446,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 8.682750000000055,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 316.4784169999999,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 306.4999170000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 9.809958999999935,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 300.11966700000016,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 282.633458,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 17.30204200000003,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 291.515709,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 273.9569999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 17.350832999999966,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 474.75708299999997,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 466.3203339999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 8.303583999999773,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 267.3758329999996,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 259.40708300000006,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 7.857291999999688,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 307.0837499999998,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 285.45445800000016,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 21.497749999999996,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 307.17454099999986,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 289.3536250000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 17.709499999999935,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 406.2748339999998,
+      "entries": [
+        {
+          "name": "Conditional tail return, 100000 calls",
+          "ms": 397.45458299999973,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "121851309901bf8b01f612d863b903fc7572fcfed025a838ad1d14f1b3ef0a45"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 8.705708999999842,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    }
+  ]
+}

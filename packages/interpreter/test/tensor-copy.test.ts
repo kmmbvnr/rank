@@ -7,7 +7,7 @@ describe('tensor cell copies', () => {
         const shapes = [[2, 3, 4], [2, 0, 4], [0, 3, 4]];
         const axes = [[], [0], [1], [2], [0, 1], [1, 0], [0, 2], [2, 0], [1, 2], [2, 1],
             [0, 1, 2], [2, 0, 1], [2, 1, 0]];
-        for (const shape of shapes) for (const frame of axes) for (const owned of [false, true]) {
+        for (const shape of shapes) for (const frame of axes) for (const owned of [false, true]) for (const tensorCellCompilation of [false, true]) {
             const items = Array.from({ length: shape[0] * shape[1] * shape[2] }, (_, i) => BigInt(i + 1));
             const input: RankArray = owned ? createArraySnapshot(items, shape) : { kind: 'array', items, shape };
             const cellShape = shape.filter((_, axis) => !frame.includes(axis));
@@ -27,7 +27,7 @@ describe('tensor cell copies', () => {
                 group.items.push(items[(a * shape[1] + b) * shape[2] + c]);
             }
             const observed: { shape: readonly number[]; items: RankValue[] }[] = [];
-            const runtime = new Interpreter();
+            const runtime = new Interpreter(undefined, { tensorCellCompilation });
             runtime.variables.set('A', input);
             runtime.variables.set('observe', native('observe', 1, ([value]) => {
                 observed.push(isRankArray(value) ? { shape: [...value.shape], items: [...value.items] }

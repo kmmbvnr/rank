@@ -1,0 +1,137 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": false,
+  "samples": 3,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 935.128375,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 725.244333,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 209.50512500000002,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 503.2477500000001,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 282.8977920000001,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 220.147291,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 544.2758749999998,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 339.15162499999997,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 204.9571249999999,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 960.7103340000003,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 754.844208,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 205.70870800000012,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 955.9154159999998,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 751.2246250000003,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 204.50991599999998,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 538.8730840000003,
+      "entries": [
+        {
+          "name": "demos/cses/math/006_sumdivisors_test.ra",
+          "ms": 332.93783299999996,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "78057de3b090ee6e7b7942dfebfb4f121eb1e0bb714647111759194c9250b012"
+        },
+        {
+          "name": "demos/cses/math/014_christmasparty_test.ra",
+          "ms": 205.81508399999984,
+          "kernels": 0,
+          "tests": 4,
+          "digest": "452f5030ed8e40c7b44690041a71da27233bb06a417fc196c81c7b4029b2a9e5"
+        }
+      ]
+    }
+  ]
+}

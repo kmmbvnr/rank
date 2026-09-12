@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "tensordigits",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 278.636875,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 278.35125,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 160.23941600000006,
+      "entries": [
+        {
+          "name": "Euler 30, fourth power digit numbers",
+          "ms": 160.14899999999994,
+          "kernels": 39365,
+          "tests": 0,
+          "digest": "f02202fcfaf7fef2d69f7f1eb58189398b816c4f9ded1c8181e38680dcc021dc"
+        }
+      ]
+    }
+  ]
+}

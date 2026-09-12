@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "suite",
+  "setting": "compare",
+  "backend": "arrayloop",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 81.303333,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 81.02816599999998,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 15.267959000000019,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 15.193167000000017,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 13.949416000000014,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 13.893540999999999,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 11.566958,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 11.512708000000003,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 12.010500000000008,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 11.956041999999997,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 9.956083000000007,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 9.891083000000009,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 11.650499999999994,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 11.589500000000015,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 11.357500000000016,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 11.305833999999976,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 10.382708000000008,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 10.330375000000004,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 10.056791999999973,
+      "entries": [
+        {
+          "name": "demos/euler/011_gridproduct_test.ra",
+          "ms": 10.001749999999987,
+          "kernels": 0,
+          "tests": 2,
+          "digest": "f63efa50c94b47d1e2125b427bf0a5885be05739de010a459414303550cc2342"
+        }
+      ]
+    }
+  ]
+}

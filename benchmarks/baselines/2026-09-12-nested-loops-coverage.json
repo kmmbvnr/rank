@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "nested",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 90.27420800000002,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 89.92808300000002,
+          "kernels": 200000,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 26.499124999999992,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 26.430082999999996,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    }
+  ]
+}

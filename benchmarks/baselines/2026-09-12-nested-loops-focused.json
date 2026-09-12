@@ -1,0 +1,151 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "nested",
+  "counters": false,
+  "samples": 5,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 95.201917,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 94.91287499999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 27.49154200000001,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 27.422832999999997,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 1,
+      "ms": 25.580667000000005,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 25.517583000000002,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 1,
+      "ms": 42.09783300000001,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 42.035499999999985,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 2,
+      "ms": 41.36016599999999,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 41.28649999999999,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 2,
+      "ms": 27.364709000000005,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 27.293375000000026,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 3,
+      "ms": 26.091334000000018,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 26.029042000000004,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 3,
+      "ms": 40.16787499999998,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 40.107083999999986,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "sample": 4,
+      "ms": 42.47304100000002,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 42.41674999999998,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 4,
+      "ms": 26.34804200000002,
+      "entries": [
+        {
+          "name": "Nested dependent ranges, 200000x3",
+          "ms": 26.289416999999958,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "ddd7939380e04007ef17c5af446eeee8dd78fa87f36b1dc4a161931a59df245d"
+        }
+      ]
+    }
+  ]
+}

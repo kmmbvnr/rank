@@ -1,0 +1,19 @@
+rem Compiler fixture: ranked callbacks.
+use ranges
+use numbers
+
+fun bounded X
+  Value = X - 100000
+  if Value less 0
+    return 0
+  elif Value greater 50000
+    Value = 50000
+  end
+  return Value
+end
+
+fun scores N
+  Values = (0 until N) array
+  Scores = Values bounded rank 0
+  return Scores sum
+end

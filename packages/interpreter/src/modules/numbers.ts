@@ -1,3 +1,4 @@
+import { registerCachedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import {
@@ -270,9 +271,11 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
         return result;
     };
     let materialized: RankValue[] | undefined;
-    return {
+    const shape = value.shape;
+    let compilerCache: RankValue[] | undefined;
+    return registerCachedArray({
         kind: 'array',
-        shape: value.shape,
+        shape,
         itemAt,
         containsFiles: false,
         get items() {
@@ -280,7 +283,15 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
             materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
             return materialized;
         },
-    };
+    }, () => {
+        if (compilerCache) return compilerCache;
+        const size = shape.reduce((product, dimension) => product * dimension, 1);
+        if (cached.size !== size) return undefined;
+        // Read only cached cells. A separate private snapshot preserves itemAt
+        // semantics even if an embedding caller mutates the public items array.
+        for (let index = 0; index < size; index++) if (!cached.has(index)) return undefined;
+        return compilerCache = Array.from({ length: size }, (_, index) => cached.get(index)!);
+    });
 }
 
 function numericExtreme(

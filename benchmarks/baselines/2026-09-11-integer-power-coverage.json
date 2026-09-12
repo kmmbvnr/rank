@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "integer",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 96.85295900000001,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 96.577875,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 10.426540999999986,
+      "entries": [
+        {
+          "name": "Euler 28 Size=200001",
+          "ms": 10.350583,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "c2e503b17b711dc4566025c434263aadadb50673c077651bd96089bba4d06cc2"
+        }
+      ]
+    }
+  ]
+}

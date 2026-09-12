@@ -1,0 +1,39 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalarcalls",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 81.06550000000001,
+      "entries": [
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 80.76066700000001,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 10.14987499999998,
+      "entries": [
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 10.078833000000003,
+          "kernels": 1,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    }
+  ]
+}

@@ -302,3 +302,159 @@ A f`);
         }
     });
 });
+
+
+describe('compiled access to completed lazy caches', () => {
+    it('uses a completed round cache without rereading mutated source cells', () => {
+        const result = compare(`use numbers
+A = array 1.2 2.8
+R = A round 0
+Warm = R sum
+A 0 = 100.0
+Answer = (R * 2) sum
+Answer
+`);
+        expect(result.value).toBe('8');
+        expect(result.kernels).toBe(1);
+    });
+
+    it('does not force a partially cached input to enable compilation', () => {
+        const result = compare(`use numbers
+A = array 1.2 2.8
+R = A round 0
+First = R 0
+A 1 = 4.1
+Answer = (R * 2) sum
+Answer
+`);
+        expect(result.value).toBe('10');
+        expect(result.kernels).toBe(0);
+    });
+});
+
+
+describe('tensor return terminals', () => {
+    it('fuses a named pipeline ending in return', () => {
+        const result = compare(`use numbers
+fun squares A
+  Squared = A * A
+  return Squared sum
+end
+A = array 2 3 4
+A squares
+`);
+        expect(result.value).toBe('29');
+        expect(result.kernels).toBe(1);
+    });
+
+    it('fuses inline returns and still executes finally', () => {
+        const result = compare(`use numbers
+use io
+fun squares A
+  try
+    return (A * A) sum
+  finally
+    "finished" print
+  end
+end
+A = array 2 3 4
+A squares
+`);
+        expect(result.value).toBe('29');
+        expect(result.output).toEqual(['finished']);
+        expect(result.kernels).toBe(1);
+    });
+
+    it.each([
+        'use numbers\nA = array 1 2\nreturn (A * A) sum',
+        'use numbers\nfun bad A\n  try\n    return 1\n  finally\n    return (A * A) sum\n  end\nend\nA = array 1 2\nA bad',
+        'use numbers\nfun bad A\n  yield 1\n  return (A * A) sum\nend\nA = array 1 2\nB = A bad\nB array',
+    ])('preserves invalid return diagnostics', source => {
+        expect(compare(source)).toHaveProperty('error');
+    });
+
+    it('preserves reducer failures at the return statement', () => {
+        const result = compare(`use numbers
+fun bad A
+  return (A / 0) sum
+end
+A = array 1 2
+A bad
+`);
+        expect(result).toHaveProperty('error');
+    });
+});
+
+describe('text digits inside tensor kernels', () => {
+    const program = `use text
+use numbers
+use io
+fun digits N Power
+  Text = N text
+  Digits = Text integer rank 0
+  Powers = Digits ** Power
+  return Powers sum
+end
+1634 4 digits`;
+
+    it('fuses integer rendering, rank conversion, powers and reduction', () => {
+        expect(compare(program)).toMatchObject({ value: '1634', kernels: 1 });
+    });
+
+    it('preserves large integer rendering exactly', () => {
+        const input = '9007199254740993';
+        const expected = [...input].reduce((sum, digit) => sum + BigInt(digit), 0n);
+        expect(compare(program.replace('1634 4 digits', `${input} 1 digits`)))
+            .toMatchObject({ value: String(expected), kernels: 1 });
+    });
+
+    it.each(['""', '"00012"'])('reduces digit text %s', input => {
+        const source = `use text
+use numbers
+fun digits Text
+  Digits = Text integer rank 0
+  Shifted = Digits + 1
+  return Shifted sum
+end
+${input} digits`;
+        expect(compare(source)).toMatchObject({ value: input === '""' ? '0' : '8', kernels: 1 });
+    });
+
+    it.each(['-12', '"1😀2"', '"1 2"', '"12\\n"'])('retains conversion errors for %s', input => {
+        const source = typeof input === 'string' && input.startsWith('"')
+            ? program.replace('Text = N text', 'Text = N').replace('1634 4 digits', `${input} 2 digits`)
+            : program.replace('1634 4 digits', `${input} 2 digits`);
+        expect(compare(source)).toHaveProperty('error');
+    });
+
+    it('retains a user integer function under rank 0', () => {
+        const source = program.replace('fun digits N Power', `fun integer X
+  return 2
+end
+fun digits N Power`);
+        expect(compare(source)).toMatchObject({ value: '64' });
+    });
+
+    it('retains a user text function before the digit pipeline', () => {
+        const source = program.replace('fun digits N Power', `fun text X
+  return "99"
+end
+fun digits N Power`);
+        expect(compare(source)).toMatchObject({ value: '13122' });
+    });
+
+    it('does not remove observable intermediate bindings', () => {
+        const source = program.replace('return Powers sum', 'Digits print\n  return Powers sum');
+        expect(compare(source)).toMatchObject({ value: '1634', output: ['1 6 3 4'] });
+    });
+});
+
+
+it('fuses an inline literal digit conversion and reduction', () => {
+    expect(compare(`use text
+use numbers
+fun answer Unused
+  return "1203" integer rank 0 sum
+end
+0 answer`)).toMatchObject({ value: '6', kernels: 1 });
+});

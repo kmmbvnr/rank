@@ -1,3 +1,9 @@
+import { compileScalarFunction } from './scalar-function-kernel.js';
+import { scalarFunctionResult } from './scalar-function-proof.js';
+import { compileTensorCellCopy } from './tensor-cell-compiler.js';
+import { compileIntegerLoop } from './integer-loop.js';
+import { compileBlock, type CompiledBlock } from './block-compiler.js';
+import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
     ExecutionStack, completed, emit, flatMapResult, mapExecution, mapPair, mapResult, normalizeStackError,
@@ -148,6 +154,51 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarEntryCompilation?: boolean;
+    readonly compiledScalarTailCalls?: boolean;
+    readonly scalarFunctionCompilation?: boolean;
+    readonly onScalarFunctionExecuted?: () => void;
+    readonly scalarBlockCalls?: boolean;
+    readonly scalarCallCompilation?: boolean;
+    readonly tensorTextDigits?: boolean;
+    readonly scalarTextCompilation?: boolean;
+    readonly directTextIteration?: boolean;
+    readonly textArrayLoopCompilation?: boolean;
+    readonly textLoopCompilation?: boolean;
+    readonly absoluteLoopCompilation?: boolean;
+    readonly provenIterationTypes?: boolean;
+    readonly loopReturnCompilation?: boolean;
+    readonly arrayLocalCompilation?: boolean;
+    readonly booleanArrayCompilation?: boolean;
+    readonly booleanLoopCompilation?: boolean;
+    readonly boundIntegerWrites?: boolean;
+    readonly scalarAddressCompilation?: boolean;
+    readonly extremaLoopCompilation?: boolean;
+    readonly compoundArrayCompilation?: boolean;
+    readonly arrayIterationCompilation?: boolean;
+    readonly arrayWriteCompilation?: boolean;
+    readonly arrayLoopCompilation?: boolean;
+    readonly nestedLoopCompilation?: boolean;
+    readonly tensorCellCompilation?: boolean;
+    /** Iterate scalar streams without per-element entry wrappers. */
+    readonly directIteration?: boolean;
+    /** Compile function bodies with a terminal return continuation. */
+    readonly functionBodyCompilation?: boolean;
+    readonly onFunctionBodyCompiled?: (source: string) => void;
+    readonly onFunctionBodyExecuted?: () => void;
+    readonly integerLoopCompilation?: boolean;
+    readonly onIntegerLoopCompiled?: (source: string) => void;
+    readonly onIntegerLoopExecuted?: () => void;
+    /** Reuse compiled loop bodies and their execution contexts. */
+    readonly loopPreparation?: boolean;
+    /** Compiled command blocks; false retains statement dispatch. */
+    readonly blockCompilation?: boolean;
+    readonly onBlockCompiled?: (source: string) => void;
+    readonly onBlockExecuted?: () => void;
+    /** Compound scalar expression compilation; false retains prepared operators. */
+    readonly scalarCompilation?: boolean;
+    readonly onScalarCompiled?: (source: string) => void;
+    readonly onScalarExecuted?: () => void;
     /** General tensor fusion; false selects the reference statement path. */
     readonly tensorFusion?: boolean;
     readonly onTensorKernelCompiled?: (source: string) => void;
@@ -200,7 +251,8 @@ interface FunctionDefinition {
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 
 class TailCallSignal {
-    constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[]) {}
+    constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[],
+        readonly compiled?: (arguments_: RankValue[], tail: boolean) => RankValue) {}
 }
 const SEED_RANDOM = Symbol('seedRandom');
 
@@ -266,6 +318,8 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
+    private readonly functionBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
+    private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
     private localFrame: LocalFrame | undefined;
@@ -479,6 +533,8 @@ export class Interpreter {
         const context: ExecutionContext = tailCallsAllowed
             ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator }
             : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, tailCallsAllowed: false };
+        const block = this.compiledBlock(statements);
+        if (block) return block(context);
         let result: RankValue | undefined;
         let index = 0;
         try {
@@ -506,12 +562,87 @@ export class Interpreter {
         return completed(result);
     }
 
+    private compiledBlock(statements: Statement[]): CompiledBlock<ExecutionContext> | undefined {
+        if (this.options.blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
+            let block = this.blocks.get(statements);
+            if (block === undefined) {
+                block = compileBlock<ExecutionContext>(statements.length, {
+                    prepare: index => this.preparedStatement(statements, index),
+                    locate: (error, index) => this.locateError(error, statements[index]),
+                    pause: (index, task, context, compiled) => this.continueCompiledBlock(
+                        statements, index, task, context, compiled),
+                    compiled: this.options.onBlockCompiled,
+                    executed: this.options.onBlockExecuted,
+                }) ?? null;
+                this.blocks.set(statements, block);
+            }
+            return block ?? undefined;
+        }
+        return undefined;
+    }
+
+    private compiledFunctionBody(statement: FunctionStatement): CompiledBlock<ExecutionContext> | undefined {
+        if (this.options.functionBodyCompilation === false) return undefined;
+        let body = this.functionBodies.get(statement);
+        if (body === undefined) {
+            const commands = statement.statements;
+            const last = commands.at(-1);
+            body = last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
+                prepare: index => {
+                    if (index !== commands.length - 1) return this.preparedStatement(commands, index);
+                    const tensor = this.preparedStatement(commands, index).tensor;
+                    const direct = this.compileDirectExpression(last.value!);
+                    if (direct) return { run: direct, tensor };
+                    let candidate = last.value!;
+                    while (isParenthesizedExpression(candidate)) candidate = candidate.value;
+                    const value = isApplicationExpression(candidate)
+                        ? this.compileExpression(last.value!, undefined, true)
+                        : () => this.evaluateTask(last.value!);
+                    return { stream: value, tensor };
+                },
+                locate: (error, index) => this.locateError(error, commands[index]),
+                pause: (index, task, context, compiled) => this.continueCompiledBlock(commands, index, task, context, compiled),
+                compiled: this.options.onFunctionBodyCompiled,
+                executed: this.options.onFunctionBodyExecuted,
+            }) ?? null : null;
+            this.functionBodies.set(statement, body);
+        }
+        return body ?? undefined;
+    }
+
+    private prepareLoopBody(
+        statements: Statement[], context: ExecutionContext, iterable: boolean,
+    ): () => Evaluation<RankValue | undefined> {
+        const block = this.compiledBlock(statements);
+        const tailCallsAllowed = iterable ? false : context.tailCallsAllowed !== false;
+        if (block) {
+            const bodyContext: ExecutionContext = tailCallsAllowed
+                ? { ...context, insideLoop: true }
+                : { ...context, insideLoop: true, tailCallsAllowed: false };
+            return () => block(bodyContext);
+        }
+        return () => this.executeStatementStream(statements, context.assertBooleanExpressions,
+            true, context.insideFinally, context.insideGenerator, tailCallsAllowed);
+    }
+
+    private *continueCompiledBlock(
+        statements: Statement[], index: number, task: Execution<RankValue | undefined>,
+        context: ExecutionContext, block: CompiledBlock<ExecutionContext>,
+    ): Execution<RankValue | undefined> {
+        try {
+            const value = (yield { task }) as RankValue | undefined;
+            const next = block(context, index + 1, value);
+            return 'done' in next ? next.value : (yield { task: next }) as RankValue | undefined;
+        } catch (error) { throw this.locateError(error, statements[index]); }
+    }
+
     private preparedStatement(statements: Statement[], index: number): PreparedStatement {
         const statement = statements[index];
         let prepared = this.statements.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
-            if (this.options.tensorFusion !== false && isAssignmentStatement(statement)) {
+            if (this.options.tensorFusion !== false
+                && (isAssignmentStatement(statement) || isReturnStatement(statement))) {
                 const tensor = this.prepareTensorGroup(statements, index);
                 if (tensor) prepared = { ...prepared, tensor };
             }
@@ -524,10 +655,11 @@ export class Interpreter {
     // statements incur no additional name lookup or optimizer-cache lookup.
     private prepareTensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
         const kernel = compileTensorKernel(statements.slice(index), {
+            textDigits: this.options.tensorTextDigits !== false,
             lookup: name => this.findVariable(name),
             compiled: this.options.onTensorKernelCompiled,
             builtin: name => {
-                const module = name === 'mean' ? 'stats'
+                const module = ['text', 'integer'].includes(name) ? 'text' : name === 'mean' ? 'stats'
                     : ['sum', 'min', 'max'].includes(name) ? 'numbers' : 'sequences';
                 if (!this.modules.has(module)) return false;
                 return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]);
@@ -535,14 +667,16 @@ export class Interpreter {
         });
         if (!kernel) return undefined;
         const last = statements[index + kernel.count - 1];
-        if (!isAssignmentStatement(last)) return undefined;
-        const assign = this.compileAssign(last.name);
+        if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
+        const assign = isAssignmentStatement(last) ? this.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
+            if (!assign && this.localFrame === undefined) return undefined;
             const value = kernel.run();
             if (value === undefined) return undefined;
-            try { assign(value); }
+            try { assign?.(value); }
             catch (error) { throw this.locateError(error, last); }
             this.options.onTensorKernelExecuted?.();
+            if (!assign) throw new ReturnSignal(value);
             return value;
         } };
     }
@@ -816,21 +950,35 @@ export class Interpreter {
                 ? binding.names.slice(1).map(name =>
                     name === '#' ? undefined : this.compileAssign(name))
                 : [];
-            return { stream: function* (context) {
+            const reference: PreparedStatement = { stream: function* (context) {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
                 let result: RankValue | undefined;
+                let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
                 if (binding) {
                     const spec = tensorIterationSpec(binding.iterable);
                     const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
-                    for (const entry of interpreter.forEntries(binding, iterable)) {
-                        if (bindValue) bindValue(entry.value);
-                        for (let position = 0; position < bindIndex.length; position += 1) {
-                            bindIndex[position]?.(entry.indices[position]);
+                    const flat = interpreter.options.directIteration !== false && !spec
+                        && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
+                    const entries = flat ? interpreter.iterationAtoms(binding, iterable)
+                        : interpreter.forEntries(binding, iterable);
+                    let ordinal = 0n;
+                    for (const entry of entries) {
+                        if (flat) {
+                            if (bindValue) bindValue(entry as RankValue);
+                            if (bindIndex[0]) bindIndex[0](ordinal++);
+                        } else {
+                            const cell = entry as ForEntry;
+                            if (bindValue) bindValue(cell.value);
+                            for (let position = 0; position < bindIndex.length; position += 1) {
+                                bindIndex[position]?.(cell.indices[position]);
+                            }
                         }
                         try {
                             // A body that finishes on its own needs no task; only
                             // one that suspends goes back to the driver.
-                            const body = interpreter.executeStatementStream(
+                            const body = interpreter.options.loopPreparation !== false
+                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, true))()
+                                : interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
@@ -859,7 +1007,9 @@ export class Interpreter {
                             if (!expectBoolean(test)) break;
                         }
                         try {
-                            const body = interpreter.executeStatementStream(
+                            const body = interpreter.options.loopPreparation !== false
+                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, false))()
+                                : interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
                                 true,
@@ -878,6 +1028,86 @@ export class Interpreter {
                 }
                 return result;
             } };
+            const compiled = this.options.integerLoopCompilation !== false ? compileIntegerLoop(statement, {
+                read: name => this.findVariable(name),
+                writer: name => this.compileAssign(name),
+                prepareWriter: this.options.boundIntegerWrites !== false ? (name, checked) => {
+                    let direct: ((value: RankValue) => void) | undefined;
+                    return value => {
+                        if (direct) { direct(value); return; }
+                        checked(value);
+                        const frame = this.localFrame?.find(name);
+                        direct = frame ? frame.bindStore(name) : next => { this.variables.set(name, next); };
+                    };
+                } : undefined,
+                textLoops: this.options.textLoopCompilation !== false,
+                textArrayLoops: this.options.textArrayLoopCompilation !== false,
+                nestedLoops: this.options.nestedLoopCompilation !== false,
+                arrayRead: atArray,
+                returns: this.options.loopReturnCompilation !== false,
+                canReturn: () => this.localFrame !== undefined,
+                returnValue: value => { throw new ReturnSignal(value); },
+                arrayLocals: this.options.arrayLocalCompilation !== false,
+                dimension: checkedArrayDimension,
+                booleanArrays: this.options.booleanArrayCompilation !== false,
+                booleanLocals: this.options.booleanLoopCompilation !== false,
+                scalarText: this.options.scalarTextCompilation !== false,
+                scalarFunction: (name, arity) => {
+                    if (this.options.scalarCallCompilation === false) return undefined;
+                    const value = this.findVariable(name);
+                    const definition = value && isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
+                    if (!definition || definition.statement.parameters.length !== arity) return undefined;
+                    const statement = definition.statement;
+                    const proof = scalarFunctionResult(statement, this.options.scalarBlockCalls !== false);
+                    if (!proof) return undefined;
+                    const captures = definition.context !== undefined;
+                    return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
+                        const current = this.findVariable(name);
+                        if (!current || !isNativeFunction(current)) return undefined;
+                        const active = functionDefinitions.get(current);
+                        if (active?.statement !== statement || (active.context !== undefined) !== captures
+                            || proof.locals.some(local => active.context?.find(local))) return undefined;
+                        const compiled = active.interpreter.prepareScalarFunctionCall(statement);
+                        return (arguments_, tail = false) => {
+                            if (tail && active.interpreter === this) {
+                                throw new TailCallSignal(active, arguments_,
+                                    this.options.compiledScalarTailCalls !== false ? compiled : undefined);
+                            }
+                            return compiled ? compiled(arguments_) : current.call(arguments_);
+                        };
+                    } };
+                },
+                absolute: this.options.absoluteLoopCompilation !== false,
+                extrema: this.options.extremaLoopCompilation !== false,
+                extremeParts: expression => {
+                    const parts = flattenApplication(expression);
+                    try { return explicitExtremeApplication(parts) ?? parts; }
+                    catch { return undefined; }
+                },
+                compoundWrites: this.options.compoundArrayCompilation !== false,
+                arrayIteration: this.options.arrayIterationCompilation !== false,
+                // The region guards cell types before entry and preserves them.
+                iterationValues: (binding, source, elementType = 'integer') => this.iterationAtoms(binding, source,
+                    this.options.provenIterationTypes !== false ? elementType : undefined,
+                    this.options.directTextIteration !== false),
+                arrayWrites: this.options.arrayWriteCompilation !== false,
+                arrayOffset: this.options.scalarAddressCompilation !== false
+                    ? scalarArrayWriteOffset
+                    : (source, indices) => tensorSelection(source, indices).offsetAt(0),
+                arrayReads: this.options.arrayLoopCompilation !== false,
+                iteration: forIteration,
+                ranges: () => this.modules.has('ranges'),
+                module: name => this.modules.has(name),
+                builtin: (module, name) => {
+                    if (!this.modules.has(module)) return false;
+                    try { return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]); }
+                    catch { return false; }
+                },
+                locate: (error, command) => this.locateError(error, command),
+                compiled: this.options.onIntegerLoopCompiled,
+                executed: this.options.onIntegerLoopExecuted,
+            }, binding) : undefined;
+            return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false) ?? reference.stream!(context) } : reference;
         }
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
@@ -1175,6 +1405,17 @@ export class Interpreter {
     // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
+        if (this.options.scalarCompilation !== false
+            && (isBinaryExpression(expression) || isUnaryExpression(expression))) {
+            const compiled = compileScalarExpression(expression, {
+                leaf: leaf => this.compileDirectExpression(leaf)!,
+                binary: (op, left, right) => this.evaluateBinary(op, left, right),
+                unary: (op, value) => this.evaluateUnary(op, value),
+                compiled: this.options.onScalarCompiled,
+                executed: this.options.onScalarExecuted,
+            });
+            if (compiled) return compiled;
+        }
         if (isNewStructureExpression(expression)) return () => {
             if (expression.structure === 'graph') {
                 this.requireModule('graph', 'new graph');
@@ -2021,11 +2262,7 @@ export class Interpreter {
 
     private *arrayDimension(item: ArrayItem): Execution<number> {
         const dimension = expectInteger((yield* resume(this.evaluateArrayItem(item))));
-        if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
-        if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
-            throw new RankError(`array dimension is too large: ${dimension}`);
-        }
-        return Number(dimension);
+        return checkedArrayDimension(dimension);
     }
 
     private useStandard(module: string): void {
@@ -2046,9 +2283,18 @@ export class Interpreter {
             try { return compiled(); }
             catch (error) { throw this.locateError(error, only!); }
         } : undefined;
-        const body = (arguments_: RankValue[]): Evaluation<RankValue> => direct
-            ? completed(this.callDirectFunction(statement, arguments_, context, direct))
-            : this.callFunction(statement, arguments_, context);
+        const proof = this.options.scalarEntryCompilation !== false && !generator
+            ? scalarFunctionResult(statement, true) : undefined;
+        const scalar = proof ? this.prepareScalarFunctionCall(statement) : undefined;
+        const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
+            if (scalar && arguments_.length === statement.parameters.length
+                && arguments_.every(value => typeof value === 'bigint')
+                && !proof!.locals.some(name => context?.find(name))) {
+                return completed(scalar(arguments_));
+            }
+            return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
+                : this.callFunction(statement, arguments_, context);
+        };
         // The closure owns the cache, so separate local declarations never share it.
         const cache = statement.memo ? new Map<string, RankValue>() : undefined;
         const execute = cache ? (arguments_: RankValue[]): Evaluation<RankValue> => {
@@ -2080,6 +2326,23 @@ export class Interpreter {
         }
         this.assign(statement.name, fn);
         return fn;
+    }
+
+    private prepareScalarFunctionCall(statement: FunctionStatement): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined {
+        if (this.options.scalarFunctionCompilation === false) return undefined;
+        const kernel = compileScalarFunction(statement);
+        if (!kernel) return undefined;
+        const locate = (error: unknown, index: number) => this.locateError(error, kernel.locations[index] ?? statement);
+        return (arguments_, tail = false) => {
+            if (!tail && this.callDepth >= this.maxCallDepth) {
+                throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
+            }
+            if (!tail) this.callDepth += 1;
+            try {
+                this.options.onScalarFunctionExecuted?.();
+                return kernel.run(arguments_, locate);
+            } finally { if (!tail) this.callDepth -= 1; }
+        };
     }
 
     private functionFrame(
@@ -2145,10 +2408,23 @@ export class Interpreter {
                 try {
                     this.localFrame = frame;
                     for (const local of prepareFunction(statement).locals) this.defineFunction(local);
+                    const body = this.compiledFunctionBody(statement);
+                    if (body) {
+                        result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
+                            insideFinally: false, insideGenerator: false }));
+                        break;
+                    }
                     yield* resume(this.executeStatementStream(statement.statements));
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
+                        if (error.compiled) {
+                            // Keep the tail driver's logical depth and resource scope;
+                            // this proven scalar body needs no new lexical frame.
+                            try { result = error.compiled(error.arguments_, true); }
+                            catch (error) { pending = error; }
+                            break;
+                        }
                         const reusable = statement === error.definition.statement
                             && frame.parent === error.definition.context ? frame : undefined;
                         statement = error.definition.statement;
@@ -2301,6 +2577,46 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarEntryCompilation: this.options.scalarEntryCompilation,
+            compiledScalarTailCalls: this.options.compiledScalarTailCalls,
+            scalarFunctionCompilation: this.options.scalarFunctionCompilation,
+            onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
+            scalarBlockCalls: this.options.scalarBlockCalls,
+            scalarCallCompilation: this.options.scalarCallCompilation,
+            tensorTextDigits: this.options.tensorTextDigits,
+            scalarTextCompilation: this.options.scalarTextCompilation,
+            directTextIteration: this.options.directTextIteration,
+            textArrayLoopCompilation: this.options.textArrayLoopCompilation,
+            textLoopCompilation: this.options.textLoopCompilation,
+            absoluteLoopCompilation: this.options.absoluteLoopCompilation,
+            provenIterationTypes: this.options.provenIterationTypes,
+            loopReturnCompilation: this.options.loopReturnCompilation,
+            arrayLocalCompilation: this.options.arrayLocalCompilation,
+            booleanArrayCompilation: this.options.booleanArrayCompilation,
+            booleanLoopCompilation: this.options.booleanLoopCompilation,
+            boundIntegerWrites: this.options.boundIntegerWrites,
+            scalarAddressCompilation: this.options.scalarAddressCompilation,
+            extremaLoopCompilation: this.options.extremaLoopCompilation,
+            compoundArrayCompilation: this.options.compoundArrayCompilation,
+            arrayIterationCompilation: this.options.arrayIterationCompilation,
+            arrayWriteCompilation: this.options.arrayWriteCompilation,
+            arrayLoopCompilation: this.options.arrayLoopCompilation,
+            nestedLoopCompilation: this.options.nestedLoopCompilation,
+            tensorCellCompilation: this.options.tensorCellCompilation,
+            directIteration: this.options.directIteration,
+            functionBodyCompilation: this.options.functionBodyCompilation,
+            onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
+            onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
+            integerLoopCompilation: this.options.integerLoopCompilation,
+            onIntegerLoopCompiled: this.options.onIntegerLoopCompiled,
+            onIntegerLoopExecuted: this.options.onIntegerLoopExecuted,
+            loopPreparation: this.options.loopPreparation,
+            blockCompilation: this.options.blockCompilation,
+            onBlockCompiled: this.options.onBlockCompiled,
+            onBlockExecuted: this.options.onBlockExecuted,
+            scalarCompilation: this.options.scalarCompilation,
+            onScalarCompiled: this.options.onScalarCompiled,
+            onScalarExecuted: this.options.onScalarExecuted,
             tensorFusion: this.options.tensorFusion,
             onTensorKernelCompiled: this.options.onTensorKernelCompiled,
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,
@@ -2373,6 +2689,46 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarEntryCompilation: this.options.scalarEntryCompilation,
+            compiledScalarTailCalls: this.options.compiledScalarTailCalls,
+            scalarFunctionCompilation: this.options.scalarFunctionCompilation,
+            onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
+            scalarBlockCalls: this.options.scalarBlockCalls,
+            scalarCallCompilation: this.options.scalarCallCompilation,
+            tensorTextDigits: this.options.tensorTextDigits,
+            scalarTextCompilation: this.options.scalarTextCompilation,
+            directTextIteration: this.options.directTextIteration,
+            textArrayLoopCompilation: this.options.textArrayLoopCompilation,
+            textLoopCompilation: this.options.textLoopCompilation,
+            absoluteLoopCompilation: this.options.absoluteLoopCompilation,
+            provenIterationTypes: this.options.provenIterationTypes,
+            loopReturnCompilation: this.options.loopReturnCompilation,
+            arrayLocalCompilation: this.options.arrayLocalCompilation,
+            booleanArrayCompilation: this.options.booleanArrayCompilation,
+            booleanLoopCompilation: this.options.booleanLoopCompilation,
+            boundIntegerWrites: this.options.boundIntegerWrites,
+            scalarAddressCompilation: this.options.scalarAddressCompilation,
+            extremaLoopCompilation: this.options.extremaLoopCompilation,
+            compoundArrayCompilation: this.options.compoundArrayCompilation,
+            arrayIterationCompilation: this.options.arrayIterationCompilation,
+            arrayWriteCompilation: this.options.arrayWriteCompilation,
+            arrayLoopCompilation: this.options.arrayLoopCompilation,
+            nestedLoopCompilation: this.options.nestedLoopCompilation,
+            tensorCellCompilation: this.options.tensorCellCompilation,
+            directIteration: this.options.directIteration,
+            functionBodyCompilation: this.options.functionBodyCompilation,
+            onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
+            onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
+            integerLoopCompilation: this.options.integerLoopCompilation,
+            onIntegerLoopCompiled: this.options.onIntegerLoopCompiled,
+            onIntegerLoopExecuted: this.options.onIntegerLoopExecuted,
+            loopPreparation: this.options.loopPreparation,
+            blockCompilation: this.options.blockCompilation,
+            onBlockCompiled: this.options.onBlockCompiled,
+            onBlockExecuted: this.options.onBlockExecuted,
+            scalarCompilation: this.options.scalarCompilation,
+            onScalarCompiled: this.options.onScalarCompiled,
+            onScalarExecuted: this.options.onScalarExecuted,
             tensorFusion: this.options.tensorFusion,
             onTensorKernelCompiled: this.options.onTensorKernelCompiled,
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,
@@ -3306,7 +3662,7 @@ export class Interpreter {
                 spec.cellRank === 0 ? typesOf(value.items) : new Set(['array']),
                 ...frameAxes.map(() => new Set(['integer'])),
             ]);
-            yield* tensorEntries(value, frameAxes);
+            yield* tensorEntries(value, frameAxes, this.options.tensorCellCompilation !== false);
             return;
         }
 
@@ -3324,15 +3680,33 @@ export class Interpreter {
         if (isRankArray(value) && value.shape.length > 1) {
             validateForBindings(binding.names, 1);
             this.declareLoopTypes(binding.names, [new Set(['array']), new Set(['integer'])]);
-            yield* tensorEntries(value, [0]);
+            yield* tensorEntries(value, [0], this.options.tensorCellCompilation !== false);
             return;
         }
 
+        const values = this.iterationAtoms(binding, value);
+        // A binding without an index name has nowhere to put one, so the walk
+        // neither counts nor carries it.
+        if (binding.names.length === 1) {
+            for (const item of values) yield { value: item, indices: NO_INDICES };
+            return;
+        }
+        let index = 0n;
+        for (const item of values) {
+            yield { value: item, indices: [index] };
+            index += 1n;
+        }
+    }
+
+    private iterationAtoms(binding: ForBinding, value: RankValue, provenType?: 'integer' | 'text', directText = false): Iterable<RankValue> {
         validateForBindings(binding.names, 1);
         if (isRankArray(value)) {
-            this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
+            const types = provenType
+                ? new Set(value.items.length ? [provenType] : []) : typesOf(value.items);
+            this.declareLoopTypes(binding.names, [types, new Set(['integer'])]);
         } else if (isRankQueue(value)) {
-            this.declareLoopTypes(binding.names, [typesOf(value.items), new Set(['integer'])]);
+            const types = value instanceof RankDeque ? value.iterationTypes(typeName) : typesOf(value.items);
+            this.declareLoopTypes(binding.names, [types, new Set(['integer'])]);
         } else if (isRankSet(value)) {
             this.declareLoopTypes(binding.names, [
                 typesOf(value.entries.values()),
@@ -3341,17 +3715,8 @@ export class Interpreter {
         } else if (typeof value === 'string') {
             this.declareLoopTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
         }
-        // A binding without an index name has nowhere to put one, so the walk
-        // neither counts nor carries it.
-        if (binding.names.length === 1) {
-            for (const item of iterationValues(value)) yield { value: item, indices: NO_INDICES };
-            return;
-        }
-        let index = 0n;
-        for (const item of iterationValues(value)) {
-            yield { value: item, indices: [index] };
-            index += 1n;
-        }
+        if (directText && typeof value === 'string') return value;
+        return iterationValues(value);
     }
 
     private declareLoopTypes(
@@ -3560,19 +3925,22 @@ function validateForBindings(names: readonly string[], frameRank: number): void 
     }
 }
 
-function* tensorEntries(source: RankArray, frameAxes: readonly number[]): IterableIterator<ForEntry> {
+function* tensorEntries(source: RankArray, frameAxes: readonly number[], compiled: boolean): IterableIterator<ForEntry> {
     const frameShape = frameAxes.map(axis => source.shape[axis]);
     const frameSet = new Set(frameAxes);
     const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
     const cellShape = cellAxes.map(axis => source.shape[axis]);
+    const copy = compiled && cellAxes.length > 0
+        ? compileTensorCellCopy(frameAxes.length + cellAxes.length, cellAxes) : undefined;
 
     for (const frameCoordinates of coordinates(frameShape)) {
         const fullCoordinates = Array(source.shape.length).fill(0) as number[];
         frameAxes.forEach((axis, position) => {
             fullCoordinates[axis] = frameCoordinates[position];
         });
-        const items: RankValue[] = [];
-        const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
+        const copied = copy?.(source, fullCoordinates, cellShape);
+        const items: RankValue[] = copied ?? [];
+        const cellSize = copied === undefined ? cellShape.reduce((product, dimension) => product * dimension, 1) : 0;
         for (let linear = 0; linear < cellSize; linear++) {
             if (cellShape.length !== cellAxes.length) {
                 // A host callback can resize the shared cell shape. Preserve
@@ -4089,6 +4457,31 @@ function isTensorAddress(selectors: readonly RankValue[]): boolean {
         || isCollectionSelector(selector))) return false;
     return selectors.some(isAllAxisSelector)
         || (selectors.length > 1 && selectors.some(isCollectionSelector));
+}
+
+function checkedArrayDimension(dimension: bigint): number {
+    if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
+    if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError(`array dimension is too large: ${dimension}`);
+    }
+    return Number(dimension);
+}
+
+/** Full scalar addresses are guaranteed by the integer-region entry guards.
+ * Keep write bounds in BigInt space, as in tensorSelection, without building
+ * per-axis selector closures or an output-shape plan for a single cell. */
+function scalarArrayWriteOffset(source: RankArray, indices: readonly bigint[]): number {
+    const shape = source.shape;
+    let offset = 0;
+    for (let axis = 0; axis < indices.length; axis++) {
+        const index = indices[axis], size = shape[axis];
+        if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (index >= BigInt(size)) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
+        }
+        offset = offset * size + Number(index);
+    }
+    return offset;
 }
 
 function tensorSelection(source: RankArray, selectors: readonly RankValue[]): TensorSelection {
