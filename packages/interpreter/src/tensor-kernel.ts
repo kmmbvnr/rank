@@ -8,8 +8,8 @@ import { type RankValue, isRankArray } from './value.js';
 import { materializedArrayItems } from './array-storage.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
-type Reducer = 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
-const reducers = new Set(['sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
+type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
+const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
 const binary = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor']);
 const comparison: Record<string, string> = { less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==' };
 export type TensorNode =
@@ -20,7 +20,7 @@ export type TensorNode =
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
     lookup(name: string): RankValue | undefined;
-    builtin(name: Reducer | 'text' | 'integer'): boolean;
+    builtin(name: Terminal | 'text' | 'integer'): boolean;
     compiled?(source: string): void;
 }
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
@@ -91,7 +91,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         if ((!assignment && !isReturnStatement(statement)) || !statement.value) return undefined;
         const parts = pair(statement.value);
         const last = parts && unwrap(parts[1]);
-        if (last && isNameExpression(last) && reducers.has(last.name)) {
+        if (last && isNameExpression(last) && terminals.has(last.name)) {
             const root = parse(parts![0]);
             if (!root || root.kind === 'input' && names.length === 0) return undefined;
             if (!privateTensorNames(statements[0], names)
@@ -108,7 +108,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             };
             visit(root);
             if ([...definitions.values()].some(node => !reached.has(node))) return undefined;
-            return build(root, names, last.name as Reducer, index + 1, host);
+            return build(root, names, last.name as Terminal, index + 1, host);
         }
         if (!isAssignmentStatement(statement)) return undefined;
         const value = parse(statement.value);
@@ -119,9 +119,9 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     return undefined;
 }
 
-function build(root: TensorNode, names: string[], reducer: Reducer, count: number, host: TensorKernelHost) {
+function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost) {
     let cachedKey: string | undefined;
-    let cachedRun: ((data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | undefined) | undefined;
+    let cachedRun: ((data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined) | undefined;
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
@@ -190,7 +190,7 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
             return result;
         }
         const output = bind(root);
-        if (!output?.shape || !host.builtin(reducer)) return undefined;
+        if (!output?.shape || !host.builtin(terminal)) return undefined;
         const size = output.shape.reduce((p, n) => p * n, 1);
         // A selection changes cardinality. Other operands must not zip an
         // unfiltered vector against it. Until domain algebra is implemented,
@@ -210,6 +210,8 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
             return value;
         }
         try { domain(root); } catch { return undefined; }
+        // Array output initially requires a fixed cardinality.
+        if (terminal === 'copy' && [...filtered.values()].some(Boolean)) return undefined;
         const key = [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
         if (cachedKey !== key) {
             const lines: string[] = [];
@@ -260,21 +262,26 @@ function build(root: TensorNode, names: string[], reducer: Reducer, count: numbe
                 return name;
             }
             const value = emit(root);
-            const isBoolean = ['any', 'all', 'count'].includes(reducer);
+            const isBoolean = terminal === 'copy' ? output.boolean : ['any', 'all', 'count'].includes(terminal);
             lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return undefined;`);
-            if (reducer === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
-            if (reducer === 'mean') lines.push(`answer += Number(${value});`);
-            if (reducer === 'count') lines.push(`if (${value}) answer += 1n;`);
-            if (reducer === 'any' || reducer === 'all') lines.push(`answer = answer ${reducer === 'any' ? '||' : '&&'} ${value};`);
-            if (reducer === 'min' || reducer === 'max') lines.push(`if (length === 0 || ${value} ${reducer === 'min' ? '<' : '>'} answer) answer = ${value};`);
+            if (terminal === 'copy') lines.push(`answer[i] = ${value};`);
+            if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
+            if (terminal === 'mean') lines.push(`answer += Number(${value});`);
+            if (terminal === 'count') lines.push(`if (${value}) answer += 1n;`);
+            if (terminal === 'any' || terminal === 'all') lines.push(`answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
+            if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
-            const initial = reducer === 'mean' ? '0' : reducer === 'all' ? 'true' : reducer === 'any' ? 'false' : '0n';
-            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) {\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(reducer) ? 'if (length === 0) return undefined;' : ''} return ${reducer === 'mean' ? 'answer / length' : 'answer'}; };`;
+            const initial = terminal === 'copy' ? 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
+            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) {\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? 'if (length === 0) return undefined;' : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             try { cachedRun = new Function(generated)() as typeof cachedRun; }
             catch { unavailable = true; return undefined; }
             cachedKey = key;
             host.compiled?.(generated);
         }
-        return cachedRun!(data, offsets, scalars, size);
+        const result = cachedRun!(data, offsets, scalars, size);
+        if (terminal === 'copy' && result !== undefined) {
+            return { kind: 'array', shape: [...output.shape], items: result as RankValue[] };
+        }
+        return result as RankValue | undefined;
     } };
 }

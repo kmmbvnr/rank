@@ -1,7 +1,11 @@
 # Tensor fusion improvement plan
 
 Agreed priority, 2026-09-12. This is planned compiler work, not additional language
-syntax or a claim that the stages below are implemented.
+syntax. Stage delivery and measurements are recorded separately below.
+
+The first [explicit copy implementation](array-output-fusion.md) covers equal-shaped
+materialized inputs and safe private intermediates. Broadcasting, axis/rank and
+window extensions remain pending.
 
 The [worker experiment](tensor-workers-results.md) measured about 252 ms for
 `(A * A + A * 2.0 + 1.0) copy` on one million real elements. Four workers reduced
