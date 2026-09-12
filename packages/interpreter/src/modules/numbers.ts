@@ -75,11 +75,10 @@ export const numbersModule: RuntimeModule = {
             const planned = reduceSequence(value, 'sum');
             if (planned !== undefined) return expectNumeric(planned);
         }
-        const items = isRankArray(value)
-            ? value.items
-            : isRankSet(value)
-                ? value.entries.values()
-                : sequenceValues(value, 'sum');
+        if (isRankArray(value)) return sumArray(value.items);
+        const items = isRankSet(value)
+            ? value.entries.values()
+            : sequenceValues(value, 'sum');
         let total: bigint | number = 0n;
         for (const item of items) total = add(total, expectNumeric(item));
         return total;
@@ -337,6 +336,20 @@ function numericExtreme(
         }
         return result;
     }, 'all', [0, 0]);
+}
+
+/** Sum integers without a generic numeric callback on every element.
+ * Promotion happens at the first real value, in the original left-fold order. */
+function sumArray(items: readonly RankValue[]): bigint | number {
+    let integer = 0n;
+    for (let index = 0; index < items.length; index++) {
+        const item = items[index];
+        if (typeof item === 'bigint') { integer += item; continue; }
+        let real = Number(integer) + Number(expectNumeric(item));
+        for (index++; index < items.length; index++) real += Number(expectNumeric(items[index]));
+        return real;
+    }
+    return integer;
 }
 
 /** Sum an eager tensor cell by offset, retaining sum's integer-zero seed. */

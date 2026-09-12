@@ -1633,3 +1633,34 @@ for `A sum` on 200,000 integers, excluding input preparation. The reported
 Evidence: `benchmarks/baselines/2026-09-12-inline-writes*.json` and
 `2026-09-12-sum-diagnostic.json`. Reproduce the comparison with
 `node benchmarks/write-addresses.mjs /path/to/baseline/packages/interpreter/out/index.js`.
+
+## Named whole-array sum
+
+2026-09-12, Apple M5, Node v24.15.0. On the same materialized integer input,
+`A sum` was slower than `A + reduce`: its generic collection loop called numeric
+validation and mixed-type addition on every element. A dedicated array loop
+now accumulates BigInts directly and switches to real addition at the first
+real element. This is a standard-library runtime optimization, not new generated
+compiler coverage. Sequences and sets keep their existing reduction paths.
+
+Nine alternating samples per case, excluding parsing and input construction:
+
+| Elements | Previous sum | New sum | Previous + reduce | Candidate + reduce |
+| --- | --- | --- | --- | --- |
+| 1,000,000 | 5.80 ms | 2.99 ms | 3.75 ms | 3.78 ms |
+| 2,000,000 | 11.70 ms | 5.98 ms | 7.53 ms | 7.83 ms |
+
+Both use the same array and independently checked answer. `sum` is about 1.95x
+faster; the unchanged reduction acts as a control. BigInt precision, integer-zero
+seed, left-fold promotion/rounding, signed zero, infinities, NaN, invalid cells,
+and forcing of lazy array storage are covered by tests. The implementation does
+not substitute `+ reduce`: those operations differ on nonnumeric inputs and
+single real negative zero. Axis-specific sum is unchanged.
+
+Evidence: `benchmarks/baselines/2026-09-12-named-sum.json` and
+`2026-09-12-named-sum-suite.json`. Reproduce with
+`node benchmarks/named-sum.mjs /path/to/baseline/packages/interpreter/out/index.js`.
+
+Validation: 44 language and 926 interpreter tests passed. All 331 demo
+files / 1156 tests passed with unchanged digests (27.81 seconds for one
+full run; no stable whole-suite speedup claim).
