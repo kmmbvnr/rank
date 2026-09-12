@@ -94,7 +94,7 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue } from './modules/stats.js';
-import { projectField } from './modules/tables.js';
+import { projectField, projectFields } from './modules/tables.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -3068,6 +3068,11 @@ export class Interpreter {
     }
 
     private applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+        if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])
+            && isTableFieldList(values[1], this.modules.has('tables'))) {
+            this.requireModule('tables', 'table column selection');
+            return projectFields(values[0], values[1]);
+        }
         if (values.length === 2 && isRankArray(values[0])
             && (typeof values[1] === 'string' || isRankLabel(values[1]))) {
             this.requireModule('tables', 'table projection');
@@ -4429,7 +4434,8 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (values.length === 2 && isRankSequence(values[0])
         && isIntegerCollectionSelector(values[1])) return true;
     if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])) {
-        return values[1].items.every(item => typeof item === 'bigint')
+        return isTableFieldList(values[1])
+            || values[1].items.every(item => typeof item === 'bigint')
             || (sameShape(values[0].shape, values[1].shape)
                 && values[1].items.every(item => typeof item === 'boolean'));
     }
@@ -4458,6 +4464,12 @@ function canApplySelectors(values: RankValue[]): boolean {
         return canApplySelectors(values.slice(0, -1));
     }
     return false;
+}
+
+function isTableFieldList(value: RankValue, includeEmpty = true): boolean {
+    return isRankArray(value) && value.shape.length === 1
+        && ((includeEmpty && value.items.length === 0)
+            || value.items.some(item => typeof item === 'string' || isRankLabel(item)));
 }
 
 interface TensorSelection {

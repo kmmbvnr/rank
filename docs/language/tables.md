@@ -74,24 +74,24 @@ Projection also composes inside a data-first call:
 Count = Data .Age len
 ```
 
-Multiple-column table views remain future work. The intended direction is:
+An ordered rank-1 array of labels or text selects several columns:
 
 ```rank
-X = Data .Age .Fare .Pclass
+Features = array .Age .Fare .Pclass
+X = Data Features
 ```
 
-A sequence of labels can be used as a reusable selector:
+The result is a rank-2 `rows × columns` array. Column order and repeated names
+are preserved. An empty field array produces an `N × 0` matrix without reading
+any row. Selected cells stay lazy: a demanded non-object row raises
+`.TypeError`, and a demanded missing field raises `.Missing`.
+
+The same selector can be reused:
 
 ```rank
-Features =
-  .Age .Fare .Pclass
-
 X = Train Features
 Xtest = Test Features
 ```
-
-These future selectors will extend the same addressing model rather than add a
-separate query syntax.
 
 ## Computed columns
 

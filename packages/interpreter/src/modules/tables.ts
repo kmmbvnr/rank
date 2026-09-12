@@ -3,6 +3,7 @@ import { readTextFile, writeTextFile } from './io.js';
 import {
     isRankObject,
     isRankArray,
+    isRankLabel,
     type RankArray,
     type RankObject,
     type RankValue,
@@ -59,6 +60,49 @@ export function projectField(
                 { length: size },
                 (_, position) => itemAt(position),
             );
+            return materialized;
+        },
+    };
+}
+
+/** Lazily project an ordered list of fields into a rows-by-fields matrix. */
+export function projectFields(source: RankArray, fields: RankArray): RankArray {
+    if (source.shape.length !== 1) {
+        throw new RankError('table column selection expects a rank-1 table', 'DimensionMismatch');
+    }
+    if (fields.shape.length !== 1) {
+        throw new RankError('table column selection expects a rank-1 field list', 'DimensionMismatch');
+    }
+    const names = fields.items.map(field => {
+        if (typeof field === 'string') return field;
+        if (isRankLabel(field)) return field.name;
+        throw new RankError('table column selection expects labels or text', 'TypeError');
+    });
+    const columns = names.length;
+    const cache = new Map<number, RankValue>();
+    const itemAt = (position: number): RankValue => {
+        const cached = cache.get(position);
+        if (cached !== undefined) return cached;
+        const rowIndex = Math.floor(position / columns);
+        const row = source.itemAt?.(rowIndex) ?? source.items[rowIndex];
+        if (!isRankObject(row)) {
+            throw new RankError('table projection expects object rows', 'TypeError');
+        }
+        const field = names[position % columns];
+        const value = row.entries.get(field);
+        if (value === undefined) throw new MissingValueError(`missing object key: ${field}`);
+        cache.set(position, value);
+        return value;
+    };
+    let materialized: RankValue[] | undefined;
+    return {
+        kind: 'array',
+        shape: [source.shape[0], columns],
+        itemAt,
+        containsFiles: false,
+        get items() {
+            const size = source.shape[0] * columns;
+            materialized ??= Array.from({ length: size }, (_, position) => itemAt(position));
             return materialized;
         },
     };

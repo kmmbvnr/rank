@@ -41,7 +41,7 @@ Test .Female =
   Test .Sex equal "female"
 
 Features =
-  .Female .Pclass .Age .Fare
+  array .Female .Pclass .Age .Fare
 
 X = Train Features
 Xtest = Test Features
@@ -56,7 +56,7 @@ rem Kaggle: House Prices
 rem Predict SalePrice.
 
 Features =
-  .OverallQual .GrLivArea
+  array .OverallQual .GrLivArea
   .Neighborhood .HouseStyle
   .KitchenQual .ExterQual
 
@@ -117,7 +117,7 @@ Grouping and join:
 
 ```rank
 Keys =
-  .store_nbr .family .weekday
+  array .store_nbr .family .weekday
 
 Groups = Train Keys group
 Means = Groups .sales mean

@@ -129,6 +129,48 @@ describe('Rank tables', () => {
         ].join('\n'))).toBe('2');
     });
 
+    it('selects an ordered list of columns as a matrix', () => {
+        const runtime = new Interpreter();
+        const result = runtime.execute([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1,\\"y\\":2},{\\"x\\":3,\\"y\\":4}]" json',
+            'Fields = array .y "x" .y',
+            'Rows Fields',
+        ].join('\n'))!;
+        expect(result).toMatchObject({ kind: 'array', shape: [2, 3] });
+        expect(formatValue(result)).toBe('2 1 2 4 3 4');
+    });
+
+    it('selects zero columns without demanding table rows', () => {
+        const runtime = new Interpreter();
+        const result = runtime.execute([
+            'use json',
+            'use tables',
+            'Rows = "[1,2]" json',
+            'Fields = array shape 0 pad .x',
+            'Rows Fields',
+        ].join('\n'))!;
+        expect(result).toMatchObject({ kind: 'array', shape: [2, 0] });
+        expect(formatValue(result)).toBe('');
+    });
+
+    it('validates field lists and demanded selected cells', () => {
+        expect(() => run([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1}]" json',
+            'Rows (array .x 2)',
+        ].join('\n'))).toThrowError('table column selection expects labels or text');
+        expect(() => run([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1}]" json',
+            'Matrix = Rows (array .x .missing)',
+            'Matrix 0 1',
+        ].join('\n'))).toThrowError('missing object key: missing');
+    });
+
     it('checks rows and missing fields only when demanded', () => {
         expect(run([
             'use json',
@@ -159,5 +201,10 @@ describe('Rank tables', () => {
             'Rows = "[{\\"x\\":1}]" json',
             'Rows "x"',
         ].join('\n'))).toThrowError('table projection requires: use tables');
+        expect(() => run([
+            'use json',
+            'Rows = "[{\\"x\\":1}]" json',
+            'Rows (array .x)',
+        ].join('\n'))).toThrowError('table column selection requires: use tables');
     });
 });
