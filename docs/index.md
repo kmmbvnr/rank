@@ -62,6 +62,7 @@ execution direction and its semantic requirements.
 - [Tables](language/tables.md)
 - [Tensor model](language/tensors.md)
 - [Standard library](stdlib/modules.md)
+- [Standard library reference](stdlib/reference.md)
 - [Project Euler examples](examples/project-euler.md)
 - [LeetCode examples](examples/leetcode.md)
 - [Kaggle examples](examples/kaggle.md)

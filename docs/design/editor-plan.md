@@ -192,8 +192,10 @@ gate disappear, because the weaker check let a wrong `new graph` example stand.
 Writing it also exposed a misleading error: a receiver that is not a collection
 used to be reported as a missing `use algo`, and now names the receiver.
 
-Still open: the [standard library page](../stdlib/modules.md) has not yet been
-turned into generated data.
+`rank ops --markdown` renders the catalogue as
+[the standard library reference](../stdlib/reference.md), and a test fails when
+the checked-in page and the catalogue disagree. The prose page keeps the
+semantics; the list of names is no longer maintained by hand.
 
 ### B2 — binding and mutation facts (landed)
 
@@ -275,7 +277,7 @@ is only worth its cost at the VS Code boundary. One core, three surfaces.
 ```text
 packages/language/src/operations.ts   the catalogue (B1)
 packages/language/src/analysis/       the analysis core (B2, B3, B4)
-packages/cli                          check, explain: CI gate and harness
+packages/cli                          check, explain, ops: gate and harness
 packages/console                      the HTML console (Stage A)
 packages/editor                       the editor, embedding the console (C)
 packages/language-server              later (D)

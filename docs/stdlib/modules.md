@@ -1,6 +1,10 @@
 # Standard library
 
 Rank starts with a small core. Vocabulary is introduced through `use` modules.
+This page explains what each module means and how its operations behave at the
+edges. For the complete list of names, with the form each one is written in and
+what it returns, see the [reference](reference.md), which is generated from the
+catalogue and therefore always current.
 
 Current module directions:
 

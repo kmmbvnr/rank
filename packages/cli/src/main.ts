@@ -1,6 +1,7 @@
 import { Interpreter, RankError, parse } from 'rank-interpreter';
 import {
-    analyzeWithImports, type Binding, type Program, type ScopeFacts, type WordUse,
+    analyzeWithImports, moduleForms, moduleOperations, modules,
+    type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
 } from 'rank-language';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
@@ -39,6 +40,10 @@ async function dispatch(): Promise<void> {
     }
     if (arguments_[0] === 'test') {
         await runTests(arguments_[1] ?? '.');
+        return;
+    }
+    if (arguments_[0] === 'ops') {
+        printCatalogue(arguments_[1] === '--markdown');
         return;
     }
     if (arguments_[0] === 'explain') {
@@ -113,6 +118,70 @@ async function explainFile(file: string): Promise<void> {
     printWords('unresolved', facts.words, name => chalk.yellow(name));
     if (facts.missing.length > 0 || facts.words.length > 0) process.exitCode = 1;
 }
+
+/**
+ * The catalogue, as a table per module. The Markdown form is the source of
+ * `docs/stdlib/reference.md`, which a test keeps equal to this output.
+ */
+function printCatalogue(markdown: boolean): void {
+    const lines: string[] = markdown ? [...REFERENCE_PREAMBLE] : [];
+    for (const module of modules) {
+        const named = moduleOperations(module.name);
+        const forms = moduleForms.filter(form => form.module === module.name);
+        if (named.length === 0 && forms.length === 0) continue;
+        if (markdown) {
+            lines.push(`## ${module.name}`, '', module.summary, '');
+        } else {
+            lines.push(`${module.name}  ${module.summary}`);
+        }
+        if (named.length > 0) {
+            if (markdown) lines.push('| Form | Result | Summary |', '| --- | --- | --- |');
+            for (const entry of named) {
+                lines.push(markdown
+                    ? `| \`${entry.form}\` | ${resultLabel(entry)} | ${entry.summary} |`
+                    : `  ${entry.form.padEnd(34)} ${entry.summary}`);
+            }
+            if (markdown) lines.push('');
+        }
+        if (forms.length > 0) {
+            if (markdown) {
+                lines.push(`These need \`use ${module.name}\` but have no name to look up.`, '');
+                lines.push('| Form | Summary |', '| --- | --- |');
+            }
+            for (const form of forms) {
+                lines.push(markdown
+                    ? `| \`${form.form}\` | ${form.summary} |`
+                    : `  ${form.form.padEnd(34)} ${form.summary}`);
+            }
+            if (markdown) lines.push('');
+        }
+        if (!markdown) lines.push('');
+    }
+    console.log(lines.join('\n').trimEnd());
+}
+
+/** The result column: what comes back, plus laziness and effects. */
+function resultLabel(operation: Operation): string {
+    return [
+        operation.result,
+        ...(operation.lazy === true ? ['lazy'] : []),
+        ...(operation.effects ?? []),
+    ].join(', ');
+}
+
+const REFERENCE_PREAMBLE = [
+    '# Standard library reference',
+    '',
+    'Every name the standard modules export, and every construct a `use`',
+    'enables that has no name to look up. Rank is data-first, so an operation',
+    'follows the data it reads: `Values sum`, `Text Separator split`.',
+    '',
+    'This page is generated from `packages/language/src/operations.ts` by',
+    '`rank ops --markdown`, and `npm test` fails when the two disagree. Edit the',
+    'catalogue, not this file. For what each module means and how its operations',
+    'behave at the edges, read [the standard library](modules.md).',
+    '',
+];
 
 /** One source module, parsed, or undefined with a warning when it is missing. */
 function loadProgram(specifier: string, fromId: string): Program | undefined {
@@ -216,6 +285,7 @@ function printHelp(): void {
         '  rank <file> [arguments...]   Run a Rank program',
         '  rank check [path]            Parse every *.ra file',
         '  rank explain <file>          Where every name is bound and read',
+        '  rank ops [--markdown]        The standard-library catalogue',
         '  rank test [path]             Run *_test.ra files',
         '  rank --version               Show the version',
     ].join('\n'));
