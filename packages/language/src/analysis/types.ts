@@ -85,10 +85,16 @@ const RESULTS: Partial<Record<ResultKind, Types>> = {
 export function declaredType(valueType: string, many: boolean): Types {
     if (many) return ['array'];
     if (valueType === 'path') return ['text'];
-    return DECLARED.has(valueType) ? [valueType] : UNKNOWN;
+    return INPUT_TYPES.includes(valueType) ? [valueType] : UNKNOWN;
 }
 
-const DECLARED = new Set(['integer', 'real', 'text', 'boolean']);
+/**
+ * The types `option` and `argument` accept, in the order a reader wants them
+ * offered. `path` is text the host may resolve against the program location.
+ */
+export const INPUT_TYPES: readonly string[] = [
+    'integer', 'real', 'text', 'path', 'boolean',
+];
 
 /**
  * What a name currently holds, or undefined when no binding in scope has that

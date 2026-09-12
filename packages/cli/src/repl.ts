@@ -2,7 +2,9 @@ import {
     Interpreter, RankError, formatValue, isRankArray, parse, standardModules,
     type RankValue,
 } from 'rank-interpreter';
-import { findOperation, moduleForms, moduleOperations, type Operation } from 'rank-language';
+import {
+    INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation,
+} from 'rank-language';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
@@ -10,8 +12,10 @@ import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
+import { preview } from './preview.js';
 import {
-    EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource, closeCell,
+    EMPTY_CELL, OPERATOR_ALIASES, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine,
+    cellSource, closeCell,
     expandCompoundKeywords, expandOperators, formatLine, formatTyping, isComplete,
     isEmpty, nextIndent, promptFor, startsDedent, wrapSource, type CellState,
 } from './repl-input.js';
@@ -20,7 +24,9 @@ const HISTORY_FILE = path.join(os.homedir(), '.rank_history');
 const HISTORY_LIMIT = 500;
 const WIDTH = 40;
 
-const COMMANDS = ['help', 'forms', 'ops', 'vars', 'save', 'load', 'alias', 'exit', 'quit'];
+const COMMANDS = [
+    'help', 'forms', 'ops', 'vars', 'full', 'save', 'load', 'alias', 'exit', 'quit',
+];
 
 export async function startRepl(): Promise<void> {
     const interpreter = new Interpreter(console.log, {
@@ -33,7 +39,16 @@ export async function startRepl(): Promise<void> {
     const terminal = Boolean(process.stdin.isTTY && process.stdout.isTTY);
     let state = EMPTY_CELL;
     let aliases = true;
+    let last: RankValue | undefined;
     const accepted: string[] = [];
+    const session = (): Session => ({
+        interpreter,
+        accepted,
+        aliases,
+        setAliases: value => { aliases = value; },
+        last,
+        setLast: value => { last = value; },
+    });
 
     const input = readline.createInterface({
         input: process.stdin,
@@ -77,12 +92,7 @@ export async function startRepl(): Promise<void> {
                 }
                 state = closeCell(state);
                 rewritten = true;
-            } else if (isEmpty(state) && await command(text, {
-                interpreter,
-                accepted,
-                aliases,
-                setAliases: value => { aliases = value; },
-            })) {
+            } else if (isEmpty(state) && await command(text, session())) {
                 draw();
                 continue;
             } else {
@@ -106,13 +116,13 @@ export async function startRepl(): Promise<void> {
                 for (const line of source.split('\n')) console.log(chalk.dim(`    ${line}`));
             }
             rewritten = false;
-            if (run(interpreter, source)) accepted.push(source);
+            if (run(interpreter, source, session())) accepted.push(source);
             draw();
         }
 
         if (!isEmpty(state)) {
             const source = narrow(cellSource(closeCell(state)));
-            if (run(interpreter, source)) accepted.push(source);
+            if (run(interpreter, source, session())) accepted.push(source);
         }
     } finally {
         input.close();
@@ -208,10 +218,11 @@ function expand(text: string, interpreter: Interpreter): string {
     return expandOperators(expandCompoundKeywords(text, isBound), isBound);
 }
 
-function run(interpreter: Interpreter, source: string): boolean {
+function run(interpreter: Interpreter, source: string, session: Session): boolean {
     try {
         const result = interpreter.execute(source);
-        if (result !== undefined) console.log(formatValue(result));
+        session.setLast(result);
+        if (result !== undefined) show(result);
         return true;
     } catch (error) {
         const message = error instanceof RankError ? error.format() : String(error);
@@ -220,11 +231,20 @@ function run(interpreter: Interpreter, source: string): boolean {
     }
 }
 
+/** A result as an answer to read: long ones keep their two ends. */
+function show(value: RankValue): void {
+    const { text, note } = preview(value);
+    console.log(text);
+    if (note !== '') console.log(chalk.dim(note));
+}
+
 interface Session {
     readonly interpreter: Interpreter;
     readonly accepted: string[];
     readonly aliases: boolean;
     readonly setAliases: (value: boolean) => void;
+    readonly last: RankValue | undefined;
+    readonly setLast: (value: RankValue | undefined) => void;
 }
 
 /** Returns true when the line was a REPL command rather than Rank source. */
@@ -234,7 +254,10 @@ async function command(text: string, session: Session): Promise<boolean> {
     // A session that binds the name owns it; the command steps aside.
     if (session.interpreter.variables.has(name)) return false;
 
-    if (name === 'help') printHelp(session.aliases);
+    if (name === 'full') {
+        if (session.last === undefined) console.log(chalk.dim('no result to show'));
+        else console.log(formatValue(session.last));
+    } else if (name === 'help') printHelp(session.aliases);
     else if (name === 'forms') printForms();
     else if (name === 'ops') printOperations(session.interpreter, rest[0]);
     else if (name === 'vars') printVariables(session.interpreter);
@@ -242,7 +265,7 @@ async function command(text: string, session: Session): Promise<boolean> {
         if (rest[0] === 'on' || rest[0] === 'off') session.setAliases(rest[0] === 'on');
         else console.log(`alias is ${session.aliases ? 'on' : 'off'}; use 'alias off'`);
     } else if (name === 'save') await save(session.accepted, rest[0]);
-    else if (name === 'load') await load(session.interpreter, rest[0]);
+    else if (name === 'load') await load(session, rest[0]);
     return true;
 }
 
@@ -261,14 +284,14 @@ async function save(accepted: readonly string[], target: string | undefined): Pr
     }
 }
 
-async function load(interpreter: Interpreter, target: string | undefined): Promise<void> {
+async function load(session: Session, target: string | undefined): Promise<void> {
     if (!target) {
         console.error(chalk.red('load needs a file name'));
         return;
     }
     const file = path.extname(target) === '' ? `${target}.ra` : target;
     try {
-        run(interpreter, await fs.readFile(file, 'utf8'));
+        run(session.interpreter, await fs.readFile(file, 'utf8'), session);
     } catch (error) {
         console.error(chalk.red(String(error)));
     }
@@ -296,6 +319,13 @@ function printHelp(aliases: boolean): void {
         '  you type. A,B+1 stores as',
         '  A = B + 1.',
         '',
+        'Results',
+        '  A long result keeps its two ends',
+        '  and counts the rest. An unbounded',
+        '  sequence shows a beginning only.',
+        "  'full' prints the last one whole;",
+        '  print is never cut.',
+        '',
         `Words for symbols (alias is ${aliases ? 'on' : 'off'})`,
     ].join('\n'));
     const pairs = Object.entries(OPERATOR_ALIASES)
@@ -312,6 +342,7 @@ function printHelp(aliases: boolean): void {
         '  forms   how to type each construct',
         '  ops     names you can call now',
         '  ops N   what one name does',
+        '  full    the last result in full',
         '  vars    names you have bound',
         '  save F  write the session to F.ra',
         '  load F  run F.ra in this session',
@@ -444,20 +475,52 @@ function typeLabel(value: RankValue): string {
 function complete(line: string, interpreter: Interpreter, state: CellState): [string[], string] {
     const word = /[A-Za-z_][A-Za-z0-9_]*$/.exec(line)?.[0] ?? '';
     const before = line.slice(0, line.length - word.length).trimEnd();
-    const previous = /[A-Za-z_][A-Za-z0-9_]*$/.exec(before)?.[0];
-    const pool = previous === 'use' || previous === 'ops'
-        ? Object.keys(standardModules)
-        : [
-            ...interpreter.variables.keys(),
-            ...[...interpreter.modules].flatMap(
-                name => Object.keys(standardModules[name] ?? {})),
-            ...STATEMENT_KEYWORDS,
-            ...Object.keys(OPERATOR_ALIASES),
-            ...(before === '' && isEmpty(state) ? COMMANDS : []),
-        ];
-    const hits = [...new Set(pool)].filter(name => name.startsWith(word)).sort();
-    // One match means the next thing typed is a new word, so give it its space.
-    return [hits.length === 1 ? [`${hits[0]} `] : hits, word];
+    const pool = [...new Set(candidates(before, interpreter, state))];
+    // A spelled operator is two words, so `at le` has to reach `at least`. Try
+    // the longest run of typed words first and give back what it replaces.
+    for (const typed of prefixes(line, word)) {
+        const hits = pool.filter(name => name.startsWith(typed)).sort();
+        if (hits.length === 0) continue;
+        // One match means the next thing typed is a new word, so give it its space.
+        return [hits.length === 1 ? [`${hits[0]} `] : hits, typed];
+    }
+    return [[], word];
+}
+
+/** The trailing words of a line, longest run first, down to the last word. */
+function prefixes(line: string, word: string): string[] {
+    const tail = /(?:[A-Za-z_][A-Za-z0-9_]*[\t ]+)*[A-Za-z_][A-Za-z0-9_]*$/.exec(line)?.[0];
+    if (tail === undefined) return [word];
+    const words = tail.split(/[\t ]+/);
+    return words.map((_, start) => words.slice(start).join(' '));
+}
+
+/**
+ * What may follow what has been typed. A statement whose grammar fixes the next
+ * word offers only that word: `use` takes a module, and a declared input takes
+ * one of the five types before an optional `many`.
+ */
+function candidates(
+    before: string,
+    interpreter: Interpreter,
+    state: CellState,
+): readonly string[] {
+    const words = before.split(/\s+/).filter(part => part !== '');
+    const previous = words.at(-1);
+    if (previous === 'use' || previous === 'ops') return Object.keys(standardModules);
+    if (words[0] === 'option' || words[0] === 'argument') {
+        if (words.length === 2) return INPUT_TYPES;
+        if (words.length === 3 && INPUT_TYPES.includes(words[2])) return ['many'];
+    }
+    return [
+        ...interpreter.variables.keys(),
+        ...[...interpreter.modules].flatMap(
+            name => Object.keys(standardModules[name] ?? {})),
+        ...STATEMENT_KEYWORDS,
+        ...OPERATOR_KEYWORDS,
+        ...Object.keys(OPERATOR_ALIASES),
+        ...(before === '' && isEmpty(state) ? COMMANDS : []),
+    ];
 }
 
 function wrap(items: readonly string[], separator = ' '): string[] {

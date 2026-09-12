@@ -74,6 +74,18 @@ const NON_OPERAND_WORDS = new Set([
 /** Keywords that live inside a block and display one level out. */
 const DEDENT_WORDS = new Set(['else', 'elif', 'catch', 'finally']);
 
+/**
+ * Word operators, completed whole: `mul` finishes as `multiple by`, so the two
+ * halves of a spelled operator never have to be typed or remembered apart.
+ */
+export const OPERATOR_KEYWORDS = [
+    'and', 'or', 'xor', 'not', 'equal', 'not equal', 'less', 'greater',
+    'at least', 'at most', 'multiple by', 'in', 'is', 'to', 'until', 'by',
+    'pad', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
+    'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
+    'innerjoin on', 'set add', 'counter add',
+];
+
 export const STATEMENT_KEYWORDS = [
     'args', 'argument', 'array', 'break', 'catch', 'continue', 'elif', 'else',
     'end', 'false', 'finally', 'flag', 'for', 'fun', 'if', 'index', 'memo',

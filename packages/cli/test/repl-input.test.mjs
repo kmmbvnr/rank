@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import {
@@ -257,6 +260,58 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
     assert.equal(result.status, 0);
     assert.deepEqual(result.stdout.trim().split('\n'), [
         '<function double>', '10', '3', '3', 'text', 'text',
-        'at 12:30', 'at 12:30', '4', '4', '1 2 3 4 5 6', '2 5', '78',
+        'at 12:30', 'at 12:30', '4', '4',
+        // A tensor prints flat, so the preview names the shape underneath it.
+        '1 2 3 4 5 6', 'shape 2 3', '2 5', '78',
     ]);
+});
+
+/**
+ * Drives the real prompt through a pty so readline completion actually runs. A
+ * tab in a line is sent on its own: readline treats a burst that contains one
+ * as plain text, and only a keypress of its own completes.
+ */
+function complete(lines) {
+    const steps = [];
+    for (const line of lines) {
+        for (const [index, piece] of line.split('\t').entries()) {
+            if (index > 0) steps.push('send "\\t"', 'sleep 0.3');
+            if (piece !== '') steps.push(`send ${JSON.stringify(piece)}`, 'sleep 0.2');
+        }
+        steps.push('send "\\r"', 'expect "rank> "');
+    }
+    const file = path.join(os.tmpdir(), `rank-complete-${process.pid}.exp`);
+    fs.writeFileSync(file, [
+        'set timeout 10',
+        `spawn ${process.execPath} ${cli}`,
+        'expect "rank> "',
+        ...steps,
+        'send "exit\\r"',
+        'expect eof',
+    ].join('\n'));
+    try {
+        return spawnSync('expect', ['-f', file], { encoding: 'utf8' }).stdout ?? '';
+    } finally {
+        fs.rmSync(file, { force: true });
+    }
+}
+
+// The prompt has to offer what the grammar fixes: a declared input takes one of
+// five types, and a spelled operator is two words that arrive as one.
+test('completion offers the types a declared input accepts', () => {
+    const session = complete(['option Limit integ\t 1', 'argument Path \t\t']);
+    assert.match(session, /Limit integer/);
+    for (const type of ['boolean', 'integer', 'path', 'real', 'text']) {
+        assert.match(session, new RegExp(`\\b${type}\\b`));
+    }
+});
+
+test('completion finishes a two-word operator whole', () => {
+    // The operand comes after: a line ending in an operator folds instead of
+    // running, which is the prompt behaving correctly.
+    const session = complete(['use numbers', 'N = 3', 'Mask = N mul\t2']);
+    // The prompt redraws with escape codes between its parts, so match the
+    // completed text rather than the whole line.
+    assert.match(session, /N multiple by 2/);
+    assert.match(complete(['A = 1', 'B = A at l\t0']), /A at least 0/);
 });
