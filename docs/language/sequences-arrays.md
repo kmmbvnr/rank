@@ -388,9 +388,10 @@ Answer = Fib even sum
 Iteration, indexing, reductions and transformations such as `window` consume
 the matching source values. So do the bounds `to`, `until` and `from`, whenever
 the source itself accepts them: a bound and a mask keep the same items in either
-order, so `(primes multiple by 5) until 100` is bounded rather than endless. Boolean composition still combines the deferred
-predicates. A materialized boolean array does not retain a source and therefore
-still needs an explicit value on its left when used for selection.
+order, so `(primes multiple by 5) until 100` is bounded rather than endless.
+Boolean composition still combines the deferred predicates. A materialized
+boolean array does not retain a source and therefore still needs an explicit
+value on its left when used for selection.
 
 Reusing a mask does not promise that its computed bits are cached. A mask
 captures the logical values of its operands when it is created, rather than
