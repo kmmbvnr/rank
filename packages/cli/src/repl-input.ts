@@ -59,7 +59,7 @@ const OPEN_WORDS = new Set([
     'and', 'or', 'xor', 'not', 'to', 'until', 'by', 'pad', 'equal', 'less',
     'greater', 'in', 'is', 'at', 'least', 'most', 'multiple', 'use', 'as',
     'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
-    'flag', 'args',
+    'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin',
 ]);
 
 /** Block keywords, recognized only as the first word of a statement. */

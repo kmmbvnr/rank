@@ -82,6 +82,7 @@ test('gives every binary operator one space on each side', () => {
 test('formats a whole line and a line still being typed', () => {
     assert.equal(formatLine('A,B+1'), 'A = B + 1');
     assert.equal(formatLine('A  =   3'), 'A = 3');
+    assert.equal(formatLine('A B leftjoin on .x, .y'), 'A B leftjoin on .x = .y');
     // While typing, an operator keeps the space that separates what comes next.
     assert.equal(formatTyping('A,'), 'A = ');
     assert.equal(formatTyping('A = 1+'), 'A = 1 + ');
@@ -125,6 +126,11 @@ test('folds a line that cannot end a statement', () => {
     assert.equal(scanLine('1 to 5 array').folds, false);
     assert.equal(scanLine('A shape').folds, false);
     assert.equal(scanLine('for').folds, false);
+    // `group by` and `leftjoin on` want fields; `sort` is also a plain name.
+    assert.equal(scanLine('Rows group by').folds, true);
+    assert.equal(scanLine('Left Right leftjoin on').folds, true);
+    assert.equal(scanLine('Rows group by .store').folds, false);
+    assert.equal(scanLine('Values sort').folds, false);
 
     const state = cell('A = 1 +', '2 +', '3');
     assert.equal(cellSource(state), 'A = 1 + 2 + 3');
