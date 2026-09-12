@@ -1,0 +1,49 @@
+use testing
+
+test "wins immediately"
+  use "010_connectx"
+  Board = array shape 6 7 pad 0
+  Board 5 0 = 1
+  Board 5 1 = 1
+  Board 5 2 = 1
+  Board 1 6 7 4 move equal 3
+end
+
+test "blocks an immediate loss"
+  use "010_connectx"
+  Board = array shape 6 7 pad 0
+  Board 5 4 = 2
+  Board 4 4 = 2
+  Board 3 4 = 2
+  Board 1 6 7 4 move equal 4
+end
+
+test "prefers the center"
+  use "010_connectx"
+  Board = array shape 6 7 pad 0
+  Board 1 6 7 4 move equal 3
+end
+
+test "skips a full center column"
+  use "010_connectx"
+  use sequences
+  Board = array shape 6 7 pad 0
+  Board # 3 = array 1 2 1 2 1 2
+  Board 1 6 7 4 move equal 2
+end
+
+test "search does not mutate the board"
+  use "010_connectx"
+  use sequences
+  Board = array shape 6 7 pad 0
+  Original = Board copy
+  Chosen = Board 1 6 7 4 move
+  Chosen equal 3
+  Board equal Original
+end
+
+test "returns missing move on a full board"
+  use "010_connectx"
+  Board = array shape 2 2 pad 1
+  Board 1 2 2 3 move equal -1
+end

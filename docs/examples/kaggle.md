@@ -185,3 +185,8 @@ Next r c = Player
 ```
 
 Game-specific primitives are unnecessary.
+
+The [runnable example](../../demos/kaggle/010_connectx.ra) checks immediate
+wins, blocks immediate losses and otherwise prefers a legal center column.
+Its neighboring test file also verifies full columns, full boards and that
+searching candidate moves does not mutate the input board.

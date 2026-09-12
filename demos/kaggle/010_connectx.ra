@@ -1,139 +1,118 @@
 rem Kaggle: Connect X
-rem Choose a column for the next
-rem move in a Connect Four game.
+rem Choose a column for the next move.
 rem
 rem Board: Rows by Cols
 rem 0 = empty
 rem 1 or 2 = player
 
+use numbers
+use ranges
+use sequences
+
+
 fun move Board Player Rows Cols Need
-    Other = 3 - Player
+  Other = 3 - Player
 
-    rem Win immediately
-
-    for c in 0 until Cols
-        if legal Board c
-            Next = drop Board c Player
-
-            if won Next Player Need
-                return c
-            end
-        end
+  rem Win immediately.
+  for C in 0 until Cols
+    if Board C legal
+      Next = Board C Player place
+      if Next Player Need won
+        return C
+      end
     end
-
-    rem Block opponent
-
-    for c in 0 until Cols
-        if legal Board c
-            Next = drop Board c Other
-
-            if won Next Other Need
-                return c
-            end
-        end
-    end
-
-    rem Prefer center columns
-
-    Center = Cols // 2
-    Best = -1
-    BestDist = Cols + 1
-
-    for c in 0 until Cols
-        if legal Board c
-            Dist = abs c - Center
-
-            if Dist less BestDist
-                Best = c
-                BestDist = Dist
-            end
-        end
-    end
-
-    return Best
-end
-
-fun legal Board c
-  return Board 0 c equal 0
-end
-
-fun drop Board c Player
-  Next = Board
-  Rows = shape Board 0
-
-  r = Rows - 1
-
-  for r at least 0
-    if Next r c equal 0
-      Next r c = Player
-      return Next
-    end
-
-    r = r - 1
   end
 
+  rem Block an immediate opponent win.
+  for C in 0 until Cols
+    if Board C legal
+      Next = Board C Other place
+      if Next Other Need won
+        return C
+      end
+    end
+  end
+
+  rem Otherwise choose the legal column
+  rem nearest the center.
+  Center = Cols // 2
+  Best = -1
+  BestDist = Cols + 1
+  for C in 0 until Cols
+    if Board C legal
+      Dist = (C - Center) abs
+      if Dist less BestDist
+        Best = C
+        BestDist = Dist
+      end
+    end
+  end
+  return Best
+end
+
+
+fun legal Board C
+  return Board 0 C equal 0
+end
+
+
+rem Return a board with one added piece.
+fun place Board C Player
+  Next = Board copy
+  Rows = (Board shape) 0
+  R = Rows - 1
+  for R at least 0
+    if Next R C equal 0
+      Next R C = Player
+      return Next
+    end
+    R -= 1
+  end
   return Next
 end
 
 
 fun won Board Player Need
-    Rows = shape Board 0
-    Cols = shape Board 1
-
-    for r in 0 until Rows
-        for c in 0 until Cols
-            if Board r c equal Player
-                if line Board r c 0 1 Need
-                    return true
-                end
-
-                if line Board r c 1 0 Need
-                    return true
-                end
-
-                if line Board r c 1 1 Need
-                    return true
-                end
-
-                if line Board r c 1 -1 Need
-                    return true
-                end
-            end
+  Rows = (Board shape) 0
+  Cols = (Board shape) 1
+  for R in 0 until Rows
+    for C in 0 until Cols
+      if Board R C equal Player
+        if Board R C 0 1 Need line
+          return true
         end
+        if Board R C 1 0 Need line
+          return true
+        end
+        if Board R C 1 1 Need line
+          return true
+        end
+        if Board R C 1 (-1) Need line
+          return true
+        end
+      end
     end
-
-    return false
+  end
+  return false
 end
 
-fun line Board r c Dr Dc Need
-    Rows = shape Board 0
-    Cols = shape Board 1
-    Player = Board r c
 
-    for k in 1 until Need
-        i = r + Dr * k
-        j = c + Dc * k
-
-        if i less 0
-            return false
-        end
-
-        if i at least Rows
-            return false
-        end
-
-        if j less 0
-            return false
-        end
-
-        if j at least Cols
-            return false
-        end
-
-        if Board i j not equal Player
-            return false
-        end
+fun line Board R C DR DC Need
+  Rows = (Board shape) 0
+  Cols = (Board shape) 1
+  Player = Board R C
+  for K in 1 until Need
+    I = R + DR * K
+    J = C + DC * K
+    if I less 0 or I at least Rows
+      return false
     end
-
-    return true
+    if J less 0 or J at least Cols
+      return false
+    end
+    if Board I J not equal Player
+      return false
+    end
+  end
+  return true
 end
