@@ -1,0 +1,42 @@
+use testing
+
+test "assigns higher dog probability to bright dog features"
+  use "009_dogvscat"
+  X = array shape 4 2
+    0 10
+    10 0
+    245 255
+    255 245
+  end
+  Y = array 0 0 1 1
+  Xtest = array shape 2 2
+    5 5
+    250 250
+  end
+
+  Prob = X Y Xtest 0.1 500 solve
+  Prob 0 less 0.5 and Prob 1 greater 0.5
+end
+
+test "returns one probability per image"
+  use sequences
+  use "009_dogvscat"
+  X = array shape 2 1
+    0
+    255
+  end
+  Prob = X (array 0 1) X 0.1 100 solve
+  Prob len equal 2
+end
+
+test "keeps caller pixel matrices unchanged"
+  use sequences
+  use "009_dogvscat"
+  X = array shape 2 1
+    0
+    255
+  end
+  Before = X copy
+  Prob = X (array 0 1) X 0.1 10 solve
+  X equal Before
+end

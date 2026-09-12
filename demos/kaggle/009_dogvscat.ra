@@ -1,46 +1,22 @@
 rem Kaggle: Dogs vs Cats
-rem Classify each image as
-rem a dog or a cat.
-rem
-rem Target: dog probability
-rem Metric: Log Loss
+rem https://www.kaggle.com/competitions/dogs-vs-cats
+rem Fit a binary pixel classifier after images
+rem have been flattened into feature rows.
 
-use tables
-use images
-use ml
+use "001_titanic" as Classifier
+use linalg
 
-Train = images "train"
-Test = images "test1"
 
-rem Get target from filename
+fun probability X Model
+  Z = (X - Model .center) / Model .scale
+  Score = Z (Model .weights) matmul + Model .bias
+  return Score Classifier.sigmoid
+end
 
-Parts = Train .name "." split
-Y = Parts 0 equal "dog"
 
-rem Prepare image tensors
-
-X = Train .image
-Xtest = Test .image
-
-X = X 128 128 resize
-Xtest = Xtest 128 128 resize
-
-X = X / 255
-Xtest = Xtest / 255
-
-rem Train image classifier
-
-Model = X Y cnn
-
-Prob = Model Xtest probability
-
-rem Build submission
-
-Test .label = Prob
-
-Parts = Test .name "." split
-Test .id = Parts 0 integer each
-
-Out = Test .id .label
-
-csv "submission.csv" = Out
+fun solve X Y Xtest Rate Steps
+  X = X / 255.0
+  Xtest = Xtest / 255.0
+  Model = X Y Rate Steps Classifier.logistic
+  return Xtest Model probability
+end
