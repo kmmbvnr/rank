@@ -3261,6 +3261,15 @@ source. An array source produces lazy rank-1 object rows from scalar fields or
 same-length rank-1 columns. Missing array cells and SQLite `NULL` omit the
 corresponding output field. Boolean SQL expressions materialize as Rank
 booleans. A final `sort by` after `select` orders the exported rows.
+`Ids Keys Values lookup` returns the first source value whose key equals each
+requested ID. Array source keys and values are aligned rank-1 arrays; array
+requests produce a lazy rank-1 result, while a scalar request returns one
+value. Missing or unmatched IDs produce missing cells, and array source order
+decides repeated keys. With SQLite expressions, the key and value come from
+one view of the same database as the request. It compiles a correlated scalar
+subquery with bound parameters; no match or SQL `NULL` returns an absent field.
+Without an explicit source order, repeated SQLite keys have no stable first
+match. The view is read only and the lookup does not execute until demanded.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
 expression runs SQL `SUM`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric

@@ -2,8 +2,6 @@ rem PostgreSQL Exercises: joins 7, without joins
 rem https://pgexercises.com/questions/joins/sub.html
 
 use cli
-use algo
-use ranges
 use sequences
 use tables
 
@@ -11,26 +9,16 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_007.csv"
 
 Db = DbPath sqlite
-Members = (Db .members) array
-Names = Members .firstname + " " + Members .surname
-Ids = Members .recommendedby pad -1
-Recommenders = array shape (Members len) pad ""
-for I in 0 until Members len
-  Matches = (Members (Members .memid equal Ids I)) array
-  if Matches len greater 0
-    Recommenders I = ((Matches .firstname) 0) + " " + ((Matches .surname) 0)
-  end
+Members = Db .members
+Ids = Members .recommendedby
+Keys = Members .memid
+First = Members .firstname + " "
+Names = First + Members .surname
+Rec = Ids Keys Names lookup
+Cols = record
+  .member = Names
+  .recommender = Rec
 end
-Members .member = Names
-Members .recommender = Recommenders
-Pairs = Members .member + "|" + Members .recommender
-DistinctPairs = Pairs unique
-Chosen = new queue
-for Pair in DistinctPairs
-  Matches = (Members (Pairs equal Pair)) array
-  Chosen push (Matches 0)
-end
-Rows = Chosen (array (Chosen len)) reshape
-Ordered = Rows ((Rows .member) argsort)
-Result = Ordered (array .member .recommender)
+Pairs = Members Cols select
+Result = (Pairs unique) sort by .member
 Result OutputPath csv

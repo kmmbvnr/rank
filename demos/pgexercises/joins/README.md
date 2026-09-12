@@ -31,10 +31,10 @@ reference SQL. It checks duplicate bookings, duplicate member names, absent
 recommenders, date boundaries, ordering, and member versus guest prices without
 downloaded data.
 
-Tasks 1–6 and 8 use Rank projections, masks, joins and computed columns on
-lazy SQLite views. Task 4 uses short aliases for a self join; tasks 6 and 8
-use `choose` for guest/member prices. Their filter and sort run in SQLite;
-the final `array` drops a temporary sort column before CSV. Task 7 still uses
-a per-member Rank lookup to mirror the correlated SQL subquery. Task 8 names
-the priced intermediate before filtering, corresponding to the SQL subquery.
+All eight tasks use Rank operations on lazy SQLite views. Task 4 uses short
+aliases for a self join; tasks 6 and 8 use `choose` for guest/member prices.
+Their filter and sort run in SQLite; a final `array` drops a temporary sort
+column before CSV. Task 7 uses `lookup` for a correlated scalar subquery
+without a join or early materialization. Task 8 names the priced intermediate
+before filtering, corresponding to the SQL subquery.
 See the [translation roadmap](../../../docs/design/sqlite-tables.md).

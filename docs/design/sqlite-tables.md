@@ -29,8 +29,9 @@ SQLite CLI tests compare results with reference SQL on temporary data.
 columns in SQL. Tasks 2, 4 and 5 use it to defer the only row read until CSV.
 Tasks 6 and 8 use `choose` for their row-dependent guest/member price and
 stay in SQL through filtering and sorting. Their final `array` read drops a
-temporary negative-cost sort column. Task 7 uses an in-memory correlated
-lookup. The next steps are grouped aggregates, correlated lookups and limits.
+temporary negative-cost sort column. Task 7 uses `lookup` to compile a
+correlated scalar subquery from ordinary Rank columns, without a join or early
+materialization. The next steps are grouped aggregates and limits.
 Preserve an explicit
 ordering contract when adding operations after `sort by`; a SQLite subquery
 does not promise to retain its source order.

@@ -1,7 +1,8 @@
-import { derivedArray, ownedArray, ownedObject } from '../array-storage.js';
+import { derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
+import { isKnownFileFree } from '../resource-summary.js';
 import { readTextFile, writeTextFile } from './io.js';
-import { materializeSqlite, selectSqlite } from './sqlite.js';
+import { lookupSqlite, materializeSqlite, selectSqlite } from './sqlite.js';
 import {
     formatDate,
     isRankObject,
@@ -24,6 +25,41 @@ import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const tablesModule: RuntimeModule = {
+    lookup: () => native('lookup', 3, ([requested, keys, values]) => {
+        if ([requested, keys, values].some(isRankSqliteExpression)) {
+            if (!isRankSqliteExpression(requested)
+                || !isRankSqliteExpression(keys) || !isRankSqliteExpression(values)) {
+                throw new RankError('SQLite lookup expects three column expressions', 'TypeError');
+            }
+            return lookupSqlite(requested, keys, values);
+        }
+        if (!isRankArray(keys) || !isRankArray(values)
+            || keys.shape.length !== 1 || values.shape.length !== 1
+            || keys.shape[0] !== values.shape[0]) {
+            throw new RankError('lookup keys and values must be aligned rank-1 arrays',
+                'DimensionMismatch');
+        }
+        const find = (key: RankValue): RankValue => {
+            const sought = setValueKey(key);
+            for (let index = 0; index < keys.shape[0]; index += 1) {
+                let candidate: RankValue;
+                try { candidate = readArrayItem(keys, index); }
+                catch (error) {
+                    if (error instanceof MissingValueError) continue;
+                    throw error;
+                }
+                if (setValueKey(candidate) === sought) return readArrayItem(values, index);
+            }
+            throw new MissingValueError('lookup key not found');
+        };
+        if (!isRankArray(requested)) return find(requested);
+        if (requested.shape.length !== 1) {
+            throw new RankError('lookup requests must be a rank-1 array', 'DimensionMismatch');
+        }
+        const fileFree = isKnownFileFree(values) || values.containsFiles === false;
+        return derivedArray(requested.shape, [requested, keys, values],
+            index => find(readArrayItem(requested, index)), fileFree);
+    }),
     select: () => native('select', 2, ([input, fields]) => {
         if (!isRankRecord(fields)) throw new RankError('select expects a record of columns', 'TypeError');
         const source = isRankTableAlias(input) ? input.source : input;

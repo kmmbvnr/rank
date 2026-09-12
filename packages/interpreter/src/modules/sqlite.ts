@@ -339,6 +339,33 @@ export function chooseSqlite(
         textual: knownText(whenTrue) && knownText(whenFalse) };
 }
 
+/** Correlated scalar lookup; `source` is the alias of the outer expression host. */
+export function lookupSqlite(
+    requested: RankSqliteExpression,
+    key: RankSqliteExpression,
+    value: RankSqliteExpression,
+): RankSqliteExpression {
+    if (key.table !== value.table
+        || requested.table.database.path !== key.table.database.path) {
+        throw new RankError('SQLite lookup expects one source view and database', 'TypeError');
+    }
+    const qualify = (text: string, alias: string) => text.replace(
+        /"(?:[^"]|"")+"/g,
+        (identifier, offset: number) => text[offset - 1] === '.'
+            ? identifier : `${alias}.${identifier}`,
+    );
+    const innerKey = qualify(key.text, 'found');
+    const outerKey = qualify(requested.text, 'source');
+    const equality = compatibleEquality(innerKey, outerKey);
+    const matchParams = [...key.params, ...requested.params];
+    return { kind: 'sqlite-expression', table: requested.table,
+        text: `(SELECT ${qualify(value.text, 'found')} FROM (${key.table.text}) AS found `
+            + `WHERE ${equality} LIMIT 1)`,
+        params: [...value.params, ...key.table.params,
+            ...matchParams, ...matchParams, ...matchParams],
+        boolean: value.boolean, textual: value.textual };
+}
+
 export function sumSqlite(expression: RankSqliteExpression): RankValue {
     const table = expression.table;
     return withConnection(table.database, connection => {

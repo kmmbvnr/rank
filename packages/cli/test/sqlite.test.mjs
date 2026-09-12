@@ -239,6 +239,38 @@ test('choose stays in SQL and leaves an unknown condition missing', () => fixtur
         'id,value,ok\n1,yes,true\n2,no,false\n3,,\n');
 }));
 
+test('lookup builds a correlated self-query without joining or reading rows', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE members (memid INTEGER, name TEXT, recommendedby INTEGER)');
+    const insert = db.prepare('INSERT INTO members VALUES (?, ?, ?)');
+    insert.run(1, 'Ada', null);
+    insert.run(2, 'Bea', 1);
+    insert.run(3, 'Cam', 99);
+    db.close();
+    const output = path.join(directory, 'lookup.csv');
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
+        + `Db = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'M = Db .members\n'
+        + 'R = M (M .name greater "A")\n'
+        + 'Ids = M .recommendedby + 0\nKeys = R .memid + 0\n'
+        + 'Names = R .name + "!"\n'
+        + 'Member = M .name + "!"\n'
+        + 'Rec = Ids Keys Names lookup\n'
+        + 'Cols = record\n  .member = Member\n  .recommender = Rec\nend\n'
+        + 'Out = (M Cols select) sort by .member\n'
+        + 'Q = Out sql\nQ .text print\nQ .params len print\n'
+        + `Out ${JSON.stringify(output)} csv\n`);
+    assert.equal(result.status, 0, result.stderr);
+    const [sql, count] = result.stdout.trimEnd().split('\n');
+    assert.match(sql, /\(SELECT .* FROM .* AS found WHERE /);
+    assert.match(sql, /source\."recommendedby"/);
+    assert.match(sql, /found\."memid"/);
+    assert.doesNotMatch(sql, /\bJOIN\b|Ada|Bea|Cam/);
+    assert.equal(count, '9');
+    assert.equal(fs.readFileSync(output, 'utf8'),
+        'member,recommender\nAda!,\nBea!,Ada!\nCam!,\n');
+}));
+
 test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture((directory, dbPath) => {
     const db = new Database(dbPath);
     db.exec('CREATE TABLE lineitem (l_shipdate TEXT, l_discount REAL, '

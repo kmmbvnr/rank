@@ -104,10 +104,32 @@ Cost = Guest GCost MCost choose
 This stays in SQL as a bound `CASE` expression. An unknown SQL condition gives
 an absent cost. `select` can then name the computed column.
 
+`Ids Keys Values lookup` finds the first matching key for each requested ID:
+
+```rank
+Ids = Members .recommendedby
+Keys = Members .memid
+First = Members .firstname + " "
+Names = First + Members .surname
+Rec = Ids Keys Names lookup
+```
+
+For arrays, `Keys` and `Values` must be aligned rank-1 arrays. A rank-1 `Ids`
+array produces a lazy rank-1 result; a scalar ID produces one value. The first
+match in source order wins, numeric keys compare by value, and a missing key
+or unmatched ID leaves the result cell absent. Source changes invalidate a
+derived result. For SQLite, all three operands are column expressions: `Keys`
+and `Values` belong to one source view, while `Ids` may belong to another view
+of the same database. `lookup` builds a bound correlated scalar subquery, with
+no join and no row read until the enclosing view executes. SQL `NULL` or no
+match leaves the result field absent. If source keys repeat, SQLite's first
+match has no guaranteed order unless the source view has an explicit order;
+use unique keys when the answer must be stable.
+
 Selecting one field creates a lazy column expression. Comparing it with a
 scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,
-`innerjoin by/on`, `leftjoin by/on`, `select`, `unique` and field-keyed `sort by` also
+`innerjoin by/on`, `leftjoin by/on`, `select`, `lookup`, `unique` and field-keyed `sort by` also
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
 or a product of expressions uses SQL `SUM`. `array`, `print` and CSV output execute the
 view. `sql` and `explain` inspect the current plan without loading its result

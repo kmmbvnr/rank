@@ -65,3 +65,16 @@ it('keeps choose as a SQLite expression until a row is requested', () => {
     expect(io.reads).toEqual([]);
     expect(formatValue(runtime.execute('Statement .text')!)).toContain('CASE WHEN');
 });
+
+it('keeps a correlated lookup in the plan until a row is requested', () => {
+    const io = new CountingSqliteIo({});
+    const runtime = new Interpreter(undefined, { io });
+    runtime.execute('use tables\nDb = "club.sqlite3" sqlite\n'
+        + 'Rows = Db .facilities\n'
+        + 'Ids = Rows .name\nKeys = Rows .name\n'
+        + 'Found = Ids Keys Keys lookup\n'
+        + 'Cols = record\n  .title = Found\nend\n'
+        + 'Out = Rows Cols select\nStatement = Out sql');
+    expect(io.reads).toEqual([]);
+    expect(formatValue(runtime.execute('Statement .text')!)).toContain('AS found');
+});
