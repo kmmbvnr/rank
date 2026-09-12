@@ -1,0 +1,22 @@
+{
+  "name": "pca",
+  "rows": 2048,
+  "path": "demos/deepml/019_pca.ra",
+  "sourceHash": "a33110b838812741d4a76f9547c0b25a6280edb2b4c3fec759186f7aca26b894",
+  "node": "v24.15.0",
+  "coldMs": 323.784708,
+  "samplesMs": [
+    292.522958,
+    257.85795800000005,
+    375.21524999999997,
+    501.48512500000015,
+    671.6650829999999
+  ],
+  "memory": {
+    "rss": 158662656,
+    "heapTotal": 99074048,
+    "heapUsed": 64626184,
+    "external": 2239372,
+    "arrayBuffers": 29231
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "gradient",
+  "rows": 2048,
+  "path": "demos/deepml/015_gd.ra",
+  "sourceHash": "edc87796d8ff78eddb3d78727a8260815e7a78a8fa61b1e34339780c6013cea0",
+  "node": "v24.15.0",
+  "coldMs": 184.236583,
+  "samplesMs": [
+    215.75787500000013,
+    191.30716700000016,
+    173.34625000000005,
+    162.63583399999993,
+    148.49149999999986
+  ],
+  "memory": {
+    "rss": 298385408,
+    "heapTotal": 221708288,
+    "heapUsed": 116332536,
+    "external": 2239372,
+    "arrayBuffers": 29231
+  }
+}
