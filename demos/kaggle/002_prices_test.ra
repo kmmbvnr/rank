@@ -1,0 +1,41 @@
+use testing
+
+test "linear regression fits an affine line"
+  use "002_prices"
+  use numbers
+  X = array shape 4 1
+    0
+    1
+    2
+    3
+  end
+  Y = array 1 3 5 7
+  Model = X Y 0.1 500 linear
+  Pred = (array shape 1 1 pad 4) Model linear_predict
+  Pred round 4 equal array 9.0
+end
+
+test "builds a two-column price submission"
+  use json
+  use sequences
+  use "002_prices"
+  Train = "[{\"Id\":1,\"OverallQual\":1,\"GrLivArea\":10,\"SalePrice\":100}, {\"Id\":2,\"OverallQual\":2,\"GrLivArea\":20,\"SalePrice\":200}, {\"Id\":3,\"OverallQual\":3,\"GrLivArea\":30,\"SalePrice\":400}]" json
+  Test = "[{\"Id\":4,\"OverallQual\":2,\"GrLivArea\":20}]" json
+
+  Result = Train Test 0.05 1000 solve
+  Shape = Result shape
+  Price = Result 0 1
+  Shape equal array 1 2 and Price greater 0
+end
+
+test "linear regression checks observation counts"
+  use "002_prices"
+  X = array shape 2 1 pad 1
+  Raised = false
+  try
+    Model = X (array 1) 0.1 1 linear
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+  Raised
+end

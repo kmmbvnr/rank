@@ -1,32 +1,86 @@
-rem House Prices
-rem Predict the final sale price
-rem of each house.
+rem Kaggle: House Prices
+rem https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques
+rem Fit a numeric log-price baseline.
 
-use tables
+use cli
+use linalg
+use numbers
+use ranges
+use sequences
 use stats
-use ml
+use tables
 
-Train = csv "train.csv"
-Test = csv "test.csv"
+argument TrainPath path = "demos/kaggle/data/house-prices/train.csv"
+argument TestPath path = "demos/kaggle/data/house-prices/test.csv"
+argument OutputPath path = "demos/kaggle/submissions/house-prices.csv"
 
-Features =
-  .OverallQual .GrLivArea
-  .Neighborhood .HouseStyle
-  .KitchenQual .ExterQual
+Train = TrainPath csv
+Test = TestPath csv
+Submission = Train Test 0.05 1500 solve
+Submission OutputPath csv
 
-X = Train Features
-Xtest = Test Features
 
-Y = Train .SalePrice + 1
-Y = Y log each
+rem Train standardized linear regression with an intercept.
+fun linear X Y Rate Steps
+  XShape = X shape
+  YShape = Y shape
+  if XShape len not equal 2 or YShape len not equal 1
+    .DimensionMismatch raise
+  end
+  Rows = XShape 0
+  Columns = XShape 1
+  if Rows equal 0
+    .DomainError raise
+  end
+  if YShape 0 not equal Rows
+    .DimensionMismatch raise
+  end
 
-Model = X Y linear
-Pred = Model Xtest predict
+  Center = X mean axis 0
+  Scale = X std axis 0 copy
+  Scale (Scale equal 0) = 1.0
+  Z = (X - Center) / Scale
 
-Pred = Pred exp each
-Pred = Pred - 1
+  Weights = array shape Columns pad 0.0
+  Bias = Y mean
+  Zt = Z transpose
+  for # in 0 until Steps
+    Error = Z Weights matmul + Bias - Y
+    Weights -= Rate * (Zt Error matmul / Rows)
+    Bias -= Rate * Error mean
+  end
 
-Test .SalePrice = Pred
-Out = Test .Id .SalePrice
+  return record
+    .weights = Weights
+    .bias = Bias
+    .center = Center
+    .scale = Scale
+  end
+end
 
-csv "submission.csv" = Out
+
+fun linear_predict X Model
+  Z = (X - Model .center) / Model .scale
+  return Z (Model .weights) matmul + Model .bias
+end
+
+
+fun solve Train Test Rate Steps
+  Quality = Train .OverallQual median
+  Area = Train .GrLivArea median
+  Train .OverallQual = Train .OverallQual pad Quality
+  Test .OverallQual = Test .OverallQual pad Quality
+  Train .GrLivArea = Train .GrLivArea pad Area
+  Test .GrLivArea = Test .GrLivArea pad Area
+
+  Features = array .OverallQual .GrLivArea
+  X = Train Features
+  Xtest = Test Features
+  Y = (Train .SalePrice + 1) log
+
+  Model = X Y Rate Steps linear
+  Pred = ((Xtest Model linear_predict) exp - 1) copy
+  Pred (Pred less 0) = 0.0
+  Test .SalePrice = Pred
+  return Test (array .Id .SalePrice)
+end

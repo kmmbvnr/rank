@@ -79,6 +79,11 @@ Xtest = Test Features
 
 `Features` is just a sequence of labels.
 
+The [runnable numeric baseline](../../demos/kaggle/002_prices.ra) currently
+uses `OverallQual` and `GrLivArea`, fills missing values from the training
+medians, fits log price with linear regression written in Rank, and writes the
+`Id,SalePrice` submission. The neighboring tests do not require Kaggle files.
+
 ## Spaceship Titanic
 
 Text splitting over a whole column:
