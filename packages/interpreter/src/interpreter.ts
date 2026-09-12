@@ -1091,6 +1091,7 @@ export class Interpreter {
                     this.options.provenIterationTypes !== false ? elementType : undefined,
                     this.options.directTextIteration !== false),
                 arrayWrites: this.options.arrayWriteCompilation !== false,
+                inlineWriteOffsets: this.options.scalarAddressCompilation !== false,
                 arrayOffset: this.options.scalarAddressCompilation !== false
                     ? scalarArrayWriteOffset
                     : (source, indices) => tensorSelection(source, indices).offsetAt(0),

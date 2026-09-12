@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "date": "2026-09-12T03:56:46.072Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "harnessRevision": "6a5c03c993ae8617433cb2266750a389951783c1",
+    "runtimeRevision": "6a5c03c993ae8617433cb2266750a389951783c1",
+    "size": 200000,
+    "samples": 9,
+    "timing": "first/warm: unchanged function call and output forcing, excluding input construction, parsing and print; sum evaluates its original A sum expression. Preparation is reported separately. Do not subtract these warm times from cold CLI times to estimate IO."
+  },
+  "results": [
+    {
+      "name": "sum",
+      "path": "benchmarks/programs/sum.ra",
+      "sha256": "73383e12f177295cadd593c87fb7b0931765884bc284d6298174563ca1ee3912",
+      "preparationMs": 55.27820800000001,
+      "firstMs": 3.9043330000000083,
+      "warmMs": [
+        1.2310409999999763,
+        1.2207919999999888,
+        1.1784999999999854,
+        1.2605839999999944,
+        1.263875000000013,
+        1.214084000000014,
+        1.2367909999999824,
+        1.2431250000000205,
+        1.2203330000000108
+      ],
+      "medianMs": 1.2310409999999763,
+      "memory": {
+        "rss": 139018240,
+        "heapTotal": 62423040,
+        "heapUsed": 39401688,
+        "external": 2334841,
+        "arrayBuffers": 29231
+      }
+    }
+  ]
+}

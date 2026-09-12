@@ -1597,3 +1597,70 @@ The initial large increases do not recur; these controls remain within about 1.2
 in either direction. They establish no meaningful gain from this compiler stage.
 
 [Repeated heavy controls](../../benchmarks/baselines/2026-09-12-scalar-entry-controls.json).
+
+## Inline scalar write addresses
+
+2026-09-12, based on `6a5c03c`, Apple M5, Node v24.15.0.
+Generated integer loops now compute full scalar write offsets directly, without
+allocating an index vector or calling the generic offset helper for each write.
+Each coordinate is converted once to Number; valid array dimensions are safe
+integers, so an out-of-range BigInt cannot round into the accepted interval.
+Bounds remain checked before the right operand, in axis order. Index containers
+retain their key encoding. Shapes are read from the current receiver, preserving
+array rebinding and aliases. This does not eliminate bounds checks or loop-binder
+callbacks, and does not change numeric storage.
+
+Two alternating nine-sample runs, one million cells including array allocation:
+
+| Case | Baseline → candidate, ms | Repeat, ms |
+| --- | --- | --- |
+| Vector write | 24.40 → 24.67 | 24.72 → 24.75 |
+| Matrix write | 23.84 → 21.35 | 23.98 → 21.28 |
+| Compound write | 33.56 → 31.74 | 32.72 → 32.31 |
+| Read control | 22.75 → 23.45 | 23.29 → 23.78 |
+
+The repeat supports about 11% less time for matrix writes; vector writes are
+unchanged and compound-write gains are small and variable. The full demo run
+was 27.89 seconds versus 27.74 at the merge baseline; this is not evidence of a
+whole-suite speedup. All 331 files / 1156 tests have matching result digests.
+The TypeScript suite passes 44 language and 912 interpreter tests, including
+negative and huge matrix indices, error axis/order, and prior visible writes.
+
+The separate `cp-compute --only=sum --samples=9` diagnostic takes about 1.2 ms
+for `A sum` on 200,000 integers, excluding input preparation. The reported
+22 ms whole-array sum has not been reproduced on this fixture; sum is unchanged.
+
+Evidence: `benchmarks/baselines/2026-09-12-inline-writes*.json` and
+`2026-09-12-sum-diagnostic.json`. Reproduce the comparison with
+`node benchmarks/write-addresses.mjs /path/to/baseline/packages/interpreter/out/index.js`.
+
+## Named whole-array sum
+
+2026-09-12, Apple M5, Node v24.15.0. On the same materialized integer input,
+`A sum` was slower than `A + reduce`: its generic collection loop called numeric
+validation and mixed-type addition on every element. A dedicated array loop
+now accumulates BigInts directly and switches to real addition at the first
+real element. This is a standard-library runtime optimization, not new generated
+compiler coverage. Sequences and sets keep their existing reduction paths.
+
+Nine alternating samples per case, excluding parsing and input construction:
+
+| Elements | Previous sum | New sum | Previous + reduce | Candidate + reduce |
+| --- | --- | --- | --- | --- |
+| 1,000,000 | 5.80 ms | 2.99 ms | 3.75 ms | 3.78 ms |
+| 2,000,000 | 11.70 ms | 5.98 ms | 7.53 ms | 7.83 ms |
+
+Both use the same array and independently checked answer. `sum` is about 1.95x
+faster; the unchanged reduction acts as a control. BigInt precision, integer-zero
+seed, left-fold promotion/rounding, signed zero, infinities, NaN, invalid cells,
+and forcing of lazy array storage are covered by tests. The implementation does
+not substitute `+ reduce`: those operations differ on nonnumeric inputs and
+single real negative zero. Axis-specific sum is unchanged.
+
+Evidence: `benchmarks/baselines/2026-09-12-named-sum.json` and
+`2026-09-12-named-sum-suite.json`. Reproduce with
+`node benchmarks/named-sum.mjs /path/to/baseline/packages/interpreter/out/index.js`.
+
+Validation: 44 language and 926 interpreter tests passed. All 331 demo
+files / 1156 tests passed with unchanged digests (27.81 seconds for one
+full run; no stable whole-suite speedup claim).
