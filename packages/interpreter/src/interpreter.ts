@@ -1220,6 +1220,52 @@ export class Interpreter {
                     for (const selector of selectors.slice(0, -1)) {
                         receiver = interpreter.applySelectors([receiver, selector]);
                     }
+                    if (isRankArray(receiver)) {
+                        interpreter.requireModule('tables', 'table column assignment');
+                        if (receiver.shape.length !== 1) {
+                            throw new RankError(
+                                'table column assignment expects a rank-1 table',
+                                'DimensionMismatch',
+                            );
+                        }
+                        const result = yield* resume(interpreter.evaluateTask(statement.value));
+                        let operands: RankValue[];
+                        if (isRankArray(result)) {
+                            if (!sameShape(receiver.shape, result.shape)) {
+                                throw new RankError(
+                                    `assignment shape mismatch: ${receiver.shape} and ${result.shape}`,
+                                    'DimensionMismatch',
+                                );
+                            }
+                            operands = Array.from(
+                                { length: arraySize(receiver.shape) },
+                                (_, index) => arrayItem(result, index),
+                            );
+                        } else {
+                            operands = Array(arraySize(receiver.shape)).fill(result) as RankValue[];
+                        }
+                        const rows = Array.from(
+                            { length: arraySize(receiver.shape) },
+                            (_, index) => arrayItem(receiver, index),
+                        );
+                        if (!rows.every(isRankObject)) {
+                            throw new RankError('table assignment expects object rows', 'TypeError');
+                        }
+                        const operator = statement.operator === '='
+                            ? undefined : assignmentOperator(statement.operator);
+                        const replacements = operands.map((operand, index) => {
+                            if (operator === undefined) return operand;
+                            const previous = rows[index].entries.get(field.name);
+                            if (previous === undefined) {
+                                throw new MissingValueError(`missing object key: ${field.name}`);
+                            }
+                            return interpreter.evaluateBinary(operator, previous, operand);
+                        });
+                        for (let index = 0; index < rows.length; index += 1) {
+                            rows[index].entries.set(field.name, replacements[index]);
+                        }
+                        return result;
+                    }
                     if (!isRankRecord(receiver)) {
                         throw new RankError('field assignment expects a record target');
                     }

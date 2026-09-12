@@ -3293,6 +3293,12 @@ Family = Family + Data .Parch + 1
 Data .FamilySize = Family
 ```
 
+The receiver must be a rank-1 table. A scalar value is repeated for every row;
+a column value must have the same one-dimensional shape as the table. The right
+side is read completely before any row changes, so replacing a column from its
+own projection is well-defined. Rows are open objects, so assignment may add a
+new field. Compound assignment requires the field to exist in every row.
+
 ## Missing values
 
 `pad` is used instead of a table-specific `fill`:

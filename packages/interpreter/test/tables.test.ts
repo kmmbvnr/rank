@@ -171,6 +171,42 @@ describe('Rank tables', () => {
         ].join('\n'))).toThrowError('missing object key: missing');
     });
 
+    it('adds and replaces table columns', () => {
+        expect(run([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1},{\\"x\\":2}]" json',
+            'Rows .y = array 5 6',
+            'Rows .x += 10',
+            'Rows (array .x .y)',
+        ].join('\n'))).toBe('11 5 12 6');
+    });
+
+    it('materializes a replacement before changing its source column', () => {
+        expect(run([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1},{}]" json',
+            'Rows .x = Rows .x pad 0',
+            'Rows .x',
+        ].join('\n'))).toBe('1 0');
+    });
+
+    it('validates a whole column assignment before mutating rows', () => {
+        expect(() => run([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1},2]" json',
+            'Rows .y = 4',
+        ].join('\n'))).toThrowError('table assignment expects object rows');
+        expect(() => run([
+            'use json',
+            'use tables',
+            'Rows = "[{\\"x\\":1},{\\"x\\":2}]" json',
+            'Rows .y = array 4',
+        ].join('\n'))).toThrowError('assignment shape mismatch: 2 and 1');
+    });
+
     it('checks rows and missing fields only when demanded', () => {
         expect(run([
             'use json',
@@ -206,5 +242,10 @@ describe('Rank tables', () => {
             'Rows = "[{\\"x\\":1}]" json',
             'Rows (array .x)',
         ].join('\n'))).toThrowError('table column selection requires: use tables');
+        expect(() => run([
+            'use json',
+            'Rows = "[{\\"x\\":1}]" json',
+            'Rows .y = 2',
+        ].join('\n'))).toThrowError('table column assignment requires: use tables');
     });
 });
