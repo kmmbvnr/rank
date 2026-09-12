@@ -271,11 +271,15 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
  * tab in a line is sent on its own: readline treats a burst that contains one
  * as plain text, and only a keypress of its own completes.
  */
-function complete(lines) {
+function complete(lines, completion = '') {
     const steps = [];
     for (const line of lines) {
         for (const [index, piece] of line.split('\t').entries()) {
-            if (index > 0) steps.push('send "\\t"', 'sleep 0.3');
+            if (index > 0) {
+                steps.push('send "\\t"');
+                steps.push(completion
+                    ? `expect ${JSON.stringify(completion)}` : 'sleep 0.3');
+            }
             if (piece !== '') steps.push(`send ${JSON.stringify(piece)}`, 'sleep 0.2');
         }
         steps.push('send "\\r"', 'expect "rank> "');
@@ -309,7 +313,7 @@ test('completion offers the types a declared input accepts', () => {
 test('completion finishes a two-word operator whole', () => {
     // The operand comes after: a line ending in an operator folds instead of
     // running, which is the prompt behaving correctly.
-    const session = complete(['use numbers', 'N = 3', 'Mask = N mul\t2']);
+    const session = complete(['use numbers', 'N = 3', 'Mask = N mul\t2'], 'multiple by');
     // The prompt redraws with escape codes between its parts, so match the
     // completed text rather than the whole line.
     assert.match(session, /N multiple by 2/);
