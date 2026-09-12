@@ -1,5 +1,5 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankArray, isRankBytes, isRankLabel, isRankQueue, isRankSequence, type RankArray, type RankValue } from '../value.js';
+import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, type RankArray, type RankValue } from '../value.js';
 import { mapSequence } from '../sequence.js';
 import { roundValue } from './numbers.js';
 import { native } from './shared.js';
@@ -9,6 +9,28 @@ const hexadecimalBytes = Array.from({ length: 256 }, (_, byte) =>
     byte.toString(16).padStart(2, '0'));
 
 export const textModule: RuntimeModule = {
+    words: () => native('words', 1, ([value]) => {
+        if (typeof value !== 'string') throw new RankError('words expects text', 'TypeError');
+        return textArray(tokenize(value));
+    }),
+    vocab: () => native('vocab', 2, ([value, limit]) => {
+        if (!isRankArray(value) || value.shape.length !== 1) {
+            throw new RankError('vocab expects a rank-1 text array', 'DimensionMismatch');
+        }
+        if (typeof limit !== 'bigint' || limit < 0n) {
+            throw new RankError('vocab limit must be a nonnegative integer', 'DomainError');
+        }
+        const frequency = new Map<string, number>();
+        for (const item of value.items) {
+            if (typeof item !== 'string') throw new RankError('vocab expects text elements', 'TypeError');
+            for (const word of tokenize(item)) frequency.set(word, (frequency.get(word) ?? 0) + 1);
+        }
+        const items = [...frequency.keys()]
+            .sort((left, right) => frequency.get(right)! - frequency.get(left)!
+                || compareCodepoints(left, right))
+            .slice(0, Number(limit));
+        return textArray(items);
+    }),
     join: () => native('join', 2, ([value, separator]) => {
         if (typeof separator !== 'string') throw new RankError('join separator must be text', 'TypeError');
         let items: Iterable<RankValue>;
@@ -19,7 +41,7 @@ export const textModule: RuntimeModule = {
             items = value.plan.iterate();
         } else throw new RankError('join expects a rank-1 collection; join matrix rows separately', 'TypeError');
         return Array.from(items, item => {
-            if (typeof item === 'object' && !isRankLabel(item)) {
+            if (typeof item === 'object' && !isRankLabel(item) && !isRankDate(item)) {
                 throw new RankError('join expects scalar elements; join nested rows separately', 'TypeError');
             }
             return formatValue(item);
@@ -64,7 +86,7 @@ export const textModule: RuntimeModule = {
     }),
     text: () => native('text', 1, arguments_ => {
         const value = arguments_[0];
-        if (typeof value === 'object' && !isRankLabel(value)) {
+        if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {
             throw new RankError('text expects a scalar value');
         }
         return formatValue(value);
@@ -133,6 +155,20 @@ export function formattedText(value: RankValue, format: string): RankValue {
 
 function textArray(items: string[]): RankArray {
     return { kind: 'array', items, shape: [items.length] };
+}
+
+function tokenize(value: string): string[] {
+    return value.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+}
+
+function compareCodepoints(left: string, right: string): number {
+    const a = [...left];
+    const b = [...right];
+    for (let index = 0; index < Math.min(a.length, b.length); index += 1) {
+        const difference = a[index].codePointAt(0)! - b[index].codePointAt(0)!;
+        if (difference !== 0) return difference;
+    }
+    return a.length - b.length;
 }
 
 function splitSeparators(value: RankValue): string[] {

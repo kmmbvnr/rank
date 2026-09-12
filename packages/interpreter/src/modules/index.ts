@@ -1,7 +1,9 @@
 import { algoModule } from './algo.js';
 import { bitsModule } from './bits.js';
 import { cryptoModule } from './crypto.js';
+import { datesModule } from './dates.js';
 import { graphModule } from './graph.js';
+import { imagesModule } from './images.js';
 import { ioModule } from './io.js';
 import { jsonModule } from './json.js';
 import { linalgModule } from './linalg.js';
@@ -18,7 +20,9 @@ export const standardModules: Record<string, RuntimeModule> = {
     bits: bitsModule,
     cli: {},
     crypto: cryptoModule,
+    dates: datesModule,
     graph: graphModule,
+    images: imagesModule,
     io: ioModule,
     json: jsonModule,
     linalg: linalgModule,

@@ -4,22 +4,52 @@ rem Build TF-IDF features for a fixed vocabulary
 rem and fit logistic regression in Rank.
 
 use "001_titanic" as Classifier
+use algo
+use cli
 use numbers
 use ranges
 use sequences
+use tables
 use text
 
+argument TrainPath path = "demos/kaggle/data/disaster-tweets/train.csv"
+argument TestPath path = "demos/kaggle/data/disaster-tweets/test.csv"
+argument OutputPath path = "demos/kaggle/submissions/disaster-tweets.csv"
 
-rem Count exact space-separated vocabulary terms.
+Train = TrainPath csv
+Test = TestPath csv
+Submission = Train Test 128 0.1 500 solve_table
+Submission OutputPath csv
+
+
+rem Learn vocabulary only from training text.
+fun solve_table Train Test Limit Rate Steps
+  TrainTexts = Train .text pad ""
+  TestTexts = Test .text pad ""
+  Vocab = TrainTexts Limit vocab
+  Pred = TrainTexts (Train .target) TestTexts Vocab Rate Steps solve
+  Test .target = Pred
+  return Test (array .id .target)
+end
+
+
+rem Count normalized Unicode words from the training vocabulary.
 fun term_counts Texts Vocab
   Rows = Texts len
   Columns = Vocab len
   Counts = array shape Rows Columns pad 0.0
+  Positions = new index
+  for Term Column in Vocab
+    if not (Term in Positions)
+      Positions Term = new queue
+    end
+    (Positions Term) push Column
+  end
   for Text Row in Texts
-    Words = Text " " split
+    Words = Text words
     for Word in Words
-      for Term Column in Vocab
-        if Word equal Term
+      if Word in Positions
+        for Column in (Positions Word)
           Counts Row Column += 1.0
         end
       end

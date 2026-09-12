@@ -20,8 +20,7 @@ use stats
 
 Data = "train.csv" csv
 
-Keys = .Sex .Pclass
-Groups = Data Keys group
+Groups = Data group by .Sex .Pclass
 Rate = Groups .Survived mean
 
 Rate print
@@ -77,7 +76,7 @@ X = Train Features
 Xtest = Test Features
 ```
 
-`Features` is just a sequence of labels.
+`Features` is an ordinary array of labels.
 
 The [runnable numeric baseline](../../demos/kaggle/002_prices.ra) currently
 uses `OverallQual` and `GrLivArea`, fills missing values from the training
@@ -109,7 +108,7 @@ Get all pixel columns except the target:
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 
 X = Train Features
 Xtest = Test Features
@@ -120,46 +119,59 @@ Xtest = Xtest / 255
 
 A numeric table can participate directly in array arithmetic.
 
+The [runnable Digit Recognizer baseline](../../demos/kaggle/004_digitsreq.ra)
+reads train/test CSV files, gets pixel columns from `Train labels` in header
+order, fits class centroids, and writes `ImageId,Label`. The train-derived class
+set and column selection are covered by adjacent tests and a CLI file test.
+Default local paths are `data/digits/{train,test}.csv` and
+`submissions/digits.csv` under `demos/kaggle/`.
+
 ## Disaster Tweets
 
 The workflow suggested reusable first-class preprocessing values:
 
 ```rank
-Texts = Train .text
-Vocab = Texts vocab
+Texts = Train .text pad ""
+Vocab = Texts 128 vocab
 
-X = Train .text Vocab tfidf
-Xtest = Test .text Vocab tfidf
+Model = Texts Vocab tfidf_fit
+X = Texts Model tfidf_transform
+Xtest = (Test .text pad "") Model tfidf_transform
 ```
 
-Whether `vocab` and `tfidf` belong as library words remains open.
+`words` and `vocab` are text-library words. The TF-IDF fitting and transform
+remain [Rank functions](../../demos/kaggle/005_distweets.ra): the vocabulary
+and inverse document frequencies come only from training text. `term_counts`
+uses an `index` from each word to its vocabulary column positions, so counting
+does not scan the full vocabulary for every word. The runnable
+baseline fits Rank logistic regression and writes `id,target`. Its default
+local paths are `data/disaster-tweets/{train,test}.csv` and
+`submissions/disaster-tweets.csv` under `demos/kaggle/`.
 
 ## Store Sales
 
 Grouping and join:
 
 ```rank
-Keys =
-  array .store_nbr .family .weekday
-
-Groups = Train Keys group
+Groups = Train group by .store_nbr .family .weekday
 Means = Groups .sales mean
 
-Forecast = Test Keys Means join
+Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
 
 The [runnable Store Sales baseline](../../demos/kaggle/006_storesales.ra)
-implements the same grouping with an ordinary `index`: `(store, family,
-weekday)` is a three-part key expanded by `unpack`. An unseen test key falls
-back to the global training mean. The ISO-date weekday calculation and grouped
-forecast both have focused tests.
+uses these table operations. An unseen test key falls back to the global
+training mean through `pad`. `use dates` computes Monday-first weekdays from
+the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing
 
 Date operations lift over columns:
 
 ```rank
-Date = Train .datetime
+use dates
+
+Date = Train .datetime datetime
 
 Train .hour = Date hour
 Train .weekday = Date weekday
@@ -175,8 +187,8 @@ Pred Negative = 0
 ```
 
 The [runnable Bike Sharing baseline](../../demos/kaggle/007_bakishare.ra)
-parses the fixed Kaggle datetime format in Rank, combines four calendar and
-eight numeric features, reuses the tested linear regression, clamps negative
+parses the fixed Kaggle datetime format with `use dates`, combines four calendar
+and eight numeric features, reuses the tested linear regression, clamps negative
 predictions, and writes the required two-column submission.
 
 ## NYC Taxi
@@ -197,22 +209,26 @@ Train .distance =
 The [runnable NYC Taxi baseline](../../demos/kaggle/008_nytaxi.ra) builds the
 five-feature matrix directly, computes a documented planar distance in Rank,
 reuses the log-linear model, and writes `id,trip_duration`. Tests cover the
-distance, datetime extraction and complete prediction path.
+distance, datetime extraction through `use dates`, and complete prediction path.
 
 ## Dogs vs Cats
 
 Images should become ordinary tensor data:
 
 ```rank
-X = Train .image
-Xtest = Test .image
-
-X = X 128 128 resize
-Xtest = Xtest 128 128 resize
-
-X = X / 255
-Xtest = Xtest / 255
+Train = "demos/kaggle/data/dogs-vs-cats/train" images
+Test = "demos/kaggle/data/dogs-vs-cats/test1" images
+Pixels = Train 8 8 resize
+X = Pixels (array (Train len) 192) reshape
 ```
+
+The [runnable Dogs vs Cats baseline](../../demos/kaggle/009_dogvscat.ra)
+derives cat/dog labels from training filenames, resizes JPEG/PNG files to
+8×8 RGB, fits Rank logistic regression, and writes `id,label` probabilities.
+The small image size keeps a full local competition run practical; this is a
+simple pixel baseline, not a convolutional model. The CLI image test creates
+real JPEG/PNG files and checks image order, decoding and the submission path.
+Extract Kaggle's local archives into the two ignored directories shown above.
 
 ## Connect X
 

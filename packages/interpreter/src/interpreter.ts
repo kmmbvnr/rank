@@ -49,6 +49,8 @@ import {
     isRunStatement,
     isReturnStatement,
     isKeyedSortExpression,
+    isKeyedGroupExpression,
+    isKeyedJoinExpression,
     isStdinExpression,
     isStringLiteral,
     isTestStatement,
@@ -96,7 +98,7 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
-import { projectField, projectFields } from './modules/tables.js';
+import { groupTable, joinTables, projectField, projectFields } from './modules/tables.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -117,11 +119,14 @@ import {
     isNativeFunction,
     isRankArray,
     isRankCounter,
+    isRankDate,
     isRankDsu,
     isRankFunctionalGraph,
     isRankErrorValue,
     isRankFenwick,
     isRankFile,
+    isRankGroupedColumn,
+    isRankGroupedTable,
     isRankGraph,
     isRankIndex,
     isRankLabel,
@@ -1653,6 +1658,28 @@ export class Interpreter {
                     keys.push([value]);
                 }
                 return sortByKeys(items, keys, operation, indices);
+            };
+        }
+        if (isKeyedGroupExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', 'group by');
+                const source = yield* resume(interpreter.evaluateTask(expression.source));
+                return groupTable(source, expression.fields.map(field => field.name));
+            };
+        }
+        if (isKeyedJoinExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', expression.operator);
+                const left = yield* resume(interpreter.evaluateTask(expression.left));
+                const right = yield* resume(interpreter.evaluateTask(expression.right));
+                const mode = expression.operator.startsWith('left') ? 'leftjoin' : 'innerjoin';
+                const leftFields = expression.pairs.length > 0
+                    ? expression.pairs.map(pair => pair.left.name)
+                    : expression.fields.map(field => field.name);
+                const rightFields = expression.pairs.length > 0
+                    ? expression.pairs.map(pair => pair.right.name)
+                    : leftFields;
+                return joinTables(left, right, leftFields, mode, rightFields);
             };
         }
         if (isNameExpression(expression)) {
@@ -4318,6 +4345,9 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+    if (values.length === 2 && isRankGroupedTable(values[0]) && isRankLabel(values[1])) {
+        return { kind: 'grouped-column', table: values[0], field: values[1].name };
+    }
     // Reading one cell out of an array is the most common application in the
     // language. The branch that serves it sits seventeen type guards down, and
     // every guard reloads `kind` from a receiver whose shape varies, so the
@@ -4521,6 +4551,7 @@ function seedableRandom(source?: () => number): SeedableRandom {
 }
 
 function canApplySelectors(values: RankValue[]): boolean {
+    if (values.length === 2 && isRankGroupedTable(values[0]) && isRankLabel(values[1])) return true;
     if (values.length < 2) return false;
     if (values.length === 2 && isRankGraph(values[0])) return true;
     if (values.length === 2 && typeof values[0] === 'string'
@@ -4850,6 +4881,7 @@ function memoScalarKey(value: RankValue): string {
     if (typeof value === 'number' && Object.is(value, -0)) return 'number:-0';
     if (typeof value !== 'object') return `${typeof value}:${value}`;
     if (isRankLabel(value)) return `label:${value.name}`;
+    if (isRankDate(value)) return `${value.kind}:${formatValue(value)}`;
     throw new RankError('memo arguments and results must be scalar values');
 }
 
@@ -5689,6 +5721,9 @@ function equalNestedValues(
     if (left.kind === 'label' && right.kind === 'label') {
         return left.name === right.name;
     }
+    if (isRankDate(left) && isRankDate(right)) {
+        return left.kind === right.kind && formatValue(left) === formatValue(right);
+    }
     if (isRankArray(left) && isRankArray(right)) {
         if (!sameShape(left.shape, right.shape)) return false;
         if (alreadyCompared(left, right, compared)) return true;
@@ -5740,6 +5775,8 @@ const RUNTIME_TYPE_NAMES = new Set([
     'real',
     'boolean',
     'text',
+    'date',
+    'datetime',
     'array',
     'bytes',
     'symbol',
@@ -5802,6 +5839,10 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         } else if (isRankIndex(item) || isRankSet(item)
             || isRankObject(item) || isRankRecord(item)) {
             pending.push(item.entries.values());
+        } else if (isRankGroupedTable(item)) {
+            pending.push(item.groups.flatMap(group => group.rows).values());
+        } else if (isRankGroupedColumn(item)) {
+            pending.push([item.table].values());
         } else if (isRankCounter(item)) {
             pending.push(Array.from(item.entries.values(), entry => entry.value).values());
         } else if (isRankErrorValue(item)) {

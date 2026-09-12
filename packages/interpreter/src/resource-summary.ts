@@ -7,7 +7,8 @@ const summaries = new WeakMap<object, ResourceSummary>();
 
 export function isKnownFileFree(value: RankValue | undefined): boolean {
     if (value === undefined || typeof value !== 'object') return true;
-    if (value.kind === 'bytes' || value.kind === 'label') return true;
+    if (value.kind === 'bytes' || value.kind === 'label'
+        || value.kind === 'date' || value.kind === 'datetime') return true;
     return summaries.get(value)?.fileFree === true;
 }
 

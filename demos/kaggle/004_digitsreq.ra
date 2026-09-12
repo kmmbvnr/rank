@@ -3,10 +3,36 @@ rem https://www.kaggle.com/competitions/digit-recognizer
 rem Classify normalized pixels by nearest
 rem training-class centroid.
 
+use cli
 use numbers
 use ranges
 use sequences
 use stats
+use tables
+
+argument TrainPath path = "demos/kaggle/data/digits/train.csv"
+argument TestPath path = "demos/kaggle/data/digits/test.csv"
+argument OutputPath path = "demos/kaggle/submissions/digits.csv"
+
+Train = TrainPath csv
+Test = TestPath csv
+Submission = Train Test solve_table
+Submission OutputPath csv
+
+
+rem Use CSV headers to retain pixel order in both files.
+fun solve_table Train Test
+  Labels = Train labels
+  Features = (Labels (Labels not equal .label)) array
+  X = Train Features
+  Xtest = Test Features
+  Y = Train .label
+  Classes = Y unique
+  Pred = X Y Xtest Classes solve
+  Test .ImageId = (1 to Pred len) array
+  Test .Label = Pred
+  return Test (array .ImageId .Label)
+end
 
 
 fun centroids X Y Classes

@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-11**
+**Current language snapshot — 2026-09-12**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -415,11 +415,14 @@ is
 `at least` means `>=`; `at most` means `<=`.
 
 Ordering comparisons accept two scalars from one comparable family: numeric,
-text, boolean or symbol. Integers and reals share the numeric family. Text and
-symbols use a case-sensitive lexicographic order by Unicode code point; a
-shared prefix sorts before its longer continuation. Booleans order `false`
-before `true`. The same order is used by `sort`, heaps and ordered multisets.
-Different families and non-scalar values raise `.TypeError`.
+text, boolean, symbol, date or datetime. Integers and reals share the numeric
+family. Text and symbols use a case-sensitive lexicographic order by Unicode
+code point. A shared prefix sorts before its longer continuation. Booleans
+order `false` before `true`. The same order is used by `sort`, heaps and ordered
+multisets.
+Different families and non-scalar values raise `.TypeError`. Dates and
+datetimes order chronologically within their own type; they do not implicitly
+compare with each other or with text.
 
 Comparisons remain scalar operations and therefore apply elementwise to arrays
 and sequences, using the ordinary broadcasting rules:
@@ -458,9 +461,10 @@ conversion is intended.
 
 ## Scalar types
 
-Rank currently has five scalar value types: `integer`, `real`, `boolean`, `text`
-and `symbol`. Integers have arbitrary precision. `real` is currently an IEEE 754
-binary64 value and decimal literals contain a decimal point:
+Rank currently has seven scalar value types: `integer`, `real`, `boolean`, `text`,
+`symbol`, `date` and `datetime`. Integers have arbitrary precision. `real` is
+currently an IEEE 754 binary64 value, and decimal literals contain a decimal
+point:
 
 ```rank
 Count = 2
@@ -3408,33 +3412,61 @@ unambiguous mechanism.
 ## Grouping
 
 ```rank
-Keys =
-  .Sex .Pclass
-
-Groups = Data Keys group
+Groups = Data group by .Sex .Pclass
 Rate = Groups .Survived mean
 ```
 
-`group` returns a grouped view suitable for reductions.
+`group by` takes one or more field labels separated by spaces. A single key is
+`Data group by .Sex`. It returns a grouped view, not nested arrays of rows.
+`Groups .Survived mean`, `median`, `std` and `sum` return ordinary rank-1 tables:
+one row per key, with the key fields followed by the aggregate field. Groups
+appear in first-seen order, and the source rows are captured when `group by`
+runs. Missing key cells form one group per key combination. The statistical
+reductions skip missing values; when a group has none, its aggregate cell is
+missing and may be filled with `pad`. `sum` retains its integer-zero result for
+an empty group. Keys must be scalar and cannot be NaN; repeated key fields are
+errors.
 
 ## Join
 
-Relational joins are fundamental table operations:
+Use `leftjoin by` when every left row must remain, or `innerjoin by` for only
+matched rows. The same field names on both sides are listed without `array`:
 
 ```rank
-Forecast = Test Keys Means join
+Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
 
-Exact join variants and collision rules remain an open design detail.
+When corresponding fields have different names, list explicit pairs:
+
+```rank
+Matched = Orders Customers innerjoin on .o_custkey = .c_custkey
+```
+
+Several pairs may follow `on` in left-to-right order. Keys use Rank's value
+equality, so integer `1` and real `1.0` match but text `"1"` does not. Missing
+join keys never match. Repeated right keys multiply matching rows. Array-backed
+joins preserve left row order and, within each left row, right row order. The
+right key columns are omitted; a shared non-key column name raises `.TypeError`
+instead of being renamed automatically. Unmatched right fields are missing and
+can be projected with `pad`. A nonexistent key field raises `.Missing`.
+
+These operations currently work on rank-1 arrays of object rows. SQLite-backed
+table sources and SQL pushdown are future work; a database source will need an
+explicit ordering contract where row order matters.
 
 ## Labels
 
-The table schema itself is accessible as labels:
+With `use tables`, `Table labels` returns a rank-1 array of column labels.
+CSV header order is retained even when a column is entirely empty or the CSV
+has no data rows. For a table of ordinary objects without a CSV schema, fields
+appear in first-seen order across rows. An empty schema-less table returns an
+empty array; a non-object row raises `.TypeError`, and a non-rank-1 value raises
+`.DimensionMismatch`.
 
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 ```
 
 ## Text columns
@@ -3454,13 +3486,17 @@ Rank does not require a pandas-like `.str` namespace.
 
 ## Date columns
 
-Date operations also lift naturally:
+CSV date columns remain text until explicitly parsed. Date operations then
+lift over the resulting column:
 
 ```rank
-Data .hour = Data .datetime hour
-Data .weekday = Data .datetime weekday
-Data .month = Data .datetime month
-Data .year = Data .datetime year
+use dates
+
+Times = Data .datetime datetime
+Data .hour = Times hour
+Data .weekday = Times weekday
+Data .month = Times month
+Data .year = Times year
 ```
 
 ---
@@ -4488,10 +4524,36 @@ Includes concepts such as:
 
 ```rank
 csv
-group
-join
 labels
+group by
+leftjoin by
+innerjoin by
+leftjoin on
+innerjoin on
 ```
+
+`labels` returns the ordered column labels of a rank-1 table. CSV headers are
+retained even for empty columns and zero data rows. For object arrays without
+CSV headers, it unions keys in first-appearance order. `group by` builds a
+grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
+over a grouped column produce a flat table with the keys and aggregate.
+`leftjoin` and `innerjoin` match shared fields after `by`, or differently named
+field pairs after `on`. These are table operations distinct from text `join`.
+
+## Images
+
+With `use images`, `Directory images` returns a rank-1 table of regular JPEG
+and PNG files, sorted by filename in ascending code point order. Each row has
+`.name` (the filename) and `.path` (the full path); other files are ignored.
+`Images Height Width resize` decodes every image in that order, applies EXIF
+orientation, stretches it to the requested positive integer height and width,
+converts it to 8-bit sRGB with three channels, and returns a lazy rank-4 RGB
+tensor of shape `[image count, height, width, 3]`. Pixel values are integers
+from 0 to 255. Empty directories produce an empty tensor with that shape.
+This module needs a host with image directory and decoding support; the CLI
+uses `sharp` in a synchronous child process so Rank evaluation stays
+synchronous. Invalid dimensions raise `.DomainError`, and malformed image rows
+raise `.TypeError`.
 
 ## Stats
 
@@ -4547,6 +4609,8 @@ Examples:
 
 ```rank
 split
+words
+vocab
 reverse
 codepoint
 character
@@ -4574,6 +4638,14 @@ Parts = "2x3x4" "x" split
 Fields = Text (array "," ";") split
 Characters = "A😀Б" "" split
 ```
+
+`Text words` returns lowercase Unicode letter-and-number runs as a rank-1 text
+array; punctuation and whitespace separate words. `Texts Limit vocab` accepts
+a rank-1 text array and a nonnegative integer limit. It counts all words,
+orders them by descending frequency and then ascending Unicode code point
+order, and returns at most `Limit` terms. An empty input or zero limit returns
+an empty array. These operations require `use text`; wrong element types raise
+`.TypeError`, and an invalid limit raises `.DomainError`.
 
 `parse` matches a complete text value against a text pattern and returns the
 captured values as a rank-1 array. It is normally combined with `unpack`:
@@ -4888,13 +4960,48 @@ picker, virtual file system or another implementation with the same semantics.
 
 ## Dates
 
-Examples:
+`use dates` parses calendar dates and local date-times explicitly:
 
 ```rank
-hour
-weekday
-month
-year
+use dates
+
+Day = "2024-02-29" date
+Moment = "2024-02-29 13:05:09" datetime
+Day weekday
+Moment hour
+```
+
+`date` accepts exactly `YYYY-MM-DD`. `datetime` accepts exactly
+`YYYY-MM-DD HH:MM:SS` or `YYYY-MM-DDTHH:MM:SS`. Both use the proleptic
+Gregorian calendar and years `0001` through `9999`. `datetime` is a local
+wall-clock value without a time zone or UTC offset. Invalid syntax, dates and
+times raise `.InvalidDate`; a non-text input raises `.TypeError`.
+
+`date` and `datetime` are distinct immutable scalar types. They compare for
+equality by type and value and order chronologically within their own type.
+Ordering one against the other raises `.TypeError`. They are valid set and
+index keys, and `text` and CSV output render their canonical forms using a
+space between date and time. Parsing a CSV column does not change the original
+text column unless it is explicitly assigned back.
+
+`year`, `month`, `day` and `weekday` accept either type. `hour`, `minute` and
+`second` require `datetime`. Each returns an `integer`; `weekday` numbers
+Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
+sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
+A missing projected table cell remains `.Missing` and can be handled with
+`pad` before parsing.
+
+```rank
+Days = (Train .date pad "2024-01-01") date
+```
+
+```rank
+Days = Train .date date
+Train .weekday = Days weekday
+
+Times = Train .datetime datetime
+Train .hour = Times hour
+Train .month = Times month
 ```
 
 ## Algorithm profile
@@ -6036,8 +6143,7 @@ use stats
 
 Data = "train.csv" csv
 
-Keys = .Sex .Pclass
-Groups = Data Keys group
+Groups = Data group by .Sex .Pclass
 Rate = Groups .Survived mean
 
 Rate print
@@ -6057,11 +6163,24 @@ Test .Female =
   Test .Sex equal "female"
 
 Features =
-  .Female .Pclass .Age .Fare
+  array .Female .Pclass .Age .Fare
 
 X = Train Features
 Xtest = Test Features
 ```
+
+The [runnable Titanic baseline](../demos/kaggle/001_titanic.ra) implements
+the preprocessing, logistic regression and submission output in Rank. Its
+three positional paths default to ignored local directories:
+
+```text
+demos/kaggle/data/titanic/train.csv
+demos/kaggle/data/titanic/test.csv
+demos/kaggle/submissions/titanic.csv
+```
+
+The neighboring test uses small in-memory rows, so the repository test suite
+does not require a Kaggle account or downloaded competition data.
 
 ## House Prices
 
@@ -6072,7 +6191,7 @@ rem Kaggle: House Prices
 rem Predict SalePrice.
 
 Features =
-  .OverallQual .GrLivArea
+  array .OverallQual .GrLivArea
   .Neighborhood .HouseStyle
   .KitchenQual .ExterQual
 
@@ -6080,7 +6199,12 @@ X = Train Features
 Xtest = Test Features
 ```
 
-`Features` is just a sequence of labels.
+`Features` is an ordinary array of labels.
+
+The [runnable numeric baseline](../demos/kaggle/002_prices.ra) currently
+uses `OverallQual` and `GrLivArea`, fills missing values from the training
+medians, fits log price with linear regression written in Rank, and writes the
+`Id,SalePrice` submission. The neighboring tests do not require Kaggle files.
 
 ## Spaceship Titanic
 
@@ -6095,6 +6219,11 @@ Train .Number = Parts 1
 Train .Side = Parts 2
 ```
 
+The [runnable numeric baseline](../demos/kaggle/003_spaceship.ra) fills the
+five spending columns and age from training medians, derives total spending,
+fits the Rank logistic regression, and writes boolean predictions. Its tests
+use in-memory rows and cover missing test values.
+
 ## Digit Recognizer
 
 Get all pixel columns except the target:
@@ -6102,7 +6231,7 @@ Get all pixel columns except the target:
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 
 X = Train Features
 Xtest = Test Features
@@ -6113,40 +6242,59 @@ Xtest = Xtest / 255
 
 A numeric table can participate directly in array arithmetic.
 
+The [runnable Digit Recognizer baseline](../demos/kaggle/004_digitsreq.ra)
+reads train/test CSV files, gets pixel columns from `Train labels` in header
+order, fits class centroids, and writes `ImageId,Label`. The train-derived class
+set and column selection are covered by adjacent tests and a CLI file test.
+Default local paths are `data/digits/{train,test}.csv` and
+`submissions/digits.csv` under `demos/kaggle/`.
+
 ## Disaster Tweets
 
 The workflow suggested reusable first-class preprocessing values:
 
 ```rank
-Texts = Train .text
-Vocab = Texts vocab
+Texts = Train .text pad ""
+Vocab = Texts 128 vocab
 
-X = Train .text Vocab tfidf
-Xtest = Test .text Vocab tfidf
+Model = Texts Vocab tfidf_fit
+X = Texts Model tfidf_transform
+Xtest = (Test .text pad "") Model tfidf_transform
 ```
 
-Whether `vocab` and `tfidf` belong as library words remains open.
+`words` and `vocab` are text-library words. The TF-IDF fitting and transform
+remain [Rank functions](../demos/kaggle/005_distweets.ra): the vocabulary
+and inverse document frequencies come only from training text. `term_counts`
+uses an `index` from each word to its vocabulary column positions, so counting
+does not scan the full vocabulary for every word. The runnable
+baseline fits Rank logistic regression and writes `id,target`. Its default
+local paths are `data/disaster-tweets/{train,test}.csv` and
+`submissions/disaster-tweets.csv` under `demos/kaggle/`.
 
 ## Store Sales
 
 Grouping and join:
 
 ```rank
-Keys =
-  .store_nbr .family .weekday
-
-Groups = Train Keys group
+Groups = Train group by .store_nbr .family .weekday
 Means = Groups .sales mean
 
-Forecast = Test Keys Means join
+Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```
+
+The [runnable Store Sales baseline](../demos/kaggle/006_storesales.ra)
+uses these table operations. An unseen test key falls back to the global
+training mean through `pad`. `use dates` computes Monday-first weekdays from
+the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing
 
 Date operations lift over columns:
 
 ```rank
-Date = Train .datetime
+use dates
+
+Date = Train .datetime datetime
 
 Train .hour = Date hour
 Train .weekday = Date weekday
@@ -6160,6 +6308,11 @@ Clamping without elementwise `max`:
 Negative = Pred less 0
 Pred Negative = 0
 ```
+
+The [runnable Bike Sharing baseline](../demos/kaggle/007_bakishare.ra)
+parses the fixed Kaggle datetime format with `use dates`, combines four calendar
+and eight numeric features, reuses the tested linear regression, clamps negative
+predictions, and writes the required two-column submission.
 
 ## NYC Taxi
 
@@ -6176,20 +6329,29 @@ Train .distance =
   Geo distance rank 1
 ```
 
+The [runnable NYC Taxi baseline](../demos/kaggle/008_nytaxi.ra) builds the
+five-feature matrix directly, computes a documented planar distance in Rank,
+reuses the log-linear model, and writes `id,trip_duration`. Tests cover the
+distance, datetime extraction through `use dates`, and complete prediction path.
+
 ## Dogs vs Cats
 
 Images should become ordinary tensor data:
 
 ```rank
-X = Train .image
-Xtest = Test .image
-
-X = X 128 128 resize
-Xtest = Xtest 128 128 resize
-
-X = X / 255
-Xtest = Xtest / 255
+Train = "demos/kaggle/data/dogs-vs-cats/train" images
+Test = "demos/kaggle/data/dogs-vs-cats/test1" images
+Pixels = Train 8 8 resize
+X = Pixels (array (Train len) 192) reshape
 ```
+
+The [runnable Dogs vs Cats baseline](../demos/kaggle/009_dogvscat.ra)
+derives cat/dog labels from training filenames, resizes JPEG/PNG files to
+8×8 RGB, fits Rank logistic regression, and writes `id,label` probabilities.
+The small image size keeps a full local competition run practical; this is a
+simple pixel baseline, not a convolutional model. The CLI image test creates
+real JPEG/PNG files and checks image order, decoding and the submission path.
+Extract Kaggle's local archives into the two ignored directories shown above.
 
 ## Connect X
 
@@ -6202,6 +6364,10 @@ Next r c = Player
 
 Game-specific primitives are unnecessary.
 
+The [runnable example](../demos/kaggle/010_connectx.ra) checks immediate
+wins, blocks immediate losses and otherwise prefers a legal center column.
+Its neighboring test file also verifies full columns, full boards and that
+searching candidate moves does not mutate the input board.
 ---
 
 # TPC-H examples
@@ -6214,8 +6380,10 @@ It complements the other problem suites:
 - Kaggle tests data processing and ML;
 - TPC-H tests relational analytics.
 
-For now the wiki contains only Q6. Later queries will be added as `group`,
-`join`, sorting and related table primitives become more precise.
+For now the wiki contains only Q6. `group by`, `leftjoin` and `innerjoin` now
+work on arrays of rows; further queries can exercise them before a SQLite
+table source is added. SQL pushdown and ordering for database sources are
+still open.
 
 ## Q6. Forecasting Revenue Change
 
@@ -6229,7 +6397,7 @@ use dates
 
 L = "lineitem.csv" csv
 filter
-.l_shipdate year equal 1994
+.l_shipdate date year equal 1994
 .l_discount at least 0.05
 .l_discount at most 0.07
 .l_quantity less 24

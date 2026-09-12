@@ -1,5 +1,18 @@
 use testing
 
+test "selects pixels by CSV schema and writes ordered submission columns"
+  use json
+  use tables
+  use "004_digitsreq"
+  Train = "[{\"label\":0,\"pixel0\":0,\"pixel1\":0},{\"label\":1,\"pixel0\":255,\"pixel1\":255}]" json
+  Test = "[{\"pixel0\":0,\"pixel1\":0},{\"pixel0\":250,\"pixel1\":250}]" json
+  Out = Train Test solve_table
+  Out equal array shape 2 2
+    1 0
+    2 1
+  end
+end
+
 test "classifies pixels by the nearest class centroid"
   use "004_digitsreq"
   X = array shape 4 2

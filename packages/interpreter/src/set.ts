@@ -1,6 +1,8 @@
 import { RankError } from './errors.js';
 import {
+    formatDate,
     isRankArray,
+    isRankDate,
     isRankLabel,
     isRankRecord,
     type RankArray,
@@ -21,6 +23,7 @@ function nestedValueKey(value: RankValue, active: Set<object>): string {
     if (typeof value === 'boolean') return `boolean:${value}`;
     if (typeof value === 'string') return `text:${JSON.stringify(value)}`;
     if (isRankLabel(value)) return `label:${value.name}`;
+    if (isRankDate(value)) return `${value.kind}:${formatDate(value)}`;
     if (isRankArray(value)) return arrayKey(value, active);
     if (isRankRecord(value)) return recordKey(value, active);
     throw new RankError('set values must be scalars, arrays or records');

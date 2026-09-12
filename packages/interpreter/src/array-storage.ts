@@ -86,6 +86,7 @@ const ownedStorage = new WeakMap<RankArray, OwnedStorage>();
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
+    columnNames?: readonly string[],
 ): RankArray {
     const state: OwnedStorage = {
         items, shape: [...shape], revision: writeRevision, birth: ++creationSerial, scalarOnly: scalarOnly || items.every(item => typeof item !== 'object'),
@@ -130,7 +131,8 @@ export function ownedArray(
             return success;
         },
     });
-    const value: RankArray = new Proxy({ kind: 'array' as const, items: facade, shape: Object.freeze([...shape]) }, {
+    const value: RankArray = new Proxy({ kind: 'array' as const, items: facade, shape: Object.freeze([...shape]),
+        ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) }, {
         set(target, key, replacement) {
             const success = Reflect.set(target, key, replacement, target);
             if (success) uncertain();

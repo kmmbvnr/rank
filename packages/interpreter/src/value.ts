@@ -51,6 +51,20 @@ export interface RankLabel {
     readonly name: string;
 }
 
+export interface RankDate {
+    readonly kind: 'date';
+    readonly year: number;
+    readonly month: number;
+    readonly day: number;
+}
+
+export interface RankDateTime extends Omit<RankDate, 'kind'> {
+    readonly kind: 'datetime';
+    readonly hour: number;
+    readonly minute: number;
+    readonly second: number;
+}
+
 export interface RankErrorValue {
     readonly kind: 'error';
     readonly errorKind: RankLabel;
@@ -89,6 +103,23 @@ export interface RankCounter {
 export interface RankObject {
     readonly kind: 'object';
     readonly entries: Map<string, RankValue>;
+}
+
+export interface RankTableGroup {
+    readonly keys: readonly (RankValue | undefined)[];
+    readonly rows: readonly RankObject[];
+}
+
+export interface RankGroupedTable {
+    readonly kind: 'grouped-table';
+    readonly fields: readonly string[];
+    readonly groups: readonly RankTableGroup[];
+}
+
+export interface RankGroupedColumn {
+    readonly kind: 'grouped-column';
+    readonly table: RankGroupedTable;
+    readonly field: string;
 }
 
 export interface RankRecord {
@@ -168,8 +199,9 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankLabel | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
-    RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord | NativeFunction |
+    RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
+    RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
+    RankGroupedTable | RankGroupedColumn | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
     RankWavelet;
 
@@ -207,6 +239,16 @@ export function isRankLabel(value: RankValue): value is RankLabel {
     return typeof value === 'object' && value.kind === 'label';
 }
 
+export function isRankDate(value: RankValue): value is RankDate | RankDateTime {
+    return typeof value === 'object' && (value.kind === 'date' || value.kind === 'datetime');
+}
+
+export function formatDate(value: RankDate | RankDateTime): string {
+    const calendar = `${String(value.year).padStart(4, '0')}-${String(value.month).padStart(2, '0')}-${String(value.day).padStart(2, '0')}`;
+    return value.kind === 'date' ? calendar
+        : `${calendar} ${String(value.hour).padStart(2, '0')}:${String(value.minute).padStart(2, '0')}:${String(value.second).padStart(2, '0')}`;
+}
+
 export function isRankIndex(value: RankValue): value is RankIndex {
     return typeof value === 'object' && value.kind === 'index';
 }
@@ -241,6 +283,14 @@ export function isRankWavelet(value: RankValue): value is RankWavelet {
 
 export function isRankObject(value: RankValue): value is RankObject {
     return typeof value === 'object' && value.kind === 'object';
+}
+
+export function isRankGroupedTable(value: RankValue): value is RankGroupedTable {
+    return typeof value === 'object' && value.kind === 'grouped-table';
+}
+
+export function isRankGroupedColumn(value: RankValue): value is RankGroupedColumn {
+    return typeof value === 'object' && value.kind === 'grouped-column';
 }
 
 export function isRankRecord(value: RankValue): value is RankRecord {
@@ -284,6 +334,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'label') {
         return `.${value.name}`;
     }
+    if (isRankDate(value)) return formatDate(value);
     if (value.kind === 'error') {
         return `<error .${value.errorKind.name}: ${value.message}>`;
     }
@@ -296,6 +347,8 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'index') {
         return '<index>';
     }
+    if (value.kind === 'grouped-table') return '<grouped table>';
+    if (value.kind === 'grouped-column') return `<grouped column .${value.field}>`;
     if (value.kind === 'queue') {
         return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }

@@ -2,8 +2,10 @@ import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array
 import { MissingValueError, RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
+import { aggregateGroupedColumn } from './tables.js';
 import {
     isRankArray,
+    isRankGroupedColumn,
     isRankSequence,
     type RankArray,
     type RankValue,
@@ -12,9 +14,12 @@ import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const statsModule: RuntimeModule = {
-    mean: () => native('mean', 1, arguments_ => meanValue(arguments_[0])),
-    median: () => native('median', 1, arguments_ => medianValue(arguments_[0])),
-    std: () => native('std', 1, arguments_ => standardDeviation(arguments_[0])),
+    mean: () => native('mean', 1, ([value]) => isRankGroupedColumn(value)
+        ? aggregateGroupedColumn(value, meanValue, true) : meanValue(value)),
+    median: () => native('median', 1, ([value]) => isRankGroupedColumn(value)
+        ? aggregateGroupedColumn(value, medianValue, true) : medianValue(value)),
+    std: () => native('std', 1, ([value]) => isRankGroupedColumn(value)
+        ? aggregateGroupedColumn(value, standardDeviation, true) : standardDeviation(value)),
     mse: () => native('mse', 2, arguments_ => errorMetricValue(
         arguments_[0],
         arguments_[1],

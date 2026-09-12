@@ -4,13 +4,12 @@ rem Fit log demand from calendar, weather
 rem and numeric ride conditions.
 
 use "002_prices" as Regression
-use "006_storesales" as Calendar
 use cli
+use dates
 use numbers
 use ranges
 use sequences
 use tables
-use text
 
 argument TrainPath path = "demos/kaggle/data/bike-sharing/train.csv"
 argument TestPath path = "demos/kaggle/data/bike-sharing/test.csv"
@@ -23,21 +22,16 @@ Submission OutputPath csv
 
 
 fun bike_features Data
-  Dates = Data .datetime
-  Rows = Dates len
+  Times = Data .datetime datetime
+  Rows = Times len
   NumericFields = array .season .holiday .workingday .weather .temp .atemp .humidity .windspeed
   Numeric = Data NumericFields
   Result = array shape Rows 12 pad 0.0
 
-  for Date i in Dates
-    Pattern = "/integer-/integer-/integer /integer:/integer:/integer"
-    unpack Year Month Day Hour # # = Date Pattern parse
-    DateOnly = Date from 0 until 10
-    Result i 0 = Hour
-    Result i 1 = DateOnly Calendar.weekday
-    Result i 2 = Month
-    Result i 3 = Year
-  end
+  Result # 0 = Times hour
+  Result # 1 = Times weekday
+  Result # 2 = Times month
+  Result # 3 = Times year
   for Column in 0 until 8
     Result # (Column + 4) = Numeric # Column
   end

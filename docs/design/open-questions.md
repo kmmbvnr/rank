@@ -131,18 +131,11 @@ The exact diagnostic policy and any source annotation remain undecided.
 
 ## Join variants
 
-The compact form:
-
-```rank
-A B join
-```
-
-is current, but exact rules for:
-- inner/left/right/full joins;
-- key inference;
-- duplicate column names
-
-still need specification.
+`leftjoin by`, `innerjoin by` and explicit key pairs with `on` are current for
+array-backed tables. Remaining questions are right/full joins, optional
+cardinality validation, and how a SQLite-backed source declares row order and
+translates supported expressions into SQL. Duplicate non-key names currently
+raise `.TypeError` until an explicit rename operation is designed.
 
 ## Stack / combine
 
@@ -320,3 +313,57 @@ MXFP4 block scale lives. See
 `vocab` and `tfidf` were useful in the Disaster Tweets sketch, but it is not yet
 decided whether they should be standard library words or examples implemented
 from more primitive operations.
+
+## Explain and explore a calculation interactively
+
+Future interface idea, agreed 2026-09-12. This is not current syntax or an
+implemented inspection feature.
+
+The CLI, a future editor and the calculator UI could expose the same inspection
+model. A result could show its shape, element type, evaluation state and measured
+execution time. A short explanation should describe how it was computed:
+
+> Matrix 1000×32 · real · materialized · computed in one pass
+
+For lazy results, distinguish a pending computation, partially evaluated cells,
+and a fully materialized result. Time spent preparing or compiling a computation
+should be distinguishable from time spent actually computing its values.
+Reading already-known metadata should not force a lazy result. Richer inspection
+may explicitly compute values, including a prefix of a lazy result.
+
+Distinguish three actions:
+
+- Inspect existing metadata without advancing evaluation.
+- Preview requested values or a prefix in an isolated execution state, without
+  changing the running program or retaining progress in its caches.
+- Advance the real computation by an explicit step and retain that progress,
+  including any newly computed values in the program's cache.
+
+This should support an interactive, educational BASIC-like workflow. The user
+must be able to tell which action observes the program and which advances it.
+A preview must not silently consume the live iterator, advance stdin or file
+positions, mutate shared arrays, change the live random generator, or duplicate
+external effects. Isolation requires more than dropping the returned value:
+mutable dependencies and evaluation state need an actual branch or equivalent
+mechanism. Effects that cannot be isolated or replayed from recorded inputs
+require an explicit real-execution step.
+
+When progress is retained, subsequent execution must reuse valid work rather
+than accidentally repeat effects. Mutation invalidation still applies. The
+interface should distinguish preview values from committed execution results;
+inspection must not silently change the normal execution history.
+
+An optional detail view could show which operations were combined, which ran
+through the ordinary interpreter, and why a planned optimization did not apply.
+This would help both users understand a calculation and language developers
+find missed compiler coverage without changing readable Rank programs.
+
+Explanations must come from the path actually executed. A plan that was prepared
+but declined a runtime guard must not be shown as a successful optimization.
+“One pass” should describe the computation itself and distinguish any additional
+validation or resource-ownership scans.
+
+Start with short result annotations suitable for a narrow mobile screen; keep
+compiler diagnostics in the detail view. The metadata API, timing boundaries, isolated preview mechanism and visual
+design remain to be decided. This is a future tooling design, not a change to
+current Rank evaluation semantics.

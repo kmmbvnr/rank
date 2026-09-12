@@ -558,10 +558,37 @@ Includes concepts such as:
 
 ```rank
 csv
-group
-join
 labels
+group by
+leftjoin by
+innerjoin by
+leftjoin on
+innerjoin on
 ```
+
+`labels` returns the ordered column labels of a rank-1 table. CSV headers are
+retained even for empty columns and zero data rows. For object arrays without
+CSV headers, it unions keys in first-appearance order. `group by` builds a
+grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
+over a grouped column produce a flat table with the keys and aggregate.
+`leftjoin` and `innerjoin` match shared fields after `by`, or differently named
+field pairs after `on`. These are table operations distinct from text `join`.
+See [Tables](../language/tables.md) for missing keys, row order and collisions.
+
+## Images
+
+With `use images`, `Directory images` returns a rank-1 table of regular JPEG
+and PNG files, sorted by filename in ascending code point order. Each row has
+`.name` (the filename) and `.path` (the full path); other files are ignored.
+`Images Height Width resize` decodes every image in that order, applies EXIF
+orientation, stretches it to the requested positive integer height and width,
+converts it to 8-bit sRGB with three channels, and returns a lazy rank-4 RGB
+tensor of shape `[image count, height, width, 3]`. Pixel values are integers
+from 0 to 255. Empty directories produce an empty tensor with that shape.
+This module needs a host with image directory and decoding support; the CLI
+uses `sharp` in a synchronous child process so Rank evaluation stays
+synchronous. Invalid dimensions raise `.DomainError`, and malformed image rows
+raise `.TypeError`.
 
 ## Stats
 
@@ -617,6 +644,8 @@ Examples:
 
 ```rank
 split
+words
+vocab
 reverse
 codepoint
 character
@@ -644,6 +673,14 @@ Parts = "2x3x4" "x" split
 Fields = Text (array "," ";") split
 Characters = "A😀Б" "" split
 ```
+
+`Text words` returns lowercase Unicode letter-and-number runs as a rank-1 text
+array; punctuation and whitespace separate words. `Texts Limit vocab` accepts
+a rank-1 text array and a nonnegative integer limit. It counts all words,
+orders them by descending frequency and then ascending Unicode code point
+order, and returns at most `Limit` terms. An empty input or zero limit returns
+an empty array. These operations require `use text`; wrong element types raise
+`.TypeError`, and an invalid limit raises `.DomainError`.
 
 `parse` matches a complete text value against a text pattern and returns the
 captured values as a rank-1 array. It is normally combined with `unpack`:
@@ -958,13 +995,48 @@ picker, virtual file system or another implementation with the same semantics.
 
 ## Dates
 
-Examples:
+`use dates` parses calendar dates and local date-times explicitly:
 
 ```rank
-hour
-weekday
-month
-year
+use dates
+
+Day = "2024-02-29" date
+Moment = "2024-02-29 13:05:09" datetime
+Day weekday
+Moment hour
+```
+
+`date` accepts exactly `YYYY-MM-DD`. `datetime` accepts exactly
+`YYYY-MM-DD HH:MM:SS` or `YYYY-MM-DDTHH:MM:SS`. Both use the proleptic
+Gregorian calendar and years `0001` through `9999`. `datetime` is a local
+wall-clock value without a time zone or UTC offset. Invalid syntax, dates and
+times raise `.InvalidDate`; a non-text input raises `.TypeError`.
+
+`date` and `datetime` are distinct immutable scalar types. They compare for
+equality by type and value and order chronologically within their own type.
+Ordering one against the other raises `.TypeError`. They are valid set and
+index keys, and `text` and CSV output render their canonical forms using a
+space between date and time. Parsing a CSV column does not change the original
+text column unless it is explicitly assigned back.
+
+`year`, `month`, `day` and `weekday` accept either type. `hour`, `minute` and
+`second` require `datetime`. Each returns an `integer`; `weekday` numbers
+Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
+sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
+A missing projected table cell remains `.Missing` and can be handled with
+`pad` before parsing.
+
+```rank
+Days = (Train .date pad "2024-01-01") date
+```
+
+```rank
+Days = Train .date date
+Train .weekday = Days weekday
+
+Times = Train .datetime datetime
+Train .hour = Times hour
+Train .month = Times month
 ```
 
 ## Algorithm profile

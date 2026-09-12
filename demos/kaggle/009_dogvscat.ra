@@ -1,10 +1,61 @@
 rem Kaggle: Dogs vs Cats
 rem https://www.kaggle.com/competitions/dogs-vs-cats
-rem Fit a binary pixel classifier after images
-rem have been flattened into feature rows.
+rem Resize JPEG/PNG images and fit a small
+rem RGB-pixel logistic classifier.
 
 use "001_titanic" as Classifier
+use cli
+use images
 use linalg
+use ranges
+use sequences
+use tables
+use text
+
+argument TrainPath path = "demos/kaggle/data/dogs-vs-cats/train"
+argument TestPath path = "demos/kaggle/data/dogs-vs-cats/test1"
+argument OutputPath path = "demos/kaggle/submissions/dogs-vs-cats.csv"
+
+Train = TrainPath images
+Test = TestPath images
+Submission = Train Test 0.1 300 solve_images
+Submission OutputPath csv
+
+
+rem File names cat.N and dog.N provide training labels.
+fun image_labels Train
+  Y = array shape (Train len) pad 0
+  for Name Row in Train .name
+    if Name "cat." startswith
+      Y Row = 0
+    else
+      if Name "dog." startswith
+        Y Row = 1
+      else
+        .InvalidText raise
+      end
+    end
+  end
+  return Y
+end
+
+
+fun solve_images Train Test Rate Steps
+  Height = 8
+  Width = 8
+  Features = Height * Width * 3
+  X = (Train Height Width resize) (array (Train len) Features) reshape
+  Xtest = (Test Height Width resize) (array (Test len) Features) reshape
+  Y = Train image_labels
+  Pred = X Y Xtest Rate Steps solve
+  Ids = array shape (Test len) pad 0
+  for Name Row in Test .name
+    Ids Row = ((Name "." split) 0) integer
+  end
+  Test .id = Ids
+  Test .label = Pred
+  return Test (array .id .label)
+end
 
 
 fun probability X Model

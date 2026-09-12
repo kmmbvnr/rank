@@ -5,7 +5,7 @@ test "extracts calendar and numeric bike features"
   use "007_bakishare"
   Rows = "[{\"datetime\":\"2024-01-07 13:00:00\",\"season\":1,\"holiday\":0,\"workingday\":0,\"weather\":2,\"temp\":10.5,\"atemp\":11.0,\"humidity\":80,\"windspeed\":5.0}]" json
   Expected = array shape 1 12
-    13 0 1 2024 1 0 0 2 10.5 11.0 80 5.0
+    13 6 1 2024 1 0 0 2 10.5 11.0 80 5.0
   end
   Rows bike_features equal Expected
 end

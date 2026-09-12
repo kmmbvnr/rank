@@ -6,3 +6,4 @@ export * from './segment.js';
 export * from './wavelet.js';
 export * from './value.js';
 export { createArraySnapshot } from './array-storage.js';
+export { standardModules } from './modules/index.js';

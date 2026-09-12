@@ -220,6 +220,8 @@ PowerExpression returns Expression:
 
 ApplicationExpression returns Expression:
     KeyedSortExpression |
+    KeyedGroupExpression |
+    KeyedJoinExpression |
     UnaryExpression
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
@@ -228,6 +230,17 @@ ApplicationExpression returns Expression:
 KeyedSortExpression:
     source=PrimaryExpression operator=(SORT_BY | ARGSORT_BY)
     (fields+=LabelLiteral+ | key=NameExpression);
+
+KeyedGroupExpression:
+    source=PrimaryExpression operator=GROUP_BY fields+=LabelLiteral+;
+
+KeyedJoinExpression:
+    left=PrimaryExpression right=PrimaryExpression
+    (operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
+     operator=(LEFTJOIN_ON | INNERJOIN_ON) pairs+=JoinFieldPair+);
+
+JoinFieldPair:
+    left=LabelLiteral '=' right=LabelLiteral;
 
 UnaryExpression returns Expression:
     UnpackExpression |
@@ -353,6 +366,11 @@ terminal NL: /\r?\n/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal ARGSORT_BY: /argsort[\t ]+by/;
 terminal SORT_BY: /sort[\t ]+by/;
+terminal GROUP_BY: /group[\t ]+by/;
+terminal LEFTJOIN_BY: /leftjoin[\t ]+by/;
+terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
+terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;
+terminal INNERJOIN_ON: /innerjoin[\t ]+on/;
 terminal SET_ADD: /(set|counter)[\t ]+add/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;

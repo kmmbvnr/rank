@@ -1,7 +1,7 @@
 import { RankError } from './errors.js';
-import { isRankLabel, type RankValue } from './value.js';
+import { formatDate, isRankDate, isRankLabel, type RankDate, type RankDateTime, type RankValue } from './value.js';
 
-export type OrderedKind = 'numeric' | 'text' | 'boolean' | 'symbol';
+export type OrderedKind = 'numeric' | 'text' | 'boolean' | 'symbol' | 'date' | 'datetime';
 
 /** Return the scalar ordering shared by sort and ordered containers. */
 export function orderedKind(value: RankValue): OrderedKind {
@@ -9,6 +9,7 @@ export function orderedKind(value: RankValue): OrderedKind {
     if (typeof value === 'string') return 'text';
     if (typeof value === 'boolean') return 'boolean';
     if (isRankLabel(value)) return 'symbol';
+    if (isRankDate(value)) return value.kind;
     throw new RankError('ordered values must be comparable scalars', 'TypeError');
 }
 
@@ -28,6 +29,10 @@ export function compareOrderedValues(
     }
     if (kind === 'text') return compareText(left as string, right as string);
     if (kind === 'boolean') return Number(left as boolean) - Number(right as boolean);
+    if (kind === 'date' || kind === 'datetime') {
+        return compareText(formatDate(left as RankDate | RankDateTime),
+            formatDate(right as RankDate | RankDateTime));
+    }
     return compareText(
         (left as { name: string }).name,
         (right as { name: string }).name,

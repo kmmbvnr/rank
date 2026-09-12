@@ -1,11 +1,11 @@
-import { Interpreter, RankError, formatValue } from 'rank-interpreter';
+import { Interpreter, RankError } from 'rank-interpreter';
 import chalk from 'chalk';
-import * as fsSync from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import * as readline from 'node:readline';
 import * as url from 'node:url';
+import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
+import { startRepl } from './repl.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const packagePath = path.resolve(__dirname, '..', 'package.json');
@@ -35,7 +35,7 @@ async function dispatch(): Promise<void> {
         return;
     }
     if (arguments_.length === 0) {
-        await repl();
+        await startRepl();
         return;
     }
     await runFile(arguments_[0], arguments_.slice(1));
@@ -53,52 +53,6 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
     });
     try {
         interpreter.execute(source);
-    } finally {
-        interpreter.dispose();
-    }
-}
-
-async function repl(): Promise<void> {
-    const interpreter = new Interpreter(console.log, {
-        io: nodeIo,
-        persistentResources: true,
-        sourceId: path.join(process.cwd(), '<repl>'),
-        loadModule,
-    });
-    const terminal = Boolean(process.stdin.isTTY && process.stdout.isTTY);
-    const input = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        terminal,
-        prompt: terminal ? 'rank> ' : undefined,
-    });
-
-    if (terminal) {
-        console.log('Rank 0.1');
-        console.log("Type an expression, or 'exit' to leave.");
-        input.prompt();
-    }
-
-    try {
-        for await (const line of input) {
-            if (line.trim() === 'exit' || line.trim() === 'quit') {
-                break;
-            }
-            if (line.trim()) {
-                try {
-                    const result = interpreter.execute(line);
-                    if (result !== undefined) {
-                        console.log(formatValue(result));
-                    }
-                } catch (error) {
-                    const message = error instanceof RankError ? error.format() : String(error);
-                    console.error(chalk.red(`error: ${message}`));
-                }
-            }
-            if (terminal) {
-                input.prompt();
-            }
-        }
     } finally {
         interpreter.dispose();
     }
@@ -152,17 +106,10 @@ async function findTestFiles(target: string): Promise<string[]> {
     return nested.flat().sort();
 }
 
-function loadModule(specifier: string, fromId?: string): { id: string; source: string } {
-    const base = fromId && fromId !== '<input>' ? path.dirname(fromId) : process.cwd();
-    let id = path.resolve(base, specifier);
-    if (!path.extname(id)) id += '.ra';
-    return { id, source: fsSync.readFileSync(id, 'utf8') };
-}
-
 function printHelp(): void {
     console.log([
         'Usage:',
-        '  rank                         Start the REPL',
+        '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
         '  rank test [path]             Run *_test.ra files',
         '  rank --version               Show the version',
