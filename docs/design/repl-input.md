@@ -64,8 +64,30 @@ Read the table as one finding: **assignment is the most frequent statement in
 Rank and `=` is the symbol a phone keyboard is least likely to put on its first
 layer.** On a typical Android layout the digits layer carries
 `@ # $ _ & - + ( ) / * " ' : ; ! ?`, and `=` and `%` sit one layer deeper.
-Layouts vary by keyboard and locale, so the REPL does not bet on one: it offers
-a word for every symbol operator, and the expensive ones stop mattering.
+Layouts vary by keyboard and locale, so nothing here bets on one layout.
+
+## Three ways to type `=`
+
+`=` must stay in the source. It is the shape assignment has in every language a
+reader has met, and a program written with a word in its place reads worse than
+one that costs an extra tap. So the answer is not to replace the symbol but to
+replace the *keystroke*:
+
+1. **The colon key.** Type `:` and the REPL turns it into `=` the moment it is
+   typed. `:` is on the first symbol layer of essentially every keyboard, and it
+   is not a Rank token at all — across the 683 demo programs there are 925
+   colons and every one of them is inside a text literal or a `rem` comment.
+   Outside those two places a colon could only ever have meant `=`, so the
+   rewrite is unambiguous rather than a guess. It is the `=` key, not a token
+   alias, so `+:` gives `+=` and `and:` gives `and=` with no extra rule.
+2. **A keyboard row.** In Termux, `extra-keys` in `~/.termux/termux.properties`
+   puts a permanent row above the keyboard; adding `=` there makes it one tap in
+   every program, not just this REPL. Some keyboards can also put a number row,
+   which usually carries `=` with it.
+3. **The word `gets`**, for a keyboard that offers neither.
+
+The first two leave the symbol in the source and only change how the key is
+reached. The third is the fallback described below.
 
 ## The rules the REPL applies
 
@@ -108,6 +130,20 @@ only its opening keystroke. `A gets (1 plus 2` runs `A = (1 + 2)`.
 open block, and `end`, `else`, `elif`, `catch` and `finally` sit one level out.
 Typing leading spaces is never necessary and never wrong.
 
+**The colon is the `=` key.** It is replaced as it is typed, so the line on
+screen is already the Rank that will run:
+
+```console
+rank> Total: 6
+6
+rank> Total *: 7
+42
+```
+
+Inside `"text"` and after `rem` a colon stays a colon, which is where all 925 of
+the corpus's colons live. Spacing is tidied on submit, so `A:3` and `A :  3`
+both store `A = 3`.
+
 **Words stand in for symbols.** A word becomes its symbol only in operator
 position, and never when the session already binds that name:
 
@@ -116,6 +152,8 @@ gets  =      plus  +      minus  -      times  *
 over  /      idiv  //     mod    %      power  **
 every #
 ```
+
+`gets` is the fallback for `=`; the colon key is usually the better one.
 
 `times gets` becomes `*=`, and `and gets` becomes `and=`. Whatever was rewritten
 is echoed as real Rank before it runs, so the symbol form is what gets learned.
@@ -136,9 +174,10 @@ line, so a whole program can be piped into the REPL.
 
 ## What this deliberately is not
 
-The alias words are an input convenience, not a dialect. The REPL echoes and
-`save` writes the symbol form, a `.ra` file on disk never contains `gets`, and a
-session that defines its own `times` keeps it.
+None of this changes the language. The colon and the alias words are input, not
+syntax: the REPL echoes the symbol form, `save` writes it, and a `.ra` file on
+disk never contains `gets` or a bare `:`. A session that defines its own `times`
+keeps it. What a reader sees is always `A = 3`.
 
 ## What is still awkward
 
@@ -146,15 +185,20 @@ session that defines its own `times` keeps it.
   expression across lines inside brackets, so `save` cannot reproduce the fold,
   and a long statement fights the 40-column target. Writing brackets by hand is
   still the way to keep a wide expression narrow.
-- `.` before a label, `"` to open text, and the digits have no word form.
-- Compound assignment reads oddly as `A times gets 2`.
+- `.` before a label, `"` to open text, and the digits have no cheaper form.
+  `.` is usually on the letters layer and `"` on the first symbol layer, so
+  neither costs what `=` did.
+- Compound assignment reads oddly as `A times gets 2`; `A *: 2` does not.
 - A blank line inside a block is unavailable interactively, since that is the
   gesture that closes blocks.
 
 ## Open questions
 
-- Should the alias words become real Rank? That would remove `=` from the
-  language's required symbol set, at the cost of nine reserved words.
+- Should the alias words become real Rank? Probably not, now that the colon key
+  reaches `=` directly: the words would cost nine reserved names and make the
+  source read worse, which was the objection that produced the colon key.
+- Should the colon key work in the HTML editor too, or does a custom keyboard
+  row there make it unnecessary?
 - Should `save` insert brackets so a folded statement survives as several narrow
   lines?
 - Should the REPL keep a cell history that the editor can open, or is a `.ra`

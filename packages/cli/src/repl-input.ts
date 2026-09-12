@@ -17,6 +17,13 @@ export interface Token {
     readonly closed: boolean;
 }
 
+/**
+ * The key that stands in for `=`. Rank has no `:` token at all — across the 683
+ * demo programs every `:` is inside a text literal or a `rem` comment — so a
+ * colon outside those is always an `=` the keyboard made expensive.
+ */
+export const ASSIGN_KEY = ':';
+
 /** Words that stand in for symbols a phone keyboard hides behind a layer. */
 export const OPERATOR_ALIASES: Readonly<Record<string, string>> = {
     gets: '=',
@@ -33,6 +40,7 @@ export const OPERATOR_ALIASES: Readonly<Record<string, string>> = {
 /** Aliases that combine with `gets` into a compound assignment. */
 const COMPOUND_LEFT = new Set(['plus', 'minus', 'times', 'over', 'idiv', 'mod', 'power']);
 const COMPOUND_KEYWORDS = new Set(['and', 'or', 'xor']);
+const COMPOUND_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//', '%']);
 
 const SYMBOLS = [
     '**=', '//=', '**', '//', '+=', '-=', '*=', '/=', '%=',
@@ -179,6 +187,57 @@ export function expandCompoundKeywords(line: string, isBound: (name: string) => 
         }
     }
     return line;
+}
+
+/**
+ * Rewrites the `=` key. A colon is not Rank, so outside text and comments it can
+ * only have meant `=`, and `+:` or `and:` become `+=` and `and=` for free.
+ */
+export function expandAssignKey(line: string): string {
+    const tokens = tokenize(line);
+    let result = '';
+    let at = 0;
+    for (let index = 0; index < tokens.length; index += 1) {
+        const item = tokens[index];
+        if (item.kind !== 'symbol' || item.text !== ASSIGN_KEY) continue;
+        // `*:` and `and:` are the compound assignments, which are single tokens
+        // and must not be spaced apart.
+        const previous = tokens[index - 1];
+        const compound = previous !== undefined
+            && ((previous.kind === 'symbol' && COMPOUND_SYMBOLS.has(previous.text))
+                || (previous.kind === 'word' && COMPOUND_KEYWORDS.has(previous.text)));
+        const start = compound ? previous.start : item.start;
+        const before = line.slice(at, start);
+        const spaceLeft = !compound && before !== '' && !before.endsWith(' ');
+        const spaceRight = item.end < line.length && line[item.end] !== ' ';
+        result += before + (spaceLeft ? ' ' : '')
+            + (compound ? previous.text : '') + '=' + (spaceRight ? ' ' : '');
+        at = item.end;
+    }
+    return at === 0 ? line : result + line.slice(at);
+}
+
+/**
+ * Collapses runs of spaces outside text and comments. Rank hides whitespace, so
+ * this only tidies what the rewrites and the typist leave behind.
+ */
+export function collapseSpaces(line: string): string {
+    const protectedSpans = tokenize(line)
+        .filter(item => item.kind === 'string' || item.kind === 'comment');
+    let result = '';
+    let at = 0;
+    for (const span of protectedSpans) {
+        result += line.slice(at, span.start).replace(/  +/g, ' ') + span.text;
+        at = span.end;
+    }
+    return (result + line.slice(at).replace(/  +/g, ' ')).trimEnd();
+}
+
+/** True when the position sits inside a text literal or a comment. */
+export function insideText(prefix: string): boolean {
+    const last = tokenize(prefix).at(-1);
+    if (last === undefined || last.end !== prefix.length) return false;
+    return last.kind === 'comment' || (last.kind === 'string' && !last.closed);
 }
 
 export interface LineScan {

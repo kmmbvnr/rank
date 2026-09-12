@@ -3,8 +3,9 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import {
-    EMPTY_CELL, addLine, cellSource, closeCell, expandCompoundKeywords, expandOperators,
-    isComplete, isEmpty, nextIndent, promptFor, scanLine, tokenize,
+    EMPTY_CELL, addLine, cellSource, closeCell, collapseSpaces, expandAssignKey,
+    expandCompoundKeywords, expandOperators, insideText, isComplete, isEmpty, nextIndent,
+    promptFor, scanLine, tokenize,
 } from '../out/repl-input.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -44,6 +45,35 @@ test('expands alias words only in operator position', () => {
     assert.equal(expand('A rem gets 2'), 'A rem gets 2');
 });
 
+test('rewrites the colon key into the = it stands for', () => {
+    assert.equal(expandAssignKey('A: 3'), 'A = 3');
+    assert.equal(expandAssignKey('A *: 2'), 'A *= 2');
+    assert.equal(expandAssignKey('A and: B'), 'A and= B');
+    assert.equal(expandAssignKey('index K: V'), 'index K = V');
+    assert.equal(expandAssignKey('A:3'), 'A = 3');
+    assert.equal(expandAssignKey('A *:2'), 'A *= 2');
+    assert.equal(expandAssignKey('A = 3'), 'A = 3');
+    // Every colon in the demo corpus is inside text or a comment; those stay.
+    assert.equal(expandAssignKey('A: "at 12:30"'), 'A = "at 12:30"');
+    assert.equal(expandAssignKey('rem see http://x'), 'rem see http://x');
+    assert.equal(expandAssignKey('A: 1 rem note: here'), 'A = 1 rem note: here');
+});
+
+test('tidies spacing without touching text or comments', () => {
+    assert.equal(collapseSpaces('A  =   3'), 'A = 3');
+    assert.equal(collapseSpaces('A = "two  spaces"'), 'A = "two  spaces"');
+    assert.equal(collapseSpaces('A = 1 rem  keeps  this'), 'A = 1 rem  keeps  this');
+    assert.equal(collapseSpaces('A sort  by .x'), 'A sort by .x');
+});
+
+test('knows when a position sits inside text or a comment', () => {
+    assert.equal(insideText('A = "open'), true);
+    assert.equal(insideText('A = "shut"'), false);
+    assert.equal(insideText('rem note'), true);
+    assert.equal(insideText('A = 1'), false);
+    assert.equal(insideText(''), false);
+});
+
 test('folds a line that cannot end a statement', () => {
     assert.equal(scanLine('A = 1 +').folds, true);
     assert.equal(scanLine('A = B and').folds, true);
@@ -67,7 +97,8 @@ test('closes a quote and a bracket at the end of the line', () => {
 });
 
 test('tracks blocks and re-indents every line', () => {
-    const state = cell('for i in 1 to 3', 'if i greater 1', 'i print', 'else', 'i print', 'end', 'end');
+    const state = cell('for i in 1 to 3', 'if i greater 1', 'i print', 'else',
+        'i print', 'end', 'end');
     assert.equal(cellSource(state), [
         'for i in 1 to 3',
         '  if i greater 1',
@@ -131,6 +162,8 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
         'A',
         'S gets "text',
         'S',
+        'Label: "at 12:30"',
+        'Label',
         'M gets array shape 2 3',
         '  1 2 3',
         '  4 5 6',
@@ -141,6 +174,6 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
     assert.equal(result.status, 0);
     assert.deepEqual(result.stdout.trim().split('\n'), [
         '<function double>', '10', '3', '3', 'text', 'text',
-        '1 2 3 4 5 6', '2 5',
+        'at 12:30', 'at 12:30', '1 2 3 4 5 6', '2 5',
     ]);
 });

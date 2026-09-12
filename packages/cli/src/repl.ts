@@ -9,9 +9,9 @@ import * as readline from 'node:readline';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import {
-    EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource, closeCell,
-    expandCompoundKeywords, expandOperators, isComplete, isEmpty, nextIndent, promptFor,
-    type CellState,
+    ASSIGN_KEY, EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource,
+    closeCell, collapseSpaces, expandAssignKey, expandCompoundKeywords, expandOperators,
+    insideText, isComplete, isEmpty, nextIndent, promptFor, tokenize, type CellState,
 } from './repl-input.js';
 
 const HISTORY_FILE = path.join(os.homedir(), '.rank_history');
@@ -45,6 +45,8 @@ export async function startRepl(): Promise<void> {
             ? (line: string) => complete(line, interpreter, state)
             : undefined,
     });
+
+    if (terminal) watchAssignKey(input);
 
     const draw = (): void => {
         if (!terminal) return;
@@ -82,8 +84,10 @@ export async function startRepl(): Promise<void> {
                 draw();
                 continue;
             } else {
-                const expanded = aliases ? expand(text, interpreter) : text;
-                rewritten ||= expanded !== text;
+                const keyed = collapseSpaces(expandAssignKey(text));
+                const expanded = aliases ? expand(keyed, interpreter) : keyed;
+                // Tidied spacing is not worth an echo; a rewritten symbol is.
+                rewritten ||= expanded !== collapseSpaces(text);
                 state = addLine(state, expanded);
             }
 
@@ -111,6 +115,38 @@ export async function startRepl(): Promise<void> {
         interpreter.dispose();
         if (terminal) await writeHistory(input);
     }
+}
+
+/**
+ * Turns the colon key into `=` as it is typed, so the line on screen is already
+ * the Rank that will run. Readline has inserted the colon by the time this runs,
+ * so the fix is one backspace and one write.
+ */
+function watchAssignKey(input: readline.Interface): void {
+    process.stdin.on('keypress', (_chunk: string, key: KeyPress | undefined) => {
+        if (!key || key.ctrl || key.meta || key.sequence !== ASSIGN_KEY) return;
+        if (input.cursor === 0 || input.line[input.cursor - 1] !== ASSIGN_KEY) return;
+        const before = input.line.slice(0, input.cursor - 1);
+        if (insideText(before)) return;
+        input.write(null, { name: 'backspace' });
+        input.write(`${spacedAssign(before) ? ' =' : '='} `);
+    });
+}
+
+/** A compound assignment is one token, so `*:` must not gain a space. */
+function spacedAssign(before: string): boolean {
+    if (before === '' || before.endsWith(' ')) return false;
+    const last = tokenize(before).at(-1);
+    if (last === undefined) return false;
+    if (last.kind === 'symbol') return !'+-*/%'.includes(last.text[0]);
+    return !(last.kind === 'word' && (last.text === 'and' || last.text === 'or'
+        || last.text === 'xor'));
+}
+
+interface KeyPress {
+    readonly sequence?: string;
+    readonly ctrl?: boolean;
+    readonly meta?: boolean;
 }
 
 function isExit(text: string, interpreter: Interpreter): boolean {
@@ -198,6 +234,12 @@ function printHelp(aliases: boolean): void {
         '  A blank line finishes everything',
         '  that is open: quote, bracket, end.',
         '',
+        'The = key',
+        '  Type : and it becomes = at once.',
+        '  +: is +=, and: is and=.',
+        '  Inside "text" and rem a colon',
+        '  stays a colon.',
+        '',
         `Words for symbols (alias is ${aliases ? 'on' : 'off'})`,
     ].join('\n'));
     const pairs = Object.entries(OPERATOR_ALIASES)
@@ -238,10 +280,12 @@ function printForms(): void {
         '  array 1 2 3',
         '',
         'One symbol, or a word instead',
+        '  A: 3              A = 3',
         '  A gets 3          A = 3',
         '  A plus B times C  A + B * C',
         '  A mod B           A % B',
         '  M every 2         M # 2',
+        '  A *: 2            A *= 2',
         '  A times gets 2    A *= 2',
         '',
         'Symbols with no word',
