@@ -10,8 +10,8 @@ import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource, closeCell,
-    expandCompoundKeywords, expandOperators, isComplete, isEmpty, nextIndent, promptFor,
-    type CellState,
+    expandCompoundKeywords, expandOperators, formatLine, formatTyping, isComplete,
+    isEmpty, nextIndent, promptFor, startsDedent, type CellState,
 } from './repl-input.js';
 
 const HISTORY_FILE = path.join(os.homedir(), '.rank_history');
@@ -45,6 +45,8 @@ export async function startRepl(): Promise<void> {
             ? (line: string) => complete(line, interpreter, state)
             : undefined,
     });
+
+    if (terminal) watchTyping(input, () => state);
 
     const draw = (): void => {
         if (!terminal) return;
@@ -82,8 +84,10 @@ export async function startRepl(): Promise<void> {
                 draw();
                 continue;
             } else {
-                const expanded = aliases ? expand(text, interpreter) : text;
-                rewritten ||= expanded !== text;
+                const keyed = formatLine(text);
+                const expanded = aliases ? expand(keyed, interpreter) : keyed;
+                // Tidied spacing is not worth an echo; a rewritten symbol is.
+                rewritten ||= expanded !== formatLine(text);
                 state = addLine(state, expanded);
             }
 
@@ -111,6 +115,68 @@ export async function startRepl(): Promise<void> {
         interpreter.dispose();
         if (terminal) await writeHistory(input);
     }
+}
+
+/**
+ * Formats the line as it is typed: the `=` keys become `=`, operators take one
+ * space on each side, doubled spaces collapse, and a line that starts with a
+ * closing keyword steps back out to its block's level. Readline has already
+ * applied the keystroke, so the fix is a few backspaces and one write, and what
+ * stands on screen is the Rank that will run.
+ */
+function watchTyping(input: readline.Interface, current: () => CellState): void {
+    let busy = false;
+    process.stdin.on('keypress', (_chunk: string, key: KeyPress | undefined) => {
+        if (busy || !key || key.ctrl || key.meta) return;
+        const typed = key.sequence;
+        if (typed === undefined || typed.length !== 1 || typed < ' ' || typed === '\u007f') return;
+        busy = true;
+        try {
+            const indent = /^ */.exec(input.line)![0];
+            const body = input.line.slice(indent.length, input.cursor);
+            reflow(input, indent.length + body.length, indent + formatTyping(body));
+            reindent(input, indent, nextIndent(current(), startsDedent(body)));
+        } finally {
+            busy = false;
+        }
+    });
+}
+
+/** Replaces the text before the cursor, touching only what actually changed. */
+function reflow(input: readline.Interface, cursor: number, wanted: string): void {
+    const prefix = input.line.slice(0, cursor);
+    if (wanted === prefix) return;
+    let shared = 0;
+    while (shared < prefix.length && shared < wanted.length
+        && prefix[shared] === wanted[shared]) shared += 1;
+    for (let index = cursor; index > shared; index -= 1) {
+        input.write(null, { name: 'backspace' });
+    }
+    input.write(wanted.slice(shared));
+}
+
+/**
+ * Fixes the line's own indentation from the front, so a closing keyword steps
+ * out without redrawing what has already been typed. Only while the cursor sits
+ * at the end, where returning to it is unambiguous.
+ */
+function reindent(input: readline.Interface, indent: string, wanted: string): void {
+    if (wanted === indent || input.cursor !== input.line.length) return;
+    input.write(null, { ctrl: true, name: 'a' });
+    if (wanted.length < indent.length) {
+        for (let index = indent.length - wanted.length; index > 0; index -= 1) {
+            input.write(null, { name: 'delete' });
+        }
+    } else {
+        input.write(' '.repeat(wanted.length - indent.length));
+    }
+    input.write(null, { ctrl: true, name: 'e' });
+}
+
+interface KeyPress {
+    readonly sequence?: string;
+    readonly ctrl?: boolean;
+    readonly meta?: boolean;
 }
 
 function isExit(text: string, interpreter: Interpreter): boolean {
@@ -198,6 +264,18 @@ function printHelp(aliases: boolean): void {
         '  A blank line finishes everything',
         '  that is open: quote, bracket, end.',
         '',
+        'The = keys',
+        '  Type , or : and it becomes =',
+        '  as you type. *, is *=, and, is',
+        '  and=. Inside "text" and rem a',
+        '  comma stays a comma.',
+        '',
+        'Spacing',
+        '  Operators take their spaces and',
+        '  lines take their indent while',
+        '  you type. A,B+1 stores as',
+        '  A = B + 1.',
+        '',
         `Words for symbols (alias is ${aliases ? 'on' : 'off'})`,
     ].join('\n'));
     const pairs = Object.entries(OPERATOR_ALIASES)
@@ -238,10 +316,12 @@ function printForms(): void {
         '  array 1 2 3',
         '',
         'One symbol, or a word instead',
+        '  A, 3   A: 3       A = 3',
         '  A gets 3          A = 3',
         '  A plus B times C  A + B * C',
         '  A mod B           A % B',
         '  M every 2         M # 2',
+        '  A *, 2            A *= 2',
         '  A times gets 2    A *= 2',
         '',
         'Symbols with no word',
@@ -321,7 +401,8 @@ function complete(line: string, interpreter: Interpreter, state: CellState): [st
             ...(before === '' && isEmpty(state) ? COMMANDS : []),
         ];
     const hits = [...new Set(pool)].filter(name => name.startsWith(word)).sort();
-    return [hits, word];
+    // One match means the next thing typed is a new word, so give it its space.
+    return [hits.length === 1 ? [`${hits[0]} `] : hits, word];
 }
 
 function wrap(items: readonly string[], separator = ' '): string[] {

@@ -1,6 +1,8 @@
 # TPC-H examples
 
 TPC-H is a stress test for Rank's relational and analytical data model.
+It is the third collection in the [SQL challenge roadmap](sql-challenges.md),
+after PostgreSQL Exercises and SQL Murder Mystery.
 
 It complements the other problem suites:
 - LeetCode tests the algorithmic core;

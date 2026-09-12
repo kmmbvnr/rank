@@ -17,6 +17,14 @@ export interface Token {
     readonly closed: boolean;
 }
 
+/**
+ * Keys that stand in for `=`. Rank has neither token: across the 683 demo
+ * programs there is not one comma or colon outside a text literal or a `rem`
+ * comment, so either one elsewhere can only ever have meant `=`. The comma is
+ * the cheaper of the two, being on the letter layer of a phone keyboard.
+ */
+export const ASSIGN_KEYS = [',', ':'];
+
 /** Words that stand in for symbols a phone keyboard hides behind a layer. */
 export const OPERATOR_ALIASES: Readonly<Record<string, string>> = {
     gets: '=',
@@ -33,6 +41,7 @@ export const OPERATOR_ALIASES: Readonly<Record<string, string>> = {
 /** Aliases that combine with `gets` into a compound assignment. */
 const COMPOUND_LEFT = new Set(['plus', 'minus', 'times', 'over', 'idiv', 'mod', 'power']);
 const COMPOUND_KEYWORDS = new Set(['and', 'or', 'xor']);
+const COMPOUND_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//', '%']);
 
 const SYMBOLS = [
     '**=', '//=', '**', '//', '+=', '-=', '*=', '/=', '%=',
@@ -50,11 +59,17 @@ const OPEN_WORDS = new Set([
     'and', 'or', 'xor', 'not', 'to', 'until', 'by', 'pad', 'equal', 'less',
     'greater', 'in', 'is', 'at', 'least', 'most', 'multiple', 'use', 'as',
     'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
-    'flag', 'args',
+    'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin',
 ]);
 
 /** Block keywords, recognized only as the first word of a statement. */
 const STATEMENT_BLOCKS = new Set(['test', 'fun', 'memo', 'try', 'if', 'for']);
+
+/** Keywords that cannot end an operand, so what follows them is not binary. */
+const NON_OPERAND_WORDS = new Set([
+    ...OPEN_WORDS, ...STATEMENT_BLOCKS,
+    'else', 'elif', 'finally', 'end', 'record', 'return',
+]);
 
 /** Keywords that live inside a block and display one level out. */
 const DEDENT_WORDS = new Set(['else', 'elif', 'catch', 'finally']);
@@ -162,7 +177,10 @@ export function expandOperators(line: string, isBound: (name: string) => boolean
 function endsOperand(previous: Token | undefined): boolean {
     if (!previous) return false;
     if (previous.kind === 'symbol') return previous.text === ')' || previous.text === '#';
-    return previous.kind !== 'comment';
+    if (previous.kind === 'comment') return false;
+    // A keyword that wants an operand cannot be one, so what follows is a sign
+    // rather than an operator: `Q push -1`, `1 to -3`.
+    return !(previous.kind === 'word' && NON_OPERAND_WORDS.has(previous.text));
 }
 
 // `and gets` reaches expandOperators as the keyword `and` followed by `gets`,
@@ -179,6 +197,105 @@ export function expandCompoundKeywords(line: string, isBound: (name: string) => 
         }
     }
     return line;
+}
+
+/**
+ * Rewrites the `=` key. A colon is not Rank, so outside text and comments it can
+ * only have meant `=`, and `+:` or `and:` become `+=` and `and=` for free.
+ */
+export function expandAssignKey(line: string): string {
+    const tokens = tokenize(line);
+    let result = '';
+    let at = 0;
+    for (let index = 0; index < tokens.length; index += 1) {
+        const item = tokens[index];
+        if (item.kind !== 'symbol' || !ASSIGN_KEYS.includes(item.text)) continue;
+        // `*:` and `and:` are the compound assignments, which are single tokens
+        // and must not be spaced apart.
+        const previous = tokens[index - 1];
+        const compound = previous !== undefined
+            && ((previous.kind === 'symbol' && COMPOUND_SYMBOLS.has(previous.text))
+                || (previous.kind === 'word' && COMPOUND_KEYWORDS.has(previous.text)));
+        const start = compound ? previous.start : item.start;
+        const before = line.slice(at, start);
+        const spaceLeft = !compound && before !== '' && !before.endsWith(' ');
+        const spaceRight = item.end < line.length && line[item.end] !== ' ';
+        result += before + (spaceLeft ? ' ' : '')
+            + (compound ? previous.text : '') + '=' + (spaceRight ? ' ' : '');
+        at = item.end;
+    }
+    return at === 0 ? line : result + line.slice(at);
+}
+
+/** Operators that read as one space on each side. */
+const SPACED_SYMBOLS = new Set([
+    '=', '+=', '-=', '*=', '/=', '//=', '%=', '**=',
+    '+', '-', '*', '/', '//', '%', '**', '#',
+]);
+
+/**
+ * Puts one space on each side of every binary operator, so a line typed with no
+ * spaces at all is stored the way the language is written. A `+` or `-` that no
+ * operand precedes is a sign and stays attached, `.` and brackets are left
+ * alone, and text and comments are never touched.
+ */
+export function spaceOperators(line: string, trailing = false): string {
+    const tokens = tokenize(line);
+    let result = '';
+    let at = 0;
+    for (let index = 0; index < tokens.length; index += 1) {
+        const item = tokens[index];
+        if (item.kind !== 'symbol' || !SPACED_SYMBOLS.has(item.text)) continue;
+        const previous = tokens[index - 1];
+        if (!endsOperand(previous)) continue;
+        // `and=`, `or=` and `xor=` are single tokens spelled as a word plus `=`.
+        if (item.text === '=' && previous !== undefined && previous.kind === 'word'
+            && previous.end === item.start && COMPOUND_KEYWORDS.has(previous.text)) continue;
+        const before = line.slice(at, item.start).replace(/ +$/, '');
+        const spaceLeft = before !== '' || at > 0;
+        result += before + (spaceLeft ? ' ' : '') + item.text;
+        at = item.end;
+        const after = /^ */.exec(line.slice(at))![0].length;
+        if (at + after < line.length || trailing) result += ' ';
+        at += after;
+    }
+    return at === 0 ? line : result + line.slice(at);
+}
+
+/**
+ * Collapses runs of spaces outside text and comments. Rank hides whitespace, so
+ * this only tidies what the rewrites and the typist leave behind.
+ */
+export function collapseSpaces(line: string): string {
+    const protectedSpans = tokenize(line)
+        .filter(item => item.kind === 'string' || item.kind === 'comment');
+    let result = '';
+    let at = 0;
+    for (const span of protectedSpans) {
+        result += line.slice(at, span.start).replace(/  +/g, ' ') + span.text;
+        at = span.end;
+    }
+    return result + line.slice(at).replace(/  +/g, ' ');
+}
+
+/** The whole rewrite, for a finished line. */
+export function formatLine(text: string): string {
+    return collapseSpaces(spaceOperators(expandAssignKey(text)));
+}
+
+/**
+ * The same rewrite for a line still being typed. It keeps the trailing space an
+ * operator earns, so the next character starts a new word on its own.
+ */
+export function formatTyping(prefix: string): string {
+    return collapseSpaces(spaceOperators(expandAssignKey(prefix), true));
+}
+
+/** True when the position sits inside a text literal or a comment. */
+export function insideText(prefix: string): boolean {
+    const last = tokenize(prefix).at(-1);
+    if (last === undefined || last.end !== prefix.length) return false;
+    return last.kind === 'comment' || (last.kind === 'string' && !last.closed);
 }
 
 export interface LineScan {
@@ -310,10 +427,20 @@ export function cellSource(state: CellState): string {
     return state.lines.join('\n');
 }
 
-/** Indentation the next physical line starts with. */
-export function nextIndent(state: CellState): string {
-    if (state.pending !== '') return indent(state.blocks.length + 1);
-    return indent(state.blocks.length);
+/**
+ * Indentation the next physical line starts with. A line that begins with a
+ * closing keyword sits one level out, which is why `dedent` exists: the prompt
+ * can follow the word as it is typed.
+ */
+export function nextIndent(state: CellState, dedent = false): string {
+    const depth = state.blocks.length + (state.pending === '' ? 0 : 1) - (dedent ? 1 : 0);
+    return indent(depth);
+}
+
+/** True when a line starts with the keyword that closes or splits a block. */
+export function startsDedent(text: string): boolean {
+    const first = /^[a-z]+/.exec(text.trimStart())?.[0];
+    return first !== undefined && (first === 'end' || DEDENT_WORDS.has(first));
 }
 
 /** Six characters wide, so continuations line up under the first prompt. */

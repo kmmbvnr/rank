@@ -65,6 +65,7 @@ execution direction and its semantic requirements.
 - [Project Euler examples](examples/project-euler.md)
 - [LeetCode examples](examples/leetcode.md)
 - [Kaggle examples](examples/kaggle.md)
+- [SQL challenge roadmap](examples/sql-challenges.md)
 - [TPC-H examples](examples/tpch.md)
 - [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
