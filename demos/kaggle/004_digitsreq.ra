@@ -1,41 +1,57 @@
 rem Kaggle: Digit Recognizer
-rem Recognize handwritten digits
-rem from 28 by 28 pixel images.
-rem
-rem Target: label
-rem Metric: Accuracy
+rem https://www.kaggle.com/competitions/digit-recognizer
+rem Classify normalized pixels by nearest
+rem training-class centroid.
 
-use tables
-use ml
+use numbers
+use ranges
+use sequences
+use stats
 
-Train = csv "train.csv"
-Test = csv "test.csv"
 
-rem Get all pixel columns
+fun centroids X Y Classes
+  Shape = X shape
+  if Shape len not equal 2 or Y len not equal Shape 0
+    .DimensionMismatch raise
+  end
+  Result = array shape (Classes len) (Shape 1) pad 0.0
+  for Class ci in Classes
+    Mask = Y equal Class
+    Group = X Mask #
+    if Group len equal 0
+      .DomainError raise
+    end
+    Result ci # = Group mean axis 0
+  end
+  return Result
+end
 
-Features = Train labels
-Mask = Features not equal .label
-Features = Features Mask
 
-X = Train Features
-Xtest = Test Features
-Y = Train .label
+fun classify X Centers Classes
+  Shape = X shape
+  if Shape len not equal 2
+    .DimensionMismatch raise
+  end
+  Pred = array shape (Shape 0) pad 0
+  for Row in 0 until Shape 0
+    Point = X Row #
+    Delta = Centers - Point
+    Dist = (Delta * Delta) sum axis 1
+    Best = 0
+    for Candidate in 1 until Classes len
+      if Dist Candidate less Dist Best
+        Best = Candidate
+      end
+    end
+    Pred Row = Classes Best
+  end
+  return Pred
+end
 
-rem Normalize pixel values
 
-X = X / 255
-Xtest = Xtest / 255
-
-rem Train multiclass classifier
-
-Model = X Y logistic
-Pred = Model Xtest predict
-
-rem Build Kaggle submission
-
-Test .ImageId = 1 to len Test
-Test .Label = Pred
-
-Out = Test .ImageId .Label
-
-csv "submission.csv" = Out
+fun solve X Y Xtest Classes
+  X = X / 255.0
+  Xtest = Xtest / 255.0
+  Centers = X Y Classes centroids
+  return Xtest Centers Classes classify
+end

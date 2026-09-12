@@ -1,0 +1,42 @@
+use testing
+
+test "classifies pixels by the nearest class centroid"
+  use "004_digitsreq"
+  X = array shape 4 2
+    0 0
+    0 10
+    250 245
+    255 255
+  end
+  Y = array 0 0 1 1
+  Xtest = array shape 2 2
+    5 5
+    250 250
+  end
+
+  X Y Xtest (array 0 1) solve equal array 0 1
+end
+
+test "keeps caller feature tensors unchanged"
+  use sequences
+  use "004_digitsreq"
+  X = array shape 2 1
+    0
+    255
+  end
+  Before = X copy
+  Pred = X (array 0 1) X (array 0 1) solve
+  X equal Before
+end
+
+test "requires a sample for every requested class"
+  use "004_digitsreq"
+  X = array shape 1 1 pad 0
+  Raised = false
+  try
+    Centers = X (array 0) (array 0 1) centroids
+  catch .DomainError Error
+    Raised = true
+  end
+  Raised
+end
