@@ -78,3 +78,63 @@ loops. Writes and metadata inspection are tested not to execute tensor cells.
 
 Final integrated `npm test`: 46 language tests, 1045 interpreter tests and
 18 CLI tests passed, including the build.
+
+
+## AC-power follow-up
+
+The next measurements recorded AC power and `lowpowermode = 0` on the same
+Apple M5 and Node version. Absolute times were roughly half the earlier run.
+The earlier power and thermal state was not recorded, so this does not establish
+that plugging in caused the change. Both sides now run under the same reported
+power settings, sequentially, with no tests or builds running alongside them.
+
+Three small runtime changes address observed overhead:
+
+- Materializing a sequence now creates tracked owned storage. Previously,
+  `(1 to N) array` produced an untracked buffer, so downstream tensor caches
+  could not reuse their cells. This was the main problem in Euler 009.
+- A derived reader reuses its local validation result within the same write
+  epoch. Unknown host buffers still read live and retain no cell cache.
+- Compiled loops prepare tensor readers and writers only for array slots.
+  Scalar and container variables no longer allocate unused tensor accessors.
+
+Two full-suite runs per version produced these results. All 341 files and 1193
+checks have identical test counts and output digests across all six runs.
+
+| Version | Run 1, s | Run 2, s | Mean, s |
+| --- | ---: | ---: | ---: |
+| Before revisions, `946a415` | 29.052 | 29.151 | 29.101 |
+| Revisions, `45aeefc` | 30.434 | 30.805 | 30.620 |
+| These fixes, `eec62fd` | 30.245 | 30.554 | 30.400 |
+
+These fixes reduce the suite mean by only 0.7%, which is too small for a strong
+speedup claim with two runs. Revision tracking still costs about 4.5% against
+the pre-revision suite. The original regression cannot be dismissed as a power
+setting difference: it remains visible in this comparison.
+
+Euler 009 improves from 355/378 ms to 155/169 ms, about 2.3x. Collatz improves
+from 5281/5274 ms to 5076/5224 ms, a smaller change. Direct nine-sample median
+benchmarks, repeated twice, show PCA at 2.84/2.85 ms before and 2.35/2.28 ms
+after; cached column reads at 0.043/0.041 ms before and 0.026/0.027 ms after.
+Dense writes do not improve. Dense updates vary substantially: 27.0 to 34.9 ms
+in one run, 33.4 to 34.3 ms in the repeat. Do not treat that first baseline as
+a stable speed comparison. Write-heavy workloads remain a profiling target.
+
+Reproduce with built isolated checkouts and the existing benchmark drivers:
+
+```sh
+RANK_BENCH_COUNTERS=0 node benchmarks/tensor-fusion.mjs suite on 1
+node benchmarks/array-revisions.mjs /path/to/built/45aeefc
+```
+
+The suite timings include parsing, compilation and execution in fresh
+interpreters. The direct benchmark warms each workload and alternates versions.
+[Raw runs and environment](../../benchmarks/baselines/2026-09-12-pull-cache-ac.json)
+include both microbenchmark repeats and all per-file suite measurements.
+The focused checkout passed 46 language, 1046 interpreter and 18 CLI tests.
+After cherry-picking the code as `c9dbb2e` onto current main, the build and
+46 language, 1047 interpreter and 24 CLI tests passed, including SQLite.
+
+Next profiling should separate mutation bookkeeping and allocation cost in
+write-heavy loops. General cache hit/revalidation counters remain future
+internal diagnostics; these fixes do not add a public inspection interface.
