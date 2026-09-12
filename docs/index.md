@@ -67,6 +67,7 @@ execution direction and its semantic requirements.
 - [TPC-H examples](examples/tpch.md)
 - [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
+- [Array element types and compact storage](design/array-element-types.md)
 
 ## Development workflow
 

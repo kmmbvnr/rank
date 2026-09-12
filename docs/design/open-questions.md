@@ -303,6 +303,18 @@ combination. Cached reusable factorizations and batch/axis semantics also remain
 open. Every path must preserve the observable `solve` result and error
 contract.
 
+## Array element types
+
+An optional element-type annotation would let an array name a narrower
+representation than a boxed Rank atom — `int32`, `f32`, `fp8`, `fp4` — and keep
+its cells in a typed buffer. An `integer` cell costs 31.9 bytes today, so the
+question is mainly about which problems fit in memory.
+
+The decisions still open are whether a representation is a storage choice or a
+type, where the annotation attaches, which `fp8` format to accept, and where an
+MXFP4 block scale lives. See
+[Array element types and compact storage](array-element-types.md).
+
 ## NLP preprocessing
 
 `vocab` and `tfidf` were useful in the Disaster Tweets sketch, but it is not yet
