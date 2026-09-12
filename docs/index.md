@@ -84,3 +84,5 @@ execution direction and its semantic requirements.
 - [Landscape](marketing/landscape.md)
 - [Positioning](marketing/positioning.md)
 - [Languages to learn from](marketing/inspirations.md)
+
+- [Fusion delivery and worker recheck](design/fusion-results.md)
