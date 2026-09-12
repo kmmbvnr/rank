@@ -87,3 +87,6 @@ of whole-suite acceleration.
 
 A second isolated focused run measured 308.4 to 9.37 ms at 32768 by 32,
 confirming the materialization gain.
+
+The [axis statistics stage](axis-statistics-fusion.md) improves PCA while
+preserving the current recomputation behavior.

@@ -143,6 +143,48 @@ function lazyNumericArray(
     };
 }
 
+/** Fuse cell reads with statistics while deferring validation until every
+ * source read succeeds, as the ordinary gather-then-reduce path requires. */
+export function statisticsCell(
+    operation: 'mean' | 'std', size: number, itemAt: (index: number) => RankValue,
+): number {
+    let total = 0, count = 0;
+    const values = operation === 'std' ? [] as number[] : undefined;
+    let invalid: { value: RankValue; nonfinite: boolean } | undefined;
+    for (let index = 0; index < size; index++) {
+        let value: RankValue;
+        try { value = itemAt(index); }
+        catch (error) {
+            if (error instanceof MissingValueError) continue;
+            throw error;
+        }
+        count++;
+        if (typeof value !== 'number' && typeof value !== 'bigint') {
+            invalid ??= { value, nonfinite: false };
+            continue;
+        }
+        const numeric = Number(value);
+        if (operation === 'std' && !Number.isFinite(numeric)) {
+            invalid ??= { value, nonfinite: true };
+        }
+        total += numeric;
+        values?.push(numeric);
+    }
+    if (count === 0) throw new RankError(`${operation} requires at least one value`, 'EmptyReduction');
+    if (invalid) {
+        if (invalid.nonfinite) throw new RankError('std expects finite values', 'DomainError');
+        expectNumeric(invalid.value);
+    }
+    const mean = total / count;
+    if (!values) return mean;
+    let squared = 0;
+    for (const value of values) {
+        const difference = value - mean;
+        squared += difference * difference;
+    }
+    return Math.sqrt(squared / count);
+}
+
 function standardDeviation(value: RankValue): number {
     const items = presentValues(value, 'std');
     if (items.length === 0) {

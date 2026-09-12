@@ -1,0 +1,23 @@
+{
+  "name": "pca",
+  "tensorFusion": false,
+  "rows": 2048,
+  "path": "demos/deepml/019_pca.ra",
+  "sourceHash": "a33110b838812741d4a76f9547c0b25a6280edb2b4c3fec759186f7aca26b894",
+  "node": "v24.15.0",
+  "coldMs": 321.000583,
+  "samplesMs": [
+    236.06341699999984,
+    232.91916600000013,
+    232.55054200000018,
+    232.70408399999974,
+    233.86020800000006
+  ],
+  "memory": {
+    "rss": 171917312,
+    "heapTotal": 98811904,
+    "heapUsed": 46619176,
+    "external": 2239372,
+    "arrayBuffers": 29231
+  }
+}

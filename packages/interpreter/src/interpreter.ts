@@ -95,7 +95,7 @@ import {
     sortByKeys,
     transposeValue,
 } from './modules/sequences.js';
-import { covarianceValue, errorMetricValue } from './modules/stats.js';
+import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
 import { projectField, projectFields } from './modules/tables.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -3467,6 +3467,11 @@ export class Interpreter {
             const start = offsetAt(frameIndex, frameAxes);
             const itemAt = (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
             if (directSum) return sumIndexed(reducedSize, itemAt);
+            if (this.options.tensorFusion !== false
+                && (operation === 'mean' || operation === 'std')
+                && reducer === this.standardFunctions.get(standardModules.stats[operation])) {
+                return statisticsCell(operation, reducedSize, itemAt);
+            }
             const items: RankValue[] = [];
             for (let index = 0; index < reducedSize; index += 1) {
                 try {

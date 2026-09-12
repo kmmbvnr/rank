@@ -12,7 +12,8 @@ const paths = { pca: 'demos/deepml/019_pca.ra', gradient: 'demos/deepml/015_gd.r
   windows: 'demos/euler/008_seriesproduct.ra' };
 assert(name in paths);
 const source = readFileSync(new URL('../' + paths[name], import.meta.url), 'utf8');
-const runtime = new Interpreter(() => {});
+const tensorFusion = process.env.TENSOR_FUSION !== 'off';
+const runtime = new Interpreter(() => {}, { tensorFusion });
 let call, check;
 if (name === 'windows') {
   call = () => runtime.execute(source);
@@ -54,7 +55,7 @@ try {
   const coldMs = measure();
   for (let i = 0; i < 3; i++) measure();
   const samplesMs = Array.from({ length: repeat }, measure);
-  console.log(JSON.stringify({ name, rows: name === 'windows' ? undefined : rows,
+  console.log(JSON.stringify({ name, tensorFusion, rows: name === 'windows' ? undefined : rows,
     path: paths[name], sourceHash: createHash('sha256').update(source).digest('hex'),
     node: process.version, coldMs, samplesMs, memory: process.memoryUsage() }, null, 2));
 } finally { runtime.dispose(); }

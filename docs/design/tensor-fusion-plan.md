@@ -7,8 +7,10 @@ The first [explicit copy implementation](array-output-fusion.md) covers equal-sh
 materialized inputs and safe private intermediates. The next
 [broadcasting stage and workload profiles](fusion-domains.md) extend explicit
 copy/reduction domains. [Window-cell folds](window-reduction-fusion.md) now
-compose window geometry with ranked reductions. General axis-reduction fusion
-and the final worker comparison remain pending.
+compose window geometry with ranked reductions.
+[Axis statistics fusion](axis-statistics-fusion.md) combines reads and arithmetic
+for the profiled PCA workload. The final worker comparison remains pending;
+further operators and producer combinations remain incremental compiler work.
 
 The [worker experiment](tensor-workers-results.md) measured about 252 ms for
 `(A * A + A * 2.0 + 1.0) copy` on one million real elements. Four workers reduced
