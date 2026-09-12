@@ -1,0 +1,21 @@
+{
+  "name": "windows",
+  "path": "demos/euler/008_seriesproduct.ra",
+  "sourceHash": "0c3795fc51bdde9d7667a49628b90668fa825832b253d71a1a6983979e4092da",
+  "node": "v24.15.0",
+  "coldMs": 126.96708299999997,
+  "samplesMs": [
+    20.212041999999997,
+    24.26762500000001,
+    3.600791000000015,
+    3.544667000000004,
+    27.611582999999996
+  ],
+  "memory": {
+    "rss": 132644864,
+    "heapTotal": 56868864,
+    "heapUsed": 26659272,
+    "external": 2209815,
+    "arrayBuffers": 29231
+  }
+}

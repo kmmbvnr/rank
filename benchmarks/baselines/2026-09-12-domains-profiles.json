@@ -1,0 +1,321 @@
+{
+  "base": "f12fca9",
+  "method": "Node --cpu-prof, separate from timing; self sample time includes startup",
+  "profiles": {
+    "pca": {
+      "sampledMs": 3308.541,
+      "self": [
+        {
+          "function": "reduceAt",
+          "file": "interpreter.js",
+          "ms": 1056.137
+        },
+        {
+          "function": "",
+          "file": "stats.js",
+          "ms": 679.455
+        },
+        {
+          "function": "arrayItem",
+          "file": "tensor.js",
+          "ms": 614.67
+        },
+        {
+          "function": "standardDeviation",
+          "file": "stats.js",
+          "ms": 220.411
+        },
+        {
+          "function": "call",
+          "file": "shared.js",
+          "ms": 187.542
+        },
+        {
+          "function": "arrayItem",
+          "file": "interpreter.js",
+          "ms": 156.911
+        },
+        {
+          "function": "meanValue",
+          "file": "stats.js",
+          "ms": 65.585
+        },
+        {
+          "function": "itemAt",
+          "file": "tensor.js",
+          "ms": 54.207
+        },
+        {
+          "function": "presentValues",
+          "file": "stats.js",
+          "ms": 50.999
+        },
+        {
+          "function": "(garbage collector)",
+          "file": "",
+          "ms": 36.248
+        },
+        {
+          "function": "compileSourceTextModule",
+          "file": "utils",
+          "ms": 19.542
+        },
+        {
+          "function": "meanAt",
+          "file": "stats.js",
+          "ms": 10.333
+        },
+        {
+          "function": "(program)",
+          "file": "",
+          "ms": 10.208
+        },
+        {
+          "function": "add",
+          "file": "dfa.js",
+          "ms": 7.709
+        },
+        {
+          "function": "internalModuleStat",
+          "file": "",
+          "ms": 6.042
+        },
+        {
+          "function": "resultAt",
+          "file": "stats.js",
+          "ms": 5.875
+        },
+        {
+          "function": "coordinatesFor",
+          "file": "stats.js",
+          "ms": 5.375
+        },
+        {
+          "function": "open",
+          "file": "",
+          "ms": 4.584
+        },
+        {
+          "function": "addDFAState",
+          "file": "all-star-lookahead.js",
+          "ms": 4.5
+        },
+        {
+          "function": "computeReachSet",
+          "file": "all-star-lookahead.js",
+          "ms": 3.667
+        }
+      ]
+    },
+    "gradient": {
+      "sampledMs": 846.625,
+      "self": [
+        {
+          "function": "coordinatesAt",
+          "file": "sequences.js",
+          "ms": 157.415
+        },
+        {
+          "function": "resultAt",
+          "file": "linalg.js",
+          "ms": 146.002
+        },
+        {
+          "function": "arrayItem",
+          "file": "linalg.js",
+          "ms": 93.709
+        },
+        {
+          "function": "get items",
+          "file": "sequences.js",
+          "ms": 84.832
+        },
+        {
+          "function": "arrayItem",
+          "file": "tensor.js",
+          "ms": 42.833
+        },
+        {
+          "function": "",
+          "file": "sequences.js",
+          "ms": 37.584
+        },
+        {
+          "function": "itemAt",
+          "file": "sequences.js",
+          "ms": 30.167
+        },
+        {
+          "function": "(program)",
+          "file": "",
+          "ms": 23.291
+        },
+        {
+          "function": "compileSourceTextModule",
+          "file": "utils",
+          "ms": 22.583
+        },
+        {
+          "function": "",
+          "file": "interpreter.js",
+          "ms": 21.084
+        },
+        {
+          "function": "containedFiles",
+          "file": "interpreter.js",
+          "ms": 19.209
+        },
+        {
+          "function": "itemAt",
+          "file": "tensor.js",
+          "ms": 18.042
+        },
+        {
+          "function": "(garbage collector)",
+          "file": "",
+          "ms": 17.04
+        },
+        {
+          "function": "coordinatesAt",
+          "file": "linalg.js",
+          "ms": 10.501
+        },
+        {
+          "function": "wrapSafe",
+          "file": "loader",
+          "ms": 7.5
+        },
+        {
+          "function": "add",
+          "file": "dfa.js",
+          "ms": 5.291
+        },
+        {
+          "function": "compileForInternalLoader",
+          "file": "realm",
+          "ms": 4.583
+        },
+        {
+          "function": "addNumbers",
+          "file": "linalg.js",
+          "ms": 4.5
+        },
+        {
+          "function": "containsPath",
+          "file": "lookahead.js",
+          "ms": 4.458
+        },
+        {
+          "function": "closure",
+          "file": "all-star-lookahead.js",
+          "ms": 3.5
+        }
+      ]
+    },
+    "windows": {
+      "sampledMs": 243.459,
+      "self": [
+        {
+          "function": "",
+          "file": "sequence.js",
+          "ms": 32.377
+        },
+        {
+          "function": "arrayCoordinates",
+          "file": "sequence.js",
+          "ms": 22.626
+        },
+        {
+          "function": "compileSourceTextModule",
+          "file": "utils",
+          "ms": 14.874
+        },
+        {
+          "function": "reduceArrayCell",
+          "file": "interpreter.js",
+          "ms": 12.166
+        },
+        {
+          "function": "wrapSafe",
+          "file": "loader",
+          "ms": 9.0
+        },
+        {
+          "function": "(program)",
+          "file": "",
+          "ms": 8.042
+        },
+        {
+          "function": "(garbage collector)",
+          "file": "",
+          "ms": 7.832
+        },
+        {
+          "function": "get items",
+          "file": "sequence.js",
+          "ms": 7.583
+        },
+        {
+          "function": "open",
+          "file": "",
+          "ms": 7.541
+        },
+        {
+          "function": "parse",
+          "file": "",
+          "ms": 6.25
+        },
+        {
+          "function": "containedFiles",
+          "file": "interpreter.js",
+          "ms": 4.666
+        },
+        {
+          "function": "compileForInternalLoader",
+          "file": "realm",
+          "ms": 4.542
+        },
+        {
+          "function": "containsPath",
+          "file": "lookahead.js",
+          "ms": 3.042
+        },
+        {
+          "function": "",
+          "file": "text.js",
+          "ms": 3.042
+        },
+        {
+          "function": "get end",
+          "file": "cst-node-builder.js",
+          "ms": 3.042
+        },
+        {
+          "function": "lookAheadSequenceFromAlternatives",
+          "file": "lookahead.js",
+          "ms": 3.0
+        },
+        {
+          "function": "walk",
+          "file": "rest.js",
+          "ms": 2.916
+        },
+        {
+          "function": "getPackageScopeConfig",
+          "file": "package_json_reader",
+          "ms": 2.875
+        },
+        {
+          "function": "construct",
+          "file": "langium-parser.js",
+          "ms": 2.833
+        },
+        {
+          "function": "",
+          "file": "stream.js",
+          "ms": 2.167
+        }
+      ]
+    }
+  }
+}

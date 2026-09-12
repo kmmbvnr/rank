@@ -4,8 +4,9 @@ Agreed priority, 2026-09-12. This is planned compiler work, not additional langu
 syntax. Stage delivery and measurements are recorded separately below.
 
 The first [explicit copy implementation](array-output-fusion.md) covers equal-shaped
-materialized inputs and safe private intermediates. Broadcasting, axis/rank and
-window extensions remain pending.
+materialized inputs and safe private intermediates. The next
+[broadcasting stage and workload profiles](fusion-domains.md) extend explicit
+copy/reduction domains. Axis/rank and window extensions remain pending.
 
 The [worker experiment](tensor-workers-results.md) measured about 252 ms for
 `(A * A + A * 2.0 + 1.0) copy` on one million real elements. Four workers reduced
@@ -25,8 +26,8 @@ Profile both the full call and forced result. Record parsing/preparation, genera
 kernel counts, guard cost, materialization, allocation/GC and warm execution
 separately where practical. Do not run instrumentation during timing comparisons.
 
-Source inspection shows that `compileTensorKernel` in `tensor-kernel.ts` currently
-accepts a terminal reduction. `copy` is not one of those terminals. The polynomial
+Before the first stage, `compileTensorKernel` in `tensor-kernel.ts` accepted
+only terminal reductions. `copy` was not one of those terminals. The polynomial
 therefore cannot use that general fused plan, even though other specialized
 compiler paths exist. Confirm the executed path before changing the compiler.
 

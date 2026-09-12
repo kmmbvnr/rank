@@ -5,6 +5,7 @@ import {
     type Expression, type Statement,
 } from 'rank-language';
 import { type RankValue, isRankArray } from './value.js';
+import { broadcastShape } from './tensor.js';
 import { materializedArrayItems } from './array-storage.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
@@ -127,6 +128,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     return { count, get source() { return generated; }, run(): RankValue | undefined {
         if (unavailable || names.some(name => host.lookup(name) !== undefined)) return undefined;
         const bound = new Map<TensorNode, Bound>();
+        let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
         function bind(node: TensorNode): Bound | undefined {
             if (bound.has(node)) return bound.get(node);
@@ -144,8 +146,14 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 }
             } else if (node.kind === 'binary') {
                 const a = bind(node.left), b = bind(node.right);
-                if (!a || !b || a.shape && b.shape && !same(a.shape, b.shape)) return undefined;
-                result = { shape: a.shape ?? b.shape, boolean: node.op in comparison || ['and', 'or', 'xor'].includes(node.op) };
+                if (!a || !b) return undefined;
+                let shape = a.shape ?? b.shape;
+                if (a.shape && b.shape && !same(a.shape, b.shape)) {
+                    try { shape = broadcastShape(a.shape, b.shape); }
+                    catch { return undefined; }
+                    broadcasts = true;
+                }
+                result = { shape, boolean: node.op in comparison || ['and', 'or', 'xor'].includes(node.op) };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
                 if (node.op === 'text') {
@@ -191,6 +199,10 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         }
         const output = bind(root);
         if (!output?.shape || !host.builtin(terminal)) return undefined;
+        // Gathers and filters have their own iteration domains. They require
+        // explicit domain composition before they can mix with broadcasting.
+        if (broadcasts && ([...bound.keys()].some(node => node.kind === 'select')
+            || [...bound.values()].some(info => info.digits))) return undefined;
         const size = output.shape.reduce((p, n) => p * n, 1);
         // A selection changes cardinality. Other operands must not zip an
         // unfiltered vector against it. Until domain algebra is implemented,
@@ -217,6 +229,25 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             const lines: string[] = [];
             const emitted = new Map<TensorNode, string>();
             const num = (x: string) => `(typeof ${x} === 'bigint' || typeof ${x} === 'number' && Number.isFinite(${x}))`;
+            function address(shape: readonly number[]): string {
+                if (same(shape, output!.shape!)) return 'i';
+                const target = output!.shape!;
+                let sourceStride = 1, targetStride = 1;
+                const terms: string[] = [];
+                for (let axis = target.length - 1; axis >= 0; axis--) {
+                    const sourceAxis = axis - (target.length - shape.length);
+                    if (sourceAxis >= 0) {
+                        const dimension = shape[sourceAxis];
+                        if (dimension !== 1) {
+                            const coordinate = targetStride === 1 ? 'i' : `Math.floor(i / ${targetStride})`;
+                            terms.push(`(${coordinate} % ${target[axis]}) * ${sourceStride}`);
+                        }
+                        sourceStride *= dimension;
+                    }
+                    targetStride *= target[axis];
+                }
+                return terms.join(' + ') || '0';
+            }
             function emit(node: TensorNode): string {
                 const existing = emitted.get(node);
                 if (existing) return existing;
@@ -225,7 +256,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 emitted.set(node, name);
                 if (info.scalar !== undefined) lines.push(`const ${name} = scalars[${info.slot}];`);
                 else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(i) - 48);`);
-                else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + i];`);
+                else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + ${broadcasts ? address(info.view.shape) : 'i'}];`);
                 else if (node.kind === 'binary') {
                     const a = emit(node.left), b = emit(node.right);
                     if (['and', 'or', 'xor'].includes(node.op)) {
