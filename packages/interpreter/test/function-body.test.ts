@@ -6,7 +6,7 @@ function execute(source: string, enabled: boolean, options: InterpreterOptions =
     const io = new MemoryIo({ '/input': 'abcdef' });
     const output: string[] = [];
     let entries = 0, tensors = 0;
-    const runtime = new Interpreter(line => output.push(line), { io, ...options,
+    const runtime = new Interpreter(line => output.push(line), { io, scalarEntryCompilation: false, ...options,
         functionBodyCompilation: enabled, onFunctionBodyExecuted: () => entries++,
         onTensorKernelExecuted: () => tensors++,
     });

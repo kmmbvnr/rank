@@ -901,3 +901,23 @@ Cross-interpreter calls retain ordinary invocation semantics.
 `scalarFunctionCompilation: false` disables generated bodies for both normal and
 tail calls. `onScalarFunctionExecuted` counts actual generated callee executions
 independently of compiled outer-loop entries.
+
+### Scalar compilation at ordinary function entry
+
+The same proven scalar bodies are now available through ordinary function calls,
+including callbacks used by rank application. At declaration time the interpreter
+prepares a candidate; every invocation checks exact arity, BigInt arguments and
+absence of captured bindings for assigned local names. Closure checks repeat on
+every call because an enclosing scope can create such a binding after declaration.
+Rejected guards use the existing function path, without executing/replaying effects.
+
+The memo wrapper remains outside dispatch, so cache hits do not execute a kernel.
+Generators keep their existing path. The owning interpreter still manages call
+depth and callee error locations; proof restrictions exclude resource operations.
+Zero-parameter and duplicate-parameter behavior is preserved. Non-integer calls,
+including array broadcasting, retain ordinary evaluation. Tail-frame replacement
+continues through its dedicated driver; ordinary entry does not intercept it.
+
+`scalarEntryCompilation: false` disables this entry dispatch while keeping earlier
+compiled-loop calls available. `scalarFunctionCompilation: false` disables the
+underlying scalar bodies for both entry and compiled-loop dispatch.

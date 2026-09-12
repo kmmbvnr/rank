@@ -3,7 +3,7 @@ import { Interpreter, RankError, formatValue, isNativeFunction, type RankValue }
 
 function evaluate(expression: string, a: RankValue, b: RankValue, enabled: boolean) {
     let entries = 0;
-    const runtime = new Interpreter(undefined, { scalarCompilation: enabled, tensorFusion: false,
+    const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, scalarCompilation: enabled, tensorFusion: false,
         onScalarExecuted: () => entries++ });
     try {
         runtime.execute(`fun calc A B\n  return ${expression}\nend`);

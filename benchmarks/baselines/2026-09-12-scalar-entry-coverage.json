@@ -1,0 +1,67 @@
+{
+  "node": "v24.15.0",
+  "mode": "tasks",
+  "setting": "compare",
+  "backend": "scalarentry",
+  "counters": true,
+  "samples": 1,
+  "timing": "fresh interpreters; includes parsing, loading, compilation, evaluation and result validation; alternating mode order",
+  "records": [
+    {
+      "enabled": false,
+      "sample": 0,
+      "ms": 284.161166,
+      "entries": [
+        {
+          "name": "Ranked bounded helper, 200000 cells",
+          "ms": 260.391708,
+          "kernels": 0,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 10.033583000000021,
+          "kernels": 200000,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 13.290500000000009,
+          "kernels": 59360,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "sample": 0,
+      "ms": 69.11954100000003,
+      "entries": [
+        {
+          "name": "Ranked bounded helper, 200000 cells",
+          "ms": 56.79970900000001,
+          "kernels": 200000,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Bounded score helper, 200000 calls",
+          "ms": 8.185791999999992,
+          "kernels": 200000,
+          "tests": 0,
+          "digest": "38def85e675b039eaf89d4e55ec71639032290a8cd15100bb6f7e155e6c69407"
+        },
+        {
+          "name": "Euler 45, next common polygonal value",
+          "ms": 3.907958000000008,
+          "kernels": 59362,
+          "tests": 0,
+          "digest": "9d65c469337762fc6e84c4b787a7be5832484f4eb9e834b0823cce6a1da2e303"
+        }
+      ]
+    }
+  ]
+}

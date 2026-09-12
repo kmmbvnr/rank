@@ -154,6 +154,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly scalarEntryCompilation?: boolean;
     readonly compiledScalarTailCalls?: boolean;
     readonly scalarFunctionCompilation?: boolean;
     readonly onScalarFunctionExecuted?: () => void;
@@ -2276,9 +2277,18 @@ export class Interpreter {
             try { return compiled(); }
             catch (error) { throw this.locateError(error, only!); }
         } : undefined;
-        const body = (arguments_: RankValue[]): Evaluation<RankValue> => direct
-            ? completed(this.callDirectFunction(statement, arguments_, context, direct))
-            : this.callFunction(statement, arguments_, context);
+        const proof = this.options.scalarEntryCompilation !== false && !generator
+            ? scalarFunctionResult(statement, true) : undefined;
+        const scalar = proof ? this.prepareScalarFunctionCall(statement) : undefined;
+        const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
+            if (scalar && arguments_.length === statement.parameters.length
+                && arguments_.every(value => typeof value === 'bigint')
+                && !proof!.locals.some(name => context?.find(name))) {
+                return completed(scalar(arguments_));
+            }
+            return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
+                : this.callFunction(statement, arguments_, context);
+        };
         // The closure owns the cache, so separate local declarations never share it.
         const cache = statement.memo ? new Map<string, RankValue>() : undefined;
         const execute = cache ? (arguments_: RankValue[]): Evaluation<RankValue> => {
@@ -2561,6 +2571,7 @@ export class Interpreter {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
             input: this.options.input,
+            scalarEntryCompilation: this.options.scalarEntryCompilation,
             compiledScalarTailCalls: this.options.compiledScalarTailCalls,
             scalarFunctionCompilation: this.options.scalarFunctionCompilation,
             onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,
@@ -2672,6 +2683,7 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             input: this.options.input,
+            scalarEntryCompilation: this.options.scalarEntryCompilation,
             compiledScalarTailCalls: this.options.compiledScalarTailCalls,
             scalarFunctionCompilation: this.options.scalarFunctionCompilation,
             onScalarFunctionExecuted: this.options.onScalarFunctionExecuted,

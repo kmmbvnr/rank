@@ -1549,3 +1549,51 @@ single pair does not establish a stable full-suite speedup.
 Generated callees still require a compiled caller region. Extending safe dispatch
 at ordinary function entry is a next coverage opportunity; the same integer-input
 and private-write proof must hold there before bypassing a Rank frame.
+
+## Generated scalar bodies at ordinary function entry
+
+Ordinary user calls now dispatch to a proven scalar body after checking actual
+arity, integer arguments and captured assignment names. This makes the existing
+compiler available to callers outside compiled loops, including rank callbacks.
+The memo cache remains outside body dispatch. Argument mismatches, non-integer
+values and closure-write collisions retain reference execution.
+
+Seven new tests cover repeated integer/non-integer calls, wrong arity, array
+broadcasting, memo hits, zero/duplicate parameters, arithmetic failure recovery,
+late closure collisions, rank-cell results and logical depth limits. Older scalar
+expression/completion tests explicitly disable entry dispatch so they continue to
+exercise their intended compiler layer. Verification passes 44 language + 898
+interpreter tests.
+
+Five alternating timing samples toggle only `scalarEntryCompilation`, with
+counters disabled and parsing, compilation and answer validation included.
+
+| Task | Prior median ms | Entry compilation median ms |
+| --- | ---: | ---: |
+| Ranked bounded helper, 200000 cells | 264.083 | 42.532 |
+| Normal bounded helper, 200000 loop calls (control) | 5.879 | 5.608 |
+| Unchanged Euler 45 (mostly prior coverage) | 2.747 | 2.049 |
+
+The rank-callback fixture improves about 6.21x; it is not a contest-demo speedup
+claim. Separate counters show 0 to 200000 compiled callee executions for that
+fixture, unchanged 200000 for the loop control, and 59360 to 59362 for Euler 45.
+Only two initialization calls gain coverage in Euler 45; its timing difference
+should not be attributed wholesale to those calls.
+
+[Timings](../../benchmarks/baselines/2026-09-12-scalar-entry-focused.json),
+[coverage](../../benchmarks/baselines/2026-09-12-scalar-entry-coverage.json).
+
+Both full-suite modes pass 306 files / 1054 tests, with all result digests matching
+the preceding scalar-tail baseline. One pair takes 27.502 s off and 26.943 s on.
+Several unrelated heavy files increase in that pair, so this is not evidence of a
+stable whole-suite speedup.
+
+[Suite results](../../benchmarks/baselines/2026-09-12-scalar-entry-suite.json).
+
+A follow-up isolates the four largest absolute increases using three alternating
+pairs. Medians are 2588.098/2587.475 ms off/on for MD5, 4139.092/4150.458 for
+Lights, 1218.330/1203.794 for Look-and-Say and 1845.436/1840.588 for Grid Paths.
+The initial large increases do not recur; these controls remain within about 1.2%
+in either direction. They establish no meaningful gain from this compiler stage.
+
+[Repeated heavy controls](../../benchmarks/baselines/2026-09-12-scalar-entry-controls.json).
