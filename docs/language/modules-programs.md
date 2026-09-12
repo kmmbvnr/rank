@@ -13,6 +13,27 @@ use ranges
 Parsing does not depend on which modules were opened. `use` enables the
 corresponding meanings, validators and execution rules after parsing.
 
+A missing `use` is reported in one of two shapes, because a module contributes
+two kinds of vocabulary. A name that only the module defines is simply unknown,
+and the error suggests the module that would define it:
+
+```
+unknown name: max; did you forget `use numbers`?
+```
+
+A construct that the grammar always parses but only the module gives meaning to
+names itself instead, since there is no unknown word to report:
+
+```
+to requires: use ranges
+```
+
+Both shapes carry the same instruction. The second covers `to` and `until`,
+`multiple by`, `new` containers, `push` and `add`, `stdin`, `group by`, the
+joins, `sort by` and `test` blocks. Every gated construct is listed with a
+runnable example in `packages/language/src/operations.ts`, whose test runs each
+one with and without its module.
+
 ## Source modules
 
 A quoted name loads a Rank source module without executing its top-level lines:

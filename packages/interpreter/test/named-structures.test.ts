@@ -175,7 +175,7 @@ Seen len
     it('reports unsupported constructors and receiver types as Rank errors', () => {
         expect(() => run('new set')).toThrowError('requires: use algo');
         expect(() => run('use algo\nnew unknown')).toThrowError('unknown structure');
-        expect(() => run('use algo\nA = array 1 2\nA add 3')).toThrowError('add expects a set, counter or multiset');
+        expect(() => run('use algo\nA = array 1 2\nA add 3')).toThrowError('add expects a graph, set, counter or multiset');
         expect(() => run('use algo\nA = array 1 2\nA remove 1'))
             .toThrowError('remove expects a set or multiset');
     });

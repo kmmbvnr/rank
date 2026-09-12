@@ -1412,9 +1412,12 @@ export class Interpreter {
                         target.add(values);
                         return undefined;
                     }
-                    interpreter.requireModule('algo', mutation.operation);
+                    // The receiver decides first. Asking for `use algo` before
+                    // knowing the value can take the mutation blames a module for
+                    // what is really a receiver that is not a collection at all.
                     const receiver = mutation.operation === 'add'
                         ? expectAddCollection(target) : target;
+                    interpreter.requireModule('algo', mutation.operation);
                     const value = yield* resume(interpreter.evaluateTask(mutation.value));
                     if (mutation.operation === 'add') addToCollection(receiver, value);
                     else removeFromCollection(receiver, value);

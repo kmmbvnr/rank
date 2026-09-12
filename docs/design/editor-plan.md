@@ -187,10 +187,13 @@ with its module, arity, result kind, laziness and effects. The same file is what
 completion, operation coloring, hover documentation and a static version of the
 runtime's "did you forget `use numbers`?" hint will read.
 
+The gate test earns its keep: it must run each example, not merely watch the
+gate disappear, because the weaker check let a wrong `new graph` example stand.
+Writing it also exposed a misleading error: a receiver that is not a collection
+used to be reported as a missing `use algo`, and now names the receiver.
+
 Still open: the [standard library page](../stdlib/modules.md) has not yet been
-turned into generated data, and `Graph add` on an open graph asks for `use algo`
-rather than dispatching on its receiver, which the catalogue's gate test found
-and the graph documentation contradicts.
+turned into generated data.
 
 ### B2 — binding and mutation facts (small, fully certain)
 

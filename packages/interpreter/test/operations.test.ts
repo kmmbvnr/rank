@@ -5,6 +5,7 @@ import {
 import { Interpreter, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
 import { isNativeFunction, type RankValue } from '../src/value.js';
+import { TokenInput } from './support.js';
 
 const context: RuntimeContext = {
     output: () => undefined,
@@ -99,9 +100,21 @@ describe('the operation catalogue', () => {
 describe('the forms a use enables', () => {
     it.each(moduleForms)('gates $form behind use $module', form => {
         expect(gateMessage(form.example)).toBe(`use ${form.module}`);
-        expect(gateMessage(`use ${form.module}\n${form.example}`)).toBeUndefined();
+        // With the module the example must simply run. Checking only that the
+        // gate is gone would let a broken example stand.
+        expect(errorOf(`use ${form.module}\n${form.example}`)).toBeUndefined();
     });
 });
+
+/** The error a source raises, or undefined when it runs. */
+function errorOf(source: string): string | undefined {
+    try {
+        new Interpreter(() => undefined, { input: new TokenInput(['1']) }).execute(source);
+        return undefined;
+    } catch (error) {
+        return error instanceof Error ? error.message : String(error);
+    }
+}
 
 /**
  * The module a source refuses to run without, or undefined when it needs none.
@@ -109,14 +122,10 @@ describe('the forms a use enables', () => {
  * the runtime suggests the module that would define it.
  */
 function gateMessage(source: string): string | undefined {
-    try {
-        new Interpreter(() => undefined).execute(source);
-        return undefined;
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return /requires: (use \w+)|did you forget `(use \w+)`/.exec(message)?.slice(1)
-            .find(group => group !== undefined);
-    }
+    const message = errorOf(source);
+    if (message === undefined) return undefined;
+    return /requires: (use \w+)|did you forget `(use \w+)`/.exec(message)?.slice(1)
+        .find(group => group !== undefined);
 }
 
 function catalogueKeys(): Set<string> {

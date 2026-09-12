@@ -33,7 +33,9 @@ export function newStructure(name: string): RankValue {
 
 export function expectAddCollection(value: RankValue) {
     if (isRankSet(value) || isRankCounter(value) || isRankMultiset(value)) return value;
-    throw new RankError('add expects a set, counter or multiset');
+    // A graph takes `add` too, through its own dispatch, so name it here: the
+    // usual mistake is a receiver that never became the collection it looks like.
+    throw new RankError('add expects a graph, set, counter or multiset');
 }
 
 export function addToCollection(target: RankValue, value: RankValue): RankValue {
