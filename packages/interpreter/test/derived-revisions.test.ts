@@ -4,6 +4,30 @@ import { createArraySnapshot, derivedArray, materializedArrayItems, ownedArray }
 import type { RankArray } from '../src/value.js';
 
 describe('derived array revisions', () => {
+    it('tracks materialized sequences through cached outer products', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`use ranges
+A = (1 to 3) array
+B = A A + outer`);
+            const source = runtime.variables.get('A') as RankArray;
+            const result = runtime.variables.get('B') as RankArray;
+            let reads = 0;
+            const observed = derivedArray([9], [result], i => {
+                reads++;
+                return result.itemAt!(i);
+            });
+            expect(observed.items).toEqual([2n, 3n, 4n, 3n, 4n, 5n, 4n, 5n, 6n]);
+            expect(observed.itemAt!(0)).toBe(2n);
+            expect(reads).toBe(9);
+            source.items[0] = 10n;
+            expect(reads).toBe(9);
+            expect(observed.itemAt!(0)).toBe(20n);
+            expect(reads).toBe(10);
+            expect(observed.itemAt!(1)).toBe(12n);
+        } finally { runtime.dispose(); }
+    });
+
     it('does not batch revisions when a compiled loop reads a lazy dependent', () => {
         let loops = 0;
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => { loops++; } });

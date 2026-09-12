@@ -234,11 +234,16 @@ export function derivedArray(
         return current;
     };
     let seen: number | undefined;
+    let validatedEpoch = -1;
     const cells = new Map<number, RankValue>();
     let materialized: RankValue[] | undefined;
     let compilerCache: RankValue[] | undefined;
     const valid = () => {
+        // No writes means the previous dependency proof still holds. Keep this
+        // local: tensor kernels read many cells in the same write epoch.
+        if (validatedEpoch === writeRevision) return seen !== undefined;
         const current = arrayRevision(value);
+        validatedEpoch = writeRevision;
         if (current === undefined || current !== seen) {
             cells.clear();
             materialized = undefined;

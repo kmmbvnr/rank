@@ -1,4 +1,4 @@
-import { derivedArray } from './array-storage.js';
+import { derivedArray, ownedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
     isRankArray,
@@ -152,7 +152,7 @@ export function materializeSequence(source: RankSequence): RankArray {
         throw new RankError('cannot materialize an infinite sequence');
     }
     const items = [...source.plan.iterate()];
-    return { kind: 'array', items, shape: [items.length] };
+    return ownedArray(items);
 }
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {

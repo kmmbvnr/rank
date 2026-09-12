@@ -648,7 +648,14 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         }
     }
     const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites) {
-        ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}], storage${index} = access(input[${index}]), reader${index} = read(storage${index}), write${index} = write(storage${index}, batchWrites)`).join(',')};` : ''}
+        ${names.length ? `let ${names.map((name, index) => {
+            const value = `r${index} = input[${index}]`;
+            // Scalar/container slots never use tensor accessors. In short loops,
+            // preparing those unused closures costs more than the loop itself.
+            return arrays.has(name) || destinations.has(name)
+                ? `${value}, storage${index} = access(input[${index}]), reader${index} = read(storage${index}), write${index} = write(storage${index}, batchWrites)`
+                : value;
+        }).join(',')};` : ''}
         let result, location = -1;
         try { ${root.setup} ${root.header}
             let iterationResult;
