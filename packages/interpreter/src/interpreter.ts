@@ -1,5 +1,5 @@
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { createArraySnapshot } from './array-storage.js';
+import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem } from './array-storage.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -1588,14 +1588,14 @@ export class Interpreter {
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(interpreter.evaluateTask(expression.fill)));
-                    return { kind: 'array', items: Array(Number(size)).fill(fill), shape };
+                    return ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object');
                 }
                 if (BigInt(items.length) !== size) {
                     throw new RankError(
                         `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
                     );
                 }
-                return { kind: 'array', items, shape };
+                return ownedArray(items, shape);
             };
         }
         if (isRecordExpression(expression)) {
@@ -3280,9 +3280,25 @@ export class Interpreter {
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
 
+        const builtin = ['numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
+            Object.values(standardModules[module]).some(definition => this.standardFunctions.get(definition) === fn));
         const results = new Map<number, RankValue>();
+        let inputRevision: number | undefined;
+        let materialized: RankValue[] | undefined;
+        const refresh = () => {
+            if (!builtin) return true;
+            const current = arrayRevision(value);
+            if (current === undefined || current !== inputRevision) {
+                results.clear();
+                materialized = undefined;
+                if (current !== inputRevision) resultCellShape = undefined;
+                inputRevision = current;
+            }
+            return current !== undefined;
+        };
         let resultCellShape: readonly number[] | undefined;
         const resultAt = (frameIndex: number): RankValue => {
+            const cacheable = refresh();
             const cached = results.get(frameIndex);
             if (cached !== undefined) return cached;
             const result = fn.call([cells.cellAt(frameIndex)]);
@@ -3295,7 +3311,7 @@ export class Interpreter {
                 );
             }
             this.ownFiles(result);
-            results.set(frameIndex, result);
+            if (cacheable) results.set(frameIndex, result);
             return result;
         };
         const outputShape = (): readonly number[] => {
@@ -3303,8 +3319,7 @@ export class Interpreter {
             return [...cells.frameShape, ...resultCellShape!];
         };
 
-        let materialized: RankValue[] | undefined;
-        return {
+        const result: RankArray = {
             kind: 'array',
             get shape() {
                 return outputShape();
@@ -3325,13 +3340,14 @@ export class Interpreter {
                 return materialized;
             },
         };
+        return builtin ? registerArrayDependencies(result, [value]) : result;
     }
 
     private evaluateOuter(operator: string, left: RankValue, right: RankValue): RankValue {
         const a = outerOperand(left, 'left');
         const b = outerOperand(right, 'right');
         const rightSize = arraySize(b.shape);
-        return lazyArray([...a.shape, ...b.shape], index => {
+        return derivedArray([...a.shape, ...b.shape], [a, b], index => {
             const leftIndex = Math.floor(index / rightSize);
             const rightIndex = index % rightSize;
             return this.evaluateBinary(
@@ -3339,7 +3355,7 @@ export class Interpreter {
                 arrayItem(a, leftIndex),
                 arrayItem(b, rightIndex),
             );
-        });
+        }, true);
     }
 
     private evaluateNamedOuter(
@@ -3381,12 +3397,12 @@ export class Interpreter {
             const frameShape = value.shape.slice(0, value.shape.length - cellRank);
             const cellShape = value.shape.slice(value.shape.length - cellRank);
             const cellSize = arraySize(cellShape);
-            return lazyArray(frameShape, frameIndex => {
+            return derivedArray(frameShape, [value], frameIndex => {
                 const start = frameIndex * cellSize;
                 return cellRank === 0
                     ? this.reduceCell(operator, arrayItem(value, start))
                     : this.reduceArrayCell(operator, value, start, cellSize);
-            });
+            }, true);
         }
         if (cellRank > valueRank(value)) {
             throw new RankError(`rank ${cellRank} exceeds value rank ${valueRank(value)}`);
@@ -3421,7 +3437,7 @@ export class Interpreter {
                 : operation(accumulated, item);
             result.push(accumulated);
         }
-        return { kind: 'array', items: result, shape: [result.length] };
+        return ownedArray(result);
     }
 
     private evaluateAxisReduction(
@@ -3487,7 +3503,13 @@ export class Interpreter {
             return reducer.call([{ kind: 'array', items, shape }]);
         };
 
-        return frameShape.length === 0 ? reduceAt(0) : lazyArray(frameShape, reduceAt);
+        if (frameShape.length === 0) return reduceAt(0);
+        const builtin = ['numbers', 'stats', 'sequences'].some(module => {
+            const definition = standardModules[module][operation];
+            return definition !== undefined && reducer === this.standardFunctions.get(definition);
+        });
+        return builtin ? derivedArray(frameShape, [value], reduceAt, true)
+            : lazyArray(frameShape, reduceAt);
     }
 
     private reduceCell(operator: string, value: RankValue): RankValue {
@@ -3534,11 +3556,7 @@ export class Interpreter {
             });
         }
         if (isRankArray(value)) {
-            return {
-                kind: 'array',
-                items: value.items.map(item => this.evaluateUnary(operator, item)),
-                shape: value.shape,
-            };
+            return ownedArray(value.items.map(item => this.evaluateUnary(operator, item)), value.shape);
         }
         if (operator === 'not' && typeof value === 'boolean') {
             return !value;
@@ -4070,7 +4088,7 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[], compile
         yield {
             value: cellShape.length === 0
                 ? items[0]
-                : { kind: 'array', items, shape: cellShape },
+                : ownedArray(items, cellShape),
             indices: frameCoordinates.map(BigInt),
         };
     }
@@ -4103,7 +4121,7 @@ function arrayOffset(shape: readonly number[], coordinates: readonly number[]): 
 }
 
 function array(items: RankValue[]): RankArray {
-    return { kind: 'array', items, shape: [items.length] };
+    return ownedArray(items);
 }
 
 function lazyArray(
@@ -4125,7 +4143,7 @@ function lazyArray(
 }
 
 function arrayItem(source: RankArray, index: number): RankValue {
-    return source.itemAt?.(index) ?? source.items[index];
+    return readArrayItem(source, index);
 }
 
 function arraySize(shape: readonly number[]): number {
@@ -4179,7 +4197,7 @@ function dyadicCells(
             if (frameShape.length === 0) return value;
             const start = frameIndex * cellSize;
             if (cellRank === 0) return arrayItem(value, start);
-            return lazyArray(cellShape, index =>
+            return derivedArray(cellShape, [value], index =>
                 arrayItem(value, start + index));
         },
     };
@@ -4207,7 +4225,7 @@ function tensorCells(source: RankArray, frameAxes: readonly number[]): TensorCel
             if (cellShape.length === 0) {
                 return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
             }
-            return lazyArray(cellShape, cellIndex => {
+            return derivedArray(cellShape, [source], cellIndex => {
                 const coordinates = [...sourceCoordinates];
                 coordinatesAt(cellShape, cellIndex).forEach((coordinate, index) => {
                     coordinates[cellAxes[index]] = coordinate;
@@ -4235,7 +4253,7 @@ function outerCells(
             if (receivesWhole) return value;
             const start = frameIndex * cellSize;
             if (cellRank === 0) return arrayItem(source, start);
-            return lazyArray(cellShape, index => arrayItem(source, start + index));
+            return derivedArray(cellShape, [source], index => arrayItem(source, start + index));
         },
     };
 }
@@ -4438,7 +4456,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         const source = values[0];
         const selection = tensorSelection(source, values.slice(1));
         if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-        return lazyArray(selection.shape, index => arrayItem(source, selection.offsetAt(index)));
+        return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
     }
     const last = values.at(-1);
     if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
@@ -4687,7 +4705,7 @@ function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
     for (let axis = indices.length; axis < shape.length; axis += 1) offset *= shape[axis];
     if (indices.length === shape.length) return arrayItem(source, offset);
     const rest = shape.slice(indices.length);
-    return lazyArray(rest, index => arrayItem(source, offset + index));
+    return derivedArray(rest, [source], index => arrayItem(source, offset + index));
 }
 
 function sliceValue(
@@ -4726,7 +4744,7 @@ function selectAxis(source: RankValue, axis: number, selector: RankValue): RankV
         selectors.push(selector);
         const selection = tensorSelection(source, selectors);
         if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-        return lazyArray(selection.shape, index => arrayItem(source, selection.offsetAt(index)));
+        return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
     }
     if (typeof selector === 'bigint') {
         if (selector < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
@@ -4951,10 +4969,10 @@ function mapBinary(
         return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
     }
     const source = leftArray ?? rightArray!;
-    return lazyArray(source.shape, index => {
+    return derivedArray(source.shape, [source], index => {
         const item = arrayItem(source, index);
         return leftArray ? scalarOperation(item, right) : scalarOperation(left, item);
-    });
+    }, true);
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {

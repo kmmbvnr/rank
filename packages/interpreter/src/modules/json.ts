@@ -1,3 +1,4 @@
+import { ownedArray, ownedObject } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { type RankObject, type RankValue } from '../value.js';
 import { native } from './shared.js';
@@ -79,21 +80,21 @@ class JsonParser {
         this.position += 1;
         const items: RankValue[] = [];
         this.whitespace();
-        if (this.take(']')) return { kind: 'array', items, shape: [0] };
+        if (this.take(']')) return ownedArray(items);
         for (;;) {
             items.push(this.value());
             this.whitespace();
             if (this.take(']')) break;
             this.expect(',');
         }
-        return { kind: 'array', items, shape: [items.length] };
+        return ownedArray(items);
     }
 
     private object(): RankObject {
         this.position += 1;
         const entries = new Map<string, RankValue>();
         this.whitespace();
-        if (this.take('}')) return { kind: 'object', entries };
+        if (this.take('}')) return ownedObject(entries);
         for (;;) {
             this.whitespace();
             if (this.source[this.position] !== '"') this.fail('object key must be text');
@@ -105,7 +106,7 @@ class JsonParser {
             if (this.take('}')) break;
             this.expect(',');
         }
-        return { kind: 'object', entries };
+        return ownedObject(entries);
     }
 
     private whitespace(): void {

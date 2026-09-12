@@ -1,3 +1,4 @@
+import { derivedArray, ownedArray, ownedObject } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { readTextFile, writeTextFile } from './io.js';
 import {
@@ -29,10 +30,7 @@ export function projectField(
     field: string,
     missing?: () => RankValue,
 ): RankArray {
-    const cache = new Map<number, RankValue>();
     const itemAt = (position: number): RankValue => {
-        const cached = cache.get(position);
-        if (cached !== undefined) return cached;
         const row = source.itemAt?.(position) ?? source.items[position];
         if (!isRankObject(row)) {
             throw new RankError('table projection expects object rows', 'TypeError');
@@ -42,27 +40,9 @@ export function projectField(
             if (missing) return missing();
             throw new MissingValueError(`missing object key: ${field}`);
         }
-        cache.set(position, value);
         return value;
     };
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape: source.shape,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            const size = source.shape.reduce(
-                (product, dimension) => product * dimension,
-                1,
-            );
-            materialized ??= Array.from(
-                { length: size },
-                (_, position) => itemAt(position),
-            );
-            return materialized;
-        },
-    };
+    return derivedArray(source.shape, [source], itemAt, true);
 }
 
 /** Lazily project an ordered list of fields into a rows-by-fields matrix. */
@@ -79,10 +59,7 @@ export function projectFields(source: RankArray, fields: RankArray): RankArray {
         throw new RankError('table column selection expects labels or text', 'TypeError');
     });
     const columns = names.length;
-    const cache = new Map<number, RankValue>();
     const itemAt = (position: number): RankValue => {
-        const cached = cache.get(position);
-        if (cached !== undefined) return cached;
         const rowIndex = Math.floor(position / columns);
         const row = source.itemAt?.(rowIndex) ?? source.items[rowIndex];
         if (!isRankObject(row)) {
@@ -91,22 +68,11 @@ export function projectFields(source: RankArray, fields: RankArray): RankArray {
         const field = names[position % columns];
         const value = row.entries.get(field);
         if (value === undefined) throw new MissingValueError(`missing object key: ${field}`);
-        cache.set(position, value);
         return value;
     };
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape: [source.shape[0], columns],
-        columnNames: names,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            const size = source.shape[0] * columns;
-            materialized ??= Array.from({ length: size }, (_, position) => itemAt(position));
-            return materialized;
-        },
-    };
+    const result = derivedArray([source.shape[0], columns], [source], itemAt, true);
+    Object.defineProperty(result, 'columnNames', { value: names });
+    return result;
 }
 
 function parseCsv(text: string): RankArray {
@@ -139,9 +105,9 @@ function parseCsv(text: string): RankArray {
                 entries.set(headers[column], csvValue(fields[column], columnKinds[column]));
             }
         }
-        items.push({ kind: 'object', entries });
+        items.push(ownedObject(entries));
     }
-    return { kind: 'array', items, shape: [items.length], containsFiles: false };
+    return ownedArray(items);
 }
 
 function csvRows(text: string): string[][] {

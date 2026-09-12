@@ -1,3 +1,4 @@
+import { ownedArray, derivedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
@@ -124,7 +125,7 @@ function copyArray(value: RankValue): RankArray {
         { length: size },
         (_, index) => value.itemAt?.(index) ?? value.items[index],
     );
-    return { kind: 'array', shape: [...value.shape], items };
+    return ownedArray(items, value.shape);
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {
@@ -145,7 +146,6 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     }
 
     const shape = permutation.map(axis => value.shape[axis]);
-    let materialized: RankValue[] | undefined;
     const itemAt = (index: number): RankValue => {
         const output = coordinatesAt(shape, index);
         const sourceRank = value.shape.length;
@@ -171,16 +171,7 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
         );
         return value.itemAt?.(offset) ?? value.items[offset];
     };
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        get items() {
-            const size = shape.reduce((product, dimension) => product * dimension, 1);
-            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
-            return materialized;
-        },
-    };
+    return derivedArray(shape, [value], itemAt);
 }
 
 /** Materialize the finite rank-1 sources accepted by keyed sorting. */
@@ -237,11 +228,7 @@ export function sortByKeys(
         }
         return left.position - right.position;
     });
-    return {
-        kind: 'array',
-        items: entries.map(entry => indices ? BigInt(entry.position) : entry.value),
-        shape: [entries.length],
-    };
+    return ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
 }
 
 /** Return stable indices that order a tensor along one axis. */
@@ -273,7 +260,7 @@ export function argsortAxis(value: RankValue, axis: number): RankArray {
             result[offsetAt(shape, source)] = BigInt(order[coordinate]);
         }
     }
-    return { kind: 'array', items: result, shape };
+    return ownedArray(result, shape);
 }
 
 function coordinatesAt(shape: readonly number[], index: number): number[] {
@@ -310,7 +297,7 @@ function shapeOf(value: RankValue): RankValue {
     if (!dimensions) {
         throw new RankError('shape expects text, an array, queue, multiset or sequence');
     }
-    return { kind: 'array', items: dimensions, shape: [dimensions.length] };
+    return ownedArray(dimensions);
 }
 
 function sortValue(value: RankValue): RankValue {
@@ -324,7 +311,7 @@ function sortValue(value: RankValue): RankValue {
     const items = arrayItems(value);
     const kind = sortableKind(items, 'sort');
     items.sort((left, right) => compareOrderedValues(left, right, kind));
-    return { kind: 'array', items, shape: [items.length] };
+    return ownedArray(items);
 }
 
 function argsortValue(value: RankValue): RankArray {
@@ -335,11 +322,7 @@ function argsortValue(value: RankValue): RankArray {
             : undefined;
     if (!items) throw new RankError('argsort expects text or a rank-1 array');
     const order = stableOrder(items, sortableKind(items, 'argsort'));
-    return {
-        kind: 'array',
-        items: order.map(index => BigInt(index)),
-        shape: [order.length],
-    };
+    return ownedArray(order.map(index => BigInt(index)));
 }
 
 function uniqueValue(value: RankValue): RankValue {
@@ -347,7 +330,7 @@ function uniqueValue(value: RankValue): RankValue {
     if (isRankArray(value)) {
         if (value.shape.length !== 1) throw new RankError('unique expects a rank-1 array');
         const items = uniqueItems(arrayItems(value));
-        return { kind: 'array', items, shape: [items.length] };
+        return ownedArray(items);
     }
     if (isRankQueue(value)) return { kind: 'queue', items: uniqueItems(value.items) };
     if (isRankSet(value)) return value;
@@ -425,7 +408,7 @@ function reshape(value: RankValue, shapeValue: RankValue): RankValue {
             `reshape shape ${shape.join(' ')} expects ${expected} elements, got ${items.length}`,
         );
     }
-    return { kind: 'array', items, shape };
+    return ownedArray(items, shape);
 }
 
 function reshapeDimension(value: bigint): number {

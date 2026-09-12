@@ -1,3 +1,4 @@
+import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapSequence } from '../sequence.js';
 import {
@@ -59,5 +60,5 @@ export function expectNumeric(value: RankValue): bigint | number {
 }
 
 function array(items: RankValue[]): RankArray {
-    return { kind: 'array', items, shape: [items.length] };
+    return ownedArray(items);
 }

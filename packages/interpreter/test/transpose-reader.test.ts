@@ -57,7 +57,7 @@ describe('transpose readers', () => {
         expect(inner).toEqual([1n, 1n, 1n]);
     });
 
-    it('preserves live itemAt reads and separately cached materialization', () => {
+    it('keeps host itemAt reads and materialization live', () => {
         const source: RankArray = { kind: 'array', shape: [2, 3], items: [1n, 2n, 3n, 4n, 5n, 6n] };
         const view = transposeValue(source) as RankArray;
         expect(view.itemAt!(1)).toBe(4n);
@@ -67,7 +67,7 @@ describe('transpose readers', () => {
         expect(materialized).toEqual([1n, 40n, 2n, 5n, 3n, 6n]);
         source.items[3] = 400n;
         expect(view.itemAt!(1)).toBe(400n);
-        expect(view.items).toBe(materialized);
-        expect(view.items[1]).toBe(40n);
+        expect(view.items).not.toBe(materialized);
+        expect(view.items[1]).toBe(400n);
     });
 });

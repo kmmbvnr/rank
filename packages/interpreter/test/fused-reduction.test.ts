@@ -117,7 +117,7 @@ end
         expect(temp.itemAt!(0)).toBe(2n);
         a.items[0] = 10n;
         a.items[1] = 20n;
-        expect(call(runtime, 'fused', temp, 0n)).toBe(84n);
+        expect(call(runtime, 'fused', temp, 0n)).toBe(120n);
         runtime.variables.set('M', vector([1n, 2n, 3n, 4n], [2, 2]));
         expect(force(runtime.execute('(M * 2 + M) + reduce rank 1')!))
             .toEqual({ shape: [2], items: [9n, 21n] });

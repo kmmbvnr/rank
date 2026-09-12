@@ -124,8 +124,8 @@ describe('builtin sum semantics required by fusion', () => {
         expect(temp.itemAt!(0)).toBe(2n);
         a.items[0] = 10n;
         a.items[1] = 20n;
-        expect(call(runtime, 'fused', temp, 2n)).toBe(84n);
-        expect(call(runtime, 'fused', temp, 2n)).toBe(84n);
+        expect(call(runtime, 'fused', temp, 2n)).toBe(120n);
+        expect(call(runtime, 'fused', temp, 2n)).toBe(120n);
         try { call(runtime, 'fused', vector([true]), 2n); }
         catch (error) {
             expect(error).toBeInstanceOf(RankError);

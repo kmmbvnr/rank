@@ -106,6 +106,45 @@ Changing the copy does not change the source. `copy` does not accept a
 sequence; postfix `array` remains the operation that materializes a finite
 sequence into a rank-1 array.
 
+## Derived values and mutation
+
+Built-in pure tensor computations reuse demanded cells while their source
+arrays are unchanged. A write updates the source revision; it does not execute
+or walk dependent expressions. When a result is demanded, it checks its
+source revisions, including dependencies through intermediate arrays. It
+reuses cached cells if they are still valid and recomputes them otherwise.
+Re-reading a result therefore computes current values:
+
+```rank
+use sequences
+A = array 1 2
+B = A * 2
+Before = B 0
+Snapshot = B copy
+A 0 = 5
+After = B 0
+```
+
+`Before` is `2`, `After` is `10`, and `Snapshot 0` remains `2`. Forcing a
+lazy result does not turn its relationship with its sources into a snapshot;
+`copy` is the explicit operation for independent storage.
+
+This applies to arithmetic and broadcasting, numeric transformations, axis
+reductions, transpose and slice views, array windows, matrix multiplication,
+and covariance. A change can conservatively invalidate the whole derived
+array; there is no promise of per-cell invalidation. Errors are not retained
+as successful cached values. An unrelated array write does not discard valid
+computed cells.
+
+This cache policy does not introduce implicit replay of I/O or generators.
+User-function effect and capture analysis is a separate concern from the
+built-in pure tensor operations described here.
+
+For TypeScript embedding, `createArraySnapshot` makes owned array storage.
+Writes through its public `items` invalidate dependent computations. Plain
+host arrays or unknown mutable nested values have no reliable mutation proof;
+pure computations over them use live reads rather than retain an unsafe cache.
+
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The

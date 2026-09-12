@@ -15,7 +15,11 @@ export class ResourceSummary {
     private readonly epoch = mutationEpoch;
     private uncertain = false;
 
-    get fileFree(): boolean { return !this.uncertain && this.epoch === mutationEpoch; }
+    constructor(private readonly independentProof?: () => boolean) {}
+
+    get fileFree(): boolean {
+        return this.independentProof?.() === true || !this.uncertain && this.epoch === mutationEpoch;
+    }
 
     track<const T extends object>(value: T): T {
         summaries.set(value, this);
@@ -24,6 +28,10 @@ export class ResourceSummary {
 
     include(value: RankValue): void {
         if (isKnownFileFree(value)) return;
+        this.invalidate();
+    }
+
+    invalidate(): void {
         if (this.fileFree) mutationEpoch += 1;
         this.uncertain = true;
     }

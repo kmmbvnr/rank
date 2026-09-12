@@ -1,3 +1,4 @@
+import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -60,11 +61,7 @@ function metricMean(losses: RankArray, metric: 'mse' | 'mae'): number {
 function metricArray(value: RankValue, operation: string): RankArray {
     if (isRankArray(value)) return value;
     const items = [...sequenceValues(value, operation)];
-    return {
-        kind: 'array',
-        items,
-        shape: isRankSequence(value) ? [items.length] : [],
-    };
+    return ownedArray(items, isRankSequence(value) ? [items.length] : []);
 }
 
 function metricByAxes(
@@ -112,35 +109,7 @@ function metricByAxes(
 
     return frameShape.length === 0
         ? valueAt(0)
-        : lazyNumericArray(frameShape, valueAt);
-}
-
-function lazyNumericArray(
-    shape: readonly number[],
-    operation: (index: number) => number,
-): RankArray {
-    const cache = new Map<number, number>();
-    const itemAt = (index: number): number => {
-        const cached = cache.get(index);
-        if (cached !== undefined) return cached;
-        const result = operation(index);
-        cache.set(index, result);
-        return result;
-    };
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            materialized ??= Array.from(
-                { length: arraySize(shape) },
-                (_, index) => itemAt(index),
-            );
-            return materialized;
-        },
-    };
+        : derivedArray(frameShape, [losses], valueAt, true);
 }
 
 /** Fuse cell reads with statistics while deferring validation until every
@@ -232,7 +201,7 @@ export function covarianceValue(
     const batchShape = batchAxes.map(axis => value.shape[axis]);
     const outputShape = [...batchShape, features, features];
     const means = new Map<number, number>();
-    const results = new Map<number, number>();
+    let meansRevision: number | undefined;
 
     const coordinatesFor = (batch: readonly number[], feature: number, observation: number) => {
         const coordinates = Array(value.shape.length).fill(0) as number[];
@@ -244,6 +213,11 @@ export function covarianceValue(
         return coordinates;
     };
     const meanAt = (batchIndex: number, batch: readonly number[], feature: number): number => {
+        const currentRevision = arrayRevision(value);
+        if (currentRevision === undefined || currentRevision !== meansRevision) {
+            means.clear();
+            meansRevision = currentRevision;
+        }
         const key = batchIndex * features + feature;
         const cached = means.get(key);
         if (cached !== undefined) return cached;
@@ -257,8 +231,6 @@ export function covarianceValue(
         return result;
     };
     const resultAt = (index: number): number => {
-        const cached = results.get(index);
-        if (cached !== undefined) return cached;
         const output = coordinatesAt(outputShape, index);
         const batch = output.slice(0, batchShape.length);
         const batchIndex = arrayOffset(batchShape, batch);
@@ -279,24 +251,10 @@ export function covarianceValue(
             total += (left - leftMean) * (right - rightMean);
         }
         const result = total / (observations - 1);
-        results.set(index, result);
         return result;
     };
 
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape: outputShape,
-        itemAt: resultAt,
-        containsFiles: false,
-        get items() {
-            materialized ??= Array.from(
-                { length: arraySize(outputShape) },
-                (_, index) => resultAt(index),
-            );
-            return materialized;
-        },
-    };
+    return derivedArray(outputShape, [value], resultAt, true);
 }
 
 function meanValue(value: RankValue): number {
@@ -347,7 +305,7 @@ function validateCovarianceAxis(shape: readonly number[], axis: number): void {
 }
 
 function arrayItem(value: RankArray, index: number): RankValue {
-    return value.itemAt?.(index) ?? value.items[index];
+    return readArrayItem(value, index);
 }
 
 function coordinatesAt(shape: readonly number[], index: number): number[] {

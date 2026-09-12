@@ -1,3 +1,4 @@
+import { derivedArray, ownedArray, readArrayItem, readArrayShape } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
 import { expectNumeric, native } from './shared.js';
@@ -53,7 +54,7 @@ function diagonal(value: RankValue): RankArray {
         const size = Math.min(rows, columns);
         const items = Array.from({ length: size }, (_, index) =>
             diagNumber(arrayItem(value, index * columns + index)));
-        return { kind: 'array', items, shape: [size] };
+        return ownedArray(items);
     }
 
     const size = value.shape[0];
@@ -65,7 +66,7 @@ function diagonal(value: RankValue): RankArray {
         const column = index % size;
         return row === column ? values[row] : zero;
     });
-    return { kind: 'array', items, shape: [size, size] };
+    return ownedArray(items, [size, size]);
 }
 
 function diagNumber(value: RankValue): bigint | number {
@@ -103,22 +104,14 @@ function symmetricEigendecomposition(value: RankValue): RankArray {
 
     const order = Array.from({ length: size }, (_, index) => index)
         .sort((left, right) => matrix[left][left] - matrix[right][right]);
-    const values: RankArray = {
-        kind: 'array',
-        shape: [size],
-        items: order.map(index => cleanReal(matrix[index][index])),
-    };
+    const values = ownedArray(order.map(index => cleanReal(matrix[index][index])));
     const vectorItems = Array.from({ length: size * size }, (_, index) => {
         const row = Math.floor(index / size);
         const column = index % size;
         return cleanReal(vectors[row][order[column]]);
     });
-    const vectorArray: RankArray = {
-        kind: 'array',
-        shape: [size, size],
-        items: vectorItems,
-    };
-    return { kind: 'array', shape: [2], items: [values, vectorArray] };
+    const vectorArray = ownedArray(vectorItems, [size, size]);
+    return ownedArray([values, vectorArray]);
 }
 
 function numericMatrix(value: RankArray, size: number, operation: string): number[][] {
@@ -361,11 +354,7 @@ export function solveLinearSystem(coefficients: RankValue, right: RankValue): Ra
             solved[row][result] = Object.is(answer, -0) ? 0 : answer;
         }
     }
-    return {
-        kind: 'array',
-        shape: [...right.shape],
-        items: solved.flat(),
-    };
+    return ownedArray(solved.flat(), right.shape);
 }
 
 function numericRows(
@@ -412,10 +401,7 @@ export function matmulValues(
         ...rightAxes.map(axis => right.shape[axis]),
     ];
     const contracted = left.shape[leftAxis];
-    const cache = new Map<number, bigint | number>();
     const resultAt = (index: number): bigint | number => {
-        const cached = cache.get(index);
-        if (cached !== undefined) return cached;
         const output = coordinatesAt(outputShape, index);
         const leftCoordinates = Array(left.shape.length).fill(0) as number[];
         const rightCoordinates = Array(right.shape.length).fill(0) as number[];
@@ -430,29 +416,15 @@ export function matmulValues(
         for (let inner = 0; inner < contracted; inner += 1) {
             leftCoordinates[leftAxis] = inner;
             rightCoordinates[rightAxis] = inner;
-            const a = expectNumeric(arrayItem(left, arrayOffset(left.shape, leftCoordinates)));
-            const b = expectNumeric(arrayItem(right, arrayOffset(right.shape, rightCoordinates)));
+            const a = expectNumeric(arrayItem(left, arrayOffset(readArrayShape(left), leftCoordinates)));
+            const b = expectNumeric(arrayItem(right, arrayOffset(readArrayShape(right), rightCoordinates)));
             total = addNumbers(total, multiplyNumbers(a, b));
         }
-        cache.set(index, total);
         return total;
     };
 
     if (outputShape.length === 0) return resultAt(0);
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape: outputShape,
-        itemAt: resultAt,
-        containsFiles: false,
-        get items() {
-            materialized ??= Array.from(
-                { length: arraySize(outputShape) },
-                (_, index) => resultAt(index),
-            );
-            return materialized;
-        },
-    };
+    return derivedArray(outputShape, [left, right], resultAt, true);
 }
 
 function inverseMatrix(value: RankValue): RankArray {
@@ -496,7 +468,7 @@ function inverseMatrix(value: RankValue): RankArray {
 
     const items = work.flatMap(row =>
         row.slice(size).map(value => Object.is(value, -0) ? 0 : value));
-    return { kind: 'array', shape: [size, size], items };
+    return ownedArray(items, [size, size]);
 }
 
 function maybeSwap(rows: number[][], left: number, right: number): void {
@@ -504,7 +476,7 @@ function maybeSwap(rows: number[][], left: number, right: number): void {
 }
 
 function arrayItem(value: RankArray, index: number): RankValue {
-    return value.itemAt?.(index) ?? value.items[index];
+    return readArrayItem(value, index);
 }
 
 function validateAxis(shape: readonly number[], axis: number, side: 'left' | 'right'): void {
@@ -530,9 +502,6 @@ function arrayOffset(shape: readonly number[], coordinates: readonly number[]): 
     return coordinates.reduce((offset, coordinate, axis) => offset * shape[axis] + coordinate, 0);
 }
 
-function arraySize(shape: readonly number[]): number {
-    return shape.reduce((product, dimension) => product * dimension, 1);
-}
 
 function multiplyNumbers(left: bigint | number, right: bigint | number): bigint | number {
     return typeof left === 'bigint' && typeof right === 'bigint'

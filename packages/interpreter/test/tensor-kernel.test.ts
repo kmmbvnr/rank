@@ -305,7 +305,7 @@ A f`);
 
 
 describe('compiled access to completed lazy caches', () => {
-    it('uses a completed round cache without rereading mutated source cells', () => {
+    it('invalidates a completed round cache when source cells change', () => {
         const result = compare(`use numbers
 A = array 1.2 2.8
 R = A round 0
@@ -314,8 +314,8 @@ A 0 = 100.0
 Answer = (R * 2) sum
 Answer
 `);
-        expect(result.value).toBe('8');
-        expect(result.kernels).toBe(1);
+        expect(result.value).toBe('206');
+        expect(result.kernels).toBe(0);
     });
 
     it('does not force a partially cached input to enable compilation', () => {

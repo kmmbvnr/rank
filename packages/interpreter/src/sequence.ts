@@ -1,3 +1,4 @@
+import { derivedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
     isRankArray,
@@ -229,6 +230,7 @@ export function windowValue(
         selectedAxes,
         strides,
         padding,
+        [source],
     );
 }
 
@@ -316,6 +318,7 @@ function arrayWindows(
     axes: readonly number[],
     strides: readonly number[],
     padding: readonly number[],
+    dependencies?: readonly RankArray[],
 ): RankArray {
     const positionShape = [...sourceShape];
     const hasPadding = padding.some(amount => amount !== 0);
@@ -328,7 +331,7 @@ function arrayWindows(
         );
     });
     const resultShape = [...positionShape, ...widths];
-    const result = lazyArray(resultShape, linear => {
+    const read = (linear: number): RankValue => {
         const output = arrayCoordinates(resultShape, linear);
         const input = output.slice(0, sourceShape.length);
         const offsets = output.slice(sourceShape.length);
@@ -340,7 +343,10 @@ function arrayWindows(
         if (hasPadding && input.some((coordinate, axis) =>
             coordinate < 0 || coordinate >= sourceShape[axis])) return 0n;
         return sourceItem(arrayOffset(sourceShape, input));
-    });
+    };
+    const result = dependencies ? derivedArray(resultShape, dependencies, read)
+        : lazyArray(resultShape, read);
+
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
         if (sourceShape.length === 1 && widths.length === 1 && !hasPadding) {

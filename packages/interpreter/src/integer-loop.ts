@@ -8,7 +8,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
-import { materializedArrayItems } from './array-storage.js';
+import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, ownedArray } from './array-storage.js';
 
 
 interface IterationBinding {
@@ -274,7 +274,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             arrays.set(head.name, info);
             if (!assigned.has(head.name)) arrayInputs.add(head.name);
             const name = `v${serial++}`;
-            lines.push(`const ${name} = arrayRead(r${info.slot}, [${indices.join(',')}]);`);
+            lines.push(`const ${name} = reader${info.slot}([${indices.join(',')}]);`);
             return { code: name, type };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
@@ -461,7 +461,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 target.compound ||= compound;
                 destinations.set(assignment.name, target);
                 if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
-                const receiver = `r${target.slot}`;
+                const receiver = `storage${target.slot}`;
                 const lines: string[] = [], keys: string[] = [];
                 for (const address of assignment.indices) {
                     if (address.all || address.sign || !address.value) return undefined;
@@ -506,10 +506,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     }
                     result = out;
                     body.push(`location = ${location};`, ...lines,
-                        `${receiver}.items[${name}] = ${result}; iterationResult = ${rhs};`);
+                        `write${target.slot}(${name}, ${result}); iterationResult = ${rhs};`);
                 } else {
                     body.push(`location = ${location};`, ...lines, `if (${receiver}.kind === 'array') {
-                        ${receiver}.items[${name}] = ${result}; iterationResult = ${value.code};
+                        write${target.slot}(${name}, ${result}); iterationResult = ${value.code};
                     } else { ${receiver}.entries.set(${name}, ${value.code}); iterationResult = undefined; }`);
                 }
                 continue;
@@ -574,7 +574,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                         if (!fill || fill.type === 'text' || fill.type === 'boolean' && !host.booleanArrays) return undefined;
                         rank = dimensions.length; type = fill.type;
                         value = `created${serial++}`;
-                        lines.push(`const ${value} = { kind: 'array', shape: ${shape}, items: Array(Number(${size})).fill(${fill.code}) };`);
+                        lines.push(`const ${value} = ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true);`);
                     } else {
                         if (!isNameExpression(expression) || !source) return undefined;
                         const name = expression.name;
@@ -591,7 +591,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     written.add(assignment.name);
                     writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
                     body.push(`location = ${location};`, ...lines,
-                        `writers[${index}](${value}); r${destination} = ${value}; iterationResult = ${value};`);
+                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}); write${destination} = write(storage${destination}); iterationResult = ${value};`);
                     assigned.add(assignment.name);
                     continue;
                 }
@@ -648,7 +648,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         }
     }
     const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed) {
-        ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}]`).join(',')};` : ''}
+        ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}], storage${index} = access(input[${index}]), reader${index} = read(storage${index}), write${index} = write(storage${index})`).join(',')};` : ''}
         let result, location = -1;
         try { ${root.setup} ${root.header}
             let iterationResult;
@@ -657,12 +657,13 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
-            : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`)); }
+            : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
+        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue) => prepareArrayReader(value, host.arrayRead), ownedArray); }
     catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {

@@ -149,7 +149,7 @@ end
         runtime.dispose();
     });
 
-    it('preserves lazy operand order, partial access and broadcast caching', () => {
+    it('preserves lazy operand order and partial access for untracked host readers', () => {
         const reads: string[] = [];
         const source = (name: string): RankArray => ({
             kind: 'array', shape: [3], containsFiles: false,
@@ -160,9 +160,9 @@ end
         expect(reads).toEqual([]);
         expect(result.itemAt!(1)).toBe(2n);
         expect(result.itemAt!(1)).toBe(2n);
-        expect(reads).toEqual(['a1', 'b1']);
+        expect(reads).toEqual(['a1', 'b1', 'a1', 'b1']);
         expect(result.items).toEqual([0n, 2n, 4n]);
-        expect(reads).toEqual(['a1', 'b1', 'a0', 'b0', 'a2', 'b2']);
+        expect(reads).toEqual(['a1', 'b1', 'a1', 'b1', 'a0', 'b0', 'a1', 'b1', 'a2', 'b2']);
     });
 
     it('keeps general broadcasting and shape errors', () => {
@@ -213,13 +213,13 @@ end
         runtime.dispose();
     });
 
-    it('keeps cached pairs stable and reads mutations for unconsumed pairs', () => {
+    it('reads mutations for both consumed and unconsumed host pairs', () => {
         const source = vector([1n, 2n]);
         const result = mapBroadcastArrays(source, source, numericKernel('+', () => 'fallback'));
         expect(result.itemAt!(0)).toBe(2n);
         source.items[0] = 10n;
         source.items[1] = 20n;
-        expect(result.items).toEqual([2n, 40n]);
+        expect(result.items).toEqual([20n, 40n]);
     });
 
     it('retains nested-array fallback and Rank error positions', () => {

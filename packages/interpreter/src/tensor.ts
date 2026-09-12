@@ -1,3 +1,4 @@
+import { derivedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import type { RankArray, RankValue } from './value.js';
 
@@ -11,31 +12,10 @@ export function mapBroadcastArrays(
     const rightStrides = arrayStrides(right.shape);
     const sameShape = left.shape.length === right.shape.length
         && left.shape.every((dimension, axis) => dimension === right.shape[axis]);
-    const cache = new Map<number, RankValue>();
-    const itemAt = (index: number): RankValue => {
-        const cached = cache.get(index);
-        if (cached !== undefined) return cached;
-        const result = operation(
-            arrayItem(left, sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
-            arrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
-        );
-        cache.set(index, result);
-        return result;
-    };
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            materialized ??= Array.from(
-                { length: arraySize(shape) },
-                (_, index) => itemAt(index),
-            );
-            return materialized;
-        },
-    };
+    return derivedArray(shape, [left, right], index => operation(
+        arrayItem(left, sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
+        arrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
+    ), true);
 }
 
 export function broadcastShape(
@@ -86,10 +66,6 @@ function arrayStrides(shape: readonly number[]): number[] {
     return strides;
 }
 
-function arraySize(shape: readonly number[]): number {
-    return shape.reduce((product, dimension) => product * dimension, 1);
-}
-
 function arrayItem(value: RankArray, index: number): RankValue {
-    return value.itemAt?.(index) ?? value.items[index];
+    return readArrayItem(value, index);
 }

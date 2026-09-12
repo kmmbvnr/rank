@@ -1,4 +1,4 @@
-import { registerCachedArray } from '../array-storage.js';
+import { derivedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import {
@@ -15,7 +15,6 @@ import {
     isRankQueue,
     isRankSequence,
     isRankSet,
-    type RankArray,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -157,8 +156,8 @@ function mapUnaryNumeric(
         return mapSequence(value, name, item => operation(numericReal(item, name)));
     }
     if (!isRankArray(value)) return operation(numericReal(value, name));
-    return mappedArray(value.shape, index =>
-        operation(numericReal(value.itemAt?.(index) ?? value.items[index], name)));
+    return derivedArray(value.shape, [value], index =>
+        operation(numericReal(value.itemAt?.(index) ?? value.items[index], name)), true);
 }
 
 function mapBinaryValue(
@@ -183,38 +182,12 @@ function mapBinaryValue(
     }
     const array = isRankArray(left) ? left : isRankArray(right) ? right : undefined;
     if (!array) return scalarOperation(left, right);
-    return mappedArray(array.shape, index => {
+    return derivedArray(array.shape, [array], index => {
         const item = array.itemAt?.(index) ?? array.items[index];
         return isRankArray(left)
             ? scalarOperation(item, right)
             : scalarOperation(left, item);
-    });
-}
-
-function mappedArray(
-    shape: readonly number[],
-    operation: (index: number) => RankValue,
-): RankArray {
-    const cache = new Map<number, RankValue>();
-    const itemAt = (index: number): RankValue => {
-        const cached = cache.get(index);
-        if (cached !== undefined) return cached;
-        const result = operation(index);
-        cache.set(index, result);
-        return result;
-    };
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            const size = shape.reduce((product, dimension) => product * dimension, 1);
-            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
-            return materialized;
-        },
-    };
+    }, true);
 }
 
 function numericReal(value: RankValue, operation: string): number {
@@ -261,36 +234,8 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
     if (isRankSequence(value)) return mapSequence(value, 'round', roundScalar);
     if (!isRankArray(value)) return roundScalar(value);
 
-    const cached = new Map<number, RankValue>();
-    const itemAt = (index: number): RankValue => {
-        const previous = cached.get(index);
-        if (previous !== undefined) return previous;
-        const result = roundScalar(value.itemAt?.(index) ?? value.items[index]);
-        cached.set(index, result);
-        return result;
-    };
-    let materialized: RankValue[] | undefined;
-    const shape = value.shape;
-    let compilerCache: RankValue[] | undefined;
-    return registerCachedArray({
-        kind: 'array',
-        shape,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
-            return materialized;
-        },
-    }, () => {
-        if (compilerCache) return compilerCache;
-        const size = shape.reduce((product, dimension) => product * dimension, 1);
-        if (cached.size !== size) return undefined;
-        // Read only cached cells. A separate private snapshot preserves itemAt
-        // semantics even if an embedding caller mutates the public items array.
-        for (let index = 0; index < size; index++) if (!cached.has(index)) return undefined;
-        return compilerCache = Array.from({ length: size }, (_, index) => cached.get(index)!);
-    });
+    return derivedArray(value.shape, [value], index =>
+        roundScalar(value.itemAt?.(index) ?? value.items[index]), true);
 }
 
 function numericExtreme(

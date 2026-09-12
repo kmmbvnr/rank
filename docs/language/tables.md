@@ -2,6 +2,20 @@
 
 Tables reuse Rank's normal addressing model.
 
+## Mutation and cached columns
+
+A table has one observable revision for cache invalidation. Changing any field,
+replacing a row, or adding or removing a field changes that revision. Dependent
+projections and tensor computations check it when their result is next demanded;
+a write does not eagerly walk expressions or execute them. This also expires
+cached columns whose own values did not change. Row maps detect writes so that the containing table can
+be considered changed; this does not promise separate row or column versions.
+
+For example, a cached `Data .Age` projection is refreshed after a write to
+`Data .Fare` as well as after a write to `Data .Age`. Start with whole-table
+invalidation; more selective reuse would be an optimization, not a requirement
+for correct programs. Independent copied arrays remain independent.
+
 ## CSV
 
 Current I/O form:

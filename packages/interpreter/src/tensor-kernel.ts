@@ -6,7 +6,7 @@ import {
 } from 'rank-language';
 import { type RankValue, isRankArray } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { materializedArrayItems } from './array-storage.js';
+import { materializedArrayItems, ownedArray } from './array-storage.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
@@ -311,7 +311,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         }
         const result = cachedRun!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
-            return { kind: 'array', shape: [...output.shape], items: result as RankValue[] };
+            return ownedArray(result as RankValue[], output.shape, true);
         }
         return result as RankValue | undefined;
     } };
