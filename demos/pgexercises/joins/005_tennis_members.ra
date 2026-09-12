@@ -1,0 +1,36 @@
+rem PostgreSQL Exercises: joins 5
+rem https://pgexercises.com/questions/joins/threejoin.html
+
+use cli
+use algo
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/joins_005.csv"
+
+Db = DbPath sqlite
+NoParams = array shape 0 pad 0
+BookingsQuery = Db "SELECT facid, memid FROM bookings" NoParams sqlquery
+MembersQuery = Db "SELECT memid, firstname, surname FROM members" NoParams sqlquery
+FacilitiesQuery = Db "SELECT facid, name AS facility FROM facilities" NoParams sqlquery
+Bookings = BookingsQuery array
+Members = MembersQuery array
+Facilities = FacilitiesQuery array
+WithMembers = Bookings Members innerjoin by .memid
+Joined = WithMembers Facilities innerjoin by .facid
+Court = (Joined .facility equal "Tennis Court 1") or (Joined .facility equal "Tennis Court 2")
+Rows = (Joined Court) array
+Rows .member = Rows .firstname + " " + Rows .surname
+Pairs = Rows .member + "|" + Rows .facility
+Unique = Pairs unique
+Chosen = new queue
+for Pair in Unique
+  Matches = (Rows (Pairs equal Pair)) array
+  Chosen push (Matches 0)
+end
+Distinct = Chosen (array (Chosen len)) reshape
+Keys = Distinct .member + "|" + Distinct .facility
+Ordered = Distinct (Keys argsort)
+Result = Ordered (array .member .facility)
+Result OutputPath csv

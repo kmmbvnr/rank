@@ -1,0 +1,19 @@
+rem PostgreSQL Exercises: joins 1
+rem https://pgexercises.com/questions/joins/simplejoin.html
+
+use cli
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/joins_001.csv"
+
+Db = DbPath sqlite
+NoParams = array shape 0 pad 0
+BookingsQuery = Db "SELECT memid, starttime FROM bookings" NoParams sqlquery
+MembersQuery = Db "SELECT memid, firstname, surname FROM members" NoParams sqlquery
+Bookings = BookingsQuery array
+Members = MembersQuery array
+Joined = Bookings Members innerjoin by .memid
+David = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
+Result = ((Joined David) array) (array .starttime)
+Result OutputPath csv

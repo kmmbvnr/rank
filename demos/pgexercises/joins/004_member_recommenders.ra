@@ -1,0 +1,23 @@
+rem PostgreSQL Exercises: joins 4
+rem https://pgexercises.com/questions/joins/self2.html
+
+use cli
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/joins_004.csv"
+
+Db = DbPath sqlite
+NoParams = array shape 0 pad 0
+MembersQuery = Db "SELECT recommendedby, firstname AS memfname, surname AS memsname FROM members" NoParams sqlquery
+RecsQuery = Db "SELECT memid AS recid, firstname AS recfname, surname AS recsname FROM members" NoParams sqlquery
+Members = MembersQuery array
+Recs = RecsQuery array
+Joined = Members Recs leftjoin on .recommendedby = .recid
+Joined .recfname = Joined .recfname pad ""
+Joined .recsname = Joined .recsname pad ""
+Names = Joined .memsname + " " + Joined .memfname
+Ordered = Joined (Names argsort)
+Result = Ordered (array .memfname .memsname .recfname .recsname)
+Result OutputPath csv

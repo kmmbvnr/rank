@@ -22,6 +22,13 @@ All twelve [Basic exercises](../../demos/pgexercises/basic/README.md) now have
 working array-based solutions and a test against reference SQL. Task 5 uses
 bound `sqlquery` for `LIKE`. This completes the Basic answers but does not
 implement SQL pushdown for Rank projections, masks, ordering or aggregation.
+All eight [Joins and Subqueries exercises](../../demos/pgexercises/joins/README.md)
+also have array-based solutions and a SQLite oracle test. Their read-only
+`sqlquery` sources project and rename columns before materialization; the
+`innerjoin` and `leftjoin` operations themselves execute in Rank. In task 7,
+a Rank lookup mirrors a correlated SQL subquery. The current field-keyed
+`sort by` accepts records but not SQLite object rows, so these examples use
+column `argsort` and row indexing for ordered outputs.
 The translation work remains, in this order:
 
 1. Column projection and source-bound filters, keeping values as bound
