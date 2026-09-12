@@ -7,3 +7,5 @@ export * from './wavelet.js';
 export * from './value.js';
 export { createArraySnapshot } from './array-storage.js';
 export { standardModules } from './modules/index.js';
+
+export { RuntimeDiagnostics } from './diagnostics.js';

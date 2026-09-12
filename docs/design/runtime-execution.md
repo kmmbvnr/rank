@@ -13,6 +13,8 @@ semantics. Compiling loop control flow is independent of tensor fusion.
 
 [Array revisions](array-revisions.md) describes demand-driven cache validation,
 resource metadata and the measured tradeoff between reuse and write overhead.
+[Runtime diagnostics](runtime-diagnostics.md) documents optional counters and
+validated tensor readers in compiled loops.
 
 ## Function environments
 

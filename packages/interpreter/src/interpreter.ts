@@ -1,3 +1,4 @@
+import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem } from './array-storage.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
@@ -165,6 +166,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly tensorReadHoisting?: boolean;
     readonly scalarEntryCompilation?: boolean;
     readonly compiledScalarTailCalls?: boolean;
     readonly scalarFunctionCompilation?: boolean;
@@ -676,17 +678,19 @@ export class Interpreter {
                 return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]);
             },
         });
-        if (!kernel) return undefined;
+        if (!kernel) return recordFallback('tensor:unsupported');
         const last = statements[index + kernel.count - 1];
         if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
         const assign = isAssignmentStatement(last) ? this.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
             if (!assign && this.localFrame === undefined) return undefined;
             const value = kernel.run();
-            if (value === undefined) return undefined;
+            if (value === undefined) return recordFallback('tensor:entry-guard');
             try { assign?.(value); }
             catch (error) { throw this.locateError(error, last); }
             this.options.onTensorKernelExecuted?.();
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.compiledTensors++;
             if (!assign) throw new ReturnSignal(value);
             return value;
         } };
@@ -1040,6 +1044,7 @@ export class Interpreter {
                 return result;
             } };
             const compiled = this.options.integerLoopCompilation !== false ? compileIntegerLoop(statement, {
+                tensorReadHoisting: this.options.tensorReadHoisting !== false,
                 read: name => this.findVariable(name),
                 writer: name => this.compileAssign(name),
                 prepareWriter: this.options.boundIntegerWrites !== false ? (name, checked) => {
@@ -1119,6 +1124,7 @@ export class Interpreter {
                 compiled: this.options.onIntegerLoopCompiled,
                 executed: this.options.onIntegerLoopExecuted,
             }, binding) : undefined;
+            if (!compiled) recordFallback(this.options.integerLoopCompilation === false ? 'loop:disabled' : 'loop:unsupported');
             return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false) ?? reference.stream!(context) } : reference;
         }
         if (isPushStatement(statement)) {
@@ -2733,6 +2739,7 @@ export class Interpreter {
             scalarCompilation: this.options.scalarCompilation,
             onScalarCompiled: this.options.onScalarCompiled,
             onScalarExecuted: this.options.onScalarExecuted,
+            tensorReadHoisting: this.options.tensorReadHoisting,
             tensorFusion: this.options.tensorFusion,
             onTensorKernelCompiled: this.options.onTensorKernelCompiled,
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,
@@ -2845,6 +2852,7 @@ export class Interpreter {
             scalarCompilation: this.options.scalarCompilation,
             onScalarCompiled: this.options.onScalarCompiled,
             onScalarExecuted: this.options.onScalarExecuted,
+            tensorReadHoisting: this.options.tensorReadHoisting,
             tensorFusion: this.options.tensorFusion,
             onTensorKernelCompiled: this.options.onTensorKernelCompiled,
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,

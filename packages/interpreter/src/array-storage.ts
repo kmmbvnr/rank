@@ -1,3 +1,4 @@
+import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, type RankArray, type RankObject, type RankValue } from './value.js';
@@ -224,6 +225,7 @@ export function derivedArray(
     shape: readonly number[], dependencies: readonly RankArray[],
     read: (index: number) => RankValue, fileFree = false,
 ): RankArray {
+    const diagnostics = currentDiagnostics();
     const revision = () => {
         let current = 0;
         for (const source of dependencies) {
@@ -239,12 +241,15 @@ export function derivedArray(
     let materialized: RankValue[] | undefined;
     let compilerCache: RankValue[] | undefined;
     const valid = () => {
+        if (diagnostics) diagnostics.validationRequests++;
         // No writes means the previous dependency proof still holds. Keep this
         // local: tensor kernels read many cells in the same write epoch.
         if (validatedEpoch === writeRevision) return seen !== undefined;
+        if (diagnostics) diagnostics.dependencyValidations++;
         const current = arrayRevision(value);
         validatedEpoch = writeRevision;
         if (current === undefined || current !== seen) {
+            if (diagnostics && seen !== undefined) diagnostics.invalidations++;
             cells.clear();
             materialized = undefined;
             compilerCache = undefined;
@@ -254,10 +259,15 @@ export function derivedArray(
     };
     const itemAt = (index: number): RankValue => {
         const cacheable = valid();
-        if (cacheable && cells.has(index)) return cells.get(index)!;
+        if (cacheable && cells.has(index)) {
+            if (diagnostics) diagnostics.cacheHits++;
+            return cells.get(index)!;
+        }
         const started = seen;
         const startedEpoch = writeRevision;
+        if (diagnostics) diagnostics.cacheMisses++;
         const result = read(index);
+        if (diagnostics) diagnostics.cellsComputed++;
         // A dependency may have changed during the reader. Never retain that read.
         if (cacheable && (writeRevision === startedEpoch || arrayRevision(value) === started)) cells.set(index, result);
         return result;
@@ -323,11 +333,20 @@ export function prepareScalarArrayWriter(value: RankValue | undefined, batch = f
 export function prepareArrayReader(
     value: RankValue | undefined,
     fallback: (source: RankArray, indices: readonly bigint[]) => RankValue,
+    stableReads = false,
 ): (indices: readonly bigint[]) => RankValue {
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
-    if (!state) return indices => fallback(array, indices);
-    const items = state.items, shape = array.shape;
+    // The caller proves no array writes, callbacks or iterators in the region.
+    // Only already-computed, revision-tracked caches qualify: never force cells.
+    const cached = !state && stableReads && array && arrayRevision(array) !== undefined
+        ? materializedArrayItems(array) : undefined;
+    if (!state && !cached) return indices => fallback(array, indices);
+    if (cached) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.hoistedReaders++;
+    }
+    const items = state?.items ?? cached!, shape = array.shape;
     return indices => {
         let offset = 0;
         for (let axis = 0; axis < indices.length; axis++) {

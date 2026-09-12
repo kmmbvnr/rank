@@ -12,7 +12,7 @@ const mode = process.argv[2] ?? 'tasks';
 const setting = process.argv[3] ?? 'compare';
 const backend = process.argv[6] ?? 'tensor';
 const counters = process.env.RANK_BENCH_COUNTERS !== '0';
-assert(['tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls', 'scalarbodies', 'scalartails', 'scalarentry'].includes(backend));
+assert(['readhoisting', 'tensor', 'scalar', 'block', 'loop', 'integer', 'function', 'iteration', 'cells', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls', 'scalarbodies', 'scalartails', 'scalarentry'].includes(backend));
 const answers = new Map();
 const samples = Number(process.argv[4] ?? 3);
 assert(['tasks', 'suite'].includes(mode));
@@ -141,6 +141,7 @@ for (let sample=0; sample<samples; sample++) {
       directIteration: backend === 'iteration' ? enabled : undefined,
       functionBodyCompilation: backend === 'function' ? enabled : undefined,
       onFunctionBodyExecuted: backend === 'function' && counters ? () => kernels++ : undefined,
+      tensorReadHoisting: backend === 'readhoisting' ? enabled : undefined,
       tensorFusion: backend === 'tensor' ? enabled : true,
       integerLoopCompilation: backend === 'integer' ? enabled : undefined,
       onIntegerLoopExecuted: ['integer', 'nested', 'arrayloop', 'arraywrite', 'arrayiteration', 'compoundarray', 'extrema', 'address', 'writes', 'booleans', 'booleanarrays', 'arraylocals', 'returns', 'iterationtypes', 'absolute', 'textloops', 'textarrays', 'textiteration', 'scalartext', 'tensordigits', 'scalarcalls', 'blockcalls'].includes(backend) && counters ? () => kernels++ : undefined,

@@ -1,3 +1,4 @@
+import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import {
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
@@ -16,6 +17,7 @@ interface IterationBinding {
     readonly iterable: Expression;
 }
 interface Host {
+    readonly tensorReadHoisting: boolean;
     readonly textLoops: boolean;
     readonly textArrayLoops: boolean;
     readonly nestedLoops: boolean;
@@ -591,7 +593,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     written.add(assignment.name);
                     writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
                     body.push(`location = ${location};`, ...lines,
-                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
+                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}, stableReads); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
                     assigned.add(assignment.name);
                     continue;
                 }
@@ -647,13 +649,13 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
         }
     }
-    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites) {
+    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
         ${names.length ? `let ${names.map((name, index) => {
             const value = `r${index} = input[${index}]`;
             // Scalar/container slots never use tensor accessors. In short loops,
             // preparing those unused closures costs more than the loop itself.
             return arrays.has(name) || destinations.has(name)
-                ? `${value}, storage${index} = access(input[${index}]), reader${index} = read(storage${index}), write${index} = write(storage${index}, batchWrites)`
+                ? `${value}, storage${index} = access(input[${index}]), reader${index} = read(storage${index}, stableReads), write${index} = write(storage${index}, batchWrites)`
                 : value;
         }).join(',')};` : ''}
         let result, location = -1;
@@ -663,61 +665,64 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             result = iterationResult; location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
     try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
-        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue) => prepareArrayReader(value, host.arrayRead), ownedArray); }
+        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue, stableReads: boolean) => prepareArrayReader(value, host.arrayRead, stableReads), ownedArray); }
     catch { return undefined; }
     host.compiled?.(source);
+    const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
+        && calls.length === 0 && iterators.length === 0 && containers.size === 0
+        && destinations.size === 0 && arrayDefinitions.size === 0;
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
-        if (hasControl && insideFinally) return undefined;
-        if (hasReturn && (insideGenerator || !host.canReturn())) return undefined;
-        if (needsRanges && !host.ranges()) return undefined;
-        if (needsAlgo && !host.module('algo')) return undefined;
-        for (const [name, module] of builtins) if (!host.builtin(module, name)) return undefined;
+        if (hasControl && insideFinally) return recordFallback('loop:control-context');
+        if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
+        if (needsRanges && !host.ranges()) return recordFallback('loop:builtin');
+        if (needsAlgo && !host.module('algo')) return recordFallback('loop:builtin');
+        for (const [name, module] of builtins) if (!host.builtin(module, name)) return recordFallback('loop:builtin');
         const activeCalls = calls.map(call => call.bind());
-        if (activeCalls.some(call => !call)) return undefined;
+        if (activeCalls.some(call => !call)) return recordFallback('loop:callee');
         const values: (RankValue | undefined)[] = [];
         for (const index of required) {
             const value = host.read(names[index]);
-            if (typeof value !== (localTypes.get(names[index]) === 'text' ? 'string' : localTypes.get(names[index]) === 'boolean' ? 'boolean' : 'bigint')) return undefined;
+            if (typeof value !== (localTypes.get(names[index]) === 'text' ? 'string' : localTypes.get(names[index]) === 'boolean' ? 'boolean' : 'bigint')) return recordFallback('loop:input-type');
             values[index] = value;
         }
         for (const [name, info] of containers) {
             const value = host.read(name);
-            if (value === undefined) return undefined;
-            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return undefined;
+            if (value === undefined) return recordFallback('loop:input-type');
+            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return recordFallback('loop:input-type');
             if (info.integers && value instanceof RankDeque) {
-                for (const item of value.values()) if (typeof item !== 'bigint') return undefined;
+                for (const item of value.values()) if (typeof item !== 'bigint') return recordFallback('loop:input-type');
             }
             values[info.slot] = value;
         }
         for (const [name, info] of arrays) {
             if (!arrayInputs.has(name)) continue;
             const value = host.read(name);
-            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return undefined;
-            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return undefined;
+            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return recordFallback('loop:input-type');
+            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return recordFallback('loop:writable-storage');
             const items = materializedArrayItems(value);
-            if (!items || !items.every(item => typeof item === (info.type === 'text' ? 'string' : info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
+            if (!items || !items.every(item => typeof item === (info.type === 'text' ? 'string' : info.type === 'boolean' ? 'boolean' : 'bigint'))) return recordFallback('loop:storage-or-cell-type');
             values[info.slot] = value;
         }
         for (const [name, info] of destinations) {
             if (!arrayInputs.has(name)) {
-                if (!host.arrayWrites) return undefined;
+                if (!host.arrayWrites) return recordFallback('loop:input-type');
                 continue;
             }
             const value = host.read(name);
-            if (!value) return undefined;
-            if (isRankIndex(value) && info.compound) return undefined;
+            if (!value) return recordFallback('loop:input-type');
+            if (isRankIndex(value) && info.compound) return recordFallback('loop:input-type');
             if (!isRankIndex(value)) {
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
-                    || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
+                    || value.itemAt !== undefined || value.shape.length !== info.rank) return recordFallback('loop:writable-storage');
                 const items = materializedArrayItems(value);
-                if (!items || !items.every(item => typeof item === (info.type === 'text' ? 'string' : info.type === 'boolean' ? 'boolean' : 'bigint'))) return undefined;
+                if (!items || !items.every(item => typeof item === (info.type === 'text' ? 'string' : info.type === 'boolean' ? 'boolean' : 'bigint'))) return recordFallback('loop:storage-or-cell-type');
             }
             values[info.slot] = value;
         }
@@ -730,10 +735,16 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 return value !== undefined && isRankArray(value) && value.itemAt === undefined
                     && arrayRevision(value) !== undefined;
             });
+        const stableReads = stableReadRegion && [...arrayInputs].every(name => {
+                const value = values[names.indexOf(name)];
+                return value !== undefined && isRankArray(value) && arrayRevision(value) !== undefined;
+            });
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.compiledLoops++;
         const activeWriters = host.prepareWriter
             ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites));
+        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads));
     } };
 }
