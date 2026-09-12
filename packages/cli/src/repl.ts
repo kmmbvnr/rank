@@ -65,6 +65,14 @@ export async function startRepl(): Promise<void> {
         prompt: terminal ? 'rank> ' : undefined,
         completer: terminal
             ? (line: string) => {
+                // A tab replaces the listing on screen rather than stacking
+                // another under it: only the newest one answers what was
+                // typed. One too tall to reach is left behind as history.
+                const shown = counted.taken();
+                const prompt = promptFor(state).length + input.line.length;
+                if (shown > 0) {
+                    eraseRows(process.stdout, shown + screenRows(prompt, columns()));
+                }
                 counted.arm();
                 return complete(line, interpreter, state);
             }

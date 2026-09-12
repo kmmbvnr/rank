@@ -171,7 +171,9 @@ text on screen is the file, and the grey next to it is what the file did.
 
 A completion listing goes the same way. It is the prompt thinking aloud, so it
 is taken back off the screen together with the prompt that asked for it, and the
-line that ran is all that is left where both of them stood.
+line that ran is all that is left where both of them stood. A second tab
+replaces the listing rather than stacking another under it: only the newest one
+answers what has been typed.
 
 **A result is one line.** A long one keeps its two ends with the count
 underneath, and the two ends are cut to the width of the screen: a value that

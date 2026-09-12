@@ -75,6 +75,15 @@ test('a completion listing goes with the prompt that asked for it', () => {
     assert.ok(Number(erased[1]) > 3, `only ${erased[1]} rows erased`);
 });
 
+test('a second listing replaces the first rather than piling on it', () => {
+    // Three tabs print two listings, so the newer one has to take the older
+    // one back before it is drawn; the last erase is the one Enter does.
+    const session = transcript(['use <TAB><TAB><TAB>numbers']);
+    const erased = [...session.matchAll(/\x1b\[(\d+)A/g)].map(found => Number(found[1]));
+    const listings = erased.filter(rows => rows > 3);
+    assert.equal(listings.length, 2, `erased ${JSON.stringify(erased)}`);
+});
+
 test('a blank line between statements is part of the file', () => {
     const file = path.join(os.tmpdir(), `rank-blank-${process.pid}.ra`);
     const source = ['A = 1', '', 'B = 2', `save ${file}`, 'exit'].join('\n') + '\n';
