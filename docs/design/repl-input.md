@@ -73,13 +73,14 @@ reader has met, and a program written with a word in its place reads worse than
 one that costs an extra tap. So the answer is not to replace the symbol but to
 replace the *keystroke*:
 
-1. **The colon key.** Type `:` and the REPL turns it into `=` the moment it is
-   typed. `:` is on the first symbol layer of essentially every keyboard, and it
-   is not a Rank token at all — across the 683 demo programs there are 925
-   colons and every one of them is inside a text literal or a `rem` comment.
-   Outside those two places a colon could only ever have meant `=`, so the
-   rewrite is unambiguous rather than a guess. It is the `=` key, not a token
-   alias, so `+:` gives `+=` and `and:` gives `and=` with no extra rule.
+1. **The comma or colon key.** Type `,` or `:` and the REPL turns it into `=`
+   the moment it is typed. Neither is a Rank token: a scan of all 683 demo
+   programs finds **zero** commas and **zero** colons outside a text literal or
+   a `rem` comment, so either one elsewhere could only ever have meant `=`. The
+   rewrite is therefore unambiguous rather than a guess. The comma is the
+   cheaper key — it sits on the letter layer, next to the space bar, so
+   assignment costs no layer switch at all. These replace the `=` *key*, not a
+   token, so `*,` gives `*=` and `and,` gives `and=` with no extra rule.
 2. **A keyboard row.** In Termux, `extra-keys` in `~/.termux/termux.properties`
    puts a permanent row above the keyboard; adding `=` there makes it one tap in
    every program, not just this REPL. Some keyboards can also put a number row,
@@ -126,23 +127,31 @@ fun.>
 **A quote and a bracket close themselves** at the end of a line, so each costs
 only its opening keystroke. `A gets (1 plus 2` runs `A = (1 + 2)`.
 
-**The REPL owns indentation.** Every stored line is re-indented two spaces per
-open block, and `end`, `else`, `elif`, `catch` and `finally` sit one level out.
-Typing leading spaces is never necessary and never wrong.
+**The REPL owns indentation.** Every line is indented two spaces per open block
+as it is typed and again when it is stored. Typing leading spaces is never
+necessary and never wrong.
 
-**The colon is the `=` key.** It is replaced as it is typed, so the line on
-screen is already the Rank that will run:
+**The comma and the colon are the `=` key.** They are replaced as they are
+typed, so the line on screen is always the Rank that will run:
 
 ```console
-rank> Total: 6
+rank> Total, 6
 6
-rank> Total *: 7
+rank> Total *, 7
 42
 ```
 
-Inside `"text"` and after `rem` a colon stays a colon, which is where all 925 of
-the corpus's colons live. Spacing is tidied on submit, so `A:3` and `A :  3`
-both store `A = 3`.
+Inside `"text"` and after `rem` a comma stays a comma, which is where every one
+of the corpus's commas and colons lives.
+
+**The line is formatted while it is typed.** Every binary operator takes one
+space on each side, doubled spaces collapse, and a line that begins with `end`,
+`else`, `elif`, `catch` or `finally` steps back out to its block's level as the
+word is completed — the indent disappears under the cursor rather than being
+backspaced by hand. A `+` or `-` that no operand precedes is a sign and stays
+attached to its number, `.` and brackets are left alone, and text and comments
+are never touched. So `A,B+1` is stored, echoed and saved as `A = B + 1`, and
+nothing has to be spaced by hand.
 
 **Words stand in for symbols.** A word becomes its symbol only in operator
 position, and never when the session already binds that name:
@@ -153,7 +162,7 @@ over  /      idiv  //     mod    %      power  **
 every #
 ```
 
-`gets` is the fallback for `=`; the colon key is usually the better one.
+`gets` is the fallback for `=`; the comma key is usually the better one.
 
 `times gets` becomes `*=`, and `and gets` becomes `and=`. Whatever was rewritten
 is echoed as real Rank before it runs, so the symbol form is what gets learned.
@@ -174,10 +183,10 @@ line, so a whole program can be piped into the REPL.
 
 ## What this deliberately is not
 
-None of this changes the language. The colon and the alias words are input, not
-syntax: the REPL echoes the symbol form, `save` writes it, and a `.ra` file on
-disk never contains `gets` or a bare `:`. A session that defines its own `times`
-keeps it. What a reader sees is always `A = 3`.
+None of this changes the language. The `=` keys, the spacing and the alias words
+are input, not syntax: the screen shows the symbol form, `save` writes it, and a
+`.ra` file on disk never contains `gets` or a bare `,`. A session that defines
+its own `times` keeps it. What a reader sees is always `A = 3`.
 
 ## What is still awkward
 
@@ -188,7 +197,11 @@ keeps it. What a reader sees is always `A = 3`.
 - `.` before a label, `"` to open text, and the digits have no cheaper form.
   `.` is usually on the letters layer and `"` on the first symbol layer, so
   neither costs what `=` did.
-- Compound assignment reads oddly as `A times gets 2`; `A *: 2` does not.
+- Compound assignment reads oddly as `A times gets 2`; `A *, 2` does not.
+- A text literal cannot span lines in the REPL, because an unclosed quote is
+  closed at the end of the line. A file can still hold one; `load` it.
+- A number typed with a decimal comma becomes an assignment: `1,5` is `1 = 5`.
+  It was never valid Rank, but the error it gives is now a stranger one.
 - A blank line inside a block is unavailable interactively, since that is the
   gesture that closes blocks.
 
@@ -197,8 +210,10 @@ keeps it. What a reader sees is always `A = 3`.
 - Should the alias words become real Rank? Probably not, now that the colon key
   reaches `=` directly: the words would cost nine reserved names and make the
   source read worse, which was the objection that produced the colon key.
-- Should the colon key work in the HTML editor too, or does a custom keyboard
-  row there make it unnecessary?
+- Should the `=` keys work in the HTML editor too, or does a custom keyboard row
+  there make them unnecessary?
+- Should the formatter also break a long line at its operators, so the stored
+  source keeps to 40 columns without hand-written brackets?
 - Should `save` insert brackets so a folded statement survives as several narrow
   lines?
 - Should the REPL keep a cell history that the editor can open, or is a `.ra`

@@ -9,9 +9,9 @@ import * as readline from 'node:readline';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import {
-    ASSIGN_KEY, EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource,
-    closeCell, collapseSpaces, expandAssignKey, expandCompoundKeywords, expandOperators,
-    insideText, isComplete, isEmpty, nextIndent, promptFor, tokenize, type CellState,
+    EMPTY_CELL, OPERATOR_ALIASES, STATEMENT_KEYWORDS, addLine, cellSource, closeCell,
+    expandCompoundKeywords, expandOperators, formatLine, formatTyping, isComplete,
+    isEmpty, nextIndent, promptFor, startsDedent, type CellState,
 } from './repl-input.js';
 
 const HISTORY_FILE = path.join(os.homedir(), '.rank_history');
@@ -46,7 +46,7 @@ export async function startRepl(): Promise<void> {
             : undefined,
     });
 
-    if (terminal) watchAssignKey(input);
+    if (terminal) watchTyping(input, () => state);
 
     const draw = (): void => {
         if (!terminal) return;
@@ -84,10 +84,10 @@ export async function startRepl(): Promise<void> {
                 draw();
                 continue;
             } else {
-                const keyed = collapseSpaces(expandAssignKey(text));
+                const keyed = formatLine(text);
                 const expanded = aliases ? expand(keyed, interpreter) : keyed;
                 // Tidied spacing is not worth an echo; a rewritten symbol is.
-                rewritten ||= expanded !== collapseSpaces(text);
+                rewritten ||= expanded !== formatLine(text);
                 state = addLine(state, expanded);
             }
 
@@ -118,29 +118,59 @@ export async function startRepl(): Promise<void> {
 }
 
 /**
- * Turns the colon key into `=` as it is typed, so the line on screen is already
- * the Rank that will run. Readline has inserted the colon by the time this runs,
- * so the fix is one backspace and one write.
+ * Formats the line as it is typed: the `=` keys become `=`, operators take one
+ * space on each side, doubled spaces collapse, and a line that starts with a
+ * closing keyword steps back out to its block's level. Readline has already
+ * applied the keystroke, so the fix is a few backspaces and one write, and what
+ * stands on screen is the Rank that will run.
  */
-function watchAssignKey(input: readline.Interface): void {
+function watchTyping(input: readline.Interface, current: () => CellState): void {
+    let busy = false;
     process.stdin.on('keypress', (_chunk: string, key: KeyPress | undefined) => {
-        if (!key || key.ctrl || key.meta || key.sequence !== ASSIGN_KEY) return;
-        if (input.cursor === 0 || input.line[input.cursor - 1] !== ASSIGN_KEY) return;
-        const before = input.line.slice(0, input.cursor - 1);
-        if (insideText(before)) return;
-        input.write(null, { name: 'backspace' });
-        input.write(`${spacedAssign(before) ? ' =' : '='} `);
+        if (busy || !key || key.ctrl || key.meta) return;
+        const typed = key.sequence;
+        if (typed === undefined || typed.length !== 1 || typed < ' ' || typed === '\u007f') return;
+        busy = true;
+        try {
+            const indent = /^ */.exec(input.line)![0];
+            const body = input.line.slice(indent.length, input.cursor);
+            reflow(input, indent.length + body.length, indent + formatTyping(body));
+            reindent(input, indent, nextIndent(current(), startsDedent(body)));
+        } finally {
+            busy = false;
+        }
     });
 }
 
-/** A compound assignment is one token, so `*:` must not gain a space. */
-function spacedAssign(before: string): boolean {
-    if (before === '' || before.endsWith(' ')) return false;
-    const last = tokenize(before).at(-1);
-    if (last === undefined) return false;
-    if (last.kind === 'symbol') return !'+-*/%'.includes(last.text[0]);
-    return !(last.kind === 'word' && (last.text === 'and' || last.text === 'or'
-        || last.text === 'xor'));
+/** Replaces the text before the cursor, touching only what actually changed. */
+function reflow(input: readline.Interface, cursor: number, wanted: string): void {
+    const prefix = input.line.slice(0, cursor);
+    if (wanted === prefix) return;
+    let shared = 0;
+    while (shared < prefix.length && shared < wanted.length
+        && prefix[shared] === wanted[shared]) shared += 1;
+    for (let index = cursor; index > shared; index -= 1) {
+        input.write(null, { name: 'backspace' });
+    }
+    input.write(wanted.slice(shared));
+}
+
+/**
+ * Fixes the line's own indentation from the front, so a closing keyword steps
+ * out without redrawing what has already been typed. Only while the cursor sits
+ * at the end, where returning to it is unambiguous.
+ */
+function reindent(input: readline.Interface, indent: string, wanted: string): void {
+    if (wanted === indent || input.cursor !== input.line.length) return;
+    input.write(null, { ctrl: true, name: 'a' });
+    if (wanted.length < indent.length) {
+        for (let index = indent.length - wanted.length; index > 0; index -= 1) {
+            input.write(null, { name: 'delete' });
+        }
+    } else {
+        input.write(' '.repeat(wanted.length - indent.length));
+    }
+    input.write(null, { ctrl: true, name: 'e' });
 }
 
 interface KeyPress {
@@ -234,11 +264,17 @@ function printHelp(aliases: boolean): void {
         '  A blank line finishes everything',
         '  that is open: quote, bracket, end.',
         '',
-        'The = key',
-        '  Type : and it becomes = at once.',
-        '  +: is +=, and: is and=.',
-        '  Inside "text" and rem a colon',
-        '  stays a colon.',
+        'The = keys',
+        '  Type , or : and it becomes =',
+        '  as you type. *, is *=, and, is',
+        '  and=. Inside "text" and rem a',
+        '  comma stays a comma.',
+        '',
+        'Spacing',
+        '  Operators take their spaces and',
+        '  lines take their indent while',
+        '  you type. A,B+1 stores as',
+        '  A = B + 1.',
         '',
         `Words for symbols (alias is ${aliases ? 'on' : 'off'})`,
     ].join('\n'));
@@ -280,12 +316,12 @@ function printForms(): void {
         '  array 1 2 3',
         '',
         'One symbol, or a word instead',
-        '  A: 3              A = 3',
+        '  A, 3   A: 3       A = 3',
         '  A gets 3          A = 3',
         '  A plus B times C  A + B * C',
         '  A mod B           A % B',
         '  M every 2         M # 2',
-        '  A *: 2            A *= 2',
+        '  A *, 2            A *= 2',
         '  A times gets 2    A *= 2',
         '',
         'Symbols with no word',
@@ -365,7 +401,8 @@ function complete(line: string, interpreter: Interpreter, state: CellState): [st
             ...(before === '' && isEmpty(state) ? COMMANDS : []),
         ];
     const hits = [...new Set(pool)].filter(name => name.startsWith(word)).sort();
-    return [hits, word];
+    // One match means the next thing typed is a new word, so give it its space.
+    return [hits.length === 1 ? [`${hits[0]} `] : hits, word];
 }
 
 function wrap(items: readonly string[], separator = ' '): string[] {

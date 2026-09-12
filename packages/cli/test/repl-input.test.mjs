@@ -4,8 +4,9 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import {
     EMPTY_CELL, addLine, cellSource, closeCell, collapseSpaces, expandAssignKey,
-    expandCompoundKeywords, expandOperators, insideText, isComplete, isEmpty, nextIndent,
-    promptFor, scanLine, tokenize,
+    expandCompoundKeywords, expandOperators, formatLine, formatTyping, insideText,
+    isComplete, isEmpty, nextIndent, promptFor, scanLine, spaceOperators, startsDedent,
+    tokenize,
 } from '../out/repl-input.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -45,18 +46,59 @@ test('expands alias words only in operator position', () => {
     assert.equal(expand('A rem gets 2'), 'A rem gets 2');
 });
 
-test('rewrites the colon key into the = it stands for', () => {
-    assert.equal(expandAssignKey('A: 3'), 'A = 3');
-    assert.equal(expandAssignKey('A *: 2'), 'A *= 2');
-    assert.equal(expandAssignKey('A and: B'), 'A and= B');
-    assert.equal(expandAssignKey('index K: V'), 'index K = V');
-    assert.equal(expandAssignKey('A:3'), 'A = 3');
-    assert.equal(expandAssignKey('A *:2'), 'A *= 2');
+test('rewrites the comma and colon keys into the = they stand for', () => {
+    for (const key of [',', ':']) {
+        assert.equal(expandAssignKey(`A${key} 3`), 'A = 3');
+        assert.equal(expandAssignKey(`A${key}3`), 'A = 3');
+        assert.equal(expandAssignKey(`A *${key} 2`), 'A *= 2');
+        assert.equal(expandAssignKey(`A and${key} B`), 'A and= B');
+        assert.equal(expandAssignKey(`index K${key} V`), 'index K = V');
+    }
     assert.equal(expandAssignKey('A = 3'), 'A = 3');
-    // Every colon in the demo corpus is inside text or a comment; those stay.
+    // Neither key appears in the demo corpus outside text and comments.
     assert.equal(expandAssignKey('A: "at 12:30"'), 'A = "at 12:30"');
+    assert.equal(expandAssignKey('A, "one, two"'), 'A = "one, two"');
     assert.equal(expandAssignKey('rem see http://x'), 'rem see http://x');
-    assert.equal(expandAssignKey('A: 1 rem note: here'), 'A = 1 rem note: here');
+    assert.equal(expandAssignKey('A: 1 rem note, here'), 'A = 1 rem note, here');
+});
+
+test('gives every binary operator one space on each side', () => {
+    assert.equal(spaceOperators('A+4*2'), 'A + 4 * 2');
+    assert.equal(spaceOperators('A**B'), 'A ** B');
+    assert.equal(spaceOperators('A//B'), 'A // B');
+    assert.equal(spaceOperators('M#2'), 'M # 2');
+    assert.equal(spaceOperators('A+=1'), 'A += 1');
+    // A sign is not an operator, and neither is a label dot or a bracket.
+    assert.equal(spaceOperators('A = -1'), 'A = -1');
+    assert.equal(spaceOperators('Q push -1'), 'Q push -1');
+    assert.equal(spaceOperators('1 to -3'), '1 to -3');
+    assert.equal(spaceOperators('A .x'), 'A .x');
+    assert.equal(spaceOperators('(A+B)'), '(A + B)');
+    // Compound keywords are one token spelled with a word.
+    assert.equal(spaceOperators('A and= B'), 'A and= B');
+    assert.equal(spaceOperators('A = "1+2"'), 'A = "1+2"');
+});
+
+test('formats a whole line and a line still being typed', () => {
+    assert.equal(formatLine('A,B+1'), 'A = B + 1');
+    assert.equal(formatLine('A  =   3'), 'A = 3');
+    // While typing, an operator keeps the space that separates what comes next.
+    assert.equal(formatTyping('A,'), 'A = ');
+    assert.equal(formatTyping('A = 1+'), 'A = 1 + ');
+    assert.equal(formatTyping('A = 1 '), 'A = 1 ');
+    assert.equal(formatTyping('Val'), 'Val');
+});
+
+test('knows the lines that step back out of a block', () => {
+    assert.equal(startsDedent('end'), true);
+    assert.equal(startsDedent('  else'), true);
+    assert.equal(startsDedent('catch Error'), true);
+    assert.equal(startsDedent('endgame 2'), false);
+    assert.equal(startsDedent('End = 1'), false);
+    assert.equal(startsDedent('i print'), false);
+    const open = cell('for i in 1 to 3');
+    assert.equal(nextIndent(open), '  ');
+    assert.equal(nextIndent(open, true), '');
 });
 
 test('tidies spacing without touching text or comments', () => {
@@ -164,6 +206,8 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
         'S',
         'Label: "at 12:30"',
         'Label',
+        'Tight,A+1',
+        'Tight',
         'M gets array shape 2 3',
         '  1 2 3',
         '  4 5 6',
@@ -174,6 +218,6 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
     assert.equal(result.status, 0);
     assert.deepEqual(result.stdout.trim().split('\n'), [
         '<function double>', '10', '3', '3', 'text', 'text',
-        'at 12:30', 'at 12:30', '1 2 3 4 5 6', '2 5',
+        'at 12:30', 'at 12:30', '4', '4', '1 2 3 4 5 6', '2 5',
     ]);
 });
