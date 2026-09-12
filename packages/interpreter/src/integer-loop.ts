@@ -8,7 +8,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
-import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, ownedArray } from './array-storage.js';
+import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, ownedArray, arrayRevision } from './array-storage.js';
 
 
 interface IterationBinding {
@@ -591,7 +591,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     written.add(assignment.name);
                     writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
                     body.push(`location = ${location};`, ...lines,
-                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}); write${destination} = write(storage${destination}); iterationResult = ${value};`);
+                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
                     assigned.add(assignment.name);
                     continue;
                 }
@@ -647,8 +647,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
         }
     }
-    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed) {
-        ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}], storage${index} = access(input[${index}]), reader${index} = read(storage${index}), write${index} = write(storage${index})`).join(',')};` : ''}
+    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites) {
+        ${names.length ? `let ${names.map((_, index) => `r${index} = input[${index}], storage${index} = access(input[${index}]), reader${index} = read(storage${index}), write${index} = write(storage${index}, batchWrites)`).join(',')};` : ''}
         let result, location = -1;
         try { ${root.setup} ${root.header}
             let iterationResult;
@@ -656,7 +656,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             result = iterationResult; location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean) => RankValue | undefined;
     try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
@@ -715,10 +715,18 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             values[info.slot] = value;
         }
         host.executed?.();
+        // No computation can observe an intermediate revision in this region:
+        // every array read is owned/eager, and there are no callbacks/iterators.
+        const batchWrites = calls.length === 0 && iterators.length === 0 && containers.size === 0
+            && [...arrayInputs].every(name => {
+                const value = values[names.indexOf(name)];
+                return value !== undefined && isRankArray(value) && value.itemAt === undefined
+                    && arrayRevision(value) !== undefined;
+            });
         const activeWriters = host.prepareWriter
             ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed));
+        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites));
     } };
 }

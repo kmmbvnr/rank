@@ -4,6 +4,43 @@ import { createArraySnapshot, derivedArray, materializedArrayItems, ownedArray }
 import type { RankArray } from '../src/value.js';
 
 describe('derived array revisions', () => {
+    it('does not batch revisions when a compiled loop reads a lazy dependent', () => {
+        let loops = 0;
+        const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => { loops++; } });
+        try {
+            expect(runtime.execute(`use numbers
+use ranges
+A = array 0
+B = A * 2
+Warm = B sum
+Answer = 0
+for I in 0 until 2
+  A 0 = I + 1
+  Answer += B 0
+end
+Answer`)).toBe(6n);
+            expect(loops).toBeGreaterThan(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('publishes batched writes before an exception leaves a compiled loop', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`use numbers
+use ranges
+A = array 0
+B = A * 2
+Warm = B sum`);
+            expect(() => runtime.execute(`for I in 0 until 3
+  A 0 = I + 1
+  if I equal 1
+    Bad = 1 // 0
+  end
+end`)).toThrow('division by zero');
+            expect(runtime.execute('B 0')).toBe(4n);
+        } finally { runtime.dispose(); }
+    });
+
     it('tracks a newly inserted child through subsequent writes', () => {
         const parent = ownedArray([ownedArray([1n])]);
         const result = derivedArray([1], [parent], () => (parent.items[0] as RankArray).items[0]);

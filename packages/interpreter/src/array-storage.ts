@@ -297,14 +297,20 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
 }
 
 /** Prepare once per compiled region; avoid a WeakMap lookup on each write. */
-export function prepareScalarArrayWriter(value: RankValue | undefined): (index: number, item: bigint | boolean) => void {
+export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | boolean) => void {
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     if (!state) return (index, item) => { array.items[index] = item; };
     const items = state.items;
+    let changed = false;
     return (index, item) => {
+        // Batching is allowed only in a compiler-proved region with no lazy
+        // reads or callbacks. Publish before its first write, including errors.
+        if (!batch || !changed) {
+            state.revision = noteMutation(state.birth);
+            changed = true;
+        }
         items[index] = item;
-        state.revision = noteMutation(state.birth);
     };
 }
 
