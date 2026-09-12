@@ -103,6 +103,11 @@ is disabled and ordinary evaluation continues.
 
 ## Next extensions
 
+The [2026-09-12 implementation plan](tensor-fusion-plan.md) prioritizes explicit
+array materialization through `copy`, followed by coverage of readable expression
+forms and measured iteration-domain extensions. The [worker experiment](tensor-workers-results.md)
+provides the evidence for improving local fusion before automatic parallelism.
+
 Use benchmark evidence to extend coverage: preserve observable caches while
 supporting lazy readers, add range/sequence plans, describe `axis` and `rank` in
 the iteration domain, and support further expression positions and library

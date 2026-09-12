@@ -11,7 +11,8 @@ The language is designed for:
 - arrays, tensors and ML;
 - source code that remains readable on narrow screens.
 
-This wiki contains only the current design. Deprecated experiments are omitted.
+Language sections describe the current design. Compiler experiments and future
+implementation plans are recorded separately under development workflow.
 
 ## Core principles
 
@@ -74,6 +75,8 @@ execution direction and its semantic requirements.
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
 - [Performance roadmap: remaining work](design/performance-roadmap.md)
+- [Tensor fusion improvement plan](design/tensor-fusion-plan.md)
+- [Parallel tensor worker results](design/tensor-workers-results.md)
 - [Performance measurements and benchmark commands](design/performance-measurements.md)
 
 ## Marketing

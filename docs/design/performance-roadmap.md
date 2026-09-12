@@ -4,10 +4,20 @@ The measured optimization pass and rejected prototypes are recorded in
 [results](optimization-results.md) and the [experiment log](optimization-lab.md).
 This page lists further work and the evidence needed to justify it.
 
+## Current priority: array-output fusion
+
+The [fusion improvement plan](tensor-fusion-plan.md), agreed on 2026-09-12, starts
+with profiling the missed `copy` terminal and adding one traversal for explicit
+array output. [Worker measurements](tensor-workers-results.md) show why local
+kernel improvements take priority over automatic parallel execution. The stages
+below retain their workload and semantic gates; earlier rejected narrow
+prototypes do not rule out the accepted general tensor compiler.
+
 ## Named-intermediate fusion
 
-Inline arithmetic folds now work on ordinary eager arrays. Named intermediate
-values keep their lazy caches. Consider fusion across a named binding only
+The general tensor compiler already combines eligible private named intermediates
+ending in reductions; see [current coverage](tensor-fusion.md). Observable named
+values keep their lazy caches. Extend fusion to further terminals and bindings only
 when a real workload spends enough time materializing a single-use temporary
 to justify use/effect analysis. Preserve reused and partially forced caches.
 
