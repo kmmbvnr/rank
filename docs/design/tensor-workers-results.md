@@ -133,3 +133,9 @@ Mobile crossover, browser startup/transport, peak memory and energy remain unmea
 The implementation follow-up is the [fusion improvement plan](tensor-fusion-plan.md).
 The experiment passed 977 TypeScript tests and its worker-specific correctness
 checks. It did not benchmark the full demo suite or claim whole-program speedups.
+
+## Recheck after local fusion
+
+The [completed fusion stages and worker recheck](fusion-results.md) show that
+local fusion reverses the worker advantage for the polynomial map. Heavy matrix
+and window calculations can still benefit from a warm pool.
