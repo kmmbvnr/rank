@@ -221,12 +221,17 @@ Exact join variants and collision rules remain an open design detail.
 
 ## Labels
 
-The table schema itself is accessible as labels:
+With `use tables`, `Table labels` returns a rank-1 array of column labels.
+CSV header order is retained even when a column is entirely empty or the CSV
+has no data rows. For a table of ordinary objects without a CSV schema, fields
+appear in first-seen order across rows. An empty schema-less table returns an
+empty array; a non-object row raises `.TypeError`, and a non-rank-1 value raises
+`.DimensionMismatch`.
 
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 ```
 
 ## Text columns

@@ -558,10 +558,28 @@ Includes concepts such as:
 
 ```rank
 csv
-group
-join
 labels
 ```
+
+`labels` returns the ordered column labels of a rank-1 table. CSV headers are
+retained even for empty columns and zero data rows. For object arrays without
+CSV headers, it unions keys in first-appearance order. `group` and relational
+`join` remain design sketches.
+
+## Images
+
+With `use images`, `Directory images` returns a rank-1 table of regular JPEG
+and PNG files, sorted by filename in ascending code point order. Each row has
+`.name` (the filename) and `.path` (the full path); other files are ignored.
+`Images Height Width resize` decodes every image in that order, applies EXIF
+orientation, stretches it to the requested positive integer height and width,
+converts it to 8-bit sRGB with three channels, and returns a lazy rank-4 RGB
+tensor of shape `[image count, height, width, 3]`. Pixel values are integers
+from 0 to 255. Empty directories produce an empty tensor with that shape.
+This module needs a host with image directory and decoding support; the CLI
+uses `sharp` in a synchronous child process so Rank evaluation stays
+synchronous. Invalid dimensions raise `.DomainError`, and malformed image rows
+raise `.TypeError`.
 
 ## Stats
 
@@ -617,6 +635,8 @@ Examples:
 
 ```rank
 split
+words
+vocab
 reverse
 codepoint
 character
@@ -644,6 +664,14 @@ Parts = "2x3x4" "x" split
 Fields = Text (array "," ";") split
 Characters = "A😀Б" "" split
 ```
+
+`Text words` returns lowercase Unicode letter-and-number runs as a rank-1 text
+array; punctuation and whitespace separate words. `Texts Limit vocab` accepts
+a rank-1 text array and a nonnegative integer limit. It counts all words,
+orders them by descending frequency and then ascending Unicode code point
+order, and returns at most `Limit` terms. An empty input or zero limit returns
+an empty array. These operations require `use text`; wrong element types raise
+`.TypeError`, and an invalid limit raises `.DomainError`.
 
 `parse` matches a complete text value against a text pattern and returns the
 captured values as a rank-1 array. It is normally combined with `unpack`:

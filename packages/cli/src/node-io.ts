@@ -1,4 +1,7 @@
 import * as fs from 'node:fs';
+import * as pathModule from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import type { RankFileHandle, RankFileMode, RankInput, RankIo } from 'rank-interpreter';
 
 export class NodeInput implements RankInput {
@@ -30,6 +33,26 @@ export class NodeInput implements RankInput {
 }
 
 export const nodeIo: RankIo = {
+    listImages(directory) {
+        return fs.readdirSync(directory, { withFileTypes: true })
+            .filter(entry => entry.isFile() && /\.(?:jpe?g|png)$/i.test(entry.name))
+            .map(entry => ({ name: entry.name, path: pathModule.join(directory, entry.name) }))
+            .sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+    },
+    resizeImages(paths, height, width) {
+        if (paths.length === 0) return new Uint8Array();
+        const worker = fileURLToPath(new URL('./image-worker.js', import.meta.url));
+        const expected = paths.length * height * width * 3;
+        const result = spawnSync(process.execPath, [worker], {
+            input: JSON.stringify({ paths, height, width }),
+            maxBuffer: expected + 1024 * 1024,
+        });
+        if (result.error) throw result.error;
+        if (result.status !== 0) {
+            throw new Error(result.stderr.toString('utf8').trim() || 'image decoder failed');
+        }
+        return result.stdout;
+    },
     read: path => fs.readFileSync(path),
     readRange(path, offset, count) {
         const descriptor = fs.openSync(path, 'r');

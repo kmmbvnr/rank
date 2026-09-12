@@ -3,6 +3,26 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { MemoryIo, run } from './support.js';
 
 describe('Rank tables', () => {
+    it('keeps CSV header order, including empty columns and empty tables', () => {
+        const io = new MemoryIo({
+            '/rows.csv': 'z,empty,a\n1,,2\n3,,4\n',
+            '/empty.csv': 'z,empty,a\n',
+        });
+        const runtime = new Interpreter(undefined, { io });
+        expect(formatValue(runtime.execute('use tables\nRows = "/rows.csv" csv\nRows labels')!))
+            .toBe('.z .empty .a');
+        expect(formatValue(runtime.execute('Empty = "/empty.csv" csv\nEmpty labels')!))
+            .toBe('.z .empty .a');
+    });
+
+    it('unions ordinary table fields by first appearance', () => {
+        expect(run('use json\nuse tables\nRows = "[{\\"b\\":1},{\\"a\\":2,\\"b\\":3}]" json\nRows labels'))
+            .toBe('.b .a');
+        expect(() => run('use tables\n(array 1) labels')).toThrowError('labels expects object rows');
+        expect(() => run('use tables\n(array shape 1 1 pad 0) labels'))
+            .toThrowError('labels expects a rank-1 table');
+    });
+
     it('reads typed CSV rows with quoted fields', () => {
         const io = new MemoryIo({
             '/train.csv': [

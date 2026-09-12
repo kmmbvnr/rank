@@ -77,7 +77,7 @@ X = Train Features
 Xtest = Test Features
 ```
 
-`Features` is just a sequence of labels.
+`Features` is an ordinary array of labels.
 
 The [runnable numeric baseline](../../demos/kaggle/002_prices.ra) currently
 uses `OverallQual` and `GrLivArea`, fills missing values from the training
@@ -109,7 +109,7 @@ Get all pixel columns except the target:
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 
 X = Train Features
 Xtest = Test Features
@@ -120,19 +120,32 @@ Xtest = Xtest / 255
 
 A numeric table can participate directly in array arithmetic.
 
+The [runnable Digit Recognizer baseline](../../demos/kaggle/004_digitsreq.ra)
+reads train/test CSV files, gets pixel columns from `Train labels` in header
+order, fits class centroids, and writes `ImageId,Label`. The train-derived class
+set and column selection are covered by adjacent tests and a CLI file test.
+Default local paths are `data/digits/{train,test}.csv` and
+`submissions/digits.csv` under `demos/kaggle/`.
+
 ## Disaster Tweets
 
 The workflow suggested reusable first-class preprocessing values:
 
 ```rank
-Texts = Train .text
-Vocab = Texts vocab
+Texts = Train .text pad ""
+Vocab = Texts 128 vocab
 
-X = Train .text Vocab tfidf
-Xtest = Test .text Vocab tfidf
+Model = Texts Vocab tfidf_fit
+X = Texts Model tfidf_transform
+Xtest = (Test .text pad "") Model tfidf_transform
 ```
 
-Whether `vocab` and `tfidf` belong as library words remains open.
+`words` and `vocab` are text-library words. The TF-IDF fitting and transform
+remain [Rank functions](../../demos/kaggle/005_distweets.ra): the vocabulary
+and inverse document frequencies come only from training text. The runnable
+baseline fits Rank logistic regression and writes `id,target`. Its default
+local paths are `data/disaster-tweets/{train,test}.csv` and
+`submissions/disaster-tweets.csv` under `demos/kaggle/`.
 
 ## Store Sales
 
@@ -204,15 +217,19 @@ distance, datetime extraction and complete prediction path.
 Images should become ordinary tensor data:
 
 ```rank
-X = Train .image
-Xtest = Test .image
-
-X = X 128 128 resize
-Xtest = Xtest 128 128 resize
-
-X = X / 255
-Xtest = Xtest / 255
+Train = "demos/kaggle/data/dogs-vs-cats/train" images
+Test = "demos/kaggle/data/dogs-vs-cats/test1" images
+Pixels = Train 8 8 resize
+X = Pixels (array (Train len) 192) reshape
 ```
+
+The [runnable Dogs vs Cats baseline](../../demos/kaggle/009_dogvscat.ra)
+derives cat/dog labels from training filenames, resizes JPEG/PNG files to
+8×8 RGB, fits Rank logistic regression, and writes `id,label` probabilities.
+The small image size keeps a full local competition run practical; this is a
+simple pixel baseline, not a convolutional model. The CLI image test creates
+real JPEG/PNG files and checks image order, decoding and the submission path.
+Extract Kaggle's local archives into the two ignored directories shown above.
 
 ## Connect X
 

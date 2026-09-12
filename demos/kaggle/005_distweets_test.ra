@@ -11,6 +11,17 @@ test "counts vocabulary terms per document"
   Texts Vocab term_counts equal Expected
 end
 
+test "normalizes punctuation and builds vocabulary from training rows"
+  use json
+  use tables
+  use "005_distweets"
+  Train = "[{\"id\":1,\"text\":\"FIRE, smoke!\",\"target\":1},{\"id\":2,\"text\":\"picnic music\",\"target\":0}]" json
+  Test = "[{\"id\":3,\"text\":\"fire!!!\"}]" json
+  Train Test 4 0.1 300 solve_table equal array shape 1 2
+    3 1
+  end
+end
+
 test "fits training-only inverse document frequencies"
   use numbers
   use "005_distweets"

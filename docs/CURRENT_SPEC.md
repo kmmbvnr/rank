@@ -3429,12 +3429,17 @@ Exact join variants and collision rules remain an open design detail.
 
 ## Labels
 
-The table schema itself is accessible as labels:
+With `use tables`, `Table labels` returns a rank-1 array of column labels.
+CSV header order is retained even when a column is entirely empty or the CSV
+has no data rows. For a table of ordinary objects without a CSV schema, fields
+appear in first-seen order across rows. An empty schema-less table returns an
+empty array; a non-object row raises `.TypeError`, and a non-rank-1 value raises
+`.DimensionMismatch`.
 
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 ```
 
 ## Text columns
@@ -4488,10 +4493,28 @@ Includes concepts such as:
 
 ```rank
 csv
-group
-join
 labels
 ```
+
+`labels` returns the ordered column labels of a rank-1 table. CSV headers are
+retained even for empty columns and zero data rows. For object arrays without
+CSV headers, it unions keys in first-appearance order. `group` and relational
+`join` remain design sketches.
+
+## Images
+
+With `use images`, `Directory images` returns a rank-1 table of regular JPEG
+and PNG files, sorted by filename in ascending code point order. Each row has
+`.name` (the filename) and `.path` (the full path); other files are ignored.
+`Images Height Width resize` decodes every image in that order, applies EXIF
+orientation, stretches it to the requested positive integer height and width,
+converts it to 8-bit sRGB with three channels, and returns a lazy rank-4 RGB
+tensor of shape `[image count, height, width, 3]`. Pixel values are integers
+from 0 to 255. Empty directories produce an empty tensor with that shape.
+This module needs a host with image directory and decoding support; the CLI
+uses `sharp` in a synchronous child process so Rank evaluation stays
+synchronous. Invalid dimensions raise `.DomainError`, and malformed image rows
+raise `.TypeError`.
 
 ## Stats
 
@@ -4547,6 +4570,8 @@ Examples:
 
 ```rank
 split
+words
+vocab
 reverse
 codepoint
 character
@@ -4574,6 +4599,14 @@ Parts = "2x3x4" "x" split
 Fields = Text (array "," ";") split
 Characters = "A😀Б" "" split
 ```
+
+`Text words` returns lowercase Unicode letter-and-number runs as a rank-1 text
+array; punctuation and whitespace separate words. `Texts Limit vocab` accepts
+a rank-1 text array and a nonnegative integer limit. It counts all words,
+orders them by descending frequency and then ascending Unicode code point
+order, and returns at most `Limit` terms. An empty input or zero limit returns
+an empty array. These operations require `use text`; wrong element types raise
+`.TypeError`, and an invalid limit raises `.DomainError`.
 
 `parse` matches a complete text value against a text pattern and returns the
 captured values as a rank-1 array. It is normally combined with `unpack`:
@@ -6057,11 +6090,24 @@ Test .Female =
   Test .Sex equal "female"
 
 Features =
-  .Female .Pclass .Age .Fare
+  array .Female .Pclass .Age .Fare
 
 X = Train Features
 Xtest = Test Features
 ```
+
+The [runnable Titanic baseline](../demos/kaggle/001_titanic.ra) implements
+the preprocessing, logistic regression and submission output in Rank. Its
+three positional paths default to ignored local directories:
+
+```text
+demos/kaggle/data/titanic/train.csv
+demos/kaggle/data/titanic/test.csv
+demos/kaggle/submissions/titanic.csv
+```
+
+The neighboring test uses small in-memory rows, so the repository test suite
+does not require a Kaggle account or downloaded competition data.
 
 ## House Prices
 
@@ -6072,7 +6118,7 @@ rem Kaggle: House Prices
 rem Predict SalePrice.
 
 Features =
-  .OverallQual .GrLivArea
+  array .OverallQual .GrLivArea
   .Neighborhood .HouseStyle
   .KitchenQual .ExterQual
 
@@ -6080,7 +6126,12 @@ X = Train Features
 Xtest = Test Features
 ```
 
-`Features` is just a sequence of labels.
+`Features` is an ordinary array of labels.
+
+The [runnable numeric baseline](../demos/kaggle/002_prices.ra) currently
+uses `OverallQual` and `GrLivArea`, fills missing values from the training
+medians, fits log price with linear regression written in Rank, and writes the
+`Id,SalePrice` submission. The neighboring tests do not require Kaggle files.
 
 ## Spaceship Titanic
 
@@ -6095,6 +6146,11 @@ Train .Number = Parts 1
 Train .Side = Parts 2
 ```
 
+The [runnable numeric baseline](../demos/kaggle/003_spaceship.ra) fills the
+five spending columns and age from training medians, derives total spending,
+fits the Rank logistic regression, and writes boolean predictions. Its tests
+use in-memory rows and cover missing test values.
+
 ## Digit Recognizer
 
 Get all pixel columns except the target:
@@ -6102,7 +6158,7 @@ Get all pixel columns except the target:
 ```rank
 Features = Train labels
 Mask = Features not equal .label
-Features = Features Mask
+Features = (Features Mask) array
 
 X = Train Features
 Xtest = Test Features
@@ -6113,19 +6169,32 @@ Xtest = Xtest / 255
 
 A numeric table can participate directly in array arithmetic.
 
+The [runnable Digit Recognizer baseline](../demos/kaggle/004_digitsreq.ra)
+reads train/test CSV files, gets pixel columns from `Train labels` in header
+order, fits class centroids, and writes `ImageId,Label`. The train-derived class
+set and column selection are covered by adjacent tests and a CLI file test.
+Default local paths are `data/digits/{train,test}.csv` and
+`submissions/digits.csv` under `demos/kaggle/`.
+
 ## Disaster Tweets
 
 The workflow suggested reusable first-class preprocessing values:
 
 ```rank
-Texts = Train .text
-Vocab = Texts vocab
+Texts = Train .text pad ""
+Vocab = Texts 128 vocab
 
-X = Train .text Vocab tfidf
-Xtest = Test .text Vocab tfidf
+Model = Texts Vocab tfidf_fit
+X = Texts Model tfidf_transform
+Xtest = (Test .text pad "") Model tfidf_transform
 ```
 
-Whether `vocab` and `tfidf` belong as library words remains open.
+`words` and `vocab` are text-library words. The TF-IDF fitting and transform
+remain [Rank functions](../demos/kaggle/005_distweets.ra): the vocabulary
+and inverse document frequencies come only from training text. The runnable
+baseline fits Rank logistic regression and writes `id,target`. Its default
+local paths are `data/disaster-tweets/{train,test}.csv` and
+`submissions/disaster-tweets.csv` under `demos/kaggle/`.
 
 ## Store Sales
 
@@ -6133,13 +6202,19 @@ Grouping and join:
 
 ```rank
 Keys =
-  .store_nbr .family .weekday
+  array .store_nbr .family .weekday
 
 Groups = Train Keys group
 Means = Groups .sales mean
 
 Forecast = Test Keys Means join
 ```
+
+The [runnable Store Sales baseline](../demos/kaggle/006_storesales.ra)
+implements the same grouping with an ordinary `index`: `(store, family,
+weekday)` is a three-part key expanded by `unpack`. An unseen test key falls
+back to the global training mean. The ISO-date weekday calculation and grouped
+forecast both have focused tests.
 
 ## Bike Sharing
 
@@ -6161,6 +6236,11 @@ Negative = Pred less 0
 Pred Negative = 0
 ```
 
+The [runnable Bike Sharing baseline](../demos/kaggle/007_bakishare.ra)
+parses the fixed Kaggle datetime format in Rank, combines four calendar and
+eight numeric features, reuses the tested linear regression, clamps negative
+predictions, and writes the required two-column submission.
+
 ## NYC Taxi
 
 Apply a function to each row/cell:
@@ -6176,20 +6256,29 @@ Train .distance =
   Geo distance rank 1
 ```
 
+The [runnable NYC Taxi baseline](../demos/kaggle/008_nytaxi.ra) builds the
+five-feature matrix directly, computes a documented planar distance in Rank,
+reuses the log-linear model, and writes `id,trip_duration`. Tests cover the
+distance, datetime extraction and complete prediction path.
+
 ## Dogs vs Cats
 
 Images should become ordinary tensor data:
 
 ```rank
-X = Train .image
-Xtest = Test .image
-
-X = X 128 128 resize
-Xtest = Xtest 128 128 resize
-
-X = X / 255
-Xtest = Xtest / 255
+Train = "demos/kaggle/data/dogs-vs-cats/train" images
+Test = "demos/kaggle/data/dogs-vs-cats/test1" images
+Pixels = Train 8 8 resize
+X = Pixels (array (Train len) 192) reshape
 ```
+
+The [runnable Dogs vs Cats baseline](../demos/kaggle/009_dogvscat.ra)
+derives cat/dog labels from training filenames, resizes JPEG/PNG files to
+8×8 RGB, fits Rank logistic regression, and writes `id,label` probabilities.
+The small image size keeps a full local competition run practical; this is a
+simple pixel baseline, not a convolutional model. The CLI image test creates
+real JPEG/PNG files and checks image order, decoding and the submission path.
+Extract Kaggle's local archives into the two ignored directories shown above.
 
 ## Connect X
 
@@ -6202,6 +6291,10 @@ Next r c = Player
 
 Game-specific primitives are unnecessary.
 
+The [runnable example](../demos/kaggle/010_connectx.ra) checks immediate
+wins, blocks immediate losses and otherwise prefers a legal center column.
+Its neighboring test file also verifies full columns, full boards and that
+searching candidate moves does not mutate the input board.
 ---
 
 # TPC-H examples

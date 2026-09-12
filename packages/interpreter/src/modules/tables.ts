@@ -12,6 +12,18 @@ import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const tablesModule: RuntimeModule = {
+    labels: () => native('labels', 1, ([value]) => {
+        if (!isRankArray(value) || value.shape.length !== 1) {
+            throw new RankError('labels expects a rank-1 table', 'DimensionMismatch');
+        }
+        const names = value.columnNames === undefined ? new Set<string>() : new Set(value.columnNames);
+        for (const item of value.items) {
+            if (!isRankObject(item)) throw new RankError('labels expects object rows', 'TypeError');
+            for (const name of item.entries.keys()) names.add(name);
+        }
+        const items: RankValue[] = [...names].map(name => ({ kind: 'label', name }));
+        return { kind: 'array', items, shape: [items.length] };
+    }),
     csv: context => native('csv', [1, 2], arguments_ => {
         if (arguments_.length === 1) {
             return parseCsv(readTextFile(context.io, arguments_[0]));
@@ -141,7 +153,7 @@ function parseCsv(text: string): RankArray {
         }
         items.push({ kind: 'object', entries });
     }
-    return { kind: 'array', items, shape: [items.length], containsFiles: false };
+    return { kind: 'array', items, shape: [items.length], columnNames: headers, containsFiles: false };
 }
 
 function csvRows(text: string): string[][] {
