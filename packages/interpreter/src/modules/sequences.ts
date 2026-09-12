@@ -1,3 +1,4 @@
+import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
@@ -38,6 +39,7 @@ interface Boundary {
 }
 
 export const sequencesModule: RuntimeModule = {
+    flat: () => native('flat', [1, 2], flatRecords),
     choose: () => native('choose', 3, ([condition, whenTrue, whenFalse]) =>
         chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
@@ -45,7 +47,8 @@ export const sequencesModule: RuntimeModule = {
     len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     copy: () => native('copy', 1, arguments_ =>
-        arguments_[0] instanceof RankRangeSumSegment
+        arguments_[0] instanceof FlatRecords
+        || arguments_[0] instanceof RankRangeSumSegment
         || arguments_[0] instanceof RankPersistentSumSegment
             ? arguments_[0].copy()
             : copyArray(arguments_[0])),

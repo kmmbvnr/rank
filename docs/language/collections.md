@@ -348,6 +348,36 @@ resolves `Operation` once when the tree is built. It therefore honors a
 user-defined `min` or any other binary function. Rank does not try to prove
 that the operation is associative.
 
+User-defined record states can supply an explicit neutral element:
+
+```rank
+Tree = Values with Identity with combine segment
+```
+
+Each input element is already a state. `combine Left Right` must return a
+state, be associative, and leave both operands unchanged. `Identity` must
+satisfy `combine Identity X = X` and `combine X Identity = X`; these laws are
+part of the caller's contract and are not checked at runtime. The function
+and identity are evaluated once during construction.
+
+Ranges remain inclusive. With an explicit identity, `Tree I (I - 1) query`
+returns the identity for `0 <= I <= Tree len`. An empty tree therefore accepts
+`Tree 0 (-1) query`. Other reversed ranges and out-of-bounds positions are
+errors. Without an explicit identity, the existing range rules apply.
+
+A [flat record array](sequences-arrays.md#flat-record-arrays) makes the tree
+store its nodes in a compact buffer with the same schema. Reads return record
+copies. Replace a whole leaf with `Tree Position = State` to recompute its
+ancestors. A schema mismatch or overflow during an update leaves the stored
+tree unchanged. Flat identities are copied on construction and on empty reads.
+Ordinary record trees retain the existing reference semantics. Eligible pure
+integer `combine` functions use a scalar kernel without intermediate records.
+Query intermediates keep arbitrary-precision integer semantics; only stored
+nodes are checked against the signed 64-bit limit.
+
+Only point updates are supported for user-defined operations. Lazy range
+updates need an additional action algebra and are not inferred from `combine`.
+
 A point uses ordinary zero-based addressing. Assignment changes the point and
 updates its ancestors:
 

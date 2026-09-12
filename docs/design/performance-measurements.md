@@ -7,6 +7,10 @@ The current step-by-step experiments are in the [optimization log](optimization-
 The [integrated results](optimization-results.md) compare the current worktree
 with main and list the remaining host-array and scalar-addressing costs.
 
+The [flat segment comparison](flat-segment-results.md) measures retained memory,
+builds, queries, and updates with JavaScript and Rank combine functions.
+The [speed follow-up](flat-segment-speed.md) measures scalar combine specialization.
+
 ## Benchmark commands
 
 From a built checkout:

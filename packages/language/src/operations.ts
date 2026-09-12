@@ -420,6 +420,8 @@ export const operations: readonly Operation[] = [
         summary: 'Independent writable dense copy of an array, its shape preserved.' },
     { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer',
         summary: 'Number of true cells, or of source items a lazy mask selects.' },
+    { name: 'flat', module: 'sequences', arities: [1, 2], form: 'Values flat', result: 'array',
+        summary: 'Copies records into fixed-width storage; Count State flat initializes a compact array.' },
     { name: 'fibonacci', module: 'sequences', arities: [], form: 'fibonacci', result: 'sequence',
         lazy: true,
         summary: 'Unbounded lazy Fibonacci numbers; bound with to, until or from.' },

@@ -125,7 +125,7 @@ const METHODS = new Set([
 ]);
 
 const MODIFIERS = new Set([
-    'axis', 'rank', 'by', 'reduce', 'scan', 'outer', 'stride', 'padding',
+    'axis', 'rank', 'by', 'with', 'reduce', 'scan', 'outer', 'stride', 'padding',
     'array', 'shape', 'index', 'type', 'edges', 'value', 'key', 'from',
     'queue', 'stack', 'deque', 'heap', 'set', 'counter', 'orderedset',
     'graph', 'dsu', 'multiset', 'fenwick', 'segment', 'wavelet',

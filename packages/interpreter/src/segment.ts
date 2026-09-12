@@ -1,3 +1,5 @@
+import { flatCombine, type FlatCombine } from './flat-combine.js';
+import { FlatRecords } from './flat.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ResourceSummary } from './resource-summary.js';
 import type { RankRecord, RankValue } from './value.js';
@@ -19,70 +21,177 @@ export interface RankSegmentValue {
 /** A point-update segment tree for one associative operation. */
 export class RankSegment implements RankSegmentValue {
     private readonly resources = new ResourceSummary();
-    private readonly nodes: Array<RankValue | undefined>;
+    private readonly nodes: Array<RankValue | undefined> | FlatRecords;
+    private readonly present?: Uint8Array;
+    private readonly kernel?: FlatCombine;
+    private pendingFlat?: FlatRecords;
     private readonly base: number;
     readonly kind = 'segment' as const;
     readonly size: number;
 
     constructor(
-        values: readonly RankValue[],
+        values: readonly RankValue[] | FlatRecords,
         private readonly combine: Combine,
         readonly operation: string,
         private readonly operationValue?: RankValue,
+        private readonly identity?: RankValue,
     ) {
-        this.size = values.length;
+        this.size = values instanceof FlatRecords ? values.shape[0] : values.length;
         this.resources.track(this);
         if (operationValue !== undefined) this.resources.include(operationValue);
+        if (identity !== undefined) this.resources.include(identity);
         this.base = 2 ** Math.ceil(Math.log2(Math.max(1, this.size)));
-        this.nodes = Array<RankValue | undefined>(this.base * 2);
-        values.forEach((value, index) => {
-            this.resources.include(value);
-            this.nodes[this.base + index] = value;
-        });
-        for (let index = this.base - 1; index > 0; index--) this.update(index);
+        if (values instanceof FlatRecords) {
+            this.nodes = values.emptyLike(this.base * 2);
+            this.kernel = flatCombine(operationValue, this.nodes);
+            this.present = new Uint8Array(this.base * 2);
+            if (identity !== undefined) {
+                const state = this.nodes.validate(identity);
+                this.identity = { kind: 'record', entries: new Map(state.entries), types: new Map(state.types) };
+            }
+        } else this.nodes = Array<RankValue | undefined>(this.base * 2);
+        if (values instanceof FlatRecords && this.nodes instanceof FlatRecords) {
+            this.nodes.copySlots(values, 0, this.base, this.size);
+            this.present!.fill(1, this.base, this.base + this.size);
+        } else {
+            for (let index = 0; index < this.size; index++) this.put(this.base + index, (values as readonly RankValue[])[index]);
+        }
+        if (this.nodes instanceof FlatRecords && this.kernel?.valid()) {
+            const left: bigint[] = [], right: bigint[] = [], result: bigint[] = [];
+            for (let index = this.base - 1; index > 0; index--) {
+                const a = index * 2, b = a + 1;
+                if (this.present![a] && this.present![b]) {
+                    this.nodes.readIntegers(a, left);
+                    this.nodes.readIntegers(b, right);
+                    this.kernel.run(left, right, result);
+                    this.nodes.writeIntegers(index, result);
+                } else if (this.present![a] || this.present![b]) {
+                    this.nodes.copySlots(this.nodes, this.present![a] ? a : b, index);
+                } else continue;
+                this.present![index] = 1;
+            }
+        } else for (let index = this.base - 1; index > 0; index--) this.update(index);
+
     }
 
     at(index: bigint): RankValue {
-        return this.nodes[this.base + this.position(index)]!;
+        return this.node(this.base + this.position(index))!;
     }
 
     set(index: bigint, value: RankValue): void {
         let position = this.base + this.position(index);
-        this.resources.include(value);
-        this.nodes[position] = value;
-        while (position > 1) {
-            position = Math.floor(position / 2);
-            this.update(position);
+        if (!(this.nodes instanceof FlatRecords)) {
+            this.put(position, value);
+            while (position > 1) {
+                position = Math.floor(position / 2);
+                this.update(position);
+            }
+            return;
         }
+        if (this.kernel?.valid()) {
+            this.setCompiled(position, value, this.nodes, this.kernel);
+            return;
+        }
+        const pending: Array<[number, RankValue]> = [[position, value]];
+        this.nodes.validate(value);
+        let aggregate = value;
+        while (position > 1) {
+            aggregate = (position % 2 === 0
+                ? this.append(aggregate, this.node(position + 1))
+                : this.append(this.node(position - 1), aggregate))!;
+            this.nodes.validate(aggregate);
+            position = Math.floor(position / 2);
+            pending.push([position, aggregate]);
+        }
+        for (const [index, item] of pending) this.put(index, item);
     }
 
     query(left: bigint, right: bigint): RankValue {
+        if (this.identity !== undefined && left === right + 1n && left >= 0n && left <= BigInt(this.size)) {
+            if (this.nodes instanceof FlatRecords) {
+                const state = this.identity as RankRecord;
+                return { kind: 'record', entries: new Map(state.entries), types: new Map(state.types) };
+            }
+            return this.identity;
+        }
         const low = this.position(left);
         const high = this.position(right);
         if (low > high) throw new RankError('segment query start must not exceed its end');
+        if (this.nodes instanceof FlatRecords && this.kernel?.valid()) {
+            return this.queryCompiled(low, high, this.nodes, this.kernel);
+        }
 
         let first = low + this.base;
         let last = high + this.base + 1;
         let before: RankValue | undefined;
         let after: RankValue | undefined;
         while (first < last) {
-            if (first % 2 === 1) before = this.append(before, this.nodes[first++]);
-            if (last % 2 === 1) after = this.append(this.nodes[--last], after);
+            if (first % 2 === 1) before = this.append(before, this.node(first++));
+            if (last % 2 === 1) after = this.append(this.node(--last), after);
             first = Math.floor(first / 2);
             last = Math.floor(last / 2);
         }
         return this.append(before, after)!;
     }
 
+    private setCompiled(position: number, value: RankValue, nodes: FlatRecords, kernel: FlatCombine): void {
+        const pending = this.pendingFlat ??= nodes.emptyLike(Math.log2(this.base) + 1);
+        pending.set(0, value);
+        const aggregate: bigint[] = [], sibling: bigint[] = [];
+        pending.readIntegers(0, aggregate);
+        const leaf = position;
+        let level = 0;
+        while (position > 1) {
+            const other = position % 2 === 0 ? position + 1 : position - 1;
+            if (this.present![other]) {
+                nodes.readIntegers(other, sibling);
+                if (position % 2 === 0) kernel.run(aggregate, sibling, aggregate);
+                else kernel.run(sibling, aggregate, aggregate);
+            }
+            pending.writeIntegers(++level, aggregate);
+            position = Math.floor(position / 2);
+        }
+        // Commit only after every ancestor passed the storage range check.
+        position = leaf;
+        for (let i = 0; i <= level; i++) {
+            nodes.copySlots(pending, i, position);
+            position = Math.floor(position / 2);
+        }
+    }
+
+    private queryCompiled(low: number, high: number, nodes: FlatRecords, kernel: FlatCombine): RankRecord {
+        let first = low + this.base, last = high + this.base + 1;
+        const before: bigint[] = [], after: bigint[] = [], item: bigint[] = [];
+        let hasBefore = false, hasAfter = false, combined = false;
+        while (first < last) {
+            if (first % 2 === 1) {
+                if (!hasBefore) { nodes.readIntegers(first, before); hasBefore = true; }
+                else { nodes.readIntegers(first, item); kernel.run(before, item, before); combined = true; }
+                first++;
+            }
+            if (last % 2 === 1) {
+                --last;
+                if (!hasAfter) { nodes.readIntegers(last, after); hasAfter = true; }
+                else { nodes.readIntegers(last, item); kernel.run(item, after, after); combined = true; }
+            }
+            first = Math.floor(first / 2);
+            last = Math.floor(last / 2);
+        }
+        // Query intermediates remain arbitrary-precision integers. Only stores
+        // narrow to int64; a valid subrange can exceed the stored root's range.
+        if (hasBefore && hasAfter) { kernel.run(before, after, before); combined = true; }
+        return nodes.integerRecord(hasBefore ? before : after, combined ? kernel.order : undefined);
+    }
+
     /** Find the first prefix whose aggregate is at least the target. */
     firstAtLeast(target: bigint | number): bigint {
-        if (this.size === 0 || !this.atLeast(this.nodes[1], target)) return -1n;
+        if (this.size === 0 || !this.atLeast(this.node(1), target)) return -1n;
 
         let index = 1;
         let before: RankValue | undefined;
         while (index < this.base) {
             const left = index * 2;
-            const candidate = this.append(before, this.nodes[left]);
+            const candidate = this.append(before, this.node(left));
             if (this.atLeast(candidate, target)) {
                 index = left;
             } else {
@@ -96,7 +205,10 @@ export class RankSegment implements RankSegmentValue {
 
     *values(): IterableIterator<RankValue> {
         if (this.operationValue !== undefined) yield this.operationValue;
-        for (const value of this.nodes) if (value !== undefined) yield value;
+        if (this.identity !== undefined) yield this.identity;
+        if (!(this.nodes instanceof FlatRecords)) {
+            for (const value of this.nodes) if (value !== undefined) yield value;
+        }
     }
 
     private position(index: bigint): number {
@@ -120,10 +232,30 @@ export class RankSegment implements RankSegmentValue {
         return value >= target;
     }
 
+    /** Payload bytes; the occupancy bitmap adds one byte per tree slot. */
+    get storageBytes(): number | undefined {
+        return this.nodes instanceof FlatRecords ? this.nodes.byteLength + this.present!.byteLength : undefined;
+    }
+
+    private node(index: number): RankValue | undefined {
+        return this.nodes instanceof FlatRecords
+            ? this.present![index] ? this.nodes.itemAt(index) : undefined
+            : this.nodes[index];
+    }
+
+    private put(index: number, value: RankValue): void {
+        if (this.nodes instanceof FlatRecords) {
+            this.nodes.set(index, value);
+            this.present![index] = 1;
+        } else {
+            this.resources.include(value);
+            this.nodes[index] = value;
+        }
+    }
+
     private update(index: number): void {
-        const value = this.append(this.nodes[index * 2], this.nodes[index * 2 + 1]);
-        if (value !== undefined) this.resources.include(value);
-        this.nodes[index] = value;
+        const value = this.append(this.node(index * 2), this.node(index * 2 + 1));
+        if (value !== undefined) this.put(index, value);
     }
 }
 

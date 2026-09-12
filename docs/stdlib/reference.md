@@ -273,6 +273,7 @@ Shapes, orderings, windows and lazy sources.
 | `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Values copy` | array | Independent writable dense copy of an array, its shape preserved. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
+| `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, until or from. |
 | `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |

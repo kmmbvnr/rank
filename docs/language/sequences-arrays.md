@@ -766,3 +766,55 @@ expression syntax is deferred because `axis` already introduces selection;
 Applying a same-shaped boolean mask to a tensor returns a rank-1 lazy sequence
 of the selected atoms in iteration order. Tables retain their separate
 row-selection rule.
+
+
+## Flat record arrays
+
+`use sequences` enables compact storage for records with a fixed set of scalar
+fields:
+
+```rank
+use sequences
+State = record
+  .sum = 0
+  .count = 0
+end
+Values = 1000 State flat
+Values 0 .sum = 42
+Values 0 .count = 1
+Packed = (array State State) flat
+Independent = Values copy
+```
+
+`Count State flat` allocates directly and copies the state into each slot.
+`Values flat` copies a nonempty rank-1 array of records, using the first record
+as its schema. Use `0 State flat` for an empty array. Field order in later
+records may differ, but field names and types must match exactly.
+
+Each field occupies eight bytes in an interleaved `ArrayBuffer`, accessed
+through `DataView`. Integers use signed 64-bit storage, reals use float64, and
+booleans use a byte within their eight-byte slot. Integers outside
+`-9223372036854775808` through `9223372036854775807` raise an error before any
+field is written. Arithmetic still uses ordinary Rank integers and reals.
+Text, nested records, arrays, and other reference fields are not supported.
+
+The array has type `.array`, and each element reads as a `.record` value copy.
+Changing `Saved = Values 0` later does not change `Values`. Write back with
+`Values 0 = Saved`, or update a field directly with `Values 0 .sum += 1`.
+Assignment of the array itself still aliases it; `copy` duplicates its buffer.
+This initial storage form supports rank-1 arrays and single-element writes.
+Other transformations may return ordinary arrays; apply `flat` to pack them.
+
+A segment tree built from a flat array also packs its nodes. Persistent storage
+has no record object or maps per element. For integer-only schemas, a pure Rank
+`combine` consisting of a single `return record` can use a scalar kernel.
+Supported expressions are parameter field reads, integer literals, unary signs,
+`+`, `-`, `*`, and standard binary `min`/`max`. The kernel skips intermediate
+record construction; the public query result remains a record copy.
+
+Builtin bindings and call-depth limits are checked before using the kernel.
+Captured values, side effects, mixed field types, unsupported syntax, and
+restricted dynamic code generation retain ordinary Rank calls and temporary
+records. This is a JavaScript specialization, not an LLVM backend; BigInt
+arithmetic and public result records still allocate. See the
+[measured speed comparison](../design/flat-segment-speed.md).

@@ -1,3 +1,5 @@
+import { registerFlatCombine } from './flat-combine.js';
+import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem } from './array-storage.js';
@@ -1238,6 +1240,24 @@ export class Interpreter {
                     target.set(selectors[0], result);
                     return result;
                 }
+                if (target instanceof FlatRecords) {
+                    if (selectors.length < 1 || selectors.length > 2 || typeof selectors[0] !== 'bigint') {
+                        throw new RankError('flat assignment expects an integer index and optional field');
+                    }
+                    const index = Number(selectors[0]);
+                    const previous = target.itemAt(index);
+                    const value = yield* resume(interpreter.evaluateTask(statement.value));
+                    if (selectors.length === 2) {
+                        const field = selectors[1];
+                        if (!isRankLabel(field)) throw new RankError('flat assignment expects a field label');
+                        const result = interpreter.assignRecordField(previous, field.name, statement.operator, value);
+                        target.set(index, previous);
+                        return result;
+                    }
+                    if (statement.operator !== '=') throw new RankError('flat record assignment supports =');
+                    target.set(index, value);
+                    return value;
+                }
                 const field = selectors.at(-1);
                 if (field !== undefined && isRankLabel(field) && field.name !== '#') {
                     let receiver: RankValue = target;
@@ -2139,18 +2159,21 @@ export class Interpreter {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('algo', 'segment');
                     const source = yield* resume(interpreter.evaluateTask(namedSegment.source));
+                    const identity = namedSegment.identity
+                        ? yield* resume(interpreter.evaluateTask(namedSegment.identity)) : undefined;
                     const operation = yield* resume(interpreter.evaluateTask(namedSegment.operation));
                     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
                         throw new RankError('segment requires a binary operation');
                     }
-                    const values = segmentItems(source);
+                    const values = source instanceof FlatRecords ? source : segmentItems(source);
                     const maxSum = interpreter.standardFunctions.get(standardModules.algo.maxsum);
-                    if (operation === maxSum) return new RankMaxSumSegment(values);
+                    if (operation === maxSum && identity === undefined && !(values instanceof FlatRecords)) return new RankMaxSumSegment(values);
                     return new RankSegment(
                         values,
                         (left, right) => operation.call([left, right]),
                         operation.name,
                         operation,
+                        identity,
                     );
                 };
             }
@@ -2499,6 +2522,20 @@ export class Interpreter {
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
             if (!statement.memo) functionDefinitions.set(fn, { interpreter: this, statement, context, direct });
+        }
+        if (!generator && !statement.memo && this.options.scalarFunctionCompilation !== false) {
+            registerFlatCombine(fn, statement, builtins => {
+                if (this.callDepth >= this.maxCallDepth) return false;
+                for (const name of builtins) {
+                    const bound = context?.find(name)?.get(name) ?? this.variables.get(name);
+                    if (bound !== undefined) {
+                        if (bound !== this.standardFunctions.get(standardModules.numbers[name])) return false;
+                    } else if ([...this.modules].find(module => standardModules[module]?.[name]) !== 'numbers') {
+                        return false;
+                    }
+                }
+                return true;
+            });
         }
         this.assign(statement.name, fn);
         return fn;
@@ -5406,6 +5443,9 @@ function modifierPipeline(expression: Expression): Expression | undefined {
     }
     if (!isApplicationExpression(expression)) return undefined;
     const parts = flattenApplication(expression);
+    if (parts.length > 6 && explicitNamedSegmentApplication(parts.slice(0, 6))) {
+        return continueModified(applicationParts(parts.slice(0, 6)), parts.slice(6));
+    }
     if (parts.length > 3 && isNamed(parts[2], 'segment')) {
         return continueModified(applicationParts(parts.slice(0, 3)), parts.slice(3));
     }
@@ -5567,11 +5607,15 @@ function explicitSymbolicSegmentApplication(
 }
 
 interface NamedSegmentApplication {
+    readonly identity?: Expression;
     readonly source: Expression;
     readonly operation: Expression;
 }
 
 function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {
+    if (parts.length === 6 && isNamed(parts[1], 'with') && isNamed(parts[3], 'with') && isNamed(parts[5], 'segment')) {
+        return { source: parts[0], identity: parts[2], operation: parts[4] };
+    }
     if (parts.length !== 3 || !isNamed(parts[2], 'segment')) return undefined;
     return { source: parts[0], operation: parts[1] };
 }

@@ -1,0 +1,31 @@
+use algo
+use sequences
+use io
+
+Identity = record
+  .sum = 0
+  .count = 0
+end
+
+fun combine Left Right
+  return record
+    .sum = Left .sum + Right .sum
+    .count = Left .count + Right .count
+  end
+end
+
+Values = 3 Identity flat
+Values 0 .sum = 10
+Values 0 .count = 1
+Values 1 .sum = 20
+Values 1 .count = 1
+Values 2 .sum = 30
+Values 2 .count = 1
+Tree = Values with Identity with combine segment
+(Tree 0 2 query) print
+
+State = Values 1
+State .sum = 50
+Tree 1 = State
+(Tree 0 2 query) print
+(Tree 1 0 query) print
