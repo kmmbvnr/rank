@@ -41,7 +41,12 @@ test('rows out of reach are left alone rather than erased', () => {
  */
 function transcript(lines) {
     const steps = lines.flatMap(line => [
-        ...(line === '' ? [] : [`send ${JSON.stringify(line)}`, 'sleep 0.2']),
+        // Readline reads a tab arriving inside a burst as plain text, so each
+        // one is sent on its own; the listing needs the second of two.
+        ...line.split('<TAB>').flatMap((piece, index) => [
+            ...(index > 0 ? ['send "\\t"', 'sleep 0.3'] : []),
+            ...(piece === '' ? [] : [`send ${JSON.stringify(piece)}`, 'sleep 0.2']),
+        ]),
         'send "\\r"',
         'sleep 0.3',
     ]);
@@ -60,6 +65,28 @@ function transcript(lines) {
         fs.rmSync(file, { force: true });
     }
 }
+
+test('a completion listing goes with the prompt that asked for it', () => {
+    // `use ` offers every module, which is more than one row of names.
+    const session = transcript(['use <TAB><TAB>numbers']);
+    const erased = /\x1b\[(\d+)A\x1b\[1G\x1b\[0Juse numbers\r\n/.exec(session);
+    assert.ok(erased, 'the accepted line was never printed back');
+    // The prompt is one row; anything above it is the listing being taken back.
+    assert.ok(Number(erased[1]) > 3, `only ${erased[1]} rows erased`);
+});
+
+test('a blank line between statements is part of the file', () => {
+    const file = path.join(os.tmpdir(), `rank-blank-${process.pid}.ra`);
+    const source = ['A = 1', '', 'B = 2', `save ${file}`, 'exit'].join('\n') + '\n';
+    const result = spawnSync(process.execPath, [cli], { input: source, encoding: 'utf8' });
+    assert.equal(result.status, 0);
+    try {
+        // Spacing is the one thing a file has that no statement can say.
+        assert.equal(fs.readFileSync(file, 'utf8'), 'A = 1\n\nB = 2\n');
+    } finally {
+        fs.rmSync(file, { force: true });
+    }
+});
 
 test('an accepted line is printed back as source, without its prompt', () => {
     const session = transcript(['A, 3', 'fun triple X', 'return X * 3', '', 'vars']);

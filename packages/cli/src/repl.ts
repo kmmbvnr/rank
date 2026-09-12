@@ -13,7 +13,7 @@ import * as readline from 'node:readline';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import { preview } from './preview.js';
-import { eraseRows, screenRows } from './screen.js';
+import { countRows, eraseRows, screenRows } from './screen.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine,
     cellSource, closeCell,
@@ -51,20 +51,31 @@ export async function startRepl(): Promise<void> {
         setLast: value => { last = value; },
     });
 
+    // A completion listing is printed from inside the tab keystroke. Arming
+    // the count for the length of that keystroke measures it, so pressing
+    // Enter can take the listing back off the screen with the prompt.
+    const counted = countRows(process.stdout);
     const input = readline.createInterface({
         input: process.stdin,
-        output: process.stdout,
+        output: counted.stream,
         terminal,
         history: terminal ? await readHistory() : undefined,
         historySize: HISTORY_LIMIT,
         removeHistoryDuplicates: true,
         prompt: terminal ? 'rank> ' : undefined,
         completer: terminal
-            ? (line: string) => complete(line, interpreter, state)
+            ? (line: string) => {
+                counted.arm();
+                return complete(line, interpreter, state);
+            }
             : undefined,
     });
 
-    if (terminal) watchTyping(input, () => state);
+    if (terminal) {
+        // Runs after readline's own handler, so the listing is already printed.
+        process.stdin.on('keypress', counted.disarm);
+        watchTyping(input, () => state);
+    }
 
     const draw = (): void => {
         if (!terminal) return;
@@ -101,7 +112,10 @@ export async function startRepl(): Promise<void> {
         const settle = (): void => { settled = 0; open = 0; managed = true; };
 
         for await (const raw of input) {
-            if (terminal) open += screenRows(promptFor(state).length + raw.length, columns());
+            if (terminal) {
+                open += screenRows(promptFor(state).length + raw.length, columns())
+                    + counted.taken();
+            }
             const text = raw.trim();
             if (isEmpty(state) && isExit(text, interpreter)) {
                 if (terminal) eraseRows(process.stdout, open);
@@ -111,8 +125,12 @@ export async function startRepl(): Promise<void> {
             const before = state.lines.length;
             if (text === '') {
                 if (!terminal || isEmpty(state)) {
-                    // A prompt answered with nothing belongs to no file.
-                    if (terminal) eraseRows(process.stdout, open);
+                    // Spacing is the one thing a file has that a statement
+                    // cannot say, so a blank line with nothing open is kept.
+                    // With something open it still closes it, which is the
+                    // only gesture that can.
+                    if (terminal && eraseRows(process.stdout, open)) console.log('');
+                    if (isEmpty(state)) accepted.push('');
                     settle();
                     draw();
                     continue;
@@ -287,7 +305,7 @@ function run(interpreter: Interpreter, source: string, session: Session): boolea
 
 /** A result as an answer to read: long ones keep their two ends. */
 function show(value: RankValue): void {
-    const { text, note } = preview(value);
+    const { text, note } = preview(value, columns());
     emit(text);
     if (note !== '') console.log(chalk.dim(note));
 }
@@ -363,7 +381,8 @@ function printHelp(aliases: boolean): void {
         '  its end. A line ending in an',
         '  operator joins the next line.',
         '  A blank line finishes everything',
-        '  that is open: quote, bracket, end.',
+        '  that is open: quote, bracket, end,',
+        '  and is a blank line when nothing is.',
         '',
         'The = keys',
         '  Type , or : and it becomes =',
@@ -384,9 +403,10 @@ function printHelp(aliases: boolean): void {
         "  text is the file 'save' writes.",
         '',
         'Results',
-        '  A long result keeps its two ends',
-        '  and counts the rest. An unbounded',
-        '  sequence shows a beginning only.',
+        '  A result is one line: a long one',
+        '  keeps its two ends and counts the',
+        '  rest, and an unbounded sequence',
+        '  shows a beginning only.',
         "  'full' prints the last one whole;",
         '  print is never cut.',
         '',

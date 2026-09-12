@@ -59,6 +59,24 @@ test('long text is cut and counted', () => {
     assert.ok(shown.text.length < 260, `kept ${shown.text.length} characters`);
 });
 
+test('a result is cut to the width of the screen', () => {
+    const fib = value('use cli\nuse sequences\nfibonacci to 400000');
+    const narrow = preview(fib, 40);
+    assert.ok(narrow.text.length <= 40, narrow.text);
+    assert.match(narrow.text, /^1 2 3 .* \.\.\. .*317811$/);
+    assert.equal(narrow.note, '27 values');
+    // A wider screen keeps more of the same two ends.
+    const wide = preview(fib, 80);
+    assert.ok(wide.text.length <= 80, wide.text);
+    assert.ok(wide.text.length > narrow.text.length);
+    // A value that already fits is not cut, and one the width cuts says how
+    // much of it there was.
+    assert.deepEqual(preview(value('array 1 2 3'), 40), { text: '1 2 3', note: '' });
+    const short = preview(value('use ranges\n1 to 12'), 20);
+    assert.ok(short.text.length <= 20, short.text);
+    assert.equal(short.note, '12 values');
+});
+
 test('the REPL cuts a result and full prints it whole', () => {
     const session = spawnSync(process.execPath, [cli], {
         encoding: 'utf8',

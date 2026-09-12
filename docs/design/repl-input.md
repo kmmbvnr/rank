@@ -117,7 +117,15 @@ A = 5 + 6
 closes one. The prompt names the innermost one.
 
 **A blank line finishes everything open** — the folded line, then one `end` per
-open block:
+open block. With nothing open it is what it looks like: a blank line in the
+program, which is the only spacing a file has and the only thing in one that no
+statement can say.
+
+```console
+A = 1
+
+B = 2
+```
 
 ```console
 rank> fun triple X
@@ -161,6 +169,15 @@ it is writing. Everything else is dim: a result, whatever the program printed,
 and a command such as `vars`, none of which `save` would write. So the plain
 text on screen is the file, and the grey next to it is what the file did.
 
+A completion listing goes the same way. It is the prompt thinking aloud, so it
+is taken back off the screen together with the prompt that asked for it, and the
+line that ran is all that is left where both of them stood.
+
+**A result is one line.** A long one keeps its two ends with the count
+underneath, and the two ends are cut to the width of the screen: a value that
+wraps over four rows of a narrow screen is no more readable than one that never
+ends. `full` prints the last result whole, and `print` is never cut.
+
 **The REPL owns indentation.** Every line is indented two spaces per open block
 as it is typed and again when it is stored. Typing leading spaces is never
 necessary and never wrong.
@@ -202,7 +219,8 @@ every #
 back as real Rank before it runs, so the symbol form is what gets learned.
 
 **Tab completes** module names after `use`, otherwise session names, the names
-of every module in use, keywords, the alias words, and the commands.
+of every module in use, keywords, the alias words, and the commands. A spelled
+operator completes whole, so `mul` finishes as `multiple by`.
 
 **The commands answer without leaving the prompt:** `help` for the input rules,
 `forms` for how to type each construct, `ops [module]` for the names callable
