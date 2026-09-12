@@ -18,25 +18,19 @@ capability on `RankIo`; the CLI supplies a read-only prepared-statement driver
 compatible with Rank's Node 20 minimum. The first exercise has a CLI test that
 creates a temporary SQLite database and checks the materialized result.
 
-All twelve [Basic exercises](../../demos/pgexercises/basic/README.md) now have
-working array-based solutions and a test against reference SQL. Task 5 uses
-bound `sqlquery` for `LIKE`. This completes the Basic answers but does not
-implement SQL pushdown for Rank projections, masks, ordering or aggregation.
-All eight [Joins and Subqueries exercises](../../demos/pgexercises/joins/README.md)
-also have array-based solutions and a SQLite oracle test. Their read-only
-`sqlquery` sources project and rename columns before materialization; the
-`innerjoin` and `leftjoin` operations themselves execute in Rank. In task 7,
-a Rank lookup mirrors a correlated SQL subquery. The current field-keyed
-`sort by` accepts records but not SQLite object rows, so these examples use
-column `argsort` and row indexing for ordered outputs.
-The translation work remains, in this order:
+The [Basic exercises](../../demos/pgexercises/basic/README.md) still show
+array-based solutions. [Joins and Subqueries](../../demos/pgexercises/joins/README.md)
+now exercise SQL translation for selection, masks, keyed joins, distinct and
+ordering. Q6 has a [SQLite program](../../demos/tpch/001_q6_sqlite.ra) that
+pushes filters and a scalar `SUM` into the database. These programs and the
+SQLite CLI tests compare results with reference SQL on temporary data.
 
-1. Column projection and source-bound filters, keeping values as bound
-   parameters and making `sql` show the actual pushed-down query.
-2. Grouped aggregates and keyed joins, with tests for duplicate keys, missing
-   values and column-name collisions against in-memory Rank behavior.
-3. Explicit ordering, limits and any later window operations. A table has no
-   promised row order until an ordering operation is specified.
+The next steps are computed/renamed columns on a lazy view, followed by grouped
+aggregates, correlated lookups and limits. Task 4 still needs a SQL projection
+to rename self-join columns, while tasks 2 and 5–6, 8 materialize for computed
+output columns. Task 7 uses an in-memory lookup. Preserve an explicit
+ordering contract when adding operations after `sort by`; a SQLite subquery
+does not promise to retain its source order.
 
 For each step, compare generated SQL and result rows with the reference SQLite
 query on small data. Operations that cannot yet be translated should either

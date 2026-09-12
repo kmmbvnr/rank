@@ -1,11 +1,14 @@
 import { ByteArray } from '../bytes.js';
 import { RankError } from '../errors.js';
 import type { RankFileMode, RankIo } from '../io.js';
+import { materializeSqlite, materializeSqliteExpression } from './sqlite.js';
 import {
     formatValue,
     isRankBytes,
     isRankFile,
     isRankLabel,
+    isRankSqliteExpression,
+    isRankSqliteTable,
     type RankFile,
     type RankValue,
 } from '../value.js';
@@ -16,7 +19,11 @@ const encoder = new TextEncoder();
 
 export const ioModule: RuntimeModule = {
     print: context => native('print', 1, arguments_ => {
-        context.output(formatValue(arguments_[0]));
+        const value = isRankSqliteTable(arguments_[0])
+            ? materializeSqlite(arguments_[0])
+            : isRankSqliteExpression(arguments_[0])
+                ? materializeSqliteExpression(arguments_[0]) : arguments_[0];
+        context.output(formatValue(value));
         return arguments_[0];
     }),
     read: context => native('read', 1, arguments_ => {

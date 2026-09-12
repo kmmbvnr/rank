@@ -39,6 +39,40 @@ and returns a rank-1 array of object rows; after that, normal Rank table
 operations apply. SQLite `NULL` becomes an absent object field, integer 0/1
 stays integer, and row order is unspecified unless the SQL query orders it.
 
+The same table addressing and operators build a query without reading rows:
+
+```rank
+Bookings = (Db .bookings) (array .memid .starttime)
+Members = (Db .members) (array .memid .firstname .surname)
+Joined = Bookings Members innerjoin by .memid
+David = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
+Result = (Joined David) (array .starttime)
+Statement = Result sql
+Result "bookings.csv" csv
+```
+
+Selecting one field creates a lazy column expression. Comparing it with a
+scalar, combining boolean expressions with `and` or `or`, and using the result
+as a table mask extend the SQL plan. Projection with an array of field labels,
+`innerjoin by/on`, `leftjoin by/on`, `unique` and field-keyed `sort by` also
+return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
+or a product of expressions uses SQL `SUM`. `array`, `print` and CSV output execute the
+view. `sql` and `explain` inspect the current plan without loading its result
+rows. Generated comparisons use bound parameters; field names are checked
+against the source schema and quoted. A predicate must come from the exact
+table view it filters. Separate views can be joined only when they refer to the
+same database file. Numeric SQLite keys match integer and real values, while
+numeric and text keys stay distinct as in Rank arrays.
+
+The supported SQLite expression operators are `equal`, `notequal`, `less`,
+`greater`, `at least`, `at most`, `and`, `or`, `+`, `-` and `*`. A scalar
+`sum` executes its aggregate; ordinary columns and tables remain lazy until a
+terminal operation. Other array operations require explicit `array` for now.
+SQLite `NULL` fields are absent when rows are materialized. The database view
+cannot be mutated or used as a destination for field assignment yet. SQL
+ordering is guaranteed only when `sort by` is the final operation before the
+terminal read.
+
 For a query that cannot yet be expressed through Rank's table operations, use
 an explicit read-only SQL source with positional bound parameters:
 
@@ -55,9 +89,8 @@ Values are bound by the SQLite driver, never interpolated into SQL text. Wrong
 parameter counts, duplicate result column names and unsupported parameter
 types are errors. Table names are selected with labels, checked against the
 schema and quoted as identifiers. A SQLite-backed view is read-only; changing
-its materialized array never writes to the database. Projection, filtering and
-other Rank operations on the view itself will gain SQL translation in later
-exercises; materialize with `array` before using them today.
+its materialized array never writes to the database. Use `sqlquery` only for
+queries not yet expressible through the operations above.
 
 ## CSV
 

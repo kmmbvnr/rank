@@ -3239,6 +3239,17 @@ and returns a rank-1 array of object rows; after that, normal Rank table
 operations apply. SQLite `NULL` becomes an absent object field, integer 0/1
 stays integer, and row order is unspecified unless the SQL query orders it.
 
+SQLite table views support lazy field projection, comparisons and boolean
+masks, `innerjoin by/on`, `leftjoin by/on`, `unique` and field-keyed `sort by`.
+`len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
+expression runs SQL `SUM`. Field names are schema-checked and quoted; values
+are bound parameters. Joining requires views of the same database. Numeric
+join keys compare by numeric value, while text and numeric keys do not match.
+`sql` exposes the current query and ordered parameters; `explain` inspects its
+SQLite plan. `array`, `print` or CSV output materializes a view. SQLite-backed views are
+read-only; derived-column assignment and operations beyond this set require
+materialization. An expression used as a mask must belong to that exact view.
+
 For a query that cannot yet be expressed through Rank's table operations, use
 an explicit read-only SQL source with positional bound parameters:
 
@@ -3255,9 +3266,8 @@ Values are bound by the SQLite driver, never interpolated into SQL text. Wrong
 parameter counts, duplicate result column names and unsupported parameter
 types are errors. Table names are selected with labels, checked against the
 schema and quoted as identifiers. A SQLite-backed view is read-only; changing
-its materialized array never writes to the database. Projection, filtering and
-other Rank operations on the view itself will gain SQL translation in later
-exercises; materialize with `array` before using them today.
+its materialized array never writes to the database. `sqlquery` remains the
+escape hatch for queries not yet expressible through Rank's SQLite views.
 
 ## CSV
 

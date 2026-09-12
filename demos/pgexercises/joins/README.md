@@ -31,11 +31,11 @@ reference SQL. It checks duplicate bookings, duplicate member names, absent
 recommenders, date boundaries, ordering, and member versus guest prices without
 downloaded data.
 
-These programs use Rank `innerjoin` and `leftjoin` on arrays of rows. Their
-SQLite source queries select and rename columns to avoid non-key name
-collisions, then materialize with `array`. Joins, masks, calculated columns and
-sorting run in Rank, so `sql` does not claim those operations were pushed into
-SQLite. Task 7 uses a per-member Rank lookup to mirror the correlated SQL
-subquery. Task 8 names the priced intermediate before filtering, corresponding
-to the SQL subquery, although Rank also calculates the cost once in task 6.
+Tasks 1–3 and 5–6, 8 use Rank projection, masks and joins on lazy SQLite
+views. Tasks 2 and 5–6, 8 materialize only when they need computed output
+columns or other array operations; task 1 stays lazy through CSV output.
+Task 4 still uses `sqlquery` to rename columns before a Rank self join. Task 7
+uses a per-member Rank lookup to mirror the correlated SQL subquery. Task 8
+names the priced intermediate before filtering, corresponding to the SQL
+subquery, although Rank also calculates the cost once in task 6.
 See the [translation roadmap](../../../docs/design/sqlite-tables.md).

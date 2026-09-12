@@ -9,16 +9,14 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_002.csv"
 
 Db = DbPath sqlite
-NoParams = array shape 0 pad 0
-BookingsQuery = Db "SELECT facid, starttime FROM bookings" NoParams sqlquery
-FacilitiesQuery = Db "SELECT facid, name FROM facilities" NoParams sqlquery
-Bookings = BookingsQuery array
-Facilities = FacilitiesQuery array
+Bookings = (Db .bookings) (array .facid .starttime)
+Facilities = (Db .facilities) (array .facid .name)
 Joined = Bookings Facilities innerjoin by .facid
 Court = (Joined .name equal "Tennis Court 1") or (Joined .name equal "Tennis Court 2")
 Day = (Joined .starttime greater "2012-09-21") and (Joined .starttime less "2012-09-22")
-Filtered = (Joined (Court and Day)) array
-Rows = Filtered (Filtered .starttime argsort)
+Filtered = Joined (Court and Day)
+Ordered = Filtered sort by .starttime
+Rows = Ordered array
 Rows .start = Rows .starttime
 Result = Rows (array .start .name)
 Result OutputPath csv

@@ -1,12 +1,14 @@
 import { derivedArray, ownedArray, ownedObject } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { readTextFile, writeTextFile } from './io.js';
+import { materializeSqlite } from './sqlite.js';
 import {
     formatDate,
     isRankObject,
     isRankArray,
     isRankDate,
     isRankLabel,
+    isRankSqliteTable,
     type RankGroupedColumn,
     type RankGroupedTable,
     type RankArray,
@@ -36,7 +38,9 @@ export const tablesModule: RuntimeModule = {
         }
         const path = arguments_[1];
         if (typeof path !== 'string') throw new RankError('file path must be text');
-        writeTextFile(context.io, path, formatCsv(arguments_[0]));
+        const value = isRankSqliteTable(arguments_[0])
+            ? materializeSqlite(arguments_[0]) : arguments_[0];
+        writeTextFile(context.io, path, formatCsv(value));
         return arguments_[0];
     }),
 };
@@ -363,9 +367,12 @@ function formatCsv(value: RankValue): string {
     if (!isRankArray(value) || value.shape.length !== 1) {
         throw new RankError('csv output expects a table or selected table columns');
     }
+    if (value.items.length === 0 && value.columnNames !== undefined) {
+        return `${value.columnNames.map(csvField).join(',')}\n`;
+    }
     if (value.items.length === 0) throw new RankError('csv output requires at least one row');
     const first = objectRow(value.items[0]);
-    const headers = [...first.entries.keys()];
+    const headers = value.columnNames ?? [...first.entries.keys()];
     if (headers.length === 0) throw new RankError('csv output requires at least one column');
     const known = new Set(headers);
     const lines = [headers.map(csvField).join(',')];

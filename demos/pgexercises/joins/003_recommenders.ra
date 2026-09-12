@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: joins 3
 rem https://pgexercises.com/questions/joins/self.html
 
 use cli
-use algo
 use sequences
 use tables
 
@@ -10,21 +9,10 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_003.csv"
 
 Db = DbPath sqlite
-NoParams = array shape 0 pad 0
-RefsQuery = Db "SELECT recommendedby FROM members" NoParams sqlquery
-RecsQuery = Db "SELECT memid AS recommendedby, firstname, surname FROM members" NoParams sqlquery
-Refs = RefsQuery array
-Recs = RecsQuery array
-Matched = Refs Recs innerjoin by .recommendedby
-Names = Matched .surname + "|" + Matched .firstname
-UniqueNames = Names unique
-Distinct = new queue
-for Name in UniqueNames
-  Matches = (Matched (Names equal Name)) array
-  Distinct push (Matches 0)
-end
-DistinctRows = Distinct (array (Distinct len)) reshape
-Keys = DistinctRows .surname + "|" + DistinctRows .firstname
-Ordered = DistinctRows (Keys argsort)
-Result = Ordered (array .firstname .surname)
+Refs = (Db .members) (array .recommendedby)
+Recs = (Db .members) (array .memid .firstname .surname)
+Matched = Refs Recs innerjoin on .recommendedby = .memid
+Names = Matched (array .firstname .surname)
+Ordered = (Names unique) sort by .surname .firstname
+Result = Ordered
 Result OutputPath csv

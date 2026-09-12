@@ -98,3 +98,92 @@ test('SQLite source rejects a missing database without creating it', () => fixtu
     assert.match(result.stderr, /SQLite open failed/);
     assert.equal(fs.existsSync(missing), false);
 }));
+
+test('Rank table projection, masks, joins, distinct and sort compose into SQL', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE members (memid INTEGER, firstname TEXT, surname TEXT); '
+        + 'CREATE TABLE bookings (bookid INTEGER, memid INTEGER, starttime TEXT)');
+    for (const row of [[1, 'David', 'Farrell'], [2, 'David', 'Jones'], [3, 'Anne', 'Baker']]) {
+        db.prepare('INSERT INTO members VALUES (?, ?, ?)').run(...row);
+    }
+    for (const row of [[1, 1, '2012-09-21'], [2, 1, '2012-09-21'],
+        [3, 2, '2012-09-22'], [4, 3, '2012-09-23']]) {
+        db.prepare('INSERT INTO bookings VALUES (?, ?, ?)').run(...row);
+    }
+    db.close();
+    const output = path.join(directory, 'result.csv');
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
+        + `Db = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Bookings = (Db .bookings) (array .memid .starttime)\n'
+        + 'Members = (Db .members) (array .memid .firstname .surname)\n'
+        + 'Selected = Members (Members .firstname equal "David")\n'
+        + 'Joined = Bookings Selected innerjoin by .memid\n'
+        + 'Rows = (Joined (Joined .surname equal "Farrell")) (array .starttime .surname)\n'
+        + 'Result = (Rows unique) sort by .starttime .surname\n'
+        + 'Query = Result sql\nQuery .text print\nQuery .params print\n'
+        + `Result ${JSON.stringify(output)} csv\nResult .surname print\n`);
+    assert.equal(result.status, 0, result.stderr);
+    const lines = result.stdout.trimEnd().split('\n');
+    assert.match(lines[0], /SELECT \* FROM \(SELECT DISTINCT/);
+    assert.match(lines[0], /INNER JOIN/);
+    assert.match(lines[0], /ORDER BY "starttime", "surname"/);
+    assert.match(lines[0], /\?/);
+    assert.doesNotMatch(lines[0], /David|Farrell/);
+    assert.equal(lines[1], 'David David David Farrell Farrell Farrell');
+    assert.equal(lines[2], 'Farrell');
+    assert.equal(fs.readFileSync(output, 'utf8'), 'starttime,surname\n2012-09-21,Farrell\n');
+}));
+
+test('SQLite equality keeps Rank numeric and text keys distinct', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE ints (k INTEGER); CREATE TABLE reals (k REAL); '
+        + 'CREATE TABLE texts (k TEXT); '
+        + "INSERT INTO ints VALUES (1); INSERT INTO reals VALUES (1.0); INSERT INTO texts VALUES ('1')");
+    db.close();
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
+        + `Db = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Ints = Db .ints\nReals = Db .reals\nTexts = Db .texts\n'
+        + '(Ints Reals innerjoin by .k) len print\n'
+        + '(Ints Texts innerjoin by .k) len print\n'
+        + '(Ints (Ints .k equal "1")) len print\n'
+        + '(Ints (Ints .k equal 1)) len print\n');
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '1\n0\n0\n1\n');
+}));
+
+test('left join keeps absent right columns in an empty-first-row CSV', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE requests (requestid INTEGER, recommendedby INTEGER); '
+        + 'CREATE TABLE recommenders (memid INTEGER, recname TEXT); '
+        + "INSERT INTO requests VALUES (1, NULL), (2, 7); "
+        + "INSERT INTO recommenders VALUES (7, 'Anne')");
+    db.close();
+    const output = path.join(directory, 'joined.csv');
+    const result = runSource(directory, `use tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Requests = Db .requests\nRecs = Db .recommenders\n'
+        + 'Joined = Requests Recs leftjoin on .recommendedby = .memid\n'
+        + 'Result = Joined (array .requestid .recname)\n'
+        + `Result ${JSON.stringify(output)} csv\n`);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(fs.readFileSync(output, 'utf8'), 'requestid,recname\n1,\n2,Anne\n');
+}));
+
+test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE lineitem (l_shipdate TEXT, l_discount REAL, '
+        + 'l_quantity REAL, l_extendedprice REAL)');
+    for (const row of [
+        ['1994-01-01', 0.05, 10, 100], ['1994-08-02', 0.06, 5, 200],
+        ['1993-01-01', 0.06, 5, 1000], ['1994-01-01', 0.08, 5, 1000],
+        ['1994-01-01', 0.06, 24, 1000], ['1995-01-01', 0.05, 1, 1000],
+    ]) db.prepare('INSERT INTO lineitem VALUES (?, ?, ?, ?)').run(...row);
+    const expected = db.prepare('SELECT SUM(l_extendedprice*l_discount) AS revenue FROM lineitem '
+        + "WHERE l_shipdate >= '1994-01-01' AND l_shipdate < '1995-01-01' "
+        + 'AND l_discount >= 0.05 AND l_discount <= 0.07 AND l_quantity < 24').get().revenue;
+    db.close();
+    const result = spawnSync(process.execPath, [cli,
+        path.join(root, 'demos/tpch/001_q6_sqlite.ra'), dbPath,
+    ], { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(Number(result.stdout.trim()), expected);
+}));

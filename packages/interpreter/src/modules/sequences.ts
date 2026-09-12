@@ -5,6 +5,7 @@ import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.
 import { sequence, windowValue } from '../sequence.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
+import { lengthSqlite, uniqueSqlite } from './sqlite.js';
 import {
     isRankArray,
     isRankCounter,
@@ -15,6 +16,7 @@ import {
     isRankQueue,
     isRankSequence,
     isRankSequenceMask,
+    isRankSqliteTable,
     isRankSegment,
     isRankWavelet,
     isRankSet,
@@ -51,7 +53,8 @@ export const sequencesModule: RuntimeModule = {
         shape => shape,
     ),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
-    unique: () => native('unique', 1, arguments_ => uniqueValue(arguments_[0]), 1),
+    unique: () => native('unique', 1, arguments_ => isRankSqliteTable(arguments_[0])
+        ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0]), 1),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
     all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),
@@ -432,6 +435,7 @@ function reshapeItems(value: RankValue): RankValue[] {
 }
 
 function lengthOf(value: RankValue): bigint {
+    if (isRankSqliteTable(value)) return lengthSqlite(value);
     if (value instanceof RankDeque || value instanceof RankHeap) return BigInt(value.size);
     if (typeof value === 'string') return BigInt([...value].length);
     if (isRankArray(value)) return BigInt(value.shape[0] ?? 0);

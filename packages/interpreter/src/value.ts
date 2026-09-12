@@ -60,6 +60,15 @@ export interface RankSqliteTable {
     readonly params: readonly SqliteScalar[];
 }
 
+/** An unevaluated column or predicate tied to one SQLite table view. */
+export interface RankSqliteExpression {
+    readonly kind: 'sqlite-expression';
+    readonly table: RankSqliteTable;
+    readonly text: string;
+    readonly params: readonly SqliteScalar[];
+    readonly boolean: boolean;
+}
+
 export interface RankLabel {
     readonly kind: 'label';
     readonly name: string;
@@ -213,7 +222,7 @@ export interface RankSequenceMask extends RankSequence {
 }
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
-    RankSqliteDatabase | RankSqliteTable |
+    RankSqliteDatabase | RankSqliteTable | RankSqliteExpression |
     RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankGroupedColumn | NativeFunction |
@@ -240,6 +249,10 @@ export function isRankSqliteDatabase(value: RankValue): value is RankSqliteDatab
 
 export function isRankSqliteTable(value: RankValue): value is RankSqliteTable {
     return typeof value === 'object' && value.kind === 'sqlite-table';
+}
+
+export function isRankSqliteExpression(value: RankValue): value is RankSqliteExpression {
+    return typeof value === 'object' && value.kind === 'sqlite-expression';
 }
 
 export function isRankBytes(value: RankValue): value is RankBytes {
@@ -374,6 +387,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'grouped-column') return `<grouped column .${value.field}>`;
     if (value.kind === 'sqlite-database') return `<sqlite ${value.path}>`;
     if (value.kind === 'sqlite-table') return '<sqlite table>';
+    if (value.kind === 'sqlite-expression') return '<sqlite expression>';
     if (value.kind === 'queue') {
         return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }

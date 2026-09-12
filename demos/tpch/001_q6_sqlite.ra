@@ -1,0 +1,19 @@
+rem TPC-H Q6: forecast revenue change using a lazy SQLite view
+rem https://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v3.0.1.pdf
+
+use cli
+use io
+use numbers
+use tables
+
+argument DbPath path = "demos/tpch/data/tpch.sqlite3"
+
+Db = DbPath sqlite
+Lineitem = Db .lineitem
+YearMask = (Lineitem .l_shipdate at least "1994-01-01") and (Lineitem .l_shipdate less "1995-01-01")
+YearRows = Lineitem YearMask
+DiscountMask = (YearRows .l_discount at least 0.05) and (YearRows .l_discount at most 0.07)
+Discounted = YearRows DiscountMask
+Limited = Discounted (Discounted .l_quantity less 24)
+Revenue = (Limited .l_extendedprice * Limited .l_discount) sum
+Revenue print

@@ -1,5 +1,5 @@
 import { ByteArray } from '../bytes.js';
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
 import type { RankSqliteConnection, SqliteScalar } from '../io.js';
 import {
     formatDate,
@@ -7,10 +7,12 @@ import {
     isRankBytes,
     isRankDate,
     isRankSqliteDatabase,
+    isRankSqliteExpression,
     isRankSqliteTable,
     type RankArray,
     type RankObject,
     type RankSqliteDatabase,
+    type RankSqliteExpression,
     type RankSqliteTable,
     type RankValue,
 } from '../value.js';
@@ -79,6 +81,175 @@ export function materializeSqlite(table: RankSqliteTable): RankArray {
         resultRows(connection.prepare(table.text), table.params));
 }
 
+export function sqliteColumns(table: RankSqliteTable): readonly string[] {
+    return withConnection(table.database, connection => {
+        const columns = connection.prepare(table.text).columns();
+        if (new Set(columns).size !== columns.length) {
+            throw new RankError('SQLite result columns must have unique names', 'TypeError');
+        }
+        return columns;
+    });
+}
+
+function quote(name: string): string {
+    return `"${name.replace(/"/g, '""')}"`;
+}
+
+function compatibleEquality(left: string, right: string): string {
+    const numeric = (value: string) => `typeof(${value}) IN ('integer', 'real')`;
+    return `((typeof(${left}) = typeof(${right}) OR (${numeric(left)} AND ${numeric(right)})) AND ${left} = ${right})`;
+}
+
+function requireColumn(table: RankSqliteTable, name: string): void {
+    if (!sqliteColumns(table).includes(name)) {
+        throw new RankError(`SQLite column does not exist: .${name}`, 'Missing');
+    }
+}
+
+export function sqliteColumn(table: RankSqliteTable, name: string): RankSqliteExpression {
+    requireColumn(table, name);
+    return { kind: 'sqlite-expression', table, text: quote(name), params: [], boolean: false };
+}
+
+export function projectSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
+    if (fields.length === 0) {
+        throw new RankError('SQLite projection requires at least one field', 'TypeError');
+    }
+    if (new Set(fields).size !== fields.length) {
+        throw new RankError('SQLite projection fields must be distinct', 'TypeError');
+    }
+    for (const field of fields) requireColumn(table, field);
+    return { kind: 'sqlite-table', database: table.database,
+        text: `SELECT ${fields.map(quote).join(', ')} FROM (${table.text}) AS source`,
+        params: table.params };
+}
+
+export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpression): RankSqliteTable {
+    if (predicate.table !== table || !predicate.boolean) {
+        throw new RankError('SQLite filter expects a boolean expression from this table', 'TypeError');
+    }
+    return { kind: 'sqlite-table', database: table.database,
+        text: `SELECT * FROM (${table.text}) AS source WHERE ${predicate.text}`,
+        params: [...table.params, ...predicate.params] };
+}
+
+export function sortSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
+    for (const field of fields) requireColumn(table, field);
+    return { kind: 'sqlite-table', database: table.database,
+        text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map(quote).join(', ')}`,
+        params: table.params };
+}
+
+export function uniqueSqlite(table: RankSqliteTable): RankSqliteTable {
+    sqliteColumns(table);
+    return { kind: 'sqlite-table', database: table.database,
+        text: `SELECT DISTINCT * FROM (${table.text}) AS source`, params: table.params };
+}
+
+export function joinSqlite(
+    left: RankSqliteTable, right: RankSqliteTable,
+    leftFields: readonly string[], rightFields: readonly string[], mode: 'leftjoin' | 'innerjoin',
+): RankSqliteTable {
+    if (left.database.path !== right.database.path || leftFields.length !== rightFields.length
+        || new Set(leftFields).size !== leftFields.length
+        || new Set(rightFields).size !== rightFields.length) {
+        throw new RankError('SQLite join expects one database and distinct aligned keys', 'TypeError');
+    }
+    const leftNames = sqliteColumns(left);
+    const rightNames = sqliteColumns(right);
+    for (const field of leftFields) if (!leftNames.includes(field)) requireColumn(left, field);
+    for (const field of rightFields) if (!rightNames.includes(field)) requireColumn(right, field);
+    const rightValues = rightNames.filter(name => !rightFields.includes(name));
+    for (const name of rightValues) {
+        if (leftNames.includes(name)) {
+            throw new RankError(`${mode} has duplicate non-key column .${name}`, 'TypeError');
+        }
+    }
+    const select = [
+        ...leftNames.map(name => `l.${quote(name)} AS ${quote(name)}`),
+        ...rightValues.map(name => `r.${quote(name)} AS ${quote(name)}`),
+    ].join(', ');
+    const keys = leftFields.map((name, index) =>
+        compatibleEquality(`l.${quote(name)}`, `r.${quote(rightFields[index])}`)).join(' AND ');
+    return { kind: 'sqlite-table', database: left.database,
+        text: `SELECT ${select} FROM (${left.text}) AS l ${mode === 'leftjoin' ? 'LEFT' : 'INNER'} JOIN (${right.text}) AS r ON ${keys}`,
+        params: [...left.params, ...right.params] };
+}
+
+const sqlOperators: Readonly<Record<string, string>> = {
+    equal: '=', notequal: '<>', less: '<', greater: '>', atleast: '>=', atmost: '<=',
+    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*',
+};
+
+export function binarySqlite(
+    operator: string, left: RankValue, right: RankValue,
+): RankSqliteExpression {
+    const op = sqlOperators[operator];
+    if (!op) throw new RankError(`SQLite expression does not support ${operator}`, 'TypeError');
+    const leftExpr = isRankSqliteExpression(left) ? left : undefined;
+    const rightExpr = isRankSqliteExpression(right) ? right : undefined;
+    const table = leftExpr?.table ?? rightExpr?.table;
+    if (!table || (leftExpr && rightExpr && leftExpr.table !== rightExpr.table)) {
+        throw new RankError('SQLite expression operands must come from one table', 'TypeError');
+    }
+    if ((operator === 'and' || operator === 'or')
+        && ((leftExpr && !leftExpr.boolean) || (rightExpr && !rightExpr.boolean))) {
+        throw new RankError('SQLite logical operands must be boolean', 'TypeError');
+    }
+    const operand = (value: RankValue): { text: string; params: readonly SqliteScalar[] } =>
+        isRankSqliteExpression(value) ? value : { text: '?', params: [toSqlite(value)] };
+    const a = operand(left);
+    const b = operand(right);
+    const textOperator = operator === '+' && (typeof left === 'string' || typeof right === 'string')
+        ? '||' : op;
+    if (operator === 'equal' || operator === 'notequal') {
+        const equality = compatibleEquality(a.text, b.text);
+        const text = operator === 'equal' ? equality : `(NOT ${equality})`;
+        return { kind: 'sqlite-expression', table, text,
+            params: [...a.params, ...b.params, ...a.params, ...b.params,
+                ...a.params, ...b.params], boolean: true };
+    }
+    return { kind: 'sqlite-expression', table,
+        text: `(${a.text} ${textOperator} ${b.text})`, params: [...a.params, ...b.params],
+        boolean: ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'and', 'or'].includes(operator) };
+}
+
+export function sumSqlite(expression: RankSqliteExpression): RankValue {
+    const table = expression.table;
+    return withConnection(table.database, connection => {
+        const statement = connection.prepare(
+            `SELECT COALESCE(SUM(${expression.text}), 0) AS value FROM (${table.text}) AS source`,
+        );
+        const value = statement.all([...expression.params, ...table.params])[0]?.value;
+        if (typeof value !== 'bigint' && typeof value !== 'number') {
+            throw new RankError('SQLite sum expects numeric values', 'TypeError');
+        }
+        return value;
+    });
+}
+
+export function lengthSqlite(table: RankSqliteTable): bigint {
+    return withConnection(table.database, connection => {
+        const value = connection.prepare(`SELECT COUNT(*) AS value FROM (${table.text}) AS source`)
+            .all(table.params)[0]?.value;
+        if (typeof value !== 'bigint' && typeof value !== 'number') {
+            throw new RankError('SQLite count failed', 'Sqlite');
+        }
+        return BigInt(value);
+    });
+}
+
+export function materializeSqliteExpression(expression: RankSqliteExpression): RankArray {
+    const table = expression.table;
+    const rows = withConnection(table.database, connection => connection.prepare(
+        `SELECT ${expression.text} AS value FROM (${table.text}) AS source`,
+    ).all([...expression.params, ...table.params]));
+    return { kind: 'array', items: rows.map(row => {
+        if (row.value === null) throw new MissingValueError('SQLite column contains NULL');
+        return fromSqlite(row.value);
+    }), shape: [rows.length] };
+}
+
 function resultRows(
     statement: ReturnType<RankSqliteConnection['prepare']>,
     params: readonly SqliteScalar[],
@@ -127,7 +298,7 @@ function withConnection<T>(database: RankSqliteDatabase, run: (connection: RankS
     const open = database.io.openSqlite;
     if (!open) throw new RankError('SQLite is unavailable in this host', 'IO');
     let connection: RankSqliteConnection;
-    try { connection = open(database.path); }
+    try { connection = open.call(database.io, database.path); }
     catch (error) { throw new RankError(`SQLite open failed: ${String(error)}`, 'IO'); }
     try { return run(connection); }
     catch (error) {

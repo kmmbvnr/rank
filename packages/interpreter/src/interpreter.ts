@@ -100,7 +100,10 @@ import {
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
 import { groupTable, joinTables, projectField, projectFields } from './modules/tables.js';
-import { materializeSqlite, sqliteTable } from './modules/sqlite.js';
+import {
+    binarySqlite, filterSqlite, joinSqlite, materializeSqlite,
+    materializeSqliteExpression, projectSqlite, sortSqlite, sqliteColumn, sqliteTable,
+} from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
@@ -135,6 +138,7 @@ import {
     isRankMultiset,
     isRankObject,
     isRankSqliteDatabase,
+    isRankSqliteExpression,
     isRankSqliteTable,
     isRankQueue,
     isRankRecord,
@@ -1642,6 +1646,9 @@ export class Interpreter {
                 const indices = operation === 'argsort by';
                 interpreter.requireModule('sequences', operation);
                 const source = yield* resume(interpreter.evaluateTask(expression.source));
+                if (isRankSqliteTable(source) && !indices && expression.fields.length > 0) {
+                    return sortSqlite(source, expression.fields.map(field => field.name));
+                }
                 const items = sortByItems(source, operation);
                 if (expression.fields.length > 0) {
                     const keys = items.map(item => expression.fields.map(field => {
@@ -1691,6 +1698,9 @@ export class Interpreter {
                 const rightFields = expression.pairs.length > 0
                     ? expression.pairs.map(pair => pair.right.name)
                     : leftFields;
+                if (isRankSqliteTable(left) && isRankSqliteTable(right)) {
+                    return joinSqlite(left, right, leftFields, rightFields, mode);
+                }
                 return joinTables(left, right, leftFields, mode, rightFields);
             };
         }
@@ -1854,6 +1864,7 @@ export class Interpreter {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(interpreter.evaluateTask(expression.source)));
                 if (isRankSqliteTable(source)) return materializeSqlite(source);
+                if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
                 if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence or SQLite table');
                 return materializeSequence(source);
             };
@@ -3187,6 +3198,19 @@ export class Interpreter {
             this.requireModule('tables', 'SQLite table selection');
             return sqliteTable(values[0], values[1].name);
         }
+        if (values.length === 2 && isRankSqliteTable(values[0])) {
+            this.requireModule('tables', 'SQLite table operation');
+            const table = values[0];
+            const selector = values[1];
+            if (isRankLabel(selector) || typeof selector === 'string') {
+                return sqliteColumn(table, isRankLabel(selector) ? selector.name : selector);
+            }
+            if (isRankArray(selector) && isTableFieldList(selector, true)) {
+                return projectSqlite(table, selector.items.map(item =>
+                    isRankLabel(item) ? item.name : item as string));
+            }
+            if (isRankSqliteExpression(selector)) return filterSqlite(table, selector);
+        }
         if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])
             && isTableFieldList(values[1], this.modules.has('tables'))) {
             this.requireModule('tables', 'table column selection');
@@ -3618,6 +3642,9 @@ export class Interpreter {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if (isRankSqliteExpression(left) || isRankSqliteExpression(right)) {
+            return binarySqlite(operator, left, right);
+        }
         // Integer arithmetic and integer comparison are what programs spend
         // their time on, and every one of them used to walk twenty operator
         // tests, a numeric coercion and a three-way ordering helper to reach
@@ -4569,6 +4596,11 @@ function seedableRandom(source?: () => number): SeedableRandom {
 
 function canApplySelectors(values: RankValue[]): boolean {
     if (values.length === 2 && isRankGroupedTable(values[0]) && isRankLabel(values[1])) return true;
+    if (values.length === 2 && isRankSqliteTable(values[0])) {
+        return isRankLabel(values[1]) || typeof values[1] === 'string'
+            || isRankSqliteExpression(values[1])
+            || (isRankArray(values[1]) && isTableFieldList(values[1], true));
+    }
     if (values.length < 2) return false;
     if (values.length === 2 && isRankGraph(values[0])) return true;
     if (values.length === 2 && typeof values[0] === 'string'

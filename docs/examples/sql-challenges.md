@@ -9,16 +9,15 @@ We will solve these collections in order, using the
    a local SQLite copy. All twelve [Basic](../../demos/pgexercises/basic/README.md)
    and eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md)
    exercises now have runnable Rank solutions and SQLite reference tests. The
-   [SQLite table interface](../language/tables.md#sqlite) supplies the source;
-   translating more Rank operations into SQL remains a separate step.
+   [SQLite table interface](../language/tables.md#sqlite) now translates
+   projection, masks, joins, distinct and ordering; further operations remain.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve
    the investigation against its SQLite database. This stage will reuse the
    SQLite table source and exercise joins and other translations added during
    PostgreSQL Exercises.
-3. [TPC-H](tpch.md) — work through the analytical queries, beginning by
-   turning the existing Q6 sketch into a runnable Rank program with tests.
-   Generated data and reference SQL results provide a larger check after the
-   small in-memory tests.
+3. [TPC-H](tpch.md) — Q6 now has a runnable SQLite program and SQL reference
+   test. Work through later analytical queries with generated data and
+   reference SQL results after the small deterministic tests.
 
 For every task, record the source and expected result, write a Rank solution,
 and add a neighboring `_test.ra` file, or a CLI test when opening a database is

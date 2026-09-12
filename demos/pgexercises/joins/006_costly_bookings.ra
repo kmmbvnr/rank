@@ -10,17 +10,14 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_006.csv"
 
 Db = DbPath sqlite
-NoParams = array shape 0 pad 0
-BookingsQuery = Db "SELECT facid, memid, starttime, slots FROM bookings" NoParams sqlquery
-MembersQuery = Db "SELECT memid, firstname, surname FROM members" NoParams sqlquery
-FacilitiesQuery = Db "SELECT facid, name AS facility, membercost, guestcost FROM facilities" NoParams sqlquery
-Bookings = BookingsQuery array
-Members = MembersQuery array
-Facilities = FacilitiesQuery array
+Bookings = Db .bookings
+Members = Db .members
+Facilities = Db .facilities
 WithMembers = Bookings Members innerjoin by .memid
 Joined = WithMembers Facilities innerjoin by .facid
 Day = (Joined .starttime greater "2012-09-14") and (Joined .starttime less "2012-09-15")
 Rows = (Joined Day) array
+Rows .facility = Rows .name
 Cost = array shape (Rows len) pad 0.0
 for I in 0 until Rows len
   if ((Rows .memid) I) equal 0

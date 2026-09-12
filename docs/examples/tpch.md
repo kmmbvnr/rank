@@ -10,37 +10,24 @@ It complements the other problem suites:
 - Kaggle tests data processing and ML;
 - TPC-H tests relational analytics.
 
-For now the wiki contains only Q6. `group by`, `leftjoin` and `innerjoin` now
-work on arrays of rows; further queries can exercise them before a SQLite
-table source is added. SQL pushdown and ordering for database sources are
-still open.
+The first runnable SQLite example is
+[Q6](../../demos/tpch/001_q6_sqlite.ra). It keeps filtering and the revenue
+calculation in SQLite while using Rank's ordinary table operations. The
+database belongs in the ignored `demos/tpch/data/` directory.
 
 ## Q6. Forecasting Revenue Change
 
+The [earlier draft](../../demos/tpch/001_q6_revchange.ra) used a `filter`
+clause that is not current Rank syntax. The runnable version uses first-class
+boolean masks and explicit date bounds:
+
 ```rank
-rem TPC-H Q6
-rem Forecasting Revenue Change
-rem https://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v3.0.1.pdf
-
-use tables
-use dates
-
-L = "lineitem.csv" csv
-filter
-.l_shipdate date year equal 1994
-.l_discount at least 0.05
-.l_discount at most 0.07
-.l_quantity less 24
-end
-
-Revenue =
-  L .l_extendedprice
-  * L .l_discount
-  sum
-
-Revenue print
+Lineitem = Db .lineitem
+YearRows = Lineitem ((Lineitem .l_shipdate at least "1994-01-01") and (Lineitem .l_shipdate less "1995-01-01"))
+Discounted = YearRows ((YearRows .l_discount at least 0.05) and (YearRows .l_discount at most 0.07))
+Limited = Discounted (Discounted .l_quantity less 24)
+Revenue = (Limited .l_extendedprice * Limited .l_discount) sum
 ```
 
-The clause is part of constructing `L`. Each condition line is evaluated in the
-implicit context of the current table, and the lines are combined with logical
-AND.
+The [CLI test](../../packages/cli/test/sqlite.test.mjs) creates a small
+SQLite `lineitem` table and compares the Rank result with reference SQL.
