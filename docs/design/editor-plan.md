@@ -195,13 +195,26 @@ used to be reported as a missing `use algo`, and now names the receiver.
 Still open: the [standard library page](../stdlib/modules.md) has not yet been
 turned into generated data.
 
-### B2 — binding and mutation facts (small, fully certain)
+### B2 — binding and mutation facts (landed)
 
-No types: just where each name is defined, read and written. That yields the
-scope of every name, single-assignment versus reassigned, loop-carried
-accumulators, shadowing, unused names and writes before any read. This answers
-"does it change or not" completely and exactly, which is a surprising share of
-what makes a hint useful.
+`packages/language/src/analysis/bindings.ts` walks the tree and reports, per
+scope, where each name is bound, read and written: its kind, whether it is
+reassigned, whether a loop carries it, whether it hides an outer name, and
+whether anything reads it at all. No types are inferred. Reads that no binding
+explains are matched against the B1 catalogue, which turns a forgotten `use`
+into a static error, and against the source modules a program loads, so a test
+file resolves the names it borrows. `rank explain <file>` prints all of it.
+
+Three things the tree does not say plainly had to be learned from the runtime
+and are commented where they are used: functions are hoisted, so a program may
+call one written further down; a nested function reads its enclosing function;
+and a word in the middle of an application chain — `Bag floor Limit`, `Dsu A B
+merge` — is receiver dispatch, not a name lookup.
+
+The guard is the corpus. Every demo runs, so every report over `demos/` is a
+false positive by construction, and the suite asserts there are none. Getting
+there found five CSES graph demos that call `reshape` without `use sequences`
+and could never have run; `rank check` passed all five, because they parse.
 
 ### B3 — type facts (medium)
 

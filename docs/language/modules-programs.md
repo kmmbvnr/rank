@@ -93,6 +93,30 @@ after `run`.
 Running a file from the host, as in `rank worker.ra`, performs an implicit run.
 Rank does not require a `main` function.
 
+## Reading a program without running it
+
+Two commands answer questions about a file that has not run. `rank check`
+parses every `*.ra` file under a path and reports the ones that do not, which
+is the gate a repository runs in CI. `rank explain` reports one program's
+binding facts:
+
+```
+rank explain demos/cses/tree/003_diameter.ra
+```
+
+For every scope — the program, each function, each test — it lists the names
+bound there, how each one came to exist, where it was bound, how often it is
+written and read, and whether it is reassigned, carried across a loop, hiding
+an outer name of the same spelling, or never read at all. It then lists the
+standard-library names the program calls, the ones whose module it forgot to
+open, and any word that is neither. Reading a source module with `use "file"`
+brings that module's names along, so a test file resolves the names it borrows.
+
+The facts come from the syntax tree and the operation catalogue, so they are
+exact rather than inferred: nothing here guesses a type. A name reported under
+`needs a use` is a program that cannot run, and `rank explain` exits nonzero
+when it reports one.
+
 ## Program inputs
 
 `option` declares an input parameter of a program. It is broader than a

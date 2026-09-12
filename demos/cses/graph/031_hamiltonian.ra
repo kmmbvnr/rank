@@ -5,6 +5,7 @@ use bits
 use graph
 use io
 use ranges
+use sequences
 
 N = stdin .integer
 M = stdin .integer

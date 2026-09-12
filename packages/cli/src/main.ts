@@ -1,4 +1,7 @@
 import { Interpreter, RankError, parse } from 'rank-interpreter';
+import {
+    analyzeWithImports, type Binding, type Program, type ScopeFacts, type WordUse,
+} from 'rank-language';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -36,6 +39,11 @@ async function dispatch(): Promise<void> {
     }
     if (arguments_[0] === 'test') {
         await runTests(arguments_[1] ?? '.');
+        return;
+    }
+    if (arguments_[0] === 'explain') {
+        if (arguments_[1] === undefined) throw new RankError('explain needs a file');
+        await explainFile(arguments_[1]);
         return;
     }
     if (arguments_.length === 0) {
@@ -78,6 +86,77 @@ async function checkFiles(target: string): Promise<void> {
     }
     console.log(`${files.length} files, ${failed} failed`);
     if (failed > 0) process.exitCode = 1;
+}
+
+/** Prints the binding facts of one program: scopes, names, reads and writes. */
+async function explainFile(file: string): Promise<void> {
+    const sourceId = path.resolve(file);
+    const program = parse(await fs.readFile(sourceId, 'utf8'),
+        path.relative(process.cwd(), sourceId));
+    const facts = analyzeWithImports(program,
+        specifier => loadProgram(specifier, sourceId));
+
+    console.log(chalk.bold(path.relative(process.cwd(), sourceId)));
+    console.log(facts.modules.length === 0
+        ? chalk.dim('  no modules')
+        : `  ${facts.modules.join(' ')}`);
+
+    for (const scope of facts.scopes) {
+        if (scope.bindings.length === 0) continue;
+        console.log('');
+        console.log(chalk.bold(scopeTitle(scope)));
+        for (const binding of scope.bindings) console.log(`  ${bindingLine(binding)}`);
+    }
+
+    printWords('operations', facts.operations, name => name);
+    printWords('needs a use', facts.missing, name => chalk.red(name));
+    printWords('unresolved', facts.words, name => chalk.yellow(name));
+    if (facts.missing.length > 0 || facts.words.length > 0) process.exitCode = 1;
+}
+
+/** One source module, parsed, or undefined with a warning when it is missing. */
+function loadProgram(specifier: string, fromId: string): Program | undefined {
+    try {
+        const module = loadModule(specifier, fromId);
+        return parse(module.source, specifier);
+    } catch {
+        console.error(chalk.yellow(`  cannot read ${specifier}`));
+        return undefined;
+    }
+}
+
+function scopeTitle(scope: ScopeFacts): string {
+    if (scope.kind === 'program') return 'program';
+    const name = scope.kind === 'test' ? `test ${scope.name}` : `fun ${scope.name}`;
+    return `${name}  ${scope.at.line}:${scope.at.column}`;
+}
+
+function bindingLine(binding: Binding): string {
+    const flags = [
+        ...(binding.reassigned ? [`written ${binding.writes.length}x`] : []),
+        ...(binding.loopCarried ? ['loop-carried'] : []),
+        ...(binding.shadows ? ['shadows program'] : []),
+        ...(binding.unused ? ['never read'] : [`read ${binding.reads.length}x`]),
+    ];
+    const where = `${binding.bound.line}:${binding.bound.column}`;
+    return `${binding.name.padEnd(16)} ${binding.kind.padEnd(10)} ${where.padEnd(8)} `
+        + chalk.dim(flags.join(', '));
+}
+
+function printWords(
+    title: string,
+    uses: readonly WordUse[],
+    paint: (name: string) => string,
+): void {
+    if (uses.length === 0) return;
+    console.log('');
+    console.log(chalk.bold(title));
+    for (const use of uses) {
+        const where = use.sites.map(place => `${place.line}:${place.column}`).slice(0, 4);
+        if (use.sites.length > where.length) where.push('...');
+        console.log(`  ${paint(use.name).padEnd(16)} ${(use.module ?? '').padEnd(10)} `
+            + chalk.dim(where.join(' ')));
+    }
 }
 
 async function runTests(target: string): Promise<void> {
@@ -136,6 +215,7 @@ function printHelp(): void {
         '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
         '  rank check [path]            Parse every *.ra file',
+        '  rank explain <file>          Where every name is bound and read',
         '  rank test [path]             Run *_test.ra files',
         '  rank --version               Show the version',
     ].join('\n'));
