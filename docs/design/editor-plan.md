@@ -166,24 +166,31 @@ text, and their golden output over the 683 demos is the regression suite. That
 harness is why the terminal CLI stays: a browser UI is the slowest place
 imaginable to debug type inference, and a diff of golden files is the fastest.
 
-### B1 — the operation catalogue (medium, first)
+### B1 — the operation catalogue (landed)
 
-One data file, `packages/language/src/operations.ts`, listing for every name:
-the module that provides it, arities, monadic and dyadic rank, a one-line
-description, the kind of value it returns, whether the result is lazy, and
-whether it has effects. Alongside it, the gated features — which `use` each
-syntax form requires.
+`packages/language/src/operations.ts` lists all 171 exported names: the module
+that provides each one, its arities, monadic and dyadic rank, how it is written,
+a one-line description, the kind of value it returns, whether the result is lazy
+and what it touches. A second table holds the gated syntax — the constructs a
+`use` enables that have no name to look up, each with a runnable example.
 
-Seed it from the registry, which already holds names, arities and ranks, then
-annotate result kinds and laziness by hand. Drift is the one real danger; the
-guard is a test in `packages/interpreter` asserting that the catalogue's name
-set, arities and ranks equal the live `standardModules` values, so a new builtin
-cannot land undocumented.
+The file imports nothing, so the editor and the console can read it without the
+runtime. Drift was the one real danger, and the guard is
+`packages/interpreter/test/operations.test.ts`: the catalogue's name set,
+arities and ranks must equal the live `standardModules` values, every entry must
+be written data-first, and each gated form must actually refuse to run without
+its module. A new builtin cannot land undocumented.
 
-This phase alone buys completion, operation coloring, hover documentation and a
-static version of the runtime's own "did you forget `use numbers`?" hint, with
-no inference and no risk. The [standard library page](../stdlib/modules.md)
-becomes generated data rather than a hand-maintained list.
+`ops` in the REPL already reads it: `ops` lists what is in use, `ops <module>`
+lists that module's forms and bare syntax, and `ops <name>` prints one entry
+with its module, arity, result kind, laziness and effects. The same file is what
+completion, operation coloring, hover documentation and a static version of the
+runtime's "did you forget `use numbers`?" hint will read.
+
+Still open: the [standard library page](../stdlib/modules.md) has not yet been
+turned into generated data, and `Graph add` on an open graph asks for `use algo`
+rather than dispatching on its receiver, which the catalogue's gate test found
+and the graph documentation contradicts.
 
 ### B2 — binding and mutation facts (small, fully certain)
 

@@ -2,6 +2,7 @@ import {
     Interpreter, RankError, formatValue, isRankArray, parse, standardModules,
     type RankValue,
 } from 'rank-interpreter';
+import { findOperation, moduleForms, moduleOperations, type Operation } from 'rank-language';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
@@ -310,6 +311,7 @@ function printHelp(aliases: boolean): void {
         '  help    this page',
         '  forms   how to type each construct',
         '  ops     names you can call now',
+        '  ops N   what one name does',
         '  vars    names you have bound',
         '  save F  write the session to F.ra',
         '  load F  run F.ra in this session',
@@ -358,22 +360,26 @@ function printForms(): void {
     ].join('\n'));
 }
 
-function printOperations(interpreter: Interpreter, module: string | undefined): void {
-    if (module !== undefined) {
-        const exports = standardModules[module];
-        if (exports === undefined) {
-            console.error(chalk.red(`unknown module: ${module}`));
+function printOperations(interpreter: Interpreter, target: string | undefined): void {
+    if (target !== undefined) {
+        const operation = findOperation(target);
+        if (operation !== undefined) {
+            printOperation(interpreter, operation);
             return;
         }
-        if (!interpreter.modules.has(module)) console.log(chalk.dim(`needs: use ${module}`));
-        for (const line of wrap(Object.keys(exports).sort())) console.log(`  ${line}`);
+        if (standardModules[target] === undefined) {
+            console.error(chalk.red(`unknown module or name: ${target}`));
+            return;
+        }
+        printModule(interpreter, target);
         return;
     }
     if (interpreter.modules.size === 0) console.log(chalk.dim('no modules in use'));
     for (const name of [...interpreter.modules].sort()) {
-        const exports = Object.keys(standardModules[name] ?? {}).sort();
         console.log(chalk.bold(name));
-        for (const line of wrap(exports)) console.log(`  ${line}`);
+        for (const line of wrap(moduleOperations(name).map(entry => entry.name))) {
+            console.log(`  ${line}`);
+        }
     }
     const rest = Object.keys(standardModules)
         .filter(name => !interpreter.modules.has(name))
@@ -381,6 +387,36 @@ function printOperations(interpreter: Interpreter, module: string | undefined): 
     if (rest.length > 0) {
         console.log(chalk.dim('not in use, try ops <module>'));
         for (const line of wrap(rest)) console.log(chalk.dim(`  ${line}`));
+    }
+    console.log(chalk.dim('ops <name> describes one operation'));
+}
+
+/** The catalogue entry for one name: how to write it and what comes back. */
+function printOperation(interpreter: Interpreter, operation: Operation): void {
+    console.log(chalk.bold(operation.form));
+    for (const line of wrap(operation.summary.split(' '))) console.log(`  ${line}`);
+    const plural = operation.arities.at(-1) === 1 ? '' : 's';
+    const facts = [
+        operation.module,
+        operation.arities.length === 0
+            ? 'value'
+            : `${operation.arities.join(' or ')} operand${plural}`,
+        operation.result,
+        ...(operation.lazy === true ? ['lazy'] : []),
+        ...(operation.effects ?? []),
+    ];
+    for (const line of wrap(facts, ', ')) console.log(chalk.dim(`  ${line}`));
+    if (!interpreter.modules.has(operation.module)) {
+        console.log(chalk.dim(`  needs: use ${operation.module}`));
+    }
+}
+
+/** Everything one module adds: its names as forms, then its bare syntax. */
+function printModule(interpreter: Interpreter, module: string): void {
+    if (!interpreter.modules.has(module)) console.log(chalk.dim(`needs: use ${module}`));
+    for (const entry of moduleOperations(module)) console.log(`  ${entry.form}`);
+    for (const entry of moduleForms.filter(form => form.module === module)) {
+        console.log(chalk.dim(`  ${entry.form}`));
     }
 }
 
