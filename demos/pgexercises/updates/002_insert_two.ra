@@ -1,0 +1,27 @@
+rem PostgreSQL Exercises: Updates 2
+rem https://pgexercises.com/questions/updates/insert2.html
+
+use cli
+use tables
+
+argument DbPath path
+
+Db = DbPath sqlite
+F = Db .facilities
+Spa = record
+  .facid = 9
+  .name = "Spa"
+  .membercost = 20
+  .guestcost = 30
+  .initialoutlay = 100000
+  .monthlymaintenance = 800
+end
+Squash = record
+  .facid = 10
+  .name = "Squash Court 2"
+  .membercost = 3.5
+  .guestcost = 17.5
+  .initialoutlay = 5000
+  .monthlymaintenance = 80
+end
+F insert Spa Squash

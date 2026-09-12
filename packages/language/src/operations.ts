@@ -472,7 +472,7 @@ export const operations: readonly Operation[] = [
     { name: 'sql', module: 'tables', arities: [1], form: 'Query sql', result: 'record',
         summary: 'Statement text and bound parameters of a query view.' },
     { name: 'sqlite', module: 'tables', arities: [1], form: 'Path sqlite', result: 'database',
-        effects: ['io'], summary: 'Opens an existing SQLite database read-only.' },
+        effects: ['io'], summary: 'Opens an existing SQLite database; reads are lazy, writes explicit.' },
     { name: 'sqlquery', module: 'tables', arities: [3], form: 'Db Text Parameters sqlquery',
         result: 'table', effects: ['io'],
         summary: 'Read-only SELECT view with bound positional parameters.' },

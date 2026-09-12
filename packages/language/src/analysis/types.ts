@@ -13,7 +13,7 @@ import {
     isKeyedJoinExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isStdinExpression, isStringLiteral, isUnaryExpression,
-    isTableFilterExpression, isTableSelectExpression,
+    isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type Expression,
 } from '../generated/ast.js';
 import { findOperation, type Operation, type ResultKind } from '../operations.js';
@@ -44,7 +44,7 @@ const NUMBERS = new Set(['integer', 'real']);
 // The grammar joins the two-word comparisons, so `at least` reaches here as
 // `atleast` and `multiple by` as `multipleby`.
 const COMPARISONS = new Set([
-    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'is',
+    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is',
 ]);
 
 const BOOLEANS = new Set(['and', 'or', 'xor']);
@@ -116,6 +116,12 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isRecordExpression(expression)) return ['record'];
     if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {
         return expression.sourceFields.length === 0 ? typeOf(expression.source, lookup) : UNKNOWN;
+    }
+    if (isTableWriteExpression(expression)) {
+        return ['integer'];
+    }
+    if (isTableWritePreviewExpression(expression)) {
+        return expression.mode === 'sql' ? ['record'] : ['array'];
     }
     if (isKeyedSortExpression(expression) || isKeyedJoinExpression(expression)) return ['array'];
     if (isNewStructureExpression(expression)) {

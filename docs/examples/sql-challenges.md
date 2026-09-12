@@ -7,8 +7,9 @@ We will solve these collections in order, using the
    then joins, aggregates and later window queries. Its country-club data and
    expected SQL results give us small relational examples. Solve them against
    a local SQLite copy. All twelve [Basic](../../demos/pgexercises/basic/README.md)
-   and eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md)
-   exercises now have runnable Rank solutions and SQLite reference tests. The
+   eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md), and
+   nine [Updates](../../demos/pgexercises/updates/README.md) exercises now have
+   runnable Rank solutions and SQLite reference tests. The
    [SQLite table interface](../language/tables.md#sqlite) now translates
    projection, masks, joins, distinct and ordering; further operations remain.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve

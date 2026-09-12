@@ -2,7 +2,7 @@ import { derivedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { aggregateGroupedColumn } from './tables.js';
-import { sumSqlite } from './sqlite.js';
+import { maxSqlite, sumSqlite } from './sqlite.js';
 import {
     mapSequence,
     reduceSequence,
@@ -263,6 +263,7 @@ function numericExtreme(
             return binary(arguments_[0], arguments_[1]);
         }
         const value = arguments_[0];
+        if (name === 'max' && isRankSqliteExpression(value)) return maxSqlite(value);
         if (isRankMultiset(value)) {
             const extreme = name === 'min' ? value.min() : value.max();
             if (extreme === undefined) {

@@ -1,0 +1,11 @@
+rem PostgreSQL Exercises: Updates 8
+rem https://pgexercises.com/questions/updates/deletewh.html
+
+use cli
+use tables
+
+argument DbPath path
+
+Db = DbPath sqlite
+T = Db .members filter .memid equal 37
+T delete

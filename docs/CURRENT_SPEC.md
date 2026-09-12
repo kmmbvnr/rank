@@ -3312,9 +3312,22 @@ parameter array, including an empty array when there are no placeholders.
 Values are bound by the SQLite driver, never interpolated into SQL text. Wrong
 parameter counts, duplicate result column names and unsupported parameter
 types are errors. Table names are selected with labels, checked against the
-schema and quoted as identifiers. A SQLite-backed view is read-only; changing
+schema and quoted as identifiers. A materialized view is separate; changing
 its materialized array never writes to the database. `sqlquery` remains the
 escape hatch for queries not yet expressible through Rank's SQLite views.
+
+### SQLite writes
+
+`F insert Spa Squash` inserts named records into a base SQLite table.
+`T update ... end` changes named columns in a base table or a `filter` of it;
+the right sides use the old row's columns. `T delete` removes those rows.
+These operations execute immediately and return an affected-row count.
+Projections, joins and sorts are not write targets. Column names are checked
+against the schema, and values are bound as parameters. Prefix the same write
+with `sql` to get its `.text` and `.params`, or with `explain` to get SQLite
+query-plan rows. These forms do not execute the write. A one-column SQLite
+view on the right of `in` or `not in` stays a subquery; `max` on a SQLite
+column executes in SQLite. See [Updates](../demos/pgexercises/updates/README.md).
 
 ## CSV
 
@@ -4705,10 +4718,12 @@ grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
 over a grouped column produce a flat table with the keys and aggregate.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
-`sqlite` opens an existing database read-only; `Db .table` returns a table view
+`sqlite` opens an existing database; `Db .table` returns a lazy table view
 that postfix `array` materializes. `sql` inspects its parameterized statement,
 `explain` returns SQLite plan rows, and `sqlquery` creates a read-only query
-with bound positional parameters.
+with bound positional parameters. Direct `insert`, `update` and `delete` write
+to a base table or its filtered view. Prefix a write with `sql` or `explain`
+to inspect it without executing it.
 
 ## Images
 

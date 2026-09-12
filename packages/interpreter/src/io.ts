@@ -13,6 +13,7 @@ export interface RankSqliteStatement {
     readonly reader: boolean;
     columns(): readonly string[];
     all(parameters: readonly SqliteScalar[]): readonly Record<string, SqliteScalar>[];
+    run?(parameters: readonly SqliteScalar[]): number;
 }
 
 export interface RankSqliteConnection {
@@ -26,6 +27,7 @@ export interface RankIo {
     write(path: string, data: Uint8Array, append: boolean): void;
     open(path: string, mode: RankFileMode): RankFileHandle;
     openSqlite?(path: string): RankSqliteConnection;
+    openSqliteWrite?(path: string): RankSqliteConnection;
     listImages?(path: string): readonly { name: string; path: string }[];
     resizeImages?(paths: readonly string[], height: number, width: number): Uint8Array;
 }

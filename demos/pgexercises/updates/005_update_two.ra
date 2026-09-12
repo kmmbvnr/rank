@@ -1,0 +1,15 @@
+rem PostgreSQL Exercises: Updates 5
+rem https://pgexercises.com/questions/updates/updatemultiple.html
+
+use cli
+use tables
+
+argument DbPath path
+
+Db = DbPath sqlite
+F = Db .facilities
+T = F filter .facid equal 0 or .facid equal 1
+T update
+  .membercost = 6
+  .guestcost = 30
+end

@@ -1,0 +1,14 @@
+rem PostgreSQL Exercises: Updates 4
+rem https://pgexercises.com/questions/updates/update.html
+
+use cli
+use tables
+
+argument DbPath path
+
+Db = DbPath sqlite
+F = Db .facilities
+T = F filter .facid equal 1
+T update
+  .initialoutlay = 10000
+end

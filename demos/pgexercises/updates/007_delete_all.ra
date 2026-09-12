@@ -1,0 +1,10 @@
+rem PostgreSQL Exercises: Updates 7
+rem https://pgexercises.com/questions/updates/delete.html
+
+use cli
+use tables
+
+argument DbPath path
+
+Db = DbPath sqlite
+Db .bookings delete

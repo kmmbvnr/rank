@@ -15,7 +15,7 @@ import {
     isForStatement, isFunctionStatement, isIfStatement, isIndexAssignmentStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
-    isTableFilterExpression, isTableSelectExpression, isSelectLocal,
+    isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
     isPushStatement, isRecordExpression, isReturnStatement, isStdinExpression,
     isTestStatement, isTryStatement, isUnaryExpression, isUnpackExpression,
     isUnpackStatement, isUseStatement, isYieldStatement,
@@ -61,7 +61,7 @@ export interface Binding {
     readonly types: Types;
 }
 
-export type ScopeKind = 'program' | 'function' | 'test' | 'select';
+export type ScopeKind = 'program' | 'function' | 'test' | 'select' | 'update';
 
 export interface ScopeFacts {
     readonly kind: ScopeKind;
@@ -457,6 +457,32 @@ class Analyzer {
                 if (isSelectLocal(entry)) this.bind(entry.name, 'assignment', entry);
             }
             this.scopes.pop();
+            return;
+        }
+        if (isTableWriteExpression(expression)) {
+            this.expression(expression.source);
+            for (const value of expression.values) this.expression(value);
+            if (expression.entries.length === 0) return;
+            const scope: ScopeState = {
+                kind: 'update', name: 'update', at: site(expression), slots: new Map(),
+            };
+            this.expressionScopes.push(scope);
+            this.scopes.push(scope);
+            for (const entry of expression.entries) {
+                const before = this.pending.length;
+                this.expression(entry.value);
+                const visible = { ...scope, slots: new Map(scope.slots) };
+                for (let i = before; i < this.pending.length; i += 1) {
+                    const read = this.pending[i];
+                    this.pending[i] = { ...read, chain: read.chain.map(s => s === scope ? visible : s) };
+                }
+                if (isSelectLocal(entry)) this.bind(entry.name, 'assignment', entry);
+            }
+            this.scopes.pop();
+            return;
+        }
+        if (isTableWritePreviewExpression(expression)) {
+            this.expression(expression.write);
             return;
         }
         if (isKeyedSortExpression(expression)) {

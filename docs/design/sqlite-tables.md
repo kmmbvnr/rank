@@ -14,8 +14,9 @@ interpolation. The local club database belongs in the ignored
 
 This is the first step in a query-translation history, not a claim that all
 Rank table operations already run in SQLite. The interpreter has a database
-capability on `RankIo`; the CLI supplies a read-only prepared-statement driver
-compatible with Rank's Node 20 minimum. The first exercise has a CLI test that
+capability on `RankIo`; the CLI supplies prepared statements for reads and
+explicit writes, compatible with Rank's Node 20 minimum. The first exercise
+has a CLI test that
 creates a temporary SQLite database and checks the materialized result.
 
 The [Basic exercises](../../demos/pgexercises/basic/README.md) now keep tasks
@@ -23,7 +24,9 @@ The [Basic exercises](../../demos/pgexercises/basic/README.md) now keep tasks
 retain explicit local work for limits, union and latest-date calculations.
 [Joins and Subqueries](../../demos/pgexercises/joins/README.md) runs all eight
 solutions both against SQLite and array tables using the same source and SQL
-oracles. Q6 also has a [SQLite program](../../demos/tpch/001_q6_sqlite.ra).
+oracles. All nine [Updates](../../demos/pgexercises/updates/README.md) use
+explicit SQLite writes and a database-state oracle. Q6 also has a
+[SQLite program](../../demos/tpch/001_q6_sqlite.ra).
 
 Contextual `filter` and `select` blocks build on boolean masks and named
 projections. `View select Cols` retains dynamic records while replacing the
@@ -43,7 +46,7 @@ query on small data. Operations that cannot yet be translated should either
 materialize clearly before ordinary Rank array work or report that the
 SQLite view does not support the operation; `sql` must never imply pushdown
 that did not happen. Materialized arrays may be changed in Rank, but the
-SQLite source stays read-only.
+SQLite source changes only through explicit `insert`, `update` and `delete`.
 
 Open design questions include how a source-bound mask represents SQL `NULL`,
 how to retain a stable row order across joins, and where automatic

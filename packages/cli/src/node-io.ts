@@ -14,6 +14,7 @@ interface NativeSqliteStatement {
     safeIntegers(enabled: boolean): NativeSqliteStatement;
     columns(): readonly { name: string }[];
     all(...parameters: readonly SqliteScalar[]): readonly Record<string, SqliteScalar>[];
+    run(...parameters: readonly SqliteScalar[]): { changes: number };
 }
 
 interface NativeSqliteDatabase {
@@ -66,6 +67,22 @@ export const nodeIo: RankIo = {
                     reader: statement.reader,
                     columns: () => statement.columns().map(column => column.name),
                     all: parameters => statement.all(...parameters),
+                };
+            },
+            close: () => database.close(),
+        };
+    },
+    openSqliteWrite(path): RankSqliteConnection {
+        const database = new Sqlite(path, { readonly: false, fileMustExist: true });
+        return {
+            prepare(text) {
+                const statement = database.prepare(text).safeIntegers(true);
+                return {
+                    readonly: statement.readonly,
+                    reader: statement.reader,
+                    columns: () => statement.columns().map(column => column.name),
+                    all: parameters => statement.all(...parameters),
+                    run: parameters => statement.run(...parameters).changes,
                 };
             },
             close: () => database.close(),

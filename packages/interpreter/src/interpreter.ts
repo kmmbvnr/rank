@@ -54,6 +54,8 @@ import {
     isRecordField,
     isTableFilterExpression,
     isTableSelectExpression,
+    isTableWriteExpression,
+    isTableWritePreviewExpression,
     isRunStatement,
     isReturnStatement,
     isKeyedSortExpression,
@@ -114,6 +116,7 @@ import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sortSqlite, sqliteColumn, sqliteScope,
     sqliteScopedColumn, sqliteTable,
+    sqliteWrite, executeSqliteWrite, inSqlite,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -1727,6 +1730,49 @@ export class Interpreter {
                 } finally {
                     interpreter.localFrame = previous;
                 }
+            };
+        }
+        if (isTableWriteExpression(expression) || isTableWritePreviewExpression(expression)) {
+            const write = isTableWritePreviewExpression(expression) ? expression.write : expression;
+            const mode = isTableWritePreviewExpression(expression) ? expression.mode : undefined;
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', 'insert');
+                let source = yield* resume(interpreter.evaluateTask(write.source));
+                for (const field of write.sourceFields) {
+                    source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
+                }
+                if (!isRankSqliteTable(source)) throw new RankError('write expects a SQLite table', 'TypeError');
+                const operation = write.values.length > 0 ? 'insert'
+                    : write.entries.length > 0 ? 'update' : 'delete';
+                const values = operation === 'insert'
+                    ? yield* resume(mapExecution(write.values, value => interpreter.evaluateTask(value))) : [];
+                const fields: RankRecord = { kind: 'record', entries: new Map(), types: new Map() };
+                if (operation === 'update') {
+                    const previous = interpreter.localFrame;
+                    const frame = new LocalFrame(previous);
+                    frame.set(TABLE_INPUT, source);
+                    interpreter.localFrame = frame;
+                    try {
+                        for (const entry of write.entries) {
+                            const lowered = tableExpression(entry.value, name => {
+                                const value = interpreter.resolve(name);
+                                if (!isNativeFunction(value)) return undefined;
+                                const info = findOperation(value.name);
+                                if (!info || info.effects?.length
+                                    || interpreter.standardFunctions.get(standardModules[info.module]?.[info.name]) !== value) {
+                                    throw new RankError('update expressions accept pure standard-library functions', 'TypeError');
+                                }
+                                return value.arities;
+                            });
+                            const value = yield* resume(interpreter.evaluateTask(lowered));
+                            if (isRecordField(entry)) {
+                                if (fields.entries.has(entry.name)) throw new RankError('duplicate update field', 'TypeError');
+                                fields.entries.set(entry.name, value);
+                            } else frame.define(entry.name, value, new Set([typeName(value)]));
+                        }
+                    } finally { interpreter.localFrame = previous; }
+                }
+                return executeSqliteWrite(sqliteWrite(source, operation, values, fields), mode);
             };
         }
         if (isRecordExpression(expression)) {
@@ -3862,6 +3908,11 @@ export class Interpreter {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if ((operator === 'in' || operator === 'notin')
+            && isRankSqliteExpression(left) && isRankSqliteTable(right)) {
+            return inSqlite(left, right, operator === 'notin');
+        }
+        if (operator === 'notin') return this.evaluateUnary('not', this.evaluateBinary('in', left, right));
         if (isRankSqliteExpression(left) || isRankSqliteExpression(right)) {
             return binarySqlite(operator, left, right);
         }

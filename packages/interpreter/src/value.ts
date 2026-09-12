@@ -59,6 +59,11 @@ export interface RankSqliteTable {
     readonly database: RankSqliteDatabase;
     readonly text: string;
     readonly params: readonly SqliteScalar[];
+    readonly writeTarget?: {
+        readonly name: string;
+        readonly where?: string;
+        readonly params: readonly SqliteScalar[];
+    };
     readonly scopes?: ReadonlyMap<string, readonly string[]>;
     readonly booleanColumns?: ReadonlySet<string>;
     readonly textColumns?: ReadonlySet<string>;

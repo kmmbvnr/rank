@@ -144,7 +144,7 @@ The supported SQLite expression operators are `equal`, `notequal`, `less`,
 `sum` executes its aggregate; ordinary columns and tables remain lazy until a
 terminal operation. Other array operations require explicit `array` for now.
 SQLite `NULL` fields are absent when rows are materialized. The database view
-cannot be mutated or used as a destination for field assignment yet. SQL
+cannot be used as a destination for field assignment. SQL
 ordering is guaranteed only when `sort by` is the final operation before the
 terminal read.
 
@@ -166,6 +166,40 @@ types are errors. Table names are selected with labels, checked against the
 schema and quoted as identifiers. A SQLite-backed view is read-only; changing
 its materialized array never writes to the database. Use `sqlquery` only for
 queries not yet expressible through the operations above.
+
+### SQLite writes
+
+`insert`, `update` and `delete` change an existing SQLite database immediately.
+They return the number of affected rows. `insert` accepts one or more named
+records separated by spaces, or a rank-1 table of rows. A filtered base table
+can be updated or deleted; projections, joins and sorts cannot be write targets.
+
+```rank
+F = Db .facilities
+F insert Spa Squash
+T = F filter .facid equal 1
+T update
+  .initialoutlay = 10000
+end
+Old = Db .members filter .memid equal 37
+Old delete
+```
+
+The `update` block uses the input table's fields implicitly, as `select` does.
+Its right sides read the row before the write. A record or table supplied to
+`insert` names the destination columns; unknown columns and mismatched record
+shapes are errors. Values are always bound as SQLite parameters. To inspect a
+write without executing it, prefix the same expression with `sql` or `explain`:
+
+```rank
+Statement = sql F insert Spa
+Plan = explain T delete
+```
+
+`Statement` has `.text` and `.params`; `Plan` has SQLite query-plan rows.
+`F .facid max` runs the aggregate in SQLite. `not in` accepts a one-column
+SQLite view as a subquery, so `Db .members filter .memid not in Booked` stays
+lazy. See the [nine worked Updates](../../demos/pgexercises/updates/README.md).
 
 ## CSV
 

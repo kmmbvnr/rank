@@ -177,6 +177,9 @@ test('collects table blocks without delaying inline select and filter', () => {
     assert.deepEqual(scanLine('R = Rows filter .id greater 0').opens, []);
     assert.deepEqual(scanLine('R = Rows select .name').opens, []);
     assert.deepEqual(scanLine('R = Rows select Cols').opens, []);
+    assert.deepEqual(scanLine('T update').opens, ['update']);
+    assert.deepEqual(scanLine('sql T update').opens, ['update']);
+    assert.deepEqual(scanLine('fun update X').opens, ['fun']);
     assert.deepEqual(scanLine('Label = .select').opens, []);
     const state = cell('R = Rows select', 'Cost = .price * 2', '.cost = Cost');
     assert.equal(isComplete(state), false);

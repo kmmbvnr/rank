@@ -9,6 +9,8 @@ import {
     isRankSqliteDatabase,
     isRankSqliteExpression,
     isRankSqliteTable,
+    isRankRecord,
+    isRankObject,
     isRankTableAlias,
     type RankArray,
     type RankObject,
@@ -76,6 +78,7 @@ export function sqliteTable(database: RankSqliteDatabase, name: string): RankSql
         kind: 'sqlite-table', database,
         text: `SELECT * FROM "${name.replace(/"/g, '""')}"`,
         params: [],
+        writeTarget: { name, params: [] },
     };
 }
 
@@ -183,7 +186,13 @@ export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpres
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
         booleanColumns: table.booleanColumns, textColumns: table.textColumns,
         text: `SELECT * FROM (${table.text}) AS source WHERE ${predicate.text}`,
-        params: [...table.params, ...predicate.params] };
+        params: [...table.params, ...predicate.params],
+        writeTarget: table.writeTarget && {
+            name: table.writeTarget.name,
+            where: table.writeTarget.where
+                ? `(${table.writeTarget.where}) AND (${predicate.text})` : predicate.text,
+            params: [...table.writeTarget.params, ...predicate.params],
+        } };
 }
 
 export function sortSqlite(
@@ -381,6 +390,129 @@ export function sumSqlite(expression: RankSqliteExpression): RankValue {
         }
         return value;
     });
+}
+
+export function maxSqlite(expression: RankSqliteExpression): RankValue {
+    return withConnection(expression.table.database, connection => {
+        const row = connection.prepare(`SELECT MAX(${expression.text}) AS value `
+            + `FROM (${expression.table.text}) AS source`)
+            .all([...expression.params, ...expression.table.params])[0];
+        if (!row || row.value === null) throw new MissingValueError('max of an empty SQLite column');
+        if (typeof row.value !== 'bigint' && typeof row.value !== 'number') {
+            throw new RankError('SQLite max expects numeric values', 'TypeError');
+        }
+        return fromSqlite(row.value);
+    });
+}
+
+export function inSqlite(left: RankSqliteExpression, right: RankSqliteTable, negated = false): RankSqliteExpression {
+    if (left.table.database.path !== right.database.path || left.table.database.io !== right.database.io) {
+        throw new RankError('SQLite in expects one database', 'TypeError');
+    }
+    const columns = sqliteColumns(right);
+    if (columns.length !== 1) throw new RankError('SQLite in expects one column', 'TypeError');
+    return { kind: 'sqlite-expression', table: left.table,
+        text: `${left.text} ${negated ? 'NOT IN' : 'IN'} `
+            + `(SELECT ${quote(columns[0])} FROM (${right.text}) AS values_)`,
+        params: [...left.params, ...right.params], boolean: true };
+}
+
+export interface SqliteWrite {
+    readonly database: RankSqliteDatabase;
+    readonly text: string;
+    readonly params: readonly SqliteScalar[];
+}
+
+export function sqliteWrite(
+    table: RankSqliteTable, operation: 'insert' | 'update' | 'delete',
+    values: readonly RankValue[] = [], fields?: RankRecord,
+): SqliteWrite {
+    const target = table.writeTarget;
+    if (!target || (operation === 'insert' && target.where)) {
+        throw new RankError('SQLite write requires a base table or its filtered view', 'TypeError');
+    }
+    const name = quote(target.name);
+    const columns = sqliteColumns(sqliteTable(table.database, target.name));
+    const checked = (field: string): string => {
+        if (!columns.includes(field)) throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
+        return quote(field);
+    };
+    if (operation === 'delete') return { database: table.database,
+        text: `DELETE FROM ${name} AS source${target.where ? ` WHERE ${target.where}` : ''}`,
+        params: target.params };
+    if (operation === 'update') {
+        if (!fields || fields.entries.size === 0) throw new RankError('update needs fields', 'TypeError');
+        const params: SqliteScalar[] = [];
+        const changes = [...fields.entries].map(([field, value]) => {
+            if (isRankSqliteExpression(value)) {
+                if (value.table !== table) throw new RankError('update field belongs to another view', 'TypeError');
+                params.push(...value.params);
+                return `${checked(field)} = ${value.text}`;
+            }
+            params.push(toSqlite(value));
+            return `${checked(field)} = ?`;
+        });
+        return { database: table.database,
+            text: `UPDATE ${name} AS source SET ${changes.join(', ')}`
+                + (target.where ? ` WHERE ${target.where}` : ''),
+            params: [...params, ...target.params] };
+    }
+    if (values.length === 1 && isRankSqliteTable(values[0])) {
+        const source = values[0];
+        if (source.database.path !== table.database.path || source.database.io !== table.database.io) {
+            throw new RankError('insert source must use the same database', 'TypeError');
+        }
+        const names = sqliteColumns(source);
+        for (const field of names) checked(field);
+        return { database: table.database,
+            text: `INSERT INTO ${name} (${names.map(quote).join(', ')}) ${source.text}`,
+            params: source.params };
+    }
+    const rows = values.length === 1 && isRankArray(values[0])
+        ? values[0].items : values;
+    if (rows.length === 0) throw new RankError('insert needs rows', 'TypeError');
+    const first = rows[0];
+    if (!isRankRecord(first) && !isRankObject(first)) {
+        throw new RankError('insert expects records or a table of rows', 'TypeError');
+    }
+    const names = [...first.entries.keys()];
+    if (names.length === 0) throw new RankError('insert row needs fields', 'TypeError');
+    for (const field of names) checked(field);
+    const params: SqliteScalar[] = [];
+    for (const row of rows) {
+        if ((!isRankRecord(row) && !isRankObject(row))
+            || row.entries.size !== names.length || names.some(field => !row.entries.has(field))) {
+            throw new RankError('insert rows must have matching fields', 'TypeError');
+        }
+        for (const field of names) params.push(toSqlite(row.entries.get(field)!));
+    }
+    const placeholders = `(${names.map(() => '?').join(', ')})`;
+    return { database: table.database,
+        text: `INSERT INTO ${name} (${names.map(quote).join(', ')}) VALUES `
+            + rows.map(() => placeholders).join(', '), params };
+}
+
+export function executeSqliteWrite(write: SqliteWrite, mode?: 'sql' | 'explain'): RankValue {
+    if (mode === 'sql') return { kind: 'record',
+        entries: new Map<string, RankValue>([
+            ['text', write.text],
+            ['params', { kind: 'array', items: write.params.map(fromSqlite), shape: [write.params.length] }],
+        ]), types: new Map([['text', 'text'], ['params', 'array']]) };
+    if (mode === 'explain') return withConnection(write.database, connection =>
+        resultRows(connection.prepare(`EXPLAIN QUERY PLAN ${write.text}`), write.params));
+    const open = write.database.io.openSqliteWrite;
+    if (!open) throw new RankError('SQLite writing is unavailable in this host', 'IO');
+    let connection: RankSqliteConnection;
+    try { connection = open.call(write.database.io, write.database.path); }
+    catch (error) { throw new RankError(`SQLite open failed: ${String(error)}`, 'IO'); }
+    try {
+        const statement = connection.prepare(write.text);
+        if (statement.readonly || !statement.run) throw new RankError('expected a SQLite write', 'TypeError');
+        return BigInt(statement.run(write.params));
+    } catch (error) {
+        if (error instanceof RankError) throw error;
+        throw new RankError(`SQLite write failed: ${String(error)}`, 'Sqlite');
+    } finally { connection.close(); }
 }
 
 export function lengthSqlite(table: RankSqliteTable): bigint {

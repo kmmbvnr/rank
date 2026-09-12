@@ -1,0 +1,21 @@
+rem PostgreSQL Exercises: Updates 3
+rem https://pgexercises.com/questions/updates/insert3.html
+
+use cli
+use tables
+use numbers
+
+argument DbPath path
+
+Db = DbPath sqlite
+F = Db .facilities
+Next = F .facid max + 1
+Spa = record
+  .facid = Next
+  .name = "Spa"
+  .membercost = 20
+  .guestcost = 30
+  .initialoutlay = 100000
+  .monthlymaintenance = 800
+end
+F insert Spa

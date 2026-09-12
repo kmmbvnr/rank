@@ -58,7 +58,7 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement:
-    ('fun' | memo?='memo') name=WORD parameters+=Identifier* NL+
+    ('fun' | memo?='memo') name=(WORD | 'update') parameters+=Identifier* NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
@@ -190,7 +190,7 @@ ComparisonExpression returns Expression:
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
-    'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in' | 'is';
+    'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in' | 'not' 'in' | 'is';
 
 PaddingExpression returns Expression:
     RangeExpression
@@ -219,6 +219,8 @@ PowerExpression returns Expression:
         operator='**' right=PowerExpression)?;
 
 ApplicationExpression returns Expression:
+    TableWritePreviewExpression |
+    TableWriteExpression |
     TableFilterExpression |
     TableSelectExpression |
     AliasedTableExpression |
@@ -229,6 +231,15 @@ ApplicationExpression returns Expression:
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
     ({infer MaterializeExpression.source=current} 'array')?;
+
+TableWriteExpression:
+    source=PrimaryExpression sourceFields+=LabelLiteral?
+    ('insert' values+=NameExpression+ |
+     'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
+     'delete');
+
+TableWritePreviewExpression:
+    mode=('sql' | 'explain') write=TableWriteExpression;
 
 TableFilterExpression:
     source=PrimaryExpression sourceFields+=LabelLiteral?
@@ -375,7 +386,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'filter' | 'select';
+    VARIABLE | WORD | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -384,7 +395,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'index' | 'shape';
+    VARIABLE | WORD | QUALIFIED_NAME | 'index' | 'shape' | 'sql' | 'explain' | 'update';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

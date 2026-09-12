@@ -347,7 +347,8 @@ export function scanLine(line: string): LineScan {
             continue;
         }
         if (index > 0 && index === tokens.length - 1
-            && (current.text === 'filter' || current.text === 'select')) {
+            && (current.text === 'filter' || current.text === 'select'
+                || current.text === 'update')) {
             opens.push(current.text);
             continue;
         }

@@ -316,7 +316,7 @@ CSV, SQLite, grouping and joins.
 | `Table labels` | array | Ordered column labels of a rank-1 table. |
 | `Ids Keys Values lookup` | value, lazy | First keyed match; SQLite expressions become a correlated subquery. |
 | `Query sql` | record | Statement text and bound parameters of a query view. |
-| `Path sqlite` | database, io | Opens an existing SQLite database read-only. |
+| `Path sqlite` | database, io | Opens an existing SQLite database; reads are lazy, writes explicit. |
 | `Db Text Parameters sqlquery` | table, io | Read-only SELECT view with bound positional parameters. |
 
 These need `use tables` but have no name to look up.

@@ -1,0 +1,14 @@
+rem PostgreSQL Exercises: Updates 9
+rem https://pgexercises.com/questions/updates/deletewh2.html
+
+use cli
+use tables
+
+argument DbPath path
+
+Db = DbPath sqlite
+Booked = Db .bookings select .memid
+Unused = Db .members filter
+  .memid not in Booked
+end
+Unused delete
