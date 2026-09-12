@@ -151,6 +151,17 @@ describe('Rank grammar', () => {
         expect(statement.indices).toHaveLength(1);
     });
 
+    it('parses unpacked application arguments and selectors', async () => {
+        const document = await parse([
+            'Value = Index unpack Point',
+            'Index unpack (array X Y) = 1',
+            'Result = unpack Point distance',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        expect(document.parseResult.value.statements).toHaveLength(3);
+    });
+
     it('parses a filled shaped array and addressed assignment', async () => {
         const document = await parse([
             'Dist = array shape N N pad -1',

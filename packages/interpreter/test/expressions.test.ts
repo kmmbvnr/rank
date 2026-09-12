@@ -860,6 +860,31 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toBe('10');
     });
 
+    it('unpacks rank-1 arrays into application arguments', () => {
+        expect(run([
+            'fun area Width Height',
+            '  return Width * Height',
+            'end',
+            'Point = array 3 4',
+            'unpack Point area',
+        ].join('\n'))).toBe('12');
+        expect(run([
+            'fun add_nested Values Tail',
+            '  return Values 0 + Tail',
+            'end',
+            'Packed = array (array 4) 3',
+            'unpack Packed add_nested',
+        ].join('\n'))).toBe('7');
+        expect(() => run('unpack 1 print'))
+            .toThrowError('unpack expects an array value');
+        expect(() => run([
+            'Matrix = array shape 1 2',
+            '  1 2',
+            'end',
+            'unpack Matrix print',
+        ].join('\n'))).toThrowError('unpack expects a rank-1 array value');
+    });
+
     it('counts and addresses Unicode text atoms', () => {
         expect(run('use sequences\n"A😀Б" len')).toBe('3');
         expect(run('"A😀Б" 1')).toBe('😀');

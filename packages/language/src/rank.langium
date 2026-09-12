@@ -164,6 +164,7 @@ ArrayItem:
     sign=('+' | '-')? value=ArrayAtom;
 
 AddressItem:
+    spread?='unpack' value=ArrayAtom |
     sign=('+' | '-')? value=ArrayAtom |
     all?='#';
 
@@ -229,14 +230,18 @@ KeyedSortExpression:
     (fields+=LabelLiteral+ | key=NameExpression);
 
 UnaryExpression returns Expression:
+    UnpackExpression |
     {infer UnaryExpression}
         operator=('+' | '-' | 'not') operand=UnaryExpression |
     ArrayExpression |
     RecordExpression |
     PrimaryExpression;
 
+UnpackExpression:
+    'unpack' value=PrimaryExpression;
+
 ApplicationArgument returns Expression:
-    PrimaryExpression | ArrayExpression;
+    UnpackExpression | PrimaryExpression | ArrayExpression;
 
 PrimaryExpression returns Expression:
     ArrayAtom | AllAxisExpression;

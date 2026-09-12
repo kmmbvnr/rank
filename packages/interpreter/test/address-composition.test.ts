@@ -52,6 +52,26 @@ M`)).toBe('2 2 7 0');
             .toThrow('array index must be nonnegative');
     });
 
+    it('unpacks coordinate arrays for reads and writes', () => {
+        expect(run(`use algo
+Grid = array shape 2 3 pad 0
+Point = array 1 2
+Grid unpack Point = 7
+Cache = new index
+Cache unpack Point = Grid unpack Point
+Cache unpack Point`)).toBe('7');
+        expect(run(`use algo
+use sequences
+fun coordinates Log
+  Log push 1
+  return array 0 1
+end
+Log = queue
+Grid = array shape 1 2 pad 0
+Grid unpack (Log coordinates) = 9
+Log len`)).toBe('1');
+    });
+
     it('checks selectors before evaluating the right-hand side', () => {
         expect(() => run('A = array 1\nA 2 = Missing')).toThrow('array index out of bounds');
         expect(() => run('A = array 1\nA Missing = Other')).toThrow('unknown name: Missing');

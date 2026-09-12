@@ -20,8 +20,7 @@ fun path_count Nodes Edges Length
   Mod = 1000000007
   Paths = array shape Nodes Nodes pad 0
   for Edge in Edges
-    unpack From To = Edge
-    Paths (From - 1) (To - 1) += 1
+    Paths unpack (Edge - 1) += 1
   end
 
   Power = Paths Length Mod matrix_power

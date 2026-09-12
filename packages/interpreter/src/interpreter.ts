@@ -53,6 +53,7 @@ import {
     isTestStatement,
     isTryStatement,
     isUnaryExpression,
+    isUnpackExpression,
     isUnpackStatement,
     isUseStatement,
     isYieldStatement,
@@ -1317,7 +1318,7 @@ export class Interpreter {
                 return result;
             };
             const address = statement.indices.length === 1 ? statement.indices[0] : undefined;
-            const directIndex = address && !address.all && !address.sign && address.value
+            const directIndex = address && !address.all && !address.sign && !address.spread && address.value
                 ? this.compileDirectExpression(address.value) : undefined;
             const directValue = this.compileDirectExpression(statement.value);
             if (directIndex && directValue) {
@@ -1351,8 +1352,8 @@ export class Interpreter {
                 // Selectors that all complete hand straight over to the general
                 // form, so the usual case adds no second generator to drive.
                 return flatMapResult(
-                    mapExecution(statement.indices, index => this.evaluateAddressItem(index)),
-                    selectors => general(target, selectors),
+                    mapExecution(statement.indices, index => this.evaluateAddressParts(index)),
+                    selectors => general(target, selectors.flat()),
                 );
             } };
         }
@@ -1660,6 +1661,11 @@ export class Interpreter {
             if (tail) return this.compileExpression(expression.value, missing, true);
             return () => interpreter.evaluateTask(expression.value);
         }
+        if (isUnpackExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                throw new RankError('unpack requires a surrounding application');
+            };
+        }
         if (isUnaryExpression(expression)) {
             return function* (): Execution<RankValue> {
                 return interpreter.evaluateUnary(expression.operator, (yield* resume(interpreter.evaluateTask(expression.operand))));
@@ -1818,6 +1824,22 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
+            if (parts.some(isUnpackExpression)) {
+                return function* (): Execution<RankValue> {
+                    const values: RankValue[] = [];
+                    for (const part of parts) {
+                        if (isUnpackExpression(part)) {
+                            const source = yield* resume(interpreter.evaluateTask(part.value));
+                            values.push(...unpackApplicationItems(source));
+                        } else {
+                            values.push(isAllAxisExpression(part)
+                                ? ALL_AXIS
+                                : yield* resume(interpreter.evaluateTask(part)));
+                        }
+                    }
+                    return yield* resume(interpreter.apply(values, missing, 0, [], tail));
+                };
+            }
             if (isNewStructureExpression(parts[0])
                 && parts[0].structure === 'graph') {
                 return function* (): Execution<RankValue> {
@@ -2316,6 +2338,12 @@ export class Interpreter {
         const result = this.evaluateTask(item.value);
         const sign = item.sign;
         return sign ? mapResult(result, value => this.evaluateUnary(sign, value)) : result;
+    }
+
+    private evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]> {
+        if (!item.spread) return mapResult(this.evaluateAddressItem(item), value => [value]);
+        if (!item.value) throw new RankError('missing unpack expression');
+        return mapResult(this.evaluateTask(item.value), unpackApplicationItems);
     }
 
     private *arrayDimension(item: ArrayItem): Execution<number> {
@@ -4510,6 +4538,19 @@ function canApplySelectors(values: RankValue[]): boolean {
         return canApplySelectors(values.slice(0, -1));
     }
     return false;
+}
+
+function unpackApplicationItems(value: RankValue): RankValue[] {
+    if (!isRankArray(value)) {
+        throw new RankError('unpack expects an array value', 'TypeError');
+    }
+    if (value.shape.length !== 1) {
+        throw new RankError('unpack expects a rank-1 array value', 'DimensionMismatch');
+    }
+    return Array.from(
+        { length: value.shape[0] },
+        (_, index) => arrayItem(value, index),
+    );
 }
 
 function isTableFieldList(value: RankValue, includeEmpty = true): boolean {

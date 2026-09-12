@@ -235,6 +235,23 @@ Pattern = "/integerx/integerx/integer"
 unpack Length Width Height = Line Pattern parse
 ```
 
+The same word before an expression expands a rank-1 array into adjacent
+application arguments or address selectors:
+
+```rank
+Point = array X Y
+
+Index unpack Point = 1
+Value = Index unpack Point
+Result = unpack Point distance
+```
+
+The expression is evaluated once and its items are inserted in order. Only one
+level is expanded, and the source is not changed. An empty vector inserts no
+arguments. A non-array raises `.TypeError`; an array whose rank is not one
+raises `.DimensionMismatch`. After expansion, ordinary function arity and
+addressing rules apply.
+
 ## Data-first application
 
 Rank places data before the operation. A function follows the values it
