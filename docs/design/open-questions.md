@@ -320,3 +320,32 @@ MXFP4 block scale lives. See
 `vocab` and `tfidf` were useful in the Disaster Tweets sketch, but it is not yet
 decided whether they should be standard library words or examples implemented
 from more primitive operations.
+
+## Explain a calculation in the UI
+
+Future interface idea, agreed 2026-09-12. This is not current syntax or an
+implemented UI feature.
+
+A result could show its shape, element type, evaluation state and measured
+execution time. A short explanation should describe how it was computed:
+
+> Matrix 1000×32 · real · materialized · computed in one pass
+
+For lazy results, distinguish a pending computation, partially evaluated cells,
+and a fully materialized result. Time spent preparing or compiling a computation
+should be distinguishable from time spent actually computing its values.
+Inspecting this metadata must not force a lazy result.
+
+An optional detail view could show which operations were combined, which ran
+through the ordinary interpreter, and why a planned optimization did not apply.
+This would help both users understand a calculation and language developers
+find missed compiler coverage without changing readable Rank programs.
+
+Explanations must come from the path actually executed. A plan that was prepared
+but declined a runtime guard must not be shown as a successful optimization.
+“One pass” should describe the computation itself and distinguish any additional
+validation or resource-ownership scans.
+
+Start with short result annotations suitable for a narrow mobile screen; keep
+compiler diagnostics in the detail view. The metadata API, timing boundaries
+and visual design remain to be decided.
