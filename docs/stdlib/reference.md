@@ -90,6 +90,8 @@ Calendar dates and local date-times.
 | `Moment hour` | integer | Hour of a datetime. |
 | `Moment minute` | integer | Minute of a datetime. |
 | `Value month` | integer | Month of a date or datetime. |
+| `Value monthstart` | datetime, lazy | Midnight on the first day of the current month. |
+| `Value nextmonth` | datetime, lazy | Midnight on the first day of the following month. |
 | `Moment second` | integer | Second of a datetime. |
 | `Duration seconds` | integer | Exact signed number of seconds in a duration. |
 | `Value weekday` | integer | Day of the week, Monday zero through Sunday six. |

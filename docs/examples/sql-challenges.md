@@ -12,7 +12,7 @@ We will solve these collections in order, using the
    all twenty-two [Aggregates](../../demos/pgexercises/aggregates/README.md)
    exercises now have runnable Rank solutions and SQLite reference tests.
    [Date](../../demos/pgexercises/date/README.md) has started with timestamp,
-   interval, calendar and day-of-month examples. The
+   interval, calendar, day-of-month and month-length examples. The
    [SQLite table interface](../language/tables.md#sqlite) now translates
    projection, masks, joins, distinct, ordering, grouped sums and sorted
    slices; further operations remain.

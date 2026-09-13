@@ -5271,6 +5271,15 @@ Train .month = Times month
 
 `use algo` provides algorithmic collections and combinatorial generators:
 
+`monthstart` and `nextmonth` accept a `date` or `datetime` and return a
+`datetime` at midnight on the first day of the current or next month. They
+preserve lazy array and sequence mapping, including invalidation after tracked
+array mutations. `nextmonth` past December 9999 raises `.InvalidDate` on an
+ordinary value. On a typed SQLite date or datetime expression, they compile
+to `datetime(value, 'start of month')` and
+`datetime(value, 'start of month', '+1 month')` respectively, without reading
+source rows. SQLite invalid dates yield missing cells.
+
 ```rank
 Seen = new set
 Counts = new counter

@@ -107,3 +107,72 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
         fs.rmSync(temporary, { recursive: true, force: true });
     }
 });
+
+test('2012 month lengths match a recursive SQLite oracle', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const output = path.join(temporary, 'months.csv');
+    const db = new Database(':memory:');
+    try {
+        run('006_monthlen.ra', output);
+        const actual = fs.readFileSync(output, 'utf8').trim().split('\n');
+        const expected = db.prepare(`WITH RECURSIVE months(first) AS (
+            SELECT '2012-01-01'
+            UNION ALL SELECT date(first, '+1 month') FROM months
+            WHERE first < '2012-12-01'
+        ) SELECT CAST(strftime('%m', first) AS INTEGER) AS month,
+            CAST(julianday(date(first, '+1 month')) - julianday(first)
+                AS INTEGER) AS days FROM months`).all();
+        assert.deepEqual(actual, ['month,length',
+            ...expected.map(row => `${row.month},${row.days} days`)]);
+        assert.equal(expected.length, 12);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});
+
+test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const output = path.join(temporary, 'months.csv');
+    const script = path.join(temporary, 'months.ra');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE moments (time TEXT)');
+        const insert = db.prepare('INSERT INTO moments VALUES (?)');
+        insert.run('2012-02-29 23:59:59');
+        insert.run('2012-12-31 08:30:00');
+        const program = [
+            'use cli', 'use dates', 'use tables',
+            'argument DbPath path', 'argument OutputPath path',
+            'Db = DbPath sqlite', 'M = Db .moments',
+            'Time = M .time datetime',
+            'First = Time monthstart',
+            'Next = Time nextmonth',
+            'Result = M select',
+            '  .first = First',
+            '  .next = Next',
+            'end',
+            'Result OutputPath csv',
+        ].join('\n');
+        fs.writeFileSync(script, program);
+        const result = spawnSync(process.execPath,
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), [
+            'first,next',
+            '2012-02-01 00:00:00,2012-03-01 00:00:00',
+            '2012-12-01 00:00:00,2013-01-01 00:00:00',
+        ]);
+        fs.writeFileSync(script, program.replace('Result OutputPath csv',
+            'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath, [cli, script, dbPath, output],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /datetime\("time", 'start of month'\)/);
+        assert.match(plan.stdout, /datetime\("time", 'start of month', '\+1 month'\)/);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});

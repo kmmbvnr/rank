@@ -1,5 +1,5 @@
 import { RankError } from '../errors.js';
-import { derivedArray, ownedObject } from '../array-storage.js';
+import { derivedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { mapSequence } from '../sequence.js';
 import {
     isRankArray,
@@ -8,7 +8,6 @@ import {
     isRankSqliteExpression,
     isRankSqliteDatabase,
     isRankSequence,
-    type RankArray,
     type RankDate,
     type RankDateTime,
     type RankSqliteExpression,
@@ -36,6 +35,8 @@ export const datesModule: RuntimeModule = {
     hour: () => timeComponent('hour', value => BigInt(value.hour)),
     minute: () => timeComponent('minute', value => BigInt(value.minute)),
     second: () => timeComponent('second', value => BigInt(value.second)),
+    monthstart: () => monthBoundary('monthstart', 0),
+    nextmonth: () => monthBoundary('nextmonth', 1),
     seconds: () => native('seconds', 1, ([value]) => {
         if (isRankSqliteExpression(value) && value.duration) {
             return { kind: 'sqlite-expression', table: value.table,
@@ -72,6 +73,28 @@ export const datesModule: RuntimeModule = {
     }),
 };
 
+function monthBoundary(name: string, offset: 0 | 1): RankValue {
+    return native(name, 1, ([value]) => {
+        if (isRankSqliteExpression(value) && value.calendar) {
+            const modifier = offset === 1 ? ", 'start of month', '+1 month'" : ", 'start of month'";
+            return { kind: 'sqlite-expression', table: value.table,
+                text: `datetime(${value.text}${modifier})`,
+                params: value.params, boolean: false,
+                calendar: 'datetime', textual: true } as RankSqliteExpression;
+        }
+        return mapDates(value, name, item => {
+            if (!isRankDate(item)) {
+                throw new RankError(`${name} expects a date or datetime`, 'TypeError');
+            }
+            const month = item.month + offset;
+            const year = item.year + (month > 12 ? 1 : 0);
+            if (year > 9999) throw new RankError(`${name} exceeds year 9999`, 'InvalidDate');
+            return { kind: 'datetime', year, month: month > 12 ? 1 : month,
+                day: 1, hour: 0, minute: 0, second: 0 } as RankDateTime;
+        });
+    });
+}
+
 function dateTime(value: RankDate): number {
     const day = new Date(0);
     day.setUTCFullYear(value.year, value.month - 1, value.day);
@@ -106,26 +129,8 @@ function timeComponent(name: string, read: (value: RankDateTime) => bigint): Ran
 function mapDates(value: RankValue, name: string, parse: (value: RankValue) => RankValue): RankValue {
     if (isRankSequence(value)) return mapSequence(value, name, parse);
     if (!isRankArray(value)) return parse(value);
-    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    const cache = new Map<number, RankValue>();
-    const itemAt = (index: number): RankValue => {
-        const cached = cache.get(index);
-        if (cached !== undefined) return cached;
-        const result = parse(value.itemAt?.(index) ?? value.items[index]);
-        cache.set(index, result);
-        return result;
-    };
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape: value.shape,
-        itemAt,
-        containsFiles: false,
-        get items() {
-            materialized ??= Array.from({ length: size }, (_, index) => itemAt(index));
-            return materialized;
-        },
-    } as RankArray;
+    return derivedArray(value.shape, [value], index =>
+        parse(readArrayItem(value, index)), true);
 }
 
 function parseDate(value: RankValue): RankDate {

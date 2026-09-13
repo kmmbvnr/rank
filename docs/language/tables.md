@@ -662,3 +662,18 @@ For a SQLite view, explicitly parsed `datetime` columns subtract through
 `unixepoch(...)`; the expression and any timestamp parameters remain in SQL
 until output. A date is distinct from a datetime and cannot be subtracted by
 this operation.
+
+`monthstart` and `nextmonth` accept a date or datetime and return a datetime
+at midnight on the first day of the current or following calendar month:
+
+```rank
+Month = Moment monthstart
+Next = Moment nextmonth
+Length = Next - Month
+```
+
+Both operations map lazily over arrays and sequences. On a SQLite date or
+datetime expression they stay in SQL as `datetime(..., 'start of month')`
+with an additional `'+1 month'` modifier for `nextmonth`. `nextmonth` raises
+`.InvalidDate` when its answer would exceed year 9999 on an ordinary value;
+SQLite invalid source text yields a missing result.

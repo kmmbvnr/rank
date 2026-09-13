@@ -1,0 +1,23 @@
+rem PostgreSQL Exercises: date 6
+rem https://pgexercises.com/questions/date/daysinmonth.html
+
+use cli
+use dates
+use sequences
+use tables
+
+argument OutputPath path = "demos/pgexercises/data/date_006.csv"
+
+Days = "2012-01-01" "2012-12-31" calendar
+Months = Days select
+  .first = .date monthstart
+end
+Months = Months unique
+First = Months .first
+Next = First nextmonth
+Length = Next - First
+Result = Months select
+  .month = .first month
+  .length = Length
+end
+Result OutputPath csv

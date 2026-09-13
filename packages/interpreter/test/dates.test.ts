@@ -60,6 +60,28 @@ describe('dates', () => {
         ].join('\n'))).toBe('86402 -1');
     });
 
+    it('finds month boundaries for dates, datetimes and lazy arrays', () => {
+        expect(run('use dates\n"2012-02-11" date monthstart'))
+            .toBe('2012-02-01 00:00:00');
+        expect(run('use dates\n"2012-02-11 23:59:59" datetime nextmonth'))
+            .toBe('2012-03-01 00:00:00');
+        expect(run('use dates\n"2012-12-31" date nextmonth'))
+            .toBe('2013-01-01 00:00:00');
+        expect(run('use dates\nDates = (array "2012-02-11" "bad") date\nBoundaries = Dates monthstart\nBoundaries 0'))
+            .toBe('2012-02-01 00:00:00');
+        expect(() => run('use dates\nDates = (array "2012-02-11" "bad") date\nBoundaries = Dates nextmonth\nBoundaries 1'))
+            .toThrowError('invalid date: bad');
+        expect(() => run('use dates\n"9999-12-31" date nextmonth'))
+            .toThrowError('nextmonth exceeds year 9999');
+        expect(() => run('use dates\n1 monthstart'))
+            .toThrowError('monthstart expects a date or datetime');
+        const runtime = new Interpreter();
+        runtime.execute('use dates\nDates = array "2012-01-15"\nParsed = Dates date\nStarts = Parsed monthstart');
+        expect(formatValue(runtime.execute('Starts 0')!)).toBe('2012-01-01 00:00:00');
+        runtime.execute('Dates 0 = "2012-02-15"');
+        expect(formatValue(runtime.execute('Starts 0')!)).toBe('2012-02-01 00:00:00');
+    });
+
     it('preserves tensor shape and delays errors until a cell is read', () => {
         expect(run([
             'use dates',
