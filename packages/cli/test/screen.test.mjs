@@ -41,7 +41,7 @@ test('rows out of reach are left alone rather than erased', () => {
  */
 const KEYS = { '<TAB>': '\\t', '<UP>': '\\033\\[A', '<DOWN>': '\\033\\[B', '<BS>': '\\177' };
 
-function transcript(lines) {
+function transcript(lines, screen) {
     const steps = lines.flatMap(line => [
         // Readline reads a key arriving inside a burst as plain text, so each
         // one is sent on its own; a listing needs the second of two tabs.
@@ -55,11 +55,20 @@ function transcript(lines) {
     const file = path.join(os.tmpdir(), `rank-screen-${process.pid}.exp`);
     fs.writeFileSync(file, [
         'set timeout 10',
+        // A pty of a given size, for what only happens once a screen is full.
+        ...(screen === undefined
+            ? []
+            : [`set stty_init "rows ${screen.rows} columns ${screen.columns}"`]),
         `spawn ${process.execPath} ${cli}`,
         'expect "rank> "',
+        // Read the output as it comes, which a script of sleeps otherwise never
+        // does: a pty nobody drains fills up at about a kilobyte, and the REPL
+        // then blocks on a write in the middle of drawing, which no terminal
+        // would ever do to it.
+        'expect_background { -re ".+" {} }',
         ...steps,
         'send "exit\\r"',
-        'expect eof',
+        'sleep 0.5',
     ].join('\n'));
     try {
         return spawnSync('expect', ['-f', file], { encoding: 'utf8' }).stdout ?? '';
@@ -103,6 +112,28 @@ test('the arrows step back into the file and Enter walks forward again', () => {
     assert.match(session, /\x1b\[2m {2}1 \x1b\[22m A = 5/);
     assert.match(session, /\x1b\[2m {2}2 \x1b\[22m B = A \* 2/);
     assert.doesNotMatch(session, /\x1b\[2m {2}3 /);
+});
+
+test('a statement that scrolled off the top brings the screen back with it', () => {
+    // Five statements and their answers fill a ten-row screen, so the first of
+    // them is above it: the only way to stand on that row is to draw the screen
+    // again from the rows the session printed.
+    // The last line walks forward with Enter, four times, back to the end.
+    const session = transcript(
+        ['A, 1', 'B, 2', 'C, 3', 'D, 4', 'E, 5', '<UP>'.repeat(5),
+            '', '', '', '', 'list'],
+        { rows: 10, columns: 50 },
+    );
+    const drawn = session.indexOf('\x1b[1;1H\x1b[0J');
+    assert.ok(drawn > 0, 'the screen was never drawn again');
+    const after = session.slice(drawn);
+    // What was above the statement is above it again, and the statement itself
+    // is on the prompt rather than copied to the bottom of the screen.
+    assert.match(after, /Rank 0\.1/, 'the rows above did not come back');
+    assert.match(after, / {3}1> (\x1b\[\d+G)?A = 1/);
+    // Walking forward from there writes the file out again, as it stands.
+    assert.match(after, /\x1b\[2m {2}5 \x1b\[22m E = 5/);
+    assert.doesNotMatch(after, /\x1b\[2m {2}6 /);
 });
 
 test('a blank line between statements is part of the file', () => {

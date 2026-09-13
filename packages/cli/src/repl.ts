@@ -13,7 +13,9 @@ import * as readline from 'node:readline';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import { preview } from './preview.js';
-import { countRows, eraseRows, screenRows } from './screen.js';
+import {
+    clearScreen, countRows, eraseRows, screenHeight, screenRows,
+} from './screen.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine,
     cellSource, cellStarts, closeCell,
@@ -24,6 +26,8 @@ import {
 const HISTORY_FILE = path.join(os.homedir(), '.rank_history');
 const HISTORY_LIMIT = 500;
 const WIDTH = 40;
+/** A screen with no room for a statement and its answer is not drawn again. */
+const LEAST_ROWS = 4;
 
 const COMMANDS = [
     'help', 'forms', 'ops', 'vars', 'full', 'list', 'save', 'load', 'alias',
@@ -48,10 +52,15 @@ export async function startRepl(): Promise<void> {
     const file: string[] = [];
     let cursor = 0;
     let cellStart = 0;
-    // The row each statement was last written on, newest last. Stepping back
-    // walks to one of these and erases everything under it, so the line is
-    // edited where it already stands instead of being copied to the bottom.
-    const marks: { line: number; row: number }[] = [];
+    // True from the keystroke that hands a line to the loop until the loop has
+    // drawn the screen again. The arrows stand still meanwhile: what they would
+    // walk to is read off the screen, and the screen is a statement behind.
+    let running = false;
+    // The page row each statement was last written on, newest last. Stepping
+    // back walks to one of these and takes everything under it off the screen,
+    // so the line is edited where it already stands instead of being copied to
+    // the bottom.
+    const marks: { line: number; id: number }[] = [];
     const session = (): Session => ({
         interpreter,
         file,
@@ -97,7 +106,10 @@ export async function startRepl(): Promise<void> {
         // recall a history entry over it; the rest run after readline, where
         // a completion listing is already printed.
         let before = '';
-        process.stdin.prependListener('keypress', () => { before = input.line; });
+        process.stdin.prependListener('keypress', (_chunk, key: KeyPress | undefined) => {
+            before = input.line;
+            if (key?.name === 'return' || key?.name === 'enter') running = true;
+        });
         process.stdin.on('keypress', counted.disarm);
         process.stdin.on('keypress', (_chunk, key: KeyPress | undefined) => step(key, before));
         watchTyping(input, () => state);
@@ -129,10 +141,16 @@ export async function startRepl(): Promise<void> {
         return -1;
     };
 
-    /** Takes rows back off the screen, keeping the count of what is on it. */
-    const erase = (rows: number): boolean => {
+    /**
+     * Takes rows back off the screen, keeping the count of what is on it.
+     *
+     * `counted` is how far up that moves the cursor in rows the page holds; the
+     * rest of an erased region is the prompt's own line, which it never wrote.
+     */
+    const erase = (rows: number, counted = rows): boolean => {
         if (!eraseRows(process.stdout, rows)) return false;
-        printed -= rows;
+        printed -= counted;
+        drop(printed);
         return true;
     };
 
@@ -142,6 +160,7 @@ export async function startRepl(): Promise<void> {
         cursor < file.length ? `${String(cursor + 1).padStart(4)}> ` : promptFor(state);
 
     const draw = (): void => {
+        running = false;
         if (!terminal) return;
         input.setPrompt(promptNow());
         input.prompt();
@@ -158,6 +177,53 @@ export async function startRepl(): Promise<void> {
     };
 
     /**
+     * Stands the prompt on the row a statement is already on, by taking the
+     * rows under it off the screen: the prompt's own line, the answers that
+     * statement gave, and everything written after it.
+     */
+    const reach = (id: number): boolean => {
+        const at = rowOf(id);
+        // The cursor sits on the last row of the prompt line, so the rest of
+        // that line comes back with it.
+        const rows = screenRows(promptNow().length + input.line.length, columns());
+        if (at !== undefined && erase(printed + rows - 1 - at, printed - at)) return true;
+        return repaint(id);
+    };
+
+    /**
+     * Draws the screen again around a statement that has scrolled off the top,
+     * which is the only way back to it: the rows above it are gone from the
+     * screen, but the page still has them, so they are printed again with the
+     * statement under them and the screen is the session's own again.
+     *
+     * Half the screen is given to what came before the statement; the rest is
+     * left empty for the walk forward to draw into.
+     */
+    const repaint = (id: number): boolean => {
+        const height = screenHeight(process.stdout);
+        const at = id - first;
+        if (at < 0 || at >= page.length || height < LEAST_ROWS) return false;
+        let start = at;
+        let rows = 0;
+        while (start > 0 && rows + rowsOf(page[start - 1].text) <= height / 2) {
+            start -= 1;
+            rows += rowsOf(page[start].text);
+        }
+        // The statement and everything under it is about to be typed again.
+        page.length = at;
+        clearScreen(process.stdout);
+        printed = 0;
+        top = 0;
+        shown = first + start;
+        for (const line of page.slice(start)) {
+            line.row = printed;
+            process.stdout.write(`${line.text}\n`);
+            printed += rowsOf(line.text);
+        }
+        return true;
+    };
+
+    /**
      * Walks the file a statement at a time. Stepping into the middle of a
      * block would offer a body line with nothing holding it, so the arrows
      * move between the lines a statement starts on and the cell machinery
@@ -169,7 +235,7 @@ export async function startRepl(): Promise<void> {
      * under the cursor and everything the user then steps forward through.
      */
     const step = (key: KeyPress | undefined, before: string): void => {
-        if (!key || key.ctrl || key.meta) return;
+        if (!key || key.ctrl || key.meta || running) return;
         if (key.name !== 'up' && key.name !== 'down') return;
         // A half-built cell owns the arrows; so does an empty file, where they
         // stay with readline and walk the typed history as they always have.
@@ -179,7 +245,10 @@ export async function startRepl(): Promise<void> {
         if (key.name === 'down') {
             // Forward is running the line as it stands: there is nothing drawn
             // below the prompt to move into, and the run is what draws it.
-            if (cursor < file.length) input.write(null, { name: 'return' });
+            if (cursor < file.length) {
+                input.write(null, { name: 'return' });
+                running = true;
+            }
             return;
         }
         input.write(null, { name: 'down' });
@@ -189,12 +258,11 @@ export async function startRepl(): Promise<void> {
         const next = starts.filter(start => start < cursor).at(-1) ?? starts[0];
         if (next === cursor && cursor < file.length) return;
 
-        // Reach the row the statement stands on by erasing everything under
-        // it, the prompt included. A statement that has scrolled past the top
-        // is out of reach; then the line comes to the prompt as it did before.
+        // A statement the page has forgotten is the one thing left with
+        // nowhere to stand: then the line comes to the bottom prompt, the way
+        // recalling it always did.
         const found = lastMark(next);
-        const rows = screenRows(promptNow().length + input.line.length, columns());
-        if (found >= 0 && erase(printed - marks[found].row + rows - 1)) {
+        if (found >= 0 && reach(marks[found].id)) {
             marks.length = found;
             settle();
         }
@@ -226,6 +294,7 @@ export async function startRepl(): Promise<void> {
                     + counted.taken();
                 open += echoed;
                 printed += echoed;
+                scrolled();
             }
             const text = raw.trim();
             if (isEmpty(state) && isExit(text, interpreter)) {
@@ -243,7 +312,7 @@ export async function startRepl(): Promise<void> {
                     if (isEmpty(state)) {
                         cellStart = cursor;
                         if (terminal && erase(open)) {
-                            marks.push({ line: cellStart, row: printed });
+                            marks.push({ line: cellStart, id: pageEnd() });
                             say();
                         }
                         cursor += 1;
@@ -275,7 +344,7 @@ export async function startRepl(): Promise<void> {
                 const fresh = state.lines.slice(before);
                 // The row a statement starts on is what the arrows walk back to.
                 if (before === 0 && fresh.length > 0) {
-                    marks.push({ line: cellStart, row: printed });
+                    marks.push({ line: cellStart, id: pageEnd() });
                 }
                 settled += put(fresh);
                 open = state.pending === ''
@@ -322,22 +391,82 @@ export async function startRepl(): Promise<void> {
 const dim = (line: string): string => chalk.dim(line);
 
 /**
- * Rows written to the screen since the session started.
+ * How far down the screen the cursor is, counted from the row the screen was
+ * last drawn whole at.
  *
  * Every line the REPL prints goes through `say` or `warn`, so this keeps
- * counting: the row a statement was written on is how the prompt finds its
- * way back up to it when the arrows step into the file.
+ * counting: the row a statement was written on is how the prompt finds its way
+ * back up to it when the arrows step into the file.
  */
 let printed = 0;
 
+/**
+ * Every line the session has printed, newest last, each with the row it went to.
+ *
+ * The screen is the file being written, so a row has to be something the REPL
+ * can put back. A statement the arrows step into may have scrolled off the top
+ * of the screen; then the screen is drawn again from here, with the rows above
+ * that statement in view, and the file carries on from where it now stands.
+ *
+ * Rows are named by an id rather than by their place in the array, so dropping
+ * the oldest of them leaves the newer ones named as they were.
+ */
+const page: { text: string; row: number }[] = [];
+/** The id of the oldest row the page still holds. */
+let first = 0;
+/** The id of the row the screen was last drawn from. */
+let shown = 0;
+/**
+ * The row the top of the screen shows. Printing past the bottom row scrolls the
+ * screen, which takes a row out of reach for good: the rows above this one are
+ * the terminal's own history now, and nothing may be erased back into them.
+ */
+let top = 0;
+const PAGE_LIMIT = 2000;
+
+/** The id the next line printed will take. */
+function pageEnd(): number {
+    return first + page.length;
+}
+
+/** The row a line of the page stands on, if the screen still has that row. */
+function rowOf(id: number): number | undefined {
+    if (id < shown || id >= pageEnd()) return undefined;
+    const row = page[id - first].row;
+    return row >= top ? row : undefined;
+}
+
+/** Follows the screen down as printing pushes its top row off it. */
+function scrolled(): void {
+    const last = printed - (screenHeight(process.stdout) - 1);
+    if (last > top) top = last;
+}
+
 function say(text = ''): void {
     process.stdout.write(`${text}\n`);
-    printed += rowsOf(text);
+    kept(text);
 }
 
 function warn(text: string): void {
     process.stderr.write(`${text}\n`);
+    kept(text);
+}
+
+/** Takes a printed line into the page and moves the count past it. */
+function kept(text: string): void {
+    page.push({ text, row: printed });
     printed += rowsOf(text);
+    scrolled();
+    if (page.length <= PAGE_LIMIT) return;
+    const gone = page.length - PAGE_LIMIT;
+    page.splice(0, gone);
+    first += gone;
+    if (shown < first) shown = first;
+}
+
+/** Drops the lines from this row down: the screen no longer has them. */
+function drop(row: number): void {
+    while (pageEnd() > shown && page[page.length - 1].row >= row) page.pop();
 }
 
 function rowsOf(text: string): number {

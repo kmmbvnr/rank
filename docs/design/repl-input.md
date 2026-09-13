@@ -208,10 +208,21 @@ offer a body line with nothing holding it, so the arrows move between the lines
 a statement starts on and the cell machinery carries the lines between them.
 
 This needs the REPL to know which row every statement was written on, so every
-line it prints is counted as it goes. A statement that has scrolled past the
-top of the screen is out of reach — the rows above are not the REPL's to erase
-— and then the line comes to the prompt at the bottom as the only thing left to
-do with it.
+line it prints is kept as it goes: the text, and the row it went to.
+
+**Stepping past the top of the screen brings the screen with it.** The rows
+above the screen are the terminal's history and not the REPL's to erase, so a
+statement that has scrolled off it is reached the other way round: the screen is
+drawn again out of the rows the session printed, with half a screen of what came
+before that statement above it, the statement itself on the prompt, and nothing
+under it yet. Walking forward then fills the empty half back in. So the prompt
+keeps going up through the session rather than stopping where the screen does,
+and a long session can be walked back to its first line.
+
+What that costs is memory and scrollback: every row printed is held for as long
+as the session lasts, up to a couple of thousand of them, and the rows the redraw
+puts back appear twice in the terminal's own scrollback. A statement further back
+than the page holds comes to the bottom prompt as recalling it always did.
 
 **Nothing above the cursor is replayed.** A line further up may have written a
 file, read a port or asked a question, and running it again is not the REPL's
@@ -310,9 +321,10 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
   It was never valid Rank, but the error it gives is now a stranger one.
 - A blank line inside a block is unavailable interactively, since that is the
   gesture that closes blocks.
-- A statement that has scrolled off the top cannot be stepped back into where
-  it stands, and comes to the bottom prompt instead, which is the one case
-  where a line appears on screen twice.
+- Drawing the screen again repeats the rows above it in the terminal's
+  scrollback, since scrollback is the terminal's and not ours to rewrite.
+- Stepping back is by statement, so a file loaded with `load` cannot be stepped
+  into at all: its lines were never printed, and the REPL has no row for them.
 - A statement that raised stays in plain text although `save` will not write it.
   It is printed before it runs, and the red error under it is the only sign.
 

@@ -9,18 +9,28 @@ export function screenRows(width: number, columns: number): number {
     return Math.max(1, Math.ceil(width / columns));
 }
 
+/** A terminal that reports no height is taken for an ordinary one. */
+export function screenHeight(out: NodeJS.WriteStream): number {
+    return out.rows || 24;
+}
+
+/** Clears the screen and leaves the cursor at the top left of it. */
+export function clearScreen(out: NodeJS.WriteStream): void {
+    readline.cursorTo(out, 0, 0);
+    readline.clearScreenDown(out);
+}
+
 /**
  * Erases the last `rows` rows and leaves the cursor where they began, so what
  * stood there can be printed again in another form.
  *
- * Returns false when the region is taller than the screen: the rows above are
- * gone and reaching for them would erase whatever scrolled into their place. A
- * caller that is told no leaves the screen alone. A terminal that reports no
- * height at all is taken for an ordinary one rather than for a single row.
+ * Returns false when the region is taller than the screen: the rows above have
+ * scrolled away and reaching for them would erase whatever is there now. A
+ * caller that is told no draws the screen again instead, or leaves it alone.
  */
 export function eraseRows(out: NodeJS.WriteStream, rows: number): boolean {
     if (rows <= 0) return true;
-    if (rows >= (out.rows || 24)) return false;
+    if (rows >= screenHeight(out)) return false;
     readline.moveCursor(out, 0, -rows);
     readline.cursorTo(out, 0);
     readline.clearScreenDown(out);
