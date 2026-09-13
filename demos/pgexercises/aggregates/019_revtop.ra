@@ -1,0 +1,34 @@
+rem PostgreSQL Exercises: aggregates 19
+rem https://pgexercises.com/questions/aggregates/facrev3.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_019.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+F = Db .facilities
+R = B F innerjoin by .facid
+R = R select
+  Guest = .memid equal 0
+  GCost = .slots * .guestcost
+  MCost = .slots * .membercost
+  .name = .name
+  .revenue = Guest GCost MCost choose
+end
+G = R group by .name
+R = G select
+  .revenue = .revenue sum
+end
+R = R sort by .revenue descending
+R = R select
+  .name = .name
+  .rank = ranknumber
+end
+R = R filter .rank at most 3
+Result = R sort by .rank .name
+Result OutputPath csv
