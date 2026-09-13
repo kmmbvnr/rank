@@ -48,6 +48,10 @@ export async function startRepl(): Promise<void> {
     const file: string[] = [];
     let cursor = 0;
     let cellStart = 0;
+    // The row each statement was last written on, newest last. Stepping back
+    // walks to one of these and erases everything under it, so the line is
+    // edited where it already stands instead of being copied to the bottom.
+    const marks: { line: number; row: number }[] = [];
     const session = (): Session => ({
         interpreter,
         file,
@@ -77,8 +81,10 @@ export async function startRepl(): Promise<void> {
                 // typed. One too tall to reach is left behind as history.
                 const shown = counted.taken();
                 const prompt = promptFor(state).length + input.line.length;
+                // The cursor sits on the last row of the prompt line, so the
+                // listing and every row of that line but the first come back.
                 if (shown > 0) {
-                    eraseRows(process.stdout, shown + screenRows(prompt, columns()));
+                    eraseRows(process.stdout, shown + screenRows(prompt, columns()) - 1);
                 }
                 counted.arm();
                 return complete(line, interpreter, state);
@@ -96,6 +102,39 @@ export async function startRepl(): Promise<void> {
         process.stdin.on('keypress', (_chunk, key: KeyPress | undefined) => step(key, before));
         watchTyping(input, () => state);
     }
+
+    // The screen as a file. `settled` counts the rows this cell has already
+    // taken as source, `open` the rows below them that are still an echo:
+    // readline's copy of the line just typed, and the dim copy of a statement
+    // that is still folding. `managed` goes false when a cell grows past the
+    // screen, where reaching back for its rows would erase whatever scrolled
+    // into their place; then the echo stands as it is.
+    let settled = 0;
+    let open = 0;
+    let managed = true;
+    const settle = (): void => { settled = 0; open = 0; managed = true; };
+
+    /** Prints lines and reports the rows they took. */
+    const put = (lines: readonly string[], paint = (line: string) => line): number => {
+        const before = printed;
+        for (const line of lines) say(paint(line));
+        return printed - before;
+    };
+
+    /** Where a statement was last written, or -1 when it has not been. */
+    const lastMark = (line: number): number => {
+        for (let index = marks.length - 1; index >= 0; index -= 1) {
+            if (marks[index].line === line) return index;
+        }
+        return -1;
+    };
+
+    /** Takes rows back off the screen, keeping the count of what is on it. */
+    const erase = (rows: number): boolean => {
+        if (!eraseRows(process.stdout, rows)) return false;
+        printed -= rows;
+        return true;
+    };
 
     // A line already in the file is named by its number, the way an editor
     // names it; past the end the prompt is the ordinary one.
@@ -137,45 +176,41 @@ export async function startRepl(): Promise<void> {
         if (!isEmpty(state)) return;
         const starts = cellStarts(file);
         if (starts.length === 0) return;
-        if (key.name === 'up') input.write(null, { name: 'down' });
+        if (key.name === 'down') {
+            // Forward is running the line as it stands: there is nothing drawn
+            // below the prompt to move into, and the run is what draws it.
+            if (cursor < file.length) input.write(null, { name: 'return' });
+            return;
+        }
+        input.write(null, { name: 'down' });
 
         // Whatever was typed on the line being left stays on it.
         if (cursor < file.length) file[cursor] = before.trim();
-        const next = key.name === 'up'
-            ? starts.filter(start => start < cursor).at(-1) ?? starts[0]
-            : starts.filter(start => start > cursor)[0] ?? file.length;
+        const next = starts.filter(start => start < cursor).at(-1) ?? starts[0];
+        if (next === cursor && cursor < file.length) return;
+
+        // Reach the row the statement stands on by erasing everything under
+        // it, the prompt included. A statement that has scrolled past the top
+        // is out of reach; then the line comes to the prompt as it did before.
+        const found = lastMark(next);
+        const rows = screenRows(promptNow().length + input.line.length, columns());
+        if (found >= 0 && erase(printed - marks[found].row + rows - 1)) {
+            marks.length = found;
+            settle();
+        }
         cursor = next;
         cellStart = next;
         input.setPrompt(promptNow());
-        setLine(cursor < file.length ? file[cursor] : '');
+        setLine(file[cursor]);
     };
 
     if (terminal) {
-        console.log(chalk.bold('Rank 0.1'));
-        console.log(chalk.dim("Type 'help' for input hints, 'exit' to leave."));
+        say(chalk.bold('Rank 0.1'));
+        say(chalk.dim("Type 'help' for input hints, 'exit' to leave."));
     }
     draw();
 
     try {
-        // The screen as a file. `settled` counts the rows this cell has already
-        // taken as source, `open` the rows below them that are still an echo:
-        // readline's copy of the line just typed, and the dim copy of a
-        // statement that is still folding. `managed` goes false when a cell
-        // grows past the screen, where reaching back for its rows would erase
-        // whatever scrolled into their place; then the echo stands as it is.
-        let settled = 0;
-        let open = 0;
-        let managed = true;
-        const put = (lines: readonly string[], paint = (line: string) => line): number => {
-            let taken = 0;
-            for (const line of lines) {
-                console.log(paint(line));
-                taken += screenRows(line.length, columns());
-            }
-            return taken;
-        };
-        const settle = (): void => { settled = 0; open = 0; managed = true; };
-
         /** Puts a finished cell where it began, over the lines it was editing. */
         const write = (lines: readonly string[]): void => {
             file.splice(cellStart, cursor - cellStart, ...lines);
@@ -184,12 +219,17 @@ export async function startRepl(): Promise<void> {
 
         for await (const raw of input) {
             if (terminal) {
-                open += screenRows(promptNow().length + raw.length, columns())
+                // Readline echoed the line behind its prompt and wrote the
+                // newline that ended it, so the cursor has moved down by that
+                // much: `printed` is the row the next prompt starts on.
+                const echoed = screenRows(promptNow().length + raw.length, columns())
                     + counted.taken();
+                open += echoed;
+                printed += echoed;
             }
             const text = raw.trim();
             if (isEmpty(state) && isExit(text, interpreter)) {
-                if (terminal) eraseRows(process.stdout, open);
+                if (terminal) erase(open);
                 break;
             }
 
@@ -200,11 +240,16 @@ export async function startRepl(): Promise<void> {
                     // cannot say, so a blank line with nothing open is kept.
                     // With something open it still closes it, which is the
                     // only gesture that can.
-                    if (terminal && eraseRows(process.stdout, open)) console.log('');
                     if (isEmpty(state)) {
                         cellStart = cursor;
+                        if (terminal && erase(open)) {
+                            marks.push({ line: cellStart, row: printed });
+                            say();
+                        }
                         cursor += 1;
                         write(['']);
+                    } else if (terminal && erase(open)) {
+                        say();
                     }
                     settle();
                     draw();
@@ -214,7 +259,7 @@ export async function startRepl(): Promise<void> {
             } else if (isEmpty(state) && isCommand(text, interpreter)) {
                 // A command is a question for the prompt, not a line of the
                 // program, so it is dim and `save` never sees it.
-                if (terminal && eraseRows(process.stdout, open)) put([text], dim);
+                if (terminal && erase(open)) put([text], dim);
                 settle();
                 await command(text, session());
                 draw();
@@ -226,8 +271,13 @@ export async function startRepl(): Promise<void> {
                 cursor += 1;
             }
 
-            if (terminal && managed && eraseRows(process.stdout, open)) {
-                settled += put(state.lines.slice(before));
+            if (terminal && managed && erase(open)) {
+                const fresh = state.lines.slice(before);
+                // The row a statement starts on is what the arrows walk back to.
+                if (before === 0 && fresh.length > 0) {
+                    marks.push({ line: cellStart, row: printed });
+                }
+                settled += put(fresh);
                 open = state.pending === ''
                     ? 0
                     : put([nextIndent({ ...state, pending: '' }) + state.pending], dim);
@@ -246,7 +296,7 @@ export async function startRepl(): Promise<void> {
             // Wrapping is decided for the whole cell, so a wrapped line only
             // reaches the screen by printing the cell again.
             if (terminal && managed && source !== plain
-                && eraseRows(process.stdout, settled)) put(source.split('\n'));
+                && erase(settled)) put(source.split('\n'));
             settle();
             state = EMPTY_CELL;
             const ran = run(interpreter, source, session());
@@ -271,6 +321,33 @@ export async function startRepl(): Promise<void> {
 /** Dim, as a plain function the printer can be handed. */
 const dim = (line: string): string => chalk.dim(line);
 
+/**
+ * Rows written to the screen since the session started.
+ *
+ * Every line the REPL prints goes through `say` or `warn`, so this keeps
+ * counting: the row a statement was written on is how the prompt finds its
+ * way back up to it when the arrows step into the file.
+ */
+let printed = 0;
+
+function say(text = ''): void {
+    process.stdout.write(`${text}\n`);
+    printed += rowsOf(text);
+}
+
+function warn(text: string): void {
+    process.stderr.write(`${text}\n`);
+    printed += rowsOf(text);
+}
+
+function rowsOf(text: string): number {
+    // What colours a line does not take space on it.
+    return String(text).split('\n')
+        .reduce((rows, line) => rows + screenRows(line.replace(COLOUR, '').length, columns()), 0);
+}
+
+const COLOUR = /\u001b\[[0-9;]*m/g;
+
 /** A terminal that reports no width is taken for an ordinary one. */
 function columns(): number {
     return process.stdout.columns || 80;
@@ -282,7 +359,7 @@ function columns(): number {
  * result is, and never a line anyone would save.
  */
 function emit(text: string): void {
-    for (const line of text.split('\n')) console.log(chalk.dim(line));
+    for (const line of text.split('\n')) say(chalk.dim(line));
 }
 
 /**
@@ -381,7 +458,7 @@ function run(interpreter: Interpreter, source: string, session: Session): boolea
         return true;
     } catch (error) {
         const message = error instanceof RankError ? error.format() : String(error);
-        console.error(chalk.red(`error: ${message}`));
+        warn(chalk.red(`error: ${message}`));
         return false;
     }
 }
@@ -390,7 +467,7 @@ function run(interpreter: Interpreter, source: string, session: Session): boolea
 function show(value: RankValue): void {
     const { text, note } = preview(value, columns());
     emit(text);
-    if (note !== '') console.log(chalk.dim(note));
+    if (note !== '') say(chalk.dim(note));
 }
 
 interface Session {
@@ -418,7 +495,7 @@ function isCommand(text: string, interpreter: Interpreter): boolean {
 async function command(text: string, session: Session): Promise<void> {
     const [name, ...rest] = text.split(/\s+/);
     if (name === 'full') {
-        if (session.last === undefined) console.log(chalk.dim('no result to show'));
+        if (session.last === undefined) say(chalk.dim('no result to show'));
         else emit(formatValue(session.last));
     } else if (name === 'help') printHelp(session.aliases);
     else if (name === 'forms') printForms();
@@ -426,7 +503,7 @@ async function command(text: string, session: Session): Promise<void> {
     else if (name === 'vars') printVariables(session.interpreter);
     else if (name === 'alias') {
         if (rest[0] === 'on' || rest[0] === 'off') session.setAliases(rest[0] === 'on');
-        else console.log(`alias is ${session.aliases ? 'on' : 'off'}; use 'alias off'`);
+        else say(`alias is ${session.aliases ? 'on' : 'off'}; use 'alias off'`);
     } else if (name === 'list') printFile(session.file, session.cursor);
     else if (name === 'save') await save(session.file, rest[0]);
     else if (name === 'load') await load(session, rest[0]);
@@ -434,46 +511,46 @@ async function command(text: string, session: Session): Promise<void> {
 
 async function save(lines: readonly string[], target: string | undefined): Promise<void> {
     if (!target) {
-        console.error(chalk.red('save needs a file name'));
+        warn(chalk.red('save needs a file name'));
         return;
     }
     const name = path.extname(target) === '' ? `${target}.ra` : target;
     const source = lines.join('\n') + (lines.length > 0 ? '\n' : '');
     try {
         await fs.writeFile(name, source, 'utf8');
-        console.log(`${lines.length} lines to ${name}`);
+        say(`${lines.length} lines to ${name}`);
     } catch (error) {
-        console.error(chalk.red(String(error)));
+        warn(chalk.red(String(error)));
     }
 }
 
 /** The file so far, numbered, with a mark on the line the prompt stands on. */
 function printFile(lines: readonly string[], cursor: number): void {
     if (lines.length === 0) {
-        console.log(chalk.dim('nothing written yet'));
+        say(chalk.dim('nothing written yet'));
         return;
     }
     for (const [index, line] of lines.entries()) {
         const number = `${String(index + 1).padStart(3)}${index === cursor ? '>' : ' '}`;
-        console.log(`${chalk.dim(number)} ${line}`);
+        say(`${chalk.dim(number)} ${line}`);
     }
 }
 
 async function load(session: Session, target: string | undefined): Promise<void> {
     if (!target) {
-        console.error(chalk.red('load needs a file name'));
+        warn(chalk.red('load needs a file name'));
         return;
     }
     const file = path.extname(target) === '' ? `${target}.ra` : target;
     try {
         run(session.interpreter, await fs.readFile(file, 'utf8'), session);
     } catch (error) {
-        console.error(chalk.red(String(error)));
+        warn(chalk.red(String(error)));
     }
 }
 
 function printHelp(aliases: boolean): void {
-    console.log([
+    say([
         'Input',
         '  Enter runs a finished statement.',
         '  A block keyword keeps reading until',
@@ -506,9 +583,13 @@ function printHelp(aliases: boolean): void {
         '  puts it back at the prompt to edit.',
         '  Enter runs it and offers the next',
         '  one, so Enter walks to the end.',
-        '  Down steps forward. Nothing above is',
-        '  run again, so a line that wrote a',
-        '  file does not write it twice.',
+        '  The prompt goes up to where the line',
+        '  already is and takes back what was',
+        '  under it, so Enter redraws the file',
+        '  as it walks. Down steps forward too.',
+        '  Nothing above is run again, so a line',
+        '  that wrote a file does not write it',
+        '  twice.',
         "  Ctrl-P still walks what you typed.",
         '',
         'Results',
@@ -523,8 +604,8 @@ function printHelp(aliases: boolean): void {
     ].join('\n'));
     const pairs = Object.entries(OPERATOR_ALIASES)
         .map(([word, symbol]) => `${word} = ${symbol}`);
-    for (const line of wrap(pairs, ', ')) console.log(`  ${line}`);
-    console.log([
+    for (const line of wrap(pairs, ', ')) say(`  ${line}`);
+    say([
         '  A word only becomes a symbol after',
         '  a value, and never when the session',
         '  already binds that name.',
@@ -546,7 +627,7 @@ function printHelp(aliases: boolean): void {
 }
 
 function printForms(): void {
-    console.log([
+    say([
         'Letters only',
         '  use numbers',
         '  A sum print',
@@ -594,33 +675,33 @@ function printOperations(interpreter: Interpreter, target: string | undefined): 
             return;
         }
         if (standardModules[target] === undefined) {
-            console.error(chalk.red(`unknown module or name: ${target}`));
+            warn(chalk.red(`unknown module or name: ${target}`));
             return;
         }
         printModule(interpreter, target);
         return;
     }
-    if (interpreter.modules.size === 0) console.log(chalk.dim('no modules in use'));
+    if (interpreter.modules.size === 0) say(chalk.dim('no modules in use'));
     for (const name of [...interpreter.modules].sort()) {
-        console.log(chalk.bold(name));
+        say(chalk.bold(name));
         for (const line of wrap(moduleOperations(name).map(entry => entry.name))) {
-            console.log(`  ${line}`);
+            say(`  ${line}`);
         }
     }
     const rest = Object.keys(standardModules)
         .filter(name => !interpreter.modules.has(name))
         .sort();
     if (rest.length > 0) {
-        console.log(chalk.dim('not in use, try ops <module>'));
-        for (const line of wrap(rest)) console.log(chalk.dim(`  ${line}`));
+        say(chalk.dim('not in use, try ops <module>'));
+        for (const line of wrap(rest)) say(chalk.dim(`  ${line}`));
     }
-    console.log(chalk.dim('ops <name> describes one operation'));
+    say(chalk.dim('ops <name> describes one operation'));
 }
 
 /** The catalogue entry for one name: how to write it and what comes back. */
 function printOperation(interpreter: Interpreter, operation: Operation): void {
-    console.log(chalk.bold(operation.form));
-    for (const line of wrap(operation.summary.split(' '))) console.log(`  ${line}`);
+    say(chalk.bold(operation.form));
+    for (const line of wrap(operation.summary.split(' '))) say(`  ${line}`);
     const plural = operation.arities.at(-1) === 1 ? '' : 's';
     const facts = [
         operation.module,
@@ -631,28 +712,28 @@ function printOperation(interpreter: Interpreter, operation: Operation): void {
         ...(operation.lazy === true ? ['lazy'] : []),
         ...(operation.effects ?? []),
     ];
-    for (const line of wrap(facts, ', ')) console.log(chalk.dim(`  ${line}`));
+    for (const line of wrap(facts, ', ')) say(chalk.dim(`  ${line}`));
     if (!interpreter.modules.has(operation.module)) {
-        console.log(chalk.dim(`  needs: use ${operation.module}`));
+        say(chalk.dim(`  needs: use ${operation.module}`));
     }
 }
 
 /** Everything one module adds: its names as forms, then its bare syntax. */
 function printModule(interpreter: Interpreter, module: string): void {
-    if (!interpreter.modules.has(module)) console.log(chalk.dim(`needs: use ${module}`));
-    for (const entry of moduleOperations(module)) console.log(`  ${entry.form}`);
+    if (!interpreter.modules.has(module)) say(chalk.dim(`needs: use ${module}`));
+    for (const entry of moduleOperations(module)) say(`  ${entry.form}`);
     for (const entry of moduleForms.filter(form => form.module === module)) {
-        console.log(chalk.dim(`  ${entry.form}`));
+        say(chalk.dim(`  ${entry.form}`));
     }
 }
 
 function printVariables(interpreter: Interpreter): void {
     if (interpreter.variables.size === 0) {
-        console.log(chalk.dim('no names bound'));
+        say(chalk.dim('no names bound'));
         return;
     }
     for (const [name, value] of [...interpreter.variables].sort()) {
-        console.log(`  ${name} ${chalk.dim(typeLabel(value))}`);
+        say(`  ${name} ${chalk.dim(typeLabel(value))}`);
     }
 }
 

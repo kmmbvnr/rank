@@ -176,19 +176,42 @@ replaces the listing rather than stacking another under it: only the newest one
 answers what has been typed.
 
 **Up steps back into the file.** With something already written, the up arrow
-leaves the prompt at the end of the file and puts the statement above it back
-where it can be edited, named by its number:
+walks the prompt up to the statement above and puts it back where it already
+stands, named by its number:
 
 ```console
-   1> A = 3
+A = 3
+3
+B = A * 2
+6
+rank>
 ```
 
-Enter accepts the line as it stands, runs it, and offers the next one, so Enter
-walks forward to the end of the file and out to an ordinary prompt again. Down
-steps forward without editing. A statement is the unit, not a line: stepping
-into the middle of a block would offer a body line with nothing holding it, so
-the arrows move between the lines a statement starts on and the cell machinery
-carries the lines between them.
+One press of up leaves:
+
+```console
+A = 3
+3
+   2> B = A * 2
+```
+
+The prompt really is on that row. Everything that was under it is taken back
+off the screen, the answers included, so the line is edited where it stands
+rather than copied to the bottom. Enter accepts the line as it stands, runs it,
+and offers the next one, which redraws the file as it goes, so Enter walks
+forward to the end and out to an ordinary prompt again. Down is the same
+forward step: there is nothing drawn below the prompt to move into, and the run
+is what draws it.
+
+A statement is the unit, not a line. Stepping into the middle of a block would
+offer a body line with nothing holding it, so the arrows move between the lines
+a statement starts on and the cell machinery carries the lines between them.
+
+This needs the REPL to know which row every statement was written on, so every
+line it prints is counted as it goes. A statement that has scrolled past the
+top of the screen is out of reach — the rows above are not the REPL's to erase
+— and then the line comes to the prompt at the bottom as the only thing left to
+do with it.
 
 **Nothing above the cursor is replayed.** A line further up may have written a
 file, read a port or asked a question, and running it again is not the REPL's
@@ -287,9 +310,9 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
   It was never valid Rank, but the error it gives is now a stranger one.
 - A blank line inside a block is unavailable interactively, since that is the
   gesture that closes blocks.
-- Stepping back and running a line again leaves the earlier run above it on
-  screen, so the same line can appear twice with different answers. `list` is
-  the file; the screen is the file and every take of it.
+- A statement that has scrolled off the top cannot be stepped back into where
+  it stands, and comes to the bottom prompt instead, which is the one case
+  where a line appears on screen twice.
 - A statement that raised stays in plain text although `save` will not write it.
   It is printed before it runs, and the red error under it is the only sign.
 

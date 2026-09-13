@@ -92,6 +92,10 @@ test('the arrows step back into the file and Enter walks forward again', () => {
     // the value the fix gave it.
     const session = transcript(['A, 3', 'B, A * 2', '<UP><UP><BS>5', '', 'list']);
     assert.match(session, / {3}1> /, 'the prompt never named the line');
+    // The prompt walks up to the row the statement stands on and erases from
+    // there, so the line is edited where it already is rather than copied to
+    // the bottom: a statement and its answer are the two rows taken back.
+    assert.match(session, /\x1b\[2A[^\n]*?\x1b\[0J {3}2> /);
     assert.match(session, /\x1b\[0JA = 5\r\n/);
     assert.match(session, /\x1b\[2m10/, 'B was not worked out again');
     // The file is the two lines it always was: the fix replaced one. `list`
