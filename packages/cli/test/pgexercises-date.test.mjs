@@ -232,6 +232,105 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
     }
 });
 
+test('booking end times match SQL on SQLite and arrays', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const csvPath = path.join(temporary, 'bookings.csv');
+    const output = path.join(temporary, 'endtimes.csv');
+    const arrayScript = path.join(temporary, 'endtimes-array.ra');
+    const inspect = path.join(temporary, 'inspect.ra');
+    const source = fs.readFileSync(path.join(directory, '008_endtimes.ra'), 'utf8');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE bookings (starttime TEXT, slots INTEGER)');
+        const bookings = [
+            ['2012-02-28 23:30:00', 1], ['2012-02-29 23:30:00', 2],
+            ['2012-03-01 00:00:00', 1], ['2012-03-01 08:00:00', 3],
+            ['2012-03-01 09:00:00', 1], ['2012-03-02 10:00:00', 2],
+            ['2012-03-02 11:00:00', 1], ['2012-03-03 12:00:00', 2],
+            ['2012-03-03 13:00:00', 1], ['2012-03-04 14:00:00', 2],
+            ['2012-03-04 15:00:00', 1], ['2012-03-05 16:00:00', 2],
+        ];
+        const insert = db.prepare('INSERT INTO bookings VALUES (?, ?)');
+        for (const row of bookings) insert.run(...row);
+        fs.writeFileSync(csvPath,
+            `starttime,slots\n${bookings.map(row => row.join(',')).join('\n')}\n`);
+        const expected = db.prepare(`SELECT starttime,
+            datetime(starttime, (slots * 1800) || ' seconds') AS endtime
+            FROM bookings ORDER BY endtime DESC, starttime DESC LIMIT 10`).all();
+        const lines = ['starttime,endtime',
+            ...expected.map(row => `${row.starttime},${row.endtime}`)];
+        run('008_endtimes.ra', dbPath, output);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
+        fs.writeFileSync(arrayScript, source.replace(
+            'Db = DbPath sqlite\nB = Db .bookings', 'B = DbPath csv'));
+        const array = spawnSync(process.execPath,
+            [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(array.status, 0, array.stderr);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
+        fs.writeFileSync(inspect, source.replace(
+            'Span = B .slots * Slot', 'Span = B .slots * 1800 duration'));
+        const direct = spawnSync(process.execPath,
+            [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(direct.status, 0, direct.stderr);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
+        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+            'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath,
+            [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /datetime\("starttime", printf\('%\+d seconds',/);
+        assert.match(plan.stdout, /ORDER BY/);
+        assert.match(plan.stdout, /LIMIT/);
+        assert.doesNotMatch(plan.stdout, /1800/);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});
+
+test('SQLite datetime addition leaves nonintegral duration seconds missing', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const output = path.join(temporary, 'offsets.csv');
+    const script = path.join(temporary, 'offsets.ra');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE moments (time TEXT, offset REAL)');
+        const insert = db.prepare('INSERT INTO moments VALUES (?, ?)');
+        insert.run('2024-02-29 23:59:59', 1.5);
+        insert.run('2024-02-29 23:59:59', 1);
+        insert.run('2024-03-01 00:00:00', -30);
+        fs.writeFileSync(script, [
+            'use cli', 'use dates', 'use tables',
+            'argument DbPath path', 'argument OutputPath path',
+            'Db = DbPath sqlite', 'M = Db .moments',
+            'Moment = M .time datetime',
+            'Span = M .offset duration',
+            'End = Moment + Span',
+            'Base = "2024-02-29 23:59:59" datetime',
+            'BaseEnd = Base + Span',
+            'Result = M select',
+            '  .offset = .offset',
+            '  .endtime = End',
+            '  .baseend = BaseEnd',
+            'end',
+            'Result OutputPath csv',
+        ].join('\n'));
+        const result = spawnSync(process.execPath,
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), [
+            'offset,endtime,baseend', '1.5,,',
+            '1,2024-03-01 00:00:00,2024-03-01 00:00:00',
+            '-30,2024-02-29 23:59:30,2024-02-29 23:59:29',
+        ]);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});
+
 test('monthly booking counts match SQL on SQLite and arrays', () => {
     const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
     const dbPath = path.join(temporary, 'club.sqlite3');

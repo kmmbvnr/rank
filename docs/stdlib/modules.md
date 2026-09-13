@@ -1056,6 +1056,12 @@ when the query is built. Invalid SQLite date text produces a missing result.
 Casting a typed SQLite `date` expression with `datetime` emits
 `datetime(value)` in the same plan and retains bound parameters.
 
+`Seconds duration` builds a duration from exact integer seconds. Durations can
+be scaled by a number when the result is a whole number of seconds, and added
+to datetimes in either order. Scalar results outside years `0001` through
+`9999` raise `.InvalidDate`; these operations lift lazily over arrays and
+sequences. On SQLite views they remain expressions with bound scalar values.
+
 ```rank
 Days = (Train .date pad "2024-01-01") date
 ```

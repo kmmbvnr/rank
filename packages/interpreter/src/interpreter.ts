@@ -163,6 +163,7 @@ import {
     isRankSequence,
     isRankSequenceMask,
     isRankSegment,
+    addDateTimeDuration,
     subtractDateTimes,
     type IntrinsicRank,
     type RankArray,
@@ -4109,6 +4110,30 @@ export class Interpreter {
             return order <= 0;
         }
 
+        if (operator === '+' && (isRankDate(left) || isRankDate(right)
+            || isRankDuration(left) || isRankDuration(right))) {
+            const moment = isRankDate(left) ? left : isRankDate(right) ? right : undefined;
+            const span = isRankDuration(left) ? left : isRankDuration(right) ? right : undefined;
+            if (moment?.kind !== 'datetime' || !span) {
+                throw new RankError('+ expects a datetime and duration', 'TypeError');
+            }
+            return addDateTimeDuration(moment, span);
+        }
+        if (operator === '*' && (isRankDuration(left) || isRankDuration(right))) {
+            const span = isRankDuration(left) ? left : right;
+            const factor = isRankDuration(left) ? right : left;
+            if (!isRankDuration(span) || (typeof factor !== 'bigint' && typeof factor !== 'number')) {
+                throw new RankError('* expects a duration and number', 'TypeError');
+            }
+            if (typeof factor === 'bigint') {
+                return { kind: 'duration', seconds: span.seconds * factor };
+            }
+            const scaled = Number(span.seconds) * factor;
+            if (!Number.isSafeInteger(Number(span.seconds)) || !Number.isSafeInteger(scaled)) {
+                throw new RankError('* needs exact integer seconds', 'TypeError');
+            }
+            return { kind: 'duration', seconds: BigInt(scaled) };
+        }
         if (operator === '-' && (isRankDate(left) || isRankDate(right))) {
             if (!isRankDate(left) || left.kind !== 'datetime'
                 || !isRankDate(right) || right.kind !== 'datetime') {

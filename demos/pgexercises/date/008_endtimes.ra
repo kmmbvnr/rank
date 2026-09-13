@@ -1,0 +1,24 @@
+rem PostgreSQL Exercises: date 8
+rem https://pgexercises.com/questions/date/endtimes.html
+
+use cli
+use dates
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/date_008.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+Start = B .starttime datetime
+Slot = 30 * 60 duration
+Span = B .slots * Slot
+End = Start + Span
+R = B select
+  .starttime = Start
+  .endtime = End
+end
+R = R sort by .endtime descending .starttime descending
+Result = R from 0 until 10
+Result OutputPath csv

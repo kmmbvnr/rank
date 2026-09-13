@@ -6,6 +6,7 @@ import {
     isRankArray,
     isRankBytes,
     isRankDate,
+    isRankDuration,
     isRankSqliteDatabase,
     isRankSqliteExpression,
     isRankSqliteTable,
@@ -351,6 +352,43 @@ export function binarySqlite(
     if ((operator === 'and' || operator === 'or')
         && ((leftExpr && !leftExpr.boolean) || (rightExpr && !rightExpr.boolean))) {
         throw new RankError('SQLite logical operands must be boolean', 'TypeError');
+    }
+    const isDuration = (value: RankValue): boolean => isRankSqliteExpression(value)
+        ? value.duration === true : isRankDuration(value);
+    const isDateTime = (value: RankValue): boolean => isRankSqliteExpression(value)
+        ? value.calendar === 'datetime' : isRankDate(value) && value.kind === 'datetime';
+    const typedOperand = (value: RankValue) => isRankSqliteExpression(value)
+        ? { text: value.text, params: value.params }
+        : isRankDuration(value)
+            ? { text: '?', params: [value.seconds] }
+            : { text: '?', params: [toSqlite(value)] };
+    if (operator === '+' && (leftExpr?.calendar || rightExpr?.calendar
+        || isRankDate(left) || isRankDate(right) || isDuration(left) || isDuration(right))) {
+        if (!((isDateTime(left) && isDuration(right))
+            || (isDuration(left) && isDateTime(right)))) {
+            throw new RankError('+ expects a datetime and duration', 'TypeError');
+        }
+        const moment = typedOperand(isDateTime(left) ? left : right);
+        const span = typedOperand(isDuration(left) ? left : right);
+        return { kind: 'sqlite-expression', table,
+            text: `(CASE WHEN typeof(${span.text}) IN ('integer', 'real')`
+                + ` AND ${span.text} = CAST(${span.text} AS INTEGER)`
+                + ` THEN datetime(${moment.text}, printf('%+d seconds', ${span.text})) END)`,
+            params: [...span.params, ...span.params, ...span.params,
+                ...moment.params, ...span.params], boolean: false,
+            calendar: 'datetime', textual: true };
+    }
+    if (operator === '*' && (isDuration(left) || isDuration(right))) {
+        const factor = isDuration(left) ? right : left;
+        if (isDuration(factor) || (!isRankSqliteExpression(factor)
+            && typeof factor !== 'bigint' && typeof factor !== 'number')) {
+            throw new RankError('* expects a duration and number', 'TypeError');
+        }
+        const a = typedOperand(left);
+        const b = typedOperand(right);
+        return { kind: 'sqlite-expression', table,
+            text: `(${a.text} * ${b.text})`, params: [...a.params, ...b.params],
+            boolean: false, duration: true };
     }
     const operand = (value: RankValue): { text: string; params: readonly SqliteScalar[] } =>
         isRankSqliteExpression(value) ? value : { text: '?', params: [toSqlite(value)] };

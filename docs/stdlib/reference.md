@@ -86,6 +86,7 @@ Calendar dates and local date-times.
 | `Text date` | date | Parses YYYY-MM-DD or truncates a datetime to its calendar day. |
 | `Db Start End calendar` | table, lazy | Inclusive daily table; optional database keeps it as a SQLite view. |
 | `Value datetime` | datetime | Parses a local timestamp or casts a date to midnight. |
+| `Seconds duration` | duration, lazy | Creates an exact duration from integer seconds. |
 | `Value day` | integer | Day of the month of a date or datetime. |
 | `Moment hour` | integer | Hour of a datetime. |
 | `Moment minute` | integer | Minute of a datetime. |

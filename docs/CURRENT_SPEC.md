@@ -5247,6 +5247,15 @@ negative values carry a leading minus sign. `datetime` subtraction broadcasts
 over arrays and sequences as ordinary subtraction does. Subtracting a `date`
 or mixing date, datetime and numeric operands raises `.TypeError`.
 
+`Seconds duration` converts exact integer seconds to a `duration`; applying it
+to a duration returns that value. Nonintegral or unsafe real seconds raise
+`.TypeError`. A duration can be multiplied by a number in either order if the
+result has exact integer seconds. Adding a duration to a datetime in either
+order moves the local wall-clock value by that many seconds. The result must
+remain within years `0001` through `9999`, otherwise it raises `.InvalidDate`.
+These operations broadcast over arrays and sequences with their usual lazy
+behavior. Months and years are calendar operations, not fixed durations.
+
 On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
 builds a lazy `strftime` expression. This path expects canonical date text;
 unlike array parsing it does not validate each source cell when building the
@@ -5257,6 +5266,14 @@ For two SQLite expressions marked `datetime`, subtraction generates
 `unixepoch(left) - unixepoch(right)` with bound scalar timestamps. `seconds`
 keeps the duration expression in the SQL plan and yields integer values on
 materialization. Invalid SQLite timestamp text yields a missing result.
+
+On a SQLite view, converting a numeric column with `duration` and scaling a
+duration by a numeric column keep the signed second count in the SQL plan.
+Adding it to a typed datetime emits a guarded `datetime(moment,
+printf('%+d seconds', seconds))` with bound scalar values; nonintegral SQL
+seconds become missing rather than being rounded. The result is a typed
+datetime expression that can be projected, sorted and limited before rows are
+read.
 
 ```rank
 Days = (Train .date pad "2024-01-01") date

@@ -665,6 +665,19 @@ For a SQLite view, explicitly parsed `datetime` columns subtract through
 until output. A date is distinct from a datetime and cannot be subtracted by
 this operation.
 
+For a row-dependent offset, construct a `duration` in seconds, multiply it by
+a numeric column and add it to the datetime column:
+
+```rank
+Slot = 30 * 60 duration
+Span = Bookings .slots * Slot
+Start = Bookings .starttime datetime
+End = Start + Span
+```
+
+The result remains a typed SQLite expression using `datetime(..., printf(...))`.
+Projection, sorting and limiting can use it without loading the source rows.
+
 `monthstart` and `nextmonth` accept a date or datetime and return a datetime
 at midnight on the first day of the current or following calendar month:
 

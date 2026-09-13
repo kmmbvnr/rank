@@ -14,6 +14,7 @@ library. Date values have no time zone.
 | 5 | [Seconds between timestamps](https://pgexercises.com/questions/date/interval2.html) | [005](005_seconds.ra) |
 | 6 | [Days in each month](https://pgexercises.com/questions/date/daysinmonth.html) | [006](006_monthlen.ra) |
 | 7 | [Days remaining](https://pgexercises.com/questions/date/daysremaining.html) | [007](007_remaining.ra) |
+| 8 | [Booking end times](https://pgexercises.com/questions/date/endtimes.html) | [008](008_endtimes.ra) |
 | 9 | [Bookings by month](https://pgexercises.com/questions/date/bookingspermonth.html) | [009](009_monthly.ra) |
 
 Question 3 stays a lazy SQLite view until CSV output. Its generated calendar
@@ -23,7 +24,9 @@ Questions 2 and 5 use exact `datetime` subtraction and `duration seconds`;
 the oracle also checks this subtraction on SQLite columns and a bound literal.
 Question 6 is pure calendar arithmetic, so it builds an array of month starts
 and writes true Rank durations to CSV.
-Question 9 groups the SQLite bookings view by `monthstart` and remains lazy
-through grouping, sorting and projection.
 Question 7 casts the current datetime through `date datetime` so the current
 day counts as a whole day.
+Question 8 constructs a 30-minute `duration`, scales it by each booking's
+`.slots`, and keeps the resulting end times, sort and limit in SQLite.
+Question 9 groups the SQLite bookings view by `monthstart` and remains lazy
+through grouping, sorting and projection.

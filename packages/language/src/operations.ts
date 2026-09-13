@@ -194,6 +194,8 @@ export const operations: readonly Operation[] = [
         summary: 'Inclusive daily table; optional database keeps it as a SQLite view.' },
     { name: 'datetime', module: 'dates', arities: [1], form: 'Value datetime', result: 'datetime',
         summary: 'Parses a local timestamp or casts a date to midnight.' },
+    { name: 'duration', module: 'dates', arities: [1], form: 'Seconds duration', result: 'duration',
+        lazy: true, summary: 'Creates an exact duration from integer seconds.' },
     { name: 'day', module: 'dates', arities: [1], form: 'Value day', result: 'integer',
         monadicRank: 0, summary: 'Day of the month of a date or datetime.' },
     { name: 'hour', module: 'dates', arities: [1], form: 'Moment hour', result: 'integer',

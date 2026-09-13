@@ -7,6 +7,7 @@ import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
 import type { RankIo, SqliteScalar } from './io.js';
+import { RankError } from './errors.js';
 
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
@@ -331,6 +332,22 @@ export function subtractDateTimes(left: RankDateTime, right: RankDateTime): Rank
         return date.getTime();
     };
     return { kind: 'duration', seconds: BigInt((milliseconds(left) - milliseconds(right)) / 1000) };
+}
+
+export function addDateTimeDuration(moment: RankDateTime, span: RankDuration): RankDateTime {
+    const base = new Date(0);
+    base.setUTCFullYear(moment.year, moment.month - 1, moment.day);
+    base.setUTCHours(moment.hour, moment.minute, moment.second, 0);
+    const seconds = BigInt(base.getTime() / 1000) + span.seconds;
+    // UTC second counts at the endpoints of Rank's proleptic years 0001..9999.
+    if (seconds < -62135596800n || seconds > 253402300799n) {
+        throw new RankError('datetime exceeds years 0001 through 9999', 'InvalidDate');
+    }
+    const result = new Date(Number(seconds) * 1000);
+    return { kind: 'datetime', year: result.getUTCFullYear(),
+        month: result.getUTCMonth() + 1, day: result.getUTCDate(),
+        hour: result.getUTCHours(), minute: result.getUTCMinutes(),
+        second: result.getUTCSeconds() };
 }
 
 export function formatDuration(value: RankDuration): string {

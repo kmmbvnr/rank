@@ -93,6 +93,51 @@ describe('dates', () => {
         ].join('\n'))).toBe('86402 -1');
     });
 
+    it('constructs and scales exact durations before adding them to datetimes', () => {
+        expect(run('use dates\n1800 duration seconds')).toBe('1800');
+        expect(run('use dates\n1800.0 duration seconds')).toBe('1800');
+        expect(run('use dates\n1800 duration duration seconds')).toBe('1800');
+        expect(run('use dates\nS = 1 to 3\nD = S duration\nD 2 seconds'))
+            .toBe('3');
+        expect(run('use dates\nSlot = 1800 duration\nSlot * 2 seconds'))
+            .toBe('3600');
+        expect(run('use dates\nSlot = 1800 duration\n2 * Slot seconds'))
+            .toBe('3600');
+        expect(run('use dates\nSlot = 1800 duration\nSlot * 0.5 seconds'))
+            .toBe('900');
+        expect(run('use dates\nStart = "2024-02-29 23:30:00" datetime\nSpan = 3600 duration\nStart + Span'))
+            .toBe('2024-03-01 00:30:00');
+        expect(run('use dates\nStart = "2024-03-01 00:30:00" datetime\nSpan = -3600 duration\nStart + Span'))
+            .toBe('2024-02-29 23:30:00');
+        expect(run('use dates\nStart = "2024-03-01 00:30:00" datetime\nSpan = 60 duration\nSpan + Start'))
+            .toBe('2024-03-01 00:31:00');
+        expect(() => run('use dates\n1.5 duration'))
+            .toThrowError('duration expects integer seconds');
+        expect(() => run('use dates\n1 duration * 0.5'))
+            .toThrowError('* needs exact integer seconds');
+        expect(() => run('use dates\nDay = "2024-01-01" date\nSpan = 1 duration\nDay + Span'))
+            .toThrowError('+ expects a datetime and duration');
+        expect(() => run('use dates\nStart = "9999-12-31 23:59:59" datetime\nSpan = 1 duration\nStart + Span'))
+            .toThrowError('datetime exceeds years 0001 through 9999');
+        expect(() => run('use dates\nStart = "0001-01-01 00:00:00" datetime\nSpan = -1 duration\nStart + Span'))
+            .toThrowError('datetime exceeds years 0001 through 9999');
+    });
+
+    it('broadcasts duration arithmetic over lazy arrays and updates with source revisions', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use dates',
+            'Starts = array "2024-02-29 23:30:00" "2024-03-01 00:00:00"',
+            'Slots = array 2 1',
+            'Slot = 1800 duration',
+            'End = Starts datetime + Slots * Slot',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('End')!))
+            .toBe('2024-03-01 00:30:00 2024-03-01 00:30:00');
+        runtime.execute('Slots 0 = 1');
+        expect(formatValue(runtime.execute('End 0')!)).toBe('2024-03-01 00:00:00');
+    });
+
     it('finds month boundaries for dates, datetimes and lazy arrays', () => {
         expect(run('use dates\n"2012-02-11" date monthstart'))
             .toBe('2012-02-01 00:00:00');

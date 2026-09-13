@@ -10,6 +10,7 @@ import {
     isRankSequence,
     type RankDate,
     type RankDateTime,
+    type RankDuration,
     type RankSqliteExpression,
     type RankValue,
 } from '../value.js';
@@ -31,6 +32,9 @@ export const datesModule: RuntimeModule = {
                 textual: true } as RankSqliteExpression
             : { ...value, calendar: 'datetime' } as RankSqliteExpression
         : mapDates(value, 'datetime', parseDateTime)),
+    duration: () => native('duration', 1, ([value]) => isRankSqliteExpression(value)
+        ? { ...value, duration: true, boolean: false, textual: false } as RankSqliteExpression
+        : mapDates(value, 'duration', parseDuration)),
     year: () => component('year', value => BigInt(value.year), '%Y'),
     month: () => component('month', value => BigInt(value.month), '%m'),
     day: () => component('day', value => BigInt(value.day), '%d'),
@@ -168,6 +172,15 @@ function parseDateTime(value: RankValue): RankDateTime {
     validateCalendar(year, month, day, value);
     if (hour > 23 || minute > 59 || second > 59) throw invalidDate(value);
     return { kind: 'datetime', year, month, day, hour, minute, second };
+}
+
+function parseDuration(value: RankValue): RankDuration {
+    if (isRankDuration(value)) return value;
+    if (typeof value === 'bigint') return { kind: 'duration', seconds: value };
+    if (typeof value === 'number' && Number.isSafeInteger(value)) {
+        return { kind: 'duration', seconds: BigInt(value) };
+    }
+    throw new RankError('duration expects integer seconds', 'TypeError');
 }
 
 function validateCalendar(year: number, month: number, day: number, source: string): void {

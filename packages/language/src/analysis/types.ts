@@ -172,7 +172,11 @@ function binaryType(operator: string, left: Types, right: Types): Types {
         return elementwise(left, right) ?? UNKNOWN;
     }
     if (operator === '+' && same(left, 'text') && same(right, 'text')) return ['text'];
+    if (operator === '+' && ((same(left, 'datetime') && same(right, 'duration'))
+        || (same(left, 'duration') && same(right, 'datetime')))) return ['datetime'];
     if (operator === '-' && same(left, 'datetime') && same(right, 'datetime')) return ['duration'];
+    if (operator === '*' && ((same(left, 'duration') && within(right, NUMBERS))
+        || (same(right, 'duration') && within(left, NUMBERS)))) return ['duration'];
     if (!within(left, NUMBERS) || !within(right, NUMBERS)) {
         return ARITHMETIC.has(operator) ? elementwise(left, right) ?? UNKNOWN : UNKNOWN;
     }
