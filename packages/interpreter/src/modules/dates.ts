@@ -26,7 +26,10 @@ export const datesModule: RuntimeModule = {
         ? { ...value, text: `date(${value.text})`, calendar: 'date', textual: true } as RankSqliteExpression
         : mapDates(value, 'date', parseDate)),
     datetime: () => native('datetime', 1, ([value]) => isRankSqliteExpression(value)
-        ? { ...value, calendar: 'datetime' } as RankSqliteExpression
+        ? value.calendar === 'date'
+            ? { ...value, text: `datetime(${value.text})`, calendar: 'datetime',
+                textual: true } as RankSqliteExpression
+            : { ...value, calendar: 'datetime' } as RankSqliteExpression
         : mapDates(value, 'datetime', parseDateTime)),
     year: () => component('year', value => BigInt(value.year), '%Y'),
     month: () => component('month', value => BigInt(value.month), '%m'),
@@ -148,7 +151,12 @@ function parseDate(value: RankValue): RankDate {
 }
 
 function parseDateTime(value: RankValue): RankDateTime {
-    if (typeof value !== 'string') throw new RankError('datetime expects text', 'TypeError');
+    if (isRankDate(value)) {
+        return value.kind === 'datetime' ? value : { kind: 'datetime',
+            year: value.year, month: value.month, day: value.day,
+            hour: 0, minute: 0, second: 0 };
+    }
+    if (typeof value !== 'string') throw new RankError('datetime expects text or date', 'TypeError');
     const parts = DATETIME.exec(value);
     if (!parts) throw invalidDate(value);
     const year = Number(parts[1]);

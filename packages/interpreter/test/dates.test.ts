@@ -22,6 +22,39 @@ describe('dates', () => {
             .toBe('true');
     });
 
+    it('casts dates to midnight datetimes without changing existing datetimes', () => {
+        expect(run('use dates\n"2024-02-29" date datetime'))
+            .toBe('2024-02-29 00:00:00');
+        expect(run('use dates\n"2024-02-29 13:05:09" datetime date datetime'))
+            .toBe('2024-02-29 00:00:00');
+        expect(run('use dates\n"2024-02-29 13:05:09" datetime datetime'))
+            .toBe('2024-02-29 13:05:09');
+        expect(run('use dates\n"2024-02-29" date datetime is .datetime'))
+            .toBe('true');
+        expect(() => run('use dates\n1 datetime'))
+            .toThrowError('datetime expects text or date');
+    });
+
+    it('casts date arrays lazily, tracks mutations and preserves shape', () => {
+        expect(run([
+            'use dates',
+            'use sequences',
+            'Dates = array shape 2 1',
+            '  "2024-02-29"',
+            '  "2024-03-01"',
+            'end',
+            'Times = Dates date datetime',
+            'Times shape',
+        ].join('\n'))).toBe('2 1');
+        const runtime = new Interpreter();
+        runtime.execute('use dates\nDates = array "2024-02-29"\nTimes = Dates date datetime');
+        expect(formatValue(runtime.execute('Times 0')!)).toBe('2024-02-29 00:00:00');
+        runtime.execute('Dates 0 = "2024-03-01"');
+        expect(formatValue(runtime.execute('Times 0')!)).toBe('2024-03-01 00:00:00');
+        expect(() => run('use dates\nDates = (array "2024-01-01" "bad") date datetime\nDates 1'))
+            .toThrowError('invalid date: bad');
+    });
+
     it('subtracts datetimes into exact signed durations', () => {
         expect(run([
             'use dates',

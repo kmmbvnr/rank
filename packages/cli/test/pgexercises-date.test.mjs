@@ -24,6 +24,61 @@ test('date literals and components match the official examples', () => {
     assert.equal(run('002_interval.ra'), '32 days');
     assert.equal(run('004_day.ra'), '31');
     assert.equal(run('005_seconds.ra'), '169200');
+    assert.equal(run('007_remaining.ra'), '19 days');
+});
+
+test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const output = path.join(temporary, 'remaining.csv');
+    const script = path.join(temporary, 'remaining.ra');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE moments (time TEXT)');
+        const insert = db.prepare('INSERT INTO moments VALUES (?)');
+        insert.run('2012-02-11 01:00:00');
+        insert.run('2012-02-29 23:59:59');
+        const program = [
+            'use cli', 'use dates', 'use tables',
+            'argument DbPath path', 'argument OutputPath path',
+            'Db = DbPath sqlite', 'M = Db .moments',
+            'Moment = M .time datetime',
+            'Today = Moment date datetime',
+            'Next = Moment nextmonth',
+            'Remaining = Next - Today',
+            'Bound = "2012-02-11" date datetime',
+            'Since = Today - Bound',
+            'Result = M select',
+            '  .today = Today',
+            '  .remaining = Remaining seconds',
+            '  .since = Since seconds',
+            'end',
+            'Result OutputPath csv',
+        ].join('\n');
+        fs.writeFileSync(script, program);
+        const result = spawnSync(process.execPath,
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        const expected = db.prepare(`SELECT datetime(date(time)) AS today,
+            unixepoch(datetime(time, 'start of month', '+1 month'))
+                - unixepoch(datetime(date(time))) AS remaining,
+            unixepoch(datetime(date(time))) - unixepoch(?) AS since
+            FROM moments`).all('2012-02-11 00:00:00');
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'),
+            ['today,remaining,since',
+                ...expected.map(row => `${row.today},${row.remaining},${row.since}`)]);
+        fs.writeFileSync(script, program.replace('Result OutputPath csv',
+            'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath,
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /datetime\(date\("time"\)\)/);
+        assert.match(plan.stdout, /unixepoch\(\?\)/);
+        assert.doesNotMatch(plan.stdout, /2012-02-11 00:00:00/);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
 });
 
 test('October calendar matches a recursive SQLite oracle', () => {

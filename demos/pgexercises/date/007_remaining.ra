@@ -1,0 +1,11 @@
+rem PostgreSQL Exercises: date 7
+rem https://pgexercises.com/questions/date/daysremaining.html
+
+use dates
+use io
+
+Moment = "2012-02-11 01:00:00" datetime
+Today = Moment date datetime
+Next = Moment nextmonth
+Remaining = Next - Today
+Remaining print

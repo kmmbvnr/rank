@@ -1027,11 +1027,13 @@ Day weekday
 Moment hour
 ```
 
-`date` accepts exactly `YYYY-MM-DD`. `datetime` accepts exactly
-`YYYY-MM-DD HH:MM:SS` or `YYYY-MM-DDTHH:MM:SS`. Both use the proleptic
+`date` accepts exactly `YYYY-MM-DD` text or a `datetime`, discarding its time.
+`datetime` accepts exactly `YYYY-MM-DD HH:MM:SS` or
+`YYYY-MM-DDTHH:MM:SS` text, a `date` (converted to midnight), or an existing
+`datetime` (unchanged). Both use the proleptic
 Gregorian calendar and years `0001` through `9999`. `datetime` is a local
 wall-clock value without a time zone or UTC offset. Invalid syntax, dates and
-times raise `.InvalidDate`; a non-text input raises `.TypeError`.
+times raise `.InvalidDate`; other input types raise `.TypeError`.
 
 `date` and `datetime` are distinct immutable scalar types. They compare for
 equality by type and value and order chronologically within their own type.
@@ -1051,6 +1053,8 @@ On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
 builds a lazy `strftime` expression. The source column must contain canonical
 date text; unlike array parsing, this SQL path does not validate each date
 when the query is built. Invalid SQLite date text produces a missing result.
+Casting a typed SQLite `date` expression with `datetime` emits
+`datetime(value)` in the same plan and retains bound parameters.
 
 ```rank
 Days = (Train .date pad "2024-01-01") date

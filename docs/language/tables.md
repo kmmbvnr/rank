@@ -641,9 +641,11 @@ Data .year = Times year
 
 `date` also takes a datetime and discards its time. On a SQLite datetime
 column, `datetime date` compiles to `date(...)`, allowing grouping by calendar
-day. `Start End calendar` creates a rank-1 array table with one `.date` per
-inclusive day; `Db Start End calendar` creates the corresponding lazy SQLite
-view. Its endpoints are valid ISO dates or Rank date values. The first day
+day. `datetime date datetime` compiles to `datetime(date(...))`, producing
+midnight without loading the rows. `Start End calendar` creates a rank-1 array
+table with one `.date` per inclusive day; `Db Start End calendar` creates the
+corresponding lazy SQLite view. Its endpoints are valid ISO dates or Rank date
+values. The first day
 after the end is excluded, and reversed bounds produce an empty table.
 
 Two `datetime` values can be subtracted to make an exact signed `duration`:
