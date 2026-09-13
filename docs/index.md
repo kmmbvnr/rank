@@ -76,6 +76,7 @@ execution direction and its semantic requirements.
 
 - [Console, editor and the analysis core](design/editor-plan.md)
 - [REPL input on a phone keyboard](design/repl-input.md)
+- [Looking at a sequence without spending it](design/generator-previews.md)
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
 - [SQLite query translation roadmap](design/sqlite-tables.md)

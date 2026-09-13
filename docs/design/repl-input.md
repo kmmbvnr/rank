@@ -239,6 +239,19 @@ keeps the edit that broke it, so a bad fix can be fixed again.
 The two had been the same key; now one walks the program and the other walks
 what was typed, including the commands and the sessions before this one.
 
+**What this makes is a notebook whose cells are statements.** Worth saying,
+because it says what to expect: a cell that has run and a cell that has been
+edited since are different things, and what is in memory is what the runs left,
+not what the text now says. Two differences are the point of doing it this way.
+The cells are plain lines of a `.ra` file, so there is no notebook format, no
+export, and nothing that reads the session except Rank. And the prompt only goes
+forward: re-running is always this line and the lines under it, never a cell out
+of order, so the text and the state can only drift between the edit and the
+cursor — which is the distance Enter closes.
+
+A result that is a generator is the one value this cannot keep honest on its own;
+see [Looking at a sequence without spending it](generator-previews.md).
+
 **A result is one line.** A long one keeps its two ends with the count
 underneath, and the two ends are cut to the width of the screen: a value that
 wraps over four rows of a narrow screen is no more readable than one that never
