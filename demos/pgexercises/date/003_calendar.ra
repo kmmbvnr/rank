@@ -1,0 +1,16 @@
+rem PostgreSQL Exercises: date 3
+rem https://pgexercises.com/questions/date/series.html
+
+use cli
+use dates
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/date_003.csv"
+
+Db = DbPath sqlite
+R = Db "2012-10-01" "2012-10-31" calendar
+Result = R select
+  .ts = .date
+end
+Result OutputPath csv

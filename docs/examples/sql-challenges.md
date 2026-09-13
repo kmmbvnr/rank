@@ -10,7 +10,9 @@ We will solve these collections in order, using the
    eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md), and
    nine [Updates](../../demos/pgexercises/updates/README.md) exercises and
    all twenty-two [Aggregates](../../demos/pgexercises/aggregates/README.md)
-   exercises now have runnable Rank solutions and SQLite reference tests. The
+   exercises now have runnable Rank solutions and SQLite reference tests.
+   [Date](../../demos/pgexercises/date/README.md) has started with timestamp,
+   calendar and day-of-month examples. The
    [SQLite table interface](../language/tables.md#sqlite) now translates
    projection, masks, joins, distinct, ordering, grouped sums and sorted
    slices; further operations remain.

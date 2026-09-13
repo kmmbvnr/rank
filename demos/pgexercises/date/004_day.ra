@@ -1,0 +1,8 @@
+rem PostgreSQL Exercises: date 4
+rem https://pgexercises.com/questions/date/extract.html
+
+use dates
+use io
+
+Result = "2012-08-31" date day
+Result print
