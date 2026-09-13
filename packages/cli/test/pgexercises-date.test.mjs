@@ -379,3 +379,74 @@ test('monthly booking counts match SQL on SQLite and arrays', () => {
         fs.rmSync(temporary, { recursive: true, force: true });
     }
 });
+
+test('monthly facility utilisation matches SQL and arrays while staying lazy', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const output = path.join(temporary, 'usage.csv');
+    const inspect = path.join(temporary, 'inspect.ra');
+    const arrayScript = path.join(temporary, 'usage-array.ra');
+    const bookingsCsv = path.join(temporary, 'bookings.csv');
+    const facilitiesCsv = path.join(temporary, 'facilities.csv');
+    const source = fs.readFileSync(path.join(directory, '010_usage.ra'), 'utf8');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE facilities (facid INTEGER, name TEXT)');
+        db.exec('CREATE TABLE bookings (facid INTEGER, starttime TEXT, slots INTEGER)');
+        db.prepare('INSERT INTO facilities VALUES (?, ?)').run(1, 'Court');
+        db.prepare('INSERT INTO facilities VALUES (?, ?)').run(2, 'Pool');
+        const insert = db.prepare('INSERT INTO bookings VALUES (?, ?, ?)');
+        insert.run(1, '2023-02-28 20:00:00', 1);
+        insert.run(1, '2024-02-01 08:00:00', 15);
+        insert.run(1, '2024-02-29 20:00:00', 2);
+        insert.run(2, '2024-01-31 08:00:00', 1);
+        const oracle = `SELECT f.name,
+            datetime(b.starttime, 'start of month') AS month,
+            round(100.0 * sum(b.slots) /
+                (25 * (julianday(date(b.starttime, 'start of month', '+1 month'))
+                    - julianday(date(b.starttime, 'start of month')))), 1)
+                AS utilisation
+            FROM bookings b JOIN facilities f ON b.facid = f.facid
+            GROUP BY f.facid, month ORDER BY f.name, month`;
+        const expected = db.prepare(oracle).all();
+        assert.deepEqual(expected.map(row => row.utilisation), [0.1, 2.3, 0.1]);
+        run('010_usage.ra', dbPath, output);
+        const rows = fs.readFileSync(output, 'utf8').trim().split('\n');
+        assert.equal(rows.shift(), 'name,month,utilisation');
+        assert.deepEqual(rows.map(line => {
+            const [name, month, utilisation] = line.split(',');
+            return { name, month, utilisation: Number(utilisation) };
+        }), expected);
+        fs.writeFileSync(bookingsCsv, 'facid,starttime,slots\n'
+            + '1,2023-02-28 20:00:00,1\n'
+            + '1,2024-02-01 08:00:00,15\n'
+            + '1,2024-02-29 20:00:00,2\n'
+            + '2,2024-01-31 08:00:00,1\n');
+        fs.writeFileSync(facilitiesCsv, 'facid,name\n1,Court\n2,Pool\n');
+        const arraySource = source.replace(
+            'argument DbPath path = "demos/pgexercises/data/club.sqlite3"',
+            'argument BookingPath path\nargument FacilityPath path')
+            .replace('Db = DbPath sqlite\nB = Db .bookings\nF = Db .facilities',
+                'B = BookingPath csv\nF = FacilityPath csv');
+        fs.writeFileSync(arrayScript, arraySource);
+        const array = spawnSync(process.execPath,
+            [cli, arrayScript, bookingsCsv, facilitiesCsv, output],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(array.status, 0, array.stderr);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'),
+            ['name,month,utilisation', ...rows]);
+        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+            'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath, [cli, inspect, dbPath],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /INNER JOIN/);
+        assert.match(plan.stdout, /GROUP BY/);
+        assert.match(plan.stdout, /start of month/);
+        assert.match(plan.stdout, /floor\(/);
+        assert.doesNotMatch(plan.stdout, /2024-02-29/);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});

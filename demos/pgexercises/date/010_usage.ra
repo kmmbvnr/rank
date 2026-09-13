@@ -1,0 +1,41 @@
+rem PostgreSQL Exercises: date 10
+rem https://pgexercises.com/questions/date/utilisationpermonth.html
+
+use cli
+use dates
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/date_010.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+F = Db .facilities
+R = B F innerjoin by .facid
+R = R select
+  .facid = .facid
+  .name = .name
+  .month = .starttime datetime monthstart
+  .slots = .slots
+end
+G = R group by .facid .name .month
+S = G select
+  .slots = .slots sum
+end
+Month = S .month datetime
+Next = Month nextmonth
+Span = Next - Month
+Days = Span seconds / 86400
+Capacity = Days * 25
+Scaled = S .slots * 1000
+Half = Capacity / 2
+Tenths = (Scaled + Half) // Capacity
+Usage = Tenths / 10
+Result = S select
+  .name = .name
+  .month = .month
+  .utilisation = Usage
+end
+Result = Result sort by .name .month
+Result OutputPath csv

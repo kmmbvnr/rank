@@ -16,6 +16,7 @@ library. Date values have no time zone.
 | 7 | [Days remaining](https://pgexercises.com/questions/date/daysremaining.html) | [007](007_remaining.ra) |
 | 8 | [Booking end times](https://pgexercises.com/questions/date/endtimes.html) | [008](008_endtimes.ra) |
 | 9 | [Bookings by month](https://pgexercises.com/questions/date/bookingspermonth.html) | [009](009_monthly.ra) |
+| 10 | [Monthly facility utilisation](https://pgexercises.com/questions/date/utilisationpermonth.html) | [010](010_usage.ra) |
 
 Question 3 stays a lazy SQLite view until CSV output. Its generated calendar
 includes both endpoints. The [CLI oracle](../../../packages/cli/test/pgexercises-date.test.mjs)
@@ -30,3 +31,7 @@ Question 8 constructs a 30-minute `duration`, scales it by each booking's
 `.slots`, and keeps the resulting end times, sort and limit in SQLite.
 Question 9 groups the SQLite bookings view by `monthstart` and remains lazy
 through grouping, sorting and projection.
+Question 10 joins facilities, groups booked half-hour slots by facility and
+month, then divides by 25 available slots per day. It computes the month length
+from adjacent month starts and rounds the positive percentage to one decimal
+place with arithmetic, keeping the full query lazy.
