@@ -321,7 +321,7 @@ export function joinAliasedSqlite(
 
 const sqlOperators: Readonly<Record<string, string>> = {
     equal: '=', notequal: '<>', less: '<', greater: '>', atleast: '>=', atmost: '<=',
-    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*', '//': '//',
+    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*', '/': '/', '//': '//',
 };
 
 export function binarySqlite(
@@ -349,6 +349,11 @@ export function binarySqlite(
     if (operator === '//') {
         return { kind: 'sqlite-expression', table,
             text: `floor((1.0 * ${a.text}) / ${b.text})`,
+            params: [...a.params, ...b.params], boolean: false };
+    }
+    if (operator === '/') {
+        return { kind: 'sqlite-expression', table,
+            text: `((1.0 * ${a.text}) / ${b.text})`,
             params: [...a.params, ...b.params], boolean: false };
     }
     const textOperator = operator === '+' && (typeof left === 'string' || typeof right === 'string'

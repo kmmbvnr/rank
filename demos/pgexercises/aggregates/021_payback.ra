@@ -1,0 +1,43 @@
+rem PostgreSQL Exercises: aggregates 21
+rem https://pgexercises.com/questions/aggregates/payback.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_021.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+F = Db .facilities
+R = B F innerjoin by .facid
+R = R select
+  Guest = .memid equal 0
+  GCost = .slots * .guestcost
+  MCost = .slots * .membercost
+  .facid = .facid
+  .name = .name
+  .outlay = .initialoutlay
+  .maintenance = .monthlymaintenance
+  .revenue = Guest GCost MCost choose
+end
+G = R group by .facid
+R = G select
+  .name = .name min
+  .outlay = .outlay min
+  .maintenance = .maintenance min
+  .revenue = .revenue sum
+end
+R = R select
+  .name = .name
+  .outlay = .outlay
+  .net = .revenue / 3 - .maintenance
+end
+R = R select
+  .name = .name
+  .months = .outlay / .net
+end
+Result = R sort by .name
+Result OutputPath csv

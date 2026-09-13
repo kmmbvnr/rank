@@ -177,7 +177,8 @@ same database file. Numeric SQLite keys match integer and real values, while
 numeric and text keys stay distinct as in Rank arrays.
 
 The supported SQLite expression operators are `equal`, `notequal`, `less`,
-`greater`, `at least`, `at most`, `and`, `or`, `+`, `-` and `*`. A scalar
+`greater`, `at least`, `at most`, `and`, `or`, `+`, `-`, `*` and `/`. Division
+uses real arithmetic even when both columns hold integers. A scalar
 `sum` executes its aggregate; ordinary columns and tables remain lazy until a
 terminal operation. Other array operations require explicit `array` for now.
 SQLite `NULL` fields are absent when rows are materialized. The database view

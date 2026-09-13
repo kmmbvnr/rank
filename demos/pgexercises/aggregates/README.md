@@ -4,11 +4,11 @@ The [22 aggregation questions](https://www.pgexercises.com/questions/aggregates/
 use the local SQLite club database from [Basic](../basic/README.md). The
 database stays in the ignored `../data/` directory.
 
-Twenty questions have runnable Rank solutions. The first two counts and the
+Twenty-one questions have runnable Rank solutions. The first two counts and the
 seventh, distinct-member count, print scalars. Grouped `select` stays in SQLite
 until CSV output. The same table programs also run on arrays. Question 15 uses
-`len` to fetch one scalar count before building the lazy result view. Questions
-21–22 remain; the [translation roadmap](../../../docs/design/sqlite-tables.md)
+`len` to fetch one scalar count before building the lazy result view. Question
+22 remains; the [translation roadmap](../../../docs/design/sqlite-tables.md)
 tracks possible language extensions.
 
 | # | Question | Rank program |
@@ -33,6 +33,7 @@ tracks possible language extensions.
 | 18 | [Rank members by rounded hours](https://pgexercises.com/questions/aggregates/rankmembers.html) | [018](018_ranks.ra) |
 | 19 | [Top three facilities by revenue, including ties](https://pgexercises.com/questions/aggregates/facrev3.html) | [019](019_revtop.ra) |
 | 20 | [Classify facilities by revenue](https://pgexercises.com/questions/aggregates/classify.html) | [020](020_classify.ra) |
+| 21 | [Facility payback time](https://pgexercises.com/questions/aggregates/payback.html) | [021](021_payback.ra) |
 
 Run a program from the repository root:
 
@@ -41,7 +42,8 @@ npm run rank -- demos/pgexercises/aggregates/001_count.ra
 ```
 
 The [CLI oracle](../../../packages/cli/test/pgexercises-aggregates.test.mjs)
-compares all twenty solutions with equivalent SQLite queries on a temporary
+compares all twenty-one solutions with equivalent SQLite queries on a temporary
 database, including empty tables, repeated IDs, null recommenders and date
 boundaries. Grouped solutions run against both SQLite and array tables. Question
 20 uses `len` for a scalar `COUNT(*)` and keeps the row pipeline lazy.
+Question 21 uses real division in the SQLite plan and groups by facility ID.

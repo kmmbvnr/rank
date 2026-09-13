@@ -344,6 +344,71 @@ test('facility revenue classes match NTILE on SQLite views and arrays', () => {
     }
 });
 
+test('facility payback matches SQLite arithmetic on views and arrays', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-payback-'));
+    const dbPath = path.join(dir, 'club.sqlite3');
+    const output = path.join(dir, 'out.csv');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE facilities (facid INTEGER, name TEXT, '
+            + 'membercost REAL, guestcost REAL, initialoutlay REAL, '
+            + 'monthlymaintenance REAL); '
+            + 'CREATE TABLE bookings (facid INTEGER, memid INTEGER, slots INTEGER)');
+        const oracle = 'SELECT MIN(f.name) AS name, '
+            + 'MIN(f.initialoutlay) / (SUM(b.slots * CASE WHEN b.memid = 0 '
+            + 'THEN f.guestcost ELSE f.membercost END) / 3.0 '
+            + '- MIN(f.monthlymaintenance)) AS months '
+            + 'FROM bookings b JOIN facilities f ON b.facid = f.facid '
+            + 'GROUP BY f.facid ORDER BY name';
+        const file = path.join(examples, '021_payback.ra');
+        for (const filled of [false, true]) {
+            if (filled) db.exec("INSERT INTO facilities VALUES "
+                + "(1,'Court',10,20,100,5),(2,'Pool',2,8,75,3),"
+                + "(3,'Court',6,12,90,2),(4,'Unused',1,2,50,1); "
+                + 'INSERT INTO bookings VALUES '
+                + '(1,0,3),(1,1,4),(2,0,5),(2,2,8),'
+                + '(3,1,5),(3,0,4)');
+            for (const storage of ['sqlite', 'array']) {
+                if (!filled && storage === 'array') continue;
+                let source = file;
+                if (storage === 'array') {
+                    const tables = Object.fromEntries(['facilities', 'bookings']
+                        .map(name => [name, db.prepare(`SELECT * FROM ${name}`).all()]));
+                    const program = fs.readFileSync(file, 'utf8')
+                        .replace('Db = DbPath sqlite',
+                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`);
+                    source = path.join(dir, 'array.ra');
+                    fs.writeFileSync(source, program);
+                }
+                const result = spawnSync(process.execPath,
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                assert.equal(result.status, 0, result.stderr);
+                const expected = db.prepare(oracle).all();
+                const actual = csvRows(output);
+                assert.deepEqual(actual[0], ['name', 'months']);
+                assert.equal(actual.length, expected.length + 1);
+                actual.slice(1).forEach(([name, months], index) => {
+                    assert.equal(name, expected[index].name);
+                    assert.ok(Math.abs(Number(months) - expected[index].months) < 1e-12);
+                });
+            }
+        }
+        const inspect = path.join(dir, 'inspect.ra');
+        fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
+            .replace('Result OutputPath csv',
+                'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath,
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /GROUP BY "facid"/);
+        assert.match(plan.stdout, /1\.0 \* "revenue"/);
+        assert.match(plan.stdout, /1\.0 \* "outlay"/);
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});
+
 test('grouped aggregate programs match SQLite without reading source rows early', async t => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-groups-'));
     const dbPath = path.join(dir, 'club.sqlite3');
