@@ -120,6 +120,17 @@ export function sqliteColumn(table: RankSqliteTable, name: string): RankSqliteEx
         textual: table.textColumns?.has(name) ?? false };
 }
 
+export function sqliteRownumber(table: RankSqliteTable): RankSqliteExpression {
+    if (!table.orderBy?.length) {
+        throw new RankError('SQLite rownumber requires sort by before select', 'TypeError');
+    }
+    const order = table.orderBy.flatMap(({ field, descending }) =>
+        [`${quote(field)} IS NULL`, quote(field) + (descending ? ' DESC' : '')]).join(', ');
+    return { kind: 'sqlite-expression', table,
+        text: `ROW_NUMBER() OVER (ORDER BY ${order})`, params: [],
+        boolean: false, window: 'rownumber' };
+}
+
 export function sqliteScope(table: RankSqliteTable, name: string): RankSqliteScope {
     if (!table.scopes?.has(name)) throw new RankError(`SQLite scope does not exist: .${name}`, 'Missing');
     return { kind: 'sqlite-scope', table, name };
@@ -159,6 +170,7 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
     const params: SqliteScalar[] = [];
     const booleanColumns = new Set<string>();
     const textColumns = new Set<string>();
+    let rownumberField: string | undefined;
     for (const [name, value] of fields.entries) {
         if (isRankSqliteExpression(value)) {
             if (value.table !== table) {
@@ -168,6 +180,7 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
             params.push(...value.params);
             if (value.boolean) booleanColumns.add(name);
             if (value.textual) textColumns.add(name);
+            if (value.window === 'rownumber' && rownumberField === undefined) rownumberField = name;
         } else {
             columns.push(`? AS ${quote(name)}`);
             params.push(toSqlite(value));
@@ -176,8 +189,10 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
         }
     }
     return { kind: 'sqlite-table', database: table.database,
-        text: `SELECT ${columns.join(', ')} FROM (${table.text}) AS source`,
-        params: [...params, ...table.params], booleanColumns, textColumns };
+        text: `SELECT ${columns.join(', ')} FROM (${table.text}) AS source`
+            + (rownumberField ? ` ORDER BY ${quote(rownumberField)}` : ''),
+        params: [...params, ...table.params], booleanColumns, textColumns,
+        orderBy: rownumberField ? [{ field: rownumberField, descending: false }] : undefined };
 }
 
 export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpression): RankSqliteTable {

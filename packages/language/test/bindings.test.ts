@@ -26,6 +26,15 @@ function named(result: ProgramFacts, scope: string, name: string): Binding {
 }
 
 describe('binding facts', () => {
+    it('recognizes contextual rownumber in a select field', async () => {
+        const result = await facts([
+            'use tables', 'Rows = Input',
+            'Out = Rows select', '  .number = rownumber', 'end',
+        ], ['Input']);
+        expect(result.words).toEqual([]);
+        expect(result.missing).toEqual([]);
+    });
+
     it('tracks select locals separately and resolves an initializer against preceding bindings', async () => {
         const result = await facts([
             'use tables', 'Cost = 9', 'Rows = Input',

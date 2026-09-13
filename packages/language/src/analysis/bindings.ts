@@ -16,7 +16,7 @@ import {
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
-    isPushStatement, isRecordExpression, isReturnStatement, isStdinExpression,
+    isPushStatement, isRecordExpression, isRecordField, isReturnStatement, isStdinExpression,
     isTestStatement, isTryStatement, isUnaryExpression, isUnpackExpression,
     isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type Program, type Statement,
@@ -448,7 +448,8 @@ class Analyzer {
             for (const entry of expression.entries) {
                 // A calculation sees only earlier select locals, not later ones.
                 const before = this.pending.length;
-                this.expression(entry.value);
+                if (!(isRecordField(entry) && isNameExpression(entry.value)
+                    && entry.value.name === 'rownumber')) this.expression(entry.value);
                 const visible = { ...scope, slots: new Map(scope.slots) };
                 for (let i = before; i < this.pending.length; i += 1) {
                     const read = this.pending[i];

@@ -93,6 +93,7 @@ export interface RankSqliteExpression {
     readonly boolean: boolean;
     readonly textual?: boolean;
     readonly calendar?: 'date' | 'datetime';
+    readonly window?: 'rownumber';
 }
 
 export interface RankLabel {

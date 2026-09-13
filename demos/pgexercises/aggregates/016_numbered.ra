@@ -1,0 +1,19 @@
+rem PostgreSQL Exercises: aggregates 16
+rem https://pgexercises.com/questions/aggregates/nummembers.html
+
+use cli
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_016.csv"
+
+Db = DbPath sqlite
+M = Db .members
+R = M sort by .joindate .memid
+Result = R select
+  .row_number = rownumber
+  .firstname = .firstname
+  .surname = .surname
+end
+Result OutputPath csv

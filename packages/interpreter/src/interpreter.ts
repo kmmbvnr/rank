@@ -115,7 +115,7 @@ import { groupTable, joinAliasedTables, joinTables, projectAliasedField, project
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sortSqlite, sqliteColumn, sqliteScope,
-    sqliteScopedColumn, sqliteTable,
+    sqliteScopedColumn, sqliteTable, sqliteRownumber,
     sqliteWrite, executeSqliteWrite, inSqlite,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
@@ -1742,7 +1742,11 @@ export class Interpreter {
                         add(field.name, interpreter.applySelectors([source, { kind: 'label', name: field.name }]));
                     }
                     for (const entry of expression.entries) {
-                        const value = yield* resume(contextual(entry.value));
+                        const value = isRecordField(entry)
+                            && isNameExpression(entry.value) && entry.value.name === 'rownumber'
+                            ? isRankSqliteTable(source) ? sqliteRownumber(source)
+                                : derivedArray(source.shape, [source], index => BigInt(index + 1), true)
+                            : yield* resume(contextual(entry.value));
                         if (isRecordField(entry)) add(entry.name, value);
                         else {
                             const previous = frame.get(entry.name);

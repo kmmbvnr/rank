@@ -3,6 +3,21 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { MemoryIo, run } from './support.js';
 
 describe('Rank tables', () => {
+    it('numbers array rows in their current order inside select', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use sequences',
+            'Rows = "[{\\"id\\":3},{\\"id\\":1},{\\"id\\":2}]" json',
+            'Sorted = Rows sort by .id',
+            'Out = Sorted select',
+            '  .number = rownumber',
+            '  .id = .id',
+            'end',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Out .number')!)).toBe('1 2 3');
+        expect(formatValue(runtime.execute('Out .id')!)).toBe('1 2 3');
+    });
+
     it('groups one and several fields into flat aggregate tables', () => {
         const runtime = new Interpreter();
         runtime.execute([

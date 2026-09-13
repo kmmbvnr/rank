@@ -38,17 +38,22 @@ arithmetic, but its output needs a decision: rollup levels have different
 shapes, so a flat table of coordinates, level and total is more natural than a
 rectangular tensor. No tensor-rollup spelling or output schema is settled.
 
-Window calculations remain unimplemented:
+`select` on an ordinary array table accepts a same-length array column, but
+`select` on a SQLite view cannot turn an external Rank array such as
+`N = (1 to R len) array` into a lazy SQL column. A future feature could join
+array-valued columns to SQLite rows by position; it needs an explicit ordering
+and alignment contract before implementation. This limitation remains even
+though contextual `rownumber` now covers the numbering exercise.
+
+Other window calculations remain unimplemented:
 
 ```rank
-R = Members rownumber by .joindate
 R = R rank by .hours descending
 R = R 3 tile by .revenue descending
 ```
 
-Window operations would add one named column to a new view; `rownumber`
-numbers rows, `rank` leaves gaps after ties, and `N tile` assigns nearly equal
-bands. Their ordering and missing-value rules need a language decision before
+`rank` leaves gaps after ties, and `N tile` assigns nearly equal bands. Their
+ordering and missing-value rules need a language decision before
 implementation. The final rolling revenue exercise also needs date ranges
 and a rolling-window rule that counts days with zero bookings.
 

@@ -53,6 +53,21 @@ it('names a SQLite column without reading rows before materialization', () => {
     expect(io.reads).toHaveLength(1);
 });
 
+it('pushes select rownumber into an ordered SQLite window', () => {
+    const io = new CountingSqliteIo({});
+    const runtime = new Interpreter(undefined, { io });
+    runtime.execute('use tables\nuse sequences\nDb = "club.sqlite3" sqlite\n'
+        + 'R = Db .facilities\nR = R sort by .name\n'
+        + 'Out = R select\n  .number = rownumber\n  .title = .name\nend\n'
+        + 'Statement = Out sql');
+    expect(io.reads).toEqual([]);
+    const sql = formatValue(runtime.execute('Statement .text')!);
+    expect(sql).toContain('ROW_NUMBER() OVER (ORDER BY');
+    expect(sql).toContain('ORDER BY "number"');
+    expect(() => runtime.execute('Bad = Db .facilities select\n'
+        + '  .number = rownumber\nend')).toThrowError('requires sort by');
+});
+
 it('keeps choose as a SQLite expression until a row is requested', () => {
     const io = new CountingSqliteIo({});
     const runtime = new Interpreter(undefined, { io });

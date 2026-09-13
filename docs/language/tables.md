@@ -89,7 +89,24 @@ reading rows or changing the database. SQL `NULL` leaves the output field
 absent, so CSV writes an empty cell. On an array table, fields may be scalars
 or rank-1 arrays with one value per row; the output rows are read lazily and
 missing source cells remain missing. The source table is unchanged. Put
-`sort by` after `select` when the exported rows need a guaranteed order.
+`sort by` after an ordinary `select` when the exported rows need a guaranteed order.
+
+Inside a `select` block, bare `rownumber` gives each row its one-based position:
+
+```rank
+R = Members sort by .joindate .memid
+Out = R select
+  .row_number = rownumber
+  .firstname = .firstname
+  .surname = .surname
+end
+```
+
+On an array table it follows the current row order. On a SQLite view it
+requires a preceding `sort by` and generates `ROW_NUMBER() OVER (ORDER BY ...)`
+with a final output order by the numbered column. It does not read rows before
+output. The field name is chosen by the left side of the `select` entry;
+`rownumber` is only valid in this context.
 
 For a row-dependent column, build a boolean expression and choose between two
 values from the same view:
