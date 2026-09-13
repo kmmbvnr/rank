@@ -1,0 +1,22 @@
+rem PostgreSQL Exercises: date 9
+rem https://pgexercises.com/questions/date/bookingspermonth.html
+
+use cli
+use dates
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/date_009.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+R = B select
+  .month = .starttime datetime monthstart
+end
+G = R group by .month
+Result = G select
+  .count = count
+end
+Result = Result sort by .month
+Result OutputPath csv

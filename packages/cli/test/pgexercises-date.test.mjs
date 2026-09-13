@@ -176,3 +176,52 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
         fs.rmSync(temporary, { recursive: true, force: true });
     }
 });
+
+test('monthly booking counts match SQL on SQLite and arrays', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const csvPath = path.join(temporary, 'bookings.csv');
+    const output = path.join(temporary, 'monthly.csv');
+    const arrayScript = path.join(temporary, 'monthly-array.ra');
+    const inspect = path.join(temporary, 'inspect.ra');
+    const source = fs.readFileSync(path.join(directory, '009_monthly.ra'), 'utf8');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE bookings (starttime TEXT)');
+        const dates = [
+            '2012-07-31 23:30:00', '2012-07-01 08:00:00',
+            '2012-08-01 00:00:00', '2013-01-01 15:30:00',
+        ];
+        const insert = db.prepare('INSERT INTO bookings VALUES (?)');
+        for (const date of dates) insert.run(date);
+        fs.writeFileSync(csvPath, `starttime\n${dates.join('\n')}\n`);
+        const oracle = `SELECT datetime(starttime, 'start of month') AS month,
+            COUNT(*) AS count FROM bookings GROUP BY month ORDER BY month`;
+        const expected = ['month,count', ...db.prepare(oracle).all()
+            .map(row => `${row.month},${row.count}`)];
+        assert.deepEqual(expected, [
+            'month,count',
+            '2012-07-01 00:00:00,2',
+            '2012-08-01 00:00:00,1',
+            '2013-01-01 00:00:00,1',
+        ]);
+        run('009_monthly.ra', dbPath, output);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), expected);
+        fs.writeFileSync(arrayScript, source.replace(
+            'Db = DbPath sqlite\nB = Db .bookings', 'B = DbPath csv'));
+        const array = spawnSync(process.execPath,
+            [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(array.status, 0, array.stderr);
+        assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), expected);
+        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+            'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath, [cli, inspect, dbPath, output],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /datetime\("starttime", 'start of month'\)/);
+        assert.match(plan.stdout, /GROUP BY/);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});
