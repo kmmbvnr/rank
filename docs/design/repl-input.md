@@ -232,8 +232,12 @@ fix is worth what the lines below it are worth — which, for the small programs
 this prompt is for, is usually all of it, and `list` shows what the file now
 says either way.
 
-A line that fails is not written to the file, but a line already in the file
-keeps the edit that broke it, so a bad fix can be fixed again.
+A line that raised is written like any other. It is on screen as the file's next
+line whether it ran or not, and it is the first line anyone wants back, so the
+arrows have to reach it: up puts it on its own row with the error taken off the
+screen, and the fix replaces it. The red error under it is the sign that it did
+not run, `list` shows what the file now says, and a line cleared to nothing
+becomes a blank line, which is how a statement is given up on.
 
 `Ctrl-P` still walks the typed history, which is what the up arrow used to do.
 The two had been the same key; now one walks the program and the other walks
@@ -338,8 +342,8 @@ its own `times` keeps it. What a reader sees is always `A = 3`.
   scrollback, since scrollback is the terminal's and not ours to rewrite.
 - Stepping back is by statement, so a file loaded with `load` cannot be stepped
   into at all: its lines were never printed, and the REPL has no row for them.
-- A statement that raised stays in plain text although `save` will not write it.
-  It is printed before it runs, and the red error under it is the only sign.
+- A statement that raised is written, so `save` can write a file that does not
+  run. The error is on screen and in `list`, but the saved file carries no mark.
 
 ## Open questions
 

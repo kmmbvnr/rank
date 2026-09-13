@@ -368,11 +368,13 @@ export async function startRepl(): Promise<void> {
                 && erase(settled)) put(source.split('\n'));
             settle();
             state = EMPTY_CELL;
-            const ran = run(interpreter, source, session());
-            // A line that fails is not written; a line already in the file
-            // keeps the edit, so a broken fix can be fixed again.
-            if (ran || cellStart < file.length) write(source.split('\n'));
-            else cursor = cellStart;
+            run(interpreter, source, session());
+            // What ran is written whether it worked or not. It is on screen as
+            // the file's next line either way, and a statement that raised is
+            // the first one anybody wants back: the up arrow has to reach it to
+            // fix it where it stands. The red error under it is the sign it did
+            // not run, and `list` shows what the file now says.
+            write(source.split('\n'));
             draw();
         }
 

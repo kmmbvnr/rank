@@ -39,7 +39,10 @@ test('rows out of reach are left alone rather than erased', () => {
  * line that ran is printed again with no prompt in front of it, which is what
  * makes the screen read as the file the session is writing.
  */
-const KEYS = { '<TAB>': '\\t', '<UP>': '\\033\\[A', '<DOWN>': '\\033\\[B', '<BS>': '\\177' };
+const KEYS = {
+    '<TAB>': '\\t', '<UP>': '\\033\\[A', '<DOWN>': '\\033\\[B', '<BS>': '\\177',
+    '<CLEAR>': '\\025',
+};
 
 function transcript(lines, screen) {
     const steps = lines.flatMap(line => [
@@ -134,6 +137,19 @@ test('a statement that scrolled off the top brings the screen back with it', () 
     // Walking forward from there writes the file out again, as it stands.
     assert.match(after, /\x1b\[2m {2}5 \x1b\[22m E = 5/);
     assert.doesNotMatch(after, /\x1b\[2m {2}6 /);
+});
+
+test('a statement that raised comes back to be fixed where it stands', () => {
+    // The line is in the file although it did not run: it is on screen as the
+    // file's next line, and fixing it is the first thing anyone does with it.
+    const session = transcript(['dewdewd', 'list', '<UP><CLEAR>B, 2', 'list']);
+    assert.match(session, /unknown name: dewdewd/);
+    assert.match(session, /\x1b\[2m {2}1 \x1b\[22m dewdewd/, 'the line that raised was dropped');
+    // Up reaches it, error and all, and puts it back on its own row.
+    assert.match(session, / {3}1> (\x1b\[\d+G)?dewdewd/);
+    // The fix replaces it rather than being written under it.
+    assert.match(session, /\x1b\[2m {2}1 \x1b\[22m B = 2/);
+    assert.doesNotMatch(session, /\x1b\[2m {2}2 /);
 });
 
 test('a blank line between statements is part of the file', () => {
