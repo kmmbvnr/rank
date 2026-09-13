@@ -173,7 +173,10 @@ A completion listing goes the same way. It is the prompt thinking aloud, so it
 is taken back off the screen together with the prompt that asked for it, and the
 line that ran is all that is left where both of them stood. A second tab
 replaces the listing rather than stacking another under it: only the newest one
-answers what has been typed.
+answers what has been typed. Taking a listing back redraws the line, because
+readline prints a listing only on the second tab of two and writes nothing at
+all on a tab it has nothing to add to — on that tab the line would otherwise go
+off the screen with the listing it asked for.
 
 **Up steps back into the file.** With something already written, the up arrow
 walks the prompt up to the statement above and puts it back where it already

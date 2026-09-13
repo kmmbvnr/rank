@@ -92,8 +92,13 @@ export async function startRepl(): Promise<void> {
                 const prompt = promptFor(state).length + input.line.length;
                 // The cursor sits on the last row of the prompt line, so the
                 // listing and every row of that line but the first come back.
-                if (shown > 0) {
-                    eraseRows(process.stdout, shown + screenRows(prompt, columns()) - 1);
+                if (shown > 0
+                    && eraseRows(process.stdout, shown + screenRows(prompt, columns()) - 1)) {
+                    // Readline prints a listing only on the second tab of two,
+                    // and writes nothing at all on a tab with nothing to add,
+                    // so the line would be left erased. Put it back; a listing
+                    // that does come draws itself under it as it always does.
+                    input.prompt(true);
                 }
                 counted.arm();
                 return complete(line, interpreter, state);

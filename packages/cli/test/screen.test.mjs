@@ -98,6 +98,15 @@ test('a second listing replaces the first rather than piling on it', () => {
     assert.equal(listings.length, 2, `erased ${JSON.stringify(erased)}`);
 });
 
+test('a tab with nothing to add leaves the line it was typed on', () => {
+    // Readline prints a listing only on the second tab of two, and on a tab it
+    // has nothing to add to it writes nothing at all. So the erase that takes a
+    // listing back has to put the line back itself, or the line the user is
+    // editing goes off the screen with the listing.
+    const session = transcript(['use numbers', 'fibonacci eve<TAB><TAB>n<TAB>']);
+    assert.match(session, /\x1b\[\d+A\x1b\[1G\x1b\[0J\x1b\[1G\x1b\[0Jrank> fibonacci even/);
+});
+
 test('the arrows step back into the file and Enter walks forward again', () => {
     // Up twice reaches the first statement, which is then fixed; the Enter
     // that ends the line runs it, and the next Enter runs the line below with
