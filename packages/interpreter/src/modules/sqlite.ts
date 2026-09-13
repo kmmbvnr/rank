@@ -13,6 +13,7 @@ import {
     isRankObject,
     isRankTableAlias,
     type RankArray,
+    type RankDate,
     type RankObject,
     type RankSqliteDatabase,
     type RankSqliteExpression,
@@ -81,6 +82,18 @@ export function sqliteTable(database: RankSqliteDatabase, name: string): RankSql
         params: [],
         writeTarget: { name, params: [] },
     };
+}
+
+export function sqliteCalendar(
+    database: RankSqliteDatabase, start: RankDate, end: RankDate,
+): RankSqliteTable {
+    const first = formatDate(start);
+    const last = formatDate(end);
+    return { kind: 'sqlite-table', database,
+        text: 'WITH RECURSIVE days(date) AS (SELECT ? WHERE ? <= ? '
+            + "UNION ALL SELECT date(date, '+1 day') FROM days WHERE date < ?) "
+            + 'SELECT date FROM days',
+        params: [first, first, last, last], textColumns: new Set(['date']) };
 }
 
 export function materializeSqlite(table: RankSqliteTable): RankArray {
@@ -476,6 +489,33 @@ export function selectGroupedSqlite(
         params: levels.flatMap(() => source.params),
         booleanColumns: new Set(keys.filter(key => source.booleanColumns?.has(key))),
         textColumns: new Set(keys.filter(key => source.textColumns?.has(key))) };
+}
+
+export function selectRollingSqlite(
+    source: RankSqliteTable, rolling: { readonly width: number; readonly field: string },
+    specs: readonly GroupAggregateSpec[],
+): RankSqliteTable {
+    const columns = sqliteColumns(source);
+    const order = quote(rolling.field);
+    const frame = `ORDER BY ${order} IS NULL, ${order} ROWS BETWEEN ${rolling.width - 1} PRECEDING AND CURRENT ROW`;
+    const aggregates = specs.map(spec => {
+        if (spec.field && !columns.includes(spec.field)) {
+            throw new RankError(`SQLite column does not exist: .${spec.field}`, 'Missing');
+        }
+        if (spec.operation === 'median' || spec.operation === 'std') {
+            throw new RankError(`SQLite rolling ${spec.operation} is not supported yet`, 'TypeError');
+        }
+        const field = spec.field ? quote(spec.field) : '*';
+        const aggregate = spec.operation === 'mean' ? 'AVG' : spec.operation.toUpperCase();
+        const expression = `${aggregate}(${field}) OVER (${frame})`;
+        return `${spec.operation === 'sum' ? `COALESCE(${expression}, 0)` : expression} AS ${quote(spec.name)}`;
+    });
+    return { kind: 'sqlite-table', database: source.database,
+        text: `SELECT ${[`${order} AS ${order}`, ...aggregates].join(', ')} FROM (${source.text}) AS source`
+            + ` ORDER BY ${order} IS NULL, ${order}`,
+        params: source.params,
+        textColumns: new Set(source.textColumns?.has(rolling.field) ? [rolling.field] : []),
+        orderBy: [{ field: rolling.field, descending: false }] };
 }
 
 export function maxSqlite(expression: RankSqliteExpression): RankValue {

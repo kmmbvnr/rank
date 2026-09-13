@@ -83,7 +83,8 @@ Calendar dates and local date-times.
 
 | Form | Result | Summary |
 | --- | --- | --- |
-| `Text date` | date | Parses exactly YYYY-MM-DD. |
+| `Text date` | date | Parses YYYY-MM-DD or truncates a datetime to its calendar day. |
+| `Db Start End calendar` | table, lazy | Inclusive daily table; optional database keeps it as a SQLite view. |
 | `Text datetime` | datetime | Parses exactly YYYY-MM-DD HH:MM:SS as a local wall-clock value. |
 | `Value day` | integer | Day of the month of a date or datetime. |
 | `Moment hour` | integer | Hour of a datetime. |
@@ -325,6 +326,7 @@ These need `use tables` but have no name to look up.
 | --- | --- |
 | `Rows group by .field` | Grouped view summarized by a named select block. |
 | `Rows rollup by .first .second` | Grouped view with detail rows, prefix subtotals and a grand total. |
+| `Rows Width rolling by .date` | One trailing row window per ordered row, summarized by select. |
 | `Rows filter .field greater Limit` | Filters a table with implicit input columns; condition lines in a block use AND. |
 | `Rows select .first .second` | Selects named columns into a rank-1 table, including a single column. |
 | `Rows select ... end` | Computes named columns with block-local calculations and an implicit input table. |

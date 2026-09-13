@@ -1,0 +1,43 @@
+rem PostgreSQL Exercises: aggregates 22
+rem https://pgexercises.com/questions/aggregates/rollingavg.html
+
+use cli
+use dates
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_022.csv"
+
+Db = DbPath sqlite
+Start = "2012-07-18"
+End = "2012-08-31"
+Days = Db Start End calendar
+B = Db .bookings
+F = Db .facilities
+R = B F innerjoin by .facid
+R = R select
+  Guest = .memid equal 0
+  GCost = .slots * .guestcost
+  MCost = .slots * .membercost
+  .date = .starttime datetime date
+  .revenue = Guest GCost MCost choose
+end
+G = R group by .date
+Revenue = G select
+  .revenue = .revenue sum
+end
+Daily = Days Revenue leftjoin by .date
+W = Daily 15 rolling by .date
+R = W select
+  .revenue = .revenue sum
+end
+August = "2012-08-01" date
+R = R filter .date at least August
+R = R select
+  .date = .date
+  .revenue = .revenue / 15
+end
+Result = R sort by .date
+Result OutputPath csv

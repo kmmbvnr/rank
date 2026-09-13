@@ -38,7 +38,11 @@ and cleanup materialization from Joins 6 and 8. Task 7 uses `lookup` for a
 correlated scalar subquery without a join or early row read. The
 [ergonomics decision](table-query-ergonomics.md) records the change.
 
-The next steps are tile and rolling windows, general table union, text matching and scalar aggregates inside
+The final aggregate exercise adds `calendar`, datetime-to-date conversion and
+`rolling by` on arrays and SQLite views. Its 15-day result uses a generated day
+for every date, then a SQL `ROWS 14 PRECEDING` window before filtering August.
+
+The next steps are tile, general table union, text matching and scalar aggregates inside
 query expressions. Preserve an explicit ordering
 contract when adding operations after `sort by`; a SQLite subquery does not
 promise to retain its source order. Multiway aliased joins need qualified keys

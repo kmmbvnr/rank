@@ -4,12 +4,12 @@ The [22 aggregation questions](https://www.pgexercises.com/questions/aggregates/
 use the local SQLite club database from [Basic](../basic/README.md). The
 database stays in the ignored `../data/` directory.
 
-Twenty-one questions have runnable Rank solutions. The first two counts and the
+All twenty-two questions have runnable Rank solutions. The first two counts and the
 seventh, distinct-member count, print scalars. Grouped `select` stays in SQLite
 until CSV output. The same table programs also run on arrays. Question 15 uses
 `len` to fetch one scalar count before building the lazy result view. Question
-22 remains; the [translation roadmap](../../../docs/design/sqlite-tables.md)
-tracks possible language extensions.
+22 uses a generated calendar and a lazy rolling SQLite window; the
+[translation roadmap](../../../docs/design/sqlite-tables.md) tracks further work.
 
 | # | Question | Rank program |
 |---|---|---|
@@ -34,6 +34,7 @@ tracks possible language extensions.
 | 19 | [Top three facilities by revenue, including ties](https://pgexercises.com/questions/aggregates/facrev3.html) | [019](019_revtop.ra) |
 | 20 | [Classify facilities by revenue](https://pgexercises.com/questions/aggregates/classify.html) | [020](020_classify.ra) |
 | 21 | [Facility payback time](https://pgexercises.com/questions/aggregates/payback.html) | [021](021_payback.ra) |
+| 22 | [Rolling daily revenue](https://pgexercises.com/questions/aggregates/rollingavg.html) | [022](022_rolling.ra) |
 
 Run a program from the repository root:
 
@@ -42,8 +43,10 @@ npm run rank -- demos/pgexercises/aggregates/001_count.ra
 ```
 
 The [CLI oracle](../../../packages/cli/test/pgexercises-aggregates.test.mjs)
-compares all twenty-one solutions with equivalent SQLite queries on a temporary
+compares all twenty-two solutions with equivalent SQLite queries on a temporary
 database, including empty tables, repeated IDs, null recommenders and date
 boundaries. Grouped solutions run against both SQLite and array tables. Question
 20 uses `len` for a scalar `COUNT(*)` and keeps the row pipeline lazy.
 Question 21 uses real division in the SQLite plan and groups by facility ID.
+Question 22 generates days from July 18 through August 31, sums daily revenue,
+and applies a 15-row rolling window before selecting August dates.

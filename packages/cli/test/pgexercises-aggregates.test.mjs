@@ -409,6 +409,85 @@ test('facility payback matches SQLite arithmetic on views and arrays', () => {
     }
 });
 
+test('rolling daily revenue includes empty days on SQLite and arrays', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-rolling-'));
+    const dbPath = path.join(dir, 'club.sqlite3');
+    const output = path.join(dir, 'out.csv');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE facilities (facid INTEGER, guestcost REAL, membercost REAL); '
+            + 'CREATE TABLE bookings (facid INTEGER, memid INTEGER, slots INTEGER, starttime TEXT); '
+            + 'INSERT INTO facilities VALUES (1,10,4),(2,7,3)');
+        const oracle = `WITH RECURSIVE days(date) AS (
+            SELECT '2012-07-18' UNION ALL
+            SELECT date(date, '+1 day') FROM days WHERE date < '2012-08-31'
+        ), revenue AS (
+            SELECT date(b.starttime) AS date,
+                SUM(b.slots * CASE WHEN b.memid = 0 THEN f.guestcost
+                    ELSE f.membercost END) AS revenue
+            FROM bookings b JOIN facilities f ON b.facid = f.facid
+            GROUP BY date(b.starttime)
+        ), rolling AS (
+            SELECT days.date,
+                COALESCE(SUM(revenue.revenue) OVER
+                    (ORDER BY days.date ROWS BETWEEN 14 PRECEDING AND CURRENT ROW), 0)
+                    / 15.0 AS revenue
+            FROM days LEFT JOIN revenue ON days.date = revenue.date
+        ) SELECT * FROM rolling WHERE date >= '2012-08-01' ORDER BY date`;
+        const file = path.join(examples, '022_rolling.ra');
+        for (const filled of [false, true]) {
+            if (filled) db.exec("INSERT INTO bookings VALUES "
+                + "(1,0,2,'2012-07-17 12:00:00'),"
+                + "(1,0,2,'2012-07-18 00:00:00'),"
+                + "(1,1,3,'2012-07-31 23:59:59'),"
+                + "(2,0,1,'2012-08-01 00:00:00'),"
+                + "(1,1,2,'2012-08-01 23:59:59'),"
+                + "(1,2,1,'2012-08-02 12:00:00'),"
+                + "(2,0,2,'2012-08-31 12:00:00')");
+            for (const storage of ['sqlite', 'array']) {
+                if (!filled && storage === 'array') continue;
+                let source = file;
+                if (storage === 'array') {
+                    const tables = Object.fromEntries(['facilities', 'bookings']
+                        .map(name => [name, db.prepare(`SELECT * FROM ${name}`).all()]));
+                    const program = fs.readFileSync(file, 'utf8')
+                        .replace('Db = DbPath sqlite',
+                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`)
+                        .replace('Days = Db Start End calendar',
+                            'Days = Start End calendar');
+                    source = path.join(dir, 'array.ra');
+                    fs.writeFileSync(source, program);
+                }
+                const result = spawnSync(process.execPath,
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                assert.equal(result.status, 0, result.stderr);
+                const actual = csvRows(output);
+                const expected = db.prepare(oracle).all();
+                assert.deepEqual(actual[0], ['date', 'revenue']);
+                assert.equal(actual.length, 32);
+                actual.slice(1).forEach(([date, revenue], index) => {
+                    assert.equal(date, expected[index].date);
+                    assert.ok(Math.abs(Number(revenue) - expected[index].revenue) < 1e-12);
+                });
+            }
+        }
+        const inspect = path.join(dir, 'inspect.ra');
+        fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
+            .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath,
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /WITH RECURSIVE days/);
+        assert.match(plan.stdout, /SELECT \? WHERE \? <= \?/);
+        assert.doesNotMatch(plan.stdout, /2012-07-18/);
+        assert.match(plan.stdout, /date\("starttime"\)/);
+        assert.match(plan.stdout, /ROWS BETWEEN 14 PRECEDING AND CURRENT ROW/);
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});
+
 test('grouped aggregate programs match SQLite without reading source rows early', async t => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-groups-'));
     const dbPath = path.join(dir, 'club.sqlite3');

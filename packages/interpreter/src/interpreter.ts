@@ -60,6 +60,7 @@ import {
     isReturnStatement,
     isKeyedSortExpression,
     isKeyedGroupExpression,
+    isKeyedRollingExpression,
     isKeyedJoinExpression,
     isStdinExpression,
     isStringLiteral,
@@ -111,7 +112,7 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
-import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
+import { groupTable, rollingTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sortSqlite, sqliteColumn, sqliteScope,
@@ -1919,6 +1920,14 @@ export class Interpreter {
                 const source = yield* resume(interpreter.evaluateTask(expression.source));
                 return groupTable(source, expression.fields.map(field => field.name),
                     expression.operator === 'rollup by');
+            };
+        }
+        if (isKeyedRollingExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', 'rolling by');
+                const source = yield* resume(interpreter.evaluateTask(expression.source));
+                const width = yield* resume(interpreter.evaluateTask(expression.width));
+                return rollingTable(source, width, expression.field.name);
             };
         }
         if (isKeyedJoinExpression(expression)) {

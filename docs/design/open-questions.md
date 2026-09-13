@@ -53,9 +53,7 @@ R = R 3 tile by .revenue descending
 ```
 
 `N tile` would assign nearly equal bands. Its ordering and missing-value
-rules need a language decision before implementation. The final rolling
-revenue exercise also needs date ranges
-and a rolling-window rule that counts days with zero bookings.
+rules need a language decision before implementation.
 
 ## Pattern matching
 

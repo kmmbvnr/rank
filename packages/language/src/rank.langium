@@ -226,6 +226,7 @@ ApplicationExpression returns Expression:
     AliasedTableExpression |
     KeyedSortExpression |
     KeyedGroupExpression |
+    KeyedRollingExpression |
     KeyedJoinExpression |
     UnaryExpression
     ({infer ApplicationExpression.head=current}
@@ -270,6 +271,9 @@ KeyedSortExpression:
 
 KeyedGroupExpression:
     source=PrimaryExpression operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+;
+
+KeyedRollingExpression:
+    source=PrimaryExpression width=PrimaryExpression operator=ROLLING_BY field=LabelLiteral;
 
 KeyedJoinExpression:
     left=PrimaryExpression right=PrimaryExpression
@@ -405,6 +409,7 @@ terminal ARGSORT_BY: /argsort[\t ]+by/;
 terminal SORT_BY: /sort[\t ]+by/;
 terminal GROUP_BY: /group[\t ]+by/;
 terminal ROLLUP_BY: /rollup[\t ]+by/;
+terminal ROLLING_BY: /rolling[\t ]+by/;
 terminal LEFTJOIN_BY: /leftjoin[\t ]+by/;
 terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
 terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;

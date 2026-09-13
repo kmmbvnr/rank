@@ -3297,6 +3297,10 @@ totals, and `sort by` defines their output order. `View from 0 until N` adds
 SQL `LIMIT` after checking bounds with `len`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
 join keys compare by numeric value, while text and numeric keys do not match.
+`Db Start End calendar` produces an inclusive daily SQLite view, while
+`Start End calendar` produces an array table. `N rolling by .field` orders
+rows and applies named `select` reductions over the current row and up to
+`N-1` predecessors; on SQLite this compiles to an ordered `ROWS` window.
 `sql` exposes the current query and ordered parameters; `explain` inspects its
 SQLite plan. `array`, `print` or CSV output materializes a view. SQLite-backed views are
 read-only; derived-column assignment and operations beyond this set require
@@ -3634,6 +3638,15 @@ end
 Totals = Totals sort by .facid .month
 ```
 
+`N rolling by .field` yields one trailing group per ordered row. `N` is a
+positive integer, and a grouped `select` retains the ordering field. On array
+tables, the result rows remain lazy and follow source changes. SQLite uses
+`ROWS BETWEEN N-1 PRECEDING AND CURRENT ROW` for `count`, `sum`, `min`, `max`
+and `mean`; `median` and `std` are not yet available there. Missing values are
+skipped, and an empty `sum` is zero. Equal keys preserve source order on arrays;
+SQLite needs a unique key for stable ties. Filter after the rolling `select`
+when preceding rows must contribute to the displayed window.
+
 ## Join
 
 Use `leftjoin by` when every left row must remain, or `innerjoin by` for only
@@ -3709,6 +3722,12 @@ Data .weekday = Times weekday
 Data .month = Times month
 Data .year = Times year
 ```
+
+`date` converts a datetime to its calendar day. On a SQLite datetime column,
+`datetime date` generates SQL `date(...)`. `Start End calendar` builds an
+ordinary rank-1 table of inclusive daily `.date` values; with a database as
+the first operand it builds the corresponding lazy SQLite view. Bounds must be
+valid ISO dates or Rank dates; reversed bounds give an empty table.
 
 ---
 

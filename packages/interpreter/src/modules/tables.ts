@@ -1,9 +1,10 @@
-import { derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
+import { arrayRevision, derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import { readTextFile, writeTextFile } from './io.js';
-import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, sqliteColumns } from './sqlite.js';
+import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, selectRollingSqlite, sqliteColumns } from './sqlite.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
+import { sortByKeys } from './sequences.js';
 import { expectNumeric } from './shared.js';
 import { meanValue, medianValue, standardDeviation } from './stats.js';
 import {
@@ -212,6 +213,38 @@ export function groupTable(source: RankValue, fields: readonly string[], rollup 
     return { kind: 'grouped-table', fields, groups, rollup };
 }
 
+export function rollingTable(source: RankValue, width: RankValue, field: string): RankGroupedTable {
+    if (typeof width !== 'bigint' || width < 1n || width > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError('rolling width must be a positive integer', 'TypeError');
+    }
+    const input = isRankTableAlias(source) ? source.source : source;
+    const rolling = { width: Number(width), field };
+    if (isRankSqliteTable(input)) {
+        if (!sqliteColumns(input).includes(field)) {
+            throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
+        }
+        return { kind: 'grouped-table', fields: [field], groups: [], sqliteSource: input, rolling };
+    }
+    if (!isRankArray(input) || input.shape.length !== 1) {
+        throw new RankError('rolling by expects a rank-1 table', 'DimensionMismatch');
+    }
+    let sortedRows: RankArray | undefined;
+    let sortedRevision: number | undefined;
+    const sorted = derivedArray(input.shape, [input], index => {
+        const revision = arrayRevision(input);
+        if (!sortedRows || revision === undefined || revision !== sortedRevision) {
+            const rows = tableRows(input, 'rolling by');
+            if (rows.some(row => !row.entries.has(field))) {
+                throw new RankError(`rolling by requires .${field} in every row`, 'Missing');
+            }
+            sortedRows = sortByKeys(rows, rows.map(row => [row.entries.get(field)]), 'rolling by');
+            sortedRevision = revision;
+        }
+        return readArrayItem(sortedRows, index);
+    });
+    return { kind: 'grouped-table', fields: [field], groups: [], rollingSource: sorted, rolling };
+}
+
 export type GroupAggregateOperation = 'count' | 'sum' | 'min' | 'max' | 'mean' | 'median' | 'std';
 
 export interface GroupAggregateSpec {
@@ -228,40 +261,67 @@ export function selectGroupedTable(
     if (new Set(names).size !== names.length) {
         throw new RankError('grouped select fields must be distinct', 'TypeError');
     }
+    if (table.rolling && table.sqliteSource) {
+        return selectRollingSqlite(table.sqliteSource, table.rolling, specs);
+    }
+    if (table.rolling && table.rollingSource) {
+        const source = table.rollingSource;
+        const { width, field } = table.rolling;
+        const result = derivedArray(source.shape, [source], index => {
+            const current = readArrayItem(source, index);
+            if (!isRankObject(current)) throw new RankError('rolling by expects object rows', 'TypeError');
+            const rows: RankObject[] = [];
+            for (let pos = Math.max(0, index - width + 1); pos <= index; pos += 1) {
+                const row = readArrayItem(source, pos);
+                if (!isRankObject(row)) throw new RankError('rolling by expects object rows', 'TypeError');
+                rows.push(row);
+            }
+            return aggregateGroupRows([current.entries.get(field)], rows, table.fields, specs);
+        });
+        Object.defineProperty(result, 'columnNames', { value: names });
+        return result;
+    }
     if (table.sqliteSource) return selectGroupedSqlite(table.sqliteSource, table.fields, specs, table.rollup);
     const items: RankValue[] = table.groups.map(group => {
-        const entries = new Map<string, RankValue>();
-        table.fields.forEach((name, index) => {
-            const key = group.keys[index];
-            if (key !== undefined) entries.set(name, key);
-        });
-        for (const spec of specs) {
-            const values = spec.field === undefined ? [] : group.rows.flatMap(row => {
-                const value = row.entries.get(spec.field!);
-                return value === undefined ? [] : [value];
-            });
-            if (spec.operation === 'count') {
-                entries.set(spec.name, BigInt(spec.field === undefined ? group.rows.length : values.length));
-            } else if (spec.operation === 'sum') {
-                let total: bigint | number = 0n;
-                for (const value of values) {
-                    const numeric = expectNumeric(value);
-                    total = typeof total === 'bigint' && typeof numeric === 'bigint'
-                        ? total + numeric : Number(total) + Number(numeric);
-                }
-                entries.set(spec.name, total);
-            } else if (values.length > 0) {
-                const data = ownedArray(values);
-                const result = spec.operation === 'mean' ? meanValue(data)
-                    : spec.operation === 'median' ? medianValue(data)
-                        : spec.operation === 'std' ? standardDeviation(data)
-                            : groupExtreme(values, spec.operation);
-                entries.set(spec.name, result);
-            }
-        }
-        return ownedObject(entries);
+        return aggregateGroupRows(group.keys, group.rows, table.fields, specs);
     });
     return ownedArray(items, [items.length], false, names);
+}
+
+function aggregateGroupRows(
+    keys: readonly (RankValue | undefined)[], rows: readonly RankObject[],
+    fields: readonly string[], specs: readonly GroupAggregateSpec[],
+): RankObject {
+    const entries = new Map<string, RankValue>();
+    fields.forEach((name, index) => {
+        const key = keys[index];
+        if (key !== undefined) entries.set(name, key);
+    });
+    for (const spec of specs) {
+        const values = spec.field === undefined ? [] : rows.flatMap(row => {
+            const value = row.entries.get(spec.field!);
+            return value === undefined ? [] : [value];
+        });
+        if (spec.operation === 'count') {
+            entries.set(spec.name, BigInt(spec.field === undefined ? rows.length : values.length));
+        } else if (spec.operation === 'sum') {
+            let total: bigint | number = 0n;
+            for (const value of values) {
+                const numeric = expectNumeric(value);
+                total = typeof total === 'bigint' && typeof numeric === 'bigint'
+                    ? total + numeric : Number(total) + Number(numeric);
+            }
+            entries.set(spec.name, total);
+        } else if (values.length > 0) {
+            const data = ownedArray(values);
+            const result = spec.operation === 'mean' ? meanValue(data)
+                : spec.operation === 'median' ? medianValue(data)
+                    : spec.operation === 'std' ? standardDeviation(data)
+                        : groupExtreme(values, spec.operation);
+            entries.set(spec.name, result);
+        }
+    }
+    return ownedObject(entries);
 }
 
 function groupExtreme(values: readonly RankValue[], operation: 'min' | 'max'): RankValue {

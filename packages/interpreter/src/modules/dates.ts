@@ -1,9 +1,11 @@
 import { RankError } from '../errors.js';
+import { derivedArray, ownedObject } from '../array-storage.js';
 import { mapSequence } from '../sequence.js';
 import {
     isRankArray,
     isRankDate,
     isRankSqliteExpression,
+    isRankSqliteDatabase,
     isRankSequence,
     type RankArray,
     type RankDate,
@@ -11,6 +13,7 @@ import {
     type RankSqliteExpression,
     type RankValue,
 } from '../value.js';
+import { sqliteCalendar } from './sqlite.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -20,7 +23,7 @@ const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
 
 export const datesModule: RuntimeModule = {
     date: () => native('date', 1, ([value]) => isRankSqliteExpression(value)
-        ? { ...value, calendar: 'date' } as RankSqliteExpression
+        ? { ...value, text: `date(${value.text})`, calendar: 'date', textual: true } as RankSqliteExpression
         : mapDates(value, 'date', parseDate)),
     datetime: () => native('datetime', 1, ([value]) => isRankSqliteExpression(value)
         ? { ...value, calendar: 'datetime' } as RankSqliteExpression
@@ -32,7 +35,37 @@ export const datesModule: RuntimeModule = {
     hour: () => timeComponent('hour', value => BigInt(value.hour)),
     minute: () => timeComponent('minute', value => BigInt(value.minute)),
     second: () => timeComponent('second', value => BigInt(value.second)),
+    calendar: () => native('calendar', [2, 3], values => {
+        const [startValue, endValue] = values.slice(-2);
+        const start = parseDate(startValue);
+        const end = parseDate(endValue);
+        if (values.length === 3) {
+            if (!isRankSqliteDatabase(values[0])) {
+                throw new RankError('calendar expects a SQLite database first', 'TypeError');
+            }
+            return sqliteCalendar(values[0], start, end);
+        }
+        const startTime = dateTime(start);
+        const endTime = dateTime(end);
+        const count = Math.max(0, Math.round((endTime - startTime) / 86400000) + 1);
+        const rows = derivedArray([count], [], index => {
+            const day = new Date(startTime + index * 86400000);
+            return ownedObject(new Map([['date', {
+                kind: 'date' as const, year: day.getUTCFullYear(),
+                month: day.getUTCMonth() + 1, day: day.getUTCDate(),
+            }]]));
+        });
+        Object.defineProperty(rows, 'columnNames', { value: ['date'] });
+        return rows;
+    }),
 };
+
+function dateTime(value: RankDate): number {
+    const day = new Date(0);
+    day.setUTCFullYear(value.year, value.month - 1, value.day);
+    day.setUTCHours(0, 0, 0, 0);
+    return day.getTime();
+}
 
 function component(
     name: string, read: (value: RankDate | RankDateTime) => bigint, format?: string,
@@ -84,7 +117,10 @@ function mapDates(value: RankValue, name: string, parse: (value: RankValue) => R
 }
 
 function parseDate(value: RankValue): RankDate {
-    if (typeof value !== 'string') throw new RankError('date expects text', 'TypeError');
+    if (isRankDate(value)) {
+        return { kind: 'date', year: value.year, month: value.month, day: value.day };
+    }
+    if (typeof value !== 'string') throw new RankError('date expects text or datetime', 'TypeError');
     const parts = DATE.exec(value);
     if (!parts) throw invalidDate(value);
     const year = Number(parts[1]);

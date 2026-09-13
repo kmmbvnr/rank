@@ -542,6 +542,25 @@ end
 Totals = Totals sort by .facid .month
 ```
 
+`N rolling by .field` orders a table by one field and produces one trailing
+group per row: the current row and up to `N-1` predecessors. `N` must be a
+positive integer. A `select` block uses the same named reductions as `group by`
+and retains the ordering field. On arrays, the ordered result rows are lazy and
+respond to source changes. On SQLite, `count`, `sum`, `min`, `max` and `mean`
+use an ordered `ROWS` window without reading rows until output; `median` and
+`std` are not yet available. `sum` of a frame with no present values is zero.
+Equal ordering keys use the source order on arrays; for stable SQLite results,
+choose a unique ordering field. Filter *after* the rolling `select` when
+earlier rows must contribute to the first displayed result:
+
+```rank
+W = Daily 15 rolling by .date
+R = W select
+  .revenue = .revenue sum
+end
+R = R filter .date at least August
+```
+
 ## Join
 
 Use `leftjoin by` when every left row must remain, or `innerjoin by` for only
@@ -619,3 +638,10 @@ Data .weekday = Times weekday
 Data .month = Times month
 Data .year = Times year
 ```
+
+`date` also takes a datetime and discards its time. On a SQLite datetime
+column, `datetime date` compiles to `date(...)`, allowing grouping by calendar
+day. `Start End calendar` creates a rank-1 array table with one `.date` per
+inclusive day; `Db Start End calendar` creates the corresponding lazy SQLite
+view. Its endpoints are valid ISO dates or Rank date values. The first day
+after the end is excluded, and reversed bounds produce an empty table.

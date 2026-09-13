@@ -167,6 +167,8 @@ export interface RankGroupedTable {
     readonly groups: readonly RankTableGroup[];
     readonly sqliteSource?: RankSqliteTable;
     readonly rollup?: boolean;
+    readonly rolling?: { readonly width: number; readonly field: string };
+    readonly rollingSource?: RankArray;
 }
 
 export interface RankRecord {
