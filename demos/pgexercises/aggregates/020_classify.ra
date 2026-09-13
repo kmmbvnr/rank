@@ -1,0 +1,47 @@
+rem PostgreSQL Exercises: aggregates 20
+rem https://pgexercises.com/questions/aggregates/classify.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_020.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+F = Db .facilities
+R = B F innerjoin by .facid
+R = R select
+  Guest = .memid equal 0
+  GCost = .slots * .guestcost
+  MCost = .slots * .membercost
+  .name = .name
+  .revenue = Guest GCost MCost choose
+end
+G = R group by .name
+R = G select
+  .revenue = .revenue sum
+end
+N = R len
+Top = (N + 2) // 3
+Middle = (N + 1) // 3
+R = R sort by .revenue descending .name
+R = R select
+  .name = .name
+  .position = rownumber
+end
+R = R select
+  High = .position at most Top
+  Average = .position at most Top + Middle
+  .name = .name
+  .bucket = High 1 (Average 2 3 choose) choose
+  .revenue = High "high" (Average "average" "low" choose) choose
+end
+R = R sort by .bucket .name
+Result = R select
+  .name = .name
+  .revenue = .revenue
+end
+Result OutputPath csv

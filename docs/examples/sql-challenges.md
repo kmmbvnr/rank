@@ -9,7 +9,7 @@ We will solve these collections in order, using the
    a local SQLite copy. All twelve [Basic](../../demos/pgexercises/basic/README.md)
    eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md), and
    nine [Updates](../../demos/pgexercises/updates/README.md) exercises and
-   nineteen [Aggregates](../../demos/pgexercises/aggregates/README.md)
+   twenty [Aggregates](../../demos/pgexercises/aggregates/README.md)
    exercises now have runnable Rank solutions and SQLite reference tests. The
    [SQLite table interface](../language/tables.md#sqlite) now translates
    projection, masks, joins, distinct, ordering, grouped sums and sorted

@@ -284,6 +284,66 @@ test('top three facility ranks include ties on SQLite views and arrays', () => {
     }
 });
 
+test('facility revenue classes match NTILE on SQLite views and arrays', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-revenue-classes-'));
+    const dbPath = path.join(dir, 'club.sqlite3');
+    const output = path.join(dir, 'out.csv');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE facilities (facid INTEGER, name TEXT, '
+            + 'membercost INTEGER, guestcost INTEGER); '
+            + 'CREATE TABLE bookings (facid INTEGER, memid INTEGER, slots INTEGER)');
+        const oracle = 'WITH revenue AS (SELECT f.name, SUM(b.slots * '
+            + 'CASE WHEN b.memid = 0 THEN f.guestcost ELSE f.membercost END) '
+            + 'AS revenue FROM bookings b JOIN facilities f ON b.facid = f.facid '
+            + 'GROUP BY f.name), tiled AS (SELECT name, NTILE(3) OVER '
+            + '(ORDER BY revenue DESC, name) AS bucket FROM revenue) '
+            + "SELECT name, CASE bucket WHEN 1 THEN 'high' WHEN 2 THEN "
+            + "'average' ELSE 'low' END AS revenue FROM tiled ORDER BY bucket, name";
+        const file = path.join(examples, '020_classify.ra');
+        for (const count of [0, 1, 2, 4, 5, 6, 7, 8, 9, 10]) {
+            db.exec('DELETE FROM bookings; DELETE FROM facilities');
+            const addFacility = db.prepare('INSERT INTO facilities VALUES (?, ?, ?, ?)');
+            const addBooking = db.prepare('INSERT INTO bookings VALUES (?, ?, ?)');
+            for (let index = 0; index < count; index++) {
+                addFacility.run(index, `Facility ${index}`, index % 2 ? 1 : 2, 2);
+                addBooking.run(index, index % 2, count - Math.floor(index / 2));
+            }
+            for (const storage of ['sqlite', 'array']) {
+                if (!count && storage === 'array') continue;
+                let source = file;
+                if (storage === 'array') {
+                    const tables = Object.fromEntries(['facilities', 'bookings']
+                        .map(name => [name, db.prepare(`SELECT * FROM ${name}`).all()]));
+                    const program = fs.readFileSync(file, 'utf8')
+                        .replace('Db = DbPath sqlite',
+                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`);
+                    source = path.join(dir, 'array.ra');
+                    fs.writeFileSync(source, program);
+                }
+                const result = spawnSync(process.execPath,
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                assert.equal(result.status, 0, result.stderr);
+                const expected = db.prepare(oracle).all()
+                    .map(row => Object.values(row).map(String));
+                assert.deepEqual(csvRows(output), [['name', 'revenue'], ...expected]);
+            }
+        }
+        const inspect = path.join(dir, 'inspect.ra');
+        fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
+            .replace('Result OutputPath csv',
+                'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath,
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /ROW_NUMBER\(\) OVER \(ORDER BY/);
+        assert.match(plan.stdout, /CASE WHEN/);
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});
+
 test('grouped aggregate programs match SQLite without reading source rows early', async t => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-groups-'));
     const dbPath = path.join(dir, 'club.sqlite3');
