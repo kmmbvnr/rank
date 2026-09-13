@@ -4,10 +4,10 @@ The [22 aggregation questions](https://www.pgexercises.com/questions/aggregates/
 use the local SQLite club database from [Basic](../basic/README.md). The
 database stays in the ignored `../data/` directory.
 
-Fourteen questions have runnable Rank solutions. The first two counts and the
+Fifteen questions have runnable Rank solutions. The first two counts and the
 seventh, distinct-member count, print scalars. Grouped `select` stays in SQLite
-until CSV output. The same table programs also run on arrays. Questions 12,
-15–16 and 18–22 still need table features discussed in the
+until CSV output. The same table programs also run on arrays. Questions 15–16
+and 18–22 still need table features discussed in the
 [translation roadmap](../../../docs/design/sqlite-tables.md).
 
 | # | Question | Rank program |
@@ -23,6 +23,7 @@ until CSV output. The same table programs also run on arrays. Questions 12,
 | 9 | [Facility revenue](https://pgexercises.com/questions/aggregates/facrev.html) | [009](009_rev.ra) |
 | 10 | [Revenue under 1000](https://pgexercises.com/questions/aggregates/facrev2.html) | [010](010_lowrev.ra) |
 | 11 | [Top facility](https://pgexercises.com/questions/aggregates/fachours2.html) | [011](011_top.ra) |
+| 12 | [Monthly totals and grand total](https://pgexercises.com/questions/aggregates/fachoursbymonth3.html) | [012](012_rollup.ra) |
 | 13 | [Hours per named facility](https://pgexercises.com/questions/aggregates/fachours3.html) | [013](013_hours.ra) |
 | 14 | [First booking per member](https://pgexercises.com/questions/aggregates/nbooking.html) | [014](014_first.ra) |
 | 17 | [Top facility including ties](https://pgexercises.com/questions/aggregates/fachours4.html) | [017](017_ties.ra) |
@@ -34,6 +35,6 @@ npm run rank -- demos/pgexercises/aggregates/001_count.ra
 ```
 
 The [CLI oracle](../../../packages/cli/test/pgexercises-aggregates.test.mjs)
-compares all fourteen solutions with equivalent SQLite queries on a temporary
+compares all fifteen solutions with equivalent SQLite queries on a temporary
 database, including empty tables, repeated IDs, null recommenders and date
 boundaries. Grouped solutions run against both SQLite and array tables.

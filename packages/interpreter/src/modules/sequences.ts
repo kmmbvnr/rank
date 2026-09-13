@@ -249,7 +249,7 @@ export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[
 /** Sort already-computed key rows lexicographically and stably. */
 export function sortByKeys(
     items: readonly RankValue[],
-    keys: readonly (readonly RankValue[])[],
+    keys: readonly (readonly (RankValue | undefined)[])[],
     operation = 'sort by',
     indices = false,
     descending: readonly boolean[] = [],
@@ -260,10 +260,12 @@ export function sortByKeys(
         throw new RankError(`${operation} keys must have one shape`);
     }
     const kinds = Array.from({ length: width }, (_, column) => {
-        if (keys.length === 0) return undefined;
-        const kind = orderedKind(keys[0][column]);
-        for (let row = 1; row < keys.length; row += 1) {
-            if (orderedKind(keys[row][column]) !== kind) {
+        const first = keys.find(row => row[column] !== undefined)?.[column];
+        if (first === undefined) return undefined;
+        const kind = orderedKind(first);
+        for (const row of keys) {
+            const value = row[column];
+            if (value !== undefined && orderedKind(value) !== kind) {
                 throw new RankError(`${operation} key values must have one comparable type`);
             }
         }
@@ -272,11 +274,13 @@ export function sortByKeys(
     const entries = items.map((value, position) => ({ value, position, keys: keys[position] }));
     entries.sort((left, right) => {
         for (let column = 0; column < width; column += 1) {
-            const order = compareOrderedValues(
-                left.keys[column],
-                right.keys[column],
-                kinds[column]!,
-            );
+            const a = left.keys[column];
+            const b = right.keys[column];
+            if (a === undefined || b === undefined) {
+                if (a !== b) return a === undefined ? 1 : -1;
+                continue;
+            }
+            const order = compareOrderedValues(a, b, kinds[column]!);
             if (order !== 0) return descending[column] ? -order : order;
         }
         return left.position - right.position;

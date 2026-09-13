@@ -486,6 +486,24 @@ reading rows early. Use `sql` and `explain` to inspect the generated query,
 `filter` for conditions on totals, and `sort by` for a defined output order.
 SQLite grouping does not promise first-seen order.
 
+`rollup by` takes the same ordered key list and adds one subtotal for each key
+prefix plus a grand total. For `.facid .month`, it groups by both fields, by
+`.facid`, and by no fields. Keys omitted at a subtotal level are absent in the
+result, including on an empty input: the grand total still has `count` and
+`sum` equal to zero. A real missing source key and a subtotal remain separate
+groups even when their visible keys are both absent. On SQLite, this remains a
+lazy view built from grouped queries joined with `UNION ALL`; bound source
+parameters are retained for every branch. `sort by` places absent key cells
+last for both array tables and SQLite views, in ascending and descending order.
+
+```rank
+G = Rows rollup by .facid .month
+Totals = G select
+  .slots = .slots sum
+end
+Totals = Totals sort by .facid .month
+```
+
 ## Join
 
 Use `leftjoin by` when every left row must remain, or `innerjoin by` for only

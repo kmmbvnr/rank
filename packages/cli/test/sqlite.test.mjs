@@ -126,7 +126,7 @@ test('Rank table projection, masks, joins, distinct and sort compose into SQL', 
     const lines = result.stdout.trimEnd().split('\n');
     assert.match(lines[0], /SELECT \* FROM \(SELECT DISTINCT/);
     assert.match(lines[0], /INNER JOIN/);
-    assert.match(lines[0], /ORDER BY "starttime", "surname"/);
+    assert.match(lines[0], /ORDER BY "starttime" IS NULL, "starttime", "surname" IS NULL, "surname"/);
     assert.match(lines[0], /\?/);
     assert.doesNotMatch(lines[0], /David|Farrell/);
     assert.equal(lines[1], 'David David David Farrell Farrell Farrell');

@@ -41,6 +41,14 @@ const grouped = [
         + 'GROUP BY f.name HAVING revenue < 1000 ORDER BY revenue'],
     ['011_top.ra', 'SELECT facid, SUM(slots) AS slots FROM bookings '
         + 'GROUP BY facid ORDER BY slots DESC LIMIT 1'],
+    ['012_rollup.ra', 'WITH rows AS (SELECT facid, '
+        + "CAST(strftime('%m',starttime) AS INTEGER) AS month, slots FROM bookings "
+        + "WHERE starttime >= '2012-01-01' AND starttime < '2013-01-01'), "
+        + 'totals AS (SELECT facid, month, SUM(slots) AS slots FROM rows '
+        + 'GROUP BY facid, month UNION ALL '
+        + 'SELECT facid, NULL, SUM(slots) FROM rows GROUP BY facid UNION ALL '
+        + 'SELECT NULL, NULL, SUM(slots) FROM rows) '
+        + 'SELECT * FROM totals ORDER BY facid IS NULL, facid, month IS NULL, month'],
     ['013_hours.ra', 'SELECT b.facid, f.name, SUM(b.slots / 2.0) AS hours '
         + 'FROM bookings b JOIN facilities f ON b.facid = f.facid '
         + 'GROUP BY b.facid, f.name ORDER BY b.facid'],
@@ -120,7 +128,8 @@ test('grouped aggregate programs match SQLite without reading source rows early'
                         [cli, source, dbPath, output],
                         { cwd: root, encoding: 'utf8' });
                     assert.equal(result.status, 0, result.stderr);
-                    const expected = db.prepare(sql).all().map(row => Object.values(row).map(String));
+                    const expected = db.prepare(sql).all().map(row => Object.values(row)
+                        .map(value => value === null ? '' : String(value)));
                     assert.deepEqual(csvRows(output).slice(1), expected);
                 });
             }
@@ -153,6 +162,61 @@ test('grouped aggregate programs match SQLite without reading source rows early'
             + 'AVG(slots) AS average FROM bookings GROUP BY facid ORDER BY facid';
         assert.deepEqual(csvRows(output).slice(1), db.prepare(mixedSql).all()
             .map(row => Object.values(row).map(String)));
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});
+
+test('rollup keeps real NULL keys distinct and repeats bound source parameters', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-rollup-'));
+    const dbPath = path.join(dir, 'facts.sqlite3');
+    const output = path.join(dir, 'out.csv');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE facts (facid INTEGER, month INTEGER, slots INTEGER); '
+            + 'INSERT INTO facts VALUES (1,NULL,3),(1,7,2),(2,7,4)');
+        const body = 'R = Db .facts\nR = R filter .slots greater 1\n'
+            + 'G = R rollup by .facid .month\nTotals = G select\n'
+            + '  .visits = count\n  .slots = .slots sum\nend\n'
+            + 'Totals = Totals sort by .facid .month .slots\n'
+            + 'Totals OutputPath csv\n';
+        const expected = [
+            ['facid', 'month', 'visits', 'slots'],
+            ['1', '7', '1', '2'], ['1', '', '1', '3'],
+            ['1', '', '2', '5'], ['2', '7', '1', '4'],
+            ['2', '', '1', '4'], ['', '', '3', '9'],
+        ];
+        for (const storage of ['sqlite', 'array']) {
+            const source = path.join(dir, `${storage}.ra`);
+            const setup = storage === 'sqlite'
+                ? 'Db = DbPath sqlite\n'
+                : `use json\nDb = ${JSON.stringify(JSON.stringify({
+                    facts: db.prepare('SELECT * FROM facts').all().map(row =>
+                        Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null))),
+                }))} json\n`;
+            const inspect = storage === 'sqlite'
+                ? 'Q = Totals sql\nQ .params len print\nQ .text print\n' : '';
+            fs.writeFileSync(source, 'use cli\nuse io\nuse numbers\nuse sequences\nuse tables\n'
+                + 'argument DbPath path\nargument OutputPath path\n'
+                + setup + body.replace('Totals OutputPath csv\n', inspect + 'Totals OutputPath csv\n'));
+            const result = spawnSync(process.execPath,
+                [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+            assert.equal(result.status, 0, result.stderr);
+            assert.deepEqual(csvRows(output), expected);
+            if (storage === 'sqlite') {
+                assert.match(result.stdout, /^3\n/);
+                assert.match(result.stdout, /UNION ALL/);
+            }
+        }
+        db.exec('DELETE FROM facts');
+        const empty = spawnSync(process.execPath,
+            [cli, path.join(dir, 'sqlite.ra'), dbPath, output],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(empty.status, 0, empty.stderr);
+        assert.deepEqual(csvRows(output), [
+            ['facid', 'month', 'visits', 'slots'], ['', '', '0', '0'],
+        ]);
     } finally {
         db.close();
         fs.rmSync(dir, { recursive: true, force: true });

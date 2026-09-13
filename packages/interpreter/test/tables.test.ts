@@ -112,6 +112,49 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute('Totals .average pad 0')!)).toBe('2 0');
     });
 
+    it('keeps real missing keys distinct from rollup subtotal rows', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use numbers', 'use sequences',
+            'Rows = "[{\\"facid\\":1,\\"slots\\":3},',
+            '  {\\"facid\\":1,\\"month\\":7,\\"slots\\":2}]" json',
+            'G = Rows rollup by .facid .month',
+            'Totals = G select',
+            '  .slots = .slots sum',
+            'end',
+            'Totals = Totals sort by .facid .month',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Totals .slots')!)).toBe('2 3 5 5');
+        expect(formatValue(runtime.execute('Totals .facid pad 0')!)).toBe('1 1 1 0');
+        expect(formatValue(runtime.execute('Totals .month pad 0')!)).toBe('7 0 0 0');
+    });
+
+    it('gives an empty rollup one zero-valued grand total', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use numbers', 'use sequences',
+            'Rows = "[]" json',
+            'G = Rows rollup by .facid .month',
+            'Totals = G select',
+            '  .slots = .slots sum',
+            'end',
+            'Totals = Totals sort by .facid .month',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Totals .slots')!)).toBe('0');
+    });
+
+    it('sorts absent table keys last in both directions', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use sequences',
+            'Rows = "[{\\"key\\":2},{\\"key\\":1},{}]" json',
+            'Asc = Rows sort by .key',
+            'Desc = Rows sort by .key descending',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Asc .key pad 0')!)).toBe('1 2 0');
+        expect(formatValue(runtime.execute('Desc .key pad 0')!)).toBe('2 1 0');
+    });
+
     it('rejects duplicate non-key columns in relational joins', () => {
         expect(() => run([
             'use json', 'use tables',

@@ -174,7 +174,7 @@ function tableKey(
     return JSON.stringify(parts);
 }
 
-export function groupTable(source: RankValue, fields: readonly string[]): RankGroupedTable {
+export function groupTable(source: RankValue, fields: readonly string[], rollup = false): RankGroupedTable {
     if (new Set(fields).size !== fields.length) {
         throw new RankError('group by fields must be unique', 'TypeError');
     }
@@ -186,24 +186,30 @@ export function groupTable(source: RankValue, fields: readonly string[]): RankGr
                 throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
             }
         }
-        return { kind: 'grouped-table', fields, groups: [], sqliteSource: input };
+        return { kind: 'grouped-table', fields, groups: [], sqliteSource: input, rollup };
     }
     const rows = tableRows(input, 'group by');
     const groups: { keys: (RankValue | undefined)[]; rows: RankObject[] }[] = [];
     const positions = new Map<string, number>();
-    for (const sourceRow of rows) {
-        const row = ownedObject(sourceRow.entries);
-        const keys = fields.map(field => row.entries.get(field));
-        const id = tableKey(row, fields, true)!;
+    const add = (row: RankObject | undefined, level: number): void => {
+        const keys = fields.map((field, index) => index < level ? row?.entries.get(field) : undefined);
+        const id = JSON.stringify([level, row ? tableKey(row, fields.slice(0, level), true) : '[]']);
         let position = positions.get(id);
         if (position === undefined) {
             position = groups.length;
             positions.set(id, position);
             groups.push({ keys, rows: [] });
         }
-        groups[position].rows.push(row);
+        if (row) groups[position].rows.push(row);
+    };
+    for (const sourceRow of rows) {
+        const row = ownedObject(sourceRow.entries);
+        for (let level = fields.length; level >= (rollup ? 0 : fields.length); level -= 1) {
+            add(row, level);
+        }
     }
-    return { kind: 'grouped-table', fields, groups };
+    if (rollup && rows.length === 0) add(undefined, 0);
+    return { kind: 'grouped-table', fields, groups, rollup };
 }
 
 export type GroupAggregateOperation = 'count' | 'sum' | 'min' | 'max' | 'mean' | 'median' | 'std';
@@ -222,7 +228,7 @@ export function selectGroupedTable(
     if (new Set(names).size !== names.length) {
         throw new RankError('grouped select fields must be distinct', 'TypeError');
     }
-    if (table.sqliteSource) return selectGroupedSqlite(table.sqliteSource, table.fields, specs);
+    if (table.sqliteSource) return selectGroupedSqlite(table.sqliteSource, table.fields, specs, table.rollup);
     const items: RankValue[] = table.groups.map(group => {
         const entries = new Map<string, RankValue>();
         table.fields.forEach((name, index) => {

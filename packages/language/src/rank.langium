@@ -269,7 +269,7 @@ KeyedSortExpression:
     (fields+=SortField+ | key=NameExpression direction=WORD?);
 
 KeyedGroupExpression:
-    source=PrimaryExpression operator=GROUP_BY fields+=LabelLiteral+;
+    source=PrimaryExpression operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+;
 
 KeyedJoinExpression:
     left=PrimaryExpression right=PrimaryExpression
@@ -404,6 +404,7 @@ terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal ARGSORT_BY: /argsort[\t ]+by/;
 terminal SORT_BY: /sort[\t ]+by/;
 terminal GROUP_BY: /group[\t ]+by/;
+terminal ROLLUP_BY: /rollup[\t ]+by/;
 terminal LEFTJOIN_BY: /leftjoin[\t ]+by/;
 terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
 terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;

@@ -495,8 +495,10 @@ Every key component must be a comparable scalar. Values at the same key keep
 their source order, and a key function runs exactly once per value in source
 order. The operation materializes a new rank-1 array and does not change its
 source. It accepts rank-1 arrays, queues, sets, multisets and finite sequences;
-an unbounded sequence is an error. Field sorting requires object rows or records and reports a
-missing field as `.Missing`. A compound source expression must be parenthesized.
+an unbounded sequence is an error. Field sorting requires object rows or records.
+Absent cells sort after present cells; a field absent from every row and from
+the table schema reports `.Missing`. A compound source expression must be
+parenthesized.
 
 ## Elementwise arithmetic
 

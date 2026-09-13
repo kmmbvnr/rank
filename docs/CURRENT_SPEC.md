@@ -2065,8 +2065,10 @@ Every key component must be a comparable scalar. Values at the same key keep
 their source order, and a key function runs exactly once per value in source
 order. The operation materializes a new rank-1 array and does not change its
 source. It accepts rank-1 arrays, queues, sets, multisets and finite sequences;
-an unbounded sequence is an error. Field sorting requires object rows or records and reports a
-missing field as `.Missing`. A compound source expression must be parenthesized.
+an unbounded sequence is an error. Field sorting requires object rows or records.
+Absent cells sort after present cells; a field absent from every row and from
+the table schema reports `.Missing`. A compound source expression must be
+parenthesized.
 
 ## Elementwise arithmetic
 
@@ -3614,6 +3616,24 @@ reading rows early. Use `sql` and `explain` to inspect the generated query,
 `filter` for conditions on totals, and `sort by` for a defined output order.
 SQLite grouping does not promise first-seen order.
 
+`rollup by` takes the same ordered key list and adds one subtotal for each key
+prefix plus a grand total. For `.facid .month`, it groups by both fields, by
+`.facid`, and by no fields. Keys omitted at a subtotal level are absent in the
+result, including on an empty input: the grand total still has `count` and
+`sum` equal to zero. A real missing source key and a subtotal remain separate
+groups even when their visible keys are both absent. On SQLite, this remains a
+lazy view built from grouped queries joined with `UNION ALL`; bound source
+parameters are retained for every branch. `sort by` places absent key cells
+last for both array tables and SQLite views, in ascending and descending order.
+
+```rank
+G = Rows rollup by .facid .month
+Totals = G select
+  .slots = .slots sum
+end
+Totals = Totals sort by .facid .month
+```
+
 ## Join
 
 Use `leftjoin by` when every left row must remain, or `innerjoin by` for only
@@ -4721,6 +4741,7 @@ explain
 sqlquery
 labels
 group by
+rollup by
 leftjoin by
 innerjoin by
 leftjoin on
@@ -4733,7 +4754,8 @@ CSV headers, it unions keys in first-appearance order. `group by` builds a
 grouped view from one or more named fields. A grouped `select` block names
 aggregates and produces a flat table with the keys. SQLite translates grouped
 `count`, `sum`, `min`, `max`, and `mean` in one lazy query; `median` and `std`
-currently require an array table.
+currently require an array table. `rollup by` adds prefix subtotals
+and a grand total to the grouped result.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 `sqlite` opens an existing database; `Db .table` returns a lazy table view

@@ -1860,14 +1860,17 @@ export class Interpreter {
                         if (!isRankRecord(item) && !isRankObject(item)) {
                             throw new RankError(`${operation} fields expects records`, 'TypeError');
                         }
-                        const value = item.entries.get(field.field.name);
-                        if (value === undefined) {
+                        return item.entries.get(field.field.name);
+                    }));
+                    for (const [index, field] of expression.fields.entries()) {
+                        if (keys.length > 0 && !keys.some(row => row[index] !== undefined)
+                            && (!isRankArray(source)
+                                || !source.columnNames?.includes(field.field.name))) {
                             throw new MissingValueError(
                                 `${operation} record is missing field .${field.field.name}`,
                             );
                         }
-                        return value;
-                    }));
+                    }
                     return resultWithSchema(sortByKeys(items, keys, operation, indices,
                         expression.fields.map(field => sortDescending(field.direction))));
                 }
@@ -1887,9 +1890,10 @@ export class Interpreter {
         }
         if (isKeyedGroupExpression(expression)) {
             return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', 'group by');
+                interpreter.requireModule('tables', expression.operator);
                 const source = yield* resume(interpreter.evaluateTask(expression.source));
-                return groupTable(source, expression.fields.map(field => field.name));
+                return groupTable(source, expression.fields.map(field => field.name),
+                    expression.operator === 'rollup by');
             };
         }
         if (isKeyedJoinExpression(expression)) {

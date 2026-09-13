@@ -95,6 +95,7 @@ describe('Rank grammar', () => {
         const document = await parse([
             'One = Rows group by .store',
             'Several = Rows group by .store .family .weekday',
+            'Totals = Rows rollup by .store .family',
             'Left = Test Means leftjoin by .store .family .weekday',
             'Inner = Orders Customers innerjoin by .custkey',
             'Mapped = Orders Customers innerjoin on .o_custkey equal .c_custkey',
@@ -105,17 +106,20 @@ describe('Rank grammar', () => {
         if (!statements.every(isAssignmentStatement)) throw new Error('expected assignments');
         expect(isKeyedGroupExpression(statements[0].value)).toBe(true);
         expect(isKeyedGroupExpression(statements[1].value)).toBe(true);
-        expect(isKeyedJoinExpression(statements[2].value)).toBe(true);
+        expect(isKeyedGroupExpression(statements[2].value)).toBe(true);
         expect(isKeyedJoinExpression(statements[3].value)).toBe(true);
         expect(isKeyedJoinExpression(statements[4].value)).toBe(true);
+        expect(isKeyedJoinExpression(statements[5].value)).toBe(true);
         if (!isKeyedGroupExpression(statements[1].value)
-            || !isKeyedJoinExpression(statements[2].value)) return;
+            || !isKeyedGroupExpression(statements[2].value)
+            || !isKeyedJoinExpression(statements[3].value)) return;
         expect(statements[1].value.fields.map(field => field.name))
             .toEqual(['store', 'family', 'weekday']);
-        expect(statements[2].value.fields.map(field => field.name))
+        expect(statements[2].value.operator).toBe('rollup by');
+        expect(statements[3].value.fields.map(field => field.name))
             .toEqual(['store', 'family', 'weekday']);
-        if (!isKeyedJoinExpression(statements[4].value)) return;
-        expect(statements[4].value.pairs.map(pair => [pair.left.name, pair.right.name]))
+        if (!isKeyedJoinExpression(statements[5].value)) return;
+        expect(statements[5].value.pairs.map(pair => [pair.left.name, pair.right.name]))
             .toEqual([['o_custkey', 'c_custkey']]);
     });
 

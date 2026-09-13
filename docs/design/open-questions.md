@@ -32,25 +32,25 @@ Sums = One select
 end
 ```
 
-The following **unimplemented** ideas concern subtotals and window calculations:
+The implemented `rollup by` works on rank-1 tables of object rows and on
+SQLite views. A future numeric-tensor variant could reuse `sum axis` for the
+arithmetic, but its output needs a decision: rollup levels have different
+shapes, so a flat table of coordinates, level and total is more natural than a
+rectangular tensor. No tensor-rollup spelling or output schema is settled.
+
+Window calculations remain unimplemented:
 
 ```rank
-G = Bookings rollup by .facid .month
-Totals = G select
-  .slots = .slots sum
-end
-
 R = Members rownumber by .joindate
 R = R rank by .hours descending
 R = R 3 tile by .revenue descending
 ```
 
-`rollup by` would add key-prefix subtotal rows with absent keys. Window
-operations would add one named column to a new view; `rownumber` numbers rows,
-`rank` leaves gaps after ties, and `N tile` assigns nearly equal bands. Their
-ordering and missing-value rules need a language decision before implementation.
-The final rolling revenue exercise also needs date ranges and a rolling-window
-rule that counts days with zero bookings.
+Window operations would add one named column to a new view; `rownumber`
+numbers rows, `rank` leaves gaps after ties, and `N tile` assigns nearly equal
+bands. Their ordering and missing-value rules need a language decision before
+implementation. The final rolling revenue exercise also needs date ranges
+and a rolling-window rule that counts days with zero bookings.
 
 ## Pattern matching
 

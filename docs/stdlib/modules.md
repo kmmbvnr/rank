@@ -571,6 +571,7 @@ update
 delete
 labels
 group by
+rollup by
 leftjoin by
 innerjoin by
 leftjoin on
@@ -583,7 +584,8 @@ CSV headers, it unions keys in first-appearance order. `group by` builds a
 grouped view from one or more named fields. A grouped `select` block names
 aggregates and produces a flat table with the keys. SQLite translates grouped
 `count`, `sum`, `min`, `max`, and `mean` in one lazy query; `median` and `std`
-currently require an array table.
+currently require an array table. `rollup by` adds prefix subtotals
+and a grand total to the grouped result.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 See [Tables](../language/tables.md) for missing keys, row order and collisions.

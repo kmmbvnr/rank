@@ -202,8 +202,8 @@ export function sortSqlite(
     for (const field of fields) requireColumn(table, field);
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
         booleanColumns: table.booleanColumns, textColumns: table.textColumns,
-        text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.map((field, index) =>
-            quote(field) + (descending[index] ? ' DESC' : '')).join(', ')}`,
+        text: `SELECT * FROM (${table.text}) AS source ORDER BY ${fields.flatMap((field, index) =>
+            [`${quote(field)} IS NULL`, quote(field) + (descending[index] ? ' DESC' : '')]).join(', ')}`,
         params: table.params,
         orderBy: fields.map((field, index) => ({ field, descending: descending[index] ?? false })) };
 }
@@ -218,8 +218,8 @@ export function sliceSqlite(table: RankSqliteTable, start: bigint, stop: bigint)
     }
     return { kind: 'sqlite-table', database: table.database,
         text: `SELECT * FROM (${table.text}) AS source`
-            + (table.orderBy ? ` ORDER BY ${table.orderBy.map(({ field, descending }) =>
-                quote(field) + (descending ? ' DESC' : '')).join(', ')}` : '')
+            + (table.orderBy ? ` ORDER BY ${table.orderBy.flatMap(({ field, descending }) =>
+                [`${quote(field)} IS NULL`, quote(field) + (descending ? ' DESC' : '')]).join(', ')}` : '')
             + ' LIMIT ? OFFSET ?',
         params: [...table.params, stop > start ? stop - start : 0n, start],
         booleanColumns: table.booleanColumns, textColumns: table.textColumns,
@@ -415,6 +415,7 @@ export function sumSqlite(expression: RankSqliteExpression): RankValue {
 /** Return one lazy row per key; no source rows are read while planning. */
 export function selectGroupedSqlite(
     source: RankSqliteTable, keys: readonly string[], specs: readonly GroupAggregateSpec[],
+    rollup = false,
 ): RankSqliteTable {
     const columns = sqliteColumns(source);
     const keyColumns = keys.map(quote);
@@ -432,10 +433,17 @@ export function selectGroupedSqlite(
                     : `${spec.operation.toUpperCase()}(${field})`;
         return `${expression} AS ${quote(spec.name)}`;
     });
+    const levels = rollup ? Array.from({ length: keys.length + 1 }, (_, index) => keys.length - index)
+        : [keys.length];
+    const queries = levels.map(level => {
+        const outputKeys = keys.map((key, index) => index < level
+            ? quote(key) : `NULL AS ${quote(key)}`);
+        return `SELECT ${[...outputKeys, ...aggregates].join(', ')} FROM (${source.text}) AS source`
+            + (level > 0 ? ` GROUP BY ${keyColumns.slice(0, level).join(', ')}` : '');
+    });
     return { kind: 'sqlite-table', database: source.database,
-        text: `SELECT ${[...keyColumns, ...aggregates].join(', ')} FROM (${source.text}) AS source`
-            + (keys.length ? ` GROUP BY ${keyColumns.join(', ')}` : ''),
-        params: source.params,
+        text: queries.join(' UNION ALL '),
+        params: levels.flatMap(() => source.params),
         booleanColumns: new Set(keys.filter(key => source.booleanColumns?.has(key))),
         textColumns: new Set(keys.filter(key => source.textColumns?.has(key))) };
 }
