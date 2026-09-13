@@ -1,0 +1,16 @@
+rem PostgreSQL Exercises: string 3
+rem https://pgexercises.com/questions/string/case.html
+
+use cli
+use tables
+use text
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/string_003.csv"
+
+Db = DbPath sqlite
+F = Db .facilities
+Names = F .name lower
+Mask = Names "tennis" startswith
+Result = F filter Mask
+Result OutputPath csv

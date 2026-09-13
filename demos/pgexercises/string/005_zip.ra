@@ -1,0 +1,20 @@
+rem PostgreSQL Exercises: string 5
+rem https://pgexercises.com/questions/string/pad.html
+
+use cli
+use sequences
+use tables
+use text
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/string_005.csv"
+
+Db = DbPath sqlite
+M = Db .members
+Codes = M .zipcode text rank 0
+Padded = Codes 5 "0" lpad
+Result = M select
+  .zip = Padded
+end
+Result = Result sort by .zip
+Result OutputPath csv

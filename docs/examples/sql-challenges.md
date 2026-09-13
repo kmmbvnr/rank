@@ -6,16 +6,13 @@ We will solve these collections in order, using the
 1. [PostgreSQL Exercises](https://www.pgexercises.com/) — start with selection,
    then joins, aggregates and later window queries. Its country-club data and
    expected SQL results give us small relational examples. Solve them against
-   a local SQLite copy. All twelve [Basic](../../demos/pgexercises/basic/README.md)
-   eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md), and
-   nine [Updates](../../demos/pgexercises/updates/README.md) exercises and
-   all twenty-two [Aggregates](../../demos/pgexercises/aggregates/README.md)
-   exercises now have runnable Rank solutions and SQLite reference tests.
-   [Date](../../demos/pgexercises/date/README.md) has started with timestamp,
-   interval, calendar, day-of-month and month-length examples. The
-   [SQLite table interface](../language/tables.md#sqlite) now translates
-   projection, masks, joins, distinct, ordering, grouped sums and sorted
-   slices; further operations remain.
+   a local SQLite copy. All twelve [Basic](../../demos/pgexercises/basic/README.md),
+   eight [Joins and Subqueries](../../demos/pgexercises/joins/README.md),
+   nine [Updates](../../demos/pgexercises/updates/README.md), twenty-two
+   [Aggregates](../../demos/pgexercises/aggregates/README.md), ten
+   [Date](../../demos/pgexercises/date/README.md), and seven
+   [String](../../demos/pgexercises/string/README.md) exercises have runnable
+   Rank solutions and SQLite reference tests. Recursive remains.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve
    the investigation against its SQLite database. This stage will reuse the
    SQLite table source and exercise joins and other translations added during

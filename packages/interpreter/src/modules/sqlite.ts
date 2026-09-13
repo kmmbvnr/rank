@@ -162,6 +162,30 @@ export function sqliteScopedColumn(scope: RankSqliteScope, name: string): RankSq
         textual: scope.table.textColumns?.has(`${scope.name}.${name}`) ?? false };
 }
 
+/** A scalar text operation over columns from one lazy view. */
+export function textFunctionSqlite(
+    name: string, values: readonly RankValue[], boolean = false,
+): RankSqliteExpression {
+    const expressions = values.filter(isRankSqliteExpression);
+    const table = expressions[0]?.table;
+    if (!table || expressions.some(expression => expression.table !== table)) {
+        throw new RankError('SQLite text operands must come from one table', 'TypeError');
+    }
+    const parts = values.map(value => isRankSqliteExpression(value)
+        ? value : { text: '?', params: [toSqlite(value)] });
+    return { kind: 'sqlite-expression', table,
+        text: `${name}(${parts.map(part => part.text).join(', ')})`,
+        params: parts.flatMap(part => [...part.params]),
+        boolean, textual: !boolean };
+}
+
+export function sliceTextSqlite(
+    value: RankSqliteExpression, start: bigint, end: bigint, inclusive: boolean,
+): RankSqliteExpression {
+    if (start < 0n || end < 0n) throw new RankError('slice bounds must be nonnegative');
+    return textFunctionSqlite('rank_text_slice', [value, start, end, inclusive]);
+}
+
 export function projectSqlite(table: RankSqliteTable, fields: readonly string[]): RankSqliteTable {
     if (fields.length === 0) {
         throw new RankError('SQLite projection requires at least one field', 'TypeError');
@@ -335,7 +359,7 @@ export function joinAliasedSqlite(
 
 const sqlOperators: Readonly<Record<string, string>> = {
     equal: '=', notequal: '<>', less: '<', greater: '>', atleast: '>=', atmost: '<=',
-    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*', '/': '/', '//': '//',
+    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*', '/': '/', '//': '//', in: 'IN',
 };
 
 export function binarySqlite(
@@ -394,6 +418,15 @@ export function binarySqlite(
         isRankSqliteExpression(value) ? value : { text: '?', params: [toSqlite(value)] };
     const a = operand(left);
     const b = operand(right);
+    if (operator === 'in') {
+        if ((!leftExpr && typeof left !== 'string')
+            || (!rightExpr && typeof right !== 'string')) {
+            throw new RankError('SQLite text membership expects text', 'TypeError');
+        }
+        return { kind: 'sqlite-expression', table,
+            text: `(instr(${b.text}, ${a.text}) > 0)`,
+            params: [...b.params, ...a.params], boolean: true };
+    }
     if (operator === '-' && (leftExpr?.calendar || rightExpr?.calendar
         || isRankDate(left) || isRankDate(right))) {
         const isDateTime = (value: RankValue): boolean => isRankSqliteExpression(value)

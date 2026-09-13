@@ -115,9 +115,9 @@ import { covarianceValue, errorMetricValue, statisticsCell } from './modules/sta
 import { groupTable, rollingTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
-    materializeSqliteExpression, projectSqlite, sliceSqlite, sortSqlite, sqliteColumn, sqliteScope,
+    materializeSqliteExpression, projectSqlite, sliceSqlite, sliceTextSqlite, sortSqlite, sqliteColumn, sqliteScope,
     sqliteScopedColumn, sqliteTable, sqliteWindowNumber,
-    sqliteWrite, executeSqliteWrite, inSqlite,
+    sqliteWrite, executeSqliteWrite, inSqlite, textFunctionSqlite,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -3583,6 +3583,10 @@ export class Interpreter {
         cellRank: number,
         frameAxes?: readonly number[],
     ): Evaluation<RankValue> {
+        if (fn.name === 'text' && isRankSqliteExpression(value)) {
+            return completed(textFunctionSqlite(
+                value.boolean ? 'rank_boolean_text' : 'rank_text', [value]));
+        }
         if (frameAxes !== undefined && !isRankArray(value)) {
             throw new RankError('axis rank expects an array');
         }
@@ -3607,6 +3611,11 @@ export class Interpreter {
         fn: NativeFunction,
         arguments_: RankValue[],
     ): Evaluation<RankValue> {
+        if (fn.name === 'text' && arguments_.length === 1
+            && isRankSqliteExpression(arguments_[0])) {
+            return completed(textFunctionSqlite(
+                arguments_[0].boolean ? 'rank_boolean_text' : 'rank_text', arguments_));
+        }
         if (arguments_.length === 1 && fn.monadicRank !== 'all') {
             return this.applyUnaryAtRank(
                 arguments_[0], fn, fn.monadicRank,
@@ -5183,6 +5192,10 @@ function sliceValue(
     end: bigint,
     inclusive: boolean,
 ): RankValue {
+    if (isRankSqliteExpression(source)) {
+        if (axis !== 0) throw new RankError(`SQLite text has no axis ${axis}`);
+        return sliceTextSqlite(source, start, end, inclusive);
+    }
     if (isRankSqliteTable(source)) {
         if (axis !== 0) throw new RankError(`SQLite view has no axis ${axis}`);
         return sliceSqlite(source, start, inclusive ? end + 1n : end);

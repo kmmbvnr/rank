@@ -624,6 +624,21 @@ Train .Side = Parts 2
 
 Rank does not require a pandas-like `.str` namespace.
 
+`use text` provides `lower`, `startswith`, `lpad` and `translate` on ordinary
+text and SQLite columns. Text casts, substring membership with `in`, and text
+slices also stay in a lazy SQLite query. For example:
+
+```rank
+F = Db .facilities
+Names = F .name lower
+Mask = Names "tennis" startswith
+Result = F filter Mask
+```
+
+The SQLite host registers deterministic `rank_*` text functions so Unicode
+results match in-memory arrays. A copied SQL string using one of these functions
+needs the same registrations in an external SQLite client.
+
 ## Date columns
 
 CSV date columns remain text until explicitly parsed. Date operations then

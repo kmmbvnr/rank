@@ -19,7 +19,65 @@ interface NativeSqliteStatement {
 
 interface NativeSqliteDatabase {
     prepare(text: string): NativeSqliteStatement;
+    function(name: string, options: { deterministic: boolean; safeIntegers: boolean },
+        implementation: (...args: SqliteScalar[]) => SqliteScalar): void;
     close(): void;
+}
+
+function registerRankText(database: NativeSqliteDatabase): void {
+    const add = (name: string, fn: (...args: SqliteScalar[]) => SqliteScalar) =>
+        database.function(name, { deterministic: true, safeIntegers: true }, fn);
+    add('rank_text', value => value === null ? null : String(value));
+    add('rank_boolean_text', value => value === null ? null : value ? 'true' : 'false');
+    add('rank_lower', value => {
+        if (value === null) return null;
+        if (typeof value !== 'string') throw new TypeError('lower expects text');
+        return value.toLowerCase();
+    });
+    add('rank_startswith', (value, prefix) => {
+        if (value === null || prefix === null) return null;
+        if (typeof value !== 'string' || typeof prefix !== 'string') {
+            throw new TypeError('startswith expects text');
+        }
+        return BigInt(value.startsWith(prefix));
+    });
+    add('rank_lpad', (value, width, fill) => {
+        if (value === null || width === null || fill === null) return null;
+        if ((typeof width !== 'bigint' && typeof width !== 'number')
+            || !Number.isSafeInteger(Number(width)) || Number(width) < 0
+            || typeof value !== 'string' || typeof fill !== 'string' || fill.length === 0) {
+            throw new TypeError('lpad expects text, nonnegative width and nonempty fill');
+        }
+        const missing = Number(width) - [...value].length;
+        if (missing <= 0) return value;
+        const chars = [...fill];
+        return Array.from({ length: missing }, (_, index) => chars[index % chars.length]).join('') + value;
+    });
+    add('rank_translate', (value, chars, replacement) => {
+        if (value === null || chars === null || replacement === null) return null;
+        if (typeof value !== 'string' || typeof chars !== 'string'
+            || typeof replacement !== 'string') {
+            throw new TypeError('translate expects three text values');
+        }
+        const targets = [...replacement];
+        const map = new Map<string, string>();
+        [...chars].forEach((char, index) => {
+            if (!map.has(char)) map.set(char, targets[index] ?? '');
+        });
+        return [...value].map(char => map.get(char) ?? char).join('');
+    });
+    add('rank_text_slice', (value, start, end, inclusive) => {
+        if (value === null || start === null || end === null || inclusive === null) return null;
+        if (typeof value !== 'string') throw new TypeError('text slice expects text');
+        const chars = [...value];
+        const first = Number(start);
+        const stop = Number(end) + (inclusive ? 1 : 0);
+        if (!Number.isSafeInteger(first) || !Number.isSafeInteger(stop)
+            || first < 0 || stop < first || stop > chars.length) {
+            throw new RangeError('text slice bounds exceed text length');
+        }
+        return chars.slice(first, stop).join('');
+    });
 }
 
 const require = createRequire(import.meta.url);
@@ -59,6 +117,7 @@ export class NodeInput implements RankInput {
 export const nodeIo: RankIo = {
     openSqlite(path): RankSqliteConnection {
         const database = new Sqlite(path, { readonly: true, fileMustExist: true });
+        registerRankText(database);
         return {
             prepare(text) {
                 const statement = database.prepare(text).safeIntegers(true);
@@ -74,6 +133,7 @@ export const nodeIo: RankIo = {
     },
     openSqliteWrite(path): RankSqliteConnection {
         const database = new Sqlite(path, { readonly: false, fileMustExist: true });
+        registerRankText(database);
         return {
             prepare(text) {
                 const statement = database.prepare(text).safeIntegers(true);

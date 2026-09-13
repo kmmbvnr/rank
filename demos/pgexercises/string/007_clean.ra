@@ -1,0 +1,21 @@
+rem PostgreSQL Exercises: string 7
+rem https://pgexercises.com/questions/string/translate.html
+
+use cli
+use sequences
+use tables
+use text
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/string_007.csv"
+
+Db = DbPath sqlite
+M = Db .members
+Phones = M .telephone
+Clean = Phones "-() " "" translate
+Result = M select
+  .memid = .memid
+  .telephone = Clean
+end
+Result = Result sort by .memid
+Result OutputPath csv

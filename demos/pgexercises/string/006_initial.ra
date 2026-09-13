@@ -1,0 +1,27 @@
+rem PostgreSQL Exercises: string 6
+rem https://pgexercises.com/questions/string/substr.html
+
+use cli
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/string_006.csv"
+
+Db = DbPath sqlite
+M = Db .members
+Names = M .surname
+Initial = Names initial rank 0
+R = M select
+  .letter = Initial
+end
+G = R group by .letter
+Result = G select
+  .count = count
+end
+Result = Result sort by .letter
+Result OutputPath csv
+
+fun initial Name
+  return Name from 0 until 1
+end

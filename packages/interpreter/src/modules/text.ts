@@ -1,7 +1,9 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, type RankArray, type RankValue } from '../value.js';
+import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankValue } from '../value.js';
 import { mapSequence } from '../sequence.js';
+import { derivedArray, readArrayItem } from '../array-storage.js';
 import { roundValue } from './numbers.js';
+import { textFunctionSqlite } from './sqlite.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -72,10 +74,41 @@ export const textModule: RuntimeModule = {
     }),
     startswith: () => native('startswith', 2, arguments_ => {
         const [value, prefix] = arguments_;
+        if (isRankSqliteExpression(value) || isRankSqliteExpression(prefix)) {
+            return textFunctionSqlite('rank_startswith', arguments_, true);
+        }
         if (typeof value !== 'string' || typeof prefix !== 'string') {
             throw new RankError('startswith expects text and a text prefix');
         }
         return value.startsWith(prefix);
+    }, 'all', [0, 0]),
+    lower: () => native('lower', 1, ([value]) => {
+        if (isRankArray(value)) {
+            return mapTextArguments([value], args => lowerText(args[0]));
+        }
+        if (isRankSqliteExpression(value)) return textFunctionSqlite('rank_lower', [value]);
+        return lowerText(value);
+    }),
+    lpad: () => native('lpad', 3, arguments_ => {
+        if (arguments_.some(isRankArray)) {
+            return mapTextArguments(arguments_, args => lpadText(args[0], args[1], args[2]));
+        }
+        const [value, width, fill] = arguments_;
+        if (isRankSqliteExpression(value) || isRankSqliteExpression(width)
+            || isRankSqliteExpression(fill)) {
+            return textFunctionSqlite('rank_lpad', arguments_);
+        }
+        return lpadText(value, width, fill);
+    }),
+    translate: () => native('translate', 3, arguments_ => {
+        if (arguments_.some(isRankArray)) {
+            return mapTextArguments(arguments_, args => translateText(args[0], args[1], args[2]));
+        }
+        const [value, chars, replacement] = arguments_;
+        if (arguments_.some(isRankSqliteExpression)) {
+            return textFunctionSqlite('rank_translate', arguments_);
+        }
+        return translateText(value, chars, replacement);
     }),
     hex: () => native('hex', 1, arguments_ => {
         const value = arguments_[0];
@@ -122,6 +155,52 @@ export const textModule: RuntimeModule = {
         return BigInt(value);
     }, 1),
 };
+
+function mapTextArguments(
+    values: RankValue[], call: (arguments_: RankValue[]) => RankValue,
+): RankArray {
+    const arrays = values.filter(isRankArray);
+    const shape = arrays[0].shape;
+    if (arrays.some(value => value.shape.length !== shape.length
+        || value.shape.some((size, axis) => size !== shape[axis]))) {
+        throw new RankError('text argument arrays must have the same shape', 'DimensionMismatch');
+    }
+    return derivedArray(shape, arrays, index =>
+        call(values.map(value => isRankArray(value) ? readArrayItem(value, index) : value)), true);
+}
+
+function lpadText(value: RankValue, width: RankValue, fill: RankValue): string {
+    if (typeof value !== 'string' || typeof width !== 'bigint'
+        || width < 0n || typeof fill !== 'string' || fill.length === 0) {
+        throw new RankError('lpad expects text, nonnegative width and nonempty fill', 'TypeError');
+    }
+    const missing = width - BigInt([...value].length);
+    if (missing <= 0n) return value;
+    if (missing > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError('lpad width is too large', 'DomainError');
+    }
+    const chars = [...fill];
+    return Array.from({ length: Number(missing) }, (_, index) =>
+        chars[index % chars.length]).join('') + value;
+}
+
+function lowerText(value: RankValue): string {
+    if (typeof value !== 'string') throw new RankError('lower expects text', 'TypeError');
+    return value.toLowerCase();
+}
+
+function translateText(value: RankValue, chars: RankValue, replacement: RankValue): string {
+    if (typeof value !== 'string' || typeof chars !== 'string'
+        || typeof replacement !== 'string') {
+        throw new RankError('translate expects three text values', 'TypeError');
+    }
+    const targets = [...replacement];
+    const map = new Map<string, string>();
+    [...chars].forEach((char, index) => {
+        if (!map.has(char)) map.set(char, targets[index] ?? '');
+    });
+    return [...value].map(char => map.get(char) ?? char).join('');
+}
 
 export function formattedText(value: RankValue, format: string): RankValue {
     const match = /^\.(0|[1-9][0-9]*)f$/.exec(format);

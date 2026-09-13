@@ -364,6 +364,9 @@ Splitting, formatting, parsing and code points.
 | `Text reverse` | text | Reverses text by Unicode code point. |
 | `Text Separator split` | array | Splits at every exact occurrence of a separator, keeping empty parts. |
 | `Text Prefix startswith` | boolean | Exact case-sensitive prefix test. |
+| `Text lower` | text | Converts Unicode text to lowercase. |
+| `Text Width Fill lpad` | text | Pads text on the left without truncating longer values. |
+| `Text Chars Replacement translate` | text | Replaces listed characters, deleting those with no replacement. |
 | `Value text` | text | Formats one scalar as text; a .Nf literal after it selects fixed decimals. |
 | `Texts Limit vocab` | array | Most frequent words, at most Limit of them, ties by code point. |
 | `Text words` | array | Lowercase Unicode letter and number runs. |

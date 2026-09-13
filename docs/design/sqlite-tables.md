@@ -42,7 +42,7 @@ The final aggregate exercise adds `calendar`, datetime-to-date conversion and
 `rolling by` on arrays and SQLite views. Its 15-day result uses a generated day
 for every date, then a SQL `ROWS 14 PRECEDING` window before filtering August.
 
-The next steps are tile, general table union, text matching and scalar aggregates inside
+The next steps are tile, general table union and scalar aggregates inside
 query expressions. Preserve an explicit ordering
 contract when adding operations after `sort by`; a SQLite subquery does not
 promise to retain its source order. Multiway aliased joins need qualified keys

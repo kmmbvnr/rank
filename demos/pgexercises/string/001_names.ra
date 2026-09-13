@@ -1,0 +1,15 @@
+rem PostgreSQL Exercises: string 1
+rem https://pgexercises.com/questions/string/concat.html
+
+use cli
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/string_001.csv"
+
+Db = DbPath sqlite
+M = Db .members
+Result = M select
+  .name = .surname + ", " + .firstname
+end
+Result OutputPath csv

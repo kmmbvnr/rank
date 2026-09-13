@@ -757,6 +757,29 @@ being flattened implicitly.
 A literal format after `text` selects fixed decimal output:
 
 ```rank
+`lower` converts Unicode text to lowercase. `startswith` broadcasts over text
+arrays; `lower` maps over them lazily. Both compile to SQLite expressions for
+database columns. `"part" in Text` tests an exact substring and also works on
+SQLite columns.
+
+`Text Width Fill lpad` adds characters on the left until the result reaches
+`Width` Unicode code points. `Width` is nonnegative, `Fill` is nonempty, and a
+value already at least that wide is unchanged. A multicharacter fill repeats
+from its first character and may be cut at the requested width.
+
+`Text Chars Replacement translate` maps each Unicode character in `Chars` to
+the corresponding character in `Replacement`; characters without a replacement
+are deleted. Characters not listed in `Chars` remain unchanged. On arrays, the
+three arguments broadcast scalars against same-shaped arrays and stay lazy.
+On SQLite views, these operations stay in the query and preserve missing cells
+as SQL `NULL`.
+
+```rank
+Quiet = "RANK" lower
+Zip = "234" 5 "0" lpad
+Digits = "(844) 123-4567" "-() " "" translate
+```
+
 (2 / 3) text ".6f" print
 rem 0.666667
 12 text ".3f" print
