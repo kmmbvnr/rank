@@ -1,7 +1,6 @@
 import { derivedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
-import { aggregateGroupedColumn } from './tables.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
 import {
     mapSequence,
@@ -13,7 +12,6 @@ import {
 } from '../sequence.js';
 import {
     isRankArray,
-    isRankGroupedColumn,
     isRankMultiset,
     isRankQueue,
     isRankSqliteExpression,
@@ -75,9 +73,6 @@ export const numbersModule: RuntimeModule = {
     sum: () => native('sum', 1, arguments_ => {
         const value = arguments_[0];
         if (isRankSqliteExpression(value)) return sumSqlite(value);
-        if (isRankGroupedColumn(value)) {
-            return aggregateGroupedColumn(value, values => sumArray(values.items), false, 'sum');
-        }
         if (isRankSequence(value)) {
             const planned = reduceSequence(value, 'sum');
             if (planned !== undefined) return expectNumeric(planned);

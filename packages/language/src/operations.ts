@@ -541,7 +541,7 @@ export const moduleForms: readonly ModuleForm[] = [
         summary: 'Source positions of that same order.' },
     { module: 'tables', form: 'Rows group by .field',
         example: 'use json\nRows = "[{\\"x\\": 1}]" json\nG = Rows group by .x',
-        summary: 'Grouped view that mean, median, std and sum aggregate.' },
+        summary: 'Grouped view summarized by a named select block.' },
     { module: 'tables', form: 'Rows filter .field greater Limit',
         example: 'use json\nRows = "[{\\"x\\":1}]" json\nOut = Rows filter .x greater 0',
         summary: 'Filters a table with implicit input columns; condition lines in a block use AND.' },

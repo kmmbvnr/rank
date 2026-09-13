@@ -16,6 +16,8 @@ R = R filter
   .starttime less "2012-10-01"
 end
 G = R group by .facid
-Result = G .slots sum
+Result = G select
+  .slots = .slots sum
+end
 Result = Result sort by .slots
 Result OutputPath csv

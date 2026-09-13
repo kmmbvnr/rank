@@ -2,7 +2,10 @@ import { derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-s
 import { MissingValueError, RankError } from '../errors.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import { readTextFile, writeTextFile } from './io.js';
-import { aggregateSqlite, lookupSqlite, materializeSqlite, selectSqlite, sqliteColumns } from './sqlite.js';
+import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, sqliteColumns } from './sqlite.js';
+import { compareOrderedValues, orderedKind } from '../ordered.js';
+import { expectNumeric } from './shared.js';
+import { meanValue, medianValue, standardDeviation } from './stats.js';
 import {
     formatDate,
     isRankObject,
@@ -13,7 +16,6 @@ import {
     isRankSqliteExpression,
     isRankTableAlias,
     isRankRecord,
-    type RankGroupedColumn,
     type RankGroupedTable,
     type RankArray,
     type RankObject,
@@ -204,38 +206,66 @@ export function groupTable(source: RankValue, fields: readonly string[]): RankGr
     return { kind: 'grouped-table', fields, groups };
 }
 
-export function aggregateGroupedColumn(
-    column: RankGroupedColumn,
-    reduce: (values: RankArray) => RankValue,
-    emptyIsMissing = false,
-    sqlAggregate?: 'sum',
+export type GroupAggregateOperation = 'count' | 'sum' | 'min' | 'max' | 'mean' | 'median' | 'std';
+
+export interface GroupAggregateSpec {
+    readonly name: string;
+    readonly operation: GroupAggregateOperation;
+    readonly field?: string;
+}
+
+export function selectGroupedTable(
+    table: RankGroupedTable, specs: readonly GroupAggregateSpec[],
 ): RankValue {
-    const { table, field } = column;
-    if (table.fields.includes(field)) {
-        throw new RankError(`grouped aggregate field .${field} is also a key`, 'TypeError');
+    if (specs.length === 0) throw new RankError('grouped select needs fields', 'TypeError');
+    const names = [...table.fields, ...specs.map(spec => spec.name)];
+    if (new Set(names).size !== names.length) {
+        throw new RankError('grouped select fields must be distinct', 'TypeError');
     }
-    if (table.sqliteSource) {
-        if (!sqlAggregate) {
-            throw new RankError('this grouped aggregate is not available for SQLite views', 'TypeError');
-        }
-        return aggregateSqlite(table.sqliteSource, table.fields, field);
-    }
+    if (table.sqliteSource) return selectGroupedSqlite(table.sqliteSource, table.fields, specs);
     const items: RankValue[] = table.groups.map(group => {
         const entries = new Map<string, RankValue>();
         table.fields.forEach((name, index) => {
             const key = group.keys[index];
             if (key !== undefined) entries.set(name, key);
         });
-        const values = group.rows.flatMap(row => {
-            const value = row.entries.get(field);
-            return value === undefined ? [] : [value];
-        });
-        if (values.length > 0 || !emptyIsMissing) {
-            entries.set(field, reduce(ownedArray(values)));
+        for (const spec of specs) {
+            const values = spec.field === undefined ? [] : group.rows.flatMap(row => {
+                const value = row.entries.get(spec.field!);
+                return value === undefined ? [] : [value];
+            });
+            if (spec.operation === 'count') {
+                entries.set(spec.name, BigInt(spec.field === undefined ? group.rows.length : values.length));
+            } else if (spec.operation === 'sum') {
+                let total: bigint | number = 0n;
+                for (const value of values) {
+                    const numeric = expectNumeric(value);
+                    total = typeof total === 'bigint' && typeof numeric === 'bigint'
+                        ? total + numeric : Number(total) + Number(numeric);
+                }
+                entries.set(spec.name, total);
+            } else if (values.length > 0) {
+                const data = ownedArray(values);
+                const result = spec.operation === 'mean' ? meanValue(data)
+                    : spec.operation === 'median' ? medianValue(data)
+                        : spec.operation === 'std' ? standardDeviation(data)
+                            : groupExtreme(values, spec.operation);
+                entries.set(spec.name, result);
+            }
         }
         return ownedObject(entries);
     });
-    return ownedArray(items, [items.length], false, [...table.fields, field]);
+    return ownedArray(items, [items.length], false, names);
+}
+
+function groupExtreme(values: readonly RankValue[], operation: 'min' | 'max'): RankValue {
+    let result = values[0];
+    const kind = orderedKind(result);
+    for (const value of values.slice(1)) {
+        const order = compareOrderedValues(value, result, kind);
+        if (operation === 'min' ? order < 0 : order > 0) result = value;
+    }
+    return result;
 }
 
 export function joinTables(

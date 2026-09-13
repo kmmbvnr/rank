@@ -22,6 +22,8 @@ R = R select
   .slots = .slots
 end
 G = R group by .facid .month
-Result = G .slots sum
+Result = G select
+  .slots = .slots sum
+end
 Result = Result sort by .facid .month
 Result OutputPath csv

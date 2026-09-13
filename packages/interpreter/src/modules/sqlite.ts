@@ -23,6 +23,7 @@ import {
 } from '../value.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
+import type { GroupAggregateSpec } from './tables.js';
 
 export const sqliteModule: RuntimeModule = {
     sqlite: context => native('sqlite', 1, ([path]) => {
@@ -412,17 +413,27 @@ export function sumSqlite(expression: RankSqliteExpression): RankValue {
 }
 
 /** Return one lazy row per key; no source rows are read while planning. */
-export function aggregateSqlite(
-    source: RankSqliteTable, keys: readonly string[], field: string,
+export function selectGroupedSqlite(
+    source: RankSqliteTable, keys: readonly string[], specs: readonly GroupAggregateSpec[],
 ): RankSqliteTable {
-    requireColumn(source, field);
-    if (keys.includes(field)) {
-        throw new RankError(`grouped aggregate field .${field} is also a key`, 'TypeError');
-    }
+    const columns = sqliteColumns(source);
     const keyColumns = keys.map(quote);
-    const aggregate = `COALESCE(SUM(${quote(field)}), 0) AS ${quote(field)}`;
+    const aggregates = specs.map(spec => {
+        if (spec.field && !columns.includes(spec.field)) {
+            throw new RankError(`SQLite column does not exist: .${spec.field}`, 'Missing');
+        }
+        if (spec.operation === 'median' || spec.operation === 'std') {
+            throw new RankError(`SQLite grouped ${spec.operation} is not supported yet`, 'TypeError');
+        }
+        const field = spec.field ? quote(spec.field) : '*';
+        const expression = spec.operation === 'count' ? `COUNT(${field})`
+            : spec.operation === 'sum' ? `COALESCE(SUM(${field}), 0)`
+                : spec.operation === 'mean' ? `AVG(${field})`
+                    : `${spec.operation.toUpperCase()}(${field})`;
+        return `${expression} AS ${quote(spec.name)}`;
+    });
     return { kind: 'sqlite-table', database: source.database,
-        text: `SELECT ${[...keyColumns, aggregate].join(', ')} FROM (${source.text}) AS source`
+        text: `SELECT ${[...keyColumns, ...aggregates].join(', ')} FROM (${source.text}) AS source`
             + (keys.length ? ` GROUP BY ${keyColumns.join(', ')}` : ''),
         params: source.params,
         booleanColumns: new Set(keys.filter(key => source.booleanColumns?.has(key))),

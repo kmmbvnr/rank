@@ -4,41 +4,53 @@ These are active design questions, not alternate historical syntaxes.
 
 ## PostgreSQL Exercises aggregates
 
-The first thirteen runnable [aggregation solutions](../../demos/pgexercises/aggregates/README.md)
-use the same Rank source on SQLite views and arrays. The remaining exercises
-expose gaps in grouped counts, several aggregates per group, subtotals and
-window calculations. These examples are proposals, not current syntax:
+The [aggregation solutions](../../demos/pgexercises/aggregates/README.md)
+use grouped `select` to name count and reduction columns in one table. The
+owner is considering ordinary field assignment on a grouped table as a
+replacement, with the same spelling for array and SQLite sources:
 
 ```rank
-G = Members group by .recommendedby
-Counts = G count
+One = Rows group by .store
+One .visits = count
+One .sales = .sales sum
+```
 
-G = Bookings group by .facid
-Totals = G select
+This is **a proposal, not current syntax**. The assignments would change the
+Rank value `One` in place, just as other field assignments do. They would add
+named aggregate columns beside the group keys. For an array source, Rank would
+calculate each group's values; for a SQLite source, Rank would extend the lazy
+view and combine assignments into one `GROUP BY` query when it is read. The
+SQLite database itself would not change. The design must still settle when
+array aggregates are calculated, how repeated assignment to a column behaves,
+and how a grouped value becomes an ordinary table for subsequent operations.
+Until then, the runnable form is:
+
+```rank
+Sums = One select
   .visits = count
+  .sales = .sales sum
+end
+```
+
+The following **unimplemented** ideas concern subtotals and window calculations:
+
+```rank
+G = Bookings rollup by .facid .month
+Totals = G select
   .slots = .slots sum
 end
-
-G = Bookings rollup by .facid .month
-Totals = G .slots sum
 
 R = Members rownumber by .joindate
 R = R rank by .hours descending
 R = R 3 tile by .revenue descending
 ```
 
-`G count` would return key columns and a `.count` column containing all rows
-in each group. `G .field count` would count present cells, matching SQL
-`COUNT(field)`; ordinary boolean `count` would keep its current meaning.
-Grouped `select` would calculate several aggregates in one lazy query and
-carry the keys automatically. `rollup by` would add key-prefix subtotal rows
-with absent keys. Window operations would add one named column to a new view;
-`rownumber` numbers rows, `rank` leaves gaps after ties, and `N tile` assigns
-nearly equal bands. All would work on arrays and SQLite without reading the
-full source during SQL planning. Their exact ordering and missing-value rules
-need the language owner's decision before implementation. The final rolling
-revenue exercise also needs date ranges and a rolling-window rule that counts
-days with zero bookings.
+`rollup by` would add key-prefix subtotal rows with absent keys. Window
+operations would add one named column to a new view; `rownumber` numbers rows,
+`rank` leaves gaps after ties, and `N tile` assigns nearly equal bands. Their
+ordering and missing-value rules need a language decision before implementation.
+The final rolling revenue exercise also needs date ranges and a rolling-window
+rule that counts days with zero bookings.
 
 ## Pattern matching
 

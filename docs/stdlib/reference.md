@@ -323,7 +323,7 @@ These need `use tables` but have no name to look up.
 
 | Form | Summary |
 | --- | --- |
-| `Rows group by .field` | Grouped view that mean, median, std and sum aggregate. |
+| `Rows group by .field` | Grouped view summarized by a named select block. |
 | `Rows filter .field greater Limit` | Filters a table with implicit input columns; condition lines in a block use AND. |
 | `Rows select .first .second` | Selects named columns into a rank-1 table, including a single column. |
 | `Rows select ... end` | Computes named columns with block-local calculations and an implicit input table. |

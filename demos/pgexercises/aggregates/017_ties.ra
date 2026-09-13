@@ -12,7 +12,9 @@ argument OutputPath path = "demos/pgexercises/data/agg_017.csv"
 Db = DbPath sqlite
 R = Db .bookings
 G = R group by .facid
-R = G .slots sum
+R = G select
+  .slots = .slots sum
+end
 Top = R .slots max
 R = R filter .slots equal Top
 Result = R select

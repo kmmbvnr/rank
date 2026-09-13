@@ -12,6 +12,8 @@ argument OutputPath path = "demos/pgexercises/data/agg_004.csv"
 Db = DbPath sqlite
 R = Db .bookings
 G = R group by .facid
-Result = G .slots sum
+Result = G select
+  .slots = .slots sum
+end
 Result = Result sort by .facid
 Result OutputPath csv

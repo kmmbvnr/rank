@@ -111,7 +111,7 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
-import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectTable } from './modules/tables.js';
+import { groupTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sortSqlite, sqliteColumn, sqliteScope,
@@ -144,7 +144,6 @@ import {
     isRankErrorValue,
     isRankFenwick,
     isRankFile,
-    isRankGroupedColumn,
     isRankGroupedTable,
     isRankGraph,
     isRankIndex,
@@ -1661,6 +1660,33 @@ export class Interpreter {
                     source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
                 }
                 if (isRankTableAlias(source)) source = source.source;
+                if (isRankGroupedTable(source)) {
+                    if (!isTableSelectExpression(expression) || expression.columns
+                        || expression.fields.length > 0) {
+                        throw new RankError('grouped tables require a select block', 'TypeError');
+                    }
+                    const specs: GroupAggregateSpec[] = expression.entries.map(entry => {
+                        if (!isRecordField(entry)) {
+                            throw new RankError('grouped select expects named aggregates', 'TypeError');
+                        }
+                        const parts = flattenApplication(entry.value);
+                        const field = parts.length === 2 && isLabelLiteral(parts[0])
+                            ? parts[0].name : undefined;
+                        const operationNode = parts[parts.length - 1];
+                        const aggregateNames = ['count', 'sum', 'min', 'max', 'mean', 'median', 'std'];
+                        if ((parts.length !== 1 && field === undefined)
+                            || !isNameExpression(operationNode)
+                            || !aggregateNames.includes(operationNode.name)
+                            || (field === undefined && operationNode.name !== 'count')) {
+                            throw new RankError('grouped select expects count or .field aggregate', 'TypeError');
+                        }
+                        const operation = operationNode.name as GroupAggregateOperation;
+                        interpreter.requireModule(operation === 'count' ? 'sequences'
+                            : ['mean', 'median', 'std'].includes(operation) ? 'stats' : 'numbers', operation);
+                        return { name: entry.name, operation, field };
+                    });
+                    return selectGroupedTable(source, specs);
+                }
                 if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
                     throw new RankError('filter/select expects a rank-1 table or SQLite view', 'TypeError');
                 }
@@ -4661,7 +4687,7 @@ function absolute(value: bigint): bigint {
 
 function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
     if (values.length === 2 && isRankGroupedTable(values[0]) && isRankLabel(values[1])) {
-        return { kind: 'grouped-column', table: values[0], field: values[1].name };
+        throw new RankError('grouped tables require a select block', 'TypeError');
     }
     // Reading one cell out of an array is the most common application in the
     // language. The branch that serves it sits seventeen type guards down, and
@@ -6198,8 +6224,6 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             pending.push(item.entries.values());
         } else if (isRankGroupedTable(item)) {
             pending.push(item.groups.flatMap(group => group.rows).values());
-        } else if (isRankGroupedColumn(item)) {
-            pending.push([item.table].values());
         } else if (isRankCounter(item)) {
             pending.push(Array.from(item.entries.values(), entry => entry.value).values());
         } else if (isRankErrorValue(item)) {

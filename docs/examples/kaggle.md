@@ -21,7 +21,9 @@ use stats
 Data = "train.csv" csv
 
 Groups = Data group by .Sex .Pclass
-Rate = Groups .Survived mean
+Rate = Groups select
+  .rate = .Survived mean
+end
 
 Rate print
 ```
@@ -154,7 +156,9 @@ Grouping and join:
 
 ```rank
 Groups = Train group by .store_nbr .family .weekday
-Means = Groups .sales mean
+Means = Groups select
+    .sales = .sales mean
+  end
 
 Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```

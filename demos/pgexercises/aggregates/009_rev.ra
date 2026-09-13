@@ -21,6 +21,8 @@ R = R select
   .revenue = Guest GCost MCost choose
 end
 G = R group by .name
-Result = G .revenue sum
+Result = G select
+  .revenue = .revenue sum
+end
 Result = Result sort by .revenue
 Result OutputPath csv

@@ -19,6 +19,8 @@ R = R select
   .hours = .slots * 0.5
 end
 G = R group by .facid .name
-Result = G .hours sum
+Result = G select
+  .hours = .hours sum
+end
 Result = Result sort by .facid
 Result OutputPath csv

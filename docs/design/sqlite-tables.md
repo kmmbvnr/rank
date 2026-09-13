@@ -28,7 +28,7 @@ oracles. All nine [Updates](../../demos/pgexercises/updates/README.md) use
 explicit SQLite writes and a database-state oracle. Q6 also has a
 [SQLite program](../../demos/tpch/001_q6_sqlite.ra).
 The [Aggregates](../../demos/pgexercises/aggregates/README.md) section tests
-grouped `sum`, grouped filters, month extraction and sorted slices on SQLite
+grouped `select`, grouped filters, month extraction and sorted slices on SQLite
 and arrays. The local source data remains ignored.
 
 Contextual `filter` and `select` blocks build on boolean masks and named
@@ -38,8 +38,7 @@ and cleanup materialization from Joins 6 and 8. Task 7 uses `lookup` for a
 correlated scalar subquery without a join or early row read. The
 [ergonomics decision](table-query-ergonomics.md) records the change.
 
-The next steps are grouped counts and multiple aggregate columns, rollups,
-window calculations, table union, text matching and scalar aggregates inside
+The next steps are rollups, window calculations, table union, text matching and scalar aggregates inside
 query expressions. Preserve an explicit ordering
 contract when adding operations after `sort by`; a SQLite subquery does not
 promise to retain its source order. Multiway aliased joins need qualified keys

@@ -2,10 +2,8 @@ import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array
 import { MissingValueError, RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
-import { aggregateGroupedColumn } from './tables.js';
 import {
     isRankArray,
-    isRankGroupedColumn,
     isRankSequence,
     type RankArray,
     type RankValue,
@@ -14,12 +12,9 @@ import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const statsModule: RuntimeModule = {
-    mean: () => native('mean', 1, ([value]) => isRankGroupedColumn(value)
-        ? aggregateGroupedColumn(value, meanValue, true) : meanValue(value)),
-    median: () => native('median', 1, ([value]) => isRankGroupedColumn(value)
-        ? aggregateGroupedColumn(value, medianValue, true) : medianValue(value)),
-    std: () => native('std', 1, ([value]) => isRankGroupedColumn(value)
-        ? aggregateGroupedColumn(value, standardDeviation, true) : standardDeviation(value)),
+    mean: () => native('mean', 1, ([value]) => meanValue(value)),
+    median: () => native('median', 1, ([value]) => medianValue(value)),
+    std: () => native('std', 1, ([value]) => standardDeviation(value)),
     mse: () => native('mse', 2, arguments_ => errorMetricValue(
         arguments_[0],
         arguments_[1],
@@ -159,7 +154,7 @@ export function statisticsCell(
     return Math.sqrt(squared / count);
 }
 
-function standardDeviation(value: RankValue): number {
+export function standardDeviation(value: RankValue): number {
     const items = presentValues(value, 'std');
     if (items.length === 0) {
         throw new RankError('std requires at least one value', 'EmptyReduction');
@@ -262,7 +257,7 @@ export function covarianceValue(
     return derivedArray(outputShape, [value], resultAt, true);
 }
 
-function meanValue(value: RankValue): number {
+export function meanValue(value: RankValue): number {
     const items = presentValues(value, 'mean');
     if (items.length === 0) {
         throw new RankError('mean requires at least one value', 'EmptyReduction');
@@ -272,7 +267,7 @@ function meanValue(value: RankValue): number {
     return total / items.length;
 }
 
-function medianValue(value: RankValue): number {
+export function medianValue(value: RankValue): number {
     const values = presentValues(value, 'median').map(item => {
         const numeric = Number(expectNumeric(item));
         if (!Number.isFinite(numeric)) {

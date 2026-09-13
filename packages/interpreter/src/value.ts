@@ -166,12 +166,6 @@ export interface RankGroupedTable {
     readonly sqliteSource?: RankSqliteTable;
 }
 
-export interface RankGroupedColumn {
-    readonly kind: 'grouped-column';
-    readonly table: RankGroupedTable;
-    readonly field: string;
-}
-
 export interface RankRecord {
     readonly kind: 'record';
     readonly entries: Map<string, RankValue>;
@@ -252,7 +246,7 @@ export type RankValue = bigint | number | boolean | string | RankArray | RankFil
     RankSqliteDatabase | RankSqliteTable | RankSqliteExpression | RankTableAlias | RankSqliteScope |
     RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
-    RankGroupedTable | RankGroupedColumn | NativeFunction |
+    RankGroupedTable | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
     RankWavelet;
 
@@ -360,10 +354,6 @@ export function isRankGroupedTable(value: RankValue): value is RankGroupedTable 
     return typeof value === 'object' && value.kind === 'grouped-table';
 }
 
-export function isRankGroupedColumn(value: RankValue): value is RankGroupedColumn {
-    return typeof value === 'object' && value.kind === 'grouped-column';
-}
-
 export function isRankRecord(value: RankValue): value is RankRecord {
     return typeof value === 'object' && value.kind === 'record';
 }
@@ -419,7 +409,6 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return '<index>';
     }
     if (value.kind === 'grouped-table') return '<grouped table>';
-    if (value.kind === 'grouped-column') return `<grouped column .${value.field}>`;
     if (value.kind === 'sqlite-database') return `<sqlite ${value.path}>`;
     if (value.kind === 'sqlite-table') return '<sqlite table>';
     if (value.kind === 'sqlite-expression') return '<sqlite expression>';

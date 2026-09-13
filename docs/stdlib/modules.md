@@ -580,10 +580,10 @@ innerjoin on
 `labels` returns the ordered column labels of a rank-1 table. CSV headers are
 retained even for empty columns and zero data rows. For object arrays without
 CSV headers, it unions keys in first-appearance order. `group by` builds a
-grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
-over a grouped column produce a flat table with the keys and aggregate.
-On a SQLite view, grouped `sum` produces a lazy SQL plan; other grouped
-reductions currently require an array table.
+grouped view from one or more named fields. A grouped `select` block names
+aggregates and produces a flat table with the keys. SQLite translates grouped
+`count`, `sum`, `min`, `max`, and `mean` in one lazy query; `median` and `std`
+currently require an array table.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 See [Tables](../language/tables.md) for missing keys, row order and collisions.

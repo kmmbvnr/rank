@@ -44,6 +44,11 @@ const grouped = [
     ['013_hours.ra', 'SELECT b.facid, f.name, SUM(b.slots / 2.0) AS hours '
         + 'FROM bookings b JOIN facilities f ON b.facid = f.facid '
         + 'GROUP BY b.facid, f.name ORDER BY b.facid'],
+    ['014_first.ra', 'SELECT m.surname, m.firstname, m.memid, '
+        + 'MIN(b.starttime) AS starttime FROM bookings b '
+        + 'JOIN members m ON b.memid = m.memid '
+        + "WHERE b.starttime >= '2012-09-01' "
+        + 'GROUP BY m.surname, m.firstname, m.memid ORDER BY m.memid'],
     ['017_ties.ra', 'WITH totals AS (SELECT facid, SUM(slots) AS total '
         + 'FROM bookings GROUP BY facid) SELECT facid, total FROM totals '
         + 'WHERE total = (SELECT MAX(total) FROM totals)'],
@@ -87,10 +92,12 @@ test('grouped aggregate programs match SQLite without reading source rows early'
     const output = path.join(dir, 'out.csv');
     const db = new Database(dbPath);
     try {
-        db.exec('CREATE TABLE members (memid INTEGER, recommendedby INTEGER); '
+        db.exec('CREATE TABLE members (memid INTEGER, recommendedby INTEGER, '
+            + 'firstname TEXT, surname TEXT); '
             + 'CREATE TABLE facilities (facid INTEGER, name TEXT, membercost REAL, guestcost REAL); '
             + 'CREATE TABLE bookings (facid INTEGER, memid INTEGER, slots INTEGER, starttime TEXT); '
-            + 'INSERT INTO members VALUES (1,NULL),(2,1),(3,1),(4,2),(5,NULL); '
+            + "INSERT INTO members VALUES (1,NULL,'A','Smith'),(2,1,'B','Jones'),"
+            + "(3,1,'C','Smith'),(4,2,'D','Miller'),(5,NULL,'E','Jones'); "
             + "INSERT INTO facilities VALUES (0,'Court',5,20),(1,'Pool',0,10); "
             + "INSERT INTO bookings VALUES (0,1,2,'2012-08-31 00:00:00'),"
             + "(0,2,3,'2012-09-01 00:00:00'),(1,1,4,'2012-09-10 00:00:00'),"
@@ -122,12 +129,30 @@ test('grouped aggregate programs match SQLite without reading source rows early'
         fs.writeFileSync(source, `use io\nuse numbers\nuse sequences\nuse tables\n`
             + `Db = ${JSON.stringify(dbPath)} sqlite\n`
             + 'R = Db .bookings\nG = R group by .facid\n'
-            + 'S = G .slots sum\nQ = S sql\nQ .text print\n');
+            + 'S = G select\n  .visits = count\n  .slots = .slots sum\nend\n'
+            + 'Q = S sql\nQ .text print\n');
         const result = spawnSync(process.execPath, [cli, source],
             { cwd: root, encoding: 'utf8' });
         assert.equal(result.status, 0, result.stderr);
         assert.match(result.stdout, /GROUP BY "facid"/);
         assert.match(result.stdout, /SUM\("slots"\)/);
+        assert.match(result.stdout, /COUNT\(\*\)/);
+        const mixed = path.join(dir, 'mixed.ra');
+        fs.writeFileSync(mixed, `use io\nuse numbers\nuse sequences\nuse stats\nuse tables\n`
+            + `argument DbPath path\nargument OutputPath path\n`
+            + 'Db = DbPath sqlite\nR = Db .bookings\nG = R group by .facid\n'
+            + 'S = G select\n  .visits = count\n  .present = .slots count\n'
+            + '  .slots = .slots sum\n  .low = .slots min\n'
+            + '  .high = .slots max\n  .average = .slots mean\nend\n'
+            + 'S = S sort by .facid\nS OutputPath csv\n');
+        const mixedResult = spawnSync(process.execPath,
+            [cli, mixed, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(mixedResult.status, 0, mixedResult.stderr);
+        const mixedSql = 'SELECT facid, COUNT(*) AS visits, COUNT(slots) AS present, '
+            + 'SUM(slots) AS slots, MIN(slots) AS low, MAX(slots) AS high, '
+            + 'AVG(slots) AS average FROM bookings GROUP BY facid ORDER BY facid';
+        assert.deepEqual(csvRows(output).slice(1), db.prepare(mixedSql).all()
+            .map(row => Object.values(row).map(String)));
     } finally {
         db.close();
         fs.rmSync(dir, { recursive: true, force: true });

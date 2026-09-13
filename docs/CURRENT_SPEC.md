@@ -3289,8 +3289,8 @@ subquery with bound parameters; no match or SQL `NULL` returns an absent field.
 Without an explicit source order, repeated SQLite keys have no stable first
 match. The view is read only and the lookup does not execute until demanded.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
-expression runs SQL `SUM`. `group by` on a SQLite view is lazy; grouped `sum`
-returns a view of key columns and the total. A following `filter` narrows the
+expression runs SQL `SUM`. `group by` on a SQLite view is lazy; grouped
+`select` returns a view with key columns and named aggregates. A following `filter` narrows the
 totals, and `sort by` defines their output order. `View from 0 until N` adds
 SQL `LIMIT` after checking bounds with `len`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
@@ -3586,21 +3586,33 @@ the first matching row. Field sorting accepts object rows as well as records.
 ## Grouping
 
 ```rank
-Groups = Data group by .Sex .Pclass
-Rate = Groups .Survived mean
+G = Data group by .Sex .Pclass
+Totals = G select
+  .visits = count
+  .survived = .Survived sum
+  .rate = .Survived mean
+end
 ```
 
-`group by` takes one or more field labels separated by spaces. A single key is
-`Data group by .Sex`. It returns a grouped view, not nested arrays of rows.
-`Groups .Survived mean`, `median`, `std` and `sum` return ordinary rank-1 tables:
-one row per key, with the key fields followed by the aggregate field. Groups
-appear in first-seen order, and the source rows are captured when `group by`
-runs. Missing key cells form one group per key combination. The statistical
-reductions skip missing values; when a group has none, its aggregate cell is
-missing and may be filled with `pad`. `sum` retains its integer-zero result for
-an empty group. Keys must be scalar and cannot be NaN; repeated key fields are
-errors. On SQLite views, grouping stays lazy and grouped `sum` builds SQL;
-other grouped reductions currently require array tables.
+`group by` takes one or more field labels separated by spaces and returns a
+grouped view. A `select` block produces a flat table with the key fields and
+named aggregate columns. `count` counts rows; `.field count` counts present
+cells. `.field sum`, `min`, `max`, `mean`, `median`, and `std` reduce one field
+within each group. A bare reduction of a grouped column is not table syntax.
+Ordinary reductions outside this block retain their scalar or tensor meaning.
+
+Array groups appear in first-seen order. Missing key cells form one group per
+key combination. Missing aggregate cells are skipped; `sum` yields zero and
+`count` yields zero when no cells are present. Other reductions leave the
+result cell missing. Keys must be scalar and cannot be NaN; repeated keys and
+output names are errors.
+
+On SQLite views, `select` creates one lazy `GROUP BY` query for all requested
+columns. `count`, `sum`, `min`, `max`, and `mean` translate to SQLite. `median`
+and `std` currently require array tables; SQLite reports an error rather than
+reading rows early. Use `sql` and `explain` to inspect the generated query,
+`filter` for conditions on totals, and `sort by` for a defined output order.
+SQLite grouping does not promise first-seen order.
 
 ## Join
 
@@ -4718,9 +4730,10 @@ innerjoin on
 `labels` returns the ordered column labels of a rank-1 table. CSV headers are
 retained even for empty columns and zero data rows. For object arrays without
 CSV headers, it unions keys in first-appearance order. `group by` builds a
-grouped view from one or more named fields; `mean`, `median`, `std` and `sum`
-over a grouped column produce a flat table with the keys and aggregate.
-On SQLite views, grouped `sum` builds a lazy `GROUP BY` query.
+grouped view from one or more named fields. A grouped `select` block names
+aggregates and produces a flat table with the keys. SQLite translates grouped
+`count`, `sum`, `min`, `max`, and `mean` in one lazy query; `median` and `std`
+currently require an array table.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 `sqlite` opens an existing database; `Db .table` returns a lazy table view
@@ -6339,7 +6352,9 @@ use stats
 Data = "train.csv" csv
 
 Groups = Data group by .Sex .Pclass
-Rate = Groups .Survived mean
+Rate = Groups select
+  .rate = .Survived mean
+end
 
 Rate print
 ```
@@ -6472,7 +6487,9 @@ Grouping and join:
 
 ```rank
 Groups = Train group by .store_nbr .family .weekday
-Means = Groups .sales mean
+Means = Groups select
+    .sales = .sales mean
+  end
 
 Forecast = Test Means leftjoin by .store_nbr .family .weekday
 ```

@@ -6,19 +6,25 @@ describe('Rank tables', () => {
     it('groups one and several fields into flat aggregate tables', () => {
         const runtime = new Interpreter();
         runtime.execute([
-            'use json', 'use tables', 'use stats', 'use numbers',
+            'use json', 'use tables', 'use stats', 'use numbers', 'use sequences',
             'Rows = "[{\\"store\\":1,\\"family\\":\\"A\\",\\"sales\\":2},',
             '  {\\"store\\":2,\\"family\\":\\"A\\",\\"sales\\":10},',
             '  {\\"store\\":1,\\"family\\":\\"A\\",\\"sales\\":4},',
             '  {\\"store\\":1,\\"family\\":\\"B\\",\\"sales\\":8}]" json',
             'One = Rows group by .store',
             'Two = Rows group by .store .family',
-            'Means = Two .sales mean',
-            'Sums = One .sales sum',
+            'Means = Two select',
+            '  .sales = .sales mean',
+            '  .visits = count',
+            'end',
+            'Sums = One select',
+            '  .sales = .sales sum',
+            'end',
         ].join('\n'));
         expect(formatValue(runtime.execute('Means .store')!)).toBe('1 2 1');
         expect(formatValue(runtime.execute('Means .family')!)).toBe('A A B');
         expect(formatValue(runtime.execute('Means .sales')!)).toBe('3 10 8');
+        expect(formatValue(runtime.execute('Means .visits')!)).toBe('2 1 1');
         expect(formatValue(runtime.execute('Sums .sales')!)).toBe('14 10');
     });
 
@@ -46,7 +52,9 @@ describe('Rank tables', () => {
             'Rows = "[{\\"key\\":\\"a\\",\\"value\\":2},',
             '  {\\"value\\":4},{\\"value\\":6}]" json',
             'Groups = Rows group by .key',
-            'Means = Groups .value mean',
+            'Means = Groups select',
+            '  .value = .value mean',
+            'end',
             'Left = "[{\\"key\\":\\"a\\",\\"id\\":1},',
             '  {\\"id\\":2},{\\"id\\":3}]" json',
             'Joined = Left Means leftjoin by .key',
@@ -64,11 +72,44 @@ describe('Rank tables', () => {
             'Rows = "[{\\"key\\":1},{\\"key\\":1,\\"value\\":4},',
             '  {\\"key\\":2}]" json',
             'Groups = Rows group by .key',
-            'Means = Groups .value mean',
-            'Sums = Groups .value sum',
+            'Means = Groups select',
+            '  .value = .value mean',
+            'end',
+            'Sums = Groups select',
+            '  .value = .value sum',
+            'end',
         ].join('\n'));
         expect(formatValue(runtime.execute('Means .value pad 0')!)).toBe('4 0');
         expect(formatValue(runtime.execute('Sums .value')!)).toBe('4 0');
+    });
+
+    it('keeps grouped table syntax separate from ordinary reductions', () => {
+        expect(() => run([
+            'use json', 'use tables', 'use numbers',
+            'Rows = "[{\\"key\\":1,\\"value\\":2}]" json',
+            'G = Rows group by .key',
+            'G .value sum',
+        ].join('\n'))).toThrowError('grouped tables require a select block');
+    });
+
+    it('counts rows separately from present cells in grouped select', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use sequences', 'use numbers', 'use stats',
+            'Rows = "[{\\"key\\":1,\\"value\\":2},{\\"key\\":1},',
+            '  {\\"key\\":2}]" json',
+            'G = Rows group by .key',
+            'Totals = G select',
+            '  .visits = count',
+            '  .present = .value count',
+            '  .total = .value sum',
+            '  .average = .value mean',
+            'end',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Totals .visits')!)).toBe('2 1');
+        expect(formatValue(runtime.execute('Totals .present')!)).toBe('1 0');
+        expect(formatValue(runtime.execute('Totals .total')!)).toBe('2 0');
+        expect(formatValue(runtime.execute('Totals .average pad 0')!)).toBe('2 0');
     });
 
     it('rejects duplicate non-key columns in relational joins', () => {

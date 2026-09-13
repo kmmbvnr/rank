@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: aggregates 3
 rem https://pgexercises.com/questions/aggregates/count3.html
 
 use cli
-use numbers
 use sequences
 use tables
 
@@ -16,9 +15,10 @@ M = M Ids innerjoin on
   .recommendedby equal .memid
 R = M select
   .recommendedby = .recommendedby
-  .count = 1
 end
 G = R group by .recommendedby
-Result = G .count sum
+Result = G select
+  .count = count
+end
 Result = Result sort by .recommendedby
 Result OutputPath csv
