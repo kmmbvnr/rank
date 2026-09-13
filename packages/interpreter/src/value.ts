@@ -18,6 +18,7 @@ interface RankArrayValue {
     readonly containsFiles?: false;
     readonly columnNames?: readonly string[];
     readonly tableScopes?: readonly string[];
+    readonly sortKeys?: readonly (readonly (RankValue | undefined)[])[];
 }
 
 export interface RankPlainArray extends RankArrayValue {
@@ -93,7 +94,7 @@ export interface RankSqliteExpression {
     readonly boolean: boolean;
     readonly textual?: boolean;
     readonly calendar?: 'date' | 'datetime';
-    readonly window?: 'rownumber';
+    readonly window?: 'rownumber' | 'ranknumber';
 }
 
 export interface RankLabel {

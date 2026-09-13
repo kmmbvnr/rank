@@ -43,18 +43,18 @@ rectangular tensor. No tensor-rollup spelling or output schema is settled.
 `N = (1 to R len) array` into a lazy SQL column. A future feature could join
 array-valued columns to SQLite rows by position; it needs an explicit ordering
 and alignment contract before implementation. This limitation remains even
-though contextual `rownumber` now covers the numbering exercise.
+though contextual `rownumber` covers numbering and `ranknumber` covers tied ranks.
 
-Other window calculations remain unimplemented:
+The ranked-member exercise uses `sort by .hours descending` followed by
+`.rank = ranknumber` in `select`. A banding window remains unimplemented:
 
 ```rank
-R = R rank by .hours descending
 R = R 3 tile by .revenue descending
 ```
 
-`rank` leaves gaps after ties, and `N tile` assigns nearly equal bands. Their
-ordering and missing-value rules need a language decision before
-implementation. The final rolling revenue exercise also needs date ranges
+`N tile` would assign nearly equal bands. Its ordering and missing-value
+rules need a language decision before implementation. The final rolling
+revenue exercise also needs date ranges
 and a rolling-window rule that counts days with zero bookings.
 
 ## Pattern matching

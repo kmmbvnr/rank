@@ -1,0 +1,33 @@
+rem PostgreSQL Exercises: aggregates 18
+rem https://pgexercises.com/questions/aggregates/rankmembers.html
+
+use cli
+use numbers
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/agg_018.csv"
+
+Db = DbPath sqlite
+B = Db .bookings
+M = Db .members
+R = B M innerjoin by .memid
+G = R group by .memid .firstname .surname
+S = G select
+  .slots = .slots sum
+end
+H = S select
+  .firstname = .firstname
+  .surname = .surname
+  .hours = (.slots + 10) // 20 * 10
+end
+H = H sort by .hours descending
+R = H select
+  .firstname = .firstname
+  .surname = .surname
+  .hours = .hours
+  .rank = ranknumber
+end
+Result = R sort by .rank .surname .firstname
+Result OutputPath csv

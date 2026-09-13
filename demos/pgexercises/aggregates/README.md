@@ -4,11 +4,11 @@ The [22 aggregation questions](https://www.pgexercises.com/questions/aggregates/
 use the local SQLite club database from [Basic](../basic/README.md). The
 database stays in the ignored `../data/` directory.
 
-Seventeen questions have runnable Rank solutions. The first two counts and the
+Eighteen questions have runnable Rank solutions. The first two counts and the
 seventh, distinct-member count, print scalars. Grouped `select` stays in SQLite
 until CSV output. The same table programs also run on arrays. Question 15 uses
 `len` to fetch one scalar count before building the lazy result view. Questions
-18–22 still need table features discussed in the
+19–22 still need table features discussed in the
 [translation roadmap](../../../docs/design/sqlite-tables.md).
 
 | # | Question | Rank program |
@@ -30,6 +30,7 @@ until CSV output. The same table programs also run on arrays. Question 15 uses
 | 15 | [Names with total member count](https://pgexercises.com/questions/aggregates/countmembers.html) | [015](015_members.ra) |
 | 16 | [Numbered members](https://pgexercises.com/questions/aggregates/nummembers.html) | [016](016_numbered.ra) |
 | 17 | [Top facility including ties](https://pgexercises.com/questions/aggregates/fachours4.html) | [017](017_ties.ra) |
+| 18 | [Rank members by rounded hours](https://pgexercises.com/questions/aggregates/rankmembers.html) | [018](018_ranks.ra) |
 
 Run a program from the repository root:
 
@@ -38,6 +39,6 @@ npm run rank -- demos/pgexercises/aggregates/001_count.ra
 ```
 
 The [CLI oracle](../../../packages/cli/test/pgexercises-aggregates.test.mjs)
-compares all seventeen solutions with equivalent SQLite queries on a temporary
+compares all eighteen solutions with equivalent SQLite queries on a temporary
 database, including empty tables, repeated IDs, null recommenders and date
 boundaries. Grouped solutions run against both SQLite and array tables.

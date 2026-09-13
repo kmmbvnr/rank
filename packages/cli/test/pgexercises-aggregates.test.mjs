@@ -177,6 +177,55 @@ test('numbered members match a SQLite window on SQLite and arrays', () => {
     }
 });
 
+test('rounded member hours and gap ranks match SQLite on views and arrays', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-ranked-'));
+    const dbPath = path.join(dir, 'club.sqlite3');
+    const output = path.join(dir, 'out.csv');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE members (memid INTEGER, firstname TEXT, surname TEXT); '
+            + 'CREATE TABLE bookings (memid INTEGER, slots INTEGER)');
+        const oracle = 'WITH hours AS (SELECT m.firstname, m.surname, '
+            + '((SUM(b.slots)+10)/20)*10 AS hours FROM bookings b '
+            + 'JOIN members m ON b.memid = m.memid GROUP BY m.memid), '
+            + 'ranked AS (SELECT firstname, surname, hours, '
+            + 'RANK() OVER (ORDER BY hours DESC) AS rank FROM hours) '
+            + 'SELECT firstname, surname, hours, rank FROM ranked '
+            + 'ORDER BY rank, surname, firstname';
+        const file = path.join(examples, '018_ranks.ra');
+        for (const filled of [false, true]) {
+            if (filled) db.exec("INSERT INTO members VALUES "
+                + "(0,'GUEST','GUEST'),(1,'A','Zed'),(2,'B','Young'),"
+                + "(3,'C','Xavier'),(4,'D','Unused'); "
+                + 'INSERT INTO bookings VALUES '
+                + '(0,410),(1,390),(2,390),(3,290)');
+            for (const storage of ['sqlite', 'array']) {
+                if (!filled && storage === 'array') continue;
+                let source = file;
+                if (storage === 'array') {
+                    const tables = Object.fromEntries(['members', 'bookings']
+                        .map(name => [name, db.prepare(`SELECT * FROM ${name}`).all()]));
+                    const program = fs.readFileSync(file, 'utf8')
+                        .replace('Db = DbPath sqlite',
+                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`);
+                    source = path.join(dir, 'array.ra');
+                    fs.writeFileSync(source, program);
+                }
+                const result = spawnSync(process.execPath,
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                assert.equal(result.status, 0, result.stderr);
+                const expected = db.prepare(oracle).all().map(row =>
+                    Object.values(row).map(String));
+                assert.deepEqual(csvRows(output),
+                    [['firstname', 'surname', 'hours', 'rank'], ...expected]);
+            }
+        }
+    } finally {
+        db.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+});
+
 test('grouped aggregate programs match SQLite without reading source rows early', async t => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pg-groups-'));
     const dbPath = path.join(dir, 'club.sqlite3');

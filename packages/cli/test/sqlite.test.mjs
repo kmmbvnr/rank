@@ -91,6 +91,26 @@ test('raw SQL binds text as data even when it looks like SQL', () => fixture((di
     assert.equal(result.stdout, '0\n');
 }));
 
+test('SQLite floor division matches array floor division for negative values', () => fixture((directory, dbPath) => {
+    const db = new Database(dbPath);
+    db.exec('CREATE TABLE values_test (n INTEGER); '
+        + 'INSERT INTO values_test VALUES (-11), (-10), (-9), (9), (10), (11)');
+    db.close();
+    const output = path.join(directory, 'floors.csv');
+    for (const storage of ['sqlite', 'array']) {
+        const source = storage === 'sqlite'
+            ? `Db = ${JSON.stringify(dbPath)} sqlite\n`
+            : `use json\nDb = ${JSON.stringify(JSON.stringify({
+                values_test: [-11, -10, -9, 9, 10, 11].map(n => ({ n })),
+            }))} json\n`;
+        const result = runSource(directory, `use numbers\nuse tables\n${source}`
+            + 'R = Db .values_test\nOut = R select\n  .q = .n // 10\nend\n'
+            + `Out ${JSON.stringify(output)} csv\n`);
+        assert.equal(result.status, 0, result.stderr);
+        assert.equal(fs.readFileSync(output, 'utf8'), 'q\n-2\n-1\n-1\n0\n1\n1\n');
+    }
+}));
+
 test('SQLite source rejects a missing database without creating it', () => fixture((directory) => {
     const missing = path.join(directory, 'missing.sqlite3');
     const result = runSource(directory, `use tables\n${JSON.stringify(missing)} sqlite\n`);

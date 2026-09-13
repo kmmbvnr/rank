@@ -38,7 +38,7 @@ and cleanup materialization from Joins 6 and 8. Task 7 uses `lookup` for a
 correlated scalar subquery without a join or early row read. The
 [ergonomics decision](table-query-ergonomics.md) records the change.
 
-The next steps are window calculations, general table union, text matching and scalar aggregates inside
+The next steps are tile and rolling windows, general table union, text matching and scalar aggregates inside
 query expressions. Preserve an explicit ordering
 contract when adding operations after `sort by`; a SQLite subquery does not
 promise to retain its source order. Multiway aliased joins need qualified keys

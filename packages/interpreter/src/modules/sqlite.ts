@@ -120,15 +120,17 @@ export function sqliteColumn(table: RankSqliteTable, name: string): RankSqliteEx
         textual: table.textColumns?.has(name) ?? false };
 }
 
-export function sqliteRownumber(table: RankSqliteTable): RankSqliteExpression {
+export function sqliteWindowNumber(
+    table: RankSqliteTable, kind: 'rownumber' | 'ranknumber',
+): RankSqliteExpression {
     if (!table.orderBy?.length) {
-        throw new RankError('SQLite rownumber requires sort by before select', 'TypeError');
+        throw new RankError(`SQLite ${kind} requires sort by before select`, 'TypeError');
     }
     const order = table.orderBy.flatMap(({ field, descending }) =>
         [`${quote(field)} IS NULL`, quote(field) + (descending ? ' DESC' : '')]).join(', ');
     return { kind: 'sqlite-expression', table,
-        text: `ROW_NUMBER() OVER (ORDER BY ${order})`, params: [],
-        boolean: false, window: 'rownumber' };
+        text: `${kind === 'rownumber' ? 'ROW_NUMBER' : 'RANK'}() OVER (ORDER BY ${order})`,
+        params: [], boolean: false, window: kind };
 }
 
 export function sqliteScope(table: RankSqliteTable, name: string): RankSqliteScope {
@@ -170,7 +172,7 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
     const params: SqliteScalar[] = [];
     const booleanColumns = new Set<string>();
     const textColumns = new Set<string>();
-    let rownumberField: string | undefined;
+    let windowField: string | undefined;
     for (const [name, value] of fields.entries) {
         if (isRankSqliteExpression(value)) {
             if (value.table !== table) {
@@ -180,7 +182,7 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
             params.push(...value.params);
             if (value.boolean) booleanColumns.add(name);
             if (value.textual) textColumns.add(name);
-            if (value.window === 'rownumber' && rownumberField === undefined) rownumberField = name;
+            if (value.window && windowField === undefined) windowField = name;
         } else {
             columns.push(`? AS ${quote(name)}`);
             params.push(toSqlite(value));
@@ -190,9 +192,9 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
     }
     return { kind: 'sqlite-table', database: table.database,
         text: `SELECT ${columns.join(', ')} FROM (${table.text}) AS source`
-            + (rownumberField ? ` ORDER BY ${quote(rownumberField)}` : ''),
+            + (windowField ? ` ORDER BY ${quote(windowField)}` : ''),
         params: [...params, ...table.params], booleanColumns, textColumns,
-        orderBy: rownumberField ? [{ field: rownumberField, descending: false }] : undefined };
+        orderBy: windowField ? [{ field: windowField, descending: false }] : undefined };
 }
 
 export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpression): RankSqliteTable {
@@ -319,7 +321,7 @@ export function joinAliasedSqlite(
 
 const sqlOperators: Readonly<Record<string, string>> = {
     equal: '=', notequal: '<>', less: '<', greater: '>', atleast: '>=', atmost: '<=',
-    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*',
+    and: 'AND', or: 'OR', '+': '+', '-': '-', '*': '*', '//': '//',
 };
 
 export function binarySqlite(
@@ -341,6 +343,14 @@ export function binarySqlite(
         isRankSqliteExpression(value) ? value : { text: '?', params: [toSqlite(value)] };
     const a = operand(left);
     const b = operand(right);
+    if (operator === '//' && (right === 0n || right === 0)) {
+        throw new RankError('division by zero');
+    }
+    if (operator === '//') {
+        return { kind: 'sqlite-expression', table,
+            text: `floor((1.0 * ${a.text}) / ${b.text})`,
+            params: [...a.params, ...b.params], boolean: false };
+    }
     const textOperator = operator === '+' && (typeof left === 'string' || typeof right === 'string'
         || leftExpr?.textual || rightExpr?.textual)
         ? '||' : op;

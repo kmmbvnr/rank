@@ -449,7 +449,8 @@ class Analyzer {
                 // A calculation sees only earlier select locals, not later ones.
                 const before = this.pending.length;
                 if (!(isRecordField(entry) && isNameExpression(entry.value)
-                    && entry.value.name === 'rownumber')) this.expression(entry.value);
+                    && (entry.value.name === 'rownumber' || entry.value.name === 'ranknumber')))
+                    this.expression(entry.value);
                 const visible = { ...scope, slots: new Map(scope.slots) };
                 for (let i = before; i < this.pending.length; i += 1) {
                     const read = this.pending[i];

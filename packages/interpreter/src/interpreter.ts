@@ -115,7 +115,7 @@ import { groupTable, joinAliasedTables, joinTables, projectAliasedField, project
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sortSqlite, sqliteColumn, sqliteScope,
-    sqliteScopedColumn, sqliteTable, sqliteRownumber,
+    sqliteScopedColumn, sqliteTable, sqliteWindowNumber,
     sqliteWrite, executeSqliteWrite, inSqlite,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
@@ -1742,11 +1742,32 @@ export class Interpreter {
                         add(field.name, interpreter.applySelectors([source, { kind: 'label', name: field.name }]));
                     }
                     for (const entry of expression.entries) {
-                        const value = isRecordField(entry)
-                            && isNameExpression(entry.value) && entry.value.name === 'rownumber'
-                            ? isRankSqliteTable(source) ? sqliteRownumber(source)
-                                : derivedArray(source.shape, [source], index => BigInt(index + 1), true)
-                            : yield* resume(contextual(entry.value));
+                        const window = isRecordField(entry) && isNameExpression(entry.value)
+                            && (entry.value.name === 'rownumber' || entry.value.name === 'ranknumber')
+                            ? entry.value.name : undefined;
+                        let value: RankValue;
+                        if (window && isRankSqliteTable(source)) {
+                            value = sqliteWindowNumber(source, window);
+                        } else if (window === 'rownumber' && isRankArray(source)) {
+                            value = derivedArray(source.shape, [source], index => BigInt(index + 1), true);
+                        } else if (window === 'ranknumber' && isRankArray(source)) {
+                            const keys = source.sortKeys;
+                            if (!keys) throw new RankError('ranknumber requires sort by before select', 'TypeError');
+                            const ranks: bigint[] = [];
+                            let rank = 1n;
+                            for (let index = 0; index < keys.length; index += 1) {
+                                if (index > 0 && keys[index].some((key, column) => {
+                                    const previous = keys[index - 1][column];
+                                    return key === undefined || previous === undefined
+                                        ? key !== previous
+                                        : compareOrderedValues(key, previous, orderedKind(key)) !== 0;
+                                })) rank = BigInt(index + 1);
+                                ranks.push(rank);
+                            }
+                            value = derivedArray(source.shape, [source], index => ranks[index], true);
+                        } else {
+                            value = yield* resume(contextual(entry.value));
+                        }
                         if (isRecordField(entry)) add(entry.name, value);
                         else {
                             const previous = frame.get(entry.name);

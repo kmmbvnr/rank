@@ -68,6 +68,21 @@ it('pushes select rownumber into an ordered SQLite window', () => {
         + '  .number = rownumber\nend')).toThrowError('requires sort by');
 });
 
+it('pushes select ranknumber into an ordered SQLite window', () => {
+    const io = new CountingSqliteIo({});
+    const runtime = new Interpreter(undefined, { io });
+    runtime.execute('use tables\nuse sequences\nDb = "club.sqlite3" sqlite\n'
+        + 'R = Db .facilities\nR = R sort by .name descending\n'
+        + 'Out = R select\n  .rank = ranknumber\n  .title = .name\nend\n'
+        + 'Statement = Out sql');
+    expect(io.reads).toEqual([]);
+    const sql = formatValue(runtime.execute('Statement .text')!);
+    expect(sql).toContain('RANK() OVER (ORDER BY');
+    expect(sql).toContain('"name" DESC');
+    expect(() => runtime.execute('Bad = Db .facilities select\n'
+        + '  .rank = ranknumber\nend')).toThrowError('requires sort by');
+});
+
 it('keeps choose as a SQLite expression until a row is requested', () => {
     const io = new CountingSqliteIo({});
     const runtime = new Interpreter(undefined, { io });

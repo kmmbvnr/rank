@@ -285,7 +285,9 @@ export function sortByKeys(
         }
         return left.position - right.position;
     });
-    return ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
+    const result = ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
+    if (!indices) Object.defineProperty(result, 'sortKeys', { value: entries.map(entry => entry.keys) });
+    return result;
 }
 
 /** Return stable indices that order a tensor along one axis. */

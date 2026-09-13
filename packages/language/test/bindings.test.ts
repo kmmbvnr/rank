@@ -26,10 +26,11 @@ function named(result: ProgramFacts, scope: string, name: string): Binding {
 }
 
 describe('binding facts', () => {
-    it('recognizes contextual rownumber in a select field', async () => {
+    it('recognizes contextual rownumber and ranknumber in select fields', async () => {
         const result = await facts([
             'use tables', 'Rows = Input',
-            'Out = Rows select', '  .number = rownumber', 'end',
+            'Out = Rows select', '  .number = rownumber',
+            '  .rank = ranknumber', 'end',
         ], ['Input']);
         expect(result.words).toEqual([]);
         expect(result.missing).toEqual([]);

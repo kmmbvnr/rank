@@ -18,6 +18,24 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute('Out .id')!)).toBe('1 2 3');
     });
 
+    it('ranks sorted array rows with gaps after ties', () => {
+        const runtime = new Interpreter();
+        runtime.execute([
+            'use json', 'use tables', 'use sequences',
+            'Rows = "[{\\"hours\\":10},{\\"hours\\":30},{\\"hours\\":20},',
+            '  {\\"hours\\":20}]" json',
+            'Sorted = Rows sort by .hours descending',
+            'Out = Sorted select',
+            '  .hours = .hours',
+            '  .rank = ranknumber',
+            'end',
+        ].join('\n'));
+        expect(formatValue(runtime.execute('Out .hours')!)).toBe('30 20 20 10');
+        expect(formatValue(runtime.execute('Out .rank')!)).toBe('1 2 2 4');
+        expect(() => runtime.execute('Bad = Rows select\n  .rank = ranknumber\nend'))
+            .toThrowError('requires sort by');
+    });
+
     it('groups one and several fields into flat aggregate tables', () => {
         const runtime = new Interpreter();
         runtime.execute([

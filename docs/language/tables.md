@@ -108,6 +108,24 @@ with a final output order by the numbered column. It does not read rows before
 output. The field name is chosen by the left side of the `select` entry;
 `rownumber` is only valid in this context.
 
+Bare `ranknumber` in a `select` block uses the preceding `sort by` keys.
+Rows tied on every key receive the same one-based rank, and the next rank
+skips the positions occupied by the tie:
+
+```rank
+R = Members sort by .hours descending
+Out = R select
+  .rank = ranknumber
+  .hours = .hours
+end
+```
+
+Both array tables and SQLite views require `sort by` first. SQLite emits
+`RANK() OVER (ORDER BY ...)` without reading the rows early. Sorting by a
+secondary key breaks ties for ranking too; sort the result afterwards when
+you want a separate display order within tied ranks. `ranknumber` is only
+valid in a named `select` field.
+
 For a row-dependent column, build a boolean expression and choose between two
 values from the same view:
 
@@ -502,6 +520,8 @@ and `std` currently require array tables; SQLite reports an error rather than
 reading rows early. Use `sql` and `explain` to inspect the generated query,
 `filter` for conditions on totals, and `sort by` for a defined output order.
 SQLite grouping does not promise first-seen order.
+Arithmetic on SQLite columns also supports `//` through SQLite's `floor`,
+including negative quotients.
 
 `rollup by` takes the same ordered key list and adds one subtotal for each key
 prefix plus a grand total. For `.facid .month`, it groups by both fields, by
