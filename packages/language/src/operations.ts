@@ -19,7 +19,7 @@ export type Effect = 'io' | 'random' | 'mutates';
 export type ResultKind =
     | 'integer' | 'real' | 'number' | 'boolean' | 'text' | 'bytes'
     | 'array' | 'sequence' | 'table' | 'record' | 'collection'
-    | 'element' | 'structure' | 'date' | 'datetime' | 'file' | 'database'
+    | 'element' | 'structure' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
     | 'value' | 'same';
 
 /** One name a `use` module brings into scope. */
@@ -204,6 +204,8 @@ export const operations: readonly Operation[] = [
         monadicRank: 0, summary: 'Month of a date or datetime.' },
     { name: 'second', module: 'dates', arities: [1], form: 'Moment second', result: 'integer',
         monadicRank: 0, summary: 'Second of a datetime.' },
+    { name: 'seconds', module: 'dates', arities: [1], form: 'Duration seconds', result: 'integer',
+        monadicRank: 0, summary: 'Exact signed number of seconds in a duration.' },
     { name: 'weekday', module: 'dates', arities: [1], form: 'Value weekday', result: 'integer',
         monadicRank: 0, summary: 'Day of the week, Monday zero through Sunday six.' },
     { name: 'year', module: 'dates', arities: [1], form: 'Value year', result: 'integer',

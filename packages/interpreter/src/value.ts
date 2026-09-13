@@ -94,6 +94,7 @@ export interface RankSqliteExpression {
     readonly boolean: boolean;
     readonly textual?: boolean;
     readonly calendar?: 'date' | 'datetime';
+    readonly duration?: true;
     readonly window?: 'rownumber' | 'ranknumber';
 }
 
@@ -114,6 +115,11 @@ export interface RankDateTime extends Omit<RankDate, 'kind'> {
     readonly hour: number;
     readonly minute: number;
     readonly second: number;
+}
+
+export interface RankDuration {
+    readonly kind: 'duration';
+    readonly seconds: bigint;
 }
 
 export interface RankErrorValue {
@@ -249,7 +255,7 @@ export interface RankSequenceMask extends RankSequence {
 
 export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
     RankSqliteDatabase | RankSqliteTable | RankSqliteExpression | RankTableAlias | RankSqliteScope |
-    RankLabel | RankDate | RankDateTime | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
+    RankLabel | RankDate | RankDateTime | RankDuration | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
@@ -311,6 +317,32 @@ export function isRankLabel(value: RankValue): value is RankLabel {
 
 export function isRankDate(value: RankValue): value is RankDate | RankDateTime {
     return typeof value === 'object' && (value.kind === 'date' || value.kind === 'datetime');
+}
+
+export function isRankDuration(value: RankValue): value is RankDuration {
+    return typeof value === 'object' && value.kind === 'duration';
+}
+
+export function subtractDateTimes(left: RankDateTime, right: RankDateTime): RankDuration {
+    const milliseconds = (value: RankDateTime): number => {
+        const date = new Date(0);
+        date.setUTCFullYear(value.year, value.month - 1, value.day);
+        date.setUTCHours(value.hour, value.minute, value.second, 0);
+        return date.getTime();
+    };
+    return { kind: 'duration', seconds: BigInt((milliseconds(left) - milliseconds(right)) / 1000) };
+}
+
+export function formatDuration(value: RankDuration): string {
+    const negative = value.seconds < 0n;
+    const total = negative ? -value.seconds : value.seconds;
+    const days = total / 86400n;
+    const remainder = total % 86400n;
+    const clock = `${String(remainder / 3600n).padStart(2, '0')}:${String(remainder / 60n % 60n).padStart(2, '0')}:${String(remainder % 60n).padStart(2, '0')}`;
+    const dayPart = days === 0n ? '' : `${days} ${days === 1n ? 'day' : 'days'}`;
+    const body = remainder === 0n && dayPart ? dayPart
+        : dayPart ? `${dayPart} ${clock}` : clock;
+    return negative ? `-${body}` : body;
 }
 
 export function formatDate(value: RankDate | RankDateTime): string {
@@ -401,6 +433,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return `.${value.name}`;
     }
     if (isRankDate(value)) return formatDate(value);
+    if (isRankDuration(value)) return formatDuration(value);
     if (value.kind === 'error') {
         return `<error .${value.errorKind.name}: ${value.message}>`;
     }

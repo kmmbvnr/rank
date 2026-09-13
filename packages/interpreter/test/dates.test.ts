@@ -22,6 +22,44 @@ describe('dates', () => {
             .toBe('true');
     });
 
+    it('subtracts datetimes into exact signed durations', () => {
+        expect(run([
+            'use dates',
+            'Start = "2024-02-28 23:59:59" datetime',
+            'End = "2024-03-01 00:00:01" datetime',
+            'Delta = End - Start',
+            'Delta seconds',
+        ].join('\n'))).toBe('86402');
+        expect(run('use dates\nA = "2024-01-01 00:00:00" datetime\nA - A'))
+            .toBe('00:00:00');
+        expect(run('use dates\nA = "2024-01-01 00:00:00" datetime\nB = "2024-01-02 01:02:03" datetime\nA - B'))
+            .toBe('-1 day 01:02:03');
+        expect(run('use dates\nA = "2024-01-01 00:00:00" datetime\nA - A is .duration'))
+            .toBe('true');
+        expect(() => run('use dates\nA = "2024-01-02" date\nB = "2024-01-01" date\nA - B'))
+            .toThrowError('- expects two datetimes');
+        expect(() => run('use dates\n1 seconds'))
+            .toThrowError('seconds expects a duration');
+    });
+
+    it('subtracts datetime arrays cellwise and keeps their shape', () => {
+        expect(run([
+            'use dates',
+            'Starts = array shape 2 1',
+            '  "2024-02-28 23:59:59"',
+            '  "2024-03-01 00:00:00"',
+            'end',
+            'Ends = array shape 2 1',
+            '  "2024-03-01 00:00:01"',
+            '  "2024-02-29 23:59:59"',
+            'end',
+            'Start = Starts datetime',
+            'End = Ends datetime',
+            'D = End - Start',
+            'D seconds',
+        ].join('\n'))).toBe('86402 -1');
+    });
+
     it('preserves tensor shape and delays errors until a cell is read', () => {
         expect(run([
             'use dates',

@@ -140,6 +140,7 @@ import {
     isRankArray,
     isRankCounter,
     isRankDate,
+    isRankDuration,
     isRankDsu,
     isRankFunctionalGraph,
     isRankErrorValue,
@@ -162,6 +163,7 @@ import {
     isRankSequence,
     isRankSequenceMask,
     isRankSegment,
+    subtractDateTimes,
     type IntrinsicRank,
     type RankArray,
     type RankCounter,
@@ -4107,6 +4109,14 @@ export class Interpreter {
             return order <= 0;
         }
 
+        if (operator === '-' && (isRankDate(left) || isRankDate(right))) {
+            if (!isRankDate(left) || left.kind !== 'datetime'
+                || !isRankDate(right) || right.kind !== 'datetime') {
+                throw new RankError('- expects two datetimes', 'TypeError');
+            }
+            return subtractDateTimes(left, right);
+        }
+
         const a = expectNumeric(left);
         const b = expectNumeric(right);
         if ((operator === '/' || operator === '//' || operator === '%') && isZero(b)) {
@@ -6144,6 +6154,9 @@ function equalNestedValues(
     if (isRankDate(left) && isRankDate(right)) {
         return left.kind === right.kind && formatValue(left) === formatValue(right);
     }
+    if (isRankDuration(left) && isRankDuration(right)) {
+        return left.seconds === right.seconds;
+    }
     if (isRankArray(left) && isRankArray(right)) {
         if (!sameShape(left.shape, right.shape)) return false;
         if (alreadyCompared(left, right, compared)) return true;
@@ -6198,6 +6211,7 @@ const RUNTIME_TYPE_NAMES = new Set([
     'text',
     'date',
     'datetime',
+    'duration',
     'array',
     'bytes',
     'symbol',

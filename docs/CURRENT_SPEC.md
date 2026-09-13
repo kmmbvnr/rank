@@ -5235,10 +5235,24 @@ sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
 A missing projected table cell remains `.Missing` and can be handled with
 `pad` before parsing.
 
+Subtracting two `datetime` values produces an immutable `duration` containing
+an exact signed integer number of seconds. `duration seconds` returns that
+integer, distinct from `datetime second`, which extracts a clock component.
+The difference is computed from local wall-clock fields using the proleptic
+Gregorian calendar, with no time-zone or daylight-saving conversion. `duration`
+prints as `N days` when it has whole days, otherwise with an `HH:MM:SS` part;
+negative values carry a leading minus sign. `datetime` subtraction broadcasts
+over arrays and sequences as ordinary subtraction does. Subtracting a `date`
+or mixing date, datetime and numeric operands raises `.TypeError`.
+
 On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
 builds a lazy `strftime` expression. This path expects canonical date text;
 unlike array parsing it does not validate each source cell when building the
 query, and invalid SQLite date text produces a missing result.
+For two SQLite expressions marked `datetime`, subtraction generates
+`unixepoch(left) - unixepoch(right)` with bound scalar timestamps. `seconds`
+keeps the duration expression in the SQL plan and yields integer values on
+materialization. Invalid SQLite timestamp text yields a missing result.
 
 ```rank
 Days = (Train .date pad "2024-01-01") date

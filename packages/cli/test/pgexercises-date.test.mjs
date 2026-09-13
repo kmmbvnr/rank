@@ -21,7 +21,9 @@ function run(name, ...args) {
 
 test('date literals and components match the official examples', () => {
     assert.equal(run('001_timestamp.ra'), '2012-08-31 01:00:00');
+    assert.equal(run('002_interval.ra'), '32 days');
     assert.equal(run('004_day.ra'), '31');
+    assert.equal(run('005_seconds.ra'), '169200');
 });
 
 test('October calendar matches a recursive SQLite oracle', () => {
@@ -49,6 +51,57 @@ test('October calendar matches a recursive SQLite oracle', () => {
         assert.match(plan.stdout, /WITH RECURSIVE days/);
         assert.match(plan.stdout, /SELECT \? WHERE \? <= \?/);
         assert.doesNotMatch(plan.stdout, /2012-10-01/);
+    } finally {
+        db.close();
+        fs.rmSync(temporary, { recursive: true, force: true });
+    }
+});
+
+test('datetime differences stay in SQL with bound timestamp operands', () => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgdate-'));
+    const dbPath = path.join(temporary, 'club.sqlite3');
+    const output = path.join(temporary, 'durations.csv');
+    const script = path.join(temporary, 'durations.ra');
+    const db = new Database(dbPath);
+    try {
+        db.exec('CREATE TABLE events (started TEXT, ended TEXT)');
+        const insert = db.prepare('INSERT INTO events VALUES (?, ?)');
+        insert.run('2024-02-28 23:59:59', '2024-03-01 00:00:01');
+        insert.run('2024-03-01 00:00:00', '2024-02-29 23:59:59');
+        const program = [
+            'use cli', 'use dates', 'use tables',
+            'argument DbPath path', 'argument OutputPath path',
+            'Db = DbPath sqlite', 'E = Db .events',
+            'Start = E .started datetime',
+            'End = E .ended datetime',
+            'Elapsed = End - Start',
+            'Baseline = "2024-02-28 00:00:00" datetime',
+            'Since = End - Baseline',
+            'Result = E select',
+            '  .elapsed = Elapsed seconds',
+            '  .since = Since seconds',
+            'end',
+            'Result OutputPath csv',
+        ].join('\n');
+        fs.writeFileSync(script, program);
+        const result = spawnSync(process.execPath,
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+        assert.equal(result.status, 0, result.stderr);
+        const actual = fs.readFileSync(output, 'utf8').trim().split('\n');
+        const expected = db.prepare(`SELECT
+            unixepoch(ended) - unixepoch(started) AS elapsed,
+            unixepoch(ended) - unixepoch(?) AS since
+            FROM events`).all('2024-02-28 00:00:00');
+        assert.deepEqual(actual, ['elapsed,since',
+            ...expected.map(row => `${row.elapsed},${row.since}`)]);
+        fs.writeFileSync(script, program.replace('Result OutputPath csv',
+            'use io\nQ = Result sql\nQ .text print'));
+        const plan = spawnSync(process.execPath, [cli, script, dbPath, output],
+            { cwd: root, encoding: 'utf8' });
+        assert.equal(plan.status, 0, plan.stderr);
+        assert.match(plan.stdout, /unixepoch\("ended"\) - unixepoch\("started"\)/);
+        assert.match(plan.stdout, /unixepoch\(\?\)/);
+        assert.doesNotMatch(plan.stdout, /2024-02-28 00:00:00/);
     } finally {
         db.close();
         fs.rmSync(temporary, { recursive: true, force: true });

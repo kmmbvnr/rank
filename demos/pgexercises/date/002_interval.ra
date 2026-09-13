@@ -1,0 +1,10 @@
+rem PostgreSQL Exercises: date 2
+rem https://pgexercises.com/questions/date/interval.html
+
+use dates
+use io
+
+Start = "2012-07-30 01:00:00" datetime
+End = "2012-08-31 01:00:00" datetime
+Result = End - Start
+Result print

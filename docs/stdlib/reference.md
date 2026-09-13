@@ -91,6 +91,7 @@ Calendar dates and local date-times.
 | `Moment minute` | integer | Minute of a datetime. |
 | `Value month` | integer | Month of a date or datetime. |
 | `Moment second` | integer | Second of a datetime. |
+| `Duration seconds` | integer | Exact signed number of seconds in a duration. |
 | `Value weekday` | integer | Day of the week, Monday zero through Sunday six. |
 | `Value year` | integer | Year of a date or datetime. |
 

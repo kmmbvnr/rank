@@ -37,7 +37,7 @@ export function unionTypes(left: Types, right: Types): Types {
 }
 
 /** Types that a comparison reduces to a single boolean rather than a mask. */
-const SCALARS = new Set(['integer', 'real', 'boolean', 'text', 'date', 'datetime', 'symbol']);
+const SCALARS = new Set(['integer', 'real', 'boolean', 'text', 'date', 'datetime', 'duration', 'symbol']);
 
 const NUMBERS = new Set(['integer', 'real']);
 
@@ -76,6 +76,7 @@ const RESULTS: Partial<Record<ResultKind, Types>> = {
     record: ['record'],
     date: ['date'],
     datetime: ['datetime'],
+    duration: ['duration'],
     file: ['file'],
 };
 
@@ -171,6 +172,7 @@ function binaryType(operator: string, left: Types, right: Types): Types {
         return elementwise(left, right) ?? UNKNOWN;
     }
     if (operator === '+' && same(left, 'text') && same(right, 'text')) return ['text'];
+    if (operator === '-' && same(left, 'datetime') && same(right, 'datetime')) return ['duration'];
     if (!within(left, NUMBERS) || !within(right, NUMBERS)) {
         return ARITHMETIC.has(operator) ? elementwise(left, right) ?? UNKNOWN : UNKNOWN;
     }

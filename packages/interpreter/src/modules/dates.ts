@@ -4,6 +4,7 @@ import { mapSequence } from '../sequence.js';
 import {
     isRankArray,
     isRankDate,
+    isRankDuration,
     isRankSqliteExpression,
     isRankSqliteDatabase,
     isRankSequence,
@@ -35,6 +36,17 @@ export const datesModule: RuntimeModule = {
     hour: () => timeComponent('hour', value => BigInt(value.hour)),
     minute: () => timeComponent('minute', value => BigInt(value.minute)),
     second: () => timeComponent('second', value => BigInt(value.second)),
+    seconds: () => native('seconds', 1, ([value]) => {
+        if (isRankSqliteExpression(value) && value.duration) {
+            return { kind: 'sqlite-expression', table: value.table,
+                text: value.text, params: value.params,
+                boolean: false } as RankSqliteExpression;
+        }
+        if (!isRankDuration(value)) {
+            throw new RankError('seconds expects a duration', 'TypeError');
+        }
+        return value.seconds;
+    }, 0),
     calendar: () => native('calendar', [2, 3], values => {
         const [startValue, endValue] = values.slice(-2);
         const start = parseDate(startValue);

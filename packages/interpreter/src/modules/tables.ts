@@ -9,9 +9,11 @@ import { expectNumeric } from './shared.js';
 import { meanValue, medianValue, standardDeviation } from './stats.js';
 import {
     formatDate,
+    formatValue,
     isRankObject,
     isRankArray,
     isRankDate,
+    isRankDuration,
     isRankLabel,
     isRankSqliteTable,
     isRankSqliteExpression,
@@ -683,6 +685,7 @@ function objectRow(value: RankValue): RankObject {
 function csvScalar(value: RankValue): string {
     if (typeof value === 'string') return csvField(value);
     if (isRankDate(value)) return formatDate(value);
+    if (isRankDuration(value)) return csvField(formatValue(value));
     if (typeof value === 'number' && !Number.isFinite(value)) {
         throw new RankError('csv output numbers must be finite');
     }

@@ -356,6 +356,18 @@ export function binarySqlite(
         isRankSqliteExpression(value) ? value : { text: '?', params: [toSqlite(value)] };
     const a = operand(left);
     const b = operand(right);
+    if (operator === '-' && (leftExpr?.calendar || rightExpr?.calendar
+        || isRankDate(left) || isRankDate(right))) {
+        const isDateTime = (value: RankValue): boolean => isRankSqliteExpression(value)
+            ? value.calendar === 'datetime'
+            : isRankDate(value) && value.kind === 'datetime';
+        if (!isDateTime(left) || !isDateTime(right)) {
+            throw new RankError('- expects two datetimes', 'TypeError');
+        }
+        return { kind: 'sqlite-expression', table,
+            text: `(unixepoch(${a.text}) - unixepoch(${b.text}))`,
+            params: [...a.params, ...b.params], boolean: false, duration: true };
+    }
     if (operator === '//' && (right === 0n || right === 0)) {
         throw new RankError('division by zero');
     }

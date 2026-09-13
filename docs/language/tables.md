@@ -645,3 +645,20 @@ day. `Start End calendar` creates a rank-1 array table with one `.date` per
 inclusive day; `Db Start End calendar` creates the corresponding lazy SQLite
 view. Its endpoints are valid ISO dates or Rank date values. The first day
 after the end is excluded, and reversed bounds produce an empty table.
+
+Two `datetime` values can be subtracted to make an exact signed `duration`:
+
+```rank
+Start = "2012-08-31 01:00:00" datetime
+End = "2012-09-02 00:00:00" datetime
+Elapsed = End - Start
+Elapsed seconds
+```
+
+The result here is `169200`. `datetime` is a local wall-clock value without a
+time zone. `duration` prints as days and, when needed, `HH:MM:SS`; `seconds`
+returns its integer total. Subtraction and `seconds` work cellwise on arrays.
+For a SQLite view, explicitly parsed `datetime` columns subtract through
+`unixepoch(...)`; the expression and any timestamp parameters remain in SQL
+until output. A date is distinct from a datetime and cannot be subtracted by
+this operation.
