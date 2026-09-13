@@ -10,7 +10,7 @@
 
 import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
-    isKeyedJoinExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
+    isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isStdinExpression, isStringLiteral, isUnaryExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
@@ -124,7 +124,8 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isTableWritePreviewExpression(expression)) {
         return expression.mode === 'sql' ? ['record'] : ['array'];
     }
-    if (isKeyedSortExpression(expression) || isKeyedJoinExpression(expression)) return ['array'];
+    if (isKeyedSortExpression(expression) || isKeyedJoinExpression(expression)
+        || isKeyedReachExpression(expression)) return ['array'];
     if (isNewStructureExpression(expression)) {
         const type = STRUCTURES[expression.structure];
         return type === undefined ? UNKNOWN : [type];

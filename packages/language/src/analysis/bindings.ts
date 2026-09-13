@@ -13,7 +13,7 @@ import {
     isAddStatement, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isIfStatement, isIndexAssignmentStatement,
-    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedSortExpression,
+    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
     isPushStatement, isRecordExpression, isRecordField, isReturnStatement, isStdinExpression,
@@ -499,6 +499,11 @@ class Analyzer {
         if (isKeyedJoinExpression(expression)) {
             this.expression(expression.left);
             this.expression(expression.right);
+            return;
+        }
+        if (isKeyedReachExpression(expression)) {
+            this.expression(expression.edges);
+            this.expression(expression.starts);
             return;
         }
         if (isArrayExpression(expression)) {

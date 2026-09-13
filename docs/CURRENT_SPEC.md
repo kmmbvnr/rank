@@ -3260,7 +3260,7 @@ operations apply. SQLite `NULL` becomes an absent object field, integer 0/1
 stays integer, and row order is unspecified unless the SQL query orders it.
 
 SQLite table views support lazy field projection, comparisons and boolean
-masks, `innerjoin by/on`, `leftjoin by/on`, `select`, `unique` and field-keyed `sort by`.
+masks, `innerjoin by/on`, `leftjoin by/on`, `select`, `reach by`, `unique` and field-keyed `sort by`.
 `Mask TrueValues FalseValues choose` selects only the demanded branch of each
 array cell, broadcasting array operands by trailing axes. A missing mask cell
 gives a missing result cell. SQLite expressions from the same view compile to
@@ -3290,6 +3290,13 @@ one view of the same database as the request. It compiles a correlated scalar
 subquery with bound parameters; no match or SQL `NULL` returns an absent field.
 Without an explicit source order, repeated SQLite keys have no stable first
 match. The view is read only and the lookup does not execute until demanded.
+`Edges Starts reach by .source .target` traverses directed edges from one scalar
+start or a rank-1 array/column of starts. Its two-column result pairs each
+start with every distinct reachable endpoint other than itself. Missing
+endpoints, duplicate edges and cycles do not add rows indefinitely. Array
+sources return a table; SQLite sources compile to a lazy `WITH RECURSIVE`
+query with bound scalar starts. A SQLite start column must come from the same
+database. The source is unchanged, and output order requires `sort by`.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
 expression runs SQL `SUM`. `group by` on a SQLite view is lazy; grouped
 `select` returns a view with key columns and named aggregates. A following `filter` narrows the

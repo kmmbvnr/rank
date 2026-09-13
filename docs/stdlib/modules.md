@@ -572,6 +572,7 @@ delete
 labels
 group by
 rollup by
+reach by
 leftjoin by
 innerjoin by
 leftjoin on
@@ -586,6 +587,10 @@ aggregates and produces a flat table with the keys. SQLite translates grouped
 `count`, `sum`, `min`, `max`, and `mean` in one lazy query; `median` and `std`
 currently require an array table. `rollup by` adds prefix subtotals
 and a grand total to the grouped result.
+`Edges Starts reach by .source .target` follows directed links from one or many
+starts, producing distinct start/reached pairs. Arrays return a table;
+SQLite returns a lazy recursive query with bound parameters. Missing links,
+cycles and duplicate edges terminate without duplicate output.
 `leftjoin` and `innerjoin` match shared fields after `by`, or differently named
 field pairs after `on`. These are table operations distinct from text `join`.
 See [Tables](../language/tables.md) for missing keys, row order and collisions.

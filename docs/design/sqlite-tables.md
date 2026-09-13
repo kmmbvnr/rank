@@ -42,6 +42,13 @@ The final aggregate exercise adds `calendar`, datetime-to-date conversion and
 `rolling by` on arrays and SQLite views. Its 15-day result uses a generated day
 for every date, then a SQL `ROWS 14 PRECEDING` window before filtering August.
 
+The three [Recursive exercises](../../demos/pgexercises/recursive/README.md)
+use seeded `reach by` on both arrays and SQLite. A SQLite start can be a bound
+scalar, an array of values, or a column expression from the same database.
+The generated `WITH RECURSIVE` view terminates on duplicate reachable pairs;
+it does not read rows before output or `array`. A future recursive-table block
+would be needed to carry depths, paths or running totals.
+
 The next steps are tile, general table union and scalar aggregates inside
 query expressions. Preserve an explicit ordering
 contract when adding operations after `sort by`; a SQLite subquery does not

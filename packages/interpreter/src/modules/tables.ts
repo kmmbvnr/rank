@@ -151,6 +151,68 @@ function tableColumns(value: RankArray, rows: readonly RankObject[]): string[] {
     return [...names];
 }
 
+function reachKey(value: RankValue): string {
+    if (typeof value === 'string' || typeof value === 'bigint'
+        || (typeof value === 'number' && Number.isFinite(value))) return setValueKey(value);
+    throw new RankError('reach endpoints must be finite numbers or text', 'TypeError');
+}
+
+/** Traverse a relation from each seed without mutating the source table. */
+export function reachTable(edges: RankValue, starts: RankValue, from: string, to: string): RankArray {
+    if (!isRankArray(edges) || edges.shape.length !== 1) {
+        throw new RankError('reach expects a rank-1 edge table or SQLite view', 'TypeError');
+    }
+    if (from === to) throw new RankError('reach fields must differ', 'TypeError');
+    const rows = tableRows(edges, 'reach');
+    const columns = tableColumns(edges, rows);
+    if (!columns.includes(from) || !columns.includes(to)) {
+        throw new MissingValueError('reach edge field is missing');
+    }
+    const next = new Map<string, RankValue[]>();
+    for (const row of rows) {
+        const source = row.entries.get(from);
+        const target = row.entries.get(to);
+        if (source === undefined || target === undefined) continue;
+        const key = reachKey(source);
+        reachKey(target);
+        const bucket = next.get(key) ?? [];
+        bucket.push(target);
+        next.set(key, bucket);
+    }
+    const seeds: RankValue[] = [];
+    if (isRankArray(starts)) {
+        if (starts.shape.length !== 1) {
+            throw new RankError('reach starts must be a scalar or rank-1 array', 'DimensionMismatch');
+        }
+        for (let index = 0; index < starts.shape[0]; index += 1) {
+            try { seeds.push(readArrayItem(starts, index)); }
+            catch (error) {
+                if (!(error instanceof MissingValueError)) throw error;
+            }
+        }
+    } else seeds.push(starts);
+    const items: RankValue[] = [];
+    const uniqueSeeds = new Set<string>();
+    for (const seed of seeds) {
+        const startKey = reachKey(seed);
+        if (uniqueSeeds.has(startKey)) continue;
+        uniqueSeeds.add(startKey);
+        const visited = new Set<string>([startKey]);
+        const queue: RankValue[] = [seed];
+        for (let index = 0; index < queue.length; index += 1) {
+            const neighbours = next.get(reachKey(queue[index])) ?? [];
+            for (const target of neighbours) {
+                const key = reachKey(target);
+                if (visited.has(key)) continue;
+                visited.add(key);
+                queue.push(target);
+                items.push(ownedObject(new Map([[from, seed], [to, target]])));
+            }
+        }
+    }
+    return ownedArray(items, [items.length], false, [from, to]);
+}
+
 function tableKey(
     row: RankObject,
     fields: readonly string[],

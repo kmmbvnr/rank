@@ -1,0 +1,35 @@
+rem PostgreSQL Exercises: recursive 3
+rem https://pgexercises.com/questions/recursive/getupwardall.html
+
+use cli
+use sequences
+use tables
+
+argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+argument OutputPath path = "demos/pgexercises/data/rec_003.csv"
+
+Db = DbPath sqlite
+M = Db .members
+E = M select
+  .member = .memid
+  .recommender = .recommendedby
+end
+Names = M select
+  .recommender = .memid
+  .firstname = .firstname
+  .surname = .surname
+end
+Seeds = M .memid
+R = E Seeds reach by .member .recommender
+R = R filter
+  .member equal 12 or .member equal 22
+end
+R = R Names innerjoin by .recommender
+Result = R select
+  .member = .member
+  .recommender = .recommender
+  .firstname = .firstname
+  .surname = .surname
+end
+Result = Result sort by .member .recommender descending
+Result OutputPath csv

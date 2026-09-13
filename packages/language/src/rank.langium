@@ -228,6 +228,7 @@ ApplicationExpression returns Expression:
     KeyedGroupExpression |
     KeyedRollingExpression |
     KeyedJoinExpression |
+    KeyedReachExpression |
     UnaryExpression
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
@@ -279,6 +280,10 @@ KeyedJoinExpression:
     left=PrimaryExpression right=PrimaryExpression
     (operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
      operator=(LEFTJOIN_ON | INNERJOIN_ON) NL* pairs+=JoinFieldPair+);
+
+KeyedReachExpression:
+    edges=PrimaryExpression starts=PrimaryExpression
+    operator=REACH_BY from=LabelLiteral to=LabelLiteral;
 
 JoinFieldPair:
     left=LabelLiteral 'equal' right=LabelLiteral;
@@ -410,6 +415,7 @@ terminal SORT_BY: /sort[\t ]+by/;
 terminal GROUP_BY: /group[\t ]+by/;
 terminal ROLLUP_BY: /rollup[\t ]+by/;
 terminal ROLLING_BY: /rolling[\t ]+by/;
+terminal REACH_BY: /reach[\t ]+by/;
 terminal LEFTJOIN_BY: /leftjoin[\t ]+by/;
 terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
 terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;

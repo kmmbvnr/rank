@@ -62,6 +62,7 @@ import {
     isKeyedGroupExpression,
     isKeyedRollingExpression,
     isKeyedJoinExpression,
+    isKeyedReachExpression,
     isStdinExpression,
     isStringLiteral,
     isTestStatement,
@@ -112,9 +113,9 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
-import { groupTable, rollingTable, joinAliasedTables, joinTables, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
+import { groupTable, rollingTable, joinAliasedTables, joinTables, reachTable, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import {
-    binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, materializeSqlite,
+    binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, reachSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sliceTextSqlite, sortSqlite, sqliteColumn, sqliteScope,
     sqliteScopedColumn, sqliteTable, sqliteWindowNumber,
     sqliteWrite, executeSqliteWrite, inSqlite, textFunctionSqlite,
@@ -1963,6 +1964,17 @@ export class Interpreter {
                     return joinSqlite(left, right, leftFields, rightFields, mode);
                 }
                 return joinTables(left, right, leftFields, mode, rightFields);
+            };
+        }
+        if (isKeyedReachExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                interpreter.requireModule('tables', 'reach by');
+                const edges = yield* resume(interpreter.evaluateTask(expression.edges));
+                const starts = yield* resume(interpreter.evaluateTask(expression.starts));
+                const from = expression.from.name;
+                const to = expression.to.name;
+                if (isRankSqliteTable(edges)) return reachSqlite(edges, starts, from, to);
+                return reachTable(edges, starts, from, to);
             };
         }
         if (isNameExpression(expression)) {

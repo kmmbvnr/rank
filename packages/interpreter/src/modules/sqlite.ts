@@ -288,6 +288,65 @@ export function uniqueSqlite(table: RankSqliteTable): RankSqliteTable {
         text: `SELECT DISTINCT * FROM (${table.text}) AS source`, params: table.params };
 }
 
+/** Reachable endpoint pairs from scalar, array, or lazy-column seeds. */
+export function reachSqlite(
+    edges: RankSqliteTable, starts: RankValue, from: string, to: string,
+): RankSqliteTable {
+    if (from === to) throw new RankError('reach fields must differ', 'TypeError');
+    requireColumn(edges, from);
+    requireColumn(edges, to);
+    if (edges.booleanColumns?.has(from) || edges.booleanColumns?.has(to)) {
+        throw new RankError('reach endpoints must be finite numbers or text', 'TypeError');
+    }
+    let seedSql: string;
+    let seedParams: SqliteScalar[];
+    if (isRankSqliteExpression(starts)) {
+        if (starts.table.database.path !== edges.database.path || starts.boolean) {
+            throw new RankError('reach seeds must belong to the same database and be numeric or text', 'TypeError');
+        }
+        seedSql = `SELECT DISTINCT ${starts.text} AS start FROM (${starts.table.text}) AS seeds`
+            + ` WHERE ${starts.text} IS NOT NULL`;
+        seedParams = [...starts.params, ...starts.table.params, ...starts.params];
+    } else if (isRankArray(starts)) {
+        if (starts.shape.length !== 1) {
+            throw new RankError('reach starts must be a scalar or rank-1 array', 'DimensionMismatch');
+        }
+        seedParams = [];
+        for (let index = 0; index < starts.shape[0]; index += 1) {
+            try { seedParams.push(reachSqlScalar(starts.itemAt?.(index) ?? starts.items[index])); }
+            catch (error) {
+                if (!(error instanceof MissingValueError)) throw error;
+            }
+        }
+        seedSql = seedParams.length
+            ? `SELECT DISTINCT column1 AS start FROM (VALUES ${seedParams.map(() => '(?)').join(', ')})`
+            : 'SELECT NULL AS start WHERE 0';
+    } else {
+        seedSql = 'SELECT ? AS start';
+        seedParams = [reachSqlScalar(starts)];
+    }
+    const source = quote(from);
+    const target = quote(to);
+    const text = `WITH RECURSIVE __rank_seeds(start) AS (${seedSql}), `
+        + `__rank_edges(source, target) AS (SELECT ${source}, ${target} FROM (${edges.text}) AS input `
+        + `WHERE ${source} IS NOT NULL AND ${target} IS NOT NULL), `
+        + '__rank_reached(start, target) AS ('
+        + `SELECT s.start, e.target FROM __rank_seeds AS s JOIN __rank_edges AS e ON ${compatibleEquality('s.start', 'e.source')} `
+        + 'UNION '
+        + `SELECT r.start, e.target FROM __rank_reached AS r JOIN __rank_edges AS e ON ${compatibleEquality('r.target', 'e.source')}`
+        + `) SELECT start AS ${source}, target AS ${target} FROM __rank_reached `
+        + `WHERE NOT ${compatibleEquality('start', 'target')}`;
+    return { kind: 'sqlite-table', database: edges.database, text,
+        params: [...seedParams, ...edges.params],
+        textColumns: new Set([from, to].filter(field => edges.textColumns?.has(field))) };
+}
+
+function reachSqlScalar(value: RankValue): SqliteScalar {
+    if (typeof value === 'string' || typeof value === 'bigint'
+        || (typeof value === 'number' && Number.isFinite(value))) return value;
+    throw new RankError('reach starts must be finite numbers or text', 'TypeError');
+}
+
 export function joinSqlite(
     left: RankSqliteTable, right: RankSqliteTable,
     leftFields: readonly string[], rightFields: readonly string[], mode: 'leftjoin' | 'innerjoin',

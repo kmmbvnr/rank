@@ -331,6 +331,7 @@ These need `use tables` but have no name to look up.
 | `Rows group by .field` | Grouped view summarized by a named select block. |
 | `Rows rollup by .first .second` | Grouped view with detail rows, prefix subtotals and a grand total. |
 | `Rows Width rolling by .date` | One trailing row window per ordered row, summarized by select. |
+| `Edges Starts reach by .source .target` | Reachable endpoint pairs from one or more starts; SQLite stays lazy. |
 | `Rows filter .field greater Limit` | Filters a table with implicit input columns; condition lines in a block use AND. |
 | `Rows select .first .second` | Selects named columns into a rank-1 table, including a single column. |
 | `Rows select ... end` | Computes named columns with block-local calculations and an implicit input table. |

@@ -13,6 +13,7 @@ import {
     isKeyedSortExpression,
     isKeyedGroupExpression,
     isKeyedJoinExpression,
+    isKeyedReachExpression,
     isMaterializeExpression,
     isUnpackStatement,
     isUnaryExpression,
@@ -121,6 +122,22 @@ describe('Rank grammar', () => {
         if (!isKeyedJoinExpression(statements[5].value)) return;
         expect(statements[5].value.pairs.map(pair => [pair.left.name, pair.right.name]))
             .toEqual([['o_custkey', 'c_custkey']]);
+    });
+
+    it('parses seeded table reachability with two directed fields', async () => {
+        const document = await parse([
+            'Up = Edges 27 reach by .member .recommender',
+            'Down = Edges Starts reach by .recommender .member',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statements = document.parseResult.value.statements;
+        expect(statements.every(isAssignmentStatement)).toBe(true);
+        if (!statements.every(isAssignmentStatement)) return;
+        const values = statements.map(statement => statement.value);
+        if (!values.every(isKeyedReachExpression)) return;
+        expect(values.map(value => [value.from.name, value.to.name]))
+            .toEqual([['member', 'recommender'], ['recommender', 'member']]);
     });
 
     it('parses table aliases without parentheses and a folded equal join', async () => {

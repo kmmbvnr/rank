@@ -161,10 +161,36 @@ match leaves the result field absent. If source keys repeat, SQLite's first
 match has no guaranteed order unless the source view has an explicit order;
 use unique keys when the answer must be stable.
 
+`Edges Starts reach by .source .target` traverses a directed relation from one
+starting ID or a rank-1 array/column of IDs:
+
+```rank
+Up = Edges 27 reach by .member .recommender
+Down = Edges 1 reach by .recommender .member
+Starts = Members .memid
+All = Edges Starts reach by .member .recommender
+```
+
+The first named field identifies a current node in `Edges`; the second gives
+its next node. The result has those same two columns: the first holds the
+starting ID and the second each distinct reachable ID. A start is not returned
+as its own result, including when a cycle returns to it. Duplicate starts or
+edges produce no duplicate pairs; missing edge endpoints and missing array
+starts are skipped. Endpoints and starts must be finite numbers or text, and
+the two field names must differ. Numeric values compare by value; text never
+equals a number. The edge table is unchanged, and row order is unspecified
+until `sort by`.
+
+An array source returns a rank-1 object table. A SQLite source returns a lazy
+`WITH RECURSIVE` view; scalar starts are bound parameters, and a start column
+must come from the same database. `sql` and `explain` inspect the recursive
+plan without reading its result rows. `reach by` returns reached nodes only;
+it does not report depth, a path or accumulated weights.
+
 Selecting one field creates a lazy column expression. Comparing it with a
 scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,
-`innerjoin by/on`, `leftjoin by/on`, `select`, `lookup`, `unique` and field-keyed `sort by` also
+`innerjoin by/on`, `leftjoin by/on`, `select`, `lookup`, `reach by`, `unique` and field-keyed `sort by` also
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
 or a product of expressions uses SQL `SUM`. `View from 0 until N` keeps the
 first `N` rows as a SQLite `LIMIT` query and checks the bounds against `len`.

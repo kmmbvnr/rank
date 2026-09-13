@@ -11,8 +11,9 @@ We will solve these collections in order, using the
    nine [Updates](../../demos/pgexercises/updates/README.md), twenty-two
    [Aggregates](../../demos/pgexercises/aggregates/README.md), ten
    [Date](../../demos/pgexercises/date/README.md), and seven
-   [String](../../demos/pgexercises/string/README.md) exercises have runnable
-   Rank solutions and SQLite reference tests. Recursive remains.
+   [String](../../demos/pgexercises/string/README.md) and three
+   [Recursive](../../demos/pgexercises/recursive/README.md) exercises have
+   runnable Rank solutions and SQLite reference tests.
 2. [SQL Murder Mystery](https://github.com/NUKnightLab/sql-mysteries) — solve
    the investigation against its SQLite database. This stage will reuse the
    SQLite table source and exercise joins and other translations added during
