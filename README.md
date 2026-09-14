@@ -86,6 +86,18 @@ rank> 1 to 5 sum
 15
 ```
 
+Turn a cube, take its diagonal, and get 42:
+
+```rank
+use numbers
+use sequences
+use linalg
+
+Cube = (1 to 27) (array 3 3 3) reshape
+Cube transpose (array 2 1 0) diag rank 2 diag sum
+rem 42
+```
+
 Run a file with `npm run rank -- program.ra`. Program inputs follow the file
 name:
 
