@@ -76,7 +76,6 @@ an outer loop must be ended by its own `break`, condition or `return`.
 its condition again; a bare `for` starts its next iteration.
 
 ```rank
-use ranges
 Sum = 0
 for I in 1 to 5
   if I % 2 equal 0

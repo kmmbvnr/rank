@@ -4,9 +4,6 @@ rem https://cses.fi/problemset/task/1692
 use bits
 use graph
 use io
-use ranges
-use sequences
-use text
 
 N = stdin .integer
 N debruijn print
@@ -34,7 +31,7 @@ fun debruijn N
   for i in 1 until N
     Result += "0"
   end
-  for i in 1 until Path len
+  for i in 1 until (Path len)
     Bit = Path i % 2
     Result += Bit text
   end

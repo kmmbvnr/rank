@@ -3,7 +3,6 @@ rem https://www.deep-ml.com/problems/38
 
 use algo
 use numbers
-use ranges
 use sequences
 
 rem Predict with one decision stump.
@@ -74,7 +73,7 @@ fun adaboost_fit X Y Classifiers
     Ratio = (1.0 - MinError) / (
       MinError + 0.0000000001
     )
-    Best .alpha = 0.5 * Ratio log
+    Best .alpha = 0.5 * (Ratio log)
 
     F = Best .feature
     T = Best .threshold

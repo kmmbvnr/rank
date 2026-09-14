@@ -1,13 +1,12 @@
 rem Deep-ML 48: RREF
 rem https://www.deep-ml.com/problems/48
 
-use ranges
 use sequences
 
 fun rref A
   Rows = A len axis 0
   Cols = A len axis 1
-  Work = (A * 1.0) copy
+  Work = A * 1.0 copy
   Row = 0
 
   for Col in 0 until Cols

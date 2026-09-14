@@ -4,7 +4,6 @@ test "official example"
   use "010_subtreequeries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -29,7 +28,6 @@ test "root query sums every node"
   use "010_subtreequeries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
@@ -47,7 +45,6 @@ test "leaf update affects its ancestors"
   use "010_subtreequeries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
@@ -67,7 +64,6 @@ test "chosen root defines the subtree"
   use "010_subtreequeries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2

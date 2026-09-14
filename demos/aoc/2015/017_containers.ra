@@ -4,10 +4,7 @@ rem https://adventofcode.com/2015/day/17
 
 use io
 use cli
-use text
 use bits
-use ranges
-use sequences
 
 argument Input path
 

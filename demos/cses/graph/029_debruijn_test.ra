@@ -5,7 +5,6 @@ test "official example"
   use algo
   use bits
   use graph
-  use ranges
   use sequences
   use text
   Text = 2 debruijn
@@ -17,7 +16,6 @@ test "contains both single bits"
   use algo
   use bits
   use graph
-  use ranges
   use sequences
   use text
   Text = 1 debruijn
@@ -29,7 +27,6 @@ test "contains all three-bit words"
   use algo
   use bits
   use graph
-  use ranges
   use sequences
   use text
   Text = 3 debruijn
@@ -41,7 +38,6 @@ test "has minimum length for four bits"
   use algo
   use bits
   use graph
-  use ranges
   use sequences
   use text
   Text = 4 debruijn

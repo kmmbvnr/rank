@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "016_longestroute"
   use graph
-  use ranges
   Graph = new graph (1 to 5) .directed
   Edges = array shape 5 2
     1 2
@@ -21,7 +20,6 @@ end
 test "reports an unreachable target"
   use "016_longestroute"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Graph add 1 2
   Graph add 3 4
@@ -32,7 +30,6 @@ end
 test "uses a direct flight"
   use "016_longestroute"
   use graph
-  use ranges
   Graph = new graph (1 to 2) .directed
   Graph add 1 2
   Result = Graph 2 longest_route
@@ -42,7 +39,6 @@ end
 test "chooses more cities"
   use "016_longestroute"
   use graph
-  use ranges
   Graph = new graph (1 to 6) .directed
   Edges = array shape 6 2
     1 6

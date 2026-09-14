@@ -36,7 +36,10 @@ describe('Rank tensors and collections', () => {
             'use sequences',
             'M = array shape 0 3 pad 0',
             'Dims = M shape',
-            'Dims len * 1000 + Dims 0 * 100 + Dims 1 * 10 + M len + M len axis 1',
+            'Axes = Dims len',
+            'Rows = M len',
+            'Columns = M len axis 1',
+            'Axes * 1000 + Dims 0 * 100 + Dims 1 * 10 + Rows + Columns',
         ].join('\n'))).toBe('2033');
         expect(run('use sequences\n"A😀Б" shape')).toBe('3');
         expect(() => run('use sequences\n(array 1 2) len axis 2'))
@@ -368,7 +371,7 @@ describe('Rank tensors and collections', () => {
         expect(() => run('A = array shape 2 pad 0\nA 2 = Unknown'))
             .toThrowError('array index out of bounds on axis 0: 2');
         expect(() => run([
-            'use ranges',
+
             'A = (1 to 2) (1 to 2) + outer',
             'A 0 0 = 9',
         ].join('\n'))).toThrowError('cannot assign to a lazy array');
@@ -660,7 +663,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('1 2 3');
         expect(run([
             'use sequences',
-            'use ranges',
+
             'Values = 1 to 5',
             'Doubled = Values + Values',
             'Doubled unique array',
@@ -779,7 +782,7 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\n-12 abs')).toBe('12');
         expect(run('use numbers\n-2.5 abs')).toBe('2.5');
         expect(run('use numbers\n(array -2 0 3) abs')).toBe('2 0 3');
-        expect(run('use ranges\nuse numbers\n(-2 to 2) abs')).toBe('2 1 0 1 2');
+        expect(run('use numbers\n(-2 to 2) abs')).toBe('2 1 0 1 2');
         expect(run('use numbers\n-infinity abs')).toBe('infinity');
         expect(() => run('use numbers\n"no" abs')).toThrowError('expected numeric input');
         expect(run('use numbers\n9 sqrt')).toBe('3');
@@ -799,7 +802,7 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\n3 min 2')).toBe('2');
         expect(run('use numbers\n3 max 2')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');
-        expect(run('use numbers\noption Rate real = 1.5\nRate')).toBe('1.5');
+        expect(run('use cli\noption Rate real = 1.5\nRate')).toBe('1.5');
     });
 
     it('rounds numeric scalars and arrays to decimal places', () => {
@@ -808,7 +811,7 @@ describe('Rank tensors and collections', () => {
         expect(run('use numbers\n-2.5 round 0')).toBe('-2');
         expect(run('use numbers\n1250 round -2')).toBe('1200');
         expect(run('use numbers\n1350 round -2')).toBe('1400');
-        expect(run('use numbers\nuse ranges\n(1 to 3) round 2')).toBe('1 2 3');
+        expect(run('use numbers\n(1 to 3) round 2')).toBe('1 2 3');
         expect(run([
             'use linalg',
             'use numbers',
@@ -845,7 +848,7 @@ describe('Rank tensors and collections', () => {
             .toThrowError('round expects numeric input');
         expect(() => run('use numbers\n1.25 round 2.0'))
             .toThrowError('round places must be an integer');
-        expect(() => run('1.25 round 2')).toThrowError('round requires: use numbers');
+        expect(() => run('1.25 round 2')).toThrowError('unknown name: round; did you forget `use numbers`?');
     });
 
     it('operates on arbitrary-precision integer bits', () => {

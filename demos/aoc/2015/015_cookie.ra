@@ -6,9 +6,6 @@ use io
 use cli
 use algo
 use text
-use numbers
-use ranges
-use sequences
 
 argument Input path
 

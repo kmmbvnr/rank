@@ -1,15 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import {
-    EMPTY_CELL, addLine, cellSource, cellStarts, closeCell, collapseSpaces, expandAssignKey,
-    expandCompoundKeywords, expandOperators, formatLine, formatTyping, insideText,
-    isComplete, isEmpty, nextIndent, promptFor, scanLine, spaceOperators, startsDedent,
-    tokenize, wrapSource,
+    EMPTY_CELL, addLine, cellSource, closeCell, collapseSpaces, expandAssignKey,
+    expandCompoundKeywords, expandOperators, formatLine, insideText,
+    isComplete, isEmpty, nextIndent, scanLine, spaceOperators, startsDedent,
+    tokenize,
 } from '../out/repl-input.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -49,20 +46,20 @@ test('expands alias words only in operator position', () => {
     assert.equal(expand('A rem gets 2'), 'A rem gets 2');
 });
 
-test('rewrites the comma and colon keys into the = they stand for', () => {
-    for (const key of [',', ':']) {
-        assert.equal(expandAssignKey(`A${key} 3`), 'A = 3');
-        assert.equal(expandAssignKey(`A${key}3`), 'A = 3');
-        assert.equal(expandAssignKey(`A *${key} 2`), 'A *= 2');
-        assert.equal(expandAssignKey(`A and${key} B`), 'A and= B');
-        assert.equal(expandAssignKey(`index K${key} V`), 'index K = V');
-    }
+test('rewrites the comma key into the = it stands for', () => {
+    const key = ',';
+    assert.equal(expandAssignKey(`A${key} 3`), 'A = 3');
+    assert.equal(expandAssignKey(`A${key}3`), 'A = 3');
+    assert.equal(expandAssignKey(`A *${key} 2`), 'A *= 2');
+    assert.equal(expandAssignKey(`A and${key} B`), 'A and= B');
+    assert.equal(expandAssignKey(`index K${key} V`), 'index K = V');
     assert.equal(expandAssignKey('A = 3'), 'A = 3');
-    // Neither key appears in the demo corpus outside text and comments.
-    assert.equal(expandAssignKey('A: "at 12:30"'), 'A = "at 12:30"');
+    // A colon is left alone; it no longer stands for `=`.
+    assert.equal(expandAssignKey('A: "at 12:30"'), 'A: "at 12:30"');
+    // The key does not appear in the demo corpus outside text and comments.
     assert.equal(expandAssignKey('A, "one, two"'), 'A = "one, two"');
     assert.equal(expandAssignKey('rem see http://x'), 'rem see http://x');
-    assert.equal(expandAssignKey('A: 1 rem note, here'), 'A = 1 rem note, here');
+    assert.equal(expandAssignKey('A, 1 rem note, here'), 'A = 1 rem note, here');
 });
 
 test('gives every binary operator one space on each side', () => {
@@ -82,15 +79,10 @@ test('gives every binary operator one space on each side', () => {
     assert.equal(spaceOperators('A = "1+2"'), 'A = "1+2"');
 });
 
-test('formats a whole line and a line still being typed', () => {
+test('formats a whole line', () => {
     assert.equal(formatLine('A,B+1'), 'A = B + 1');
     assert.equal(formatLine('A  =   3'), 'A = 3');
     assert.equal(formatLine('A B leftjoin on .x, .y'), 'A B leftjoin on .x equal .y');
-    // While typing, an operator keeps the space that separates what comes next.
-    assert.equal(formatTyping('A,'), 'A = ');
-    assert.equal(formatTyping('A = 1+'), 'A = 1 + ');
-    assert.equal(formatTyping('A = 1 '), 'A = 1 ');
-    assert.equal(formatTyping('Val'), 'Val');
 });
 
 test('knows the lines that step back out of a block', () => {
@@ -145,6 +137,19 @@ test('closes a quote and a bracket at the end of the line', () => {
     assert.equal(cellSource(cell('A = (1 + 2')), 'A = (1 + 2)');
     assert.equal(cellSource(cell('A = ((1 + 2) * (3')), 'A = ((1 + 2) * (3))');
     assert.equal(cellSource(cell('A = ("text')), 'A = ("text")');
+});
+
+test('an open bracket keeps folding when more of the line is known to follow', () => {
+    // Recalling a wrapped statement replays each of its lines with more still
+    // to come, so an operand-ending line inside an open bracket must not
+    // close early and run a truncated fragment.
+    let state = addLine(EMPTY_CELL, 'A = (1 + 2', true);
+    assert.equal(isComplete(state), false);
+    state = addLine(state, '+ 3)', true);
+    assert.equal(isComplete(state), true);
+    assert.equal(cellSource(state), 'A = (1 + 2 + 3)');
+    // With nothing more promised, the same first line still closes on its own.
+    assert.equal(cellSource(addLine(EMPTY_CELL, 'A = (1 + 2')), 'A = (1 + 2)');
 });
 
 test('tracks blocks and re-indents every line', () => {
@@ -218,58 +223,10 @@ test('a blank line finishes every open construct', () => {
 });
 
 test('prompt and indentation report what is open', () => {
-    assert.equal(promptFor(EMPTY_CELL), 'rank> ');
     assert.equal(nextIndent(EMPTY_CELL), '');
-    assert.equal(promptFor(cell('for i in 1 to 3')), 'for.> ');
     assert.equal(nextIndent(cell('for i in 1 to 3')), '  ');
-    assert.equal(promptFor(cell('if A', 'for i in 1 to 3')), 'for.> ');
     assert.equal(nextIndent(cell('if A', 'for i in 1 to 3')), '    ');
-    assert.equal(promptFor(cell('A = 1 +')), '....> ');
-    assert.equal(promptFor(cell('A = record')), 'reco> ');
     assert.equal(isEmpty(EMPTY_CELL), true);
-});
-
-test('finds the line each statement of a file begins at', () => {
-    assert.deepEqual(cellStarts([]), []);
-    assert.deepEqual(cellStarts(['A = 1', 'B = 2']), [0, 1]);
-    // A block is one statement, whatever its body; a blank line is its own.
-    assert.deepEqual(
-        cellStarts(['fun triple X', '  return X * 3', 'end', '', 'B = 1']),
-        [0, 3, 4]);
-    // A folded line reaches its end before the next statement starts.
-    assert.deepEqual(cellStarts(['A = 1 +', '2', 'B = 3']), [0, 2]);
-});
-
-test('wraps a wide line into brackets and narrow lines', () => {
-    // Under the limit nothing moves, even over the target width.
-    assert.equal(wrapSource('A = Price * Discount + Quantity'),
-        'A = Price * Discount + Quantity');
-    assert.equal(wrapSource('Revenue = Price * Discount + Quantity * Extra + More'), [
-        'Revenue = (',
-        '  Price * Discount + Quantity * Extra',
-        '  + More',
-        ')',
-    ].join('\n'));
-    // Brackets already there are reused rather than doubled.
-    assert.equal(wrapSource('Revenue = (Price * Discount + Quantity * Extra + More)'), [
-        'Revenue = (',
-        '  Price * Discount + Quantity * Extra',
-        '  + More',
-        ')',
-    ].join('\n'));
-    // The line keeps the indentation of its block.
-    assert.equal(wrapSource('  Revenue = Price * Discount + Quantity * Extra + More'), [
-        '  Revenue = (',
-        '    Price * Discount + Quantity * Extra',
-        '    + More',
-        '  )',
-    ].join('\n'));
-    // An application chain has no place to break, so it stays one line.
-    const chain = 'Total = Values sum print with a very long chain of names here';
-    assert.equal(wrapSource(chain), chain);
-    // Join key pairs are kept intact by the generic line wrapper.
-    const join = 'Joined = Left Right leftjoin on .store equal .family .a equal .b .c equal .d';
-    assert.equal(wrapSource(join), join);
 });
 
 test('runs blocks, folded lines and aliases through the real REPL', () => {
@@ -284,7 +241,7 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
         'A',
         'S gets "text',
         'S',
-        'Label: "at 12:30"',
+        'Label, "at 12:30"',
         'Label',
         'Tight,A+1',
         'Tight',
@@ -303,58 +260,4 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
         // A tensor prints flat, so the preview names the shape underneath it.
         '1 2 3 4 5 6', 'shape 2 3', '2 5', '78',
     ]);
-});
-
-/**
- * Drives the real prompt through a pty so readline completion actually runs. A
- * tab in a line is sent on its own: readline treats a burst that contains one
- * as plain text, and only a keypress of its own completes.
- */
-function complete(lines, completion = '') {
-    const steps = [];
-    for (const line of lines) {
-        for (const [index, piece] of line.split('\t').entries()) {
-            if (index > 0) {
-                steps.push('send "\\t"');
-                steps.push(completion
-                    ? `expect ${JSON.stringify(completion)}` : 'sleep 0.3');
-            }
-            if (piece !== '') steps.push(`send ${JSON.stringify(piece)}`, 'sleep 0.2');
-        }
-        steps.push('send "\\r"', 'expect "rank> "');
-    }
-    const file = path.join(os.tmpdir(), `rank-complete-${process.pid}.exp`);
-    fs.writeFileSync(file, [
-        'set timeout 10',
-        `spawn ${process.execPath} ${cli}`,
-        'expect "rank> "',
-        ...steps,
-        'send "exit\\r"',
-        'expect eof',
-    ].join('\n'));
-    try {
-        return spawnSync('expect', ['-f', file], { encoding: 'utf8' }).stdout ?? '';
-    } finally {
-        fs.rmSync(file, { force: true });
-    }
-}
-
-// The prompt has to offer what the grammar fixes: a declared input takes one of
-// five types, and a spelled operator is two words that arrive as one.
-test('completion offers the types a declared input accepts', () => {
-    const session = complete(['option Limit integ\t 1', 'argument Path \t\t']);
-    assert.match(session, /Limit integer/);
-    for (const type of ['boolean', 'integer', 'path', 'real', 'text']) {
-        assert.match(session, new RegExp(`\\b${type}\\b`));
-    }
-});
-
-test('completion finishes a two-word operator whole', () => {
-    // The operand comes after: a line ending in an operator folds instead of
-    // running, which is the prompt behaving correctly.
-    const session = complete(['use numbers', 'N = 3', 'Mask = N mul\t2'], 'multiple by');
-    // The prompt redraws with escape codes between its parts, so match the
-    // completed text rather than the whole line.
-    assert.match(session, /N multiple by 2/);
-    assert.match(complete(['A = 1', 'B = A at l\t0']), /A at least 0/);
 });

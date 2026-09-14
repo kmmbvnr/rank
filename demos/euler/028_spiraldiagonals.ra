@@ -2,7 +2,6 @@ rem Number Spiral Diagonals
 rem https://projecteuler.net/problem=28
 rem Sum both diagonals in an odd square spiral
 
-use ranges
 use io
 use cli
 

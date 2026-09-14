@@ -24,7 +24,7 @@ const bodies = {
   infixmin: 'Best = Best min (-I)', aliasmin: 'Best = Best (-I) Op',
   arithmetic: 'Best += I', conditional: 'if I greater Best\n Best = I\n end',
 };
-const source = `use numbers\nuse ranges\n${Object.entries(bodies).map(([name, body]) => `
+const source = `use numbers\n${Object.entries(bodies).map(([name, body]) => `
 fun ${name} N
  Op = ${name.endsWith('min') ? 'min' : 'max'}
  Best = 0

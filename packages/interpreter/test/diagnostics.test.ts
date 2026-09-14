@@ -69,7 +69,7 @@ describe('runtime diagnostics', () => {
         expect(failure('use "helper" as Helper\n1 Helper.abs', interpreter).message).toBe('unknown variable: abs');
     });
 
-    it.each([['abs', 'numbers'], ['len', 'sequences'], ['print', 'io']])('suggests the library exporting %s', (name, module) => {
+    it.each([['abs', 'numbers'], ['shape', 'sequences'], ['print', 'io']])('suggests the library exporting %s', (name, module) => {
         expect(failure(`1 ${name}`).message).toContain(`did you forget \`use ${module}\`?`);
     });
 

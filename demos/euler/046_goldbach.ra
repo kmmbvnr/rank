@@ -4,7 +4,6 @@ rem Find the first odd composite that is not
 rem a prime plus twice a square
 
 use sequences
-use numbers
 use io
 
 Answer = 9 goldbach_counterexample

@@ -2,7 +2,6 @@ rem CSES 3396: Next Prime
 rem https://cses.fi/problemset/task/3396
 
 use io
-use ranges
 use sequences
 
 Tests = stdin .integer

@@ -3,8 +3,6 @@ rem https://projecteuler.net/problem=40
 rem Multiply the digits at powers of ten in
 rem the concatenated positive integers
 
-use ranges
-use text
 use io
 
 Positions = array shape 7

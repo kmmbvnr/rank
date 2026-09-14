@@ -4,9 +4,7 @@ rem https://cses.fi/problemset/task/1726
 use io
 use linalg
 use numbers
-use ranges
 use sequences
-use text
 
 Steps = stdin .integer
 Steps empty_text print
@@ -23,7 +21,7 @@ rem Combine all absence chances.
 fun empty_cells Steps
   Move = 8 transition_matrix
   Power = Move Steps matrix_power
-  Absence = 1.0 - Power transpose
+  Absence = 1.0 - (Power transpose)
   Empty = Absence * reduce rank 1
   return Empty sum
 end
@@ -48,7 +46,7 @@ fun transition_matrix Board
       From = Y * Board + X
       for DY in -1 to 1
         for DX in -1 to 1
-          Distance = DX abs + DY abs
+          Distance = DX abs + (DY abs)
           if Distance not equal 1
             continue
           end

@@ -2,7 +2,6 @@ rem CSES 1633: Dice Combinations
 rem https://cses.fi/problemset/task/1633
 
 use io
-use ranges
 
 N = stdin .integer
 N dice_combinations print

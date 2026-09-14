@@ -2,7 +2,6 @@ rem Deep-ML 11: Jacobi Method
 rem https://www.deep-ml.com/problems/11
 
 use numbers
-use ranges
 use sequences
 
 rem Approximate A X = B with N simultaneous Jacobi updates.
@@ -20,7 +19,7 @@ fun jacobi A B N
     Next = array shape Size pad 0.0
 
     for i in 0 until Size
-      RowSum = (A i * X) sum
+      RowSum = A i * X sum
       Diagonal = A i i
       Next i = (
         B i - RowSum

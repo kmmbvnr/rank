@@ -1,5 +1,6 @@
 import { algoModule } from './algo.js';
 import { bitsModule } from './bits.js';
+import { coreModule } from './core.js';
 import { cryptoModule } from './crypto.js';
 import { datesModule } from './dates.js';
 import { graphModule } from './graph.js';
@@ -20,6 +21,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     algo: algoModule,
     bits: bitsModule,
     cli: {},
+    core: coreModule,
     crypto: cryptoModule,
     dates: datesModule,
     graph: graphModule,
@@ -29,7 +31,6 @@ export const standardModules: Record<string, RuntimeModule> = {
     linalg: linalgModule,
     numbers: numbersModule,
     random: randomModule,
-    ranges: {},
     sequences: sequencesModule,
     stats: statsModule,
     tables: { ...tablesModule, ...sqliteModule },

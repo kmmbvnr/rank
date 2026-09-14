@@ -41,8 +41,7 @@ Log`)).toBe('1 0 7 3');
     });
 
     it('preserves signed selectors, slices, and compound writes', () => {
-        expect(run(`use ranges
-M = array shape 2 2 pad 0
+        expect(run(`M = array shape 2 2 pad 0
 I = 1
 M +I 0 = 3
 M I 0 += 4

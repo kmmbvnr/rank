@@ -25,6 +25,15 @@ function named(result: ProgramFacts, scope: string, name: string): Binding {
     return found;
 }
 
+it('records a nullary result as data of unknown type, not a function alias', async () => {
+    const result = await facts(['fun tst', ' yield 1', 'end', 'G = tst', 'H = (tst)', 'G 0']);
+    expect(named(result, 'program', 'tst').arities).toEqual([0]);
+    for (const name of ['G', 'H']) {
+        expect(named(result, 'program', name).types).toEqual([]);
+        expect(named(result, 'program', name).arities).toBeUndefined();
+    }
+});
+
 describe('binding facts', () => {
     it('recognizes contextual rownumber and ranknumber in select fields', async () => {
         const result = await facts([
@@ -60,7 +69,7 @@ describe('binding facts', () => {
 
     it('marks a name a loop both reads and writes', async () => {
         const result = await facts([
-            'use ranges', 'Total = 0', 'Seen = 0',
+            'Total = 0', 'Seen = 0',
             'for I in 1 to 10', '  Total = Total + I', 'end',
             'Seen = 1',
         ]);
@@ -71,7 +80,7 @@ describe('binding facts', () => {
 
     it('reads a name the source binds further down the same loop', async () => {
         const result = await facts([
-            'use ranges',
+
             'for I in 1 to 3',
             '  Next 0 = 1',
             '  Next = array 0 0',
@@ -204,7 +213,7 @@ describe('type facts', () => {
 
     it('keeps the shape of an operator over a collection', async () => {
         const result = await facts([
-            'use ranges', 'use numbers',
+            'use numbers',
             'Range = 1 until 10',
             'Mask = Range multiple by 3',
             'Values = array 1 2 3',
@@ -261,4 +270,29 @@ describe('type facts', () => {
         expect(named(result, 'program', 'A').types).toEqual(['integer']);
         expect(named(result, 'program', 'B').types).toEqual(['integer', 'text']);
     });
+});
+
+it('recognizes core operations without imports and still reports specialized names', async () => {
+    const result = await facts(['A = 1 to 5', 'A len', 'A sum', 'A min', 'A max', '9 sqrt']);
+    expect(result.operations.map(op => [op.name, op.module])).toEqual([
+        ['len', 'core'], ['max', 'core'], ['min', 'core'], ['sum', 'core'],
+    ]);
+    expect(result.missing.map(op => op.name)).toEqual(['sqrt']);
+});
+
+it('reports CLI declarations and args without their own import', async () => {
+    const lines = ['option N integer = 3', 'argument Path path', 'flag Verbose', 'args "--n" "7"'];
+    expect((await facts(lines)).missing.map(op => [op.name, op.module])).toEqual([
+        ['option', 'cli'], ['argument', 'cli'], ['flag', 'cli'], ['args', 'cli'],
+    ]);
+    expect((await facts(['use cli', ...lines])).missing).toEqual([]);
+});
+
+it('infers explicit conversion results without imports', async () => {
+    const result = await facts(['I = 2.5 integer', 'R = 2 real', 'T = 2 text']);
+    expect(result.missing).toEqual([]);
+    expect(named(result, 'program', 'I').types).toEqual(['integer']);
+    expect(named(result, 'program', 'R').types).toEqual(['real']);
+    expect(named(result, 'program', 'T').types).toEqual(['text']);
+    expect(result.operations.every(op => op.module === 'core')).toBe(true);
 });

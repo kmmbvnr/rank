@@ -2,7 +2,6 @@ rem CSES 1635: Coin Combinations I
 rem https://cses.fi/problemset/task/1635
 
 use io
-use ranges
 
 N = stdin .integer
 Target = stdin .integer

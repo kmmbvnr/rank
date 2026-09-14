@@ -2,10 +2,6 @@ rem CSES 1728: Inversion Probability
 rem https://cses.fi/problemset/task/1728
 
 use io
-use numbers
-use ranges
-use sequences
-use text
 
 N = stdin .integer
 Ranges = stdin .integer N array
@@ -28,7 +24,7 @@ fun expected_inversions Ranges
     for J in I + 1 until N
       A = Ranges I
       B = Ranges J
-      M = (A - 1) B min
+      M = A - 1 B min
       Winning = M * A - M * (M + 1) // 2
       Expected += Winning / (A * B)
     end

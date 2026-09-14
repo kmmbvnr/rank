@@ -2,7 +2,6 @@ rem Deep-ML 32: Polynomial Features
 rem https://www.deep-ml.com/problems/32
 
 use algo
-use ranges
 use sequences
 
 fun polynomial_features X Degree
@@ -16,7 +15,7 @@ fun polynomial_features X Degree
 
   Rows = Shape 0
   Cols = Shape 1
-  Indices = (0 until Cols) array
+  Indices = 0 until Cols array
 
   Width = 0
   for D in 0 to Degree

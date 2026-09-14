@@ -3,16 +3,13 @@ rem https://projecteuler.net/problem=24
 rem Find the millionth ordered permutation
 rem of the decimal digits
 
-use ranges
-use sequences
 use algo
-use text
 use io
 use cli
 
 option Position integer = 1000000
 
-Digits = (0 to 9) array
+Digits = 0 to 9 array
 Answer = Digits Position lexicographic
 Answer print
 
@@ -23,7 +20,7 @@ fun lexicographic Digits Position
   Available = Digits multiset
   Remaining = Position - 1
   Size = Available len
-  Block = (Size - 1) factorial
+  Block = Size - 1 factorial
   Result = ""
 
   for Size greater 0

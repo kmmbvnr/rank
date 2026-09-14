@@ -4,7 +4,6 @@ test "official example"
   use "009_routes2"
   use graph
   use numbers
-  use ranges
   Graph = new graph (1 to 4) .undirected
   Edges = array shape 3 3
     1 2 5
@@ -23,7 +22,6 @@ end
 test "chooses a parallel road"
   use "009_routes2"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .undirected
   Edges = array shape 3 3
     1 2 10
@@ -38,7 +36,6 @@ end
 test "zero distance to each city"
   use "009_routes2"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .undirected
   Dist = Graph 3 all_pairs
   Diagonal = array shape 3
@@ -50,7 +47,6 @@ end
 test "finds a route through two cities"
   use "009_routes2"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .undirected
   Edges = array shape 3 3
     1 2 3

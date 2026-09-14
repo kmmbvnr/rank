@@ -1,189 +1,245 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { eraseRows, screenRows } from '../out/screen.js';
+import xterm from '@xterm/headless';
+import stringWidth from 'string-width';
+import { Notebook } from '../out/notebook.js';
+import { NotebookRepl } from '../out/repl.js';
+import { createReplSession } from '../out/repl-session.js';
+import { editableRows, notebookFrame, drawFrame, saveFrame } from '../out/screen.js';
 
-const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
+const { Terminal } = xterm;
+const write = (terminal, data) => new Promise(resolve => terminal.write(data, resolve));
+const text = terminal => Array.from({ length: terminal.rows }, (_, i) =>
+    terminal.buffer.active.getLine(i).translateToString(true)).join('\n');
 
-test('a line takes as many rows as the terminal is wide', () => {
-    assert.equal(screenRows(0, 80), 1);
-    assert.equal(screenRows(40, 80), 1);
-    // A line that fills the row exactly has not wrapped yet.
-    assert.equal(screenRows(80, 80), 1);
-    assert.equal(screenRows(81, 80), 2);
-    assert.equal(screenRows(160, 80), 2);
-    // An unknown width is not a reason to claim a line is taller than it is.
-    assert.equal(screenRows(40, 0), 1);
-});
-
-test('rows out of reach are left alone rather than erased', () => {
-    const written = [];
-    const screen = { rows: 10, write: chunk => written.push(chunk) };
-    assert.equal(eraseRows(screen, 0), true);
-    assert.equal(written.length, 0);
-    assert.equal(eraseRows(screen, 3), true);
-    assert.equal(written.join(''), '\x1b[3A\x1b[1G\x1b[0J');
-    // Taller than the screen: the rows above have scrolled away and belong to
-    // whatever is there now.
-    written.length = 0;
-    assert.equal(eraseRows(screen, 10), false);
-    assert.equal(written.length, 0);
-});
-
-/**
- * Drives the real prompt through a pty. What matters is the escape stream: a
- * line that ran is printed again with no prompt in front of it, which is what
- * makes the screen read as the file the session is writing.
- */
-const KEYS = {
-    '<TAB>': '\\t', '<UP>': '\\033\\[A', '<DOWN>': '\\033\\[B', '<BS>': '\\177',
-    '<CLEAR>': '\\025',
-};
-
-function transcript(lines, screen) {
-    const steps = lines.flatMap(line => [
-        // Readline reads a key arriving inside a burst as plain text, so each
-        // one is sent on its own; a listing needs the second of two tabs.
-        ...line.split(/(<[A-Z]+>)/).filter(piece => piece !== '').flatMap(piece =>
-            KEYS[piece] === undefined
-                ? [`send ${JSON.stringify(piece)}`, 'sleep 0.2']
-                : [`send "${KEYS[piece]}"`, 'sleep 0.3']),
-        'send "\\r"',
-        'sleep 0.3',
-    ]);
-    const file = path.join(os.tmpdir(), `rank-screen-${process.pid}.exp`);
-    fs.writeFileSync(file, [
-        'set timeout 10',
-        // A pty of a given size, for what only happens once a screen is full.
-        ...(screen === undefined
-            ? []
-            : [`set stty_init "rows ${screen.rows} columns ${screen.columns}"`]),
-        `spawn ${process.execPath} ${cli}`,
-        'expect "rank> "',
-        // Read the output as it comes, which a script of sleeps otherwise never
-        // does: a pty nobody drains fills up at about a kilobyte, and the REPL
-        // then blocks on a write in the middle of drawing, which no terminal
-        // would ever do to it.
-        'expect_background { -re ".+" {} }',
-        ...steps,
-        'send "exit\\r"',
-        'sleep 0.5',
-    ].join('\n'));
-    try {
-        return spawnSync('expect', ['-f', file], { encoding: 'utf8' }).stdout ?? '';
-    } finally {
-        fs.rmSync(file, { force: true });
-    }
+async function draw(terminal, book, top = 0, hint = '', running = false) {
+    if (terminal.buffer.active.type !== 'alternate') await write(terminal, '\x1b[?1049h');
+    const frame = notebookFrame(book, terminal.cols, terminal.rows, top, hint, running);
+    await write(terminal, drawFrame(frame));
+    assert.equal(terminal.buffer.active.cursorX, frame.cursor.column);
+    assert.equal(terminal.buffer.active.cursorY, frame.cursor.row);
+    assert.equal(terminal.buffer.active.baseY, 0, 'rendering scrolled the terminal');
+    return frame;
 }
 
-test('a completion listing goes with the prompt that asked for it', () => {
-    // `use ` offers every module, which is more than one row of names.
-    const session = transcript(['use <TAB><TAB>numbers']);
-    const erased = /\x1b\[(\d+)A\x1b\[1G\x1b\[0Juse numbers\r\n/.exec(session);
-    assert.ok(erased, 'the accepted line was never printed back');
-    // The prompt is one row; anything above it is the listing being taken back.
-    assert.ok(Number(erased[1]) > 3, `only ${erased[1]} rows erased`);
+test('wraps by display width and maps Unicode cursor offsets without changing source', () => {
+    const source = 'аб界e\u0301Z';
+    const rows = editableRows(source, 4);
+    assert.deepEqual(rows.map(row => row.text), ['аб界', 'e\u0301Z']);
+    assert.deepEqual(rows[1].points, [
+        { offset: 3, column: 0 }, { offset: 5, column: 1 }, { offset: 6, column: 2 },
+    ]);
+    assert.deepEqual(editableRows('abcd', 4).map(row => row.text), ['abcd', '']);
 });
 
-test('a second listing replaces the first rather than piling on it', () => {
-    // Three tabs print two listings, so the newer one has to take the older
-    // one back before it is drawn; the last erase is the one Enter does.
-    const session = transcript(['use <TAB><TAB><TAB>numbers']);
-    const erased = [...session.matchAll(/\x1b\[(\d+)A/g)].map(found => Number(found[1]));
-    const listings = erased.filter(rows => rows > 3);
-    assert.equal(listings.length, 2, `erased ${JSON.stringify(erased)}`);
+test('a shortened wrapped line erases old rows and places the cursor at its real position', async t => {
+    const terminal = new Terminal({ cols: 20, rows: 8, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    book.replace('1234567890123456789012345678901234567890');
+    await draw(terminal, book);
+    book.cursor = 0;
+    await draw(terminal, book);
+    assert.equal(terminal.buffer.active.cursorY, 0);
+    assert.equal(terminal.buffer.active.cursorX, 6);
+    book.replace('A = 1');
+    await draw(terminal, book);
+    assert.equal(text(terminal).split('\n')[0], 'rank> A = 1');
+    assert.doesNotMatch(text(terminal), /23456789/);
 });
 
-test('a tab with nothing to add leaves the line it was typed on', () => {
-    // Readline prints a listing only on the second tab of two, and on a tab it
-    // has nothing to add to it writes nothing at all. So the erase that takes a
-    // listing back has to put the line back itself, or the line the user is
-    // editing goes off the screen with the listing.
-    const session = transcript(['use numbers', 'fibonacci eve<TAB><TAB>n<TAB>']);
-    assert.match(session, /\x1b\[\d+A\x1b\[1G\x1b\[0J\x1b\[1G\x1b\[0Jrank> fibonacci even/);
+test('resize recomputes all rows and cursor mappings in both directions', async t => {
+    const terminal = new Terminal({ cols: 80, rows: 12, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    book.replace('S = "' + '界'.repeat(30) + '"');
+    for (const [columns, rows] of [[80, 12], [20, 8], [40, 10], [12, 4], [80, 12]]) {
+        terminal.resize(columns, rows);
+        const frame = await draw(terminal, book);
+        for (const line of frame.lines) assert.ok(stringWidth(line) < columns);
+        assert.ok(frame.cursor.column < columns);
+        assert.ok(frame.cursor.row < rows);
+    }
+    assert.equal(book.current.source, 'S = "' + '界'.repeat(30) + '"');
 });
 
-test('the arrows step back into the file and Enter walks forward again', () => {
-    // Up twice reaches the first statement, which is then fixed; the Enter
-    // that ends the line runs it, and the next Enter runs the line below with
-    // the value the fix gave it.
-    const session = transcript(['A, 3', 'B, A * 2', '<UP><UP><BS>5', '', 'list']);
-    assert.match(session, / {3}1> /, 'the prompt never named the line');
-    // The prompt walks up to the row the statement stands on and erases from
-    // there, so the line is edited where it already is rather than copied to
-    // the bottom: a statement and its answer are the two rows taken back.
-    assert.match(session, /\x1b\[2A[^\n]*?\x1b\[0J {3}2> /);
-    assert.match(session, /\x1b\[0JA = 5\r\n/);
-    assert.match(session, /\x1b\[2m10/, 'B was not worked out again');
-    // The file is the two lines it always was: the fix replaced one. `list`
-    // dims the number, so the escape that ends it sits inside the line.
-    assert.match(session, /\x1b\[2m {2}1 \x1b\[22m A = 5/);
-    assert.match(session, /\x1b\[2m {2}2 \x1b\[22m B = A \* 2/);
-    assert.doesNotMatch(session, /\x1b\[2m {2}3 /);
+test('scrolling to old source and back redraws from the document with no duplicate text', async t => {
+    const terminal = new Terminal({ cols: 40, rows: 8, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    for (let i = 0; i < 30; i++) {
+        book.enqueue(`A = ${i}`);
+        const cell = book.cells[i];
+        cell.executed = cell.source;
+        cell.status = 'ok';
+        cell.output = [{ text: String(i), error: false }];
+    }
+    let frame = await draw(terminal, book);
+    assert.match(text(terminal), /A = 29/);
+    book.active = 0; book.cursor = 0;
+    frame = await draw(terminal, book, frame.top);
+    assert.match(text(terminal), /A = 0\n/);
+    assert.doesNotMatch(text(terminal), /A = 29/);
+    book.toPrompt();
+    await draw(terminal, book, frame.top);
+    assert.match(text(terminal), /A = 29/);
 });
 
-test('a statement that scrolled off the top brings the screen back with it', () => {
-    // Five statements and their answers fill a ten-row screen, so the first of
-    // them is above it: the only way to stand on that row is to draw the screen
-    // again from the rows the session printed.
-    // The last line walks forward with Enter, four times, back to the end.
-    const session = transcript(
-        ['A, 1', 'B, 2', 'C, 3', 'D, 4', 'E, 5', '<UP>'.repeat(5),
-            '', '', '', '', 'list'],
-        { rows: 10, columns: 50 },
-    );
-    const drawn = session.indexOf('\x1b[1;1H\x1b[0J');
-    assert.ok(drawn > 0, 'the screen was never drawn again');
-    const after = session.slice(drawn);
-    // What was above the statement is above it again, and the statement itself
-    // is on the prompt rather than copied to the bottom of the screen.
-    assert.match(after, /Rank 0\.1/, 'the rows above did not come back');
-    assert.match(after, / {3}1> (\x1b\[\d+G)?A = 1/);
-    // Walking forward from there writes the file out again, as it stands.
-    assert.match(after, /\x1b\[2m {2}5 \x1b\[22m E = 5/);
-    assert.doesNotMatch(after, /\x1b\[2m {2}6 /);
+test('only the current completion is visible and dismissing it clears its row', async t => {
+    const terminal = new Terminal({ cols: 70, rows: 8, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    await draw(terminal, book, 0, 'Tab: numbers (1/2)');
+    await draw(terminal, book, 0, 'Tab: sequences (2/2)');
+    assert.match(text(terminal), /Tab: sequences/);
+    assert.doesNotMatch(text(terminal), /Tab: numbers/);
+    await draw(terminal, book);
+    assert.doesNotMatch(text(terminal), /Tab:/);
 });
 
-test('a statement that raised comes back to be fixed where it stands', () => {
-    // The line is in the file although it did not run: it is on screen as the
-    // file's next line, and fixing it is the first thing anyone does with it.
-    const session = transcript(['dewdewd', 'list', '<UP><CLEAR>B, 2', 'list']);
-    assert.match(session, /unknown name: dewdewd/);
-    assert.match(session, /\x1b\[2m {2}1 \x1b\[22m dewdewd/, 'the line that raised was dropped');
-    // Up reaches it, error and all, and puts it back on its own row.
-    assert.match(session, / {3}1> (\x1b\[\d+G)?dewdewd/);
-    // The fix replaces it rather than being written under it.
-    assert.match(session, /\x1b\[2m {2}1 \x1b\[22m B = 2/);
-    assert.doesNotMatch(session, /\x1b\[2m {2}2 /);
+test('execution indicators turn gray after an edit and old errors vanish after successful replay', async t => {
+    const terminal = new Terminal({ cols: 60, rows: 14, allowProposedApi: true });
+    const session = createReplSession();
+    t.after(() => { terminal.dispose(); session.dispose(); });
+    const repl = new NotebookRepl(session);
+    const book = repl.notebook;
+    book.replace('A = 1'); await repl.submit();
+    book.replace('B = A + 1'); await repl.submit();
+    await draw(terminal, book);
+    const firstColor = terminal.buffer.active.getLine(0).getCell(0).getFgColor();
+    assert.equal(firstColor, 2, 'executed circle should be green');
+    book.active = 0; book.replace('A = Missing');
+    await draw(terminal, book);
+    assert.equal(terminal.buffer.active.getLine(0).getCell(0).getFgColor(), 8);
+    assert.equal(terminal.buffer.active.getLine(2).getCell(0).getFgColor(), 8);
+    book.toPrompt(); await repl.submit();
+    await draw(terminal, book);
+    assert.match(text(terminal), /unknown name/);
+    assert.equal(book.active, 0);
+    assert.equal(terminal.buffer.active.getLine(0).getCell(0).getFgColor(), 1);
+    book.replace('A = 5'); book.toPrompt(); await repl.submit();
+    await draw(terminal, book);
+    assert.doesNotMatch(text(terminal), /unknown name/);
+    assert.match(text(terminal), /\n      6\n/);
+    assert.equal(terminal.buffer.active.getLine(0).getCell(0).getFgColor(), 2);
 });
 
-test('a blank line between statements is part of the file', () => {
-    const file = path.join(os.tmpdir(), `rank-blank-${process.pid}.ra`);
-    const source = ['A = 1', '', 'B = 2', `save ${file}`, 'exit'].join('\n') + '\n';
-    const result = spawnSync(process.execPath, [cli], { input: source, encoding: 'utf8' });
-    assert.equal(result.status, 0);
-    try {
-        // Spacing is the one thing a file has that no statement can say.
-        assert.equal(fs.readFileSync(file, 'utf8'), 'A = 1\n\nB = 2\n');
-    } finally {
-        fs.rmSync(file, { force: true });
+test('source and output control characters cannot move the renderer cursor', async t => {
+    const terminal = new Terminal({ cols: 40, rows: 8, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    book.enqueue('S = "\x1b[2J"');
+    book.cells[0].output = [{ text: '\x1b[2Jresult\x1b[10;10H', error: false }];
+    await draw(terminal, book);
+    assert.match(text(terminal), /S = "\?\[2J"/);
+    assert.match(text(terminal), /result/);
+});
+
+test('Page Up can inspect output taller than the screen without moving the source cursor', async t => {
+    const terminal = new Terminal({ cols: 50, rows: 8, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    book.enqueue('help');
+    book.cells[0].command = true;
+    book.cells[0].output = Array.from({ length: 30 }, (_, i) => ({ text: `help line ${i}`, error: false }));
+    await draw(terminal, book);
+    const cursor = book.cursor;
+    const frame = notebookFrame(book, 50, 8, 0, '', false, false);
+    await write(terminal, drawFrame(frame));
+    assert.match(text(terminal), /help line 0/);
+    assert.equal(frame.cursorVisible, false);
+    assert.equal(book.cursor, cursor);
+    assert.equal(book.atPrompt, true);
+});
+
+test('an error near the bottom reveals its wrapped diagnostic and the prompt while keeping the edit cursor', async t => {
+    const terminal = new Terminal({ cols: 70, rows: 12, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    for (let i = 0; i < 20; i++) {
+        book.enqueue(`A = ${i}`);
+        book.cells[i].executed = book.cells[i].source;
+        book.cells[i].status = 'ok';
+    }
+    let frame = await draw(terminal, book);
+    book.enqueue('G sum');
+    const index = book.cells.length - 2;
+    book.finish(index, {
+        source: 'G sum', command: false, ok: false,
+        output: [{ error: true, text: [
+            'error: RankError [ConsumedSequence]: sequence tst has already been consumed; return to its consuming line to replay it',
+            '  at <repl>:1:1', '1 | G sum', '    ^',
+        ].join('\n') }],
+    });
+    book.replayFrom = index;
+    book.focusError(index);
+    frame = await draw(terminal, book, frame.top);
+    assert.match(text(terminal), /error: RankError/);
+    assert.match(text(terminal), /consuming line to replay it/);
+    assert.match(text(terminal), /\^\nrank> /);
+    assert.equal(frame.cursorVisible, true);
+    assert.match(text(terminal).split('\n')[frame.cursor.row], /› G sum$/);
+    assert.equal(frame.cursor.column, 11);
+    assert.equal(book.active, index);
+});
+
+test('an error taller than the viewport keeps its beginning editable and allows scrolling to the end', async t => {
+    const terminal = new Terminal({ cols: 60, rows: 8, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    for (let i = 0; i < 20; i++) {
+        book.enqueue(`A = ${i}`);
+        book.cells[i].executed = book.cells[i].source;
+        book.cells[i].status = 'ok';
+    }
+    const previous = await draw(terminal, book);
+    book.enqueue('Missing');
+    const index = book.cells.length - 2;
+    book.finish(index, {
+        source: 'Missing', command: false, ok: false,
+        output: Array.from({ length: 20 }, (_, i) => ({ text: `diagnostic ${i}`, error: true })),
+    });
+    book.replayFrom = index;
+    book.focusError(index);
+    const frame = await draw(terminal, book, previous.top);
+    assert.equal(frame.cursor.row, 0);
+    assert.equal(frame.cursorVisible, true);
+    assert.match(text(terminal), /diagnostic 0/);
+    const scrolled = notebookFrame(book, 60, 8, Number.MAX_SAFE_INTEGER, '', false, false);
+    await write(terminal, drawFrame(scrolled));
+    assert.match(text(terminal), /diagnostic 19\nrank> /);
+    assert.equal(scrolled.cursorVisible, false);
+    assert.equal(book.active, index);
+    assert.equal(book.cursor, 'Missing'.length);
+});
+
+test('output is gray and begins in the same column as source, including wrapped rows', async t => {
+    const terminal = new Terminal({ cols: 30, rows: 10, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const book = new Notebook();
+    book.enqueue('A = 1');
+    book.cells[0].output = [{ text: '12345678901234567890123456789', error: false }];
+    await draw(terminal, book);
+    for (const row of [1, 2]) {
+        const line = terminal.buffer.active.getLine(row);
+        assert.match(line.translateToString(true), /^ {6}\d/);
+        assert.equal(line.getCell(6).getFgColor(), 8);
     }
 });
 
-test('an accepted line is printed back as source, without its prompt', () => {
-    const session = transcript(['A, 3', 'fun triple X', 'return X * 3', '', 'vars']);
-    // The comma key became `=` and the line stands on its own.
-    assert.match(session, /\x1b\[0JA = 3\r\n/);
-    // The blank line supplied the `end`, so the block reads as a written one.
-    assert.match(session, /\x1b\[0Jfun triple X\r\n/);
-    assert.match(session, /\x1b\[0J {2}return X \* 3\r\n/);
-    assert.match(session, /\x1b\[0Jend\r\n/);
-    // A result is dim: what the run produced, next to the program.
-    assert.match(session, /\x1b\[2m3/);
-    // A command is not a line of the program, so it is dim too.
-    assert.match(session, /\x1b\[2mvars/);
+test('save dialog wraps a long filename and keeps its cursor visible after resize', async t => {
+    const terminal = new Terminal({ cols: 40, rows: 10, allowProposedApi: true });
+    t.after(() => terminal.dispose());
+    const filename = new Notebook();
+    filename.replace('/tmp/папка/very-long-program-name.ra');
+    for (const [columns, height] of [[40, 10], [16, 5], [4, 2], [80, 12]]) {
+        terminal.resize(columns, height);
+        const frame = saveFrame(filename, 'Cannot save here', columns, height);
+        await write(terminal, drawFrame(frame));
+        assert.ok(frame.cursor.row >= 0 && frame.cursor.row < height);
+        assert.ok(frame.cursor.column >= 0 && frame.cursor.column < columns);
+        assert.equal(terminal.buffer.active.cursorY, frame.cursor.row);
+        assert.equal(terminal.buffer.active.cursorX, frame.cursor.column);
+        for (const line of frame.lines) assert.ok(stringWidth(line) < columns);
+    }
 });

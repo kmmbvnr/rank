@@ -1,3 +1,4 @@
+import { checkpoint } from '../interrupt.js';
 import { derivedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -70,23 +71,6 @@ export const numbersModule: RuntimeModule = {
     exp: () => unaryMath('exp', Math.exp),
     round: () => native('round', 2, arguments_ =>
         roundValue(arguments_[0], arguments_[1])),
-    sum: () => native('sum', 1, arguments_ => {
-        const value = arguments_[0];
-        if (isRankSqliteExpression(value)) return sumSqlite(value);
-        if (isRankSequence(value)) {
-            const planned = reduceSequence(value, 'sum');
-            if (planned !== undefined) return expectNumeric(planned);
-        }
-        if (isRankArray(value)) return sumArray(value.items);
-        const items = isRankSet(value)
-            ? value.entries.values()
-            : sequenceValues(value, 'sum');
-        let total: bigint | number = 0n;
-        for (const item of items) total = add(total, expectNumeric(item));
-        return total;
-    }),
-    min: () => numericExtreme('min', (left, right) => left < right),
-    max: () => numericExtreme('max', (left, right) => left > right),
     infinity: () => Number.POSITIVE_INFINITY,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
@@ -116,7 +100,10 @@ export const numbersModule: RuntimeModule = {
         const value = arguments_[0];
         const items = isRankArray(value) ? value.items : sequenceValues(value, 'lcm');
         let result = 1n;
-        for (const item of items) result = leastCommonMultiple(result, expectInteger(item));
+        for (const item of items) {
+            checkpoint('computing numbers');
+            result = leastCommonMultiple(result, expectInteger(item));
+        }
         return result;
     }),
     factors: () => native('factors', 1, arguments_ => {
@@ -214,6 +201,7 @@ function integerSquareRoot(value: bigint): bigint {
     const bits = BigInt(value.toString(2).length);
     let root = 1n << ((bits + 1n) / 2n);
     for (;;) {
+        checkpoint('computing numbers');
         const next = (root + value / root) / 2n;
         if (next >= root) return root;
         root = next;
@@ -241,7 +229,7 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
         roundScalar(value.itemAt?.(index) ?? value.items[index]), true);
 }
 
-function numericExtreme(
+export function numericExtreme(
     name: 'min' | 'max',
     replaces: (candidate: bigint | number, current: bigint | number) => boolean,
 ) {
@@ -277,6 +265,7 @@ function numericExtreme(
                 : sequenceValues(value, name);
         let result: bigint | number | undefined;
         for (const item of items) {
+            checkpoint('computing numbers');
             const numeric = expectNumeric(item);
             if (result === undefined || replaces(numeric, result)) result = numeric;
         }
@@ -292,10 +281,14 @@ function numericExtreme(
 function sumArray(items: readonly RankValue[]): bigint | number {
     let integer = 0n;
     for (let index = 0; index < items.length; index++) {
+        checkpoint('computing numbers');
         const item = items[index];
         if (typeof item === 'bigint') { integer += item; continue; }
         let real = Number(integer) + Number(expectNumeric(item));
-        for (index++; index < items.length; index++) real += Number(expectNumeric(items[index]));
+        for (index++; index < items.length; index++) {
+            checkpoint('computing numbers');
+            real += Number(expectNumeric(items[index]));
+        }
         return real;
     }
     return integer;
@@ -305,6 +298,7 @@ function sumArray(items: readonly RankValue[]): bigint | number {
 export function sumIndexed(size: number, itemAt: (index: number) => RankValue): bigint | number {
     let total: bigint | number = 0n;
     for (let index = 0; index < size; index += 1) {
+        checkpoint('computing numbers');
         total = add(total, expectNumeric(itemAt(index)));
     }
     return total;
@@ -319,7 +313,10 @@ function add(left: bigint | number, right: bigint | number): bigint | number {
 function greatestCommonDivisor(left: bigint, right: bigint): bigint {
     let a = absolute(left);
     let b = absolute(right);
-    while (b !== 0n) [a, b] = [b, a % b];
+    while (b !== 0n) {
+        checkpoint('computing numbers');
+        [a, b] = [b, a % b];
+    }
     return a;
 }
 
@@ -336,6 +333,7 @@ function modularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
     let power = exponent;
     let result = 1n % modulus;
     while (power > 0n) {
+        checkpoint('computing numbers', 1024);
         if (power % 2n === 1n) result = result * factor % modulus;
         factor = factor * factor % modulus;
         power /= 2n;
@@ -348,6 +346,7 @@ function exactBinomial(n: bigint, k: bigint): bigint {
     const count = k < n - k ? k : n - k;
     let result = 1n;
     for (let index = 1n; index <= count; index += 1n) {
+        checkpoint('computing binomial', 1024);
         result = result * (n - count + index) / index;
     }
     return result;
@@ -397,6 +396,7 @@ function createBinomialCache(modulus: bigint): BinomialCache {
 
 function extendBinomialCache(cache: BinomialCache, limit: number, modulus: bigint): void {
     for (let index = cache.factorial.length; index <= limit; index += 1) {
+        checkpoint('computing binomial');
         const value = BigInt(index);
         cache.factorial.push(cache.factorial[index - 1] * value % modulus);
         const inverse = index === 1
@@ -410,22 +410,26 @@ function extendBinomialCache(cache: BinomialCache, limit: number, modulus: bigin
 function probablePrime(value: bigint): boolean {
     if (value < 2n) return false;
     for (const prime of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+        checkpoint('computing numbers');
         if (value === prime) return true;
         if (value % prime === 0n) return false;
     }
     let odd = value - 1n;
     let shifts = 0;
     while (odd % 2n === 0n) {
+        checkpoint('computing numbers');
         odd /= 2n;
         shifts += 1;
     }
     for (const witness of [2n, 325n, 9375n, 28178n, 450775n, 9780504n, 1795265022n]) {
+        checkpoint('computing numbers');
         const base = witness % value;
         if (base === 0n) continue;
         let power = modularPower(base, odd, value);
         if (power === 1n || power === value - 1n) continue;
         let composite = true;
         for (let step = 1; step < shifts; step += 1) {
+            checkpoint('computing numbers');
             power = power * power % value;
             if (power === value - 1n) {
                 composite = false;
@@ -482,7 +486,9 @@ function factorPlan(value: bigint): SequencePlan {
         *iterate() {
             let remaining = value;
             for (let divisor = 2n; divisor * divisor <= remaining; divisor += divisor === 2n ? 1n : 2n) {
+                checkpoint('searching factors');
                 while (remaining % divisor === 0n) {
+                    checkpoint('computing numbers');
                     yield divisor;
                     remaining /= divisor;
                 }
@@ -501,11 +507,14 @@ function divisorPlan(value: bigint): SequencePlan {
         *iterate() {
             const values = [1n];
             for (const [prime, exponent] of powers()) {
+                checkpoint('computing numbers');
                 const previous = values.length;
                 let multiplier = 1n;
                 for (let power = 1; power <= exponent; power += 1) {
+                    checkpoint('computing numbers');
                     multiplier *= prime;
                     for (let index = 0; index < previous; index += 1) {
+                        checkpoint('computing numbers');
                         values.push(values[index] * multiplier);
                     }
                 }
@@ -536,8 +545,10 @@ function factorPowers(value: bigint): readonly [bigint, number][] {
         divisor * divisor <= remaining;
         divisor += divisor === 2n ? 1n : 2n
     ) {
+        checkpoint('searching factors');
         let exponent = 0;
         while (remaining % divisor === 0n) {
+            checkpoint('computing numbers');
             exponent += 1;
             remaining /= divisor;
         }
@@ -555,4 +566,22 @@ function predicateFunction(name: string, test: (value: RankValue) => boolean) {
             ? sequenceMask(value, predicate)
             : mapValue(value, test);
     });
+}
+
+export function sumValue(value: RankValue): RankValue {
+    if (isRankSqliteExpression(value)) return sumSqlite(value);
+    if (isRankSequence(value)) {
+        const planned = reduceSequence(value, 'sum');
+        if (planned !== undefined) return expectNumeric(planned);
+    }
+    if (isRankArray(value)) return sumArray(value.items);
+    const items = isRankSet(value)
+        ? value.entries.values()
+        : sequenceValues(value, 'sum');
+    let total: bigint | number = 0n;
+    for (const item of items) {
+        checkpoint('computing numbers');
+        total = add(total, expectNumeric(item));
+    }
+    return total;
 }

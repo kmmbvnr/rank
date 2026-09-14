@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=10
 rem Sum of all primes below two million
 
 use sequences
-use numbers
 use io
 use cli
 

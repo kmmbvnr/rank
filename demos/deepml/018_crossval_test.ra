@@ -2,11 +2,10 @@ use testing
 
 test "official example"
   use "018_crossval"
-  use ranges
   Result = 10 5 false cross_validation
 
   Pair = Result 0
-  Train = (2 until 10) array
+  Train = 2 until 10 array
   Match = Pair 0 equal Train
   Ok = Match and reduce
   Expected = array 0 1
@@ -15,7 +14,7 @@ test "official example"
   Ok and= Reduced
 
   Pair = Result 4
-  Train = (0 until 8) array
+  Train = 0 until 8 array
   Match = Pair 0 equal Train
   Reduced = Match and reduce
   Ok and= Reduced
@@ -28,7 +27,6 @@ end
 
 test "uneven folds put extras first"
   use "018_crossval"
-  use ranges
   use sequences
   Result = 10 3 false cross_validation
 
@@ -39,15 +37,15 @@ test "uneven folds put extras first"
   Ok = First 1 len equal 4
   Ok and= Second 1 len equal 3
   Ok and= Third 1 len equal 3
-  Expected = (0 until 4) array
+  Expected = 0 until 4 array
   Match = First 1 equal Expected
   Reduced = Match and reduce
   Ok and= Reduced
-  Expected = (4 until 7) array
+  Expected = 4 until 7 array
   Match = Second 1 equal Expected
   Reduced = Match and reduce
   Ok and= Reduced
-  Expected = (7 until 10) array
+  Expected = 7 until 10 array
   Match = Third 1 equal Expected
   Reduced = Match and reduce
   Ok and= Reduced

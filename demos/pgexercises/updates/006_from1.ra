@@ -3,15 +3,14 @@ rem https://pgexercises.com/questions/updates/updatecalculated.html
 
 use cli
 use tables
-use numbers
 
 argument DbPath path
 
 Db = DbPath sqlite
 F = Db .facilities
 First = F filter .facid equal 0
-Member = First .membercost max
-Guest = First .guestcost max
+Member = (First .membercost) max
+Guest = (First .guestcost) max
 T = F filter .facid equal 1
 T update
   .membercost = Member * 1.1

@@ -2,8 +2,6 @@ rem Deep-ML 47: Descent Variants
 rem https://www.deep-ml.com/problems/47
 
 use linalg
-use numbers
-use ranges
 use sequences
 
 fun descent X Y W Rate Iter Size Mode
@@ -41,7 +39,7 @@ fun descent X Y W Rate Iter Size Mode
 
     if Mode equal .mini_batch
       for I in 0 until N by Size
-        J = (I + Size) min N
+        J = I + Size min N
         Xb = X axis 0 from I until J
         Yb = Y from I until J
         Error = Xb W matmul - Yb

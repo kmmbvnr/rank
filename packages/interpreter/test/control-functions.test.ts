@@ -5,7 +5,7 @@ import { run } from './support.js';
 describe('Rank control flow and functions', () => {
     it('executes nested for and if blocks', () => {
         expect(run([
-            'use ranges',
+
             'Total = 0',
             'for i in 1 to 4',
             '  if i greater 2',
@@ -27,7 +27,7 @@ describe('Rank control flow and functions', () => {
 
     it('discards loop values or indices with #', () => {
         expect(run([
-            'use ranges',
+
             'Count = 0',
             'for # in 1 to 3',
             '  Count += 1',
@@ -96,7 +96,7 @@ describe('Rank control flow and functions', () => {
 
     it('breaks out of the nearest for loop', () => {
         expect(run([
-            'use ranges',
+
             'Total = 0',
             'for i in 1 to 3',
             '  for j in 1 to 3',
@@ -360,7 +360,7 @@ describe('Rank control flow and functions', () => {
 
     it('keeps captured local generators alive after their outer call', () => {
         expect(run([
-            'use ranges',
+
             'fun multiples Factor',
             '  return values',
             '',
@@ -395,7 +395,7 @@ describe('Rank control flow and functions', () => {
 
     it('preserves catch and finally across prepared generator commands', () => {
         expect(run([
-            'use ranges',
+
             'fun values Base',
             '  try',
             '    for I in 0 until 2',

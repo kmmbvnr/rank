@@ -1,3 +1,4 @@
+import { interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -281,7 +282,7 @@ export function derivedArray(
             const started = seen;
             const items = Array.from(
                 { length: shape.reduce((size, dimension) => size * dimension, 1) },
-                (_, index) => itemAt(index),
+                interruptibleCallback((_: unknown, index: number) => itemAt(index), 'materializing array'),
             );
             if (cacheable && arrayRevision(value) === started) materialized = items;
             return items;

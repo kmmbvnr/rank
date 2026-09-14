@@ -4,7 +4,6 @@ rem Count words whose alphabetic value is a
 rem triangular number
 
 use text
-use sequences
 use numbers
 use io
 use cli

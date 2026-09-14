@@ -3,7 +3,6 @@ rem https://www.deep-ml.com/problems/50
 
 use linalg
 use numbers
-use ranges
 use sequences
 use stats
 
@@ -23,13 +22,13 @@ fun lasso X Y L1 Lr N Eps
     Grad = X transpose Error matmul
     Grad /= Rows
 
-    Penalty = (W * 0.0) copy
+    Penalty = W * 0.0 copy
     Penalty (W greater 0) = L1
     Penalty (W less 0) = -L1
     Grad += Penalty
 
     W -= Lr * Grad
-    Bias -= Lr * Error mean
+    Bias -= Lr * (Error mean)
 
     if Grad abs sum less Eps
       break

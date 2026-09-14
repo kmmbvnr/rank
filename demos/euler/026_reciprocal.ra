@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=26
 rem Find the denominator below Limit with the
 rem longest decimal recurring cycle
 
-use ranges
 use algo
 use io
 use cli

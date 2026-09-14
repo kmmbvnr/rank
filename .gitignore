@@ -14,3 +14,5 @@ demos/kaggle/*.csv
 demos/kaggle/*.zip
 demos/pgexercises/data/
 demos/tpch/data/
+
+packages/cli/native/build/

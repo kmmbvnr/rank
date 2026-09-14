@@ -5,7 +5,6 @@ use algo
 use bits
 use io
 use numbers
-use ranges
 use sequences
 
 N = stdin .integer

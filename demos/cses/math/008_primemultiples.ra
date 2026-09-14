@@ -4,8 +4,6 @@ rem https://cses.fi/problemset/task/2185
 use bits
 use io
 use numbers
-use ranges
-use sequences
 
 N = stdin .integer
 K = stdin .integer

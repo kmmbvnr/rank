@@ -3,8 +3,6 @@ rem Median of two sorted arrays in
 rem O(log(m+n)) time
 
 use algo
-use numbers
-use sequences
 
 fun median A B
   M = A len

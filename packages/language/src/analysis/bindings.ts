@@ -1,3 +1,4 @@
+import { flattenApplication as flatten } from '../expressions.js';
 /**
  * Binding and mutation facts: where every name is bound, read and written.
  *
@@ -22,7 +23,7 @@ import {
     type Expression, type Program, type Statement,
 } from '../generated/ast.js';
 import type { AstNode } from 'langium';
-import { findOperation } from '../operations.js';
+import { findOperation, operationArities } from '../operations.js';
 import {
     compoundType, declaredType, typeOf, unionTypes, UNKNOWN, type Types,
 } from './types.js';
@@ -59,6 +60,8 @@ export interface Binding {
      * returns: Rank states no types, so most names have none to report.
      */
     readonly types: Types;
+    /** Known operand counts for a function declaration or a direct alias. */
+    readonly arities?: readonly number[];
 }
 
 export type ScopeKind = 'program' | 'function' | 'test' | 'select' | 'update';
@@ -140,8 +143,9 @@ const MODIFIERS = new Set([
 export function analyzeBindings(
     program: Program,
     imported: Iterable<string> = [],
+    externalFunctions: ReadonlyMap<string, readonly number[]> = new Map(),
 ): ProgramFacts {
-    return new Analyzer(new Set(imported)).run(program);
+    return new Analyzer(new Set(imported), externalFunctions).run(program);
 }
 
 interface Slot {
@@ -155,6 +159,7 @@ interface Slot {
     readonly readDepths: Set<number>;
     shadows: boolean;
     types: Types;
+    arities?: readonly number[];
 }
 
 interface ScopeState {
@@ -200,13 +205,15 @@ export function analyzeWithImports(
 }
 
 class Analyzer {
-    constructor(private readonly imported: ReadonlySet<string>) {}
+    constructor(private readonly imported: ReadonlySet<string>,
+        private readonly externalFunctions: ReadonlyMap<string, readonly number[]>) {}
 
     private readonly modules: string[] = [];
     private readonly imports: Import[] = [];
     private readonly scopes: ScopeState[] = [];
     private readonly pending: PendingRead[] = [];
     private readonly free = new Map<string, Site[]>();
+    private readonly cliForms = new Map<string, Site[]>();
     private readonly expressionScopes: ScopeState[] = [];
     private program!: ScopeState;
     private loopDepth = 0;
@@ -219,7 +226,7 @@ class Analyzer {
         const nested: ScopeState[] = [];
         this.block(program.statements, nested);
         this.settleReads();
-        const opened = new Set(this.modules);
+        const opened = new Set(['core', ...this.modules]);
         const operations: WordUse[] = [];
         const missing: WordUse[] = [];
         const words: WordUse[] = [];
@@ -234,6 +241,9 @@ class Analyzer {
             }
             const use: WordUse = { module: operation.module, name, sites };
             (opened.has(operation.module) ? operations : missing).push(use);
+        }
+        if (!opened.has('cli')) {
+            for (const [name, sites] of this.cliForms) missing.push({ module: 'cli', name, sites });
         }
         return {
             imports: this.imports,
@@ -250,7 +260,7 @@ class Analyzer {
     private block(statements: readonly Statement[], nested: ScopeState[]): void {
         for (const statement of statements) {
             if (isFunctionStatement(statement)) {
-                this.bind(statement.name, 'function', statement, ['function']);
+                this.bind(statement.name, 'function', statement, ['function'], [statement.parameters.length]);
             }
         }
         for (const statement of statements) this.statement(statement, nested);
@@ -295,7 +305,8 @@ class Analyzer {
             this.bind(statement.name, 'assignment', statement, statement.operator === '='
                 ? value
                 : compoundType(statement.operator,
-                    this.lookup(statement.name)?.types ?? UNKNOWN, value));
+                    this.lookup(statement.name)?.types ?? UNKNOWN, value),
+                statement.operator === '=' ? this.functionArities(statement.value) : undefined);
             return;
         }
         if (isArrayAssignmentStatement(statement)) {
@@ -334,6 +345,13 @@ class Analyzer {
             }
             this.block(statement.finallyStatements, nested);
             return;
+        }
+        if (isOptionStatement(statement) || isArgumentStatement(statement) || isFlagStatement(statement) || isArgsStatement(statement)) {
+            const name = isOptionStatement(statement) ? 'option' : isArgumentStatement(statement)
+                ? 'argument' : isFlagStatement(statement) ? 'flag' : 'args';
+            const sites = this.cliForms.get(name) ?? [];
+            sites.push(site(statement));
+            this.cliForms.set(name, sites);
         }
         if (isOptionStatement(statement) || isArgumentStatement(statement)) {
             if (statement.defaultValue) this.expression(statement.defaultValue);
@@ -522,12 +540,13 @@ class Analyzer {
         if (isStdinExpression(expression)) this.expression(expression.count);
     }
 
-    private bind(name: string, kind: BindingKind, node: AstNode, types: Types = UNKNOWN): void {
+    private bind(name: string, kind: BindingKind, node: AstNode, types: Types = UNKNOWN,
+        arities?: readonly number[]): void {
         const scope = this.scopes.at(-1)!;
         const existing = scope.slots.get(name);
         if (existing === undefined) {
             scope.slots.set(name, {
-                name, kind, bound: site(node), types,
+                name, kind, bound: site(node), types, arities,
                 writes: [site(node)], reads: [],
                 writeDepths: new Set([this.loopDepth]), readDepths: new Set(),
                 shadows: scope !== this.program && this.program.slots.has(name),
@@ -538,11 +557,29 @@ class Analyzer {
         existing.writeDepths.add(this.loopDepth);
         // A second write widens the fact rather than replacing it.
         existing.types = unionTypes(existing.types, types);
+        existing.arities = existing.arities && arities
+            ? [...new Set([...existing.arities, ...arities])] : undefined;
+    }
+
+    private functionArities(expression: Expression): readonly number[] | undefined {
+        if (isParenthesizedExpression(expression)) return this.functionArities(expression.value);
+        if (!isNameExpression(expression)) return undefined;
+        const binding = this.lookup(expression.name);
+        if (binding) return binding.arities?.includes(0) ? undefined : binding.arities;
+        const external = this.externalFunctions.get(expression.name);
+        if (external) return external.includes(0) ? undefined : external;
+        const arities = operationArities(expression.name);
+        return arities?.length ? arities : undefined;
     }
 
     /** The type of an expression, read against the scopes now in force. */
     private typeOf(expression: Expression | undefined): Types {
-        return typeOf(expression, name => this.lookup(name)?.types);
+        return typeOf(expression, name => {
+            const binding = this.lookup(name);
+            const arities = binding?.arities ?? this.externalFunctions.get(name);
+            if (arities?.includes(0)) return UNKNOWN;
+            return binding?.types ?? (arities ? ['function'] : undefined);
+        });
     }
 
     /** An element or field write: the name keeps its kind but loses its type. */
@@ -600,19 +637,6 @@ function resolve(name: string, chain: readonly ScopeState[]): Slot | undefined {
     return dot > 0 ? resolve(name.slice(0, dot), chain) : undefined;
 }
 
-/** An application chain as the flat operand list the runtime works with. */
-function flatten(expression: Expression): Expression[] {
-    const parts: Expression[] = [];
-    let current: Expression | undefined = expression;
-    while (current !== undefined && isApplicationExpression(current)) {
-        parts.unshift(...current.arguments);
-        current = current.head;
-    }
-    if (current !== undefined) parts.unshift(current);
-    return parts;
-}
-
-/** The names `for A B in Values` binds, or undefined when the left side is not a list. */
 function loopNames(left: Expression): string[] | undefined {
     const parts = flatten(left);
     if (parts.length === 0) return undefined;
@@ -639,6 +663,7 @@ function finish(scope: ScopeState): ScopeFacts {
             depth > 0 && slot.readDepths.has(depth)),
         shadows: slot.shadows,
         types: slot.types,
+        ...(slot.arities ? { arities: slot.arities } : {}),
     }));
     return { kind: scope.kind, name: scope.name, at: scope.at, bindings };
 }

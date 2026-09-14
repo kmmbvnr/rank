@@ -3,9 +3,7 @@ rem https://projecteuler.net/problem=29
 rem Count distinct a ** b values over the
 rem requested inclusive square range
 
-use ranges
 use algo
-use sequences
 use io
 use cli
 

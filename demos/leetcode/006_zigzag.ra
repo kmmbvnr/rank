@@ -3,8 +3,6 @@ rem Write a string in zigzag on N rows,
 rem then read it back row by row
 
 use algo
-use ranges
-use sequences
 
 rem Return Text in zigzag row order.
 rem Visit vertical and diagonal positions

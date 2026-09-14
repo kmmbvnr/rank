@@ -2,7 +2,6 @@ rem CSES 1085: Array Division
 rem https://cses.fi/problemset/task/1085
 
 use io
-use numbers
 
 N = stdin .integer
 K = stdin .integer

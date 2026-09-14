@@ -2,9 +2,6 @@ rem CSES 2220: Counting Numbers
 rem https://cses.fi/problemset/task/2220
 
 use io
-use numbers
-use ranges
-use text
 
 Lower = stdin .integer
 Upper = stdin .integer
@@ -14,7 +11,7 @@ Lower Upper count_numbers print
 rem Subtract two inclusive prefixes.
 fun count_numbers Lower Upper
   High = Upper valid_up_to
-  Low = (Lower - 1) valid_up_to
+  Low = Lower - 1 valid_up_to
   return High - Low
 end
 

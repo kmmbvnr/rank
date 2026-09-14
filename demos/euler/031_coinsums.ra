@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=31
 rem Count unordered ways to make Target
 rem from the standard UK coin values
 
-use ranges
 use sequences
 use io
 use cli

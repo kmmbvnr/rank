@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/3355
 use algo
 use io
 use numbers
-use ranges
 
 Tests = stdin .integer
 for Test in 1 to Tests
@@ -20,7 +19,7 @@ fun four_squares N
 
   for A in 0 to Limit
     Remaining = N - A ** 2
-    for B in 0 to Remaining isqrt
+    for B in 0 to (Remaining isqrt)
       Sum = A ** 2 + B ** 2
       Code = A * Width + B
       index Sum = Code
@@ -39,5 +38,5 @@ end
 
 rem Check the represented value.
 fun square_sum Values
-  return (Values ** 2) sum
+  return Values ** 2 sum
 end

@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=48
 rem Find the final Digits decimal digits of
 rem the self-power sum through Limit
 
-use ranges
 use numbers
 use io
 use cli

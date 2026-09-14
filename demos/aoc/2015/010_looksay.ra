@@ -4,9 +4,6 @@ rem https://adventofcode.com/2015/day/10
 
 use io
 use cli
-use text
-use sequences
-use ranges
 
 argument Input path
 

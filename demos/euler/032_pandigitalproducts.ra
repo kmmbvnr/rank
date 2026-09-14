@@ -3,11 +3,8 @@ rem https://projecteuler.net/problem=32
 rem Sum distinct products whose complete
 rem identity uses digits 1 through 9
 
-use ranges
 use sequences
-use text
 use algo
-use numbers
 use io
 
 Digits = "123456789"
@@ -23,7 +20,7 @@ fun pandigital_products Digits
   for A in 2 to 9
     for B in 1234 to 9876
       Product = A * B
-      Identity = A text + B text
+      Identity = A text + (B text)
       Identity += Product text
       if Identity Digits pandigital
         Products add Product
@@ -34,7 +31,7 @@ fun pandigital_products Digits
   for A in 12 to 98
     for B in 123 to 987
       Product = A * B
-      Identity = A text + B text
+      Identity = A text + (B text)
       Identity += Product text
       if Identity Digits pandigital
         Products add Product

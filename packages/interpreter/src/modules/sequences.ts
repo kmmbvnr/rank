@@ -1,3 +1,4 @@
+import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
 import { RankError } from '../errors.js';
@@ -44,7 +45,6 @@ export const sequencesModule: RuntimeModule = {
         chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
-    len: () => native('len', 1, arguments_ => lengthOf(arguments_[0])),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     copy: () => native('copy', 1, arguments_ =>
         arguments_[0] instanceof FlatRecords
@@ -272,7 +272,7 @@ export function sortByKeys(
         return kind;
     });
     const entries = items.map((value, position) => ({ value, position, keys: keys[position] }));
-    entries.sort((left, right) => {
+    entries.sort(interruptibleCallback((left, right) => {
         for (let column = 0; column < width; column += 1) {
             const a = left.keys[column];
             const b = right.keys[column];
@@ -284,7 +284,7 @@ export function sortByKeys(
             if (order !== 0) return descending[column] ? -order : order;
         }
         return left.position - right.position;
-    });
+    }, 'sorting'));
     const result = ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
     if (!indices) Object.defineProperty(result, 'sortKeys', { value: entries.map(entry => entry.keys) });
     return result;
@@ -362,15 +362,15 @@ function shapeOf(value: RankValue): RankValue {
 export function sortValue(value: RankValue, descending = false): RankValue {
     const direction = descending ? -1 : 1;
     if (typeof value === 'string') {
-        return [...value].sort((left, right) =>
-            direction * compareOrderedValues(left, right, 'text')).join('');
+        return [...value].sort(interruptibleCallback((left, right) =>
+            direction * compareOrderedValues(left, right, 'text'), 'sorting')).join('');
     }
     if (!isRankArray(value) || value.shape.length !== 1) {
         throw new RankError('sort expects text or a rank-1 array');
     }
     const items = arrayItems(value);
     const kind = sortableKind(items, 'sort');
-    items.sort((left, right) => direction * compareOrderedValues(left, right, kind));
+    items.sort(interruptibleCallback((left, right) => direction * compareOrderedValues(left, right, kind), 'sorting'));
     return ownedArray(items);
 }
 
@@ -455,8 +455,8 @@ function sortableKind(items: readonly RankValue[], operation: string): OrderedKi
 function stableOrder(items: readonly RankValue[], kind: OrderedKind, descending = false): number[] {
     return items
         .map((_, position) => position)
-        .sort((left, right) =>
-            (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right);
+        .sort(interruptibleCallback((left, right) =>
+            (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right, 'sorting'));
 }
 
 function arraySize(shape: readonly number[]): number {
@@ -507,7 +507,7 @@ function reshapeItems(value: RankValue): RankValue[] {
     throw new RankError('reshape expects text or a finite array, queue or sequence');
 }
 
-function lengthOf(value: RankValue): bigint {
+export function lengthOf(value: RankValue): bigint {
     if (isRankTableAlias(value)) return lengthOf(value.source);
     if (isRankSqliteTable(value)) return lengthSqlite(value);
     if (value instanceof RankDeque || value instanceof RankHeap) return BigInt(value.size);
@@ -546,6 +546,7 @@ function fibonacciPlan(
             let current = evenOnly ? 2n : 1n;
             let next = evenOnly ? 8n : 2n;
             while (!boundary || within(current, boundary)) {
+                checkpoint('reading sequence');
                 if (!lower || above(current, lower)) yield current;
                 [current, next] = evenOnly
                     ? [next, 4n * next + current]
@@ -594,6 +595,7 @@ function fibonacciSize(
     let current = evenOnly ? 2n : 1n;
     let next = evenOnly ? 8n : 2n;
     while (within(current, boundary)) {
+        checkpoint('reading sequence');
         if (!lower || above(current, lower)) count += 1n;
         [current, next] = evenOnly
             ? [next, 4n * next + current]
@@ -672,12 +674,14 @@ function* primeIterator(
         }
         if (candidate % 2n === 0n) candidate += 1n;
         for (; !boundary || within(candidate, boundary); candidate += 2n) {
+            checkpoint('reading sequence');
             if (primeMembership(candidate)) yield candidate;
         }
         return;
     }
     const found: bigint[] = [];
     for (let candidate = 2n; !boundary || within(candidate, boundary); candidate += 1n) {
+        checkpoint('reading sequence');
         if (isPrime(candidate, found)) {
             found.push(candidate);
             yield candidate;

@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=19
 rem Count Sundays falling on the first of a
 rem month during the twentieth century
 
-use ranges
 use numbers
 use io
 

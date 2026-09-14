@@ -1,3 +1,4 @@
+import { flattenApplication } from '../expressions.js';
 /**
  * Type facts over the runtime's own type names.
  *
@@ -16,7 +17,7 @@ import {
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type Expression,
 } from '../generated/ast.js';
-import { findOperation, type Operation, type ResultKind } from '../operations.js';
+import { findOperation, operationArities, type Operation, type ResultKind } from '../operations.js';
 
 /**
  * The runtime types a value may have. Empty is `unknown`, and a list of more
@@ -136,7 +137,8 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         return expression.mode.name === 'word' ? ['text'] : UNKNOWN;
     }
     if (isParenthesizedExpression(expression)) return typeOf(expression.value, lookup);
-    if (isNameExpression(expression)) return lookup(expression.name) ?? UNKNOWN;
+    if (isNameExpression(expression)) return lookup(expression.name)
+        ?? ((operationArities(expression.name)?.length ?? 0) > 0 ? ['function'] : UNKNOWN);
     if (isUnaryExpression(expression)) {
         const operand = typeOf(expression.operand, lookup);
         if (expression.operator === 'not') {
@@ -219,13 +221,7 @@ function elementwise(left: Types, right: Types): Types | undefined {
  * user function, a receiver method in the middle of the chain — is unknown.
  */
 function applicationType(expression: Expression, lookup: TypeLookup): Types {
-    const parts: Expression[] = [];
-    let current: Expression | undefined = expression;
-    while (current !== undefined && isApplicationExpression(current)) {
-        parts.unshift(...current.arguments);
-        current = current.head;
-    }
-    if (current !== undefined) parts.unshift(current);
+    const parts = flattenApplication(expression);
     const last = parts.at(-1);
     // `new graph Nodes .undirected` is a constructor call, not an application
     // of its last operand.

@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/3154
 use algo
 use io
 use numbers
-use ranges
 use sequences
 
 Rows = stdin .integer

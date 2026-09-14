@@ -7,7 +7,6 @@ use cli
 use algo
 use text
 use sequences
-use ranges
 
 argument Input path
 
@@ -40,7 +39,7 @@ fun variants Rules Target
   for Rule in Rules
     From = Rule 0
     To = Rule 1
-    Last = Target len - From len
+    Last = Target len - (From len)
 
     if Last at least 0
       for Start in 0 to Last
@@ -58,7 +57,7 @@ end
 
 rem Test whether Pattern occurs at one Unicode position in Text.
 fun matchat Text Pattern Start
-  Finish = Start + Pattern len
+  Finish = Start + (Pattern len)
   if Finish greater Text len
     return false
   end
@@ -70,8 +69,8 @@ end
 rem Replace one occurrence beginning at a known Unicode position.
 fun replaceat Text From To Start
   Prefix = Text from 0 until Start
-  Tail = Start + From len
-  Suffix = Text from Tail until Text len
+  Tail = Start + (From len)
+  Suffix = Text from Tail until (Text len)
   return Prefix + To + Suffix
 end
 

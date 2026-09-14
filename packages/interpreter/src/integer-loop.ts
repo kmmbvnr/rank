@@ -1,5 +1,7 @@
+import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import {
+    flattenApplication,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement,
@@ -50,7 +52,6 @@ interface Host {
     writer(name: string): (value: RankValue) => void;
     prepareWriter?(name: string, checked: (value: RankValue) => void): (value: RankValue) => void;
     locate(error: unknown, statement: Statement): unknown;
-    ranges(): boolean;
     module(name: string): boolean;
     builtin(module: string, name: string): boolean;
     compiled?(source: string): void;
@@ -127,7 +128,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     const aliases: [string, string][] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: Term['type'] }>();
-    let needsAlgo = false, needsRanges = false, hasControl = false, hasReturn = false;
+    let needsAlgo = false, hasControl = false, hasReturn = false;
     let serial = 0;
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
@@ -173,7 +174,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (parts && [2, 3].includes(parts.length) && last && isNameExpression(last) && ['min', 'max'].includes(last.name)) {
                 const left = emit(parts[0], lines);
                 if (left?.type !== 'integer') return undefined;
-                builtins.set(last.name, 'numbers');
+                builtins.set(last.name, 'core');
                 if (parts.length === 2) return left;
                 const right = emit(parts[1], lines);
                 if (right?.type !== 'integer') return undefined;
@@ -187,7 +188,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (op === 'text' && host.scalarText) {
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;
-                builtins.set(op, 'text');
+                builtins.set(op, 'core');
                 const name = `v${serial++}`;
                 lines.push(`const ${name} = (${value.code}).toString();`);
                 // Decimal integer rendering has one UTF-16 unit per code point.
@@ -197,7 +198,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 const array = isNameExpression(e.head) ? arrays.get(e.head.name) : undefined;
                 if (array && isNameExpression(e.head)) {
                     if (!assigned.has(e.head.name)) arrayInputs.add(e.head.name);
-                    builtins.set(op, 'sequences');
+                    builtins.set(op, 'core');
                     return { code: `BigInt(r${array.slot}.shape[0] ?? 0)`, type: 'integer' };
                 }
                 const knownText = isStringLiteral(e.head) || isApplicationExpression(e.head)
@@ -206,7 +207,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 if (knownText) {
                     const value = emit(e.head, lines);
                     if (value?.type !== 'text') return undefined;
-                    builtins.set(op, 'sequences');
+                    builtins.set(op, 'core');
                     const name = `v${serial++}`;
                     lines.push(`const ${name} = BigInt(${value.ascii ? `(${value.code}).length` : `[...(${value.code})].length`});`);
                     return { code: name, type: 'integer' };
@@ -229,16 +230,14 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if ((op === 'len' || op === 'pop') && isNameExpression(e.head)) {
                 const receiver = container(e.head.name, 'deque', op === 'pop');
                 if (!receiver) return undefined;
-                builtins.set(op, op === 'len' ? 'sequences' : 'algo');
+                builtins.set(op, op === 'len' ? 'core' : 'algo');
                 const name = `v${serial++}`;
                 lines.push(`const ${name} = ${op === 'len' ? `BigInt(${receiver}.size)` : `${receiver}.pop()`};`);
                 return { code: name, type: 'integer' };
             }
         }
         if (isApplicationExpression(e)) {
-            const flatten = (node: Expression): Expression[] => isApplicationExpression(node)
-                ? [...flatten(node.head), ...node.arguments.flatMap(flatten)] : [node];
-            const parts = flatten(e), last = parts.at(-1);
+            const parts = flattenApplication(e), last = parts.at(-1);
             if (last && isNameExpression(last) && !last.name.includes('.')) {
                 const callable = host.scalarFunction(last.name, parts.length - 1);
                 if (callable) {
@@ -257,9 +256,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         }
         if (isApplicationExpression(e)) {
             if (!host.arrayReads) return undefined;
-            const flatten = (node: Expression): Expression[] => isApplicationExpression(node)
-                ? [...flatten(node.head), ...node.arguments.flatMap(flatten)] : [node];
-            const [head, ...arguments_] = flatten(e);
+            const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
             const previous = arrays.get(head.name);
             const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? 'integer';
@@ -349,7 +346,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 if (source?.type !== 'text') return undefined;
                 setup = `const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(iteration, source));
-                header = `for (const cursor of iterable) { location = ${location};`;
+                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
             } else if (isNameExpression(range)) {
                 if (!host.arrayIteration || range.name.includes('.')) return undefined;
                 const old = arrays.get(range.name);
@@ -361,9 +358,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 const binding = iteration;
                 setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(binding, source, elementType));
-                header = `for (const cursor of iterable) { location = ${location};`;
+                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
             } else {
-                needsRanges = true;
                 if (!isBinaryExpression(range) || !['to', 'until'].includes(range.operator)) return undefined;
                 const start = emit(range.left, tests), end = emit(range.right, tests);
                 const step = range.step ? emit(range.step, tests) : { code: '1n', type: 'integer' };
@@ -372,7 +368,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     if (stride === 0n) throw badStep();`;
                 header = `for (let cursor = start${indexed ? ', ordinal = 0n' : ''};
                     stride > 0n ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
-                    cursor += stride${indexed ? ', ordinal += 1n' : ''}) { location = ${location};`;
+                    cursor += stride${indexed ? ', ordinal += 1n' : ''}) { location = ${location}; checkpoint();`;
             }
             for (const [index, name] of iteration.names.entries()) {
                 if (name === '#') continue;
@@ -389,7 +385,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         } else {
             const test = node.condition ? emit(node.condition, tests, 'boolean') : { code: 'true', type: 'boolean' };
             if (!test || test.type !== 'boolean') return undefined;
-            header = `for (;;) { location = ${location}; ${tests.join('\n')} if (!(${test.code})) break;`;
+            header = `for (;;) { location = ${location}; checkpoint(); ${tests.join('\n')} if (!(${test.code})) break;`;
         }
         return { setup, header, bindings };
     }
@@ -666,13 +662,13 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
-        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue, stableReads: boolean) => prepareArrayReader(value, host.arrayRead, stableReads), ownedArray); }
+        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue, stableReads: boolean) => prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint); }
     catch { return undefined; }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
@@ -681,7 +677,6 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
         if (hasControl && insideFinally) return recordFallback('loop:control-context');
         if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
-        if (needsRanges && !host.ranges()) return recordFallback('loop:builtin');
         if (needsAlgo && !host.module('algo')) return recordFallback('loop:builtin');
         for (const [name, module] of builtins) if (!host.builtin(module, name)) return recordFallback('loop:builtin');
         const activeCalls = calls.map(call => call.bind());

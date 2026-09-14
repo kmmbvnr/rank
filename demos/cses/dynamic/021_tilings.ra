@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/2181
 
 use bits
 use io
-use ranges
 
 Height = stdin .integer
 Width = stdin .integer
@@ -41,15 +40,15 @@ fun counting_tilings Height Width
     end
 
     if Mask Row bit
-      return (Row + 1) NextMask fill
+      return Row + 1 NextMask fill
     end
 
     Bit = 1 Row shl
-    (Row + 1) (NextMask Bit bor) fill
+    Row + 1 (NextMask Bit bor) fill
 
     if Row + 1 less Height
       if not (Mask (Row + 1) bit)
-        (Row + 2) NextMask fill
+        Row + 2 NextMask fill
       end
     end
     return 0

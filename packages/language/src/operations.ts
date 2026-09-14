@@ -1,8 +1,8 @@
 /**
  * The catalogue of standard-library vocabulary.
  *
- * Every name a `use` module exports appears here exactly once, together with
- * how it is written, what it returns and what it touches. The runtime owns the
+ * Every builtin name appears here exactly once, including the always-available
+ * core, with how it is written, what it returns and what it touches. The runtime owns the
  * implementations; this file owns what a reader, a console or an editor needs
  * to know about them before anything runs, which is why it lives in the
  * language package and imports nothing. `operations.test.ts` in the interpreter
@@ -22,11 +22,11 @@ export type ResultKind =
     | 'element' | 'structure' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
     | 'value' | 'same';
 
-/** One name a `use` module brings into scope. */
+/** One builtin name, either always available in core or opened by a module. */
 export interface Operation {
     /** The word written in the program. */
     readonly name: string;
-    /** The module whose `use` makes the name visible. */
+    /** The owning module; `core` names are visible without an import. */
     readonly module: string;
     /**
      * Operand counts the runtime accepts, the left-hand data included, so
@@ -50,16 +50,16 @@ export interface Operation {
     readonly effects?: readonly Effect[];
 }
 
-/** A `use` module. */
+/** A library module or the always-available core catalogue group. */
 export interface Module {
     readonly name: string;
     readonly summary: string;
 }
 
 /**
- * A construct a `use` enables that has no exported name to look up: an
+ * A construct with no exported name to look up: an
  * operator, a block, a constructor or a mutation. `example` is complete Rank,
- * so the drift test can run it with the module and watch it refuse without.
+ * so tests can verify core availability or the corresponding import gate.
  */
 export interface ModuleForm {
     readonly module: string;
@@ -73,6 +73,7 @@ export const modules: readonly Module[] = [
         summary: 'Algorithmic collections, range structures and combinatorial generators.' },
     { name: 'bits', summary: 'Bitwise operations over arbitrary-precision integers.' },
     { name: 'cli', summary: 'Command-line arguments, flags and options.' },
+    { name: 'core', summary: 'Always available: conversions, ranges, length, sums and extrema. No use required.' },
     { name: 'crypto', summary: 'Hashes and related byte operations.' },
     { name: 'dates', summary: 'Calendar dates and local date-times.' },
     { name: 'graph', summary: 'Graphs, disjoint sets, rooted trees and their algorithms.' },
@@ -82,7 +83,6 @@ export const modules: readonly Module[] = [
     { name: 'linalg', summary: 'Matrix products, solvers and decompositions.' },
     { name: 'numbers', summary: 'Arithmetic, roots, logarithms, trigonometry and number theory.' },
     { name: 'random', summary: 'Seeded pseudorandom sampling.' },
-    { name: 'ranges', summary: 'Bounded counting ranges.' },
     { name: 'sequences', summary: 'Shapes, orderings, windows and lazy sources.' },
     { name: 'stats', summary: 'Averages, spread, error metrics and covariance.' },
     { name: 'tables', summary: 'CSV, SQLite, grouping and joins.' },
@@ -380,9 +380,9 @@ export const operations: readonly Operation[] = [
         summary: 'Least common multiple, also a reduction over one finite collection.' },
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real',
         summary: 'Natural logarithm of a positive finite number.' },
-    { name: 'max', module: 'numbers', arities: [1, 2], form: 'Left max Right', result: 'number',
+    { name: 'max', module: 'core', arities: [1, 2], form: 'Left max Right', result: 'number',
         dyadicRanks: [0, 0], summary: 'Larger of two numbers, or the largest of one collection.' },
-    { name: 'min', module: 'numbers', arities: [1, 2], form: 'Left min Right', result: 'number',
+    { name: 'min', module: 'core', arities: [1, 2], form: 'Left min Right', result: 'number',
         dyadicRanks: [0, 0],
         summary: 'Smaller of two numbers, or the smallest of one collection.' },
     { name: 'odd', module: 'numbers', arities: [1], form: 'Value odd', result: 'boolean',
@@ -398,7 +398,7 @@ export const operations: readonly Operation[] = [
         summary: 'Hyperbolic sine.' },
     { name: 'sqrt', module: 'numbers', arities: [1], form: 'Value sqrt', result: 'real',
         monadicRank: 0, summary: 'Real square root of a nonnegative number.' },
-    { name: 'sum', module: 'numbers', arities: [1], form: 'Values sum', result: 'number',
+    { name: 'sum', module: 'core', arities: [1], form: 'Values sum', result: 'number',
         summary: 'Adds every numeric cell of an array, collection or finite sequence.' },
     { name: 'tan', module: 'numbers', arities: [1], form: 'Angle tan', result: 'real',
         summary: 'Tangent of an angle in radians.' },
@@ -436,7 +436,7 @@ export const operations: readonly Operation[] = [
     { name: 'fibonacci', module: 'sequences', arities: [], form: 'fibonacci', result: 'sequence',
         lazy: true,
         summary: 'Unbounded lazy Fibonacci numbers; bound with to, until or from.' },
-    { name: 'len', module: 'sequences', arities: [1], form: 'Value len', result: 'integer',
+    { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
     { name: 'primes', module: 'sequences', arities: [], form: 'primes', result: 'sequence',
         lazy: true,
@@ -494,8 +494,10 @@ export const operations: readonly Operation[] = [
         result: 'integer', summary: 'Integer code point of exactly one character.' },
     { name: 'hex', module: 'text', arities: [1], form: 'Bytes hex', result: 'text',
         summary: 'Lowercase hexadecimal text for bytes, without a prefix.' },
-    { name: 'integer', module: 'text', arities: [1], form: 'Text integer', result: 'integer',
-        monadicRank: 1, summary: 'Parses decimal digits with an optional sign.' },
+    { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
+        monadicRank: 1, summary: 'Truncates a finite real toward zero, preserves an integer, or parses signed decimal integer text.' },
+    { name: 'real', module: 'core', arities: [1], form: 'Value real', result: 'real',
+        monadicRank: 1, summary: 'Converts an integer or decimal text to a real, or preserves a real.' },
     { name: 'join', module: 'text', arities: [2], form: 'Values Separator join', result: 'text',
         summary: 'Joins scalar elements of a finite collection into one text.' },
     { name: 'parse', module: 'text', arities: [2], form: 'Text Pattern parse', result: 'array',
@@ -513,7 +515,7 @@ export const operations: readonly Operation[] = [
         summary: 'Pads text on the left without truncating longer values.' },
     { name: 'translate', module: 'text', arities: [3], form: 'Text Chars Replacement translate', result: 'text',
         summary: 'Replaces listed characters, deleting those with no replacement.' },
-    { name: 'text', module: 'text', arities: [1], form: 'Value text', result: 'text',
+    { name: 'text', module: 'core', arities: [1], form: 'Value text', result: 'text',
         summary: 'Formats one scalar as text; a .Nf literal after it selects fixed decimals.' },
     { name: 'vocab', module: 'text', arities: [2], form: 'Texts Limit vocab', result: 'array',
         summary: 'Most frequent words, at most Limit of them, ties by code point.' },
@@ -522,6 +524,14 @@ export const operations: readonly Operation[] = [
 ];
 
 export const moduleForms: readonly ModuleForm[] = [
+    { module: 'cli', form: 'option Name Type = Default', example: 'option N integer = 3',
+        summary: 'Declares a named command-line input.' },
+    { module: 'cli', form: 'argument Name Type', example: 'argument N integer = 3',
+        summary: 'Declares a positional command-line input.' },
+    { module: 'cli', form: 'flag Name', example: 'flag Verbose',
+        summary: 'Declares a boolean command-line flag.' },
+    { module: 'cli', form: 'args Values', example: 'args "--limit" "10"',
+        summary: 'Sets arguments for the next run.' },
     { module: 'algo', form: 'new queue', example: 'Q = new queue',
         summary: 'Empty container: queue, stack, deque, heap, set, counter, multiset or index.' },
     { module: 'algo', form: 'Q push Value', example: 'Q = new queue\nQ push 1',
@@ -545,11 +555,11 @@ export const moduleForms: readonly ModuleForm[] = [
         summary: 'Reads one token of standard input; a count makes it a lazy sequence.' },
     { module: 'numbers', form: 'Values multiple by N', example: 'M = 12 multiple by 3',
         summary: 'Elementwise divisibility test.' },
-    { module: 'numbers', form: 'Left max Right', example: 'M = 3 max 5',
+    { module: 'core', form: 'Left max Right', example: 'M = 3 max 5',
         summary: 'Infix min and max over two numbers.' },
-    { module: 'ranges', form: 'Low to High', example: 'R = 1 to 5',
+    { module: 'core', form: 'Low to High', example: 'R = 1 to 5',
         summary: 'Counting range with an inclusive upper bound.' },
-    { module: 'ranges', form: 'Low until High', example: 'R = 1 until 5',
+    { module: 'core', form: 'Low until High', example: 'R = 1 until 5',
         summary: 'Counting range with an exclusive upper bound.' },
     { module: 'sequences', form: 'Values sort by .field',
         example: 'Rows = array (record\n  .x = 1\nend)\nS = Rows sort by .x',
@@ -603,6 +613,12 @@ const operationIndex = new Map(operations.map(operation => [operation.name, oper
 /** The catalogue entry for a name, whatever module it comes from. */
 export function findOperation(name: string): Operation | undefined {
     return operationIndex.get(name);
+}
+
+/** Operand counts include the two core functions that need no `use`. */
+export function operationArities(name: string): readonly number[] | undefined {
+    if (name === 'type' || name === 'raise') return [1];
+    return findOperation(name)?.arities;
 }
 
 /** Every name one module exports, in catalogue order. */

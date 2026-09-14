@@ -1,4 +1,6 @@
-import { type Module, inject } from 'langium';
+import { type Module, type AstNode, type ParserOptions, inject, createLangiumParser } from 'langium';
+import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
+import { isProgram } from './generated/ast.js';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { RankGeneratedModule, RankGeneratedSharedModule } from './generated/module.js';
 import { RankValidator, registerValidationChecks } from './rank-validator.js';
@@ -24,6 +26,20 @@ export type RankServices = LangiumServices & RankAddedServices
  * selected services, while the custom services must be fully specified.
  */
 export const RankModule: Module<RankServices, PartialLangiumServices & RankAddedServices> = {
+    parser: {
+        LangiumParser: services => {
+            const parser = createLangiumParser(services);
+            const parse = parser.parse.bind(parser);
+            parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
+                const result = parse<T>(input, options);
+                if (!result.lexerErrors.length && !result.parserErrors.length && isProgram(result.value)) {
+                    groupExpressions(result.value, options as GroupingOptions);
+                }
+                return result;
+            };
+            return parser;
+        },
+    },
     validation: {
         RankValidator: () => new RankValidator()
     }

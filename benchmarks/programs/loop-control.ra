@@ -1,6 +1,5 @@
 rem Trial divisors: stop at the square root
 rem and skip values that do not divide N.
-use ranges
 
 fun trial_divisors N
   Count = 0

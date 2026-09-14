@@ -4,7 +4,6 @@ test "official example"
   use "035_schooldance"
   use algo
   use graph
-  use ranges
   use sequences
   Pairs = array shape 4 2
     1 1
@@ -21,7 +20,6 @@ test "matches every disjoint pair"
   use "035_schooldance"
   use algo
   use graph
-  use ranges
   use sequences
   Pairs = array shape 3 2
     1 3
@@ -40,7 +38,6 @@ test "one student dances once"
   use "035_schooldance"
   use algo
   use graph
-  use ranges
   use sequences
   Pairs = array shape 3 2
     1 1
@@ -55,7 +52,6 @@ test "allows unmatched students"
   use "035_schooldance"
   use algo
   use graph
-  use ranges
   use sequences
   Pairs = array shape 1 2
     2 2

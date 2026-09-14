@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=23
 rem Sum positive integers that are not a sum
 rem of two abundant numbers
 
-use ranges
 use sequences
 use algo
 use io

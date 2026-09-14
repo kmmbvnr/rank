@@ -3,9 +3,7 @@ rem https://projecteuler.net/problem=11
 rem Find the greatest product of adjacent
 rem values in four straight directions
 
-use ranges
 use sequences
-use numbers
 use io
 use cli
 

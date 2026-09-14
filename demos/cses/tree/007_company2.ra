@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1688
 
 use graph
 use io
-use ranges
 
 N = stdin .integer
 Q = stdin .integer

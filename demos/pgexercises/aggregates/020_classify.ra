@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: aggregates 20
 rem https://pgexercises.com/questions/aggregates/classify.html
 
 use cli
-use numbers
 use sequences
 use tables
 

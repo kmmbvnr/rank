@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1713
 
 use io
 use numbers
-use ranges
 use sequences
 
 Count = stdin .integer

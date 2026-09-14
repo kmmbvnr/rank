@@ -110,8 +110,7 @@ array A B
 describe('compiled numeric range loops', () => {
     it.each(['1 to 5', '1 until 5', '5 to 1 by -2', '5 until 1 by -2',
         '5 to 1', '1 to 5 by -1', '3 until 3', '3 to 3'])('preserves %s', range => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for Value i in ${range}
   Total += Value + i
 end
@@ -121,8 +120,7 @@ Total
     });
 
     it('evaluates bounds once and keeps progression independent of bindings', () => {
-        const result = compare(`use ranges
-N = 3
+        const result = compare(`N = 3
 Step = 1
 Count = 0
 for I in 0 until N by Step
@@ -138,8 +136,7 @@ array I Count N Step
     });
 
     it.each(['# i', 'Value #', '# #'])('supports discarded bindings: %s', bindings => {
-        const result = compare(`use ranges
-Count = 0
+        const result = compare(`Count = 0
 for ${bindings} in 1 to 3
   Count += 1
 end
@@ -150,12 +147,11 @@ Count
     });
 
     it.each([
-        'use ranges\nI = "text"\nfor I in 1 to 2\n  X = I + 1\nend',
-        'use ranges\nfor I in 1 to 0 by 0\n  X = I + 1\nend',
-        'for I in 1 to 2\n  X = I + 1\nend',
+        'I = "text"\nfor I in 1 to 2\n  X = I + 1\nend',
+        'for I in 1 to 0 by 0\n  X = I + 1\nend',
         'for I in 1 // 0 to 2\n  X = I + 1\nend',
-        'use ranges\nfor I j k in 1 to 2\n  X = I + 1\nend',
-    ])('preserves binding, module and range errors', source => {
+        'for I j k in 1 to 2\n  X = I + 1\nend',
+    ])('preserves binding and range errors', source => {
         expect(compare(source)).toHaveProperty('error');
     });
 });
@@ -168,8 +164,7 @@ describe('compiled integer powers', () => {
         ['I ** 40', '12157665459056928801'],
         ['I ** 2 ** 3', '6561'],
     ])('preserves precedence and exact integers: %s', (expression, expected) => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 3 to 3
   Total = ${expression}
 end
@@ -180,8 +175,7 @@ Total`);
     });
 
     it.each(['I ** -1', 'I ** N', 'I ** 0.5'])('declines %s before execution', expression => {
-        const result = compare(`use ranges
-N = 2
+        const result = compare(`N = 2
 for I in 1 to 3
   Answer = ${expression}
 end
@@ -190,8 +184,7 @@ Answer`);
     });
 
     it('preserves partial writes and fixed-type errors', () => {
-        const result = compare(`use ranges
-Answer = 0.0
+        const result = compare(`Answer = 0.0
 Done = 0
 for I in 1 to 3
   Done = I ** 2
@@ -221,8 +214,7 @@ Steps`);
     });
 
     it('merges definite assignments across if, elif and else', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 0 to 5
   if I less 2
     Value = 10
@@ -239,8 +231,7 @@ Total`);
     });
 
     it('preserves values assigned only on some iterations', () => {
-        const result = compare(`use ranges
-Value = 1
+        const result = compare(`Value = 1
 Total = 0
 for I in 0 to 5
   if I % 2 equal 0
@@ -254,8 +245,7 @@ Total`);
     });
 
     it('keeps unselected conditions and bodies unevaluated', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 1 to 3
   if I greater 0
     if I less 3
@@ -277,8 +267,7 @@ Total`);
         'if I less 0\n    Done = I\n  elif 1 // (I - 2) equal 0\n    Done = 4\n  end',
         'if I greater 0\n    Done = I\n    Real = I\n  end',
     ])('preserves nested error locations and partial state', branch => {
-        const result = compare(`use ranges
-Done = 0
+        const result = compare(`Done = 0
 Real = 0.0
 for I in 1 to 3
   ${branch}
@@ -288,8 +277,7 @@ end`);
     });
 
     it('declines a potentially missing input before any writes', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 1 to 2
   if I equal 2
     Value = I
@@ -301,8 +289,7 @@ end`);
     });
 
     it.each(['if false\n  X = 1\nend', 'if true\nend'])('preserves empty branch results', branch => {
-        expect(compare(`use ranges
-for I in 1 to 2
+        expect(compare(`for I in 1 to 2
   ${branch}
 end`).loops).toBe(1);
     });
@@ -313,7 +300,6 @@ describe('compiled container loops', () => {
     it.each(['stack', 'queue', 'deque'])('pushes and drains a %s through runtime methods', kind => {
         const result = compare(`use algo
 use sequences
-use ranges
 P = new ${kind}
 Cache = new index
 for I in 1 to 5
@@ -353,7 +339,6 @@ N`);
     it('preserves mutation order for aliased containers', () => {
         const result = compare(`use algo
 use sequences
-use ranges
 P = new stack
 Q = P
 Cache = new index
@@ -370,7 +355,6 @@ P len`);
     it('retains writes and removals preceding an error', () => {
         const result = compare(`use algo
 use sequences
-use ranges
 P = new stack
 P push 7
 Cache = new index
@@ -414,7 +398,6 @@ end`);
 
     it('rejects a container binding assigned on just one branch', () => {
         const result = compare(`use algo
-use ranges
 P = new stack
 for I in 1 to 2
   P push I
@@ -430,7 +413,6 @@ end`);
 
 it('does not retain native bindings reassigned inside a compiled loop', () => {
     const result = compare(`use numbers
-use ranges
 Total = 0
 for I in 1 to 2
   even = 1
@@ -464,8 +446,7 @@ end`);
     });
 
     it('merges only paths that reach the next statement', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 1 to 5
   if I less 3
     continue
@@ -495,8 +476,7 @@ end`);
     });
 
     it('keeps descending range progress and its index after continue', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for V i in 7 to 1 by -2
   if V equal 5
     V = 100
@@ -536,7 +516,6 @@ end`);
 
 it('keeps mutations preceding a compiled break', () => {
     const result = compare(`use algo
-use ranges
 use sequences
 P = new stack
 for I in 1 to 3
@@ -551,8 +530,7 @@ P len`);
 });
 
 it('limits a compiled break to its inner loop', () => {
-    const result = compare(`use ranges
-Total = 0
+    const result = compare(`Total = 0
 for O in 1 to 3
   for I in 1 to 4
     if I equal 2
@@ -569,8 +547,7 @@ Total`);
 
 describe('compiled nested regions', () => {
     it('captures dependent bounds afresh and independent cursors at every level', () => {
-        const source = `use ranges
-Total = 0
+        const source = `Total = 0
 for I i in 1 to 3
   for J j in I to (I + 1)
     Total += J + i + j
@@ -587,8 +564,7 @@ Total`;
     });
 
     it('separates inner and outer continue edges', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 1 to 4
   if I equal 2
     continue
@@ -625,8 +601,7 @@ Total`);
     });
 
     it('preserves the completed result of nested loops', () => {
-        const result = compare(`use ranges
-for I in 1 to 3
+        const result = compare(`for I in 1 to 3
   for J in 1 to 2
     if J equal 2
       break
@@ -650,8 +625,7 @@ end`);
     J += 1
   end`,
     ])('retains nested error locations and writes', inner => {
-        const result = compare(`use ranges
-for I in 1 to 2
+        const result = compare(`for I in 1 to 2
   Done = I
   ${inner}
 end`);
@@ -660,8 +634,7 @@ end`);
     });
 
     it('does not treat assignments in an empty inner loop as definite', () => {
-        const result = compare(`use ranges
-I = 0
+        const result = compare(`I = 0
 for I less 1
   I += 1
   for J in 1 until 1
@@ -674,7 +647,7 @@ end`);
         expect(result.loops).toBe(1);
     });
 
-    it('preserves missing-range-module errors after earlier outer writes', () => {
+    it('compiles nested ranges without imports', () => {
         const result = compare(`I = 0
 for I less 1
   I += 1
@@ -682,15 +655,14 @@ for I less 1
     Value = J
   end
 end`);
-        expect(result).toHaveProperty('error');
-        expect(result.loops).toBe(0);
+        expect(result.value).toBe('2');
+        expect(result.loops).toBe(1);
     });
 });
 
 describe('integer array reads in compiled loops', () => {
     it('reads full matrix coordinates inside one nested region', () => {
-        const result = compare(`use ranges
-A = array shape 2 3
+        const result = compare(`A = array shape 2 3
   1 2 3
   4 5 6
 end
@@ -706,8 +678,7 @@ Total`);
     });
 
     it.each(['-1', '3', '999999999999999999999999999999'])('preserves bounds errors at %s', index => {
-        const result = compare(`use ranges
-A = array 2 4 6
+        const result = compare(`A = array 2 4 6
 Total = 0
 for I in 0 to 1
   Total += A I
@@ -718,8 +689,7 @@ end`);
     });
 
     it('uses array values in conditions and dependent bounds', () => {
-        const result = compare(`use ranges
-A = array 2 4 6
+        const result = compare(`A = array 2 4 6
 Total = 0
 for I in 0 until 3
   for J in 1 to (A I)
@@ -734,8 +704,7 @@ Total`);
     });
 
     it('declines real atoms before execution', () => {
-        const result = compare(`use ranges
-A = array 1.5 2.5
+        const result = compare(`A = array 1.5 2.5
 Total = 0.0
 for I in 0 until 2
   Total += A I
@@ -746,8 +715,7 @@ Total`);
     });
 
     it('retains partial indexing semantics', () => {
-        const result = compare(`use ranges
-A = array shape 2 2
+        const result = compare(`A = array shape 2 2
   1 2
   3 4
 end
@@ -758,8 +726,7 @@ end`);
     });
 
     it('declines receiver rebinding', () => {
-        const result = compare(`use ranges
-A = array 1 2
+        const result = compare(`A = array 1 2
 Total = 0
 for I in 0 until 2
   Total += A I
@@ -777,8 +744,7 @@ it('does not force lazy array input when the loop does not read it', () => {
     runtime.variables.set('A', { kind: 'array', shape: [1], itemAt: read,
         get items(): never { throw new Error('forced lazy input'); } });
     try {
-        runtime.execute(`use ranges
-for I in 0 until 0
+        runtime.execute(`for I in 0 until 0
   Value = A I
 end`);
         expect(read).not.toHaveBeenCalled();
@@ -787,8 +753,7 @@ end`);
 
 describe('array writes in compiled integer loops', () => {
     it.each(['-1', '2', '9007199254740993', '999999999999999999999999999999999999'])('keeps matrix write bounds and error order at %s', index => {
-        const result = compare(`use ranges
-A = array shape 2 2 pad 0
+        const result = compare(`A = array shape 2 2 pad 0
 for I in 0 until 2
   A I 0 = 9
   A I (${index}) = 1 // 0
@@ -800,8 +765,7 @@ end`);
     });
 
     it('reads earlier writes through an alias', () => {
-        const result = compare(`use ranges
-A = array shape 6 pad 0
+        const result = compare(`A = array shape 6 pad 0
 B = A
 A 0 = 1
 for I in 1 until 6
@@ -813,8 +777,7 @@ A`);
     });
 
     it('returns the right operand of the last completed array write', () => {
-        const result = compare(`use ranges
-A = array shape 2 2 pad 0
+        const result = compare(`A = array shape 2 2 pad 0
 for I in 0 until 2
   for J in 0 until 2
     A I J = I * 2 + J
@@ -825,8 +788,7 @@ end`);
     });
 
     it.each(['-1', '3'])('checks address %s before evaluating a failing right operand', index => {
-        const result = compare(`use ranges
-A = array 1 2 3
+        const result = compare(`A = array 1 2 3
 for I in 0 until 2
   A I = 9
   A (${index}) = 1 // 0
@@ -836,8 +798,7 @@ end`);
     });
 
     it('preserves earlier writes when the right operand fails', () => {
-        const result = compare(`use ranges
-A = array 1 2 3
+        const result = compare(`A = array 1 2 3
 for I in 0 until 3
   A I = 9 // (1 - I)
 end`);
@@ -846,8 +807,7 @@ end`);
     });
 
     it('preserves array mutations and results across break', () => {
-        const result = compare(`use ranges
-A = array 1 2 3
+        const result = compare(`A = array 1 2 3
 for I in 0 until 3
   A I = I + 10
   if I equal 1
@@ -858,8 +818,7 @@ end`);
     });
 
     it('retains partial row assignment', () => {
-        const result = compare(`use ranges
-A = array shape 2 2 pad 0
+        const result = compare(`A = array shape 2 2 pad 0
 for I in 0 until 2
   A I = 7
 end`);
@@ -897,8 +856,7 @@ Total`);
     });
 
     it('composes named array and numeric-range loops', () => {
-        const result = compare(`use ranges
-A = array 1 2 3
+        const result = compare(`A = array 1 2 3
 Total = 0
 for I in 1 to 2
   for Value in A
@@ -963,8 +921,7 @@ Total`);
 
 describe('compiled compound array assignments', () => {
     it.each(['+=', '-=', '*=', '//=', '%='])('preserves signed operands and RHS result for %s', operator => {
-        const result = compare(`use ranges
-A = array -7 7 -7 7
+        const result = compare(`A = array -7 7 -7 7
 B = array -3 -3 3 3
 for I in 0 until 4
   A I ${operator} B I
@@ -974,8 +931,7 @@ end`);
     });
 
     it('composes nested vector iteration with aliased matrix writes', () => {
-        const result = compare(`use ranges
-A = array shape 2 2 pad 1
+        const result = compare(`A = array shape 2 2 pad 1
 B = A
 Factors = array 2 3
 for I in 0 until 2
@@ -989,8 +945,7 @@ A`);
     });
 
     it.each(['//=', '%='])('keeps earlier mutations when %s divides by zero', operator => {
-        const result = compare(`use ranges
-A = array 7 7 7
+        const result = compare(`A = array 7 7 7
 for I in 0 until 3
   A I ${operator} (1 - I)
 end`);
@@ -999,8 +954,7 @@ end`);
     });
 
     it('checks a bad address before the RHS error', () => {
-        const result = compare(`use ranges
-A = array 7
+        const result = compare(`A = array 7
 for I in 0 until 1
   A 1 += 1 // 0
 end`);
@@ -1010,7 +964,6 @@ end`);
 
     it('retains reference behavior for compound index updates', () => {
         const result = compare(`use algo
-use ranges
 A = index
 A 0 = 1
 for I in 0 until 2
@@ -1022,8 +975,7 @@ end`);
 
 describe('compiled integer extrema', () => {
     it('preserves infix chains, parentheses and postfix calls', () => {
-        const result = compare(`use ranges
-use numbers
+        const result = compare(`use numbers
 Total = 0
 for I in -2 to 2
   X = I max 0 min 1
@@ -1036,8 +988,7 @@ Total`);
     });
 
     it('combines addressed left operands and exact large integers', () => {
-        const result = compare(`use ranges
-use numbers
+        const result = compare(`use numbers
 A = array 9007199254740993 9007199254740995
 Total = 0
 for I in 0 until 2
@@ -1049,9 +1000,8 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it.each(['min', 'max'])('respects a shadowed %s and missing imports', name => {
-        const result = compare(`use ranges
-use numbers
+    it.each(['min', 'max'])('respects a shadowed %s and compiles the builtin without imports', name => {
+        const result = compare(`use numbers
 fun ${name} A B
   return A + B
 end
@@ -1061,15 +1011,13 @@ end
 X`);
         expect(result.value).toBe('12');
         expect(result.loops).toBe(0);
-        expect(compare(`use ranges
-for I in 0 until 1
+        expect(compare(`for I in 0 until 1
   X = 2 ${name} 3
-end`).loops).toBe(0);
+end`).loops).toBe(1);
     });
 
     it('retains right operand error timing and partial writes', () => {
-        const result = compare(`use ranges
-use numbers
+        const result = compare(`use numbers
 for I in 0 until 2
   Done = I
   X = I max (1 // (1 - I))
@@ -1079,8 +1027,7 @@ end`);
     });
 
     it('preserves scalar unary extrema', () => {
-        const result = compare(`use ranges
-use numbers
+        const result = compare(`use numbers
 for I in 0 until 1
   X = I max
 end`);
@@ -1089,8 +1036,7 @@ end`);
     });
 
     it('retains skipped malformed chains', () => {
-        const result = compare(`use ranges
-use numbers
+        const result = compare(`use numbers
 for I in 0 until 0
   X = 1 max 2 3
 end`);
@@ -1100,8 +1046,7 @@ end`);
 
 describe('compiled full scalar write addresses', () => {
     it('writes rectangular rank-three cells in row-major order', () => {
-        const result = compare(`use ranges
-A = array shape 2 3 4 pad 0
+        const result = compare(`A = array shape 2 3 4 pad 0
 for I in 0 until 2
   for J in 0 until 3
     for K in 0 until 4
@@ -1114,8 +1059,7 @@ A`);
     });
 
     it.each(['0 3 0', '0 0 4', '0 (0 - 1) 0', '0 0 999999999999999999999999'])('preserves error ordering for address %s', address => {
-        const result = compare(`use ranges
-A = array shape 2 3 4 pad 0
+        const result = compare(`A = array shape 2 3 4 pad 0
 for I in 0 until 1
   A 1 2 3 = 99
   A ${address} = 1 // 0
@@ -1125,8 +1069,7 @@ end`);
     });
 
     it('rejects a coordinate on an empty axis', () => {
-        const result = compare(`use ranges
-A = array shape 2 0 4 pad 0
+        const result = compare(`A = array shape 2 0 4 pad 0
 for I in 0 until 1
   A 0 0 0 = 1
 end`);
@@ -1137,8 +1080,7 @@ end`);
 
 describe('invocation-bound integer writers', () => {
     it('binds fresh local frames on repeated function calls', () => {
-        const result = compare(`use ranges
-fun tally Start
+        const result = compare(`fun tally Start
   Total = Start
   for I in 1 to 3
     Total += I
@@ -1153,8 +1095,7 @@ array A B`);
     });
 
     it('updates captured parent variables across nested calls', () => {
-        const result = compare(`use ranges
-fun outer Seed
+        const result = compare(`fun outer Seed
   Total = Seed
   fun add N
     for I in 1 to N
@@ -1172,8 +1113,7 @@ end
     });
 
     it('checks a new invocation with a different parameter type', () => {
-        const result = compare(`use ranges
-fun replace Value
+        const result = compare(`fun replace Value
   for I in 0 until 2
     Done = I
     Value = I
@@ -1187,8 +1127,7 @@ Second = 1.0 replace`);
     });
 
     it('does not check an assignment that never executes', () => {
-        const result = compare(`use ranges
-Value = "kept"
+        const result = compare(`Value = "kept"
 for I in 0 until 2
   if I less 0
     Value = I
@@ -1200,8 +1139,7 @@ Value`);
     });
 
     it('keeps prior writes before a late first-assignment type error', () => {
-        const result = compare(`use ranges
-Wrong = "text"
+        const result = compare(`Wrong = "text"
 Done = 0
 for I in 0 until 4
   Done += I
@@ -1214,8 +1152,7 @@ end`);
     });
 
     it('retains declared types after the compiled region returns', () => {
-        const result = compare(`use ranges
-for I in 0 until 3
+        const result = compare(`for I in 0 until 3
   Value = I
 end
 Value = "text"`);
@@ -1226,8 +1163,7 @@ Value = "text"`);
 
 describe('boolean locals in compiled loops', () => {
     it('stores comparisons and combines boolean assignment operators', () => {
-        const result = compare(`use ranges
-Count = 0
+        const result = compare(`Count = 0
 for I in 0 until 6
   Allowed = I less 2
   Allowed or= I equal 5
@@ -1255,8 +1191,7 @@ I`);
     });
 
     it('merges boolean definitions from both branches', () => {
-        const result = compare(`use ranges
-Count = 0
+        const result = compare(`Count = 0
 for I in 0 until 4
   if I less 2
     Flag = true
@@ -1274,8 +1209,7 @@ Count`);
     });
 
     it('preserves a first-write type error after earlier mutations', () => {
-        const result = compare(`use ranges
-Flag = 1
+        const result = compare(`Flag = 1
 Done = 0
 for I in 0 until 3
   Done += 1
@@ -1286,8 +1220,7 @@ end`);
     });
 
     it('does not make boolean compound operands short-circuit', () => {
-        const result = compare(`use ranges
-Flag = true
+        const result = compare(`Flag = true
 for I in 0 until 1
   Flag or= (1 // 0) equal 0
 end`);
@@ -1296,8 +1229,7 @@ end`);
     });
 
     it('keeps the boolean type after leaving the region', () => {
-        const result = compare(`use ranges
-for I in 0 until 2
+        const result = compare(`for I in 0 until 2
   Flag = I equal 0
 end
 Flag = 1`);
@@ -1306,8 +1238,7 @@ Flag = 1`);
     });
 
     it('declines incompatible local types across branches', () => {
-        const result = compare(`use ranges
-for I in 0 until 2
+        const result = compare(`for I in 0 until 2
   if I equal 0
     Value = true
   else
@@ -1321,8 +1252,7 @@ end`);
 
 describe('boolean arrays in compiled regions', () => {
     it('reads and writes boolean cells through aliases', () => {
-        const result = compare(`use ranges
-A = array true false false false
+        const result = compare(`A = array true false false false
 B = A
 Count = 0
 for I in 1 until 4
@@ -1339,8 +1269,7 @@ Count`);
     });
 
     it.each(['and=', 'or=', 'xor='])('supports matrix boolean updates with %s', operator => {
-        const result = compare(`use ranges
-A = array shape 2 2
+        const result = compare(`A = array shape 2 2
   true false
   false true
 end
@@ -1354,8 +1283,7 @@ A`);
     });
 
     it('validates an address before the boolean RHS fails', () => {
-        const result = compare(`use ranges
-A = array true false
+        const result = compare(`A = array true false
 for I in 0 until 1
   A 0 = false
   A 2 or= (1 // 0) equal 0
@@ -1365,8 +1293,7 @@ end`);
     });
 
     it('retains ordinary behavior for mixed cells', () => {
-        const result = compare(`use ranges
-A = array true 1
+        const result = compare(`A = array true 1
 Count = 0
 for I in 0 until 2
   if A I
@@ -1377,8 +1304,7 @@ end`);
     });
 
     it('declines mixed read/write types through different aliases', () => {
-        const result = compare(`use ranges
-A = array 1 2
+        const result = compare(`A = array 1 2
 B = A
 for I in 0 until 2
   X = B I + 1
@@ -1402,8 +1328,7 @@ end`);
 
 describe('array locals in compiled regions', () => {
     it('allocates fresh arrays and preserves aliases to earlier objects', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 0 until 3
   Current = array shape 2 pad I
   Saved = Current
@@ -1416,8 +1341,7 @@ Total`);
     });
 
     it('rebinds an input while retaining writes through an old alias', () => {
-        const result = compare(`use ranges
-Source = array 1 1
+        const result = compare(`Source = array 1 1
 Total = 0
 for I in 0 until 2
   Seen = Source 0
@@ -1432,8 +1356,7 @@ Total`);
     });
 
     it('evaluates changing dimensions and boolean fills on every iteration', () => {
-        const result = compare(`use ranges
-Count = 0
+        const result = compare(`Count = 0
 for I in 1 to 3
   Row = array shape (I + 1) pad I less 3
   if Row I
@@ -1446,8 +1369,7 @@ Count`);
     });
 
     it.each(['-1', '9007199254740992'])('checks dimension %s before a failing fill', dimension => {
-        const result = compare(`use ranges
-for I in 0 until 1
+        const result = compare(`for I in 0 until 1
   Done = I
   Row = array shape (${dimension}) pad (1 // 0)
 end`);
@@ -1456,8 +1378,7 @@ end`);
     });
 
     it('keeps the prior array when a later allocation expression fails', () => {
-        const result = compare(`use ranges
-for I in 0 until 2
+        const result = compare(`for I in 0 until 2
   Row = array shape 2 pad (1 // (1 - I))
 end`);
         expect(result).toHaveProperty('error');
@@ -1465,8 +1386,7 @@ end`);
     });
 
     it('checks a destination type at the assignment, after earlier writes', () => {
-        const result = compare(`use ranges
-Row = 1
+        const result = compare(`Row = 1
 Done = 0
 for I in 0 until 2
   Done += 1
@@ -1477,8 +1397,7 @@ end`);
     });
 
     it('does not assume a conditional array definition executed', () => {
-        const result = compare(`use ranges
-for I in 0 until 1
+        const result = compare(`for I in 0 until 1
   if I greater 0
     Row = array shape 2 pad 0
   end
@@ -1499,8 +1418,7 @@ it('does not make a cached lazy input writable through a local alias', () => {
         runtime.variables.set('Source', registerCachedArray({ kind: 'array', shape: [1],
             get items() { return [1n]; }, itemAt: read }, () => [1n]));
         try {
-            expect(() => runtime.execute(`use ranges
-for I in 0 until 1
+            expect(() => runtime.execute(`for I in 0 until 1
   Seen = Source 0
   Alias = Source
   Alias 0 = 2
@@ -1513,8 +1431,7 @@ end`)).toThrow('cannot assign to a lazy array');
 
 
 it('retains partial selection on locally created arrays', () => {
-    const result = compare(`use ranges
-for I in 0 until 1
+    const result = compare(`for I in 0 until 1
   A = array shape 2 2 pad 0
   A 0 = 1
 end
@@ -1523,8 +1440,7 @@ A`);
 });
 
 it('retains excess-address diagnostics for local arrays', () => {
-    const result = compare(`use ranges
-for I in 0 until 1
+    const result = compare(`for I in 0 until 1
   A = array shape 2 pad 0
   A 0 0 = 1
 end`);
@@ -1537,8 +1453,7 @@ it('honors the array-write toggle for locally created arrays', () => {
     const runtime = new Interpreter(undefined, { arrayWriteCompilation: false,
         onIntegerLoopExecuted: () => loops++ });
     try {
-        const result = runtime.execute(`use ranges
-for I in 0 until 1
+        const result = runtime.execute(`for I in 0 until 1
   A = array shape 2 pad 0
   A 0 = 7
 end
@@ -1550,8 +1465,7 @@ A`);
 
 describe('compiled loop returns', () => {
     it('returns from both nested loops while keeping prior writes', () => {
-        const result = compare(`use ranges
-fun find N
+        const result = compare(`fun find N
   for I in 0 until N
     for J in 0 until N
       if I + J equal 5
@@ -1567,8 +1481,7 @@ end
     });
 
     it('returns a created array with its mutations', () => {
-        const result = compare(`use ranges
-fun build N
+        const result = compare(`fun build N
   for I in 1 to N
     Row = array shape 2 pad I
     Row 1 += 10
@@ -1584,8 +1497,7 @@ end
     });
 
     it('runs enclosing finally before completing the return', () => {
-        const result = compare(`use ranges
-fun perform A
+        const result = compare(`fun perform A
   try
     for I in 0 until 3
       A 0 += 1
@@ -1604,8 +1516,7 @@ A`);
     });
 
     it('retains return expression errors after earlier mutations', () => {
-        const result = compare(`use ranges
-fun perform A
+        const result = compare(`fun perform A
   for I in 0 until 3
     A 0 += 1
     return 1 // I
@@ -1619,8 +1530,7 @@ A perform`);
     });
 
     it('keeps invalid-context validation before the return expression', () => {
-        const result = compare(`use ranges
-for I in 0 until 1
+        const result = compare(`for I in 0 until 1
   return 1 // 0
 end`);
         expect(result).toHaveProperty('error');
@@ -1628,8 +1538,7 @@ end`);
     });
 
     it('retains the ban on return inside finally', () => {
-        const result = compare(`use ranges
-fun perform N
+        const result = compare(`fun perform N
   try
     Result = N
   finally
@@ -1698,7 +1607,6 @@ Total`);
     it('evaluates a destructive operand exactly once', () => {
         const result = compare(`use numbers
 use algo
-use ranges
 Q = new queue
 Q push -5
 Q push -7
@@ -1713,7 +1621,6 @@ Total`);
 
     it('retains a user function named abs', () => {
         const result = compare(`use numbers
-use ranges
 fun abs X
   return X + 10
 end
@@ -1727,8 +1634,7 @@ Total`);
     });
 
     it('preserves diagnostics for a missing numbers import', () => {
-        const result = compare(`use ranges
-Total = 0
+        const result = compare(`Total = 0
 for I in 1 to 2
   Total += I abs
 end`);
@@ -1928,7 +1834,6 @@ describe('compiled integer text and length', () => {
     it('composes decimal text and length without parentheses', () => {
         const result = compare(`use text
 use sequences
-use ranges
 Total = 0
 for I in -12 to -9
   Total += I text len
@@ -1951,8 +1856,7 @@ Total`);
     });
 
     it('uses the first array dimension after local allocations', () => {
-        const result = compare(`use ranges
-use sequences
+        const result = compare(`use sequences
 Total = 0
 for I in 1 to 3
   A = array shape I 2 pad 0
@@ -1966,7 +1870,6 @@ Total`);
     it('keeps a shadowed text function', () => {
         const result = compare(`use text
 use sequences
-use ranges
 fun text X
   return "xx"
 end
@@ -1982,8 +1885,7 @@ Total`);
 
 
 it('retains shadowed len on a known allocated array', () => {
-    const result = compare(`use ranges
-use sequences
+    const result = compare(`use sequences
 fun len A
   return 7
 end
@@ -1999,8 +1901,7 @@ Total`);
 
 describe('proven scalar calls from loop regions', () => {
     it('calls a two-argument scalar function in a compiled loop', () => {
-        const result = compare(`use ranges
-fun combine A B
+        const result = compare(`fun combine A B
   return A * 10 + B
 end
 Total = 0
@@ -2013,8 +1914,7 @@ Total`);
     });
 
     it('uses a boolean function result as a branch condition', () => {
-        const result = compare(`use ranges
-fun positive X
+        const result = compare(`fun positive X
   return X greater 0
 end
 Total = 0
@@ -2029,8 +1929,7 @@ Total`);
     });
 
     it('keeps callee diagnostics and earlier caller mutations', () => {
-        const result = compare(`use ranges
-fun divide X
+        const result = compare(`fun divide X
   return 10 // X
 end
 A = array 0
@@ -2044,8 +1943,7 @@ end`);
     });
 
     it('does not assume a captured value is a parameter', () => {
-        const result = compare(`use ranges
-Offset = 7
+        const result = compare(`Offset = 7
 fun plus X
   return X + Offset
 end
@@ -2059,8 +1957,7 @@ Total`);
     });
 
     it('keeps effectful helpers on the ordinary path', () => {
-        const result = compare(`use ranges
-A = array 0
+        const result = compare(`A = array 0
 fun update X
   A 0 += X
   return X
@@ -2076,8 +1973,7 @@ Total`);
     });
 
     it('binds local function instances separately on each invocation', () => {
-        const result = compare(`use ranges
-fun perform N
+        const result = compare(`fun perform N
   fun twice X
     return X * 2
   end
@@ -2098,8 +1994,7 @@ array A B`);
         let loops = 0;
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
         try {
-            runtime.execute(`use ranges
-fun helper X
+            runtime.execute(`fun helper X
   return X + 1
 end
 fun perform N
@@ -2123,8 +2018,7 @@ end`);
         const errors = [false, true].map(integerLoopCompilation => {
             const runtime = new Interpreter(undefined, { integerLoopCompilation, maxCallDepth: 1 });
             try {
-                runtime.execute(`use ranges
-fun helper X
+                runtime.execute(`fun helper X
   return X + 1
 end
 fun perform N
@@ -2146,8 +2040,7 @@ end
 
 describe('proven scalar function blocks', () => {
     it('tracks local assignments and early return branches', () => {
-        const result = compare(`use ranges
-fun bounded X
+        const result = compare(`fun bounded X
   Value = X - 2
   if Value less 0
     return 0
@@ -2166,8 +2059,7 @@ Total`);
     });
 
     it('merges definitions from both continuing branches', () => {
-        const result = compare(`use ranges
-fun magnitude X
+        const result = compare(`fun magnitude X
   if X less 0
     Value = -X
   else
@@ -2185,8 +2077,7 @@ Total`);
     });
 
     it('does not mutate a captured assignment through a compiled call', () => {
-        const result = compare(`use ranges
-fun perform N
+        const result = compare(`fun perform N
   Shared = 10
   fun helper X
     Shared = X + 1
@@ -2204,8 +2095,7 @@ end
     });
 
     it('rejects a collision created later by the caller region', () => {
-        const result = compare(`use ranges
-fun perform N
+        const result = compare(`fun perform N
   fun helper X
     Shared = X + 1
     return Shared
@@ -2224,8 +2114,7 @@ end
     });
 
     it('allows parameter writes without changing caller bindings', () => {
-        const result = compare(`use ranges
-fun increment X
+        const result = compare(`fun increment X
   X += 1
   return X
 end
@@ -2239,8 +2128,7 @@ array Total I`);
     });
 
     it('requires local reads to be defined on every continuing path', () => {
-        const result = compare(`use ranges
-fun helper X
+        const result = compare(`fun helper X
   if X greater 0
     Value = X
   end
@@ -2255,8 +2143,7 @@ end`);
     });
 
     it('keeps block function errors after prior caller writes', () => {
-        const result = compare(`use ranges
-fun helper X
+        const result = compare(`fun helper X
   Value = X - 1
   return 10 // Value
 end
@@ -2271,8 +2158,7 @@ end`);
     });
 
     it('rejects hoisted declarations after a terminal return', () => {
-        const result = compare(`use ranges
-fun helper X
+        const result = compare(`fun helper X
   return X
   fun nested Y
     return Y
@@ -2290,8 +2176,7 @@ Total`);
 
 
 it('allows independent local names in a global helper and its caller', () => {
-    const result = compare(`use ranges
-fun helper X
+    const result = compare(`fun helper X
   Value = X + 1
   return Value
 end
@@ -2319,8 +2204,7 @@ describe('tail calls from compiled loop returns', () => {
             let entries = 0;
             const runtime = new Interpreter(undefined, { integerLoopCompilation, maxCallDepth: 1,
                 onIntegerLoopExecuted: () => entries++ });
-            const source = `use ranges
-fun helper X
+            const source = `fun helper X
   return X + 1
 end
 fun perform N

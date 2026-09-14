@@ -4,8 +4,6 @@ rem https://adventofcode.com/2015/day/2
 
 use io
 use cli
-use numbers
-use sequences
 use text
 
 argument Input path

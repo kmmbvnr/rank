@@ -11,16 +11,20 @@
     "files": [
         "bin",
         "out",
-        "src"
+        "src",
+        "native/*.cc",
+        "native/binding.gyp",
+        "scripts/build-sqlite-interrupt.mjs"
     ],
     "bin": {
         "rank": "./bin/cli.js"
     },
     "scripts": {
-        "clean": "shx rm -fr *.tsbuildinfo out",
-        "build": "echo 'No build step'",
+        "clean": "shx rm -fr *.tsbuildinfo out native/build",
+        "build": "node scripts/build-sqlite-interrupt.mjs",
         "build:clean": "npm run clean && npm run build",
-        "test": "node --test test/*.test.mjs"
+        "test": "node --test test/*.test.mjs",
+        "install": "node scripts/build-sqlite-interrupt.mjs"
     },
     "dependencies": {
         "better-sqlite3": "12.8.0",
@@ -28,6 +32,10 @@
         "commander": "~15.0.0",
         "@rank/interpreter": "0.0.1",
         "@rank/language": "0.0.1",
-        "sharp": "~0.35.4"
+        "sharp": "~0.35.4",
+        "string-width": "^7.2.0"
+    },
+    "devDependencies": {
+        "@xterm/headless": "^5.5.0"
     }
 }

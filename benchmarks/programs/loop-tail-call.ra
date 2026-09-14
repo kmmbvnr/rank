@@ -1,5 +1,4 @@
 rem Compiler fixture: return a scalar call.
-use ranges
 
 fun successor X
   return X + 1

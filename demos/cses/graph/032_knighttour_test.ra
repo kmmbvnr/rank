@@ -4,7 +4,6 @@ test "official starting square"
   use "032_knighttour"
   use algo
   use numbers
-  use ranges
   use sequences
   Board = 2 1 knight_tour
   Board valid_tour
@@ -15,7 +14,6 @@ test "starts in the upper left corner"
   use "032_knighttour"
   use algo
   use numbers
-  use ranges
   use sequences
   Board = 1 1 knight_tour
   Board valid_tour
@@ -26,7 +24,6 @@ test "starts in the board center"
   use "032_knighttour"
   use algo
   use numbers
-  use ranges
   use sequences
   Board = 4 4 knight_tour
   Board valid_tour
@@ -37,7 +34,6 @@ test "solves every starting square"
   use "032_knighttour"
   use algo
   use numbers
-  use ranges
   use sequences
   for Y in 1 to 8
     for X in 1 to 8

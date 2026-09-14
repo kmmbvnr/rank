@@ -70,7 +70,7 @@ describe('floor modulo', () => {
         expect(run('Values = array (-5) 5\nValues 0 %= 3\nValues')).toBe('1 5');
         expect(run('(array (-5) 5) % 3')).toBe('1 2');
         expect(run('(array (-5) 5) % -3')).toBe('-2 -1');
-        expect(run('use ranges\n(-5 to -3) % 3')).toBe('1 2 0');
+        expect(run('(-5 to -3) % 3')).toBe('1 2 0');
     });
 
     it('keeps positive-modulus normalization valid', () => {

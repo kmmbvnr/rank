@@ -3,7 +3,6 @@ rem https://pgexercises.com/questions/aggregates/rollingavg.html
 
 use cli
 use dates
-use numbers
 use sequences
 use tables
 

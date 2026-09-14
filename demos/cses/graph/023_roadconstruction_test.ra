@@ -4,7 +4,6 @@ test "official example"
   use "023_roadconstruction"
   use graph
   use numbers
-  use ranges
   use sequences
   Roads = array shape 3 2
     1 2
@@ -24,7 +23,6 @@ test "ignores duplicate roads"
   use "023_roadconstruction"
   use graph
   use numbers
-  use ranges
   use sequences
   Roads = array shape 3 2
     1 2
@@ -44,7 +42,6 @@ test "merges two larger components"
   use "023_roadconstruction"
   use graph
   use numbers
-  use ranges
   use sequences
   Roads = array shape 3 2
     1 2
@@ -64,7 +61,6 @@ test "supports no roads"
   use "023_roadconstruction"
   use graph
   use numbers
-  use ranges
   use sequences
   Roads = array shape 0 2 pad 0
   Actual = 3 Roads road_progress

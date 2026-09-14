@@ -2,8 +2,6 @@ rem CSES 1639: Edit Distance
 rem https://cses.fi/problemset/task/1639
 
 use io
-use numbers
-use ranges
 use sequences
 
 Left = stdin .word
@@ -14,7 +12,7 @@ Left Right edit_distance print
 rem Keep only the prior distance row.
 fun edit_distance Left Right
   Width = Right len
-  Previous = (0 to Width) array
+  Previous = 0 to Width array
 
   for A i in Left
     Size = Width + 1

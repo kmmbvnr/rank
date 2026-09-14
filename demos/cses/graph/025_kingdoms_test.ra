@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "025_kingdoms"
   use graph
-  use ranges
   Graph = new graph (1 to 5) .directed
   Edges = array shape 6 2
     1 2
@@ -22,7 +21,6 @@ end
 test "separates an acyclic graph"
   use "025_kingdoms"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .directed
   Graph add 1 2
   Graph add 2 3
@@ -34,7 +32,6 @@ end
 test "joins one directed cycle"
   use "025_kingdoms"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Graph add 1 2
   Graph add 2 3
@@ -48,7 +45,6 @@ end
 test "keeps isolated planets"
   use "025_kingdoms"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .directed
   Result = Graph 3 kingdoms
   Result .count equal 3

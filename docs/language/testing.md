@@ -43,6 +43,7 @@ Arguments exercise the same input declarations through the host adapter:
 ```rank
 test "argument input"
   use "001_multiples"
+  use cli
   args "--limit" "10"
   run
 

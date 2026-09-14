@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=44
 rem Find the smallest pentagonal difference
 rem whose matching sum is also pentagonal
 
-use ranges
 use sequences
 use algo
 use io

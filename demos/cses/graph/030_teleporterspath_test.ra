@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "030_teleporterspath"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 5) .directed
   Edges = array shape 6 2
@@ -22,7 +21,6 @@ end
 test "accepts one direct teleporter"
   use "030_teleporterspath"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 2) .directed
   Graph add 1 2
@@ -33,7 +31,6 @@ end
 test "rejects the wrong endpoint"
   use "030_teleporterspath"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .directed
   Graph add 1 2
@@ -45,7 +42,6 @@ end
 test "rejects disconnected edges"
   use "030_teleporterspath"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 4) .directed
   Graph add 1 4

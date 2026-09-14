@@ -2,10 +2,7 @@ rem CSES 1725: Dice Probability
 rem https://cses.fi/problemset/task/1725
 
 use io
-use numbers
-use ranges
 use sequences
-use text
 
 N = stdin .integer
 Low = stdin .integer

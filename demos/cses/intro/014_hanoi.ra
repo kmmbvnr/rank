@@ -18,13 +18,13 @@ fun hanoi N From To Aux
     return
   end
 
-  for Move in (N - 1) From Aux To hanoi
+  for Move in N - 1 From Aux To hanoi
     yield Move
   end
 
   yield array From To
 
-  for Move in (N - 1) Aux To From hanoi
+  for Move in N - 1 Aux To From hanoi
     yield Move
   end
 end

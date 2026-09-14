@@ -2,7 +2,6 @@ rem CSES 1620: Factory Machines
 rem https://cses.fi/problemset/task/1620
 
 use io
-use numbers
 
 N = stdin .integer
 Target = stdin .integer
@@ -18,7 +17,7 @@ fun minimum_time Machines Target
 
   for Low less High
     Mid = (Low + High) // 2
-    Made = (Mid // Machines) sum
+    Made = Mid // Machines sum
 
     if Made at least Target
       High = Mid

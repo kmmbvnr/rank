@@ -145,7 +145,9 @@ function printCatalogue(markdown: boolean): void {
         }
         if (forms.length > 0) {
             if (markdown) {
-                lines.push(`These need \`use ${module.name}\` but have no name to look up.`, '');
+                lines.push(module.name === 'core'
+                    ? 'These constructs are always available.'
+                    : `These need \`use ${module.name}\` but have no name to look up.`, '');
                 lines.push('| Form | Summary |', '| --- | --- |');
             }
             for (const form of forms) {
@@ -172,8 +174,8 @@ function resultLabel(operation: Operation): string {
 const REFERENCE_PREAMBLE = [
     '# Standard library reference',
     '',
-    'Every name the standard modules export, and every construct a `use`',
-    'enables that has no name to look up. Rank is data-first, so an operation',
+    'Core vocabulary and standard modules, including constructs without a',
+    'function name. Rank is data-first, so an operation',
     'follows the data it reads: `Values sum`, `Text Separator split`.',
     '',
     'This page is generated from `packages/language/src/operations.ts` by',

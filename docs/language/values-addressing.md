@@ -15,10 +15,11 @@ A B gcd
 
 Conceptually, the value comes first and selectors follow.
 
-When the final word resolves to a function, preceding values are its data. Thus
-`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`. Resolution
-may use the arity and value roles registered by the imported vocabulary, but it
-does not change the parsed source structure.
+When the final word names a function, preceding values are its data. Thus
+`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`.
+The parser groups calls using vocabulary and binding signatures before
+analysis and execution. A suffix function takes the accumulated arithmetic
+formula or range; addressing within its operands remains tight.
 
 Function arity also separates an addressed first argument from the remaining
 arguments. The final `arity - 1` values are separate arguments; the entire
@@ -39,12 +40,12 @@ allow infix calls: `A max B` calls the current `max` with arguments `A` and
 `B`. Chains associate from the left. These names are not reserved; a local
 function or parameter shadows the builtin in both infix and postfix calls.
 
-Builtin postfix extrema retain one addressing rule: `Matrix i max` reduces
-the addressed row. This rule applies only when the resolved function is the
-builtin. Otherwise postfix calls use ordinary arity selection. Two scalar
-arguments are accepted too: `3 4 max` is `4`. Use infix `Matrix max i` for
-elementwise broadcasting, or name the builtin (`Op = max; Matrix i Op`) to
-use ordinary binary argument selection.
+Builtins and aliases use the same argument rules: `Matrix i max` and
+`Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
+addressed row, write `(Matrix i) max`. `Matrix max i` is the infix form of
+the binary call. Two scalar arguments work the same way: `3 4 max` is `4`.
+A following function starts another step: `Values max sqrt` takes the square
+root of the maximum.
 
 The fundamental selection model is:
 

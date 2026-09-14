@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1729
 
 use algo
 use io
-use ranges
 use sequences
 use text
 

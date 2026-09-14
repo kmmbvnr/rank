@@ -4,8 +4,6 @@ rem Classify normalized pixels by nearest
 rem training-class centroid.
 
 use cli
-use numbers
-use ranges
 use sequences
 use stats
 use tables
@@ -29,7 +27,7 @@ fun solve_table Train Test
   Y = Train .label
   Classes = Y unique
   Pred = X Y Xtest Classes solve
-  Test .ImageId = (1 to Pred len) array
+  Test .ImageId = (1 to (Pred len)) array
   Test .Label = Pred
   return Test (array .ImageId .Label)
 end
@@ -62,9 +60,9 @@ fun classify X Centers Classes
   for Row in 0 until Shape 0
     Point = X Row #
     Delta = Centers - Point
-    Dist = (Delta * Delta) sum axis 1
+    Dist = Delta * Delta sum axis 1
     Best = 0
-    for Candidate in 1 until Classes len
+    for Candidate in 1 until (Classes len)
       if Dist Candidate less Dist Best
         Best = Candidate
       end

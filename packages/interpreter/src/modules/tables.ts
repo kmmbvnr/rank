@@ -1,3 +1,4 @@
+import { checkpoint } from '../interrupt.js';
 import { arrayRevision, derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { isKnownFileFree } from '../resource-summary.js';
@@ -47,6 +48,7 @@ export const tablesModule: RuntimeModule = {
         const find = (key: RankValue): RankValue => {
             const sought = setValueKey(key);
             for (let index = 0; index < keys.shape[0]; index += 1) {
+                checkpoint('processing table');
                 let candidate: RankValue;
                 try { candidate = readArrayItem(keys, index); }
                 catch (error) {
@@ -71,8 +73,12 @@ export const tablesModule: RuntimeModule = {
         }
         const names = value.columnNames === undefined ? new Set<string>() : new Set(value.columnNames);
         for (const item of value.items) {
+            checkpoint('processing table');
             if (!isRankObject(item)) throw new RankError('labels expects object rows', 'TypeError');
-            for (const name of item.entries.keys()) names.add(name);
+            for (const name of item.entries.keys()) {
+                checkpoint('processing table');
+                names.add(name);
+            }
         }
         const items: RankValue[] = [...names].map(name => ({ kind: 'label', name }));
         return ownedArray(items);
@@ -106,6 +112,7 @@ function selectArray(source: RankArray, fields: RankRecord): RankArray {
     const entries = [...fields.entries];
     const dependencies = [source];
     for (const [name, value] of entries) {
+        checkpoint('processing table');
         if (isRankSqliteExpression(value)) {
             throw new RankError(`select field .${name} belongs to a SQLite view`, 'TypeError');
         }
@@ -120,6 +127,7 @@ function selectArray(source: RankArray, fields: RankRecord): RankArray {
         if (!isRankObject(row)) throw new RankError('select expects object rows', 'TypeError');
         const selected = new Map<string, RankValue>();
         for (const [name, column] of entries) {
+            checkpoint('processing table');
             try {
                 selected.set(name, isRankArray(column)
                     ? column.itemAt?.(position) ?? column.items[position] : column);
@@ -147,7 +155,13 @@ function tableRows(value: RankValue, operation: string): RankObject[] {
 
 function tableColumns(value: RankArray, rows: readonly RankObject[]): string[] {
     const names = new Set(value.columnNames ?? []);
-    for (const row of rows) for (const name of row.entries.keys()) names.add(name);
+    for (const row of rows) {
+        checkpoint('processing table');
+        for (const name of row.entries.keys()) {
+                                checkpoint('processing table');
+                                names.add(name);
+                            }
+    }
     return [...names];
 }
 
@@ -170,6 +184,7 @@ export function reachTable(edges: RankValue, starts: RankValue, from: string, to
     }
     const next = new Map<string, RankValue[]>();
     for (const row of rows) {
+        checkpoint('processing table');
         const source = row.entries.get(from);
         const target = row.entries.get(to);
         if (source === undefined || target === undefined) continue;
@@ -185,6 +200,7 @@ export function reachTable(edges: RankValue, starts: RankValue, from: string, to
             throw new RankError('reach starts must be a scalar or rank-1 array', 'DimensionMismatch');
         }
         for (let index = 0; index < starts.shape[0]; index += 1) {
+            checkpoint('processing table');
             try { seeds.push(readArrayItem(starts, index)); }
             catch (error) {
                 if (!(error instanceof MissingValueError)) throw error;
@@ -194,14 +210,17 @@ export function reachTable(edges: RankValue, starts: RankValue, from: string, to
     const items: RankValue[] = [];
     const uniqueSeeds = new Set<string>();
     for (const seed of seeds) {
+        checkpoint('processing table');
         const startKey = reachKey(seed);
         if (uniqueSeeds.has(startKey)) continue;
         uniqueSeeds.add(startKey);
         const visited = new Set<string>([startKey]);
         const queue: RankValue[] = [seed];
         for (let index = 0; index < queue.length; index += 1) {
+            checkpoint('processing table');
             const neighbours = next.get(reachKey(queue[index])) ?? [];
             for (const target of neighbours) {
+                checkpoint('processing table');
                 const key = reachKey(target);
                 if (visited.has(key)) continue;
                 visited.add(key);
@@ -220,6 +239,7 @@ function tableKey(
 ): string | undefined {
     const parts: (string | null)[] = [];
     for (const field of fields) {
+        checkpoint('processing table');
         const value = row.entries.get(field);
         if (value === undefined) {
             if (!keepMissing) return undefined;
@@ -247,6 +267,7 @@ export function groupTable(source: RankValue, fields: readonly string[], rollup 
     if (isRankSqliteTable(input)) {
         const columns = sqliteColumns(input);
         for (const field of fields) {
+            checkpoint('processing table');
             if (!columns.includes(field)) {
                 throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
             }
@@ -268,8 +289,10 @@ export function groupTable(source: RankValue, fields: readonly string[], rollup 
         if (row) groups[position].rows.push(row);
     };
     for (const sourceRow of rows) {
+        checkpoint('processing table');
         const row = ownedObject(sourceRow.entries);
         for (let level = fields.length; level >= (rollup ? 0 : fields.length); level -= 1) {
+            checkpoint('processing table');
             add(row, level);
         }
     }
@@ -336,6 +359,7 @@ export function selectGroupedTable(
             if (!isRankObject(current)) throw new RankError('rolling by expects object rows', 'TypeError');
             const rows: RankObject[] = [];
             for (let pos = Math.max(0, index - width + 1); pos <= index; pos += 1) {
+                checkpoint('processing table');
                 const row = readArrayItem(source, pos);
                 if (!isRankObject(row)) throw new RankError('rolling by expects object rows', 'TypeError');
                 rows.push(row);
@@ -362,6 +386,7 @@ function aggregateGroupRows(
         if (key !== undefined) entries.set(name, key);
     });
     for (const spec of specs) {
+        checkpoint('processing table');
         const values = spec.field === undefined ? [] : rows.flatMap(row => {
             const value = row.entries.get(spec.field!);
             return value === undefined ? [] : [value];
@@ -371,6 +396,7 @@ function aggregateGroupRows(
         } else if (spec.operation === 'sum') {
             let total: bigint | number = 0n;
             for (const value of values) {
+                checkpoint('processing table');
                 const numeric = expectNumeric(value);
                 total = typeof total === 'bigint' && typeof numeric === 'bigint'
                     ? total + numeric : Number(total) + Number(numeric);
@@ -392,6 +418,7 @@ function groupExtreme(values: readonly RankValue[], operation: 'min' | 'max'): R
     let result = values[0];
     const kind = orderedKind(result);
     for (const value of values.slice(1)) {
+        checkpoint('processing table');
         const order = compareOrderedValues(value, result, kind);
         if (operation === 'min' ? order < 0 : order > 0) result = value;
     }
@@ -415,19 +442,23 @@ export function joinTables(
     const leftNames = tableColumns(left as RankArray, leftRows);
     const rightNames = tableColumns(right as RankArray, rightRows);
     for (const field of leftFields) {
+        checkpoint('processing table');
         if (!leftNames.includes(field)) throw new MissingValueError(`${mode} left key .${field} is missing`);
     }
     for (const field of rightFields) {
+        checkpoint('processing table');
         if (!rightNames.includes(field)) throw new MissingValueError(`${mode} right key .${field} is missing`);
     }
     const rightValues = rightNames.filter(name => !rightFields.includes(name));
     for (const name of rightValues) {
+        checkpoint('processing table');
         if (leftNames.includes(name)) {
             throw new RankError(`${mode} has duplicate non-key column .${name}`, 'TypeError');
         }
     }
     const matches = new Map<string, RankObject[]>();
     for (const row of rightRows) {
+        checkpoint('processing table');
         const key = tableKey(row, rightFields);
         if (key === undefined) continue;
         const bucket = matches.get(key) ?? [];
@@ -436,6 +467,7 @@ export function joinTables(
     }
     const items: RankValue[] = [];
     for (const row of leftRows) {
+        checkpoint('processing table');
         const key = tableKey(row, leftFields);
         const hits = key === undefined ? undefined : matches.get(key);
         if (hits === undefined) {
@@ -443,8 +475,10 @@ export function joinTables(
             continue;
         }
         for (const hit of hits) {
+            checkpoint('processing table');
             const entries = new Map(row.entries);
             for (const [name, value] of hit.entries) {
+                checkpoint('processing table');
                 if (!rightFields.includes(name)) entries.set(name, value);
             }
             items.push(ownedObject(entries));
@@ -468,13 +502,16 @@ export function joinAliasedTables(
     const leftNames = tableColumns(left, leftRows);
     const rightNames = tableColumns(right, rightRows);
     for (const field of leftFields) {
+        checkpoint('processing table');
         if (!leftNames.includes(field)) throw new MissingValueError(`${mode} left key .${field} is missing`);
     }
     for (const field of rightFields) {
+        checkpoint('processing table');
         if (!rightNames.includes(field)) throw new MissingValueError(`${mode} right key .${field} is missing`);
     }
     const matches = new Map<string, RankObject[]>();
     for (const row of rightRows) {
+        checkpoint('processing table');
         const key = tableKey(row, rightFields);
         if (key === undefined) continue;
         const bucket = matches.get(key) ?? [];
@@ -483,6 +520,7 @@ export function joinAliasedTables(
     }
     const items: RankValue[] = [];
     for (const row of leftRows) {
+        checkpoint('processing table');
         const key = tableKey(row, leftFields);
         const hits = key === undefined ? undefined : matches.get(key);
         if (!hits) {
@@ -492,6 +530,7 @@ export function joinAliasedTables(
             continue;
         }
         for (const hit of hits) {
+            checkpoint('processing table');
             items.push(ownedObject(new Map([
                 [leftName, ownedObject(row.entries)],
                 [rightName, ownedObject(hit.entries)],
@@ -583,6 +622,7 @@ function parseCsv(text: string): RankArray {
         ? header.replace(/^\uFEFF/, '') : header);
     const seen = new Set<string>();
     for (const header of headers) {
+        checkpoint('processing table');
         if (header.length === 0) throw new RankError('CSV header must not be empty');
         if (seen.has(header)) throw new RankError(`duplicate CSV header: ${header}`);
         seen.add(header);
@@ -594,6 +634,7 @@ function parseCsv(text: string): RankArray {
     ));
     const items: RankValue[] = [];
     for (let index = 0; index < data.length; index += 1) {
+        checkpoint('processing table');
         const fields = data[index];
         if (fields.length !== headers.length) {
             throw new RankError(
@@ -602,6 +643,7 @@ function parseCsv(text: string): RankArray {
         }
         const entries = new Map<string, RankValue>();
         for (let column = 0; column < headers.length; column += 1) {
+            checkpoint('processing table');
             if (fields[column] !== '') {
                 entries.set(headers[column], csvValue(fields[column], columnKinds[column]));
             }
@@ -632,6 +674,7 @@ function csvRows(text: string): string[][] {
     };
 
     for (let index = 0; index < text.length; index += 1) {
+        checkpoint('processing table');
         const character = text[index];
         if (quoted) {
             if (character === '"') {
@@ -709,8 +752,10 @@ function formatCsv(value: RankValue): string {
     const known = new Set(headers);
     const lines = [headers.map(csvField).join(',')];
     for (const item of value.items) {
+        checkpoint('processing table');
         const row = objectRow(item);
         for (const field of row.entries.keys()) {
+            checkpoint('processing table');
             if (!known.has(field)) throw new RankError(`csv output row has unexpected field: ${field}`);
         }
         lines.push(headers.map(header => {
@@ -732,6 +777,7 @@ function formatSelectedColumns(value: RankArray): string {
     }
     const lines = [headers.map(csvField).join(',')];
     for (let row = 0; row < value.shape[0]; row += 1) {
+        checkpoint('processing table');
         lines.push(headers.map((_, column) =>
             csvScalar(value.itemAt?.(row * headers.length + column)
                 ?? value.items[row * headers.length + column])).join(','));

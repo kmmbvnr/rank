@@ -3,8 +3,6 @@ rem https://cses.fi/problemset/task/3314
 
 use algo
 use io
-use numbers
-use sequences
 
 N = stdin .integer
 Heights = stdin .integer N array

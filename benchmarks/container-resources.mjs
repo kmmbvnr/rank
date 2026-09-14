@@ -4,7 +4,6 @@ const { Interpreter } = await import(process.argv[2] ?? '../packages/interpreter
 const runtime = new Interpreter();
 runtime.execute(`
 use algo
-use ranges
 use sequences
 fun note Seen V
   Seen add V

@@ -2,7 +2,6 @@ rem CSES 1641: Sum of Three Values
 rem https://cses.fi/problemset/task/1641
 
 use io
-use ranges
 use sequences
 
 N = stdin .integer

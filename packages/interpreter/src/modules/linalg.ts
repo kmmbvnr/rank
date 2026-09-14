@@ -1,3 +1,4 @@
+import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, ownedArray, readArrayItem, readArrayShape } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
@@ -90,6 +91,7 @@ function symmetricEigendecomposition(value: RankValue): RankArray {
 
     let converged = size < 2;
     for (let iteration = 0; iteration < limit && !converged; iteration += 1) {
+        checkpoint('computing linear algebra');
         const pivot = largestOffDiagonal(matrix);
         if (pivot.value <= tolerance) {
             converged = true;
@@ -103,7 +105,7 @@ function symmetricEigendecomposition(value: RankValue): RankArray {
     }
 
     const order = Array.from({ length: size }, (_, index) => index)
-        .sort((left, right) => matrix[left][left] - matrix[right][right]);
+        .sort(interruptibleCallback((left, right) => matrix[left][left] - matrix[right][right], 'sorting'));
     const values = ownedArray(order.map(index => cleanReal(matrix[index][index])));
     const vectorItems = Array.from({ length: size * size }, (_, index) => {
         const row = Math.floor(index / size);
@@ -132,7 +134,9 @@ function numericMatrix(value: RankArray, size: number, operation: string): numbe
 function validateSymmetric(matrix: number[][]): void {
     const size = matrix.length;
     for (let row = 0; row < size; row += 1) {
+        checkpoint('computing linear algebra');
         for (let column = row + 1; column < size; column += 1) {
+            checkpoint('computing linear algebra');
             const left = matrix[row][column];
             const right = matrix[column][row];
             const scale = Math.max(1, Math.abs(left), Math.abs(right));
@@ -160,7 +164,9 @@ function largestOffDiagonal(matrix: readonly (readonly number[])[]): {
     let column = 0;
     let value = 0;
     for (let i = 0; i < matrix.length; i += 1) {
+        checkpoint('computing linear algebra');
         for (let j = i + 1; j < matrix.length; j += 1) {
+            checkpoint('computing linear algebra');
             const candidate = Math.abs(matrix[i][j]);
             if (candidate > value) {
                 row = i;
@@ -188,6 +194,7 @@ function rotateJacobi(
     const sine = tangent * cosine;
 
     for (let index = 0; index < matrix.length; index += 1) {
+        checkpoint('computing linear algebra');
         if (index === row || index === column) continue;
         const left = matrix[index][row];
         const right = matrix[index][column];
@@ -203,6 +210,7 @@ function rotateJacobi(
     matrix[column][row] = 0;
 
     for (let index = 0; index < vectors.length; index += 1) {
+        checkpoint('computing linear algebra');
         const left = vectors[index][row];
         const right = vectors[index][column];
         vectors[index][row] = cosine * left - sine * right;
@@ -244,6 +252,7 @@ function integerDeterminant(items: readonly bigint[], size: number): bigint {
     let divisor = 1n;
 
     for (let column = 0; column < size - 1; column += 1) {
+        checkpoint('computing linear algebra', 1024);
         const pivot = work.findIndex((row, index) => index >= column && row[column] !== 0n);
         if (pivot < 0) return 0n;
         if (pivot !== column) {
@@ -253,7 +262,9 @@ function integerDeterminant(items: readonly bigint[], size: number): bigint {
 
         const pivotValue = work[column][column];
         for (let row = column + 1; row < size; row += 1) {
+            checkpoint('computing linear algebra', 1024);
             for (let inner = column + 1; inner < size; inner += 1) {
+                checkpoint('computing linear algebra', 1024);
                 work[row][inner] = (
                     work[row][inner] * pivotValue
                     - work[row][column] * work[column][inner]
@@ -275,8 +286,10 @@ function realDeterminant(items: readonly number[], size: number): number {
     let result = 1;
 
     for (let column = 0; column < size; column += 1) {
+        checkpoint('computing linear algebra');
         let pivot = column;
         for (let row = column + 1; row < size; row += 1) {
+            checkpoint('computing linear algebra');
             if (Math.abs(work[row][column]) > Math.abs(work[pivot][column])) pivot = row;
         }
         if (work[pivot][column] === 0) return 0;
@@ -288,8 +301,10 @@ function realDeterminant(items: readonly number[], size: number): number {
         const pivotValue = work[column][column];
         result *= pivotValue;
         for (let row = column + 1; row < size; row += 1) {
+            checkpoint('computing linear algebra');
             const factor = work[row][column] / pivotValue;
             for (let inner = column + 1; inner < size; inner += 1) {
+                checkpoint('computing linear algebra');
                 work[row][inner] -= factor * work[column][inner];
             }
         }
@@ -321,8 +336,10 @@ export function solveLinearSystem(coefficients: RankValue, right: RankValue): Ra
     const values = numericRows(right, size, columns, 'right-side');
 
     for (let column = 0; column < size; column += 1) {
+        checkpoint('computing linear algebra');
         let pivot = column;
         for (let row = column + 1; row < size; row += 1) {
+            checkpoint('computing linear algebra');
             if (Math.abs(matrix[row][column]) > Math.abs(matrix[pivot][column])) pivot = row;
         }
         if (matrix[pivot][column] === 0) {
@@ -332,12 +349,15 @@ export function solveLinearSystem(coefficients: RankValue, right: RankValue): Ra
         maybeSwap(values, column, pivot);
 
         for (let row = column + 1; row < size; row += 1) {
+            checkpoint('computing linear algebra');
             const factor = matrix[row][column] / matrix[column][column];
             matrix[row][column] = 0;
             for (let inner = column + 1; inner < size; inner += 1) {
+                checkpoint('computing linear algebra');
                 matrix[row][inner] -= factor * matrix[column][inner];
             }
             for (let result = 0; result < columns; result += 1) {
+                checkpoint('computing linear algebra');
                 values[row][result] -= factor * values[column][result];
             }
         }
@@ -345,9 +365,12 @@ export function solveLinearSystem(coefficients: RankValue, right: RankValue): Ra
 
     const solved = Array.from({ length: size }, () => Array(columns).fill(0) as number[]);
     for (let row = size - 1; row >= 0; row -= 1) {
+        checkpoint('computing linear algebra');
         for (let result = 0; result < columns; result += 1) {
+            checkpoint('computing linear algebra');
             let value = values[row][result];
             for (let inner = row + 1; inner < size; inner += 1) {
+                checkpoint('computing linear algebra');
                 value -= matrix[row][inner] * solved[inner][result];
             }
             const answer = value / matrix[row][row];
@@ -414,6 +437,7 @@ export function matmulValues(
 
         let total: bigint | number = 0n;
         for (let inner = 0; inner < contracted; inner += 1) {
+            checkpoint('computing linear algebra');
             leftCoordinates[leftAxis] = inner;
             rightCoordinates[rightAxis] = inner;
             const a = expectNumeric(arrayItem(left, arrayOffset(readArrayShape(left), leftCoordinates)));
@@ -445,8 +469,10 @@ function inverseMatrix(value: RankValue): RankArray {
         }));
 
     for (let column = 0; column < size; column += 1) {
+        checkpoint('computing linear algebra');
         let pivot = column;
         for (let row = column + 1; row < size; row += 1) {
+            checkpoint('computing linear algebra');
             if (Math.abs(work[row][column]) > Math.abs(work[pivot][column])) pivot = row;
         }
         maybeSwap(work, column, pivot);
@@ -455,12 +481,17 @@ function inverseMatrix(value: RankValue): RankArray {
         if (divisor === 0) {
             throw new RankError('inverse expects a nonsingular matrix', 'SingularMatrix');
         }
-        for (let j = 0; j < width; j += 1) work[column][j] /= divisor;
+        for (let j = 0; j < width; j += 1) {
+            checkpoint('computing linear algebra');
+            work[column][j] /= divisor;
+        }
 
         for (let row = 0; row < size; row += 1) {
+            checkpoint('computing linear algebra');
             if (row === column) continue;
             const factor = work[row][column];
             for (let j = 0; j < width; j += 1) {
+                checkpoint('computing linear algebra');
                 work[row][j] -= factor * work[column][j];
             }
         }

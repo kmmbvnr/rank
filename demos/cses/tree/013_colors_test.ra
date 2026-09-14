@@ -4,7 +4,6 @@ test "official example"
   use "013_colors"
   use algo
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -37,7 +36,6 @@ test "equal colors stay distinct once"
   use "013_colors"
   use algo
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 4) .undirected
   Tree add 1 2
@@ -53,7 +51,6 @@ test "branches merge overlapping colors"
   use "013_colors"
   use algo
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 7) .undirected
   Edges = array shape 6 2

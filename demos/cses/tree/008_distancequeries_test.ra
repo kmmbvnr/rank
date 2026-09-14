@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "008_distancequeries"
   use graph
-  use ranges
   Tree = new graph (1 to 5) .undirected
   Edges = array shape 4 2
     1 2
@@ -29,7 +28,6 @@ end
 test "path distance is its difference"
   use "008_distancequeries"
   use graph
-  use ranges
   Tree = new graph (1 to 6) .undirected
   for Node in 1 until 6
     Tree add Node (Node + 1)
@@ -41,7 +39,6 @@ end
 test "distance ignores selected root"
   use "008_distancequeries"
   use graph
-  use ranges
   Tree = new graph (1 to 4) .undirected
   Tree add 1 2
   Tree add 1 3

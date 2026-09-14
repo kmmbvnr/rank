@@ -1,89 +1,193 @@
-// What the REPL knows about the terminal it draws on. The loop in repl.ts owns
-// what to show; this module owns the arithmetic of taking it back.
+/// <reference lib="es2022.intl" />
+import stringWidth from 'string-width';
+import { stripVTControlCharacters } from 'node:util';
+import type { Notebook } from './notebook.js';
 
-import * as readline from 'node:readline';
+const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+export const graphemes = (text: string): Intl.SegmentData[] => [...segmenter.segment(text)];
 
-/** The rows a line that wide occupies on a terminal that wide. */
-export function screenRows(width: number, columns: number): number {
-    if (columns <= 0) return 1;
-    return Math.max(1, Math.ceil(width / columns));
+export interface TextRow {
+    text: string;
+    points: { offset: number; column: number }[];
 }
 
-/** A terminal that reports no height is taken for an ordinary one. */
-export function screenHeight(out: NodeJS.WriteStream): number {
-    return out.rows || 24;
+/** Reserve the rightmost terminal column so native auto-wrap never owns our cursor. */
+export function textColumns(columns: number): number { return Math.max(1, columns - 7); }
+
+function visible(segment: string, column: number): string {
+    if (segment === '\t') return ' '.repeat(4 - column % 4);
+    return segment.replace(/[\x00-\x1f\x7f-\x9f]/g, '?');
 }
 
-/** Clears the screen and leaves the cursor at the top left of it. */
-export function clearScreen(out: NodeJS.WriteStream): void {
-    readline.cursorTo(out, 0, 0);
-    readline.clearScreenDown(out);
-}
-
-/**
- * Erases the last `rows` rows and leaves the cursor where they began, so what
- * stood there can be printed again in another form.
- *
- * Returns false when the region is taller than the screen: the rows above have
- * scrolled away and reaching for them would erase whatever is there now. A
- * caller that is told no draws the screen again instead, or leaves it alone.
- */
-export function eraseRows(out: NodeJS.WriteStream, rows: number): boolean {
-    if (rows <= 0) return true;
-    if (rows >= screenHeight(out)) return false;
-    readline.moveCursor(out, 0, -rows);
-    readline.cursorTo(out, 0);
-    readline.clearScreenDown(out);
-    return true;
-}
-
-/** A terminal that can be asked what readline printed through it. */
-export interface Counted {
-    /** The stream to hand readline. */
-    readonly stream: NodeJS.WriteStream;
-    /** Start counting the rows written from here. */
-    readonly arm: () => void;
-    /** Stop counting, keeping what has been counted so far. */
-    readonly disarm: () => void;
-    /** The rows counted since the last call, and zero again after it. */
-    readonly taken: () => number;
-}
-
-/**
- * Counts the rows readline prints on its own account.
- *
- * A completion listing is written from inside the tab keystroke, below the
- * prompt and out of reach of anything watching from outside; the completer is
- * called immediately before it, and the keypress handler runs immediately
- * after. Counting between those two is how the REPL learns a listing is there
- * and how tall it is, without copying readline's idea of how to lay one out.
- */
-export function countRows(out: NodeJS.WriteStream): Counted {
-    let armed = false;
-    let rows = 0;
-    const stream = new Proxy(out, {
-        get(target, property) {
-            if (property === 'write') {
-                return (chunk: unknown, ...rest: unknown[]): boolean => {
-                    if (armed && typeof chunk === 'string') {
-                        rows += chunk.split('\n').length - 1;
-                    }
-                    const write = target.write as (...args: unknown[]) => boolean;
-                    return write.call(target, chunk, ...rest);
-                };
+/** Every caret offset is mapped to a visual row using the same layout as drawing. */
+export function editableRows(source: string, columns: number): TextRow[] {
+    const width = Math.max(1, columns);
+    const rows: TextRow[] = [];
+    let offset = 0;
+    for (const line of source.split('\n')) {
+        let row: TextRow = { text: '', points: [{ offset, column: 0 }] };
+        let column = 0;
+        rows.push(row);
+        for (const part of graphemes(line)) {
+            let shown = visible(part.segment, column);
+            let size = stringWidth(shown);
+            if (size > width) { shown = '?'; size = 1; }
+            if (column + size > width) {
+                row = { text: '', points: [{ offset: offset + part.index, column: 0 }] };
+                rows.push(row);
+                column = 0;
+                shown = visible(part.segment, column);
+                size = stringWidth(shown);
+                if (size > width) { shown = '?'; size = 1; }
             }
-            const value = Reflect.get(target, property, target);
-            return typeof value === 'function' ? value.bind(target) : value;
-        },
-    });
-    return {
-        stream,
-        arm: () => { armed = true; },
-        disarm: () => { armed = false; },
-        taken: () => {
-            const seen = rows;
-            rows = 0;
-            return seen;
-        },
-    };
+            row.text += shown;
+            column += size;
+            row.points.push({ offset: offset + part.index + part.segment.length, column });
+            if (column === width) {
+                row = { text: '', points: [{ offset: offset + part.index + part.segment.length, column: 0 }] };
+                rows.push(row);
+                column = 0;
+            }
+        }
+        offset += line.length + 1;
+    }
+    return rows;
+}
+
+function clean(text: string): string { return stripVTControlCharacters(text).replace(/\r/g, ''); }
+export function clipped(text: string, width: number): string {
+    return editableRows(clean(text), Math.max(1, width))[0].text;
+}
+
+export interface ScreenFrame {
+    readonly lines: string[];
+    readonly cursor: { row: number; column: number };
+    readonly top: number;
+    readonly cursorVisible: boolean;
+}
+
+/** Output and suggestions are model data, so old errors/listings disappear on the next frame. */
+export function notebookFrame(
+    notebook: Notebook, columns: number, height: number, previousTop = 0,
+    suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
+): ScreenFrame {
+    const width = Math.max(1, columns - 1);
+    const gutter = Math.min(6, Math.max(0, width - 1));
+    const bodyWidth = Math.max(1, width - gutter);
+    const rows: string[] = [];
+    let caret = { row: 0, column: gutter };
+    let errorEnd: number | undefined;
+    const dirty = notebook.dirtyFrom;
+    for (const [index, cell] of notebook.cells.entries()) {
+        const pending = dirty >= 0 && index >= dirty && index < notebook.cells.length - 1;
+        const prompt = index === notebook.cells.length - 1;
+        const label = prompt ? 'rank> ' : `●${String(index + 1).padStart(3)}› `;
+        const color = cell.status === 'running' || cell.status === 'interrupted' ? '\x1b[33m'
+            : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
+            : pending || cell.status === 'idle' ? '\x1b[90m' : '\x1b[32m';
+        const sourceRows = editableRows(cell.source, bodyWidth);
+        const labelRow = prompt ? 0 : sourceRows.findIndex(row => row.text.trim() !== '');
+        for (const [line, item] of sourceRows.entries()) {
+            const prefix = (line === labelRow ? label : item.text.trim() === '' ? '      ' : '    · ')
+                .slice(-gutter || label.length);
+            const painted = !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
+            rows.push((gutter > 0 ? painted : '') + item.text);
+            if (index === notebook.active) {
+                const point = item.points.find(point => point.offset === notebook.cursor);
+                if (point) caret = { row: rows.length - 1, column: gutter + point.column };
+            }
+        }
+        for (const output of cell.output) {
+            const marker = output.error && gutter > 0
+                ? (' '.repeat(gutter) + '! ').slice(-gutter) : ' '.repeat(gutter);
+            const text = clean(output.text);
+            for (const item of editableRows(text, bodyWidth)) {
+                rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + clipped(marker + item.text, width) + '\x1b[0m');
+            }
+        }
+        if (index === notebook.active && cell.status === 'error' && cell.executed === cell.source
+            && (index === dirty || !pending)) errorEnd = rows.length - 1;
+    }
+    const footerRows = height > 1 ? 1 : 0;
+    const viewportHeight = Math.max(1, height - footerRows);
+    let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - viewportHeight)));
+    if (followCursor && caret.row < top) top = caret.row;
+    if (followCursor && caret.row >= top + viewportHeight) top = caret.row - viewportHeight + 1;
+    if (followCursor && errorEnd !== undefined) {
+        // Include the prompt if the suffix fits. For a taller diagnostic, keep the
+        // failing line visible and leave the remaining output available to Page Down.
+        const end = rows.length - caret.row <= viewportHeight ? rows.length - 1 : errorEnd;
+        top = Math.max(top, Math.min(caret.row, end - viewportHeight + 1));
+    }
+    const lines = rows.slice(top, top + viewportHeight);
+    while (lines.length < viewportHeight) lines.push('');
+    if (footerRows) {
+        const footerWidth = Math.min(40, width);
+        const status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
+            : suggestion || (notebook.atPrompt
+                ? 'Enter run · help'
+                : 'Ctrl-R rerun · help');
+        let label = fileStatus;
+        if (label && followCursor) {
+            const available = footerWidth - stringWidth(status) - 3;
+            if (stringWidth(label) > available) {
+                const separator = label.lastIndexOf(' · ');
+                const state = separator >= 0 ? label.slice(separator) : '';
+                const nameWidth = available - stringWidth(state) - 1;
+                label = nameWidth >= 0 ? (nameWidth > 0 ? clipped(label, nameWidth) : '') + '…' + state
+                    : available > 0 ? clipped(state.replace(/^ · /, ''), available) : '';
+            }
+        }
+        lines.push(clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth));
+    }
+    return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
+        top, cursorVisible: caret.row >= top && caret.row < top + viewportHeight };
+}
+
+/** Saving has its own filename editor and never changes the source cursor. */
+export function saveFrame(
+    filename: Notebook | undefined, error: string, columns: number, height: number,
+    exitAfterSave = false, saving = false, loadAfterSave = false,
+): ScreenFrame {
+    if (!filename) {
+        const question = loadAfterSave ? 'Save changes before loading another file?' : 'Save changes before exit?';
+        const frame = helpFrame(question + '\n\nEnter / S: save\nD: discard changes\nEsc: cancel', columns, height);
+        if (height > 1) frame.lines[height - 1] = clipped('Enter save · D discard · Esc cancel', Math.max(1, columns - 1));
+        return frame;
+    }
+    const width = Math.max(1, columns - 1);
+    const viewportHeight = Math.max(1, height - 1);
+    const fileRows = editableRows('File: ' + filename.current.source, width);
+    const rows = [clipped(loadAfterSave ? 'Save before loading' : exitAfterSave ? 'Save before exit' : 'Save program', width), '', ...fileRows.map(row => row.text)];
+    let caret = { row: 2, column: 6 };
+    for (const [index, row] of fileRows.entries()) {
+        const point = row.points.find(point => point.offset === filename.cursor + 6);
+        if (point) caret = { row: index + 2, column: point.column };
+    }
+    if (error) rows.push('', ...editableRows(clean(error), width).map(row => '\x1b[31m' + row.text + '\x1b[0m'));
+    const top = Math.max(0, Math.min(caret.row, rows.length - viewportHeight));
+    const lines = rows.slice(top, top + viewportHeight);
+    while (lines.length < viewportHeight) lines.push('');
+    if (height > 1) lines.push(clipped(saving ? 'Saving…' : exitAfterSave ? 'Enter save and exit · Esc cancel' : 'Enter save · Esc cancel', width));
+    return { lines, top, cursor: { row: caret.row - top, column: caret.column }, cursorVisible: true };
+}
+
+/** Help is a temporary screen; its text never belongs to the notebook. */
+export function helpFrame(text: string, columns: number, height: number, previousTop = 0): ScreenFrame {
+    const width = Math.max(1, columns - 1);
+    const contentHeight = Math.max(1, height - 1);
+    const rows = editableRows(clean(text), width).map(row => row.text);
+    const top = Math.max(0, Math.min(previousTop, rows.length - contentHeight));
+    const lines = rows.slice(top, top + contentHeight);
+    while (lines.length < contentHeight) lines.push('');
+    if (height > 1) lines.push(clipped('Esc close · ↑/↓ scroll · PgUp/PgDn', width));
+    return { lines, top, cursor: { row: 0, column: 0 }, cursorVisible: false };
+}
+
+/** Absolute addressing and explicit erasure; never infer where a previous write left the cursor. */
+export function drawFrame(frame: ScreenFrame): string {
+    let text = '\x1b[?25l';
+    for (const [index, line] of frame.lines.entries()) text += `\x1b[${index + 1};1H\x1b[2K${line}`;
+    return text + `\x1b[${frame.cursor.row + 1};${frame.cursor.column + 1}H`
+        + (frame.cursorVisible ? '\x1b[?25h' : '');
 }

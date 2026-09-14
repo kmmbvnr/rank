@@ -3,8 +3,6 @@ rem https://projecteuler.net/problem=25
 rem Find the first Fibonacci index whose
 rem value has Digits decimal digits
 
-use text
-use sequences
 use io
 use cli
 

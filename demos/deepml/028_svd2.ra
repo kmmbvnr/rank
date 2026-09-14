@@ -24,8 +24,8 @@ fun svd_2x2 A
   Y2 = A 1 0 - A 0 1
   X2 = A 0 0 + A 1 1
 
-  H1 = (Y1 * Y1 + X1 * X1) sqrt
-  H2 = (Y2 * Y2 + X2 * X2) sqrt
+  H1 = Y1 * Y1 + X1 * X1 sqrt
+  H2 = Y2 * Y2 + X2 * X2 sqrt
 
   T1 = 1.0
   if H1 greater 0
@@ -36,10 +36,10 @@ fun svd_2x2 A
     T2 = X2 / H2
   end
 
-  CC = ((1 + T1) * (1 + T2)) sqrt
-  SS = ((1 - T1) * (1 - T2)) sqrt
-  CS = ((1 + T1) * (1 - T2)) sqrt
-  SC = ((1 - T1) * (1 + T2)) sqrt
+  CC = (1 + T1) * (1 + T2) sqrt
+  SS = (1 - T1) * (1 - T2) sqrt
+  CS = (1 + T1) * (1 - T2) sqrt
+  SC = (1 - T1) * (1 + T2) sqrt
 
   C = (CC - SS) / 2
   Sine = (SC + CS) / 2
@@ -50,7 +50,7 @@ fun svd_2x2 A
   end
 
   S0 = (H1 + H2) / 2
-  S1 = (H1 - H2) abs / 2
+  S1 = H1 - H2 abs / 2
   S = array S0 S1
 
   V = array shape 2 2 pad 0.0

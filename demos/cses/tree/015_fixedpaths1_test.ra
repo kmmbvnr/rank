@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "015_fixedpaths1"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -27,7 +26,6 @@ end
 test "path counts exact distances"
   use "015_fixedpaths1"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 4) .undirected
   Tree add 1 2
@@ -40,7 +38,6 @@ end
 test "star pairs meet through center"
   use "015_fixedpaths1"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   Tree add 1 2

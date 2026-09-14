@@ -1,5 +1,4 @@
 rem Compiler fixture: local values and branches.
-use ranges
 
 fun bounded X
   Value = X - 100000

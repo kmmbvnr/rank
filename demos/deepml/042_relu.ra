@@ -1,7 +1,6 @@
 rem Deep-ML 42: ReLU
 rem https://www.deep-ml.com/problems/42
 
-use numbers
 
 fun relu Z
   return 0 max Z

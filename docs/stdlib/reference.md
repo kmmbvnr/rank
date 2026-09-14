@@ -1,7 +1,7 @@
 # Standard library reference
 
-Every name the standard modules export, and every construct a `use`
-enables that has no name to look up. Rank is data-first, so an operation
+Core vocabulary and standard modules, including constructs without a
+function name. Rank is data-first, so an operation
 follows the data it reads: `Values sum`, `Text Separator split`.
 
 This page is generated from `packages/language/src/operations.ts` by
@@ -68,6 +68,41 @@ Bitwise operations over arbitrary-precision integers.
 | `Value popcount` | integer | Number of set bits in a nonnegative integer. |
 | `Value Count shl` | integer | Shifts left by a nonnegative bit count. |
 | `Value Count shr` | integer | Arithmetic shift right by a nonnegative bit count. |
+
+## cli
+
+Command-line arguments, flags and options.
+
+These need `use cli` but have no name to look up.
+
+| Form | Summary |
+| --- | --- |
+| `option Name Type = Default` | Declares a named command-line input. |
+| `argument Name Type` | Declares a positional command-line input. |
+| `flag Name` | Declares a boolean command-line flag. |
+| `args Values` | Sets arguments for the next run. |
+
+## core
+
+Always available: conversions, ranges, length, sums and extrema. No use required.
+
+| Form | Result | Summary |
+| --- | --- | --- |
+| `Left max Right` | number | Larger of two numbers, or the largest of one collection. |
+| `Left min Right` | number | Smaller of two numbers, or the smallest of one collection. |
+| `Values sum` | number | Adds every numeric cell of an array, collection or finite sequence. |
+| `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
+| `Value integer` | integer | Truncates a finite real toward zero, preserves an integer, or parses signed decimal integer text. |
+| `Value real` | real | Converts an integer or decimal text to a real, or preserves a real. |
+| `Value text` | text | Formats one scalar as text; a .Nf literal after it selects fixed decimals. |
+
+These constructs are always available.
+
+| Form | Summary |
+| --- | --- |
+| `Left max Right` | Infix min and max over two numbers. |
+| `Low to High` | Counting range with an inclusive upper bound. |
+| `Low until High` | Counting range with an exclusive upper bound. |
 
 ## crypto
 
@@ -225,15 +260,12 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Value isqrt` | integer | Exact integer floor of the square root, calculated without reals. |
 | `A B lcm` | integer | Least common multiple, also a reduction over one finite collection. |
 | `Value log` | real | Natural logarithm of a positive finite number. |
-| `Left max Right` | number | Larger of two numbers, or the largest of one collection. |
-| `Left min Right` | number | Smaller of two numbers, or the smallest of one collection. |
 | `Value odd` | boolean | True for an odd integer. |
 | `Base Exponent Modulus powmod` | integer | Modular exponentiation by repeated squaring, never building the full power. |
 | `Value Places round` | number | Rounds to a signed number of decimal places, halfway values to even. |
 | `Angle sin` | real | Sine of an angle in radians. |
 | `Value sinh` | real | Hyperbolic sine. |
 | `Value sqrt` | real | Real square root of a nonnegative number. |
-| `Values sum` | number | Adds every numeric cell of an array, collection or finite sequence. |
 | `Angle tan` | real | Tangent of an angle in radians. |
 | `Value tanh` | real | Hyperbolic tangent. |
 
@@ -242,7 +274,6 @@ These need `use numbers` but have no name to look up.
 | Form | Summary |
 | --- | --- |
 | `Values multiple by N` | Elementwise divisibility test. |
-| `Left max Right` | Infix min and max over two numbers. |
 
 ## random
 
@@ -254,17 +285,6 @@ Seeded pseudorandom sampling.
 | `Seed seed` | integer, random | Restarts the pseudorandom stream of the session and returns the seed. |
 | `Values shuffle` | array, random | New array in random order; a seed makes the order repeatable. |
 | `Shape Low High uniform` | array, random | Real tensor drawn from the half-open interval between the bounds. |
-
-## ranges
-
-Bounded counting ranges.
-
-These need `use ranges` but have no name to look up.
-
-| Form | Summary |
-| --- | --- |
-| `Low to High` | Counting range with an inclusive upper bound. |
-| `Low until High` | Counting range with an exclusive upper bound. |
 
 ## sequences
 
@@ -280,7 +300,6 @@ Shapes, orderings, windows and lazy sources.
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, until or from. |
-| `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |
@@ -359,7 +378,6 @@ Splitting, formatting, parsing and code points.
 | `Code character` | text | One-character text for a Unicode code point. |
 | `Character codepoint` | integer | Integer code point of exactly one character. |
 | `Bytes hex` | text | Lowercase hexadecimal text for bytes, without a prefix. |
-| `Text integer` | integer | Parses decimal digits with an optional sign. |
 | `Values Separator join` | text | Joins scalar elements of a finite collection into one text. |
 | `Text Pattern parse` | array | Captures /integer, /real, /word and /text from a complete pattern match. |
 | `Text reverse` | text | Reverses text by Unicode code point. |
@@ -368,6 +386,5 @@ Splitting, formatting, parsing and code points.
 | `Text lower` | text | Converts Unicode text to lowercase. |
 | `Text Width Fill lpad` | text | Pads text on the left without truncating longer values. |
 | `Text Chars Replacement translate` | text | Replaces listed characters, deleting those with no replacement. |
-| `Value text` | text | Formats one scalar as text; a .Nf literal after it selects fixed decimals. |
 | `Texts Limit vocab` | array | Most frequent words, at most Limit of them, ties by code point. |
 | `Text words` | array | Lowercase Unicode letter and number runs. |

@@ -3,8 +3,6 @@ rem https://projecteuler.net/problem=17
 rem Count letters in British English names
 rem from one through Limit
 
-use ranges
-use sequences
 use io
 use cli
 

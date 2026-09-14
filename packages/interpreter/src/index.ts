@@ -9,3 +9,5 @@ export { createArraySnapshot } from './array-storage.js';
 export { standardModules } from './modules/index.js';
 
 export { RuntimeDiagnostics } from './diagnostics.js';
+
+export { InterruptedError, withInterrupt, checkInterrupt } from './interrupt.js';

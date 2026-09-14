@@ -2,7 +2,6 @@ rem Deep-ML 7: Matrix Transformation
 rem https://www.deep-ml.com/problems/7
 
 use numbers
-use ranges
 use sequences
 use linalg
 

@@ -371,8 +371,51 @@ Back = Text reverse
 Short pipelines are useful on a narrow screen; intermediate values remain the
 preferred style when they give a result a meaningful name.
 
-Leading unary `+`, `-` and `not` bind to their nearest value before postfix
-application. Therefore the function in this expression receives `-121`:
+A postfix function applies to the accumulated arithmetic expression or range.
+Within that expression, multiplication precedes addition and powers associate
+right. Addressing stays tight: `A i * B j` multiplies two addressed values.
+
+```rank
+2 + 9 sqrt
+rem sqrt(11)
+2 + 3 * 4
+rem 14
+Fibs until 1000 sum
+1 to 9 by 2 array
+A max + 1
+```
+
+To process just one operand, group it explicitly: `A - (A mean)` or
+`0 until (Classes len)`. Comparisons separate completed values, so
+`A len equal B len` means `(A len) equal (B len)`. Processing a comparison
+result requires an explicit group: `(A equal B) count`.
+
+An unparenthesized value expression permits a formula, a block of successive
+function calls, and an optional arithmetic continuation. A new function after
+that continuation is a syntax error. Name the intermediate result:
+
+```rank
+Scores = X W matmul + Bias
+Scores sigmoid
+```
+
+`X W matmul + Bias sigmoid` is rejected with a message asking for an
+intermediate variable. Explicit parentheses start a separate expression;
+short names are preferred when they describe a useful intermediate result.
+There is no numeric limit on the number of operations, and no `|` operator.
+
+When a function is supplied dynamically and its signature is unknown during
+parsing, make the input boundary explicit: `(2 + 9) Op`. An unresolved address
+operand that turns out to be a function raises an error asking for parentheses
+or an intermediate variable; it cannot silently change the formula's grouping.
+
+Chained comparisons such as `1 equal 2 equal false` are also syntax errors.
+The diagnostic asks for parentheses or an intermediate variable.
+`(1 equal 2) equal false` explicitly selects the grouping. Use `and` when
+the intention is to test two independent comparisons.
+
+Leading unary `+` and `-` bind before postfix application. Therefore the
+function in this expression receives `-121`:
 
 ```rank
 Answer = -121 palindrome
@@ -389,8 +432,10 @@ rem -4, 0.25
 
 `**` is right-associative, so `2 ** 3 ** 2` is `2 ** (3 ** 2)`.
 
-Use parentheses or a named intermediate value when the unary operator must be
-applied to the result of a call.
+Use parentheses or a named intermediate value when an arithmetic sign must be
+applied to the result of a call. Logical `not` applies after calls and
+comparisons, before `and`, `xor` and `or`: `not X even` means `not (X even)`;
+`not X less 3` means `not (X less 3)`.
 
 Conditions use words such as `equal` rather than `==`:
 
@@ -502,6 +547,41 @@ must be requested explicitly. Type inference never silently selects a reduced
 precision format. `path` is an input constraint represented by a `text` value,
 rather than a separate runtime type.
 
+### Explicit conversions
+
+`integer`, `real` and `text` are core functions and require no `use`.
+Assignment never converts between integer and real. Convert the value before
+assigning it to a variable or record field of the other type:
+
+```rank
+Whole = 1
+Fraction = 2.7
+Whole = Fraction integer
+Fraction = Whole real
+Label = Fraction text
+```
+
+`integer` preserves an integer, truncates a finite real toward zero, or parses
+signed decimal integer text exactly. Thus `(-2.9) integer` is `-2`.
+`"2.9" integer` is an error; write `"2.9" real integer` to request both steps.
+Nonfinite real values cannot become integers.
+
+`real` preserves a real or converts an integer or decimal text to binary64.
+Text must be a complete decimal number, optionally signed and with a decimal
+point or exponent, such as `"-2.75"` or `"1.25e2"`. Whitespace, hexadecimal
+notation and malformed text are rejected. Conversion can round an integer
+that binary64 cannot represent exactly; overflow raises `.InvalidNumber`.
+
+`text` explicitly renders a scalar, retaining its existing optional fixed
+format: `2.75 text ".1f"`. Parsing and formatting never happen implicitly on
+assignment. Mixed numeric arithmetic still promotes its result to real.
+
+`round` changes the numeric value while retaining its type. To round first
+and then obtain an integer, write `Value round 0 integer` with `use numbers`.
+For elementwise conversion, use `Values real rank 0` or
+`Values integer rank 0`. Text is parsed as a whole by default;
+`"1203" integer rank 0` instead converts its individual digits.
+
 ## Symbols
 
 A leading dot creates a literal symbol:
@@ -546,6 +626,31 @@ source syntax.
 
 ## Standard modules
 
+In the REPL, a saved native source has a consumption cursor: after `G = primes`
+and `G until 100 sum`, the next preview of `G` begins at `101`. Previews do not
+consume values. `H = G` shares the cursor; `H = primes` starts fresh. Replaying
+a consuming line restores the position before that line. Normal file execution
+keeps native sources repeatable. See [sequence previews](design/generator-previews.md).
+
+Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
+conversions `integer`, `real`, `text` are available
+without imports. The catalogue groups them under `core`; no `use core` is
+needed. These functions remain ordinary names and may be overridden by user
+functions. `numbers` still provides `sqrt`, `abs`, number theory and
+`multiple by`; `sequences` provides shapes, ordering and sources such as
+`fibonacci`.
+
+```rank
+Values = 1 to 5
+Values len
+Values sum
+Values min
+Values max
+```
+
+`use cli` enables `option`, `argument`, `flag` and `args`. Without it, a
+program cannot declare command-line inputs. `use testing` enables test blocks.
+
 A bare module name opens standard-library vocabulary in the current workspace:
 
 ```rank
@@ -553,7 +658,6 @@ use numbers
 use random
 use linalg
 use bits
-use ranges
 ```
 
 Parsing does not depend on which modules were opened. `use` enables the
@@ -620,11 +724,16 @@ Rank does not require a `main` function.
 
 ## Program inputs
 
+Declare program inputs with `use cli`. The import is required even when all
+inputs have defaults or receive values from the workspace.
+
 `option` declares an input parameter of a program. It is broader than a
 terminal-only CLI option: a caller may bind it through the current workspace, a
 command-line adapter, a browser host or another runner.
 
 ```rank
+use cli
+
 rem Upper boundary, excluded.
 option Limit integer = 1000
 ```
@@ -644,6 +753,7 @@ run
 ```
 
 ```rank
+use cli
 args "--limit" "10"
 run
 ```
@@ -654,6 +764,7 @@ against the declared type before program statements execute.
 Positional and boolean inputs use the same model:
 
 ```rank
+use cli
 argument Input path
 argument Numbers integer many
 flag Verbose
@@ -764,10 +875,11 @@ A B gcd
 
 Conceptually, the value comes first and selectors follow.
 
-When the final word resolves to a function, preceding values are its data. Thus
-`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`. Resolution
-may use the arity and value roles registered by the imported vocabulary, but it
-does not change the parsed source structure.
+When the final word names a function, preceding values are its data. Thus
+`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`.
+The parser groups calls using vocabulary and binding signatures before
+analysis and execution. A suffix function takes the accumulated arithmetic
+formula or range; addressing within its operands remains tight.
 
 Function arity also separates an addressed first argument from the remaining
 arguments. The final `arity - 1` values are separate arguments; the entire
@@ -788,12 +900,12 @@ allow infix calls: `A max B` calls the current `max` with arguments `A` and
 `B`. Chains associate from the left. These names are not reserved; a local
 function or parameter shadows the builtin in both infix and postfix calls.
 
-Builtin postfix extrema retain one addressing rule: `Matrix i max` reduces
-the addressed row. This rule applies only when the resolved function is the
-builtin. Otherwise postfix calls use ordinary arity selection. Two scalar
-arguments are accepted too: `3 4 max` is `4`. Use infix `Matrix max i` for
-elementwise broadcasting, or name the builtin (`Op = max; Matrix i Op`) to
-use ordinary binary argument selection.
+Builtins and aliases use the same argument rules: `Matrix i max` and
+`Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
+addressed row, write `(Matrix i) max`. `Matrix max i` is the infix form of
+the binary call. Two scalar arguments work the same way: `3 4 max` is `4`.
+A following function starts another step: `Values max sqrt` takes the square
+root of the maximum.
 
 The fundamental selection model is:
 
@@ -1190,7 +1302,6 @@ an outer loop must be ended by its own `break`, condition or `return`.
 its condition again; a bare `for` starts its next iteration.
 
 ```rank
-use ranges
 Sum = 0
 for I in 1 to 5
   if I % 2 equal 0
@@ -1404,7 +1515,23 @@ end
 Loading a source file with `use` registers its top-level functions without
 executing its ordinary top-level statements.
 
-Calls use Rank's data-first order. Arguments come first and the function name
+Functions without parameters are called by evaluating their name:
+
+```rank
+fun answer
+  return 42
+end
+
+Answer = answer
+answer + 1
+```
+
+Each occurrence calls the function once. Parentheses only group expressions:
+`(answer)` also calls it; `answer()` is not Rank syntax. Functions that require
+arguments still evaluate to function values when named alone, so `Root = sqrt`
+remains a function alias. `Answer = answer` stores the returned value.
+
+Calls with arguments use Rank's data-first order. Arguments come first and the function name
 is the final word:
 
 ```rank
@@ -1525,7 +1652,32 @@ open for as long as the receiving resource scope owns that function.
 
 A function containing `yield` returns a lazy sequence. Calling it creates the
 sequence without running the body; execution starts when an operation first
-asks for an element:
+asks for an element.
+
+Generators may also have no parameters:
+
+```rank
+use sequences
+use numbers
+fun tst
+  yield 1
+  yield 2
+  yield 3
+end
+
+G = tst
+G sum
+tst array
+```
+
+`G sum` is `6`; `tst array` creates another generator and produces `1 2 3`.
+Every `tst` call creates a fresh single-pass sequence. Reading `G` keeps the
+saved instance. Built-in sequences such as `fibonacci` remain repeatable and
+keep their identity across name reads. In the REPL, previewing `G` does not
+consume it, and rewinding to a consuming statement resets its consumption.
+See [generator previews](design/generator-previews.md).
+
+With parameters, arguments precede the generator's name:
 
 ```rank
 rem Generate the Collatz values beginning with N.
@@ -2915,7 +3067,6 @@ isolated vertices and makes an unknown endpoint an error:
 
 ```rank
 use graph
-use ranges
 
 Nodes = 1 to NodeCount
 Graph = new graph Nodes .undirected
@@ -4212,7 +4363,6 @@ use numbers
 use random
 use linalg
 use bits
-use ranges
 use graph
 use tables
 use stats
@@ -4930,6 +5080,29 @@ available as the error value respectively.
 Ready = Text "Rank" startswith
 ```
 
+`lower` converts Unicode text to lowercase. `startswith` broadcasts over text
+arrays; `lower` maps over them lazily. Both compile to SQLite expressions for
+database columns. `"part" in Text` tests an exact substring and also works on
+SQLite columns.
+
+`Text Width Fill lpad` adds characters on the left until the result reaches
+`Width` Unicode code points. `Width` is nonnegative, `Fill` is nonempty, and a
+value already at least that wide is unchanged. A multicharacter fill repeats
+from its first character and may be cut at the requested width.
+
+`Text Chars Replacement translate` maps each Unicode character in `Chars` to
+the corresponding character in `Replacement`; characters without a replacement
+are deleted. Characters not listed in `Chars` remain unchanged. On arrays, the
+three arguments broadcast scalars against same-shaped arrays and stay lazy.
+On SQLite views, these operations stay in the query and preserve missing cells
+as SQL `NULL`.
+
+```rank
+Quiet = "RANK" lower
+Zip = "234" 5 "0" lpad
+Digits = "(844) 123-4567" "-() " "" translate
+```
+
 `hex` converts `bytes` to lowercase hexadecimal text without a prefix:
 
 ```rank
@@ -5074,29 +5247,6 @@ HasName = "name" in Data
 
 for Value Key in Data
   Key print
-`lower` converts Unicode text to lowercase. `startswith` broadcasts over text
-arrays; `lower` maps over them lazily. Both compile to SQLite expressions for
-database columns. `"part" in Text` tests an exact substring and also works on
-SQLite columns.
-
-`Text Width Fill lpad` adds characters on the left until the result reaches
-`Width` Unicode code points. `Width` is nonnegative, `Fill` is nonempty, and a
-value already at least that wide is unchanged. A multicharacter fill repeats
-from its first character and may be cut at the requested width.
-
-`Text Chars Replacement translate` maps each Unicode character in `Chars` to
-the corresponding character in `Replacement`; characters without a replacement
-are deleted. Characters not listed in `Chars` remain unchanged. On arrays, the
-three arguments broadcast scalars against same-shaped arrays and stay lazy.
-On SQLite views, these operations stay in the query and preserve missing cells
-as SQL `NULL`.
-
-```rank
-Quiet = "RANK" lower
-Zip = "234" 5 "0" lpad
-Digits = "(844) 123-4567" "-() " "" translate
-```
-
 end
 ```
 
@@ -5305,6 +5455,15 @@ seconds become missing rather than being rounded. The result is a typed
 datetime expression that can be projected, sorted and limited before rows are
 read.
 
+`monthstart` and `nextmonth` accept a `date` or `datetime` and return a
+`datetime` at midnight on the first day of the current or next month. They
+preserve lazy array and sequence mapping, including invalidation after tracked
+array mutations. `nextmonth` past December 9999 raises `.InvalidDate` on an
+ordinary value. On a typed SQLite date or datetime expression, they compile
+to `datetime(value, 'start of month')` and
+`datetime(value, 'start of month', '+1 month')` respectively, without reading
+source rows. SQLite invalid dates yield missing cells.
+
 ```rank
 Days = (Train .date pad "2024-01-01") date
 ```
@@ -5321,15 +5480,6 @@ Train .month = Times month
 ## Algorithm profile
 
 `use algo` provides algorithmic collections and combinatorial generators:
-
-`monthstart` and `nextmonth` accept a `date` or `datetime` and return a
-`datetime` at midnight on the first day of the current or next month. They
-preserve lazy array and sequence mapping, including invalidation after tracked
-array mutations. `nextmonth` past December 9999 raises `.InvalidDate` on an
-ordinary value. On a typed SQLite date or datetime expression, they compile
-to `datetime(value, 'start of month')` and
-`datetime(value, 'start of month', '+1 month')` respectively, without reading
-source rows. SQLite invalid dates yield missing cells.
 
 ```rank
 Seen = new set
@@ -5510,7 +5660,6 @@ rem Project Euler 5
 rem Smallest number divisible by 1..20
 rem https://projecteuler.net/problem=5
 
-use ranges
 use numbers
 
 Range = 1 to 20
@@ -5526,7 +5675,6 @@ program produces `2520`.
 rem Project Euler 6
 rem https://projecteuler.net/problem=6
 
-use ranges
 use numbers
 
 Range = 1 to 100
@@ -5587,7 +5735,6 @@ ranked multiplication reduction produces one value per cell. The default width
 rem Project Euler 9
 rem https://projecteuler.net/problem=9
 
-use ranges
 use numbers
 
 option Target integer = 1000

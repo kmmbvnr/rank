@@ -6,7 +6,7 @@ import {
 import type { RankValue } from './value.js';
 
 interface Host {
-    leaf(expression: Expression): () => RankValue;
+    leaf(expression: Expression): (() => RankValue) | undefined;
     binary(operator: string, left: RankValue, right: RankValue): RankValue;
     unary(operator: string, value: RankValue): RankValue;
     compiled?(source: string): void;
@@ -27,8 +27,10 @@ export function compileScalarExpression(expression: Expression, host: Host): (()
         if (serial > 128) return undefined;
         if (isParenthesizedExpression(e)) return emit(e.value);
         if (isNameExpression(e) || isNumberLiteral(e) || isBooleanLiteral(e) || isStringLiteral(e)) {
+            const read = host.leaf(e);
+            if (!read) return undefined;
             const name = `v${serial++}`;
-            readers.push(host.leaf(e));
+            readers.push(read);
             lines.push(`const ${name} = readers[${readers.length - 1}]();`);
             return name;
         }

@@ -2,9 +2,7 @@ rem Deep-ML 18: K-Fold Cross-Validation
 rem https://www.deep-ml.com/problems/18
 
 use algo
-use numbers
 use random
-use ranges
 
 rem Build train and test indices
 rem for every fold.
@@ -19,14 +17,14 @@ fun cross_validation N K Shuffle
     .DomainError raise
   end
 
-  Order = (0 until N) array
+  Order = 0 until N array
   if Shuffle
     Order = Order shuffle
   end
 
   Base = N // K
   Extra = N % K
-  Positions = (0 until N) array
+  Positions = 0 until N array
 
   for Fold in 0 until K
     First = Fold * Base

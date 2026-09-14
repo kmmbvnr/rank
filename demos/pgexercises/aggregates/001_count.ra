@@ -3,7 +3,6 @@ rem https://pgexercises.com/questions/aggregates/count.html
 
 use cli
 use io
-use sequences
 use tables
 
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"

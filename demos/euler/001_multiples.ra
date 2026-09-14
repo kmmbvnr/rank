@@ -2,7 +2,6 @@ rem Multiples of 3 or 5
 rem https://projecteuler.net/problem=1
 rem Sum multiples of 3 or 5 below 1000
 
-use ranges
 use numbers
 use io
 use cli

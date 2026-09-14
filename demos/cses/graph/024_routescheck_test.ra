@@ -3,7 +3,6 @@ use testing
 test "accepts strong connectivity"
   use "024_routescheck"
   use graph
-  use ranges
   Edges = array shape 3 2
     1 2
     2 3
@@ -16,7 +15,6 @@ end
 test "finds a missing forward route"
   use "024_routescheck"
   use graph
-  use ranges
   Edges = array shape 2 2
     2 1
     3 2
@@ -30,7 +28,6 @@ end
 test "finds a missing return route"
   use "024_routescheck"
   use graph
-  use ranges
   Edges = array shape 2 2
     1 2
     2 3
@@ -44,7 +41,6 @@ end
 test "one city is strongly connected"
   use "024_routescheck"
   use graph
-  use ranges
   use sequences
   Edges = array shape 0 2 pad 0
   Result = 1 Edges routes_check

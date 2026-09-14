@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/3419
 
 use bits
 use io
-use ranges
 
 N = stdin .integer
 Grid = N grid

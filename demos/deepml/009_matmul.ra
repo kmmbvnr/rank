@@ -1,7 +1,6 @@
 rem Deep-ML 9: Matrix Multiplication
 rem https://www.deep-ml.com/problems/9
 
-use ranges
 use sequences
 
 rem Multiply two compatible rank-2 matrices.

@@ -28,7 +28,7 @@ test('ops names the use a name still needs', () => {
 });
 
 test('ops lists a module as forms, bare syntax included', () => {
-    const session = repl(['ops ranges']);
+    const session = repl(['ops core']);
     assert.match(session.stdout, /Low to High/);
     assert.match(session.stdout, /Low until High/);
 
@@ -39,4 +39,26 @@ test('ops lists a module as forms, bare syntax included', () => {
 test('ops refuses a name that is neither module nor operation', () => {
     const session = repl(['ops nosuchthing']);
     assert.match(session.stderr + session.stdout, /unknown module or name: nosuchthing/);
+});
+
+test('ops describes core names as already available', () => {
+    const session = repl(['ops len', 'ops sum', 'ops min', 'ops max', '1 to 5 sum']);
+    assert.equal(session.status, 0, session.stderr);
+    assert.doesNotMatch(session.stdout, /needs: use/);
+    assert.match(session.stdout, /core, 1 operand/);
+    assert.match(session.stdout, /15/);
+});
+
+test('CLI declarations require use cli in a REPL workspace', () => {
+    const session = repl(['option N integer = 3', 'use cli', 'option N integer = 3', 'N']);
+    assert.match(session.stderr + session.stdout, /option requires: use cli/);
+    assert.match(session.stdout, /3/);
+});
+
+test('numeric and text conversions are visible without imports', () => {
+    const session = repl(['ops integer', 'ops real', 'ops text', 'X = 1', 'Y = 2.7', 'X = Y integer', 'Y = X real']);
+    assert.equal(session.status, 0, session.stderr);
+    assert.doesNotMatch(session.stdout, /needs: use/);
+    assert.doesNotMatch(session.stderr, /RankError/);
+    assert.match(session.stdout, /Value real/);
 });

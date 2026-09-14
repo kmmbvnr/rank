@@ -1,3 +1,4 @@
+import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
@@ -133,18 +134,22 @@ function pathLengthPlan(
         *iterate() {
             const count = tree.adjacency.length;
             for (let source = 0; source < count; source += 1) {
+                checkpoint('traversing graph');
                 const distance = new Int32Array(count).fill(-1);
                 distance[source] = 0;
                 const queue = [source];
                 for (let next = 0; next < queue.length; next += 1) {
+                    checkpoint('traversing graph');
                     const vertex = queue[next];
                     for (const neighbor of tree.adjacency[vertex]) {
+                        checkpoint('traversing graph');
                         if (distance[neighbor] >= 0) continue;
                         distance[neighbor] = distance[vertex] + 1;
                         queue.push(neighbor);
                     }
                 }
                 for (let target = source + 1; target < count; target += 1) {
+                    checkpoint('traversing graph');
                     const value = BigInt(distance[target]);
                     if (!predicate || predicate.test(value)) yield value;
                 }
@@ -188,7 +193,9 @@ function snapshotTree(graph: GraphValue, operation: string): TreeSnapshot {
     const pending = [0];
     seen[0] = 1;
     for (let next = 0; next < pending.length; next += 1) {
+        checkpoint('traversing graph');
         for (const neighbor of adjacency[pending[next]]) {
+            checkpoint('traversing graph');
             if (seen[neighbor]) continue;
             seen[neighbor] = 1;
             pending.push(neighbor);
@@ -257,19 +264,25 @@ function countTreeDistances(tree: TreeSnapshot, bounds: DistanceBounds): bigint 
     const components = [0];
     let result = 0;
     while (components.length > 0) {
+        checkpoint('traversing graph');
         const start = components.pop()!;
         if (removed[start]) continue;
         const centroid = findCentroid(tree, start, removed, parent, sizes);
         const all = [0];
         for (const neighbor of tree.adjacency[centroid]) {
+            checkpoint('traversing graph');
             if (removed[neighbor]) continue;
             const branch = collectDistances(tree, neighbor, centroid, removed, upper);
             result -= pairsInRange(branch, lower, upper);
-            for (const distance of branch) all.push(distance);
+            for (const distance of branch) {
+                checkpoint('traversing graph');
+                all.push(distance);
+            }
         }
         result += pairsInRange(all, lower, upper);
         removed[centroid] = 1;
         for (const neighbor of tree.adjacency[centroid]) {
+            checkpoint('traversing graph');
             if (!removed[neighbor]) components.push(neighbor);
         }
     }
@@ -286,17 +299,21 @@ function findCentroid(
     const vertices = [start];
     parent[start] = -1;
     for (let next = 0; next < vertices.length; next += 1) {
+        checkpoint('traversing graph');
         const vertex = vertices[next];
         for (const neighbor of tree.adjacency[vertex]) {
+            checkpoint('traversing graph');
             if (removed[neighbor] || neighbor === parent[vertex]) continue;
             parent[neighbor] = vertex;
             vertices.push(neighbor);
         }
     }
     for (let index = vertices.length - 1; index >= 0; index -= 1) {
+        checkpoint('traversing graph');
         const vertex = vertices[index];
         let size = 1;
         for (const neighbor of tree.adjacency[vertex]) {
+            checkpoint('traversing graph');
             if (!removed[neighbor] && parent[neighbor] === vertex) {
                 size += sizes[neighbor];
             }
@@ -305,8 +322,10 @@ function findCentroid(
     }
     const total = vertices.length;
     for (const vertex of vertices) {
+        checkpoint('traversing graph');
         let largest = total - sizes[vertex];
         for (const neighbor of tree.adjacency[vertex]) {
+            checkpoint('traversing graph');
             if (!removed[neighbor] && parent[neighbor] === vertex) {
                 largest = Math.max(largest, sizes[neighbor]);
             }
@@ -326,10 +345,12 @@ function collectDistances(
     const distances: number[] = [];
     const pending = [{ vertex: start, parent, distance: 1 }];
     while (pending.length > 0) {
+        checkpoint('traversing graph');
         const current = pending.pop()!;
         if (current.distance > limit) continue;
         distances.push(current.distance);
         for (const neighbor of tree.adjacency[current.vertex]) {
+            checkpoint('traversing graph');
             if (removed[neighbor] || neighbor === current.parent) continue;
             pending.push({
                 vertex: neighbor,
@@ -342,7 +363,7 @@ function collectDistances(
 }
 
 function pairsInRange(values: number[], lower: number, upper: number): number {
-    values.sort((left, right) => left - right);
+    values.sort(interruptibleCallback((left, right) => left - right, 'sorting'));
     return pairsAtMost(values, upper) - pairsAtMost(values, lower - 1);
 }
 
@@ -351,6 +372,7 @@ function pairsAtMost(values: readonly number[], limit: number): number {
     let right = values.length - 1;
     let result = 0;
     while (left < right) {
+        checkpoint('traversing graph');
         if (values[left] + values[right] <= limit) {
             result += right - left;
             left += 1;
@@ -366,7 +388,11 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     const rootKey = requireVertex(graph, root);
     const edgeIds = new Set<number>();
     for (const edges of graph.adjacency.values()) {
-        for (const edge of edges) edgeIds.add(edge.id);
+        checkpoint('traversing graph');
+        for (const edge of edges) {
+            checkpoint('traversing graph');
+            edgeIds.add(edge.id);
+        }
     }
     if (edgeIds.size !== graph.size - 1) {
         throw new RankError('root expects a tree');
@@ -385,6 +411,7 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     const children = discovered.map(() => [] as number[]);
     const parentValues = new Map<string, RankValue>();
     for (let position = 1; position < discovered.length; position += 1) {
+        checkpoint('traversing graph');
         const key = setValueKey(discovered[position]);
         const value = search.parent.get(key)!;
         parentValues.set(key, value);
@@ -394,6 +421,7 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     }
     const discoveredSizes = discovered.map(() => 1n);
     for (let position = discovered.length - 1; position > 0; position -= 1) {
+        checkpoint('traversing graph');
         discoveredSizes[discoveredParent[position]] += discoveredSizes[position];
     }
 
@@ -401,17 +429,20 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     const heads = discovered.map(() => 0);
     const pending = [{ position: 0, head: 0 }];
     while (pending.length > 0) {
+        checkpoint('traversing graph');
         const current = pending.pop()!;
         heavyOrder.push(current.position);
         heads[current.position] = current.head;
         const next = children[current.position];
         let heavy = -1;
         for (const child of next) {
+            checkpoint('traversing graph');
             if (heavy < 0 || discoveredSizes[child] > discoveredSizes[heavy]) {
                 heavy = child;
             }
         }
         for (let index = next.length - 1; index >= 0; index -= 1) {
+            checkpoint('traversing graph');
             const child = next[index];
             if (child !== heavy) pending.push({ position: child, head: child });
         }
@@ -441,6 +472,7 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     });
     const jumps = [parent];
     while (2 ** jumps.length <= Math.max(1, vertices.length)) {
+        checkpoint('traversing graph');
         const previous = jumps.at(-1)!;
         jumps.push(previous.map(position => previous[position]));
     }
@@ -487,6 +519,7 @@ function rootedAncestor(tree: RankValue, vertex: RankValue, steps: RankValue): R
     let remaining = steps;
     let level = 0;
     while (remaining > 0n) {
+        checkpoint('traversing graph');
         if ((remaining & 1n) === 1n) position = state.jumps[level][position];
         remaining >>= 1n;
         level += 1;
@@ -502,6 +535,7 @@ function rootedLca(tree: RankValue, left: RankValue, right: RankValue): RankValu
     a = liftPosition(state, a, state.depth[a] - state.depth[b]);
     if (a === b) return state.vertices[a];
     for (let level = state.jumps.length - 1; level >= 0; level -= 1) {
+        checkpoint('traversing graph');
         if (state.jumps[level][a] === state.jumps[level][b]) continue;
         a = state.jumps[level][a];
         b = state.jumps[level][b];
@@ -523,6 +557,7 @@ function liftPosition(state: RootedTreeState, start: number, steps: number): num
     let remaining = steps;
     let level = 0;
     while (remaining > 0) {
+        checkpoint('traversing graph');
         if (remaining % 2 === 1) position = state.jumps[level][position];
         remaining = Math.floor(remaining / 2);
         level += 1;
@@ -542,12 +577,15 @@ function eulerTrail(graph: GraphValue, start: RankValue): RankArray {
     const outdegree = new Map<string, number>();
     const degree = new Map<string, number>();
     for (const key of graph.vertices.keys()) {
+        checkpoint('traversing graph');
         indegree.set(key, 0);
         outdegree.set(key, 0);
         degree.set(key, 0);
     }
     for (const [from, edges] of graph.adjacency) {
+        checkpoint('traversing graph');
         for (const edge of edges) {
+            checkpoint('traversing graph');
             edgeIds.add(edge.id);
             const to = setValueKey(edge.target);
             if (graph.directed) {
@@ -571,10 +609,14 @@ function eulerTrail(graph: GraphValue, start: RankValue): RankArray {
     const stack = [startKey];
     const reversed: string[] = [];
     while (stack.length > 0) {
+        checkpoint('traversing graph');
         const current = stack[stack.length - 1];
         const edges = graph.adjacency.get(current) ?? [];
         let position = next.get(current) ?? 0;
-        while (position < edges.length && used.has(edges[position].id)) position += 1;
+        while (position < edges.length && used.has(edges[position].id)) {
+            checkpoint('traversing graph');
+            position += 1;
+        }
         next.set(current, position);
         if (position === edges.length) {
             reversed.push(stack.pop()!);
@@ -600,6 +642,7 @@ function validDirectedEuler(
 ): boolean {
     let ends = 0;
     for (const key of graph.vertices.keys()) {
+        checkpoint('traversing graph');
         const difference = outdegree.get(key)! - indegree.get(key)!;
         if (difference === -1) {
             ends += 1;
@@ -629,10 +672,12 @@ function graphCycle(graph: GraphValue): RankArray {
     const parent = new Map<string, string>();
     const parentEdge = new Map<string, number>();
     for (const root of graph.vertices.keys()) {
+        checkpoint('traversing graph');
         if (state.has(root)) continue;
         state.set(root, 1);
         const stack: Array<{ key: string; next: number }> = [{ key: root, next: 0 }];
         while (stack.length > 0) {
+            checkpoint('traversing graph');
             const frame = stack[stack.length - 1];
             const edges = graph.adjacency.get(frame.key) ?? [];
             if (frame.next >= edges.length) {
@@ -654,6 +699,7 @@ function graphCycle(graph: GraphValue): RankArray {
             const keys = [next];
             let current = frame.key;
             while (current !== next) {
+                checkpoint('traversing graph');
                 keys.push(current);
                 const previous = parent.get(current);
                 if (previous === undefined) break;
@@ -697,8 +743,10 @@ function maximumFlowRecord(
     const residual: ResidualEdge[][] = vertices.map(() => []);
     const originals: OriginalFlowEdge[] = [];
     for (const [fromKey, edges] of graph.adjacency) {
+        checkpoint('traversing graph');
         const from = position.get(fromKey)!;
         for (const edge of edges) {
+            checkpoint('traversing graph');
             validateCapacity(edge.weight);
             const to = position.get(setValueKey(edge.target))!;
             if (from === to) continue;
@@ -716,10 +764,12 @@ function maximumFlowRecord(
 
     let value: Numeric = 0n;
     while (true) {
+        checkpoint('traversing graph');
         const levels = flowLevels(residual, start);
         if (levels[target] < 0) break;
         const next = vertices.map(() => 0);
         while (true) {
+            checkpoint('traversing graph');
             const amount = augmentLevelPath(residual, levels, next, start, target);
             if (amount === undefined) break;
             value = numericAdd(value, amount);
@@ -729,11 +779,15 @@ function maximumFlowRecord(
     const flowEntries = new ResourceMap<RankValue>(item => item);
     const totals = new Map<string, Numeric>();
     for (const edge of originals) {
+        checkpoint('traversing graph');
         const key = indexKey([vertices[edge.from], vertices[edge.to]]);
         const used = numericSubtract(edge.capacity, edge.residual.capacity);
         totals.set(key, numericAdd(totals.get(key) ?? 0n, used));
     }
-    for (const [key, total] of totals) flowEntries.set(key, total);
+    for (const [key, total] of totals) {
+        checkpoint('traversing graph');
+        flowEntries.set(key, total);
+    }
     const flow = flowEntries.resources.track({ kind: 'index' as const, entries: flowEntries });
     return record({ value, flow, cut: reachableCut(graph, residual, vertices, start) });
 }
@@ -743,8 +797,10 @@ function flowLevels(edges: readonly ResidualEdge[][], start: number): number[] {
     levels[start] = 0;
     const queue = [start];
     for (let head = 0; head < queue.length; head += 1) {
+        checkpoint('traversing graph');
         const from = queue[head];
         for (const edge of edges[from]) {
+            checkpoint('traversing graph');
             if (levels[edge.to] < 0 && numericCompare(edge.capacity, 0n) > 0) {
                 levels[edge.to] = levels[from] + 1;
                 queue.push(edge.to);
@@ -764,14 +820,17 @@ function augmentLevelPath(
     const nodes = [start];
     const path: Array<{ from: number; edge: number }> = [];
     while (nodes.length > 0) {
+        checkpoint('traversing graph');
         const from = nodes[nodes.length - 1];
         if (from === target) {
             let amount = edges[path[0].from][path[0].edge].capacity;
             for (const step of path.slice(1)) {
+                checkpoint('traversing graph');
                 const capacity = edges[step.from][step.edge].capacity;
                 if (numericCompare(capacity, amount) < 0) amount = capacity;
             }
             for (const step of path) {
+                checkpoint('traversing graph');
                 const edge = edges[step.from][step.edge];
                 edge.capacity = numericSubtract(edge.capacity, amount);
                 const reverse = edges[edge.to][edge.reverse];
@@ -781,6 +840,7 @@ function augmentLevelPath(
         }
         let advanced = false;
         while (next[from] < edges[from].length) {
+            checkpoint('traversing graph');
             const edge = edges[from][next[from]];
             if (levels[edge.to] === levels[from] + 1
                 && numericCompare(edge.capacity, 0n) > 0) {
@@ -808,7 +868,9 @@ function reachableCut(
     const seen = new Set([start]);
     const queue = [start];
     for (let head = 0; head < queue.length; head += 1) {
+        checkpoint('traversing graph');
         for (const edge of edges[queue[head]]) {
+            checkpoint('traversing graph');
             if (!seen.has(edge.to) && numericCompare(edge.capacity, 0n) > 0) {
                 seen.add(edge.to);
                 queue.push(edge.to);
@@ -835,10 +897,15 @@ function floydRecord(graph: GraphValue): RankRecord {
     const positions = new Map(vertices.map((value, index) => [setValueKey(value), index]));
     const size = vertices.length;
     const distance: Array<Numeric | undefined> = Array(size * size).fill(undefined);
-    for (let index = 0; index < size; index += 1) distance[index * size + index] = 0n;
+    for (let index = 0; index < size; index += 1) {
+        checkpoint('traversing graph');
+        distance[index * size + index] = 0n;
+    }
     for (const [from, edges] of graph.adjacency) {
+        checkpoint('traversing graph');
         const row = positions.get(from)!;
         for (const edge of edges) {
+            checkpoint('traversing graph');
             const column = positions.get(setValueKey(edge.target))!;
             const offset = row * size + column;
             const previous = distance[offset];
@@ -848,10 +915,13 @@ function floydRecord(graph: GraphValue): RankRecord {
         }
     }
     for (let middle = 0; middle < size; middle += 1) {
+        checkpoint('traversing graph');
         for (let from = 0; from < size; from += 1) {
+            checkpoint('traversing graph');
             const left = distance[from * size + middle];
             if (left === undefined) continue;
             for (let to = 0; to < size; to += 1) {
+                checkpoint('traversing graph');
                 const right = distance[middle * size + to];
                 if (right === undefined) continue;
                 const offset = from * size + to;
@@ -866,10 +936,12 @@ function floydRecord(graph: GraphValue): RankRecord {
     const entries = new ResourceMap<RankValue>(value => value);
     const negative = new Set<string>();
     for (let from = 0; from < size; from += 1) {
+        checkpoint('traversing graph');
         if (numericCompare(distance[from * size + from]!, 0n) < 0) {
             negative.add(setValueKey(vertices[from]));
         }
         for (let to = 0; to < size; to += 1) {
+            checkpoint('traversing graph');
             const value = distance[from * size + to];
             if (value !== undefined) entries.set(indexKey([vertices[from], vertices[to]]), value);
         }
@@ -884,21 +956,27 @@ function minimumSpanningTreeRecord(graph: GraphValue): RankRecord {
     const position = new Map(vertices.map((value, index) => [setValueKey(value), index]));
     const edges: Array<{ from: RankValue; to: RankValue; weight: Numeric }> = [];
     for (const [fromKey, outgoing] of graph.adjacency) {
+        checkpoint('traversing graph');
         const fromIndex = position.get(fromKey)!;
         for (const edge of outgoing) {
+            checkpoint('traversing graph');
             const toIndex = position.get(setValueKey(edge.target))!;
             if (fromIndex <= toIndex) {
                 edges.push({ from: vertices[fromIndex], to: edge.target, weight: edge.weight });
             }
         }
     }
-    edges.sort((left, right) => numericCompare(left.weight, right.weight));
+    edges.sort(interruptibleCallback((left, right) => numericCompare(left.weight, right.weight), 'sorting'));
     const parent = vertices.map((_, index) => index);
     const sizes = vertices.map(() => 1);
     const find = (value: number): number => {
         let root = value;
-        while (parent[root] !== root) root = parent[root];
+        while (parent[root] !== root) {
+            checkpoint('traversing graph');
+            root = parent[root];
+        }
         while (parent[value] !== value) {
+            checkpoint('traversing graph');
             const next = parent[value];
             parent[value] = root;
             value = next;
@@ -909,6 +987,7 @@ function minimumSpanningTreeRecord(graph: GraphValue): RankRecord {
     let weight: Numeric = 0n;
     let components = vertices.length;
     for (const edge of edges) {
+        checkpoint('traversing graph');
         let left = find(position.get(setValueKey(edge.from))!);
         let right = find(position.get(setValueKey(edge.to))!);
         if (left === right) continue;
@@ -935,10 +1014,12 @@ function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
     const order: RankValue[] = [];
     const queue: RankValue[] = [start];
     for (let head = 0; head < queue.length; head += 1) {
+        checkpoint('traversing graph');
         const current = queue[head];
         const currentKey = setValueKey(current);
         order.push(current);
         for (const edge of graph.adjacency.get(currentKey) ?? []) {
+            checkpoint('traversing graph');
             const nextKey = setValueKey(edge.target);
             if (distance.has(nextKey)) continue;
             distance.set(nextKey, BigInt(distance.get(currentKey) as bigint) + 1n);
@@ -956,11 +1037,13 @@ function depthFirst(graph: GraphValue, start: RankValue): SearchState {
     const order: RankValue[] = [];
     const stack: RankValue[] = [start];
     while (stack.length > 0) {
+        checkpoint('traversing graph');
         const current = stack.pop()!;
         const currentKey = setValueKey(current);
         order.push(current);
         const edges = graph.adjacency.get(currentKey) ?? [];
         for (let position = edges.length - 1; position >= 0; position -= 1) {
+            checkpoint('traversing graph');
             const next = edges[position].target;
             const nextKey = setValueKey(next);
             if (distance.has(nextKey)) continue;
@@ -975,9 +1058,14 @@ function depthFirst(graph: GraphValue, start: RankValue): SearchState {
 function topologicalRecord(graph: GraphValue): RankRecord {
     requireDirected(graph, 'topological');
     const indegree = new Map<string, number>();
-    for (const key of graph.vertices.keys()) indegree.set(key, 0);
+    for (const key of graph.vertices.keys()) {
+        checkpoint('traversing graph');
+        indegree.set(key, 0);
+    }
     for (const edges of graph.adjacency.values()) {
+        checkpoint('traversing graph');
         for (const edge of edges) {
+            checkpoint('traversing graph');
             const key = setValueKey(edge.target);
             indegree.set(key, indegree.get(key)! + 1);
         }
@@ -987,9 +1075,11 @@ function topologicalRecord(graph: GraphValue): RankRecord {
         .map(([, vertex]) => vertex);
     const order: RankValue[] = [];
     for (let head = 0; head < queue.length; head += 1) {
+        checkpoint('traversing graph');
         const current = queue[head];
         order.push(current);
         for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+            checkpoint('traversing graph');
             const key = setValueKey(edge.target);
             const remaining = indegree.get(key)! - 1;
             indegree.set(key, remaining);
@@ -1007,20 +1097,29 @@ function stronglyConnectedRecord(graph: GraphValue): RankRecord {
     const finished: string[] = [];
     const visited = new Set<string>();
     for (const root of graph.vertices.keys()) {
+        checkpoint('traversing graph');
         if (visited.has(root)) continue;
         finishFrom(graph, root, visited, finished);
     }
 
     const reverse = new Map<string, string[]>();
-    for (const key of graph.vertices.keys()) reverse.set(key, []);
+    for (const key of graph.vertices.keys()) {
+        checkpoint('traversing graph');
+        reverse.set(key, []);
+    }
     for (const [from, edges] of graph.adjacency) {
-        for (const edge of edges) reverse.get(setValueKey(edge.target))!.push(from);
+        checkpoint('traversing graph');
+        for (const edge of edges) {
+            checkpoint('traversing graph');
+            reverse.get(setValueKey(edge.target))!.push(from);
+        }
     }
 
     const component = new Map<string, RankValue>();
     const roots: RankValue[] = [];
     let count = 0n;
     while (finished.length > 0) {
+        checkpoint('traversing graph');
         const root = finished.pop()!;
         if (component.has(root)) continue;
         count += 1n;
@@ -1028,9 +1127,11 @@ function stronglyConnectedRecord(graph: GraphValue): RankRecord {
         const stack = [root];
         component.set(root, count);
         while (stack.length > 0) {
+            checkpoint('traversing graph');
             const current = stack.pop()!;
             const edges = reverse.get(current)!;
             for (let position = edges.length - 1; position >= 0; position -= 1) {
+                checkpoint('traversing graph');
                 const next = edges[position];
                 if (component.has(next)) continue;
                 component.set(next, count);
@@ -1054,6 +1155,7 @@ function finishFrom(
     const stack: Array<{ key: string; next: number }> = [{ key: root, next: 0 }];
     visited.add(root);
     while (stack.length > 0) {
+        checkpoint('traversing graph');
         const frame = stack[stack.length - 1];
         const edges = graph.adjacency.get(frame.key) ?? [];
         if (frame.next < edges.length) {
@@ -1079,6 +1181,7 @@ function dijkstra(graph: GraphValue, start: RankValue): SearchState {
     const heap = new MinHeap();
     heap.push({ vertex: start, distance: 0n });
     while (heap.size > 0) {
+        checkpoint('traversing graph');
         const entry = heap.pop()!;
         const key = setValueKey(entry.vertex);
         if (settled.has(key) || numericCompare(entry.distance, distance.get(key)!) !== 0) {
@@ -1087,6 +1190,7 @@ function dijkstra(graph: GraphValue, start: RankValue): SearchState {
         settled.add(key);
         order.push(entry.vertex);
         for (const edge of graph.adjacency.get(key) ?? []) {
+            checkpoint('traversing graph');
             const nextKey = setValueKey(edge.target);
             const candidate = numericAdd(entry.distance, edge.weight);
             const previous = distance.get(nextKey);
@@ -1104,11 +1208,14 @@ function bellmanFordRecord(graph: GraphValue, start: RankValue): RankRecord {
     const distance = new Map<string, Numeric>([[startKey, 0n]]);
     const parent = new Map<string, RankValue>();
     for (let pass = 1; pass < graph.size; pass += 1) {
+        checkpoint('traversing graph');
         let changed = false;
         for (const [from, edges] of graph.adjacency) {
+            checkpoint('traversing graph');
             const base = distance.get(from);
             if (base === undefined) continue;
             for (const edge of edges) {
+                checkpoint('traversing graph');
                 const to = setValueKey(edge.target);
                 const candidate = numericAdd(base, edge.weight);
                 const previous = distance.get(to);
@@ -1124,9 +1231,11 @@ function bellmanFordRecord(graph: GraphValue, start: RankValue): RankRecord {
     const negativeKeys = new Set<string>();
     const queue: RankValue[] = [];
     for (const [from, edges] of graph.adjacency) {
+        checkpoint('traversing graph');
         const base = distance.get(from);
         if (base === undefined) continue;
         for (const edge of edges) {
+            checkpoint('traversing graph');
             const to = setValueKey(edge.target);
             const previous = distance.get(to);
             if (previous !== undefined
@@ -1138,8 +1247,10 @@ function bellmanFordRecord(graph: GraphValue, start: RankValue): RankRecord {
         }
     }
     for (let head = 0; head < queue.length; head += 1) {
+        checkpoint('traversing graph');
         const current = queue[head];
         for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+            checkpoint('traversing graph');
             const key = setValueKey(edge.target);
             if (negativeKeys.has(key)) continue;
             negativeKeys.add(key);
@@ -1159,6 +1270,7 @@ function componentRecord(graph: GraphValue): RankRecord {
     const roots: RankValue[] = [];
     let count = 0n;
     for (const root of graph.vertices.values()) {
+        checkpoint('traversing graph');
         const rootKey = setValueKey(root);
         if (component.has(rootKey)) continue;
         count += 1n;
@@ -1166,8 +1278,10 @@ function componentRecord(graph: GraphValue): RankRecord {
         const queue: RankValue[] = [root];
         component.set(rootKey, count);
         for (let head = 0; head < queue.length; head += 1) {
+            checkpoint('traversing graph');
             const current = queue[head];
             for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+                checkpoint('traversing graph');
                 const key = setValueKey(edge.target);
                 if (component.has(key)) continue;
                 component.set(key, count);
@@ -1187,14 +1301,17 @@ function bipartiteRecord(graph: GraphValue): RankRecord {
     const color = new Map<string, Numeric>();
     let possible = true;
     for (const root of graph.vertices.values()) {
+        checkpoint('traversing graph');
         const rootKey = setValueKey(root);
         if (color.has(rootKey)) continue;
         color.set(rootKey, 1n);
         const queue: RankValue[] = [root];
         for (let head = 0; head < queue.length; head += 1) {
+            checkpoint('traversing graph');
             const current = queue[head];
             const currentColor = color.get(setValueKey(current)) as bigint;
             for (const edge of graph.adjacency.get(setValueKey(current)) ?? []) {
+                checkpoint('traversing graph');
                 const key = setValueKey(edge.target);
                 const nextColor = color.get(key);
                 if (nextColor === undefined) {
@@ -1223,6 +1340,7 @@ function indexFrom(
 ): RankIndex {
     const entries = new ResourceMap<RankValue>(value => value);
     for (const [key, value] of values) {
+        checkpoint('traversing graph');
         const vertex = graph.vertices.get(key)!;
         entries.set(indexKey([vertex]), value);
     }
@@ -1232,6 +1350,7 @@ function indexFrom(
 function setFrom(graph: GraphValue, keys: ReadonlySet<string>): RankValue {
     const entries = new ResourceMap<RankValue>(value => value);
     for (const key of keys) {
+        checkpoint('traversing graph');
         const vertex = graph.vertices.get(key)!;
         entries.set(setValueKey(vertex), vertex);
     }
@@ -1242,6 +1361,7 @@ function record(fields: Record<string, RankValue>): RankRecord {
     const entries = new ResourceMap<RankValue>(value => value);
     const types = new Map<string, string>();
     for (const [name, value] of Object.entries(fields)) {
+        checkpoint('traversing graph');
         entries.set(name, value);
         types.set(name, valueType(value));
     }
@@ -1276,7 +1396,9 @@ function requireDirected(graph: GraphValue, operation: string): void {
 
 function rejectNegativeWeights(graph: GraphValue): void {
     for (const edges of graph.adjacency.values()) {
+        checkpoint('traversing graph');
         for (const edge of edges) {
+            checkpoint('traversing graph');
             if (numericCompare(edge.weight, 0n) < 0) {
                 throw new RankError('dijkstra requires nonnegative edge weights');
             }
@@ -1314,6 +1436,7 @@ class MinHeap {
         this.items.push(value);
         let index = this.items.length - 1;
         while (index > 0) {
+            checkpoint('traversing graph');
             const parent = Math.floor((index - 1) / 2);
             if (numericCompare(this.items[parent].distance, value.distance) <= 0) break;
             this.items[index] = this.items[parent];
@@ -1328,6 +1451,7 @@ class MinHeap {
         if (last === undefined || this.items.length === 0) return first;
         let index = 0;
         while (true) {
+            checkpoint('traversing graph');
             const left = index * 2 + 1;
             if (left >= this.items.length) break;
             const right = left + 1;

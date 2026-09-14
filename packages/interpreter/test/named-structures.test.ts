@@ -183,7 +183,6 @@ Seen len
     it('creates fresh values in loops and keeps recursive implicit instances separate', () => {
         expect(run(`
 use algo
-use ranges
 use sequences
 Sets = new queue
 for I in 0 until 2

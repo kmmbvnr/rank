@@ -4,7 +4,6 @@ rem Find the first triangular number with
 rem more than the requested divisors
 
 use numbers
-use sequences
 use io
 use cli
 

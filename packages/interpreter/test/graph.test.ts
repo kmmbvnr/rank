@@ -6,8 +6,7 @@ const prelude = 'use graph\nuse sequences\n';
 
 describe('graphs', () => {
     it('prepares rooted tree traversal data', () => {
-        expect(run(`${prelude}use ranges
-Tree = new graph (1 to 5) .undirected
+        expect(run(`${prelude}Tree = new graph (1 to 5) .undirected
 Tree add (array shape 4 2
   1 2
   1 3
@@ -25,8 +24,7 @@ array (Rooted .root) (Rooted .order) (Parent 4) (Depth 4) (Entry 4) (Size 3) (He
     });
 
     it('answers rooted ancestor, LCA and distance queries', () => {
-        expect(run(`${prelude}use ranges
-Tree = new graph (1 to 7) .undirected
+        expect(run(`${prelude}Tree = new graph (1 to 7) .undirected
 Tree add (array shape 6 2
   1 2
   1 3
@@ -45,8 +43,7 @@ array A B C D
     });
 
     it('pads a missing rooted ancestor', () => {
-        expect(run(`${prelude}use ranges
-Tree = new graph (1 to 3) .undirected
+        expect(run(`${prelude}Tree = new graph (1 to 3) .undirected
 Tree add 1 2
 Tree add 2 3
 Rooted = Tree 1 root
@@ -55,13 +52,11 @@ array (Rooted 3 2 ancestor) (Rooted 3 3 ancestor pad -1)
     });
 
     it('requires an undirected connected tree', () => {
-        expect(() => run(`${prelude}use ranges
-Tree = new graph (1 to 2) .directed
+        expect(() => run(`${prelude}Tree = new graph (1 to 2) .directed
 Tree add 1 2
 Tree 1 root
 `)).toThrow('root expects an undirected graph');
-        expect(() => run(`${prelude}use ranges
-Tree = new graph (1 to 4) .undirected
+        expect(() => run(`${prelude}Tree = new graph (1 to 4) .undirected
 Tree add 1 2
 Tree add 1 2
 Tree add 3 4
@@ -70,8 +65,7 @@ Tree 1 root
     });
 
     it('exposes lazy unordered tree path lengths', () => {
-        expect(run(`${prelude}use ranges
-Tree = new graph (1 to 5) .undirected
+        expect(run(`${prelude}Tree = new graph (1 to 5) .undirected
 Tree add (array shape 4 2
   1 2
   1 3
@@ -87,8 +81,7 @@ array (Exact count) (Near count) (Lengths array)
     });
 
     it('plans reversed path-length comparisons', () => {
-        expect(run(`${prelude}use ranges
-Tree = new graph (1 to 4) .undirected
+        expect(run(`${prelude}Tree = new graph (1 to 4) .undirected
 Tree add 1 2
 Tree add 2 3
 Tree add 3 4
@@ -99,8 +92,7 @@ array ((2 equal Lengths) count) ((2 at least Lengths) count)
 
     it('matches enumerated path-length ranges', () => {
         for (const [low, high] of [[1, 1], [2, 4], [3, 7], [8, 20]]) {
-            expect(run(`${prelude}use ranges
-Tree = new graph (1 to 9) .undirected
+            expect(run(`${prelude}Tree = new graph (1 to 9) .undirected
 Tree add (array shape 8 2
   1 2
   1 3
@@ -136,8 +128,7 @@ Tree = new graph .directed
 Tree add 1 2
 Tree pathlengths
 `)).toThrow('pathlengths expects an undirected graph');
-        expect(() => run(`${prelude}use ranges
-Tree = new graph (1 to 3) .undirected
+        expect(() => run(`${prelude}Tree = new graph (1 to 3) .undirected
 Tree add 1 2
 Tree add 2 3
 Tree add 3 1
@@ -249,8 +240,7 @@ end
     });
 
     it('merges and queries a closed DSU', () => {
-        expect(run(`${prelude}use ranges
-Union = new dsu (1 to 5)
+        expect(run(`${prelude}Union = new dsu (1 to 5)
 A = Union merge 1 2
 B = Union merge 2 3
 C = Union merge 1 3
@@ -286,7 +276,6 @@ end
 
     it('creates a closed undirected graph', () => {
         expect(run(prelude + `
-use ranges
 Nodes = 1 to 4
 Graph = new graph Nodes .undirected
 Graph add 1 2
@@ -296,8 +285,7 @@ array (Graph len) ((Graph 2) array)
     });
 
     it('runs breadth-first search', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 5) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 5) .directed
 Graph add (array shape 5 2
   1 2
   1 3
@@ -313,8 +301,7 @@ array (Distance 5) (Parent 5) (Result .order)
     });
 
     it('runs iterative depth-first search', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 5) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 5) .directed
 Graph add (array shape 5 2
   1 2
   1 3
@@ -329,8 +316,7 @@ array (Result .order) (Distance 5)
     });
 
     it('finds undirected components', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 5) .undirected
+        expect(run(`${prelude}Graph = new graph (1 to 5) .undirected
 Graph add 1 2
 Graph add 3 4
 Result = Graph components
@@ -340,8 +326,7 @@ array (Result .count) (Component 2) (Component 4) (Component 5) (Result .roots)
     });
 
     it('colors bipartite graphs and rejects odd cycles', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 4) .undirected
+        expect(run(`${prelude}Graph = new graph (1 to 4) .undirected
 Graph add 1 2
 Graph add 2 3
 Graph add 3 4
@@ -357,8 +342,7 @@ array (Color .possible) (Colors 1) (Colors 2) (Colors 3) (Failure .possible)
     });
 
     it('runs Dijkstra with integer and real weights', () => {
-        expect(run(`${prelude}use ranges
-use numbers
+        expect(run(`${prelude}use numbers
 Graph = new graph (1 to 4) .directed
 Graph add 1 2 5
 Graph add 1 3 1.5
@@ -372,8 +356,7 @@ array (Distance 2) (Distance 4) (Parent 2)
     });
 
     it('runs Bellman-Ford with negative edges', () => {
-        expect(run(`${prelude}use ranges
-use numbers
+        expect(run(`${prelude}use numbers
 Graph = new graph (1 to 4) .directed
 Graph add 1 2 4
 Graph add 1 3 5
@@ -385,8 +368,7 @@ array (Distance 3) ((Result .negative) len) (Distance 4 pad infinity)
     });
 
     it('marks vertices after reachable negative cycles', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 5) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 5) .directed
 Graph add 1 2 1
 Graph add 2 3 (-2)
 Graph add 3 2 1
@@ -399,8 +381,7 @@ array (2 in Negative) (3 in Negative) (4 in Negative) (5 in Negative)
     });
 
     it('topologically sorts a DAG and reports a cycle', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 4) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 4) .directed
 Graph add 1 2
 Graph add 1 3
 Graph add 2 4
@@ -415,8 +396,7 @@ array (Sorted .possible) (Sorted .order) (Blocked .possible)
     });
 
     it('restores directed and undirected cycles', () => {
-        expect(run(`${prelude}use ranges
-Directed = new graph (1 to 4) .directed
+        expect(run(`${prelude}Directed = new graph (1 to 4) .directed
 Directed add 1 2
 Directed add 2 3
 Directed add 3 1
@@ -428,8 +408,7 @@ array (Directed cycle) (Undirected cycle)
     });
 
     it('returns an empty array for an acyclic graph', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 4) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 4) .directed
 Graph add 1 2
 Graph add 2 3
 (Graph cycle) shape
@@ -437,8 +416,7 @@ Graph add 2 3
     });
 
     it('finds directed and undirected Euler trails', () => {
-        expect(run(`${prelude}use ranges
-Directed = new graph (1 to 3) .directed
+        expect(run(`${prelude}Directed = new graph (1 to 3) .directed
 Directed add 1 2
 Directed add 1 3
 Directed add 2 1
@@ -450,8 +428,7 @@ array (Directed 1 euler) (Undirected 1 euler)
     });
 
     it('handles Euler self-loops and empty graphs', () => {
-        expect(run(`${prelude}use ranges
-Loop = new graph (1 to 1) .undirected
+        expect(run(`${prelude}Loop = new graph (1 to 1) .undirected
 Loop add 1 1
 Empty = new graph (1 to 2) .directed
 array (Loop 1 euler) (Empty 2 euler)
@@ -459,8 +436,7 @@ array (Loop 1 euler) (Empty 2 euler)
     });
 
     it('rejects incomplete Euler walks', () => {
-        expect(run(`${prelude}use ranges
-Branch = new graph (1 to 3) .directed
+        expect(run(`${prelude}Branch = new graph (1 to 3) .directed
 Branch add 1 2
 Branch add 1 3
 Split = new graph (1 to 4) .undirected
@@ -480,8 +456,7 @@ end
     });
 
     it('finds strongly connected components', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 6) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 6) .directed
 Graph add 1 2
 Graph add 2 1
 Graph add 2 3
@@ -495,8 +470,7 @@ array (Result .count) (Part 1) (Part 2) (Part 3) (Part 4) (Part 5) (Part 6)
     });
 
     it('computes all-pairs shortest paths', () => {
-        expect(run(`${prelude}use ranges
-use numbers
+        expect(run(`${prelude}use numbers
 Graph = new graph (1 to 3) .directed
 Graph add 1 2 5
 Graph add 2 3 (-2)
@@ -508,8 +482,7 @@ array (Distance 1 3) (Distance 3 1 pad infinity) ((Result .negative) len)
     });
 
     it('builds a minimum spanning tree', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 4) .undirected
+        expect(run(`${prelude}Graph = new graph (1 to 4) .undirected
 Graph add 1 2 5
 Graph add 1 3 1
 Graph add 3 2 2
@@ -520,8 +493,7 @@ array (Result .connected) (Result .components) (Result .weight) ((Result .edges)
     });
 
     it('returns a minimum spanning forest', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 4) .undirected
+        expect(run(`${prelude}Graph = new graph (1 to 4) .undirected
 Graph add 1 2 4
 Graph add 3 4 7
 Result = Graph mst
@@ -530,8 +502,7 @@ array (Result .connected) (Result .components) (Result .weight)
     });
 
     it('computes maximum flow and a minimum cut', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 4) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 4) .directed
 Graph add 1 2 3
 Graph add 1 3 2
 Graph add 2 3 1
@@ -545,8 +516,7 @@ array (Result .value) (Flow 1 2) (Flow 1 3) (1 in Cut) (2 in Cut)
     });
 
     it('aggregates parallel flow edges', () => {
-        expect(run(`${prelude}use ranges
-Graph = new graph (1 to 2) .directed
+        expect(run(`${prelude}Graph = new graph (1 to 2) .directed
 Graph add 1 2 2
 Graph add 1 2 3
 Result = Graph 1 2 maxflow

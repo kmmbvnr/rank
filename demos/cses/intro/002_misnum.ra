@@ -2,7 +2,6 @@ rem CSES 1083: Missing Number
 rem https://cses.fi/problemset/task/1083
 
 use io
-use numbers
 
 N = stdin .integer
 Count = N - 1
@@ -13,5 +12,5 @@ N Values missing print
 
 rem Find the missing value from the numbers 1 through N.
 fun missing N Values
-  return N * (N + 1) // 2 - Values sum
+  return N * (N + 1) // 2 - (Values sum)
 end

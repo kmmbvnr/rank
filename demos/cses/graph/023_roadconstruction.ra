@@ -3,8 +3,6 @@ rem https://cses.fi/problemset/task/1676
 
 use graph
 use io
-use numbers
-use ranges
 use sequences
 
 N = stdin .integer

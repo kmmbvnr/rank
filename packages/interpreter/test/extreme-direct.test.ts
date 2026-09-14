@@ -55,7 +55,7 @@ end
 
     it('keeps error order and skipped branches', () => {
         expect(() => run('use numbers\n"bad" max 1 min Missing')).toThrow('expected numeric input');
-        expect(() => run('1 max 2')).toThrow('use numbers');
+        expect(run('1 max 2')).toBe('2');
         expect(run('use numbers\n1 2 max')).toBe('2');
         expect(run('if false\n X = Missing max 1\nend\n7')).toBe('7');
     });
@@ -143,7 +143,7 @@ end`);
 
     it('gives aliases the same lazy broadcasting and tie representation', () => {
         expect(run('use numbers\nOp = max\nA = array 1 "later"\nB = A 3 Op\nB 0')).toBe('3');
-        expect(run('use numbers\nuse ranges\nOp = min\n(1 to 3) 2 Op')).toBe('1 2 2');
+        expect(run('use numbers\nOp = min\n(1 to 3) 2 Op')).toBe('1 2 2');
         expect(run('use numbers\nuse algo\nQ = new queue\nQ push 1\nQ push 8\nOp = max\nQ 3 Op')).toBe('3 8');
         const runtime = new Interpreter();
         runtime.execute('use numbers');

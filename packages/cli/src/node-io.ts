@@ -1,3 +1,4 @@
+import { attachSqliteInterrupt, closeSqlite, sqliteOperation } from './sqlite-interrupt.js';
 import * as fs from 'node:fs';
 import * as pathModule from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -18,6 +19,7 @@ interface NativeSqliteStatement {
 }
 
 interface NativeSqliteDatabase {
+    loadExtension(path: string, entry: string): void;
     prepare(text: string): NativeSqliteStatement;
     function(name: string, options: { deterministic: boolean; safeIntegers: boolean },
         implementation: (...args: SqliteScalar[]) => SqliteScalar): void;
@@ -117,35 +119,41 @@ export class NodeInput implements RankInput {
 export const nodeIo: RankIo = {
     openSqlite(path): RankSqliteConnection {
         const database = new Sqlite(path, { readonly: true, fileMustExist: true });
-        registerRankText(database);
+        try {
+            registerRankText(database);
+            attachSqliteInterrupt(database);
+        } catch (error) { closeSqlite(database); throw error; }
         return {
             prepare(text) {
-                const statement = database.prepare(text).safeIntegers(true);
+                const statement = sqliteOperation(() => database.prepare(text).safeIntegers(true));
                 return {
                     readonly: statement.readonly,
                     reader: statement.reader,
                     columns: () => statement.columns().map(column => column.name),
-                    all: parameters => statement.all(...parameters),
+                    all: parameters => sqliteOperation(() => statement.all(...parameters)),
                 };
             },
-            close: () => database.close(),
+            close: () => closeSqlite(database),
         };
     },
     openSqliteWrite(path): RankSqliteConnection {
         const database = new Sqlite(path, { readonly: false, fileMustExist: true });
-        registerRankText(database);
+        try {
+            registerRankText(database);
+            attachSqliteInterrupt(database);
+        } catch (error) { closeSqlite(database); throw error; }
         return {
             prepare(text) {
-                const statement = database.prepare(text).safeIntegers(true);
+                const statement = sqliteOperation(() => database.prepare(text).safeIntegers(true));
                 return {
                     readonly: statement.readonly,
                     reader: statement.reader,
                     columns: () => statement.columns().map(column => column.name),
-                    all: parameters => statement.all(...parameters),
-                    run: parameters => statement.run(...parameters).changes,
+                    all: parameters => sqliteOperation(() => statement.all(...parameters)),
+                    run: parameters => sqliteOperation(() => statement.run(...parameters).changes),
                 };
             },
-            close: () => database.close(),
+            close: () => closeSqlite(database),
         };
     },
     listImages(directory) {

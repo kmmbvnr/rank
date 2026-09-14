@@ -1,3 +1,4 @@
+import { checkpoint, InterruptedError } from './interrupt.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -23,6 +24,8 @@ import { reduceWindowCell } from './sequence.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
+    nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
+    REDUCE_OPERATORS, OUTER_OPERATORS,
     isAddStatement,
     isAliasedTableExpression,
     isAllAxisExpression,
@@ -99,7 +102,7 @@ import type { RuntimeModule } from './modules/types.js';
 import { broadcastShape, mapBroadcastArrays } from './tensor.js';
 import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
-import { roundValue, sumIndexed } from './modules/numbers.js';
+import { sumIndexed } from './modules/numbers.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -190,6 +193,10 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Host-owned buffering for single-pass sources, installed only at creation. */
+    readonly wrapSinglePassSequence?: (source: RankSequence) => RankSequence;
+    /** Optional host cursors for repeatable sequence values saved by assignment. */
+    readonly wrapStoredSequence?: (source: RankSequence) => RankSequence;
     readonly tensorReadHoisting?: boolean;
     readonly scalarEntryCompilation?: boolean;
     readonly compiledScalarTailCalls?: boolean;
@@ -344,7 +351,7 @@ const typeFunction: NativeFunction = {
 
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
-    readonly modules = new Set<string>();
+    readonly modules = new Set<string>(['core']);
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly options: InterpreterOptions;
@@ -359,6 +366,7 @@ export class Interpreter {
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
+    private readonly standardSequences = new Map<RuntimeModule[string], RankSequence>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
     private readonly resourceScopes: Set<RankFile>[] = [];
@@ -377,7 +385,9 @@ export class Interpreter {
     }
 
     execute(source: string): RankValue | undefined {
-        const program = parse(source, this.options.sourceId);
+        const program = parse(source, this.options.sourceId, {
+            bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
+        });
         if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
         this.loadedProgram = {
             id: this.options.sourceId ?? '<input>',
@@ -391,6 +401,19 @@ export class Interpreter {
             () => this.executeProgram(program, this.options.args ?? []),
             false,
         );
+    }
+
+    /** Includes inferred global types whose declaration has not produced a value yet. */
+    bindingNames(): ReadonlySet<string> {
+        return new Set([...this.variables.keys(), ...this.variableTypes.keys()]);
+    }
+
+    /** A notebook can replace declarations without relaxing assignment type checks. */
+    forgetBindings(names: Iterable<string>): void {
+        for (const name of names) {
+            this.variables.delete(name);
+            this.variableTypes.delete(name);
+        }
     }
 
     dispose(): void {
@@ -576,6 +599,7 @@ export class Interpreter {
         let index = 0;
         try {
             for (; index < statements.length; index += 1) {
+                checkpoint();
                 const prepared = this.preparedStatement(statements, index);
                 if (prepared.tensor && !context.insideFinally && !context.insideGenerator) {
                     const value = prepared.tensor.run();
@@ -696,8 +720,8 @@ export class Interpreter {
             lookup: name => this.findVariable(name),
             compiled: this.options.onTensorKernelCompiled,
             builtin: name => {
-                const module = ['text', 'integer'].includes(name) ? 'text' : name === 'mean' ? 'stats'
-                    : ['sum', 'min', 'max'].includes(name) ? 'numbers' : 'sequences';
+                const module = ['text', 'integer', 'len', 'sum', 'min', 'max'].includes(name)
+                    ? 'core' : name === 'mean' ? 'stats' : 'sequences';
                 if (!this.modules.has(module)) return false;
                 return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]);
             },
@@ -729,6 +753,7 @@ export class Interpreter {
         try {
             let result = yield* resume(first);
             for (index += 1; index < statements.length; index += 1) {
+                checkpoint();
                 const prepared = this.preparedStatement(statements, index);
                 if (prepared.tensor && !context.insideFinally && !context.insideGenerator) {
                     const value = prepared.tensor.run();
@@ -782,6 +807,7 @@ export class Interpreter {
         }
         if (isArgsStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
+                interpreter.requireModule('cli', 'args');
                 interpreter.pendingArgs = (yield* resume(mapExecution(statement.values, value => interpreter.evaluateTask(value)))).map(formatValue);
                 return undefined;
             } };
@@ -789,7 +815,10 @@ export class Interpreter {
         if (isOptionStatement(statement)
             || isArgumentStatement(statement)
             || isFlagStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> { return undefined; } };
+            return { stream: function* (): Execution<RankValue | undefined> {
+                interpreter.requireModule('cli', inputDeclarationName(statement));
+                return undefined;
+            } };
         }
         if (isTestStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
@@ -886,7 +915,7 @@ export class Interpreter {
                                 false,
                             ));
                         } catch (error) {
-                            if (!(error instanceof RankError)) throw error;
+                            if (!(error instanceof RankError) || error instanceof InterruptedError) throw error;
                             const clause = statement.catches.find(candidate =>
                                 candidate.errorKind === undefined
                                 || candidate.errorKind.name === error.rankKind);
@@ -1002,6 +1031,7 @@ export class Interpreter {
                         : interpreter.forEntries(binding, iterable);
                     let ordinal = 0n;
                     for (const entry of entries) {
+                        checkpoint();
                         if (flat) {
                             if (bindValue) bindValue(entry as RankValue);
                             if (bindIndex[0]) bindIndex[0](ordinal++);
@@ -1035,6 +1065,7 @@ export class Interpreter {
                     }
                 } else {
                     for (;;) {
+                        checkpoint();
                         if (statement.condition) {
                             let test: RankValue;
                             if (condition) {
@@ -1119,11 +1150,7 @@ export class Interpreter {
                 },
                 absolute: this.options.absoluteLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
-                extremeParts: expression => {
-                    const parts = flattenApplication(expression);
-                    try { return explicitExtremeApplication(parts) ?? parts; }
-                    catch { return undefined; }
-                },
+                extremeParts: flattenApplication,
                 compoundWrites: this.options.compoundArrayCompilation !== false,
                 arrayIteration: this.options.arrayIterationCompilation !== false,
                 // The region guards cell types before entry and preserves them.
@@ -1137,7 +1164,6 @@ export class Interpreter {
                     : (source, indices) => tensorSelection(source, indices).offsetAt(0),
                 arrayReads: this.options.arrayLoopCompilation !== false,
                 iteration: forIteration,
-                ranges: () => this.modules.has('ranges'),
                 module: name => this.modules.has(name),
                 builtin: (module, name) => {
                     if (!this.modules.has(module)) return false;
@@ -1419,11 +1445,13 @@ export class Interpreter {
                 ? undefined : assignmentOperator(statement.operator);
             const direct = this.compileDirectExpression(statement.value);
             const write = this.compileAssign(statement.name);
+            const stored = (value: RankValue): RankValue => isRankSequence(value)
+                ? this.options.wrapStoredSequence?.(value) ?? value : value;
             if (direct) {
                 return { run: () => {
-                    const result = operator === undefined ? direct() : this.evaluateBinary(
+                    const result = stored(operator === undefined ? direct() : this.evaluateBinary(
                         operator, this.resolveVariable(statement.name), direct(),
-                    );
+                    ));
                     write(result);
                     return result;
                 } };
@@ -1431,7 +1459,7 @@ export class Interpreter {
             return { stream: () => {
                 const previous = operator === undefined ? undefined : this.resolveVariable(statement.name);
                 return mapResult(this.evaluateTask(statement.value), value => {
-                    const result = operator === undefined ? value : this.evaluateBinary(operator, previous!, value);
+                    const result = stored(operator === undefined ? value : this.evaluateBinary(operator, previous!, value));
                     write(result);
                     return result;
                 });
@@ -1505,6 +1533,10 @@ export class Interpreter {
             execute = direct
                 ? () => completed(direct())
                 : this.compileExpression(expression);
+            if (!direct && requiresDataOperand(expression)) {
+                const evaluate = execute;
+                execute = () => mapResult(evaluate(), value => this.checkDataOperand(expression, value));
+            }
             this.expressions.set(expression, execute);
         }
         return execute;
@@ -1514,10 +1546,24 @@ export class Interpreter {
     // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
+        const evaluate = this.compileDirectValue(expression);
+        return evaluate && requiresDataOperand(expression)
+            ? () => this.checkDataOperand(expression, evaluate()) : evaluate;
+    }
+
+    private checkDataOperand(expression: Expression, value: RankValue): RankValue {
+        if (isNativeFunction(value)) throw this.locateError(new RankError(
+            'This function has no known signature here. Group its input with parentheses or introduce an intermediate variable.',
+            'Syntax',
+        ), expression);
+        return value;
+    }
+
+    private compileDirectValue(expression: Expression): (() => RankValue) | undefined {
         if (this.options.scalarCompilation !== false
             && (isBinaryExpression(expression) || isUnaryExpression(expression))) {
             const compiled = compileScalarExpression(expression, {
-                leaf: leaf => this.compileDirectExpression(leaf)!,
+                leaf: leaf => this.compileDirectExpression(leaf),
                 binary: (op, left, right) => this.evaluateBinary(op, left, right),
                 unary: (op, value) => this.evaluateUnary(op, value),
                 compiled: this.options.onScalarCompiled,
@@ -1542,8 +1588,8 @@ export class Interpreter {
         }
         if (isLabelLiteral(expression)) return () => ({ kind: 'label', name: expression.name });
         if (isNameExpression(expression)) {
+            if (nameNeedsExecution(expression)) return undefined;
             const name = expression.name;
-            if (name.includes('.')) return () => this.resolve(name);
             let layout: Map<string, number> | undefined;
             let slot: number | undefined;
             return () => {
@@ -1555,10 +1601,10 @@ export class Interpreter {
                     }
                     if (slot !== undefined) {
                         const value = frame.read(slot, name);
-                        if (value !== undefined) return value;
+                        if (value !== undefined) return this.directNameValue(value);
                     }
                 }
-                return this.resolve(name);
+                return this.directNameValue(this.resolve(name));
             };
         }
         if (isParenthesizedExpression(expression)) return this.compileDirectExpression(expression.value);
@@ -1590,8 +1636,6 @@ export class Interpreter {
         tail = false,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
-        const pipeline = modifierPipeline(expression);
-        if (pipeline) return this.compileExpression(pipeline, missing, tail);
         if (isNewStructureExpression(expression)) {
             const create = this.compileDirectExpression(expression)!;
             return () => completed(create());
@@ -1619,7 +1663,7 @@ export class Interpreter {
                     throw new RankError('stdin count must be a nonnegative integer');
                 }
                 let consumed = false;
-                return sequence({
+                return interpreter.singlePassSequence({
                     name: `stdin .${mode}`,
                     size: { kind: 'exact', value: count },
                     *iterate() {
@@ -1687,7 +1731,7 @@ export class Interpreter {
                         }
                         const operation = operationNode.name as GroupAggregateOperation;
                         interpreter.requireModule(operation === 'count' ? 'sequences'
-                            : ['mean', 'median', 'std'].includes(operation) ? 'stats' : 'numbers', operation);
+                            : ['mean', 'median', 'std'].includes(operation) ? 'stats' : 'core', operation);
                         return { name: entry.name, operation, field };
                     });
                     return selectGroupedTable(source, specs);
@@ -1978,7 +2022,18 @@ export class Interpreter {
             };
         }
         if (isNameExpression(expression)) {
-            return function* (): Execution<RankValue> { return interpreter.resolve(expression.name); };
+            return () => {
+                const value = interpreter.resolve(expression.name);
+                if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(value);
+                if (tail && interpreter.resourceScopes.at(-1)?.size === 0) {
+                    const definition = functionDefinitions.get(value);
+                    if (definition?.interpreter === interpreter) throw new TailCallSignal(definition, []);
+                }
+                return mapResult(interpreter.invoke(value, []), result => {
+                    interpreter.ownFiles(result);
+                    return result;
+                });
+            };
         }
         if (isParenthesizedExpression(expression)) {
             if (tail) return this.compileExpression(expression.value, missing, true);
@@ -1995,24 +2050,6 @@ export class Interpreter {
             };
         }
         if (isBinaryExpression(expression)) {
-            const signedRound = explicitSignedRoundApplication(expression);
-            if (signedRound) {
-                return function* (): Execution<RankValue> {
-                    interpreter.requireModule('numbers', 'round');
-                    const places = (yield* resume(interpreter.evaluateTask(signedRound.places)));
-                    const values = yield* resume(mapExecution(
-                        signedRound.source,
-                        part => interpreter.evaluateTask(part),
-                    ));
-                    const source = values.length === 1
-                        ? values[0]
-                        : yield* resume(interpreter.apply(values));
-                    return roundValue(
-                        source,
-                        typeof places === 'bigint' ? -places : places,
-                    );
-                };
-            }
             if (expression.operator === '**' && isUnaryExpression(expression.left)
                 && (expression.left.operator === '+' || expression.left.operator === '-')) {
                 const left = expression.left;
@@ -2071,7 +2108,7 @@ export class Interpreter {
             if (reduction) {
                 const fused = reduction.rank === undefined ? compileFusedReduction(
                     reduction.source, reduction.operator, {
-                        prepareLeaf: source => interpreter.compileDirectExpression(source)!,
+                        prepareLeaf: source => interpreter.compileDirectExpression(source),
                         binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
                         reduce: value => interpreter.evaluateReduction(reduction.operator, value),
                     },
@@ -2270,7 +2307,6 @@ export class Interpreter {
                 const format = parts[textFormat + 1];
                 if (!isStringLiteral(format)) throw new RankError('expected text format');
                 return function* (): Execution<RankValue> {
-                    interpreter.requireModule('text', 'text');
                     const values = yield* resume(mapExecution(parts.slice(0, textFormat),
                         part => interpreter.evaluateTask(part)));
                     const source = values.length === 1 ? values[0] : yield* resume(interpreter.apply(values));
@@ -2291,23 +2327,6 @@ export class Interpreter {
                         yield* resume(interpreter.evaluateTask(lowerBound.limit)),
                     );
                     return lowerBoundSequence(source, limit);
-                };
-            }
-            const round = explicitRoundApplication(parts);
-            if (round) {
-                return function* (): Execution<RankValue> {
-                    interpreter.requireModule('numbers', 'round');
-                    const values = yield* resume(mapExecution(
-                        round.source,
-                        part => interpreter.evaluateTask(part),
-                    ));
-                    const source = values.length === 1
-                        ? values[0]
-                        : yield* resume(interpreter.apply(values));
-                    return roundValue(
-                        source,
-                        (yield* resume(interpreter.evaluateTask(round.places))),
-                    );
                 };
             }
             const axisWindow = explicitAxisWindow(parts);
@@ -2342,7 +2361,6 @@ export class Interpreter {
             const axisLength = explicitAxisLength(parts);
             if (axisLength) {
                 return function* (): Execution<RankValue> {
-                    interpreter.requireModule('sequences', 'len');
                     return lengthOfAxis((yield* resume(interpreter.evaluateTask(axisLength.source))), axisLength.axis);
                 };
             }
@@ -2380,7 +2398,7 @@ export class Interpreter {
                                 || axisReduction.operation === 'any'
                                 || axisReduction.operation === 'count'
                                 ? 'sequences'
-                                : 'numbers',
+                                : 'core',
                         axisReduction.operation,
                     );
                     return interpreter.evaluateAxisReduction(
@@ -2423,23 +2441,6 @@ export class Interpreter {
                     );
                 };
             }
-            const extreme = explicitExtremeApplication(parts);
-            if (extreme) {
-                return this.compileApplication(extreme, missing, tail);
-            }
-            // Builtin postfix extrema reduce an addressed value (Matrix i max).
-            // A shadowing callable uses the same argument rules as any function.
-            const lastExtreme = extremeName(parts.at(-1)!);
-            if (lastExtreme && parts.length > 2) return () => flatMapResult(mapExecution(
-                parts.slice(0, -1), part => interpreter.evaluateTask(part),
-            ), values => {
-                const fn = interpreter.resolve(lastExtreme);
-                const builtin = interpreter.standardFunctions.get(standardModules.numbers[lastExtreme]);
-                if (fn === builtin && canApplySelectors(values)) {
-                    return interpreter.apply([interpreter.applySelectors(values), fn], missing, 0, [], tail);
-                }
-                return interpreter.apply([...values, fn], missing, 0, [], tail);
-            });
             const axisSelection = explicitAxisSelection(parts);
             if (axisSelection) {
                 return function* (): Execution<RankValue> {
@@ -2585,11 +2586,11 @@ export class Interpreter {
             }
             if (parts.length === 2 && isNamed(parts[1], 'sum')) {
                 const fused = compileFusedSum(parts[0], {
-                    prepareLeaf: source => interpreter.compileDirectExpression(source)!,
+                    prepareLeaf: source => interpreter.compileDirectExpression(source),
                     binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
                 }, (value, sum) => {
                     const fn = interpreter.resolve('sum');
-                    if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.numbers.sum)) {
+                    if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.core.sum)) {
                         return completed(sum ? sum() : fn.call([value]));
                     }
                     return interpreter.apply([value, fn], missing, 0, [], tail);
@@ -2775,8 +2776,8 @@ export class Interpreter {
                 for (const name of builtins) {
                     const bound = context?.find(name)?.get(name) ?? this.variables.get(name);
                     if (bound !== undefined) {
-                        if (bound !== this.standardFunctions.get(standardModules.numbers[name])) return false;
-                    } else if ([...this.modules].find(module => standardModules[module]?.[name]) !== 'numbers') {
+                        if (bound !== this.standardFunctions.get(standardModules.core[name])) return false;
+                    } else if ([...this.modules].find(module => standardModules[module]?.[name]) !== 'core') {
                         return false;
                     }
                 }
@@ -2864,6 +2865,7 @@ export class Interpreter {
         let pending: unknown;
         try {
             while (true) {
+                checkpoint();
                 try {
                     this.localFrame = frame;
                     for (const local of prepareFunction(statement).locals) this.defineFunction(local);
@@ -2912,6 +2914,11 @@ export class Interpreter {
         return result!;
     }
 
+    private singlePassSequence(plan: RankSequence['plan']): RankSequence {
+        const source = sequence({ ...plan, singlePass: true });
+        return this.options.wrapSinglePassSequence?.(source) ?? source;
+    }
+
     private callGeneratorFunction(
         statement: FunctionStatement,
         arguments_: RankValue[],
@@ -2925,7 +2932,7 @@ export class Interpreter {
             for (const local of prepareFunction(statement).locals) this.defineFunction(local);
         });
 
-        return sequence({
+        return this.singlePassSequence({
             name: statement.name,
             size: { kind: 'unknown' },
             captures: frame.captures(),
@@ -3035,6 +3042,8 @@ export class Interpreter {
     private useFile(specifier: string, alias?: string): LoadedProgram {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
+            wrapSinglePassSequence: this.options.wrapSinglePassSequence,
+            wrapStoredSequence: this.options.wrapStoredSequence,
             input: this.options.input,
             scalarEntryCompilation: this.options.scalarEntryCompilation,
             compiledScalarTailCalls: this.options.compiledScalarTailCalls,
@@ -3205,6 +3214,7 @@ export class Interpreter {
             test.withResourceScope(() => test.executeProgram(program, [], true), false);
             this.testResults.push({ name, passed: true, output });
         } catch (error) {
+            if (error instanceof InterruptedError) throw error;
             this.testResults.push({
                 name,
                 passed: false,
@@ -3220,6 +3230,11 @@ export class Interpreter {
         if (declarations.length === 0) {
             if (args.length > 0) throw new RankError(`unexpected arguments: ${args.join(' ')}`);
             return;
+        }
+
+        if (!this.modules.has('cli') && !program.statements.some(statement =>
+            isUseStatement(statement) && statement.module === 'cli')) {
+            throw this.locateError(new RankError(`${inputDeclarationName(declarations[0])} requires: use cli`), declarations[0]);
         }
 
         const parsed = parseArguments(args);
@@ -3284,6 +3299,15 @@ export class Interpreter {
         }
     }
 
+    // Rank source cannot pass a nullary function by name: the name calls it.
+    // A host callback can still supply one through a parameter or public binding.
+    private directNameValue(value: RankValue): RankValue {
+        if (!isNativeFunction(value) || !value.arities.includes(0)) return value;
+        const result = value.call([]);
+        this.ownFiles(result);
+        return result;
+    }
+
     private validateInput(name: string, valueType: string, many: boolean): void {
         const value = this.variables.get(name)!;
         const values = many && isRankArray(value) ? value.items : [value];
@@ -3318,7 +3342,7 @@ export class Interpreter {
         for (const module of this.modules) {
             const fn = standardModules[module]?.[name];
             if (fn) {
-                const cached = this.standardFunctions.get(fn);
+                const cached = this.standardFunctions.get(fn) ?? this.standardSequences.get(fn);
                 if (cached !== undefined) return cached;
                 const value = fn({
                     output: this.output,
@@ -3328,6 +3352,7 @@ export class Interpreter {
                     ownFile: file => this.ownFile(file),
                 });
                 if (isNativeFunction(value)) this.standardFunctions.set(fn, value);
+                if (isRankSequence(value)) this.standardSequences.set(fn, value);
                 return value;
             }
         }
@@ -3702,7 +3727,7 @@ export class Interpreter {
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
 
-        const builtin = ['numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
+        const builtin = ['core', 'numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
             Object.values(standardModules[module]).some(definition => this.standardFunctions.get(definition) === fn));
         const results = new Map<number, RankValue>();
         let inputRevision: number | undefined;
@@ -3899,7 +3924,7 @@ export class Interpreter {
         };
         // Lazy cells must still be fully read before the reducer validates them.
         const directSum = operation === 'sum' && value.itemAt === undefined
-            && reducer === this.standardFunctions.get(standardModules.numbers.sum);
+            && reducer === this.standardFunctions.get(standardModules.core.sum);
 
         const reduceAt = (frameIndex: number): RankValue => {
             const start = offsetAt(frameIndex, frameAxes);
@@ -3926,7 +3951,7 @@ export class Interpreter {
         };
 
         if (frameShape.length === 0) return reduceAt(0);
-        const builtin = ['numbers', 'stats', 'sequences'].some(module => {
+        const builtin = ['core', 'numbers', 'stats', 'sequences'].some(module => {
             const definition = standardModules[module][operation];
             return definition !== undefined && reducer === this.standardFunctions.get(definition);
         });
@@ -4019,8 +4044,8 @@ export class Interpreter {
                 case 'atmost': return left <= right;
                 case 'equal': return left === right;
                 case 'notequal': return left !== right;
-                case 'min': this.requireModule('numbers', operator); return left < right ? left : right;
-                case 'max': this.requireModule('numbers', operator); return left > right ? left : right;
+                case 'min': return left < right ? left : right;
+                case 'max': return left > right ? left : right;
                 case '%': {
                     if (right === 0n) throw new RankError('division by zero');
                     const remainder = left % right;
@@ -4034,9 +4059,6 @@ export class Interpreter {
                 }
                 default: break;
             }
-        }
-        if (operator === 'min' || operator === 'max') {
-            this.requireModule('numbers', operator);
         }
         if (operator === 'is') {
             if (!isRankLabel(right)) {
@@ -4057,7 +4079,6 @@ export class Interpreter {
                 }
                 return boundSequence(left, expectInteger(right), operator === 'to');
             }
-            this.requireModule('ranges', operator);
             return makeRange(
                 expectInteger(left),
                 expectInteger(right),
@@ -5668,23 +5689,6 @@ interface AxisCovarianceApplication {
     readonly axes: readonly [number, number];
 }
 
-interface RoundApplication {
-    readonly source: readonly Expression[];
-    readonly places: Expression;
-}
-
-function explicitSignedRoundApplication(expression: Expression): RoundApplication | undefined {
-    if (!isBinaryExpression(expression) || expression.operator !== '-') return undefined;
-    const parts = flattenApplication(expression.left);
-    if (parts.length < 2 || !isNamed(parts.at(-1)!, 'round')) return undefined;
-    return { source: parts.slice(0, -1), places: expression.right };
-}
-
-function explicitRoundApplication(parts: Expression[]): RoundApplication | undefined {
-    if (parts.length < 3 || !isNamed(parts.at(-2)!, 'round')) return undefined;
-    return { source: parts.slice(0, -2), places: parts.at(-1)! };
-}
-
 function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication | undefined {
     if (parts.length < 3 || !isNamed(parts[1], 'covariance') || !isNamed(parts[2], 'axis')) {
         return undefined;
@@ -5703,76 +5707,6 @@ function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication 
 
 function isNamed(expression: Expression, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
-}
-
-function flattenApplication(expression: Expression): Expression[] {
-    if (!isApplicationExpression(expression)) return [expression];
-    return [
-        ...flattenApplication(expression.head),
-        ...expression.arguments.flatMap(flattenApplication),
-    ];
-}
-
-// Group a completed modified operation before compiling the remaining pipeline.
-// These private syntax nodes reuse the existing evaluator; no values are cached.
-function applicationParts(parts: Expression[]): Expression {
-    if (parts.length === 1) return parts[0];
-    return { $type: 'ApplicationExpression', head: parts[0], arguments: parts.slice(1) } as Expression;
-}
-
-function continueModified(prefix: Expression, rest: Expression[]): Expression {
-    return applicationParts([
-        { $type: 'ParenthesizedExpression', value: prefix } as Expression,
-        ...rest,
-    ]);
-}
-
-function modifierPipeline(expression: Expression): Expression | undefined {
-    if (isBinaryExpression(expression)) {
-        const parts = flattenApplication(expression.right);
-        const scan = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'scan');
-        const reduce = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'reduce');
-        const segment = REDUCE_OPERATORS.has(expression.operator) && isNamed(parts[0], 'segment');
-        const outer = OUTER_OPERATORS.has(expression.operator) && isNamed(parts[0], 'outer');
-        if (!scan && !reduce && !segment && !outer) return undefined;
-        const end = reduce && parts[1] && isNamed(parts[1], 'rank') ? 3 : 1;
-        if (parts.length <= end) return undefined;
-        return continueModified(
-            { ...expression, right: applicationParts(parts.slice(0, end)) } as Expression,
-            parts.slice(end),
-        );
-    }
-    if (!isApplicationExpression(expression)) return undefined;
-    const parts = flattenApplication(expression);
-    const direction = parts.findIndex((part, index) => index > 1
-        && (isNamed(part, 'ascending') || isNamed(part, 'descending'))
-        && parts.slice(0, index).some(p => isNamed(p, 'sort') || isNamed(p, 'argsort')));
-    if (direction >= 0) {
-        return direction === parts.length - 1 ? undefined
-            : continueModified(applicationParts(parts.slice(0, direction + 1)), parts.slice(direction + 1));
-    }
-    if (parts.length > 6 && explicitNamedSegmentApplication(parts.slice(0, 6))) {
-        return continueModified(applicationParts(parts.slice(0, 6)), parts.slice(6));
-    }
-    if (parts.length > 3 && isNamed(parts[2], 'segment')) {
-        return continueModified(applicationParts(parts.slice(0, 3)), parts.slice(3));
-    }
-    const rank = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'rank'));
-    if (rank >= 0 && parts.length > rank + 2) {
-        return continueModified(applicationParts(parts.slice(0, rank + 2)), parts.slice(rank + 2));
-    }
-    const axis = parts.findIndex((part, index) => index >= 2 && isNamed(part, 'axis'));
-    if (axis >= 0) {
-        let end = axis + 1;
-        while (end < parts.length && isNumberLiteral(parts[end])) end++;
-        if (end > axis + 1 && end < parts.length && !isNamed(parts[end], 'rank')) {
-            return continueModified(applicationParts(parts.slice(0, end)), parts.slice(end));
-        }
-    }
-    if (parts.length > 4 && isNamed(parts[3], 'outer')) {
-        return continueModified(applicationParts(parts.slice(0, 4)), parts.slice(4));
-    }
-    return undefined;
 }
 
 function explicitMaterializePipeline(parts: Expression[]): {
@@ -5822,35 +5756,6 @@ interface NamedOuterApplication {
     readonly operation: Expression;
 }
 
-// Infix extrema are left-associative calls, not builtin dispatch. The ordinary
-// application evaluator resolves the name after evaluating both operands.
-function explicitExtremeApplication(parts: Expression[]): Expression[] | undefined {
-    const first = parts.findIndex((part, index) => index > 0
-        && (isNamed(part, 'min') || isNamed(part, 'max')));
-    if (first < 0 || first === parts.length - 1) return undefined;
-
-    for (let index = first; index < parts.length; index += 2) {
-        const operation = parts[index];
-        const right = parts[index + 1];
-        const operationName = operation && extremeName(operation);
-        if (!operationName) {
-            throw new RankError('min/max chains require an operation between each value');
-        }
-        if (!right) throw new RankError(`${operationName} expects a value on the right`);
-    }
-    return [
-        { $type: 'ParenthesizedExpression', value: applicationParts(parts.slice(0, -2)) } as Expression,
-        parts.at(-1)!, parts.at(-2)!,
-    ];
-}
-
-function extremeName(expression: Expression): 'min' | 'max' | undefined {
-    if (!isNameExpression(expression)) return undefined;
-    return expression.name === 'min' || expression.name === 'max'
-        ? expression.name
-        : undefined;
-}
-
 function explicitNamedOuterApplication(parts: Expression[]): NamedOuterApplication | undefined {
     if (parts.length !== 4 || !isNamed(parts[3], 'outer')) return undefined;
     return {
@@ -5880,12 +5785,6 @@ function explicitOuterApplication(expression: Expression): OuterApplication | un
         right: operands[1],
     };
 }
-
-const OUTER_OPERATORS = new Set([
-    '+', '-', '*', '**', '/', '//', '%',
-    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
-    'and', 'or', 'xor', 'multipleby',
-]);
 
 interface ReduceApplication {
     readonly operator: string;
@@ -5955,7 +5854,6 @@ function explicitReduceApplication(expression: Expression): ReduceApplication | 
     };
 }
 
-const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
 const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
 
 interface AxisWindowApplication {
@@ -6344,4 +6242,8 @@ function sortDescending(direction: string | undefined): boolean {
         throw new RankError('sort direction must be ascending or descending', 'TypeError');
     }
     return direction === 'descending';
+}
+
+function inputDeclarationName(statement: Statement): string {
+    return isOptionStatement(statement) ? 'option' : isArgumentStatement(statement) ? 'argument' : 'flag';
 }

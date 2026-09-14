@@ -24,6 +24,18 @@ describe('modifier pipelines', () => {
         expect(run('use numbers\n' + matrix + 'M + reduce rank 1 sum')).toBe('10');
     });
 
+    it('keeps independent modifier pipelines on both sides of comparisons', () => {
+        const matrix = 'M = array shape 2 2\n  1 2\n  3 4\nend\n';
+        expect(run('use numbers\n' + matrix + 'M sum axis 0 sum equal M sum axis 1 sum')).toBe('true');
+    });
+
+    it('keeps direction attached to sorting before selecting the result', () => {
+        expect(run('use sequences\n(array 3 1 2) sort descending 0')).toBe('3');
+        const matrix = 'M = array shape 2 2\n  1 2\n  3 4\nend\n';
+        expect(run('use sequences\n' + matrix + 'M sort rank 1 descending 0')).toBe('2 1');
+        expect(run('use sequences\n' + matrix + 'M argsort axis 1 descending 0')).toBe('1 0');
+    });
+
     it('keeps modifier argument diagnostics in a pipeline', () => {
         expect(() => run('use text\n"12" integer rank "bad" print'))
             .toThrowError('rank expects a nonnegative integer');

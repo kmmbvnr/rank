@@ -308,7 +308,7 @@ describe('Rank grammar', () => {
 
     it('parses imported words as ordinary application', async () => {
         const document = await parse([
-            'use ranges',
+
             'use numbers',
             'use sequences',
             '1 to 10 sum',
@@ -317,7 +317,7 @@ describe('Rank grammar', () => {
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(6);
+        expect(document.parseResult.value.statements).toHaveLength(5);
     });
 
     it('parses matmul with an explicit axis pair', async () => {

@@ -7,7 +7,6 @@ use "001_titanic" as Classifier
 use cli
 use images
 use linalg
-use ranges
 use sequences
 use tables
 use text

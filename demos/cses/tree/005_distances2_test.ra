@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "005_distances2"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -20,7 +19,6 @@ end
 test "single node has zero sum"
   use "005_distances2"
   use graph
-  use ranges
   use sequences
   Tree = new graph (array 1) .undirected
   Tree distance_sums equal (array 0)
@@ -29,7 +27,6 @@ end
 test "path sums are symmetric"
   use "005_distances2"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   for Node in 1 until 5
@@ -42,7 +39,6 @@ end
 test "star center has the smallest sum"
   use "005_distances2"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   for Node in 2 to 5

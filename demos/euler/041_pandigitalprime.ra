@@ -5,7 +5,6 @@ rem from 1 through N exactly once
 
 use algo
 use sequences
-use text
 use io
 
 Digits = "7654321"

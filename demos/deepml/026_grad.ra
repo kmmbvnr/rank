@@ -2,7 +2,6 @@ rem Deep-ML 26: Basic Autograd
 rem https://www.deep-ml.com/problems/26
 
 use algo
-use sequences
 
 rem Create a scalar tape value.
 fun value Tape Data

@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1141
 
 use io
 use algo
-use numbers
 
 N = stdin .integer
 A = stdin .integer N array

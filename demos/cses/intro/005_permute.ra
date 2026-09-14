@@ -2,7 +2,6 @@ rem CSES 1070: Permutations
 rem https://cses.fi/problemset/task/1070
 
 use io
-use ranges
 
 N = stdin .integer
 

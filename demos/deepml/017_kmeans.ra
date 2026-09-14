@@ -2,7 +2,6 @@ rem Deep-ML 17: K-Means Clustering
 rem https://www.deep-ml.com/problems/17
 
 use numbers
-use ranges
 use sequences
 use stats
 
@@ -17,11 +16,11 @@ fun k_means Points K Centroids Max
       Best = 0
 
       D = Point - Centroids 0
-      BestDist = (D * D) sum / 1
+      BestDist = D * D sum / 1
 
       for c in 1 until K
         D = Point - Centroids c
-        Dist = (D * D) sum / 1
+        Dist = D * D sum / 1
 
         if Dist less BestDist
           BestDist = Dist

@@ -186,7 +186,7 @@ describe('Rank random operations', () => {
     });
 
     it('materializes finite sequences and rejects invalid inputs', () => {
-        expect(run('use random\nuse ranges\n(0 until 5) 42 shuffle'))
+        expect(run('use random\n(0 until 5) 42 shuffle'))
             .toBe('0 4 2 1 3');
         expect(() => run('use random\nuse sequences\nfibonacci shuffle'))
             .toThrowError('shuffle requires a bounded sequence');

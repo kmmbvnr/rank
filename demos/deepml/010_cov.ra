@@ -18,6 +18,6 @@ fun covariance V
 
   rem Center one feature without copying it eagerly.
   fun center Feature
-    return Feature - Feature mean
+    return Feature - (Feature mean)
   end
 end

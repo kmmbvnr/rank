@@ -3,8 +3,6 @@ rem https://projecteuler.net/problem=4
 rem Largest palindrome made from the
 rem product of two N-digit numbers
 
-use ranges
-use numbers
 use text
 use io
 use cli

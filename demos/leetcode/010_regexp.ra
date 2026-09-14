@@ -3,7 +3,6 @@ rem Full match of text against a pattern
 rem containing '.' and '*'
 
 use algo
-use sequences
 
 rem Build a table where index i j says whether
 rem the first i characters match the first j

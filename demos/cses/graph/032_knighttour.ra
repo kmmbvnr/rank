@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/1689
 use algo
 use io
 use numbers
-use ranges
 use sequences
 
 X = stdin .integer
@@ -95,8 +94,8 @@ fun valid_tour Board
   end
 
   for Step in 1 until 64
-    DX = (Xs (Step + 1) - Xs Step) abs
-    DY = (Ys (Step + 1) - Ys Step) abs
+    DX = Xs (Step + 1) - Xs Step abs
+    DY = Ys (Step + 1) - Ys Step abs
     if DX * DY not equal 2
       return false
     end

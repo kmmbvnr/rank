@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1624
 
 use io
 use numbers
-use ranges
 
 Board = stdin .word 8 array
 
@@ -42,7 +41,7 @@ fun solve Board
           Previous = Temp % 8
 
           SameColumn = Previous equal Col
-          SameDiagonal = (Previous - Col) abs equal Distance
+          SameDiagonal = Previous - Col abs equal Distance
 
           if SameColumn or SameDiagonal
             Valid = false
@@ -54,7 +53,7 @@ fun solve Board
         end
 
         if Valid
-          Ways += (State * 8 + Col) search
+          Ways += State * 8 + Col search
         end
       end
     end

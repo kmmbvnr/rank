@@ -1,5 +1,4 @@
 rem Explicit indexing compiler benchmark.
-use ranges
 use sequences
 
 fun dot A B

@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=50
 rem Find the prime below Limit made from the
 rem longest sum of consecutive primes
 
-use ranges
 use sequences
 use io
 use cli
@@ -17,7 +16,7 @@ Answer print
 rem Prefix sums make each candidate interval
 rem constant time; lengths are tried longest first.
 fun longest_prime_sum Limit
-  Primes = (primes until Limit) array
+  Primes = primes until Limit array
   Count = Primes len
   Prefix = array shape (Count + 1) pad 0
   for Prime I in Primes

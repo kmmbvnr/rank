@@ -117,7 +117,7 @@ describe('Rank statistics', () => {
             'Actual Target mae',
         ].join('\n'))).toBe('2.5');
         expect(run([
-            'use ranges',
+
             'use stats',
             'Actual = 1 to 3',
             'Target = array 1 1 1',

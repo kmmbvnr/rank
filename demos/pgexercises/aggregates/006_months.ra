@@ -3,7 +3,6 @@ rem https://pgexercises.com/questions/aggregates/fachoursbymonth2.html
 
 use cli
 use dates
-use numbers
 use sequences
 use tables
 

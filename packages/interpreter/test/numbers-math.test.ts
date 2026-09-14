@@ -49,11 +49,10 @@ describe('Rank mathematical functions', () => {
             '  1 7',
             '  4 2',
             'end',
-            'M 0 max',
+            '(M 0) max',
         ].join('\n'))).toBe('7');
         expect(run('use numbers\n3 2 max')).toBe('3');
-        expect(() => run('3 max 2'))
-            .toThrowError('use numbers');
+        expect(run('3 max 2')).toBe('3');
     });
 
     it('reduces numeric sets', () => {
@@ -111,7 +110,7 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n1 exp')).toBe('2.718281828459045');
         expect(run('use numbers\n(array 0 1) exp'))
             .toBe('1 2.718281828459045');
-        expect(run('use numbers\nuse ranges\n(0 to 1) exp'))
+        expect(run('use numbers\n(0 to 1) exp'))
             .toBe('1 2.718281828459045');
         expect(run([
             'use numbers',
@@ -174,7 +173,7 @@ describe('Rank mathematical functions', () => {
             .toBe('0 0 0.7853981633974483 1.5707963267948966');
         expect(run([
             'use numbers',
-            'use ranges',
+
             '(0 to 1) (1 to 2) atan2',
         ].join('\n'))).toBe('0 0.4636476090008061');
     });

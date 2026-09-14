@@ -5,7 +5,7 @@ use numbers
 
 rem Normalize scores with stable exp.
 fun softmax X
-  Shift = X - X max
+  Shift = X - (X max)
   Exps = Shift exp
-  return Exps / Exps sum
+  return Exps / (Exps sum)
 end

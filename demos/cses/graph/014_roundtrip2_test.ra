@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "014_roundtrip2"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Edges = array shape 5 2
     1 3
@@ -20,7 +19,6 @@ end
 test "acyclic graph has no trip"
   use "014_roundtrip2"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 4) .directed
   Graph add 1 2
@@ -33,7 +31,6 @@ end
 test "finds a disconnected cycle"
   use "014_roundtrip2"
   use graph
-  use ranges
   Graph = new graph (1 to 5) .directed
   Graph add 1 2
   Graph add 3 4
@@ -46,7 +43,6 @@ end
 test "finds a two-city cycle"
   use "014_roundtrip2"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .directed
   Graph add 1 2
   Graph add 2 1

@@ -1,3 +1,4 @@
+import { checkpoint, interruptibleValues } from './interrupt.js';
 import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
 import type { RankSegmentValue } from './segment.js';
@@ -228,6 +229,8 @@ export type SequenceSize =
     | { readonly kind: 'infinite' };
 
 export interface SequencePlan {
+    /** Reads share state rather than starting an independent traversal. */
+    readonly singlePass?: boolean;
     readonly name: string;
     readonly size: SequenceSize;
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
@@ -432,6 +435,7 @@ export function formatValue(value: RankValue): string {
 }
 
 function formatNestedValue(value: RankValue, active: Set<object>): string {
+    checkpoint('formatting result');
     if (typeof value === 'bigint') {
         return value.toString();
     }
@@ -514,13 +518,13 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     }
     if (isRankSequenceMask(value)) {
         if (value.source.plan.size.kind === 'infinite') return `<mask ${value.predicate.name}>`;
-        return [...value.source.plan.iterate()]
+        return [...interruptibleValues(value.source.plan.iterate(), 'formatting sequence')]
             .map(item => formatNestedValue(value.predicate.test(item), active))
             .join(' ');
     }
     if (value.kind === 'sequence') {
         if (value.plan.size.kind === 'infinite') return `<sequence ${value.plan.name}>`;
-        return [...value.plan.iterate()].map(item => formatNestedValue(item, active)).join(' ');
+        return [...interruptibleValues(value.plan.iterate(), 'formatting sequence')].map(item => formatNestedValue(item, active)).join(' ');
     }
     if (isRankBytes(value)) {
         return `0x${[...value.data].map(byte => byte.toString(16).padStart(2, '0')).join('')}`;

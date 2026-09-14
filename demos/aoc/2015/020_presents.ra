@@ -5,8 +5,6 @@ rem https://adventofcode.com/2015/day/20
 use io
 use cli
 use algo
-use text
-use ranges
 
 argument Input path
 

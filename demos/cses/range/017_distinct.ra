@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1734
 
 use io
 use algo
-use ranges
 use sequences
 
 N = stdin .integer
@@ -20,7 +19,7 @@ rem Keep each value's latest position.
 fun distinct Values Queries
   Q = Queries len
   Right = Queries # 1
-  Indices = (0 until Q) array
+  Indices = 0 until Q array
   Keys = Right * (Q + 1) + Indices
   Order = Keys argsort
   Latest = new index

@@ -1,8 +1,6 @@
 rem Deep-ML 51: String Alignment
 rem https://www.deep-ml.com/problems/51
 
-use numbers
-use ranges
 use sequences
 
 fun osa Source Target

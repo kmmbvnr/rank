@@ -6,7 +6,6 @@ rem sex, passenger class, age and fare.
 use cli
 use linalg
 use numbers
-use ranges
 use sequences
 use stats
 use tables
@@ -65,11 +64,12 @@ fun logistic X Y Rate Steps
   Bias = 0.0
   Zt = Z transpose
   for # in 0 until Steps
-    Probability = (Z Weights matmul + Bias) sigmoid
+    Scores = Z Weights matmul + Bias
+    Probability = Scores sigmoid
     Error = Probability - Y
     Gradient = Zt Error matmul / Rows
     Weights -= Rate * Gradient
-    Bias -= Rate * Error mean
+    Bias -= Rate * (Error mean)
   end
 
   return record
@@ -90,7 +90,7 @@ end
 
 
 fun sigmoid Value
-  return 1 / (1 + (-Value) exp)
+  return 1 / (1 + ((-Value) exp))
 end
 
 

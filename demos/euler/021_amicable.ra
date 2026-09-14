@@ -2,7 +2,6 @@ rem Amicable Numbers
 rem https://projecteuler.net/problem=21
 rem Sum all amicable numbers below Limit
 
-use ranges
 use numbers
 use io
 use cli

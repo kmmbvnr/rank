@@ -4,9 +4,6 @@ rem Find the first ten digits of the sum of
 rem one hundred 50-digit integers
 
 use sequences
-use numbers
-use text
-use ranges
 use io
 use cli
 

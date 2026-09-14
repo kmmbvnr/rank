@@ -2,7 +2,6 @@ rem Deep-ML 49: Adam Optimizer
 rem https://www.deep-ml.com/problems/49
 
 use numbers
-use ranges
 
 rem Run ten standard Adam steps.
 fun adam_optimizer Input

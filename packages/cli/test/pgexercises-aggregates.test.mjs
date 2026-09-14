@@ -542,7 +542,7 @@ test('grouped aggregate programs match SQLite without reading source rows early'
         assert.match(result.stdout, /COUNT\(\*\)/);
         const mixed = path.join(dir, 'mixed.ra');
         fs.writeFileSync(mixed, `use io\nuse numbers\nuse sequences\nuse stats\nuse tables\n`
-            + `argument DbPath path\nargument OutputPath path\n`
+            + `use cli\nargument DbPath path\nargument OutputPath path\n`
             + 'Db = DbPath sqlite\nR = Db .bookings\nG = R group by .facid\n'
             + 'S = G select\n  .visits = count\n  .present = .slots count\n'
             + '  .slots = .slots sum\n  .low = .slots min\n'

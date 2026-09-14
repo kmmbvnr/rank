@@ -28,8 +28,7 @@ function compare(source: string, input = '') {
 
 // Different names, multiple arithmetic maps, a separate unary statement, and
 // all rather than any: this is a pipeline compiler, not a Stick Game rewrite.
-const probe = `use ranges
-use sequences
+const probe = `use sequences
 use io
 fun probe A B Limit
   Result = false
@@ -150,8 +149,7 @@ A B calculate print`;
         expect(result.kernels).toBe(1);
     });
     it('combines inline row addressing and a dot product', () => {
-        const source = `use ranges
-use numbers
+        const source = `use numbers
 use io
 fun rows A X
   Result = 0.0

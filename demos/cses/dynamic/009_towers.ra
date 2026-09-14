@@ -2,8 +2,6 @@ rem CSES 2413: Counting Towers
 rem https://cses.fi/problemset/task/2413
 
 use io
-use numbers
-use ranges
 
 Tests = stdin .integer
 Heights = stdin .integer Tests array

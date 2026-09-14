@@ -5,7 +5,6 @@ test "official example"
   use algo
   use graph
   use numbers
-  use ranges
   use sequences
   Graph = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -32,7 +31,6 @@ test "single node path uses its value"
   use algo
   use graph
   use numbers
-  use ranges
   use sequences
   Nodes = array 1
   Graph = new graph Nodes .undirected
@@ -50,7 +48,6 @@ test "update changes a later maximum"
   use algo
   use graph
   use numbers
-  use ranges
   use sequences
   Graph = new graph (1 to 4) .undirected
   Graph add 1 2
@@ -73,7 +70,6 @@ test "path crosses several heavy chains"
   use algo
   use graph
   use numbers
-  use ranges
   use sequences
   Graph = new graph (1 to 7) .undirected
   Edges = array shape 6 2

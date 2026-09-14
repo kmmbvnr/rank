@@ -7,7 +7,6 @@ use cli
 use algo
 use bits
 use text
-use sequences
 
 argument Input path
 

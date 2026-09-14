@@ -2,7 +2,6 @@ rem CSES 1717: Christmas Party
 rem https://cses.fi/problemset/task/1717
 
 use io
-use ranges
 
 N = stdin .integer
 N derangements print

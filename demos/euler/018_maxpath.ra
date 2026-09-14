@@ -3,9 +3,7 @@ rem https://projecteuler.net/problem=18
 rem Find the largest top-to-bottom path sum
 rem through a number triangle
 
-use ranges
 use sequences
-use numbers
 use io
 
 Triangle = array shape 120

@@ -3,9 +3,7 @@ rem https://projecteuler.net/problem=27
 rem Find coefficients producing the longest
 rem prime run from n equal zero
 
-use ranges
 use sequences
-use numbers
 use io
 use cli
 

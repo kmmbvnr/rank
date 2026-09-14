@@ -7,8 +7,7 @@ describe('derived array revisions', () => {
     it('tracks materialized sequences through cached outer products', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute(`use ranges
-A = (1 to 3) array
+            runtime.execute(`A = (1 to 3) array
 B = A A + outer`);
             const source = runtime.variables.get('A') as RankArray;
             const result = runtime.variables.get('B') as RankArray;
@@ -33,7 +32,6 @@ B = A A + outer`);
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => { loops++; } });
         try {
             expect(runtime.execute(`use numbers
-use ranges
 A = array 0
 B = A * 2
 Warm = B sum
@@ -51,7 +49,6 @@ Answer`)).toBe(6n);
         const runtime = new Interpreter();
         try {
             runtime.execute(`use numbers
-use ranges
 A = array 0
 B = A * 2
 Warm = B sum`);
@@ -148,8 +145,7 @@ Result = W * 2`);
     it.each([true, false])('invalidates axis statistics after loop writes with compilation %s', compiled => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
         try {
-            runtime.execute(`use ranges
-use numbers
+            runtime.execute(`use numbers
 use stats
 A = array shape 2 2 pad 1
 Means = A mean axis 1`);

@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "015_courseschedule"
   use graph
-  use ranges
   Graph = new graph (1 to 5) .directed
   Graph add 1 2
   Graph add 3 1
@@ -16,7 +15,6 @@ end
 test "cycle makes schedule impossible"
   use "015_courseschedule"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .directed
   Graph add 1 2
   Graph add 2 3
@@ -28,7 +26,6 @@ end
 test "includes isolated courses"
   use "015_courseschedule"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Graph add 2 3
   Result = Graph course_schedule
@@ -39,7 +36,6 @@ end
 test "orders a prerequisite chain"
   use "015_courseschedule"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Graph add 3 4
   Graph add 2 3

@@ -1,9 +1,6 @@
 rem Deep-ML 30: Batch Iterator
 rem https://www.deep-ml.com/problems/30
 
-use numbers
-use ranges
-use sequences
 
 rem Lazily split X along its first axis.
 fun batch_iterator X Size

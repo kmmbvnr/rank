@@ -1,5 +1,4 @@
 rem Three values starting at each outer I.
-use ranges
 
 fun nested_sum N
   Total = 0

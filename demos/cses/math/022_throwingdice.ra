@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/1096
 use io
 use linalg
 use numbers
-use ranges
 
 N = stdin .integer
 N dice_ways print

@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "004_messageroute"
   use graph
-  use ranges
   Nodes = 1 to 5
   Graph = new graph Nodes .undirected
   Edges = array shape 5 2
@@ -21,7 +20,6 @@ end
 test "unreachable target"
   use "004_messageroute"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .undirected
   Graph add 1 2
   Path = Graph 1 4 message_route
@@ -40,7 +38,6 @@ end
 test "chooses a shortest route"
   use "004_messageroute"
   use graph
-  use ranges
   Graph = new graph (1 to 6) .directed
   Edges = array shape 6 2
     1 2

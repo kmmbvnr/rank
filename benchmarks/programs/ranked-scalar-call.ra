@@ -1,5 +1,4 @@
 rem Compiler fixture: ranked callbacks.
-use ranges
 use numbers
 
 fun bounded X

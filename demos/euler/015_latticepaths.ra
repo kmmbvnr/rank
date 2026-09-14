@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=15
 rem Count right-and-down paths through an
 rem N by N grid
 
-use ranges
 use io
 use cli
 

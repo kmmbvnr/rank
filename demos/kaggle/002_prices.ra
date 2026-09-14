@@ -5,7 +5,6 @@ rem Fit a numeric log-price baseline.
 use cli
 use linalg
 use numbers
-use ranges
 use sequences
 use stats
 use tables
@@ -47,7 +46,7 @@ fun linear X Y Rate Steps
   for # in 0 until Steps
     Error = Z Weights matmul + Bias - Y
     Weights -= Rate * (Zt Error matmul / Rows)
-    Bias -= Rate * Error mean
+    Bias -= Rate * (Error mean)
   end
 
   return record
@@ -76,7 +75,7 @@ fun solve Train Test Rate Steps
   Features = array .OverallQual .GrLivArea
   X = Train Features
   Xtest = Test Features
-  Y = (Train .SalePrice + 1) log
+  Y = Train .SalePrice + 1 log
 
   Model = X Y Rate Steps linear
   Pred = ((Xtest Model linear_predict) exp - 1) copy

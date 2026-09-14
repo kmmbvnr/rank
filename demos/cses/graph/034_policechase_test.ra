@@ -4,7 +4,6 @@ test "official example has a cut of two"
   use "034_policechase"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 5 2
     1 2
@@ -23,7 +22,6 @@ test "closes the only street"
   use "034_policechase"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 1 2
     1 2
@@ -37,7 +35,6 @@ test "returns no streets when separated"
   use "034_policechase"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 1 2
     1 2
@@ -50,7 +47,6 @@ test "orients streets out of the cut"
   use "034_policechase"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 2 2
     2 1

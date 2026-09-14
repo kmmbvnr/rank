@@ -1,5 +1,10 @@
 # min/max calls and shadowing
 
+The measurements below describe the September 11 implementation. The
+[September 13 grouping change](expression-grouping-review.md) moves infix
+normalization into the language package and removes the remaining builtin-only
+postfix addressing rule. Write `(Matrix i) max` to reduce a selected row.
+
 ## Why the review was right
 
 The old interpreter recognized the names before resolving their bindings.
@@ -20,7 +25,7 @@ resolved correctly.
 - Builtin binary broadcasting belongs to the numbers module, so an alias has
   the same behavior. Numeric ties preserve the left operand, matching the
   existing builtin rather than the old infix shortcut's right-operand choice.
-- The one remaining contextual rule is builtin postfix addressing:
+- At the time of this review, the remaining contextual rule was builtin postfix addressing:
   `Matrix i max` reduces a row. It applies only after function identity is
   checked. Shadowing functions use ordinary argument selection.
 - Parentheses and completed application operands do not allocate a suspended

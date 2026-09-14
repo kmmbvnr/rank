@@ -77,7 +77,7 @@ Checked against the current tree, so the plan does not rest on assumptions.
   operation.
 - **A `use` gates syntax as well as vocabulary.** There are 42 `requireModule`
   call sites covering features with no name of their own: `stdin` needs
-  `use io`, `to`/`until` need `use ranges`, `push` and `new` need `use algo`,
+  `use io`, input declarations need `use cli`, `push` and `new` need `use algo`,
   table projection needs `use tables`. A catalogue of exported names alone would
   miss half the reason a program fails.
 - **The runtime already owns the type model.** `typeName` returns `integer`,

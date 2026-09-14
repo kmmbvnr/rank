@@ -3,7 +3,6 @@ rem https://www.deep-ml.com/problems/33
 
 use algo
 use random
-use ranges
 use sequences
 
 fun random_subsets X Y N Replace Seed
@@ -25,7 +24,7 @@ fun random_subsets X Y N Replace Seed
   end
 
   State = Seed seed
-  Pool = (0 until Rows) array
+  Pool = 0 until Rows array
   Result = new queue
 
   for # in 0 until N

@@ -1,4 +1,6 @@
+import { checkpoint, interruptsEnabled } from './interrupt.js';
 import {
+    flattenApplication,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     isParenthesizedExpression, isUnaryExpression,
@@ -65,9 +67,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             return operand ? { kind: 'unary', op: e.operator, operand } : undefined;
         }
         if (host.textDigits) {
-            const flatten = (node: Expression): Expression[] => isApplicationExpression(node)
-                ? [...flatten(node.head), ...node.arguments.flatMap(flatten)] : [node];
-            const parts = flatten(e);
+            const parts = flattenApplication(e);
             if (parts.length === 4 && isNameExpression(parts[1]) && parts[1].name === 'integer'
                 && isNameExpression(parts[2]) && parts[2].name === 'rank'
                 && isNumberLiteral(parts[3]) && parts[3].value === 0n) {
@@ -224,7 +224,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         try { domain(root); } catch { return undefined; }
         // Array output initially requires a fixed cardinality.
         if (terminal === 'copy' && [...filtered.values()].some(Boolean)) return undefined;
-        const key = [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
+        const interruptible = interruptsEnabled();
+        const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
         if (cachedKey !== key) {
             const lines: string[] = [];
             const emitted = new Map<TensorNode, string>();
@@ -303,8 +304,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
             const initial = terminal === 'copy' ? 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
-            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) {\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? 'if (length === 0) return undefined;' : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
-            try { cachedRun = new Function(generated)() as typeof cachedRun; }
+            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? 'if (length === 0) return undefined;' : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            try { cachedRun = new Function('checkpoint', generated)(checkpoint) as typeof cachedRun; }
             catch { unavailable = true; return undefined; }
             cachedKey = key;
             host.compiled?.(generated);

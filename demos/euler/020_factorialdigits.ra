@@ -2,10 +2,6 @@ rem Factorial Digit Sum
 rem https://projecteuler.net/problem=20
 rem Sum the decimal digits of 100 factorial
 
-use ranges
-use text
-use sequences
-use numbers
 use io
 use cli
 

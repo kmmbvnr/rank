@@ -3,7 +3,6 @@ rem https://www.deep-ml.com/problems/15
 
 use linalg
 use numbers
-use ranges
 use sequences
 
 rem Fit linear coefficients with a fixed number of gradient updates.

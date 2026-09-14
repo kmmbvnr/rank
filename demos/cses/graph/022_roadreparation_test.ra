@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "022_roadreparation"
   use graph
-  use ranges
   Graph = new graph (1 to 5) .undirected
   Edges = array shape 6 3
     1 2 3
@@ -22,7 +21,6 @@ end
 test "reports a disconnected graph"
   use "022_roadreparation"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .undirected
   Graph add 1 2 3
   Graph add 3 4 4
@@ -33,7 +31,6 @@ end
 test "chooses cheap parallel road"
   use "022_roadreparation"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2 9
   Graph add 1 2 2
@@ -45,7 +42,6 @@ end
 test "one city costs nothing"
   use "022_roadreparation"
   use graph
-  use ranges
   Graph = new graph (1 to 1) .undirected
   Result = Graph road_reparation
   Result .connected equal true

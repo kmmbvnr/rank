@@ -1,7 +1,6 @@
 rem Deep-ML 2: Transpose of a Matrix
 rem https://www.deep-ml.com/problems/2
 
-use ranges
 use sequences
 
 fun transpose_matrix A

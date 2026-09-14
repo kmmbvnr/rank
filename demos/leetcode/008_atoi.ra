@@ -3,7 +3,6 @@ rem Skip spaces, take an optional sign and
 rem digits, clamp to 32-bit range
 
 use algo
-use sequences
 
 rem Parse the decimal prefix of Text.
 rem Accumulate a negative result so the

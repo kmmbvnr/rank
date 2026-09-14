@@ -2,7 +2,6 @@ rem CSES 1625: Grid Path Description
 rem https://cses.fi/problemset/task/1625
 
 use io
-use ranges
 
 Path = stdin .word
 Path solve print

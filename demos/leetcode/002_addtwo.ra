@@ -3,7 +3,6 @@ rem Two numbers as digit lists in reverse
 rem order, return their sum the same way
 
 use algo
-use sequences
 
 fun add_two A B
   N = A len

@@ -1,4 +1,5 @@
 import {
+    flattenApplication as flatten, applicationExpression, groupedExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isStringLiteral, isUnaryExpression, type Expression,
@@ -9,16 +10,7 @@ import { RankError } from './errors.js';
 export const TABLE_INPUT = '$table';
 
 function application(parts: Expression[]): Expression {
-    parts = parts.map(part => isApplicationExpression(part)
-        ? { $type: 'ParenthesizedExpression', value: part } as Expression : part);
-    return parts.length === 1 ? parts[0] : {
-        $type: 'ApplicationExpression', head: parts[0], arguments: parts.slice(1),
-    } as Expression;
-}
-
-function flatten(expression: Expression): Expression[] {
-    return isApplicationExpression(expression)
-        ? [...flatten(expression.head), ...expression.arguments] : [expression];
+    return applicationExpression(parts.map(part => isApplicationExpression(part) ? groupedExpression(part) : part));
 }
 
 /** Expand only operand-leading field paths; explicit selectors stay labels. */
@@ -55,28 +47,11 @@ export function tableExpression(
         }
         if (isApplicationExpression(node)) {
             const parts = flatten(node);
-            // Preserve Rank's infix extrema before applying postfix arities.
-            const infix = parts.findIndex((part, index) => index > 0 && index < parts.length - 1
-                && isNameExpression(part) && ['min', 'max'].includes(part.name));
-            if (infix >= 0) {
-                let value = address(parts.slice(0, infix));
-                for (let i = infix; i < parts.length; i += 2) {
-                    const fn = parts[i];
-                    if (!isNameExpression(fn) || !['min', 'max'].includes(fn.name) || !parts[i + 1]) {
-                        throw new RankError('min/max chains require alternating values and operations');
-                    }
-                    callable(fn.name);
-                    value = application([value, fn, lower(parts[i + 1])]);
-                }
-                return value;
-            }
             let pending: Expression[] = [];
             for (const part of parts) {
                 const arities = isNameExpression(part) ? callable(part.name) : undefined;
                 if (!arities) { pending.push(part); continue; }
-                const fieldReduction = isNameExpression(part) && ['min', 'max'].includes(part.name)
-                    && pending.length > 1 && pending.slice(1).every(isLabelLiteral);
-                const arity = fieldReduction ? 1 : arities.includes(pending.length) ? pending.length
+                const arity = arities.includes(pending.length) ? pending.length
                     : [...arities].sort((a, b) => b - a).find(n => n <= pending.length);
                 if (!arity) throw new RankError('operation must follow its data in a table expression');
                 const split = pending.length - arity + 1;

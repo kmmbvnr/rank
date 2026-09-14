@@ -3,7 +3,6 @@ rem Longest substring of a string that
 rem reads the same both ways
 
 use algo
-use sequences
 
 rem Find the first longest palindrome.
 rem Try an odd and even center at every

@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/2187
 
 use io
 use numbers
-use sequences
 
 N = stdin .integer
 Prefix = stdin .word
@@ -28,11 +27,11 @@ fun completions N Prefix
     end
   end
 
-  Remaining = N - Prefix len
+  Remaining = N - (Prefix len)
   if Balance greater Remaining
     return 0
   end
-  if (Remaining - Balance) odd
+  if Remaining - Balance odd
     return 0
   end
 

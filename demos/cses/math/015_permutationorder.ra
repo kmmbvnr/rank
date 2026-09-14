@@ -3,8 +3,6 @@ rem https://cses.fi/problemset/task/3397
 
 use algo
 use io
-use ranges
-use sequences
 
 Tests = stdin .integer
 
@@ -24,8 +22,8 @@ end
 
 rem Restore a one-based permutation.
 fun kth_permutation N K
-  Available = (1 to N) multiset
-  Block = (N - 1) factorial
+  Available = 1 to N multiset
+  Block = N - 1 factorial
   K -= 1
 
   for Remaining in N to 1 by -1
@@ -52,7 +50,7 @@ fun permutation_order P
     Available I = 1
   end
 
-  Block = (N - 1) factorial
+  Block = N - 1 factorial
   Order = 1
 
   for Value I in P

@@ -1,5 +1,4 @@
 export const denseSource = `
-use ranges
 fun densewrite N
  A = array shape N pad 0
  for I in 0 until N

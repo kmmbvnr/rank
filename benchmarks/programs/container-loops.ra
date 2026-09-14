@@ -1,7 +1,6 @@
 rem Push integers, then index running sums.
 use algo
 use sequences
-use ranges
 
 fun drain Limit
   Path = new stack

@@ -7,7 +7,6 @@ use "001_titanic" as Classifier
 use algo
 use cli
 use numbers
-use ranges
 use sequences
 use tables
 use text
@@ -75,7 +74,7 @@ fun tfidf_fit Texts Vocab
     end
   end
   Frequency = Present sum axis 0
-  Idf = ((Documents + 1.0) / (Frequency + 1.0)) log + 1.0
+  Idf = (Documents + 1.0) / (Frequency + 1.0) log + 1.0
   return record
     .vocab = Vocab
     .idf = Idf

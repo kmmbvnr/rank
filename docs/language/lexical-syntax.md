@@ -291,8 +291,51 @@ Back = Text reverse
 Short pipelines are useful on a narrow screen; intermediate values remain the
 preferred style when they give a result a meaningful name.
 
-Leading unary `+`, `-` and `not` bind to their nearest value before postfix
-application. Therefore the function in this expression receives `-121`:
+A postfix function applies to the accumulated arithmetic expression or range.
+Within that expression, multiplication precedes addition and powers associate
+right. Addressing stays tight: `A i * B j` multiplies two addressed values.
+
+```rank
+2 + 9 sqrt
+rem sqrt(11)
+2 + 3 * 4
+rem 14
+Fibs until 1000 sum
+1 to 9 by 2 array
+A max + 1
+```
+
+To process just one operand, group it explicitly: `A - (A mean)` or
+`0 until (Classes len)`. Comparisons separate completed values, so
+`A len equal B len` means `(A len) equal (B len)`. Processing a comparison
+result requires an explicit group: `(A equal B) count`.
+
+An unparenthesized value expression permits a formula, a block of successive
+function calls, and an optional arithmetic continuation. A new function after
+that continuation is a syntax error. Name the intermediate result:
+
+```rank
+Scores = X W matmul + Bias
+Scores sigmoid
+```
+
+`X W matmul + Bias sigmoid` is rejected with a message asking for an
+intermediate variable. Explicit parentheses start a separate expression;
+short names are preferred when they describe a useful intermediate result.
+There is no numeric limit on the number of operations, and no `|` operator.
+
+When a function is supplied dynamically and its signature is unknown during
+parsing, make the input boundary explicit: `(2 + 9) Op`. An unresolved address
+operand that turns out to be a function raises an error asking for parentheses
+or an intermediate variable; it cannot silently change the formula's grouping.
+
+Chained comparisons such as `1 equal 2 equal false` are also syntax errors.
+The diagnostic asks for parentheses or an intermediate variable.
+`(1 equal 2) equal false` explicitly selects the grouping. Use `and` when
+the intention is to test two independent comparisons.
+
+Leading unary `+` and `-` bind before postfix application. Therefore the
+function in this expression receives `-121`:
 
 ```rank
 Answer = -121 palindrome
@@ -309,8 +352,10 @@ rem -4, 0.25
 
 `**` is right-associative, so `2 ** 3 ** 2` is `2 ** (3 ** 2)`.
 
-Use parentheses or a named intermediate value when the unary operator must be
-applied to the result of a call.
+Use parentheses or a named intermediate value when an arithmetic sign must be
+applied to the result of a call. Logical `not` applies after calls and
+comparisons, before `and`, `xor` and `or`: `not X even` means `not (X even)`;
+`not X less 3` means `not (X less 3)`.
 
 Conditions use words such as `equal` rather than `==`:
 
@@ -421,6 +466,41 @@ Future low-precision numeric formats used by ML, such as 4-bit or 8-bit floats,
 must be requested explicitly. Type inference never silently selects a reduced
 precision format. `path` is an input constraint represented by a `text` value,
 rather than a separate runtime type.
+
+### Explicit conversions
+
+`integer`, `real` and `text` are core functions and require no `use`.
+Assignment never converts between integer and real. Convert the value before
+assigning it to a variable or record field of the other type:
+
+```rank
+Whole = 1
+Fraction = 2.7
+Whole = Fraction integer
+Fraction = Whole real
+Label = Fraction text
+```
+
+`integer` preserves an integer, truncates a finite real toward zero, or parses
+signed decimal integer text exactly. Thus `(-2.9) integer` is `-2`.
+`"2.9" integer` is an error; write `"2.9" real integer` to request both steps.
+Nonfinite real values cannot become integers.
+
+`real` preserves a real or converts an integer or decimal text to binary64.
+Text must be a complete decimal number, optionally signed and with a decimal
+point or exponent, such as `"-2.75"` or `"1.25e2"`. Whitespace, hexadecimal
+notation and malformed text are rejected. Conversion can round an integer
+that binary64 cannot represent exactly; overflow raises `.InvalidNumber`.
+
+`text` explicitly renders a scalar, retaining its existing optional fixed
+format: `2.75 text ".1f"`. Parsing and formatting never happen implicitly on
+assignment. Mixed numeric arithmetic still promotes its result to real.
+
+`round` changes the numeric value while retaining its type. To round first
+and then obtain an integer, write `Value round 0 integer` with `use numbers`.
+For elementwise conversion, use `Values real rank 0` or
+`Values integer rank 0`. Text is parsed as a whole by default;
+`"1203" integer rank 0` instead converts its individual digits.
 
 ## Symbols
 

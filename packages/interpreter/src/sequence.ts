@@ -1,3 +1,4 @@
+import { checkpoint, interruptibleValues } from './interrupt.js';
 import { derivedArray, ownedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
@@ -44,9 +45,11 @@ export function filterSequence(
 function filteredPlan(source: SequencePlan, predicate: SequencePredicate): SequencePlan {
     return {
         name: `${source.name} where ${predicate.name}`,
+        singlePass: source.singlePass,
         size: filteredSize(source.size),
         *iterate() {
             for (const value of source.iterate()) {
+                checkpoint('reading sequence');
                 if (predicate.test(value)) yield value;
             }
         },
@@ -96,6 +99,7 @@ export function atSequence(source: RankSequence, index: bigint): RankValue {
 
     let current = 0n;
     for (const value of source.plan.iterate()) {
+        checkpoint('reading sequence');
         if (current === index) return value;
         current += 1n;
     }
@@ -110,6 +114,7 @@ export function mapSequence(
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} ${name}`,
+        singlePass: sourcePlan.singlePass,
         size: sourcePlan.size,
         *iterate() {
             for (const value of sourcePlan.iterate()) yield operation(value);
@@ -125,6 +130,7 @@ export function zipSequences(
 ): RankSequence {
     return sequence({
         name: `${left.plan.name} ${name} ${right.plan.name}`,
+        singlePass: left.plan.singlePass || right.plan.singlePass,
         size: zippedSize(left.plan.size, right.plan.size),
         *iterate() {
             const a = left.plan.iterate();
@@ -144,14 +150,14 @@ export function sequenceValues(value: RankValue, operation: string): Iterable<Ra
     if (value.plan.size.kind === 'infinite') {
         throw new RankError(`${operation} requires a bounded sequence`);
     }
-    return { [Symbol.iterator]: () => value.plan.iterate() };
+    return { [Symbol.iterator]: () => interruptibleValues(value.plan.iterate(), operation)[Symbol.iterator]() };
 }
 
 export function materializeSequence(source: RankSequence): RankArray {
     if (source.plan.size.kind === 'infinite') {
         throw new RankError('cannot materialize an infinite sequence');
     }
-    const items = [...source.plan.iterate()];
+    const items = [...interruptibleValues(source.plan.iterate(), 'materializing sequence')];
     return ownedArray(items);
 }
 
@@ -428,6 +434,7 @@ function streamingWindows(
             const buffer: RankValue[] = [];
             let start = 0;
             for (const value of source.plan.iterate()) {
+                checkpoint('reading sequence');
                 buffer.push(value);
                 if (buffer.length < width) continue;
                 if (buffer.length > width) buffer.shift();

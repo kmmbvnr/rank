@@ -3,7 +3,6 @@ rem https://www.deep-ml.com/problems/12
 
 use linalg
 use numbers
-use ranges
 use sequences
 
 rem Decompose a 2 by 2 matrix into U, singular values and V transpose.

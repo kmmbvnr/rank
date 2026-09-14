@@ -52,9 +52,9 @@ end
     it('joins scalar arrays, ranges and empty sequences', () => {
         expect(run('use text\n(array "ab" "cd") "" join')).toBe('abcd');
         expect(run('use text\n(array 1 true "x") ", " join')).toBe('1, true, x');
-        expect(run('use text\nuse ranges\n(1 to 3) ":" join')).toBe('1:2:3');
-        expect(run('use text\nuse ranges\n(1 to 0) "," join')).toBe('');
-        expect(run('use text\nuse ranges\n(1 to 3) text ".1f" "," join')).toBe('1.0,2.0,3.0');
+        expect(run('use text\n(1 to 3) ":" join')).toBe('1:2:3');
+        expect(run('use text\n(1 to 0) "," join')).toBe('');
+        expect(run('use text\n(1 to 3) text ".1f" "," join')).toBe('1.0,2.0,3.0');
     });
 
     it('rejects invalid formats, precision and element types with Rank errors', () => {
@@ -65,6 +65,6 @@ end
         expect(() => run('use text\n(array 1 2) 0 join')).toThrow('separator must be text');
         expect(() => run('use text\n1 "," join')).toThrow('rank-1 collection');
         expect(() => run('use text\n(array shape 2 2 pad 0) "," join')).toThrow('join matrix rows separately');
-        expect(() => run('1 text ".2f"')).toThrow('use text');
+        expect(run('1 text ".2f"')).toBe('1.00');
     });
 });

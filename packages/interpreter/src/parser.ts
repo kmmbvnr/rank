@@ -1,12 +1,12 @@
 import { EmptyFileSystem } from 'langium';
 import type { Program } from '@rank/language';
-import { createRankServices } from '@rank/language';
+import { createRankServices, expressionDiagnostics, type GroupingOptions } from '@rank/language';
 import { RankError } from './errors.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;
 
-export function parse(source: string, sourceId = '<input>'): Program {
-    const result = services.parser.LangiumParser.parse<Program>(source);
+export function parse(source: string, sourceId = '<input>', grouping: GroupingOptions = {}): Program {
+    const result = services.parser.LangiumParser.parse<Program>(source, { ...grouping, rule: 'Program' });
     const error = result.lexerErrors[0] ?? result.parserErrors[0];
 
     if (error) {
@@ -32,5 +32,15 @@ export function parse(source: string, sourceId = '<input>'): Program {
         throw diagnostic;
     }
 
+    const groupingError = expressionDiagnostics(result.value)[0];
+    if (groupingError) {
+        const error = new RankError(groupingError.message, 'Syntax');
+        const start = groupingError.cst?.range.start;
+        error.location = {
+            sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
+            sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',
+        };
+        throw error;
+    }
     return result.value;
 }

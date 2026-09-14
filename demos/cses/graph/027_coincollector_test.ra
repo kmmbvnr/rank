@@ -4,7 +4,6 @@ test "official example"
   use "027_coincollector"
   use graph
   use numbers
-  use ranges
   use sequences
   Coins = array 4 5 2 7
   Edges = array shape 4 2
@@ -20,7 +19,6 @@ test "chooses the richer branch"
   use "027_coincollector"
   use graph
   use numbers
-  use ranges
   use sequences
   Coins = array 1 10 4 8
   Edges = array shape 3 2
@@ -35,7 +33,6 @@ test "counts every room in a cycle"
   use "027_coincollector"
   use graph
   use numbers
-  use ranges
   use sequences
   Coins = array 3 5 7
   Edges = array shape 3 2
@@ -50,7 +47,6 @@ test "may start at any room"
   use "027_coincollector"
   use graph
   use numbers
-  use ranges
   use sequences
   Coins = array 2 100 3
   Edges = array shape 1 2

@@ -3,11 +3,8 @@ rem https://projecteuler.net/problem=34
 rem Sum numbers equal to the sum of the
 rem factorials of their decimal digits
 
-use ranges
 use sequences
-use text
 use algo
-use numbers
 use io
 
 Answer = 7 digit_factorial_sum
@@ -40,7 +37,7 @@ fun digit_factorial_sum MaximumDigits
     end
 
     for Digit in First to 9
-      NextDigits = Digits + Digit text
+      NextDigits = Digits + (Digit text)
       NextRemaining = Remaining - 1
       NextSum = Sum + Factorials Digit
       Digit NextRemaining NextDigits NextSum search

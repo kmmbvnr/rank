@@ -32,8 +32,8 @@ const DOTS = '...';
  * may be unbounded, and printing it in full is at best unreadable and at worst
  * never finishes. A value that wraps over four rows of a narrow screen is no
  * more readable than one that never ends, which is why the width cuts as well
- * as the count. Nothing here iterates further than it prints, so previewing
- * costs strictly less than formatting did.
+ * as the count. Unknown sizes get a bounded head; known finite sequences
+ * are scanned up to SCAN_LIMIT to retain both ends.
  */
 export function preview(value: RankValue, width = Infinity): Preview {
     if (typeof value === 'string') return textPreview([...value], value, width);
@@ -112,9 +112,15 @@ function sequencePreview(
     map: (item: RankValue) => RankValue,
     width: number,
 ): Preview {
-    if (plan.size.kind === 'infinite') {
-        // An unbounded plan has no end to show, so take only a beginning.
-        return { text: fit(take(plan, map, edge()), [], width, true).text, note: 'unbounded' };
+    if (plan.size.kind !== 'exact') {
+        // Without a known size, take a bounded head; finding the end may never finish.
+        const head = take(plan, map, edge());
+        const line = fit(head.items, [], width, !head.whole);
+        return {
+            text: line.text,
+            note: head.whole ? (line.cut ? `${head.items.length} values` : '')
+                : plan.size.kind === 'infinite' ? 'unbounded' : 'size unknown',
+        };
     }
     const { head, tail, count, whole } = scan(plan, map);
     const shown = head.map(item => formatValue(item));
@@ -157,13 +163,13 @@ function take(
     plan: { iterate(): IterableIterator<RankValue> },
     map: (item: RankValue) => RankValue,
     count: number,
-): string[] {
+): { items: string[]; whole: boolean } {
     const shown: string[] = [];
     for (const item of plan.iterate()) {
-        if (shown.length >= count) break;
         shown.push(formatValue(map(item)));
+        if (shown.length >= count) return { items: shown, whole: false };
     }
-    return shown;
+    return { items: shown, whole: true };
 }
 
 function listPreview(

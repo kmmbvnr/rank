@@ -110,7 +110,7 @@ describe('sort by', () => {
 
     it('materializes finite collection sources', () => {
         expect(run([
-            'use ranges',
+
             'use sequences',
             'fun descending Value',
             '  return 0 - Value',

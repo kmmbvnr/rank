@@ -1,6 +1,8 @@
 # Standard library
 
-Rank starts with a small core. Vocabulary is introduced through `use` modules.
+Rank starts with a small core. Ranges and `len`, `sum`, `min`, `max` are
+available without imports, as are explicit `integer`, `real` and `text`
+conversions. Further vocabulary is introduced through `use` modules.
 This page explains what each module means and how its operations behave at the
 edges. For the complete list of names, with the form each one is written in and
 what it returns, see the [reference](reference.md), which is generated from the
@@ -13,7 +15,6 @@ use numbers
 use random
 use linalg
 use bits
-use ranges
 use graph
 use tables
 use stats
@@ -32,6 +33,28 @@ Each module owns its vocabulary, semantic handlers, validators and execution
 planner rules. Common operations normally fit the stable application grammar
 and do not add parser productions. Syntax extensions are combined before parser
 construction and are then enabled semantically by the corresponding `use`.
+
+## Core
+
+`integer`, `real` and `text` explicitly convert scalar values without imports.
+`integer` truncates finite reals toward zero or parses integer text; `real`
+converts integers or decimal text to binary64; `text` renders a scalar.
+Assignment itself never converts between numeric types. See
+[explicit conversions](../language/lexical-syntax.md#explicit-conversions).
+
+`len`, `sum`, `min` and `max` need no import. `len` measures text or a
+collection; `sum` reduces numeric values; `min` and `max` reduce a collection
+or compare two numeric operands. Numeric ranges also belong to the core:
+
+```rank
+Values = 1 to 5
+Total = Values sum
+Size = Values len
+Bound = 0 max Size min 10
+```
+
+`use cli` is required for `option`, `argument`, `flag` and `args`.
+`use testing` enables test blocks. Neither module exports ordinary functions.
 
 ## Numbers
 
@@ -67,8 +90,6 @@ binomialmod
 factors
 divisors
 multiple by
-min
-max
 infinity
 ```
 
@@ -253,7 +274,8 @@ incrementally extends factorial and inverse-factorial tables for each modulus,
 so repeated calls cost `O(MaximumN)` preparation and `O(1)` each afterward.
 Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
-Postfix `min` and `max` reduce one collection. Their direct binary forms are
+The core functions `min` and `max` require no `use numbers`. Their postfix
+forms reduce one collection. Their direct binary forms are
 infix and return the smaller or larger numeric operand:
 
 ```rank
@@ -740,28 +762,6 @@ available as the error value respectively.
 Ready = Text "Rank" startswith
 ```
 
-`hex` converts `bytes` to lowercase hexadecimal text without a prefix:
-
-```rank
-Encoded = Bytes hex
-```
-
-`integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
-unary rank is 1, so a complete text value is converted at once. Explicit
-`rank 0` converts each Unicode character and produces a lazy sequence:
-
-```rank
-Value = "-1203" integer
-Digits = "1203" integer rank 0
-```
-
-`text` formats one scalar value as text. Text input is returned unchanged.
-Arrays and other collections require an explicit mapping rank rather than
-being flattened implicitly.
-
-A literal format after `text` selects fixed decimal output:
-
-```rank
 `lower` converts Unicode text to lowercase. `startswith` broadcasts over text
 arrays; `lower` maps over them lazily. Both compile to SQLite expressions for
 database columns. `"part" in Text` tests an exact substring and also works on
@@ -785,6 +785,28 @@ Zip = "234" 5 "0" lpad
 Digits = "(844) 123-4567" "-() " "" translate
 ```
 
+`hex` converts `bytes` to lowercase hexadecimal text without a prefix:
+
+```rank
+Encoded = Bytes hex
+```
+
+`integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
+unary rank is 1, so a complete text value is converted at once. Explicit
+`rank 0` converts each Unicode character and produces a lazy sequence:
+
+```rank
+Value = "-1203" integer
+Digits = "1203" integer rank 0
+```
+
+`text` formats one scalar value as text. Text input is returned unchanged.
+Arrays and other collections require an explicit mapping rank rather than
+being flattened implicitly.
+
+A literal format after `text` selects fixed decimal output:
+
+```rank
 (2 / 3) text ".6f" print
 rem 0.666667
 12 text ".3f" print

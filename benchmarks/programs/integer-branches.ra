@@ -1,6 +1,5 @@
 rem Exercise branching in a numeric loop.
 rem Restart Collatz when it reaches one.
-use ranges
 
 fun recurrence Limit
   N = 837799

@@ -6,7 +6,7 @@ describe('Rank IO, modules and programs', () => {
     it('calls operations after their data', () => {
         expect(run('use numbers\n54 24 gcd')).toBe('6');
         expect(run('use numbers\n8 12 lcm')).toBe('24');
-        expect(run('use ranges\nuse numbers\n(1 to 10) lcm')).toBe('2520');
+        expect(run('use numbers\n(1 to 10) lcm')).toBe('2520');
         expect(run('use numbers\n7 0 13 powmod')).toBe('1');
         expect(run('use numbers\n7 4 13 powmod')).toBe('9');
         expect(run('use numbers\n-2 3 5 powmod')).toBe('2');
@@ -39,8 +39,8 @@ describe('Rank IO, modules and programs', () => {
     });
 
     it('rejects names from modules that were not imported', () => {
-        expect(() => run('sum 1')).toThrowError(RankError);
-        expect(() => run('sum 1')).toThrowError('unknown name: sum');
+        expect(() => run('1 abs')).toThrowError(RankError);
+        expect(() => run('1 abs')).toThrowError('unknown name: abs');
     });
 
     it('sends print output through an injected function', () => {
@@ -170,7 +170,7 @@ describe('Rank IO, modules and programs', () => {
         const interpreter = new Interpreter(line => output.push(line));
         const result = interpreter.execute([
             'use io',
-            'use ranges',
+
             'use sequences',
             'X = 1 to 3',
             'X array len print',

@@ -2,8 +2,6 @@ rem CSES 1744: Rectangle Cutting
 rem https://cses.fi/problemset/task/1744
 
 use io
-use numbers
-use ranges
 
 Height = stdin .integer
 Width = stdin .integer

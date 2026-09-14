@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/2205
 
 use io
 use bits
-use ranges
 
 N = stdin .integer
 

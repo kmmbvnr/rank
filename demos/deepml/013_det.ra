@@ -1,7 +1,6 @@
 rem Deep-ML 13: Determinant
 rem https://www.deep-ml.com/problems/13
 
-use ranges
 use sequences
 
 rem Expand recursively along the first row and remove each chosen column.
@@ -23,7 +22,7 @@ fun determinant A
   end
 
   Total = 0
-  Cols = (0 until N) array
+  Cols = 0 until N array
 
   for c in Cols
     Keep = Cols not equal c

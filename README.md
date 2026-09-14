@@ -11,13 +11,21 @@ and design documents.
 
 ## Run
 
-Requires Node.js 20.19 or newer.
+Requires Node.js 20.19 or newer, Python, and a C++20 build toolchain
+(for the CLI SQLite cancellation addon).
 
 ```console
 npm install
 npm run build
 npm run rank
 ```
+
+In the interactive CLI, press Ctrl-C to cancel a running computation or SQLite
+query and return to editing. SQLite aborts the active statement; interrupting a
+write inside an explicit transaction rolls back that transaction. Previously
+committed writes remain committed. Cancellation may wait for native I/O, a lock
+wait, or an SQL function to return. File and pipe execution do not enable the
+cancellation addon.
 
 Example session:
 
@@ -28,11 +36,9 @@ rank> Answer = 6 * 7
 42
 rank> Answer
 42
-rank> use ranges
 rank> 1 to 5
 1 2 3 4 5
-rank> use numbers
-rank> (1 to 5) sum
+rank> 1 to 5 sum
 15
 ```
 

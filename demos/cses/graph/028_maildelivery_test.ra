@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "028_maildelivery"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 6) .undirected
   Edges = array shape 8 2
@@ -24,7 +23,6 @@ end
 test "walks around a simple square"
   use "028_maildelivery"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 4) .undirected
   Graph add 1 2
@@ -38,7 +36,6 @@ end
 test "rejects odd vertex degrees"
   use "028_maildelivery"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
@@ -50,7 +47,6 @@ end
 test "rejects a disconnected cycle"
   use "028_maildelivery"
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 6) .undirected
   Graph add 1 2

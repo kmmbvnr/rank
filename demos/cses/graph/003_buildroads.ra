@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1666
 
 use algo
 use io
-use ranges
 use sequences
 
 Cities = stdin .integer
@@ -12,8 +11,9 @@ Count = RoadCount * 2
 Roads = stdin .integer Count array
 Components = Cities Roads components
 
-Components len - 1 print
-for i in 1 until Components len
+RoadsNeeded = Components len - 1
+RoadsNeeded print
+for i in 1 until (Components len)
   A = Components (i - 1)
   B = Components i
   Pair = array A B
@@ -23,7 +23,7 @@ end
 
 rem Return one city from each component.
 fun components Cities Roads
-  Parent = (0 to Cities) array
+  Parent = 0 to Cities array
   Sizes = array shape (Cities + 1) pad 1
 
   fun find City

@@ -2,8 +2,6 @@ rem PostgreSQL Exercises: aggregates 17
 rem https://pgexercises.com/questions/aggregates/fachours4.html
 
 use cli
-use numbers
-use sequences
 use tables
 
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
@@ -15,7 +13,7 @@ G = R group by .facid
 R = G select
   .slots = .slots sum
 end
-Top = R .slots max
+Top = (R .slots) max
 R = R filter .slots equal Top
 Result = R select
   .facid = .facid

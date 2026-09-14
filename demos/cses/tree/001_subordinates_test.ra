@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "001_subordinates"
   use graph
-  use ranges
   use sequences
   Bosses = array 1 1 2 3
   Actual = Bosses subordinates
@@ -13,7 +12,6 @@ end
 test "single director"
   use "001_subordinates"
   use graph
-  use ranges
   use sequences
   Bosses = array shape 0 pad 0
   Bosses subordinates equal (array 0)
@@ -22,7 +20,6 @@ end
 test "long reporting chain"
   use "001_subordinates"
   use graph
-  use ranges
   use sequences
   Bosses = array 1 2 3 4 5
   Actual = Bosses subordinates
@@ -32,7 +29,6 @@ end
 test "boss may have a larger number"
   use "001_subordinates"
   use graph
-  use ranges
   use sequences
   Bosses = array 4 1 1 4
   Actual = Bosses subordinates

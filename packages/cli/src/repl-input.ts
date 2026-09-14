@@ -18,12 +18,12 @@ export interface Token {
 }
 
 /**
- * Keys that stand in for `=`. Rank has neither token: across the 683 demo
- * programs there is not one comma or colon outside a text literal or a `rem`
- * comment, so either one elsewhere can only ever have meant `=`. The comma is
- * the cheaper of the two, being on the letter layer of a phone keyboard.
+ * Keys that stand in for `=`. Rank has no comma: across the 683 demo programs
+ * there is not one outside a text literal or a `rem` comment, so a comma
+ * elsewhere can only ever have meant `=`. It is the cheaper of the two keys to
+ * type, being on the letter layer of a phone keyboard.
  */
-export const ASSIGN_KEYS = [',', ':'];
+export const ASSIGN_KEYS = [','];
 
 /** Words that stand in for symbols a phone keyboard hides behind a layer. */
 export const OPERATOR_ALIASES: Readonly<Record<string, string>> = {
@@ -212,8 +212,8 @@ export function expandCompoundKeywords(line: string, isBound: (name: string) => 
 }
 
 /**
- * Rewrites the `=` key. A colon is not Rank, so outside text and comments it can
- * only have meant `=`, and `+:` or `and:` become `+=` and `and=` for free.
+ * Rewrites the `=` key. A comma is not Rank, so outside text and comments it can
+ * only have meant `=`, and `+,` or `and,` become `+=` and `and=` for free.
  */
 export function expandAssignKey(line: string): string {
     const tokens = tokenize(line);
@@ -295,14 +295,6 @@ export function collapseSpaces(line: string): string {
 /** The whole rewrite, for a finished line. */
 export function formatLine(text: string): string {
     return collapseSpaces(spaceOperators(expandAssignKey(text)));
-}
-
-/**
- * The same rewrite for a line still being typed. It keeps the trailing space an
- * operator earns, so the next character starts a new word on its own.
- */
-export function formatTyping(prefix: string): string {
-    return collapseSpaces(spaceOperators(expandAssignKey(prefix), true));
 }
 
 /** True when the position sits inside a text literal or a comment. */
@@ -416,10 +408,18 @@ export function isComplete(state: CellState): boolean {
  * Adds one trimmed physical line. A line ends its statement unless it ends with
  * something that cannot: then it folds into the next line. An unclosed quote or
  * bracket is closed here, so each needs only its opening keystroke.
+ *
+ * `moreFollows` is true when the line is known to continue into a next one
+ * that already exists, rather than being the last thing anybody has typed: a
+ * wrapped statement recalled from the file, or one being replayed by
+ * a source reader. Then an open bracket keeps the statement folding even past a
+ * line that would otherwise look finished, instead of closing it early on a
+ * guess.
  */
-export function addLine(state: CellState, text: string): CellState {
+export function addLine(state: CellState, text: string, moreFollows = false): CellState {
     const joined = state.pending === '' ? text : `${state.pending} ${text}`;
-    if (scanLine(joined).folds) return { ...state, pending: joined };
+    const scan = scanLine(joined);
+    if (scan.folds || (moreFollows && scan.parens > 0)) return { ...state, pending: joined };
     return store({ ...state, pending: '' }, joined);
 }
 
@@ -463,169 +463,6 @@ export function startsDedent(text: string): boolean {
     return first !== undefined && (first === 'end' || DEDENT_WORDS.has(first));
 }
 
-/** Six characters wide, so continuations line up under the first prompt. */
-export function promptFor(state: CellState): string {
-    if (state.pending !== '') return '....> ';
-    const open = state.blocks.at(-1);
-    if (open === undefined) return 'rank> ';
-    return `${(open + '....').slice(0, 4)}> `;
-}
-
 function indent(depth: number): string {
     return '  '.repeat(Math.max(0, depth));
-}
-
-/** A stored line wider than this is wrapped; the wrap aims for WRAP_WIDTH. */
-export const WRAP_LIMIT = 50;
-export const WRAP_WIDTH = 40;
-
-/**
- * Operators a wrap may break before. Rank only allows a line break inside
- * brackets, and only around these, so the set is exactly the multiline grammar:
- * assignment, application and unary operators are not in it.
- */
-const BREAK_SYMBOLS = new Set(['+', '-', '*', '/', '//', '%', '**']);
-const BREAK_WORDS = new Set([
-    'or', 'xor', 'and', 'equal', 'less', 'greater', 'in', 'is', 'pad',
-    'to', 'until', 'at', 'multiple',
-]);
-
-/** Keywords whose statement is one expression the wrap can bracket. */
-const EXPRESSION_KEYWORDS = new Set(['if', 'elif', 'return', 'yield', 'for']);
-const ASSIGNMENT_SYMBOLS = new Set([
-    '=', '+=', '-=', '*=', '/=', '//=', '%=', '**=',
-]);
-/** Clauses that spell a label pair with `=`, which is not an assignment. */
-const JOIN_WORDS = new Set(['group', 'leftjoin', 'innerjoin']);
-
-/**
- * Breaks one long line into a bracketed group of narrow ones. Rank continues an
- * expression across lines only inside brackets, so the wrap adds the brackets
- * and breaks before operators the multiline grammar allows. A line it cannot
- * break — an application chain, say — is returned unchanged.
- */
-export function wrapLine(
-    line: string, indent = '', width = WRAP_WIDTH, limit = WRAP_LIMIT,
-): string[] {
-    const full = indent + line;
-    if (full.length <= limit) return [full];
-    // A join key pair is not a general comparison expression; its optional
-    // line break belongs after `on`, not before `equal`.
-    if (/\b(?:leftjoin|innerjoin)\s+on\b/.test(line)) return [full];
-    const tokens = tokenize(line);
-    const start = expressionStart(tokens);
-    if (start === undefined || start >= tokens.length) return [full];
-
-    const body = tokens.slice(start);
-    const bracketed = isBracketed(body);
-    const inner = bracketed ? body.slice(1, -1) : body;
-    const chunks = breakChunks(line, inner);
-    if (chunks.length < 2) return [full];
-
-    const head = line.slice(0, (bracketed ? body[0] : inner[0]).start).trimEnd();
-    const nested = indent + '  ';
-    const lines = [head === '' ? `${indent}(` : `${indent}${head} (`];
-    let current = '';
-    for (const chunk of chunks) {
-        const candidate = current === '' ? chunk : `${current} ${chunk}`;
-        if (current !== '' && (nested + candidate).length > width) {
-            lines.push(nested + current);
-            current = chunk;
-        } else {
-            current = candidate;
-        }
-    }
-    if (current !== '') lines.push(nested + current);
-    lines.push(`${indent})`);
-    return lines;
-}
-
-/** Wraps every long line of a cell, keeping the indentation each one has. */
-export function wrapSource(source: string, width = WRAP_WIDTH, limit = WRAP_LIMIT): string {
-    return source.split('\n').flatMap(line => {
-        const indent = /^ */.exec(line)![0];
-        return wrapLine(line.slice(indent.length), indent, width, limit);
-    }).join('\n');
-}
-
-/** Index of the first token of the expression this statement can bracket. */
-function expressionStart(tokens: readonly Token[]): number | undefined {
-    let depth = 0;
-    for (let index = 0; index < tokens.length; index += 1) {
-        const item = tokens[index];
-        if (item.kind === 'symbol') {
-            if (item.text === '(') depth += 1;
-            else if (item.text === ')') depth -= 1;
-            else if (depth === 0 && ASSIGNMENT_SYMBOLS.has(item.text)) return index + 1;
-            continue;
-        }
-        if (depth !== 0 || item.kind !== 'word') continue;
-        // A join condition is an expression, even when the statement begins with assignment.
-        if (JOIN_WORDS.has(item.text)) return undefined;
-        if (item.text === 'push') return index + 1;
-        if (index === 0 && EXPRESSION_KEYWORDS.has(item.text)) return 1;
-    }
-    return tokens.length === 0 ? undefined : 0;
-}
-
-function isBracketed(body: readonly Token[]): boolean {
-    if (body.length < 3 || body[0].text !== '(' || body.at(-1)!.text !== ')') return false;
-    let depth = 0;
-    for (let index = 0; index < body.length - 1; index += 1) {
-        if (body[index].text === '(') depth += 1;
-        else if (body[index].text === ')') depth -= 1;
-        if (depth === 0) return false;
-    }
-    return true;
-}
-
-/** Source chunks of the expression, cut before every operator it may break at. */
-function breakChunks(line: string, inner: readonly Token[]): string[] {
-    if (inner.length === 0) return [];
-    const starts = [0];
-    let depth = 0;
-    for (let index = 1; index < inner.length; index += 1) {
-        const item = inner[index];
-        if (item.kind === 'symbol') {
-            if (item.text === '(') depth += 1;
-            else if (item.text === ')') depth -= 1;
-        }
-        if (depth !== 0 || !breaksBefore(inner, index)) continue;
-        starts.push(index);
-    }
-    return starts.map((from, position) => {
-        const to = position + 1 < starts.length ? starts[position + 1] - 1 : inner.length - 1;
-        return line.slice(inner[from].start, inner[to].end);
-    });
-}
-
-function breaksBefore(inner: readonly Token[], index: number): boolean {
-    const item = inner[index];
-    const previous = inner[index - 1];
-    if (item.kind === 'symbol') {
-        return BREAK_SYMBOLS.has(item.text) && endsOperand(previous);
-    }
-    if (item.kind !== 'word' || !BREAK_WORDS.has(item.text)) return false;
-    // `not equal` is one operator, and `sort by` is one token.
-    return !(previous.kind === 'word' && previous.text === 'not');
-}
-
-/**
- * The line each statement of a file begins at.
- *
- * A statement is what the REPL can put back at a prompt: stepping into the
- * middle of a block would offer a body line with nothing holding it, so
- * walking a file backwards moves between these and lets the cell machinery
- * carry the lines between them.
- */
-export function cellStarts(lines: readonly string[]): number[] {
-    const starts: number[] = [];
-    let state = EMPTY_CELL;
-    for (const [index, line] of lines.entries()) {
-        if (isEmpty(state)) starts.push(index);
-        const text = line.trim();
-        if (text !== '') state = addLine(state, text);
-        if (isComplete(state)) state = EMPTY_CELL;
-    }
-    return starts;
 }

@@ -1,3 +1,4 @@
+import { checkpoint } from './interrupt.js';
 import {
     isBinaryExpression, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isUnaryExpression, type Expression,
@@ -17,7 +18,7 @@ type Instruction = { readonly read: () => RankValue } | {
 };
 
 interface ArithmeticContext {
-    readonly prepareLeaf: (expression: Expression) => () => RankValue;
+    readonly prepareLeaf: (expression: Expression) => (() => RankValue) | undefined;
     readonly binary: (operator: string, left: RankValue, right: RankValue) => RankValue;
 }
 
@@ -36,7 +37,10 @@ export function compileFusedReduction(
     return compileArithmeticFold(source, context, (result, read, size) => {
         if (!read || size === 0) return context.reduce(result);
         let accumulated = read(0);
-        for (let index = 1; index < size; index += 1) accumulated = reduce(accumulated, read(index));
+        for (let index = 1; index < size; index += 1) {
+            checkpoint('reducing array');
+            accumulated = reduce(accumulated, read(index));
+        }
         return accumulated;
     });
 }
@@ -50,6 +54,7 @@ export function compileFusedSum<T>(
         let total: bigint | number = 0n;
         let invalid: unknown;
         for (let index = 0; index < size; index += 1) {
+            checkpoint('reducing array');
             // Sum validates only after the ordinary arithmetic array is forced.
             const item = read(index);
             if (invalid !== undefined) continue;
@@ -86,7 +91,9 @@ function compileArithmeticFold<T>(
         } else if (isNameExpression(expression) || isNumberLiteral(expression)
             || (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)
                 && isNumberLiteral(expression.operand))) {
-            instructions.push({ read: context.prepareLeaf(expression) });
+            const read = context.prepareLeaf(expression);
+            if (!read) return undefined;
+            instructions.push({ read });
         } else return undefined;
         return instructions.length - 1;
     };
@@ -118,6 +125,7 @@ function compileArithmeticFold<T>(
         const readers: Reader[] = [];
         let eligible = true;
         for (let slot = 0; slot < instructions.length; slot += 1) {
+            checkpoint('reducing array');
             const instruction = instructions[slot];
             if ('read' in instruction) {
                 const value = instruction.read();

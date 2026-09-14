@@ -1,7 +1,6 @@
 rem Deep-ML 34: One-Hot Encoding
 rem https://www.deep-ml.com/problems/34
 
-use numbers
 use sequences
 
 rem Encode labels with a chosen width.

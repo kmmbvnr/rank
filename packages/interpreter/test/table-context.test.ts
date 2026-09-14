@@ -46,7 +46,7 @@ describe('contextual table operations', () => {
             + '  .chosen = Guest .cost .id choose\n'
             + '  .explicit = Other .cost\n  .kind = Label\n'
             + '  .minimum = Other .cost min .id\n'
-            + '  .lowest = Other .cost min\nend');
+            + '  .lowest = (Other .cost) min\nend');
         expect(formatValue(runtime.execute('Out .chosen')!)).toBe('10 2 3');
         expect(formatValue(runtime.execute('Out .explicit')!)).toBe('10 20 20');
         expect(formatValue(runtime.execute('Out .kind')!)).toBe('.tag .tag .tag');

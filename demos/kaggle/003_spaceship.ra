@@ -4,8 +4,6 @@ rem Fit a numeric spending and passenger baseline.
 
 use "001_titanic" as Titanic
 use cli
-use numbers
-use sequences
 use stats
 use tables
 

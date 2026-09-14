@@ -1,6 +1,7 @@
 import {
+    flattenApplication,
     isReturnStatement, isRecordExpression, isParenthesizedExpression, isNumberLiteral,
-    isBinaryExpression, isUnaryExpression, isApplicationExpression, isNameExpression,
+    isBinaryExpression, isUnaryExpression, isNameExpression,
     isLabelLiteral, type Expression, type FunctionStatement,
 } from '@rank/language';
 import type { RankValue } from './value.js';
@@ -47,9 +48,6 @@ function compile(
         lines.push(`const ${name} = ${code};`);
         return name;
     };
-    function parts(e: Expression): Expression[] {
-        return isApplicationExpression(e) ? [...parts(e.head), ...e.arguments] : [e];
-    }
     function emit(e: Expression): string | undefined {
         if (--remaining < 0) return undefined;
         if (isParenthesizedExpression(e)) return emit(e.value);
@@ -62,7 +60,7 @@ function compile(
             const left = emit(e.left), right = emit(e.right);
             return left === undefined || right === undefined ? undefined : variable(`${left} ${e.operator} ${right}`);
         }
-        const chain = parts(e);
+        const chain = flattenApplication(e);
         if (chain.length === 2 && isNameExpression(chain[0]) && isLabelLiteral(chain[1])) {
             const parameter = statement.parameters.indexOf(chain[0].name);
             const field = fields.get(chain[1].name);

@@ -1,7 +1,6 @@
 rem Deep-ML 3: Reshape Matrix
 rem https://www.deep-ml.com/problems/3
 
-use ranges
 use sequences
 
 fun reshape_matrix A NewShape

@@ -2,7 +2,6 @@ rem CSES 1069: Repetitions
 rem https://cses.fi/problemset/task/1069
 
 use io
-use numbers
 
 Text = stdin .word
 

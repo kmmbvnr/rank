@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=39
 rem Find the perimeter at most Limit with
 rem the most integer right triangles
 
-use ranges
 use numbers
 use sequences
 use io

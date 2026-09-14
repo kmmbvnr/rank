@@ -7,7 +7,6 @@ use "002_prices" as Regression
 use cli
 use dates
 use numbers
-use ranges
 use sequences
 use tables
 
@@ -26,7 +25,7 @@ fun distance Point
   unpack Lat1 Lon1 Lat2 Lon2 = Point
   DLat = Lat2 - Lat1
   DLon = Lon2 - Lon1
-  return ((DLat * DLat + DLon * DLon) sqrt) * 111.0
+  return (DLat * DLat + DLon * DLon sqrt) * 111.0
 end
 
 
@@ -52,7 +51,7 @@ end
 fun solve Train Test Rate Steps
   X = Train taxi_features
   Xtest = Test taxi_features
-  Y = (Train .trip_duration + 1) log
+  Y = Train .trip_duration + 1 log
   Model = X Y Rate Steps Regression.linear
   Pred = ((Xtest Model Regression.linear_predict) exp - 1) copy
   Pred (Pred less 0) = 0.0

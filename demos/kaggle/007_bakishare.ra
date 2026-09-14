@@ -7,7 +7,6 @@ use "002_prices" as Regression
 use cli
 use dates
 use numbers
-use ranges
 use sequences
 use tables
 
@@ -42,7 +41,7 @@ end
 fun solve Train Test Rate Steps
   X = Train bike_features
   Xtest = Test bike_features
-  Y = (Train .count + 1) log
+  Y = Train .count + 1 log
   Model = X Y Rate Steps Regression.linear
   Pred = ((Xtest Model Regression.linear_predict) exp - 1) copy
   Pred (Pred less 0) = 0.0

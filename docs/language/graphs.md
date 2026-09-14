@@ -10,7 +10,6 @@ isolated vertices and makes an unknown endpoint an error:
 
 ```rank
 use graph
-use ranges
 
 Nodes = 1 to NodeCount
 Graph = new graph Nodes .undirected

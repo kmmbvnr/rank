@@ -92,7 +92,6 @@ rem Project Euler 5
 rem Smallest number divisible by 1..20
 rem https://projecteuler.net/problem=5
 
-use ranges
 use numbers
 
 Range = 1 to 20
@@ -108,7 +107,6 @@ program produces `2520`.
 rem Project Euler 6
 rem https://projecteuler.net/problem=6
 
-use ranges
 use numbers
 
 Range = 1 to 100
@@ -169,7 +167,6 @@ ranked multiplication reduction produces one value per cell. The default width
 rem Project Euler 9
 rem https://projecteuler.net/problem=9
 
-use ranges
 use numbers
 
 option Target integer = 1000

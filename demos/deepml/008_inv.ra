@@ -1,7 +1,6 @@
 rem Deep-ML 8: 2x2 Matrix Inverse
 rem https://www.deep-ml.com/problems/8
 
-use numbers
 use sequences
 
 rem Return the inverse of a 2 by 2 matrix.

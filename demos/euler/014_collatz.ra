@@ -4,9 +4,7 @@ rem Find the starting value below Limit
 rem with the longest Collatz chain
 
 use algo
-use sequences
 use numbers
-use ranges
 use io
 use cli
 

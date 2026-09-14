@@ -2,8 +2,6 @@ rem CSES 2168: Nested Ranges Check
 rem https://cses.fi/problemset/task/2168
 
 use io
-use numbers
-use ranges
 use sequences
 
 N = stdin .integer

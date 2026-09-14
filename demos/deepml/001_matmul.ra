@@ -2,8 +2,6 @@ rem Deep-ML 1: Matrix-Vector Product
 rem https://www.deep-ml.com/problems/1
 
 use algo
-use numbers
-use sequences
 
 fun matrix_dot_vector A B
   if A 0 len not equal B len
@@ -11,7 +9,7 @@ fun matrix_dot_vector A B
   end
 
   for Row in A
-    queue push (Row * B) sum
+    queue push Row * B sum
   end
 
   return queue

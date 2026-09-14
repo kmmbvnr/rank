@@ -179,9 +179,13 @@ XorExpression returns Expression:
         operator='xor' right=AndExpression)*;
 
 AndExpression returns Expression:
-    ComparisonExpression
+    NotExpression
     ({infer BinaryExpression.left=current}
-        operator='and' right=ComparisonExpression)*;
+        operator='and' right=NotExpression)*;
+
+NotExpression returns Expression:
+    {infer UnaryExpression} operator='not' operand=NotExpression |
+    ComparisonExpression;
 
 ComparisonExpression returns Expression:
     PaddingExpression
@@ -291,7 +295,7 @@ JoinFieldPair:
 UnaryExpression returns Expression:
     UnpackExpression |
     {infer UnaryExpression}
-        operator=('+' | '-' | 'not') operand=UnaryExpression |
+        operator=('+' | '-') operand=UnaryExpression |
     ArrayExpression |
     RecordExpression |
     PrimaryExpression;
@@ -359,9 +363,13 @@ MultilineXorExpression returns Expression:
         NL* operator='xor' NL* right=MultilineAndExpression)*;
 
 MultilineAndExpression returns Expression:
-    MultilineComparisonExpression
+    MultilineNotExpression
     ({infer BinaryExpression.left=current}
-        NL* operator='and' NL* right=MultilineComparisonExpression)*;
+        NL* operator='and' NL* right=MultilineNotExpression)*;
+
+MultilineNotExpression returns Expression:
+    {infer UnaryExpression} operator='not' NL* operand=MultilineNotExpression |
+    MultilineComparisonExpression;
 
 MultilineComparisonExpression returns Expression:
     MultilinePaddingExpression

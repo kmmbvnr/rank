@@ -21,7 +21,7 @@ test('explain reports scopes, reads and writes', t => {
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
     const file = path.join(temporary, 'sums.ra');
     fs.writeFileSync(file, [
-        'use io', 'use ranges',
+        'use io',
         'Total = 0',
         'Spare = 7',
         'for I in 1 to 10',
@@ -33,7 +33,7 @@ test('explain reports scopes, reads and writes', t => {
 
     const result = explain(file);
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /io ranges/);
+    assert.match(result.stdout, /io/);
     assert.match(result.stdout, /Total .*assignment.*loop-carried/);
     assert.match(result.stdout, /Spare .*never read/);
     assert.match(result.stdout, /I +loop/);
@@ -96,4 +96,20 @@ test('explain finds nothing to report across the demos', () => {
         }
     }
     assert.deepEqual(reported, []);
+});
+
+test('explain recognizes core operations and reports missing CLI declarations', t => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-explain-core-'));
+    t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+    const file = path.join(temporary, 'core.ra');
+    fs.writeFileSync(file, 'Values = 1 to 5\nValues len\nValues sum\nValues min\nValues max\n');
+    const core = explain(file);
+    assert.equal(core.status, 0, core.stderr);
+    assert.match(core.stdout, /sum +core/);
+    fs.appendFileSync(file, 'option N integer = 3\n');
+    const missing = explain(file);
+    assert.equal(missing.status, 1);
+    assert.match(missing.stdout, /option +cli/);
+    fs.writeFileSync(file, 'use cli\n' + fs.readFileSync(file, 'utf8'));
+    assert.equal(explain(file).status, 0);
 });

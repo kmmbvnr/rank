@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1743
 
 use algo
 use io
-use sequences
 
 Text = stdin .word
 Text solve print

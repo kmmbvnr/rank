@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: aggregates 21
 rem https://pgexercises.com/questions/aggregates/payback.html
 
 use cli
-use numbers
 use sequences
 use tables
 

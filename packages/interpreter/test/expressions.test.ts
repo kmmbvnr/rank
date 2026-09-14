@@ -55,14 +55,14 @@ describe('Rank expressions and sequences', () => {
         expect(run('(-2) ** 2')).toBe('4');
         expect(run('2 ** -2')).toBe('0.25');
         expect(run('Value = 2\nValue **= 3\nValue')).toBe('8');
-        expect(run('use ranges\n(1 to 4) ** 2')).toBe('1 4 9 16');
+        expect(run('(1 to 4) ** 2')).toBe('1 4 9 16');
         expect(run('A = array 2 3\nA A ** outer')).toBe('4 8 9 27');
         expect(() => run('0 ** -1'))
             .toThrowError('zero cannot be raised to a negative power');
         expect(() => run('(-2) ** 0.5')).toThrowError('power result is not real');
     });
 
-    it('applies leading unary operators before postfix calls', () => {
+    it('applies signs before postfix calls and negates completed predicates', () => {
         expect(run([
             'fun negative X',
             '  return X less 0',
@@ -80,14 +80,14 @@ describe('Rank expressions and sequences', () => {
             '  return false',
             'end',
             'not false always_false',
-        ].join('\n'))).toBe('false');
+        ].join('\n'))).toBe('true');
     });
 
     it('pads missing addressed values without hiding other errors', () => {
         expect(run('(array 10 20) 2 pad 99')).toBe('99');
         expect(run('(array 10) 0 pad 1 / 0')).toBe('10');
         expect(run('"ab" 2 pad "?"')).toBe('?');
-        expect(run('use ranges\n(1 until 3) 2 pad 99')).toBe('99');
+        expect(run('(1 until 3) 2 pad 99')).toBe('99');
         expect(run([
             'use algo',
             'fun lookup Key',
@@ -185,20 +185,20 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('loads vocabulary without changing the grammar', () => {
-        expect(() => run('1 to 3')).toThrowError('to requires: use ranges');
+        expect(run('1 to 3')).toBe('1 2 3');
         expect(() => run('3 multiple by 2')).toThrowError('multiple by requires: use numbers');
-        expect(run('use ranges\n1 to 3')).toBe('1 2 3');
-        expect(run('use ranges\nuse numbers\n(1 to 5) sum')).toBe('15');
+        expect(run('1 to 3')).toBe('1 2 3');
+        expect(run('use numbers\n(1 to 5) sum')).toBe('15');
     });
 
     it('broadcasts scalar operations over sequences', () => {
-        expect(run('use ranges\n(1 to 3) * 10')).toBe('10 20 30');
-        expect(run('use ranges\n1 to 4 greater 2')).toBe('false false true true');
+        expect(run('(1 to 3) * 10')).toBe('10 20 30');
+        expect(run('1 to 4 greater 2')).toBe('false false true true');
     });
 
     it('applies binary operations to the outer cells of finite arrays', () => {
         const product = new Interpreter().execute([
-            'use ranges',
+
             'A = 1 to 2',
             'B = 3 to 5',
             'A B * outer',
@@ -230,7 +230,7 @@ describe('Rank expressions and sequences', () => {
     it('applies named binary functions with intrinsic ranks under outer', () => {
         const xor = new Interpreter().execute([
             'use bits',
-            'use ranges',
+
             'Values = 0 until 3',
             'Operation = bxor',
             'Values Values Operation outer',
@@ -294,7 +294,7 @@ describe('Rank expressions and sequences', () => {
 
     it('maps and filters an outer tensor lazily', () => {
         expect(run([
-            'use ranges',
+
             'use numbers',
             'fun even_value X',
             '  return X % 2 equal 0',
@@ -325,7 +325,7 @@ describe('Rank expressions and sequences', () => {
             'Pairs 0 equal Pairs 2',
         ].join('\n'))).toBe('true');
         expect(run([
-            'use ranges',
+
             'use sequences',
             'Windows = (1 to 4) 3 window',
             'Windows * reduce rank 1',
@@ -437,7 +437,7 @@ describe('Rank expressions and sequences', () => {
     it('reshapes finite values in row-major order', () => {
         const matrix = new Interpreter().execute([
             'use sequences',
-            'use ranges',
+
             'M = (1 to 6) (array 2 3) reshape',
             'M',
         ].join('\n'));
@@ -489,7 +489,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('use sequences\n(array true true) all')).toBe('true');
         expect(run('use sequences\n(array false true) any')).toBe('true');
         expect(run('use sequences\n(array true false true) count')).toBe('2');
-        expect(run('use sequences\nuse ranges\n((1 to 5) greater 2) count')).toBe('3');
+        expect(run('use sequences\n((1 to 5) greater 2) count')).toBe('3');
         const empty = 'Empty = array shape 0\nend\nEmpty';
         expect(run(`use sequences\n${empty} all`)).toBe('true');
         expect(run(`use sequences\n${empty} any`)).toBe('false');
@@ -543,7 +543,7 @@ describe('Rank expressions and sequences', () => {
 
     it('runs Euler 1 with word operations and a mask', () => {
         const source = [
-            'use ranges',
+
             'use numbers',
             'N = 1 until 1000',
             'Mask = N multiple by 3',
@@ -551,6 +551,15 @@ describe('Rank expressions and sequences', () => {
             'N Mask sum',
         ].join('\n');
         expect(run(source)).toBe('233168');
+    });
+
+    it('combines masks from repeated built-in sequence references', () => {
+        expect(run('use sequences\nuse numbers\n(fibonacci multiple by 5 or fibonacci multiple by 3) to 100'))
+            .toBe('3 5 21 55');
+        expect(run('use sequences\nuse numbers\n(primes multiple by 5 or primes multiple by 3) to 100'))
+            .toBe('3 5');
+        expect(() => run('use sequences\nuse numbers\nfibonacci even or primes even'))
+            .toThrowError('cannot combine masks from different sequences');
     });
 
     it('bounds and filters Fibonacci lazily', () => {
@@ -624,7 +633,7 @@ describe('Rank expressions and sequences', () => {
             'G until 100',
         ].join('\n'))).toBe('34');
         // A source without bounds still says so rather than running forever.
-        expect(() => run('use ranges\nuse numbers\n(1 until 20 multiple by 3) until 10'))
+        expect(() => run('use numbers\n(1 until 20 multiple by 3) until 10'))
             .toThrowError('does not support until');
     });
 
@@ -662,7 +671,7 @@ describe('Rank expressions and sequences', () => {
             'F',
         ].join('\n'))).toBe('8 13 21 34');
         expect(() => run([
-            'use ranges',
+
             'R = 1 to 5',
             'R from 3',
         ].join('\n'))).toThrowError('does not support from');
@@ -675,21 +684,21 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('constructs ranges and slices text by Unicode code point', () => {
-        expect(run('use ranges\n1 to 4')).toBe('1 2 3 4');
-        expect(run('use ranges\n1 to 9 by 2')).toBe('1 3 5 7 9');
-        expect(run('use ranges\n1 to 6 by 2')).toBe('1 3 5');
-        expect(run('use ranges\n10 until 0 by -2')).toBe('10 8 6 4 2');
-        expect(run('use ranges\n10 to 1 by -3')).toBe('10 7 4 1');
-        expect(run('use ranges\n1 until 1 by 2')).toBe('');
-        expect(run('use ranges\n1 to 1 by 2')).toBe('1');
-        expect(() => run('use ranges\n1 to 5 by 0'))
+        expect(run('1 to 4')).toBe('1 2 3 4');
+        expect(run('1 to 9 by 2')).toBe('1 3 5 7 9');
+        expect(run('1 to 6 by 2')).toBe('1 3 5');
+        expect(run('10 until 0 by -2')).toBe('10 8 6 4 2');
+        expect(run('10 to 1 by -3')).toBe('10 7 4 1');
+        expect(run('1 until 1 by 2')).toBe('');
+        expect(run('1 to 1 by 2')).toBe('1');
+        expect(() => run('1 to 5 by 0'))
             .toThrowError('range step must be a nonzero integer');
         expect(() => run('use sequences\nfibonacci to 20 by 2'))
             .toThrowError('by applies only to numeric ranges');
         expect(run('"A😀БC" from 1 until 3')).toBe('😀Б');
         expect(run('"A😀БC" from 1 to 3')).toBe('😀БC');
         expect(run('"abcdef" array 4 1 1')).toBe('ebb');
-        expect(run('use ranges\nPositions = 1 to 3\n"abcde" Positions')).toBe('bcd');
+        expect(run('Positions = 1 to 3\n"abcde" Positions')).toBe('bcd');
         expect(run('"abc" array shape 0\nend')).toBe('');
         expect(() => run('"abc" from 1 to 3'))
             .toThrowError('slice 1 to 3 exceeds axis size 3');

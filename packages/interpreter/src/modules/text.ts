@@ -1,3 +1,4 @@
+import { interruptibleCallback } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankValue } from '../value.js';
 import { mapSequence } from '../sequence.js';
@@ -28,8 +29,8 @@ export const textModule: RuntimeModule = {
             for (const word of tokenize(item)) frequency.set(word, (frequency.get(word) ?? 0) + 1);
         }
         const items = [...frequency.keys()]
-            .sort((left, right) => frequency.get(right)! - frequency.get(left)!
-                || compareCodepoints(left, right))
+            .sort(interruptibleCallback((left, right) => frequency.get(right)! - frequency.get(left)!
+                || compareCodepoints(left, right), 'sorting'))
             .slice(0, Number(limit));
         return textArray(items);
     }),
@@ -117,13 +118,6 @@ export const textModule: RuntimeModule = {
         for (const byte of value.data) result += hexadecimalBytes[byte];
         return result;
     }),
-    text: () => native('text', 1, arguments_ => {
-        const value = arguments_[0];
-        if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {
-            throw new RankError('text expects a scalar value');
-        }
-        return formatValue(value);
-    }),
     reverse: () => native('reverse', 1, arguments_ => {
         const value = arguments_[0];
         if (typeof value !== 'string') throw new RankError('reverse expects text');
@@ -146,14 +140,7 @@ export const textModule: RuntimeModule = {
         }
         return String.fromCodePoint(Number(value));
     }),
-    integer: () => native('integer', 1, arguments_ => {
-        const value = arguments_[0];
-        if (typeof value !== 'string') throw new RankError('integer expects text');
-        if (!/^[+-]?[0-9]+$/.test(value)) {
-            throw new RankError(`invalid integer text: ${value}`, 'InvalidNumber', value);
-        }
-        return BigInt(value);
-    }, 1),
+
 };
 
 function mapTextArguments(

@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "008_routes1"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .directed
   Edges = array shape 4 3
     1 2 6
@@ -19,7 +18,6 @@ end
 test "skips an outdated heap entry"
   use "008_routes1"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Edges = array shape 5 3
     1 2 100
@@ -36,7 +34,6 @@ end
 test "keeps exact large distances"
   use "008_routes1"
   use graph
-  use ranges
   Graph = new graph (1 to 3) .directed
   Edges = array shape 2 3
     1 2 9007199254740993
@@ -54,7 +51,6 @@ end
 test "handles positive cycles"
   use "008_routes1"
   use graph
-  use ranges
   Graph = new graph (1 to 4) .directed
   Edges = array shape 5 3
     1 2 5

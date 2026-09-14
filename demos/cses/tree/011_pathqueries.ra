@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/1138
 use algo
 use graph
 use io
-use ranges
 use sequences
 
 N = stdin .integer

@@ -12,7 +12,7 @@ fun single_neuron X Y W Bias
   Pred = Pred sigmoid
 
   Error = Pred - Y
-  Mse = (Error * Error) mean
+  Mse = Error * Error mean
 
   return array (Pred round 4) (
     Mse round 4

@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/2162
 use io
 use algo
 use numbers
-use ranges
 
 N = stdin .integer
 N josephus print

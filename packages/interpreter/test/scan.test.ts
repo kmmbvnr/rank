@@ -9,7 +9,7 @@ describe('scan modifier', () => {
     });
 
     it('accepts finite rank-one sequences and queues', () => {
-        expect(run('use ranges\n(1 to 4) + scan')).toBe('1 3 6 10');
+        expect(run('(1 to 4) + scan')).toBe('1 3 6 10');
         expect(run('use algo\nQ = new queue\nQ push 2\nQ push 5\nQ + scan'))
             .toBe('2 7');
     });

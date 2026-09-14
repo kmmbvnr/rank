@@ -3,10 +3,7 @@ rem https://projecteuler.net/problem=38
 rem Find the largest nine-digit pandigital
 rem concatenated product of one integer
 
-use ranges
 use sequences
-use text
-use numbers
 use io
 use cli
 

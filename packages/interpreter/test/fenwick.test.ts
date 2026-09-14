@@ -69,7 +69,7 @@ end
         expect(output).toEqual(['7', '6']);
         runtime.execute('use algo\n(array 4 5) sum print');
         expect(output.at(-1)).toBe('9');
-        runtime.execute('use ranges\nuse sequences\n(1 to 3) array sum print');
+        runtime.execute('use sequences\n(1 to 3) array sum print');
         expect(output.at(-1)).toBe('6');
         runtime.execute('fun replacement A\n  return 99\nend');
         runtime.variables.set('sum', runtime.variables.get('replacement')!);

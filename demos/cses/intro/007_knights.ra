@@ -2,7 +2,6 @@ rem CSES 1072: Two Knights
 rem https://cses.fi/problemset/task/1072
 
 use io
-use ranges
 
 N = stdin .integer
 

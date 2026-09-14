@@ -1,3 +1,4 @@
+import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapSequence } from '../sequence.js';
@@ -32,7 +33,11 @@ export function native(
                     `${name} expects ${arities.join(' or ')} argument, got ${arguments_.length}`,
                 );
             }
-            return call(arguments_);
+            if (!interruptsEnabled()) return call(arguments_);
+            checkInterrupt(name);
+            const result = call(arguments_);
+            checkInterrupt(name);
+            return result;
         },
     };
 }

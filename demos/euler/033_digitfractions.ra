@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=33
 rem Multiply the four non-trivial two-digit
 rem fractions and reduce their denominator
 
-use ranges
 use numbers
 use io
 

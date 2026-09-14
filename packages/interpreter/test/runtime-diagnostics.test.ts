@@ -31,8 +31,7 @@ describe('runtime diagnostics and stable tensor reads', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { tensorReadHoisting });
         try {
-            stats.run(() => runtime.execute(`use ranges
-A = array 1 2 3
+            stats.run(() => runtime.execute(`A = array 1 2 3
 B = A * 2`));
             (runtime.variables.get('B') as RankArray).items;
             const before = stats.validationRequests;
@@ -60,8 +59,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute(`use ranges
-A = array 1
+            stats.run(() => runtime.execute(`A = array 1
 Alias = A
 B = A * 2`));
             (runtime.variables.get('B') as RankArray).items;
@@ -81,8 +79,7 @@ Total`))).toBe(12n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute(`use ranges
-fun twice N
+            stats.run(() => runtime.execute(`fun twice N
   return N * 2
 end
 A = array 2
@@ -108,8 +105,7 @@ Total`))).toBe(30n);
         expect(stats.cacheHits).toBe(0);
         const runtime = new Interpreter(() => {});
         try {
-            stats.run(() => runtime.execute(`use ranges
-use io
+            stats.run(() => runtime.execute(`use io
 for I in 1 to 2
   I print
 end`));

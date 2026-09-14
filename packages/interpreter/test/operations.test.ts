@@ -98,7 +98,10 @@ describe('the operation catalogue', () => {
 });
 
 describe('the forms a use enables', () => {
-    it.each(moduleForms)('gates $form behind use $module', form => {
+    it.each(moduleForms.filter(form => form.module === 'core'))('provides $form without imports', form => {
+        expect(errorOf(form.example)).toBeUndefined();
+    });
+    it.each(moduleForms.filter(form => form.module !== 'core'))('gates $form behind use $module', form => {
         expect(gateMessage(form.example)).toBe(`use ${form.module}`);
         // With the module the example must simply run. Checking only that the
         // gate is gone would let a broken example stand.

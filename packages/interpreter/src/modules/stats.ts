@@ -1,3 +1,4 @@
+import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
@@ -70,6 +71,7 @@ function metricByAxes(
     metric: 'mse' | 'mae',
 ): RankValue {
     for (const axis of axes) {
+        checkpoint('computing statistics');
         if (axis >= losses.shape.length) {
             throw new RankError(`array has no axis ${axis}`);
         }
@@ -99,6 +101,7 @@ function metricByAxes(
         });
         let total = 0;
         for (let index = 0; index < reducedSize; index += 1) {
+            checkpoint('computing statistics');
             coordinatesAt(reducedShape, index).forEach((coordinate, position) => {
                 source[reducedAxes[position]] = coordinate;
             });
@@ -121,6 +124,7 @@ export function statisticsCell(
     const values = operation === 'std' ? [] as number[] : undefined;
     let invalid: { value: RankValue; nonfinite: boolean } | undefined;
     for (let index = 0; index < size; index++) {
+        checkpoint('computing statistics');
         let value: RankValue;
         try { value = itemAt(index); }
         catch (error) {
@@ -148,6 +152,7 @@ export function statisticsCell(
     if (!values) return mean;
     let squared = 0;
     for (const value of values) {
+        checkpoint('computing statistics');
         const difference = value - mean;
         squared += difference * difference;
     }
@@ -223,6 +228,7 @@ export function covarianceValue(
         if (cached !== undefined) return cached;
         let total = 0;
         for (let observation = 0; observation < observations; observation += 1) {
+            checkpoint('computing statistics');
             const coordinates = coordinatesFor(batch, feature, observation);
             total += Number(expectNumeric(arrayItem(value, arrayOffset(value.shape, coordinates))));
         }
@@ -240,6 +246,7 @@ export function covarianceValue(
         const rightMean = meanAt(batchIndex, batch, rightFeature);
         let total = 0;
         for (let observation = 0; observation < observations; observation += 1) {
+            checkpoint('computing statistics');
             const leftCoordinates = coordinatesFor(batch, leftFeature, observation);
             const rightCoordinates = coordinatesFor(batch, rightFeature, observation);
             const left = Number(expectNumeric(
@@ -263,7 +270,10 @@ export function meanValue(value: RankValue): number {
         throw new RankError('mean requires at least one value', 'EmptyReduction');
     }
     let total = 0;
-    for (const item of items) total += Number(expectNumeric(item));
+    for (const item of items) {
+        checkpoint('computing statistics');
+        total += Number(expectNumeric(item));
+    }
     return total / items.length;
 }
 
@@ -278,7 +288,7 @@ export function medianValue(value: RankValue): number {
     if (values.length === 0) {
         throw new RankError('median requires at least one value', 'EmptyReduction');
     }
-    values.sort((left, right) => left - right);
+    values.sort(interruptibleCallback((left, right) => left - right, 'sorting'));
     const middle = Math.floor(values.length / 2);
     return values.length % 2 === 1
         ? values[middle]
@@ -289,6 +299,7 @@ function presentValues(value: RankValue, operation: string): RankValue[] {
     if (!isRankArray(value)) return [...sequenceValues(value, operation)];
     const items: RankValue[] = [];
     for (let index = 0; index < arraySize(value.shape); index += 1) {
+        checkpoint('computing statistics');
         try {
             items.push(arrayItem(value, index));
         } catch (error) {

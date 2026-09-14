@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/3217
 
 use algo
 use io
-use ranges
 use sequences
 
 N = stdin .integer

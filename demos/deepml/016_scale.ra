@@ -2,13 +2,12 @@ rem Deep-ML 16: Feature Scaling
 rem https://www.deep-ml.com/problems/16
 
 use numbers
-use sequences
 use stats
 
 fun feature_scaling Data
   Mean = Data mean axis 0
   Delta = Data - Mean
-  Dev = ((Delta * Delta) mean axis 0) sqrt
+  Dev = (Delta * Delta mean axis 0) sqrt
   Low = Data min axis 0
   High = Data max axis 0
 

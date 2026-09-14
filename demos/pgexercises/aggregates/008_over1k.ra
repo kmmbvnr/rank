@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: aggregates 8
 rem https://pgexercises.com/questions/aggregates/fachours1a.html
 
 use cli
-use numbers
 use sequences
 use tables
 

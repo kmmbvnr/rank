@@ -1,3 +1,4 @@
+import { checkpoint } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
 import { addToCollection, removeFromCollection } from '../collections.js';
@@ -222,6 +223,7 @@ function* choose(
 
     const needed = count - selected.length;
     for (let index = start; index <= input.cells.length - needed; index += 1) {
+        checkpoint('computing combinations');
         selected.push(index);
         yield* choose(input, count, index + 1, selected);
         selected.pop();
@@ -240,6 +242,7 @@ function* chooseRepeated(
 
     const selected = Array.from({ length: count }, () => 0);
     while (true) {
+        checkpoint('computing combinations');
         const cells = selected.map(index => input.cells[index]);
         const items = input.cellShape.length === 0
             ? cells
@@ -248,6 +251,7 @@ function* chooseRepeated(
 
         let position = count - 1;
         while (position >= 0 && selected[position] === input.cells.length - 1) {
+            checkpoint('computing combinations');
             position -= 1;
         }
         if (position < 0) return;
@@ -277,6 +281,7 @@ function* buildPermutation(
 
     const seen = new Set<string>();
     for (let index = 0; index < input.items.length; index += 1) {
+        checkpoint('computing combinations');
         if (used[index]) continue;
         const item = input.items[index];
         const key = setValueKey(item);
@@ -293,11 +298,15 @@ function* buildPermutation(
 function permutationCount(items: readonly RankValue[]): bigint {
     const counts = new Map<string, number>();
     for (const item of items) {
+        checkpoint('computing combinations');
         const key = setValueKey(item);
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     let result = factorial(items.length);
-    for (const count of counts.values()) result /= factorial(count);
+    for (const count of counts.values()) {
+        checkpoint('computing combinations');
+        result /= factorial(count);
+    }
     return result;
 }
 
@@ -307,7 +316,10 @@ function arrayItem(source: RankArray, index: number): RankValue {
 
 function factorial(value: number): bigint {
     let result = 1n;
-    for (let factor = 2n; factor <= BigInt(value); factor += 1n) result *= factor;
+    for (let factor = 2n; factor <= BigInt(value); factor += 1n) {
+        checkpoint('computing combinations', 1024);
+        result *= factor;
+    }
     return result;
 }
 
@@ -316,6 +328,7 @@ function binomial(size: number, count: number): bigint {
     const smaller = Math.min(count, size - count);
     let result = 1n;
     for (let step = 1; step <= smaller; step += 1) {
+        checkpoint('computing binomial', 1024);
         result = result * BigInt(size - smaller + step) / BigInt(step);
     }
     return result;
@@ -330,6 +343,7 @@ function multicombCount(size: number, count: number): bigint {
     const smaller = selections < kinds ? selections : kinds;
     let result = 1n;
     for (let step = 1n; step <= smaller; step += 1n) {
+        checkpoint('computing combinations');
         result = result * (total - smaller + step) / step;
     }
     return result;

@@ -2,7 +2,6 @@ rem CSES 1630: Tasks and Deadlines
 rem https://cses.fi/problemset/task/1630
 
 use io
-use numbers
 use sequences
 
 N = stdin .integer
@@ -22,5 +21,5 @@ fun maximum_reward Tasks
   Deadline = Deadline Order
   Finished = Duration + scan
 
-  return (Deadline - Finished) sum
+  return Deadline - Finished sum
 end

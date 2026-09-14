@@ -4,7 +4,6 @@ import { run } from './support.js';
 describe('continue', () => {
     it('skips the rest of an iterable loop body', () => {
         expect(run(`
-use ranges
 Sum = 0
 for I in 1 to 5
   if I % 2 equal 0
@@ -38,7 +37,6 @@ Sum
 
     it('continues bare loops and targets only the nearest nested loop', () => {
         expect(run(`
-use ranges
 Total = 0
 for I in 1 to 3
   J = 0
@@ -58,7 +56,6 @@ Total
 
     it('runs finally on every continue without entering catch', () => {
         expect(run(`
-use ranges
 Cleanups = 0
 Catches = 0
 for I in 1 to 4
@@ -77,7 +74,6 @@ array Cleanups Catches
 
     it('allows continue in catch and runs its finally', () => {
         expect(run(`
-use ranges
 N = 0
 for I in 1 to 3
   try
@@ -107,7 +103,6 @@ end
 
     it('works after yields and inside a suspended generator loop', () => {
         expect(run(`
-use ranges
 fun values N
   for I in 1 to N
     if I % 2 equal 0

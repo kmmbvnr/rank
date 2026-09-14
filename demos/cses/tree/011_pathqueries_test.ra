@@ -4,7 +4,6 @@ test "official example"
   use "011_pathqueries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -29,7 +28,6 @@ test "root path contains only root"
   use "011_pathqueries"
   use algo
   use graph
-  use ranges
   use sequences
   Nodes = array 1
   Graph = new graph Nodes .undirected
@@ -45,7 +43,6 @@ test "update changes every lower path"
   use "011_pathqueries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
@@ -65,7 +62,6 @@ test "sibling update stays off path"
   use "011_pathqueries"
   use algo
   use graph
-  use ranges
   use sequences
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2

@@ -27,8 +27,7 @@ function compare(source: string, module?: string) {
 describe('compiled scalar function bodies', () => {
     it.each([['-13', '5'], ['13', '-5'], ['-13', '-5'], ['9007199254740993', '7']])(
         'preserves floor division and remainder for %s / %s', (a, b) => {
-            expect(compare(`use ranges
-fun helper A B
+            expect(compare(`fun helper A B
   Q = A // B
   R = A % B
   return Q * 10 + R
@@ -41,8 +40,7 @@ Result`).calls).toBe(1);
         });
 
     it('keeps local values independent from caller names', () => {
-        expect(compare(`use ranges
-fun helper X
+        expect(compare(`fun helper X
   Value = X + 2
   Value *= 3
   return Value
@@ -56,8 +54,7 @@ array Result Value`)).toMatchObject({ value: '21 99', calls: 2 });
     });
 
     it('executes boolean locals, compounds and elif branches', () => {
-        expect(compare(`use ranges
-fun helper X
+        expect(compare(`fun helper X
   Good = X greater 0
   Good and= X less 4
   if X less 0
@@ -78,8 +75,7 @@ Count`)).toMatchObject({ value: '3', calls: 7 });
     });
 
     it('preserves eager operand errors in boolean expressions', () => {
-        const result = compare(`use ranges
-fun helper X
+        const result = compare(`fun helper X
   Good = false and (1 // X greater 0)
   return Good
 end
@@ -91,8 +87,7 @@ end`);
     });
 
     it('preserves the existing last duplicate parameter binding', () => {
-        expect(compare(`use ranges
-fun helper X X
+        expect(compare(`fun helper X X
   return X
 end
 Result = 0
@@ -104,7 +99,6 @@ Result`)).toMatchObject({ value: '2', calls: 1 });
 
     it('uses the owning interpreter for an imported function', () => {
         expect(compare(`use "helper"
-use ranges
 Result = 0
 for I in 1 to 3
   Result += I helper
@@ -117,7 +111,6 @@ end`)).toMatchObject({ value: '18', calls: 3 });
 
     it('retains the imported function source location on failure', () => {
         const result = compare(`use "helper"
-use ranges
 for I in 1 to 1
   Result = I helper
 end`, `fun helper X

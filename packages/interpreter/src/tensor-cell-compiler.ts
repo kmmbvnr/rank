@@ -1,3 +1,4 @@
+import { checkpoint, interruptsEnabled } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
 
 type Copy = (source: RankArray, coordinates: number[], shape: readonly number[]) => RankValue[] | undefined;
@@ -6,7 +7,8 @@ const kernels = new Map<string, Copy>();
 /** Specialize axis routing, never dimensions, storage or element values. */
 export function compileTensorCellCopy(rank: number, axes: readonly number[]): Copy | undefined {
     if (rank > 16) return undefined;
-    const key = `${rank}:${axes.join(',')}`;
+    const interruptible = interruptsEnabled();
+    const key = `${interruptible}:${rank}:${axes.join(',')}`;
     const cached = kernels.get(key);
     if (cached) return cached;
     const decode = axes.map((axis, position) =>
@@ -19,6 +21,7 @@ export function compileTensorCellCopy(rank: number, axes: readonly number[]): Co
         const size = shape.reduce((a, b) => a * b, 1);
         const items = [];
         for (let linear = 0; linear < size; linear++) {
+            ${interruptible ? "checkpoint('copying tensor cell');" : ''}
             let remaining = linear;
             if (shape.length === ${axes.length}) { ${decode} }
             else {
@@ -38,7 +41,7 @@ export function compileTensorCellCopy(rank: number, axes: readonly number[]): Co
         return items;
     };`;
     try {
-        const copy = new Function(source)() as Copy;
+        const copy = new Function('checkpoint', source)(checkpoint) as Copy;
         kernels.set(key, copy);
         return copy;
     } catch { return undefined; }

@@ -2,7 +2,6 @@ rem Deep-ML 21: Pegasos Kernel SVM
 rem https://www.deep-ml.com/problems/21
 
 use numbers
-use ranges
 use sequences
 
 rem Train a deterministic kernel SVM.
@@ -21,10 +20,10 @@ fun pegasos X Y Kind Lambda Steps Sigma
 
       for j in 0 until N
         if Kind equal "linear"
-          K = (X j * X i) sum
+          K = X j * X i sum
         elif Kind equal "rbf"
           D = X j - X i
-          Power = -((D * D) sum) / 1.0
+          Power = -(D * D sum) / 1.0
           Power /= 2 * Sigma * Sigma
           K = Power exp
         else

@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: aggregates 14
 rem https://pgexercises.com/questions/aggregates/nbooking.html
 
 use cli
-use numbers
 use sequences
 use tables
 

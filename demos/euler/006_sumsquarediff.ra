@@ -3,8 +3,6 @@ rem https://projecteuler.net/problem=6
 rem Diff of square-of-sum and sum-of-
 rem squares, 1..100
 
-use ranges
-use numbers
 use io
 use cli
 

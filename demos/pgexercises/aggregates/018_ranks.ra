@@ -2,7 +2,6 @@ rem PostgreSQL Exercises: aggregates 18
 rem https://pgexercises.com/questions/aggregates/rankmembers.html
 
 use cli
-use numbers
 use sequences
 use tables
 

@@ -3,7 +3,6 @@ use testing
 test "official example"
   use "009_countpaths"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   Edges = array shape 4 2
@@ -26,7 +25,6 @@ end
 test "one node may form a path"
   use "009_countpaths"
   use graph
-  use ranges
   use sequences
   Tree = new graph (array 1) .undirected
   Rooted = Tree 1 root
@@ -38,7 +36,6 @@ end
 test "repeated paths accumulate"
   use "009_countpaths"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 4) .undirected
   Tree add 1 2
@@ -56,7 +53,6 @@ end
 test "separate branches meet at root"
   use "009_countpaths"
   use graph
-  use ranges
   use sequences
   Tree = new graph (1 to 5) .undirected
   for Node in 2 to 5

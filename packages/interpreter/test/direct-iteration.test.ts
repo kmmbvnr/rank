@@ -51,8 +51,7 @@ end`);
     });
 
     it('retains validation for empty sources and incompatible bindings', () => {
-        expect(compare(`use ranges
-A = (1 until 1) array
+        expect(compare(`A = (1 until 1) array
 for X i j in A
 end`)).toHaveProperty('error');
         expect(compare(`A = array 1 2

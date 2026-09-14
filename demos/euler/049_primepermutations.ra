@@ -4,7 +4,6 @@ rem Concatenate the second four-digit prime
 rem permutation arithmetic sequence
 
 use sequences
-use text
 use io
 
 Answer = 1000 10000 prime_permutation_sequence
@@ -14,7 +13,7 @@ Answer print
 rem Search increasing prime pairs and derive
 rem the only possible third arithmetic term.
 fun prime_permutation_sequence Lower Upper
-  Values = (primes until Upper) array
+  Values = primes until Upper array
   for A in Values
     if A at least Lower and A not equal 1487
       Key = A text sort
@@ -27,7 +26,7 @@ fun prime_permutation_sequence Lower Upper
           if C in primes
             if B text sort equal Key
               if C text sort equal Key
-                Result = A text + B text
+                Result = A text + (B text)
                 Result += C text
                 return Result integer
               end

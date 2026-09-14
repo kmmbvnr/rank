@@ -33,20 +33,19 @@ describe('numeric collection kernels', () => {
 
     it('keeps sequence arithmetic lazy, exact and repeatable', () => {
         const runtime = new Interpreter();
-        expect(runtime.execute(`use ranges
-use numbers
+        expect(runtime.execute(`use numbers
 R = 1 to 4
 Squares = R ** 2
 A = Squares sum
 B = Squares sum
 A + B`)).toBe(60n);
-        expect(runtime.execute('use ranges\nuse numbers\n((1 to 3) + (4 to 6)) sum')).toBe(21n);
-        expect(runtime.execute('use ranges\nuse numbers\n(10 - (1 to 3)) sum')).toBe(24n);
-        expect(runtime.execute('use ranges\nuse numbers\n((1 to 3) * 0.5) sum')).toBe(3);
-        expect(runtime.execute('use ranges\nuse numbers\n((1 until 1) ** (-1)) sum')).toBe(0n);
-        expect(() => runtime.execute('use ranges\nuse numbers\n((0 to 1) ** (-1)) sum'))
+        expect(runtime.execute('use numbers\n((1 to 3) + (4 to 6)) sum')).toBe(21n);
+        expect(runtime.execute('use numbers\n(10 - (1 to 3)) sum')).toBe(24n);
+        expect(runtime.execute('use numbers\n((1 to 3) * 0.5) sum')).toBe(3);
+        expect(runtime.execute('use numbers\n((1 until 1) ** (-1)) sum')).toBe(0n);
+        expect(() => runtime.execute('use numbers\n((0 to 1) ** (-1)) sum'))
             .toThrow('zero cannot be raised to a negative power');
-        expect(() => runtime.execute('use ranges\nuse numbers\n((-2 to -1) ** 0.5) sum'))
+        expect(() => runtime.execute('use numbers\n((-2 to -1) ** 0.5) sum'))
             .toThrow('power result is not real');
         runtime.dispose();
     });

@@ -33,7 +33,7 @@ fun mine Secret Prefix
   N = 1
 
   for
-    Candidate = Secret + N text
+    Candidate = Secret + (N text)
     Hash = Candidate md5 hex
 
     if Hash Prefix startswith

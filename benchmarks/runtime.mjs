@@ -7,7 +7,6 @@ const { Interpreter } = await import(process.argv[2] ?? '../packages/interpreter
 // Parse once; measure repeated execution of the same function bodies.
 const runtime = new Interpreter();
 runtime.execute(`
-use ranges
 use numbers
 use algo
 

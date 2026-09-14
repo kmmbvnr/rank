@@ -2,8 +2,6 @@ rem Deep-ML 29: Shuffle Dataset
 rem https://www.deep-ml.com/problems/29
 
 use random
-use ranges
-use sequences
 
 rem Shuffle matching samples
 rem with one shared order.

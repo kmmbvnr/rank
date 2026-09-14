@@ -3,10 +3,6 @@ rem https://projecteuler.net/problem=30
 rem Sum numbers equal to the sum of Power-th
 rem powers of their decimal digits
 
-use ranges
-use text
-use sequences
-use numbers
 use io
 use cli
 

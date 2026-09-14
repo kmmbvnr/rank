@@ -2,7 +2,6 @@ rem CSES 1652: Forest Queries
 rem https://cses.fi/problemset/task/1652
 
 use io
-use ranges
 use sequences
 use text
 

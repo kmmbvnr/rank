@@ -6,10 +6,6 @@ use io
 use cli
 use algo
 use bits
-use numbers
-use sequences
-use text
-use ranges
 
 argument Input path
 
@@ -80,7 +76,7 @@ fun partitionable Packages Used Groups Target
   end
   Available = queue
 
-  for Size in 1 to Available len
+  for Size in 1 to (Available len)
     for Pick in Available Size combinations
       Weight = 0
       NextUsed = Used

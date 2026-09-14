@@ -28,8 +28,7 @@ function compare(source: string) {
 
 describe('compiled blocks', () => {
     it('runs direct commands and loop control without changing results', () => {
-        expect(compare(`use ranges
-Sum = 0
+        expect(compare(`Sum = 0
 for I in 1 to 10
   X = I * 2
   if I equal 3
@@ -68,8 +67,7 @@ Answer
     });
 
     it('resumes generators through catch and finally', () => {
-        expect(compare(`use ranges
-fun values Base
+        expect(compare(`fun values Base
   try
     for I in 0 until 2
       Value = Base + I
@@ -153,8 +151,7 @@ for I less 0
 end
 I
 `,
-        `use ranges
-fun count N
+        `fun count N
   Total = 0
   for I in 1 to N
     X = I * 2

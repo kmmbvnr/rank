@@ -2,7 +2,6 @@ rem CSES 1638: Grid Paths I
 rem https://cses.fi/problemset/task/1638
 
 use io
-use ranges
 use sequences
 
 N = stdin .integer

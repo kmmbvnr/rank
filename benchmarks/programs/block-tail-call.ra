@@ -1,5 +1,4 @@
 rem Compiler fixture: tail into branches.
-use ranges
 
 fun bounded X
   Value = X - 100000

@@ -89,7 +89,6 @@ array (H pop) (H pop) (H pop)
 
     it('runs shortest-path relaxation with separate priorities and vertex payloads', () => {
         expect(run(prelude + `
-use ranges
 Graph = (array 0 7 1 0  0 0 0 1  0 2 0 9  0 0 0 0) (array 4 4) reshape
 Dist = array 0 999 999 999
 H = new heap

@@ -2,12 +2,30 @@
 
 ## Standard modules
 
+Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
+conversions `integer`, `real`, `text` are available
+without imports. The catalogue groups them under `core`; no `use core` is
+needed. These functions remain ordinary names and may be overridden by user
+functions. `numbers` still provides `sqrt`, `abs`, number theory and
+`multiple by`; `sequences` provides shapes, ordering and sources such as
+`fibonacci`.
+
+```rank
+Values = 1 to 5
+Values len
+Values sum
+Values min
+Values max
+```
+
+`use cli` enables `option`, `argument`, `flag` and `args`. Without it, a
+program cannot declare command-line inputs. `use testing` enables test blocks.
+
 A bare module name opens standard-library vocabulary in the current workspace:
 
 ```rank
 use numbers
 use random
-use ranges
 ```
 
 Parsing does not depend on which modules were opened. `use` enables the
@@ -18,17 +36,17 @@ two kinds of vocabulary. A name that only the module defines is simply unknown,
 and the error suggests the module that would define it:
 
 ```
-unknown name: max; did you forget `use numbers`?
+unknown name: sqrt; did you forget `use numbers`?
 ```
 
 A construct that the grammar always parses but only the module gives meaning to
 names itself instead, since there is no unknown word to report:
 
 ```
-to requires: use ranges
+option requires: use cli
 ```
 
-Both shapes carry the same instruction. The second covers `to` and `until`,
+Both shapes carry the same instruction. The second covers CLI declarations and `args`,
 `multiple by`, `new` containers, `push` and `add`, `stdin`, `group by`, the
 joins, `sort by` and `test` blocks. Every gated construct is listed with a
 runnable example in `packages/language/src/operations.ts`, whose test runs each
@@ -125,11 +143,16 @@ A name reported under `needs a use` is a program that cannot run, and
 
 ## Program inputs
 
+Declare program inputs with `use cli`. The import is required even when all
+inputs have defaults or receive values from the workspace.
+
 `option` declares an input parameter of a program. It is broader than a
 terminal-only CLI option: a caller may bind it through the current workspace, a
 command-line adapter, a browser host or another runner.
 
 ```rank
+use cli
+
 rem Upper boundary, excluded.
 option Limit integer = 1000
 ```
@@ -149,6 +172,7 @@ run
 ```
 
 ```rank
+use cli
 args "--limit" "10"
 run
 ```
@@ -159,6 +183,7 @@ against the declared type before program statements execute.
 Positional and boolean inputs use the same model:
 
 ```rank
+use cli
 argument Input path
 argument Numbers integer many
 flag Verbose

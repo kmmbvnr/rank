@@ -2,7 +2,6 @@ rem CSES 3399: Raab Game I
 rem https://cses.fi/problemset/task/3399
 
 use io
-use ranges
 
 T = stdin .integer
 
@@ -16,12 +15,12 @@ for t in 1 to T
 
   elif A equal 0 and B equal 0
     "YES" print
-    (1 to N) print
-    (1 to N) print
+    1 to N print
+    1 to N print
 
   else
     "YES" print
-    (1 to N) print
+    1 to N print
     N A B second print
   end
 end

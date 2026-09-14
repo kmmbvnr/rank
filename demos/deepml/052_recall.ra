@@ -17,5 +17,5 @@ fun recall Truth Predicted
 
   Guessed = Predicted equal 1
   Hits = (Actual and Guessed) count
-  return (Hits / Positives) round 3
+  return Hits / Positives round 3
 end

@@ -4,7 +4,6 @@ test "official example"
   use "036_distinctroutes"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 7 2
     1 2
@@ -25,7 +24,6 @@ test "returns no route when separated"
   use "036_distinctroutes"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 1 2
     1 2
@@ -38,7 +36,6 @@ test "uses direct parallel branches"
   use "036_distinctroutes"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 4 2
     1 2
@@ -54,7 +51,6 @@ test "does not share a teleporter"
   use "036_distinctroutes"
   use algo
   use graph
-  use ranges
   use sequences
   Edges = array shape 5 2
     1 2

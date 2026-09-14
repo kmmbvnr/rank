@@ -11,7 +11,7 @@ fun dense Inputs Units
     .DomainError raise
   end
 
-  Limit = 1 / Inputs sqrt
+  Limit = 1 / (Inputs sqrt)
   Low = -Limit
   Shape = array Inputs Units
   W = Shape Low Limit uniform
@@ -30,7 +30,7 @@ fun parameters Layer
   W = Layer .weights
   Bias = Layer .bias
   WSize = W shape * reduce
-  return WSize + Bias len
+  return WSize + (Bias len)
 end
 
 fun forward_pass Layer X
@@ -50,8 +50,8 @@ fun backward_pass Layer Grad Rate
     Xt = X transpose
     GradW = Xt Grad matmul
     GradB = Grad sum axis 0
-    NextW = (W - Rate * GradW) copy
-    NextB = (Bias - Rate * GradB) copy
+    NextW = W - Rate * GradW copy
+    NextB = Bias - Rate * GradB copy
     Layer .weights = NextW
     Layer .bias = NextB
   end

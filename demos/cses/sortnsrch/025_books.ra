@@ -2,7 +2,6 @@ rem CSES 1631: Reading Books
 rem https://cses.fi/problemset/task/1631
 
 use io
-use numbers
 
 N = stdin .integer
 Books = stdin .integer N array

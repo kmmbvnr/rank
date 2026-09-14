@@ -3,9 +3,7 @@ rem https://projecteuler.net/problem=35
 rem Count primes below Limit whose every
 rem decimal rotation is also prime
 
-use ranges
 use sequences
-use text
 use io
 use cli
 

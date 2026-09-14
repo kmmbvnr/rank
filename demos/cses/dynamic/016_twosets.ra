@@ -2,7 +2,6 @@ rem CSES 1093: Two Sets II
 rem https://cses.fi/problemset/task/1093
 
 use io
-use ranges
 
 N = stdin .integer
 N two_sets print

@@ -3,7 +3,6 @@ rem https://www.deep-ml.com/problems/19
 
 use linalg
 use numbers
-use ranges
 use sequences
 use stats
 
