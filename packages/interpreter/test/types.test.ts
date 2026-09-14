@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { analyzeBindings } from '@arrrank/language';
@@ -27,13 +28,15 @@ function programs(): string[] {
  * the values its run actually produced.
  */
 describe('inferred types against the values a run produced', () => {
-    it('never contradicts the runtime, and settles most program names', () => {
+    it('never contradicts the runtime, and settles most program names', async () => {
         const contradictions: string[] = [];
         let ran = 0;
         let names = 0;
         let settled = 0;
 
         for (const file of programs()) {
+            // Let Vitest process worker messages between CPU-bound demos.
+            await setImmediate();
             const source = fs.readFileSync(file, 'utf8');
             let facts;
             try {
