@@ -1,0 +1,19 @@
+use testing
+
+rem The official task accepts any longest common subsequence; these pin the
+rem length AtCoder's sample expects and this deterministic trace's own output.
+
+test "official example 1 reaches the maximum length"
+  use "06_lcs"
+  "axyb" "abyxb" longest_common equal "ayb"
+end
+
+test "official example 2 with a repeated letter"
+  use "06_lcs"
+  "aa" "xayaz" longest_common equal "aa"
+end
+
+test "official example 3 has no common letters"
+  use "06_lcs"
+  "a" "z" longest_common equal ""
+end

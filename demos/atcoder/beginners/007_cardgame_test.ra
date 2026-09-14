@@ -1,0 +1,19 @@
+use testing
+
+test "official example 1"
+  use "007_cardgame"
+  Values = array 3 1
+  Values card_game equal 2
+end
+
+test "official example 2"
+  use "007_cardgame"
+  Values = array 2 7 4
+  Values card_game equal 5
+end
+
+test "single card"
+  use "007_cardgame"
+  Values = array 9
+  Values card_game equal 9
+end

@@ -1,0 +1,19 @@
+use testing
+
+test "official example"
+  use "004_shift"
+  Values = array 8 12 40
+  Values shifts equal 2
+end
+
+test "one value is odd"
+  use "004_shift"
+  Values = array 5 6 8
+  Values shifts equal 0
+end
+
+test "single value"
+  use "004_shift"
+  Values = array 16
+  Values shifts equal 4
+end

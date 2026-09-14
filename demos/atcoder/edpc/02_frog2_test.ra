@@ -1,0 +1,19 @@
+use testing
+
+test "official example 1"
+  use "02_frog2"
+  Values = array 10 30 40 50 20
+  Values 3 min_cost equal 30
+end
+
+test "official example 2 forces single steps"
+  use "02_frog2"
+  Values = array 10 20 10
+  Values 1 min_cost equal 20
+end
+
+test "official example 3 allows one big jump"
+  use "02_frog2"
+  Values = array 10 10
+  Values 100 min_cost equal 0
+end

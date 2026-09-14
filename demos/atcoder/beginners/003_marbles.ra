@@ -1,0 +1,22 @@
+rem AtCoder Beginners Selection: Placing Marbles
+rem https://atcoder.jp/contests/abc081/tasks/abc081_a
+
+use io
+
+S = stdin .word
+
+S marbles print
+
+
+rem Count squares marked with a marble.
+fun marbles S
+  Count = 0
+
+  for C in S
+    if C equal "1"
+      Count += 1
+    end
+  end
+
+  return Count
+end

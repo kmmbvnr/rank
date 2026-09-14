@@ -1,0 +1,21 @@
+rem AtCoder Beginners Selection: Welcome to AtCoder
+rem https://atcoder.jp/contests/practice/tasks/practice_1
+
+use io
+use text
+
+A = stdin .integer
+B = stdin .integer
+C = stdin .integer
+S = stdin .word
+
+A B C S greeting print
+
+
+rem Join the sum of three integers with a
+rem trailing word.
+fun greeting A B C S
+  Sum = A + B + C
+  Words = Sum text + " " + S
+  return Words
+end

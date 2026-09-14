@@ -1,0 +1,73 @@
+rem AtCoder Educational DP Contest: Longest Common Subsequence
+rem https://atcoder.jp/contests/dp/tasks/dp_f
+
+use io
+use sequences
+
+S = stdin .word
+T = stdin .word
+
+S T longest_common print
+
+
+rem Build lengths, then trace one longest common subsequence.
+fun longest_common S T
+  N = S len
+  M = T len
+  Rows = N + 1
+  Cols = M + 1
+  Lengths = array shape Rows Cols pad 0
+
+  for i in 1 to N
+    Si = i - 1
+    Letter = S Si
+
+    for j in 1 to M
+      Tj = j - 1
+      Other = T Tj
+      Same = Letter equal Other
+
+      if Same
+        Up = i - 1
+        Back = j - 1
+        Prior = Lengths Up Back
+        Lengths i j = Prior + 1
+      else
+        Up = i - 1
+        Back = j - 1
+        Above = Lengths Up j
+        Left = Lengths i Back
+        Lengths i j = Above max Left
+      end
+    end
+  end
+
+  Result = ""
+  Row = N
+  Column = M
+
+  for Row greater 0 and Column greater 0
+    RowBack = Row - 1
+    ColumnBack = Column - 1
+    Letter = S RowBack
+    Other = T ColumnBack
+    Same = Letter equal Other
+
+    if Same
+      Result = Letter + Result
+      Row = RowBack
+      Column = ColumnBack
+    else
+      Above = Lengths RowBack Column
+      Left = Lengths Row ColumnBack
+
+      if Above greater Left
+        Row = RowBack
+      else
+        Column = ColumnBack
+      end
+    end
+  end
+
+  return Result
+end

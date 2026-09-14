@@ -1,0 +1,16 @@
+rem AtCoder Beginners Selection: Kagami Mochi
+rem https://atcoder.jp/contests/abc085/tasks/abc085_b
+
+use io
+use sequences
+
+N = stdin .integer
+D = stdin .integer N array
+
+D distinct_sizes print
+
+
+rem Count distinct mochi diameters, the tallest possible tower height.
+fun distinct_sizes D
+  return D unique len
+end

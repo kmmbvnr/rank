@@ -1,0 +1,17 @@
+use testing
+
+test "official example"
+  use "001_welcome"
+  Words = 1 2 3 "test" greeting
+  Words equal "6 test"
+end
+
+test "largest allowed values"
+  use "001_welcome"
+  A = 1000
+  B = 1000
+  C = 1000
+  S = "atcoder"
+  Words = A B C S greeting
+  Words equal "3000 atcoder"
+end

@@ -1,0 +1,25 @@
+use testing
+
+test "official example 1"
+  use "03_vacation"
+  A = array 10 1 10
+  B = array 40 10 10
+  C = array 40 10 10
+  A B C best_score equal 60
+end
+
+test "official example 2 single day"
+  use "03_vacation"
+  A = array 100
+  B = array 10
+  C = array 1
+  A B C best_score equal 100
+end
+
+test "official example 3"
+  use "03_vacation"
+  A = array 6 8 2 7 4 2 7
+  B = array 7 8 5 8 6 3 5
+  C = array 8 3 2 6 8 4 1
+  A B C best_score equal 46
+end

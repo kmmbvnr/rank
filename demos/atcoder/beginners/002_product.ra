@@ -1,0 +1,20 @@
+rem AtCoder Beginners Selection: Product
+rem https://atcoder.jp/contests/abc086/tasks/abc086_a
+
+use io
+
+A = stdin .integer
+B = stdin .integer
+
+A B parity print
+
+
+rem Classify a product as Even or Odd.
+fun parity A B
+  Product = A * B
+  Remainder = Product % 2
+  if Remainder equal 0
+    return "Even"
+  end
+  return "Odd"
+end

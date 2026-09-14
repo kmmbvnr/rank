@@ -1,0 +1,16 @@
+use testing
+
+test "official example 1"
+  use "002_product"
+  3 4 parity equal "Even"
+end
+
+test "official example 2"
+  use "002_product"
+  5 7 parity equal "Odd"
+end
+
+test "one operand is zero"
+  use "002_product"
+  0 9 parity equal "Even"
+end

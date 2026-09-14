@@ -1,0 +1,19 @@
+use testing
+
+test "official example"
+  use "009_kagami"
+  Values = array 10 8 8 6
+  Values distinct_sizes equal 3
+end
+
+test "all sizes distinct"
+  use "009_kagami"
+  Values = array 15 13 9 2
+  Values distinct_sizes equal 4
+end
+
+test "single mochi"
+  use "009_kagami"
+  Values = array 50
+  Values distinct_sizes equal 1
+end

@@ -1,0 +1,52 @@
+rem AtCoder Educational DP Contest: Knapsack 2
+rem https://atcoder.jp/contests/dp/tasks/dp_e
+
+use io
+use sequences
+
+N = stdin .integer
+W = stdin .integer
+Weights = array shape N pad 0
+Values = array shape N pad 0
+
+for I in 0 to N - 1
+  Weights I = stdin .integer
+  Values I = stdin .integer
+end
+
+W Weights Values max_value print
+
+
+rem Track the minimum weight for each achievable total value instead of the
+rem other way around, since the capacity can be far larger than the value sum.
+fun max_value W Weights Values
+  TotalValue = Values sum
+  Infinity = 1000000000000000000
+  Size = TotalValue + 1
+  MinWeight = array shape Size pad Infinity
+  MinWeight 0 = 0
+
+  for Weight i in Weights
+    Value = Values i
+
+    for V in TotalValue to Value by -1
+      Prev = V - Value
+      Reached = MinWeight Prev
+      Candidate = Reached + Weight
+      Current = MinWeight V
+      MinWeight V = Current min Candidate
+    end
+  end
+
+  Best = 0
+  for V in 0 to TotalValue
+    Needed = MinWeight V
+    Affordable = Needed at most W
+
+    if Affordable
+      Best = V
+    end
+  end
+
+  return Best
+end

@@ -1,0 +1,22 @@
+use testing
+
+test "two items fill the capacity exactly"
+  use "04_knapsack1"
+  Weights = array 3 4 2
+  Values = array 30 50 60
+  6 Weights Values max_value equal 110
+end
+
+test "small items beat one big item"
+  use "04_knapsack1"
+  Weights = array 6 4 2 5 1
+  Values = array 9 10 3 5 1
+  9 Weights Values max_value equal 15
+end
+
+test "capacity too small for any item"
+  use "04_knapsack1"
+  Weights = array 5 5
+  Values = array 10 10
+  1 Weights Values max_value equal 0
+end

@@ -1,0 +1,41 @@
+rem AtCoder Educational DP Contest: Longest Path
+rem https://atcoder.jp/contests/dp/tasks/dp_g
+
+use graph
+use io
+use sequences
+
+N = stdin .integer
+M = stdin .integer
+ValueCount = M * 2
+Values = stdin .integer ValueCount array
+Shape = array M 2
+Edges = Values Shape reshape
+Nodes = 1 to N
+Graph = new graph Nodes .directed
+Graph add Edges
+
+Graph N longest_path print
+
+
+rem Longest path length, counted in edges, through a DAG.
+fun longest_path Graph N
+  Size = N + 1
+  Distance = array shape Size pad 1
+  Sorted = Graph topological
+
+  for Current in Sorted .order
+    for Next in Graph Current
+      Prior = Distance Current
+      Candidate = Prior + 1
+      Existing = Distance Next
+
+      if Candidate greater Existing
+        Distance Next = Candidate
+      end
+    end
+  end
+
+  Peak = Distance max
+  return Peak - 1
+end

@@ -1,0 +1,19 @@
+use testing
+
+test "official example detours around a wall"
+  use "08_grid1"
+  Grid = array "..." ".#." "..."
+  Grid path_count equal 2
+end
+
+test "open two by two grid"
+  use "08_grid1"
+  Grid = array ".." ".."
+  Grid path_count equal 2
+end
+
+test "blocked start has no paths"
+  use "08_grid1"
+  Grid = array "#." ".."
+  Grid path_count equal 0
+end

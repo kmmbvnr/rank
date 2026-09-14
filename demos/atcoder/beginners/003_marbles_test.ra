@@ -1,0 +1,16 @@
+use testing
+
+test "official example 1"
+  use "003_marbles"
+  "101" marbles equal 2
+end
+
+test "official example 2"
+  use "003_marbles"
+  "000" marbles equal 0
+end
+
+test "official example 3"
+  use "003_marbles"
+  "111" marbles equal 3
+end

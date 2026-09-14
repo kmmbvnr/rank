@@ -1,0 +1,42 @@
+rem AtCoder Educational DP Contest: Knapsack 1
+rem https://atcoder.jp/contests/dp/tasks/dp_d
+
+use io
+use sequences
+
+N = stdin .integer
+W = stdin .integer
+Weights = array shape N pad 0
+Values = array shape N pad 0
+
+for I in 0 to N - 1
+  Weights I = stdin .integer
+  Values I = stdin .integer
+end
+
+W Weights Values max_value print
+
+
+rem Visit capacities backwards so every item is used at most once.
+fun max_value W Weights Values
+  Size = W + 1
+  Best = array shape Size pad 0
+
+  for Weight i in Weights
+    Fits = Weight at most W
+
+    if Fits
+      Value = Values i
+
+      for Cap in W to Weight by -1
+        Prev = Cap - Weight
+        Taken = Best Prev
+        Candidate = Taken + Value
+        Current = Best Cap
+        Best Cap = Current max Candidate
+      end
+    end
+  end
+
+  return Best W
+end

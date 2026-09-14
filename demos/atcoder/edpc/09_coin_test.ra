@@ -1,0 +1,22 @@
+use testing
+
+test "official example"
+  use "09_coin"
+  use numbers
+  P = array 0.30 0.60 0.80
+  Actual = P more_than_half
+  Rounded = Actual round 6
+  Rounded equal 0.612
+end
+
+test "single fair coin"
+  use "09_coin"
+  P = array 0.5
+  P more_than_half equal 0.5
+end
+
+test "all certain heads guarantees a majority"
+  use "09_coin"
+  P = array 1.0 1.0 1.0
+  P more_than_half equal 1.0
+end

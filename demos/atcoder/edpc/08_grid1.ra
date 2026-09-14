@@ -1,0 +1,57 @@
+rem AtCoder Educational DP Contest: Grid 1
+rem https://atcoder.jp/contests/dp/tasks/dp_h
+
+use io
+use sequences
+
+H = stdin .integer
+W = stdin .integer
+Grid = stdin .word H array
+
+Grid path_count print
+
+
+rem Count right/down paths from the top-left to the bottom-right, skipping
+rem walls, modulo 1e9+7.
+fun path_count Grid
+  H = Grid len
+  FirstRow = Grid 0
+  W = FirstRow len
+  Ways = array shape H W pad 0
+
+  for Row R in Grid
+    for Cell C in Row
+      Wall = Cell equal "#"
+      TopRow = R equal 0
+      LeftCol = C equal 0
+      Start = TopRow and LeftCol
+
+      if Wall
+        Ways R C = 0
+      elif Start
+        Ways R C = 1
+      else
+        Total = 0
+        HasUp = R greater 0
+        HasLeft = C greater 0
+
+        if HasUp
+          Up = R - 1
+          FromAbove = Ways Up C
+          Total += FromAbove
+        end
+        if HasLeft
+          Left = C - 1
+          FromLeft = Ways R Left
+          Total += FromLeft
+        end
+
+        Ways R C = Total % 1000000007
+      end
+    end
+  end
+
+  LastRow = H - 1
+  LastCol = W - 1
+  return Ways LastRow LastCol
+end

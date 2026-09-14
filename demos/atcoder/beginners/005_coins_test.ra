@@ -1,0 +1,16 @@
+use testing
+
+test "official example"
+  use "005_coins"
+  2 2 2 100 ways equal 2
+end
+
+test "no coins available"
+  use "005_coins"
+  0 0 0 0 ways equal 1
+end
+
+test "target unreachable"
+  use "005_coins"
+  1 1 1 1000 ways equal 0
+end

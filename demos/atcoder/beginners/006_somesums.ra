@@ -1,0 +1,28 @@
+rem AtCoder Beginners Selection: Some Sums
+rem https://atcoder.jp/contests/abc083/tasks/abc083_b
+
+use io
+
+N = stdin .integer
+A = stdin .integer
+B = stdin .integer
+
+N A B some_sums print
+
+
+rem Sum every value in 1..N whose digit sum falls in a range.
+fun some_sums N A B
+  Total = 0
+
+  for I in 1 to N
+    Digits = I text integer rank 0 sum
+    Low = Digits at least A
+    High = Digits at most B
+
+    if Low and High
+      Total += I
+    end
+  end
+
+  return Total
+end

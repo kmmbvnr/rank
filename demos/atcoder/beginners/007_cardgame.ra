@@ -1,0 +1,28 @@
+rem AtCoder Beginners Selection: Card Game for Two
+rem https://atcoder.jp/contests/abc088/tasks/abc088_b
+
+use io
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+A card_game print
+
+
+rem Find Alice's advantage when both players take the largest remaining card.
+fun card_game A
+  Sorted = A sort descending
+  Alice = 0
+  Bob = 0
+
+  for V i in Sorted
+    if i % 2 equal 0
+      Alice += V
+    else
+      Bob += V
+    end
+  end
+
+  return Alice - Bob
+end

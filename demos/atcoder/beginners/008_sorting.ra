@@ -1,0 +1,23 @@
+rem AtCoder Beginners Selection: Sorting
+rem https://atcoder.jp/contests/practice/tasks/practice_2
+
+use io
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+Report = A sorted_report
+Report .sorted print
+Report .total print
+
+
+rem Sort values ascending and report their sum alongside them.
+fun sorted_report A
+  Sorted = A sort
+  Total = Sorted sum
+  return record
+    .sorted = Sorted
+    .total = Total
+  end
+end

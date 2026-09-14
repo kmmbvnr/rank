@@ -1,0 +1,37 @@
+rem AtCoder Beginners Selection: Coins
+rem https://atcoder.jp/contests/abc087/tasks/abc087_b
+
+use io
+
+A = stdin .integer
+B = stdin .integer
+C = stdin .integer
+X = stdin .integer
+
+A B C X ways print
+
+
+rem Count coin combinations reaching the target amount.
+rem The 50-yen count is derived from the other two instead of enumerated.
+fun ways A B C X
+  Count = 0
+
+  for I in 0 to A
+    for J in 0 to B
+      Spent = 500 * I + 100 * J
+      Remaining = X - Spent
+      Mod = Remaining % 50
+      NonNegative = Remaining at least 0
+      Divisible = Mod equal 0
+
+      if NonNegative and Divisible
+        K = Remaining // 50
+        if K at most C
+          Count += 1
+        end
+      end
+    end
+  end
+
+  return Count
+end

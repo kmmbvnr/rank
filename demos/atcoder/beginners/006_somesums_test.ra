@@ -1,0 +1,16 @@
+use testing
+
+test "official example 1"
+  use "006_somesums"
+  100 4 16 some_sums equal 4554
+end
+
+test "official example 2"
+  use "006_somesums"
+  9995 23 54 some_sums equal 15965076
+end
+
+test "single value in range"
+  use "006_somesums"
+  1 1 1 some_sums equal 1
+end

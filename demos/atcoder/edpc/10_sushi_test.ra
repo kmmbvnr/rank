@@ -1,0 +1,28 @@
+use testing
+
+test "single plate always takes exactly its piece count"
+  use "10_sushi"
+  Plates = array 3
+  1 Plates expected_turns equal 3.0
+end
+
+test "official-style example with mixed plates"
+  use "10_sushi"
+  Plates = array 1 2
+  2 Plates expected_turns equal 4.5
+end
+
+test "three plates of three pieces each"
+  use "10_sushi"
+  use numbers
+  Plates = array 3 3 3
+  Actual = 3 Plates expected_turns
+  Rounded = Actual round 6
+  Rounded equal 13.486883
+end
+
+test "three plates of one piece each"
+  use "10_sushi"
+  Plates = array 1 1 1
+  3 Plates expected_turns equal 5.5
+end

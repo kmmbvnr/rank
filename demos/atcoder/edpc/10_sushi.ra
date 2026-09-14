@@ -1,0 +1,77 @@
+rem AtCoder Educational DP Contest: Sushi
+rem https://atcoder.jp/contests/dp/tasks/dp_j
+
+use io
+use sequences
+
+N = stdin .integer
+A = stdin .integer N array
+
+N A expected_turns print
+
+
+rem Expected turns to empty every plate, tracked by how many plates hold
+rem exactly 1, 2 or 3 pieces. Picking an empty plate is a self-loop that the
+rem N/Occupied term already accounts for once solved algebraically.
+rem A 2-piece plate can only have come from a 3-piece one, and a 1-piece
+rem plate from either a 1- or 2-piece start, so both axes must be sized past
+rem their own initial counts; only their combined occupancy is bounded.
+fun expected_turns N A
+  C1 = 0
+  C2 = 0
+  C3 = 0
+
+  for V in A
+    if V equal 1
+      C1 += 1
+    elif V equal 2
+      C2 += 1
+    elif V equal 3
+      C3 += 1
+    end
+  end
+
+  Total = C1 + C2 + C3
+  Size = Total + 1
+  Depth = C3 + 1
+  Dp = array shape Size Size Depth pad 0.0
+
+  for K in 0 to C3
+    for J in 0 to Total
+      for I in 0 to Total
+        Occupied = I + J + K
+        Positive = Occupied greater 0
+        InRange = Occupied at most Total
+
+        if Positive and InRange
+          Base = N / Occupied
+
+          if I greater 0
+            Share = I / Occupied
+            Prev = I - 1
+            Neighbor = Dp Prev J K
+            Base += Share * Neighbor
+          end
+          if J greater 0
+            Share = J / Occupied
+            Up = I + 1
+            Down = J - 1
+            Neighbor = Dp Up Down K
+            Base += Share * Neighbor
+          end
+          if K greater 0
+            Share = K / Occupied
+            Up = J + 1
+            Down = K - 1
+            Neighbor = Dp I Up Down
+            Base += Share * Neighbor
+          end
+
+          Dp I J K = Base
+        end
+      end
+    end
+  end
+
+  return Dp C1 C2 C3
+end

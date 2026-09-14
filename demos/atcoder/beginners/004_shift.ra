@@ -1,0 +1,37 @@
+rem AtCoder Beginners Selection: Shift Only
+rem https://atcoder.jp/contests/abc081/tasks/abc081_b
+
+use io
+
+N = stdin .integer
+A = stdin .integer N array
+
+A shifts print
+
+
+rem Count the shared factors of two across every value.
+fun shifts A
+  Best = -1
+
+  for V in A
+    Twos = V trailing_twos
+    if Best equal -1 or Twos less Best
+      Best = Twos
+    end
+  end
+
+  return Best
+end
+
+
+rem Count trailing factors of two in a positive integer.
+fun trailing_twos V
+  Count = 0
+
+  for V % 2 equal 0
+    V //= 2
+    Count += 1
+  end
+
+  return Count
+end

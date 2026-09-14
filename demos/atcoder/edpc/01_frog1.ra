@@ -1,0 +1,44 @@
+rem AtCoder Educational DP Contest: Frog 1
+rem https://atcoder.jp/contests/dp/tasks/dp_a
+
+use io
+use numbers
+use sequences
+
+N = stdin .integer
+H = stdin .integer N array
+
+H min_cost print
+
+
+rem Cheapest way to hop from stone 1 to stone N, one or two steps at a time.
+fun min_cost H
+  N = H len
+  Cost = array shape N pad 0
+
+  for I in 1 to N - 1
+    Height = H I
+    Index1 = I - 1
+    Prev1 = H Index1
+    Diff1 = Height - Prev1
+    Jump1 = Diff1 abs
+    Prior1 = Cost Index1
+    Step1 = Prior1 + Jump1
+    Best = Step1
+
+    if I greater 1
+      Index2 = I - 2
+      Prev2 = H Index2
+      Diff2 = Height - Prev2
+      Jump2 = Diff2 abs
+      Prior2 = Cost Index2
+      Step2 = Prior2 + Jump2
+      Best = Best min Step2
+    end
+
+    Cost I = Best
+  end
+
+  Last = N - 1
+  return Cost Last
+end

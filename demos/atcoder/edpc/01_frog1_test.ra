@@ -1,0 +1,19 @@
+use testing
+
+test "official example 1"
+  use "01_frog1"
+  Values = array 10 30 40 20
+  Values min_cost equal 30
+end
+
+test "official example 2"
+  use "01_frog1"
+  Values = array 10 10
+  Values min_cost equal 0
+end
+
+test "official example 3"
+  use "01_frog1"
+  Values = array 30 10 60 10 60 50
+  Values min_cost equal 40
+end

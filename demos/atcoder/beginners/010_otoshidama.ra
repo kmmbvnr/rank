@@ -1,0 +1,33 @@
+rem AtCoder Beginners Selection: Otoshidama
+rem https://atcoder.jp/contests/abc085/tasks/abc085_c
+
+use io
+
+N = stdin .integer
+Y = stdin .integer
+
+N Y otoshidama print
+
+
+rem Find bill counts of 10000, 5000 and 1000 yen totalling N bills and Y yen.
+rem Any valid combination is acceptable; this returns the first by 10000-yen count.
+fun otoshidama N Y
+  for Ten in 0 to N
+    Rest = N - Ten
+    Spent = 10000 * Ten + 1000 * Rest
+    Remaining = Y - Spent
+    Mod = Remaining % 4000
+    NonNegative = Remaining at least 0
+    Divisible = Mod equal 0
+
+    if NonNegative and Divisible
+      Five = Remaining // 4000
+      if Five at most Rest
+        One = Rest - Five
+        return array Ten Five One
+      end
+    end
+  end
+
+  return array -1 -1 -1
+end

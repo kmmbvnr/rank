@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "008_sorting"
+  Values = array 5 3 2 1 4
+  Report = Values sorted_report
+  Report .sorted equal array 1 2 3 4 5
+  Report .total equal 15
+end
+
+test "already sorted"
+  use "008_sorting"
+  Values = array 1 2 3
+  Report = Values sorted_report
+  Report .sorted equal array 1 2 3
+  Report .total equal 6
+end
+
+test "single value"
+  use "008_sorting"
+  Values = array 7
+  Report = Values sorted_report
+  Report .sorted equal array 7
+  Report .total equal 7
+end

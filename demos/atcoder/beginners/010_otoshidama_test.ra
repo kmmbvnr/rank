@@ -1,0 +1,43 @@
+use testing
+
+test "official example 1 finds a valid combination"
+  use "010_otoshidama"
+  Result = 9 45000 otoshidama
+  Ten = Result 0
+  Five = Result 1
+  One = Result 2
+
+  Bills = Ten + Five + One
+  Bills equal 9
+
+  Yen = 10000 * Ten
+  Yen += 5000 * Five
+  Yen += 1000 * One
+  Yen equal 45000
+end
+
+test "official example 2 has no combination"
+  use "010_otoshidama"
+  20 196000 otoshidama equal array -1 -1 -1
+end
+
+test "official example 3 finds a valid combination"
+  use "010_otoshidama"
+  Result = 1000 1234000 otoshidama
+  Ten = Result 0
+  Five = Result 1
+  One = Result 2
+
+  Bills = Ten + Five + One
+  Bills equal 1000
+
+  Yen = 10000 * Ten
+  Yen += 5000 * Five
+  Yen += 1000 * One
+  Yen equal 1234000
+end
+
+test "all bills are 1000 yen"
+  use "010_otoshidama"
+  3 3000 otoshidama equal array 0 0 3
+end
