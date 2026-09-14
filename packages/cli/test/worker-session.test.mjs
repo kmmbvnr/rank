@@ -35,6 +35,8 @@ test('factor search cancels without losing bindings, and can be cancelled again'
 
 test('compiled endless loop cancels, bypasses catch, and runs finally', { timeout: 10000 }, async t => {
     const s = await session(t);
+    // Initialize the parser before starting the cancellation timer.
+    await s.execute('1', 0, []);
     const result = await stop(s, 'try\n  for\n    A = 1\n  end\ncatch E\n  Caught = true\nfinally\n  Cleaned = 7\nend');
     assert.equal(result.interrupted, true);
     assert.equal((await s.execute('Cleaned', 3, [])).output[0].text, '7');

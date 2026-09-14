@@ -11,6 +11,8 @@ import Database from 'better-sqlite3';
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
 const { Terminal } = xterm;
 const UP = '\x1b[A', DOWN = '\x1b[B', CLEAR = '\x15', ENTER = '\r', END = '\x05';
+const running = keys => ({ keys, until: 'Running' });
+const paused = keys => ({ keys, until: 'Paused' });
 
 /** Feed a real PTY to a terminal emulator and inspect its visible cells after each gesture. */
 async function drive(t, steps, columns = 60, rows = 18) {
@@ -24,20 +26,44 @@ async function drive(t, steps, columns = 60, rows = 18) {
         `set stty_init "rows ${rows} columns ${columns}"`,
         `spawn -noecho ${process.execPath} --import ${preload} ${cli}`,
         'expect "rank> "',
-        'expect_background { -re ".+" {} }',
-        ...steps.flatMap((step, index) => [
-            `send -- [binary format H* {${Buffer.from(step).toString('hex')}}]`,
-            `sleep ${step === '\x1b' ? 0.6 : 0.2}`,
-            `send_user "<<<FRAME:${index}>>>"`,
-        ]),
+        'match_max 100000',
+        'set screen ""',
+        'proc read_frame {seconds} {',
+        '    global screen spawn_id',
+        '    expect -timeout $seconds -re ".+" {',
+        '        append screen $expect_out(0,string)',
+        // drawFrame starts each screen with ESC[?25l (hide cursor).
+        '        set start [string last [binary format H* 1b5b3f32356c] $screen]',
+        '        if {$start >= 0} { set screen [string range $screen $start end] }',
+        '        exp_continue -continue_timer',
+        '    } eof {} timeout {}',
+        '}',
+        ...steps.flatMap((step, index) => {
+            const { keys, until } = typeof step === 'string' ? { keys: step } : step;
+            // Ordinary gestures wait for execution to finish. Tests of cancellation
+            // and debugging explicitly wait for the running or paused screen.
+            const waiting = until ? `![regexp {${until}} $screen]`
+                : '$screen eq "" || [regexp {(Running|Stopping|Pausing)} $screen]';
+            return [
+                ...(until || /[\r\x12\x14\x10\x07\x0e]/.test(keys) || /^[tng]$/.test(keys)
+                    ? ['set screen ""'] : []),
+                `send -- [binary format H* {${Buffer.from(keys).toString('hex')}}]`,
+                'read_frame 1',
+                'set deadline [expr {[clock milliseconds] + 10000}]',
+                `while {(${waiting}) && [clock milliseconds] < $deadline} { read_frame 1 }`,
+                `if {${waiting}} { error "terminal did not settle at step ${index}: $screen" }`,
+                `send_user "<<<FRAME:${index}>>>"`,
+            ];
+        }),
         'catch {send -- [binary format H* 11]}',
         'sleep 0.2',
         'catch {send -- [binary format H* 64]}',
         'sleep 0.2',
+        'catch {expect eof}',
         'catch wait status',
         'send_user "<<<EXIT:[lindex $status 3]>>>"',
     ].join('\n'));
-    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: 20000, killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
+    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: (steps.length + 10) * 2000, killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /<<<EXIT:0>>>/);
@@ -247,8 +273,8 @@ test('Ctrl-C interrupts factor search in the real terminal and keeps the session
     const frames = await drive(t, [
         'use numbers' + ENTER,
         'A = 41' + ENTER,
-        'Factors = 170141183460469231731687303715884105727 factors' + ENTER,
-        UP,
+        running('Factors = 170141183460469231731687303715884105727 factors' + ENTER),
+        running(UP),
         '\x03',
         'A + 1' + ENTER,
     ]);
@@ -273,8 +299,8 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
         'use tables' + ENTER,
         `Db = ${JSON.stringify(filename)} sqlite` + ENTER,
         '',
-        `Db ${JSON.stringify(sql)} (array shape 0 pad 0) sqlquery array` + ENTER,
-        UP,
+        running(`Db ${JSON.stringify(sql)} (array shape 0 pad 0) sqlquery array` + ENTER),
+        running(UP),
         '\x03',
         'Rows = Db "SELECT 42 AS answer" (array shape 0 pad 0) sqlquery array' + ENTER,
         'Rows .answer' + ENTER,
@@ -290,9 +316,9 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
 test('Ctrl-P shows factor state and Enter continues in the real terminal', async t => {
     const frames = await drive(t, [
         'use numbers' + ENTER,
-        '170141183460469231731687303715884105727 factors max' + ENTER,
+        running('170141183460469231731687303715884105727 factors max' + ENTER),
         '\x10',
-        ENTER,
+        running(ENTER),
         '\x10',
         '\x03',
         '21 * 2' + ENTER,
@@ -308,7 +334,7 @@ test('Ctrl-P shows factor state and Enter continues in the real terminal', async
 
 test('Ctrl-T steps a short cell and Ctrl-B sets a visible breakpoint in the terminal', async t => {
     const frames = await drive(t, [
-        'A = 1\x14', // Ctrl-T
+        paused('A = 1\x14'), // Ctrl-T
         '\x14',
         UP + '\x02', // Ctrl-B
         '\x14',
@@ -329,7 +355,7 @@ test('Ctrl-T steps a short cell and Ctrl-B sets a visible breakpoint in the term
 test('Ctrl-N advances an iteration while paused and still recalls history in the editor', async t => {
     const frames = await drive(t, [
         '\x1b[200~Total = 0\nfor I in 1 to 3\n  Total += I\nend\nTotal\x1b[201~',
-        '\x14',
+        paused('\x14'),
         '\x14',
         '\x14',
         '\x0e', // Ctrl-N: second iteration
@@ -372,7 +398,7 @@ test('Ctrl-G finishes the loop and stops on the next main line in the terminal',
 test('plain t n g control paused execution and remain ordinary editor text', async t => {
     const frames = await drive(t, [
         '\x1b[200~Total = 0\nfor I in 1 to 3\n  Total += I\nend\nTotal\x1b[201~',
-        '\x14',
+        paused('\x14'),
         't',
         't',
         'n',
@@ -410,7 +436,7 @@ test('debugging a loaded file uses document line numbers for cells and function 
     const frames = await drive(t, [
         `load ${target}` + ENTER,
         ENTER,
-        UP + UP + UP + UP + UP + '\x14',
+        paused(UP + UP + UP + UP + UP + '\x14'),
         '\x14',
         ENTER,
         '\x03',

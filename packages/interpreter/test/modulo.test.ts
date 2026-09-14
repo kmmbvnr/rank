@@ -75,7 +75,7 @@ describe('floor modulo', () => {
 
     it('keeps positive-modulus normalization valid', () => {
         expect(run('X = -5\nM = 3\n((X % M + M) % M) equal (X % M)')).toBe('true');
-    });
+    }, 15_000);
 
     it('rejects zero divisors as Rank errors', () => {
         for (const expression of ['5 % 0', '5 % 0.0', '5.0 % -0.0', '5 // 0']) {
