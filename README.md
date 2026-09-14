@@ -13,10 +13,10 @@ Rank is a modern BASIC for small screens and big algorithms.
 - Functions, closures, and memoization.
 - A notebook-style CLI: edit cells, rerun code, and see results alongside it.
 
-```rank
-Cube = (1 to 27) (array 3 3 3) reshape
-Cube transpose (array 2 1 0) diag rank 2 diag sum
-rem 42
+```text
+rank> Cube = (1 to 27) (array 3 3 3) reshape
+rank> Cube transpose (array 2 1 0) diag rank 2 diag sum
+42
 ```
 
 ## Run
