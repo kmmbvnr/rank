@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Interpreter, RankError } from '../src/index.js';
 
 function failure(source: string, interpreter = new Interpreter(() => {}, { sourceId: 'contest.ra' })): RankError {
@@ -86,13 +90,17 @@ describe('runtime diagnostics', () => {
         expect(error.format()).toContain('1 | X =');
     });
 
-    it('prints CLI diagnostics without a Node stack and exits unsuccessfully', () => {
+    it('prints CLI diagnostics without a Node stack and exits unsuccessfully', ({ onTestFinished }) => {
+        const directory = mkdtempSync(join(tmpdir(), 'rank-diagnostics-'));
+        onTestFinished(() => rmSync(directory, { recursive: true, force: true }));
+        const file = join(directory, 'error.ra');
+        writeFileSync(file, '1 / 0\n');
         const cli = new URL('../../cli/bin/cli.js', import.meta.url);
-        const result = spawnSync(process.execPath, [cli.pathname, '/dev/stdin'], {
-            input: '1 / 0\n', encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' },
+        const result = spawnSync(process.execPath, [fileURLToPath(cli), file], {
+            encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' },
         });
         expect(result.status).toBe(1);
-        expect(result.stderr).toContain('at /dev/stdin:1:1');
+        expect(result.stderr).toContain(`at ${file}:1:1`);
         expect(result.stderr).toContain('1 | 1 / 0');
         expect(result.stderr).not.toContain('interpreter.js');
         expect(result.stderr).not.toContain('Node.js');
