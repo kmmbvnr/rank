@@ -1,8 +1,8 @@
-import { Interpreter, RankError, parse } from 'rank-interpreter';
+import { Interpreter, RankError, parse } from '@rank/interpreter';
 import {
     analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
-} from 'rank-language';
+} from '@rank/language';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';

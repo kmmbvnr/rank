@@ -5,8 +5,8 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { analyzeWithImports } from 'rank-language';
-import { parse } from 'rank-interpreter';
+import { analyzeWithImports } from '@rank/language';
+import { parse } from '@rank/interpreter';
 import { loadModule } from '../out/load-module.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));

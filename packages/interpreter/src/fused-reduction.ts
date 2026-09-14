@@ -1,7 +1,7 @@
 import {
     isBinaryExpression, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isUnaryExpression, type Expression,
-} from 'rank-language';
+} from '@rank/language';
 import { numericKernel } from './numeric-kernels.js';
 import { eagerArrayStorage } from './array-storage.js';
 import { expectNumeric } from './modules/shared.js';

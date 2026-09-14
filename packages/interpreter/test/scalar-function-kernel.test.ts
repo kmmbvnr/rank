@@ -1,6 +1,6 @@
 import { MemoryIo } from './support.js';
 import { describe, expect, it, vi } from 'vitest';
-import { isFunctionStatement } from 'rank-language';
+import { isFunctionStatement } from '@rank/language';
 import { compileScalarFunction } from '../src/scalar-function-kernel.js';
 import { Interpreter, RankError, formatValue, parse } from '../src/index.js';
 

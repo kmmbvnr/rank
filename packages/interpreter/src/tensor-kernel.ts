@@ -3,7 +3,7 @@ import {
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     isParenthesizedExpression, isUnaryExpression,
     type Expression, type Statement,
-} from 'rank-language';
+} from '@rank/language';
 import { type RankValue, isRankArray } from './value.js';
 import { broadcastShape } from './tensor.js';
 import { materializedArrayItems, ownedArray } from './array-storage.js';

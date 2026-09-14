@@ -3,7 +3,7 @@ import {
     isParenthesizedExpression, isNumberLiteral, isBooleanLiteral,
     isNameExpression, isUnaryExpression, isBinaryExpression,
     type Expression, type FunctionStatement, type Statement,
-} from 'rank-language';
+} from '@rank/language';
 
 type ScalarType = 'integer' | 'boolean';
 interface Proof { type: ScalarType; locals: readonly string[] }

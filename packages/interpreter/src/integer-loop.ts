@@ -3,7 +3,7 @@ import {
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement,
-} from 'rank-language';
+} from '@rank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';

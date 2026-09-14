@@ -1,5 +1,10 @@
 # Rank
 
+[![CI](https://github.com/kmmbvnr/rank/actions/workflows/ci.yml/badge.svg)](https://github.com/kmmbvnr/rank/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@rank/cli)](https://www.npmjs.com/package/@rank/cli)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+![status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange)
+
 Rank is a modern BASIC for small screens and big algorithms. This repository
 contains its evolving grammar, interpreter, command-line REPL, language tests,
 and design documents.

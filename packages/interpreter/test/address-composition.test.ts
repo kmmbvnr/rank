@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isArrayAssignmentStatement, type AddressItem } from 'rank-language';
+import { isArrayAssignmentStatement, type AddressItem } from '@rank/language';
 import { completed, type Evaluation } from '../src/execution.js';
 import { Interpreter, parse, type RankValue } from '../src/index.js';
 import { run } from './support.js';

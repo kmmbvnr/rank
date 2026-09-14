@@ -1,7 +1,8 @@
 {
-    "name": "rank-language",
+    "name": "@rank/language",
     "description": "Rank grammar, AST and language services",
     "version": "0.0.1",
+    "license": "MIT",
     "type": "module",
     "engines": {
         "node": ">=20.19.0",

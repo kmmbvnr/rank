@@ -295,7 +295,7 @@ packages/language-server              later (D)
 ```
 
 The analysis core belongs in `packages/language`, not in a new package.
-`rank-interpreter` already depends on `rank-language`, so the reverse dependency
+`@rank/interpreter` already depends on `@rank/language`, so the reverse dependency
 is not available, and the Langium validator and hover provider that will consume
 these facts live there too. Keeping it there also leaves room for
 `scalar-function-proof.ts` to share one type lattice later instead of keeping

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { Interpreter } from 'rank-interpreter';
+import { Interpreter } from '@rank/interpreter';
 import { preview, PREVIEW_ITEMS } from '../out/preview.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     findOperation, moduleForms, modules, operations, type Operation,
-} from 'rank-language';
+} from '@rank/language';
 import { Interpreter, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
 import { isNativeFunction, type RankValue } from '../src/value.js';

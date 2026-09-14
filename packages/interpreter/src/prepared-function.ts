@@ -2,7 +2,7 @@ import {
     isYieldStatement, isFunctionStatement, isTestStatement,
     isIfStatement, isForStatement, isTryStatement,
     type FunctionStatement, type Statement,
-} from 'rank-language';
+} from '@rank/language';
 
 interface PreparedFunction {
     readonly generator: boolean;

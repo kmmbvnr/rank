@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isExpressionStatement, type Expression } from 'rank-language';
+import { isExpressionStatement, type Expression } from '@rank/language';
 import { completed, type Evaluation } from '../src/execution.js';
 import { Interpreter, isNativeFunction, parse, type RankValue } from '../src/index.js';
 import { run } from './support.js';

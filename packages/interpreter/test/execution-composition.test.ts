@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { completed, emit, ExecutionStack, flatMapResult, mapExecution, mapPair, runExecution, type Evaluation, type Execution } from '../src/execution.js';
 import { Interpreter, parse, type RankValue } from '../src/index.js';
-import { isExpressionStatement, type Expression } from 'rank-language';
+import { isExpressionStatement, type Expression } from '@rank/language';
 
 describe('evaluation composition', () => {
     it('uses one continuation for two suspended arithmetic operands', () => {

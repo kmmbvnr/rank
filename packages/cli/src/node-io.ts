@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import type {
     RankFileHandle, RankFileMode, RankInput, RankIo,
     RankSqliteConnection, SqliteScalar,
-} from 'rank-interpreter';
+} from '@rank/interpreter';
 
 interface NativeSqliteStatement {
     readonly readonly: boolean;

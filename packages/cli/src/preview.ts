@@ -1,7 +1,7 @@
 import {
     formatValue, isRankArray, isRankSequence, isRankSequenceMask,
     type RankArray, type RankValue,
-} from 'rank-interpreter';
+} from '@rank/interpreter';
 
 /** Items shown before a value is cut short. */
 export const PREVIEW_ITEMS = 20;

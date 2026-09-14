@@ -1,7 +1,7 @@
 import {
     isAssignmentStatement, isNameExpression, isFunctionStatement,
     type Statement,
-} from 'rank-language';
+} from '@rank/language';
 
 interface Uses { reads: Map<string, number>; writes: Map<string, number>; safe: boolean }
 const cache = new WeakMap<object, Uses>();
