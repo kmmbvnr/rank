@@ -27,6 +27,17 @@ committed writes remain committed. Cancellation may wait for native I/O, a lock
 wait, or an SQL function to return. File and pipe execution do not enable the
 cancellation addon.
 
+While a computation is running, Ctrl-P requests a pause. The inspection screen
+shows the current Rank source line, active calls and variable values; factor
+search also reports `divisor` and `remaining`. Enter or Ctrl-P continues the same
+execution; Ctrl-C cancels it. Use arrow keys or Page Up/Down to scroll the snapshot.
+Arrays and lazy sequences are shown as summaries without evaluating them.
+Pause takes effect at the next cooperative checkpoint, so a native SQLite query
+must return before it can pause (Ctrl-C can still cancel that query).
+Interactive inspection uses ordinary Rank statement execution for observable
+locals, which can make compiled-loop workloads slower. File and pipe execution
+keep their existing optimizations and do not enable pause.
+
 Example session:
 
 ```text

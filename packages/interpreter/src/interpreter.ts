@@ -1,4 +1,4 @@
-import { checkpoint, InterruptedError } from './interrupt.js';
+import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution } from './interrupt.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -371,12 +371,43 @@ export class Interpreter {
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
     private readonly resourceScopes: Set<RankFile>[] = [];
     private readonly generatorResourceScopes = new Set<Set<RankFile>>();
+    private debugStatement?: Statement;
+    private readonly debugCalls: { name: string; frame: LocalFrame }[] = [];
+
+    private inspectionState(): string {
+        const node = this.debugStatement?.$cstNode;
+        const line = node?.range.start.line;
+        const describe = (value: RankValue): string => {
+            if (typeof value === 'string') return JSON.stringify(value.slice(0, 200)) + (value.length > 200 ? '…' : '');
+            if (value === null || typeof value !== 'object') return String(value);
+            if (isRankArray(value)) return `<array shape ${value.shape.join(' × ')}>`;
+            if (isRankSequence(value)) return `<sequence ${value.plan.name}>`;
+            return `<${value.kind}>`;
+        };
+        const bindings = (values: ReadonlyMap<string, RankValue>) => {
+            const lines: string[] = [];
+            for (const [name, value] of values) {
+                if (isNativeFunction(value)) continue;
+                if (lines.length === 100) { lines.push('  …'); break; }
+                lines.push(`  ${name} = ${describe(value)}`);
+            }
+            return lines.join('\n') || '  (none)';
+        };
+        const location = node && line !== undefined
+            ? `${sourceIds.get(node.root) ?? this.options.sourceId ?? '<input>'}:${line + 1}\n${node.root.fullText.split(/\r?\n/)[line]}` : '<result preview>';
+        return `${location}\n\nCall stack (outermost first):\n<cell>\n${this.debugCalls.map(call => call.name).join('\n')}\n\n${this.debugCalls.map(call => `${call.name} locals:\n${bindings(call.frame.values)}`).join('\n\n')}\n\nVariables (current scope):\n${bindings(this.localFrame?.values ?? this.variables)}\n\nGlobals:\n${bindings(this.variables)}`;
+    }
+
     private callDepth = 0;
     private readonly maxCallDepth: number;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
-        this.options = options;
+        // Keep Rank locals observable in interactive workers. Other hosts retain
+        // all compiler defaults; native sequence algorithms remain unchanged.
+        this.options = inspectionEnabled() ? { ...options, integerLoopCompilation: false,
+            scalarFunctionCompilation: false, scalarEntryCompilation: false,
+            blockCompilation: false, scalarCompilation: false, tensorFusion: false, functionBodyCompilation: false } : options;
         this.random = seedableRandom(options.random);
         this.maxCallDepth = options.maxCallDepth ?? 200_000;
         if (!Number.isSafeInteger(this.maxCallDepth) || this.maxCallDepth < 1) {
@@ -699,6 +730,10 @@ export class Interpreter {
 
     private preparedStatement(statements: Statement[], index: number): PreparedStatement {
         const statement = statements[index];
+        if (inspectionEnabled()) {
+            this.debugStatement = statement;
+            inspectExecution(() => this.inspectionState());
+        }
         let prepared = this.statements.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
@@ -2723,7 +2758,7 @@ export class Interpreter {
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.localFrame;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
-        const compiled = only && isReturnStatement(only) && only.value
+        const compiled = !inspectionEnabled() && only && isReturnStatement(only) && only.value
             ? this.compileDirectExpression(only.value) : undefined;
         const direct = compiled ? () => {
             try { return compiled(); }
@@ -2856,11 +2891,13 @@ export class Interpreter {
             throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
         }
         let frame = this.functionFrame(statement, arguments_, context);
+        const callerStatement = this.debugStatement;
         const caller = this.localFrame;
         const scope = new Set<RankFile>();
         this.resourceScopes.push(scope);
         this.localFrame = frame;
         this.callDepth += 1;
+        if (inspectionEnabled()) this.debugCalls.push({ name: statement.name, frame });
         let result: RankValue | undefined;
         let pending: unknown;
         try {
@@ -2868,6 +2905,7 @@ export class Interpreter {
                 checkpoint();
                 try {
                     this.localFrame = frame;
+                    if (inspectionEnabled()) this.debugCalls[this.debugCalls.length - 1] = { name: statement.name, frame };
                     for (const local of prepareFunction(statement).locals) this.defineFunction(local);
                     const body = this.compiledFunctionBody(statement);
                     if (body) {
@@ -2909,6 +2947,11 @@ export class Interpreter {
         } finally {
             this.callDepth -= 1;
             this.localFrame = caller;
+            if (inspectionEnabled()) {
+                this.debugCalls.pop();
+                this.debugStatement = callerStatement;
+                inspectExecution(() => this.inspectionState());
+            }
             this.finishResourceScope(scope, result, pending);
         }
         return result!;
@@ -2959,7 +3002,17 @@ export class Interpreter {
                             next = interpreter.withGeneratorFrame(
                                 frame,
                                 resources,
-                                () => execution.next(),
+                                () => {
+                                    if (!inspectionEnabled()) return execution.next();
+                                    const callerStatement = interpreter.debugStatement;
+                                    interpreter.debugCalls.push({ name: statement.name, frame });
+                                    try { return execution.next(); }
+                                    finally {
+                                        interpreter.debugCalls.pop();
+                                        interpreter.debugStatement = callerStatement;
+                                        inspectExecution(() => interpreter.inspectionState());
+                                    }
+                                },
                             );
                         } catch (error) {
                             if (error instanceof ReturnSignal && error.value === undefined) return;

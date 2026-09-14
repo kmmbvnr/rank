@@ -284,3 +284,23 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
     assert.match(frames[7].text, /\n      42\n/);
     assert.doesNotMatch(frames[7].text, /Running/);
 });
+
+
+test('Ctrl-P shows factor state and Enter continues in the real terminal', async t => {
+    const frames = await drive(t, [
+        'use numbers' + ENTER,
+        '170141183460469231731687303715884105727 factors max' + ENTER,
+        '\x10',
+        ENTER,
+        '\x10',
+        '\x03',
+        '21 * 2' + ENTER,
+    ], 100, 24);
+    assert.match(frames[2].text, /Paused.*searching factors/);
+    assert.match(frames[2].text, /divisor: [0-9]+/);
+    assert.match(frames[2].text, /remaining: 170141183460469231731687303715884105727/);
+    assert.match(frames[3].text, /Running/);
+    assert.match(frames[4].text, /Paused/);
+    assert.match(frames[5].text, /Stopped after/);
+    assert.match(frames[6].text, /\n      42\n/);
+});

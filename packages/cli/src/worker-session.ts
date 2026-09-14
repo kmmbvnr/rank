@@ -1,12 +1,14 @@
+import type { PauseSnapshot } from '@rank/interpreter';
 import { Worker } from 'node:worker_threads';
 import { sessionEditor, type SessionSnapshot, type ProgramFile, type Execution } from './repl-session.js';
 
 /** The terminal only exchanges text and binding names; live values stay in the worker. */
 export async function createWorkerSession() {
-    const signal = new Int32Array(new SharedArrayBuffer(4));
+    const signal = new Int32Array(new SharedArrayBuffer(8));
     const worker = new Worker(new URL('./repl-worker.js', import.meta.url), { workerData: { signal: signal.buffer } });
     let serial = 0;
     let active = false;
+    let pauseState: PauseSnapshot | undefined;
     let execution: Promise<Execution> | undefined;
     let disposed = false;
     let failure: Error | undefined;
@@ -25,6 +27,10 @@ export async function createWorkerSession() {
     worker.on('error', fail);
     worker.on('exit', code => { if (!disposed) fail(new Error(`Execution worker exited (${code})`)); });
     worker.on('message', message => {
+        if (message.pause) {
+            if (active && Atomics.load(signal, 1) === 1) pauseState = message.pause;
+            return;
+        }
         snapshot = message.snapshot;
         editor = sessionEditor(snapshot);
         if (message.id === undefined) { ready(); return; }
@@ -43,7 +49,17 @@ export async function createWorkerSession() {
     };
     await started;
     const initial = snapshot!;
+    const resume = () => {
+        pauseState = undefined;
+        Atomics.store(signal, 1, 0);
+        Atomics.notify(signal, 1);
+    };
+    const interrupt = () => { if (active) { Atomics.store(signal, 0, 1); resume(); } };
     return {
+        get pauseState() { return pauseState; },
+        get pauseRequested() { return active && Atomics.load(signal, 1) === 1; },
+        pause(): void { if (active) Atomics.store(signal, 1, 1); },
+        resume,
         get savedFile() { return snapshot.savedFile; },
         format(line: string) { return editor.format(line); },
         isCommand(source: string) { return editor.isCommand(source); },
@@ -57,16 +73,17 @@ export async function createWorkerSession() {
         },
         saveFile(lines: string[], target: string) { return call<{ ok: boolean; output: Execution['output'] }>('saveFile', lines, target); },
         async execute(...args: [string, number, string[], number?, boolean?]): Promise<Execution> {
+            resume();
             Atomics.store(signal, 0, 0);
             active = true;
             execution = call<Execution>('execute', ...args);
             try { return await execution; }
-            finally { active = false; execution = undefined; }
+            finally { active = false; execution = undefined; resume(); }
         },
-        interrupt(): void { if (active) Atomics.store(signal, 0, 1); },
+        interrupt,
         async dispose(): Promise<void> {
             if (disposed) return;
-            if (active) Atomics.store(signal, 0, 1);
+            interrupt();
             try {
                 // Let the native driver return before V8 termination: better-sqlite3
                 // cannot construct its interrupt error in a terminating isolate.

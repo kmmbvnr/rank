@@ -6,7 +6,8 @@ import { createReplSession } from './repl-session.js';
 const port = parentPort!;
 const signal = new Int32Array(workerData.signal);
 enableSqliteInterrupt(signal);
-const session = createReplSession();
+const onPause = (pause: import('@rank/interpreter').PauseSnapshot) => port.postMessage({ pause });
+const session = withInterrupt(signal, () => createReplSession(), onPause);
 // Messages are serialized even when a command awaits file I/O.
 let queue = Promise.resolve();
 port.postMessage({ snapshot: session.snapshot() });
@@ -24,7 +25,7 @@ port.on('message', ({ id, method, args }) => {
                     case 'dispose': return session.dispose();
                     default: throw new Error(`Unknown session method: ${method}`);
                 }
-            });
+            }, onPause);
             port.postMessage({ id, value, snapshot: session.snapshot() });
         } catch (error) {
             port.postMessage({ id, error: String(error), snapshot: session.snapshot() });

@@ -131,3 +131,20 @@ test('disposing the CLI while SQLite is running interrupts before worker teardow
     await settled;
     assert.ok(performance.now() - started < 3000, 'worker teardown waited for the full SQL query');
 });
+
+test('a pending SQLite pause remains cancellable', { timeout: 10000 }, async t => {
+    const { filename } = fixture(t);
+    const session = await createWorkerSession();
+    t.after(() => session.dispose());
+    assert.equal((await session.execute(`use tables\nDb = ${JSON.stringify(filename)} sqlite`, 0, [])).ok, true);
+    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 pad 0) sqlquery array`, 1, []);
+    await new Promise(resolve => setTimeout(resolve, 80));
+    session.pause();
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(session.pauseRequested, true);
+    assert.equal(session.pauseState, undefined, 'a native query cannot suspend inside SQLite');
+    session.interrupt();
+    assert.equal((await running).interrupted, true);
+    assert.equal(session.pauseRequested, false);
+    assert.equal((await session.execute('21 * 2', 2, [])).ok, true);
+});

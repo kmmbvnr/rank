@@ -122,7 +122,7 @@ export function notebookFrame(
     const lines = rows.slice(top, top + viewportHeight);
     while (lines.length < viewportHeight) lines.push('');
     if (footerRows) {
-        const footerWidth = Math.min(40, width);
+        const footerWidth = running ? width : Math.min(40, width);
         const status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
             : suggestion || (notebook.atPrompt
                 ? 'Enter run · help'

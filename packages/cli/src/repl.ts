@@ -11,7 +11,13 @@ import { drawFrame, saveFrame, helpFrame, notebookFrame, textColumns } from './s
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
-type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot'> & { interrupt?: () => void };
+type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot'> & {
+    interrupt?: () => void;
+    pause?: () => void;
+    resume?: () => void;
+    readonly pauseRequested?: boolean;
+    readonly pauseState?: import('@rank/interpreter').PauseSnapshot;
+};
 
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
 export class NotebookRepl {
@@ -19,10 +25,17 @@ export class NotebookRepl {
     running = false;
     private startedAt?: number;
     private stopping = false;
+    pauseTop = 0;
+
+    togglePause(): void {
+        if (this.session.pauseRequested) this.session.resume?.();
+        else if (!this.stopping) { this.pauseTop = 0; this.session.pause?.(); }
+        this.render();
+    }
 
     get runningStatus(): string {
         if (this.startedAt === undefined) return 'Running…';
-        return `${this.stopping ? 'Stopping…' : 'Running…'} ${((performance.now() - this.startedAt) / 1000).toFixed(1)}s · Ctrl-C stop`;
+        return `${this.stopping ? 'Stopping…' : this.session.pauseRequested ? 'Pausing…' : 'Running…'} ${((performance.now() - this.startedAt) / 1000).toFixed(1)}s · Ctrl-C stop · Ctrl-P pause`;
     }
 
     interrupt(): void {
@@ -340,6 +353,16 @@ async function terminalRepl(session: Session): Promise<void> {
                 prompt.error, output.columns || 80, output.rows || 24, prompt.exitAfterSave, repl.running, !!prompt.loadFile)));
             return;
         }
+        if (repl.running && session.pauseState) {
+            const pause = session.pauseState;
+            const details = Object.entries(pause.details ?? {}).map(([key, value]) => `${key}: ${value}`).join('\n');
+            const frame = helpFrame(`Paused · ${pause.activity ?? 'evaluating'}\n${details}\n\n${pause.state ?? ''}`,
+                output.columns || 80, output.rows || 24, repl.pauseTop);
+            repl.pauseTop = frame.top;
+            frame.lines[frame.lines.length - 1] = 'Ctrl-P / Enter continue · Ctrl-C stop · ↑/↓ scroll'.slice(0, (output.columns || 80) - 1);
+            output.write(drawFrame(frame));
+            return;
+        }
         if (repl.help) {
             const frame = helpFrame(repl.help.text, output.columns || 80, output.rows || 24, repl.help.top);
             repl.help.top = frame.top;
@@ -361,6 +384,15 @@ async function terminalRepl(session: Session): Promise<void> {
         if (closing) return;
         if (repl.running) {
             if (key.ctrl && key.name === 'c') repl.interrupt();
+            else if (key.ctrl && key.name === 'p') repl.togglePause();
+            else if (session.pauseState) {
+                if (key.name === 'return' || key.name === 'enter') session.resume?.();
+                else if (key.name === 'up') repl.pauseTop--;
+                else if (key.name === 'down') repl.pauseTop++;
+                else if (key.name === 'pageup') repl.pauseTop -= Math.max(1, (output.rows || 24) - 2);
+                else if (key.name === 'pagedown') repl.pauseTop += Math.max(1, (output.rows || 24) - 2);
+                render();
+            }
             return;
         }
         try {

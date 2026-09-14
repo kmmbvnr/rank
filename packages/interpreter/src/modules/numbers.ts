@@ -486,7 +486,7 @@ function factorPlan(value: bigint): SequencePlan {
         *iterate() {
             let remaining = value;
             for (let divisor = 2n; divisor * divisor <= remaining; divisor += divisor === 2n ? 1n : 2n) {
-                checkpoint('searching factors');
+                checkpoint('searching factors', 1, () => ({ divisor: String(divisor), remaining: String(remaining) }));
                 while (remaining % divisor === 0n) {
                     checkpoint('computing numbers');
                     yield divisor;
@@ -545,7 +545,7 @@ function factorPowers(value: bigint): readonly [bigint, number][] {
         divisor * divisor <= remaining;
         divisor += divisor === 2n ? 1n : 2n
     ) {
-        checkpoint('searching factors');
+        checkpoint('searching factors', 1, () => ({ divisor: String(divisor), remaining: String(remaining) }));
         let exponent = 0;
         while (remaining % divisor === 0n) {
             checkpoint('computing numbers');
