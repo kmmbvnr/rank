@@ -1,0 +1,32 @@
+rem Special Pythagorean Triplet
+rem https://projecteuler.net/problem=9
+rem Find a*b*c where a+b+c=1000 and
+rem a^2+b^2=c^2
+
+use io
+use cli
+
+option Target integer = 1000
+
+ALast = (Target - 1) // 3
+BLast = (Target - 1) // 2
+A = 1 to ALast array
+B = 2 to BLast array
+PairSums = A B + outer
+C = Target - PairSums
+
+Increasing = A B less outer
+Increasing and= B less C
+
+ASquares = A ** 2
+BSquares = B ** 2
+SquareSums = ASquares BSquares + outer
+Valid = SquareSums equal C ** 2
+Valid and= Increasing
+
+PairProducts = A B * outer
+Products = PairProducts * C
+Candidates = Products Valid
+Answer = Candidates max
+
+Answer print

@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "010_sumprimes"
+  run
+
+  Answer equal 142913828922
+end
+
+test "workspace input"
+  use "010_sumprimes"
+  Limit = 10
+  run
+
+  Answer equal 17
+end

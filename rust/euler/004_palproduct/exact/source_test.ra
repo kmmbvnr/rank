@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "004_palproduct"
+  run
+
+  Answer equal 906609
+end
+
+test "two-digit factors"
+  use "004_palproduct"
+  Digits = 2
+  run
+
+  Answer equal 9009
+end
+
+test "one-digit factors"
+  use "004_palproduct"
+  Digits = 1
+  run
+
+  Answer equal 9
+end

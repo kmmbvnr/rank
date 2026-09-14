@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "004_palproduct.ra",
+  "sourceSha256": "6b6f27c812291c0f737fa14f1ed21338eee2be5faac15435347c8094446b38e9",
+  "taskSha256": "d9f746dc67ca2d4d9ca99d23659707c93d5e59339236dd4537c3a54dc1bad7e2",
+  "integers": "i64",
+  "crate": "rank-004_palproduct-i64"
+}

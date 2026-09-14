@@ -1,0 +1,39 @@
+[
+  {
+    "name": "default input",
+    "args": []
+  },
+  {
+    "args": [
+      "--digits",
+      "1"
+    ]
+  },
+  {
+    "args": [
+      "--digits",
+      "2"
+    ]
+  },
+  {
+    "args": [
+      "--digits",
+      "0"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--digits",
+      "-1"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--digits",
+      "oops"
+    ],
+    "error": true
+  }
+]

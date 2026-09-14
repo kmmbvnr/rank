@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "009_pythagorean.ra",
+  "sourceSha256": "7af74e490e82990efce1b41836a02d732634758c3112453145eda1cce88b4f7c",
+  "taskSha256": "185fffb4b224d02a6be8aa7972a83811d86e0f39148ec4a5f86a809950a436f7",
+  "integers": "i64",
+  "crate": "rank-009_pythagorean-i64"
+}

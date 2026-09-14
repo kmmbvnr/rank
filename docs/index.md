@@ -10,6 +10,8 @@ The language is designed for:
 - tables and data analysis;
 - arrays, tensors and ML;
 - source code that remains readable on narrow screens.
+- [LLM-aided Rust rewrite](design/llm-rust-rewrite.md): use readable Rank as an
+  executable reference for a standalone Rust program.
 
 Language sections describe the current design. Compiler experiments and future
 implementation plans are recorded separately under development workflow.
@@ -74,6 +76,7 @@ execution direction and its semantic requirements.
 
 ## Development workflow
 
+- [LLM-aided Rust rewrite](design/llm-rust-rewrite.md)
 - [Console, editor and the analysis core](design/editor-plan.md)
 - [REPL input on a phone keyboard](design/repl-input.md)
 - [Looking at a sequence without spending it](design/generator-previews.md)

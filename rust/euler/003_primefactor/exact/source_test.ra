@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "003_primefactor"
+  run
+
+  Answer equal 6857
+end
+
+test "workspace input"
+  use "003_primefactor"
+  N = 13195
+  run
+
+  Answer equal 29
+end

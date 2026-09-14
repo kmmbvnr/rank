@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "002_evenfib.ra",
+  "sourceSha256": "27a1a18ea9872ff2cdabc6b52b083dba7f01ec10a7afb9675b66dec9c30ca3c7",
+  "taskSha256": "b0f96aec594b7c8ee743329469b17720e99808df29b18b1a5e2be4eabc64fded",
+  "integers": "exact",
+  "crate": "rank-002_evenfib-exact"
+}

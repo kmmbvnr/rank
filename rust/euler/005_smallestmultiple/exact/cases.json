@@ -1,0 +1,67 @@
+[
+  {
+    "name": "default input",
+    "args": []
+  },
+  {
+    "args": [
+      "--limit",
+      "-2"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "0"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "2"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "3"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "10"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "15"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "30"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "oops"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--limit",
+      "50"
+    ]
+  }
+]

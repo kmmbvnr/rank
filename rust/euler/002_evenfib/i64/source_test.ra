@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "002_evenfib"
+  run
+
+  Answer equal 4613732
+end
+
+test "workspace input"
+  use "002_evenfib"
+  Limit = 100
+  run
+
+  Answer equal 44
+end

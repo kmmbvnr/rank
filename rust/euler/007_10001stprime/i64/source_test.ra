@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "007_10001stprime"
+  run
+
+  Answer equal 104743
+end
+
+test "workspace input"
+  use "007_10001stprime"
+  Count = 6
+  run
+
+  Answer equal 13
+end

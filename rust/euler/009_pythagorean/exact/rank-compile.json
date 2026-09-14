@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "009_pythagorean.ra",
+  "sourceSha256": "7af74e490e82990efce1b41836a02d732634758c3112453145eda1cce88b4f7c",
+  "taskSha256": "6bb199cad5b9a7dd7c9cf25767965ff2578472286630e4475278df9d9c92e876",
+  "integers": "exact",
+  "crate": "rank-009_pythagorean-exact"
+}

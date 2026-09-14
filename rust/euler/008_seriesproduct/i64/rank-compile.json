@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "008_seriesproduct.ra",
+  "sourceSha256": "2e1b994f976b50473694ca5e142642b2a84860d6b7bba63775a81b8a58d1a58d",
+  "taskSha256": "c5cad6128238b05a1398e29b05260ed6fa42dfe9fc41a237aa6119d1856bb44d",
+  "integers": "i64",
+  "crate": "rank-008_seriesproduct-i64"
+}

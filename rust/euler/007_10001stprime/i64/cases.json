@@ -1,0 +1,69 @@
+[
+  {
+    "name": "default input",
+    "args": []
+  },
+  {
+    "args": [
+      "--count",
+      "1"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "2"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "3"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "6"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "20"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "100"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "1000"
+    ]
+  },
+  {
+    "args": [
+      "--count",
+      "0"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--count",
+      "-1"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--count",
+      "oops"
+    ],
+    "error": true
+  }
+]

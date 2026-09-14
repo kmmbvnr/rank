@@ -12,6 +12,7 @@ Rank is a modern BASIC for small screens and big algorithms.
 - Lazy sequences, ranges, and generators.
 - Functions, closures, and memoization.
 - A notebook-style CLI: edit cells, rerun code, and see results alongside it.
+- [LLM-aided Rust rewrite](docs/design/llm-rust-rewrite.md): export a task, generate Rust, check it against Rank.
 
 [Project Euler #2](demos/euler/002_evenfib.ra): sum the even Fibonacci numbers.
 Start with 100, edit the limit to 4 million, press Ctrl-R. Answer: **4613732**.
@@ -69,5 +70,6 @@ npm run rank -- test demos/euler
 
 - [Language specification](docs/CURRENT_SPEC.md) and [standard library](docs/stdlib/reference.md)
 - [CLI and editor](packages/cli/README.md)
+- [Rust rewrite tools](packages/compile/README.md) and [Euler 1–10 rewrites](rust/euler)
 - [Example programs](demos)
 - [Contribution guidelines](CONTRIBUTING.md)

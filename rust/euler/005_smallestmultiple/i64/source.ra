@@ -1,0 +1,14 @@
+rem Smallest Multiple
+rem https://projecteuler.net/problem=5
+rem Smallest number divisible by 1..20
+
+use numbers
+use io
+use cli
+
+rem Inclusive upper boundary.
+option Limit integer = 20
+
+Range = 1 to Limit
+Answer = Range lcm
+Answer print

@@ -1,0 +1,113 @@
+{
+  "compiler": "@arrrank/compile@0.0.1",
+  "date": "2026-09-14T10:31:03.910Z",
+  "integers": "exact",
+  "sourceSha256": "6b6f27c812291c0f737fa14f1ed21338eee2be5faac15435347c8094446b38e9",
+  "mainSha256": "a8e43c547020e68754a5ce96a382138dda45ae45c6d022ad4a2b33aa181695ef",
+  "cargoLockSha256": "efdf3c186dcfcb13b0a029d65c01304c956eda522a7b122205e312c637563e52",
+  "casesSha256": "637f14ec58af9f889a07108111eac71684398afa23668d81f2bb5d42561be412",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "passed": 6,
+  "cases": [
+    {
+      "name": "default input",
+      "args": [],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "906609\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "906609\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--digits",
+        "1"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "9\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "9\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--digits",
+        "2"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "9009\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "9009\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--digits",
+        "0"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer, got real"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "digits must be positive\n"
+      }
+    },
+    {
+      "args": [
+        "--digits",
+        "-1"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer, got real"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "digits must be positive\n"
+      }
+    },
+    {
+      "args": [
+        "--digits",
+        "oops"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer input, got: oops"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "integer out of range or invalid\n"
+      }
+    }
+  ]
+}

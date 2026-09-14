@@ -1,0 +1,190 @@
+{
+  "compiler": "@arrrank/compile@0.0.1",
+  "date": "2026-09-14T10:31:49.595Z",
+  "integers": "i64",
+  "sourceSha256": "3c34b8d9f1784959282fa1ce31a9343d0d3ed16e46502a2b8879cc99e63b615d",
+  "mainSha256": "5d2beadd74dd716762c38606eec44b2188409653cfe6fa3499f78ce537787e8d",
+  "cargoLockSha256": "2806db3384fc86eb03d4ef43b31fcf311ecaef8871a8d16334a87c8ce82bc400",
+  "casesSha256": "baec709e5defeb2c01233e447dff0f9f715bc43bc7d2f7b1cdc11f61459fcb0c",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "passed": 11,
+  "cases": [
+    {
+      "name": "default input",
+      "args": [],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "25164150\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "25164150\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "-2"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "0"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "1"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "2"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "4\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "3"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "22\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "22\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "10"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "2640\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "2640\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "33"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "302192\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "302192\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "1000"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "250166416500\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "250166416500\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "oops"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer input, got: oops"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "integer out of range or invalid\n"
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "100000"
+      ],
+      "overflow": true,
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "25000166664166650000\n"
+      },
+      "actual": {
+        "status": 101,
+        "stdout": "",
+        "stderr": "\nthread 'main' (9398634) panicked at src/main.rs:6:29:\nattempt to multiply with overflow\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n"
+      }
+    }
+  ]
+}

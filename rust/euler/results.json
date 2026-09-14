@@ -1,0 +1,125 @@
+{
+  "date": "2026-09-14T10:32:35.117Z",
+  "summaries": [
+    {
+      "name": "001_multiples",
+      "mode": "exact",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "name": "001_multiples",
+      "mode": "i64",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "name": "002_evenfib",
+      "mode": "exact",
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "name": "002_evenfib",
+      "mode": "i64",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "name": "003_primefactor",
+      "mode": "exact",
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "name": "003_primefactor",
+      "mode": "i64",
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "name": "004_palproduct",
+      "mode": "exact",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "name": "004_palproduct",
+      "mode": "i64",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "name": "005_smallestmultiple",
+      "mode": "exact",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "name": "005_smallestmultiple",
+      "mode": "i64",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "name": "006_sumsquarediff",
+      "mode": "exact",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "name": "006_sumsquarediff",
+      "mode": "i64",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "name": "007_10001stprime",
+      "mode": "exact",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "name": "007_10001stprime",
+      "mode": "i64",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "name": "008_seriesproduct",
+      "mode": "exact",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "name": "008_seriesproduct",
+      "mode": "i64",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "name": "009_pythagorean",
+      "mode": "exact",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "name": "009_pythagorean",
+      "mode": "i64",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "name": "010_sumprimes",
+      "mode": "exact",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "name": "010_sumprimes",
+      "mode": "i64",
+      "passed": 13,
+      "total": 13
+    }
+  ]
+}

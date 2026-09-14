@@ -1,0 +1,11 @@
+[package]
+name = "rank-001_multiples-exact"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+num-bigint = "0.4"
+
+[profile.release]
+overflow-checks = true

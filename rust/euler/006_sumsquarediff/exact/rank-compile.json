@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "006_sumsquarediff.ra",
+  "sourceSha256": "3c34b8d9f1784959282fa1ce31a9343d0d3ed16e46502a2b8879cc99e63b615d",
+  "taskSha256": "e7ba77b80023f2a060e4c55e9e0306c80d8c2ca4f9aab871380f447cab4c9366",
+  "integers": "exact",
+  "crate": "rank-006_sumsquarediff-exact"
+}

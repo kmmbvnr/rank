@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "007_10001stprime.ra",
+  "sourceSha256": "659070fdc0fa86dcc23f2dd02f107cf79fb2d8029da98e57d18fb67b36ce3dc7",
+  "taskSha256": "4d13a1b532bfbfef1ac882c21823a7cddff9b7784b31cab33162930113aba5e0",
+  "integers": "exact",
+  "crate": "rank-007_10001stprime-exact"
+}

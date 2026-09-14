@@ -1,0 +1,24 @@
+{
+  "name": "@arrrank/compile",
+  "version": "0.0.1",
+  "description": "LLM-aided Rust rewrite: compile Rank source into a self-contained agent task",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "bin": { "rank-compile": "bin/cli.js" },
+  "exports": "./src/index.js",
+  "files": ["bin", "src", "SEMANTICS.md"],
+  "scripts": {
+    "clean": "node -e \"\"",
+    "build": "node --check src/index.js && node --check bin/cli.js",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@arrrank/interpreter": "0.0.1",
+    "@arrrank/language": "0.0.1"
+  },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "repository": {
+    "type": "git", "url": "git+https://github.com/kmmbvnr/rank.git", "directory": "packages/compile"
+  }
+}

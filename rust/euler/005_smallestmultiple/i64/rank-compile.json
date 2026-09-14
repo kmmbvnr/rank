@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "005_smallestmultiple.ra",
+  "sourceSha256": "c607a04c132c6fb5048fe714ad188adc28a70e8391bb21af9a9c4078ceb5fcaa",
+  "taskSha256": "c8d12bf28d71583f1655c6c0413f5e597d225b067044718ac5d93601ee59a3b6",
+  "integers": "i64",
+  "crate": "rank-005_smallestmultiple-i64"
+}

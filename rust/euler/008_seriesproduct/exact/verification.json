@@ -1,0 +1,227 @@
+{
+  "compiler": "@arrrank/compile@0.0.1",
+  "date": "2026-09-14T10:32:07.728Z",
+  "integers": "exact",
+  "sourceSha256": "2e1b994f976b50473694ca5e142642b2a84860d6b7bba63775a81b8a58d1a58d",
+  "mainSha256": "6f9b177c551c52a85c8a9882528d4048a7ba002c8aa049c92b9a27dcebb56f0b",
+  "cargoLockSha256": "5aff4e517e95993f66cf31d242ef60cee57f86653973b427c69016b7d1e474cf",
+  "casesSha256": "a4a11d3f1d284114e81d3267091ae99782b8e556fee1f819d5f1829def628988",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "passed": 13,
+  "cases": [
+    {
+      "name": "default input",
+      "args": [],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "23514624000\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "23514624000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "1"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "9\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "9\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "2"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "81\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "81\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "4"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "5832\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "5832\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "5"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "40824\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "40824\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "12"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "4702924800\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "4702924800\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "14"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "70573265280\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "70573265280\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "20"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "240789749760000\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "240789749760000\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "1000"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "0"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "window sizes must be positive integers"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "window sizes must be positive integers\n"
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "-1"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "window sizes must be positive integers"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "window sizes must be positive integers\n"
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "1001"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "max requires at least one value"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "max requires at least one value\n"
+      }
+    },
+    {
+      "args": [
+        "--width",
+        "oops"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer input, got: oops"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "integer out of range or invalid\n"
+      }
+    }
+  ]
+}

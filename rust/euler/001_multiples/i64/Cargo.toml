@@ -1,0 +1,10 @@
+[package]
+name = "rank-001_multiples-i64"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+
+[profile.release]
+overflow-checks = true

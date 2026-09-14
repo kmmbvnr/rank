@@ -1,0 +1,83 @@
+[
+  {
+    "name": "default input",
+    "args": []
+  },
+  {
+    "args": [
+      "--target",
+      "12"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "24"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "30"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "36"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "40"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "60"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "120"
+    ]
+  },
+  {
+    "args": [
+      "--target",
+      "0"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--target",
+      "-1"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--target",
+      "11"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--target",
+      "13"
+    ],
+    "error": true
+  },
+  {
+    "args": [
+      "--target",
+      "oops"
+    ],
+    "error": true
+  }
+]

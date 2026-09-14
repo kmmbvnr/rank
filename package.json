@@ -22,7 +22,8 @@
         "bench:dense": "npm run build && node benchmarks/dense-writes.mjs",
         "bench:fusion": "npm run build && node benchmarks/tensor-fusion.mjs",
         "bench:numerical": "npm run build && node benchmarks/numerical-demos.mjs",
-        "rank": "node packages/cli/bin/cli.js"
+        "rank": "node packages/cli/bin/cli.js",
+        "test:rust": "node rust/euler/verify.mjs"
     },
     "devDependencies": {
         "@types/node": "~20.19.42",
@@ -32,7 +33,8 @@
     "workspaces": [
         "packages/language",
         "packages/interpreter",
-        "packages/cli"
+        "packages/cli",
+        "packages/compile"
     ],
     "overrides": {
         "jsonschema": "1.4.1"

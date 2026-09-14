@@ -1,0 +1,79 @@
+[
+  {
+    "name": "default input",
+    "args": []
+  },
+  {
+    "args": [
+      "--limit",
+      "-1"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "0"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "2"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "3"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "4"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "10"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "11"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "12"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "100"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "1000"
+    ]
+  },
+  {
+    "args": [
+      "--limit",
+      "oops"
+    ],
+    "error": true
+  }
+]

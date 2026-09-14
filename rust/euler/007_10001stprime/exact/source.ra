@@ -1,0 +1,14 @@
+rem 10001st Prime
+rem https://projecteuler.net/problem=7
+rem Find the 10001st prime
+
+use sequences
+use io
+use cli
+
+rem One-based position in the sequence.
+option Count integer = 10001
+
+Index = Count - 1
+Answer = primes Index
+Answer print

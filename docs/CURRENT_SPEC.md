@@ -10,6 +10,8 @@ The language is designed for:
 - tables and data analysis;
 - arrays, tensors and ML;
 - source code that remains readable on narrow screens.
+- [LLM-aided Rust rewrite](design/llm-rust-rewrite.md): use readable Rank as an
+  executable reference for a standalone Rust program.
 
 This wiki contains only the current design. Deprecated experiments are omitted.
 

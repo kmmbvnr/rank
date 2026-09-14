@@ -1,0 +1,193 @@
+{
+  "compiler": "@arrrank/compile@0.0.1",
+  "date": "2026-09-14T10:32:01.524Z",
+  "integers": "i64",
+  "sourceSha256": "659070fdc0fa86dcc23f2dd02f107cf79fb2d8029da98e57d18fb67b36ce3dc7",
+  "mainSha256": "2e08e4f374466022f44744768a13471463c84965b130ad0744766596e67aefe3",
+  "cargoLockSha256": "429dc68a69230d295c86f7e91e0ca9b2bfb1adc1e9937aa86fa7c9775d17e662",
+  "casesSha256": "cb5d56f7afe46d350f6ad3d060fcee36319d764dac2528c04e1fed52a2fe8916",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "passed": 11,
+  "cases": [
+    {
+      "name": "default input",
+      "args": [],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "104743\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "104743\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "1"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "2\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "2"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "3\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "3"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "5\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "6"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "13\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "13\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "20"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "71\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "71\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "100"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "541\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "541\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "1000"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "7919\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "7919\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "0"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "sequence index must be nonnegative"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "sequence index must be nonnegative\n"
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "-1"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "sequence index must be nonnegative"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "sequence index must be nonnegative\n"
+      }
+    },
+    {
+      "args": [
+        "--count",
+        "oops"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer input, got: oops"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "integer out of range or invalid\n"
+      }
+    }
+  ]
+}

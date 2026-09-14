@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "005_smallestmultiple.ra",
+  "sourceSha256": "c607a04c132c6fb5048fe714ad188adc28a70e8391bb21af9a9c4078ceb5fcaa",
+  "taskSha256": "f5e463f5d2e630f7926202023ffcf84c805fee027d18328f72c539ff76d6e846",
+  "integers": "exact",
+  "crate": "rank-005_smallestmultiple-exact"
+}

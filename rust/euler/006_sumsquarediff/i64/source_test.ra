@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "006_sumsquarediff"
+  run
+
+  Answer equal 25164150
+end
+
+test "workspace input"
+  use "006_sumsquarediff"
+  Limit = 10
+  run
+
+  Answer equal 2640
+end

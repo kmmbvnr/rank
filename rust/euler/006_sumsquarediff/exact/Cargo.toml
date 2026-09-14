@@ -1,0 +1,11 @@
+[package]
+name = "rank-006_sumsquarediff-exact"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+num-bigint = "0.4"
+
+[profile.release]
+overflow-checks = true

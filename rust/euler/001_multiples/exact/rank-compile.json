@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "001_multiples.ra",
+  "sourceSha256": "c21c645b57a4f9569426d5a2d7517e42565f9d9084b12f201ebad11053c63314",
+  "taskSha256": "3c807e56cec1de6e86a8b74e9a24e14aa7858dc733e63d9056c62a6f117c548e",
+  "integers": "exact",
+  "crate": "rank-001_multiples-exact"
+}

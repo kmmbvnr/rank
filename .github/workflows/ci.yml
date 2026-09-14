@@ -22,3 +22,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y expect
       - run: npm ci
       - run: npm test
+      - name: Verify Euler 1–10 Rust rewrites
+        if: matrix.node == 22
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/rank-euler-target
+        run: npm run test:rust

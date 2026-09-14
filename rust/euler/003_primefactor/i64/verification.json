@@ -1,0 +1,211 @@
+{
+  "compiler": "@arrrank/compile@0.0.1",
+  "date": "2026-09-14T10:30:59.784Z",
+  "integers": "i64",
+  "sourceSha256": "8e11471b287343376aee4080f49c4be26ff2a1be019b107f0e6cf7706355472d",
+  "mainSha256": "c9a28a662df10d5e914b39e0e650dfa722890cc93b61251e953458cb53010a45",
+  "cargoLockSha256": "fa7e91fd0af90b127fc18cd53e0d5b5654ec492d0b0d4fc60020f66a4c14176a",
+  "casesSha256": "6da5dc9d091d13f3274e0535867abc16059467a25d6276ad3f990b91a612cfba",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "passed": 12,
+  "cases": [
+    {
+      "name": "default input",
+      "args": [],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "6857\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "6857\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "2"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "2\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "3"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "3\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "4"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "2\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "8"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "2\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "49"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "7\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "97"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "97\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "97\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "13195"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "29\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "29\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "0"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "factors expects a positive integer"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "factors expects a positive integer\n"
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "1"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "max requires at least one value"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "max requires at least one value\n"
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "-1"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "factors expects a positive integer"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "factors expects a positive integer\n"
+      }
+    },
+    {
+      "args": [
+        "--n",
+        "oops"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer input, got: oops"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "integer out of range or invalid\n"
+      }
+    }
+  ]
+}

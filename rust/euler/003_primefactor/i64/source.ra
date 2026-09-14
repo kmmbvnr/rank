@@ -1,0 +1,14 @@
+rem Largest Prime Factor
+rem https://projecteuler.net/problem=3
+rem Largest prime factor of 600851475143
+
+use numbers
+use io
+use cli
+
+rem Integer whose factors are inspected.
+option N integer = 600851475143
+
+Factors = N factors
+Answer = Factors max
+Answer print

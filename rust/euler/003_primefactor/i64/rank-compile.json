@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "compiler": "@arrrank/compile@0.0.1",
+  "sourceName": "003_primefactor.ra",
+  "sourceSha256": "8e11471b287343376aee4080f49c4be26ff2a1be019b107f0e6cf7706355472d",
+  "taskSha256": "58105d1fd2e99ec142cfa1db95464c3e74762c7aaa20ea72638969c508574e69",
+  "integers": "i64",
+  "crate": "rank-003_primefactor-i64"
+}

@@ -1,0 +1,15 @@
+rem Even Fibonacci Numbers
+rem https://projecteuler.net/problem=2
+rem Sum even Fibonacci terms <= 4e6
+
+use sequences
+use numbers
+use io
+use cli
+
+rem Upper boundary, included.
+option Limit integer = 4000000
+
+Fib = fibonacci to Limit
+Answer = Fib even sum
+Answer print

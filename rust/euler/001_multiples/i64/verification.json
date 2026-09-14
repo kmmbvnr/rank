@@ -1,0 +1,237 @@
+{
+  "compiler": "@arrrank/compile@0.0.1",
+  "date": "2026-09-14T10:30:39.455Z",
+  "integers": "i64",
+  "sourceSha256": "c21c645b57a4f9569426d5a2d7517e42565f9d9084b12f201ebad11053c63314",
+  "mainSha256": "d526d89d259ae2983db56692a4a2b444c8037404428dbcab73ec5e3c18625d7c",
+  "cargoLockSha256": "8bbe2f4aa7f211a7b818e4621035a85386180544272414e0a2ca060f638a11d9",
+  "casesSha256": "db07379ba7838ad00ca515272836ec2c53f4c67bd043db23cf9e07d61d1c881e",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "passed": 14,
+  "cases": [
+    {
+      "name": "default input",
+      "args": [],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "233168\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "233168\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "-5"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "0"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "1"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "3"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "0\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "4"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "3\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "5"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "3\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "6"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "8\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "8\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "10"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "23\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "23\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "16"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "60\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "60\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "31"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "225\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "225\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "101"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "2418\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "2418\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "997"
+      ],
+      "passed": true,
+      "expected": {
+        "ok": true,
+        "stdout": "232169\n"
+      },
+      "actual": {
+        "status": 0,
+        "stdout": "232169\n",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "--limit",
+        "oops"
+      ],
+      "error": true,
+      "passed": true,
+      "expected": {
+        "ok": false,
+        "stdout": "",
+        "error": "expected integer input, got: oops"
+      },
+      "actual": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "integer out of range or invalid\n"
+      }
+    }
+  ]
+}
