@@ -1,4 +1,4 @@
-import { InterruptedError, RankError, isRankSequenceMask, type RankSequence, type RankValue, type SequencePlan } from '@rank/interpreter';
+import { InterruptedError, RankError, isRankSequenceMask, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
 
 interface Read {
     readonly tape: Tape;

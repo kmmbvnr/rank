@@ -1,6 +1,6 @@
 import { EmptyFileSystem } from 'langium';
-import type { Program } from '@rank/language';
-import { createRankServices, expressionDiagnostics, type GroupingOptions } from '@rank/language';
+import type { Program } from '@arrrank/language';
+import { createRankServices, expressionDiagnostics, type GroupingOptions } from '@arrrank/language';
 import { RankError } from './errors.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;

@@ -2,6 +2,13 @@
 
 `rank` runs a `.ra` source file. With no file argument it opens the terminal REPL.
 
+Requires Node.js 22.12 or newer, Python, and a C++20 build toolchain.
+
+```console
+npm install -g @arrrank/cli
+rank
+```
+
 ```console
 rank program.ra --limit 10
 rank test path/to/program_test.ra

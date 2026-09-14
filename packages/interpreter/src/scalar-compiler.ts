@@ -2,7 +2,7 @@ import {
     isBinaryExpression, isUnaryExpression, isParenthesizedExpression,
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     type Expression,
-} from '@rank/language';
+} from '@arrrank/language';
 import type { RankValue } from './value.js';
 
 interface Host {

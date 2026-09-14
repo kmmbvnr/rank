@@ -2,7 +2,7 @@ import { checkpoint } from './interrupt.js';
 import {
     isBinaryExpression, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isUnaryExpression, type Expression,
-} from '@rank/language';
+} from '@arrrank/language';
 import { numericKernel } from './numeric-kernels.js';
 import { eagerArrayStorage } from './array-storage.js';
 import { expectNumeric } from './modules/shared.js';

@@ -4,7 +4,7 @@ Diagnostics are an optional TypeScript API for compiler development and future
 CLI/editor inspection. They introduce no Rank syntax, output or evaluation step.
 
 ```ts
-import { Interpreter, RuntimeDiagnostics } from '@rank/interpreter';
+import { Interpreter, RuntimeDiagnostics } from '@arrrank/interpreter';
 
 const runtime = new Interpreter();
 const diagnostics = new RuntimeDiagnostics();

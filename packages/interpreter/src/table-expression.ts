@@ -3,7 +3,7 @@ import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isStringLiteral, isUnaryExpression, type Expression,
-} from '@rank/language';
+} from '@arrrank/language';
 import { RankError } from './errors.js';
 
 // An unspellable local makes the receiver lexical, including in lazy results.

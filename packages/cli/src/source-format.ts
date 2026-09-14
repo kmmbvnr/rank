@@ -1,4 +1,4 @@
-import { parse } from '@rank/interpreter';
+import { parse } from '@arrrank/interpreter';
 import stringWidth from 'string-width';
 import { tokenize, type Token } from './repl-input.js';
 

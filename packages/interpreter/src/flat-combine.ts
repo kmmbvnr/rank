@@ -3,7 +3,7 @@ import {
     isReturnStatement, isRecordExpression, isParenthesizedExpression, isNumberLiteral,
     isBinaryExpression, isUnaryExpression, isNameExpression,
     isLabelLiteral, type Expression, type FunctionStatement,
-} from '@rank/language';
+} from '@arrrank/language';
 import type { RankValue } from './value.js';
 import type { FlatRecords } from './flat.js';
 

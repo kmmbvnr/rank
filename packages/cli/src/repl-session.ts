@@ -1,7 +1,7 @@
 import {
     Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, isNativeFunction, isRankArray, standardModules, type RankValue,
-} from '@rank/interpreter';
-import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@rank/language';
+} from '@arrrank/interpreter';
+import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import { readdirSync, statSync } from 'node:fs';

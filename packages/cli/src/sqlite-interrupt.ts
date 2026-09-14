@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { checkInterrupt } from '@rank/interpreter';
+import { checkInterrupt } from '@arrrank/interpreter';
 
 const require = createRequire(import.meta.url);
 const extension = fileURLToPath(new URL('../native/build/Release/rank_sqlite_interrupt.node', import.meta.url));

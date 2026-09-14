@@ -1,4 +1,4 @@
-import type { PauseSnapshot } from '@rank/interpreter';
+import type { PauseSnapshot } from '@arrrank/interpreter';
 import { Worker } from 'node:worker_threads';
 import { sessionEditor, type SessionSnapshot, type ProgramFile, type Execution } from './repl-session.js';
 

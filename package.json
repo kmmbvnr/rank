@@ -33,5 +33,8 @@
         "packages/language",
         "packages/interpreter",
         "packages/cli"
-    ]
+    ],
+    "overrides": {
+        "jsonschema": "1.4.1"
+    }
 }

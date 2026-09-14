@@ -2,7 +2,7 @@
 import stringWidth from 'string-width';
 import { stripVTControlCharacters } from 'node:util';
 import type { Notebook } from './notebook.js';
-import type { PauseSnapshot } from '@rank/interpreter';
+import type { PauseSnapshot } from '@arrrank/interpreter';
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 export const graphemes = (text: string): Intl.SegmentData[] => [...segmenter.segment(text)];

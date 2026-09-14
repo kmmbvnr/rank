@@ -1,7 +1,7 @@
 # Rank
 
 [![CI](https://github.com/kmmbvnr/rank/actions/workflows/ci.yml/badge.svg)](https://github.com/kmmbvnr/rank/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@rank/cli)](https://www.npmjs.com/package/@rank/cli)
+[![npm](https://img.shields.io/npm/v/@arrrank/cli)](https://www.npmjs.com/package/@arrrank/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange)
 
@@ -23,6 +23,13 @@ Start with 100, edit the limit to 4 million, press Ctrl-R. Answer: **4613732**.
 Requires Node.js 22.12 or newer, Python, and a C++20 build toolchain.
 
 ```console
+npm install -g @arrrank/cli
+rank
+```
+
+Or run from source:
+
+```console
 npm install
 npm run build
 npm run rank
@@ -39,7 +46,7 @@ rank> 1 to 5 sum
 Run a file, optionally passing inputs:
 
 ```console
-npm run rank -- demos/euler/001_multiples.ra --limit 10
+rank demos/euler/001_multiples.ra --limit 10
 ```
 
 ## Tests

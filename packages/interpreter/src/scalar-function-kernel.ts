@@ -2,7 +2,7 @@ import {
     isReturnStatement, isAssignmentStatement, isIfStatement, isParenthesizedExpression,
     isNumberLiteral, isBooleanLiteral, isNameExpression, isUnaryExpression, isBinaryExpression,
     type Expression, type FunctionStatement, type Statement,
-} from '@rank/language';
+} from '@arrrank/language';
 import { RankError } from './errors.js';
 import type { RankValue } from './value.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';

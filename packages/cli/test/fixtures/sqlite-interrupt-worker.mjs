@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'node:worker_threads';
-import { InterruptedError, withInterrupt } from '@rank/interpreter';
+import { InterruptedError, withInterrupt } from '@arrrank/interpreter';
 import { nodeIo } from '../../out/node-io.js';
 import { enableSqliteInterrupt } from '../../out/sqlite-interrupt.js';
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Interpreter, formatValue, standardModules } from '@rank/interpreter';
+import { Interpreter, formatValue, standardModules } from '@arrrank/interpreter';
 import { formatSource } from '../out/source-format.js';
 
 const mask = 'Mask = Fibs multiple by 5 or Fibs multiple by 3';

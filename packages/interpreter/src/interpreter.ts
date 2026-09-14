@@ -84,7 +84,7 @@ import {
     type Program,
     type Statement,
     findOperation,
-} from '@rank/language';
+} from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
 import {

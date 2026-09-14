@@ -1,5 +1,5 @@
 {
-    "name": "@rank/interpreter",
+    "name": "@arrrank/interpreter",
     "description": "Runtime for the Rank programming language",
     "version": "0.0.1",
     "license": "MIT",
@@ -18,7 +18,7 @@
     "dependencies": {
         "@noble/hashes": "~2.4.0",
         "langium": "~4.3.0",
-        "@rank/language": "0.0.1"
+        "@arrrank/language": "0.0.1"
     },
     "devDependencies": {
         "vitest": "~3.2.7"

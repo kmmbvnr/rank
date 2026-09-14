@@ -1,7 +1,7 @@
 import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty, insideText, nextIndent, scanLine } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import { editableRows, graphemes, type TextRow } from './screen.js';
-import { parse } from '@rank/interpreter';
+import { parse } from '@arrrank/interpreter';
 
 /** Keep top-level statements separate, with their blocks and source spacing intact. */
 export function splitSource(source: string): string[] {

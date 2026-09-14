@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { Interpreter, formatValue } from '@rank/interpreter';
+import { Interpreter, formatValue } from '@arrrank/interpreter';
 import { SequenceReplay } from '../out/sequence-replay.js';
 import { preview } from '../out/preview.js';
 

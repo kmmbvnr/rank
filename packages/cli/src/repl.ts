@@ -23,7 +23,7 @@ type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareF
     debugNext?: () => void;
     setDebugBreakpoints?: (points: { source: string; line: number }[]) => void;
     readonly pauseRequested?: boolean;
-    readonly pauseState?: import('@rank/interpreter').PauseSnapshot;
+    readonly pauseState?: import('@arrrank/interpreter').PauseSnapshot;
 };
 
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
@@ -35,7 +35,7 @@ export class NotebookRepl {
     pauseTop = 0;
     readonly breakpoints = new Map<number, Set<number>>();
 
-    get pauseSnapshot(): import('@rank/interpreter').PauseSnapshot | undefined {
+    get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
         const pause = this.session.pauseState;
         if (!pause?.source || pause.line === undefined || !this.session.savedFile) return pause;
         const cells = this.notebook.cells.slice(0, -1).filter(cell => !cell.command);

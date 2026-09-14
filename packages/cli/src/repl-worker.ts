@@ -1,12 +1,12 @@
 import { enableSqliteInterrupt } from './sqlite-interrupt.js';
 import { parentPort, workerData } from 'node:worker_threads';
-import { withInterrupt, setDebugBreakpoints } from '@rank/interpreter';
+import { withInterrupt, setDebugBreakpoints } from '@arrrank/interpreter';
 import { createReplSession } from './repl-session.js';
 
 const port = parentPort!;
 const signal = new Int32Array(workerData.signal);
 enableSqliteInterrupt(signal);
-const onPause = (pause: import('@rank/interpreter').PauseSnapshot) => port.postMessage({ pause });
+const onPause = (pause: import('@arrrank/interpreter').PauseSnapshot) => port.postMessage({ pause });
 const session = withInterrupt(signal, () => createReplSession(), onPause);
 // Messages are serialized even when a command awaits file I/O.
 let queue = Promise.resolve();

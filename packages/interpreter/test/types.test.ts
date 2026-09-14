@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { analyzeBindings } from '@rank/language';
+import { analyzeBindings } from '@arrrank/language';
 import { Interpreter, parse, typeName } from '../src/index.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));

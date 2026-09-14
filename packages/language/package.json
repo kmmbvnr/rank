@@ -1,5 +1,5 @@
 {
-    "name": "@rank/language",
+    "name": "@arrrank/language",
     "description": "Rank grammar, AST and language services",
     "version": "0.0.1",
     "license": "MIT",
