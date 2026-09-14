@@ -588,3 +588,45 @@ test('editing a native stream consumer restores its position while retaining ear
     assert.equal(output(book.cells[2]), '17');
     assert.match(output(book.cells[4]), /^113 127 131/);
 });
+
+test('loading declares later functions without running statements or function bodies', async t => {
+    const fs = await import('node:fs/promises');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'rank-load-functions-'));
+    t.after(() => fs.rm(directory, { recursive: true, force: true }));
+    const file = path.join(directory, 'functions.ra');
+    await fs.writeFile(file, 'Answer = 21 twice\nfun twice X\n  return X + X\nend\nfun unused\n  Missing print\nend\n');
+    const { repl, book, enter, edit } = setup(t);
+    await enter(`load ${file}`);
+    assert.ok(repl.session.snapshot().names.includes('twice'));
+    assert.ok(!repl.session.snapshot().names.includes('Answer'));
+    assert.ok(book.cells.every(cell => cell.output.length === 0));
+    await enter('');
+    assert.equal(output(book.cells[0]), '42');
+    assert.ok(book.cells.every(cell => cell.status !== 'error'));
+    edit(0, 'Answer = 21 triple');
+    edit(1, 'fun triple X\n  return X + X + X\nend');
+    await repl.submit(true);
+    assert.equal(output(book.cells[0]), '63');
+    assert.ok(!repl.session.snapshot().names.includes('twice'));
+});
+
+test('loading reports invalid function declarations and still declares later valid functions', async t => {
+    const fs = await import('node:fs/promises');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'rank-load-functions-error-'));
+    t.after(() => fs.rm(directory, { recursive: true, force: true }));
+    const file = path.join(directory, 'functions.ra');
+    await fs.writeFile(file, 'A = 99\nfun invalid 1\n  return 1\nend\nmemo broken X\n  yield X\nend\nfun good X\n  return X\nend\n');
+    const { repl, book, enter } = setup(t);
+    await enter(`load ${file}`);
+    assert.equal(book.cells[0].status, 'idle');
+    assert.equal(book.cells[1].status, 'error');
+    assert.match(output(book.cells[1]), /error:/);
+    assert.equal(book.cells[2].status, 'error');
+    assert.match(output(book.cells[2]), /memo functions cannot yield/);
+    assert.ok(repl.session.snapshot().names.includes('good'));
+    assert.ok(!repl.session.snapshot().names.includes('A'));
+});

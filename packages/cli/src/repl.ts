@@ -7,14 +7,21 @@ import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty } from 
 import { createWorkerSession } from './worker-session.js';
 import { Notebook, splitSource } from './notebook.js';
 import { createReplSession, type ProgramFile } from './repl-session.js';
-import { drawFrame, saveFrame, helpFrame, notebookFrame, textColumns } from './screen.js';
+import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame, textColumns } from './screen.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
-type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot'> & {
+type FunctionPreparation = ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>;
+type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions'> & {
+    prepareFunctions: (cells: { id: number; source: string }[]) => FunctionPreparation | Promise<FunctionPreparation>;
     interrupt?: () => void;
     pause?: () => void;
     resume?: () => void;
+    step?: (iteration?: boolean) => void;
+    stepToMain?: () => void;
+    endDebugRun?: () => void;
+    debugNext?: () => void;
+    setDebugBreakpoints?: (points: { source: string; line: number }[]) => void;
     readonly pauseRequested?: boolean;
     readonly pauseState?: import('@rank/interpreter').PauseSnapshot;
 };
@@ -26,6 +33,39 @@ export class NotebookRepl {
     private startedAt?: number;
     private stopping = false;
     pauseTop = 0;
+    readonly breakpoints = new Map<number, Set<number>>();
+
+    get pauseSnapshot(): import('@rank/interpreter').PauseSnapshot | undefined {
+        const pause = this.session.pauseState;
+        if (!pause?.source || pause.line === undefined || !this.session.savedFile) return pause;
+        const cells = this.notebook.cells.slice(0, -1).filter(cell => !cell.command);
+        // Prefer the running cell when identical statements appear more than once.
+        const current = this.notebook.current;
+        const cell = current.source === pause.source && cells.includes(current)
+            ? current : cells.find(item => item.source === pause.source);
+        if (!cell) return pause;
+        const offset = cells.slice(0, cells.indexOf(cell))
+            .reduce((lines, item) => lines + item.source.split('\n').length, 0);
+        const line = offset + pause.line;
+        return { ...pause, source: cells.map(item => item.source).join('\n'), line,
+            activity: pause.activity === `before line ${pause.line}` ? `before line ${line}` : pause.activity };
+    }
+
+    toggleBreakpoint(): void {
+        const book = this.notebook;
+        const line = book.current.source.slice(0, book.cursor).split('\n').length;
+        const lines = this.breakpoints.get(book.current.id) ?? new Set<number>();
+        if (lines.has(line)) lines.delete(line); else lines.add(line);
+        this.breakpoints.set(book.current.id, lines);
+        this.suggestion = `Breakpoint ${lines.has(line) ? 'set' : 'removed'}: cell ${book.active + 1}, line ${line}`;
+    }
+
+    async debug(): Promise<boolean> {
+        if (this.running || this.help || this.savePrompt) return false;
+        if (!this.notebook.atPrompt) this.notebook.replayFrom = this.notebook.active;
+        this.session.debugNext?.();
+        return this.submit(true);
+    }
 
     togglePause(): void {
         if (this.session.pauseRequested) this.session.resume?.();
@@ -35,7 +75,7 @@ export class NotebookRepl {
 
     get runningStatus(): string {
         if (this.startedAt === undefined) return 'Running…';
-        return `${this.stopping ? 'Stopping…' : this.session.pauseRequested ? 'Pausing…' : 'Running…'} ${((performance.now() - this.startedAt) / 1000).toFixed(1)}s · Ctrl-C stop · Ctrl-P pause`;
+        return `${this.stopping ? 'Stopping…' : this.session.pauseRequested ? 'Pausing…' : 'Running…'} ${((performance.now() - this.startedAt) / 1000).toFixed(1)}s · ^C stop · ^P pause`;
     }
 
     interrupt(): void {
@@ -49,6 +89,7 @@ export class NotebookRepl {
     help?: { text: string; top: number };
     savePrompt?: { choosing: boolean; exitAfterSave: boolean; loadFile?: ProgramFile; filename: Notebook; error: string };
     private completion?: { candidates: string[]; from: number; to: number; index: number };
+    private preparation: Promise<void> = Promise.resolve();
 
     constructor(readonly session: Session, readonly render: () => void = () => {}, readonly columns = () => 80) {}
 
@@ -95,9 +136,23 @@ export class NotebookRepl {
         const parts = splitSource(file.source);
         this.session.replaceFile(file);
         this.notebook.clear();
+        this.breakpoints.clear();
         for (const source of parts) this.notebook.enqueue(source, true);
+        this.preparation = this.prepareFunctions();
         this.help = undefined;
         this.dismiss();
+    }
+
+    private async prepareFunctions(start = 0): Promise<void> {
+        const cells = this.notebook.cells.slice(start, -1).filter(cell => !cell.command);
+        const results = await this.session.prepareFunctions(cells.map(({ id, source }) => ({ id, source })));
+        for (const result of results) {
+            const cell = cells.find(cell => cell.id === result.id)!;
+            cell.output = result.output;
+            cell.errorOffset = result.errorOffset;
+            cell.status = result.output.some(line => line.error) ? 'error' : 'idle';
+        }
+        this.render();
     }
 
     discardChanges(): boolean {
@@ -153,6 +208,7 @@ export class NotebookRepl {
     /** Enter in the draft resumes the edited suffix, then evaluates the new statement. */
     async submit(force = false): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
+        await this.preparation;
         this.dismiss();
         const book = this.notebook;
         if (!book.atPrompt && !force) { book.newline(); return false; }
@@ -191,7 +247,7 @@ export class NotebookRepl {
                     return false;
                 }
                 if (this.unsaved) this.openSavePrompt(false, result.loadedFile);
-                else this.openFile(result.loadedFile);
+                else { this.openFile(result.loadedFile); await this.preparation; }
                 return false;
             } finally {
                 this.running = false;
@@ -215,6 +271,7 @@ export class NotebookRepl {
                 return exit;
             }
             this.session.rewind(book.cells[start].id);
+            await this.prepareFunctions(start);
             const end = book.cells.length - 1;
             for (let index = start; index < end; index++) {
                 const cell = book.cells[index];
@@ -243,6 +300,7 @@ export class NotebookRepl {
             return false;
         } finally {
             this.running = false;
+            this.session.endDebugRun?.();
             this.render();
         }
     }
@@ -260,6 +318,8 @@ export class NotebookRepl {
         const timer = setInterval(() => this.render(), 100);
         try {
             await new Promise<void>(resolve => setImmediate(resolve));
+            this.session.setDebugBreakpoints?.(book.cells.flatMap(item =>
+                [...(this.breakpoints.get(item.id) ?? [])].map(line => ({ source: item.source, line }))));
             const pending = this.session.execute(source, cell.id, book.fileLines(), this.columns(), cell.fileSource);
             if (this.stopping) this.session.interrupt?.();
             const result = await pending;
@@ -340,6 +400,7 @@ async function terminalRepl(session: Session): Promise<void> {
     let top = 0;
     let followCursor = true;
     let closing = false;
+    let stepping = false;
     let history: string[] = [];
     let historyIndex = -1;
     let historyDraft = '';
@@ -347,6 +408,9 @@ async function terminalRepl(session: Session): Promise<void> {
     catch { /* A new session has no history yet. */ }
     const render = (): void => {
         if (closing) return;
+        // Keep the last debugger frame while the worker advances to its next stop.
+        if (stepping && repl.running && !session.pauseState) return;
+        stepping = false;
         if (repl.savePrompt) {
             const prompt = repl.savePrompt;
             output.write(drawFrame(saveFrame(prompt.choosing ? undefined : prompt.filename,
@@ -354,12 +418,10 @@ async function terminalRepl(session: Session): Promise<void> {
             return;
         }
         if (repl.running && session.pauseState) {
-            const pause = session.pauseState;
-            const details = Object.entries(pause.details ?? {}).map(([key, value]) => `${key}: ${value}`).join('\n');
-            const frame = helpFrame(`Paused · ${pause.activity ?? 'evaluating'}\n${details}\n\n${pause.state ?? ''}`,
+            const pause = repl.pauseSnapshot!;
+            const frame = pauseFrame(pause,
                 output.columns || 80, output.rows || 24, repl.pauseTop);
             repl.pauseTop = frame.top;
-            frame.lines[frame.lines.length - 1] = 'Ctrl-P / Enter continue · Ctrl-C stop · ↑/↓ scroll'.slice(0, (output.columns || 80) - 1);
             output.write(drawFrame(frame));
             return;
         }
@@ -370,7 +432,7 @@ async function terminalRepl(session: Session): Promise<void> {
             return;
         }
         const frame = notebookFrame(repl.notebook, output.columns || 80, output.rows || 24,
-            top, repl.suggestion, repl.running, followCursor, repl.fileStatus, repl.runningStatus);
+            top, repl.suggestion, repl.running, followCursor, repl.fileStatus, repl.runningStatus, repl.breakpoints);
         top = frame.top;
         output.write(drawFrame(frame));
     };
@@ -383,10 +445,13 @@ async function terminalRepl(session: Session): Promise<void> {
     const onKey = (text: string, key: Key = {}): void => {
         if (closing) return;
         if (repl.running) {
-            if (key.ctrl && key.name === 'c') repl.interrupt();
-            else if (key.ctrl && key.name === 'p') repl.togglePause();
+            if (key.ctrl && key.name === 'c') { stepping = false; repl.interrupt(); }
+            else if (key.ctrl && key.name === 'p') { stepping = false; repl.togglePause(); }
             else if (session.pauseState) {
                 if (key.name === 'return' || key.name === 'enter') session.resume?.();
+                else if (!key.meta && key.name === 'g') { stepping = true; repl.pauseTop = 0; session.stepToMain?.(); }
+                else if (!key.meta && key.name === 't') { stepping = true; repl.pauseTop = 0; session.step?.(); }
+                else if (!key.meta && key.name === 'n') { stepping = true; repl.pauseTop = 0; session.step?.(true); }
                 else if (key.name === 'up') repl.pauseTop--;
                 else if (key.name === 'down') repl.pauseTop++;
                 else if (key.name === 'pageup') repl.pauseTop -= Math.max(1, (output.rows || 24) - 2);
@@ -442,7 +507,9 @@ async function terminalRepl(session: Session): Promise<void> {
                 render();
                 return;
             }
-            if (key.name === 'tab') repl.complete();
+            if (key.ctrl && key.name === 'b') repl.toggleBreakpoint();
+            else if (key.ctrl && key.name === 't') { void repl.debug().then(exit => { if (exit) leave(); else render(); }, fail); }
+            else if (key.name === 'tab') repl.complete();
             else if (key.name === 'escape') {
                 if (repl.suggestion) repl.dismiss();
                 else book.toPrompt();

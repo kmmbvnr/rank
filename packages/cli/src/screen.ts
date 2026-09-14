@@ -2,6 +2,7 @@
 import stringWidth from 'string-width';
 import { stripVTControlCharacters } from 'node:util';
 import type { Notebook } from './notebook.js';
+import type { PauseSnapshot } from '@rank/interpreter';
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 export const graphemes = (text: string): Intl.SegmentData[] => [...segmenter.segment(text)];
@@ -70,6 +71,7 @@ export interface ScreenFrame {
 export function notebookFrame(
     notebook: Notebook, columns: number, height: number, previousTop = 0,
     suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
+    breakpoints?: ReadonlyMap<number, ReadonlySet<number>>,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(6, Math.max(0, width - 1));
@@ -88,9 +90,12 @@ export function notebookFrame(
         const sourceRows = editableRows(cell.source, bodyWidth);
         const labelRow = prompt ? 0 : sourceRows.findIndex(row => row.text.trim() !== '');
         for (const [line, item] of sourceRows.entries()) {
-            const prefix = (line === labelRow ? label : item.text.trim() === '' ? '      ' : '    · ')
+            const offset = item.points[0]?.offset ?? 0;
+            const sourceLine = cell.source.slice(0, offset).split('\n').length;
+            const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
+            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
-            const painted = !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
+            const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m' : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
             rows.push((gutter > 0 ? painted : '') + item.text);
             if (index === notebook.active) {
                 const point = item.points.find(point => point.offset === notebook.cursor);
@@ -122,12 +127,12 @@ export function notebookFrame(
     const lines = rows.slice(top, top + viewportHeight);
     while (lines.length < viewportHeight) lines.push('');
     if (footerRows) {
-        const footerWidth = running ? width : Math.min(40, width);
+        const footerWidth = Math.min(40, width);
         const status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
             : suggestion || (notebook.atPrompt
                 ? 'Enter run · help'
                 : 'Ctrl-R rerun · help');
-        let label = fileStatus;
+        let label = running ? '' : fileStatus;
         if (label && followCursor) {
             const available = footerWidth - stringWidth(status) - 3;
             if (stringWidth(label) > available) {
@@ -170,6 +175,51 @@ export function saveFrame(
     while (lines.length < viewportHeight) lines.push('');
     if (height > 1) lines.push(clipped(saving ? 'Saving…' : exitAfterSave ? 'Enter save and exit · Esc cancel' : 'Enter save · Esc cancel', width));
     return { lines, top, cursor: { row: caret.row - top, column: caret.column }, cursorVisible: true };
+}
+
+/** Source context belongs to the paused execution, including calls in another cell. */
+export function pauseFrame(pause: PauseSnapshot, columns: number, height: number, previousTop = 0): ScreenFrame {
+    const width = Math.max(1, columns - 1);
+    const rows: string[] = [];
+    const append = (text: string, color = '') => {
+        for (const row of editableRows(clean(text), width))
+            rows.push(color ? color + row.text + '\x1b[0m' : row.text);
+    };
+    append(`Paused · ${pause.activity ?? 'evaluating'}`);
+    const source = pause.source?.split(/\r?\n/);
+    const line = pause.line;
+    let state = pause.state ?? '';
+    if (source && line !== undefined && line >= 1 && line <= source.length) {
+        // Numbered context replaces the snapshot's path and plain source line.
+        const stateLines = state.split('\n');
+        if (stateLines[1] === source[line - 1]) {
+            state = stateLines.slice(2).join('\n').trimStart();
+        }
+    }
+    const stack = state.match(/(?:^|\n\n)(Call stack \(outermost first\):\n[^]*?)(?=\n\n|$)/);
+    if (stack) {
+        append(stack[1] + '\n');
+        state = state.replace(stack[0], '').trimStart();
+    }
+    if (source && line !== undefined && line >= 1 && line <= source.length) {
+        append(pause.activity === `before line ${line}` ? '● Next to execute' : '● Currently executing');
+        const start = Math.max(0, line - 3);
+        const end = Math.min(source.length, line + 2);
+        const digits = String(end).length;
+        for (let index = start; index < end; index++) {
+            const current = index === line - 1;
+            append(`${current ? '●' : ' '} ${String(index + 1).padStart(digits)} │ ${source[index]}`,
+                current ? '\x1b[1;33m' : '\x1b[90m');
+        }
+    }
+    append('\n' + state);
+    for (const [key, value] of Object.entries(pause.details ?? {})) append(`${key}: ${value}`);
+    const contentHeight = Math.max(1, height - 1);
+    const top = Math.max(0, Math.min(previousTop, rows.length - contentHeight));
+    const lines = rows.slice(top, top + contentHeight);
+    while (lines.length < contentHeight) lines.push('');
+    if (height > 1) lines.push(clipped('t step · n loop · g main · ↵ · ^C stop', Math.min(40, width)));
+    return { lines, top, cursor: { row: 0, column: 0 }, cursorVisible: false };
 }
 
 /** Help is a temporary screen; its text never belongs to the notebook. */

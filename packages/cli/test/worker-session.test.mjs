@@ -125,3 +125,25 @@ test('large native binomial and matrix elimination cancel while the terminal thr
     assert.equal((await s.execute('Matrix 0 0', 4, [])).output[0].text, '1');
     assert.equal((await s.execute('30 2 binomial', 5, [])).output[0].text, '435');
 });
+
+test('worker prepares notebook functions before stepping a call above their definitions', { timeout: 10000 }, async t => {
+    const s = await session(t);
+    const repl = new NotebookRepl(s);
+    repl.notebook.enqueue('Answer = 21 twice', true);
+    repl.notebook.enqueue('fun twice X\n  return X + X\nend', true);
+    s.debugNext();
+    const pending = repl.submit(true);
+    try {
+        const deadline = Date.now() + 5000;
+        while (!s.pauseState && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 10));
+        assert.ok(s.pauseState, 'debugging must pause at the call, not during declaration');
+        assert.match(s.pauseState.source, /Answer = 21 twice/);
+        s.resume();
+        await pending;
+        assert.equal(repl.notebook.cells[0].output[0].text, '42');
+        assert.ok(s.complete('twi')[0].includes('twice '));
+    } finally {
+        s.interrupt();
+        await pending;
+    }
+});

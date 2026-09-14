@@ -4,10 +4,12 @@ import { sessionEditor, type SessionSnapshot, type ProgramFile, type Execution }
 
 /** The terminal only exchanges text and binding names; live values stay in the worker. */
 export async function createWorkerSession() {
-    const signal = new Int32Array(new SharedArrayBuffer(8));
+    const signal = new Int32Array(new SharedArrayBuffer(12));
     const worker = new Worker(new URL('./repl-worker.js', import.meta.url), { workerData: { signal: signal.buffer } });
     let serial = 0;
     let active = false;
+    let debugNext = false;
+    let stepToMain = false;
     let pauseState: PauseSnapshot | undefined;
     let execution: Promise<Execution> | undefined;
     let disposed = false;
@@ -28,7 +30,10 @@ export async function createWorkerSession() {
     worker.on('exit', code => { if (!disposed) fail(new Error(`Execution worker exited (${code})`)); });
     worker.on('message', message => {
         if (message.pause) {
-            if (active && Atomics.load(signal, 1) === 1) pauseState = message.pause;
+            if (active && Atomics.load(signal, 1) === 1) {
+                pauseState = message.pause;
+                stepToMain = false;
+            }
             return;
         }
         snapshot = message.snapshot;
@@ -49,22 +54,33 @@ export async function createWorkerSession() {
     };
     await started;
     const initial = snapshot!;
-    const resume = () => {
+    const resume = (command = 0) => {
+        Atomics.store(signal, 2, command);
         pauseState = undefined;
         Atomics.store(signal, 1, 0);
         Atomics.notify(signal, 1);
     };
-    const interrupt = () => { if (active) { Atomics.store(signal, 0, 1); resume(); } };
+    const interrupt = () => { stepToMain = false; if (active) { Atomics.store(signal, 0, 1); resume(); } };
     return {
         get pauseState() { return pauseState; },
         get pauseRequested() { return active && Atomics.load(signal, 1) === 1; },
         pause(): void { if (active) Atomics.store(signal, 1, 1); },
-        resume,
+        resume: () => resume(),
+        step(iteration = false): void { if (pauseState) resume(iteration ? 3 : 2); },
+        stepToMain(): void { if (pauseState) { stepToMain = true; resume(4); } },
+        endDebugRun(): void { stepToMain = false; },
+        debugNext(): void { debugNext = true; },
+        setDebugBreakpoints(points: { source: string; line: number }[]): void {
+            void call<void>('setDebugBreakpoints', points).catch(fail);
+        },
         get savedFile() { return snapshot.savedFile; },
         format(line: string) { return editor.format(line); },
         isCommand(source: string) { return editor.isCommand(source); },
         complete(line: string) { return editor.complete(line); },
         rewind(id: number): void { void call<void>('rewind', id).catch(fail); },
+        prepareFunctions(cells: { id: number; source: string }[]) {
+            return call<{ id: number; output: Execution['output']; errorOffset?: number }[]>('prepareFunctions', cells);
+        },
         replaceFile(file: ProgramFile): void {
             const source = file.source.replace(/\r\n?/g, '\n');
             snapshot = { ...initial, savedFile: { path: file.path, source: source && !source.endsWith('\n') ? source + '\n' : source } };
@@ -76,8 +92,13 @@ export async function createWorkerSession() {
             resume();
             Atomics.store(signal, 0, 0);
             active = true;
-            execution = call<Execution>('execute', ...args);
-            try { return await execution; }
+            execution = call<Execution>(debugNext || stepToMain ? 'debugExecute' : 'execute', ...args);
+            debugNext = false;
+            try {
+                const result = await execution;
+                if (!result.ok) stepToMain = false;
+                return result;
+            }
             finally { active = false; execution = undefined; resume(); }
         },
         interrupt,

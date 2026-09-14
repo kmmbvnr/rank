@@ -124,6 +124,18 @@ export function createReplSession() {
             interpreter.forgetBindings(names);
             for (const name of names) declarations.delete(name);
         },
+        prepareFunctions(cells: { id: number; source: string }[]): { id: number; output: OutputLine[]; errorOffset?: number }[] {
+            return cells.flatMap(({ id, source }) => {
+                const first = source.split('\n').find(line => line.trim() && !/^\s*rem(?:\s|$)/.test(line));
+                if (!first || !/^\s*(?:fun|memo)\b/.test(first)) return [];
+                output = [];
+                errorOffset = undefined;
+                try {
+                    for (const name of interpreter.declareFunctionSource(source)) declarations.set(name, id);
+                } catch (error) { reportError(error, source); }
+                return [{ id, output, errorOffset }];
+            });
+        },
         complete(line: string): [string[], string] {
             const load = /^load[\t ]+(.*)$/.exec(line);
             if (load && isCommand(line, interpreter)) return completeLoadPath(load[1]);
@@ -189,21 +201,25 @@ export function createReplSession() {
             if (result !== undefined) session.replay.preview(() => show(result));
             return true;
         } catch (error) {
-            if (error instanceof RankError && error.location?.sourceId === path.join(process.cwd(), '<repl>')) {
-                const { line, column } = error.location;
-                errorOffset = source.split('\n').slice(0, line - 1).reduce((offset, line) => offset + line.length + 1, 0)
-                    + column - 1;
-            }
-            if (error instanceof InterruptedError) {
-                interrupted = true;
-                emit(error.message);
-                if (error.location) emit(`at ${error.location.sourceId}:${error.location.line}:${error.location.column}\n${error.location.sourceLine}`);
-                return false;
-            }
-            const message = error instanceof RankError ? error.format() : String(error);
-            warn(chalk.red(`error: ${message}`));
+            return reportError(error, source);
+        }
+    }
+
+    function reportError(error: unknown, source: string): false {
+        if (error instanceof RankError && error.location?.sourceId === path.join(process.cwd(), '<repl>')) {
+            const { line, column } = error.location;
+            errorOffset = source.split('\n').slice(0, line - 1).reduce((offset, line) => offset + line.length + 1, 0)
+                + column - 1;
+        }
+        if (error instanceof InterruptedError) {
+            interrupted = true;
+            emit(error.message);
+            if (error.location) emit(`at ${error.location.sourceId}:${error.location.line}:${error.location.column}\n${error.location.sourceLine}`);
             return false;
         }
+        const message = error instanceof RankError ? error.format() : String(error);
+        warn(chalk.red(`error: ${message}`));
+        return false;
     }
 
     /** A result as an answer to read: long ones keep their two ends. */
@@ -312,6 +328,11 @@ export function createReplSession() {
             '  Esc returns to the bottom prompt.',
             '  Ctrl-Z undoes; Ctrl-Y redoes an edit.',
             '  Ctrl-P recalls typed history.',
+            '  Ctrl-T starts debugging; Ctrl-B toggles a line breakpoint (◆).',
+            '  When paused: t steps into a line, n advances the loop.',
+            '  g finishes the outer statement and stops at the next main-program line.',
+            '  Ctrl-T / Ctrl-N / Ctrl-G also work; Enter continues, Ctrl-C stops.',
+            '  Enter / Ctrl-P continues; Ctrl-C cancels.',
             '  Ctrl-S saves to the current file.',
             '  A new program asks for a file name.',
             '  Ctrl-Q exits; Ctrl-C clears a draft.',
@@ -321,6 +342,8 @@ export function createReplSession() {
             '  Exit offers to save unsaved changes.',
             '',
             'Execution',
+            '  Loading registers fun/memo definitions',
+            '  without running bodies or other code.',
             '  Variables survive between runs.',
             '  Enter reruns from the first edit down.',
             '  Each run replaces its previous output.',

@@ -1,4 +1,4 @@
-import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution } from './interrupt.js';
+import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution, debugExecutionPoint } from './interrupt.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -15,6 +15,7 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
+import { AstUtils } from 'langium';
 import { TABLE_INPUT, tableExpression } from './table-expression.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
@@ -373,6 +374,17 @@ export class Interpreter {
     private readonly generatorResourceScopes = new Set<Set<RankFile>>();
     private debugStatement?: Statement;
     private readonly debugCalls: { name: string; frame: LocalFrame }[] = [];
+    private readonly debugReads = new WeakMap<object, Map<string, number>>();
+    private debugReadClock = 0;
+
+    private debugRead(name: string): void {
+        if (!inspectionEnabled()) return;
+        const scope = this.localFrame?.find(name) ?? this.variables;
+        if (scope === this.variables && !this.variables.has(name)) return;
+        let reads = this.debugReads.get(scope);
+        if (!reads) this.debugReads.set(scope, reads = new Map());
+        reads.set(name, ++this.debugReadClock);
+    }
 
     private inspectionState(): string {
         const node = this.debugStatement?.$cstNode;
@@ -380,14 +392,34 @@ export class Interpreter {
         const describe = (value: RankValue): string => {
             if (typeof value === 'string') return JSON.stringify(value.slice(0, 200)) + (value.length > 200 ? '…' : '');
             if (value === null || typeof value !== 'object') return String(value);
-            if (isRankArray(value)) return `<array shape ${value.shape.join(' × ')}>`;
+            if (isRankArray(value)) {
+                // A ranked array's shape getter can run a user function. Inspection
+                // must not evaluate it, especially while paused inside that function.
+                const shape = Object.getOwnPropertyDescriptor(value, 'shape');
+                return shape && 'value' in shape ? `<array shape ${shape.value.join(' × ')}>`
+                    : '<array shape not evaluated>';
+            }
             if (isRankSequence(value)) return `<sequence ${value.plan.name}>`;
             return `<${value.kind}>`;
         };
-        const bindings = (values: ReadonlyMap<string, RankValue>) => {
+        const currentNames = new Set<string>();
+        if (this.debugStatement) {
+            for (const expression of AstUtils.streamAst(this.debugStatement)) {
+                if (isNameExpression(expression) && expression.$cstNode?.range.start.line === line)
+                    currentNames.add(expression.name);
+            }
+            if (isAssignmentStatement(this.debugStatement)) currentNames.add(this.debugStatement.name);
+        }
+        const bindings = (scope: LocalFrame | Map<string, RankValue>) => {
+            const values = scope instanceof LocalFrame ? scope.values : scope;
+            const reads = this.debugReads.get(scope);
+            const priority = (name: string) => currentNames.has(name)
+                && (this.localFrame?.find(name) ?? this.variables) === scope;
+            const entries = [...values].filter(([, value]) => !isNativeFunction(value));
+            entries.sort(([a], [b]) => Number(priority(b)) - Number(priority(a))
+                || (reads?.get(b) ?? 0) - (reads?.get(a) ?? 0));
             const lines: string[] = [];
-            for (const [name, value] of values) {
-                if (isNativeFunction(value)) continue;
+            for (const [name, value] of entries) {
                 if (lines.length === 100) { lines.push('  …'); break; }
                 lines.push(`  ${name} = ${describe(value)}`);
             }
@@ -395,7 +427,16 @@ export class Interpreter {
         };
         const location = node && line !== undefined
             ? `${sourceIds.get(node.root) ?? this.options.sourceId ?? '<input>'}:${line + 1}\n${node.root.fullText.split(/\r?\n/)[line]}` : '<result preview>';
-        return `${location}\n\nCall stack (outermost first):\n<cell>\n${this.debugCalls.map(call => call.name).join('\n')}\n\n${this.debugCalls.map(call => `${call.name} locals:\n${bindings(call.frame.values)}`).join('\n\n')}\n\nVariables (current scope):\n${bindings(this.localFrame?.values ?? this.variables)}\n\nGlobals:\n${bindings(this.variables)}`;
+        const current = this.localFrame ?? this.variables;
+        const seen = new Set<object>([current]);
+        const sections = [`Variables (current scope):\n${bindings(current)}`];
+        for (const call of [...this.debugCalls].reverse()) {
+            if (seen.has(call.frame)) continue;
+            seen.add(call.frame);
+            sections.push(`${call.name} locals:\n${bindings(call.frame)}`);
+        }
+        if (!seen.has(this.variables)) sections.push(`Globals:\n${bindings(this.variables)}`);
+        return `${location}\n\nCall stack (outermost first):\n<cell>\n${this.debugCalls.map(call => call.name).join('\n')}\n\n${sections.join('\n\n')}`;
     }
 
     private callDepth = 0;
@@ -432,6 +473,17 @@ export class Interpreter {
             () => this.executeProgram(program, this.options.args ?? []),
             false,
         );
+    }
+
+    /** Register notebook function cells without executing any statements or bodies. */
+    declareFunctionSource(source: string): string[] {
+        const program = parse(source, this.options.sourceId, {
+            bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
+        });
+        if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
+        validateFunctionPlacement(program.statements, 'top');
+        this.declareFunctions(program.statements);
+        return program.statements.filter(isFunctionStatement).map(statement => statement.name);
     }
 
     /** Includes inferred global types whose declaration has not produced a value yet. */
@@ -728,12 +780,24 @@ export class Interpreter {
         } catch (error) { throw this.locateError(error, statements[index]); }
     }
 
+    private debugPoint(statement: Statement, iteration = false): void {
+        if (!inspectionEnabled()) return;
+        this.debugStatement = statement;
+        inspectExecution(() => this.inspectionState());
+        const node = statement.$cstNode;
+        if (!node) return;
+        const loops: object[] = [];
+        for (let parent = statement as import('langium').AstNode | undefined; parent; parent = parent.$container) {
+            if (isForStatement(parent)) loops.unshift(parent);
+        }
+        debugExecutionPoint({ source: node.root.fullText, line: node.range.start.line + 1,
+            loops, depth: this.debugCalls.length, iteration: iteration ? statement : undefined,
+            topLevel: statement.$container?.$type === 'Program' });
+    }
+
     private preparedStatement(statements: Statement[], index: number): PreparedStatement {
         const statement = statements[index];
-        if (inspectionEnabled()) {
-            this.debugStatement = statement;
-            inspectExecution(() => this.inspectionState());
-        }
+        this.debugPoint(statement);
         let prepared = this.statements.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
@@ -1077,6 +1141,7 @@ export class Interpreter {
                                 bindIndex[position]?.(cell.indices[position]);
                             }
                         }
+                        interpreter.debugPoint(statement, true);
                         try {
                             // A body that finishes on its own needs no task; only
                             // one that suspends goes back to the driver.
@@ -1101,6 +1166,7 @@ export class Interpreter {
                 } else {
                     for (;;) {
                         checkpoint();
+                        interpreter.debugPoint(statement, true);
                         if (statement.condition) {
                             let test: RankValue;
                             if (condition) {
@@ -1636,7 +1702,10 @@ export class Interpreter {
                     }
                     if (slot !== undefined) {
                         const value = frame.read(slot, name);
-                        if (value !== undefined) return this.directNameValue(value);
+                        if (value !== undefined) {
+                            this.debugRead(name);
+                            return this.directNameValue(value);
+                        }
                     }
                 }
                 return this.directNameValue(this.resolve(name));
@@ -3533,6 +3602,7 @@ export class Interpreter {
     }
 
     private findVariable(name: string): RankValue | undefined {
+        this.debugRead(name);
         return this.localFrame?.lookup(name) ?? this.variables.get(name);
     }
 

@@ -5,12 +5,33 @@ import stringWidth from 'string-width';
 import { Notebook } from '../out/notebook.js';
 import { NotebookRepl } from '../out/repl.js';
 import { createReplSession } from '../out/repl-session.js';
-import { editableRows, notebookFrame, drawFrame, saveFrame } from '../out/screen.js';
+import { editableRows, notebookFrame, drawFrame, saveFrame, pauseFrame } from '../out/screen.js';
 
 const { Terminal } = xterm;
 const write = (terminal, data) => new Promise(resolve => terminal.write(data, resolve));
 const text = terminal => Array.from({ length: terminal.rows }, (_, i) =>
     terminal.buffer.active.getLine(i).translateToString(true)).join('\n');
+
+test('pause context marks the current line in color and fits narrow terminals', async t => {
+    const source = 'fun count N\n  Total = 0\n  for I in 1 to N\n    Total += I\n  end\n  return Total\nend';
+    for (const columns of [24, 80]) {
+        const terminal = new Terminal({ cols: columns, rows: 24, allowProposedApi: true });
+        t.after(() => terminal.dispose());
+        const frame = pauseFrame({ source, line: 4, activity: 'before line 4' }, columns, 24);
+        await write(terminal, drawFrame(frame));
+        const output = text(terminal);
+        assert.match(output, /● 4 │     Total \+= I/);
+        assert.match(output, /2 │   Total = 0/);
+        assert.match(output, /6 │   return Total/);
+        assert.doesNotMatch(output, /fun count|7 │/);
+        const row = output.split('\n').findIndex(line => line.startsWith('● 4'));
+        const marker = terminal.buffer.active.getLine(row).getCell(0);
+        assert.ok(marker.isBold());
+        assert.equal(marker.getFgColor(), 3);
+        for (const line of frame.lines) assert.ok(stringWidth(line) < columns);
+        assert.equal(terminal.buffer.active.baseY, 0);
+    }
+});
 
 async function draw(terminal, book, top = 0, hint = '', running = false) {
     if (terminal.buffer.active.type !== 'alternate') await write(terminal, '\x1b[?1049h');

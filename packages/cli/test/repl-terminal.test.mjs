@@ -37,7 +37,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
         'catch wait status',
         'send_user "<<<EXIT:[lindex $status 3]>>>"',
     ].join('\n'));
-    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: 20000, maxBuffer: 5 * 1024 * 1024 });
+    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: 20000, killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /<<<EXIT:0>>>/);
@@ -49,6 +49,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
     for (const chunk of chunks.slice(0, steps.length)) {
         await new Promise(resolve => terminal.write(chunk, resolve));
         frames.push({
+            raw: chunk,
             text: Array.from({ length: rows }, (_, i) => terminal.buffer.active.getLine(i).translateToString(true)).join('\n'),
             cursorX: terminal.buffer.active.cursorX, cursorY: terminal.buffer.active.cursorY,
         });
@@ -251,7 +252,7 @@ test('Ctrl-C interrupts factor search in the real terminal and keeps the session
         '\x03',
         'A + 1' + ENTER,
     ]);
-    assert.match(frames[3].text, /Running.*[0-9]\.[0-9]s.*Ctrl-C stop/);
+    assert.match(frames[3].text, /Running.*[0-9]\.[0-9]s.*\^C stop.*\^P pause/);
     assert.match(frames[4].text, /Stopped after/);
     assert.match(frames[4].text, /searching factors/);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /^rank> /);
@@ -303,4 +304,124 @@ test('Ctrl-P shows factor state and Enter continues in the real terminal', async
     assert.match(frames[4].text, /Paused/);
     assert.match(frames[5].text, /Stopped after/);
     assert.match(frames[6].text, /\n      42\n/);
+});
+
+test('Ctrl-T steps a short cell and Ctrl-B sets a visible breakpoint in the terminal', async t => {
+    const frames = await drive(t, [
+        'A = 1\x14', // Ctrl-T
+        '\x14',
+        UP + '\x02', // Ctrl-B
+        '\x14',
+        '\x03',
+        '21 * 2' + ENTER,
+    ], 100, 24);
+    assert.match(frames[0].text, /Paused.*before line 1/);
+    assert.match(frames[0].text, /t step · n loop · g main · ↵ · \^C stop/);
+    assert.match(frames[0].text, /● 1 │ A = 1/);
+    assert.doesNotMatch(frames[1].text, /Paused/);
+    assert.match(frames[2].text, /◆/);
+    assert.match(frames[3].text, /Paused/);
+    assert.match(frames[4].text, /Stopped after/);
+    assert.match(frames[5].text, /\n      42\n/);
+});
+
+
+test('Ctrl-N advances an iteration while paused and still recalls history in the editor', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~Total = 0\nfor I in 1 to 3\n  Total += I\nend\nTotal\x1b[201~',
+        '\x14',
+        '\x14',
+        '\x14',
+        '\x0e', // Ctrl-N: second iteration
+        ENTER,
+        '21 * 2' + ENTER,
+        'Draft',
+        '\x10', // Ctrl-P: recall history
+        '\x0e', // Ctrl-N: restore draft
+    ], 100, 30);
+    assert.match(frames[3].text, /I = 1/);
+    assert.match(frames[4].text, /I = 2/);
+    assert.match(frames[4].text, /Total = 1/);
+    assert.match(frames[4].text, /● 2 │ for I in 1 to 3/);
+    assert.match(frames[4].text, /3 │   Total \+= I/);
+    assert.doesNotMatch(frames[4].raw, /Running…|rank> /, 'iteration must not flash the notebook');
+    assert.match(frames[5].text, /\n      6\n/);
+    assert.match(frames[8].text, /rank> 21 \* 2/);
+    assert.match(frames[9].text, /rank> Draft/);
+});
+
+test('Ctrl-G finishes the loop and stops on the next main line in the terminal', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~Total = 0\nfor I in 1 to 5\n  Total += I\nend\nTotal\x1b[201~',
+        UP + UP + '\x02',
+        ENTER,
+        '',
+        '\x07',
+        '',
+        ENTER,
+        '\x03',
+    ], 100, 30);
+    assert.match(frames[3].text, /Paused/);
+    assert.match(frames[3].text, /I = 1/);
+    assert.match(frames[5].text, /Paused · before line 5/);
+    assert.match(frames[5].text, /Total = 15/);
+    assert.doesNotMatch(frames[4].raw + frames[5].raw, /Running…|rank> /);
+    assert.match(frames[6].text, /\n      15\n/);
+});
+
+test('plain t n g control paused execution and remain ordinary editor text', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~Total = 0\nfor I in 1 to 3\n  Total += I\nend\nTotal\x1b[201~',
+        '\x14',
+        't',
+        't',
+        'n',
+        'g',
+        ENTER,
+        'tng',
+        CLEAR,
+    ], 100, 30);
+    assert.match(frames[2].text, /Paused · before line 2/);
+    assert.match(frames[3].text, /I = 1/);
+    assert.match(frames[4].text, /I = 2/);
+    assert.match(frames[5].text, /Paused · before line 5/);
+    assert.match(frames[5].text, /Total = 6/);
+    assert.match(frames[6].text, /\n      6\n/);
+    assert.match(frames[7].text, /rank> tng/);
+});
+
+test('loaded function below its call is available without executing the file on load', async t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-load-forward-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const target = path.join(directory, 'forward.ra');
+    fs.writeFileSync(target, 'Answer = 21 twice\nfun twice X\n  return X + X\nend\n');
+    const frames = await drive(t, [`load ${target}` + ENTER, 'twi\t', CLEAR + ENTER]);
+    assert.doesNotMatch(frames[0].text, /\n      42\n|error:/);
+    assert.match(frames[1].text, /rank> twice /);
+    assert.match(frames[2].text, /Answer = 21 twice\n      42\n/);
+    assert.doesNotMatch(frames[2].text, /unknown name|error:/);
+});
+
+test('debugging a loaded file uses document line numbers for cells and function calls', async t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-debug-lines-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const target = path.join(directory, 'forward.ra');
+    fs.writeFileSync(target, 'rem Example\n\nAnswer = 21 twice\n\nfun twice X\n  return X + X\nend\n');
+    const frames = await drive(t, [
+        `load ${target}` + ENTER,
+        ENTER,
+        UP + UP + UP + UP + UP + '\x14',
+        '\x14',
+        ENTER,
+        '\x03',
+    ], 100, 30);
+    assert.match(frames[2].text, /Paused · before line 3/);
+    assert.match(frames[2].text, /● 3 │ Answer = 21 twice/);
+    assert.match(frames[2].text, /1 │ rem Example/);
+    assert.match(frames[3].text, /Paused · before line 6/);
+    assert.match(frames[3].text, /● 6 │   return X \+ X/);
+    assert.match(frames[3].text, /5 │ fun twice X/);
+    assert.ok(frames[3].text.indexOf('Call stack') < frames[3].text.indexOf('● 6 │'));
+    assert.ok(frames[3].text.indexOf('Variables (current scope)') > frames[3].text.indexOf('● 6 │'));
+    assert.doesNotMatch(frames[3].text, /<repl>:/);
 });

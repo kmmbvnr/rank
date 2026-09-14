@@ -20,6 +20,12 @@ npm run build
 npm run rank
 ```
 
+In the interactive CLI, `load FILE` registers top-level `fun` and `memo`
+definitions immediately, so calls can appear above their definitions. Loading
+does not run function bodies or other statements. Invalid definitions show an
+error in their cells; errors that depend on execution appear when called.
+Pending function definitions are refreshed before replaying edited cells.
+
 In the interactive CLI, press Ctrl-C to cancel a running computation or SQLite
 query and return to editing. SQLite aborts the active statement; interrupting a
 write inside an explicit transaction rolls back that transaction. Previously
@@ -31,12 +37,39 @@ While a computation is running, Ctrl-P requests a pause. The inspection screen
 shows the current Rank source line, active calls and variable values; factor
 search also reports `divisor` and `remaining`. Enter or Ctrl-P continues the same
 execution; Ctrl-C cancels it. Use arrow keys or Page Up/Down to scroll the snapshot.
+A yellow `●` marks the current line with two surrounding lines on each side.
+The label distinguishes a stop before execution from a pause inside an operation.
+Stepping keeps the debugger visible until the next stop or completion.
 Arrays and lazy sequences are shown as summaries without evaluating them.
+Each scope appears once. Within a scope, variables on the current line come
+first, followed by the most recently read variables. Separate function calls
+retain their own locals, including names shared with other scopes.
 Pause takes effect at the next cooperative checkpoint, so a native SQLite query
 must return before it can pause (Ctrl-C can still cancel that query).
 Interactive inspection uses ordinary Rank statement execution for observable
 locals, which can make compiled-loop workloads slower. File and pipe execution
 keep their existing optimizations and do not enable pause.
+
+In the interactive editor, **Ctrl-T** runs the selected cell (and pending suffix)
+with a stop before its first statement. **Ctrl-B** toggles a breakpoint on the source
+line under the cursor, marked with ◆. Breakpoints belong to the cell and line
+number for this session; after inserting or deleting lines, check their positions.
+Identical cell source shares breakpoint matches, including functions defined by
+that source and called later. Blank lines and `end` have no executable statement.
+
+While paused, **t** (or Ctrl-T) steps into the next Rank statement, including calls.
+**n** (or Ctrl-N) advances to the next iteration of the innermost loop, skipping its body,
+nested loops and calls, or stops at the next statement after that loop exits.
+Other breakpoints still take precedence. Loop headers appear at iteration
+boundaries so you can inspect the bound iteration variable. Values shown belong
+to the state before the displayed statement. Enter continues; Ctrl-C cancels.
+**g** (or Ctrl-G) finishes the current top-level statement, skipping breakpoints in its
+remaining calls and iterations, then stops before the next main-program statement
+(including the next cell). Breakpoints remain set. Ctrl-P can still pause the work.
+To remove a point, return to the editor and press Ctrl-B on its line.
+The single-letter shortcuts apply only while paused; in the editor they insert text.
+Built-in operations such as factors execute until the next Rank statement when
+stepping; their internals and native SQLite queries are not source-level steps.
 
 Example session:
 
