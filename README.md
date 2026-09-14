@@ -22,6 +22,15 @@ Start with 100, edit the limit to 4 million, press Ctrl-R. Answer: **4613732**.
 
 Requires Node.js 22.12 or newer, Python, and a C++20 build toolchain.
 
+Open the REPL without a global install:
+
+```console
+npx @arrrank/cli
+```
+
+npx downloads the package to its cache on the first run.
+For a permanent `rank` command:
+
 ```console
 npm install -g @arrrank/cli
 rank
@@ -46,7 +55,7 @@ rank> 1 to 5 sum
 Run a file, optionally passing inputs:
 
 ```console
-rank demos/euler/001_multiples.ra --limit 10
+npx @arrrank/cli demos/euler/001_multiples.ra --limit 10
 ```
 
 ## Tests
