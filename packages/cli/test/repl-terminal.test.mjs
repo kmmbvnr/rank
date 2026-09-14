@@ -234,7 +234,7 @@ test('load waits for Enter and lets the user edit code before the first executio
     const target = path.join(directory, 'pending.ra');
     fs.writeFileSync(target, 'A = Missing\n');
     const frames = await drive(t, [
-        `load ${target}` + ENTER,
+        { keys: `load ${target}` + ENTER, until: '· saved' },
         UP + CLEAR + 'A = 42',
         DOWN + ENTER,
     ]);
@@ -251,7 +251,12 @@ test('load can be cancelled or replace the old document and its variable types',
     const target = path.join(directory, 'array.ra');
     fs.writeFileSync(target, 'X = array 1 2 3\n');
     const frames = await drive(t, [
-        'X = 1' + ENTER, `load ${target}` + ENTER, '\x1b', ENTER, 'd', ENTER,
+        'X = 1' + ENTER,
+        { keys: `load ${target}` + ENTER, until: 'Save changes before loading another file' },
+        '\x1b',
+        { keys: ENTER, until: 'Save changes before loading another file' },
+        { keys: 'd', until: '· saved' },
+        ENTER,
     ], 80);
     assert.match(frames[1].text, /Save changes before loading another file/);
     assert.match(frames[2].text, /X = 1/);
