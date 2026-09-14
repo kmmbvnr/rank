@@ -260,9 +260,11 @@ export function numericExtreme(
         }
         const items = isRankArray(value)
             ? value.items
-            : isRankSet(value)
-                ? value.entries.values()
-                : sequenceValues(value, name);
+            : isRankQueue(value)
+                ? value.items
+                : isRankSet(value)
+                    ? value.entries.values()
+                    : sequenceValues(value, name);
         let result: bigint | number | undefined;
         for (const item of items) {
             checkpoint('computing numbers');
@@ -575,6 +577,7 @@ export function sumValue(value: RankValue): RankValue {
         if (planned !== undefined) return expectNumeric(planned);
     }
     if (isRankArray(value)) return sumArray(value.items);
+    if (isRankQueue(value)) return sumArray(value.items);
     const items = isRankSet(value)
         ? value.entries.values()
         : sequenceValues(value, 'sum');
