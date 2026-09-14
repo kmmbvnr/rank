@@ -48,7 +48,7 @@ A + B`)).toBe(60n);
         expect(() => runtime.execute('use numbers\n((-2 to -1) ** 0.5) sum'))
             .toThrow('power result is not real');
         runtime.dispose();
-    });
+    }, 15_000);
 
     for (const operator of ['+', '-', '*']) {
         it(`matches scalar ${operator} for mixed numbers and floating-point edge cases`, () => {

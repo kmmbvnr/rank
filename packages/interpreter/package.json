@@ -4,9 +4,8 @@
     "version": "0.0.1",
     "license": "MIT",
     "type": "module",
-    "private": true,
     "engines": {
-        "node": ">=20.19.0",
+        "node": ">=22.12.0",
         "npm": ">=10.2.3"
     },
     "main": "./out/index.js",
@@ -23,5 +22,18 @@
     },
     "devDependencies": {
         "vitest": "~3.2.7"
-    }
+    },
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kmmbvnr/rank.git",
+        "directory": "packages/interpreter"
+    },
+    "files": [
+        "out",
+        "src"
+    ]
 }

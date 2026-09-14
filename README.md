@@ -13,15 +13,14 @@ Rank is a modern BASIC for small screens and big algorithms.
 - Functions, closures, and memoization.
 - A notebook-style CLI: edit cells, rerun code, and see results alongside it.
 
-```text
-rank> Cube = (1 to 27) (array 3 3 3) reshape
-rank> Cube transpose (array 2 1 0) diag rank 2 diag sum
-42
-```
+[Project Euler #2](demos/euler/002_evenfib.ra): sum the even Fibonacci numbers.
+Start with 100, edit the limit to 4 million, press Ctrl-R. Answer: **4613732**.
+
+![Rank REPL: edit the Fibonacci limit and rerun to solve Project Euler #2](docs/demo.gif)
 
 ## Run
 
-Requires Node.js 20.19 or newer, Python, and a C++20 build toolchain.
+Requires Node.js 22.12 or newer, Python, and a C++20 build toolchain.
 
 ```console
 npm install
@@ -55,3 +54,4 @@ npm run rank -- test demos/euler
 - [Language specification](docs/CURRENT_SPEC.md) and [standard library](docs/stdlib/reference.md)
 - [CLI and editor](packages/cli/README.md)
 - [Example programs](demos)
+- [Contribution guidelines](CONTRIBUTING.md)
