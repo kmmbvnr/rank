@@ -53,7 +53,9 @@ test('a function previews if lines with its example and skips inactive nested co
         await s.line('Y = X + 3');
         assert.deepEqual(s.output(5), ['5']);
         await s.line('else');
+        assert.equal(s.repl.notebook.current.source.split('\n')[5], '  else');
         await s.line('Y = X - 3');
+        assert.equal(s.repl.notebook.current.source.split('\n')[6], '    Y = X - 3');
         assert.deepEqual(s.output(7), []);
     } finally { s.session.dispose(); }
 });
@@ -90,6 +92,27 @@ test('the live status explains what Enter will do on the current line', async ()
         await s.repl.submit();
         s.repl.notebook.insert('end');
         assert.match(s.repl.suggestion, /Enter apply end/);
+    } finally { s.session.dispose(); }
+});
+
+test('live if lines format and dedent as soon as Enter is pressed', async () => {
+    const s = scenario();
+    try {
+        await s.line('if 1+1 equal 2');
+        assert.equal(s.repl.notebook.current.source, 'if 1 + 1 equal 2\n  ');
+        await s.line('X=1');
+        assert.match(s.repl.notebook.current.source, /\n  X = 1\n  $/);
+        await s.line('else');
+        assert.match(s.repl.notebook.current.source, /\nelse\n  $/);
+        await s.line('X=2');
+        await s.line('end');
+        assert.deepEqual(s.repl.notebook.cells[0].source.split('\n'), [
+            'if 1 + 1 equal 2',
+            '  X = 1',
+            'else',
+            '  X = 2',
+            'end',
+        ]);
     } finally { s.session.dispose(); }
 });
 

@@ -192,7 +192,12 @@ export class NotebookRepl {
         if (force && await this.liveConditional.forcePreview()) return false;
         this.dismiss();
         const book = this.notebook;
-        const currentRaw = book.current.source.trim();
+        let currentRaw = book.current.source.trim();
+        if (this.liveFunction.enabled && !book.current.source.includes('\n')
+            && /^\s*(?:fun|memo|if)\b/.test(currentRaw)) {
+            book.formatCurrentLine(line => this.session.format(line));
+            currentRaw = book.current.source.trim();
+        }
         if (this.liveFunction.begin(currentRaw)) {
             this.render();
             return false;

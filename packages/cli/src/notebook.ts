@@ -1,4 +1,7 @@
-import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty, insideText, nextIndent, scanLine } from './repl-input.js';
+import {
+    EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty, insideText,
+    nextIndent, scanLine, startsDedent,
+} from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import { editableRows, graphemes, type TextRow } from './screen.js';
 import { parse } from '@arrrank/interpreter';
@@ -233,6 +236,22 @@ export class Notebook {
     }
 
     /** The bottom prompt retains the original REPL's blocks and folded expressions. */
+    formatCurrentLine(format = (line: string) => line): void {
+        const source = this.current.source;
+        const start = source.lastIndexOf('\n', this.cursor - 1) + 1;
+        const foundEnd = source.indexOf('\n', this.cursor);
+        const end = foundEnd < 0 ? source.length : foundEnd;
+        const raw = source.slice(start, end).trim();
+        if (!raw) return;
+        let state = EMPTY_CELL;
+        for (const line of source.slice(0, start).split('\n')) {
+            if (line.trim()) state = addLine(state, format(line.trim()), true);
+        }
+        const line = format(raw);
+        const formatted = nextIndent(state, startsDedent(line)) + line;
+        this.replace(source.slice(0, start) + formatted + source.slice(end), start + formatted.length);
+    }
+
     preparePrompt(format = (line: string) => line): string | undefined {
         let state = EMPTY_CELL;
         const lines = this.current.source.split('\n');

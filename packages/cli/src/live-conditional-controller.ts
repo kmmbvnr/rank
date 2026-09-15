@@ -89,6 +89,7 @@ export class LiveConditionalController {
 
     async forcePreview(): Promise<boolean> {
         if (!this.live) return false;
+        this.notebook.formatCurrentLine(line => this.session.format(line));
         const source = this.notebook.current.source;
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
         if (!/\n[\t ]*$/.test(source)) this.notebook.preparePrompt(line => this.session.format(line));
@@ -101,6 +102,7 @@ export class LiveConditionalController {
     async submit(): Promise<LiveSubmitResult> {
         const live = this.live;
         if (!live) return 'absent';
+        this.notebook.formatCurrentLine(line => this.session.format(line));
         const source = this.notebook.current.source;
         const lines = source.split('\n');
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
