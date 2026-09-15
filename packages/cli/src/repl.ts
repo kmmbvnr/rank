@@ -476,6 +476,16 @@ export class NotebookRepl {
             this.render();
             return false;
         }
+        for (let index = 0; index < live.parameters.length; index++) {
+            const fieldError = await this.exampleRuntimeError(live.values[index]);
+            if (!fieldError) continue;
+            live.argument = index;
+            live.argumentEditor.replace(live.values[index]);
+            live.argumentError = { source: live.argumentEditor.current.source, message: fieldError };
+            this.suggestion = `${live.parameters[index]} cannot be evaluated · edit it or Esc skip`;
+            this.render();
+            return false;
+        }
         live.argument = undefined;
         live.skipped = false;
         this.notebook.replace(live.source);
@@ -504,6 +514,13 @@ export class NotebookRepl {
                 ? `${error.rankKind}: ${error.message.replace(/ at \d+:\d+$/, '')}`
                 : String(error);
         }
+    }
+
+    private async exampleRuntimeError(value: string): Promise<string | undefined> {
+        const result = await this.session.preview(`Example = (${value})`, this.columns());
+        const diagnostic = result.output.find(line => line.error)?.text.split('\n')[0]
+            .replace(/\x1b\[[0-9;]*m/g, '');
+        return diagnostic?.replace(/^error:\s*RankError\s*\[([^\]]+)\]:\s*/, '$1: ');
     }
 
     private updateExampleSuggestion(): void {

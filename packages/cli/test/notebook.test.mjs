@@ -192,10 +192,27 @@ test('an invalid example argument is rejected before the function preview runs',
     assert.equal(repl.exampleEditor.current.source, 'A = 1');
     assert.equal(repl.liveOutputs.size, 0);
 
-    repl.exampleEditor.replace('A');
+    repl.exampleEditor.replace('1');
     await repl.submit();
     assert.equal(repl.examplePrompt, undefined);
     assert.equal(repl.exampleFields[0].error, undefined);
+});
+
+test('example arguments are evaluated before entering the function body', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun family Prime Pick');
+    repl.exampleEditor.replace('123123');
+    await repl.submit();
+    repl.exampleEditor.replace('0 1 2');
+    await repl.submit();
+    assert.deepEqual(repl.examplePrompt, { name: 'family', parameter: 'Pick', index: 1, count: 2 });
+    assert.match(repl.exampleFields[1].error, /Runtime: value application requires a sequence and one selector/);
+    assert.equal(book.current.source, 'fun family Prime Pick');
+
+    repl.exampleEditor.replace('array 0 1 2');
+    await repl.submit();
+    assert.equal(repl.examplePrompt, undefined);
+    assert.equal(book.current.source, 'fun family Prime Pick\n  ');
 });
 
 test('correcting a failed func cell to fun enters live authoring in that cell', async t => {

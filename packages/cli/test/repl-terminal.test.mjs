@@ -444,6 +444,20 @@ test('an invalid function example reports syntax at its field and stays editable
     assert.doesNotMatch(frames[3].text, /! Syntax:/);
 });
 
+test('a runtime error in a function example stays on its argument field', async t => {
+    const frames = await drive(t, [
+        'fun family Prime Pick' + ENTER,
+        '123123' + ENTER,
+        '0 1 2' + ENTER,
+        CLEAR + 'array 0 1 2' + ENTER,
+    ], 100, 20);
+    assert.match(frames[2].text, /Pick = 0 1 2\n\s+! Runtime: value application requires a sequence and one selector/);
+    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /Pick = 0 1 2/);
+    assert.doesNotMatch(frames[2].text, /\(123123\) \(0 1 2\) family|<repl>:\d+:/);
+    assert.match(frames[3].text, /Pick = array 0 1 2/);
+    assert.doesNotMatch(frames[3].text, /! Runtime:/);
+});
+
 test('fixing func to fun turns the failed cell into live function input', async t => {
     const frames = await drive(t, [
         'func inc2 Y' + ENTER,
