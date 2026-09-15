@@ -557,8 +557,11 @@ end
 ```
 
 A boundary remains part of membership, so `23 in (primes until 20)` is false.
-Membership in another bounded sequence uses a finite linear scan. An unbounded
-sequence without its own membership plan is rejected.
+`fibonacci` also supports membership without an upper bound: its plan advances
+only as far as the queried value and respects lower and upper boundaries.
+Scalar membership in another bounded sequence uses a finite linear scan;
+batch membership builds a lookup once. An unbounded sequence without its own
+membership plan is rejected.
 
 `argsort` has intrinsic rank 1 and returns stable, zero-based sorting positions.
 For tensors it returns the same shape, orders along the last axis by default,

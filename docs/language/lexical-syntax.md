@@ -413,6 +413,33 @@ end
 For keyed collections, `X in index` tests whether the key exists and `X in
 set` tests whether an equal value has been added.
 
+With an array or queue on the left, `in` tests each cell against the whole
+right collection and returns a boolean array with the same shape. A sequence
+on the left produces a lazy sequence of booleans in the same order. Text cells
+remain whole strings. `not in` negates each result.
+
+```rank
+use sequences
+Numbers = array 1 2 3 4 5
+Numbers in primes                 rem false true true false true
+Names = array "Ann" "Bob" "Eve"
+Allowed = array "Bob" "Eve"
+Names in Allowed                  rem false true true
+Numbers in fibonacci              rem true true true false true
+```
+
+Arrays and queues are also accepted on the right; their cells form the search
+collection regardless of shape. Array-valued elements and records use
+structural equality. An array on the left is always a collection of queries,
+including when the right side is a set of arrays.
+
+For batch queries against an array, queue, or finite sequence without a
+membership plan, the runtime builds one lookup table for numeric, boolean,
+and text values. For these values, expected work is `O(N + M)` with `O(M)`
+lookup storage, where `N` and `M` are the left and right sizes. Composite
+values retain structural scanning. Sets, indexes, multisets, and sequences
+with membership plans use their existing lookup operations.
+
 `+` concatenates two text values, and `+=` appends text to a text variable:
 
 ```rank

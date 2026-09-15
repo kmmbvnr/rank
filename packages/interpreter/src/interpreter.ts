@@ -4194,7 +4194,12 @@ export class Interpreter {
             && isRankSqliteExpression(left) && isRankSqliteTable(right)) {
             return inSqlite(left, right, operator === 'notin');
         }
-        if (operator === 'notin') return this.evaluateUnary('not', this.evaluateBinary('in', left, right));
+        if (operator === 'notin') {
+            const result = this.evaluateBinary('in', left, right);
+            return isRankSequence(result)
+                ? mapSequence(result, 'not in', item => this.evaluateUnary('not', item))
+                : this.evaluateUnary('not', result);
+        }
         if (isRankSqliteExpression(left) || isRankSqliteExpression(right)) {
             return binarySqlite(operator, left, right);
         }
@@ -4260,27 +4265,18 @@ export class Interpreter {
             return this.combineSequenceMasks(operator, left, right);
         }
         if (operator === 'in') {
-            if (typeof left === 'string' && typeof right === 'string') {
-                return right.includes(left);
-            }
-            if (isRankObject(right) && typeof left === 'string') {
-                return right.entries.has(left);
-            }
-            if (isRankIndex(right)) return right.entries.has(indexKey([left]));
-            if (isRankSet(right)) return right.entries.has(setValueKey(left));
-            if (isRankMultiset(right)) return right.has(left);
-            if (isRankSequence(right)) {
-                const planned = right.plan.contains?.(left);
-                if (planned !== undefined) return planned;
-                if (right.plan.size.kind === 'infinite') {
-                    throw new RankError('in requires bounded sequence or membership support');
+            const source = asRankArray(left);
+            const contains = membershipTest(right, !!source || isRankSequence(left));
+            if (source) {
+                const items: RankValue[] = [];
+                for (let index = 0; index < arraySize(source.shape); index += 1) {
+                    checkpoint('testing membership');
+                    items.push(contains(arrayItem(source, index)));
                 }
-                for (const item of right.plan.iterate()) {
-                    if (equalValues(left, item)) return true;
-                }
-                return false;
+                return ownedArray(items, source.shape, true);
             }
-            throw new RankError('in expects text, an object, index, set, multiset or sequence on the right');
+            if (isRankSequence(left)) return mapSequence(left, 'in', contains);
+            return contains(left);
         }
         if (isRankSequence(left) || isRankSequence(right)) {
             if (isPredicateOperator(operator)) {
@@ -5633,6 +5629,51 @@ function valueRank(value: RankValue): number {
     if (isRankArray(value)) return value.shape.length;
     if (isRankSequence(value) || isRankQueue(value) || typeof value === 'string') return 1;
     return 0;
+}
+
+function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
+    if (typeof right === 'string' || isRankObject(right)) return value => {
+        if (typeof value !== 'string') throw new RankError('in expects text on the left for text or object membership');
+        return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
+    };
+    if (isRankIndex(right)) return value => right.entries.has(indexKey([value]));
+    if (isRankSet(right)) return value => right.entries.has(setValueKey(value));
+    if (isRankMultiset(right)) return value => right.has(value);
+    const source = asRankArray(right);
+    if (source) return membershipLookup(reductionValues(source, 'in'));
+    if (isRankSequence(right)) {
+        if (!right.plan.contains && right.plan.size.kind !== 'infinite' && indexed) {
+            return membershipLookup(right.plan.iterate());
+        }
+        return value => {
+            const planned = right.plan.contains?.(value);
+            if (planned !== undefined) return planned;
+            if (right.plan.size.kind === 'infinite') {
+                throw new RankError('in requires bounded sequence or membership support');
+            }
+            for (const item of right.plan.iterate()) {
+                if (equalValues(value, item)) return true;
+            }
+            return false;
+        };
+    }
+    throw new RankError('in expects text, an object, index, set, multiset, array, queue or sequence on the right');
+}
+
+// Hash scalar values once; retain structural equality for composite values.
+function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => boolean {
+    const scalars = new Set<RankValue>();
+    const composite: RankValue[] = [];
+    const key = (value: RankValue): RankValue => typeof value === 'number'
+        && Number.isFinite(value) && Number.isInteger(value) ? BigInt(value) : value;
+    for (const value of values) {
+        checkpoint('indexing membership');
+        if (typeof value === 'object') composite.push(value);
+        else if (!(typeof value === 'number' && Number.isNaN(value))) scalars.add(key(value));
+    }
+    return value => typeof value === 'object'
+        ? composite.some(item => equalValues(value, item))
+        : scalars.has(key(value));
 }
 
 function mapBinary(

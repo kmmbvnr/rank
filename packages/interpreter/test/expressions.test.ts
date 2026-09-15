@@ -679,8 +679,7 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('sequence index must be nonnegative');
         expect(() => run('use sequences\n(primes until 10) 4'))
             .toThrowError('sequence index out of bounds: 4');
-        expect(() => run('use sequences\n4 in fibonacci'))
-            .toThrowError('in requires bounded sequence or membership support');
+        expect(run('use sequences\n4 in fibonacci')).toBe('false');
     });
 
     it('constructs ranges and slices text by Unicode code point', () => {

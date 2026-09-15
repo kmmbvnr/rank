@@ -542,6 +542,21 @@ function fibonacciPlan(
         size: boundary
             ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly, lower) }
             : { kind: 'infinite' },
+        contains(value) {
+            const integer = membershipInteger(value);
+            if (integer === undefined || integer < 1n
+                || (boundary && !within(integer, boundary))
+                || (lower && !above(integer, lower))) return false;
+            let current = evenOnly ? 2n : 1n;
+            let next = evenOnly ? 8n : 2n;
+            while (current < integer) {
+                checkpoint('testing fibonacci membership');
+                [current, next] = evenOnly
+                    ? [next, 4n * next + current]
+                    : [next, current + next];
+            }
+            return current === integer;
+        },
         *iterate() {
             let current = evenOnly ? 2n : 1n;
             let next = evenOnly ? 8n : 2n;
