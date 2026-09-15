@@ -2,7 +2,6 @@ import * as readline from 'node:readline';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { StringDecoder } from 'node:string_decoder';
 import { parse } from '@arrrank/interpreter';
 import { isFunctionStatement } from '@arrrank/language';
 import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty } from './repl-input.js';
@@ -14,6 +13,7 @@ import { LivePreviewRunner } from './live-preview.js';
 import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
 import { TerminalModeRouter } from './terminal-modes.js';
 import { TerminalRenderer } from './terminal-renderer.js';
+import { TerminalInputDecoder } from './terminal-input.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
@@ -716,7 +716,6 @@ async function streamRepl(session: Session): Promise<void> {
 async function terminalRepl(session: Session): Promise<void> {
     const input = process.stdin;
     const output = process.stdout;
-    const decoder = new StringDecoder('utf8');
     const keyInput = new (await import('node:stream')).PassThrough();
     readline.emitKeypressEvents(keyInput);
     let history: string[] = [];
@@ -749,40 +748,17 @@ async function terminalRepl(session: Session): Promise<void> {
             }, fail);
         } catch (error) { fail(error); }
     };
-    // Bracketed paste is data, including its newlines. It must never execute commands.
-    let pending = '';
-    let paste: string | undefined;
-    const onData = (chunk: Buffer): void => {
-        pending += decoder.write(chunk);
-        for (;;) {
-            const marker = paste === undefined ? '\x1b[200~' : '\x1b[201~';
-            const at = pending.indexOf(marker);
-            if (at >= 0) {
-                const before = pending.slice(0, at);
-                pending = pending.slice(at + marker.length);
-                if (paste === undefined) { keyInput.write(before); paste = ''; }
-                else {
-                    const value = paste + before;
-                    if (!modeRouter.paste(value)) book.insert(value.replace(/\r\n?/g, '\n'));
-                    paste = undefined;
-                    repl.dismiss();
-                    render();
-                }
-                continue;
-            }
-            // Keep a possible split marker until the next chunk, but deliver ordinary Esc promptly.
-            let tail = 0;
-            for (let size = 2; size < marker.length; size++) {
-                if (pending.endsWith(marker.slice(0, size))) tail = size;
-            }
-            const ready = tail ? pending.slice(0, -tail) : pending;
-            pending = tail ? pending.slice(-tail) : '';
-            if (paste === undefined) keyInput.write(ready); else paste += ready;
-            break;
-        }
-    };
+    const inputDecoder = new TerminalInputDecoder(
+        text => { keyInput.write(text); },
+        value => {
+            if (!modeRouter.paste(value)) book.insert(value.replace(/\r\n?/g, '\n'));
+            repl.dismiss();
+            render();
+        },
+    );
+    const onData = (chunk: Buffer): void => { inputDecoder.write(chunk); };
     const wasRaw = input.isRaw;
-    const onEnd = (): void => leave();
+    const onEnd = (): void => { inputDecoder.end(); leave(); };
     keyInput.on('keypress', onKey);
     output.on('resize', render);
     input.on('data', onData);
