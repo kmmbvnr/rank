@@ -6138,12 +6138,16 @@ The coefficient product is `-59231`.
 rem Project Euler 28
 rem https://projecteuler.net/problem=28
 
-Side = Layer * 2 + 1
-Total += 4 * Side ** 2 - 6 * (Side - 1)
+Layers = 1 to (Size - 1) // 2
+Sides = Layers * 2 + 1
+Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
+Answer = Corners + reduce with 1
 ```
 
-Each concentric layer contributes its four corners directly. The formula gives
-`669171001` for a 1001 by 1001 spiral without constructing the matrix.
+Each concentric layer contributes its four corners. Array arithmetic evaluates
+all layer contributions, and the seeded reduction includes the center cell even
+when there are no outer layers. The formula gives `669171001` for a 1001 by
+1001 spiral without constructing the matrix.
 
 ## 29. Distinct powers
 

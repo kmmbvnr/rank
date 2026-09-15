@@ -14,13 +14,8 @@ Answer print
 rem Add the four corners of every concentric
 rem odd-sized layer around the center.
 fun spiral_diagonal_sum Size
-  Total = 1
-  Layers = (Size - 1) // 2
-
-  for Layer in 1 to Layers
-    Side = Layer * 2 + 1
-    Total += 4 * Side ** 2 - 6 * (Side - 1)
-  end
-
-  return Total
+  Layers = 1 to (Size - 1) // 2
+  Sides = Layers * 2 + 1
+  Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
+  return Corners + reduce with 1
 end
