@@ -361,10 +361,15 @@ export function createReplSession() {
             'Editing',
             '  Enter at rank> runs a statement.',
             '  Inside earlier code Enter adds a line.',
-            '  Ctrl-R runs edits and returns to rank>.',
+            '  Ctrl-R runs one instruction; Enter steps.',
+            '  Up from rank> returns to text editing.',
             '  Ctrl-L runs the document from fresh state.',
             '  An unfinished bottom draft stays editable.',
             '  Up/Down move through text and cells.',
+            '  On an iteration row: Enter selects.',
+            '  Ctrl-G opens a loop iteration preview.',
+            '  Left/Right change the selected iteration.',
+            '  Esc leaves preview for text editing.',
             '  Tab completes; Esc hides suggestions.',
             '  Esc returns to the bottom prompt.',
             '  Ctrl-Z undoes; Ctrl-Y redoes an edit.',
@@ -451,7 +456,7 @@ export function createReplSession() {
             '  record',
             '  Rows filter  Rows select (block forms)',
             '  array shape 2 3 (rows, then end)',
-            '  array shape 2 3 pad 0 needs none',
+            '  array shape 2 3 fill 0 needs none',
         ].join('\n'));
     }
 

@@ -6,6 +6,7 @@ export class ExecutionRunner {
     running = false;
     private startedAt?: number;
     private stopping = false;
+    private steppedPrefix?: { id: number; source: string; next: number };
 
     constructor(
         private readonly notebook: Notebook,
@@ -54,6 +55,7 @@ export class ExecutionRunner {
     }
 
     async execute(draft: string, command: boolean, force: boolean): Promise<boolean> {
+        this.steppedPrefix = undefined;
         const book = this.notebook;
         if (draft.trim() !== '' || !force && book.dirtyFrom < 0) book.enqueue(draft);
         if (command) book.cells[book.cells.length - 2].command = true;
@@ -107,7 +109,33 @@ export class ExecutionRunner {
         }
     }
 
-    private async run(index: number, source: string): Promise<boolean> {
+    async executeOne(index: number, source: string, offset: number): Promise<boolean> {
+        const book = this.notebook;
+        const cell = book.cells[index];
+        const original = cell.source;
+        const partial = source !== original;
+        return this.exclusive(async () => {
+            book.beginExecution(index);
+            const exit = await this.run(index, source, partial ? { source: original, offset } : undefined);
+            const consecutive = offset === 0 || this.steppedPrefix?.id === cell.id
+                && this.steppedPrefix.source === original && this.steppedPrefix.next === offset;
+            this.steppedPrefix = partial && cell.status === 'ok' && consecutive
+                ? { id: cell.id, source: original, next: offset + source.length + 1 } : undefined;
+            if (this.steppedPrefix && offset + source.length === original.length) {
+                cell.executed = original;
+                this.steppedPrefix = undefined;
+            }
+            book.replayFrom = index + 1 < book.cells.length - 1 ? index + 1 : undefined;
+            if (cell.status === 'error') {
+                book.replayFrom = index;
+                book.focusError(index);
+            }
+            this.session.endDebugRun?.();
+            return exit;
+        });
+    }
+
+    private async run(index: number, source: string, enclosing?: { source: string; offset: number }): Promise<boolean> {
         const book = this.notebook;
         const cell = book.cells[index];
         book.active = index;
@@ -129,7 +157,9 @@ export class ExecutionRunner {
             if (result.interrupted) result.output.unshift({
                 text: `Stopped after ${((performance.now() - this.startedAt!) / 1000).toFixed(1)}s`, error: false,
             });
-            book.finish(index, result);
+            book.finish(index, enclosing ? { ...result, source: enclosing.source,
+                errorOffset: result.errorOffset === undefined ? undefined : enclosing.offset + result.errorOffset } : result);
+            if (enclosing && result.ok) cell.executed = undefined;
             this.render();
             return false;
         } finally {

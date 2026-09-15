@@ -18,13 +18,41 @@ and leaving a line preserves its edits. Enter inside earlier source inserts a
 newline. Esc returns to the bottom prompt; when a completion is visible, the
 first Esc dismisses it.
 
+Loop iteration rows participate in Up/Down navigation without activating a
+selector or executing code. Enter on an iteration row enables selection;
+Left/Right then select and evaluate the preview. Ctrl-G opens the same selector
+from a source line in the innermost enclosing loop, opening its preview even if
+it was already executed. Enter leaves selection; when entered from the header,
+it advances to the first body line without evaluating it. Otherwise it restores
+the source cursor.
+Esc (or Ctrl-G during selection) also closes a completed instruction's live
+preview without changing its source: Enter then inserts a newline again.
+Up/Down can leave the iteration
+row directly for the header/body. Only an active selector has a highlighted
+background. Enter on a loop header does not activate it automatically.
+Ctrl-R on a loop header evaluates the header and immediately activates iteration
+selection; no extra Enter is needed. Arrow navigation still reaches the passive
+iteration row, where Enter activates selection. Source editing has a bar cursor. Places where
+Enter evaluates code use a block cursor, as does the iteration row whether or
+not selection is active. The terminal's default
+cursor style is restored on exit.
+The `▶` source marker identifies the next line to evaluate, including while the
+cursor is on the iteration selector. Changing the iteration recalculates only
+the prefix above that marker. Enter/Ctrl-R advances it with evaluation; ordinary
+text editing has no marker. If the selector and marker fit together they remain
+visible; otherwise the footer names the next source line, for example `▶ line 6`.
+Function example arguments are reopened explicitly with Ctrl-T, not Up.
+
 Up above the first source row opens a blank instruction before it, so imports
 can be added above an unfinished first block. Up on that empty instruction does
 not add more rows. The existing block retains its draft and live editing state.
+The inserted row is temporary until it contains text. Leaving it empty with
+Down or returning to `rank>` removes it and restores the previous numbering.
+Existing blank source rows are not removed.
 
 Leaving an unfinished live block to edit earlier source suspends its live controls
 and preserves the draft. Enter in earlier source edits that instruction; Ctrl-R
-executes the pending instructions above the draft without submitting it. Returning
+executes the selected instruction above the draft without submitting it. Returning
 to the unfinished block resumes its live controls.
 
 Submitting a draft adds it to the document **before** execution starts. If earlier
@@ -33,7 +61,21 @@ through the following instructions, then reaches the newly submitted one. An
 empty Enter at the bottom resumes pending work. When nothing is pending, it adds
 a blank source line.
 Blank lines have no status circle and are saved as spacing, without execution.
-Ctrl-R returns to the bottom prompt and submits it as well.
+Ctrl-R on committed source executes only the selected top-level instruction,
+against retained interpreter state, then stops at the next instruction. Enter
+continues one step at a time; at a loop it opens the iteration preview rather
+than executing the whole loop. Completing an existing block also stops before
+the next instruction. A grouped cell keeps its surrounding source intact when
+only one of its statements is run. Partial grouped-cell execution remains pending.
+Ctrl-R at the bottom prompt retains submission behavior.
+On the first nonempty source instruction, Ctrl-R resets interpreter state first,
+but still executes just that instruction. Continuing with Enter from there is a
+clean sequential run; live iteration previews remain experiments until committed.
+Esc leaves stepping. Moving up from `rank>` into earlier source always returns
+to text editing, even if that instruction previously had an open live preview.
+During this evaluation mode Ctrl-R is an alias for Enter: it confirms an
+iteration selection, advances to the body, and evaluates subsequent lines.
+After leaving evaluation mode it resumes its normal start/restart behavior.
 
 Ctrl-L restarts the document from fresh interpreter state, resetting variables,
 generators, and execution provenance. It runs current source from the beginning
@@ -83,6 +125,7 @@ instructions remain gray until execution; errors and running states take priorit
 Each run replaces that instruction's previous output. A successful correction
 therefore removes the old error. Output below the first error retains its previous
 value until rerun; its gray instruction circle identifies it as pending.
+Retained output awaiting execution also has a `~` gutter marker.
 Normal output is gray; error output is red.
 Errors in the REPL source show only their type and message inline; the repeated
 `error: RankError` prefix is omitted (for example, `TypeError: ...`). The
@@ -141,6 +184,13 @@ file; a new document opens a filename editor. Saving includes source still in th
 bottom prompt, without executing it, and excludes commands and their output.
 Undoing an edit back to the saved text clears the unsaved marker. Execution status
 and saved status are independent.
+
+Run hints fit within 40 terminal columns (reserving the last column for safe
+terminal rendering). The bottom prompt shows `Ctrl-L run all` without an Enter
+hint. The source editor shows `Ctrl-R run · Ctrl-L run all`;
+`^` means Ctrl. Live loop source shows `Eval · ^G loop · Esc edit · ^L run all`,
+an iteration row shows `Enter select · Esc edit · ^L run all`, and active
+selection shows `←/→ select · Esc edit · ^L run all`.
 
 Ctrl-Q, Ctrl-D on an empty line, `exit`, and `quit` offer to save if source has
 changed. Enter or S saves, D discards changes, and Esc cancels the exit. Saving a

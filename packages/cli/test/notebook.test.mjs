@@ -18,6 +18,41 @@ function setup(t, functionExamples = false) {
 
 const output = cell => cell.output.map(line => line.text).join('\n');
 
+test('leaving an unused insertion row above the file restores cell numbering and replay position', () => {
+    for (const leave of ['down', 'prompt']) {
+        const book = new Notebook();
+        book.enqueue('A = 1');
+        book.enqueue('B = 2');
+        const ids = book.cells.map(cell => cell.id);
+        book.replayFrom = 1;
+        book.active = 0;
+        book.cursor = 0;
+        book.vertical(-1, 33, true);
+        assert.equal(book.cells.length, 4);
+        assert.equal(book.replayFrom, 2);
+        if (leave === 'down') book.vertical(1, 33, true); else book.toPrompt();
+        assert.deepEqual(book.cells.map(cell => cell.id), ids);
+        assert.equal(book.replayFrom, 1);
+        assert.equal(book.active, leave === 'down' ? 0 : 2);
+        assert.match(notebookFrame(book, 40, 8).lines[0].replace(/\x1b\[[0-9;]*m/g, ''), /1› A = 1/);
+    }
+});
+
+test('a populated insertion row and existing blank source rows are preserved', () => {
+    const book = new Notebook();
+    book.enqueue('A = 1');
+    book.active = 0;
+    book.cursor = 0;
+    book.vertical(-1, 33, true);
+    book.insert('use sequences');
+    book.vertical(1, 33, true);
+    assert.equal(book.cells[0].source, 'use sequences');
+    book.active = 0;
+    book.replace('');
+    book.vertical(1, 33, true);
+    assert.equal(book.cells[0].source, '', 'only an unused temporary row is removed');
+});
+
 test('Enter commits new input before replay, executes only the changed suffix and replaces results', async t => {
     const { book, enter, edit } = setup(t);
     await enter('Count = 1');

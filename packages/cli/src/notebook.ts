@@ -62,6 +62,7 @@ export class Notebook {
     private nextId = 0;
     private experimentalFrom?: number;
     private preferredColumn?: number;
+    private temporaryHead?: number;
     private readonly undoStack = new Map<number, Edit[]>();
     private readonly redoStack = new Map<number, Edit[]>();
 
@@ -73,6 +74,7 @@ export class Notebook {
         this.redoStack.clear();
         this.replayFrom = undefined;
         this.experimentalFrom = undefined;
+        this.temporaryHead = undefined;
         this.nextId = 0;
         this.append();
         this.toPrompt();
@@ -124,8 +126,22 @@ export class Notebook {
 
     toPrompt(): void {
         this.active = this.cells.length - 1;
+        this.discardEmptyHead();
         this.cursor = this.current.source.length;
         this.preferredColumn = undefined;
+    }
+
+    private discardEmptyHead(): void {
+        if (this.temporaryHead === undefined || this.active === 0) return;
+        const head = this.cells[0];
+        if (head?.id === this.temporaryHead && head.source === '') {
+            this.cells.shift();
+            this.active--;
+            this.undoStack.delete(head.id);
+            this.redoStack.delete(head.id);
+            if (this.replayFrom !== undefined) this.replayFrom = Math.max(0, this.replayFrom - 1);
+        }
+        this.temporaryHead = undefined;
     }
 
     focusError(index: number): void {
@@ -234,6 +250,7 @@ export class Notebook {
             if (next < 0 && allowPrepend && this.current.source.trim() !== '') {
                 this.cells.unshift({ id: this.cells[0].id - 1, source: '', executed: '',
                     output: [], command: false, status: 'idle' });
+                this.temporaryHead = this.cells[0].id;
                 if (this.replayFrom !== undefined) this.replayFrom += 1;
                 this.active = 0;
                 this.cursor = 0;
@@ -243,6 +260,7 @@ export class Notebook {
             if (next < 0 || next >= this.cells.length) return;
             const fromPrompt = this.atPrompt;
             this.active = next;
+            this.discardEmptyHead();
             if (fromPrompt && direction < 0) {
                 this.cursor = this.current.source.length;
                 this.preferredColumn = undefined;

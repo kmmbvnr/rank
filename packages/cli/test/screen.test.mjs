@@ -59,7 +59,7 @@ test('live replay marks evaluated lines orange and remaining lines gray', () => 
     const sourceLine = value => frame.lines.find(line => line.includes(value));
     assert.match(sourceLine('fun inspect'), /\x1b\[38;5;208m/);
     assert.match(sourceLine('A = N'), /\x1b\[38;5;208m/);
-    assert.match(sourceLine('B = A'), /\x1b\[90m/);
+    assert.match(sourceLine('B = A'), /\x1b\[36m.*▶/);
     assert.match(sourceLine('end'), /\x1b\[90m/);
 });
 
@@ -81,7 +81,7 @@ test('inline preview errors retain parentheses without generated source location
     assert.match(message, /TypeError: count expects boolean values/);
     assert.doesNotMatch(message, /error:|RankError/);
     assert.match(rendered, /! \(array 1\) count/);
-    assert.doesNotMatch(rendered, /RankReplPreviewValue|<repl>|\^/);
+    assert.doesNotMatch(errorLines.join('\n'), /RankReplPreviewValue|<repl>|\^/);
 });
 
 test('error wrapping keeps words intact in both live and completed instructions', () => {
@@ -117,7 +117,7 @@ test('moving through executed source does not create a live marker', () => {
     assert.doesNotMatch(frame.lines.join('\n'), /\x1b\[(?:33|90)m\s+●/);
 });
 
-test('iteration-field focus keeps the pending body gray until Enter', () => {
+test('iteration-field focus marks the next body line without evaluating it', () => {
     const book = new Notebook();
     book.replace('for i in 1 to 10\n  A = i\nend');
     book.cursor = book.current.source.indexOf('A = i') + 'A = i'.length;
@@ -125,8 +125,54 @@ test('iteration-field focus keeps the pending body gray until Enter', () => {
     const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',
         undefined, 'rank> ', outputs, undefined, { line: 1, offset: 5 });
     const body = frame.lines.find(line => line.includes('A = i'));
-    assert.match(body, /\x1b\[90m/);
+    assert.match(body, /\x1b\[36m.*▶/);
     assert.doesNotMatch(body, /\x1b\[33m/);
+    const passive = frame.lines.find(line => line.includes('iteration 5'));
+    assert.doesNotMatch(passive, /\x1b\[7m/);
+    const active = notebookFrame(book, 40, 10, 0, '←/→ select · Esc edit · ^L run all', false, true,
+        'example.ra · unsaved', 'Running…', undefined, 'rank> ', outputs, undefined,
+        { line: 1, offset: 5, active: true });
+    assert.match(active.lines.find(line => line.includes('iteration 5')), /\x1b\[7m/);
+    assert.match(active.lines.at(-1), /Esc edit · \^L run all/);
+    assert.ok(active.lines.every(line => stringWidth(line) <= 39));
+    assert.equal(active.cursorStyle, 2);
+    assert.match(drawFrame(active), /\x1b\[2 q/);
+    assert.equal(frame.cursorStyle, 2);
+    const preview = notebookFrame(book, 40, 10, 0, '', false, true, '', 'Running…', undefined, 'rank> ', outputs);
+    assert.equal(preview.cursorStyle, 2);
+    assert.equal(notebookFrame(book, 40, 10).cursorStyle, 2);
+    book.enqueue(book.current.source);
+    book.active = 0;
+    assert.equal(notebookFrame(book, 40, 10).cursorStyle, 6);
+});
+
+test('the next-eval marker is not repeated on wraps and its line remains visible in a short viewport', () => {
+    const book = new Notebook();
+    book.replace('for i in 1 to 3\n  Value = ' + '1 + '.repeat(18) + '1\nend');
+    const outputs = new Map([[1, [{ text: 'i = 1 · iteration 1', error: false }]]]);
+    const focused = { line: 1, offset: 5, active: true, nextLine: 2 };
+    let frame = notebookFrame(book, 40, 14, 0, '', false, true, '', 'Running…',
+        undefined, 'rank> ', outputs, undefined, focused);
+    assert.equal(frame.lines.filter(line => line.includes('▶')).length, 1);
+    assert.match(frame.lines.find(line => line.includes('▶')), /Value =/);
+    book.replace('for i in 1 to 3\n' + Array.from({ length: 12 }, (_, i) => `  Value${i} = i`).join('\n') + '\nend');
+    frame = notebookFrame(book, 40, 5, 0, '←/→ select · Esc edit · ^L run all', false, true, '', 'Running…',
+        undefined, 'rank> ', outputs, undefined, { ...focused, nextLine: 12 });
+    assert.match(frame.lines.at(-1), /▶ line 12/);
+    assert.match(frame.lines.at(-1), /\^L run all/);
+    assert.ok(frame.lines.every(line => stringWidth(line) <= 39));
+});
+
+test('restart hint fits a 40-column screen at the prompt and in earlier code', () => {
+    const book = new Notebook();
+    book.enqueue('A = 1');
+    for (const active of [0, 1]) {
+        book.active = active;
+        const frame = notebookFrame(book, 40, 8, 0, '', false, true, 'example.ra · unsaved');
+        assert.match(frame.lines.at(-1), /Ctrl-L run all/);
+        if (active === 1) assert.doesNotMatch(frame.lines.at(-1), /Enter/);
+        assert.ok(stringWidth(frame.lines.at(-1)) <= 39);
+    }
 });
 
 async function draw(terminal, book, top = 0, hint = '', running = false) {
@@ -341,7 +387,7 @@ test('output is gray and begins in the same column as source, including wrapped 
     await draw(terminal, book);
     for (const row of [1, 2]) {
         const line = terminal.buffer.active.getLine(row);
-        assert.match(line.translateToString(true), /^ {6}\d/);
+        assert.match(line.translateToString(true), /^ {4}~ \d/);
         assert.equal(line.getCell(6).getFgColor(), 8);
     }
 });

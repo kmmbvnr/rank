@@ -1,7 +1,7 @@
 import { parse } from '@arrrank/interpreter';
 import { isForStatement, isIfStatement } from '@arrrank/language';
 import type { LiveSubmitResult } from './live-function-controller.js';
-import { completedIterationLine, LivePreviewRunner } from './live-preview.js';
+import { enclosingIterationLine, LivePreviewRunner } from './live-preview.js';
 import type { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
@@ -36,31 +36,21 @@ export class LiveConditionalController {
 
     get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.editing ? this.live?.outputs : undefined; }
     get editing(): boolean { return this.live !== undefined && this.live.cellId === this.notebook.current.id; }
-    get iterationFocus(): { line: number; offset: number } | undefined {
+    get iterationFocus(): { line: number; offset: number; nextLine: number } | undefined {
         if (!this.editing || !this.live || this.focusedIteration === undefined) return undefined;
         const text = this.live.outputs.get(this.focusedIteration)?.find(output => !output.error)?.text;
         if (!text) return undefined;
         const suffix = text.indexOf(' · iteration');
-        return { line: this.focusedIteration, offset: suffix < 0 ? text.length : suffix };
+        return { line: this.focusedIteration, offset: suffix < 0 ? text.length : suffix,
+            nextLine: Math.min((this.focusedThroughLine ?? this.focusedIteration) + 1,
+                this.notebook.current.source.split('\n').length) };
     }
     get status(): string | undefined {
         if (!this.editing || !this.live) return undefined;
-        const source = this.notebook.current.source;
-        const end = source.indexOf('\n', this.notebook.cursor);
-        const line = source.slice(source.lastIndexOf('\n', this.notebook.cursor - 1) + 1,
-            end < 0 ? source.length : end).trim();
-        if (this.focusedIteration !== undefined) {
-            const iteration = this.live.iterations.get(this.focusedIteration) ?? 0;
-            const completed = (this.focusedThroughLine ?? 0) > this.focusedIteration;
-            const action = completed
-                ? '←/→ select + evaluate body' : '←/→ select';
-            return `Live for · iteration ${iteration + 1} · ${action} · Enter ${completed ? 'return' : 'body'}`;
-        }
-        const action = !line ? 'Enter keep blank line'
-            : /^(?:else|elif)\b/.test(line) ? 'Enter enter branch'
-            : line === 'end' ? 'Enter apply end' : 'Enter evaluate line';
-        const kind = /^\s*for(?:\s|$)/.test(source) ? 'for' : 'if';
-        return `Live ${kind} · ${action} · selected branch only`;
+        return this.focusedIteration !== undefined
+            ? '←/→ select · Esc edit · ^L run all'
+            : /^\s*for\s/m.test(this.notebook.current.source) ? 'Eval · ^G loop · Esc edit · ^L run all'
+            : 'Enter try · ^L run all';
     }
 
     clear(): void { this.live = undefined; this.clearIterationFocus(); }
@@ -85,7 +75,6 @@ export class LiveConditionalController {
         this.notebook.replace(this.live.source);
         await this.update(false, 1);
         if (this.live.outputs.get(1)?.some(output => output.error)) this.placeCursorAtLineEnd(0);
-        else this.focusIteration(1);
         this.updateSuggestion();
         this.render();
         return true;
@@ -111,12 +100,30 @@ export class LiveConditionalController {
         const live = this.live!;
         live.source = this.notebook.current.source;
         const line = selectedLine(live.source, this.notebook.cursor);
-        await this.update(true, line - 1);
+        const header = isIterationHeader(live.source.split('\n')[line - 1]);
+        await this.update(true, header ? line : line - 1);
         this.clearIterationFocus();
         this.placeCursorAtLineEnd(line - 1);
-        this.focusCompletedIteration(line - 1);
+        if (header) this.focusIteration(line);
         this.render();
         return true;
+    }
+
+    leavePreview(): boolean {
+        if (!this.editing || !this.live?.existing) return false;
+        this.clear();
+        this.setSuggestion('');
+        return true;
+    }
+
+    async selectIteration(): Promise<boolean> {
+        if (this.live && !this.editing) return false;
+        if (!this.live && !this.beginExisting()) return false;
+        const current = currentLineNumber(this.notebook);
+        const header = enclosingIterationLine(this.notebook.current.source, 0, current - 1);
+        if (header === undefined) return false;
+        await this.update(false, Math.max(header, current - 1));
+        return this.focusIterationFromBody();
     }
 
     async forcePreview(): Promise<boolean> {
@@ -155,11 +162,11 @@ export class LiveConditionalController {
         return true;
     }
 
-    focusIterationFromBody(): boolean {
+    focusIterationFromBody(header?: number): boolean {
         if (!this.editing || !this.live || this.focusedIteration !== undefined) return false;
-        const line = currentLineNumber(this.notebook) - 1;
-        if (line < 1 || !isIterationHeader(this.notebook.current.source.split('\n')[line - 1])) return false;
-        this.focusIteration(line, line);
+        const current = currentLineNumber(this.notebook);
+        const line = header ?? enclosingIterationLine(this.notebook.current.source, 0, current - 1);
+        if (line !== undefined) this.focusIteration(line, header === undefined ? Math.max(line, current - 1) : line);
         if (this.focusedIteration === undefined) return false;
         this.render();
         return true;
@@ -175,7 +182,6 @@ export class LiveConditionalController {
         if (currentLine < lines.length - 1) {
             await this.update(false, currentLine + 1);
             this.placeCursorAfterLine(currentLine);
-            this.focusIteration(currentLine + 1, currentLine + 1);
             this.render();
             return 'handled';
         }
@@ -199,7 +205,6 @@ export class LiveConditionalController {
         }
         await this.update(false, currentLine + 1);
         this.placeCursorAfterLine(currentLine);
-        this.focusIteration(currentLine + 1, currentLine + 1);
         this.render();
         return 'handled';
     }
@@ -209,8 +214,12 @@ export class LiveConditionalController {
         const source = this.notebook.current.source;
         try {
             const statements = parse(source).statements;
-            if (statements.length !== 1
-                || !isIfStatement(statements[0]) && !isForStatement(statements[0])) return false;
+            const line = currentLineNumber(this.notebook) - 1;
+            const selected = statements.find(statement => {
+                const range = statement.$cstNode?.range;
+                return range && range.start.line <= line && range.end.line >= line;
+            });
+            if (!selected || !isIfStatement(selected) && !isForStatement(selected)) return false;
         } catch { return false; }
         this.live = {
             source, outputs: new Map(), prefixes: new Map(), iterations: new Map(),
@@ -237,11 +246,6 @@ export class LiveConditionalController {
             || !this.live.outputs.get(line)?.some(output => !output.error)) return;
         this.focusedIteration = line;
         this.focusedThroughLine = throughLine;
-    }
-
-    private focusCompletedIteration(target: number): void {
-        const line = completedIterationLine(this.notebook.current.source, 0, target);
-        if (line !== undefined) this.focusIteration(line, target);
     }
 
     private clearIterationFocus(): void {

@@ -152,14 +152,127 @@ test('help opens outside the document and Esc removes it before returning to edi
     assert.equal(frames[5].cursorX, 11);
 });
 
-test('Ctrl-R reruns an edit and the footer advertises help', async t => {
+test('the next-eval marker remains in the branch body while the iterator is selected', async t => {
+    const source = 'for i in 1 to 100\n  (array i)\n  if i less 4\n    (array i i)\n  else\n    (array i i i)\n  end\nend';
+    const frames = await drive(t, [
+        '\x1b[200~' + source + '\x1b[201~' + ENTER,
+        UP + UP + UP + END,
+        { keys: '\x12', until: 'Eval' },
+        { keys: '\x07', until: '←/→ select' },
+        { keys: RIGHT.repeat(8), until: 'i = 9 · iteration 9' },
+        '\x12',
+        '\x12',
+        { keys: '\x1b', until: 'Ctrl-L run all' },
+    ], 40, 18);
+    assert.match(frames[1].text.split('\n')[frames[1].cursorY], /\(array i i i\)/);
+    assert.match(frames[2].text, /▶\s+\(array i i i\)/);
+    assert.match(frames[3].text, /←\/→ select/);
+    assert.match(frames[4].text, /i = 9 · iteration 9/);
+    assert.match(frames[4].text, /else\n\s+branch runs/);
+    assert.match(frames[4].text, /▶\s+\(array i i i\)/);
+    assert.doesNotMatch(frames[4].text, /9 9 9/);
+    assert.match(frames[5].text, /▶\s+\(array i i i\)/);
+    assert.match(frames[6].text, /9 9 9/);
+    assert.match(frames[6].text, /▶\s+end/);
+    assert.doesNotMatch(frames[7].text, /▶/);
+});
+
+test('leaving an unused top insertion row restores the original numbering', async t => {
+    const frames = await drive(t, [
+        '1 + 1' + ENTER,
+        UP + UP,
+        DOWN,
+        UP,
+        '\x1b',
+    ], 40, 12);
+    assert.match(frames[1].text, /2› 1 \+ 1/);
+    assert.match(frames[2].text, /1› 1 \+ 1/);
+    assert.equal(frames[2].cursorY, 0);
+    assert.match(frames[4].text, /1› 1 \+ 1/);
+    assert.doesNotMatch(frames[4].text, /2›/);
+});
+
+test('Ctrl-R on an expression stops before the loop; returning from rank> edits instead of evaluating', async t => {
+    const frames = await drive(t, [
+        'use sequences' + ENTER,
+        '1 + 1' + ENTER,
+        '\x1b[200~for i in 10 to 100\n  (array i)\nend\x1b[201~' + ENTER,
+        UP + UP + UP + UP,
+        '\x12',
+        ENTER,
+        ENTER,
+        ENTER,
+        { keys: '\x1b', until: 'Ctrl-R run' },
+        '\x1b',
+        UP,
+        ENTER,
+    ], 40, 16);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /for i in 10 to 100/);
+    assert.match(frames[4].text, /Enter step/);
+    assert.match(frames[5].text, /i = 10 · iteration 1/);
+    assert.match(frames[7].text, /\(array i\)\n\s+10/);
+    assert.match(frames[9].text.split('\n')[frames[9].cursorY], /^rank> /);
+    assert.doesNotMatch(frames[10].text, /iteration 1/);
+    assert.match(frames[10].text, /Ctrl-R run · Ctrl-L run all/);
+    assert.doesNotMatch(frames[11].text, /iteration 1/);
+});
+
+test('completed loop headers reopen with Ctrl-R and Ctrl-G, then Esc restores editing', async t => {
+    const frames = await drive(t, [
+        'use sequences' + ENTER,
+        '\x1b[200~for i in 10 to 100\n  (array i) len\nend\x1b[201~' + ENTER,
+        UP + UP + UP,
+        '\x12',
+        RIGHT,
+        { keys: '\x1b', until: 'Ctrl-R run' },
+        '\x07',
+        RIGHT,
+        { keys: '\x1b', until: 'Ctrl-R run' },
+        '\x12',
+        '\x12',
+        '\x12',
+    ], 40, 14);
+    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /for i in 10 to 100/);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /i = 10 · iteration 1/);
+    assert.match(frames[3].text, /←\/→ select · Esc edit/);
+    assert.match(frames[4].text, /i = 11 · iteration 2/);
+    assert.match(frames[5].text, /Ctrl-R run · Ctrl-L run all/);
+    assert.match(frames[6].text, /i = 10 · iteration 1/);
+    assert.match(frames[7].text, /i = 11 · iteration 2/);
+    assert.match(frames[8].text, /Ctrl-R run · Ctrl-L run all/);
+    assert.equal(frames[8].cursorY, frames[2].cursorY);
+    assert.match(frames[10].text.split('\n')[frames[10].cursorY], /\(array i\) len/);
+    assert.doesNotMatch(frames[10].text, /\(array i\) len\n\s+1/);
+    assert.match(frames[11].text, /\(array i\) len\n\s+1/);
+});
+
+test('iteration selection needs Enter or Ctrl-G on a 40-column terminal', async t => {
+    const frames = await drive(t, [
+        'for I in 1 to 3' + ENTER,
+        UP,
+        RIGHT,
+        ENTER + RIGHT,
+        '\x1b',
+        '\x07' + RIGHT,
+        '\x1b',
+    ], 40, 12);
+    assert.match(frames[1].text, /Enter select · Esc edit · \^L run all/);
+    assert.match(frames[2].text, /I = 1 · iteration 1/);
+    assert.match(frames[3].text, /I = 2 · iteration 2/);
+    assert.match(frames[3].text, /Esc edit · \^L run all/);
+    assert.equal(frames[4].cursorY, frames[0].cursorY);
+    assert.match(frames[5].text, /I = 3 · iteration 3/);
+    assert.equal(frames[6].cursorY, frames[0].cursorY);
+});
+
+test('Ctrl-R reruns an edit and the footer advertises a full restart', async t => {
     const frames = await drive(t, [
         'A = 1' + ENTER,
         UP + CLEAR + 'A = 5',
         '\x12',
     ]);
-    assert.match(frames[0].text, /help/);
-    assert.match(frames[1].text, /Ctrl-R rerun/);
+    assert.match(frames[0].text, /Ctrl-L run all/);
+    assert.match(frames[1].text, /Ctrl-R run · Ctrl-L run all/);
     assert.match(frames[2].text, /\n      5\n/);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /^rank> /);
     assert.doesNotMatch(frames[2].text, /F5/);
@@ -513,7 +626,7 @@ test('Enter on an empty live-function line preserves a blank without inserting e
         'return X + 2',
     ], 80, 20);
     assert.match(frames[3].text, /return X \+ 1\n        2/);
-    assert.match(frames[3].text, /Live inc\(1\)/);
+    assert.match(frames[3].text, /Enter try · \^T args · \^L run all/);
     assert.doesNotMatch(frames[3].text, /<function inc>|\n\s*end\s*\n/);
     assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*$/);
     assert.match(frames[4].text, /return X \+ 1\n        2\n        \n    ·   return X \+ 2/);
@@ -570,16 +683,15 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
 test('loop arrows keep the cursor on the visible iteration and defer body evaluation', async t => {
     const frames = await drive(t, [
         'for i in 1 to 3' + ENTER,
-        RIGHT,
+        '\x07' + RIGHT,
         ENTER,
         'A = i' + ENTER,
         UP + UP,
-        RIGHT,
+        ENTER + RIGHT,
         ENTER,
         ENTER,
     ], 80, 18);
-    assert.match(frames[0].text.split('\n')[frames[0].cursorY], /i = 1 · iteration 1/);
-    assert.doesNotMatch(frames[0].text, /^\s*●\s*$/m, 'the hidden body cursor must not draw a marker');
+    assert.doesNotMatch(frames[0].text.split('\n')[frames[0].cursorY], /iteration/);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /i = 2 · iteration 2/);
     assert.doesNotMatch(frames[1].text, /A = i/);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /●/);

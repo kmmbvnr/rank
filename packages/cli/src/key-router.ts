@@ -1,5 +1,5 @@
 import type { NotebookRepl } from './repl.js';
-import { textColumns } from './screen.js';
+import { editableRows, textColumns } from './screen.js';
 
 const HISTORY_LIMIT = 500;
 
@@ -20,7 +20,17 @@ export class KeyRouter {
     async press(text: string, key: Key = {}): Promise<KeyResult> {
         const repl = this.repl;
         const book = repl.notebook;
+        if (key.ctrl && key.name === 'r' && repl.advancing) {
+            key = { name: 'return' };
+            text = '\r';
+        }
         if (key.ctrl && key.name === 'l') return { exit: await repl.restart() };
+        if (key.ctrl && key.name === 'g') {
+            if (repl.liveIterationFocused && repl.iterationSelecting) repl.editSource();
+            else if (repl.liveIterationFocused || repl.focusLiveIterationFromBody()) repl.iterationSelecting = true;
+            else await repl.selectIteration();
+            return { exit: false };
+        }
         const example = repl.exampleEditor;
         if (example) {
             if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.cancelExample();
@@ -37,22 +47,34 @@ export class KeyRouter {
         }
 
         if (repl.liveIterationFocused) {
-            if (key.name === 'up') {
+            if (key.name === 'up' || key.name === 'down') {
                 const line = repl.liveIterationFocus!.line;
                 repl.releaseLiveIteration();
                 const lines = book.current.source.split('\n');
-                book.cursor = lines.slice(0, line).join('\n').length;
+                book.cursor = lines.slice(0, key.name === 'up' ? line : Math.min(line + 1, lines.length)).join('\n').length;
                 return { exit: false };
             }
-            if (key.name === 'return' || key.name === 'enter' || key.name === 'down' || key.name === 'escape') {
-                repl.releaseLiveIteration();
+            if (key.name === 'return' || key.name === 'enter') {
+                if (repl.iterationSelecting) {
+                    const line = repl.liveIterationFocus!.line;
+                    const lines = book.current.source.split('\n');
+                    const headerEnd = lines.slice(0, line).join('\n').length;
+                    repl.releaseLiveIteration();
+                    if (book.cursor <= headerEnd)
+                        book.cursor = lines.slice(0, Math.min(line + 1, lines.length)).join('\n').length;
+                } else repl.iterationSelecting = true;
+                return { exit: false };
+            }
+            if (key.name === 'escape') {
+                repl.editSource();
                 return { exit: false };
             }
             if (key.name === 'left' || key.name === 'right') {
-                await repl.moveLiveIteration(key.name === 'left' ? -1 : 1);
+                if (repl.iterationSelecting) await repl.moveLiveIteration(key.name === 'left' ? -1 : 1);
                 return { exit: false };
             }
             if (!key.ctrl && !key.meta && text && text >= ' ') return { exit: false };
+            repl.releaseLiveIteration();
         }
 
         if (key.ctrl && (key.name === 'q' || key.name === 'd' && book.current.source === ''))
@@ -65,7 +87,8 @@ export class KeyRouter {
         else if (key.ctrl && key.name === 't') return { exit: await repl.debug() };
         else if (key.name === 'tab') repl.complete();
         else if (key.name === 'escape') {
-            if (repl.suggestion) repl.dismiss();
+            if (repl.editSource()) repl.dismiss();
+            else if (repl.suggestion) repl.dismiss();
             else book.toPrompt();
         } else {
             repl.dismiss();
@@ -95,8 +118,17 @@ export class KeyRouter {
                 book.replace(this.historyIndex < 0 ? this.historyDraft
                     : this.history[this.history.length - 1 - this.historyIndex]);
             } else if (key.name === 'up' || key.name === 'down') {
-                if (key.name !== 'up' || !repl.focusExampleFromBody() && !repl.focusLiveIterationFromBody())
-                    book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);
+                const fromPrompt = book.atPrompt;
+                const line = book.current.source.slice(0, book.cursor).split('\n').length;
+                const header = key.name === 'up' ? line - 1 : line;
+                const rows = editableRows(book.current.source, textColumns(this.columns()));
+                const row = rows.findIndex(row => row.points.some(point => point.offset === book.cursor));
+                const neighbor = rows[row + (key.name === 'up' ? -1 : 1)];
+                const nextLine = neighbor?.points[0] === undefined ? undefined
+                    : book.current.source.slice(0, neighbor.points[0].offset).split('\n').length;
+                if (nextLine !== line && repl.focusLiveIterationFromBody(header)) return { exit: false };
+                book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);
+                if (fromPrompt && !book.atPrompt) repl.editSource();
             } else if (key.name === 'pageup' || key.name === 'pagedown') {
                 return { exit: false, pageDelta: key.name === 'pageup' ? -1 : 1 };
             } else if (key.name === 'left' || key.name === 'right') {

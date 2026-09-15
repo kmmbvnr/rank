@@ -342,11 +342,11 @@ function omitCompletedLoop(active: Set<number>, lines: string[], start: number, 
     if (closing?.kind === 'for') active.delete(closing.line);
 }
 
-/** Finds the collection loop closed by the selected end line. */
-export function completedIterationLine(source: string, start: number, target: number): number | undefined {
+/** Finds the innermost collection loop containing the selected source line. */
+export function enclosingIterationLine(source: string, start: number, target: number): number | undefined {
     const lines = source.split('\n');
-    if (lines[target]?.trim() !== 'end') return undefined;
-    const closing = openBlocks(lines, start, target).at(-1);
-    if (closing?.kind !== 'for' || !iterationHeader(lines[closing.line].trim())) return undefined;
-    return closing.line + 1;
+    if (iterationHeader(lines[target]?.trim() ?? '')) return target + 1;
+    const loop = openBlocks(lines, start, target).reverse()
+        .find(block => block.kind === 'for' && iterationHeader(lines[block.line].trim()));
+    return loop === undefined ? undefined : loop.line + 1;
 }

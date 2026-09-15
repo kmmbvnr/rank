@@ -45,7 +45,10 @@ function scenario() {
     const left = () => key('', { name: 'left' }, 'Left');
     const right = () => key('', { name: 'right' }, 'Right');
 
-    return { session, repl, book, trace, type, clear, backspace, enter, ctrlR, up, down, left, right };
+    return { session, repl, book, trace, type, clear, backspace, enter, ctrlR, up, down, left, right,
+        ctrlG: () => key('', { ctrl: true, name: 'g' }, 'Ctrl-G'),
+        ctrlT: () => key('', { ctrl: true, name: 't' }, 'Ctrl-T'),
+        esc: () => key('', { name: 'escape' }, 'Esc') };
 }
 
 test('Ctrl-L resets retained state, runs the entire document and clears orange provenance', async () => {
@@ -103,7 +106,6 @@ test('an unfinished loop survives adding an import above it and resumes after re
         }
         await s.type('for N in 1 to 100');
         await s.enter();
-        await s.enter(); // leave the iteration selector
         await s.type('K = 0 to N');
         await s.enter();
         const draft = s.book.current.source;
@@ -248,7 +250,8 @@ test('real key routing edits all argument fields and returns from the body to th
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['5']);
 
         await s.up(); // empty line -> first body line
-        await s.up(); // first body line -> last argument field
+        await s.ctrlT(); // arguments are opened explicitly, not by an arrow key
+        await s.down();
         assert.equal(s.repl.examplePrompt.parameter, 'Y');
         await s.clear();
         await s.type('4');
@@ -298,11 +301,11 @@ test('Up leaves the iteration field through the loop header without losing the d
         await s.enter();
         await s.type('for i in 1 to 10');
         await s.enter();
-        await s.enter();
         await s.type('(array i) count');
         const draft = s.book.current.source;
         await s.up();
         assert.equal(s.repl.liveIterationFocused, true);
+        assert.equal(s.repl.iterationSelecting, false);
         await s.up();
         assert.equal(s.repl.liveIterationFocused, false);
         assert.equal(s.book.cursor, 'for i in 1 to 10'.length);
@@ -325,8 +328,6 @@ test('arrow keys select a function loop iteration without evaluating its body', 
         await s.enter();
         await s.type('for I in 1 to N');
         await s.enter();
-        assert.equal(s.repl.liveIterationFocused, true);
-        await s.enter();
         assert.equal(s.repl.liveIterationFocused, false);
         await s.type('Sum += I');
         await s.enter();
@@ -337,10 +338,13 @@ test('arrow keys select a function loop iteration without evaluating its body', 
         await s.up();
         assert.equal(s.repl.liveIterationFocused, true);
         await s.right();
+        assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 1 · iteration 1']);
+        await s.enter();
+        await s.right();
         assert.equal(s.book.current.source, source);
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 2 · iteration 2']);
         assert.equal(s.repl.liveOutputs.has(4), false);
-        assert.match(s.repl.suggestion, /iteration 2 · ←\/→ select · Enter body/);
+        assert.equal(s.repl.suggestion, '←/→ select · Esc edit · ^L run all');
         const focused = notebookFrame(s.book, 80, 20, 0, s.repl.suggestion, false, true, '', 'Running…',
             undefined, s.repl.promptLabel, s.repl.liveOutputs, s.repl.exampleFields, s.repl.liveIterationFocus);
         assert.match(clean(focused.lines[focused.cursor.row]), /I = 2 · iteration 2/);
@@ -354,6 +358,7 @@ test('arrow keys select a function loop iteration without evaluating its body', 
 
         await s.up();
         await s.up();
+        await s.enter();
         await s.left();
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 1 · iteration 1']);
         assert.equal(s.repl.liveOutputs.has(4), false);
@@ -368,11 +373,298 @@ test('arrow keys select a function loop iteration without evaluating its body', 
     } finally { s.session.dispose(); }
 });
 
-test('Ctrl-R on loop end makes arrows reevaluate its body', async () => {
+test('Up traverses wrapped body rows before reaching the passive iteration row', async () => {
     const s = scenario();
     try {
         await s.type('for I in 1 to 3');
         await s.enter();
+        await s.type('Value = ' + 'I + '.repeat(20) + 'I');
+        const router = new KeyRouter(s.repl, [], () => 40);
+        const source = s.book.current.source;
+        await router.press('', { name: 'up' });
+        assert.equal(s.repl.liveIterationFocused, false);
+        for (let index = 0; index < 5 && !s.repl.liveIterationFocused; index++)
+            await router.press('', { name: 'up' });
+        assert.equal(s.repl.liveIterationFocused, true);
+        assert.equal(s.repl.iterationSelecting, false);
+        await router.press('', { name: 'up' });
+        assert.equal(s.book.cursor, 'for I in 1 to 3'.length);
+        await router.press('', { name: 'down' });
+        assert.equal(s.repl.liveIterationFocused, true);
+        assert.equal(s.repl.iterationSelecting, false);
+        await router.press('', { name: 'down' });
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.book.current.source, source);
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-R on the first source resets state but runs only one instruction; Enter continues green', async () => {
+    const s = scenario();
+    try {
+        for (const line of ['Count = 0', 'Count += 1', 'Count']) { await s.type(line); await s.enter(); }
+        await s.session.execute('Stray = 42', 1000, []);
+        s.book.active = 1;
+        s.book.cursor = s.book.current.source.length;
+        await s.ctrlR();
+        assert.equal(s.book.isExperimental(1), true);
+        s.book.active = 0;
+        s.book.cursor = 0;
+        await s.ctrlR();
+        assert.equal(s.book.active, 1);
+        assert.equal(s.book.cells[1].executed, undefined);
+        assert.equal(s.book.isExperimental(0), false);
+        const stray = await s.session.execute('Stray', 1001, []);
+        assert.equal(stray.ok, false);
+        await s.enter();
+        await s.enter();
+        assert.deepEqual(s.book.cells[2].output.map(line => line.text), ['1']);
+        assert.equal(s.book.atPrompt, true);
+        assert.ok(s.book.cells.slice(0, -1).every((cell, index) => cell.status === 'ok' && !s.book.isExperimental(index)));
+        await s.up();
+        assert.equal(s.repl.stepping, false);
+        const source = s.book.current.source;
+        await s.enter();
+        assert.equal(s.book.current.source, source + '\n');
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-R runs only the selected expression and Enter stops at the following loop header', async () => {
+    const s = scenario();
+    try {
+        await s.type('use sequences');
+        await s.enter();
+        s.book.active = 0;
+        s.book.replace('use sequences\n\n1 + 1');
+        s.book.toPrompt();
+        s.book.enqueue('for i in 10 to 100\n  (array i)\nend');
+        s.book.enqueue('After = 99');
+        const source = s.book.fileLines().join('\n');
+        s.book.active = 0;
+        s.book.cursor = s.book.current.source.length;
+        await s.ctrlR();
+        assert.deepEqual(s.book.cells[0].output.map(line => line.text), ['2']);
+        assert.equal(s.book.active, 1);
+        assert.equal(s.book.cursor, 0);
+        assert.equal(s.book.cells[1].executed, undefined);
+        assert.equal(s.book.cells[2].executed, undefined);
+        assert.equal(s.repl.stepping, true);
+        await s.enter();
+        assert.equal(s.repl.liveIterationFocus.line, 1);
+        assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['i = 10 · iteration 1']);
+        assert.equal(s.repl.liveOutputs.has(2), false);
+        await s.enter();
+        await s.enter();
+        assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['10']);
+        assert.equal(s.book.cells[2].executed, undefined);
+        assert.equal(s.book.fileLines().join('\n'), source);
+    } finally { s.session.dispose(); }
+});
+
+test('returning up from rank> always resumes text editing, not a suspended preview', async () => {
+    const s = scenario();
+    try {
+        s.book.replace('for i in 1 to 3\n  Value = i\nend');
+        await s.enter();
+        s.book.active = 0;
+        s.book.cursor = 0;
+        await s.ctrlR();
+        assert.equal(s.repl.liveEditing, true);
+        s.repl.releaseLiveIteration();
+        s.book.toPrompt();
+        await s.up();
+        assert.equal(s.repl.liveEditing, false);
+        assert.equal(s.repl.stepping, false);
+        const source = s.book.current.source;
+        await s.enter();
+        assert.equal(s.book.current.source.split('\n').length, source.split('\n').length + 1);
+        assert.equal(s.repl.liveEditing, false);
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-R on a completed loop header reveals its iterator; Esc restores normal text editing', async () => {
+    const s = scenario();
+    try {
+        await s.type('use sequences');
+        await s.enter();
+        s.book.replace('for i in 10 to 100\n  (array i) len\nend');
+        await s.enter();
+        assert.equal(s.repl.liveEditing, false);
+        s.book.active = 1;
+        s.book.cursor = 'for i in 10 to 100'.length;
+        await s.ctrlR();
+        assert.equal(s.repl.liveIterationFocus.line, 1);
+        assert.equal(s.repl.iterationSelecting, true);
+        assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['i = 10 · iteration 1']);
+        await s.right();
+        assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['i = 11 · iteration 2']);
+        await s.esc();
+        assert.equal(s.repl.liveEditing, false);
+        const source = s.book.current.source;
+        await s.enter();
+        assert.equal(s.book.current.source.split('\n').length, source.split('\n').length + 1);
+        assert.equal(s.repl.liveEditing, false);
+    } finally { s.session.dispose(); }
+});
+
+test('the next-eval marker stays at the recalculation boundary while selecting a different branch', async () => {
+    const s = scenario();
+    const frame = () => notebookFrame(s.book, 40, 18, 0, s.repl.suggestion, false, true, '', 'Running…',
+        undefined, s.repl.promptLabel, s.repl.liveOutputs, s.repl.exampleFields, s.repl.liveIterationFocus);
+    try {
+        s.book.replace('for i in 1 to 100\n  (array i)\n  if i less 4\n    (array i i)\n  else\n    (array i i i)\n  end\nend');
+        await s.enter();
+        s.book.active = 0;
+        s.book.cursor = s.book.current.source.indexOf('(array i i i)') + '(array i i i)'.length;
+        await s.ctrlR();
+        await s.ctrlG();
+        for (let index = 0; index < 8; index++) await s.right();
+        assert.equal(s.repl.liveIterationFocus.nextLine, 6);
+        assert.deepEqual(s.repl.liveOutputs.get(5).map(line => line.text), ['branch runs']);
+        assert.equal(s.repl.liveOutputs.has(6), false);
+        assert.match(clean(frame().lines.join('\n')), /▶\s+\(array i i i\)/);
+        await s.ctrlR();
+        assert.match(clean(frame().lines.join('\n')), /▶\s+\(array i i i\)/);
+        await s.ctrlR();
+        assert.deepEqual(s.repl.liveOutputs.get(6).map(line => line.text), ['9 9 9']);
+        assert.match(clean(frame().lines.join('\n')), /▶\s+end/);
+        await s.esc();
+        assert.doesNotMatch(clean(frame().lines.join('\n')), /▶/);
+    } finally { s.session.dispose(); }
+});
+
+test('repeated Ctrl-R behaves like Enter throughout evaluation and stops being an alias after Esc', async () => {
+    const s = scenario();
+    try {
+        await s.type('Before = 0');
+        await s.enter();
+        s.book.replace('for i in 1 to 3\n  Value = i\nend');
+        await s.enter();
+        await s.type('After = 99');
+        await s.enter();
+        s.book.active = 1;
+        s.book.cursor = 0;
+        const source = s.book.current.source;
+        await s.ctrlR();
+        assert.equal(s.repl.iterationSelecting, true);
+        await s.ctrlR();
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.book.cursor, source.indexOf('\nend'));
+        assert.equal(s.repl.liveOutputs.has(2), false);
+        await s.ctrlR();
+        assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['1']);
+        assert.equal(s.book.cursor, source.length);
+        await s.ctrlR();
+        assert.equal(s.book.active, 2);
+        assert.equal(s.repl.stepping, true);
+        await s.ctrlR();
+        assert.equal(s.book.atPrompt, true);
+        await s.up();
+        assert.equal(s.repl.advancing, false);
+        s.book.active = 1;
+        s.book.cursor = 0;
+        await s.ctrlR();
+        await s.esc();
+        assert.equal(s.repl.advancing, false);
+        await s.ctrlR();
+        assert.equal(s.repl.iterationSelecting, true, 'Ctrl-R starts selection again after Esc, without inserting text');
+        assert.equal(s.book.current.source, source);
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-R on a function loop header directly selects using the existing example', async () => {
+    const s = scenario();
+    try {
+        await s.type('fun visit N');
+        await s.enter();
+        await s.type('3');
+        await s.enter();
+        await s.type('for i in 1 to N');
+        await s.enter();
+        s.book.cursor = s.book.current.source.indexOf('\n  for') + '\n  for i in 1 to N'.length;
+        await s.ctrlR();
+        assert.equal(s.repl.examplePrompt, undefined);
+        assert.equal(s.repl.iterationSelecting, true);
+        assert.equal(s.repl.liveIterationFocus.line, 2);
+        await s.right();
+        assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['i = 2 · iteration 2']);
+        await s.enter();
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.book.cursor, s.book.current.source.length);
+    } finally { s.session.dispose(); }
+});
+
+test('Enter after selecting an iteration from the header continues into the body without evaluating it', async () => {
+    const s = scenario();
+    try {
+        await s.type('use sequences');
+        await s.enter();
+        s.book.replace('for i in 10 to 100\n  (array i) len\nend');
+        await s.enter();
+        s.book.active = 1;
+        s.book.cursor = 'for i in 10 to 100'.length;
+        await s.ctrlR();
+        await s.right();
+        const source = s.book.current.source;
+        await s.enter();
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.book.cursor, source.indexOf('\nend'));
+        assert.equal(s.book.current.source, source);
+        assert.equal(s.repl.liveOutputs.has(2), false);
+        await s.enter();
+        assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['1']);
+        assert.equal(s.book.current.source, source);
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-G opens a completed loop directly from its header, body, or end', async () => {
+    for (const selected of ['for i', '(array i)', 'end']) {
+        const s = scenario();
+        try {
+            await s.type('use sequences');
+            await s.enter();
+            s.book.replace('for i in 10 to 100\n  (array i) len\nend');
+            await s.enter();
+            s.book.active = 1;
+            s.book.cursor = s.book.current.source.indexOf(selected) + selected.length;
+            const cursor = s.book.cursor;
+            await s.ctrlG();
+            assert.equal(s.repl.liveIterationFocus.line, 1);
+            assert.equal(s.repl.iterationSelecting, true);
+            await s.right();
+            assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['i = 11 · iteration 2']);
+            await s.esc();
+            assert.equal(s.book.cursor, cursor);
+            assert.equal(s.repl.liveEditing, false);
+        } finally { s.session.dispose(); }
+    }
+});
+
+test('Ctrl-G selects the enclosing loop, not an earlier closed inner loop', async () => {
+    const s = scenario();
+    try {
+        await s.type('for I in 1 to 3');
+        await s.enter();
+        s.book.replace('for I in 1 to 3\n  for J in 1 to 2\n    Value = I + J\n  end\n  Other = I\nend');
+        s.book.cursor = s.book.current.source.indexOf('  end');
+        await s.ctrlR();
+        await s.ctrlG();
+        assert.equal(s.repl.liveIterationFocus.line, 2);
+        await s.esc();
+        s.book.cursor = s.book.current.source.indexOf('  Other') + 5;
+        await s.ctrlR();
+        const cursor = s.book.cursor;
+        await s.ctrlG();
+        assert.equal(s.repl.liveIterationFocus.line, 1);
+        await s.esc();
+        assert.equal(s.book.cursor, cursor);
+        assert.equal(s.repl.liveIterationFocused, false);
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-R previews code; Ctrl-G explicitly selects the loop and returns to the same cursor', async () => {
+    const s = scenario();
+    try {
+        await s.type('for I in 1 to 3');
         await s.enter();
         await s.type('Value = I * 2');
         await s.enter();
@@ -382,10 +674,16 @@ test('Ctrl-R on loop end makes arrows reevaluate its body', async () => {
 
         await s.up();
         await s.ctrlR();
+        assert.equal(s.repl.liveIterationFocused, false);
+        const cursor = s.book.cursor;
+        await s.ctrlG();
         assert.equal(s.repl.liveIterationFocused, true);
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['2']);
         await s.right();
         assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['I = 2 · iteration 2']);
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['4']);
+        await s.esc();
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.book.cursor, cursor);
     } finally { s.session.dispose(); }
 });

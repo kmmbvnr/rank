@@ -10,6 +10,7 @@ import { FileWorkflow, type SavePrompt } from './file-workflow.js';
 import { ExecutionRunner } from './execution-runner.js';
 import { LiveConditionalController } from './live-conditional-controller.js';
 import { LiveFunctionController } from './live-function-controller.js';
+import { enclosingIterationLine } from './live-preview.js';
 import { createReplSession, type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
 import { TerminalModeRouter } from './terminal-modes.js';
@@ -47,8 +48,20 @@ export class NotebookRepl {
     get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
         return this.liveFunction.fields;
     }
-    get liveIterationFocus(): { line: number; offset: number } | undefined {
-        return this.liveFunction.iterationFocus ?? this.liveConditional.iterationFocus;
+    iterationSelecting = false;
+    private stepTarget?: { id: number; source: string; cursor: number };
+    private evaluationCell?: number;
+    get advancing(): boolean {
+        return this.stepping || this.liveIterationFocused
+            || this.evaluationCell === this.notebook.current.id && this.liveEditing;
+    }
+    get stepping(): boolean {
+        return this.stepTarget?.id === this.notebook.current.id
+            && this.stepTarget.source === this.notebook.current.source && this.stepTarget.cursor === this.notebook.cursor;
+    }
+    get liveIterationFocus(): { line: number; offset: number; nextLine: number; active: boolean } | undefined {
+        const focus = this.liveFunction.iterationFocus ?? this.liveConditional.iterationFocus;
+        return focus ? { ...focus, active: this.iterationSelecting } : undefined;
     }
     get liveIterationFocused(): boolean { return this.liveIterationFocus !== undefined; }
 
@@ -96,6 +109,10 @@ export class NotebookRepl {
 
     private suggestionText = '';
     get suggestion(): string {
+        if (this.stepping) return 'Enter step · Ctrl-L run all';
+        if (this.liveIterationFocused) return this.iterationSelecting
+            ? '←/→ select · Esc edit · ^L run all'
+            : 'Enter select · Esc edit · ^L run all';
         return this.suggestionText || this.liveFunction?.status || this.liveConditional?.status || '';
     }
     set suggestion(value: string) { this.suggestionText = value; }
@@ -130,6 +147,7 @@ export class NotebookRepl {
     cancelExample(): void { this.liveFunction.cancelExample(); }
 
     cancelLiveFunction(): void {
+        this.evaluationCell = undefined;
         if (this.liveFunction.editing) this.liveFunction.cancel();
         else this.liveConditional.cancel();
         this.completion = undefined;
@@ -149,27 +167,95 @@ export class NotebookRepl {
     }
 
     releaseLiveIteration(): boolean {
+        if (this.liveIterationFocused) this.evaluationCell = this.notebook.current.id;
+        this.iterationSelecting = false;
         return this.liveFunction.releaseIteration() || this.liveConditional.releaseIteration();
     }
 
-    focusLiveIterationFromBody(): boolean {
-        return this.liveFunction.focusIterationFromBody() || this.liveConditional.focusIterationFromBody();
+    editSource(): boolean {
+        const stepping = this.stepTarget !== undefined;
+        this.stepTarget = undefined;
+        const focused = this.releaseLiveIteration();
+        const closed = this.liveFunction.leavePreview() || this.liveConditional.leavePreview();
+        this.evaluationCell = undefined;
+        if (closed) this.render();
+        return focused || closed || stepping;
     }
 
-    focusExampleFromBody(): boolean {
-        return this.liveFunction.focusExampleFromBody();
+    async selectIteration(): Promise<void> {
+        if (this.running || this.help || this.savePrompt) return;
+        if (this.liveIterationFocused) { this.iterationSelecting = true; return; }
+        const source = this.notebook.current.source;
+        const target = source.slice(0, this.notebook.cursor).split('\n').length - 1;
+        if (enclosingIterationLine(source, 0, target) === undefined) {
+            this.suggestion = 'No loop here · ^L run all';
+            return;
+        }
+        const selected = await this.liveFunction.selectIteration() || await this.liveConditional.selectIteration();
+        this.iterationSelecting = selected;
+    }
+
+    focusLiveIterationFromBody(header?: number): boolean {
+        const focused = this.liveFunction.focusIterationFromBody(header) || this.liveConditional.focusIterationFromBody(header);
+        if (focused) this.iterationSelecting = false;
+        return focused;
     }
 
     async rerun(): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
-        if (await this.liveFunction.rerun()) return false;
-        if (await this.liveConditional.rerun()) return false;
-        return this.submit(true);
+        await this.files.ready;
+        this.stepTarget = undefined;
+        this.iterationSelecting = false;
+        const book = this.notebook;
+        const firstSource = book.cells.findIndex(cell => !cell.command && cell.source.trim() !== '');
+        const firstPart = splitSource(book.current.source).find(part => part.trim() !== '');
+        const firstEnd = firstPart === undefined ? -1 : book.current.source.indexOf(firstPart) + firstPart.length;
+        if (!book.atPrompt && book.active === firstSource && book.cursor <= firstEnd) {
+            await this.execution.exclusive(async () => {
+                await this.session.resetExecution();
+                book.resetExecution();
+                this.liveFunction.invalidatePreviews();
+                this.liveConditional.invalidatePreviews();
+                await this.execution.prepareFunctions();
+            });
+        }
+        if (await this.liveFunction.rerun() || await this.liveConditional.rerun()) {
+            this.evaluationCell = book.current.id;
+            this.iterationSelecting = this.liveIterationFocused;
+            return false;
+        }
+        if (book.atPrompt || book.current.command) return this.submit(true);
+        return this.runInstruction();
+    }
+
+    private async runInstruction(): Promise<boolean> {
+        const book = this.notebook;
+        const index = book.active;
+        let offset = 0;
+        const parts = splitSource(book.current.source);
+        let selected = parts.length - 1;
+        for (const [part, source] of parts.entries()) {
+            if (book.cursor <= offset + source.length) { selected = part; break; }
+            offset += source.length + 1;
+        }
+        const source = parts[selected] ?? '';
+        const exit = await this.execution.executeOne(index, source, offset);
+        if (exit || book.current.status === 'error' || book.current.status === 'interrupted') return exit;
+        if (selected + 1 < parts.length) book.cursor = offset + source.length + 1;
+        else {
+            book.active = Math.min(index + 1, book.cells.length - 1);
+            book.cursor = book.atPrompt ? book.current.source.length : 0;
+        }
+        while (!book.atPrompt && !book.current.source.trim()) book.active++;
+        if (!book.atPrompt) this.stepTarget = { id: book.current.id, source: book.current.source, cursor: book.cursor };
+        return false;
     }
 
     async restart(): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
         await this.files.ready;
+        this.stepTarget = undefined;
+        this.evaluationCell = undefined;
         return this.execution.exclusive(async () => {
             const book = this.notebook;
             const draft = book.cells.at(-1)!.source;
@@ -227,7 +313,12 @@ export class NotebookRepl {
     /** Enter in the draft resumes the edited suffix, then evaluates the new statement. */
     async submit(force = false): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
-        if (this.examplePrompt) return this.liveFunction.acceptExample();
+        if (!force && this.stepping) return this.rerun();
+        if (this.examplePrompt) {
+            const exit = await this.liveFunction.acceptExample();
+            this.iterationSelecting = this.liveIterationFocused;
+            return exit;
+        }
         await this.files.ready;
         if (force && await this.liveFunction.forcePreview()) return false;
         if (force && await this.liveConditional.forcePreview()) return false;
@@ -252,12 +343,22 @@ export class NotebookRepl {
             if (this.liveEditing) return this.execution.execute('', false, true);
         }
         const raw = book.current.source.trim();
+        const selectedIndex = book.active;
+        const selectedCursor = book.cursor;
         const liveResult = await this.liveFunction.submit();
         if (liveResult === 'handled') return false;
-        if (liveResult === 'replay') return this.submit(true);
+        if (liveResult === 'replay') {
+            book.active = selectedIndex;
+            book.cursor = Math.min(selectedCursor, book.current.source.length);
+            return this.runInstruction();
+        }
         const conditionalResult = await this.liveConditional.submit();
         if (conditionalResult === 'handled') return false;
-        if (conditionalResult === 'replay') return this.submit(true);
+        if (conditionalResult === 'replay') {
+            book.active = selectedIndex;
+            book.cursor = Math.min(selectedCursor, book.current.source.length);
+            return this.runInstruction();
+        }
         const draft = this.session.isCommand(raw) ? raw : book.preparePrompt(line => this.session.format(line));
         if (draft === undefined) return false;
         // Commit input before replay: even if an earlier instruction fails, this text stays in the document.
@@ -411,7 +512,7 @@ async function terminalRepl(session: ReplSession): Promise<void> {
         process.off('SIGHUP', leave);
         input.setRawMode(wasRaw);
         input.pause();
-        output.write('\x1b[?2004l\x1b[?25h\x1b[?1049l');
+        output.write('\x1b[0 q\x1b[?2004l\x1b[?25h\x1b[?1049l');
         try { await fs.writeFile(historyFile(), keyRouter.history.map(item => item.replace(/\n/g, ' ')).join('\n') + '\n'); }
         catch { /* A read-only home does not prevent using the REPL. */ }
     }

@@ -85,6 +85,7 @@ export interface ScreenFrame {
     readonly cursor: { row: number; column: number };
     readonly top: number;
     readonly cursorVisible: boolean;
+    readonly cursorStyle?: 2 | 6;
 }
 
 /** Output and suggestions are model data, so old errors/listings disappear on the next frame. */
@@ -94,7 +95,8 @@ export function notebookFrame(
     breakpoints?: ReadonlyMap<number, ReadonlySet<number>>, promptLabel = 'rank> ',
     promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
     promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string }[],
-    promptOutputFocus?: { readonly line: number; readonly offset: number },
+    promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
+    stepping = false,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -102,12 +104,16 @@ export function notebookFrame(
     const rows: string[] = [];
     let caret = { row: 0, column: gutter };
     let errorEnd: number | undefined;
+    let nextEvalRow: number | undefined;
+    let nextEvalSourceLine: number | undefined;
     const dirty = notebook.dirtyFrom;
     for (const [index, cell] of notebook.cells.entries()) {
         const pending = dirty >= 0 && index >= dirty && index < notebook.cells.length - 1;
         const prompt = index === notebook.cells.length - 1;
         const live = index === notebook.active && (promptOutputs !== undefined || promptFields !== undefined);
         const editingField = live && promptFields?.some(field => field.active);
+        const nextEvalLine = index === notebook.active && !editingField && (live || stepping)
+            ? promptOutputFocus?.nextLine ?? cell.source.slice(0, notebook.cursor).split('\n').length : undefined;
         const label = prompt ? promptLabel : `●${String(index + 1).padStart(3)}› `;
         const color = cell.status === 'running' || cell.status === 'interrupted' ? '\x1b[33m'
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
@@ -118,19 +124,25 @@ export function notebookFrame(
         for (const [line, item] of sourceRows.entries()) {
             const offset = item.points[0]?.offset ?? 0;
             const sourceLine = cell.source.slice(0, offset).split('\n').length;
+            const firstVisualRow = line === 0 || sourceLine !== cell.source.slice(0,
+                sourceRows[line - 1].points[0]?.offset ?? 0).split('\n').length;
+            const nextEval = sourceLine === nextEvalLine && firstVisualRow && !(prompt && line === labelRow);
             const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
             const liveProgress = live && !editingField && !breakpoint;
             const hiddenFocusedDraft = promptOutputFocus && item.text.trim() === '';
-            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+            const prefix = (nextEval ? breakpoint ? '  ◆ ▶ ' : line === labelRow ? '▶' + label.slice(1) : '    ▶ '
+                : breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
                 : liveProgress ? '    ● '
                 : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
             const progress = promptOutputs?.get(sourceLine);
             const progressColor = progress?.some(output => output.error) ? '\x1b[31m'
                 : progress ? '\x1b[38;5;208m' : '\x1b[90m';
-            const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
+            const painted = nextEval ? '\x1b[36m' + prefix + '\x1b[0m'
+                : breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
                 : liveProgress ? progressColor + prefix + '\x1b[0m'
                 : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
+            if (nextEval) { nextEvalRow = rows.length; nextEvalSourceLine = sourceLine; }
             rows.push((gutter > 0 ? painted : '') + item.text);
             if (index === notebook.active && !editingField && !promptOutputFocus) {
                 const point = item.points.find(point => point.offset === notebook.cursor);
@@ -149,7 +161,7 @@ export function notebookFrame(
                     const outputWidth = output.error ? Math.min(width, 40) - gutter - indent : bodyWidth - indent;
                     const layout = output.error ? errorRows : editableRows;
                     for (const result of layout(clean(output.inlineText ?? output.text), Math.max(1, outputWidth))) {
-                        rows.push((output.error ? '\x1b[31m' : '\x1b[90m')
+                        rows.push((output.error ? '\x1b[31m' : promptOutputFocus?.active && promptOutputFocus.line === sourceLine ? '\x1b[7m' : '\x1b[90m')
                             + clipped(marker + result.text, width) + '\x1b[0m');
                         if (!output.error && promptOutputFocus?.line === sourceLine) {
                             const point = result.points.find(point => point.offset === promptOutputFocus.offset);
@@ -177,8 +189,8 @@ export function notebookFrame(
             }
         }
         for (const output of live ? [] : cell.output) {
-            const marker = output.error && gutter > 0
-                ? (' '.repeat(gutter) + '! ').slice(-gutter) : ' '.repeat(gutter);
+            const marker = (output.error || pending) && gutter > 0
+                ? (' '.repeat(gutter) + (output.error ? '! ' : '~ ')).slice(-gutter) : ' '.repeat(gutter);
             const text = clean(output.inlineText ?? output.text);
             const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
             const layout = output.error ? errorRows : editableRows;
@@ -194,6 +206,11 @@ export function notebookFrame(
     let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - viewportHeight)));
     if (followCursor && caret.row < top) top = caret.row;
     if (followCursor && caret.row >= top + viewportHeight) top = caret.row - viewportHeight + 1;
+    if (followCursor && promptOutputFocus && nextEvalRow !== undefined
+        && Math.abs(nextEvalRow - caret.row) < viewportHeight) {
+        top = Math.min(top, Math.min(nextEvalRow, caret.row));
+        top = Math.max(top, Math.max(nextEvalRow, caret.row) - viewportHeight + 1);
+    }
     if (followCursor && errorEnd !== undefined) {
         // Include the prompt if the suffix fits. For a taller diagnostic, keep the
         // failing line visible and leave the remaining output available to Page Down.
@@ -204,10 +221,13 @@ export function notebookFrame(
     while (lines.length < viewportHeight) lines.push('');
     if (footerRows) {
         const footerWidth = Math.min(40, width);
-        const status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
+        let status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
             : suggestion || (notebook.atPrompt
-                ? 'Enter run · help'
-                : 'Ctrl-R rerun · Ctrl-L restart · help');
+                ? 'Ctrl-L run all'
+                : 'Ctrl-R run · Ctrl-L run all');
+        if (followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
+            && (nextEvalRow < top || nextEvalRow >= top + viewportHeight))
+            status = `▶ line ${nextEvalSourceLine} · ${promptOutputFocus.active ? '←/→' : 'Enter'} · Esc · ^L run all`;
         let label = running ? '' : fileStatus;
         if (label && followCursor) {
             const available = footerWidth - stringWidth(status) - 3;
@@ -222,7 +242,9 @@ export function notebookFrame(
         lines.push(clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth));
     }
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
-        top, cursorVisible: caret.row >= top && caret.row < top + viewportHeight };
+        top, cursorVisible: caret.row >= top && caret.row < top + viewportHeight,
+        cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
+            : promptOutputs || notebook.atPrompt || stepping ? 2 : 6 };
 }
 
 /** Saving has its own filename editor and never changes the source cursor. */
@@ -316,6 +338,6 @@ export function helpFrame(text: string, columns: number, height: number, previou
 export function drawFrame(frame: ScreenFrame): string {
     let text = '\x1b[?25l';
     for (const [index, line] of frame.lines.entries()) text += `\x1b[${index + 1};1H\x1b[2K${line}`;
-    return text + `\x1b[${frame.cursor.row + 1};${frame.cursor.column + 1}H`
+    return text + `\x1b[${frame.cursorStyle ?? 6} q` + `\x1b[${frame.cursor.row + 1};${frame.cursor.column + 1}H`
         + (frame.cursorVisible ? '\x1b[?25h' : '');
 }

@@ -90,19 +90,19 @@ test('a non-boolean if condition reports its error on the condition line', async
     } finally { s.session.dispose(); }
 });
 
-test('the live status explains what Enter will do on the current line', async () => {
+test('the live status keeps a compact run hint on every conditional line', async () => {
     const s = scenario();
     try {
         await s.line('if true');
-        assert.match(s.repl.suggestion, /Enter keep blank line/);
+        assert.equal(s.repl.suggestion, 'Enter try · ^L run all');
         s.repl.notebook.insert('X = 1');
-        assert.match(s.repl.suggestion, /Enter evaluate line/);
+        assert.equal(s.repl.suggestion, 'Enter try · ^L run all');
         await s.repl.submit();
         s.repl.notebook.insert('else');
-        assert.match(s.repl.suggestion, /Enter enter branch/);
+        assert.equal(s.repl.suggestion, 'Enter try · ^L run all');
         await s.repl.submit();
         s.repl.notebook.insert('end');
-        assert.match(s.repl.suggestion, /Enter apply end/);
+        assert.equal(s.repl.suggestion, 'Enter try · ^L run all');
     } finally { s.session.dispose(); }
 });
 
@@ -170,7 +170,7 @@ test('a collection loop previews one selected iteration and waits for explicit r
     try {
         await s.line('for I in 1 to 3');
         assert.deepEqual(s.output(1), ['I = 1 · iteration 1']);
-        assert.equal(s.repl.releaseLiveIteration(), true);
+        assert.equal(s.repl.releaseLiveIteration(), false);
         await s.line('Value = I * 2');
         assert.deepEqual(s.output(2), ['2']);
 
@@ -181,7 +181,7 @@ test('a collection loop previews one selected iteration and waits for explicit r
         assert.equal(s.repl.notebook.current.source, source);
         assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
         assert.equal(s.repl.liveOutputs.has(2), false, 'selecting must clear stale body previews');
-        assert.match(s.repl.suggestion, /iteration 2 · ←\/→ select · Enter body/);
+        assert.match(s.repl.suggestion, /Enter select/);
 
         assert.equal(s.repl.releaseLiveIteration(), true);
         await s.repl.submit();
@@ -225,7 +225,7 @@ test('a nested if follows the selected function-loop iteration', async () => {
         s.repl.exampleEditor.insert('3');
         await s.repl.submit();
         await s.line('for I in 1 to N');
-        assert.equal(s.repl.releaseLiveIteration(), true);
+        assert.equal(s.repl.releaseLiveIteration(), false);
         await s.line('if I equal 2');
         await s.line('Seen = I');
         assert.deepEqual(s.output(3), ['false · branch skipped']);
@@ -251,9 +251,9 @@ test('a nested loop keeps its own selected iteration for each outer value', asyn
     const s = scenario();
     try {
         await s.line('for I in 1 to 2');
-        assert.equal(s.repl.releaseLiveIteration(), true);
+        assert.equal(s.repl.releaseLiveIteration(), false);
         await s.line('for J in 3 to 4');
-        assert.equal(s.repl.releaseLiveIteration(), true);
+        assert.equal(s.repl.releaseLiveIteration(), false);
         await s.line('Value = I * 10 + J');
         let source = s.repl.notebook.current.source;
         s.repl.notebook.cursor = source.indexOf('Value = I * 10 + J') + 'Value = I * 10 + J'.length;
@@ -267,7 +267,7 @@ test('a nested loop keeps its own selected iteration for each outer value', asyn
         await s.line('end');
 
         source = s.repl.notebook.current.source;
-        s.repl.notebook.cursor = source.indexOf('for J in 3 to 4') + 'for J in 3 to 4'.length;
+        s.repl.notebook.cursor = source.indexOf('for I in 1 to 2') + 'for I in 1 to 2'.length;
         assert.equal(s.repl.focusLiveIterationFromBody(), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
         assert.equal(s.repl.releaseLiveIteration(), true);
@@ -283,7 +283,7 @@ test('Ctrl-R on a loop end lets arrows reevaluate its completed body', async () 
     const s = scenario();
     try {
         await s.line('for I in 1 to 3');
-        assert.equal(s.repl.releaseLiveIteration(), true);
+        assert.equal(s.repl.releaseLiveIteration(), false);
         await s.line('Value = I * 2');
         await s.line('end');
         assert.equal(s.repl.liveEditing, false);
@@ -292,10 +292,12 @@ test('Ctrl-R on a loop end lets arrows reevaluate its completed body', async () 
         const source = s.repl.notebook.current.source;
         s.repl.notebook.cursor = source.lastIndexOf('end') + 3;
         await s.repl.rerun();
-        assert.equal(s.repl.liveIterationFocused, true);
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.repl.focusLiveIterationFromBody(), true);
+        s.repl.iterationSelecting = true;
         assert.deepEqual(s.output(1), ['I = 1 · iteration 1']);
         assert.deepEqual(s.output(2), ['2']);
-        assert.match(s.repl.suggestion, /select \+ evaluate body/);
+        assert.match(s.repl.suggestion, /←\/→ select/);
 
         assert.equal(await s.repl.moveLiveIteration(1), true);
         assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
