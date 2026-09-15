@@ -94,7 +94,6 @@ export function notebookFrame(
             : pending || cell.status === 'idle' ? '\x1b[90m' : '\x1b[32m';
         const sourceRows = editableRows(cell.source, bodyWidth);
         const labelRow = prompt ? 0 : sourceRows.findIndex(row => row.text.trim() !== '');
-        const activeSourceLine = cell.source.slice(0, notebook.cursor).split('\n').length;
         for (const [line, item] of sourceRows.entries()) {
             const offset = item.points[0]?.offset ?? 0;
             const sourceLine = cell.source.slice(0, offset).split('\n').length;
@@ -105,8 +104,7 @@ export function notebookFrame(
                 : liveProgress ? '    ● '
                 : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
-            const progressColor = sourceLine === activeSourceLine ? '\x1b[33m'
-                : promptOutputs?.has(sourceLine) ? '\x1b[32m' : '\x1b[90m';
+            const progressColor = promptOutputs?.has(sourceLine) ? '\x1b[32m' : '\x1b[90m';
             const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
                 : liveProgress ? progressColor + prefix + '\x1b[0m'
                 : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;

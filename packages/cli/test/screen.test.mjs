@@ -49,7 +49,7 @@ test('pause footer shows an unknown-key status', () => {
     assert.equal(frame.lines.at(-1), 'Unknown key: x');
 });
 
-test('live replay marks evaluated, current and remaining source lines', () => {
+test('live replay marks evaluated lines green and remaining lines gray', () => {
     const book = new Notebook();
     book.replace('fun inspect N\n  A = N + 1\n  B = A * 2\nend');
     book.cursor = book.current.source.indexOf('B =') + 'B = A * 2'.length;
@@ -59,11 +59,11 @@ test('live replay marks evaluated, current and remaining source lines', () => {
     const sourceLine = value => frame.lines.find(line => line.includes(value));
     assert.match(sourceLine('fun inspect'), /\x1b\[32m/);
     assert.match(sourceLine('A = N'), /\x1b\[32m/);
-    assert.match(sourceLine('B = A'), /\x1b\[33m/);
+    assert.match(sourceLine('B = A'), /\x1b\[90m/);
     assert.match(sourceLine('end'), /\x1b\[90m/);
 });
 
-test('moving through executed source does not create a yellow live marker', () => {
+test('moving through executed source does not create a live marker', () => {
     const book = new Notebook();
     book.enqueue('A = 1\nB = A + 1');
     book.cells[0].executed = book.cells[0].source;
@@ -71,7 +71,19 @@ test('moving through executed source does not create a yellow live marker', () =
     book.active = 0;
     book.cursor = book.cells[0].source.indexOf('B =');
     const frame = notebookFrame(book, 60, 10);
-    assert.doesNotMatch(frame.lines.join('\n'), /\x1b\[33m/);
+    assert.doesNotMatch(frame.lines.join('\n'), /\x1b\[(?:33|90)m\s+●/);
+});
+
+test('iteration-field focus keeps the pending body gray until Enter', () => {
+    const book = new Notebook();
+    book.replace('for i in 1 to 10\n  A = i\nend');
+    book.cursor = book.current.source.indexOf('A = i') + 'A = i'.length;
+    const outputs = new Map([[1, [{ text: 'i = 5 · iteration 5', error: false }]]]);
+    const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',
+        undefined, 'rank> ', outputs, undefined, { line: 1, offset: 5 });
+    const body = frame.lines.find(line => line.includes('A = i'));
+    assert.match(body, /\x1b\[90m/);
+    assert.doesNotMatch(body, /\x1b\[33m/);
 });
 
 async function draw(terminal, book, top = 0, hint = '', running = false) {
