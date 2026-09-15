@@ -18,6 +18,15 @@ and leaving a line preserves its edits. Enter inside earlier source inserts a
 newline. Esc returns to the bottom prompt; when a completion is visible, the
 first Esc dismisses it.
 
+Up above the first source row opens a blank instruction before it, so imports
+can be added above an unfinished first block. Up on that empty instruction does
+not add more rows. The existing block retains its draft and live editing state.
+
+Leaving an unfinished live block to edit earlier source suspends its live controls
+and preserves the draft. Enter in earlier source edits that instruction; Ctrl-R
+executes the pending instructions above the draft without submitting it. Returning
+to the unfinished block resumes its live controls.
+
 Submitting a draft adds it to the document **before** execution starts. If earlier
 source changed, execution starts at the earliest changed instruction, continues
 through the following instructions, then reaches the newly submitted one. An
@@ -25,6 +34,13 @@ empty Enter at the bottom resumes pending work. When nothing is pending, it adds
 a blank source line.
 Blank lines have no status circle and are saved as spacing, without execution.
 Ctrl-R returns to the bottom prompt and submits it as well.
+
+Ctrl-L restarts the document from fresh interpreter state, resetting variables,
+generators, and execution provenance. It runs current source from the beginning
+and stops at the first error. A complete bottom draft is included; an unfinished
+draft is preserved for further editing, with its old live previews cleared.
+The restart does not save or reload the file and preserves its saved/unsaved
+status. External effects from the previous run are not undone.
 
 The first error stops replay and places the cursor at the end of the failing line
 when its location belongs to the current instruction. Later instructions, including
@@ -52,13 +68,33 @@ Each instruction starts with a filled circle:
 - Gray: needs execution. Editing an instruction marks it and everything below it
   pending, even if the later source did not change.
 - Yellow: currently executing.
-- Green: finished successfully.
+- Green: finished successfully in sequence from fresh interpreter state.
+- Orange: finished after replaying previously executed code against retained
+  state. The replayed instruction and subsequent results, including new
+  instructions, keep this provenance until the document is loaded into a fresh
+  interpreter or restarted with Ctrl-L. This is conservative and does not analyze side effects.
 - Red: execution stopped with an error.
+
+Live line previews also use orange for evaluated lines, red for errors, and gray
+for lines not yet evaluated. They are experiments, not a sequential document run.
+Navigation and editing alone do not change execution provenance. Pending edited
+instructions remain gray until execution; errors and running states take priority.
 
 Each run replaces that instruction's previous output. A successful correction
 therefore removes the old error. Output below the first error retains its previous
 value until rerun; its gray instruction circle identifies it as pending.
 Normal output is gray; error output is red.
+Errors in the REPL source show only their type and message inline; the repeated
+`error: RankError` prefix is omitted (for example, `TypeError: ...`). The
+path, source excerpt, and caret are omitted. Errors originating in imported files
+retain their location. Full diagnostics remain available in session output for
+non-interactive execution.
+Live expression errors retain the evaluated expression with its parentheses,
+without the generated preview variable assignment.
+Inline errors wrap within 40 display columns including their gutter and indentation,
+or within the terminal width when it is narrower.
+Messages wrap at word boundaries; a word is split only when it cannot fit on a
+line by itself.
 Displaying a generator shows its unread tail without consuming it. After the
 generator has been fully consumed, displaying its name produces an empty result.
 

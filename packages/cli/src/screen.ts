@@ -56,6 +56,26 @@ export function editableRows(source: string, columns: number): TextRow[] {
 }
 
 function clean(text: string): string { return stripVTControlCharacters(text).replace(/\r/g, ''); }
+
+/** Diagnostics wrap at spaces; only an oversized word needs a hard break. */
+function errorRows(text: string, columns: number): TextRow[] {
+    const rows: TextRow[] = [];
+    for (let line of text.split('\n')) {
+        while (true) {
+            const first = editableRows(line, columns)[0];
+            const end = first.points.at(-1)!.offset;
+            if (end === line.length) {
+                rows.push(first);
+                break;
+            }
+            const space = line.lastIndexOf(' ', end);
+            const boundary = space > 0 ? space : end;
+            rows.push({ text: boundary === end ? first.text.trimEnd() : line.slice(0, boundary).trimEnd(), points: [] });
+            line = line.slice(boundary).trimStart();
+        }
+    }
+    return rows;
+}
 export function clipped(text: string, width: number): string {
     return editableRows(clean(text), Math.max(1, width))[0].text;
 }
@@ -72,7 +92,7 @@ export function notebookFrame(
     notebook: Notebook, columns: number, height: number, previousTop = 0,
     suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
     breakpoints?: ReadonlyMap<number, ReadonlySet<number>>, promptLabel = 'rank> ',
-    promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean }[]>,
+    promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
     promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string }[],
     promptOutputFocus?: { readonly line: number; readonly offset: number },
 ): ScreenFrame {
@@ -91,7 +111,8 @@ export function notebookFrame(
         const label = prompt ? promptLabel : `●${String(index + 1).padStart(3)}› `;
         const color = cell.status === 'running' || cell.status === 'interrupted' ? '\x1b[33m'
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
-            : pending || cell.status === 'idle' ? '\x1b[90m' : '\x1b[32m';
+            : pending || cell.status === 'idle' ? '\x1b[90m'
+            : !cell.command && notebook.isExperimental(index) ? '\x1b[38;5;208m' : '\x1b[32m';
         const sourceRows = editableRows(cell.source, bodyWidth);
         const labelRow = prompt ? 0 : sourceRows.findIndex(row => row.text.trim() !== '');
         for (const [line, item] of sourceRows.entries()) {
@@ -104,7 +125,9 @@ export function notebookFrame(
                 : liveProgress ? '    ● '
                 : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
-            const progressColor = promptOutputs?.has(sourceLine) ? '\x1b[32m' : '\x1b[90m';
+            const progress = promptOutputs?.get(sourceLine);
+            const progressColor = progress?.some(output => output.error) ? '\x1b[31m'
+                : progress ? '\x1b[38;5;208m' : '\x1b[90m';
             const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
                 : liveProgress ? progressColor + prefix + '\x1b[0m'
                 : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
@@ -123,7 +146,9 @@ export function notebookFrame(
                     const marker = output.error && gutter > 0
                         ? (' '.repeat(gutter + indent) + '! ').slice(-(gutter + indent))
                         : ' '.repeat(gutter + indent);
-                    for (const result of editableRows(clean(output.text), Math.max(1, bodyWidth - indent))) {
+                    const outputWidth = output.error ? Math.min(width, 40) - gutter - indent : bodyWidth - indent;
+                    const layout = output.error ? errorRows : editableRows;
+                    for (const result of layout(clean(output.inlineText ?? output.text), Math.max(1, outputWidth))) {
                         rows.push((output.error ? '\x1b[31m' : '\x1b[90m')
                             + clipped(marker + result.text, width) + '\x1b[0m');
                         if (!output.error && promptOutputFocus?.line === sourceLine) {
@@ -145,7 +170,7 @@ export function notebookFrame(
                         }
                     }
                     if (field.error) {
-                        for (const errorRow of editableRows('! ' + clean(field.error), bodyWidth))
+                        for (const errorRow of errorRows('! ' + clean(field.error), Math.max(1, Math.min(width, 40) - gutter)))
                             rows.push('\x1b[31m' + ' '.repeat(gutter) + errorRow.text + '\x1b[0m');
                     }
                 }
@@ -154,8 +179,10 @@ export function notebookFrame(
         for (const output of live ? [] : cell.output) {
             const marker = output.error && gutter > 0
                 ? (' '.repeat(gutter) + '! ').slice(-gutter) : ' '.repeat(gutter);
-            const text = clean(output.text);
-            for (const item of editableRows(text, bodyWidth)) {
+            const text = clean(output.inlineText ?? output.text);
+            const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
+            const layout = output.error ? errorRows : editableRows;
+            for (const item of layout(text, outputWidth)) {
                 rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + clipped(marker + item.text, width) + '\x1b[0m');
             }
         }
@@ -180,7 +207,7 @@ export function notebookFrame(
         const status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
             : suggestion || (notebook.atPrompt
                 ? 'Enter run · help'
-                : 'Ctrl-R rerun · help');
+                : 'Ctrl-R rerun · Ctrl-L restart · help');
         let label = running ? '' : fileStatus;
         if (label && followCursor) {
             const available = footerWidth - stringWidth(status) - 3;

@@ -50,7 +50,7 @@ function completeLoadPath(typed: string): [string[], string] {
     } catch { return [[], typed]; }
 }
 
-export interface OutputLine { readonly text: string; readonly error: boolean }
+export interface OutputLine { readonly text: string; readonly error: boolean; readonly inlineText?: string }
 export interface ProgramFile { readonly path: string; readonly source: string }
 export interface Execution {
     readonly source: string;
@@ -87,23 +87,27 @@ export function createReplSession() {
     let interpreter = createInterpreter();
     let aliases = true;
     let last: RankValue | undefined;
+    const resetExecution = (): void => {
+        try { replay.dispose(); } finally { interpreter.dispose(); }
+        replay = new SequenceReplay();
+        interpreter = createInterpreter();
+        aliases = true;
+        last = undefined;
+        declarations.clear();
+        output = [];
+        errorOffset = undefined;
+        loadedFile = undefined;
+    };
 
     return {
+        resetExecution,
         get savedFile() { return savedFile; },
         get names() { return [...interpreter.bindingNames()]; },
         snapshot(): SessionSnapshot {
             return { names: [...interpreter.variables.keys()], modules: [...interpreter.modules], aliases, savedFile };
         },
         replaceFile(file: ProgramFile): void {
-            try { replay.dispose(); } finally { interpreter.dispose(); }
-            replay = new SequenceReplay();
-            interpreter = createInterpreter();
-            aliases = true;
-            last = undefined;
-            declarations.clear();
-            output = [];
-            errorOffset = undefined;
-            loadedFile = undefined;
+            resetExecution();
             const source = file.source.replace(/\r\n?/g, '\n');
             savedFile = { path: file.path, source: source && !source.endsWith('\n') ? source + '\n' : source };
         },
@@ -241,7 +245,15 @@ export function createReplSession() {
             return false;
         }
         const message = error instanceof RankError ? error.format() : String(error);
-        warn(chalk.red(`error: ${message}`));
+        const previewExpression = error instanceof RankError
+            ? /^\s*RankReplPreviewValue = \((.*)\)\s*$/.exec(error.location?.sourceLine ?? '')?.[1]
+            : undefined;
+        output.push({
+            text: chalk.red(`error: ${message}`), error: true,
+            ...(error instanceof RankError && error.location?.sourceId === path.join(process.cwd(), '<repl>')
+                ? { inlineText: `${error.rankKind}: ${error.message}`
+                    + (previewExpression ? `\n${previewExpression}` : '') } : {}),
+        });
         return false;
     }
 
@@ -350,6 +362,8 @@ export function createReplSession() {
             '  Enter at rank> runs a statement.',
             '  Inside earlier code Enter adds a line.',
             '  Ctrl-R runs edits and returns to rank>.',
+            '  Ctrl-L runs the document from fresh state.',
+            '  An unfinished bottom draft stays editable.',
             '  Up/Down move through text and cells.',
             '  Tab completes; Esc hides suggestions.',
             '  Esc returns to the bottom prompt.',
@@ -379,7 +393,9 @@ export function createReplSession() {
             '  Enter reruns from the first edit down.',
             '  Each run replaces its previous output.',
             '  Gray circles need execution; green',
-            '  circles succeeded; red marks an error.',
+            '  means a sequential run in fresh state.',
+            '  Orange: replayed state or live preview.',
+            '  Red marks an error.',
             '  Replay stops at the first error.',
             '',
             'Input',

@@ -71,6 +71,7 @@ export class ExecutionRunner {
                 } else book.toPrompt();
                 return exit;
             }
+            book.beginExecution(start);
             this.session.rewind(book.cells[start].id);
             await this.prepareFunctions(start);
             const end = book.cells.length - 1;

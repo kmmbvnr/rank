@@ -3,7 +3,8 @@ import { createReplSession, type Execution } from './repl-session.js';
 
 type FunctionPreparation = ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>;
 
-export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview'> & {
+export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview' | 'resetExecution'> & {
+    resetExecution: () => void | Promise<void>;
     readonly names: string[];
     prepareFunctions: (cells: { id: number; source: string }[]) => FunctionPreparation | Promise<FunctionPreparation>;
     preview: (text: string, columns?: number) => Execution | Promise<Execution>;

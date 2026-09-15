@@ -27,6 +27,7 @@ port.on('message', ({ id, method, args }) => {
                     case 'preview': return session.preview(...args as Parameters<typeof session.preview>);
                     case 'setDebugBreakpoints': breakpoints = args[0]; return;
                     case 'rewind': return session.rewind(args[0]);
+                    case 'resetExecution': return session.resetExecution();
                     case 'prepareFunctions': return session.prepareFunctions(args[0]);
                     case 'replaceFile': return session.replaceFile(args[0]);
                     case 'saveFile': return session.saveFile(args[0], args[1]);

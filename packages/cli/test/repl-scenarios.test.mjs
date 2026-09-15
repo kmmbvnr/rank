@@ -48,6 +48,109 @@ function scenario() {
     return { session, repl, book, trace, type, clear, backspace, enter, ctrlR, up, down, left, right };
 }
 
+test('Ctrl-L resets retained state, runs the entire document and clears orange provenance', async () => {
+    const s = scenario();
+    try {
+        for (const source of ['Count = 0', 'Count += 1', 'Count']) {
+            await s.type(source);
+            await s.enter();
+        }
+        s.book.replayFrom = 1;
+        await s.enter();
+        assert.equal(s.book.cells[2].output[0].text, '2');
+        assert.equal(s.book.isExperimental(2), true);
+        s.book.active = 1;
+        const router = new KeyRouter(s.repl);
+        await router.press('\x0c', { ctrl: true, name: 'l' });
+        assert.equal(s.book.cells[2].output[0].text, '1');
+        assert.equal(s.book.isExperimental(2), false);
+        assert.ok(s.book.cells.slice(0, -1).every(cell => cell.status === 'ok'));
+        await s.type('Count + 10');
+        await router.press('\x0c', { ctrl: true, name: 'l' });
+        assert.equal(s.book.cells.at(-2).output[0].text, '11');
+        assert.equal(s.book.current.source, '');
+    } finally { s.session.dispose(); }
+});
+
+test('Ctrl-L preserves an unfinished live draft and stops at errors above it', async () => {
+    const s = scenario();
+    try {
+        await s.type('A = 1');
+        await s.enter();
+        await s.type('fun example');
+        await s.enter();
+        await s.type('B = A + 1');
+        await s.enter();
+        const draft = s.book.current.source;
+        await new KeyRouter(s.repl).press('\x0c', { ctrl: true, name: 'l' });
+        assert.equal(s.book.current.source, draft);
+        assert.equal(s.repl.liveEditing, true);
+        assert.equal(s.repl.liveOutputs.size, 0);
+        s.book.active = 0;
+        s.book.replace('A = Missing');
+        await s.repl.restart();
+        assert.equal(s.book.cells[0].status, 'error');
+        assert.equal(s.book.cells.at(-1).source, draft);
+    } finally { s.session.dispose(); }
+});
+
+test('an unfinished loop survives adding an import above it and resumes after replay', async () => {
+    const s = scenario();
+    try {
+        for (const source of ['use numbers', 'use io', 'Threshold = 1000000', 'Answer = 0']) {
+            await s.type(source);
+            await s.enter();
+        }
+        await s.type('for N in 1 to 100');
+        await s.enter();
+        await s.enter(); // leave the iteration selector
+        await s.type('K = 0 to N');
+        await s.enter();
+        const draft = s.book.current.source;
+        while (s.book.active > 1) await s.up();
+        assert.equal(s.repl.liveEditing, false);
+        assert.equal(s.repl.liveOutputs, undefined);
+        s.book.lineEdge(true);
+        await s.enter();
+        await s.type('use sequences');
+        assert.equal(s.book.cells.at(-1).source, draft);
+        await s.ctrlR();
+        assert.equal(s.book.cells.at(-1).source, draft);
+        assert.equal(s.book.cells[1].status, 'ok');
+        s.book.toPrompt();
+        assert.equal(s.repl.liveEditing, true);
+        if (s.repl.liveIterationFocused) await s.enter();
+        await s.type('Choices = N K binomial');
+        await s.enter();
+        assert.ok(s.book.current.source.includes('Choices = N K binomial'));
+        assert.ok(s.book.current.source.startsWith('for N in 1 to 100\n'));
+    } finally { s.session.dispose(); }
+});
+
+test('an unfinished function is suspended while editing an earlier instruction', async () => {
+    const s = scenario();
+    try {
+        await s.type('A = 1');
+        await s.enter();
+        await s.type('fun example');
+        await s.enter();
+        await s.type('B = A + 1');
+        await s.enter();
+        const draft = s.book.current.source;
+        while (s.book.active > 0) await s.up();
+        assert.equal(s.repl.liveEditing, false);
+        s.book.lineEdge(true);
+        await s.enter();
+        await s.type('C = 2');
+        await s.ctrlR();
+        assert.equal(s.book.cells.at(-1).source, draft);
+        assert.equal(s.repl.liveEditing, true);
+        await s.type('return B');
+        await s.enter();
+        assert.ok(s.book.current.source.includes('return B'));
+    } finally { s.session.dispose(); }
+});
+
 test('generated live-function editing scenarios recover from likely user mistakes', async () => {
     let cases = 0;
     for (const headerTypo of [false, true]) {
@@ -153,6 +256,61 @@ test('real key routing edits all argument fields and returns from the body to th
         assert.equal(s.repl.liveOutputs.has(2), false, 'selected body line waits for Enter');
         await s.enter();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['7']);
+    } finally { s.session.dispose(); }
+});
+
+test('Up above the first unfinished block inserts an import without losing live editing', async () => {
+    for (const header of ['for i in 1 to 10', 'fun example']) {
+        const s = scenario();
+        try {
+            await s.type(header);
+            await s.enter();
+            if (s.repl.liveIterationFocused) await s.enter();
+            await s.type('(array 1) count');
+            const draft = s.book.current.source;
+            const draftId = s.book.current.id;
+            for (let guard = 0; guard < 5 && s.book.cells.length === 1; guard++) await s.up();
+            assert.equal(s.book.cells.length, 2);
+            assert.equal(s.book.active, 0);
+            assert.equal(s.book.current.source, '');
+            assert.equal(s.repl.liveEditing, false);
+            await s.up();
+            assert.equal(s.book.cells.length, 2, 'Up on the blank insertion row does not add more rows');
+            await s.type('use sequences');
+            await s.ctrlR();
+            assert.equal(s.book.cells[0].status, 'ok');
+            assert.equal(s.book.current.id, draftId);
+            assert.equal(s.book.current.source, draft);
+            assert.equal(s.repl.liveEditing, true);
+            await s.enter();
+            const errors = [...s.repl.liveOutputs.values()].flat().filter(line => line.error);
+            assert.ok(errors.some(line => line.text.includes('count expects boolean values')));
+            assert.ok(errors.every(line => !line.text.includes('unknown name: count')));
+            assert.equal(s.book.cells.at(-1).id, draftId);
+        } finally { s.session.dispose(); }
+    }
+});
+
+test('Up leaves the iteration field through the loop header without losing the draft', async () => {
+    const s = scenario();
+    try {
+        await s.type('use sequences');
+        await s.enter();
+        await s.type('for i in 1 to 10');
+        await s.enter();
+        await s.enter();
+        await s.type('(array i) count');
+        const draft = s.book.current.source;
+        await s.up();
+        assert.equal(s.repl.liveIterationFocused, true);
+        await s.up();
+        assert.equal(s.repl.liveIterationFocused, false);
+        assert.equal(s.book.cursor, 'for i in 1 to 10'.length);
+        await s.up();
+        assert.equal(s.book.active, 0);
+        assert.equal(s.repl.liveEditing, false);
+        assert.equal(s.book.cells.at(-1).source, draft);
+        assert.equal(s.book.cells.at(-1).output.length, 0);
     } finally { s.session.dispose(); }
 });
 

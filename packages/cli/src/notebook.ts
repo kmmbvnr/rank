@@ -60,6 +60,7 @@ export class Notebook {
     cursor = 0;
     replayFrom?: number;
     private nextId = 0;
+    private experimentalFrom?: number;
     private preferredColumn?: number;
     private readonly undoStack = new Map<number, Edit[]>();
     private readonly redoStack = new Map<number, Edit[]>();
@@ -71,6 +72,7 @@ export class Notebook {
         this.undoStack.clear();
         this.redoStack.clear();
         this.replayFrom = undefined;
+        this.experimentalFrom = undefined;
         this.nextId = 0;
         this.append();
         this.toPrompt();
@@ -82,6 +84,29 @@ export class Notebook {
             && cell.executed !== cell.source && !cell.command);
         return this.replayFrom === undefined ? changed
             : changed < 0 ? this.replayFrom : Math.min(changed, this.replayFrom);
+    }
+
+    /** Replaying against retained state breaks the sequential-run provenance. */
+    beginExecution(start: number): void {
+        if (this.cells.slice(start, -1).some(cell => !cell.command && cell.executed?.trim())) {
+            this.experimentalFrom = Math.min(this.experimentalFrom ?? Infinity, this.cells[start].id);
+        }
+    }
+
+    isExperimental(index: number): boolean {
+        return this.experimentalFrom !== undefined && this.cells[index].id >= this.experimentalFrom;
+    }
+
+    resetExecution(): void {
+        this.experimentalFrom = undefined;
+        this.replayFrom = undefined;
+        for (const cell of this.cells) {
+            if (cell.command) continue;
+            cell.executed = undefined;
+            cell.output = [];
+            cell.errorOffset = undefined;
+            cell.status = 'idle';
+        }
     }
 
     enqueue(source: string, fileSource = false): void {
@@ -193,7 +218,7 @@ export class Notebook {
         this.preferredColumn = undefined;
     }
 
-    vertical(direction: number, columns: number): void {
+    vertical(direction: number, columns: number, allowPrepend = false): void {
         const rows = editableRows(this.current.source, columns);
         // At a wrap boundary the caret belongs to the following visual row.
         let row = 0;
@@ -206,6 +231,15 @@ export class Notebook {
         if (!target) {
             let next = this.active + direction;
             while (next >= 0 && next < this.cells.length && this.cells[next].command) next += direction;
+            if (next < 0 && allowPrepend && this.current.source.trim() !== '') {
+                this.cells.unshift({ id: this.cells[0].id - 1, source: '', executed: '',
+                    output: [], command: false, status: 'idle' });
+                if (this.replayFrom !== undefined) this.replayFrom += 1;
+                this.active = 0;
+                this.cursor = 0;
+                this.preferredColumn = undefined;
+                return;
+            }
             if (next < 0 || next >= this.cells.length) return;
             const fromPrompt = this.atPrompt;
             this.active = next;

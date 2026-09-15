@@ -79,6 +79,13 @@ export async function createWorkerSession() {
         isCommand(source: string) { return editor.isCommand(source); },
         complete(line: string) { return editor.complete(line); },
         rewind(id: number): void { void call<void>('rewind', id).catch(fail); },
+        async resetExecution(): Promise<void> {
+            debugNext = false;
+            stepToMain = false;
+            resume();
+            Atomics.store(signal, 0, 0);
+            await call<void>('resetExecution');
+        },
         prepareFunctions(cells: { id: number; source: string }[]) {
             return call<{ id: number; output: Execution['output']; errorOffset?: number }[]>('prepareFunctions', cells);
         },

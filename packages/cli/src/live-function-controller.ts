@@ -28,19 +28,19 @@ export class LiveFunctionController {
     }
 
     get prompt(): { name: string; parameter?: string; index: number; count: number } | undefined {
-        return this.live?.prompt;
+        return this.editing ? this.live?.prompt : undefined;
     }
-    get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.live?.outputs; }
-    get editing(): boolean { return this.live !== undefined; }
+    get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.editing ? this.live?.outputs : undefined; }
+    get editing(): boolean { return this.live !== undefined && this.live.cellId === this.notebook.current.id; }
     get iterationFocus(): { line: number; offset: number } | undefined {
-        if (!this.live || this.prompt || this.focusedIteration === undefined) return undefined;
+        if (!this.editing || !this.live || this.prompt || this.focusedIteration === undefined) return undefined;
         const text = this.live.outputs.get(this.focusedIteration)?.find(output => !output.error)?.text;
         if (!text) return undefined;
         const suffix = text.indexOf(' · iteration');
         return { line: this.focusedIteration, offset: suffix < 0 ? text.length : suffix };
     }
     get status(): string | undefined {
-        if (!this.live || this.prompt) return undefined;
+        if (!this.editing || !this.live || this.prompt) return undefined;
         const example = this.live.skipped ? 'no example' : this.live.values.join(', ');
         if (this.focusedIteration !== undefined) {
             const iteration = this.live.iterations.get(this.focusedIteration) ?? 0;
@@ -53,14 +53,20 @@ export class LiveFunctionController {
     }
     get editor(): Notebook | undefined { return this.prompt ? this.live?.argumentEditor : undefined; }
     get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
-        return this.live?.fields;
+        return this.editing ? this.live?.fields : undefined;
     }
     get hasParameters(): boolean { return !!this.live?.parameters.length; }
 
     clear(): void { this.live = undefined; this.clearIterationFocus(); }
 
+    invalidatePreviews(): void {
+        this.live?.outputs.clear();
+        this.live?.prefixes.clear();
+        this.clearIterationFocus();
+    }
+
     reopenArguments(): boolean {
-        if (!this.live?.parameters.length) return false;
+        if (!this.editing || !this.live?.parameters.length) return false;
         this.live.source = this.notebook.current.source;
         this.live.openArguments(0, this.session.names);
         this.updateExampleSuggestion();
@@ -105,7 +111,7 @@ export class LiveFunctionController {
 
     focusExampleFromBody(): boolean {
         const live = this.live;
-        if (!live || live.argument !== undefined || !live.parameters.length) return false;
+        if (!this.editing || !live || live.argument !== undefined || !live.parameters.length) return false;
         const source = this.notebook.current.source;
         if (source.slice(0, this.notebook.cursor).split('\n').length !== 2) return false;
         live.source = source;
@@ -124,7 +130,7 @@ export class LiveFunctionController {
         const body = `${source.trim()}\n  `;
         this.live = new LiveFunctionSession({
             name: match[1], parameters, header: source.trim(), source: body,
-            cellIndex: this.notebook.active, existing, originalSource: existing ? source.trim() : undefined,
+            cellId: this.notebook.current.id, existing, originalSource: existing ? source.trim() : undefined,
         }, this.session.names);
         this.clearIterationFocus();
         this.notebook.replace(parameters.length ? source.trim() : body);
@@ -133,6 +139,7 @@ export class LiveFunctionController {
     }
 
     async rerun(): Promise<boolean> {
+        if (this.live && !this.editing) return false;
         if (!this.live && !this.beginExisting()) return false;
         const live = this.live!;
         live.source = this.notebook.current.source;
@@ -153,7 +160,7 @@ export class LiveFunctionController {
     }
 
     async forcePreview(): Promise<boolean> {
-        if (!this.live) return false;
+        if (!this.editing || !this.live) return false;
         this.notebook.formatCurrentLine(line => this.session.format(line));
         const source = this.notebook.current.source;
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
@@ -167,7 +174,7 @@ export class LiveFunctionController {
     async moveIteration(direction: number): Promise<boolean> {
         const live = this.live;
         const line = this.focusedIteration;
-        if (!live || live.argument !== undefined || line === undefined) return false;
+        if (!this.editing || !live || live.argument !== undefined || line === undefined) return false;
         const iteration = live.iterations.get(line) ?? 0;
         const next = Math.max(0, iteration + direction);
         if (next === iteration) return true;
@@ -180,7 +187,7 @@ export class LiveFunctionController {
     }
 
     releaseIteration(): boolean {
-        if (this.focusedIteration === undefined) return false;
+        if (!this.editing || this.focusedIteration === undefined) return false;
         this.clearIterationFocus();
         this.updateSuggestion();
         this.render();
@@ -188,7 +195,7 @@ export class LiveFunctionController {
     }
 
     focusIterationFromBody(): boolean {
-        if (!this.live || this.prompt || this.focusedIteration !== undefined) return false;
+        if (!this.editing || !this.live || this.prompt || this.focusedIteration !== undefined) return false;
         const line = currentLineNumber(this.notebook) - 1;
         if (line < 2 || !isIterationHeader(this.notebook.current.source.split('\n')[line - 1])) return false;
         this.focusIteration(line, line);
@@ -199,7 +206,7 @@ export class LiveFunctionController {
 
     async submit(): Promise<LiveSubmitResult> {
         const live = this.live;
-        if (!live) return 'absent';
+        if (!this.editing || !live) return 'absent';
         this.notebook.formatCurrentLine(line => this.session.format(line));
         const source = this.notebook.current.source;
         const lines = source.split('\n');
@@ -225,7 +232,7 @@ export class LiveFunctionController {
             this.clearIterationFocus();
             this.setSuggestion('');
             if (live.existing) {
-                this.notebook.replayFrom = live.cellIndex;
+                this.notebook.replayFrom = this.notebook.active;
                 this.notebook.toPrompt();
                 return 'replay';
             }
@@ -287,7 +294,7 @@ export class LiveFunctionController {
         } catch { return false; }
         this.live = new LiveFunctionSession({
             name: statement.name, parameters: [...statement.parameters], header: source.split('\n')[0].trim(),
-            source, values: [...(this.examples.get(statement.name) ?? [])], cellIndex: this.notebook.active,
+            source, values: [...(this.examples.get(statement.name) ?? [])], cellId: this.notebook.current.id,
             existing: true, originalSource: source, stopLine: selectedLine(source, this.notebook.cursor),
         }, this.session.names);
         if (statement.parameters.length) this.updateExampleSuggestion(); else this.updateSuggestion();

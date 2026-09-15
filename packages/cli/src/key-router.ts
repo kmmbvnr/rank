@@ -20,6 +20,7 @@ export class KeyRouter {
     async press(text: string, key: Key = {}): Promise<KeyResult> {
         const repl = this.repl;
         const book = repl.notebook;
+        if (key.ctrl && key.name === 'l') return { exit: await repl.restart() };
         const example = repl.exampleEditor;
         if (example) {
             if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.cancelExample();
@@ -36,6 +37,13 @@ export class KeyRouter {
         }
 
         if (repl.liveIterationFocused) {
+            if (key.name === 'up') {
+                const line = repl.liveIterationFocus!.line;
+                repl.releaseLiveIteration();
+                const lines = book.current.source.split('\n');
+                book.cursor = lines.slice(0, line).join('\n').length;
+                return { exit: false };
+            }
             if (key.name === 'return' || key.name === 'enter' || key.name === 'down' || key.name === 'escape') {
                 repl.releaseLiveIteration();
                 return { exit: false };
@@ -88,7 +96,7 @@ export class KeyRouter {
                     : this.history[this.history.length - 1 - this.historyIndex]);
             } else if (key.name === 'up' || key.name === 'down') {
                 if (key.name !== 'up' || !repl.focusExampleFromBody() && !repl.focusLiveIterationFromBody())
-                    book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()));
+                    book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);
             } else if (key.name === 'pageup' || key.name === 'pagedown') {
                 return { exit: false, pageDelta: key.name === 'pageup' ? -1 : 1 };
             } else if (key.name === 'left' || key.name === 'right') {

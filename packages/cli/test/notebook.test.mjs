@@ -24,8 +24,11 @@ test('Enter commits new input before replay, executes only the changed suffix an
     await enter('Count += 1');
     await enter('B = Count * 2');
     assert.equal(output(book.cells[2]), '4');
+    const marker = source => notebookFrame(book, 80, 24).lines.find(line => line.includes(source));
+    assert.match(marker('Count += 1'), /\x1b\[32m/);
     edit(1, 'Count += 3');
     assert.equal(book.dirtyFrom, 1);
+    assert.match(marker('Count += 3'), /\x1b\[90m/);
     // The prefix is not replayed: Count was 2, so the correction makes it 5.
     await enter('B + 1');
     assert.equal(output(book.cells[1]), '5');
@@ -34,6 +37,30 @@ test('Enter commits new input before replay, executes only the changed suffix an
     assert.equal(book.dirtyFrom, -1);
     assert.equal(book.current.source, '');
     assert.equal(book.cells.length, 5);
+    assert.match(marker('Count = 1'), /\x1b\[32m/);
+    for (const source of ['Count += 3', 'B = Count * 2', 'B + 1']) {
+        assert.match(marker(source), /\x1b\[38;5;208m/);
+    }
+    await enter('Count * 10');
+    assert.match(marker('Count * 10'), /\x1b\[38;5;208m/);
+});
+
+test('unchanged replay is experimental; a fresh document clears provenance', async t => {
+    const { session, book, enter } = setup(t);
+    await enter('Count = 0');
+    await enter('Count += 1');
+    book.active = 1;
+    assert.equal(book.isExperimental(1), false, 'navigation is not execution');
+    book.replayFrom = 1;
+    await enter('');
+    assert.equal(output(book.cells[1]), '2');
+    assert.equal(book.isExperimental(0), false);
+    assert.equal(book.isExperimental(1), true);
+    session.replaceFile({ path: '/tmp/colors.ra', source: 'Count = 0\n' });
+    book.clear();
+    await enter('Count = 0');
+    assert.equal(book.isExperimental(0), false);
+    assert.match(notebookFrame(book, 80, 24).lines[0], /\x1b\[32m/);
 });
 
 test('first replay error stops execution, focuses that cell and retains the newly submitted instruction', async t => {

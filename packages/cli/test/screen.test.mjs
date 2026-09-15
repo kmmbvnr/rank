@@ -49,7 +49,7 @@ test('pause footer shows an unknown-key status', () => {
     assert.equal(frame.lines.at(-1), 'Unknown key: x');
 });
 
-test('live replay marks evaluated lines green and remaining lines gray', () => {
+test('live replay marks evaluated lines orange and remaining lines gray', () => {
     const book = new Notebook();
     book.replace('fun inspect N\n  A = N + 1\n  B = A * 2\nend');
     book.cursor = book.current.source.indexOf('B =') + 'B = A * 2'.length;
@@ -57,10 +57,53 @@ test('live replay marks evaluated lines green and remaining lines gray', () => {
     const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',
         undefined, 'rank> ', outputs);
     const sourceLine = value => frame.lines.find(line => line.includes(value));
-    assert.match(sourceLine('fun inspect'), /\x1b\[32m/);
-    assert.match(sourceLine('A = N'), /\x1b\[32m/);
+    assert.match(sourceLine('fun inspect'), /\x1b\[38;5;208m/);
+    assert.match(sourceLine('A = N'), /\x1b\[38;5;208m/);
     assert.match(sourceLine('B = A'), /\x1b\[90m/);
     assert.match(sourceLine('end'), /\x1b\[90m/);
+});
+
+test('inline preview errors retain parentheses without generated source locations', async t => {
+    const session = createReplSession();
+    t.after(() => session.dispose());
+    await session.execute('use sequences', 0, []);
+    const result = session.preview('RankReplPreviewValue = ((array 1) count)');
+    assert.equal(result.ok, false);
+    assert.match(result.output[0].text, /<repl>/, 'full diagnostics remain available');
+    const book = new Notebook();
+    book.replace('(array 1) count');
+    const frame = notebookFrame(book, 100, 12, 0, '', false, true, '', 'Running…',
+        undefined, 'rank> ', new Map([[1, result.output]]));
+    const rendered = frame.lines.join('\n').replace(/\x1b\[[0-9;]*m/g, '');
+    const errorLines = rendered.split('\n').filter(line => line.includes('! '));
+    assert.ok(errorLines.every(line => stringWidth(line) <= 40));
+    const message = errorLines.map(line => line.slice(line.indexOf('! ') + 2)).join(' ');
+    assert.match(message, /TypeError: count expects boolean values/);
+    assert.doesNotMatch(message, /error:|RankError/);
+    assert.match(rendered, /! \(array 1\) count/);
+    assert.doesNotMatch(rendered, /RankReplPreviewValue|<repl>|\^/);
+});
+
+test('error wrapping keeps words intact in both live and completed instructions', () => {
+    const message = 'Runtime: unknown name: count; did you forget `use sequences`?';
+    for (const live of [false, true]) {
+        for (const columns of [32, 80]) {
+            const book = new Notebook();
+            const output = [{ text: message, error: true }];
+            if (live) book.replace('(array i) count');
+            else {
+                book.enqueue('(array i) count');
+                book.finish(0, { source: '(array i) count', output, ok: false, command: false });
+            }
+            const frame = notebookFrame(book, columns, 20, 0, '', false, true, '', 'Running…',
+                undefined, 'rank> ', live ? new Map([[1, output]]) : undefined);
+            const lines = frame.lines.map(line => line.replace(/\x1b\[[0-9;]*m/g, ''))
+                .filter(line => line.startsWith('    ! '));
+            assert.ok(lines.every(line => stringWidth(line) <= Math.min(40, columns - 1)));
+            assert.equal(lines.map(line => line.slice(6)).join(' '), message);
+            assert.ok(lines.some(line => /\bdid\b/.test(line)));
+        }
+    }
 });
 
 test('moving through executed source does not create a live marker', () => {
@@ -195,7 +238,7 @@ test('execution indicators turn gray after an edit and old errors vanish after s
     await draw(terminal, book);
     assert.doesNotMatch(text(terminal), /unknown name/);
     assert.match(text(terminal), /\n      6\n/);
-    assert.equal(terminal.buffer.active.getLine(0).getCell(0).getFgColor(), 2);
+    assert.equal(terminal.buffer.active.getLine(0).getCell(0).getFgColor(), 208);
 });
 
 test('source and output control characters cannot move the renderer cursor', async t => {
@@ -249,7 +292,9 @@ test('an error near the bottom reveals its wrapped diagnostic and the prompt whi
     book.focusError(index);
     frame = await draw(terminal, book, frame.top);
     assert.match(text(terminal), /error: RankError/);
-    assert.match(text(terminal), /consuming line to replay it/);
+    const diagnostic = text(terminal).split('\n').filter(line => line.startsWith('    ! '));
+    assert.ok(diagnostic.every(line => stringWidth(line) <= 40));
+    assert.match(diagnostic.map(line => line.slice(6)).join(' '), /consuming line to replay it/);
     assert.match(text(terminal), /\^\nrank> /);
     assert.equal(frame.cursorVisible, true);
     assert.match(text(terminal).split('\n')[frame.cursor.row], /› G sum$/);

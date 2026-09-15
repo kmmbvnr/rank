@@ -11,7 +11,7 @@ interface LiveConditional {
     readonly outputs: Map<number, OutputLine[]>;
     readonly prefixes: Map<number, string>;
     readonly iterations: Map<number, number>;
-    readonly cellIndex: number;
+    readonly cellId: number;
     readonly existing: boolean;
     readonly originalSource?: string;
 }
@@ -34,17 +34,17 @@ export class LiveConditionalController {
         this.preview = new LivePreviewRunner(source => this.session.preview(source, this.columns()));
     }
 
-    get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.live?.outputs; }
-    get editing(): boolean { return this.live !== undefined; }
+    get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.editing ? this.live?.outputs : undefined; }
+    get editing(): boolean { return this.live !== undefined && this.live.cellId === this.notebook.current.id; }
     get iterationFocus(): { line: number; offset: number } | undefined {
-        if (!this.live || this.focusedIteration === undefined) return undefined;
+        if (!this.editing || !this.live || this.focusedIteration === undefined) return undefined;
         const text = this.live.outputs.get(this.focusedIteration)?.find(output => !output.error)?.text;
         if (!text) return undefined;
         const suffix = text.indexOf(' · iteration');
         return { line: this.focusedIteration, offset: suffix < 0 ? text.length : suffix };
     }
     get status(): string | undefined {
-        if (!this.live) return undefined;
+        if (!this.editing || !this.live) return undefined;
         const source = this.notebook.current.source;
         const end = source.indexOf('\n', this.notebook.cursor);
         const line = source.slice(source.lastIndexOf('\n', this.notebook.cursor - 1) + 1,
@@ -65,6 +65,12 @@ export class LiveConditionalController {
 
     clear(): void { this.live = undefined; this.clearIterationFocus(); }
 
+    invalidatePreviews(): void {
+        this.live?.outputs.clear();
+        this.live?.prefixes.clear();
+        this.clearIterationFocus();
+    }
+
     async begin(source: string): Promise<boolean> {
         if (!this.enabled || this.live || source.includes('\n')
             || !/^\s*(?:if\s+.+|for(?:\s.*)?)$/.test(source)) return false;
@@ -72,7 +78,7 @@ export class LiveConditionalController {
         this.live = {
             source: `${source.trim()}\n  `,
             outputs: new Map(), prefixes: new Map(), iterations: new Map(),
-            cellIndex: this.notebook.active, existing,
+            cellId: this.notebook.current.id, existing,
             originalSource: existing ? source : undefined,
         };
         this.clearIterationFocus();
@@ -100,6 +106,7 @@ export class LiveConditionalController {
     }
 
     async rerun(): Promise<boolean> {
+        if (this.live && !this.editing) return false;
         if (!this.live && !this.beginExisting()) return false;
         const live = this.live!;
         live.source = this.notebook.current.source;
@@ -113,7 +120,7 @@ export class LiveConditionalController {
     }
 
     async forcePreview(): Promise<boolean> {
-        if (!this.live) return false;
+        if (!this.editing || !this.live) return false;
         this.notebook.formatCurrentLine(line => this.session.format(line));
         const source = this.notebook.current.source;
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
@@ -128,7 +135,7 @@ export class LiveConditionalController {
     async moveIteration(direction: number): Promise<boolean> {
         const live = this.live;
         const line = this.focusedIteration;
-        if (!live || line === undefined) return false;
+        if (!this.editing || !live || line === undefined) return false;
         const iteration = live.iterations.get(line) ?? 0;
         const next = Math.max(0, iteration + direction);
         if (next === iteration) return true;
@@ -141,7 +148,7 @@ export class LiveConditionalController {
     }
 
     releaseIteration(): boolean {
-        if (this.focusedIteration === undefined) return false;
+        if (!this.editing || this.focusedIteration === undefined) return false;
         this.clearIterationFocus();
         this.updateSuggestion();
         this.render();
@@ -149,7 +156,7 @@ export class LiveConditionalController {
     }
 
     focusIterationFromBody(): boolean {
-        if (!this.live || this.focusedIteration !== undefined) return false;
+        if (!this.editing || !this.live || this.focusedIteration !== undefined) return false;
         const line = currentLineNumber(this.notebook) - 1;
         if (line < 1 || !isIterationHeader(this.notebook.current.source.split('\n')[line - 1])) return false;
         this.focusIteration(line, line);
@@ -160,7 +167,7 @@ export class LiveConditionalController {
 
     async submit(): Promise<LiveSubmitResult> {
         const live = this.live;
-        if (!live) return 'absent';
+        if (!this.editing || !live) return 'absent';
         this.notebook.formatCurrentLine(line => this.session.format(line));
         const source = this.notebook.current.source;
         const lines = source.split('\n');
@@ -184,7 +191,7 @@ export class LiveConditionalController {
             this.clearIterationFocus();
             this.setSuggestion('');
             if (live.existing) {
-                this.notebook.replayFrom = live.cellIndex;
+                this.notebook.replayFrom = this.notebook.active;
                 this.notebook.toPrompt();
                 return 'replay';
             }
@@ -207,7 +214,7 @@ export class LiveConditionalController {
         } catch { return false; }
         this.live = {
             source, outputs: new Map(), prefixes: new Map(), iterations: new Map(),
-            cellIndex: this.notebook.active,
+            cellId: this.notebook.current.id,
             existing: true, originalSource: source,
         };
         this.clearIterationFocus();

@@ -8,7 +8,7 @@ export interface LiveFunctionInit {
     header: string;
     source: string;
     values?: string[];
-    cellIndex: number;
+    cellId: number;
     existing: boolean;
     originalSource?: string;
     stopLine?: number;
@@ -27,7 +27,7 @@ export class LiveFunctionSession {
     readonly prefixes = new Map<number, string>();
     readonly iterations = new Map<number, number>();
     readonly argumentEditor = new Notebook();
-    readonly cellIndex: number;
+    readonly cellId: number;
     readonly existing: boolean;
     readonly originalSource?: string;
     stopLine?: number;
@@ -41,7 +41,7 @@ export class LiveFunctionSession {
         this.values = [...(init.values ?? [])];
         this.argument = init.parameters.length ? 0 : undefined;
         this.argumentBackup = [...this.values];
-        this.cellIndex = init.cellIndex;
+        this.cellId = init.cellId;
         this.existing = init.existing;
         this.originalSource = init.originalSource;
         this.stopLine = init.stopLine;

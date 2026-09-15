@@ -3,6 +3,26 @@ import test from 'node:test';
 import { createWorkerSession } from '../out/worker-session.js';
 import { NotebookRepl } from '../out/repl.js';
 
+test('restart through the worker resets generators and preserves saved-file identity', async t => {
+    const s = await session(t);
+    const saved = { path: '/tmp/restart.ra', source: 'Count = 0\n' };
+    s.replaceFile(saved);
+    const repl = new NotebookRepl(s);
+    const book = repl.notebook;
+    for (const source of ['Count = 0', 'Count += 1', 'fun generate\n  yield Count\nend', 'G = generate', 'G array'])
+        book.enqueue(source);
+    await repl.restart();
+    assert.equal(book.cells[4].status, 'ok');
+    const first = book.cells[4].output;
+    await s.execute('Stray = 99', 99, []);
+    await repl.restart();
+    assert.deepEqual(book.cells[4].output, first);
+    assert.ok(!s.names.includes('Stray'));
+    assert.deepEqual(s.savedFile, saved);
+    assert.equal(repl.unsaved, true);
+    assert.equal(book.isExperimental(4), false);
+});
+
 async function session(t) {
     const value = await createWorkerSession();
     t.after(() => value.dispose());

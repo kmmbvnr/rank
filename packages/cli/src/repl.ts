@@ -167,6 +167,30 @@ export class NotebookRepl {
         return this.submit(true);
     }
 
+    async restart(): Promise<boolean> {
+        if (this.running || this.help || this.savePrompt) return false;
+        await this.files.ready;
+        return this.execution.exclusive(async () => {
+            const book = this.notebook;
+            const draft = book.cells.at(-1)!.source;
+            let state = EMPTY_CELL;
+            for (const line of draft.split('\n')) state = addLine(state, line, true);
+            const complete = draft.trim() !== '' && isComplete(state) && !this.session.isCommand(draft.trim());
+            await this.session.resetExecution();
+            if (complete) {
+                book.enqueue(draft);
+                this.liveFunction.clear();
+                this.liveConditional.clear();
+            } else {
+                this.liveFunction.invalidatePreviews();
+                this.liveConditional.invalidatePreviews();
+            }
+            this.dismiss();
+            book.resetExecution();
+            return this.execution.execute('', false, true);
+        });
+    }
+
     get unsaved(): boolean { return this.files.unsaved; }
     get fileStatus(): string { return this.files.status; }
     requestExit(): boolean { return this.files.requestExit(); }
@@ -224,6 +248,8 @@ export class NotebookRepl {
         if (force) {
             if (book.current.status === 'interrupted') book.replayFrom = book.active;
             book.toPrompt();
+            // Run edits above a suspended draft without submitting or replacing it.
+            if (this.liveEditing) return this.execution.execute('', false, true);
         }
         const raw = book.current.source.trim();
         const liveResult = await this.liveFunction.submit();
