@@ -6332,6 +6332,9 @@ productive perimeter through 1000.
 rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
+Digits = Positions champernowne_digit rank 0
+Answer = Digits * reduce with 1
+
 for Remaining greater Digits * Count
   Remaining -= Digits * Count
   Digits += 1
@@ -6340,9 +6343,10 @@ for Remaining greater Digits * Count
 end
 ```
 
-Whole blocks of equal-width integers are skipped arithmetically, so the program
-never constructs the million-character prefix. The seven selected digits have
-product `210`.
+Rank-0 application finds all requested digits, and a seeded reduction multiplies
+them. Inside one position, the loop retains the four related block-location
+states; whole blocks of equal-width integers are skipped arithmetically, so the
+program never constructs the million-character prefix. The product is `210`.
 
 ## 41. Pandigital prime
 

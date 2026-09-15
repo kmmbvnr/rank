@@ -10,11 +10,8 @@ Positions = array shape 7
   10000 100000 1000000
 end
 
-Product = 1
-for Position in Positions
-  Product *= Position champernowne_digit
-end
-Answer = Product
+Digits = Positions champernowne_digit rank 0
+Answer = Digits * reduce with 1
 Answer print
 
 
