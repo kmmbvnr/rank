@@ -6,8 +6,9 @@ import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty } from 
 import { createWorkerSession } from './worker-session.js';
 import { Notebook, splitSource } from './notebook.js';
 import { KeyRouter, type Key } from './key-router.js';
+import { FileWorkflow, type SavePrompt } from './file-workflow.js';
 import { LiveFunctionController } from './live-function-controller.js';
-import { createReplSession, type OutputLine, type ProgramFile } from './repl-session.js';
+import { createReplSession, type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
 import { TerminalModeRouter } from './terminal-modes.js';
 import { TerminalRenderer } from './terminal-renderer.js';
@@ -26,6 +27,7 @@ export class NotebookRepl {
     pauseStatus = '';
     readonly breakpoints = new Map<number, Set<number>>();
     private readonly liveFunction: LiveFunctionController;
+    private readonly files: FileWorkflow;
 
     get examplePrompt(): { name: string; parameter?: string; index: number; count: number } | undefined {
         return this.liveFunction.prompt;
@@ -97,9 +99,10 @@ export class NotebookRepl {
 
     suggestion = '';
     help?: { text: string; top: number };
-    savePrompt?: { choosing: boolean; exitAfterSave: boolean; loadFile?: ProgramFile; filename: Notebook; error: string };
     private completion?: { candidates: string[]; from: number; to: number; index: number };
-    private preparation: Promise<void> = Promise.resolve();
+
+    get savePrompt(): SavePrompt | undefined { return this.files.prompt; }
+    set savePrompt(prompt: SavePrompt | undefined) { this.files.prompt = prompt; }
 
     constructor(
         readonly session: ReplSession,
@@ -109,6 +112,11 @@ export class NotebookRepl {
     ) {
         this.liveFunction = new LiveFunctionController(
             this.notebook, session, columns, text => { this.suggestion = text; }, render, functionExamples,
+        );
+        this.files = new FileWorkflow(
+            this.notebook, session, this.breakpoints, start => this.prepareFunctions(start),
+            () => { this.liveFunction.clear(); this.help = undefined; this.dismiss(); },
+            () => this.running, running => { this.running = running; }, render,
         );
     }
 
@@ -139,54 +147,10 @@ export class NotebookRepl {
         return this.submit(true);
     }
 
-    private saveLines(): string[] {
-        const lines = this.notebook.fileLines();
-        const draft = this.notebook.cells.at(-1)!.source;
-        if (draft !== '' && !this.session.isCommand(draft.trim())) lines.push(...draft.split('\n'));
-        return lines;
-    }
-
-    get unsaved(): boolean {
-        const lines = this.saveLines();
-        const source = lines.join('\n') + (lines.length ? '\n' : '');
-        return source !== (this.session.savedFile?.source ?? '');
-    }
-
-    get fileStatus(): string {
-        const file = this.session.savedFile;
-        return `${file ? path.basename(file.path) : 'Untitled'} · ${this.unsaved ? 'unsaved' : 'saved'}`;
-    }
-
-    private openSavePrompt(exitAfterSave: boolean, loadFile?: ProgramFile): void {
-        const filename = new Notebook();
-        filename.replace(this.session.savedFile?.path ?? '');
-        this.savePrompt = { choosing: exitAfterSave || !!loadFile, exitAfterSave, loadFile, filename, error: '' };
-        this.render();
-    }
-
-    requestExit(): boolean {
-        if (!this.unsaved) return true;
-        this.openSavePrompt(true);
-        return false;
-    }
-
-    async requestSave(): Promise<void> {
-        if (this.running || this.savePrompt) return;
-        this.openSavePrompt(false);
-        if (this.session.savedFile) await this.savePromptFile();
-    }
-
-    private openFile(file: ProgramFile): void {
-        const parts = splitSource(file.source);
-        this.session.replaceFile(file);
-        this.notebook.clear();
-        this.breakpoints.clear();
-        this.liveFunction.clear();
-        for (const source of parts) this.notebook.enqueue(source, true);
-        this.preparation = this.prepareFunctions();
-        this.help = undefined;
-        this.dismiss();
-    }
+    get unsaved(): boolean { return this.files.unsaved; }
+    get fileStatus(): string { return this.files.status; }
+    requestExit(): boolean { return this.files.requestExit(); }
+    requestSave(): Promise<void> { return this.files.requestSave(); }
 
     private async prepareFunctions(start = 0): Promise<void> {
         const cells = this.notebook.cells.slice(start, -1).filter(cell => !cell.command);
@@ -200,30 +164,8 @@ export class NotebookRepl {
         this.render();
     }
 
-    discardChanges(): boolean {
-        const prompt = this.savePrompt;
-        if (!prompt) return false;
-        if (prompt.loadFile) this.openFile(prompt.loadFile);
-        this.savePrompt = undefined;
-        this.render();
-        return prompt.exitAfterSave;
-    }
-
-    async savePromptFile(): Promise<boolean> {
-        const prompt = this.savePrompt;
-        if (!prompt || this.running) return false;
-        this.running = true;
-        this.render();
-        try {
-            const result = await this.session.saveFile(this.saveLines(), prompt.filename.current.source);
-            if (result.ok) {
-                if (prompt.loadFile?.path === this.session.savedFile?.path) prompt.loadFile = this.session.savedFile;
-                return this.discardChanges();
-            }
-            prompt.error = result.output.filter(line => line.error).map(line => line.text).join('\n');
-            return false;
-        } finally { this.running = false; this.render(); }
-    }
+    discardChanges(): boolean { return this.files.discardChanges(); }
+    savePromptFile(): Promise<boolean> { return this.files.savePromptFile(); }
 
     complete(): void {
         const book = this.notebook;
@@ -254,7 +196,7 @@ export class NotebookRepl {
     async submit(force = false): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
         if (this.examplePrompt) return this.liveFunction.acceptExample();
-        await this.preparation;
+        await this.files.ready;
         if (force && await this.liveFunction.forcePreview()) return false;
         this.dismiss();
         const book = this.notebook;
@@ -301,8 +243,8 @@ export class NotebookRepl {
                     book.finish(book.cells.length - 2, result);
                     return false;
                 }
-                if (this.unsaved) this.openSavePrompt(false, result.loadedFile);
-                else { this.openFile(result.loadedFile); await this.preparation; }
+                this.files.offerLoadedFile(result.loadedFile);
+                await this.files.ready;
                 return false;
             } finally {
                 this.running = false;
