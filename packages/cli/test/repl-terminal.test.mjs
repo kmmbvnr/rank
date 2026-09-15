@@ -498,6 +498,7 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
     ], 80, 22);
     assert.match(frames[5].text, /●\s*1› fun inc X\n\s+X = 2/);
     assert.match(frames[5].text, /Example inc · X \(1\/1\)/);
+    assert.match(frames[5].text.split('\n')[frames[5].cursorY], /X = 2/);
     assert.doesNotMatch(frames[5].text, /<function inc>/);
     assert.match(frames[6].text, /Result = X \+ 1\n        3/);
     assert.doesNotMatch(frames[6].text, /Result \*= 2\n        6/);

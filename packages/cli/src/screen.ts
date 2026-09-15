@@ -86,6 +86,7 @@ export function notebookFrame(
         const pending = dirty >= 0 && index >= dirty && index < notebook.cells.length - 1;
         const prompt = index === notebook.cells.length - 1;
         const live = index === notebook.active && (promptOutputs !== undefined || promptFields !== undefined);
+        const editingField = live && promptFields?.some(field => field.active);
         const label = prompt ? promptLabel : `●${String(index + 1).padStart(3)}› `;
         const color = cell.status === 'running' || cell.status === 'interrupted' ? '\x1b[33m'
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
@@ -100,7 +101,7 @@ export function notebookFrame(
                 .slice(-gutter || label.length);
             const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m' : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
             rows.push((gutter > 0 ? painted : '') + item.text);
-            if (index === notebook.active) {
+            if (index === notebook.active && !editingField) {
                 const point = item.points.find(point => point.offset === notebook.cursor);
                 if (point) caret = { row: rows.length - 1, column: gutter + point.column };
             }
