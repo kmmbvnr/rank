@@ -16,13 +16,9 @@ Answer print
 rem Visit each bounded prime and test every
 rem rotation through optimized prime membership.
 fun circular_prime_count Limit
-  Count = 0
-  for Value in primes until Limit
-    if Value circular_prime
-      Count += 1
-    end
-  end
-  return Count
+  Candidates = primes until Limit
+  Circular = Candidates circular_prime rank 0
+  return Circular count
 end
 
 

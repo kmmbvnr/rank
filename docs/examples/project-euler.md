@@ -630,6 +630,10 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
+Candidates = primes until Limit
+Circular = Candidates circular_prime rank 0
+Answer = Circular count
+
 for Shift in 1 until Length
   Left = Text from Shift until Length
   Right = Text from 0 until Shift
@@ -637,7 +641,9 @@ for Shift in 1 until Length
 end
 ```
 
-Decimal slices form each rotation, and `Number in primes` performs optimized
+Rank-0 application tests the bounded prime sequence, and `count` reduces its
+boolean results. Inside one candidate, decimal slices form each rotation and
+the loop returns at the first failure. `Number in primes` performs optimized
 primality testing without materializing the infinite source. There are `55`
 circular primes below one million.
 
