@@ -817,12 +817,16 @@ run of four integers begins at `134043`.
 ## 48. Self powers
 
 ```rank
-Total += N N Modulus powmod
-Total %= Modulus
+Numbers = 1 to Limit
+Powers = Numbers modular_self_power rank 0
+Total = Powers + reduce with 0
+Answer = Total % Modulus
 ```
 
-Modular exponentiation avoids large intermediate powers. The final ten-digit
-numeric suffix is `9110846700`.
+A local rank-0 operation computes each modular self power. The seeded reduction
+adds them, and one final remainder keeps the requested decimal suffix. Modular
+exponentiation avoids large intermediate powers. The final ten digits are
+`9110846700`.
 
 ## 49. Prime permutations
 

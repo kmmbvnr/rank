@@ -18,10 +18,12 @@ rem Reduce every power modulo the requested
 rem decimal place value before adding it.
 fun self_power_tail Limit Digits
   Modulus = 10 ** Digits
-  Total = 0
-  for N in 1 to Limit
-    Total += N N Modulus powmod
-    Total %= Modulus
+  Numbers = 1 to Limit
+  Powers = Numbers modular_self_power rank 0
+  Total = Powers + reduce with 0
+  return Total % Modulus
+
+  fun modular_self_power N
+    return N N Modulus powmod
   end
-  return Total
 end
