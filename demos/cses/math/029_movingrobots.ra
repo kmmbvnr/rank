@@ -22,7 +22,7 @@ fun empty_cells Steps
   Move = 8 transition_matrix
   Power = Move Steps matrix_power
   Absence = 1.0 - (Power transpose)
-  Empty = Absence * reduce rank 1
+  Empty = Absence * reduce rank 1 with 1
   return Empty sum
 end
 
@@ -30,7 +30,7 @@ end
 rem Build the board transition matrix.
 fun transition_matrix Board
   Cells = Board ** 2
-  Move = array shape Cells Cells pad 0.0
+  Move = array shape Cells Cells fill 0.0
 
   for Y in 0 until Board
     for X in 0 until Board
@@ -88,7 +88,7 @@ end
 
 rem Construct a real identity matrix.
 fun identity_real Size
-  Result = array shape Size Size pad 0.0
+  Result = array shape Size Size fill 0.0
   for I in 0 until Size
     Result I I = 1.0
   end

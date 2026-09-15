@@ -15,7 +15,7 @@ rem Keep increasing positions on a stack.
 fun nearest_smaller A
   N = A len
   Stack = new stack
-  Answer = array shape N pad 0
+  Answer = array shape N fill 0
 
   for X i in A
     for Stack len greater 0

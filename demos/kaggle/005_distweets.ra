@@ -23,8 +23,8 @@ Submission OutputPath csv
 
 rem Learn vocabulary only from training text.
 fun solve_table Train Test Limit Rate Steps
-  TrainTexts = Train .text pad ""
-  TestTexts = Test .text pad ""
+  TrainTexts = Train .text default ""
+  TestTexts = Test .text default ""
   Vocab = TrainTexts Limit vocab
   Pred = TrainTexts (Train .target) TestTexts Vocab Rate Steps solve
   Test .target = Pred
@@ -36,7 +36,7 @@ rem Count normalized Unicode words from the training vocabulary.
 fun term_counts Texts Vocab
   Rows = Texts len
   Columns = Vocab len
-  Counts = array shape Rows Columns pad 0.0
+  Counts = array shape Rows Columns fill 0.0
   Positions = new index
   for Term Column in Vocab
     if not (Term in Positions)

@@ -18,7 +18,7 @@ rem is used at most once.
 fun money_sums Coins
   Maximum = Coins sum
   Size = Maximum + 1
-  Reachable = array shape Size pad false
+  Reachable = array shape Size fill false
   Reachable 0 = true
 
   for Coin in Coins

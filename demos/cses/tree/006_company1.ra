@@ -11,7 +11,7 @@ Company = Bosses prepare_company
 for i in 1 to Q
   X = stdin .integer
   K = stdin .integer
-  Boss = Company X K ancestor pad -1
+  Boss = Company X K ancestor default -1
   Boss print
 end
 

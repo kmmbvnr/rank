@@ -23,7 +23,7 @@ fun valid_up_to Limit
   end
 
   Digits = Limit text integer rank 0
-  Current = array shape 11 2 pad 0
+  Current = array shape 11 2 fill 0
   Current 10 1 = 1
 
   fun add_state Prev Tight Maximum
@@ -64,7 +64,7 @@ fun valid_up_to Limit
   end
 
   for Maximum in Digits
-    Next = array shape 11 2 pad 0
+    Next = array shape 11 2 fill 0
 
     for Prev in 0 to 10
       for Tight in 0 to 1

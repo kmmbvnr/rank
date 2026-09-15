@@ -22,7 +22,7 @@ fun collect_coins N Coins Edges
   Result = Graph scc
   Part = Result .component
   Count = Result .count
-  Sums = array shape (Count + 1) pad 0
+  Sums = array shape (Count + 1) fill 0
 
   for Room i in Rooms
     Kingdom = Part Room

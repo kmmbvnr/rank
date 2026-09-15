@@ -10,7 +10,7 @@ describe('lookup', () => {
             + 'Found = Ids Keys Names lookup');
         expect(formatValue(runtime.execute('Found 0')!)).toBe('Bea');
         expect(formatValue(runtime.execute('Found 1')!)).toBe('Ada');
-        expect(formatValue(runtime.execute('Found 2 pad ""')!)).toBe('');
+        expect(formatValue(runtime.execute('Found 2 default ""')!)).toBe('');
         expect(() => runtime.execute('Found 2')).toThrowError('lookup key not found');
         runtime.execute('Keys 1 = 3');
         expect(formatValue(runtime.execute('Found 0')!)).toBe('Later');

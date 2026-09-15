@@ -147,10 +147,10 @@ State = Weighted Start Limit upto
 accepts arbitrarily large integers. Its cached binary-lifting table grows only
 to the largest requested bit. `distance` returns the minimum number of forward
 transitions from `From` to `To`; an unreachable target is missing and composes
-with `pad`:
+with `default`:
 
 ```rank
-Steps = Planets distance From To pad -1
+Steps = Planets distance From To default -1
 ```
 
 `lengths` returns a rank-1 integer array aligned with the successor array. Each
@@ -199,7 +199,7 @@ Length = Rooted A B distance
 The query words use the same data-first postfix form as
 `Tree Left Right query`. `ancestor` returns the vertex `K` parent edges above
 the requested vertex. An ancestor above the root is missing and composes with
-`pad`. `lca` returns the lowest common ancestor, and `distance` returns the
+`default`. `lca` returns the lowest common ancestor, and `distance` returns the
 number of edges between two vertices. Each query takes `O(log N)` time.
 
 The prepared value is a record with these fields:
@@ -267,7 +267,7 @@ Dijkstra.
 ```rank
 Result = Graph Start dijkstra
 Distance = Result .distance
-Answer = Distance Target pad infinity
+Answer = Distance Target default infinity
 ```
 
 `Graph components` accepts an undirected graph and returns `.count`, a
@@ -282,7 +282,7 @@ makes `.possible` false.
 the same `.count`, `.component`, and `.roots` fields as `components`.
 
 All indices use the graph's scalar vertices as keys. Missing distances and
-parents remain missing values, so existing `pad` handling applies.
+parents remain missing values, so existing `default` handling applies.
 
 `Graph cycle` returns one cycle from either a directed or undirected graph as a
 rank-1 array. The first vertex is repeated at the end, so each adjacent pair is
@@ -320,6 +320,6 @@ blocking-flow algorithm and returns:
 
 - `.value`, the maximum flow value;
 - `.flow`, a two-key index addressed by `Flow From To`, with parallel-edge
-  flows aggregated and absent pairs readable through `pad 0`;
+  flows aggregated and absent pairs readable through `default 0`;
 - `.cut`, the set of vertices reachable from `Source` in the final residual
   graph, which is the source side of a minimum cut.

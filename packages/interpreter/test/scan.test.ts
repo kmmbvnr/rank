@@ -24,6 +24,12 @@ describe('scan modifier', () => {
         ].join('\n'))).toBe('0');
     });
 
+    it('uses with as an explicit initial value', () => {
+        expect(run('(array 2 3 4) * scan with 1')).toBe('1 2 6 24');
+        expect(run('(array 2 3 4) - scan with 20')).toBe('20 18 15 11');
+        expect(run('Empty = array shape 0 fill 0\nEmpty + scan with 10')).toBe('10');
+    });
+
     it('rejects higher ranks and unbounded sequences', () => {
         expect(() => run([
             'M = array shape 2 2',

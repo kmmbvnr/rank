@@ -6,8 +6,8 @@ use sequences
 
 N = stdin .integer
 W = stdin .integer
-Weights = array shape N pad 0
-Values = array shape N pad 0
+Weights = array shape N fill 0
+Values = array shape N fill 0
 
 for I in 0 to N - 1
   Weights I = stdin .integer
@@ -23,7 +23,7 @@ fun max_value W Weights Values
   TotalValue = Values sum
   Infinity = 1000000000000000000
   Size = TotalValue + 1
-  MinWeight = array shape Size pad Infinity
+  MinWeight = array shape Size fill Infinity
   MinWeight 0 = 0
 
   for Weight i in Weights

@@ -5,7 +5,7 @@ import { tokenize, type Token } from './repl-input.js';
 const precedence: Readonly<Record<string, number>> = {
     or: 1, xor: 2, and: 3,
     equal: 4, not: 4, less: 4, greater: 4, at: 4, multiple: 4, in: 4, is: 4,
-    pad: 5, to: 6, until: 6, by: 6,
+    default: 5, to: 6, until: 6, by: 6,
     '+': 7, '-': 7, '*': 8, '/': 8, '//': 8, '%': 8, '**': 9,
 };
 const assignment = new Set(['=', '+=', '-=', '*=', '**=', '/=', '//=', '%=']);

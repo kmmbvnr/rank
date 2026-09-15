@@ -63,7 +63,7 @@ fun lights Lines
 
     for Y in Y1 to Y2
       for X in X1 to X2
-        Old = index X Y pad false
+        Old = index X Y default false
 
         if Op equal "on"
           if not Old
@@ -109,7 +109,7 @@ fun brightness Lines
 
     for Y in Y1 to Y2
       for X in X1 to X2
-        Value = index X Y pad 0
+        Value = index X Y default 0
 
         if Op equal "on"
           Value += 1

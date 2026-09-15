@@ -17,7 +17,7 @@ fun path_count Grid
   H = Grid len
   FirstRow = Grid 0
   W = FirstRow len
-  Ways = array shape H W pad 0
+  Ways = array shape H W fill 0
 
   for Row R in Grid
     for Cell C in Row

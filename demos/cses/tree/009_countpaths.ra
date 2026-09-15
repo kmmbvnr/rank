@@ -25,7 +25,7 @@ fun path_counts Rooted Paths
   Parents = Rooted .parent
   Root = Rooted .root
   N = Order len
-  Counts = array shape (N + 1) pad 0
+  Counts = array shape (N + 1) fill 0
 
   for Path in Paths
     unpack A B = Path

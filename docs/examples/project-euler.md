@@ -152,7 +152,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 
@@ -369,7 +369,7 @@ The twentieth-century count is `171`.
 rem Project Euler 20
 rem https://projecteuler.net/problem=20
 
-Factorial = (1 to 100) * reduce
+Factorial = (1 to 100) * reduce with 1
 Digits = Factorial text
 Values = Digits integer rank 0
 Answer = Values sum
@@ -542,7 +542,7 @@ function gives `19316` for fourth powers.
 rem Project Euler 31
 rem https://projecteuler.net/problem=31
 
-Ways = array shape (Target + 1) pad 0
+Ways = array shape (Target + 1) fill 0
 Ways 0 = 1
 for Coin in Coins
   for Amount in Coin to Target
@@ -848,3 +848,16 @@ end
 last digit avoids replacements that are necessarily even or divisible by 5.
 Each family is formed by adding the combined decimal place weight, and planned
 membership in `primes` checks the whole family. The smallest match is `121313`.
+
+## 53. Combinatoric selections
+
+```rank
+Top = (N to 1 by -1) * scan with 1
+Bottom = (1 to N) * scan with 1
+Choices = Top // Bottom
+```
+
+The two seeded scans build the numerator and denominator products for every
+binomial coefficient in a row, including the initial coefficient `1`. Applying
+the row function with `rank 0` and reducing its counts with seed `0` gives
+`4075` values above one million.

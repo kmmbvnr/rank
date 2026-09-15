@@ -18,7 +18,7 @@ fun match Text Pattern
     if j at least 1 and PatternSymbol equal "*"
       Column = j + 1
       Previous = Column - 2
-      Empty = index 0 Previous pad false
+      Empty = index 0 Previous default false
       index 0 Column = Empty
     end
   end
@@ -37,11 +37,11 @@ fun match Text Pattern
           Same = true
         end
 
-        Zero = index Row Previous pad false
+        Zero = index Row Previous default false
         More = false
 
         if Same
-          More = index i Column pad false
+          More = index i Column default false
         end
 
         index Row Column = Zero or More
@@ -53,11 +53,11 @@ fun match Text Pattern
         end
 
         Previous = Column - 1
-        Prefix = index i Previous pad false
+        Prefix = index i Previous default false
         index Row Column = Same and Prefix
       end
     end
   end
 
-  return index N M pad false
+  return index N M default false
 end

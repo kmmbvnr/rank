@@ -19,7 +19,7 @@ rem Answer inclusive one-based ranges.
 fun range_minimums Values Queries
   Tree = Values min segment
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   for Query i in Queries
     unpack Left Right = Query
     L = Left - 1

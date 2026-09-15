@@ -143,7 +143,7 @@ Expression returns Expression:
 ArrayExpression:
     'array' (
         'shape' dimensions+=ArrayItem+ (
-            'pad' fill=Expression |
+            'fill' fill=Expression |
             NL+ (rows+=ArrayRow NL+)* 'end'
         ) |
         items+=ArrayItem+
@@ -188,18 +188,18 @@ NotExpression returns Expression:
     ComparisonExpression;
 
 ComparisonExpression returns Expression:
-    PaddingExpression
+    DefaultExpression
     ({infer BinaryExpression.left=current}
-        operator=ComparisonOperator right=PaddingExpression)*;
+        operator=ComparisonOperator right=DefaultExpression)*;
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
     'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in' | 'not' 'in' | 'is';
 
-PaddingExpression returns Expression:
+DefaultExpression returns Expression:
     RangeExpression
     ({infer BinaryExpression.left=current}
-        operator='pad' right=RangeExpression)?;
+        operator='default' right=RangeExpression)?;
 
 RangeExpression returns Expression:
     AdditionExpression
@@ -372,14 +372,14 @@ MultilineNotExpression returns Expression:
     MultilineComparisonExpression;
 
 MultilineComparisonExpression returns Expression:
-    MultilinePaddingExpression
+    MultilineDefaultExpression
     ({infer BinaryExpression.left=current}
-        NL* operator=ComparisonOperator NL* right=MultilinePaddingExpression)*;
+        NL* operator=ComparisonOperator NL* right=MultilineDefaultExpression)*;
 
-MultilinePaddingExpression returns Expression:
+MultilineDefaultExpression returns Expression:
     MultilineRangeExpression
     ({infer BinaryExpression.left=current}
-        NL* operator='pad' NL* right=MultilineRangeExpression)?;
+        NL* operator='default' NL* right=MultilineRangeExpression)?;
 
 MultilineRangeExpression returns Expression:
     MultilineAdditionExpression

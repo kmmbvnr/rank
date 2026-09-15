@@ -88,8 +88,8 @@ and already accepts a trailing `array` word as a materialize step.
 ### A. Label on the constructor
 
 ```rank
-A = array shape 1000000 pad 0 .int32
-W = array shape 4096 4096 pad 0 .fp8
+A = array shape 1000000 fill 0 .int32
+W = array shape 4096 4096 fill 0 .fp8
 ```
 
 A trailing optional label on `ArrayExpression`. Local change, reads in the same

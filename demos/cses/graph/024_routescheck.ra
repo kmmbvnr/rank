@@ -39,10 +39,10 @@ fun routes_check N Edges
   ForwardDist = Forward .distance
   ReverseDist = Reverse .distance
   for City in Nodes
-    if ForwardDist City pad -1 less 0
+    if ForwardDist City default -1 less 0
       return 1 City route_failure
     end
-    if ReverseDist City pad -1 less 0
+    if ReverseDist City default -1 less 0
       return City 1 route_failure
     end
   end

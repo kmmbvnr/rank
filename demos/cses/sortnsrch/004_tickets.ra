@@ -17,7 +17,7 @@ fun sell Prices Customers
   Tickets = Prices multiset
 
   for Max in Customers
-    Price = Tickets floor Max pad -1
+    Price = Tickets floor Max default -1
     queue push Price
 
     if Price not equal -1

@@ -70,8 +70,8 @@ test "seed repeats the complete result"
   A1 = A 1
   B0 = B 0
   B1 = B 1
-  Same0 = (A0 .x equal B0 .x) and reduce
-  Same1 = (A1 .x equal B1 .x) and reduce
+  Same0 = (A0 .x equal B0 .x) and reduce with true
+  Same1 = (A1 .x equal B1 .x) and reduce with true
   Same0 and Same1
 end
 
@@ -79,7 +79,7 @@ test "zero subsets returns empty queue"
   use "033_subsets"
   use sequences
 
-  X = array shape 2 1 pad 0
+  X = array shape 2 1 fill 0
   Y = array 1 2
   R = X Y 0 false 1 random_subsets
   R len equal 0
@@ -88,7 +88,7 @@ end
 test "sample counts must match"
   use "033_subsets"
 
-  X = array shape 2 1 pad 0
+  X = array shape 2 1 fill 0
   Y = array 1
   try
     X Y 1 false 1 random_subsets

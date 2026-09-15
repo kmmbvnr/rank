@@ -12,7 +12,7 @@ N dice_ways print
 rem Exponentiate the dice recurrence.
 fun dice_ways N
   Mod = 1000000007
-  Steps = array shape 6 6 pad 0
+  Steps = array shape 6 6 fill 0
 
   for Column in 0 until 6
     Steps 0 Column = 1
@@ -36,7 +36,7 @@ end
 
 rem Construct an identity matrix.
 fun identity Size
-  Result = array shape Size Size pad 0
+  Result = array shape Size Size fill 0
   for I in 0 until Size
     Result I I = 1
   end

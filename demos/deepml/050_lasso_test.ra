@@ -18,7 +18,7 @@ test "official three samples"
   Weights = Fit .weights round 8
   Bias = Fit .bias round 8
   Matches = Weights equal Expected
-  SameW = Matches and reduce
+  SameW = Matches and reduce with true
   SameW and Bias equal 0.15385068
 end
 
@@ -41,7 +41,7 @@ test "official five samples"
   Weights = Fit .weights round 8
   Bias = Fit .bias round 8
   Matches = Weights equal Expected
-  SameW = Matches and reduce
+  SameW = Matches and reduce with true
   SameW and Bias equal 0.40828636
 end
 

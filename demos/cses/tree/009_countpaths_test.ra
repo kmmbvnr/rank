@@ -28,7 +28,7 @@ test "one node may form a path"
   use sequences
   Tree = new graph (array 1) .undirected
   Rooted = Tree 1 root
-  Paths = array shape 1 2 pad 1
+  Paths = array shape 1 2 fill 1
   Actual = Rooted Paths path_counts
   Actual equal (array 1)
 end

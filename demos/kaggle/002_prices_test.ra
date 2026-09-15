@@ -11,7 +11,7 @@ test "linear regression fits an affine line"
   end
   Y = array 1 3 5 7
   Model = X Y 0.1 500 linear
-  Pred = (array shape 1 1 pad 4) Model linear_predict
+  Pred = (array shape 1 1 fill 4) Model linear_predict
   Pred round 4 equal array 9.0
 end
 
@@ -30,7 +30,7 @@ end
 
 test "linear regression checks observation counts"
   use "002_prices"
-  X = array shape 2 1 pad 1
+  X = array shape 2 1 fill 1
   Raised = false
   try
     Model = X (array 1) 0.1 1 linear

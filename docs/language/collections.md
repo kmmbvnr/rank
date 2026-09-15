@@ -75,7 +75,7 @@ end
 Default:
 
 ```rank
-Last = index C pad -1
+Last = index C default -1
 ```
 
 Multi-dimensional keyed addressing:
@@ -157,7 +157,7 @@ priorities preserve insertion order. For a numeric max-heap, negate priorities
 when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
 
 Empty `pop` and `peek` operations raise a missing-value error, so
-`Pending pop pad -1` supplies a fallback. `len` counts remaining entries.
+`Pending pop default -1` supplies a fallback. `len` counts remaining entries.
 Queue, stack and deque indices start at zero at the current front/bottom.
 They retain queue-style array operations. Heap iteration visits payloads in
 internal heap order, not sorted order; repeatedly call `pop` to get priority order.
@@ -252,7 +252,7 @@ and the `.multiset` runtime type.
 `Bag lowerbound X` (also `Bag X lowerbound`) returns the smallest value >= X;
 it is an alias for `ceiling`. `Bag upperbound X` returns the smallest value > X.
 These return values, not iterator positions. If no value qualifies, they raise
-a missing-value error that can be handled with `pad`. Both use the multiset's
+a missing-value error that can be handled with `default`. Both use the multiset's
 expected O(log n) tree lookup and preserve exact integer comparisons.
 
 An ordered multiset keeps duplicate comparable scalar values in sorted order.
@@ -288,15 +288,15 @@ program may define and call `fun ceiling A B` as `3 ceiling 4`.
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
 `ceiling` returns the least value at least its argument. When no such value
-exists they also raise `.Missing`, so ordinary `pad` supplies a fallback:
+exists they also raise `.Missing`, so ordinary `default` supplies a fallback:
 
 ```rank
-Best = Tickets floor Limit pad -1
+Best = Tickets floor Limit default -1
 ```
 
 `Bag I` addresses the occurrence at zero-based position `I` in sorted order.
 Equal values occupy separate positions. A negative or out-of-bounds position
-raises `.Missing`, so it also composes with `pad`.
+raises `.Missing`, so it also composes with `default`.
 
 Iteration is sorted and repeats duplicate values. With `use sequences`, `len`
 counts all occurrences and `shape` is its one-dimensional size. Numeric
@@ -322,7 +322,7 @@ Indices are zero-based. Cells start at zero. Addressed assignment writes one
 cell, and compound assignment updates it. `F sum I` returns the inclusive sum
 from index zero through `I`; `F sum -1` is the empty prefix and returns zero.
 Other negative and out-of-bounds indices raise `.Missing` and compose with
-`pad`. Cell access is constant time; assignment and prefix sums take
+`default`. Cell access is constant time; assignment and prefix sums take
 `O(log N)` time. The runtime type is `.fenwick`.
 
 `sum` is also contextual rather than reserved. The middle form is a Fenwick
@@ -421,7 +421,7 @@ Answer = Tree Left Right query
 ```
 
 Both bounds must be valid positions and `Left` must not exceed `Right`.
-Out-of-bounds positions raise `.Missing` and compose with `pad`. No identity
+Out-of-bounds positions raise `.Missing` and compose with `default`. No identity
 value is required because an empty range is not a valid query. Empty trees may
 be constructed but cannot be queried or addressed.
 

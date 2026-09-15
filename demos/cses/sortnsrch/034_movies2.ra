@@ -18,12 +18,12 @@ fun maximum_movies Data K
   Begin = Data # 0
   Finish = Data # 1
   Order = Finish argsort
-  Empty = array shape K pad 0
+  Empty = array shape K fill 0
   Viewers = Empty multiset
   Answer = 0
 
   for i in Order
-    Free = Viewers floor Begin i pad -1
+    Free = Viewers floor Begin i default -1
 
     if Free equal -1
       continue

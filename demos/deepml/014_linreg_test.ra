@@ -46,7 +46,7 @@ end
 
 test "target length must match observations"
   use "014_linreg"
-  X = array shape 3 2 pad 1
+  X = array shape 3 2 fill 1
   Y = array 1 2
   Raised = false
 

@@ -72,7 +72,7 @@ end
 
 test "sample counts must match"
   use "038_adaboost"
-  X = array shape 2 1 pad 0
+  X = array shape 2 1 fill 0
   Y = array 1
   Raised = false
 

@@ -15,7 +15,7 @@ rem Count connected floor components.
 fun count_rooms Grid
   H = Grid len
   W = Grid 0 len
-  Seen = array shape H W pad false
+  Seen = array shape H W fill false
   DYs = array -1 1 0 0
   DXs = array 0 0 -1 1
 

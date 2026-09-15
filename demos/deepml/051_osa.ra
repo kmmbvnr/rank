@@ -6,7 +6,7 @@ use sequences
 fun osa Source Target
   M = Source len
   N = Target len
-  D = array shape (M + 1) (N + 1) pad 0
+  D = array shape (M + 1) (N + 1) fill 0
 
   for I in 0 to M
     D I 0 = I

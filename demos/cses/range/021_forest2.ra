@@ -36,15 +36,16 @@ rem Keep static and changed tree counts.
 fun forest_updates Grid Queries
   Size = Grid len
   Side = Size + 1
-  Trees = array shape Size Size pad 0
-  Prefix = array shape Side Side pad 0
+  Trees = array shape Size Size fill 0
+  Prefix = array shape Side Side fill 0
 
   for Row InitialRow in Grid
     Codes = Row codepoint rank 0
     Values = (46 - Codes) // 4
     Cells = Values array
     Trees InitialRow # = Cells
-    Running = Cells + scan
+    PrefixRow = Cells + scan with 0
+    Running = PrefixRow (1 to Size)
     Columns = 1 to Size
     Above = Prefix InitialRow Columns
     Current = InitialRow + 1
@@ -58,7 +59,7 @@ fun forest_updates Grid Queries
   end
 
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   Count = 0
   for Query in Queries
     Type = Query 0

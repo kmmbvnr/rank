@@ -22,7 +22,7 @@ fun linear_regression X Y Rate Steps
     .DimensionMismatch raise
   end
 
-  Theta = array shape N pad 0
+  Theta = array shape N fill 0
 
   for Step in 0 until Steps
     Pred = X Theta matmul

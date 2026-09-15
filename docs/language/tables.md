@@ -59,14 +59,14 @@ R = Db .members alias .r
 J = M R leftjoin on
   .recommendedby equal .memid
 Rows = J array
-Names = Rows .r .firstname pad ""
+Names = Rows .r .firstname default ""
 ```
 
 `alias` accepts a rank-1 array table or SQLite view. Both sides of an aliased
 join must have different aliases and the same storage kind. Each result row has
 one nested object per matched side: `.m .firstname` and `.r .firstname` remain
 distinct without renaming either source column. A left row with no match has no
-`.r` object, so a nested projection can use `pad`. For a SQLite view, `J` is
+`.r` object, so a nested projection can use `default`. For a SQLite view, `J` is
 still lazy and `J sql` shows a query with the self join; `array` reads its rows.
 The alias changes only the Rank result shape, never the database schema.
 An already joined SQLite view cannot itself be aliased yet; multiway joins of
@@ -283,10 +283,10 @@ Rank infers one fixed type for each column from its nonempty cells. A column is
 integer when every value is an integer without ambiguous leading zeroes, real
 when every value is numeric, and boolean when every value is exactly `true` or
 `false`; otherwise it is text. Empty cells are absent fields and therefore
-compose with `pad` when the column is projected:
+compose with `default` when the column is projected:
 
 ```rank
-Age = Data .Age pad Median
+Age = Data .Age default Median
 ```
 
 Writing mirrors assignment:
@@ -386,11 +386,11 @@ new field. Compound assignment requires the field to exist in every row.
 
 ## Missing values
 
-`pad` is used instead of a table-specific `fill`:
+`default` is used instead of a table-specific `fill`:
 
 ```rank
 Median = Data .Age median
-Data .Age = Data .Age pad Median
+Data .Age = Data .Age default Median
 ```
 
 The `mean`, `median` and `std` statistical reductions ignore missing cells in a
@@ -614,7 +614,7 @@ joins preserve left row order and, within each left row, right row order. The
 right key columns of a flat join are omitted; a shared non-key column name
 raises `.TypeError` instead of being renamed automatically. Unmatched right
 fields are missing and
-can be projected with `pad`. A nonexistent key field raises `.Missing`.
+can be projected with `default`. A nonexistent key field raises `.Missing`.
 
 The same joins work on SQLite-backed views and compile to SQL. Sorting a nested
 aliased result by its fields still requires materialization; a database source
@@ -640,7 +640,7 @@ Features = (Features Mask) array
 Text operations may lift over a whole column:
 
 ```rank
-Cabin = Train .Cabin pad "U/0/U"
+Cabin = Train .Cabin default "U/0/U"
 Parts = Cabin "/" split
 
 Train .Deck = Parts 0

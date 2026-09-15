@@ -14,7 +14,7 @@ rem Find the fewest coins for every sum.
 fun minimum_coins Coins Target
   Missing = Target + 1
   Size = Target + 1
-  Best = array shape Size pad Missing
+  Best = array shape Size fill Missing
   Best 0 = 0
 
   for Total in 1 to Target

@@ -1228,14 +1228,14 @@ continues to select matching atoms as a rank-1 result.
 Text uses the same rules over Unicode code points. Selection returns text rather
 than an array of one-character text values.
 
-## Padding and defaults
+## Missing-value defaults
 
-`pad` provides a value when data is absent:
+`default` provides a value when data is absent:
 
 ```rank
-X = A i pad 0
-Last = index Key pad -1
-Age = Data .Age pad Median
+X = A i default 0
+Last = index Key default -1
+Age = Data .Age default Median
 ```
 
 The same concept covers:
@@ -1243,14 +1243,14 @@ The same concept covers:
 - missing keyed values;
 - missing table values.
 
-`pad` is non-mutating. To store the result:
+`default` is non-mutating. To store the result:
 
 ```rank
-Data .Age = Data .Age pad Median
+Data .Age = Data .Age default Median
 ```
 
 The left side is evaluated first. The fallback expression is evaluated only
-when addressing finds no value. `pad` does not hide invalid negative indices,
+when addressing finds no value. `default` does not hide invalid negative indices,
 type errors or failures such as division by zero.
 
 ---
@@ -1437,15 +1437,15 @@ ordinary label addressing:
 ```rank
 Kind = Error .Kind
 Message = Error .Message
-Original = Error .Value pad Default
-Cause = Error .Cause pad Default
+Original = Error .Value default Default
+Cause = Error .Cause default Default
 Trace = Error .Trace
 ```
 
 `.Kind` is a label, `.Message` and `.Trace` are text, `.Value` is the optional
 value attached when the error was raised, and `.Cause` is an optional earlier
 error. Addressing `.Value` or `.Cause` when it is absent produces `.Missing`,
-so `pad` can provide a default. Error bindings follow the same inferred-type
+so `default` can provide a default. Error bindings follow the same inferred-type
 and workspace rules as other names.
 
 `raise` is a core data-first operation and does not require `use`. Error kinds
@@ -2048,10 +2048,10 @@ Dimensions are nonnegative integers. The number of elements must equal the
 product of the dimensions. Line breaks inside the block are formatting only;
 they do not add an axis or change the declared shape.
 
-`pad` fills every cell with one evaluated value and therefore needs no block:
+`default` fills every cell with one evaluated value and therefore needs no block:
 
 ```rank
-Dist = array shape Rows Columns pad -1
+Dist = array shape Rows Columns fill -1
 ```
 
 The dimensions follow the same nonnegative-integer rule. A zero dimension
@@ -2270,7 +2270,7 @@ dimension is `1`. Missing leading dimensions behave as dimensions of size `1`.
 The result has the larger compatible size on every axis:
 
 ```rank
-M = array shape 2 3 pad 1
+M = array shape 2 3 fill 1
 Row = array 10 20 30
 Result = M + Row
 rem Result shape is 2 3
@@ -2300,8 +2300,8 @@ M3 = N % 3 equal 0
 An operation may be followed by a word that changes how it is applied:
 
 ```rank
-Total = A + reduce
-Prefix = A + scan
+Total = A + reduce with 0
+Prefix = A + scan with 0
 Tree = A + segment
 Products = A B * outer
 Cells = A F rank 0
@@ -2313,17 +2313,18 @@ A completed modified operation can feed the next operation in the same chain:
 
 ```rank
 Total = "1203" integer rank 0 sum
-Total = A + scan sum
+Prefix = A + scan with 0
+Total = Prefix sum
 Total = A B * outer sum rank 1 sum
 Total = M sum axis 0 sum
 ```
 
 `rank` consumes its integer argument; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
-For example, `A + scan sum` means `(A + scan) sum`. `segment` constructs the
-algorithmic collection described in [Collections](language/collections.md).
-Operands are evaluated once. Parentheses remain available to make grouping
-explicit.
+For example, a seeded scan is named before its result feeds `sum`. `segment`
+constructs the algorithmic collection described in
+[Collections](language/collections.md). Operands are evaluated once.
+Parentheses remain available to make grouping explicit.
 
 
 ## Each
@@ -2401,8 +2402,8 @@ specifications remain deferred.
 A reduction collapses values:
 
 ```rank
-Total = A + reduce
-Product = A * reduce
+Total = A + reduce with 0
+Product = A * reduce with 1
 ```
 
 Without an explicit rank, reduction consumes the complete finite value in
@@ -2410,11 +2411,14 @@ row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
 to one atom while preserving its leading frame:
 
 ```rank
-RowTotals = M + reduce rank 1
-BlockProducts = Blocks * reduce rank 2
+RowTotals = M + reduce rank 1 with 0
+BlockProducts = Blocks * reduce rank 2 with 1
 ```
 
-Reduction is a left fold. A scalar and a rank-0 cell reduce to themselves.
+`with Seed` supplies an explicit initial accumulator. The seed is combined with
+the first value, reused independently for every `reduce rank R` cell, and
+returned unchanged for an empty cell. Reduction is a left fold. Without
+`with`, a scalar and a rank-0 cell reduce to themselves.
 The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `%`, `and`,
 `or` and `xor`.
 Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
@@ -2442,7 +2446,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` is equivalent to `and reduce`; `any` is equivalent to `or reduce`.
+`all` is equivalent to `and reduce with true`; `any` is equivalent to
+`or reduce with false`.
 `count` returns the integer number of `true` values. All three operations
 require boolean cells. `all` and `any` short-circuit as soon as the result is
 known, while `count` examines the complete cell. An empty collection produces
@@ -2486,14 +2491,19 @@ preserve the left operand, including its integer/real representation.
 Prefix accumulation:
 
 ```rank
-Prefix = A + scan
+Prefix = A + scan with 0
 ```
 
+`scan with Seed` returns the seed followed by every left-to-right accumulated
+value. Its result therefore has one more item than the source; an empty source
+returns an array containing only the seed. This form makes prefix tables start
+at index zero without a separate allocation or mutation. Without `with`, the
+first result remains the first source value and an empty source returns an empty
+array for compatibility.
+
 `scan` accepts a rank-1 array, queue, text or bounded sequence and returns a
-material rank-1 array. The first result is the first source value; each later
-result applies the binary operation left-to-right to the previous result and
-the next value. An empty source returns an empty array. Unbounded sequences and
-higher-rank arrays are rejected. `scan` currently has no `rank` or `axis` form.
+material rank-1 array. Unbounded sequences and higher-rank arrays are rejected.
+`scan` currently has no `rank` or `axis` form.
 
 ## Outer
 
@@ -2625,7 +2635,7 @@ end
 Default:
 
 ```rank
-Last = index C pad -1
+Last = index C default -1
 ```
 
 Multi-dimensional keyed addressing:
@@ -2707,7 +2717,7 @@ priorities preserve insertion order. For a numeric max-heap, negate priorities
 when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
 
 Empty `pop` and `peek` operations raise a missing-value error, so
-`Pending pop pad -1` supplies a fallback. `len` counts remaining entries.
+`Pending pop default -1` supplies a fallback. `len` counts remaining entries.
 Queue, stack and deque indices start at zero at the current front/bottom.
 They retain queue-style array operations. Heap iteration visits payloads in
 internal heap order, not sorted order; repeatedly call `pop` to get priority order.
@@ -2802,7 +2812,7 @@ and the `.multiset` runtime type.
 `Bag lowerbound X` (also `Bag X lowerbound`) returns the smallest value >= X;
 it is an alias for `ceiling`. `Bag upperbound X` returns the smallest value > X.
 These return values, not iterator positions. If no value qualifies, they raise
-a missing-value error that can be handled with `pad`. Both use the multiset's
+a missing-value error that can be handled with `default`. Both use the multiset's
 expected O(log n) tree lookup and preserve exact integer comparisons.
 
 An ordered multiset keeps duplicate comparable scalar values in sorted order.
@@ -2838,15 +2848,15 @@ program may define and call `fun ceiling A B` as `3 ceiling 4`.
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
 `ceiling` returns the least value at least its argument. When no such value
-exists they also raise `.Missing`, so ordinary `pad` supplies a fallback:
+exists they also raise `.Missing`, so ordinary `default` supplies a fallback:
 
 ```rank
-Best = Tickets floor Limit pad -1
+Best = Tickets floor Limit default -1
 ```
 
 `Bag I` addresses the occurrence at zero-based position `I` in sorted order.
 Equal values occupy separate positions. A negative or out-of-bounds position
-raises `.Missing`, so it also composes with `pad`.
+raises `.Missing`, so it also composes with `default`.
 
 Iteration is sorted and repeats duplicate values. With `use sequences`, `len`
 counts all occurrences and `shape` is its one-dimensional size. Numeric
@@ -2872,7 +2882,7 @@ Indices are zero-based. Cells start at zero. Addressed assignment writes one
 cell, and compound assignment updates it. `F sum I` returns the inclusive sum
 from index zero through `I`; `F sum -1` is the empty prefix and returns zero.
 Other negative and out-of-bounds indices raise `.Missing` and compose with
-`pad`. Cell access is constant time; assignment and prefix sums take
+`default`. Cell access is constant time; assignment and prefix sums take
 `O(log N)` time. The runtime type is `.fenwick`.
 
 `sum` is also contextual rather than reserved. The middle form is a Fenwick
@@ -2941,7 +2951,7 @@ Answer = Tree Left Right query
 ```
 
 Both bounds must be valid positions and `Left` must not exceed `Right`.
-Out-of-bounds positions raise `.Missing` and compose with `pad`. No identity
+Out-of-bounds positions raise `.Missing` and compose with `default`. No identity
 value is required because an empty range is not a valid query. Empty trees may
 be constructed but cannot be queried or addressed.
 
@@ -3240,10 +3250,10 @@ State = Weighted Start Limit upto
 accepts arbitrarily large integers. Its cached binary-lifting table grows only
 to the largest requested bit. `distance` returns the minimum number of forward
 transitions from `From` to `To`; an unreachable target is missing and composes
-with `pad`:
+with `default`:
 
 ```rank
-Steps = Planets distance From To pad -1
+Steps = Planets distance From To default -1
 ```
 
 `lengths` returns a rank-1 integer array aligned with the successor array. Each
@@ -3292,7 +3302,7 @@ Length = Rooted A B distance
 The query words use the same data-first postfix form as
 `Tree Left Right query`. `ancestor` returns the vertex `K` parent edges above
 the requested vertex. An ancestor above the root is missing and composes with
-`pad`. `lca` returns the lowest common ancestor, and `distance` returns the
+`default`. `lca` returns the lowest common ancestor, and `distance` returns the
 number of edges between two vertices. Each query takes `O(log N)` time.
 
 The prepared value is a record with these fields:
@@ -3360,7 +3370,7 @@ weights and rejects a negative edge. All three return a record with three fields
 ```rank
 Result = Graph Start dijkstra
 Distance = Result .distance
-Answer = Distance Target pad infinity
+Answer = Distance Target default infinity
 ```
 
 `Graph components` accepts an undirected graph and returns `.count`, a
@@ -3375,7 +3385,7 @@ makes `.possible` false.
 the same `.count`, `.component`, and `.roots` fields as `components`.
 
 All indices use the graph's scalar vertices as keys. Missing distances and
-parents remain missing values, so existing `pad` handling applies.
+parents remain missing values, so existing `default` handling applies.
 
 `Graph cycle` returns one cycle from either a directed or undirected graph as a
 rank-1 array. The first vertex is repeated at the end, so each adjacent pair is
@@ -3413,7 +3423,7 @@ blocking-flow algorithm and returns:
 
 - `.value`, the maximum flow value;
 - `.flow`, a two-key index addressed by `Flow From To`, with parallel-edge
-  flows aggregated and absent pairs readable through `pad 0`;
+  flows aggregated and absent pairs readable through `default 0`;
 - `.cut`, the set of vertices reachable from `Source` in the final residual
   graph, which is the source side of a minimum cut.
 
@@ -3459,7 +3469,7 @@ renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under
 the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
-`pad` after materialization. The SQL join remains lazy until a terminal read.
+`default` after materialization. The SQL join remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
 `Cols = record ... end` followed by `Out = View select Cols` builds an ordered,
 named projection. SQLite expressions must belong to `View`; constants become
@@ -3549,10 +3559,10 @@ Rank infers one fixed type for each column from its nonempty cells. A column is
 integer when every value is an integer without ambiguous leading zeroes, real
 when every value is numeric, and boolean when every value is exactly `true` or
 `false`; otherwise it is text. Empty cells are absent fields and therefore
-compose with `pad` when the column is projected:
+compose with `default` when the column is projected:
 
 ```rank
-Age = Data .Age pad Median
+Age = Data .Age default Median
 ```
 
 Writing mirrors assignment:
@@ -3652,11 +3662,11 @@ new field. Compound assignment requires the field to exist in every row.
 
 ## Missing values
 
-`pad` is used instead of a table-specific `fill`:
+`default` is used instead of a table-specific `fill`:
 
 ```rank
 Median = Data .Age median
-Data .Age = Data .Age pad Median
+Data .Age = Data .Age default Median
 ```
 
 The `mean`, `median` and `std` statistical reductions ignore missing cells in a
@@ -3866,7 +3876,7 @@ joins preserve left row order and, within each left row, right row order. The
 right key columns of a flat join are omitted; a shared non-key column name
 raises `.TypeError` instead of being renamed automatically. Unmatched right
 fields are missing and
-can be projected with `pad`. A nonexistent key field raises `.Missing`.
+can be projected with `default`. A nonexistent key field raises `.Missing`.
 
 The same joins compile to SQL for SQLite-backed table views. A nested aliased
 result must be materialized before sorting by its nested fields. A database
@@ -3892,7 +3902,7 @@ Features = (Features Mask) array
 Text operations may lift over a whole column:
 
 ```rank
-Cabin = Train .Cabin pad "U/0/U"
+Cabin = Train .Cabin default "U/0/U"
 Parts = Cabin "/" split
 
 Train .Deck = Parts 0
@@ -3946,7 +3956,7 @@ M = Values (array Rows Columns) reshape
 Dense storage may also be allocated with a fill value and updated in place:
 
 ```rank
-M = array shape Rows Columns pad 0
+M = array shape Rows Columns fill 0
 M Row Column = Value
 M # Column = Values
 ```
@@ -4171,7 +4181,7 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M WindowShape window
-Scores = Blocks + reduce rank 2
+Scores = Blocks + reduce rank 2 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
@@ -4667,7 +4677,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` and `any` are equivalent to `and reduce` and `or reduce`, respectively.
+`all` and `any` are equivalent to `and reduce with true` and
+`or reduce with false`, respectively.
 `count` returns the integer number of `true` values. All three accept only
 boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
@@ -5454,7 +5465,7 @@ text column unless it is explicitly assigned back.
 Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
 sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
 A missing projected table cell remains `.Missing` and can be handled with
-`pad` before parsing.
+`default` before parsing.
 
 Subtracting two `datetime` values produces an immutable `duration` containing
 an exact signed integer number of seconds. `duration seconds` returns that
@@ -5504,7 +5515,7 @@ to `datetime(value, 'start of month')` and
 source rows. SQLite invalid dates yield missing cells.
 
 ```rank
-Days = (Train .date pad "2024-01-01") date
+Days = (Train .date default "2024-01-01") date
 ```
 
 ```rank
@@ -5556,7 +5567,7 @@ See [collections](../language/collections.md) for examples and empty-container r
 creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
 occurrence by zero-based index. Its lookup and mutation operations take expected
 `O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
-and therefore compose with `pad`. The complete collection semantics are defined
+and therefore compose with `default`. The complete collection semantics are defined
 in [Collections](../language/collections.md).
 
 `Size fenwick` constructs a fixed-size integer Fenwick tree. It supports
@@ -5759,7 +5770,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 
@@ -5976,7 +5987,7 @@ The twentieth-century count is `171`.
 rem Project Euler 20
 rem https://projecteuler.net/problem=20
 
-Factorial = (1 to 100) * reduce
+Factorial = (1 to 100) * reduce with 1
 Digits = Factorial text
 Values = Digits integer rank 0
 Answer = Values sum
@@ -6149,7 +6160,7 @@ function gives `19316` for fourth powers.
 rem Project Euler 31
 rem https://projecteuler.net/problem=31
 
-Ways = array shape (Target + 1) pad 0
+Ways = array shape (Target + 1) fill 0
 Ways 0 = 1
 for Coin in Coins
   for Amount in Coin to Target
@@ -6456,6 +6467,19 @@ last digit avoids replacements that are necessarily even or divisible by 5.
 Each family is formed by adding the combined decimal place weight, and planned
 membership in `primes` checks the whole family. The smallest match is `121313`.
 
+## 53. Combinatoric selections
+
+```rank
+Top = (N to 1 by -1) * scan with 1
+Bottom = (1 to N) * scan with 1
+Choices = Top // Bottom
+```
+
+The two seeded scans build the numerator and denominator products for every
+binomial coefficient in a row, including the initial coefficient `1`. Applying
+the row function with `rank 0` and reducing its counts with seed `0` gives
+`4075` values above one million.
+
 
 ---
 
@@ -6683,8 +6707,8 @@ Baseline feature preparation:
 
 ```rank
 Median = Train .Age median
-Train .Age = Train .Age pad Median
-Test .Age = Test .Age pad Median
+Train .Age = Train .Age default Median
+Test .Age = Test .Age default Median
 
 Train .Female =
   Train .Sex equal "female"
@@ -6741,7 +6765,7 @@ medians, fits log price with linear regression written in Rank, and writes the
 Text splitting over a whole column:
 
 ```rank
-Cabin = Train .Cabin pad "U/0/U"
+Cabin = Train .Cabin default "U/0/U"
 Parts = Cabin "/" split
 
 Train .Deck = Parts 0
@@ -6784,12 +6808,12 @@ Default local paths are `data/digits/{train,test}.csv` and
 The workflow suggested reusable first-class preprocessing values:
 
 ```rank
-Texts = Train .text pad ""
+Texts = Train .text default ""
 Vocab = Texts 128 vocab
 
 Model = Texts Vocab tfidf_fit
 X = Texts Model tfidf_transform
-Xtest = (Test .text pad "") Model tfidf_transform
+Xtest = (Test .text default "") Model tfidf_transform
 ```
 
 `words` and `vocab` are text-library words. The TF-IDF fitting and transform
@@ -6816,7 +6840,7 @@ Forecast = Test Means leftjoin by .store_nbr .family .weekday
 
 The [runnable Store Sales baseline](../demos/kaggle/006_storesales.ra)
 uses these table operations. An unseen test key falls back to the global
-training mean through `pad`. `use dates` computes Monday-first weekdays from
+training mean through `default`. `use dates` computes Monday-first weekdays from
 the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing
@@ -7006,7 +7030,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 
@@ -7086,7 +7110,7 @@ to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 
@@ -7145,5 +7169,38 @@ keyboard and remains visually distinct between whitespace-separated selectors.
 It is contextual rather than a general operator. J uses `#` for tally/copy and
 q uses it for take/reshape, but Rank spells those operations with words, leaving
 the glyph unambiguous in Rank source.
+
+---
+
+## 8. Prefer `scan` and `reduce` to accumulator loops
+
+When a loop only transforms values and carries one accumulator, canonical Rank
+style expresses the work as a data chain. Select the inputs, transform them,
+then use `reduce with Seed` when only the final state is needed:
+
+```rank
+Even = Values (Values even)
+Squares = Even * Even
+Total = Squares + reduce with 0
+```
+
+This replaces the imperative chain `test each value -> update Total -> return
+Total`. Each named value exposes one stage to the REPL, and the explicit seed
+defines the empty-input result.
+
+Use `scan with Seed` when every intermediate accumulator state is part of the
+result:
+
+```rank
+Running = Values + scan with 0
+```
+
+This replaces `start Total at 0 -> append Total -> update Total for each value
+-> append each new Total`. The result begins with the seed, so it can be used
+directly as a zero-based prefix table.
+
+Keep a `for` loop when the algorithm needs an early `break` or `return`, carries
+several changing states, mutates shared structures, consumes external input, or
+becomes less clear when split into collection operations.
 
 ---

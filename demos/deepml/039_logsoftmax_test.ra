@@ -8,7 +8,7 @@ test "official increasing scores"
   end
 
   Actual = Scores log_softmax
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official equal scores"
@@ -19,7 +19,7 @@ test "official equal scores"
   end
 
   Actual = Scores log_softmax
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official small score"
@@ -28,7 +28,7 @@ test "official small score"
   Expected = array -0.862 -0.862 -1.862
 
   Actual = Scores log_softmax
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "large scores stay finite"
@@ -37,5 +37,5 @@ test "large scores stay finite"
   Expected = array -0.6931 -0.6931
 
   Actual = Scores log_softmax
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end

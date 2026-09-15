@@ -17,9 +17,9 @@ rem Track components after each road.
 fun road_progress N Roads
   Nodes = 1 to N
   Union = new dsu Nodes
-  Sizes = array shape (N + 1) pad 1
+  Sizes = array shape (N + 1) fill 1
   M = Roads len
-  Answers = array shape M 2 pad 0
+  Answers = array shape M 2 fill 0
   Largest = 1
 
   for Road i in Roads

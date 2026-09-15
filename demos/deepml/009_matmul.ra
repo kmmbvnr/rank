@@ -14,7 +14,7 @@ fun matrixmul A B
     .DimensionMismatch raise
   end
 
-  Result = array shape Rows Cols pad 0.0
+  Result = array shape Rows Cols fill 0.0
 
   for i in 0 until Rows
     for j in 0 until Cols

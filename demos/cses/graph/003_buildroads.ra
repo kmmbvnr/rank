@@ -24,7 +24,7 @@ end
 rem Return one city from each component.
 fun components Cities Roads
   Parent = 0 to Cities array
-  Sizes = array shape (Cities + 1) pad 1
+  Sizes = array shape (Cities + 1) fill 1
 
   fun find City
     for Parent City not equal City

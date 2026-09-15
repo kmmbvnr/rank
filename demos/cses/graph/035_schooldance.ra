@@ -45,7 +45,7 @@ fun school_dance Boys Girls Pairs
   for Pair in Pairs
     unpack Boy Girl = Pair
     Node = Boys + Girl
-    if Flow Boy Node pad 0 equal 1
+    if Flow Boy Node default 0 equal 1
       Matched push Pair
     end
   end

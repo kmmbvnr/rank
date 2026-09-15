@@ -37,7 +37,7 @@ fun determinant A
     .DimensionMismatch raise
   end
 
-  Work = array shape Rows Cols pad 0.0
+  Work = array shape Rows Cols fill 0.0
   for i in 0 until Rows
     for j in 0 until Cols
       Work i j = A i j

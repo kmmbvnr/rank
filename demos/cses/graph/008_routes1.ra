@@ -26,7 +26,7 @@ Distances print
 rem Find distances from node one.
 fun shortest Graph NodeCount
   Size = NodeCount + 1
-  Dist = array shape Size pad infinity
+  Dist = array shape Size fill infinity
   Dist 1 = 0
   Pending = new heap
   Item = array 1 0

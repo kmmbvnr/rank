@@ -15,7 +15,7 @@ end
 
 test "zero steps preserve zero coefficients"
   use "015_gd"
-  X = array shape 2 3 pad 1
+  X = array shape 2 3 fill 1
   Y = array 2 2
   Expected = array 0.0 0.0 0.0
 
@@ -38,7 +38,7 @@ end
 
 test "target length must match observations"
   use "015_gd"
-  X = array shape 3 2 pad 1
+  X = array shape 3 2 fill 1
   Y = array 1 2
   Raised = false
 

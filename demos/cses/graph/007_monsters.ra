@@ -28,7 +28,7 @@ fun escape_monsters Grid
   DXs = array 0 0 -1 1
   Moves = array "U" "D" "L" "R"
   Limit = H * W + 1
-  Danger = array shape H W pad Limit
+  Danger = array shape H W fill Limit
   Start = -1
   Pending = new queue
 
@@ -74,8 +74,8 @@ fun escape_monsters Grid
     end
   end
 
-  Parent = array shape H W pad -1
-  Steps = array shape H W pad Limit
+  Parent = array shape H W fill -1
+  Steps = array shape H W fill Limit
   StartY = Start // W
   StartX = Start % W
   Parent StartY StartX = -2

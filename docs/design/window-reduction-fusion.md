@@ -14,7 +14,7 @@ or a generated-JavaScript kernel. It benefits the original Euler 8 program:
 
 ```rank
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 

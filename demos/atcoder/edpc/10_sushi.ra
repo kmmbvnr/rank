@@ -34,7 +34,7 @@ fun expected_turns N A
   Total = C1 + C2 + C3
   Size = Total + 1
   Depth = C3 + 1
-  Dp = array shape Size Size Depth pad 0.0
+  Dp = array shape Size Size Depth fill 0.0
 
   for K in 0 to C3
     for J in 0 to Total

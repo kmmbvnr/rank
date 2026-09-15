@@ -6,7 +6,7 @@ use io
 
 People = stdin .integer
 Toppings = stdin .integer
-Clauses = array shape People 2 pad 0
+Clauses = array shape People 2 fill 0
 for i in 0 until People
   SignA = stdin .word
   A = stdin .integer
@@ -25,7 +25,7 @@ end
 Result = Toppings Clauses giant_pizza
 if Result .possible
   Included = Result .included
-  Marks = array shape Toppings pad "-"
+  Marks = array shape Toppings fill "-"
   for Choice i in Included
     if Choice
       Marks i = "+"
@@ -54,7 +54,7 @@ fun giant_pizza N Clauses
 
   Result = Graph scc
   Part = Result .component
-  Included = array shape N pad false
+  Included = array shape N fill false
   for Topping i in 1 to N
     Negative = Topping + N
     if Part Topping equal Part Negative

@@ -18,7 +18,7 @@ end
 rem Use disjoint two-color palettes on the two checkerboard parities.
 fun solve Grid
   Rows = Grid len
-  Answer = array shape Rows pad ""
+  Answer = array shape Rows fill ""
 
   for Row i in Grid
     Colored = ""

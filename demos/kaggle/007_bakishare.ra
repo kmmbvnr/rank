@@ -25,7 +25,7 @@ fun bike_features Data
   Rows = Times len
   NumericFields = array .season .holiday .workingday .weather .temp .atemp .humidity .windspeed
   Numeric = Data NumericFields
-  Result = array shape Rows 12 pad 0.0
+  Result = array shape Rows 12 fill 0.0
 
   Result # 0 = Times hour
   Result # 1 = Times weekday

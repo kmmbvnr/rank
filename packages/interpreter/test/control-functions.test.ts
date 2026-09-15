@@ -431,7 +431,7 @@ describe('Rank control flow and functions', () => {
     it('allocates arrays afresh when executing the same function body', () => {
         expect(run([
             'fun make Value',
-            '  Data = array shape 2 pad Value',
+            '  Data = array shape 2 fill Value',
             '  return Data',
             'end',
             'A = 1 make',

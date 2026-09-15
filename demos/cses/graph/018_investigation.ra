@@ -21,10 +21,10 @@ rem Describe all cheapest routes to N.
 fun investigate Graph N
   Modulus = 1000000007
   Size = N + 1
-  Dist = array shape Size pad infinity
-  Ways = array shape Size pad 0
-  MinFlights = array shape Size pad 0
-  MaxFlights = array shape Size pad 0
+  Dist = array shape Size fill infinity
+  Ways = array shape Size fill 0
+  MinFlights = array shape Size fill 0
+  MaxFlights = array shape Size fill 0
   Dist 1 = 0
   Ways 1 = 1
   Pending = new heap

@@ -19,7 +19,7 @@ F sum 1 print
 `)).toBe(7n);
         expect(runtime.execute('F sum 1 text len print')).toBe(1n);
         expect(runtime.execute('(F sum 1) + 0')).toBe(7n);
-        expect(runtime.execute('F sum 3 pad 42')).toBe(42n);
+        expect(runtime.execute('F sum 3 default 42')).toBe(42n);
         expect(runtime.execute(`
 Holder = record
   .tree = F
@@ -103,14 +103,14 @@ end
         ].join('\n'))).toBe('0');
     });
 
-    it('exposes missing indexed positions to pad', () => {
+    it('exposes missing indexed positions to default', () => {
         expect(run([
             'use algo',
             'F = 2 fenwick',
             'Result = array shape 3',
-            '  (F (-1) pad 9)',
-            '  (F 2 pad 8)',
-            '  (F sum 2 pad 7)',
+            '  (F (-1) default 9)',
+            '  (F 2 default 8)',
+            '  (F sum 2 default 7)',
             'end',
             'Result',
         ].join('\n'))).toBe('9 8 7');

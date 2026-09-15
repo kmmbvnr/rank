@@ -26,7 +26,7 @@ test "accepts an empty vocabulary"
   use sequences
   use "005_distweets"
   Texts = array "fire" "safe"
-  Vocab = array shape 0 pad ""
+  Vocab = array shape 0 fill ""
   Counts = Texts Vocab term_counts
   Counts shape equal array 2 0
 end

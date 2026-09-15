@@ -15,9 +15,9 @@ Values Positions removals print
 rem Select by live prefix count.
 fun removals Values Positions
   N = Values len
-  Flags = array shape N pad 1
+  Flags = array shape N fill 1
   Alive = Flags + segment
-  Removed = array shape N pad 0
+  Removed = array shape N fill 0
 
   for Order I in Positions
     Position = Alive Order firstatleast

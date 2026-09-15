@@ -31,8 +31,8 @@ end
 
 test "empty leading axis"
   use "002_transpose"
-  A = array shape 0 3 pad 0
-  Expected = array shape 3 0 pad 0
+  A = array shape 0 3 fill 0
+  Expected = array shape 3 0 fill 0
 
   A transpose_matrix equal Expected
 end

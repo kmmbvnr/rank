@@ -14,7 +14,7 @@ Prices Pages Budget book_shop print
 rem Visit budgets backwards so every
 rem book is used at most once.
 fun book_shop Prices Pages Budget
-  Best = array shape (Budget + 1) pad 0
+  Best = array shape (Budget + 1) fill 0
 
   for Price i in Prices
     if Price at most Budget

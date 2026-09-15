@@ -147,7 +147,7 @@ Result = W * 2`);
         try {
             runtime.execute(`use numbers
 use stats
-A = array shape 2 2 pad 1
+A = array shape 2 2 fill 1
 Means = A mean axis 1`);
             const means = runtime.variables.get('Means') as RankArray;
             expect(means.items).toEqual([1, 1]);

@@ -22,8 +22,8 @@ fun spending_features Train Test
   Money = array .RoomService .FoodCourt .ShoppingMall .Spa .VRDeck
   for Feature in Money
     Middle = Train Feature median
-    Train Feature = Train Feature pad Middle
-    Test Feature = Test Feature pad Middle
+    Train Feature = Train Feature default Middle
+    Test Feature = Test Feature default Middle
   end
 
   TrainMoney = Train Money
@@ -32,13 +32,13 @@ fun spending_features Train Test
   Test .TotalSpend = TestMoney sum axis 1
 
   Age = Train .Age median
-  Train .Age = Train .Age pad Age
-  Test .Age = Test .Age pad Age
+  Train .Age = Train .Age default Age
+  Test .Age = Test .Age default Age
 
-  Train .Cryo = (Train .CryoSleep pad false) Titanic.binary
-  Test .Cryo = (Test .CryoSleep pad false) Titanic.binary
-  Train .Vip = (Train .VIP pad false) Titanic.binary
-  Test .Vip = (Test .VIP pad false) Titanic.binary
+  Train .Cryo = (Train .CryoSleep default false) Titanic.binary
+  Test .Cryo = (Test .CryoSleep default false) Titanic.binary
+  Train .Vip = (Train .VIP default false) Titanic.binary
+  Test .Vip = (Test .VIP default false) Titanic.binary
 
   Features = array .Cryo .Vip .Age .TotalSpend
   return array (Train Features) (Test Features)

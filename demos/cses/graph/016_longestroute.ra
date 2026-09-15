@@ -25,8 +25,8 @@ end
 rem Find a longest path from 1 in a DAG.
 fun longest_route Graph N
   Size = N + 1
-  Distance = array shape Size pad -1
-  Parent = array shape Size pad 0
+  Distance = array shape Size fill -1
+  Parent = array shape Size fill 0
   Distance 1 = 1
   Sorted = Graph topological
 
@@ -46,12 +46,12 @@ fun longest_route Graph N
   if Distance N less 0
     return record
       .found = false
-      .path = array shape 0 pad 0
+      .path = array shape 0 fill 0
     end
   end
 
   Length = Distance N
-  Path = array shape Length pad 0
+  Path = array shape Length fill 0
   Current = N
   for i in 1 to Length
     Position = Length - i

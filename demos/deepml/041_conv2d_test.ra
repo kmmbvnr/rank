@@ -20,7 +20,7 @@ test "official padded stride example"
 
   Conv = simple_conv2d
   Actual = Input Kernel 1 2 Conv
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official complete windows"
@@ -45,7 +45,7 @@ test "official complete windows"
 
   Conv = simple_conv2d
   Actual = Input Kernel 0 1 Conv
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official wide zero padding"
@@ -72,5 +72,5 @@ test "official wide zero padding"
   Conv = simple_conv2d
   Actual = Input Kernel 2 2 Conv
   Actual = Actual round 10
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end

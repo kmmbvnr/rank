@@ -34,7 +34,7 @@ describe('Rank tensors and collections', () => {
     it('reports complete shapes and individual axis lengths', () => {
         expect(run([
             'use sequences',
-            'M = array shape 0 3 pad 0',
+            'M = array shape 0 3 fill 0',
             'Dims = M shape',
             'Axes = Dims len',
             'Rows = M len',
@@ -74,12 +74,12 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('cannot assign to a lazy array');
         expect(() => run([
             'use sequences',
-            'T = array shape 2 3 4 pad 0',
+            'T = array shape 2 3 4 fill 0',
             'T transpose axis 2 0',
         ].join('\n'))).toThrowError('transpose expects 3 axes, got 2');
         expect(() => run([
             'use sequences',
-            'T = array shape 2 3 4 pad 0',
+            'T = array shape 2 3 4 fill 0',
             'T transpose axis 0 0 2',
         ].join('\n'))).toThrowError('transpose axes must be unique');
     });
@@ -110,7 +110,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('mean requires at least one value');
         expect(() => run([
             'use numbers',
-            'T = array shape 2 3 pad 0',
+            'T = array shape 2 3 fill 0',
             'T sum axis 1 1',
         ].join('\n'))).toThrowError('sum axes must be unique');
         expect(run([
@@ -126,7 +126,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('-1 2 8 7 4');
         expect(() => run([
             'use numbers',
-            'Empty = array shape 2 0 pad 0',
+            'Empty = array shape 2 0 fill 0',
             'Empty min axis 1',
         ].join('\n'))).toThrowError('min requires at least one value');
     });
@@ -176,18 +176,18 @@ describe('Rank tensors and collections', () => {
             'Column + array 1 2 3',
         ].join('\n'))).toBe('11 12 13 21 22 23');
         expect(run([
-            'M = array shape 2 3 pad 2',
+            'M = array shape 2 3 fill 2',
             'Mask = M greater array 1 2 3',
             'Mask and array true false true',
         ].join('\n'))).toBe('true false false true false false');
         expect(() => run([
-            'A = array shape 2 3 pad 0',
-            'B = array shape 2 2 pad 0',
+            'A = array shape 2 3 fill 0',
+            'B = array shape 2 2 fill 0',
             'A + B',
         ].join('\n'))).toThrowError('shape mismatch: 2,3 and 2,2');
         const empty = new Interpreter().execute([
-            'A = array shape 0 3 pad 0',
-            'B = array shape 1 3 pad 1',
+            'A = array shape 0 3 fill 0',
+            'B = array shape 1 3 fill 1',
             'A + B',
         ].join('\n'));
         expect(empty).toMatchObject({ kind: 'array', shape: [0, 3], items: [] });
@@ -206,17 +206,17 @@ describe('Rank tensors and collections', () => {
 
     it('fills and mutates material arrays in row-major order', () => {
         expect(run([
-            'M = array shape 2 3 pad -1',
+            'M = array shape 2 3 fill -1',
             'M 1 0 = 7',
             'M',
         ].join('\n'))).toBe('-1 -1 -1 7 -1 -1');
         expect(run([
-            'A = array shape 2 pad 0',
+            'A = array shape 2 fill 0',
             'Alias = A',
             'A 1 = 9',
             'Alias 1',
         ].join('\n'))).toBe('9');
-        expect(run('Empty = array shape 0 3 pad 5\nEmpty')).toBe('');
+        expect(run('Empty = array shape 0 3 fill 5\nEmpty')).toBe('');
     });
 
     it('addresses complete tensor axes with #', () => {
@@ -277,12 +277,12 @@ describe('Rank tensors and collections', () => {
             'M',
         ].join('\n'))).toBe('1 1 3 3');
         expect(run([
-            'M = array shape 2 2 pad 0',
+            'M = array shape 2 2 fill 0',
             'M # # = 7',
             'M',
         ].join('\n'))).toBe('7 7 7 7');
         expect(() => run([
-            'M = array shape 2 3 pad 0',
+            'M = array shape 2 3 fill 0',
             'M # 1 = array 7 8 9',
         ].join('\n'))).toThrowError('assignment shape mismatch: 2 and 3');
     });
@@ -306,15 +306,15 @@ describe('Rank tensors and collections', () => {
             'M',
         ].join('\n'))).toBe('1 3 3 7');
         expect(() => run([
-            'M = array shape 2 3 pad 1',
+            'M = array shape 2 3 fill 1',
             'M # 1 += array 1 2 3',
         ].join('\n'))).toThrowError('assignment shape mismatch: 2 and 3');
     });
 
     it('rejects invalid whole-axis addresses', () => {
-        expect(() => run('M = array shape 2 3 pad 0\nM # # #'))
+        expect(() => run('M = array shape 2 3 fill 0\nM # # #'))
             .toThrowError('array expects at most 2 selectors');
-        expect(() => run('M = array shape 2 3 pad 0\nM # 3'))
+        expect(() => run('M = array shape 2 3 fill 0\nM # 3'))
             .toThrowError('array index out of bounds on axis 1: 3');
         expect(() => run('#')).toThrowError('# is only valid inside tensor addressing');
     });
@@ -361,14 +361,14 @@ describe('Rank tensors and collections', () => {
     it('checks addressed array assignment targets and indices', () => {
         expect(() => run('A = 1\nA 0 = 2'))
             .toThrowError('array assignment expects an array target');
-        expect(run('A = array shape 2 2 pad 0\nA 0 = 2\nA')).toBe('2 2 0 0');
-        expect(() => run('A = array shape 2 pad 0\nA 1.5 = 2'))
+        expect(run('A = array shape 2 2 fill 0\nA 0 = 2\nA')).toBe('2 2 0 0');
+        expect(() => run('A = array shape 2 fill 0\nA 1.5 = 2'))
             .toThrowError('array index must be an integer on axis 0');
-        expect(() => run('A = array shape 2 pad 0\nA -1 = 2'))
+        expect(() => run('A = array shape 2 fill 0\nA -1 = 2'))
             .toThrowError('array index must be nonnegative on axis 0');
-        expect(() => run('A = array shape 2 pad 0\nA 2 = 2'))
+        expect(() => run('A = array shape 2 fill 0\nA 2 = 2'))
             .toThrowError('array index out of bounds on axis 0: 2');
-        expect(() => run('A = array shape 2 pad 0\nA 2 = Unknown'))
+        expect(() => run('A = array shape 2 fill 0\nA 2 = Unknown'))
             .toThrowError('array index out of bounds on axis 0: 2');
         expect(() => run([
 
@@ -486,7 +486,7 @@ describe('Rank tensors and collections', () => {
             'fun total Cell',
             '  return Cell + reduce',
             'end',
-            'T = array shape 2 3 4 pad 0',
+            'T = array shape 2 3 4 fill 0',
             'T total axis 0 1 rank 2',
         ].join('\n'))).toThrowError(
             'axis count 2 plus cell rank 2 must equal tensor rank 3',
@@ -495,14 +495,14 @@ describe('Rank tensors and collections', () => {
             'fun total Cell',
             '  return Cell + reduce',
             'end',
-            'T = array shape 2 3 4 pad 0',
+            'T = array shape 2 3 4 fill 0',
             'T total axis 0 0 rank 1',
         ].join('\n'))).toThrowError('axis numbers must be unique');
         expect(() => run([
             'fun total Cell',
             '  return Cell + reduce',
             'end',
-            'T = array shape 2 3 4 pad 0',
+            'T = array shape 2 3 4 fill 0',
             'T total axis 0 3 rank 1',
         ].join('\n'))).toThrowError('axis out of bounds: 3');
     });
@@ -754,7 +754,7 @@ describe('Rank tensors and collections', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'Empty = array shape 0 pad 0',
+            'Empty = array shape 0 fill 0',
             'Empty 2 multicomb len',
         ].join('\n'))).toBe('0');
         expect(() => run('use algo\nValues = array 1 2\nValues (-1) multicomb'))

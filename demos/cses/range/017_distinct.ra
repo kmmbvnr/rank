@@ -24,7 +24,7 @@ fun distinct Values Queries
   Order = Keys argsort
   Latest = new index
   Present = Values len fenwick
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   Reached = -1
 
   for QueryIndex in Order

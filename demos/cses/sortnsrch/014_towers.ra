@@ -16,7 +16,7 @@ fun tower_count A
 
   for Cube in A
     Need = Cube + 1
-    Top = Towers ceiling Need pad 0
+    Top = Towers ceiling Need default 0
 
     if Top not equal 0
       Towers remove Top

@@ -56,7 +56,7 @@ const OPEN_SYMBOLS = new Set([
 
 /** Words that demand a right operand, so the line folds into the next one. */
 const OPEN_WORDS = new Set([
-    'and', 'or', 'xor', 'not', 'to', 'until', 'by', 'pad', 'equal', 'less',
+    'and', 'or', 'xor', 'not', 'to', 'until', 'by', 'default', 'fill', 'equal', 'less',
     'greater', 'in', 'is', 'at', 'least', 'most', 'multiple', 'use', 'as',
     'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
     'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin',
@@ -81,7 +81,7 @@ const DEDENT_WORDS = new Set(['else', 'elif', 'catch', 'finally']);
 export const OPERATOR_KEYWORDS = [
     'and', 'or', 'xor', 'not', 'equal', 'not equal', 'less', 'greater',
     'at least', 'at most', 'multiple by', 'in', 'is', 'to', 'until', 'by',
-    'pad', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
+    'default', 'fill', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
     'innerjoin on', 'set add', 'counter add', 'filter', 'select', 'ascending', 'descending',
 ];
@@ -345,7 +345,7 @@ export function scanLine(line: string): LineScan {
             continue;
         }
         if (current.text === 'array' && tokens[index + 1]?.text === 'shape'
-            && !hasPad(tokens, index + 2)) {
+            && !hasFill(tokens, index + 2)) {
             opens.push('array');
             continue;
         }
@@ -363,14 +363,14 @@ export function scanLine(line: string): LineScan {
     };
 }
 
-/** A `pad` at paren depth zero closes the shape form, so no `end` is needed. */
-function hasPad(tokens: readonly Token[], from: number): boolean {
+/** A `fill` at paren depth zero closes the shape form, so no `end` is needed. */
+function hasFill(tokens: readonly Token[], from: number): boolean {
     let depth = 0;
     for (let index = from; index < tokens.length; index += 1) {
         const text = tokens[index].text;
         if (text === '(') depth += 1;
         else if (text === ')') depth = Math.max(0, depth - 1);
-        else if (depth === 0 && tokens[index].kind === 'word' && text === 'pad') return true;
+        else if (depth === 0 && tokens[index].kind === 'word' && text === 'fill') return true;
     }
     return false;
 }

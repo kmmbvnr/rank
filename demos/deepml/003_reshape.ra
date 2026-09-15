@@ -14,7 +14,7 @@ fun reshape_matrix A NewShape
     .DimensionMismatch raise
   end
 
-  Result = array shape Rows Cols pad 0
+  Result = array shape Rows Cols fill 0
 
   for k in 0 until NewSize
     OldRow = k // OldCols

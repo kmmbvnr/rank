@@ -168,9 +168,9 @@ describe('Rank grammar', () => {
         expect(isBinaryExpression(statement.value) && isBinaryExpression(statement.value.right)).toBe(true);
     });
 
-    it('parses inclusive comparison and padded addressing', async () => {
+    it('parses inclusive comparison and defaulted addressing', async () => {
         const document = await parse([
-            'Last = index Ci pad -1',
+            'Last = index Ci default -1',
             'Ready = Last at least Start',
             'Before = Last at most Finish',
         ].join('\n'));
@@ -264,7 +264,7 @@ describe('Rank grammar', () => {
 
     it('parses a filled shaped array and addressed assignment', async () => {
         const document = await parse([
-            'Dist = array shape N N pad -1',
+            'Dist = array shape N N fill -1',
             'Dist Y X = NextDist',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);

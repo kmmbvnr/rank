@@ -112,7 +112,7 @@ describe('segment tree', () => {
     });
 
     it('reports bounds and invalid ranges as Rank errors', () => {
-        expect(run('use algo\nTree = (array 1 2) + segment\nTree (-1) pad 7')).toBe('7');
+        expect(run('use algo\nTree = (array 1 2) + segment\nTree (-1) default 7')).toBe('7');
         expect(() => run('use algo\nTree = (array 1 2) + segment\nTree 0 2 query'))
             .toThrowError('segment index out of bounds: 2');
         expect(() => run('use algo\nTree = (array 1 2) + segment\nTree 1 0 query'))
@@ -138,7 +138,7 @@ describe('segment tree', () => {
             'use bits',
             'use sequences',
             'Tree = (array 7 3 5) bxor segment',
-            'Empty = (array shape 0 pad 0) + segment',
+            'Empty = (array shape 0 fill 0) + segment',
             'array (Tree 0 2 query) (Empty len)',
         ].join('\n'))).toBe('1 0');
     });
@@ -168,7 +168,7 @@ describe('segment tree', () => {
             'Tree 0 = 0',
             'Tree 5 firstatleast',
         ].join('\n'))).toBe('2');
-        expect(run('use algo\nEmpty = (array shape 0 pad 0) + segment\nEmpty 1 firstatleast'))
+        expect(run('use algo\nEmpty = (array shape 0 fill 0) + segment\nEmpty 1 firstatleast'))
             .toBe('-1');
         expect(() => run('use algo\nTree = (array "a" "b") + segment\nTree 1 firstatleast'))
             .toThrowError('firstatleast expects numeric segment aggregates');

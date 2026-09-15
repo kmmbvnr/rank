@@ -29,7 +29,7 @@ end
 rem Find a shortest unweighted path.
 fun message_route Graph Start Target
   Size = Target + 1
-  Parent = array shape Size pad 0
+  Parent = array shape Size fill 0
   Parent Start = -1
   Pending = new queue
   Pending push Start
@@ -47,7 +47,7 @@ fun message_route Graph Start Target
   end
 
   if Parent Target equal 0
-    return array shape 0 pad 0
+    return array shape 0 fill 0
   end
 
   Length = 0
@@ -57,7 +57,7 @@ fun message_route Graph Start Target
     Node = Parent Node
   end
 
-  Path = array shape Length pad 0
+  Path = array shape Length fill 0
   Position = Length - 1
   Node = Target
   for Node not equal -1

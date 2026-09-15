@@ -10,7 +10,7 @@ use stats
 rem Train one neuron with full batches.
 rem Record MSE before each update.
 fun train_neuron X Y W Bias Rate Epochs
-  Loss = array shape Epochs pad 0
+  Loss = array shape Epochs fill 0
   N = Y len
   B = Bias / 1.0
 

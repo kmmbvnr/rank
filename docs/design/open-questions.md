@@ -118,14 +118,14 @@ operations remain future work.
 
 ## Negative indexing
 
-`pad` is cleanest if out-of-range coordinates are truly absent. Python-style
+`default` is cleanest if out-of-range coordinates are truly absent. Python-style
 negative indexing conflicts with expressions such as:
 
 ```rank
-A -1 pad 0
+A -1 default 0
 ```
 
-Current addressing rejects negative indices, including when followed by `pad`.
+Current addressing rejects negative indices, including when followed by `default`.
 The spelling of explicit operations such as `A last` is not yet fixed.
 
 ## Window dilation
@@ -288,7 +288,7 @@ explicit `rank` modifier remain to be specified before implementation.
 
 ## Missing values
 
-`pad` is the current common mechanism for absent data. `mean`, `median` and
+`default` is the current common mechanism for absent data. `mean`, `median` and
 `std` skip missing cells in projected table columns. Missing-value behavior for
 other reductions and operations remains open.
 
@@ -299,7 +299,7 @@ into an optional value instead of unwinding to `catch`:
 
 ```rank
 Parsed = Text integer maybe
-Value = Parsed pad 0
+Value = Parsed default 0
 ```
 
 This should be reconsidered after Rank has a first-class `missing` or optional

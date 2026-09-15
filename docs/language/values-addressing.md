@@ -337,14 +337,14 @@ continues to select matching atoms as a rank-1 result.
 Text uses the same rules over Unicode code points. Selection returns text rather
 than an array of one-character text values.
 
-## Padding and defaults
+## Missing-value defaults
 
-`pad` provides a value when data is absent:
+`default` provides a value when data is absent:
 
 ```rank
-X = A i pad 0
-Last = index Key pad -1
-Age = Data .Age pad Median
+X = A i default 0
+Last = index Key default -1
+Age = Data .Age default Median
 ```
 
 The same concept covers:
@@ -352,12 +352,12 @@ The same concept covers:
 - missing keyed values;
 - missing table values.
 
-`pad` is non-mutating. To store the result:
+`default` is non-mutating. To store the result:
 
 ```rank
-Data .Age = Data .Age pad Median
+Data .Age = Data .Age default Median
 ```
 
 The left side is evaluated first. The fallback expression is evaluated only
-when addressing finds no value. `pad` does not hide invalid negative indices,
+when addressing finds no value. `default` does not hide invalid negative indices,
 type errors or failures such as division by zero.

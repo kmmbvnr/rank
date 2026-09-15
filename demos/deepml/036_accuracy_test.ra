@@ -42,7 +42,7 @@ end
 
 test "empty accuracy is undefined"
   use "036_accuracy"
-  Empty = array shape 0 pad 0
+  Empty = array shape 0 fill 0
   Raised = false
 
   try

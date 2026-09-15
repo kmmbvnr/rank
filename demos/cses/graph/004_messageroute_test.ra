@@ -23,7 +23,7 @@ test "unreachable target"
   Graph = new graph (1 to 4) .undirected
   Graph add 1 2
   Path = Graph 1 4 message_route
-  Path equal (array shape 0 pad 0)
+  Path equal (array shape 0 fill 0)
 end
 
 test "single node route"

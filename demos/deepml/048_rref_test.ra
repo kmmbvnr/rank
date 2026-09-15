@@ -15,7 +15,7 @@ test "official augmented matrix"
   end
 
   Actual = A rref round 8
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official invertible matrix"
@@ -33,7 +33,7 @@ test "official invertible matrix"
   end
 
   Actual = A rref round 8
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official leading zero pivot"
@@ -51,7 +51,7 @@ test "official leading zero pivot"
   end
 
   Actual = A rref round 8
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official rank deficient matrix"
@@ -69,5 +69,5 @@ test "official rank deficient matrix"
   end
 
   Actual = A rref round 8
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end

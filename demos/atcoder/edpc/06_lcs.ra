@@ -16,7 +16,7 @@ fun longest_common S T
   M = T len
   Rows = N + 1
   Cols = M + 1
-  Lengths = array shape Rows Cols pad 0
+  Lengths = array shape Rows Cols fill 0
 
   for i in 1 to N
     Si = i - 1

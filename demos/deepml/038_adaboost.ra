@@ -8,7 +8,7 @@ use sequences
 rem Predict with one decision stump.
 fun stump X Feature Limit Sign
   N = X len
-  Pred = array shape N pad 1
+  Pred = array shape N fill 1
   Negative = X axis 1 Feature less Limit
 
   if Sign equal -1
@@ -32,7 +32,7 @@ fun adaboost_fit X Y Classifiers
   end
 
   Initial = 1.0 / N
-  Weight = array shape N pad Initial
+  Weight = array shape N fill Initial
 
   for # in 0 until Classifiers
     Best = record

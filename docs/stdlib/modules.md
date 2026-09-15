@@ -304,7 +304,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` and `any` are equivalent to `and reduce` and `or reduce`, respectively.
+`all` and `any` are equivalent to `and reduce with true` and
+`or reduce with false`, respectively.
 `count` returns the integer number of `true` values. All three accept only
 boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
@@ -1110,7 +1111,7 @@ text column unless it is explicitly assigned back.
 Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
 sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
 A missing projected table cell remains `.Missing` and can be handled with
-`pad` before parsing.
+`default` before parsing.
 
 On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
 builds a lazy `strftime` expression. The source column must contain canonical
@@ -1126,7 +1127,7 @@ to datetimes in either order. Scalar results outside years `0001` through
 sequences. On SQLite views they remain expressions with bound scalar values.
 
 ```rank
-Days = (Train .date pad "2024-01-01") date
+Days = (Train .date default "2024-01-01") date
 ```
 
 ```rank
@@ -1179,7 +1180,7 @@ See [collections](../language/collections.md) for examples and empty-container r
 creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
 occurrence by zero-based index. Its lookup and mutation operations take expected
 `O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
-and therefore compose with `pad`. The complete collection semantics are defined
+and therefore compose with `default`. The complete collection semantics are defined
 in [Collections](../language/collections.md).
 
 `Size fenwick` constructs a fixed-size integer Fenwick tree. It supports

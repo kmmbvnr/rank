@@ -79,9 +79,9 @@ array (H pop) (H pop) (H pop)
 `)).toBe('first second later');
     });
 
-    it('reports empty containers as missing values compatible with pad', () => {
+    it('reports empty containers as missing values compatible with default', () => {
         for (const kind of ['queue', 'stack', 'deque', 'heap']) {
-            expect(run(prelude + `C = new ${kind}\narray (C peek pad -1) (C pop pad -2) (C len)`)).toBe('-1 -2 0');
+            expect(run(prelude + `C = new ${kind}\narray (C peek default -1) (C pop default -2) (C len)`)).toBe('-1 -2 0');
         }
         expect(() => new RankDeque().pop()).toThrow(MissingValueError);
         expect(() => new RankHeap().peek()).toThrow(MissingValueError);
@@ -128,7 +128,7 @@ M = new ${kind}
 M add 2
 M add 2
 M add 5
-array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5 pad -1)
+array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5 default -1)
 `)).toBe(`${size} 2 5 5 -1`);
         }
     });

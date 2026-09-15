@@ -1,5 +1,5 @@
 rem PostgreSQL Exercises: string 5
-rem https://pgexercises.com/questions/string/pad.html
+rem https://pgexercises.com/questions/string/default.html
 
 use cli
 use sequences

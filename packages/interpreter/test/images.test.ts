@@ -26,7 +26,7 @@ describe('image module', () => {
             .toThrowError('image access is unavailable in this host');
         expect(() => run('use images\n(array 1) 1 1 resize'))
             .toThrowError('resize expects image rows with text paths');
-        expect(() => run('use images\n(array shape 0 pad 0) 0 1 resize'))
+        expect(() => run('use images\n(array shape 0 fill 0) 0 1 resize'))
             .toThrowError('resize dimensions must be positive integers');
     });
 });

@@ -20,7 +20,7 @@ rem Sum blocks of running maxima.
 fun increase_costs Values Queries
   N = Values len
   Size = N + 1
-  Next = array shape Size pad Size
+  Next = array shape Size fill Size
   Stack = new stack
 
   for I in (N - 1) to 0 by -1
@@ -37,7 +37,7 @@ fun increase_costs Values Queries
     Stack push I
   end
 
-  Cost = array shape Size pad 0
+  Cost = array shape Size fill 0
   for I in 0 until Size
     if I less N
       Span = Next I - I - 1
@@ -46,10 +46,9 @@ fun increase_costs Values Queries
   end
   Path = Next Cost weighted
 
-  Prefix = array shape Size pad 0
-  Prefix (1 to N) = Values + scan
+  Prefix = Values + scan with 0
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   for Query I in Queries
     First = Query 0 - 1
     Last = Query 1 - 1

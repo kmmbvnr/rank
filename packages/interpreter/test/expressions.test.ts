@@ -83,38 +83,38 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toBe('true');
     });
 
-    it('pads missing addressed values without hiding other errors', () => {
-        expect(run('(array 10 20) 2 pad 99')).toBe('99');
-        expect(run('(array 10) 0 pad 1 / 0')).toBe('10');
-        expect(run('"ab" 2 pad "?"')).toBe('?');
-        expect(run('(1 until 3) 2 pad 99')).toBe('99');
+    it('defaults missing addressed values without hiding other errors', () => {
+        expect(run('(array 10 20) 2 default 99')).toBe('99');
+        expect(run('(array 10) 0 default 1 / 0')).toBe('10');
+        expect(run('"ab" 2 default "?"')).toBe('?');
+        expect(run('(1 until 3) 2 default 99')).toBe('99');
         expect(run([
             'use algo',
             'fun lookup Key',
-            '  return index Key pad -1',
+            '  return index Key default -1',
             'end',
             '7 lookup',
         ].join('\n'))).toBe('-1');
-        expect(() => run('(array 10 20) (-1) pad 99'))
+        expect(() => run('(array 10 20) (-1) default 99'))
             .toThrowError('array index must be nonnegative on axis 0');
-        expect(() => run('1 / 0 pad 99')).toThrowError('division by zero');
+        expect(() => run('1 / 0 default 99')).toThrowError('division by zero');
     });
 
-    it('pads sparse reads lazily without swallowing key or fallback errors', () => {
+    it('defaults sparse reads lazily without swallowing key or fallback errors', () => {
         const source = [
             'use algo',
             'fun lookup Mode',
             '  index 1 2 = false',
             '  if Mode equal 0',
-            '    return index 1 2 pad 1 / 0',
+            '    return index 1 2 default 1 / 0',
             '  end',
             '  if Mode equal 1',
-            '    return index 2 3 pad 42',
+            '    return index 2 3 default 42',
             '  end',
             '  if Mode equal 2',
-            '    return index (1 / 0) 3 pad 42',
+            '    return index (1 / 0) 3 default 42',
             '  end',
-            '  return index 2 3 pad index 9 9',
+            '  return index 2 3 default index 9 9',
             'end',
         ].join('\n');
         expect(run(source + '\n0 lookup')).toBe('false');
@@ -417,7 +417,7 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toBe('0 1 2 3 0 4 5 6');
         expect(run([
             'use sequences',
-            'M = array shape 2 2 pad 1',
+            'M = array shape 2 2 fill 1',
             'S = array 2 2',
             'Stride = array 1 2',
             'Pad = array 0 1',

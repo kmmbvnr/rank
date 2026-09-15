@@ -21,7 +21,7 @@ rem Label strongly connected kingdoms.
 fun kingdoms Graph N
   Found = Graph scc
   Part = Found .component
-  Labels = array shape N pad 0
+  Labels = array shape N fill 0
   for City i in 1 to N
     Labels i = Part City
   end

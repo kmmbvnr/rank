@@ -13,7 +13,7 @@ A distinct_subsequences print
 rem Choose zero or one copy of each value.
 fun distinct_subsequences A
   for Value in A
-    Count = index Value pad 0
+    Count = index Value default 0
     index Value = Count + 1
     set add Value
   end

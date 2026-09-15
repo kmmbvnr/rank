@@ -26,7 +26,7 @@ fun count_subarray_sums A Target
       Answer += index Need
     end
 
-    Count = index Prefix pad 0
+    Count = index Prefix default 0
     index Prefix = Count + 1
   end
 

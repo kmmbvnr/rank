@@ -278,10 +278,10 @@ Dimensions are nonnegative integers. The number of elements must equal the
 product of the dimensions. Line breaks inside the block are formatting only;
 they do not add an axis or change the declared shape.
 
-`pad` fills every cell with one evaluated value and therefore needs no block:
+`default` fills every cell with one evaluated value and therefore needs no block:
 
 ```rank
-Dist = array shape Rows Columns pad -1
+Dist = array shape Rows Columns fill -1
 ```
 
 The dimensions follow the same nonnegative-integer rule. A zero dimension
@@ -517,7 +517,7 @@ dimension is `1`. Missing leading dimensions behave as dimensions of size `1`.
 The result has the larger compatible size on every axis:
 
 ```rank
-M = array shape 2 3 pad 1
+M = array shape 2 3 fill 1
 Row = array 10 20 30
 Result = M + Row
 rem Result shape is 2 3
@@ -547,8 +547,8 @@ M3 = N % 3 equal 0
 An operation may be followed by a word that changes how it is applied:
 
 ```rank
-Total = A + reduce
-Prefix = A + scan
+Total = A + reduce with 0
+Prefix = A + scan with 0
 Tree = A + segment
 Products = A B * outer
 Cells = A F rank 0
@@ -560,16 +560,18 @@ A completed modified operation can feed the next operation in the same chain:
 
 ```rank
 Total = "1203" integer rank 0 sum
-Total = A + scan sum
+Prefix = A + scan with 0
+Total = Prefix sum
 Total = A B * outer sum rank 1 sum
 Total = M sum axis 0 sum
 ```
 
 `rank` consumes its integer argument; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
-For example, `A + scan sum` means `(A + scan) sum`. `segment` constructs the
-algorithmic collection described in [Collections](collections.md). Operands are
-evaluated once. Parentheses remain available to make grouping explicit.
+For example, a seeded scan is named before its result feeds `sum`. `segment`
+constructs the algorithmic collection described in
+[Collections](collections.md). Operands are evaluated once. Parentheses remain
+available to make grouping explicit.
 
 
 ## Each
@@ -647,8 +649,8 @@ specifications remain deferred.
 A reduction collapses values:
 
 ```rank
-Total = A + reduce
-Product = A * reduce
+Total = A + reduce with 0
+Product = A * reduce with 1
 ```
 
 Without an explicit rank, reduction consumes the complete finite value in
@@ -656,11 +658,14 @@ row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
 to one atom while preserving its leading frame:
 
 ```rank
-RowTotals = M + reduce rank 1
-BlockProducts = Blocks * reduce rank 2
+RowTotals = M + reduce rank 1 with 0
+BlockProducts = Blocks * reduce rank 2 with 1
 ```
 
-Reduction is a left fold. A scalar and a rank-0 cell reduce to themselves.
+`with Seed` supplies an explicit initial accumulator. The seed is combined with
+the first value, reused independently for every `reduce rank R` cell, and
+returned unchanged for an empty cell. Reduction is a left fold. Without
+`with`, a scalar and a rank-0 cell reduce to themselves.
 The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `%`, `and`,
 `or` and `xor`.
 Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
@@ -688,7 +693,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` is equivalent to `and reduce`; `any` is equivalent to `or reduce`.
+`all` is equivalent to `and reduce with true`; `any` is equivalent to
+`or reduce with false`.
 `count` returns the integer number of `true` values. All three operations
 require boolean cells. `all` and `any` short-circuit as soon as the result is
 known, while `count` examines the complete cell. An empty collection produces
@@ -727,14 +733,19 @@ preserve the left operand, including its integer/real representation.
 Prefix accumulation:
 
 ```rank
-Prefix = A + scan
+Prefix = A + scan with 0
 ```
 
+`scan with Seed` returns the seed followed by every left-to-right accumulated
+value. Its result therefore has one more item than the source; an empty source
+returns an array containing only the seed. This form makes prefix tables start
+at index zero without a separate allocation or mutation. Without `with`, the
+first result remains the first source value and an empty source returns an empty
+array for compatibility.
+
 `scan` accepts a rank-1 array, queue, text or bounded sequence and returns a
-material rank-1 array. The first result is the first source value; each later
-result applies the binary operation left-to-right to the previous result and
-the next value. An empty source returns an empty array. Unbounded sequences and
-higher-rank arrays are rejected. `scan` currently has no `rank` or `axis` form.
+material rank-1 array. Unbounded sequences and higher-rank arrays are rejected.
+`scan` currently has no `rank` or `axis` form.
 
 ## Outer
 

@@ -18,7 +18,7 @@ Graph N game_routes print
 rem Count paths from 1 through a DAG.
 fun game_routes Graph N
   Modulus = 1000000007
-  Ways = array shape (N + 1) pad 0
+  Ways = array shape (N + 1) fill 0
   Ways 1 = 1
   Sorted = Graph topological
 

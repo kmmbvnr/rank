@@ -180,15 +180,15 @@ ordinary label addressing:
 ```rank
 Kind = Error .Kind
 Message = Error .Message
-Original = Error .Value pad Default
-Cause = Error .Cause pad Default
+Original = Error .Value default Default
+Cause = Error .Cause default Default
 Trace = Error .Trace
 ```
 
 `.Kind` is a label, `.Message` and `.Trace` are text, `.Value` is the optional
 value attached when the error was raised, and `.Cause` is an optional earlier
 error. Addressing `.Value` or `.Cause` when it is absent produces `.Missing`,
-so `pad` can provide a default. Error bindings follow the same inferred-type
+so `default` can provide a default. Error bindings follow the same inferred-type
 and workspace rules as other names.
 
 `raise` is a core data-first operation and does not require `use`. Error kinds

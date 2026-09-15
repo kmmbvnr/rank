@@ -22,8 +22,8 @@ describe('stack-safe Rank calls', () => {
 
     it('visits a chain of 100,000 vertices and accumulates subtree sizes after returning', () => {
         expect(run(`
-Edges = array shape 100000 pad -1
-Seen = array shape 100000 pad false
+Edges = array shape 100000 fill -1
+Seen = array shape 100000 fill false
 for I in 0 until 99999
   Edges I = I + 1
 end

@@ -15,7 +15,7 @@ N Moves stick_game print
 rem Gather all possible predecessors.
 fun stick_game N Moves
   Size = N + 1
-  Winning = array shape Size pad false
+  Winning = array shape Size fill false
 
   for Sticks in 1 to N
     Available = Moves at most Sticks

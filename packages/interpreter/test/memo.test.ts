@@ -59,7 +59,7 @@ Index "a|text:b" "c"
 use algo
 index 1 = 100
 fun local N
-  Before = index 1 pad -1
+  Before = index 1 default -1
   index 1 = N
   return Before
 end

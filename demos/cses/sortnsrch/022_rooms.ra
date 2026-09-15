@@ -24,7 +24,7 @@ fun allocate_rooms Data
 
   Free = new heap
   Busy = new heap
-  Rooms = array shape N pad 0
+  Rooms = array shape N fill 0
   Count = 0
 
   for I in Order

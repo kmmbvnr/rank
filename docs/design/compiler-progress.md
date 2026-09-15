@@ -1031,7 +1031,7 @@ alias inference, text operations and array creation/rebinding remain compiler ga
 
 ## Local array allocation and rebinding
 
-Numeric regions now lower `array shape ... pad ...` with integer dimensions and
+Numeric regions now lower `array shape ... fill ...` with integer dimensions and
 integer/boolean fills, plus aliases of known array bindings. Every constructor
 execution creates fresh storage. Dimension validation is shared with the ordinary
 interpreter and remains before fill evaluation; assignments commit afterward.

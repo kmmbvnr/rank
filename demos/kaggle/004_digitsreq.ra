@@ -38,7 +38,7 @@ fun centroids X Y Classes
   if Shape len not equal 2 or Y len not equal Shape 0
     .DimensionMismatch raise
   end
-  Result = array shape (Classes len) (Shape 1) pad 0.0
+  Result = array shape (Classes len) (Shape 1) fill 0.0
   for Class ci in Classes
     Mask = Y equal Class
     Group = X Mask #
@@ -56,7 +56,7 @@ fun classify X Centers Classes
   if Shape len not equal 2
     .DimensionMismatch raise
   end
-  Pred = array shape (Shape 0) pad 0
+  Pred = array shape (Shape 0) fill 0
   for Row in 0 until Shape 0
     Point = X Row #
     Delta = Centers - Point

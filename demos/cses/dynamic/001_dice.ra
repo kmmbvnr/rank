@@ -10,7 +10,7 @@ N dice_combinations print
 rem Keep the last six counts in a ring.
 fun dice_combinations N
   Modulus = 1000000007
-  Ways = array shape 6 pad 0
+  Ways = array shape 6 fill 0
   Ways 0 = 1
   Window = 1
   Answer = 1

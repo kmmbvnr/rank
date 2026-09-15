@@ -14,7 +14,7 @@ fun increasing_length Values
   Tails = new multiset
 
   for Value in Values
-    Old = Tails ceiling Value pad -1
+    Old = Tails ceiling Value default -1
     if Old not equal -1
       Tails remove Old
     end

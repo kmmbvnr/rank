@@ -79,13 +79,13 @@ test('Rank CLI translates SQL cancellation and keeps database bindings for the n
     const session = await createWorkerSession();
     t.after(() => session.dispose());
     assert.equal((await session.execute(`use tables\nDb = ${JSON.stringify(filename)} sqlite`, 0, [])).ok, true);
-    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 pad 0) sqlquery array`, 1, []);
+    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 fill 0) sqlquery array`, 1, []);
     const timer = setTimeout(() => session.interrupt(), 100);
     let stopped;
     try { stopped = await running; } finally { clearTimeout(timer); }
     assert.equal(stopped.interrupted, true, JSON.stringify(stopped.output));
     assert.match(stopped.output.map(line => line.text).join('\n'), /executing SQLite query/);
-    const next = await session.execute('Rows = Db "SELECT 42 AS answer" (array shape 0 pad 0) sqlquery array\nRows .answer', 2, []);
+    const next = await session.execute('Rows = Db "SELECT 42 AS answer" (array shape 0 fill 0) sqlquery array\nRows .answer', 2, []);
     assert.equal(next.ok, true, JSON.stringify(next.output));
     assert.equal(next.output.at(-1).text, '42');
 });
@@ -95,7 +95,7 @@ test('ordinary SQLite file and pipe execution never load the cancellation bridge
     const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
     const preload = path.join(directory, 'no-extension.mjs');
     fs.writeFileSync(preload, `import {createRequire} from 'node:module';\nconst require=createRequire(${JSON.stringify(cli)});\nrequire('better-sqlite3').prototype.loadExtension=()=>{throw new Error('unexpected cancellation extension')};\n`);
-    const source = `use tables\nuse io\nDb = ${JSON.stringify(filename)} sqlite\nRows = Db "SELECT 42 AS answer" (array shape 0 pad 0) sqlquery array\nRows .answer print\n`;
+    const source = `use tables\nuse io\nDb = ${JSON.stringify(filename)} sqlite\nRows = Db "SELECT 42 AS answer" (array shape 0 fill 0) sqlquery array\nRows .answer print\n`;
     const file = path.join(directory, 'query.ra');
     fs.writeFileSync(file, source);
     for (const [args, input] of [[[file], undefined], [[], source]]) {
@@ -123,7 +123,7 @@ test('disposing the CLI while SQLite is running interrupts before worker teardow
     const session = await createWorkerSession();
     t.after(() => session.dispose());
     await session.execute(`use tables\nDb = ${JSON.stringify(filename)} sqlite`, 0, []);
-    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 pad 0) sqlquery array`, 1, []);
+    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 fill 0) sqlquery array`, 1, []);
     const settled = running.catch(error => error);
     await new Promise(resolve => setTimeout(resolve, 100));
     const started = performance.now();
@@ -137,7 +137,7 @@ test('a pending SQLite pause remains cancellable', { timeout: 10000 }, async t =
     const session = await createWorkerSession();
     t.after(() => session.dispose());
     assert.equal((await session.execute(`use tables\nDb = ${JSON.stringify(filename)} sqlite`, 0, [])).ok, true);
-    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 pad 0) sqlquery array`, 1, []);
+    const running = session.execute(`Db ${JSON.stringify(longRead)} (array shape 0 fill 0) sqlquery array`, 1, []);
     await new Promise(resolve => setTimeout(resolve, 80));
     session.pause();
     await new Promise(resolve => setTimeout(resolve, 30));

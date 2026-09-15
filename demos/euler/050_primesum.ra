@@ -18,7 +18,7 @@ rem constant time; lengths are tried longest first.
 fun longest_prime_sum Limit
   Primes = primes until Limit array
   Count = Primes len
-  Prefix = array shape (Count + 1) pad 0
+  Prefix = array shape (Count + 1) fill 0
   for Prime I in Primes
     Next = I + 1
     Prefix Next = Prefix I + Prime

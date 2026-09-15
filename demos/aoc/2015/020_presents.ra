@@ -25,7 +25,7 @@ fun firsthouse Target Multiplier MaxVisits
     Visits = 0
 
     for House at most Limit
-      Presents = index House pad 0
+      Presents = index House default 0
       index House = Presents + Multiplier * Elf
       House += Elf
       Visits += 1
@@ -37,7 +37,7 @@ fun firsthouse Target Multiplier MaxVisits
       end
     end
 
-    Presents = index Elf pad 0
+    Presents = index Elf default 0
     if Presents at least Target
       return Elf
     end

@@ -55,7 +55,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 
@@ -135,7 +135,7 @@ to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows * reduce rank 1 with 1
 Answer = Products max
 ```
 
@@ -194,3 +194,36 @@ keyboard and remains visually distinct between whitespace-separated selectors.
 It is contextual rather than a general operator. J uses `#` for tally/copy and
 q uses it for take/reshape, but Rank spells those operations with words, leaving
 the glyph unambiguous in Rank source.
+
+---
+
+## 8. Prefer `scan` and `reduce` to accumulator loops
+
+When a loop only transforms values and carries one accumulator, canonical Rank
+style expresses the work as a data chain. Select the inputs, transform them,
+then use `reduce with Seed` when only the final state is needed:
+
+```rank
+Even = Values (Values even)
+Squares = Even * Even
+Total = Squares + reduce with 0
+```
+
+This replaces the imperative chain `test each value -> update Total -> return
+Total`. Each named value exposes one stage to the REPL, and the explicit seed
+defines the empty-input result.
+
+Use `scan with Seed` when every intermediate accumulator state is part of the
+result:
+
+```rank
+Running = Values + scan with 0
+```
+
+This replaces `start Total at 0 -> append Total -> update Total for each value
+-> append each new Total`. The result begins with the seed, so it can be used
+directly as a zero-based prefix table.
+
+Keep a `for` loop when the algorithm needs an early `break` or `return`, carries
+several changing states, mutates shared structures, consumes external input, or
+becomes less clear when split into collection operations.

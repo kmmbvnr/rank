@@ -12,7 +12,7 @@ rem Try each distinct first cut.
 fun rectangle_cuts Height Width
   Rows = Height + 1
   Columns = Width + 1
-  Cuts = array shape Rows Columns pad 0
+  Cuts = array shape Rows Columns fill 0
 
   fun best_cut H W
     if H equal W

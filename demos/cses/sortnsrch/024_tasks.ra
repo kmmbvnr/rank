@@ -19,7 +19,8 @@ fun maximum_reward Tasks
 
   Duration = Duration Order
   Deadline = Deadline Order
-  Finished = Duration + scan
+  Prefix = Duration + scan with 0
+  Finished = Prefix (1 to (Duration len))
 
   return Deadline - Finished sum
 end

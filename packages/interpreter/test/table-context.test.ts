@@ -60,7 +60,7 @@ describe('contextual table operations', () => {
             + 'R = Small alias .r\nJ = M R leftjoin by .id\n'
             + 'Out = J select\n  .left = .m .name\n  .right = .r .name\nend');
         expect(formatValue(runtime.execute('Out .left')!)).toBe('B A B');
-        expect(formatValue(runtime.execute('Out .right pad "none"')!)).toBe('B A none');
+        expect(formatValue(runtime.execute('Out .right default "none"')!)).toBe('B A none');
     });
 
     it('keeps single-field results tabular, column order, empty headers and lazy source revisions', () => {

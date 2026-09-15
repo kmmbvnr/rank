@@ -13,7 +13,7 @@ fun solve Path
   DXs = array 0 0 -1 1
   Moves = "UDLR"
 
-  Seen = array shape 9 9 pad false
+  Seen = array shape 9 9 fill false
   for I in 0 until 9
     Seen 0 I = true
     Seen 8 I = true

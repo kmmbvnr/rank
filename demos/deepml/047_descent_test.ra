@@ -15,7 +15,7 @@ test "official batch descent"
   Out = X Y W 0.01 100 1 .batch descent
   Expected = array 1.14905239 0.56176776
   Rounded = Out round 8
-  (Rounded equal Expected) and reduce
+  (Rounded equal Expected) and reduce with true
 end
 
 test "official stochastic descent"
@@ -34,7 +34,7 @@ test "official stochastic descent"
   Out = X Y W 0.01 100 1 Mode descent
   Expected = array 1.0507814 0.83659454
   Rounded = Out round 8
-  (Rounded equal Expected) and reduce
+  (Rounded equal Expected) and reduce with true
 end
 
 test "official mini batch descent"
@@ -53,12 +53,12 @@ test "official mini batch descent"
   Out = X Y W 0.01 100 2 Mode descent
   Expected = array 1.10334065 0.68329431
   Rounded = Out round 8
-  (Rounded equal Expected) and reduce
+  (Rounded equal Expected) and reduce with true
 end
 
 test "rejects an unknown method"
   use "047_descent"
-  X = array shape 1 1 pad 1
+  X = array shape 1 1 fill 1
   Y = array 1
   W = array 0.0
   Raised = false

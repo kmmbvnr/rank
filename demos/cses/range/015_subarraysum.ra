@@ -19,7 +19,7 @@ fun max_subarrays Values Updates
   Tree = Values maxsum segment
   Last = Values len - 1
   Q = Updates len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
 
   for Update I in Updates
     unpack Position Value = Update

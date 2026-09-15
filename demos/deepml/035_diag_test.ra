@@ -29,7 +29,7 @@ test "empty vector makes empty matrix"
   use "035_diag"
   use sequences
 
-  X = array shape 0 pad 0
+  X = array shape 0 fill 0
   Actual = X make_diagonal
   Actual shape equal array 0 0
 end

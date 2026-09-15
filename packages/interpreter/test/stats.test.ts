@@ -29,7 +29,7 @@ describe('Rank statistics', () => {
     it('validates median input and remaining values', () => {
         expect(() => run('use stats\n(array 1 "bad") median'))
             .toThrowError('expected numeric input');
-        expect(() => run('use stats\n(array shape 0 pad 0) median'))
+        expect(() => run('use stats\n(array shape 0 fill 0) median'))
             .toThrowError('median requires at least one value');
         expect(() => run([
             'use json',
@@ -165,7 +165,7 @@ describe('Rank statistics', () => {
         ].join('\n'))).toThrowError('shape mismatch');
         expect(() => run([
             'use stats',
-            'A = array shape 0 pad 0',
+            'A = array shape 0 fill 0',
             'A A mse',
         ].join('\n'))).toThrowError('mse requires at least one value');
         expect(() => run('use stats\n(array 1) (array 1) mae axis 1'))
@@ -217,7 +217,7 @@ describe('Rank statistics', () => {
         expect(run([
             'use stats',
             'use sequences',
-            'Data = array shape 0 3 pad 0',
+            'Data = array shape 0 3 fill 0',
             'Result = Data covariance',
             'Result shape',
         ].join('\n'))).toBe('0 0');
@@ -238,13 +238,13 @@ describe('Rank statistics', () => {
     });
 
     it('validates observation counts and axes', () => {
-        expect(() => run('use stats\n(array shape 2 1 pad 0) covariance'))
+        expect(() => run('use stats\n(array shape 2 1 fill 0) covariance'))
             .toThrowError('covariance requires at least two observations');
-        expect(() => run('use stats\n(array shape 2 3 pad 0) covariance axis 0'))
+        expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0'))
             .toThrowError('covariance axis expects feature and observation axes');
-        expect(() => run('use stats\n(array shape 2 3 pad 0) covariance axis 0 0'))
+        expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0 0'))
             .toThrowError('covariance axes must be unique');
-        expect(() => run('use stats\n(array shape 2 3 pad 0) covariance axis 0 2'))
+        expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0 2'))
             .toThrowError('covariance axis out of bounds: 2');
     });
 });

@@ -18,10 +18,10 @@ rem Find forward distances or -1.
 fun planet_distances Next Queries
   F = Next functional
   Count = Queries len
-  Answers = array shape Count pad 0
+  Answers = array shape Count fill 0
   for Query i in Queries
     unpack From To = Query
-    Steps = F distance From To pad -1
+    Steps = F distance From To default -1
     Answers i = Steps
   end
   return Answers

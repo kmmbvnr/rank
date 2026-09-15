@@ -32,8 +32,8 @@ fun nested_range_counts Data
     Rank Y = I
   end
 
-  Contains = array shape N pad 0
-  Inside = array shape N pad 0
+  Contains = array shape N fill 0
+  Inside = array shape N fill 0
   F = Ends len fenwick
 
   for K in (N - 1) to 0 by -1

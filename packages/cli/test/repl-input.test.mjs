@@ -169,7 +169,7 @@ test('tracks blocks and re-indents every line', () => {
 
 test('knows which array and record forms need an end', () => {
     assert.deepEqual(scanLine('A = array shape 2 3').opens, ['array']);
-    assert.deepEqual(scanLine('A = array shape 2 3 pad 0').opens, []);
+    assert.deepEqual(scanLine('A = array shape 2 3 fill 0').opens, []);
     assert.deepEqual(scanLine('A = array 1 2 3').opens, []);
     assert.deepEqual(scanLine('A = record').opens, ['record']);
     assert.deepEqual(scanLine('fun double X').opens, ['fun']);

@@ -17,7 +17,7 @@ end
 test "isolated cities"
   use "003_buildroads"
   use sequences
-  Roads = array shape 0 pad 0
+  Roads = array shape 0 fill 0
   Expected = array 1 2 3 4
   Actual = 4 Roads components
   Actual equal Expected

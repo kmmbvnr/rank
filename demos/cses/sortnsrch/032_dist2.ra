@@ -19,7 +19,7 @@ fun count_distinct_windows A K
   Answer = 0
 
   for Value Right in A
-    Count = index Value pad 0
+    Count = index Value default 0
 
     if Count equal 0
       Distinct += 1

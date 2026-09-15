@@ -24,7 +24,7 @@ fun distinct_colors Colors Rooted
   Parents = Rooted .parent
   Root = Rooted .root
   Bags = new index
-  Result = array shape (Order len) pad 0
+  Result = array shape (Order len) fill 0
 
   for Node in Order
     Bag = new set

@@ -30,7 +30,7 @@ test "official backward pass"
   end
   Rounded = Back round 8
   Matches = Rounded equal Expected
-  Same = Matches and reduce
+  Same = Matches and reduce with true
 
   Updated = Layer .weights
   Old = Official 0 0
@@ -85,7 +85,7 @@ test "frozen layer keeps its parameters"
   end
   Forward = Layer X forward_pass
   Before = Layer .weights copy
-  Grad = array shape 1 1 pad 2.0
+  Grad = array shape 1 1 fill 2.0
   Back = Layer Grad 0.1 backward_pass
   After = Layer .weights
 
@@ -93,7 +93,7 @@ test "frozen layer keeps its parameters"
     4.0 6.0
   end
   Same = After equal Before
-  BackPassOk = BackOk and reduce
-  Unchanged = Same and reduce
+  BackPassOk = BackOk and reduce with true
+  Unchanged = Same and reduce with true
   BackPassOk and Unchanged
 end

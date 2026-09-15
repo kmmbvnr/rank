@@ -17,15 +17,14 @@ Values Queries polynomial print
 rem Store doubled prefix coefficients.
 fun polynomial Values Queries
   N = Values len
-  Prefix = array shape (N + 1) pad 0
-  Prefix (1 to N) = Values + scan
+  Prefix = Values + scan with 0
   Size = N + 2
   Quad = Size fenwick
   Line = Size fenwick
   Base = Size fenwick
 
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   Count = 0
   for Query in Queries
     unpack Type Left Right = Query

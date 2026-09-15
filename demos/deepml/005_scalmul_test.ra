@@ -30,8 +30,8 @@ end
 
 test "empty matrix"
   use "005_scalmul"
-  A = array shape 0 3 pad 0
-  Expected = array shape 0 3 pad 0
+  A = array shape 0 3 fill 0
+  Expected = array shape 0 3 fill 0
 
   A 7 scalar_multiply equal Expected
 end

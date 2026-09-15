@@ -67,7 +67,7 @@ fun nice2 S
   Pair = false
 
   for P i in Pairs
-    First = index P pad -1
+    First = index P default -1
     if First at least 0 and i at least First + 2
       Pair = true
     end

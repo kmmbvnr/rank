@@ -26,7 +26,7 @@ fun count_divisible_subarrays A
       Remainder += N
     end
 
-    Count = index Remainder pad 0
+    Count = index Remainder default 0
     Answer += Count
     index Remainder = Count + 1
   end

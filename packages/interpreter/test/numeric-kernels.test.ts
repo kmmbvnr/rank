@@ -120,6 +120,16 @@ end
         runtime.dispose();
     });
 
+    it('uses with as an explicit reduction seed', () => {
+        const runtime = new Interpreter();
+        expect(runtime.execute('(array 2 3 4) * reduce with 10')).toBe(240n);
+        expect(runtime.execute('(array 2 3 4) - reduce with 20')).toBe(11n);
+        expect(runtime.execute('(array shape 0 fill 0) - reduce with 10')).toBe(10n);
+        expect(items(runtime.execute('M = array shape 2 3\n  1 2 3\n  4 5 6\nend\nM + reduce rank 1 with 10')!))
+            .toEqual([16n, 25n]);
+        runtime.dispose();
+    });
+
     it('reduces tensor cells by rank and keeps zero-sized frames', () => {
         const runtime = new Interpreter();
         runtime.variables.set('A', vector([1n, 2n, 3n, 4n, 5n, 6n], [2, 3]));

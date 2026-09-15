@@ -8,9 +8,9 @@ use sequences
 N = stdin .integer
 Q = stdin .integer
 Salaries = stdin .integer N array
-Types = array shape Q pad ""
-As = array shape Q pad 0
-Bs = array shape Q pad 0
+Types = array shape Q fill ""
+As = array shape Q fill 0
+Bs = array shape Q fill 0
 
 for I in 0 until Q
   Types I = stdin .word
@@ -28,7 +28,7 @@ fun salaries Salaries Types As Bs
   N = Salaries len
   Q = Types len
   Total = N + Q * 2
-  Coordinates = array shape Total pad 0
+  Coordinates = array shape Total fill 0
   Coordinates (0 until N) = Salaries
   Coordinates (N until N + Q) = As
   LastStart = N + Q
@@ -46,7 +46,7 @@ fun salaries Salaries Types As Bs
     Counts (Rank Salary) += 1
   end
 
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   AnswerCount = 0
   for Type I in Types
     A = As I

@@ -41,7 +41,7 @@ use io
         new Interpreter(line => output.push(line)).execute(`
 use text
 use io
-Matrix = array shape 2 3 pad 1.25
+Matrix = array shape 2 3 fill 1.25
 for Row in Matrix
   Row text ".1f" " " join print
 end
@@ -64,7 +64,7 @@ end
         expect(() => run('use text\n"hello" text ".2f"')).toThrow('numeric input');
         expect(() => run('use text\n(array 1 2) 0 join')).toThrow('separator must be text');
         expect(() => run('use text\n1 "," join')).toThrow('rank-1 collection');
-        expect(() => run('use text\n(array shape 2 2 pad 0) "," join')).toThrow('join matrix rows separately');
+        expect(() => run('use text\n(array shape 2 2 fill 0) "," join')).toThrow('join matrix rows separately');
         expect(run('1 text ".2f"')).toBe('1.00');
     });
 });

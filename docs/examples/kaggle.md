@@ -32,8 +32,8 @@ Baseline feature preparation:
 
 ```rank
 Median = Train .Age median
-Train .Age = Train .Age pad Median
-Test .Age = Test .Age pad Median
+Train .Age = Train .Age default Median
+Test .Age = Test .Age default Median
 
 Train .Female =
   Train .Sex equal "female"
@@ -90,7 +90,7 @@ medians, fits log price with linear regression written in Rank, and writes the
 Text splitting over a whole column:
 
 ```rank
-Cabin = Train .Cabin pad "U/0/U"
+Cabin = Train .Cabin default "U/0/U"
 Parts = Cabin "/" split
 
 Train .Deck = Parts 0
@@ -133,12 +133,12 @@ Default local paths are `data/digits/{train,test}.csv` and
 The workflow suggested reusable first-class preprocessing values:
 
 ```rank
-Texts = Train .text pad ""
+Texts = Train .text default ""
 Vocab = Texts 128 vocab
 
 Model = Texts Vocab tfidf_fit
 X = Texts Model tfidf_transform
-Xtest = (Test .text pad "") Model tfidf_transform
+Xtest = (Test .text default "") Model tfidf_transform
 ```
 
 `words` and `vocab` are text-library words. The TF-IDF fitting and transform
@@ -165,7 +165,7 @@ Forecast = Test Means leftjoin by .store_nbr .family .weekday
 
 The [runnable Store Sales baseline](../../demos/kaggle/006_storesales.ra)
 uses these table operations. An unseen test key falls back to the global
-training mean through `pad`. `use dates` computes Monday-first weekdays from
+training mean through `default`. `use dates` computes Monday-first weekdays from
 the date column. The grouping and forecast both have focused tests.
 
 ## Bike Sharing

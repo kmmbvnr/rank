@@ -11,7 +11,7 @@ array of the same records. Each SQLite view remains lazy until CSV output.
 | 2 | [Name prefix](https://pgexercises.com/questions/string/like.html) | [002](002_prefix.ra) |
 | 3 | [Case-insensitive prefix](https://pgexercises.com/questions/string/case.html) | [003](003_case.ra) |
 | 4 | [Parentheses in phones](https://pgexercises.com/questions/string/reg.html) | [004](004_phone.ra) |
-| 5 | [Padded ZIP codes](https://pgexercises.com/questions/string/pad.html) | [005](005_zip.ra) |
+| 5 | [Padded ZIP codes](https://pgexercises.com/questions/string/default.html) | [005](005_zip.ra) |
 | 6 | [Surname initials](https://pgexercises.com/questions/string/substr.html) | [006](006_initial.ra) |
 | 7 | [Clean telephone numbers](https://pgexercises.com/questions/string/translate.html) | [007](007_clean.ra) |
 

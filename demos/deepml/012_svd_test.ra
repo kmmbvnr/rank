@@ -62,7 +62,7 @@ end
 
 test "input must be two by two"
   use "012_svd"
-  A = array shape 2 3 pad 1
+  A = array shape 2 3 fill 1
   Raised = false
 
   try

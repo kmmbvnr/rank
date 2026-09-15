@@ -20,8 +20,8 @@ Graph N K flight_routes print
 rem Find K shortest walks from 1 to N.
 fun flight_routes Graph N K
   Size = N + 1
-  Visits = array shape Size pad 0
-  Answers = array shape K pad 0
+  Visits = array shape Size fill 0
+  Answers = array shape K fill 0
   Pending = new heap
   Item = array 1 0
   Pending 0 Item enqueue

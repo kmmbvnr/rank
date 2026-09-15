@@ -61,7 +61,7 @@ test "majority ties are alphabetic"
     {\"Class\":\"A\"}
   ]" json
 
-  Attrs = array shape 0 pad 0
+  Attrs = array shape 0 fill 0
   Result = Data Attrs "Class" learn_tree
   Result equal "A"
 end

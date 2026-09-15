@@ -22,7 +22,7 @@ test "official data keeps pairs"
     Row 0 equal Label * 2 - 1
     Row 1 equal Label * 2
   end
-  (ShuffledY sort equal Y) and reduce
+  (ShuffledY sort equal Y) and reduce with true
 end
 
 test "second official data keeps pairs"
@@ -47,7 +47,7 @@ test "second official data keeps pairs"
     Row 0 * 10 equal Label
     Row 1 equal Row 0
   end
-  (ShuffledY sort equal Y) and reduce
+  (ShuffledY sort equal Y) and reduce with true
 end
 
 test "resetting seed repeats a shuffle"
@@ -66,13 +66,13 @@ test "resetting seed repeats a shuffle"
   State = 42 seed
   Second = X Y shuffle_data
 
-  (First 0 equal Second 0) and reduce
-  (First 1 equal Second 1) and reduce
+  (First 0 equal Second 0) and reduce with true
+  (First 1 equal Second 1) and reduce with true
 end
 
 test "sample counts must match"
   use "029_shuf"
-  X = array shape 2 1 pad 0
+  X = array shape 2 1 fill 0
   Y = array 1 2 3
   Raised = false
 

@@ -18,7 +18,7 @@ rem Answer functional-graph jumps.
 fun planet_queries Next Queries
   Planets = Next functional
   Count = Queries len
-  Answers = array shape Count pad 0
+  Answers = array shape Count fill 0
   for Query i in Queries
     unpack Planet Steps = Query
     End = Planets jump Planet Steps

@@ -7,20 +7,20 @@ test "official example"
   Pair = Result 0
   Train = 2 until 10 array
   Match = Pair 0 equal Train
-  Ok = Match and reduce
+  Ok = Match and reduce with true
   Expected = array 0 1
   Match = Pair 1 equal Expected
-  Reduced = Match and reduce
+  Reduced = Match and reduce with true
   Ok and= Reduced
 
   Pair = Result 4
   Train = 0 until 8 array
   Match = Pair 0 equal Train
-  Reduced = Match and reduce
+  Reduced = Match and reduce with true
   Ok and= Reduced
   Expected = array 8 9
   Match = Pair 1 equal Expected
-  Reduced = Match and reduce
+  Reduced = Match and reduce with true
   Ok and= Reduced
   Ok
 end
@@ -39,22 +39,22 @@ test "uneven folds put extras first"
   Ok and= Third 1 len equal 3
   Expected = 0 until 4 array
   Match = First 1 equal Expected
-  Reduced = Match and reduce
+  Reduced = Match and reduce with true
   Ok and= Reduced
   Expected = 4 until 7 array
   Match = Second 1 equal Expected
-  Reduced = Match and reduce
+  Reduced = Match and reduce with true
   Ok and= Reduced
   Expected = 7 until 10 array
   Match = Third 1 equal Expected
-  Reduced = Match and reduce
+  Reduced = Match and reduce with true
   Ok and= Reduced
   Ok
 end
 
 test "shuffle visits every sample"
   use "018_crossval"
-  Seen = array shape 11 pad false
+  Seen = array shape 11 fill false
   Result = 11 4 true cross_validation
 
   for Pair in Result
@@ -64,7 +64,7 @@ test "shuffle visits every sample"
     end
   end
 
-  Seen and reduce
+  Seen and reduce with true
 end
 
 test "invalid fold counts are rejected"

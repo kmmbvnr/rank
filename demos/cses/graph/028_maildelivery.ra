@@ -25,11 +25,11 @@ rem Walk every street and return.
 fun mail_delivery Graph EdgeCount
   Path = Graph 1 euler
   if Path len not equal EdgeCount + 1
-    return array shape 0 pad 0
+    return array shape 0 fill 0
   end
   Last = Path len - 1
   if Path Last not equal 1
-    return array shape 0 pad 0
+    return array shape 0 fill 0
   end
   return Path
 end

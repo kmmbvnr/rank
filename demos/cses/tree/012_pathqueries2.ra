@@ -26,7 +26,7 @@ Answers print
 rem Query heavy segments of each path.
 fun maximums Values Rooted Queries
   Entry = Rooted .entry
-  Flat = array shape (Values len) pad 0
+  Flat = array shape (Values len) fill 0
   for Node in Rooted .order
     Value = Values (Node - 1)
     Flat (Entry Node) = Value

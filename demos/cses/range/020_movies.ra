@@ -22,7 +22,7 @@ fun movie_queries Movies Queries
   LastQuery = Queries max
   LastTime = LastMovie max LastQuery
   Sentinel = LastTime + 1
-  Next = array shape Sentinel pad 0
+  Next = array shape Sentinel fill 0
   Next # = Sentinel
 
   for Movie in Movies
@@ -40,7 +40,7 @@ fun movie_queries Movies Queries
   Path = Next functional
 
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   for Query I in Queries
     unpack Arrive Leave = Query
     Answers I = Path Arrive Leave upto

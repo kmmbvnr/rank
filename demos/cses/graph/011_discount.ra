@@ -51,7 +51,7 @@ end
 rem Dijkstra distances from one start.
 fun distances Graph N Start
   Size = N + 1
-  Dist = array shape Size pad infinity
+  Dist = array shape Size fill infinity
   Dist Start = 0
   Pending = new heap
   Item = array Start 0

@@ -29,7 +29,7 @@ test "tree has no cycle"
   end
   Graph add Edges
   Cycle = Graph 5 find_cycle
-  Cycle equal (array shape 0 pad 0)
+  Cycle equal (array shape 0 fill 0)
 end
 
 test "finds a triangle"

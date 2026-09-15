@@ -17,7 +17,7 @@ Answer print
 rem Generate primitive triples with Euclid's
 rem formula, then count every scaled perimeter.
 fun right_triangle_perimeter Limit
-  Counts = array shape (Limit + 1) pad 0
+  Counts = array shape (Limit + 1) fill 0
 
   for M in 2 to Limit
     Smallest = 2 * M * (M + 1)

@@ -19,7 +19,7 @@ fun prefix_queries Values Queries
   Tree = Values maxsum segment
 
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   Count = 0
   for Query in Queries
     unpack Type A B = Query

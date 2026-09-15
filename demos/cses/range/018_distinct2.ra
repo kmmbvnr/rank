@@ -27,15 +27,15 @@ fun distinct2 Values Queries
     Set add I
   end
 
-  Next = array shape N pad N
+  Next = array shape N fill N
   for Value I in Values
     Set = Positions Value
-    Next I = Set upperbound I pad N
+    Next I = Set upperbound I default N
   end
   Tree = Next min segment
 
   Q = Queries len
-  Answers = array shape Q pad ""
+  Answers = array shape Q fill ""
   Count = 0
   for Query in Queries
     Type = Query 0
@@ -46,8 +46,8 @@ fun distinct2 Values Queries
       if Old not equal New
         S = Positions Old
         Previous = Place - 1
-        Before = S floor Previous pad -1
-        After = S upperbound Place pad N
+        Before = S floor Previous default -1
+        After = S upperbound Place default N
         if Before at least 0
           Tree Before = After
         end
@@ -57,8 +57,8 @@ fun distinct2 Values Queries
           Positions New = new orderedset
         end
         S = Positions New
-        Before = S floor Previous pad -1
-        After = S ceiling Place pad N
+        Before = S floor Previous default -1
+        After = S ceiling Place default N
         if Before at least 0
           Tree Before = Place
         end

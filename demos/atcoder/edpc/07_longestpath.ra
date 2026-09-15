@@ -21,7 +21,7 @@ Graph N longest_path print
 rem Longest path length, counted in edges, through a DAG.
 fun longest_path Graph N
   Size = N + 1
-  Distance = array shape Size pad 1
+  Distance = array shape Size fill 1
   Sorted = Graph topological
 
   for Current in Sorted .order

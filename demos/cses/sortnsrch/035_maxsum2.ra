@@ -15,12 +15,7 @@ X A B maximum_bounded_sum print
 rem Keep the smallest allowed prefix sum.
 fun maximum_bounded_sum X A B
   N = X len
-  Prefix = new queue
-  Prefix push 0
-
-  for Sum in X + scan
-    Prefix push Sum
-  end
+  Prefix = X + scan with 0
 
   Starts = new multiset
   Best = Prefix A

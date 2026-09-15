@@ -500,7 +500,7 @@ The general binary-expression evaluator now composes `Evaluation` results with
 `flatMapResult`. This seven-line helper invokes the continuation immediately for
 a completed operand and uses the existing execution stack for a suspended one.
 The right operand is still evaluated after the left, and an optional step after
-both. Special syntax, including `pad`, keeps its existing evaluator. No numeric
+both. Special syntax, including `default`, keeps its existing evaluator. No numeric
 types, selector kinds or matrix sizes are guessed. The direct-expression path
 for ordinary scalar arithmetic remains unchanged.
 

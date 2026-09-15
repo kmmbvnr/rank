@@ -44,7 +44,7 @@ end
 
 test "requires a sample for every requested class"
   use "004_digitsreq"
-  X = array shape 1 1 pad 0
+  X = array shape 1 1 fill 0
   Raised = false
   try
     Centers = X (array 0) (array 0 1) centroids

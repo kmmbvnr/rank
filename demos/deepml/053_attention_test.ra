@@ -26,7 +26,7 @@ test "official identity projections"
     1.660477 2.660477
     2.339523 3.339523
   end
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official unequal tokens"
@@ -55,7 +55,7 @@ test "official unequal tokens"
     3.00928465 4.67904620
     2.50000000 4.00000000
   end
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official three dimensional case"
@@ -88,5 +88,5 @@ test "official three dimensional case"
     8.61987385 10.61987385 12.61987385
     7.38012615 9.38012615 11.38012615
   end
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end

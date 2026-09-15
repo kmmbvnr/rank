@@ -13,7 +13,7 @@ X Y knight_tour print
 
 rem Search low-degree moves first.
 fun knight_tour StartX StartY
-  Board = array shape 8 8 pad 0
+  Board = array shape 8 8 fill 0
   DX = array 2 1 -1 -2 -2 -1 1 2
   DY = array 1 2 2 1 -1 -2 -2 -1
 
@@ -80,8 +80,8 @@ end
 
 rem Verify numbering and knight moves.
 fun valid_tour Board
-  Xs = array shape 65 pad 0
-  Ys = array shape 65 pad 0
+  Xs = array shape 65 fill 0
+  Ys = array shape 65 fill 0
   for Y in 0 until 8
     for X in 0 until 8
       Step = Board Y X

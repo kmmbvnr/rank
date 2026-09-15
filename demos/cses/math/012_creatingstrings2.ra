@@ -14,7 +14,7 @@ rem Divide by repeated letter counts.
 fun string_count Text
   Mod = 1000000007
   Length = Text len
-  Fact = array shape (Length + 1) pad 1
+  Fact = array shape (Length + 1) fill 1
   Counts = new counter
 
   for I in 1 to Length

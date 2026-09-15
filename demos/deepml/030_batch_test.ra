@@ -19,14 +19,14 @@ test "official paired batches"
   (First .x equal array shape 2 2
     1 2
     3 4
-  end) and reduce
-  (First .y equal array 1 2) and reduce
+  end) and reduce with true
+  (First .y equal array 1 2) and reduce with true
 
   Last = Batches 2
   (Last .x equal array shape 1 2
     9 10
-  end) and reduce
-  (Last .y equal array 5) and reduce
+  end) and reduce with true
+  (Last .y equal array 5) and reduce with true
 end
 
 test "official feature-only batches"
@@ -45,16 +45,16 @@ test "official feature-only batches"
     1 1
     2 2
     3 3
-  end) and reduce
+  end) and reduce with true
   (Batches 1 equal array shape 1 2
     4 4
-  end) and reduce
+  end) and reduce with true
 end
 
 test "empty input has no batches"
   use "030_batch"
   use sequences
-  X = array shape 0 2 pad 0
+  X = array shape 0 2 fill 0
   Batches = X 3 batch_iterator array
 
   Batches len equal 0
@@ -62,7 +62,7 @@ end
 
 test "batch size must be positive"
   use "030_batch"
-  X = array shape 2 1 pad 0
+  X = array shape 2 1 fill 0
   Raised = false
 
   try
@@ -76,7 +76,7 @@ end
 
 test "paired sample counts must match"
   use "030_batch"
-  X = array shape 2 1 pad 0
+  X = array shape 2 1 fill 0
   Y = array 1 2 3
   Raised = false
 

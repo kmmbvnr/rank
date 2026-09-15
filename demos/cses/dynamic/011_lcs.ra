@@ -21,7 +21,7 @@ fun longest_common A B
   M = B len
   R = N + 1
   C = M + 1
-  Lengths = array shape R C pad 0
+  Lengths = array shape R C fill 0
 
   for i in 1 to N
     for j in 1 to M
@@ -37,7 +37,7 @@ fun longest_common A B
   end
 
   Size = Lengths N M
-  Result = array shape Size pad 0
+  Result = array shape Size fill 0
   Position = Size - 1
   Row = N
   Column = M

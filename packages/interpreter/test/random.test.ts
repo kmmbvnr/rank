@@ -78,12 +78,12 @@ describe('Rank random operations', () => {
     it('validates choice counts and sources', () => {
         expect(new Interpreter().execute([
             'use random',
-            'A = array shape 0 2 pad 0',
+            'A = array shape 0 2 fill 0',
             'A 0 choices',
         ].join('\n'))).toEqual({ kind: 'array', items: [], shape: [0, 2] });
         expect(() => run('use random\n(array 1 2) (-1) choices'))
             .toThrowError('choices count must be nonnegative');
-        expect(() => run('use random\nA = array shape 0 pad 0\nA 1 choices'))
+        expect(() => run('use random\nA = array shape 0 fill 0\nA 1 choices'))
             .toThrowError('choices cannot draw from an empty input');
         expect(() => run('use random\n1 2 choices'))
             .toThrowError('choices expects an array or finite sequence');

@@ -27,7 +27,7 @@ fun hamiltonian_flights N Edges
     Back add (To - 1) (From - 1)
   end
 
-  Ways = array shape States N pad 0
+  Ways = array shape States N fill 0
   Ways 1 0 = 1
   for Mask in 3 until States by 2
     HasLast = Mask Last bit

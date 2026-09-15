@@ -16,7 +16,7 @@ fun edit_distance Left Right
 
   for A i in Left
     Size = Width + 1
-    Current = array shape Size pad 0
+    Current = array shape Size fill 0
     Current 0 = i + 1
 
     for B j in Right

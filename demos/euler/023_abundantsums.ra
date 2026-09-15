@@ -17,7 +17,7 @@ Answer print
 rem Sieve divisor sums, mark abundant pairs,
 rem then total every unmarked value.
 fun non_abundant_sum Limit
-  DivisorSums = array shape (Limit + 1) pad 1
+  DivisorSums = array shape (Limit + 1) fill 1
   DivisorSums 0 = 0
   DivisorSums 1 = 0
 

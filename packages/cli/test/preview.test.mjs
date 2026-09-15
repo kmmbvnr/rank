@@ -44,7 +44,7 @@ test('an unbounded sequence shows a beginning only', () => {
 });
 
 test('a tensor reports the shape its flat text hides', () => {
-    const shown = preview(value('array shape 3 4 pad 7'));
+    const shown = preview(value('array shape 3 4 fill 7'));
     assert.equal(shown.text, '7 7 7 7 7 7 7 7 7 7 7 7');
     assert.equal(shown.note, 'shape 3 4');
 });

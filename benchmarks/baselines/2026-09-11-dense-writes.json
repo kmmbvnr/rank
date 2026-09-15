@@ -4,7 +4,7 @@
     "node": "v24.15.0",
     "cpu": "Apple M5",
     "samples": 5,
-    "source": "\nuse ranges\nfun densewrite N\n A = array shape N pad 0\n for I in 0 until N\n  A I = I\n end\n return A (N - 1)\nend\nfun matrixwrite N\n M = array shape N 1 pad 0\n for I in 0 until N\n  M I 0 = 1\n end\n return M (N - 1) 0\nend\nfun denseupdate N\n A = array shape N pad 0\n for I in 0 until N\n  A I += 1\n end\n return A (N - 1)\nend\nfun denseread N\n A = array shape N pad 1\n Total = 0\n for I in 0 until N\n  Total += A I\n end\n return Total\nend\n",
+    "source": "\nuse ranges\nfun densewrite N\n A = array shape N fill 0\n for I in 0 until N\n  A I = I\n end\n return A (N - 1)\nend\nfun matrixwrite N\n M = array shape N 1 fill 0\n for I in 0 until N\n  M I 0 = 1\n end\n return M (N - 1) 0\nend\nfun denseupdate N\n A = array shape N fill 0\n for I in 0 until N\n  A I += 1\n end\n return A (N - 1)\nend\nfun denseread N\n A = array shape N fill 1\n Total = 0\n for I in 0 until N\n  Total += A I\n end\n return Total\nend\n",
     "timing": "parse-once microbenchmarks; cold CLI demos; alternating order",
     "policy": "candidate/baseline median <= 1.25 for each case",
     "demos": [

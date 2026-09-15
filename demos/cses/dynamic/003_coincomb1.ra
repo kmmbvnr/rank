@@ -12,7 +12,7 @@ Coins Target ordered_coin_ways print
 
 rem Count coin sequences for every sum.
 fun ordered_coin_ways Coins Target
-  Ways = array shape (Target + 1) pad 0
+  Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 
   for Total in 1 to Target

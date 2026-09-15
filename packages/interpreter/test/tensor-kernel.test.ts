@@ -189,12 +189,12 @@ S print`);
         expect(result.kernels).toBe(0);
     });
     it('supports an empty inline sum', () => {
-        const result = compare('use numbers\nA = array shape 0 pad 0\nS = (A * 2) sum\nS');
+        const result = compare('use numbers\nA = array shape 0 fill 0\nS = (A * 2) sum\nS');
         expect(result.value).toBe('0');
         expect(result.kernels).toBe(1);
     });
     it('keeps empty mean errors', () => {
-        const result = compare('use stats\nA = array shape 0 pad 0\nS = (A * 2) mean');
+        const result = compare('use stats\nA = array shape 0 fill 0\nS = (A * 2) mean');
         expect('error' in result).toBe(true);
         expect(result.kernels).toBe(0);
     });
@@ -270,7 +270,7 @@ A f`;
             expect(result.kernels).toBe(1);
         });
     it('does not hide scalar errors behind an empty tensor', () => {
-        const result = compare('use numbers\nA = array shape 0 pad 0\nS = (A * (1 / 0)) sum');
+        const result = compare('use numbers\nA = array shape 0 fill 0\nS = (A * (1 / 0)) sum');
         expect('error' in result).toBe(true);
         expect(result.kernels).toBe(0);
     });

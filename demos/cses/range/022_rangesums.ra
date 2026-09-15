@@ -29,7 +29,7 @@ rem Apply inclusive range operations.
 fun range_updates Values Queries
   Tree = Values + segment
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   Count = 0
   for Query in Queries
     Type = Query 0

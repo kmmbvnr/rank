@@ -17,7 +17,7 @@ Answer print
 rem Build each amount from coins already seen,
 rem so permutations are never counted twice.
 fun coin_sums Coins Target
-  Ways = array shape (Target + 1) pad 0
+  Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 
   for Coin in Coins

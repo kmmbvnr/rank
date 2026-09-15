@@ -15,21 +15,21 @@ fun dense Inputs Units
   Low = -Limit
   Shape = array Inputs Units
   W = Shape Low Limit uniform
-  Empty = array shape 0 Inputs pad 0.0
+  Empty = array shape 0 Inputs fill 0.0
 
   return record
     .units = Units
     .trainable = true
     .input = Empty
     .weights = W
-    .bias = array shape Units pad 0.0
+    .bias = array shape Units fill 0.0
   end
 end
 
 fun parameters Layer
   W = Layer .weights
   Bias = Layer .bias
-  WSize = W shape * reduce
+  WSize = W shape * reduce with 1
   return WSize + (Bias len)
 end
 

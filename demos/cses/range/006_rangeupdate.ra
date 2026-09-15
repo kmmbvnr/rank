@@ -8,7 +8,7 @@ use sequences
 N = stdin .integer
 Q = stdin .integer
 Values = stdin .integer N array
-Queries = array shape Q 4 pad 0
+Queries = array shape Q 4 fill 0
 
 for I in 0 until Q
   Type = stdin .integer
@@ -28,7 +28,7 @@ rem Original values remain unchanged.
 fun range_updates Values Queries
   Updates = Values len fenwick
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   Count = 0
 
   for Query in Queries

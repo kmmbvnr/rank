@@ -42,7 +42,7 @@ test "one city is strongly connected"
   use "024_routescheck"
   use graph
   use sequences
-  Edges = array shape 0 2 pad 0
+  Edges = array shape 0 2 fill 0
   Result = 1 Edges routes_check
   Result .possible equal true
 end

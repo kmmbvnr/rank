@@ -1762,7 +1762,7 @@ export class Interpreter {
             const operand = this.compileDirectExpression(expression.operand);
             return operand ? () => this.evaluateUnary(expression.operator, operand()) : undefined;
         }
-        if (isBinaryExpression(expression) && expression.operator !== 'pad'
+        if (isBinaryExpression(expression) && expression.operator !== 'default'
             && expression.operator !== '**'
             && !isNamed(expression.right, 'reduce')
             && !isNamed(expression.right, 'scan')
@@ -2248,15 +2248,20 @@ export class Interpreter {
             const scan = explicitScanApplication(expression);
             if (scan) {
                 return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(scan.source));
+                    const seed = scan.seed === undefined
+                        ? undefined
+                        : yield* resume(interpreter.evaluateTask(scan.seed));
                     return interpreter.evaluateScan(
                         scan.operator,
-                        (yield* resume(interpreter.evaluateTask(scan.source))),
+                        source,
+                        seed,
                     );
                 };
             }
             const reduction = explicitReduceApplication(expression);
             if (reduction) {
-                const fused = reduction.rank === undefined ? compileFusedReduction(
+                const fused = reduction.rank === undefined && reduction.seed === undefined ? compileFusedReduction(
                     reduction.source, reduction.operator, {
                         prepareLeaf: source => interpreter.compileDirectExpression(source),
                         binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
@@ -2265,10 +2270,15 @@ export class Interpreter {
                 ) : undefined;
                 if (fused) return () => completed(fused());
                 return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(reduction.source));
+                    const seed = reduction.seed === undefined
+                        ? undefined
+                        : yield* resume(interpreter.evaluateTask(reduction.seed));
                     return interpreter.evaluateReduction(
                         reduction.operator,
-                        (yield* resume(interpreter.evaluateTask(reduction.source))),
+                        source,
                         reduction.rank,
+                        seed,
                     );
                 };
             }
@@ -2282,7 +2292,7 @@ export class Interpreter {
                     return sliceValue(source, axis, start, end, slice.inclusive);
                 };
             }
-            if (expression.operator === 'pad') {
+            if (expression.operator === 'default') {
                 // Identity-only marker; never exposed to Rank or passed to functions.
                 const absent: RankValue = { kind: 'label', name: '' };
                 let left: (() => Evaluation<RankValue>) | undefined;
@@ -4003,30 +4013,31 @@ export class Interpreter {
         operator: string,
         value: RankValue,
         cellRank?: number,
+        seed?: RankValue,
     ): RankValue {
-        if (cellRank === undefined) return this.reduceCell(operator, value);
+        if (cellRank === undefined) return this.reduceCell(operator, value, seed);
         if (isRankArray(value)) {
             if (cellRank > value.shape.length) {
                 throw new RankError(`rank ${cellRank} exceeds tensor rank ${value.shape.length}`);
             }
-            if (cellRank === value.shape.length) return this.reduceCell(operator, value);
+            if (cellRank === value.shape.length) return this.reduceCell(operator, value, seed);
             const frameShape = value.shape.slice(0, value.shape.length - cellRank);
             const cellShape = value.shape.slice(value.shape.length - cellRank);
             const cellSize = arraySize(cellShape);
             return derivedArray(frameShape, [value], frameIndex => {
                 const start = frameIndex * cellSize;
                 return cellRank === 0
-                    ? this.reduceCell(operator, arrayItem(value, start))
-                    : this.reduceArrayCell(operator, value, start, cellSize);
+                    ? this.reduceCell(operator, arrayItem(value, start), seed)
+                    : this.reduceArrayCell(operator, value, start, cellSize, seed);
             }, true);
         }
         if (cellRank > valueRank(value)) {
             throw new RankError(`rank ${cellRank} exceeds value rank ${valueRank(value)}`);
         }
-        return this.reduceCell(operator, value);
+        return this.reduceCell(operator, value, seed);
     }
 
-    private evaluateScan(operator: string, value: RankValue): RankValue {
+    private evaluateScan(operator: string, value: RankValue, seed?: RankValue): RankValue {
         if (valueRank(value) !== 1) {
             throw new RankError(`${operator} scan expects a rank-1 value`);
         }
@@ -4035,10 +4046,13 @@ export class Interpreter {
         }
         const result: RankValue[] = [];
         const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
+        if (seed !== undefined) result.push(seed);
         if (isRankArray(value)) {
             const size = arraySize(value.shape);
             if (size === 0) return array(result);
-            let accumulated = arrayItem(value, 0);
+            let accumulated = seed === undefined
+                ? arrayItem(value, 0)
+                : operation(seed, arrayItem(value, 0));
             result.push(accumulated);
             for (let index = 1; index < size; index += 1) {
                 accumulated = operation(accumulated, arrayItem(value, index));
@@ -4046,7 +4060,7 @@ export class Interpreter {
             }
             return array(result);
         }
-        let accumulated: RankValue | undefined;
+        let accumulated: RankValue | undefined = seed;
         for (const item of reductionValues(value, operator)) {
             accumulated = accumulated === undefined
                 ? item
@@ -4128,31 +4142,39 @@ export class Interpreter {
             : lazyArray(frameShape, reduceAt);
     }
 
-    private reduceCell(operator: string, value: RankValue): RankValue {
-        if (isRankArray(value)) return this.reduceArrayCell(operator, value, 0, arraySize(value.shape));
-        if (isRankSequence(value)) {
+    private reduceCell(operator: string, value: RankValue, seed?: RankValue): RankValue {
+        if (isRankArray(value)) return this.reduceArrayCell(operator, value, 0, arraySize(value.shape), seed);
+        if (seed === undefined && isRankSequence(value)) {
             const planned = value.plan.reduce?.(operator);
             if (planned !== undefined) return planned;
         }
         const values = reductionValues(value, operator);
         const first = values.next();
-        if (first.done) return reductionIdentity(operator);
-        let result = first.value;
+        if (first.done) return seed === undefined ? reductionIdentity(operator) : seed;
         const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
+        let result = seed === undefined ? first.value : operation(seed, first.value);
         for (let next = values.next(); !next.done; next = values.next()) {
             result = operation(result, next.value);
         }
         return result;
     }
 
-    private reduceArrayCell(operator: string, value: RankArray, start: number, size: number): RankValue {
-        if (size === 0) return reductionIdentity(operator);
+    private reduceArrayCell(
+        operator: string,
+        value: RankArray,
+        start: number,
+        size: number,
+        seed?: RankValue,
+    ): RankValue {
+        if (size === 0) return seed === undefined ? reductionIdentity(operator) : seed;
         const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
-        if (this.options.tensorFusion !== false) {
+        if (seed === undefined && this.options.tensorFusion !== false) {
             const folded = reduceWindowCell(value, start, size, operation);
             if (folded !== undefined) return folded;
         }
-        let result = arrayItem(value, start);
+        let result = seed === undefined
+            ? arrayItem(value, start)
+            : operation(seed, arrayItem(value, start));
         const end = start + size;
         for (let index = start + 1; index < end; index += 1) {
             result = operation(result, arrayItem(value, index));
@@ -5043,7 +5065,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (isRankIndex(values[0])) {
         const value = values[0].entries.get(indexKey(values.slice(1)));
         if (value === undefined) {
-            // Missing keys under pad are ordinary sparse reads, not exceptions.
+            // Missing keys under default are ordinary sparse reads, not exceptions.
             if (missing) return missing();
             throw new MissingValueError('missing keyed value');
         }
@@ -6000,11 +6022,13 @@ interface ReduceApplication {
     readonly operator: string;
     readonly source: Expression;
     readonly rank?: number;
+    readonly seed?: Expression;
 }
 
 interface ScanApplication {
     readonly operator: string;
     readonly source: Expression;
+    readonly seed?: Expression;
 }
 
 interface SymbolicSegmentApplication {
@@ -6042,8 +6066,13 @@ function explicitScanApplication(expression: Expression): ScanApplication | unde
         return undefined;
     }
     const parts = flattenApplication(expression.right);
-    if (parts.length !== 1 || !isNamed(parts[0], 'scan')) return undefined;
-    return { operator: expression.operator, source: expression.left };
+    if (parts.length === 1 && isNamed(parts[0], 'scan')) {
+        return { operator: expression.operator, source: expression.left };
+    }
+    if (parts.length !== 3 || !isNamed(parts[0], 'scan') || !isNamed(parts[1], 'with')) {
+        return undefined;
+    }
+    return { operator: expression.operator, source: expression.left, seed: parts[2] };
 }
 
 function explicitReduceApplication(expression: Expression): ReduceApplication | undefined {
@@ -6054,13 +6083,19 @@ function explicitReduceApplication(expression: Expression): ReduceApplication | 
     if (parts.length === 1 && isNamed(parts[0], 'reduce')) {
         return { operator: expression.operator, source: expression.left };
     }
-    if (parts.length !== 3 || !isNamed(parts[0], 'reduce') || !isNamed(parts[1], 'rank')) {
+    if (parts.length === 3 && isNamed(parts[0], 'reduce') && isNamed(parts[1], 'with')) {
+        return { operator: expression.operator, source: expression.left, seed: parts[2] };
+    }
+    const ranked = parts.length === 3 || parts.length === 5;
+    if (!ranked || !isNamed(parts[0], 'reduce') || !isNamed(parts[1], 'rank')
+        || (parts.length === 5 && !isNamed(parts[3], 'with'))) {
         return undefined;
     }
     return {
         operator: expression.operator,
         source: expression.left,
         rank: safeDimension(integerLiteral(parts[2], 'rank'), 'rank'),
+        seed: parts[4],
     };
 }
 

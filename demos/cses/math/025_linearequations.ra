@@ -79,7 +79,7 @@ fun solve_mod Rows Variables Matrix
     end
   end
 
-  Answer = array shape Variables pad 0
+  Answer = array shape Variables fill 0
   for Column I in Pivots
     Answer Column = A I Variables
   end

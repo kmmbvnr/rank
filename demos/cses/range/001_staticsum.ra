@@ -16,11 +16,10 @@ Values Queries range_sums print
 rem Answer inclusive one-based ranges.
 fun range_sums Values Queries
   Count = Values len
-  Prefix = array shape (Count + 1) pad 0
-  Prefix (1 to Count) = Values + scan
+  Prefix = Values + scan with 0
 
   Q = Queries len
-  Answers = array shape Q pad 0
+  Answers = array shape Q fill 0
   for Query i in Queries
     unpack Left Right = Query
     Before = Prefix (Left - 1)

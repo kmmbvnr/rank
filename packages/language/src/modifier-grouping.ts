@@ -42,11 +42,14 @@ export function groupModifiers(expression: Expression): Expression {
     if (isBinaryExpression(expression)) {
         const parts = flattenApplication(expression.right);
         const reduce = REDUCE_OPERATORS.has(expression.operator) && named(parts[0], 'reduce');
-        const supported = reduce || (REDUCE_OPERATORS.has(expression.operator)
-            && (named(parts[0], 'scan') || named(parts[0], 'segment')))
+        const scan = REDUCE_OPERATORS.has(expression.operator) && named(parts[0], 'scan');
+        const supported = reduce || scan || (REDUCE_OPERATORS.has(expression.operator)
+            && named(parts[0], 'segment'))
             || (OUTER_OPERATORS.has(expression.operator) && named(parts[0], 'outer'));
         if (!supported) return expression;
-        const end = reduce && named(parts[1], 'rank') ? 3 : 1;
+        const ranked = reduce && named(parts[1], 'rank');
+        const seeded = (reduce || scan) && named(parts[ranked ? 3 : 1], 'with');
+        const end = (ranked ? 3 : 1) + (seeded ? 2 : 0);
         if (parts.length <= end) return expression;
         prefix = { ...expression, right: applicationExpression(parts.slice(0, end)) } as Expression;
         rest = parts.slice(end);

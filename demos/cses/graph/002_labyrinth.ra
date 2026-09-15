@@ -27,7 +27,7 @@ fun labyrinth Grid
   DYs = array -1 1 0 0
   DXs = array 0 0 -1 1
   Moves = array "U" "D" "L" "R"
-  Parent = array shape H W pad -1
+  Parent = array shape H W fill -1
   Start = -1
   Target = -1
 

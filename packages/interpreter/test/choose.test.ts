@@ -27,7 +27,7 @@ describe('choose', () => {
             + 'Out = (Rows .mask) (Rows .yes) (Rows .no) choose');
         expect(formatValue(runtime.execute('Out 0')!)).toBe('2');
         expect(formatValue(runtime.execute('Out 1')!)).toBe('5');
-        expect(formatValue(runtime.execute('Out 2 pad 0')!)).toBe('0');
+        expect(formatValue(runtime.execute('Out 2 default 0')!)).toBe('0');
         expect(() => runtime.execute('Out 2')).toThrowError('missing object key');
     });
 });

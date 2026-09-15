@@ -25,13 +25,13 @@ fun polynomial_features X Degree
 
   Result = new queue
   for Row in X
-    Terms = array shape Width pad 0
+    Terms = array shape Width fill 0
     Position = 0
     for D in 0 to Degree
       for Choice in Indices D multicomb
         Term = 1
         if D greater 0
-          Term = Row Choice * reduce
+          Term = Row Choice * reduce with 1
         end
         Terms Position = Term
         Position += 1

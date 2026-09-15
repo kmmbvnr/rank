@@ -20,11 +20,11 @@ end
 rem Count outcomes before dividing once.
 fun dice_probability N Low High
   Size = 6 * N + 1
-  Ways = array shape Size pad 0
+  Ways = array shape Size fill 0
   Ways 0 = 1
 
   for Die in 1 to N
-    Next = array shape Size pad 0
+    Next = array shape Size fill 0
     Last = 6 * (Die - 1)
     for Sum in 0 to Last
       for Face in 1 to 6

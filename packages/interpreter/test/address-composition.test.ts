@@ -34,14 +34,14 @@ fun visit Log N
  return N
 end
 Log = queue
-M = array shape 2 2 pad 0
+M = array shape 2 2 fill 0
 M ((10000 down) + (Log 1 visit)) (Log 0 visit) = Log 7 visit
 M 1 0 += Log 3 visit
 Log`)).toBe('1 0 7 3');
     });
 
     it('preserves signed selectors, slices, and compound writes', () => {
-        expect(run(`M = array shape 2 2 pad 0
+        expect(run(`M = array shape 2 2 fill 0
 I = 1
 M +I 0 = 3
 M I 0 += 4
@@ -53,7 +53,7 @@ M`)).toBe('2 2 7 0');
 
     it('unpacks coordinate arrays for reads and writes', () => {
         expect(run(`use algo
-Grid = array shape 2 3 pad 0
+Grid = array shape 2 3 fill 0
 Point = array 1 2
 Grid unpack Point = 7
 Cache = new index
@@ -66,7 +66,7 @@ fun coordinates Log
   return array 0 1
 end
 Log = queue
-Grid = array shape 1 2 pad 0
+Grid = array shape 1 2 fill 0
 Grid unpack (Log coordinates) = 9
 Log len`)).toBe('1');
     });

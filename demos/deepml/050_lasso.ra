@@ -14,7 +14,7 @@ fun lasso X Y L1 Lr N Eps
     .DimensionMismatch raise
   end
 
-  W = array shape Cols pad 0.0
+  W = array shape Cols fill 0.0
   Bias = 0.0
 
   for # in 0 until N

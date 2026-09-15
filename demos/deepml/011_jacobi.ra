@@ -13,10 +13,10 @@ fun jacobi A B N
     .DimensionMismatch raise
   end
 
-  X = array shape Size pad 0.0
+  X = array shape Size fill 0.0
 
   for Step in 0 until N
-    Next = array shape Size pad 0.0
+    Next = array shape Size fill 0.0
 
     for i in 0 until Size
       RowSum = A i * X sum

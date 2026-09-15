@@ -20,7 +20,7 @@ fun subordinates Bosses
   end
 
   Walk = Tree 1 dfs
-  Counts = array shape N pad 0
+  Counts = array shape N fill 0
   Last = Walk .order len - 1
   for i in Last to 1 by -1
     Employee = (Walk .order) i

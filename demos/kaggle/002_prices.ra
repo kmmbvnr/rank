@@ -40,7 +40,7 @@ fun linear X Y Rate Steps
   Scale (Scale equal 0) = 1.0
   Z = (X - Center) / Scale
 
-  Weights = array shape Columns pad 0.0
+  Weights = array shape Columns fill 0.0
   Bias = Y mean
   Zt = Z transpose
   for # in 0 until Steps
@@ -67,10 +67,10 @@ end
 fun solve Train Test Rate Steps
   Quality = Train .OverallQual median
   Area = Train .GrLivArea median
-  Train .OverallQual = Train .OverallQual pad Quality
-  Test .OverallQual = Test .OverallQual pad Quality
-  Train .GrLivArea = Train .GrLivArea pad Area
-  Test .GrLivArea = Test .GrLivArea pad Area
+  Train .OverallQual = Train .OverallQual default Quality
+  Test .OverallQual = Test .OverallQual default Quality
+  Train .GrLivArea = Train .GrLivArea default Area
+  Test .GrLivArea = Test .GrLivArea default Area
 
   Features = array .OverallQual .GrLivArea
   X = Train Features

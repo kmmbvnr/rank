@@ -17,7 +17,7 @@ rem Choose the first hotel with room.
 fun assign_hotels Hotels Groups
   Tree = Hotels max segment
   M = Groups len
-  Answers = array shape M pad 0
+  Answers = array shape M fill 0
 
   for Need I in Groups
     Position = Tree Need firstatleast

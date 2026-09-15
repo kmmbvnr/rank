@@ -34,7 +34,7 @@ end
 rem Floyd-Warshall with an outer sum.
 fun all_pairs Graph NodeCount
   N = NodeCount + 1
-  Dist = array shape N N pad infinity
+  Dist = array shape N N fill infinity
 
   for Node in 1 to NodeCount
     Dist Node Node = 0

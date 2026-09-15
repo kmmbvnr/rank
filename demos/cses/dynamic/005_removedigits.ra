@@ -10,7 +10,7 @@ N removing_digits print
 rem Reuse results for smaller values.
 fun removing_digits N
   Size = N + 1
-  Steps = array shape Size pad Size
+  Steps = array shape Size fill Size
   Steps 0 = 0
 
   for Value in 1 to N

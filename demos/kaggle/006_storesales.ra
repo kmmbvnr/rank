@@ -30,5 +30,5 @@ fun forecast Train Test
     .sales = .sales mean
   end
   Joined = Test Means leftjoin by .store_nbr .family .weekday
-  return Joined .sales pad Global
+  return Joined .sales default Global
 end

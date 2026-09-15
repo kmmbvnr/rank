@@ -10,7 +10,7 @@ fun to_categorical X Columns
   end
 
   Rows = X len
-  Out = array shape Rows Columns pad 0
+  Out = array shape Rows Columns fill 0
 
   for Label Row in X
     if Label less 0

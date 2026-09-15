@@ -10,6 +10,8 @@ describe('modifier pipelines', () => {
     it('continues after scan and reduce', () => {
         expect(run('use numbers\n(array 1 2 3) + scan sum')).toBe('10');
         expect(run('use numbers\n(array 2 3 4) * reduce abs')).toBe('24');
+        expect(run('use numbers\n(array 1 2 3) + scan with 0 sum')).toBe('10');
+        expect(run('use numbers\n(array 2 3 4) * reduce with 1 abs')).toBe('24');
     });
 
     it('composes multiple modifiers', () => {

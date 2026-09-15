@@ -1,0 +1,17 @@
+use testing
+
+test "combinatoric selections"
+  use "053_combinatoricselections"
+  run
+
+  Answer equal 4075
+end
+
+test "first row above one million"
+  use "053_combinatoricselections"
+  use sequences
+  run
+
+  22 large_choices equal 0
+  23 large_choices equal 4
+end

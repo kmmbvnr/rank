@@ -23,7 +23,7 @@ describe('ordered multiset', () => {
         ].join('\n'))).toBe('4');
     });
 
-    it('finds floor and ceiling values and supports pad', () => {
+    it('finds floor and ceiling values and supports default', () => {
         expect(run([
             'use algo',
             'Bag = (array 5 3 5 8) multiset',
@@ -39,7 +39,7 @@ describe('ordered multiset', () => {
         expect(run([
             'use algo',
             'Bag = (array 5 3 5 8) multiset',
-            'Found = Bag floor 2 pad -1',
+            'Found = Bag floor 2 default -1',
             'Found',
         ].join('\n'))).toBe('-1');
     });
@@ -110,12 +110,12 @@ describe('ordered multiset', () => {
         expect(run([
             'use algo',
             'Bag = (array 7 2) multiset',
-            'Bag 2 pad -1',
+            'Bag 2 default -1',
         ].join('\n'))).toBe('-1');
         expect(run([
             'use algo',
             'Bag = (array 7 2) multiset',
-            'Bag (-1) pad -1',
+            'Bag (-1) default -1',
         ].join('\n'))).toBe('-1');
     });
 

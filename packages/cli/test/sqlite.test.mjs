@@ -72,7 +72,7 @@ test('raw SQL rejects missing bindings and writes', () => fixture((directory, db
         ['DELETE FROM facilities', 'sqlquery expects one SELECT'],
     ]) {
         const result = runSource(directory, `use tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
-            + `Db ${JSON.stringify(query)} (array shape 0 pad 0) sqlquery\n`);
+            + `Db ${JSON.stringify(query)} (array shape 0 fill 0) sqlquery\n`);
         assert.notEqual(result.status, 0);
         assert.match(result.stderr, new RegExp(expected));
     }
@@ -198,7 +198,7 @@ test('aliased self join stays in SQLite and exposes nested fields', () => fixtur
         + 'J = M R leftjoin on\n  .recommendedby equal .memid\n'
         + 'Q = J sql\nQ .text print\n'
         + 'F = J (J .m .firstname equal "Bea")\nF len print\nRows = J array\n'
-        + 'Rows .m .firstname print\nRF = Rows .r .firstname pad ""\nRF print\n');
+        + 'Rows .m .firstname print\nRF = Rows .r .firstname default ""\nRF print\n');
     assert.equal(result.status, 0, result.stderr);
     const lines = result.stdout.trimEnd().split('\n');
     assert.match(lines[0], /LEFT JOIN/);

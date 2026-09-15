@@ -47,7 +47,7 @@ array A B C D
 Tree add 1 2
 Tree add 2 3
 Rooted = Tree 1 root
-array (Rooted 3 2 ancestor) (Rooted 3 3 ancestor pad -1)
+array (Rooted 3 2 ancestor) (Rooted 3 3 ancestor default -1)
 `)).toBe('1 -1');
     });
 
@@ -156,7 +156,7 @@ array (Planets distance 1 3) (Planets distance 3 2) (Planets distance 8 6)
         expect(run(`${prelude}
 Next = array 2 3 1 5 5
 Planets = Next functional
-array (Planets distance 5 4 pad -1) (Planets distance 1 5 pad -1)
+array (Planets distance 5 4 default -1) (Planets distance 1 5 default -1)
 `)).toBe('-1 -1');
     });
 
@@ -226,7 +226,7 @@ end
     it('validates functional successor arrays', () => {
         expect(() => run(`${prelude}(array 2 4 1) functional`))
             .toThrow('functional successors must be integers from 1 to N');
-        expect(() => run(`${prelude}(array shape 1 2 pad 1) functional`))
+        expect(() => run(`${prelude}(array shape 1 2 fill 1) functional`))
             .toThrow('functional expects a rank-1 successor array');
     });
 
@@ -363,7 +363,7 @@ Graph add 1 3 5
 Graph add 2 3 (-2)
 Result = Graph 1 bellmanford
 Distance = Result .distance
-array (Distance 3) ((Result .negative) len) (Distance 4 pad infinity)
+array (Distance 3) ((Result .negative) len) (Distance 4 default infinity)
 `)).toBe('2 0 infinity');
     });
 
@@ -477,7 +477,7 @@ Graph add 2 3 (-2)
 Graph add 1 3 9
 Result = Graph floyd
 Distance = Result .distance
-array (Distance 1 3) (Distance 3 1 pad infinity) ((Result .negative) len)
+array (Distance 1 3) (Distance 3 1 default infinity) ((Result .negative) len)
 `)).toBe('3 infinity 0');
     });
 
@@ -620,11 +620,11 @@ Graph 3
             .toThrow('new graph expects .directed or .undirected');
         expect(() => run(prelude + `
 Graph = new graph .directed
-Graph add (array shape 2 4 pad 0)
+Graph add (array shape 2 4 fill 0)
 `)).toThrow('graph edge array must have shape M by 2 or M by 3');
         expect(() => run(prelude + `
 Graph = new graph .directed
-Graph add (array shape 1 1 1 pad 0)
+Graph add (array shape 1 1 1 fill 0)
 `)).toThrow(RankError);
     });
 

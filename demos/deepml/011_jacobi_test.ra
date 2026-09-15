@@ -37,7 +37,7 @@ end
 
 test "matrix and vector dimensions must match"
   use "011_jacobi"
-  A = array shape 2 3 pad 1
+  A = array shape 2 3 fill 1
   B = array 1 2
   Raised = false
 

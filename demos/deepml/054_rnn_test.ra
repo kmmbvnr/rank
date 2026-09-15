@@ -19,7 +19,7 @@ test "official increasing scalars"
 
   A = Inputs H Wx Wh Bias rnn_forward
   Expected = array 0.9759
-  (A equal Expected) and reduce
+  (A equal Expected) and reduce with true
 end
 
 test "official signed inputs"
@@ -41,7 +41,7 @@ test "official signed inputs"
 
   A = Inputs H Wx Wh Bias rnn_forward
   Expected = array 0.1180
-  (A equal Expected) and reduce
+  (A equal Expected) and reduce with true
 end
 
 test "official vector hidden state"
@@ -64,16 +64,16 @@ test "official vector hidden state"
 
   A = Inputs H Wx Wh Bias rnn_forward
   Expected = array 0.7474 0.9302
-  (A equal Expected) and reduce
+  (A equal Expected) and reduce with true
 end
 
 test "empty sequence keeps hidden state"
   use "054_rnn"
 
-  Inputs = array shape 0 2 pad 0.0
+  Inputs = array shape 0 2 fill 0.0
   H = array 0.2 -0.4
-  W = array shape 2 2 pad 0.0
+  W = array shape 2 2 fill 0.0
   Bias = array 0.0 0.0
   Actual = Inputs H W W Bias rnn_forward
-  (Actual equal H) and reduce
+  (Actual equal H) and reduce with true
 end

@@ -21,7 +21,7 @@ fun inverse_2x2 A
     .SingularMatrix raise
   end
 
-  Result = array shape 2 2 pad 0.0
+  Result = array shape 2 2 fill 0.0
   Result 0 0 = S / D
   Result 0 1 = -Q / D
   Result 1 0 = -R / D

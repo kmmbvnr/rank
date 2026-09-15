@@ -1,0 +1,24 @@
+rem Combinatoric Selections
+rem https://projecteuler.net/problem=53
+rem Count n choose r values above one million
+rem for 1 at most n at most 100
+
+use sequences
+use io
+
+Threshold = 1000000
+
+Rows = 1 to 100
+Large = Rows large_choices rank 0
+Answer = Large + reduce with 0
+Answer print
+
+
+rem Build each row exactly from two seeded
+rem cumulative products, then compare the quotient.
+fun large_choices N
+  Top = (N to 1 by -1) * scan with 1
+  Bottom = (1 to N) * scan with 1
+  Choices = Top // Bottom
+  return (Choices greater Threshold) count
+end

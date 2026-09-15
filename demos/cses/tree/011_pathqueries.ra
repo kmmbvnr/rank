@@ -16,7 +16,7 @@ for i in 1 until N
   Graph add A B
 end
 
-Queries = array shape Q 3 pad 0
+Queries = array shape Q 3 fill 0
 for i in 0 until Q
   Type = stdin .integer
   Queries i 0 = Type

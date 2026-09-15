@@ -74,7 +74,7 @@ describe('Rank tables', () => {
             'Inner = Left Right innerjoin by .key',
         ].join('\n'));
         expect(formatValue(runtime.execute('Joined .id')!)).toBe('1 1 2 3 3');
-        expect(formatValue(runtime.execute('Joined .value pad 0')!)).toBe('10 20 0 10 20');
+        expect(formatValue(runtime.execute('Joined .value default 0')!)).toBe('10 20 0 10 20');
         expect(formatValue(runtime.execute('Inner .id')!)).toBe('1 1 3 3');
     });
 
@@ -93,12 +93,12 @@ describe('Rank tables', () => {
             'Joined = Left Means leftjoin by .key',
         ].join('\n'));
         expect(formatValue(runtime.execute('Means .value')!)).toBe('2 5');
-        expect(formatValue(runtime.execute('Means .key pad "missing"')!))
+        expect(formatValue(runtime.execute('Means .key default "missing"')!))
             .toBe('a missing');
-        expect(formatValue(runtime.execute('Joined .value pad 0')!)).toBe('2 0 0');
+        expect(formatValue(runtime.execute('Joined .value default 0')!)).toBe('2 0 0');
     });
 
-    it('keeps an all-missing aggregate cell available for pad', () => {
+    it('keeps an all-missing aggregate cell available for default', () => {
         const runtime = new Interpreter();
         runtime.execute([
             'use json', 'use tables', 'use stats', 'use numbers',
@@ -112,7 +112,7 @@ describe('Rank tables', () => {
             '  .value = .value sum',
             'end',
         ].join('\n'));
-        expect(formatValue(runtime.execute('Means .value pad 0')!)).toBe('4 0');
+        expect(formatValue(runtime.execute('Means .value default 0')!)).toBe('4 0');
         expect(formatValue(runtime.execute('Sums .value')!)).toBe('4 0');
     });
 
@@ -142,7 +142,7 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute('Totals .visits')!)).toBe('2 1');
         expect(formatValue(runtime.execute('Totals .present')!)).toBe('1 0');
         expect(formatValue(runtime.execute('Totals .total')!)).toBe('2 0');
-        expect(formatValue(runtime.execute('Totals .average pad 0')!)).toBe('2 0');
+        expect(formatValue(runtime.execute('Totals .average default 0')!)).toBe('2 0');
     });
 
     it('keeps real missing keys distinct from rollup subtotal rows', () => {
@@ -158,8 +158,8 @@ describe('Rank tables', () => {
             'Totals = Totals sort by .facid .month',
         ].join('\n'));
         expect(formatValue(runtime.execute('Totals .slots')!)).toBe('2 3 5 5');
-        expect(formatValue(runtime.execute('Totals .facid pad 0')!)).toBe('1 1 1 0');
-        expect(formatValue(runtime.execute('Totals .month pad 0')!)).toBe('7 0 0 0');
+        expect(formatValue(runtime.execute('Totals .facid default 0')!)).toBe('1 1 1 0');
+        expect(formatValue(runtime.execute('Totals .month default 0')!)).toBe('7 0 0 0');
     });
 
     it('gives an empty rollup one zero-valued grand total', () => {
@@ -184,8 +184,8 @@ describe('Rank tables', () => {
             'Asc = Rows sort by .key',
             'Desc = Rows sort by .key descending',
         ].join('\n'));
-        expect(formatValue(runtime.execute('Asc .key pad 0')!)).toBe('1 2 0');
-        expect(formatValue(runtime.execute('Desc .key pad 0')!)).toBe('2 1 0');
+        expect(formatValue(runtime.execute('Asc .key default 0')!)).toBe('1 2 0');
+        expect(formatValue(runtime.execute('Desc .key default 0')!)).toBe('2 1 0');
     });
 
     it('rejects duplicate non-key columns in relational joins', () => {
@@ -221,7 +221,7 @@ describe('Rank tables', () => {
             'B = "[{\\"right_a\\":1,\\"right_b\\":2,\\"name\\":\\"yes\\"}]" json',
             'C = A B leftjoin on .left_a equal .right_a .left_b equal .right_b',
         ].join('\n'));
-        expect(formatValue(runtime.execute('C .name pad "no"')!)).toBe('yes no');
+        expect(formatValue(runtime.execute('C .name default "no"')!)).toBe('yes no');
     });
 
     it('keeps self-join fields under short table aliases', () => {
@@ -236,7 +236,7 @@ describe('Rank tables', () => {
             '  .recommendedby equal .memid',
         ].join('\n'));
         expect(formatValue(runtime.execute('J .m .firstname')!)).toBe('Ada Bea');
-        expect(formatValue(runtime.execute('J .r .firstname pad ""')!)).toBe(' Ada');
+        expect(formatValue(runtime.execute('J .r .firstname default ""')!)).toBe(' Ada');
         expect(() => runtime.execute('M M leftjoin by .memid'))
             .toThrowError('aliases must differ');
         expect(() => runtime.execute('M Data leftjoin by .memid'))
@@ -256,7 +256,7 @@ describe('Rank tables', () => {
         ].join('\n'));
         expect(formatValue(runtime.execute('Out labels')!)).toBe('.member .points');
         expect(formatValue(runtime.execute('Out .member')!)).toBe('Ada Bea');
-        expect(formatValue(runtime.execute('Out .points pad 0')!)).toBe('2 0');
+        expect(formatValue(runtime.execute('Out .points default 0')!)).toBe('2 0');
         expect(formatValue(runtime.execute('Rows labels')!)).toBe('.name .score');
     });
     it('keeps CSV header order, including empty columns and empty tables', () => {
@@ -275,7 +275,7 @@ describe('Rank tables', () => {
         expect(run('use json\nuse tables\nRows = "[{\\"b\\":1},{\\"a\\":2,\\"b\\":3}]" json\nRows labels'))
             .toBe('.b .a');
         expect(() => run('use tables\n(array 1) labels')).toThrowError('labels expects object rows');
-        expect(() => run('use tables\n(array shape 1 1 pad 0) labels'))
+        expect(() => run('use tables\n(array shape 1 1 fill 0) labels'))
             .toThrowError('labels expects a rank-1 table');
     });
 
@@ -314,7 +314,7 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute([
             'use tables',
             'Rows = "/train.csv" csv',
-            'Rows .age pad 0',
+            'Rows .age default 0',
         ].join('\n'))!)).toBe('37 0');
     });
 
@@ -324,7 +324,7 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute([
             'use tables',
             'Rows = "/train.csv" csv',
-            'Rows .age pad 1 / 0',
+            'Rows .age default 1 / 0',
         ].join('\n'))!)).toBe('37 28');
     });
 
@@ -450,7 +450,7 @@ describe('Rank tables', () => {
             'use json',
             'use tables',
             'Rows = "[1,2]" json',
-            'Fields = array shape 0 pad .x',
+            'Fields = array shape 0 fill .x',
             'Rows Fields',
         ].join('\n'))!;
         expect(result).toMatchObject({ kind: 'array', shape: [2, 0] });
@@ -489,7 +489,7 @@ describe('Rank tables', () => {
             'use json',
             'use tables',
             'Rows = "[{\\"x\\":1},{}]" json',
-            'Rows .x = Rows .x pad 0',
+            'Rows .x = Rows .x default 0',
             'Rows .x',
         ].join('\n'))).toBe('1 0');
     });

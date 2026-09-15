@@ -8,7 +8,7 @@ use stats
 rem Assign points to their nearest centroid and recompute cluster means.
 fun k_means Points K Centroids Max
   N = Points len
-  Labels = array shape N pad 0
+  Labels = array shape N fill 0
 
   for Step in 0 until Max
     for i in 0 until N

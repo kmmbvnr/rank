@@ -35,7 +35,7 @@ fun taxi_features Data
   Geo = Data GeoFields
   Passengers = Data .passenger_count
   Rows = Times len
-  Result = array shape Rows 5 pad 0.0
+  Result = array shape Rows 5 fill 0.0
 
   for Row in 0 until Rows
     Result Row 0 = Geo Row # distance

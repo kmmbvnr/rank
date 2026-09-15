@@ -13,7 +13,7 @@ test "single director"
   use "001_subordinates"
   use graph
   use sequences
-  Bosses = array shape 0 pad 0
+  Bosses = array shape 0 fill 0
   Bosses subordinates equal (array 0)
 end
 

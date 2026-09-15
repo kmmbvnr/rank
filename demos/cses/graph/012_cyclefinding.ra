@@ -23,8 +23,8 @@ end
 rem Find one negative directed cycle.
 fun negative_cycle Edges N
   Size = N + 1
-  Dist = array shape Size pad 0
-  Parent = array shape Size pad 0
+  Dist = array shape Size fill 0
+  Parent = array shape Size fill 0
   Changed = 0
 
   for # in 1 to N
@@ -43,7 +43,7 @@ fun negative_cycle Edges N
   if Changed equal 0
     return record
       .found = false
-      .cycle = array shape 0 pad 0
+      .cycle = array shape 0 fill 0
     end
   end
 
@@ -62,7 +62,7 @@ fun negative_cycle Edges N
   Path push Start
 
   Length = Path len
-  Cycle = array shape Length pad 0
+  Cycle = array shape Length fill 0
   for City i in Path
     Position = Length - i - 1
     Cycle Position = City

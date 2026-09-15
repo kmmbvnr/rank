@@ -63,7 +63,7 @@ end
 
 test "rejects an unknown kernel"
   use "021_svm"
-  Data = array shape 1 1 pad 1
+  Data = array shape 1 1 fill 1
   Labels = array 1
   K = "poly"
   L = 1.0

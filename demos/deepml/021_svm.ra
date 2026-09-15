@@ -8,7 +8,7 @@ rem Train a deterministic kernel SVM.
 rem Visit every sample each iteration.
 fun pegasos X Y Kind Lambda Steps Sigma
   N = X len
-  Alpha = array shape N pad 0.0
+  Alpha = array shape N fill 0.0
   Bias = 0.0
 
   for t in 1 to Steps

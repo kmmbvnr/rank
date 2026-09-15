@@ -18,7 +18,7 @@ fun solve N
   DYs = array 1 1 -1 -1 2 2 -2 -2
   DXs = array 2 -2 2 -2 1 -1 1 -1
 
-  Dist = array shape N N pad -1
+  Dist = array shape N N fill -1
   Dist 0 0 = 0
 
   queue push 0

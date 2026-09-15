@@ -152,7 +152,7 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n(array 0 1) 1 atan2')).toBe('0 0.7853981633974483');
         expect(run([
             'use numbers',
-            'Y = array shape 2 1 pad 1',
+            'Y = array shape 2 1 fill 1',
             'X = array 1 -1',
             'Y X atan2',
         ].join('\n'))).toBe([
@@ -163,7 +163,7 @@ describe('Rank mathematical functions', () => {
         ].join(' '));
         expect(run([
             'use numbers',
-            'Y = array shape 2 1 pad 1',
+            'Y = array shape 2 1 fill 1',
             'X = array 1 -1',
             'Y X atan2',
         ].join('\n'))).toBe(

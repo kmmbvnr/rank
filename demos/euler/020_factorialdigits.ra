@@ -17,7 +17,7 @@ fun factorial_digit_sum N
   if N equal 0
     Factorial = 1
   else
-    Factorial = (1 to N) * reduce
+    Factorial = (1 to N) * reduce with 1
   end
 
   Digits = Factorial text

@@ -753,7 +753,7 @@ end`);
 
 describe('array writes in compiled integer loops', () => {
     it.each(['-1', '2', '9007199254740993', '999999999999999999999999999999999999'])('keeps matrix write bounds and error order at %s', index => {
-        const result = compare(`A = array shape 2 2 pad 0
+        const result = compare(`A = array shape 2 2 fill 0
 for I in 0 until 2
   A I 0 = 9
   A I (${index}) = 1 // 0
@@ -765,7 +765,7 @@ end`);
     });
 
     it('reads earlier writes through an alias', () => {
-        const result = compare(`A = array shape 6 pad 0
+        const result = compare(`A = array shape 6 fill 0
 B = A
 A 0 = 1
 for I in 1 until 6
@@ -777,7 +777,7 @@ A`);
     });
 
     it('returns the right operand of the last completed array write', () => {
-        const result = compare(`A = array shape 2 2 pad 0
+        const result = compare(`A = array shape 2 2 fill 0
 for I in 0 until 2
   for J in 0 until 2
     A I J = I * 2 + J
@@ -818,7 +818,7 @@ end`);
     });
 
     it('retains partial row assignment', () => {
-        const result = compare(`A = array shape 2 2 pad 0
+        const result = compare(`A = array shape 2 2 fill 0
 for I in 0 until 2
   A I = 7
 end`);
@@ -883,7 +883,7 @@ Total`);
     });
 
     it('checks index type even when the array is empty', () => {
-        const result = compare(`A = array shape 0 pad 0
+        const result = compare(`A = array shape 0 fill 0
 I = "text"
 for Value I in A
   Total = 1
@@ -931,7 +931,7 @@ end`);
     });
 
     it('composes nested vector iteration with aliased matrix writes', () => {
-        const result = compare(`A = array shape 2 2 pad 1
+        const result = compare(`A = array shape 2 2 fill 1
 B = A
 Factors = array 2 3
 for I in 0 until 2
@@ -1046,7 +1046,7 @@ end`);
 
 describe('compiled full scalar write addresses', () => {
     it('writes rectangular rank-three cells in row-major order', () => {
-        const result = compare(`A = array shape 2 3 4 pad 0
+        const result = compare(`A = array shape 2 3 4 fill 0
 for I in 0 until 2
   for J in 0 until 3
     for K in 0 until 4
@@ -1059,7 +1059,7 @@ A`);
     });
 
     it.each(['0 3 0', '0 0 4', '0 (0 - 1) 0', '0 0 999999999999999999999999'])('preserves error ordering for address %s', address => {
-        const result = compare(`A = array shape 2 3 4 pad 0
+        const result = compare(`A = array shape 2 3 4 fill 0
 for I in 0 until 1
   A 1 2 3 = 99
   A ${address} = 1 // 0
@@ -1069,7 +1069,7 @@ end`);
     });
 
     it('rejects a coordinate on an empty axis', () => {
-        const result = compare(`A = array shape 2 0 4 pad 0
+        const result = compare(`A = array shape 2 0 4 fill 0
 for I in 0 until 1
   A 0 0 0 = 1
 end`);
@@ -1330,9 +1330,9 @@ describe('array locals in compiled regions', () => {
     it('allocates fresh arrays and preserves aliases to earlier objects', () => {
         const result = compare(`Total = 0
 for I in 0 until 3
-  Current = array shape 2 pad I
+  Current = array shape 2 fill I
   Saved = Current
-  Current = array shape 2 pad 9
+  Current = array shape 2 fill 9
   Total += Saved 0
 end
 Total`);
@@ -1346,7 +1346,7 @@ Total = 0
 for I in 0 until 2
   Seen = Source 0
   Old = Source
-  Source = array shape 2 pad I
+  Source = array shape 2 fill I
   Old 0 += 10
   Total += Old 0
 end
@@ -1358,7 +1358,7 @@ Total`);
     it('evaluates changing dimensions and boolean fills on every iteration', () => {
         const result = compare(`Count = 0
 for I in 1 to 3
-  Row = array shape (I + 1) pad I less 3
+  Row = array shape (I + 1) fill I less 3
   if Row I
     Count += 1
   end
@@ -1371,7 +1371,7 @@ Count`);
     it.each(['-1', '9007199254740992'])('checks dimension %s before a failing fill', dimension => {
         const result = compare(`for I in 0 until 1
   Done = I
-  Row = array shape (${dimension}) pad (1 // 0)
+  Row = array shape (${dimension}) fill (1 // 0)
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -1379,7 +1379,7 @@ end`);
 
     it('keeps the prior array when a later allocation expression fails', () => {
         const result = compare(`for I in 0 until 2
-  Row = array shape 2 pad (1 // (1 - I))
+  Row = array shape 2 fill (1 // (1 - I))
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -1390,7 +1390,7 @@ end`);
 Done = 0
 for I in 0 until 2
   Done += 1
-  Row = array shape 2 pad 0
+  Row = array shape 2 fill 0
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -1399,7 +1399,7 @@ end`);
     it('does not assume a conditional array definition executed', () => {
         const result = compare(`for I in 0 until 1
   if I greater 0
-    Row = array shape 2 pad 0
+    Row = array shape 2 fill 0
   end
   Value = Row 0
 end`);
@@ -1432,7 +1432,7 @@ end`)).toThrow('cannot assign to a lazy array');
 
 it('retains partial selection on locally created arrays', () => {
     const result = compare(`for I in 0 until 1
-  A = array shape 2 2 pad 0
+  A = array shape 2 2 fill 0
   A 0 = 1
 end
 A`);
@@ -1441,7 +1441,7 @@ A`);
 
 it('retains excess-address diagnostics for local arrays', () => {
     const result = compare(`for I in 0 until 1
-  A = array shape 2 pad 0
+  A = array shape 2 fill 0
   A 0 0 = 1
 end`);
     expect(result).toHaveProperty('error');
@@ -1454,7 +1454,7 @@ it('honors the array-write toggle for locally created arrays', () => {
         onIntegerLoopExecuted: () => loops++ });
     try {
         const result = runtime.execute(`for I in 0 until 1
-  A = array shape 2 pad 0
+  A = array shape 2 fill 0
   A 0 = 7
 end
 A`);
@@ -1483,7 +1483,7 @@ end
     it('returns a created array with its mutations', () => {
         const result = compare(`fun build N
   for I in 1 to N
-    Row = array shape 2 pad I
+    Row = array shape 2 fill I
     Row 1 += 10
     if I equal 2
       return Row
@@ -1557,7 +1557,7 @@ end
 
 describe('proven integer iteration types', () => {
     it('does not declare an element type for an empty vector', () => {
-        const result = compare(`A = array shape 0 pad 0
+        const result = compare(`A = array shape 0 fill 0
 Value = "kept"
 Total = 0
 for Value i in A
@@ -1569,7 +1569,7 @@ Value`);
     });
 
     it('still checks the ordinal type when the vector is empty', () => {
-        const result = compare(`A = array shape 0 pad 0
+        const result = compare(`A = array shape 0 fill 0
 Index = "held"
 Total = 0
 for Value Index in A
@@ -1859,7 +1859,7 @@ Total`);
         const result = compare(`use sequences
 Total = 0
 for I in 1 to 3
-  A = array shape I 2 pad 0
+  A = array shape I 2 fill 0
   Total += A len
 end
 Total`);
@@ -1891,7 +1891,7 @@ fun len A
 end
 Total = 0
 for I in 1 to 2
-  A = array shape I pad 0
+  A = array shape I fill 0
   Total += A len
 end
 Total`);

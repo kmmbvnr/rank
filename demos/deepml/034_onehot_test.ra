@@ -13,7 +13,7 @@ test "official inferred width"
     1 0 0
   end
 
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "official explicit width"
@@ -29,13 +29,13 @@ test "official explicit width"
     0 0 0 1
   end
 
-  (Actual equal Expected) and reduce
+  (Actual equal Expected) and reduce with true
 end
 
 test "explicit width allows no rows"
   use "034_onehot"
   use sequences
-  X = array shape 0 pad 0
+  X = array shape 0 fill 0
   Result = X 3 to_categorical
 
   Result len equal 0

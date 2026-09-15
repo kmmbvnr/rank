@@ -63,7 +63,7 @@ fun solve Lines Race
       Distance = Speed Fly Rest Second distance
 
       if Distance equal Lead
-        Score = index Name "score" pad 0
+        Score = index Name "score" default 0
         index Name "score" = Score + 1
       end
     end
@@ -72,7 +72,7 @@ fun solve Lines Race
   Part2 = 0
 
   for Name in set
-    Score = index Name "score" pad 0
+    Score = index Name "score" default 0
 
     if Score greater Part2
       Part2 = Score

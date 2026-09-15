@@ -340,8 +340,8 @@ approximately 2.7 seconds.
 These measurements use the same example algorithm; this change does not establish
 completion or judge-time performance for the all-wildcard input.
 
-Sparse index reads directly under `pad` return a private absence marker instead
-of constructing a `MissingValueError`. The pad handler evaluates its fallback
+Sparse index reads directly under `default` return a private absence marker instead
+of constructing a `MissingValueError`. The default handler evaluates its fallback
 only after that read reports absence. Other missing-value paths retain exception
 handling, and errors in keys or fallback expressions keep their existing behavior.
 The unchanged AoC 2015 day 6 test file, including its million-cell case, took
@@ -708,7 +708,7 @@ path. `booleanArrayCompilation: false` disables boolean-cell lowering only.
 
 ## Array allocation and rebinding in numeric regions
 
-`array shape ... pad ...` with integer dimensions and integer/boolean fill can be
+`array shape ... fill ...` with integer dimensions and integer/boolean fill can be
 created inside a compiled region. Each execution allocates a fresh array. Dimensions
 are evaluated and checked in order using the same helper as ordinary execution;
 then the fill is evaluated, storage allocated and the assignment committed.

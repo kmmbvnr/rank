@@ -15,7 +15,7 @@ fun solve Text
   Max = 0
 
   for C in Text
-    Count = index C pad 0
+    Count = index C default 0
     Count += 1
     index C = Count
 
@@ -37,7 +37,7 @@ fun solve Text
     Forced = ""
 
     for C in Alphabet
-      Count = index C pad 0
+      Count = index C default 0
 
       if Count greater 0
         if Choice equal "" and C not equal Previous

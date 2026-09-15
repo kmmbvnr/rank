@@ -304,10 +304,10 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
         'use tables' + ENTER,
         `Db = ${JSON.stringify(filename)} sqlite` + ENTER,
         '',
-        running(`Db ${JSON.stringify(sql)} (array shape 0 pad 0) sqlquery array` + ENTER),
+        running(`Db ${JSON.stringify(sql)} (array shape 0 fill 0) sqlquery array` + ENTER),
         running(UP),
         '\x03',
-        'Rows = Db "SELECT 42 AS answer" (array shape 0 pad 0) sqlquery array' + ENTER,
+        'Rows = Db "SELECT 42 AS answer" (array shape 0 fill 0) sqlquery array' + ENTER,
         'Rows .answer' + ENTER,
     ], 100, 24);
     assert.match(frames[4].text, /Running/);

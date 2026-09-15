@@ -49,7 +49,7 @@ end
 
 rem Find one path with positive flow.
 fun flow_path N Graph Flow
-  Parent = array shape (N + 1) pad 0
+  Parent = array shape (N + 1) fill 0
   Parent 1 = -1
   Pending = new queue
   Pending push 1
@@ -57,7 +57,7 @@ fun flow_path N Graph Flow
     Current = Pending pop
     for Next in Graph Current
       Unseen = Parent Next equal 0
-      Positive = Flow Current Next pad 0
+      Positive = Flow Current Next default 0
       if Unseen and Positive greater 0
         Parent Next = Current
         if Next equal N

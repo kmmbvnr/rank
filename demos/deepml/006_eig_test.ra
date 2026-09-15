@@ -22,7 +22,7 @@ end
 
 test "matrix must be two by two"
   use "006_eig"
-  A = array shape 2 3 pad 0
+  A = array shape 2 3 fill 0
   Raised = false
 
   try

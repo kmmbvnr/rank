@@ -19,7 +19,7 @@ M = Values (array Rows Columns) reshape
 Dense storage may also be allocated with a fill value and updated in place:
 
 ```rank
-M = array shape Rows Columns pad 0
+M = array shape Rows Columns fill 0
 M Row Column = Value
 M # Column = Values
 ```
@@ -240,7 +240,7 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M WindowShape window
-Scores = Blocks + reduce rank 2
+Scores = Blocks + reduce rank 2 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes

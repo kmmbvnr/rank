@@ -18,7 +18,7 @@ fun two_sets N
 
   Target = Total // 2
   Size = Target + 1
-  Ways = array shape Size pad 0
+  Ways = array shape Size fill 0
   Ways 0 = 1
 
   for Value in 1 until N

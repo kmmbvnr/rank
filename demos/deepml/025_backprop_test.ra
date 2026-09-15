@@ -36,13 +36,13 @@ end
 
 test "zero epochs preserves parameters"
   use "025_backprop"
-  X = array shape 1 2 pad 0
+  X = array shape 1 2 fill 0
   Y = array 1
   W = array 0.25 -0.5
 
   Result = X Y W 1 0.1 0 train_neuron
   unpack W2 B Loss = Result
-  Empty = array shape 0 pad 0
+  Empty = array shape 0 fill 0
   W2 equal W
   B equal 1.0
   Loss equal Empty

@@ -113,7 +113,7 @@ Q = "/input" build
             loadModule: () => ({ id: 'helper.ra', source: `
 use io
 use algo
-fun fill Queue Path
+fun append_file Queue Path
   Queue push Path open
   return Queue
 end
@@ -124,7 +124,7 @@ use io
 use algo
 use "helper" as Helper
 Q = new queue
-Q "/input" Helper.fill
+Q "/input" Helper.append_file
 (Q peek) size
 `)).toBe(4n);
         expect(io.handles[0].closed).toBe(true);

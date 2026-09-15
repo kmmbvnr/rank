@@ -24,12 +24,12 @@ rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
 fun prepare_features Train Test
   Age = Train .Age median
-  Train .Age = Train .Age pad Age
-  Test .Age = Test .Age pad Age
+  Train .Age = Train .Age default Age
+  Test .Age = Test .Age default Age
 
   Fare = Train .Fare median
-  Train .Fare = Train .Fare pad Fare
-  Test .Fare = Test .Fare pad Fare
+  Train .Fare = Train .Fare default Fare
+  Test .Fare = Test .Fare default Fare
 
   Train .Female = (Train .Sex equal "female") binary
   Test .Female = (Test .Sex equal "female") binary
@@ -60,7 +60,7 @@ fun logistic X Y Rate Steps
   Scale (Scale equal 0) = 1.0
   Z = (X - Center) / Scale
 
-  Weights = array shape Columns pad 0.0
+  Weights = array shape Columns fill 0.0
   Bias = 0.0
   Zt = Z transpose
   for # in 0 until Steps
@@ -95,7 +95,7 @@ end
 
 
 fun binary Mask
-  Result = array shape (Mask len) pad 0
+  Result = array shape (Mask len) fill 0
   Result Mask = 1
   return Result
 end
