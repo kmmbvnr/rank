@@ -445,17 +445,19 @@ test('Ctrl-R reruns an unfinished function and leaves it open at the current lin
     assert.match(frames[7].text, /<function inc>/);
 });
 
-test('Enter on an empty live-function line keeps the function open without inserting end', async t => {
+test('Enter on an empty live-function line preserves a blank without inserting end', async t => {
     const frames = await drive(t, [
         'fun inc X' + ENTER,
         '1' + ENTER,
         'return X + 1' + ENTER,
         ENTER,
+        'return X + 2',
     ], 80, 20);
     assert.match(frames[3].text, /return X \+ 1\n        2/);
     assert.match(frames[3].text, /Live inc\(1\)/);
     assert.doesNotMatch(frames[3].text, /<function inc>|\n\s*end\s*\n/);
     assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*$/);
+    assert.match(frames[4].text, /return X \+ 1\n        2\n        \n    ·   return X \+ 2/);
 });
 
 test('Enter reevaluates an edited function line without inserting end', async t => {

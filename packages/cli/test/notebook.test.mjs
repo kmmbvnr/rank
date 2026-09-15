@@ -246,7 +246,7 @@ test('Ctrl-R runs the current function line and moves to one empty next line', a
     assert.equal(book.current.source, source, 'Ctrl-R on the empty line must not add another line');
 });
 
-test('Enter on an empty live-function line neither inserts end nor adds another blank', async t => {
+test('Enter on an empty live-function line preserves a blank without inserting end', async t => {
     const { repl, book, enter } = setup(t, true);
     await enter('fun inc X');
     repl.exampleEditor.replace('1');
@@ -256,9 +256,9 @@ test('Enter on an empty live-function line neither inserts end nor adds another 
     const source = book.current.source;
     await repl.submit();
     assert.equal(repl.liveEditing, true);
-    assert.equal(book.current.source, source);
+    assert.equal(book.current.source, source + '\n  ');
     assert.doesNotMatch(book.current.source, /\nend$/);
-    assert.equal(book.cursor, source.length);
+    assert.equal(book.cursor, book.current.source.length);
 });
 
 test('Enter on an edited live-function line reevaluates it instead of closing the function', async t => {

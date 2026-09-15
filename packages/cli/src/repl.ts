@@ -390,6 +390,7 @@ export class NotebookRepl {
             return false;
         }
         if (!lines[currentLine].trim()) {
+            this.notebook.newline();
             this.updateLiveSuggestion();
             this.render();
             return false;
