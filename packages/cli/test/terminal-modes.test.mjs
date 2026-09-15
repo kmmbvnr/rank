@@ -59,6 +59,18 @@ test('debugger keys update pause navigation and suppress the advancing frame', a
     assert.equal(router.allowRender(), true);
 });
 
+test('debugger reports an unknown key until the next known key', async () => {
+    const repl = {
+        running: true, pauseTop: 0, session: { pauseState: {} },
+        interrupt() {}, togglePause() {},
+    };
+    const router = new TerminalModeRouter(repl);
+    await router.press('x', { name: 'x' });
+    assert.equal(router.pauseStatus, 'Unknown key: x');
+    await router.press('', { name: 'down' });
+    assert.equal(router.pauseStatus, '');
+});
+
 test('bracketed paste is accepted only by the active modal surface', () => {
     const filename = new Notebook();
     const repl = {

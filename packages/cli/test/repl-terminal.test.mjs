@@ -356,6 +356,16 @@ test('Ctrl-T steps a short cell and Ctrl-B sets a visible breakpoint in the term
     assert.match(frames[5].text, /\n      42\n/);
 });
 
+test('an unknown debugger key is reported in the pause footer', async t => {
+    const frames = await drive(t, [
+        paused('A = 1\x14'),
+        'x',
+        ENTER,
+    ], 100, 24);
+    assert.equal(frames[1].text.split('\n').at(-1).trim(), 'Unknown key: x');
+    assert.match(frames[2].text, /\n      1\n/);
+});
+
 test('an open function evaluates body lines immediately on example arguments', async t => {
     const frames = await drive(t, [
         'fun inc N' + ENTER,

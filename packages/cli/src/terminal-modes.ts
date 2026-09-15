@@ -6,6 +6,7 @@ export interface ModeKeyResult { handled: boolean; exit?: boolean; render?: bool
 /** Routes keys owned by full-screen modes outside ordinary notebook editing. */
 export class TerminalModeRouter {
     private stepping = false;
+    pauseStatus = '';
 
     constructor(
         private readonly repl: NotebookRepl,
@@ -17,12 +18,14 @@ export class TerminalModeRouter {
     allowRender(): boolean {
         if (this.stepping && this.repl.running && !this.repl.session.pauseState) return false;
         this.stepping = false;
+        if (!this.repl.session.pauseState) this.pauseStatus = '';
         return true;
     }
 
     async press(text: string, key: Key = {}): Promise<ModeKeyResult> {
         const repl = this.repl;
         if (repl.running) {
+            if (repl.session.pauseState) this.pauseStatus = '';
             if (key.ctrl && key.name === 'c') { this.stepping = false; repl.interrupt(); }
             else if (key.ctrl && key.name === 'p') { this.stepping = false; repl.togglePause(); }
             else if (repl.session.pauseState) {
@@ -34,6 +37,7 @@ export class TerminalModeRouter {
                 else if (key.name === 'down') repl.pauseTop++;
                 else if (key.name === 'pageup') repl.pauseTop -= Math.max(1, this.rows() - 2);
                 else if (key.name === 'pagedown') repl.pauseTop += Math.max(1, this.rows() - 2);
+                else this.pauseStatus = `Unknown key: ${key.name || text || 'input'}`;
                 return { handled: true, render: true };
             }
             return { handled: true };

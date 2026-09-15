@@ -215,7 +215,9 @@ export function saveFrame(
 }
 
 /** Source context belongs to the paused execution, including calls in another cell. */
-export function pauseFrame(pause: PauseSnapshot, columns: number, height: number, previousTop = 0): ScreenFrame {
+export function pauseFrame(
+    pause: PauseSnapshot, columns: number, height: number, previousTop = 0, status = '',
+): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const rows: string[] = [];
     const append = (text: string, color = '') => {
@@ -255,7 +257,7 @@ export function pauseFrame(pause: PauseSnapshot, columns: number, height: number
     const top = Math.max(0, Math.min(previousTop, rows.length - contentHeight));
     const lines = rows.slice(top, top + contentHeight);
     while (lines.length < contentHeight) lines.push('');
-    if (height > 1) lines.push(clipped('t step · n loop · g main · ↵ · ^C stop', Math.min(40, width)));
+    if (height > 1) lines.push(clipped(status || 't step · n loop · g main · ↵ · ^C stop', Math.min(40, width)));
     return { lines, top, cursor: { row: 0, column: 0 }, cursorVisible: false };
 }
 

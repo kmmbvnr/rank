@@ -44,7 +44,7 @@ export class TerminalRenderer {
             return;
         }
         if (repl.running && repl.session.pauseState) {
-            const frame = pauseFrame(repl.pauseSnapshot!, this.columns, this.rows, repl.pauseTop);
+            const frame = pauseFrame(repl.pauseSnapshot!, this.columns, this.rows, repl.pauseTop, this.modes.pauseStatus);
             repl.pauseTop = frame.top;
             this.output.write(drawFrame(frame));
             return;

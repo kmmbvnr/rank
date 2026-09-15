@@ -22,7 +22,6 @@ const historyFile = (): string => path.join(os.homedir(), '.rank_history');
 export class NotebookRepl {
     readonly notebook = new Notebook();
     pauseTop = 0;
-    pauseStatus = '';
     readonly breakpoints = new Map<number, Set<number>>();
     private readonly liveFunction: LiveFunctionController;
     private readonly files: FileWorkflow;
@@ -72,7 +71,6 @@ export class NotebookRepl {
 
     async debug(): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
-        this.pauseStatus = '';
         if (this.liveFunction.reopenArguments()) return false;
         if (!this.notebook.atPrompt) this.notebook.replayFrom = this.notebook.active;
         this.session.debugNext?.();
@@ -80,7 +78,6 @@ export class NotebookRepl {
     }
 
     togglePause(): void {
-        this.pauseStatus = '';
         this.pauseTop = 0;
         this.execution.togglePause();
     }

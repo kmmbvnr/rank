@@ -33,6 +33,11 @@ test('pause context marks the current line in color and fits narrow terminals', 
     }
 });
 
+test('pause footer shows an unknown-key status', () => {
+    const frame = pauseFrame({ activity: 'evaluating' }, 80, 8, 0, 'Unknown key: x');
+    assert.equal(frame.lines.at(-1), 'Unknown key: x');
+});
+
 async function draw(terminal, book, top = 0, hint = '', running = false) {
     if (terminal.buffer.active.type !== 'alternate') await write(terminal, '\x1b[?1049h');
     const frame = notebookFrame(book, terminal.cols, terminal.rows, top, hint, running);
