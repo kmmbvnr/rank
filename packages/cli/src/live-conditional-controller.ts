@@ -33,6 +33,17 @@ export class LiveConditionalController {
 
     get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.live?.outputs; }
     get editing(): boolean { return this.live !== undefined; }
+    get status(): string | undefined {
+        if (!this.live) return undefined;
+        const source = this.notebook.current.source;
+        const end = source.indexOf('\n', this.notebook.cursor);
+        const line = source.slice(source.lastIndexOf('\n', this.notebook.cursor - 1) + 1,
+            end < 0 ? source.length : end).trim();
+        const action = !line ? 'Enter keep blank line'
+            : /^(?:else|elif)\b/.test(line) ? 'Enter enter branch'
+            : line === 'end' ? 'Enter apply end' : 'Enter evaluate line';
+        return `Live if · ${action} · selected branch only`;
+    }
 
     clear(): void { this.live = undefined; }
 
@@ -144,7 +155,7 @@ export class LiveConditionalController {
     }
 
     private updateSuggestion(): void {
-        if (this.live) this.setSuggestion('Live if · selected branch only · Enter preview · end finish');
+        if (this.live) this.setSuggestion('');
     }
 
     private placeCursorAfterLine(line: number): void {

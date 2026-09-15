@@ -30,6 +30,11 @@ export class LiveFunctionController {
     }
     get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.live?.outputs; }
     get editing(): boolean { return this.live !== undefined; }
+    get status(): string | undefined {
+        if (!this.live || this.prompt) return undefined;
+        const example = this.live.skipped ? 'no example' : this.live.values.join(', ');
+        return `Live ${this.live.name}(${example}) · ${enterAction(this.notebook)} · Ctrl-T arguments`;
+    }
     get editor(): Notebook | undefined { return this.prompt ? this.live?.argumentEditor : undefined; }
     get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
         return this.live?.fields;
@@ -250,9 +255,7 @@ export class LiveFunctionController {
     }
 
     private updateSuggestion(): void {
-        if (!this.live) return;
-        const example = this.live.skipped ? 'no example' : this.live.values.join(', ');
-        this.setSuggestion(`Live ${this.live.name}(${example}) · Enter preview · Ctrl-T arguments · end finish`);
+        if (this.live) this.setSuggestion('');
     }
 
     private async updatePreviews(reset = false, throughLine?: number): Promise<void> {
@@ -274,6 +277,16 @@ export class LiveFunctionController {
         const at = Math.max(0, Math.min(line, lines.length - 1));
         this.notebook.cursor = lines.slice(0, at).reduce((offset, item) => offset + item.length + 1, 0) + lines[at].length;
     }
+}
+
+function enterAction(notebook: Notebook): string {
+    const source = notebook.current.source;
+    const line = source.slice(source.lastIndexOf('\n', notebook.cursor - 1) + 1,
+        source.indexOf('\n', notebook.cursor) < 0 ? source.length : source.indexOf('\n', notebook.cursor)).trim();
+    if (!line) return 'Enter keep blank line';
+    if (/^(?:else|elif)\b/.test(line)) return 'Enter enter branch';
+    if (line === 'end') return 'Enter apply end';
+    return 'Enter evaluate line';
 }
 
 function selectedLine(source: string, cursor: number): number {

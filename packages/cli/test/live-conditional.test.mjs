@@ -18,11 +18,11 @@ test('an open top-level if previews its conditions and only the selected branch'
     const s = scenario();
     try {
         await s.line('if false');
-        assert.deepEqual(s.output(1), ['false']);
+        assert.deepEqual(s.output(1), ['false · branch skipped']);
         await s.line('X = 1');
         assert.deepEqual(s.output(2), []);
         await s.line('elif true');
-        assert.deepEqual(s.output(3), ['true']);
+        assert.deepEqual(s.output(3), ['true · branch runs']);
         await s.line('X = 2');
         assert.deepEqual(s.output(4), ['2']);
         await s.line('else');
@@ -45,11 +45,11 @@ test('a function previews if lines with its example and skips inactive nested co
         await s.repl.submit();
 
         await s.line('if X less 0');
-        assert.deepEqual(s.output(2), ['false']);
+        assert.deepEqual(s.output(2), ['false · branch skipped']);
         await s.line('Y = Missing + 1');
         assert.deepEqual(s.output(3), []);
         await s.line('elif X equal 2');
-        assert.deepEqual(s.output(4), ['true']);
+        assert.deepEqual(s.output(4), ['true · branch runs']);
         await s.line('Y = X + 3');
         assert.deepEqual(s.output(5), ['5']);
         await s.line('else');
@@ -63,7 +63,7 @@ test('an if nested in an inactive branch is not evaluated', async () => {
     try {
         await s.line('if false');
         await s.line('if 1 / 0 equal 0');
-        assert.deepEqual(s.output(2), []);
+        assert.deepEqual(s.output(2), ['not evaluated · branch skipped']);
         assert.equal(s.repl.liveOutputs?.get(2)?.some(item => item.error), false);
     } finally { s.session.dispose(); }
 });
@@ -74,6 +74,22 @@ test('a non-boolean if condition reports its error on the condition line', async
         await s.line('if 1');
         assert.equal(s.repl.liveOutputs?.get(1)?.some(item => item.error), true);
         assert.equal(s.repl.notebook.current.source.slice(0, s.repl.notebook.cursor).split('\n').length, 1);
+    } finally { s.session.dispose(); }
+});
+
+test('the live status explains what Enter will do on the current line', async () => {
+    const s = scenario();
+    try {
+        await s.line('if true');
+        assert.match(s.repl.suggestion, /Enter keep blank line/);
+        s.repl.notebook.insert('X = 1');
+        assert.match(s.repl.suggestion, /Enter evaluate line/);
+        await s.repl.submit();
+        s.repl.notebook.insert('else');
+        assert.match(s.repl.suggestion, /Enter enter branch/);
+        await s.repl.submit();
+        s.repl.notebook.insert('end');
+        assert.match(s.repl.suggestion, /Enter apply end/);
     } finally { s.session.dispose(); }
 });
 
@@ -88,7 +104,7 @@ test('Ctrl-R reopens an existing if and stops before the selected line', async (
 
         await s.repl.rerun();
         assert.equal(s.repl.liveEditing, true);
-        assert.deepEqual(s.output(1), ['true']);
+        assert.deepEqual(s.output(1), ['true · branch runs']);
         assert.deepEqual(s.output(2), []);
         await s.repl.submit();
         assert.deepEqual(s.output(2), ['4']);

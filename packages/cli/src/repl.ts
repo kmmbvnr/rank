@@ -90,7 +90,11 @@ export class NotebookRepl {
 
     interrupt(): void { this.execution.interrupt(); }
 
-    suggestion = '';
+    private suggestionText = '';
+    get suggestion(): string {
+        return this.suggestionText || this.liveFunction?.status || this.liveConditional?.status || '';
+    }
+    set suggestion(value: string) { this.suggestionText = value; }
     help?: { text: string; top: number };
     private completion?: { candidates: string[]; from: number; to: number; index: number };
 

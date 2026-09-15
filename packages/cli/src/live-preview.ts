@@ -45,8 +45,12 @@ export class LivePreviewRunner {
             state.outputs.clear();
             state.prefixes.clear();
         }
-        const previews = previewTargets(source, start, end, throughLine)
-            .map(target => ({ line: target + 1, source: build(source, target) }));
+        const lines = source.split('\n');
+        const previews = previewTargets(source, start, end, throughLine).map(target => ({
+            line: target + 1,
+            source: build(source, target),
+            condition: /^(?:if|elif)\b/.test(lines[target].trim()),
+        }));
         const changed = previews.some(item => state.prefixes.has(item.line)
                 && state.prefixes.get(item.line) !== item.source)
             || [...state.prefixes].some(([line]) => !previews.some(item => item.line === line));
@@ -57,7 +61,7 @@ export class LivePreviewRunner {
         for (const item of previews) {
             if (state.outputs.has(item.line)) continue;
             const result = await this.preview(item.source);
-            state.outputs.set(item.line, reachedOutput(result.output));
+            state.outputs.set(item.line, displayOutput(result.output, item.condition));
             state.prefixes.set(item.line, item.source);
         }
     }
@@ -91,8 +95,17 @@ function conditionalBodyEnd(source: string): number {
     return lines.at(-1)?.trim() === 'end' ? lines.length - 1 : lines.length;
 }
 
-function reachedOutput(output: OutputLine[]): OutputLine[] {
-    return output.some(line => !line.error && line.text === SKIPPED) ? [] : output;
+function displayOutput(output: OutputLine[], condition: boolean): OutputLine[] {
+    if (output.some(line => !line.error && line.text === SKIPPED)) {
+        return condition ? [{ text: 'not evaluated · branch skipped', error: false }] : [];
+    }
+    if (condition && output.length === 0) return [{ text: 'not evaluated · branch skipped', error: false }];
+    if (!condition) return output;
+    let result = output.length - 1;
+    while (result >= 0 && output[result].error) result -= 1;
+    return output.map((line, index) => index !== result ? line : line.text === 'true'
+        ? { ...line, text: 'true · branch runs' }
+        : line.text === 'false' ? { ...line, text: 'false · branch skipped' } : line);
 }
 
 function functionPreviewSource(live: LiveFunctionSession, source: string, target: number): string {
