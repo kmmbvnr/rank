@@ -209,3 +209,25 @@ test('arrow keys select a function loop iteration without evaluating its body', 
         assert.equal(s.book.cursor, cursor - 1, 'arrows keep editing a non-empty line');
     } finally { s.session.dispose(); }
 });
+
+test('Ctrl-R on loop end makes arrows reevaluate its body', async () => {
+    const s = scenario();
+    try {
+        await s.type('for I in 1 to 3');
+        await s.enter();
+        await s.enter();
+        await s.type('Value = I * 2');
+        await s.enter();
+        await s.type('end');
+        await s.enter();
+        assert.equal(s.repl.liveEditing, false);
+
+        await s.up();
+        await s.ctrlR();
+        assert.equal(s.repl.liveIterationFocused, true);
+        assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['2']);
+        await s.right();
+        assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['I = 2 · iteration 2']);
+        assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['4']);
+    } finally { s.session.dispose(); }
+});

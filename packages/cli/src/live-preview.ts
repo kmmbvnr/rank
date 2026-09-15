@@ -341,3 +341,12 @@ function omitCompletedLoop(active: Set<number>, lines: string[], start: number, 
     const closing = openBlocks(lines, start, target).at(-1);
     if (closing?.kind === 'for') active.delete(closing.line);
 }
+
+/** Finds the collection loop closed by the selected end line. */
+export function completedIterationLine(source: string, start: number, target: number): number | undefined {
+    const lines = source.split('\n');
+    if (lines[target]?.trim() !== 'end') return undefined;
+    const closing = openBlocks(lines, start, target).at(-1);
+    if (closing?.kind !== 'for' || !iterationHeader(lines[closing.line].trim())) return undefined;
+    return closing.line + 1;
+}

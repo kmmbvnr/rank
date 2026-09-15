@@ -278,3 +278,28 @@ test('a nested loop keeps its own selected iteration for each outer value', asyn
         assert.deepEqual(s.output(3), ['24']);
     } finally { s.session.dispose(); }
 });
+
+test('Ctrl-R on a loop end lets arrows reevaluate its completed body', async () => {
+    const s = scenario();
+    try {
+        await s.line('for I in 1 to 3');
+        assert.equal(s.repl.releaseLiveIteration(), true);
+        await s.line('Value = I * 2');
+        await s.line('end');
+        assert.equal(s.repl.liveEditing, false);
+
+        s.repl.notebook.active = 0;
+        const source = s.repl.notebook.current.source;
+        s.repl.notebook.cursor = source.lastIndexOf('end') + 3;
+        await s.repl.rerun();
+        assert.equal(s.repl.liveIterationFocused, true);
+        assert.deepEqual(s.output(1), ['I = 1 · iteration 1']);
+        assert.deepEqual(s.output(2), ['2']);
+        assert.match(s.repl.suggestion, /select \+ evaluate body/);
+
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
+        assert.deepEqual(s.output(2), ['4']);
+        assert.equal(s.repl.notebook.cursor, source.lastIndexOf('end') + 3);
+    } finally { s.session.dispose(); }
+});
