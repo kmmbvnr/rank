@@ -136,6 +136,7 @@ import {
     materializeSequence,
     sequence,
     sequenceMask,
+    scanSequence,
     sequenceValues,
     windowValue,
     zipSequences,
@@ -4041,11 +4042,11 @@ export class Interpreter {
         if (valueRank(value) !== 1) {
             throw new RankError(`${operator} scan expects a rank-1 value`);
         }
-        if (isRankSequence(value) && value.plan.size.kind === 'infinite') {
-            throw new RankError(`${operator} scan requires a bounded sequence`);
+        const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
+        if (isRankSequence(value)) {
+            return scanSequence(value, operator, seed, operation);
         }
         const result: RankValue[] = [];
-        const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
         if (seed !== undefined) result.push(seed);
         if (isRankArray(value)) {
             const size = arraySize(value.shape);

@@ -2501,9 +2501,11 @@ at index zero without a separate allocation or mutation. Without `with`, the
 first result remains the first source value and an empty source returns an empty
 array for compatibility.
 
-`scan` accepts a rank-1 array, queue, text or bounded sequence and returns a
-material rank-1 array. Unbounded sequences and higher-rank arrays are rejected.
-`scan` currently has no `rank` or `axis` form.
+`scan` accepts a rank-1 array, queue, text or sequence. An array, queue or text
+produces a material rank-1 array. A sequence produces another lazy sequence, so
+an unbounded source is valid when a later operation requests only a finite
+prefix or a particular position. Higher-rank arrays are rejected. `scan`
+currently has no `rank` or `axis` form.
 
 ## Outer
 

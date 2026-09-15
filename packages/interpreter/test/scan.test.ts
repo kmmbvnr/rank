@@ -30,7 +30,15 @@ describe('scan modifier', () => {
         expect(run('Empty = array shape 0 fill 0\nEmpty + scan with 10')).toBe('10');
     });
 
-    it('rejects higher ranks and unbounded sequences', () => {
+    it('keeps sequence scans lazy, including unbounded sources', () => {
+        expect(run([
+            'use sequences',
+            'Prefix = primes + scan with 0',
+            'Prefix 4',
+        ].join('\n'))).toBe('17');
+    });
+
+    it('rejects higher ranks', () => {
         expect(() => run([
             'M = array shape 2 2',
             '  1 2',
@@ -38,7 +46,5 @@ describe('scan modifier', () => {
             'end',
             'M + scan',
         ].join('\n'))).toThrowError('+ scan expects a rank-1 value');
-        expect(() => run('use sequences\nfibonacci + scan'))
-            .toThrowError('+ scan requires a bounded sequence');
     });
 });

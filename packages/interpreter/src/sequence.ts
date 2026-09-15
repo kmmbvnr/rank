@@ -122,6 +122,36 @@ export function mapSequence(
     });
 }
 
+export function scanSequence(
+    source: RankSequence,
+    name: string,
+    seed: RankValue | undefined,
+    operation: (left: RankValue, right: RankValue) => RankValue,
+): RankSequence {
+    const sourcePlan = source.plan;
+    return sequence({
+        name: `${sourcePlan.name} ${name} scan`,
+        singlePass: sourcePlan.singlePass,
+        size: scanSize(sourcePlan.size, seed !== undefined),
+        captures: sourcePlan.captures,
+        *iterate() {
+            let accumulated = seed;
+            if (accumulated !== undefined) yield accumulated;
+            for (const value of sourcePlan.iterate()) {
+                accumulated = accumulated === undefined
+                    ? value
+                    : operation(accumulated, value);
+                yield accumulated;
+            }
+        },
+    });
+}
+
+function scanSize(size: SequenceSize, seeded: boolean): SequenceSize {
+    if (size.kind !== 'exact') return size;
+    return { kind: 'exact', value: size.value + (seeded ? 1n : 0n) };
+}
+
 export function zipSequences(
     left: RankSequence,
     right: RankSequence,
