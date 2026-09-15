@@ -3,12 +3,13 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
-import { parse, RankError } from '@arrrank/interpreter';
+import { parse } from '@arrrank/interpreter';
 import { isFunctionStatement } from '@arrrank/language';
 import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty } from './repl-input.js';
 import { createWorkerSession } from './worker-session.js';
 import { Notebook, splitSource } from './notebook.js';
 import { KeyRouter, type Key } from './key-router.js';
+import { LiveFunctionSession } from './live-function.js';
 import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
 import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame } from './screen.js';
 
@@ -31,25 +32,6 @@ type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareF
     readonly pauseState?: import('@arrrank/interpreter').PauseSnapshot;
 };
 
-interface LiveFunction {
-    readonly name: string;
-    readonly parameters: string[];
-    readonly header: string;
-    source: string;
-    values: string[];
-    argument?: number;
-    argumentBackup: string[];
-    skipped: boolean;
-    readonly outputs: Map<number, OutputLine[]>;
-    readonly prefixes: Map<number, string>;
-    readonly argumentEditor: Notebook;
-    readonly cellIndex: number;
-    readonly existing: boolean;
-    readonly originalSource?: string;
-    stopLine?: number;
-    argumentError?: { readonly source: string; readonly message: string };
-}
-
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
 export class NotebookRepl {
     readonly notebook = new Notebook();
@@ -58,13 +40,11 @@ export class NotebookRepl {
     private stopping = false;
     pauseTop = 0;
     readonly breakpoints = new Map<number, Set<number>>();
-    private live?: LiveFunction;
+    private live?: LiveFunctionSession;
     private readonly functionExamplesByName = new Map<string, string[]>();
 
     get examplePrompt(): { name: string; parameter?: string; index: number; count: number } | undefined {
-        if (!this.live || this.live.argument === undefined) return undefined;
-        const { name, parameters, argument } = this.live;
-        return { name, parameter: parameters[argument], index: argument, count: parameters.length };
+        return this.live?.prompt;
     }
 
     get promptLabel(): string {
@@ -77,17 +57,7 @@ export class NotebookRepl {
         return this.examplePrompt ? this.live?.argumentEditor : undefined;
     }
     get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
-        const live = this.live;
-        if (!live || live.skipped || live.argument === undefined
-            && live.values.length !== live.parameters.length) return undefined;
-        return live.parameters.map((name, index) => ({
-            name,
-            source: index === live.argument ? live.argumentEditor.current.source : live.values[index] ?? '',
-            cursor: index === live.argument ? live.argumentEditor.cursor : 0,
-            active: index === live.argument,
-            error: index === live.argument && live.argumentError?.source === live.argumentEditor.current.source
-                ? live.argumentError.message : undefined,
-        }));
+        return this.live?.fields;
     }
 
     get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
@@ -119,9 +89,7 @@ export class NotebookRepl {
         if (this.running || this.help || this.savePrompt) return false;
         if (this.live && this.live.parameters.length) {
             this.live.source = this.notebook.current.source;
-            this.live.argumentBackup = [...this.live.values];
-            this.live.argument = 0;
-            this.live.argumentEditor.replace(this.live.values[0] ?? '');
+            this.live.openArguments(0, this.session.names);
             this.updateExampleSuggestion();
             return false;
         }
@@ -166,10 +134,7 @@ export class NotebookRepl {
     cancelExample(): void {
         const live = this.live;
         if (!live || live.argument === undefined) return;
-        const hadExample = live.argumentBackup.length === live.parameters.length;
-        if (hadExample) live.values = [...live.argumentBackup];
-        else { live.values = []; live.skipped = true; live.outputs.clear(); }
-        live.argument = undefined;
+        live.cancelArguments();
         this.notebook.replace(live.source);
         this.updateLiveSuggestion();
     }
@@ -188,30 +153,17 @@ export class NotebookRepl {
 
     cycleExampleCandidate(): void {
         if (!this.examplePrompt) return;
-        const editor = this.live!.argumentEditor;
-        const current = editor.current.source.trim();
-        const candidates = this.session.names.filter(name => /^[A-Z]/.test(name));
-        if (!candidates.length) {
+        if (!this.live!.cycleCandidate(this.session.names)) {
             this.suggestion = 'No variables available · type a value · Esc skip';
             return;
         }
-        const at = candidates.indexOf(current);
-        const next = candidates[(at + 1) % candidates.length];
-        editor.replace(next);
         this.updateExampleSuggestion();
     }
 
     moveExampleField(direction: number): void {
         const live = this.live;
         if (!live || live.argument === undefined) return;
-        live.values[live.argument] = live.argumentEditor.current.source.trim();
-        const next = Math.max(0, Math.min(live.parameters.length - 1, live.argument + direction));
-        if (next === live.argument) return;
-        live.argument = next;
-        const parameter = live.parameters[next];
-        live.argumentEditor.replace(live.values[next]
-            ?? (this.session.names.includes(parameter) ? parameter : ''));
-        live.argumentError = undefined;
+        live.moveArgument(direction, this.session.names);
         this.updateExampleSuggestion();
     }
 
@@ -223,10 +175,7 @@ export class NotebookRepl {
         if (currentLine !== 2) return false;
         live.source = source;
         live.stopLine = this.selectedLiveLine(source, this.notebook.cursor);
-        live.argumentBackup = [...live.values];
-        live.argument = live.parameters.length - 1;
-        live.argumentEditor.replace(live.values[live.argument] ?? '');
-        live.argumentError = undefined;
+        live.openArguments(live.parameters.length - 1, this.session.names);
         this.updateExampleSuggestion();
         return true;
     }
@@ -237,16 +186,10 @@ export class NotebookRepl {
         const existing = !this.notebook.atPrompt;
         const parameters = match[2].trim() ? match[2].trim().split(/\s+/) : [];
         const body = `${source.trim()}\n  `;
-        const argumentEditor = new Notebook();
-        const first = parameters.length && this.session.names.includes(parameters[0]) ? parameters[0] : '';
-        argumentEditor.replace(first);
-        this.live = {
-            name: match[1], parameters, header: source.trim(), source: body, values: [],
-            argument: parameters.length ? 0 : undefined, argumentBackup: [], skipped: false,
-            outputs: new Map(), prefixes: new Map(), argumentEditor,
-            cellIndex: this.notebook.active, existing,
-            originalSource: existing ? source.trim() : undefined,
-        };
+        this.live = new LiveFunctionSession({
+            name: match[1], parameters, header: source.trim(), source: body,
+            cellIndex: this.notebook.active, existing, originalSource: existing ? source.trim() : undefined,
+        }, this.session.names);
         this.notebook.replace(parameters.length ? source.trim() : body);
         if (!parameters.length) this.updateLiveSuggestion();
         else this.updateExampleSuggestion();
@@ -266,16 +209,10 @@ export class NotebookRepl {
         const lines = source.split('\n');
         const stopLine = this.selectedLiveLine(source, book.cursor);
         const values = [...(this.functionExamplesByName.get(statement.name) ?? [])];
-        const argumentEditor = new Notebook();
-        const first = values[0] ?? (statement.parameters.length
-            && this.session.names.includes(statement.parameters[0]) ? statement.parameters[0] : '');
-        argumentEditor.replace(first);
-        this.live = {
+        this.live = new LiveFunctionSession({
             name: statement.name, parameters: [...statement.parameters], header: lines[0].trim(),
-            source, values, argument: statement.parameters.length ? 0 : undefined,
-            argumentBackup: [...values], skipped: false, outputs: new Map(), prefixes: new Map(),
-            argumentEditor, cellIndex: book.active, existing: true, originalSource: source, stopLine,
-        };
+            source, values, cellIndex: book.active, existing: true, originalSource: source, stopLine,
+        }, this.session.names);
         if (statement.parameters.length) this.updateExampleSuggestion();
         else this.updateLiveSuggestion();
         return true;
@@ -288,9 +225,7 @@ export class NotebookRepl {
             live.source = this.notebook.current.source;
             live.stopLine = this.selectedLiveLine(live.source, this.notebook.cursor);
             if (live.parameters.length) {
-                live.argumentBackup = [...live.values];
-                live.argument = 0;
-                live.argumentEditor.replace(live.values[0] ?? '');
+                live.openArguments(0, this.session.names);
                 this.updateExampleSuggestion();
             } else {
                 const line = live.stopLine;
@@ -365,7 +300,7 @@ export class NotebookRepl {
         this.updateLiveSuggestion();
     }
 
-    private previewFunctionSource(live: LiveFunction, body: string): string {
+    private previewFunctionSource(live: LiveFunctionSession, body: string): string {
         const lines = body.split('\n');
         const last = [...lines].reverse().find(line => line.trim())?.trim() ?? '';
         let fallback = '';
@@ -403,7 +338,7 @@ export class NotebookRepl {
             + lines[at].length;
     }
 
-    private rememberFunctionExample(live: LiveFunction): void {
+    private rememberFunctionExample(live: LiveFunctionSession): void {
         if (!live.skipped && live.values.length === live.parameters.length)
             this.functionExamplesByName.set(live.name, [...live.values]);
     }
@@ -448,8 +383,8 @@ export class NotebookRepl {
         const live = this.live;
         if (!live || live.argument === undefined) return false;
         const current = live.argument;
-        live.values[current] = live.argumentEditor.current.source.trim();
-        const error = this.exampleValueError(live.values[current]);
+        live.saveArgument();
+        const error = live.syntaxError(live.values[current], this.session.names);
         if (error) {
             live.argumentError = { source: live.argumentEditor.current.source, message: error };
             this.suggestion = `${live.parameters[current]} is not an expression · edit it or Esc skip`;
@@ -458,19 +393,15 @@ export class NotebookRepl {
         }
         live.argumentError = undefined;
         if (current + 1 < live.parameters.length) {
-            live.argument++;
-            const parameter = live.parameters[live.argument];
-            live.argumentEditor.replace(live.values[live.argument]
-                ?? (this.session.names.includes(parameter) ? parameter : ''));
+            live.focusArgument(current + 1, this.session.names);
             this.updateExampleSuggestion();
             this.render();
             return false;
         }
         for (let index = 0; index < live.parameters.length; index++) {
-            const fieldError = this.exampleValueError(live.values[index] ?? '');
+            const fieldError = live.syntaxError(live.values[index] ?? '', this.session.names);
             if (!fieldError) continue;
-            live.argument = index;
-            live.argumentEditor.replace(live.values[index] ?? '');
+            live.focusArgument(index, this.session.names);
             live.argumentError = { source: live.argumentEditor.current.source, message: fieldError };
             this.suggestion = `${live.parameters[index]} is not an expression · edit it or Esc skip`;
             this.render();
@@ -479,8 +410,7 @@ export class NotebookRepl {
         for (let index = 0; index < live.parameters.length; index++) {
             const fieldError = await this.exampleRuntimeError(live.values[index]);
             if (!fieldError) continue;
-            live.argument = index;
-            live.argumentEditor.replace(live.values[index]);
+            live.focusArgument(index, this.session.names);
             live.argumentError = { source: live.argumentEditor.current.source, message: fieldError };
             this.suggestion = `${live.parameters[index]} cannot be evaluated · edit it or Esc skip`;
             this.render();
@@ -500,20 +430,6 @@ export class NotebookRepl {
         }
         this.render();
         return false;
-    }
-
-    private exampleValueError(value: string): string | undefined {
-        if (!value) return 'A value is required';
-        try {
-            parse(`Example = (${value})`, '<example>', {
-                bindings: new Map(this.session.names.map(name => [name, false])),
-            });
-            return undefined;
-        } catch (error) {
-            return error instanceof RankError
-                ? `${error.rankKind}: ${error.message.replace(/ at \d+:\d+$/, '')}`
-                : String(error);
-        }
     }
 
     private async exampleRuntimeError(value: string): Promise<string | undefined> {
