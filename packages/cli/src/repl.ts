@@ -10,6 +10,7 @@ import { createWorkerSession } from './worker-session.js';
 import { Notebook, splitSource } from './notebook.js';
 import { KeyRouter, type Key } from './key-router.js';
 import { LiveFunctionSession } from './live-function.js';
+import { LivePreviewRunner } from './live-preview.js';
 import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
 import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame } from './screen.js';
 
@@ -121,13 +122,16 @@ export class NotebookRepl {
     savePrompt?: { choosing: boolean; exitAfterSave: boolean; loadFile?: ProgramFile; filename: Notebook; error: string };
     private completion?: { candidates: string[]; from: number; to: number; index: number };
     private preparation: Promise<void> = Promise.resolve();
+    private readonly livePreview: LivePreviewRunner;
 
     constructor(
         readonly session: Session,
         readonly render: () => void = () => {},
         readonly columns = () => 80,
         private readonly functionExamples = false,
-    ) {}
+    ) {
+        this.livePreview = new LivePreviewRunner(source => this.session.preview(source, this.columns()));
+    }
 
     dismiss(): void { this.suggestion = ''; this.completion = undefined; }
 
@@ -265,61 +269,9 @@ export class NotebookRepl {
 
     private async updateLivePreviews(reset = false, throughLine?: number): Promise<void> {
         const live = this.live;
-        if (!live || live.skipped || live.values.length !== live.parameters.length) return;
-        if (reset) {
-            live.outputs.clear();
-            live.prefixes.clear();
-        }
-        const lines = this.notebook.current.source.split('\n');
-        const bodyEnd = live.existing && lines.at(-1)?.trim() === 'end' ? lines.length - 1 : lines.length;
-        let state = EMPTY_CELL;
-        const completed: { line: number; body: string }[] = [];
-        for (let index = 1; index < bodyEnd; index++) {
-            const line = lines[index];
-            if (!line.trim()) continue;
-            state = addLine(state, line.replace(/^  /, '').trimEnd(), true);
-            if (!isComplete(state)) continue;
-            const body = lines.slice(1, index + 1).join('\n');
-            if (throughLine === undefined || index + 1 <= throughLine)
-                completed.push({ line: index + 1, body });
-            state = EMPTY_CELL;
-        }
-        const changed = completed.some(item => live.prefixes.has(item.line) && live.prefixes.get(item.line) !== item.body)
-            || [...live.prefixes].some(([line]) => !completed.some(item => item.line === line));
-        if (changed) {
-            live.outputs.clear();
-            live.prefixes.clear();
-        }
-        for (const item of completed) {
-            if (live.outputs.has(item.line)) continue;
-            const preview = this.previewFunctionSource(live, item.body);
-            const result = await this.session.preview(preview, this.columns());
-            live.outputs.set(item.line, result.output);
-            live.prefixes.set(item.line, item.body);
-        }
+        if (!live) return;
+        await this.livePreview.update(live, this.notebook.current.source, reset, throughLine);
         this.updateLiveSuggestion();
-    }
-
-    private previewFunctionSource(live: LiveFunctionSession, body: string): string {
-        const lines = body.split('\n');
-        const last = [...lines].reverse().find(line => line.trim())?.trim() ?? '';
-        let fallback = '';
-        if (!/^return\b/.test(last) && !/^yield\b/.test(last)) {
-            const assignment = /^\s*([A-Za-z][A-Za-z0-9_]*)(?:\s+.*?)?\s*(?:=|\+=|-=|\*=|\*\*=|\/=|\/\/=|%=|and=|or=|xor=)/;
-            const lastAssignment = assignment.exec(last)?.[1];
-            if (lastAssignment) fallback = `\n  return ${lastAssignment}`;
-            else if (last && !/^(?:if|elif|else|for|try|catch|finally|end|break|continue)\b/.test(last)) {
-                let at = lines.length - 1;
-                while (at >= 0 && !lines[at].trim()) at--;
-                lines[at] = lines[at].replace(last, `return ${last}`);
-            } else {
-                const assigned = [...lines].reverse().map(line => assignment.exec(line)?.[1])
-                    .find(Boolean);
-                fallback = `\n  return ${assigned ?? '0'}`;
-            }
-        }
-        const call = [...live.values.map(value => `(${value})`), live.name].join(' ');
-        return `${live.header}\n${lines.join('\n')}${fallback}\nend\n${call}`;
     }
 
     private placeCursorAfterLiveLine(line: number): void {
