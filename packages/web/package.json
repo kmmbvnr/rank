@@ -1,0 +1,20 @@
+{
+    "name": "@arrrank/web",
+    "description": "Browser application for the Rank programming language",
+    "version": "0.0.1",
+    "license": "MIT",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "clean": "shx rm -fr dist",
+        "build": "tsc --noEmit && vite build",
+        "dev": "vite",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@arrrank/interpreter": "0.0.1"
+    },
+    "devDependencies": {
+        "vite": "~7.1.5"
+    }
+}

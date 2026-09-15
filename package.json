@@ -34,7 +34,9 @@
         "packages/language",
         "packages/interpreter",
         "packages/cli",
-        "packages/compile"
+        "packages/compile",
+        "packages/web",
+        "packages/mobile"
     ],
     "overrides": {
         "jsonschema": "1.4.1"

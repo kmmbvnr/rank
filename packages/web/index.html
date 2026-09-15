@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <meta name="theme-color" content="#101418">
+        <meta name="description" content="Write and run Rank programs in your browser.">
+        <link rel="icon" href="data:,">
+        <title>Rank</title>
+    </head>
+    <body>
+        <main class="shell">
+            <header>
+                <div>
+                    <p class="eyebrow">Rank</p>
+                    <h1>Array programming, in your pocket.</h1>
+                </div>
+                <p id="runtime-status" class="status" aria-live="polite">Ready</p>
+            </header>
+
+            <section class="workspace" aria-label="Rank workspace">
+                <div class="panel source-panel">
+                    <div class="panel-heading">
+                        <label for="source">Program</label>
+                        <span>40 columns</span>
+                    </div>
+                    <textarea id="source" spellcheck="false" autocapitalize="off">use numbers
+A = array 1 2 3 4 5
+A sum</textarea>
+                    <div class="inputs">
+                        <label for="stdin">Input</label>
+                        <textarea id="stdin" rows="2" placeholder="stdin values, prepared before Run"></textarea>
+                        <label class="file-button" for="files">Add files</label>
+                        <input id="files" type="file" multiple>
+                        <span id="file-summary">No files</span>
+                    </div>
+                    <div class="actions">
+                        <button id="run" type="button">Run</button>
+                        <button id="stop" class="secondary" type="button" disabled>Stop</button>
+                    </div>
+                </div>
+
+                <div class="panel result-panel">
+                    <div class="panel-heading">
+                        <h2>Result</h2>
+                        <button id="clear" class="text-button" type="button">Clear</button>
+                    </div>
+                    <pre id="output" tabindex="0" aria-live="polite">Run the program to see its output.</pre>
+                </div>
+            </section>
+        </main>
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>
