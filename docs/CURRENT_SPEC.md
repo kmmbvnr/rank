@@ -6369,15 +6369,17 @@ first prime is `7652413`.
 ## 42. Coded triangle numbers
 
 ```rank
-Discriminant = 8 * Value + 1
-Root = Discriminant isqrt
-if Root ** 2 equal Discriminant
-  Count += 1
-end
+Values = Words word_value rank 0
+Discriminants = 8 * Values + 1
+Roots = Discriminants isqrt
+Triangular = Roots ** 2 equal Discriminants
+Answer = Triangular count
 ```
 
-`codepoint` computes word values, and exact `isqrt` recognizes triangular
-values without floating-point conversion. The official file contains `162`.
+Inside `word_value`, rank-0 `codepoint` and a seeded sum reduce each word to its
+alphabetic value. Another rank-0 application handles all words. Exact `isqrt`
+builds a boolean mask of triangular values, and `count` returns `162` for the
+official file.
 
 ## 43. Sub-string divisibility
 
