@@ -100,7 +100,9 @@ export function notebookFrame(
             const sourceLine = cell.source.slice(0, offset).split('\n').length;
             const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
             const liveProgress = live && !editingField && !breakpoint;
-            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : liveProgress ? '    ● '
+            const hiddenFocusedDraft = promptOutputFocus && item.text.trim() === '';
+            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+                : liveProgress ? '    ● '
                 : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
             const progressColor = sourceLine === activeSourceLine ? '\x1b[33m'

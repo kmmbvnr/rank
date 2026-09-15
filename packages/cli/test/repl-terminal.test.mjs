@@ -571,17 +571,23 @@ test('loop arrows keep the cursor on the visible iteration and defer body evalua
     const frames = await drive(t, [
         'for i in 1 to 3' + ENTER,
         RIGHT,
+        ENTER,
         'A = i' + ENTER,
+        UP + UP,
         RIGHT,
+        ENTER,
         ENTER,
     ], 80, 18);
     assert.match(frames[0].text.split('\n')[frames[0].cursorY], /i = 1 · iteration 1/);
+    assert.doesNotMatch(frames[0].text, /^\s*●\s*$/m, 'the hidden body cursor must not draw a marker');
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /i = 2 · iteration 2/);
     assert.doesNotMatch(frames[1].text, /A = i/);
-    assert.match(frames[2].text, /A = i\n\s+2/);
-    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /i = 3 · iteration 3/);
-    assert.doesNotMatch(frames[3].text, /A = i\n\s+2/);
-    assert.match(frames[4].text, /A = i\n\s+3/);
+    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /●/);
+    assert.match(frames[3].text, /A = i\n\s+2/);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /i = 2 · iteration 2/);
+    assert.match(frames[5].text.split('\n')[frames[5].cursorY], /i = 3 · iteration 3/);
+    assert.doesNotMatch(frames[5].text, /A = i\n\s+2/);
+    assert.match(frames[7].text, /A = i\n\s+3/);
 });
 
 

@@ -50,6 +50,7 @@ export class NotebookRepl {
     get liveIterationFocus(): { line: number; offset: number } | undefined {
         return this.liveFunction.iterationFocus ?? this.liveConditional.iterationFocus;
     }
+    get liveIterationFocused(): boolean { return this.liveIterationFocus !== undefined; }
 
     get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
         const pause = this.session.pauseState;
@@ -145,6 +146,14 @@ export class NotebookRepl {
     async moveLiveIteration(direction: number): Promise<boolean> {
         if (await this.liveFunction.moveIteration(direction)) return true;
         return this.liveConditional.moveIteration(direction);
+    }
+
+    releaseLiveIteration(): boolean {
+        return this.liveFunction.releaseIteration() || this.liveConditional.releaseIteration();
+    }
+
+    focusLiveIterationFromBody(): boolean {
+        return this.liveFunction.focusIterationFromBody() || this.liveConditional.focusIterationFromBody();
     }
 
     focusExampleFromBody(): boolean {

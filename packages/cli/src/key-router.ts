@@ -35,6 +35,18 @@ export class KeyRouter {
             return { exit: false };
         }
 
+        if (repl.liveIterationFocused) {
+            if (key.name === 'return' || key.name === 'enter' || key.name === 'down' || key.name === 'escape') {
+                repl.releaseLiveIteration();
+                return { exit: false };
+            }
+            if (key.name === 'left' || key.name === 'right') {
+                await repl.moveLiveIteration(key.name === 'left' ? -1 : 1);
+                return { exit: false };
+            }
+            if (!key.ctrl && !key.meta && text && text >= ' ') return { exit: false };
+        }
+
         if (key.ctrl && (key.name === 'q' || key.name === 'd' && book.current.source === ''))
             return { exit: repl.requestExit() };
         if (key.ctrl && key.name === 's') {
@@ -75,7 +87,7 @@ export class KeyRouter {
                 book.replace(this.historyIndex < 0 ? this.historyDraft
                     : this.history[this.history.length - 1 - this.historyIndex]);
             } else if (key.name === 'up' || key.name === 'down') {
-                if (key.name !== 'up' || !repl.focusExampleFromBody())
+                if (key.name !== 'up' || !repl.focusExampleFromBody() && !repl.focusLiveIterationFromBody())
                     book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()));
             } else if (key.name === 'pageup' || key.name === 'pagedown') {
                 return { exit: false, pageDelta: key.name === 'pageup' ? -1 : 1 };

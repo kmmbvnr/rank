@@ -1,7 +1,7 @@
 import { parse } from '@arrrank/interpreter';
 import { isFunctionStatement } from '@arrrank/language';
 import { LiveFunctionSession } from './live-function.js';
-import { activeIteration, LivePreviewRunner } from './live-preview.js';
+import { LivePreviewRunner } from './live-preview.js';
 import type { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
@@ -11,7 +11,7 @@ export type LiveSubmitResult = 'absent' | 'handled' | 'complete' | 'replay';
 /** Owns example arguments and isolated line previews for one function edit. */
 export class LiveFunctionController {
     private live?: LiveFunctionSession;
-    private staleIteration?: number;
+    private focusedIteration?: number;
     private readonly examples = new Map<string, string[]>();
     private readonly preview: LivePreviewRunner;
 
@@ -32,24 +32,18 @@ export class LiveFunctionController {
     get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.live?.outputs; }
     get editing(): boolean { return this.live !== undefined; }
     get iterationFocus(): { line: number; offset: number } | undefined {
-        if (!this.live || this.prompt || currentLine(this.notebook).trim()) return undefined;
-        const iteration = activeIteration(
-            this.notebook.current.source, this.notebook.cursor, 1, this.live.iterations,
-        );
-        const text = iteration && this.live.outputs.get(iteration.line)?.find(output => !output.error)?.text;
-        if (!iteration || !text) return undefined;
+        if (!this.live || this.prompt || this.focusedIteration === undefined) return undefined;
+        const text = this.live.outputs.get(this.focusedIteration)?.find(output => !output.error)?.text;
+        if (!text) return undefined;
         const suffix = text.indexOf(' · iteration');
-        return { line: iteration.line, offset: suffix < 0 ? text.length : suffix };
+        return { line: this.focusedIteration, offset: suffix < 0 ? text.length : suffix };
     }
     get status(): string | undefined {
         if (!this.live || this.prompt) return undefined;
         const example = this.live.skipped ? 'no example' : this.live.values.join(', ');
-        const iteration = !currentLine(this.notebook).trim()
-            ? activeIteration(this.notebook.current.source, this.notebook.cursor, 1, this.live.iterations)
-            : undefined;
-        if (iteration) {
-            const action = this.staleIteration === iteration.line ? 'Enter recalculate' : 'Enter keep blank line';
-            return `Live ${this.live.name}(${example}) · iteration ${iteration.index + 1} · ${action} · ←/→ select · Ctrl-R arguments + recalculate`;
+        if (this.focusedIteration !== undefined) {
+            const iteration = this.live.iterations.get(this.focusedIteration) ?? 0;
+            return `Live ${this.live.name}(${example}) · iteration ${iteration + 1} · ←/→ select · Enter body`;
         }
         return `Live ${this.live.name}(${example}) · ${enterAction(this.notebook)} · Ctrl-T arguments`;
     }
@@ -59,7 +53,7 @@ export class LiveFunctionController {
     }
     get hasParameters(): boolean { return !!this.live?.parameters.length; }
 
-    clear(): void { this.live = undefined; this.staleIteration = undefined; }
+    clear(): void { this.live = undefined; this.focusedIteration = undefined; }
 
     reopenArguments(): boolean {
         if (!this.live?.parameters.length) return false;
@@ -84,7 +78,7 @@ export class LiveFunctionController {
             this.notebook.cursor = Math.min(this.notebook.cursor, live.originalSource.length);
         }
         this.live = undefined;
-        this.staleIteration = undefined;
+        this.focusedIteration = undefined;
         this.notebook.toPrompt();
         if (!live?.existing) this.notebook.replace('');
         this.setSuggestion('');
@@ -128,7 +122,7 @@ export class LiveFunctionController {
             name: match[1], parameters, header: source.trim(), source: body,
             cellIndex: this.notebook.active, existing, originalSource: existing ? source.trim() : undefined,
         }, this.session.names);
-        this.staleIteration = undefined;
+        this.focusedIteration = undefined;
         this.notebook.replace(parameters.length ? source.trim() : body);
         if (parameters.length) this.updateExampleSuggestion(); else this.updateSuggestion();
         return true;
@@ -145,7 +139,7 @@ export class LiveFunctionController {
         } else {
             const line = live.stopLine;
             await this.updatePreviews(true, line - 1);
-            this.staleIteration = undefined;
+            this.focusedIteration = undefined;
             this.placeCursorAtLineEnd(line - 1);
             live.stopLine = undefined;
         }
@@ -167,18 +161,33 @@ export class LiveFunctionController {
 
     async moveIteration(direction: number): Promise<boolean> {
         const live = this.live;
-        if (!live || live.argument !== undefined || currentLine(this.notebook).trim()) return false;
-        const iteration = activeIteration(
-            this.notebook.current.source, this.notebook.cursor, 1, live.iterations,
-        );
-        if (!iteration) return false;
-        const next = Math.max(0, iteration.index + direction);
-        if (next === iteration.index) return true;
-        live.iterations.set(iteration.line, next);
+        const line = this.focusedIteration;
+        if (!live || live.argument !== undefined || line === undefined) return false;
+        const iteration = live.iterations.get(line) ?? 0;
+        const next = Math.max(0, iteration + direction);
+        if (next === iteration) return true;
+        live.iterations.set(line, next);
         live.outputs.clear();
         live.prefixes.clear();
-        this.staleIteration = iteration.line;
-        await this.updatePreviews(false, iteration.line);
+        await this.updatePreviews(false, line);
+        this.render();
+        return true;
+    }
+
+    releaseIteration(): boolean {
+        if (this.focusedIteration === undefined) return false;
+        this.focusedIteration = undefined;
+        this.updateSuggestion();
+        this.render();
+        return true;
+    }
+
+    focusIterationFromBody(): boolean {
+        if (!this.live || this.prompt || this.focusedIteration !== undefined) return false;
+        const line = currentLineNumber(this.notebook) - 1;
+        if (line < 2 || !isIterationHeader(this.notebook.current.source.split('\n')[line - 1])) return false;
+        this.focusIteration(line);
+        if (this.focusedIteration === undefined) return false;
         this.render();
         return true;
     }
@@ -192,19 +201,12 @@ export class LiveFunctionController {
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
         if (currentLine < lines.length - 1) {
             await this.updatePreviews(false, currentLine + 1);
-            this.staleIteration = undefined;
             this.placeCursorAfterLine(currentLine);
+            this.focusIteration(currentLine + 1);
             this.render();
             return 'handled';
         }
         if (!lines[currentLine].trim()) {
-            const iteration = activeIteration(source, this.notebook.cursor, 1, live.iterations);
-            if (iteration && this.staleIteration === iteration.line) {
-                await this.updatePreviews(true, currentLine + 1);
-                this.staleIteration = undefined;
-                this.render();
-                return 'handled';
-            }
             this.notebook.newline();
             this.updateSuggestion();
             this.render();
@@ -215,7 +217,7 @@ export class LiveFunctionController {
             if (!live.skipped && live.values.length === live.parameters.length)
                 this.examples.set(live.name, [...live.values]);
             this.live = undefined;
-            this.staleIteration = undefined;
+            this.focusedIteration = undefined;
             this.setSuggestion('');
             if (live.existing) {
                 this.notebook.replayFrom = live.cellIndex;
@@ -225,8 +227,8 @@ export class LiveFunctionController {
             return 'complete';
         }
         await this.updatePreviews(false, currentLine + 1);
-        this.staleIteration = undefined;
         this.placeCursorAfterLine(currentLine);
+        this.focusIteration(currentLine + 1);
         this.render();
         return 'handled';
     }
@@ -259,7 +261,7 @@ export class LiveFunctionController {
         live.outputs.clear();
         live.prefixes.clear();
         await this.updatePreviews(false, live.stopLine === undefined ? undefined : live.stopLine - 1);
-        this.staleIteration = undefined;
+        this.focusedIteration = undefined;
         if (live.stopLine !== undefined) {
             this.placeCursorAtLineEnd(live.stopLine - 1);
             live.stopLine = undefined;
@@ -310,6 +312,12 @@ export class LiveFunctionController {
         if (this.live) this.setSuggestion('');
     }
 
+    private focusIteration(line: number): void {
+        if (!this.live || !isIterationHeader(this.notebook.current.source.split('\n')[line - 1])
+            || !this.live.outputs.get(line)?.some(output => !output.error)) return;
+        this.focusedIteration = line;
+    }
+
     private async updatePreviews(reset = false, throughLine?: number): Promise<void> {
         if (!this.live) return;
         await this.preview.updateFunction(this.live, this.notebook.current.source, reset, throughLine);
@@ -344,6 +352,14 @@ function currentLine(notebook: Notebook): string {
     const start = source.lastIndexOf('\n', notebook.cursor - 1) + 1;
     const end = source.indexOf('\n', notebook.cursor);
     return source.slice(start, end < 0 ? source.length : end);
+}
+
+function currentLineNumber(notebook: Notebook): number {
+    return notebook.current.source.slice(0, notebook.cursor).split('\n').length;
+}
+
+function isIterationHeader(line = ''): boolean {
+    return /^\s*for\s+.+\s+in\s+.+$/.test(line);
 }
 
 function selectedLine(source: string, cursor: number): number {

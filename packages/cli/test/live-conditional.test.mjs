@@ -170,16 +170,20 @@ test('a collection loop previews one selected iteration and waits for explicit r
     try {
         await s.line('for I in 1 to 3');
         assert.deepEqual(s.output(1), ['I = 1 · iteration 1']);
+        assert.equal(s.repl.releaseLiveIteration(), true);
         await s.line('Value = I * 2');
         assert.deepEqual(s.output(2), ['2']);
 
         const source = s.repl.notebook.current.source;
+        s.repl.notebook.cursor = source.indexOf('Value = I * 2') + 'Value = I * 2'.length;
+        assert.equal(s.repl.focusLiveIterationFromBody(), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
         assert.equal(s.repl.notebook.current.source, source);
         assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
         assert.equal(s.repl.liveOutputs.has(2), false, 'selecting must clear stale body previews');
-        assert.match(s.repl.suggestion, /iteration 2 · Enter recalculate/);
+        assert.match(s.repl.suggestion, /iteration 2 · ←\/→ select · Enter body/);
 
+        assert.equal(s.repl.releaseLiveIteration(), true);
         await s.repl.submit();
         assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
         assert.deepEqual(s.output(2), ['4']);
@@ -188,8 +192,11 @@ test('a collection loop previews one selected iteration and waits for explicit r
         await s.repl.submit();
         assert.notEqual(s.repl.notebook.current.source, source, 'the next Enter keeps a blank line');
 
+        s.repl.notebook.cursor = s.repl.notebook.current.source.indexOf('Value = I * 2') + 'Value = I * 2'.length;
+        assert.equal(s.repl.focusLiveIterationFromBody(), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.equal(s.repl.releaseLiveIteration(), true);
         await s.repl.submit();
         assert.deepEqual(s.output(1), ['iteration 4 · loop skipped']);
         assert.deepEqual(s.output(2), []);
@@ -218,15 +225,21 @@ test('a nested if follows the selected function-loop iteration', async () => {
         s.repl.exampleEditor.insert('3');
         await s.repl.submit();
         await s.line('for I in 1 to N');
+        assert.equal(s.repl.releaseLiveIteration(), true);
         await s.line('if I equal 2');
         await s.line('Seen = I');
         assert.deepEqual(s.output(3), ['false · branch skipped']);
         assert.deepEqual(s.output(4), []);
 
+        const source = s.repl.notebook.current.source;
+        s.repl.notebook.cursor = source.indexOf('if I equal 2') + 'if I equal 2'.length;
+        assert.equal(s.repl.focusLiveIterationFromBody(), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
         assert.deepEqual(s.output(2), ['I = 2 · iteration 2']);
         assert.equal(s.repl.liveOutputs.has(3), false);
         assert.equal(s.repl.liveOutputs.has(4), false);
+        assert.equal(s.repl.releaseLiveIteration(), true);
+        s.repl.notebook.cursor = source.indexOf('Seen = I') + 'Seen = I'.length;
         await s.repl.submit();
         assert.deepEqual(s.output(2), ['I = 2 · iteration 2']);
         assert.deepEqual(s.output(3), ['true · branch runs']);
@@ -238,15 +251,27 @@ test('a nested loop keeps its own selected iteration for each outer value', asyn
     const s = scenario();
     try {
         await s.line('for I in 1 to 2');
+        assert.equal(s.repl.releaseLiveIteration(), true);
         await s.line('for J in 3 to 4');
+        assert.equal(s.repl.releaseLiveIteration(), true);
         await s.line('Value = I * 10 + J');
+        let source = s.repl.notebook.current.source;
+        s.repl.notebook.cursor = source.indexOf('Value = I * 10 + J') + 'Value = I * 10 + J'.length;
+        assert.equal(s.repl.focusLiveIterationFromBody(), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.equal(s.repl.releaseLiveIteration(), true);
+        s.repl.notebook.cursor = source.indexOf('Value = I * 10 + J') + 'Value = I * 10 + J'.length;
         await s.repl.submit();
         assert.deepEqual(s.output(2), ['J = 4 · iteration 2']);
         assert.deepEqual(s.output(3), ['14']);
         await s.line('end');
 
+        source = s.repl.notebook.current.source;
+        s.repl.notebook.cursor = source.indexOf('for J in 3 to 4') + 'for J in 3 to 4'.length;
+        assert.equal(s.repl.focusLiveIterationFromBody(), true);
         assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.equal(s.repl.releaseLiveIteration(), true);
+        s.repl.notebook.cursor = source.indexOf('Value = I * 10 + J') + 'Value = I * 10 + J'.length;
         await s.repl.submit();
         assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
         assert.deepEqual(s.output(2), ['J = 4 · iteration 2']);

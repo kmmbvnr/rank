@@ -63,6 +63,17 @@ test('live replay marks evaluated, current and remaining source lines', () => {
     assert.match(sourceLine('end'), /\x1b\[90m/);
 });
 
+test('moving through executed source does not create a yellow live marker', () => {
+    const book = new Notebook();
+    book.enqueue('A = 1\nB = A + 1');
+    book.cells[0].executed = book.cells[0].source;
+    book.cells[0].status = 'ok';
+    book.active = 0;
+    book.cursor = book.cells[0].source.indexOf('B =');
+    const frame = notebookFrame(book, 60, 10);
+    assert.doesNotMatch(frame.lines.join('\n'), /\x1b\[33m/);
+});
+
 async function draw(terminal, book, top = 0, hint = '', running = false) {
     if (terminal.buffer.active.type !== 'alternate') await write(terminal, '\x1b[?1049h');
     const frame = notebookFrame(book, terminal.cols, terminal.rows, top, hint, running);

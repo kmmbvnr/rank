@@ -341,17 +341,3 @@ function omitCompletedLoop(active: Set<number>, lines: string[], start: number, 
     const closing = openBlocks(lines, start, target).at(-1);
     if (closing?.kind === 'for') active.delete(closing.line);
 }
-
-export interface ActiveIteration { readonly line: number; readonly name: string; readonly index: number }
-
-export function activeIteration(
-    source: string, cursor: number, start: number, iterations: ReadonlyMap<number, number>,
-): ActiveIteration | undefined {
-    const lines = source.split('\n');
-    const target = source.slice(0, cursor).split('\n').length - 1;
-    const loops = [...enclosingLoopLines(lines, start, target + 1)];
-    const line = loops.reverse().find(candidate => iterationHeader(lines[candidate].trim()));
-    if (line === undefined) return undefined;
-    const binding = iterationHeader(lines[line].trim())!;
-    return { line: line + 1, name: binding.name, index: iterations.get(line + 1) ?? 0 };
-}

@@ -167,28 +167,39 @@ test('arrow keys select a function loop iteration without evaluating its body', 
         await s.enter();
         await s.type('for I in 1 to N');
         await s.enter();
+        assert.equal(s.repl.liveIterationFocused, true);
+        await s.enter();
+        assert.equal(s.repl.liveIterationFocused, false);
         await s.type('Sum += I');
         await s.enter();
         assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['1']);
 
         const source = s.book.current.source;
+        await s.up();
+        await s.up();
+        assert.equal(s.repl.liveIterationFocused, true);
         await s.right();
         assert.equal(s.book.current.source, source);
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 2 · iteration 2']);
         assert.equal(s.repl.liveOutputs.has(4), false);
-        assert.match(s.repl.suggestion, /iteration 2 · Enter recalculate/);
+        assert.match(s.repl.suggestion, /iteration 2 · ←\/→ select · Enter body/);
         const focused = notebookFrame(s.book, 80, 20, 0, s.repl.suggestion, false, true, '', 'Running…',
             undefined, s.repl.promptLabel, s.repl.liveOutputs, s.repl.exampleFields, s.repl.liveIterationFocus);
         assert.match(clean(focused.lines[focused.cursor.row]), /I = 2 · iteration 2/);
 
         await s.enter();
+        assert.equal(s.repl.liveIterationFocused, false);
+        await s.enter();
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 2 · iteration 2']);
         assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['3']);
         assert.equal(s.book.current.source, source);
 
+        await s.up();
+        await s.up();
         await s.left();
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 1 · iteration 1']);
         assert.equal(s.repl.liveOutputs.has(4), false);
+        await s.enter();
         await s.enter();
         assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['1']);
 
