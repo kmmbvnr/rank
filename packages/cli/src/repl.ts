@@ -8,8 +8,9 @@ import { isFunctionStatement } from '@arrrank/language';
 import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty } from './repl-input.js';
 import { createWorkerSession } from './worker-session.js';
 import { Notebook, splitSource } from './notebook.js';
+import { KeyRouter, type Key } from './key-router.js';
 import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
-import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame, textColumns } from './screen.js';
+import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame } from './screen.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
@@ -198,6 +199,36 @@ export class NotebookRepl {
         const next = candidates[(at + 1) % candidates.length];
         editor.replace(next);
         this.updateExampleSuggestion();
+    }
+
+    moveExampleField(direction: number): void {
+        const live = this.live;
+        if (!live || live.argument === undefined) return;
+        live.values[live.argument] = live.argumentEditor.current.source.trim();
+        const next = Math.max(0, Math.min(live.parameters.length - 1, live.argument + direction));
+        if (next === live.argument) return;
+        live.argument = next;
+        const parameter = live.parameters[next];
+        live.argumentEditor.replace(live.values[next]
+            ?? (this.session.names.includes(parameter) ? parameter : ''));
+        live.argumentError = undefined;
+        this.updateExampleSuggestion();
+    }
+
+    focusExampleFromBody(): boolean {
+        const live = this.live;
+        if (!live || live.argument !== undefined || !live.parameters.length) return false;
+        const source = this.notebook.current.source;
+        const currentLine = source.slice(0, this.notebook.cursor).split('\n').length;
+        if (currentLine !== 2) return false;
+        live.source = source;
+        live.stopLine = this.selectedLiveLine(source, this.notebook.cursor);
+        live.argumentBackup = [...live.values];
+        live.argument = live.parameters.length - 1;
+        live.argumentEditor.replace(live.values[live.argument] ?? '');
+        live.argumentError = undefined;
+        this.updateExampleSuggestion();
+        return true;
     }
 
     private beginLiveFunction(source: string): boolean {
@@ -416,33 +447,32 @@ export class NotebookRepl {
     private async acceptExample(): Promise<boolean> {
         const live = this.live;
         if (!live || live.argument === undefined) return false;
-        const value = live.argumentEditor.current.source.trim();
-        if (!value) {
-            this.suggestion = `${live.parameters[live.argument]} needs a value · Tab variables · Esc skip`;
+        const current = live.argument;
+        live.values[current] = live.argumentEditor.current.source.trim();
+        const error = this.exampleValueError(live.values[current]);
+        if (error) {
+            live.argumentError = { source: live.argumentEditor.current.source, message: error };
+            this.suggestion = `${live.parameters[current]} is not an expression · edit it or Esc skip`;
             this.render();
             return false;
         }
-        try {
-            parse(`Example = (${value})`, '<example>', {
-                bindings: new Map(this.session.names.map(name => [name, false])),
-            });
-            live.argumentError = undefined;
-        } catch (error) {
-            const message = error instanceof RankError
-                ? `${error.rankKind}: ${error.message.replace(/ at \d+:\d+$/, '')}`
-                : String(error);
-            live.argumentError = { source: live.argumentEditor.current.source, message };
-            this.suggestion = `${live.parameters[live.argument]} is not an expression · edit it or Esc skip`;
-            this.render();
-            return false;
-        }
-        live.values[live.argument] = value;
-        if (live.argument + 1 < live.parameters.length) {
+        live.argumentError = undefined;
+        if (current + 1 < live.parameters.length) {
             live.argument++;
             const parameter = live.parameters[live.argument];
             live.argumentEditor.replace(live.values[live.argument]
                 ?? (this.session.names.includes(parameter) ? parameter : ''));
             this.updateExampleSuggestion();
+            this.render();
+            return false;
+        }
+        for (let index = 0; index < live.parameters.length; index++) {
+            const fieldError = this.exampleValueError(live.values[index] ?? '');
+            if (!fieldError) continue;
+            live.argument = index;
+            live.argumentEditor.replace(live.values[index] ?? '');
+            live.argumentError = { source: live.argumentEditor.current.source, message: fieldError };
+            this.suggestion = `${live.parameters[index]} is not an expression · edit it or Esc skip`;
             this.render();
             return false;
         }
@@ -460,6 +490,20 @@ export class NotebookRepl {
         }
         this.render();
         return false;
+    }
+
+    private exampleValueError(value: string): string | undefined {
+        if (!value) return 'A value is required';
+        try {
+            parse(`Example = (${value})`, '<example>', {
+                bindings: new Map(this.session.names.map(name => [name, false])),
+            });
+            return undefined;
+        } catch (error) {
+            return error instanceof RankError
+                ? `${error.rankKind}: ${error.message.replace(/ at \d+:\d+$/, '')}`
+                : String(error);
+        }
     }
 
     private updateExampleSuggestion(): void {
@@ -783,8 +827,6 @@ async function streamRepl(session: Session): Promise<void> {
     } finally { input.close(); }
 }
 
-interface Key { name?: string; ctrl?: boolean; meta?: boolean; shift?: boolean; sequence?: string }
-
 async function terminalRepl(session: Session): Promise<void> {
     const input = process.stdin;
     const output = process.stdout;
@@ -796,8 +838,6 @@ async function terminalRepl(session: Session): Promise<void> {
     let closing = false;
     let stepping = false;
     let history: string[] = [];
-    let historyIndex = -1;
-    let historyDraft = '';
     try { history = (await fs.readFile(historyFile(), 'utf8')).split('\n').filter(Boolean).slice(-HISTORY_LIMIT); }
     catch { /* A new session has no history yet. */ }
     const render = (): void => {
@@ -833,6 +873,7 @@ async function terminalRepl(session: Session): Promise<void> {
     };
     const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
     const book = repl.notebook;
+    const keyRouter = new KeyRouter(repl, history, () => output.columns || 80);
     let finish!: () => void;
     let fail!: (error: unknown) => void;
     const ended = new Promise<void>((resolve, reject) => { finish = resolve; fail = reject; });
@@ -857,21 +898,6 @@ async function terminalRepl(session: Session): Promise<void> {
         }
         try {
             followCursor = key.name !== 'pageup' && key.name !== 'pagedown';
-            if (repl.examplePrompt) {
-                const example = repl.exampleEditor!;
-                if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.cancelExample();
-                else if (key.name === 'return' || key.name === 'enter') {
-                    void repl.submit().then(exit => { if (exit) leave(); else render(); }, fail);
-                } else if (key.name === 'tab' || key.name === 'up' || key.name === 'down') repl.cycleExampleCandidate();
-                else if (key.name === 'backspace' || key.name === 'delete') example.erase(key.name === 'backspace');
-                else if (key.name === 'left' || key.name === 'right') example.horizontal(key.name === 'left' ? -1 : 1);
-                else if (key.name === 'home' || key.ctrl && key.name === 'a') example.lineEdge(false);
-                else if (key.name === 'end' || key.ctrl && key.name === 'e') example.lineEdge(true);
-                else if (key.ctrl && key.name === 'u') example.replace('');
-                else if (!key.ctrl && !key.meta && text && text >= ' ') example.insert(text, true);
-                render();
-                return;
-            }
             if (repl.savePrompt) {
                 const prompt = repl.savePrompt;
                 if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.savePrompt = undefined;
@@ -898,14 +924,6 @@ async function terminalRepl(session: Session): Promise<void> {
                 render();
                 return;
             }
-            if (key.ctrl && (key.name === 'q' || key.name === 'd' && book.current.source === '')) {
-                if (repl.requestExit()) leave();
-                return;
-            }
-            if (key.ctrl && key.name === 's') {
-                void repl.requestSave().catch(fail);
-                return;
-            }
             if (repl.help) {
                 if (key.name === 'escape') repl.help = undefined;
                 else if (key.name === 'up') repl.help.top -= 1;
@@ -917,54 +935,10 @@ async function terminalRepl(session: Session): Promise<void> {
                 render();
                 return;
             }
-            if (key.ctrl && key.name === 'b') repl.toggleBreakpoint();
-            else if (key.ctrl && key.name === 't') { void repl.debug().then(exit => { if (exit) leave(); else render(); }, fail); }
-            else if (key.name === 'tab') repl.complete();
-            else if (key.name === 'escape') {
-                if (repl.suggestion) repl.dismiss();
-                else book.toPrompt();
-            } else {
-                repl.dismiss();
-                if (key.name === 'return' || key.name === 'enter' || key.ctrl && key.name === 'r') {
-                    const source = book.current.source;
-                    if (book.atPrompt && source.trim()) {
-                        history = [...history.filter(item => item !== source), source].slice(-HISTORY_LIMIT);
-                        historyIndex = -1;
-                    }
-                    const action = key.ctrl && key.name === 'r' ? repl.rerun() : repl.submit(Boolean(key.meta));
-                    void action.then(exit => {
-                        if (exit) leave(); else render();
-                    }, fail);
-                } else if (key.ctrl && key.name === 'c') {
-                    if (repl.liveEditing) repl.cancelLiveFunction();
-                    else { book.toPrompt(); book.replace(''); }
-                }
-                else if (key.ctrl && key.name === 'z') book.undo();
-                else if (key.ctrl && key.name === 'y') book.undo(true);
-                else if (key.ctrl && key.name === 'p') {
-                    if (historyIndex < 0) historyDraft = book.current.source;
-                    historyIndex = Math.min(history.length - 1, historyIndex + 1);
-                    if (historyIndex >= 0) book.replace(history[history.length - 1 - historyIndex]);
-                } else if (key.ctrl && key.name === 'n') {
-                    historyIndex = Math.max(-1, historyIndex - 1);
-                    book.replace(historyIndex < 0 ? historyDraft : history[history.length - 1 - historyIndex]);
-                } else if (key.name === 'up' || key.name === 'down') {
-                    book.vertical(key.name === 'up' ? -1 : 1, textColumns(output.columns || 80));
-                } else if (key.name === 'pageup' || key.name === 'pagedown') {
-                    top = Math.max(0, top + (key.name === 'pageup' ? -1 : 1) * Math.max(1, (output.rows || 24) - 2));
-                } else if (key.name === 'left' || key.name === 'right') book.horizontal(key.name === 'left' ? -1 : 1);
-                else if (key.name === 'home' || key.ctrl && key.name === 'a') book.lineEdge(false);
-                else if (key.name === 'end' || key.ctrl && key.name === 'e') {
-                    if (key.ctrl && key.name === 'end') book.toPrompt(); else book.lineEdge(true);
-                } else if (key.name === 'backspace' || key.name === 'delete') book.erase(key.name === 'backspace');
-                else if (key.ctrl && key.name === 'u') book.replace(book.current.source.slice(book.cursor), 0);
-                else if (key.ctrl && key.name === 'k') {
-                    const end = book.current.source.indexOf('\n', book.cursor);
-                    book.replace(book.current.source.slice(0, book.cursor)
-                        + book.current.source.slice(end < 0 ? book.current.source.length : end), book.cursor);
-                } else if (!key.ctrl && !key.meta && text && text >= ' ') book.insert(text, true);
-            }
-            render();
+            void keyRouter.press(text, key).then(result => {
+                if (result.pageDelta) top = Math.max(0, top + result.pageDelta * Math.max(1, (output.rows || 24) - 2));
+                if (result.exit) leave(); else render();
+            }, fail);
         } catch (error) { fail(error); }
     };
     // Bracketed paste is data, including its newlines. It must never execute commands.
@@ -1028,7 +1002,7 @@ async function terminalRepl(session: Session): Promise<void> {
         input.setRawMode(wasRaw);
         input.pause();
         output.write('\x1b[?2004l\x1b[?25h\x1b[?1049l');
-        try { await fs.writeFile(historyFile(), history.map(item => item.replace(/\n/g, ' ')).join('\n') + '\n'); }
+        try { await fs.writeFile(historyFile(), keyRouter.history.map(item => item.replace(/\n/g, ' ')).join('\n') + '\n'); }
         catch { /* A read-only home does not prevent using the REPL. */ }
     }
 }

@@ -379,6 +379,29 @@ test('an open function evaluates body lines immediately on example arguments', a
     assert.match(frames[4].text, /<function inc>/);
 });
 
+test('arrow keys edit visible function arguments and return to them from the body', async t => {
+    const frames = await drive(t, [
+        'fun add X Y' + ENTER,
+        '1' + DOWN,
+        '2' + UP,
+        CLEAR + '3' + DOWN,
+        ENTER,
+        'return X + Y' + ENTER,
+        UP + UP,
+        CLEAR + '4' + ENTER,
+        ENTER,
+        'end' + ENTER,
+    ], 100, 30);
+    assert.match(frames[1].text, /X = 1\n\s+Y = /);
+    assert.match(frames[2].text, /X = 1\n\s+Y = 2/);
+    assert.match(frames[3].text, /X = 3\n\s+Y = 2/);
+    assert.match(frames[5].text, /return X \+ Y\n\s+5/);
+    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /^\s+Y = 2/);
+    assert.doesNotMatch(frames[7].text, /\n\s+7\n/, 'the selected body line waits for Enter');
+    assert.match(frames[8].text, /return X \+ Y\n\s+7/);
+    assert.match(frames[9].text, /<function add>/);
+});
+
 test('Esc skips a function example without adding its draft to the program', async t => {
     const frames = await drive(t, [
         'fun twice X' + ENTER,
