@@ -14,11 +14,13 @@ export class TerminalModeRouter {
     ) {}
 
     get active(): boolean { return this.repl.running || !!this.repl.savePrompt || !!this.repl.help; }
+    get waitingForPause(): boolean {
+        return this.stepping && this.repl.running && !this.repl.session.pauseState;
+    }
 
     allowRender(): boolean {
-        if (this.stepping && this.repl.running && !this.repl.session.pauseState) return false;
-        this.stepping = false;
-        if (!this.repl.session.pauseState) this.pauseStatus = '';
+        if (!this.repl.running || this.repl.session.pauseState) this.stepping = false;
+        if (!this.repl.running) this.pauseStatus = '';
         return true;
     }
 

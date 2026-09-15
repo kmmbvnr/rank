@@ -1,3 +1,4 @@
+import type { PauseSnapshot } from '@arrrank/interpreter';
 import type { NotebookRepl } from './repl.js';
 import { drawFrame, helpFrame, notebookFrame, pauseFrame, saveFrame } from './screen.js';
 import type { TerminalModeRouter } from './terminal-modes.js';
@@ -13,6 +14,7 @@ export class TerminalRenderer {
     private top = 0;
     private followCursor = true;
     private stopped = false;
+    private lastPause?: PauseSnapshot;
 
     constructor(
         private readonly repl: NotebookRepl,
@@ -43,8 +45,11 @@ export class TerminalRenderer {
                 prompt.error, this.columns, this.rows, prompt.exitAfterSave, repl.running, !!prompt.loadFile)));
             return;
         }
-        if (repl.running && repl.session.pauseState) {
-            const frame = pauseFrame(repl.pauseSnapshot!, this.columns, this.rows, repl.pauseTop, this.modes.pauseStatus);
+        const pause = repl.pauseSnapshot;
+        if (pause) this.lastPause = pause;
+        if (repl.running && (pause || this.modes.waitingForPause && this.lastPause)) {
+            const frame = pauseFrame(pause ?? this.lastPause!, this.columns, this.rows, repl.pauseTop,
+                pause ? this.modes.pauseStatus : repl.runningStatus);
             repl.pauseTop = frame.top;
             this.output.write(drawFrame(frame));
             return;
@@ -55,6 +60,7 @@ export class TerminalRenderer {
             this.output.write(drawFrame(frame));
             return;
         }
+        if (!repl.running) this.lastPause = undefined;
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields);

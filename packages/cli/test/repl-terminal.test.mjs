@@ -586,7 +586,8 @@ test('Ctrl-N advances an iteration while paused and still recalls history in the
     assert.match(frames[4].text, /Total = 1/);
     assert.match(frames[4].text, /● 2 │ for I in 1 to 3/);
     assert.match(frames[4].text, /3 │   Total \+= I/);
-    assert.doesNotMatch(frames[4].raw, /Running…|rank> /, 'iteration must not flash the notebook');
+    assert.match(frames[4].raw, /Running…/);
+    assert.doesNotMatch(frames[4].raw, /rank> /, 'iteration must not flash the notebook');
     assert.match(frames[5].text, /\n      6\n/);
     assert.match(frames[8].text, /rank> 21 \* 2/);
     assert.match(frames[9].text, /rank> Draft/);
@@ -607,7 +608,8 @@ test('Ctrl-G finishes the loop and stops on the next main line in the terminal',
     assert.match(frames[3].text, /I = 1/);
     assert.match(frames[5].text, /Paused · before line 5/);
     assert.match(frames[5].text, /Total = 15/);
-    assert.doesNotMatch(frames[4].raw + frames[5].raw, /Running…|rank> /);
+    assert.match(frames[4].raw + frames[5].raw, /Running…/);
+    assert.doesNotMatch(frames[4].raw + frames[5].raw, /rank> /);
     assert.match(frames[6].text, /\n      15\n/);
 });
 

@@ -38,7 +38,7 @@ test('save filename editing and discard stay inside the save mode', async () => 
     assert.equal(repl.savePrompt, undefined);
 });
 
-test('debugger keys update pause navigation and suppress the advancing frame', async () => {
+test('debugger keys update pause navigation and expose the advancing state', async () => {
     let stepped = 0;
     const session = {
         pauseState: {},
@@ -54,9 +54,11 @@ test('debugger keys update pause navigation and suppress the advancing frame', a
     await router.press('n', { name: 'n' });
     assert.equal(stepped, 10);
     assert.equal(repl.pauseTop, 0);
-    assert.equal(router.allowRender(), false);
+    assert.equal(router.waitingForPause, true);
+    assert.equal(router.allowRender(), true);
     repl.running = false;
     assert.equal(router.allowRender(), true);
+    assert.equal(router.waitingForPause, false);
 });
 
 test('debugger reports an unknown key until the next known key', async () => {
