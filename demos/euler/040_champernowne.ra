@@ -11,7 +11,7 @@ Positions = array shape 7
 end
 
 Digits = Positions champernowne_digit rank 0
-Answer = Digits * reduce with 1
+Answer = Digits * reduce
 Answer print
 
 

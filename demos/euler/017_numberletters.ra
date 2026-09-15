@@ -21,7 +21,7 @@ fun number_letter_total Limit
 
   Numbers = 1 to Limit
   Counts = Numbers letters rank 0
-  return Counts + reduce with 0
+  return Counts + reduce
 
   rem Count letters without constructing the
   rem spelled-out text or its separators.

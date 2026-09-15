@@ -201,17 +201,19 @@ the glyph unambiguous in Rank source.
 
 When a loop only transforms values and carries one accumulator, canonical Rank
 style expresses the work as a data chain. Select the inputs, transform them,
-then use `reduce with Seed` when only the final state is needed:
+then use `reduce` when only the final state is needed:
 
 ```rank
 Even = Values (Values even)
 Squares = Even * Even
-Total = Squares + reduce with 0
+Total = Squares + reduce
 ```
 
 This replaces the imperative chain `test each value -> update Total -> return
-Total`. Each named value exposes one stage to the REPL, and the explicit seed
-defines the empty-input result.
+Total`. Each named value exposes one stage to the REPL. Use `with Seed` when an
+additional initial value must participate in the reduction. Omit a seed that
+only repeats the operation's built-in identity, such as `0` for `+` or `1` for
+`*`.
 
 Use `scan with Seed` when every intermediate accumulator state is part of the
 result:

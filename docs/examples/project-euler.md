@@ -292,12 +292,12 @@ rem https://projecteuler.net/problem=15
 
 Top = (Size + 1) to Size * 2
 Bottom = 1 to Size
-Numerator = Top * reduce with 1
-Denominator = Bottom * reduce with 1
+Numerator = Top * reduce
+Denominator = Bottom * reduce
 Answer = Numerator // Denominator
 ```
 
-Two seeded products evaluate the numerator and denominator of the central
+Two products evaluate the numerator and denominator of the central
 binomial coefficient with exact integers. Empty ranges retain the identity, so
 a zero-sized grid has one path. A 20 by 20 grid has `137846528820` paths.
 
@@ -323,12 +323,12 @@ rem https://projecteuler.net/problem=17
 
 Numbers = 1 to Limit
 Counts = Numbers letters rank 0
-Answer = Counts + reduce with 0
+Answer = Counts + reduce
 ```
 
 `number_letter_total` creates the small English length tables once and defines
 a local `letters` helper that captures them. Rank-0 application converts every
-number to a letter count, and the seeded reduction adds the counts. The helper
+number to a letter count, and the reduction adds the counts. The helper
 implements British `and` without constructing the spelled-out text. The total
 is `21124`.
 
@@ -417,13 +417,13 @@ Values = Sorted name_value rank 0
 Count = Sorted len
 Positions = (1 to Count) array
 Scores = Values * Positions
-Answer = Scores + reduce with 0
+Answer = Scores + reduce
 ```
 
 The program accepts the official names file as a path argument. It removes the
 outer quotes and splits the CSV text. Rank-0 application derives every name's
 letter value, array multiplication applies the one-based positions, and a
-seeded reduction sums the scores. The official input is embedded only in the
+reduction sums the scores. The official input is embedded only in the
 test; the program tree needs no fixture file. The answer is `871198282`.
 
 ## 23. Non-abundant sums
@@ -708,7 +708,7 @@ rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
 Digits = Positions champernowne_digit rank 0
-Answer = Digits * reduce with 1
+Answer = Digits * reduce
 
 for Remaining greater Digits * Count
   Remaining -= Digits * Count
@@ -718,7 +718,7 @@ for Remaining greater Digits * Count
 end
 ```
 
-Rank-0 application finds all requested digits, and a seeded reduction multiplies
+Rank-0 application finds all requested digits, and a reduction multiplies
 them. Inside one position, the loop retains the four related block-location
 states; whole blocks of equal-width integers are skipped arithmetically, so the
 program never constructs the million-character prefix. The product is `210`.
@@ -825,11 +825,11 @@ run of four integers begins at `134043`.
 ```rank
 Numbers = 1 to Limit
 Powers = Numbers modular_self_power rank 0
-Total = Powers + reduce with 0
+Total = Powers + reduce
 Answer = Total % Modulus
 ```
 
-A local rank-0 operation computes each modular self power. The seeded reduction
+A local rank-0 operation computes each modular self power. The reduction
 adds them, and one final remainder keeps the requested decimal suffix. Modular
 exponentiation avoids large intermediate powers. The final ten digits are
 `9110846700`.

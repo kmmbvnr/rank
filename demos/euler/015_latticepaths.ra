@@ -17,7 +17,7 @@ rem from equal-length numerator and denominator ranges.
 fun lattice_paths Size
   Top = (Size + 1) to Size * 2
   Bottom = 1 to Size
-  Numerator = Top * reduce with 1
-  Denominator = Bottom * reduce with 1
+  Numerator = Top * reduce
+  Denominator = Bottom * reduce
   return Numerator // Denominator
 end
