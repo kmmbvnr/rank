@@ -5931,14 +5931,16 @@ shared sparse `index` avoids rebuilding overlapping chains. The answer is
 rem Project Euler 15
 rem https://projecteuler.net/problem=15
 
-Paths = 1
-for I in 1 to Size
-  Paths = Paths * (Size + I) // I
-end
+Top = (Size + 1) to Size * 2
+Bottom = 1 to Size
+Numerator = Top * reduce with 1
+Denominator = Bottom * reduce with 1
+Answer = Numerator // Denominator
 ```
 
-This evaluates the central binomial coefficient one exact integer step at a
-time. A 20 by 20 grid has `137846528820` paths.
+Two seeded products evaluate the numerator and denominator of the central
+binomial coefficient with exact integers. Empty ranges retain the identity, so
+a zero-sized grid has one path. A 20 by 20 grid has `137846528820` paths.
 
 ## 16. Power digit sum
 

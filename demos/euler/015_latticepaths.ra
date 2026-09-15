@@ -12,12 +12,12 @@ Answer = Size lattice_paths
 Answer print
 
 
-rem Evaluate the central binomial
-rem coefficient without factorials.
+rem Evaluate the central binomial coefficient
+rem from equal-length numerator and denominator ranges.
 fun lattice_paths Size
-  Paths = 1
-  for I in 1 to Size
-    Paths = Paths * (Size + I) // I
-  end
-  return Paths
+  Top = (Size + 1) to Size * 2
+  Bottom = 1 to Size
+  Numerator = Top * reduce with 1
+  Denominator = Bottom * reduce with 1
+  return Numerator // Denominator
 end
