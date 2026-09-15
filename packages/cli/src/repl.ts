@@ -12,8 +12,8 @@ import { KeyRouter, type Key } from './key-router.js';
 import { LiveFunctionSession } from './live-function.js';
 import { LivePreviewRunner } from './live-preview.js';
 import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
-import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame } from './screen.js';
 import { TerminalModeRouter } from './terminal-modes.js';
+import { TerminalRenderer } from './terminal-renderer.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
@@ -719,57 +719,27 @@ async function terminalRepl(session: Session): Promise<void> {
     const decoder = new StringDecoder('utf8');
     const keyInput = new (await import('node:stream')).PassThrough();
     readline.emitKeypressEvents(keyInput);
-    let top = 0;
-    let followCursor = true;
-    let closing = false;
     let history: string[] = [];
     try { history = (await fs.readFile(historyFile(), 'utf8')).split('\n').filter(Boolean).slice(-HISTORY_LIMIT); }
     catch { /* A new session has no history yet. */ }
-    const render = (): void => {
-        if (closing) return;
-        // Keep the last debugger frame while the worker advances to its next stop.
-        if (!modeRouter.allowRender()) return;
-        if (repl.savePrompt) {
-            const prompt = repl.savePrompt;
-            output.write(drawFrame(saveFrame(prompt.choosing ? undefined : prompt.filename,
-                prompt.error, output.columns || 80, output.rows || 24, prompt.exitAfterSave, repl.running, !!prompt.loadFile)));
-            return;
-        }
-        if (repl.running && session.pauseState) {
-            const pause = repl.pauseSnapshot!;
-            const frame = pauseFrame(pause,
-                output.columns || 80, output.rows || 24, repl.pauseTop);
-            repl.pauseTop = frame.top;
-            output.write(drawFrame(frame));
-            return;
-        }
-        if (repl.help) {
-            const frame = helpFrame(repl.help.text, output.columns || 80, output.rows || 24, repl.help.top);
-            repl.help.top = frame.top;
-            output.write(drawFrame(frame));
-            return;
-        }
-        const frame = notebookFrame(repl.notebook, output.columns || 80, output.rows || 24,
-            top, repl.suggestion, repl.running, followCursor, repl.fileStatus, repl.runningStatus, repl.breakpoints,
-            repl.promptLabel, repl.liveOutputs, repl.exampleFields);
-        top = frame.top;
-        output.write(drawFrame(frame));
-    };
+    let renderer: TerminalRenderer;
+    const render = (): void => renderer?.render();
     const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
     const book = repl.notebook;
     const keyRouter = new KeyRouter(repl, history, () => output.columns || 80);
     const modeRouter = new TerminalModeRouter(repl, () => output.rows || 24);
+    renderer = new TerminalRenderer(repl, modeRouter, output);
     let finish!: () => void;
     let fail!: (error: unknown) => void;
     const ended = new Promise<void>((resolve, reject) => { finish = resolve; fail = reject; });
-    const leave = (): void => { closing = true; finish(); };
+    const leave = (): void => { renderer.close(); finish(); };
     const onKey = (text: string, key: Key = {}): void => {
-        if (closing) return;
+        if (renderer.closed) return;
         try {
-            followCursor = key.name !== 'pageup' && key.name !== 'pagedown';
+            renderer.followKey(key.name);
             if (!modeRouter.active) {
                 void keyRouter.press(text, key).then(result => {
-                    if (result.pageDelta) top = Math.max(0, top + result.pageDelta * Math.max(1, (output.rows || 24) - 2));
+                    if (result.pageDelta) renderer.page(result.pageDelta);
                     if (result.exit) leave(); else render();
                 }, fail);
                 return;
@@ -826,7 +796,7 @@ async function terminalRepl(session: Session): Promise<void> {
         render();
         await ended;
     } finally {
-        closing = true;
+        renderer.close();
         input.off('data', onData);
         input.off('end', onEnd);
         output.off('resize', render);
