@@ -90,6 +90,7 @@ export function createReplSession() {
 
     return {
         get savedFile() { return savedFile; },
+        get names() { return [...interpreter.bindingNames()]; },
         snapshot(): SessionSnapshot {
             return { names: [...interpreter.variables.keys()], modules: [...interpreter.modules], aliases, savedFile };
         },
@@ -183,6 +184,26 @@ export function createReplSession() {
                 ok: !interrupted && !output.some(line => line.error), errorOffset,
             };
         },
+        preview(text: string, columns = 80): Execution {
+            output = [];
+            interrupted = false;
+            errorOffset = undefined;
+            width = Math.min(WIDTH, textColumns(columns));
+            loadedFile = undefined;
+            const source = text.split('\n').map(line => {
+                const indent = /^ */.exec(line)![0];
+                const formatted = formatLine(line.slice(indent.length));
+                return indent + (aliases ? expand(formatted, interpreter) : formatted);
+            }).join('\n').trimEnd();
+            const fork = interpreter.forkForPreview(emit);
+            try {
+                const result = fork.execute(source);
+                if (result !== undefined) display(result);
+            } catch (error) { reportError(error, source); }
+            finally { fork.dispose(); }
+            return { source, output, command: false, exit: false,
+                ok: !output.some(line => line.error), errorOffset };
+        },
         dispose(): void {
             try { replay.dispose(); } finally { interpreter.dispose(); }
         },
@@ -198,7 +219,7 @@ export function createReplSession() {
             const result = interpreter.execute(source);
             checkInterrupt('evaluating cell');
             session.setLast(result);
-            if (result !== undefined) session.replay.preview(() => show(result));
+            if (result !== undefined) show(result);
             return true;
         } catch (error) {
             return reportError(error, source);
@@ -224,6 +245,10 @@ export function createReplSession() {
 
     /** A result as an answer to read: long ones keep their two ends. */
     function show(value: RankValue): void {
+        replay.preview(() => display(value));
+    }
+
+    function display(value: RankValue): void {
         const { text, note } = preview(value, width);
         checkInterrupt('formatting result');
         emit(text);
@@ -329,6 +354,10 @@ export function createReplSession() {
             '  Ctrl-Z undoes; Ctrl-Y redoes an edit.',
             '  Ctrl-P recalls typed history.',
             '  Ctrl-T starts debugging; Ctrl-B toggles a line breakpoint (◆).',
+            '  After fun/memo, enter example arguments.',
+            '  Tab picks a variable; Esc skips the example.',
+            '  Body lines show gray example results before end.',
+            '  While writing it, Ctrl-T edits the example.',
             '  When paused: t steps into a line, n advances the loop.',
             '  g finishes the outer statement and stops at the next main-program line.',
             '  Ctrl-T / Ctrl-N / Ctrl-G also work; Enter continues, Ctrl-C stops.',

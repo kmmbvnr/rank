@@ -6,14 +6,14 @@ import { createReplSession } from '../out/repl-session.js';
 import { notebookFrame } from '../out/screen.js';
 import { formatSource } from '../out/source-format.js';
 
-function setup(t) {
+function setup(t, functionExamples = false) {
     const session = createReplSession();
     t.after(() => session.dispose());
-    const repl = new NotebookRepl(session);
+    const repl = new NotebookRepl(session, undefined, undefined, functionExamples);
     const book = repl.notebook;
     const enter = async source => { book.toPrompt(); book.replace(source); return repl.submit(); };
     const edit = (index, source) => { book.active = index; book.replace(source); };
-    return { repl, book, enter, edit };
+    return { session, repl, book, enter, edit };
 }
 
 const output = cell => cell.output.map(line => line.text).join('\n');
@@ -118,6 +118,229 @@ test('blocks and folded expressions accumulate at the bottom, with a blank line 
     book.insert('2');
     await repl.submit();
     assert.equal(output(book.cells[2]), '3');
+});
+
+test('an open function evaluates each body line on example arguments', async t => {
+    const { session, repl, book, enter } = setup(t, true);
+    await enter('X = 3');
+    await enter('fun inc N');
+    assert.deepEqual(repl.examplePrompt, { name: 'inc', parameter: 'N', index: 0, count: 1 });
+    repl.exampleEditor.replace('2');
+    await repl.submit();
+    assert.equal(book.current.source, 'fun inc N\n  ');
+    assert.deepEqual(repl.exampleFields.map(field => [field.name, field.source, field.active]), [
+        ['N', '2', false],
+    ]);
+    book.insert('A = N + 1');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['3']);
+    book.insert('A * 2');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(3).map(line => line.text), ['6']);
+    assert.deepEqual(book.fileLines(), ['X = 3']);
+    assert.equal((await session.execute('A', 99, [])).ok, false, 'preview locals must not enter the main session');
+    await repl.debug();
+    assert.equal(repl.exampleEditor.current.source, '2');
+    repl.exampleEditor.replace('5');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['6']);
+    assert.deepEqual(repl.liveOutputs.get(3).map(line => line.text), ['12']);
+    book.insert('end');
+    await repl.submit();
+    assert.equal(repl.liveOutputs, undefined);
+    assert.deepEqual(book.fileLines(), ['X = 3', 'fun inc N', '  A = N + 1', '  A * 2', 'end']);
+    assert.equal(output(book.cells[1]), '<function inc>');
+});
+
+test('all function argument fields stay visible below the unchanged header', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun add X Y');
+    assert.equal(book.current.source, 'fun add X Y');
+    assert.deepEqual(repl.exampleFields.map(field => [field.name, field.source, field.active]), [
+        ['X', '', true], ['Y', '', false],
+    ]);
+    repl.exampleEditor.replace('2');
+    await repl.submit();
+    assert.equal(book.current.source, 'fun add X Y');
+    assert.deepEqual(repl.exampleFields.map(field => [field.name, field.source, field.active]), [
+        ['X', '2', false], ['Y', '', true],
+    ]);
+});
+
+test('an invalid example argument is rejected before the function preview runs', async t => {
+    const { repl } = setup(t, true);
+    repl.notebook.replace('fun inc X');
+    await repl.submit();
+    repl.exampleEditor.replace('A = 1');
+    await repl.submit();
+    assert.deepEqual(repl.examplePrompt, { name: 'inc', parameter: 'X', index: 0, count: 1 });
+    assert.match(repl.exampleFields[0].error, /Syntax: Expecting token/);
+    assert.equal(repl.exampleEditor.current.source, 'A = 1');
+    assert.equal(repl.liveOutputs.size, 0);
+
+    repl.exampleEditor.replace('A');
+    await repl.submit();
+    assert.equal(repl.examplePrompt, undefined);
+    assert.equal(repl.exampleFields[0].error, undefined);
+});
+
+test('correcting a failed func cell to fun enters live authoring in that cell', async t => {
+    const { repl, book, enter, edit } = setup(t, true);
+    await enter('func inc2 Y');
+    assert.match(output(book.cells[0]), /unknown name: func/);
+    edit(0, 'fun inc2 Y');
+    await repl.submit();
+    assert.equal(book.active, 0);
+    assert.equal(repl.liveEditing, true);
+    assert.deepEqual(repl.examplePrompt, { name: 'inc2', parameter: 'Y', index: 0, count: 1 });
+    assert.equal(book.current.source, 'fun inc2 Y');
+    assert.deepEqual(repl.exampleFields.map(field => [field.name, field.source]), [['Y', '']]);
+});
+
+test('Esc skips live evaluation and keeps writing the function body', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun twice X');
+    repl.exampleEditor.replace('21');
+    repl.cancelExample();
+    assert.equal(book.current.source, 'fun twice X\n  ');
+    book.insert('return X * 2');
+    await repl.submit();
+    assert.equal(repl.liveOutputs.size, 0);
+    book.insert('end');
+    await repl.submit();
+    assert.deepEqual(book.fileLines(), ['fun twice X', '  return X * 2', 'end']);
+});
+
+test('a completed loop in an open function evaluates without closing the function', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun total N');
+    repl.exampleEditor.replace('3');
+    await repl.submit();
+    book.insert('Sum = 0');
+    await repl.submit();
+    book.insert('for I in 1 to N');
+    await repl.submit();
+    book.insert('Sum += I');
+    await repl.submit();
+    book.insert('end');
+    await repl.submit();
+    assert.equal(repl.liveEditing, true);
+    assert.deepEqual(repl.liveOutputs.get(5).map(line => line.text), ['6']);
+    assert.equal(book.fileLines().length, 0);
+});
+
+test('Ctrl-R runs the current function line and moves to one empty next line', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc N');
+    repl.exampleEditor.replace('4');
+    await repl.submit();
+    book.insert('Result = N + 1');
+    await repl.submit(true);
+    assert.equal(repl.liveEditing, true);
+    assert.equal(book.current.source, 'fun inc N\n  Result = N + 1\n  ');
+    assert.equal(book.cursor, book.current.source.length);
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['5']);
+    assert.equal(book.fileLines().length, 0);
+    const source = book.current.source;
+    await repl.submit(true);
+    assert.equal(book.current.source, source, 'Ctrl-R on the empty line must not add another line');
+});
+
+test('Enter on an empty live-function line neither inserts end nor adds another blank', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.exampleEditor.replace('1');
+    await repl.submit();
+    book.insert('return X + 1');
+    await repl.submit();
+    const source = book.current.source;
+    await repl.submit();
+    assert.equal(repl.liveEditing, true);
+    assert.equal(book.current.source, source);
+    assert.doesNotMatch(book.current.source, /\nend$/);
+    assert.equal(book.cursor, source.length);
+});
+
+test('Enter on an edited live-function line reevaluates it instead of closing the function', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.exampleEditor.replace('array 1 2 3');
+    await repl.submit();
+    book.insert('Result = X + 1');
+    await repl.submit();
+    const changed = 'fun inc X\n  Result = X + 2\n  ';
+    book.replace(changed, changed.indexOf('\n  ', changed.indexOf('Result')));
+    await repl.submit();
+    assert.equal(repl.liveEditing, true);
+    assert.equal(book.current.source, changed);
+    assert.equal(book.cursor, changed.length);
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['3 4 5']);
+    assert.equal(book.fileLines().length, 0);
+});
+
+test('a failed live eval leaves the cursor at the end of the erroneous line', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.exampleEditor.replace('1');
+    await repl.submit();
+    book.insert('resutl = X + 2');
+    await repl.submit();
+    const lineEnd = book.current.source.indexOf('\n', book.current.source.indexOf('resutl'));
+    assert.equal(repl.liveEditing, true);
+    assert.equal(book.cursor, lineEnd);
+    assert.ok(repl.liveOutputs.get(2).some(line => line.error));
+    assert.equal(book.fileLines().length, 0);
+});
+
+test('Ctrl-R reopens a completed function at the cursor with its previous example', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.exampleEditor.replace('2');
+    await repl.submit();
+    book.insert('Result = X + 1');
+    await repl.submit();
+    book.insert('Result *= 2');
+    await repl.submit();
+    book.insert('end');
+    await repl.submit();
+
+    assert.equal(book.cells.length, 2);
+    book.active = 0;
+    book.cursor = book.current.source.indexOf('\n', book.current.source.indexOf('Result'));
+    await repl.rerun();
+    assert.equal(repl.liveEditing, true);
+    assert.equal(book.current.source, 'fun inc X\n  Result = X + 1\n  Result *= 2\nend');
+    assert.equal(repl.exampleEditor.current.source, '2');
+
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['3']);
+    assert.equal(repl.liveOutputs.has(3), false, 'replay must stop at the line under the cursor');
+    assert.equal(book.cursor, book.current.source.indexOf('\n', book.current.source.indexOf('Result')));
+
+    const changed = book.current.source.replace('X + 1', 'X + 2');
+    book.replace(changed, changed.indexOf('\n', changed.indexOf('Result')));
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['4']);
+    assert.equal(book.cursor, changed.indexOf('\n', changed.indexOf('Result *= 2')));
+    await repl.submit();
+    await repl.submit();
+    assert.equal(repl.liveEditing, false);
+    assert.equal(book.cells.length, 2, 'editing must update the original cell');
+    assert.match(book.cells[0].source, /Result = X \+ 2/);
+    assert.equal(output(book.cells[0]), '<function inc>');
+});
+
+test('live function previews read current globals without changing them', async t => {
+    const { session, repl, book, enter } = setup(t, true);
+    await enter('A = array 1 2 3');
+    await enter('fun replace X');
+    repl.exampleEditor.replace('9');
+    await repl.submit();
+    book.insert('A 1 = X');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['1 9 3']);
+    const global = await session.execute('A', 99, []);
+    assert.deepEqual(global.output.map(line => line.text), ['1 2 3']);
 });
 
 test('long source never acquires new lines or parentheses from terminal width', async t => {

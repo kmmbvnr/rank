@@ -3,17 +3,21 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
+import { parse, RankError } from '@arrrank/interpreter';
+import { isFunctionStatement } from '@arrrank/language';
 import { EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty } from './repl-input.js';
 import { createWorkerSession } from './worker-session.js';
 import { Notebook, splitSource } from './notebook.js';
-import { createReplSession, type ProgramFile } from './repl-session.js';
+import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
 import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame, textColumns } from './screen.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
 type FunctionPreparation = ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>;
-type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions'> & {
+type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview'> & {
+    readonly names: string[];
     prepareFunctions: (cells: { id: number; source: string }[]) => FunctionPreparation | Promise<FunctionPreparation>;
+    preview: (text: string, columns?: number) => Execution | Promise<Execution>;
     interrupt?: () => void;
     pause?: () => void;
     resume?: () => void;
@@ -26,6 +30,25 @@ type Session = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareF
     readonly pauseState?: import('@arrrank/interpreter').PauseSnapshot;
 };
 
+interface LiveFunction {
+    readonly name: string;
+    readonly parameters: string[];
+    readonly header: string;
+    source: string;
+    values: string[];
+    argument?: number;
+    argumentBackup: string[];
+    skipped: boolean;
+    readonly outputs: Map<number, OutputLine[]>;
+    readonly prefixes: Map<number, string>;
+    readonly argumentEditor: Notebook;
+    readonly cellIndex: number;
+    readonly existing: boolean;
+    readonly originalSource?: string;
+    stopLine?: number;
+    argumentError?: { readonly source: string; readonly message: string };
+}
+
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
 export class NotebookRepl {
     readonly notebook = new Notebook();
@@ -34,6 +57,37 @@ export class NotebookRepl {
     private stopping = false;
     pauseTop = 0;
     readonly breakpoints = new Map<number, Set<number>>();
+    private live?: LiveFunction;
+    private readonly functionExamplesByName = new Map<string, string[]>();
+
+    get examplePrompt(): { name: string; parameter?: string; index: number; count: number } | undefined {
+        if (!this.live || this.live.argument === undefined) return undefined;
+        const { name, parameters, argument } = this.live;
+        return { name, parameter: parameters[argument], index: argument, count: parameters.length };
+    }
+
+    get promptLabel(): string {
+        return 'rank> ';
+    }
+
+    get liveOutputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.live?.outputs; }
+    get liveEditing(): boolean { return this.live !== undefined; }
+    get exampleEditor(): Notebook | undefined {
+        return this.examplePrompt ? this.live?.argumentEditor : undefined;
+    }
+    get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
+        const live = this.live;
+        if (!live || live.skipped || live.argument === undefined
+            && live.values.length !== live.parameters.length) return undefined;
+        return live.parameters.map((name, index) => ({
+            name,
+            source: index === live.argument ? live.argumentEditor.current.source : live.values[index] ?? '',
+            cursor: index === live.argument ? live.argumentEditor.cursor : 0,
+            active: index === live.argument,
+            error: index === live.argument && live.argumentError?.source === live.argumentEditor.current.source
+                ? live.argumentError.message : undefined,
+        }));
+    }
 
     get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
         const pause = this.session.pauseState;
@@ -62,6 +116,14 @@ export class NotebookRepl {
 
     async debug(): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
+        if (this.live && this.live.parameters.length) {
+            this.live.source = this.notebook.current.source;
+            this.live.argumentBackup = [...this.live.values];
+            this.live.argument = 0;
+            this.live.argumentEditor.replace(this.live.values[0] ?? '');
+            this.updateExampleSuggestion();
+            return false;
+        }
         if (!this.notebook.atPrompt) this.notebook.replayFrom = this.notebook.active;
         this.session.debugNext?.();
         return this.submit(true);
@@ -91,9 +153,294 @@ export class NotebookRepl {
     private completion?: { candidates: string[]; from: number; to: number; index: number };
     private preparation: Promise<void> = Promise.resolve();
 
-    constructor(readonly session: Session, readonly render: () => void = () => {}, readonly columns = () => 80) {}
+    constructor(
+        readonly session: Session,
+        readonly render: () => void = () => {},
+        readonly columns = () => 80,
+        private readonly functionExamples = false,
+    ) {}
 
     dismiss(): void { this.suggestion = ''; this.completion = undefined; }
+
+    cancelExample(): void {
+        const live = this.live;
+        if (!live || live.argument === undefined) return;
+        const hadExample = live.argumentBackup.length === live.parameters.length;
+        if (hadExample) live.values = [...live.argumentBackup];
+        else { live.values = []; live.skipped = true; live.outputs.clear(); }
+        live.argument = undefined;
+        this.notebook.replace(live.source);
+        this.updateLiveSuggestion();
+    }
+
+    cancelLiveFunction(): void {
+        const live = this.live;
+        if (live?.existing && live.originalSource !== undefined) {
+            this.notebook.replace(live.originalSource);
+            this.notebook.cursor = Math.min(this.notebook.cursor, live.originalSource.length);
+        }
+        this.live = undefined;
+        this.notebook.toPrompt();
+        if (!live?.existing) this.notebook.replace('');
+        this.dismiss();
+    }
+
+    cycleExampleCandidate(): void {
+        if (!this.examplePrompt) return;
+        const editor = this.live!.argumentEditor;
+        const current = editor.current.source.trim();
+        const candidates = this.session.names.filter(name => /^[A-Z]/.test(name));
+        if (!candidates.length) {
+            this.suggestion = 'No variables available · type a value · Esc skip';
+            return;
+        }
+        const at = candidates.indexOf(current);
+        const next = candidates[(at + 1) % candidates.length];
+        editor.replace(next);
+        this.updateExampleSuggestion();
+    }
+
+    private beginLiveFunction(source: string): boolean {
+        const match = /^\s*(?:fun|memo)\s+([a-z][A-Za-z0-9_]*|update)((?:\s+[A-Za-z][A-Za-z0-9_]*)*)\s*$/.exec(source);
+        if (!match) return false;
+        const existing = !this.notebook.atPrompt;
+        const parameters = match[2].trim() ? match[2].trim().split(/\s+/) : [];
+        const body = `${source.trim()}\n  `;
+        const argumentEditor = new Notebook();
+        const first = parameters.length && this.session.names.includes(parameters[0]) ? parameters[0] : '';
+        argumentEditor.replace(first);
+        this.live = {
+            name: match[1], parameters, header: source.trim(), source: body, values: [],
+            argument: parameters.length ? 0 : undefined, argumentBackup: [], skipped: false,
+            outputs: new Map(), prefixes: new Map(), argumentEditor,
+            cellIndex: this.notebook.active, existing,
+            originalSource: existing ? source.trim() : undefined,
+        };
+        this.notebook.replace(parameters.length ? source.trim() : body);
+        if (!parameters.length) this.updateLiveSuggestion();
+        else this.updateExampleSuggestion();
+        return true;
+    }
+
+    private beginExistingFunction(): boolean {
+        const book = this.notebook;
+        if (book.atPrompt) return false;
+        const source = book.current.source;
+        let statement;
+        try {
+            const statements = parse(source).statements;
+            if (statements.length !== 1 || !isFunctionStatement(statements[0])) return false;
+            statement = statements[0];
+        } catch { return false; }
+        const lines = source.split('\n');
+        const cursorLine = source.slice(0, book.cursor).split('\n').length;
+        const stopLine = Math.max(1, Math.min(cursorLine, Math.max(1, lines.length - 1)));
+        const values = [...(this.functionExamplesByName.get(statement.name) ?? [])];
+        const argumentEditor = new Notebook();
+        const first = values[0] ?? (statement.parameters.length
+            && this.session.names.includes(statement.parameters[0]) ? statement.parameters[0] : '');
+        argumentEditor.replace(first);
+        this.live = {
+            name: statement.name, parameters: [...statement.parameters], header: lines[0].trim(),
+            source, values, argument: statement.parameters.length ? 0 : undefined,
+            argumentBackup: [...values], skipped: false, outputs: new Map(), prefixes: new Map(),
+            argumentEditor, cellIndex: book.active, existing: true, originalSource: source, stopLine,
+        };
+        if (statement.parameters.length) this.updateExampleSuggestion();
+        else this.updateLiveSuggestion();
+        return true;
+    }
+
+    async rerun(): Promise<boolean> {
+        if (this.running || this.help || this.savePrompt) return false;
+        if (!this.live && this.functionExamples && this.beginExistingFunction()) {
+            const line = this.live!.stopLine!;
+            if (!this.live!.parameters.length) {
+                await this.updateLivePreviews(true);
+                this.placeCursorAtLineEnd(line - 1);
+                this.live!.stopLine = undefined;
+            }
+            this.render();
+            return false;
+        }
+        return this.submit(true);
+    }
+
+    private updateLiveSuggestion(): void {
+        const live = this.live;
+        if (!live) return;
+        const example = live.skipped ? 'no example' : live.values.join(', ');
+        this.suggestion = `Live ${live.name}(${example}) · Enter preview · Ctrl-T arguments · end finish`;
+    }
+
+    private async updateLivePreviews(reset = false): Promise<void> {
+        const live = this.live;
+        if (!live || live.skipped || live.values.length !== live.parameters.length) return;
+        if (reset) {
+            live.outputs.clear();
+            live.prefixes.clear();
+        }
+        const lines = this.notebook.current.source.split('\n');
+        const bodyEnd = live.existing && lines.at(-1)?.trim() === 'end' ? lines.length - 1 : lines.length;
+        let state = EMPTY_CELL;
+        const completed: { line: number; body: string }[] = [];
+        for (let index = 1; index < bodyEnd; index++) {
+            const line = lines[index];
+            if (!line.trim()) continue;
+            state = addLine(state, line.replace(/^  /, '').trimEnd(), true);
+            if (!isComplete(state)) continue;
+            const body = lines.slice(1, index + 1).join('\n');
+            if (live.stopLine === undefined || index + 1 <= live.stopLine)
+                completed.push({ line: index + 1, body });
+            state = EMPTY_CELL;
+        }
+        const changed = completed.some(item => live.prefixes.has(item.line) && live.prefixes.get(item.line) !== item.body)
+            || [...live.prefixes].some(([line]) => !completed.some(item => item.line === line));
+        if (changed) {
+            live.outputs.clear();
+            live.prefixes.clear();
+        }
+        for (const item of completed) {
+            if (live.outputs.has(item.line)) continue;
+            const preview = this.previewFunctionSource(live, item.body);
+            const result = await this.session.preview(preview, this.columns());
+            live.outputs.set(item.line, result.output);
+            live.prefixes.set(item.line, item.body);
+        }
+        this.updateLiveSuggestion();
+    }
+
+    private previewFunctionSource(live: LiveFunction, body: string): string {
+        const lines = body.split('\n');
+        const last = [...lines].reverse().find(line => line.trim())?.trim() ?? '';
+        let fallback = '';
+        if (!/^return\b/.test(last) && !/^yield\b/.test(last)) {
+            const assignment = /^\s*([A-Za-z][A-Za-z0-9_]*)(?:\s+.*?)?\s*(?:=|\+=|-=|\*=|\*\*=|\/=|\/\/=|%=|and=|or=|xor=)/;
+            const lastAssignment = assignment.exec(last)?.[1];
+            if (lastAssignment) fallback = `\n  return ${lastAssignment}`;
+            else if (last && !/^(?:if|elif|else|for|try|catch|finally|end|break|continue)\b/.test(last)) {
+                let at = lines.length - 1;
+                while (at >= 0 && !lines[at].trim()) at--;
+                lines[at] = lines[at].replace(last, `return ${last}`);
+            } else {
+                const assigned = [...lines].reverse().map(line => assignment.exec(line)?.[1])
+                    .find(Boolean);
+                fallback = `\n  return ${assigned ?? '0'}`;
+            }
+        }
+        const call = [...live.values.map(value => `(${value})`), live.name].join(' ');
+        return `${live.header}\n${lines.join('\n')}${fallback}\nend\n${call}`;
+    }
+
+    private placeCursorAfterLiveLine(line: number): void {
+        const source = this.notebook.current.source;
+        const lines = source.split('\n');
+        const start = lines.slice(0, line).reduce((offset, item) => offset + item.length + 1, 0);
+        const failed = this.live?.outputs.get(line + 1)?.some(output => output.error) ?? false;
+        if (failed || line >= lines.length - 1) this.notebook.cursor = start + lines[line].length;
+        else this.notebook.cursor = start + lines[line].length + 1 + lines[line + 1].length;
+    }
+
+    private placeCursorAtLineEnd(line: number): void {
+        const lines = this.notebook.current.source.split('\n');
+        const at = Math.max(0, Math.min(line, lines.length - 1));
+        this.notebook.cursor = lines.slice(0, at).reduce((offset, item) => offset + item.length + 1, 0)
+            + lines[at].length;
+    }
+
+    private rememberFunctionExample(live: LiveFunction): void {
+        if (!live.skipped && live.values.length === live.parameters.length)
+            this.functionExamplesByName.set(live.name, [...live.values]);
+    }
+
+    private async submitLiveFunction(): Promise<boolean | undefined> {
+        const live = this.live;
+        if (!live) return undefined;
+        const source = this.notebook.current.source;
+        const lines = source.split('\n');
+        const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
+        if (currentLine < lines.length - 1) {
+            await this.updateLivePreviews();
+            this.placeCursorAfterLiveLine(currentLine);
+            this.render();
+            return false;
+        }
+        if (!lines[currentLine].trim()) {
+            this.updateLiveSuggestion();
+            this.render();
+            return false;
+        }
+        const draft = this.notebook.preparePrompt(line => this.session.format(line));
+        if (draft !== undefined) {
+            this.rememberFunctionExample(live);
+            this.live = undefined;
+            this.dismiss();
+            if (live.existing) {
+                this.notebook.replayFrom = live.cellIndex;
+                this.notebook.toPrompt();
+                return this.submit(true);
+            }
+            return undefined;
+        }
+        await this.updateLivePreviews();
+        this.placeCursorAfterLiveLine(currentLine);
+        this.render();
+        return false;
+    }
+
+    private async acceptExample(): Promise<boolean> {
+        const live = this.live;
+        if (!live || live.argument === undefined) return false;
+        const value = live.argumentEditor.current.source.trim();
+        if (!value) {
+            this.suggestion = `${live.parameters[live.argument]} needs a value · Tab variables · Esc skip`;
+            this.render();
+            return false;
+        }
+        try {
+            parse(`Example = (${value})`, '<example>', {
+                bindings: new Map(this.session.names.map(name => [name, false])),
+            });
+            live.argumentError = undefined;
+        } catch (error) {
+            const message = error instanceof RankError
+                ? `${error.rankKind}: ${error.message.replace(/ at \d+:\d+$/, '')}`
+                : String(error);
+            live.argumentError = { source: live.argumentEditor.current.source, message };
+            this.suggestion = `${live.parameters[live.argument]} is not an expression · edit it or Esc skip`;
+            this.render();
+            return false;
+        }
+        live.values[live.argument] = value;
+        if (live.argument + 1 < live.parameters.length) {
+            live.argument++;
+            const parameter = live.parameters[live.argument];
+            live.argumentEditor.replace(live.values[live.argument]
+                ?? (this.session.names.includes(parameter) ? parameter : ''));
+            this.updateExampleSuggestion();
+            this.render();
+            return false;
+        }
+        live.argument = undefined;
+        live.skipped = false;
+        this.notebook.replace(live.source);
+        live.outputs.clear();
+        live.prefixes.clear();
+        await this.updateLivePreviews();
+        if (live.stopLine !== undefined) {
+            const line = live.stopLine;
+            this.placeCursorAtLineEnd(line - 1);
+            live.stopLine = undefined;
+        }
+        this.render();
+        return false;
+    }
+
+    private updateExampleSuggestion(): void {
+        const prompt = this.examplePrompt;
+        if (!prompt) return;
+        this.suggestion = `Example ${prompt.name} · ${prompt.parameter} (${prompt.index + 1}/${prompt.count}) · Tab variables · Enter accept · Esc skip`;
+    }
 
     private saveLines(): string[] {
         const lines = this.notebook.fileLines();
@@ -137,6 +484,7 @@ export class NotebookRepl {
         this.session.replaceFile(file);
         this.notebook.clear();
         this.breakpoints.clear();
+        this.live = undefined;
         for (const source of parts) this.notebook.enqueue(source, true);
         this.preparation = this.prepareFunctions();
         this.help = undefined;
@@ -208,15 +556,35 @@ export class NotebookRepl {
     /** Enter in the draft resumes the edited suffix, then evaluates the new statement. */
     async submit(force = false): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
+        if (this.examplePrompt) return this.acceptExample();
         await this.preparation;
+        if (this.live && force) {
+            const before = this.notebook.current.source;
+            const currentLine = before.slice(0, this.notebook.cursor).split('\n').length - 1;
+            if (!/\n[\t ]*$/.test(this.notebook.current.source)) {
+                this.notebook.preparePrompt(line => this.session.format(line));
+            }
+            await this.updateLivePreviews(true);
+            this.placeCursorAfterLiveLine(currentLine);
+            this.render();
+            return false;
+        }
         this.dismiss();
         const book = this.notebook;
-        if (!book.atPrompt && !force) { book.newline(); return false; }
+        const currentRaw = book.current.source.trim();
+        if (this.functionExamples && !this.live && !currentRaw.includes('\n')
+            && this.beginLiveFunction(currentRaw)) {
+            this.render();
+            return false;
+        }
+        if (!book.atPrompt && !force && !this.live) { book.newline(); return false; }
         if (force) {
             if (book.current.status === 'interrupted') book.replayFrom = book.active;
             book.toPrompt();
         }
         const raw = book.current.source.trim();
+        const liveResult = await this.submitLiveFunction();
+        if (liveResult !== undefined) return liveResult;
         const draft = this.session.isCommand(raw) ? raw : book.preparePrompt(line => this.session.format(line));
         if (draft === undefined) return false;
         // Commit input before replay: even if an earlier instruction fails, this text stays in the document.
@@ -432,11 +800,12 @@ async function terminalRepl(session: Session): Promise<void> {
             return;
         }
         const frame = notebookFrame(repl.notebook, output.columns || 80, output.rows || 24,
-            top, repl.suggestion, repl.running, followCursor, repl.fileStatus, repl.runningStatus, repl.breakpoints);
+            top, repl.suggestion, repl.running, followCursor, repl.fileStatus, repl.runningStatus, repl.breakpoints,
+            repl.promptLabel, repl.liveOutputs, repl.exampleFields);
         top = frame.top;
         output.write(drawFrame(frame));
     };
-    const repl = new NotebookRepl(session, render, () => output.columns || 80);
+    const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
     const book = repl.notebook;
     let finish!: () => void;
     let fail!: (error: unknown) => void;
@@ -462,6 +831,21 @@ async function terminalRepl(session: Session): Promise<void> {
         }
         try {
             followCursor = key.name !== 'pageup' && key.name !== 'pagedown';
+            if (repl.examplePrompt) {
+                const example = repl.exampleEditor!;
+                if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.cancelExample();
+                else if (key.name === 'return' || key.name === 'enter') {
+                    void repl.submit().then(exit => { if (exit) leave(); else render(); }, fail);
+                } else if (key.name === 'tab' || key.name === 'up' || key.name === 'down') repl.cycleExampleCandidate();
+                else if (key.name === 'backspace' || key.name === 'delete') example.erase(key.name === 'backspace');
+                else if (key.name === 'left' || key.name === 'right') example.horizontal(key.name === 'left' ? -1 : 1);
+                else if (key.name === 'home' || key.ctrl && key.name === 'a') example.lineEdge(false);
+                else if (key.name === 'end' || key.ctrl && key.name === 'e') example.lineEdge(true);
+                else if (key.ctrl && key.name === 'u') example.replace('');
+                else if (!key.ctrl && !key.meta && text && text >= ' ') example.insert(text, true);
+                render();
+                return;
+            }
             if (repl.savePrompt) {
                 const prompt = repl.savePrompt;
                 if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.savePrompt = undefined;
@@ -521,10 +905,14 @@ async function terminalRepl(session: Session): Promise<void> {
                         history = [...history.filter(item => item !== source), source].slice(-HISTORY_LIMIT);
                         historyIndex = -1;
                     }
-                    void repl.submit(Boolean(key.ctrl && key.name === 'r' || key.meta)).then(exit => {
+                    const action = key.ctrl && key.name === 'r' ? repl.rerun() : repl.submit(Boolean(key.meta));
+                    void action.then(exit => {
                         if (exit) leave(); else render();
                     }, fail);
-                } else if (key.ctrl && key.name === 'c') { book.toPrompt(); book.replace(''); }
+                } else if (key.ctrl && key.name === 'c') {
+                    if (repl.liveEditing) repl.cancelLiveFunction();
+                    else { book.toPrompt(); book.replace(''); }
+                }
                 else if (key.ctrl && key.name === 'z') book.undo();
                 else if (key.ctrl && key.name === 'y') book.undo(true);
                 else if (key.ctrl && key.name === 'p') {

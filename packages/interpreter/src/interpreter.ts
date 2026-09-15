@@ -4,6 +4,7 @@ import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem } from './array-storage.js';
+import { ByteArray } from './bytes.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -143,6 +144,7 @@ import {
     formatValue,
     isNativeFunction,
     isRankArray,
+    isRankBytes,
     isRankCounter,
     isRankDate,
     isRankDuration,
@@ -187,6 +189,29 @@ import {
 type Output = (text: string) => void;
 
 const ALL_AXIS = { kind: 'label', name: '#' } as const;
+
+/** Detach the ordinary mutable values a preview function can reach. */
+function clonePreviewValue(value: RankValue): RankValue {
+    if (typeof value !== 'object') return value;
+    if (isRankBytes(value)) return new ByteArray(value.data.slice());
+    if (isRankArray(value)) {
+        const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+        return ownedArray(Array.from({ length: size }, (_, index) =>
+            clonePreviewValue(readArrayItem(value, index))), value.shape, false, value.columnNames);
+    }
+    if (isRankIndex(value)) return { kind: 'index', entries: new Map([...value.entries]
+        .map(([key, item]) => [key, clonePreviewValue(item)])) };
+    if (isRankQueue(value)) return { kind: 'queue', items: value.items.map(clonePreviewValue) };
+    if (isRankSet(value)) return { kind: 'set', entries: new Map([...value.entries]
+        .map(([key, item]) => [key, clonePreviewValue(item)])) };
+    if (isRankCounter(value)) return { kind: 'counter', entries: new Map([...value.entries]
+        .map(([key, item]) => [key, { value: clonePreviewValue(item.value), count: item.count }])) };
+    if (isRankObject(value)) return { kind: 'object', entries: new Map([...value.entries]
+        .map(([key, item]) => [key, clonePreviewValue(item)])) };
+    if (isRankRecord(value)) return { kind: 'record', entries: new Map([...value.entries]
+        .map(([key, item]) => [key, clonePreviewValue(item)])), types: new Map(value.types) };
+    return value;
+}
 
 export interface LoadedModule {
     readonly id: string;
@@ -489,6 +514,27 @@ export class Interpreter {
     /** Includes inferred global types whose declaration has not produced a value yet. */
     bindingNames(): ReadonlySet<string> {
         return new Set([...this.variables.keys(), ...this.variableTypes.keys()]);
+    }
+
+    /** Copy the current bindings without rerunning the program that produced them. */
+    forkForPreview(output: Output = this.output): Interpreter {
+        const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored,
+            persistentResources: _persistent, ...options } = this.options;
+        const fork = new Interpreter(output, options);
+        for (const module of this.modules) fork.modules.add(module);
+        for (const [name, types] of this.variableTypes) fork.variableTypes.set(name, types);
+        for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
+        for (const [name, value] of this.variables) {
+            const definition = isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
+            if (!definition || definition.context) fork.variables.set(name, clonePreviewValue(value));
+        }
+        // Rebuild top-level user functions so their calls use the fork rather than
+        // the original interpreter captured by the function object.
+        for (const value of this.variables.values()) {
+            const definition = isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
+            if (definition && !definition.context) fork.defineFunction(definition.statement);
+        }
+        return fork;
     }
 
     /** A notebook can replace declarations without relaxing assignment type checks. */

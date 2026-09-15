@@ -74,6 +74,7 @@ export async function createWorkerSession() {
             void call<void>('setDebugBreakpoints', points).catch(fail);
         },
         get savedFile() { return snapshot.savedFile; },
+        get names() { return snapshot.names; },
         format(line: string) { return editor.format(line); },
         isCommand(source: string) { return editor.isCommand(source); },
         complete(line: string) { return editor.complete(line); },
@@ -88,6 +89,7 @@ export async function createWorkerSession() {
             void call<void>('replaceFile', file).catch(fail);
         },
         saveFile(lines: string[], target: string) { return call<{ ok: boolean; output: Execution['output'] }>('saveFile', lines, target); },
+        preview(text: string, columns?: number) { return call<Execution>('preview', text, columns); },
         async execute(...args: [string, number, string[], number?, boolean?]): Promise<Execution> {
             resume();
             Atomics.store(signal, 0, 0);

@@ -356,6 +356,146 @@ test('Ctrl-T steps a short cell and Ctrl-B sets a visible breakpoint in the term
     assert.match(frames[5].text, /\n      42\n/);
 });
 
+test('an open function evaluates body lines immediately on example arguments', async t => {
+    const frames = await drive(t, [
+        'fun inc N' + ENTER,
+        '2' + ENTER,
+        'A = N + 1' + ENTER,
+        'A * 2' + ENTER,
+        'end' + ENTER,
+    ], 100, 30);
+    assert.match(frames[0].text, /rank> fun inc N\n\s+N = /);
+    assert.match(frames[0].text, /N = /);
+    assert.match(frames[0].text, /Example inc · N \(1\/1\)/);
+    assert.equal(frames[0].cursorX, 10, 'argument cursor belongs immediately after N =');
+    assert.match(frames[1].text, /fun inc N/);
+    assert.match(frames[1].text, /fun inc N\n\s+N = 2/);
+    assert.doesNotMatch(frames[1].text, /●/);
+    assert.match(frames[2].text, /A = N \+ 1\n        3/);
+    assert.match(frames[2].text, /fun inc N\n\s+N = 2/);
+    assert.match(frames[3].text, /A \* 2\n        6/);
+    assert.doesNotMatch(frames[2].text + frames[3].text, /Paused/);
+    assert.match(frames[4].text, /●\s*1› fun inc N/);
+    assert.match(frames[4].text, /<function inc>/);
+});
+
+test('Esc skips a function example without adding its draft to the program', async t => {
+    const frames = await drive(t, [
+        'fun twice X' + ENTER,
+        '21',
+        '\x1b',
+        'return X * 2' + ENTER,
+        'end' + ENTER,
+        '4 twice' + ENTER,
+    ], 80, 20);
+    assert.match(frames[0].text, /Example twice/);
+    assert.match(frames[1].text, /X = 21/);
+    assert.match(frames[2].text, /fun twice X/);
+    assert.doesNotMatch(frames[3].text, /\n\s+42\n/);
+    assert.match(frames[5].text, /\n      8\n/);
+});
+
+test('an invalid function example reports syntax at its field and stays editable', async t => {
+    const frames = await drive(t, [
+        'A = 1' + ENTER,
+        'fun inc X' + ENTER,
+        'A = 1' + ENTER,
+        CLEAR + 'A' + ENTER,
+    ], 80, 20);
+    assert.match(frames[2].text, /X = A = 1\n\s+! Syntax: Expecting token/);
+    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /X = A = 1/);
+    assert.doesNotMatch(frames[2].text, /return X|<function inc>/);
+    assert.match(frames[3].text, /X = A/);
+    assert.doesNotMatch(frames[3].text, /! Syntax:/);
+});
+
+test('fixing func to fun turns the failed cell into live function input', async t => {
+    const frames = await drive(t, [
+        'func inc2 Y' + ENTER,
+        CLEAR + 'fun inc2 Y' + ENTER,
+        '\x1b',
+    ], 80, 18);
+    assert.match(frames[0].text, /unknown name: func/);
+    assert.match(frames[1].text, /●\s*1› fun inc2 Y\n\s+Y = /);
+    assert.match(frames[1].text, /Example inc2 · Y \(1\/1\)/);
+    assert.doesNotMatch(frames[1].text, /unknown name: func/);
+    assert.match(frames[1].text.split('\n')[frames[1].cursorY], /Y = /);
+});
+
+test('Ctrl-R reruns an unfinished function and leaves it open at the current line', async t => {
+    const frames = await drive(t, [
+        'fun inc N' + ENTER,
+        '4' + ENTER,
+        'Result = N + 1',
+        '\x12',
+        'return Result' + ENTER,
+        'end' + ENTER,
+    ], 80, 20);
+    assert.match(frames[3].text, /Result = N \+ 1\n        5/);
+    assert.doesNotMatch(frames[3].text, /<function inc>|●\s*1›/);
+    assert.match(frames[3].text, /Live inc\(4\)/);
+    assert.match(frames[4].text, /return Result\n        5/);
+    assert.match(frames[5].text, /<function inc>/);
+});
+
+test('Enter on an empty live-function line keeps the function open without inserting end', async t => {
+    const frames = await drive(t, [
+        'fun inc X' + ENTER,
+        '1' + ENTER,
+        'return X + 1' + ENTER,
+        ENTER,
+    ], 80, 20);
+    assert.match(frames[3].text, /return X \+ 1\n        2/);
+    assert.match(frames[3].text, /Live inc\(1\)/);
+    assert.doesNotMatch(frames[3].text, /<function inc>|\n\s*end\s*\n/);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*$/);
+});
+
+test('Enter reevaluates an edited function line without inserting end', async t => {
+    const frames = await drive(t, [
+        'fun inc X' + ENTER,
+        '1' + ENTER,
+        'Result = X + 1' + ENTER,
+        UP + END + '\x7f' + '2' + ENTER,
+        'return Result' + ENTER,
+        'end' + ENTER,
+    ], 80, 20);
+    assert.match(frames[3].text, /Result = X \+ 2\n        3/);
+    assert.doesNotMatch(frames[3].text, /<function inc>|●\s*1›|\n\s*end\s*\n/);
+    assert.match(frames[4].text, /return Result\n        3/);
+    assert.match(frames[5].text, /<function inc>/);
+});
+
+test('a live eval error keeps the terminal cursor on the erroneous line', async t => {
+    const frames = await drive(t, [
+        'fun inc X' + ENTER,
+        '1' + ENTER,
+        'resutl = X + 2' + ENTER,
+    ], 80, 20);
+    const frame = frames[2];
+    assert.match(frame.text, /error: RankError \[Syntax\]/);
+    assert.match(frame.text.split('\n')[frame.cursorY], /resutl = X \+ 2/);
+    assert.doesNotMatch(frame.text, /<function inc>/);
+});
+
+test('Ctrl-R reopens a completed function at the selected line with its old example', async t => {
+    const frames = await drive(t, [
+        'fun inc X' + ENTER,
+        '2' + ENTER,
+        'Result = X + 1' + ENTER,
+        'Result *= 2' + ENTER,
+        'end' + ENTER,
+        UP + UP + UP + '\x12',
+        ENTER,
+    ], 80, 22);
+    assert.match(frames[5].text, /●\s*1› fun inc X\n\s+X = 2/);
+    assert.match(frames[5].text, /Example inc · X \(1\/1\)/);
+    assert.doesNotMatch(frames[5].text, /<function inc>/);
+    assert.match(frames[6].text, /Result = X \+ 1\n        3/);
+    assert.doesNotMatch(frames[6].text, /Result \*= 2\n        6/);
+    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Result = X \+ 1/);
+});
+
 
 test('Ctrl-N advances an iteration while paused and still recalls history in the editor', async t => {
     const frames = await drive(t, [

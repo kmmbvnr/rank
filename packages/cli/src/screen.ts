@@ -71,10 +71,12 @@ export interface ScreenFrame {
 export function notebookFrame(
     notebook: Notebook, columns: number, height: number, previousTop = 0,
     suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
-    breakpoints?: ReadonlyMap<number, ReadonlySet<number>>,
+    breakpoints?: ReadonlyMap<number, ReadonlySet<number>>, promptLabel = 'rank> ',
+    promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean }[]>,
+    promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string }[],
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
-    const gutter = Math.min(6, Math.max(0, width - 1));
+    const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
     const bodyWidth = Math.max(1, width - gutter);
     const rows: string[] = [];
     let caret = { row: 0, column: gutter };
@@ -83,7 +85,8 @@ export function notebookFrame(
     for (const [index, cell] of notebook.cells.entries()) {
         const pending = dirty >= 0 && index >= dirty && index < notebook.cells.length - 1;
         const prompt = index === notebook.cells.length - 1;
-        const label = prompt ? 'rank> ' : `●${String(index + 1).padStart(3)}› `;
+        const live = index === notebook.active && (promptOutputs !== undefined || promptFields !== undefined);
+        const label = prompt ? promptLabel : `●${String(index + 1).padStart(3)}› `;
         const color = cell.status === 'running' || cell.status === 'interrupted' ? '\x1b[33m'
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
             : pending || cell.status === 'idle' ? '\x1b[90m' : '\x1b[32m';
@@ -101,8 +104,41 @@ export function notebookFrame(
                 const point = item.points.find(point => point.offset === notebook.cursor);
                 if (point) caret = { row: rows.length - 1, column: gutter + point.column };
             }
+            const nextOffset = sourceRows[line + 1]?.points[0]?.offset;
+            const nextLine = nextOffset === undefined ? undefined
+                : cell.source.slice(0, nextOffset).split('\n').length;
+            if (live && nextLine !== sourceLine) {
+                for (const output of promptOutputs?.get(sourceLine) ?? []) {
+                    const sourceText = cell.source.split('\n')[sourceLine - 1] ?? '';
+                    const indent = stringWidth(/^\s*/.exec(sourceText)?.[0] ?? '');
+                    const marker = output.error && gutter > 0
+                        ? (' '.repeat(gutter + indent) + '! ').slice(-(gutter + indent))
+                        : ' '.repeat(gutter + indent);
+                    for (const result of editableRows(clean(output.text), Math.max(1, bodyWidth - indent))) {
+                        rows.push((output.error ? '\x1b[31m' : '\x1b[90m')
+                            + clipped(marker + result.text, width) + '\x1b[0m');
+                    }
+                }
+            }
+            if (live && sourceLine === 1 && nextLine !== sourceLine) {
+                for (const field of promptFields ?? []) {
+                    const label = `${field.name} = `;
+                    const fieldRows = editableRows(label + field.source, bodyWidth);
+                    for (const fieldRow of fieldRows) {
+                        rows.push('\x1b[90m' + ' '.repeat(gutter) + fieldRow.text + '\x1b[0m');
+                        if (field.active) {
+                            const point = fieldRow.points.find(point => point.offset === label.length + field.cursor);
+                            if (point) caret = { row: rows.length - 1, column: gutter + point.column };
+                        }
+                    }
+                    if (field.error) {
+                        for (const errorRow of editableRows('! ' + clean(field.error), bodyWidth))
+                            rows.push('\x1b[31m' + ' '.repeat(gutter) + errorRow.text + '\x1b[0m');
+                    }
+                }
+            }
         }
-        for (const output of cell.output) {
+        for (const output of live ? [] : cell.output) {
             const marker = output.error && gutter > 0
                 ? (' '.repeat(gutter) + '! ').slice(-gutter) : ' '.repeat(gutter);
             const text = clean(output.text);
