@@ -34,6 +34,8 @@ implementation plans are recorded separately under development workflow.
     compiler extensions or optimized execution plans internally.
 14. Combine compatible tensor operations internally; readable temporary names
     should not inherently require intermediate arrays.
+15. Prefer whole-array transformations and predicates. Use loops for the outer
+    search or for state that cannot be expressed more clearly as dataflow.
 
 The conceptual selection model is:
 

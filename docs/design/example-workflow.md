@@ -80,6 +80,51 @@ and specification must describe the same language before committing.
 Prefer one commit for a language feature and a separate commit for the finished
 task when that division makes review clearer.
 
+## Preferred Rank solution style
+
+Start with the data transformation. Use array and sequence operations for work
+that applies to a whole collection:
+
+1. Build or bound the source values.
+2. Derive a boolean mask with a comparison or predicate.
+3. Apply the mask to select values, or use `indices` when the positions are the
+   data needed by the next operation.
+4. Use a reduction or another standard operation to produce the result.
+
+Keep a `for` loop around this dataflow when the algorithm searches candidates,
+needs early return, or carries state. Put a repeated transformation or test in
+a small named function. Apply mathematical constraints before enumeration when
+they remove whole classes of candidates.
+
+Project Euler 51 follows this shape:
+
+```rank
+Places = 0 until Last
+
+for Digit in 0 to 2
+  Mask = Digits Places equal Digit
+  Same = Mask indices
+
+  for Pick in Same 3 combinations
+    Family = Prime Pick replacement_family
+    if (Family in primes) count at least 8
+      return true
+    end
+  end
+end
+```
+
+The comparisons, mask conversion, combinations, batch membership test and
+count operate on collections. The loops express the search order and allow an
+early return. The restrictions on digits, positions and combination size come
+from the divisibility argument, so the program does not inspect candidates it
+can rule out in advance.
+
+Do not add a puzzle-specific primitive for this style. If a missing operation
+would also clarify unrelated programs, define its general semantics and test it
+as a language feature first. Use a direct scalar loop when a vector form adds
+temporary structures or hides changing state.
+
 ## Shape of a runnable example
 
 A program normally has this order:
