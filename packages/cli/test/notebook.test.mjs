@@ -306,28 +306,46 @@ test('Ctrl-R reopens a completed function at the cursor with its previous exampl
 
     assert.equal(book.cells.length, 2);
     book.active = 0;
-    book.cursor = book.current.source.indexOf('\n', book.current.source.indexOf('Result'));
+    book.cursor = book.current.source.indexOf('\n', book.current.source.indexOf('Result *= 2'));
     await repl.rerun();
     assert.equal(repl.liveEditing, true);
     assert.equal(book.current.source, 'fun inc X\n  Result = X + 1\n  Result *= 2\nend');
     assert.equal(repl.exampleEditor.current.source, '2');
 
+    repl.exampleEditor.replace('5');
     await repl.submit();
-    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['3']);
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['6']);
     assert.equal(repl.liveOutputs.has(3), false, 'replay must stop at the line under the cursor');
-    assert.equal(book.cursor, book.current.source.indexOf('\n', book.current.source.indexOf('Result')));
+    assert.equal(book.cursor, book.current.source.indexOf('\n', book.current.source.indexOf('Result *= 2')));
 
-    const changed = book.current.source.replace('X + 1', 'X + 2');
-    book.replace(changed, changed.indexOf('\n', changed.indexOf('Result')));
+    const changed = book.current.source.replace('Result *= 2', 'Result *= 3');
+    book.replace(changed, changed.indexOf('\n', changed.indexOf('Result *= 3')));
     await repl.submit();
-    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['4']);
-    assert.equal(book.cursor, changed.indexOf('\n', changed.indexOf('Result *= 2')));
-    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['6']);
+    assert.deepEqual(repl.liveOutputs.get(3).map(line => line.text), ['18']);
+    assert.equal(book.cursor, changed.length);
     await repl.submit();
     assert.equal(repl.liveEditing, false);
     assert.equal(book.cells.length, 2, 'editing must update the original cell');
-    assert.match(book.cells[0].source, /Result = X \+ 2/);
+    assert.match(book.cells[0].source, /Result \*= 3/);
     assert.equal(output(book.cells[0]), '<function inc>');
+});
+
+test('Ctrl-R on a completed function header prepares its first body line', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.exampleEditor.replace('2');
+    await repl.submit();
+    book.insert('return X + 1');
+    await repl.submit();
+    book.insert('end');
+    await repl.submit();
+    book.active = 0;
+    book.cursor = 'fun inc X'.length;
+    await repl.rerun();
+    await repl.submit();
+    assert.equal(repl.liveOutputs.size, 0);
+    assert.equal(book.cursor, book.current.source.indexOf('\n', book.current.source.indexOf('return')));
 });
 
 test('live function previews read current globals without changing them', async t => {

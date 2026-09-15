@@ -233,8 +233,7 @@ export class NotebookRepl {
             statement = statements[0];
         } catch { return false; }
         const lines = source.split('\n');
-        const cursorLine = source.slice(0, book.cursor).split('\n').length;
-        const stopLine = Math.max(1, Math.min(cursorLine, Math.max(1, lines.length - 1)));
+        const stopLine = this.selectedLiveLine(source, book.cursor);
         const values = [...(this.functionExamplesByName.get(statement.name) ?? [])];
         const argumentEditor = new Notebook();
         const first = values[0] ?? (statement.parameters.length
@@ -253,10 +252,28 @@ export class NotebookRepl {
 
     async rerun(): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
+        if (this.live) {
+            const live = this.live;
+            live.source = this.notebook.current.source;
+            live.stopLine = this.selectedLiveLine(live.source, this.notebook.cursor);
+            if (live.parameters.length) {
+                live.argumentBackup = [...live.values];
+                live.argument = 0;
+                live.argumentEditor.replace(live.values[0] ?? '');
+                this.updateExampleSuggestion();
+            } else {
+                const line = live.stopLine;
+                await this.updateLivePreviews(true, line - 1);
+                this.placeCursorAtLineEnd(line - 1);
+                live.stopLine = undefined;
+            }
+            this.render();
+            return false;
+        }
         if (!this.live && this.functionExamples && this.beginExistingFunction()) {
             const line = this.live!.stopLine!;
             if (!this.live!.parameters.length) {
-                await this.updateLivePreviews(true);
+                await this.updateLivePreviews(true, line - 1);
                 this.placeCursorAtLineEnd(line - 1);
                 this.live!.stopLine = undefined;
             }
@@ -266,6 +283,13 @@ export class NotebookRepl {
         return this.submit(true);
     }
 
+    private selectedLiveLine(source: string, cursor: number): number {
+        const lines = source.split('\n');
+        const cursorLine = source.slice(0, cursor).split('\n').length;
+        const lastBodyLine = lines.at(-1)?.trim() === 'end' ? lines.length - 1 : lines.length;
+        return Math.max(2, Math.min(cursorLine, Math.max(2, lastBodyLine)));
+    }
+
     private updateLiveSuggestion(): void {
         const live = this.live;
         if (!live) return;
@@ -273,7 +297,7 @@ export class NotebookRepl {
         this.suggestion = `Live ${live.name}(${example}) · Enter preview · Ctrl-T arguments · end finish`;
     }
 
-    private async updateLivePreviews(reset = false): Promise<void> {
+    private async updateLivePreviews(reset = false, throughLine?: number): Promise<void> {
         const live = this.live;
         if (!live || live.skipped || live.values.length !== live.parameters.length) return;
         if (reset) {
@@ -290,7 +314,7 @@ export class NotebookRepl {
             state = addLine(state, line.replace(/^  /, '').trimEnd(), true);
             if (!isComplete(state)) continue;
             const body = lines.slice(1, index + 1).join('\n');
-            if (live.stopLine === undefined || index + 1 <= live.stopLine)
+            if (throughLine === undefined || index + 1 <= throughLine)
                 completed.push({ line: index + 1, body });
             state = EMPTY_CELL;
         }
@@ -360,7 +384,7 @@ export class NotebookRepl {
         const lines = source.split('\n');
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
         if (currentLine < lines.length - 1) {
-            await this.updateLivePreviews();
+            await this.updateLivePreviews(false, currentLine + 1);
             this.placeCursorAfterLiveLine(currentLine);
             this.render();
             return false;
@@ -382,7 +406,7 @@ export class NotebookRepl {
             }
             return undefined;
         }
-        await this.updateLivePreviews();
+        await this.updateLivePreviews(false, currentLine + 1);
         this.placeCursorAfterLiveLine(currentLine);
         this.render();
         return false;
@@ -426,7 +450,8 @@ export class NotebookRepl {
         this.notebook.replace(live.source);
         live.outputs.clear();
         live.prefixes.clear();
-        await this.updateLivePreviews();
+        await this.updateLivePreviews(false,
+            live.stopLine === undefined ? undefined : live.stopLine - 1);
         if (live.stopLine !== undefined) {
             const line = live.stopLine;
             this.placeCursorAtLineEnd(line - 1);
@@ -564,7 +589,7 @@ export class NotebookRepl {
             if (!/\n[\t ]*$/.test(this.notebook.current.source)) {
                 this.notebook.preparePrompt(line => this.session.format(line));
             }
-            await this.updateLivePreviews(true);
+            await this.updateLivePreviews(true, currentLine + 1);
             this.placeCursorAfterLiveLine(currentLine);
             this.render();
             return false;

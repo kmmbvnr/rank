@@ -428,14 +428,21 @@ test('Ctrl-R reruns an unfinished function and leaves it open at the current lin
         '4' + ENTER,
         'Result = N + 1',
         '\x12',
+        ENTER,
+        ENTER,
         'return Result' + ENTER,
         'end' + ENTER,
     ], 80, 20);
-    assert.match(frames[3].text, /Result = N \+ 1\n        5/);
+    assert.match(frames[3].text, /Result = N \+ 1/);
+    assert.match(frames[3].text, /N = 4/);
+    assert.match(frames[3].text, /Example inc · N \(1\/1\)/);
+    assert.doesNotMatch(frames[3].text, /Result = N \+ 1\n        5/);
     assert.doesNotMatch(frames[3].text, /<function inc>|●\s*1›/);
-    assert.match(frames[3].text, /Live inc\(4\)/);
-    assert.match(frames[4].text, /return Result\n        5/);
-    assert.match(frames[5].text, /<function inc>/);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /Result = N \+ 1/);
+    assert.doesNotMatch(frames[4].text, /Result = N \+ 1\n        5/);
+    assert.match(frames[5].text, /Result = N \+ 1\n        5/);
+    assert.match(frames[6].text, /return Result\n        5/);
+    assert.match(frames[7].text, /<function inc>/);
 });
 
 test('Enter on an empty live-function line keeps the function open without inserting end', async t => {
@@ -485,7 +492,8 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
         'Result = X + 1' + ENTER,
         'Result *= 2' + ENTER,
         'end' + ENTER,
-        UP + UP + UP + '\x12',
+        UP + UP + '\x12',
+        ENTER,
         ENTER,
     ], 80, 22);
     assert.match(frames[5].text, /●\s*1› fun inc X\n\s+X = 2/);
@@ -493,7 +501,8 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
     assert.doesNotMatch(frames[5].text, /<function inc>/);
     assert.match(frames[6].text, /Result = X \+ 1\n        3/);
     assert.doesNotMatch(frames[6].text, /Result \*= 2\n        6/);
-    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Result = X \+ 1/);
+    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Result \*= 2/);
+    assert.match(frames[7].text, /Result \*= 2\n        6/);
 });
 
 
