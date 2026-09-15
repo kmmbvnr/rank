@@ -1,3 +1,4 @@
+import { RankSession } from '@arrrank/common';
 import {
     Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, isNativeFunction, isRankArray, standardModules, type RankValue,
 } from '@arrrank/interpreter';
@@ -78,19 +79,21 @@ export function createReplSession() {
         for (const line of text.split('\n')) say(line);
     };
     let replay = new SequenceReplay();
-    const createInterpreter = () => new Interpreter(emit, {
+    const createRuntime = () => new RankSession(emit, {
         wrapSinglePassSequence: replay.wrap,
         wrapStoredSequence: replay.store,
         input: new NodeInput(), io: nodeIo, persistentResources: true,
         sourceId: path.join(process.cwd(), '<repl>'), loadModule,
     });
-    let interpreter = createInterpreter();
+    let runtime = createRuntime();
+    let interpreter = runtime.interpreter;
     let aliases = true;
     let last: RankValue | undefined;
     const resetExecution = (): void => {
-        try { replay.dispose(); } finally { interpreter.dispose(); }
+        try { replay.dispose(); } finally { runtime.dispose(); }
         replay = new SequenceReplay();
-        interpreter = createInterpreter();
+        runtime = createRuntime();
+        interpreter = runtime.interpreter;
         aliases = true;
         last = undefined;
         declarations.clear();
@@ -211,7 +214,7 @@ export function createReplSession() {
                 ok: !output.some(line => line.error), errorOffset };
         },
         dispose(): void {
-            try { replay.dispose(); } finally { interpreter.dispose(); }
+            try { replay.dispose(); } finally { runtime.dispose(); }
         },
     };
 

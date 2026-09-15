@@ -1,0 +1,28 @@
+{
+    "name": "@arrrank/common",
+    "description": "Shared Rank application runtime",
+    "version": "0.0.1",
+    "license": "MIT",
+    "type": "module",
+    "engines": {
+        "node": ">=22.12.0",
+        "npm": ">=10.2.3"
+    },
+    "main": "./out/index.js",
+    "types": "./out/index.d.ts",
+    "files": [
+        "out",
+        "src"
+    ],
+    "scripts": {
+        "clean": "shx rm -fr *.tsbuildinfo out",
+        "build": "echo 'No build step'",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@arrrank/interpreter": "0.0.1"
+    },
+    "devDependencies": {
+        "vitest": "~3.2.7"
+    }
+}

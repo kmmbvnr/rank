@@ -33,6 +33,7 @@
     "workspaces": [
         "packages/language",
         "packages/interpreter",
+        "packages/common",
         "packages/cli",
         "packages/compile",
         "packages/web",

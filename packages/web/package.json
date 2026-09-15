@@ -12,6 +12,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@arrrank/common": "0.0.1",
         "@arrrank/interpreter": "0.0.1"
     },
     "devDependencies": {

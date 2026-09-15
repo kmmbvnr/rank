@@ -1,3 +1,4 @@
+import { runProgram } from '@arrrank/common';
 import { Interpreter, RankError, parse } from '@arrrank/interpreter';
 import {
     analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
@@ -61,18 +62,13 @@ async function dispatch(): Promise<void> {
 async function runFile(file: string, args: readonly string[]): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
-    const interpreter = new Interpreter(console.log, {
+    runProgram(source, console.log, {
         args,
         input: new NodeInput(),
         io: nodeIo,
         sourceId,
         loadModule,
     });
-    try {
-        interpreter.execute(source);
-    } finally {
-        interpreter.dispose();
-    }
 }
 
 /** Parses every program under a path. The gate a repository can run in CI. */
