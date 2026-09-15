@@ -1,0 +1,15 @@
+use testing
+
+test "smallest permuted multiple"
+  use "052_permutedmultiples"
+  run
+
+  Answer equal 142857
+end
+
+test "known permuted multiples"
+  use "052_permutedmultiples"
+
+  142857 permuted equal true
+  125874 permuted equal false
+end

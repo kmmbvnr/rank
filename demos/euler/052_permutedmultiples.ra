@@ -1,0 +1,48 @@
+rem Permuted Multiples
+rem https://projecteuler.net/problem=52
+rem Find the smallest number whose
+rem six multiples share their digits
+
+use sequences
+use io
+
+Answer = solve
+Answer print
+
+
+rem Search decimal widths in order.
+fun solve
+  Power = 1
+
+  for true
+    Lower = Power
+    Upper = (10 * Power - 1) // 6
+
+    N = Lower to Upper array
+    M9 = N % 9 equal 0
+    Candidates = N M9
+
+    for X in Candidates
+      if X permuted
+        return X
+      end
+    end
+
+    Power *= 10
+  end
+end
+
+
+rem Check X through 6X against one key.
+fun permuted X
+  Key = X text sort
+
+  for M in 2 to 6
+    Value = X * M
+    if Value text sort not equal Key
+      return false
+    end
+  end
+
+  return true
+end
