@@ -13,6 +13,7 @@ import { LiveFunctionSession } from './live-function.js';
 import { LivePreviewRunner } from './live-preview.js';
 import { createReplSession, type Execution, type OutputLine, type ProgramFile } from './repl-session.js';
 import { drawFrame, saveFrame, helpFrame, pauseFrame, notebookFrame } from './screen.js';
+import { TerminalModeRouter } from './terminal-modes.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
@@ -721,15 +722,13 @@ async function terminalRepl(session: Session): Promise<void> {
     let top = 0;
     let followCursor = true;
     let closing = false;
-    let stepping = false;
     let history: string[] = [];
     try { history = (await fs.readFile(historyFile(), 'utf8')).split('\n').filter(Boolean).slice(-HISTORY_LIMIT); }
     catch { /* A new session has no history yet. */ }
     const render = (): void => {
         if (closing) return;
         // Keep the last debugger frame while the worker advances to its next stop.
-        if (stepping && repl.running && !session.pauseState) return;
-        stepping = false;
+        if (!modeRouter.allowRender()) return;
         if (repl.savePrompt) {
             const prompt = repl.savePrompt;
             output.write(drawFrame(saveFrame(prompt.choosing ? undefined : prompt.filename,
@@ -759,70 +758,24 @@ async function terminalRepl(session: Session): Promise<void> {
     const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
     const book = repl.notebook;
     const keyRouter = new KeyRouter(repl, history, () => output.columns || 80);
+    const modeRouter = new TerminalModeRouter(repl, () => output.rows || 24);
     let finish!: () => void;
     let fail!: (error: unknown) => void;
     const ended = new Promise<void>((resolve, reject) => { finish = resolve; fail = reject; });
     const leave = (): void => { closing = true; finish(); };
     const onKey = (text: string, key: Key = {}): void => {
         if (closing) return;
-        if (repl.running) {
-            if (key.ctrl && key.name === 'c') { stepping = false; repl.interrupt(); }
-            else if (key.ctrl && key.name === 'p') { stepping = false; repl.togglePause(); }
-            else if (session.pauseState) {
-                if (key.name === 'return' || key.name === 'enter') session.resume?.();
-                else if (!key.meta && key.name === 'g') { stepping = true; repl.pauseTop = 0; session.stepToMain?.(); }
-                else if (!key.meta && key.name === 't') { stepping = true; repl.pauseTop = 0; session.step?.(); }
-                else if (!key.meta && key.name === 'n') { stepping = true; repl.pauseTop = 0; session.step?.(true); }
-                else if (key.name === 'up') repl.pauseTop--;
-                else if (key.name === 'down') repl.pauseTop++;
-                else if (key.name === 'pageup') repl.pauseTop -= Math.max(1, (output.rows || 24) - 2);
-                else if (key.name === 'pagedown') repl.pauseTop += Math.max(1, (output.rows || 24) - 2);
-                render();
-            }
-            return;
-        }
         try {
             followCursor = key.name !== 'pageup' && key.name !== 'pagedown';
-            if (repl.savePrompt) {
-                const prompt = repl.savePrompt;
-                if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.savePrompt = undefined;
-                else if (prompt.choosing) {
-                    if (key.name === 'return' || key.name === 'enter' || !key.ctrl && /^[sy]$/i.test(text)) {
-                        prompt.choosing = false;
-                        if (repl.session.savedFile) void repl.savePromptFile().then(exit => { if (exit) leave(); }, fail);
-                    }
-                    else if (!key.ctrl && /^[dn]$/i.test(text)) {
-                        if (repl.discardChanges()) leave();
-                        return;
-                    }
-                } else {
-                    const file = prompt.filename;
-                    if (key.name === 'return' || key.name === 'enter') {
-                        void repl.savePromptFile().then(exit => { if (exit) leave(); }, fail);
-                    } else if (key.name === 'backspace' || key.name === 'delete') file.erase(key.name === 'backspace');
-                    else if (key.name === 'left' || key.name === 'right') file.horizontal(key.name === 'left' ? -1 : 1);
-                    else if (key.name === 'home' || key.ctrl && key.name === 'a') file.lineEdge(false);
-                    else if (key.name === 'end' || key.ctrl && key.name === 'e') file.lineEdge(true);
-                    else if (key.ctrl && key.name === 'u') file.replace('');
-                    else if (!key.ctrl && !key.meta && text && text >= ' ') file.insert(text);
-                }
-                render();
+            if (!modeRouter.active) {
+                void keyRouter.press(text, key).then(result => {
+                    if (result.pageDelta) top = Math.max(0, top + result.pageDelta * Math.max(1, (output.rows || 24) - 2));
+                    if (result.exit) leave(); else render();
+                }, fail);
                 return;
             }
-            if (repl.help) {
-                if (key.name === 'escape') repl.help = undefined;
-                else if (key.name === 'up') repl.help.top -= 1;
-                else if (key.name === 'down') repl.help.top += 1;
-                else if (key.name === 'pageup') repl.help.top -= Math.max(1, (output.rows || 24) - 1);
-                else if (key.name === 'pagedown') repl.help.top += Math.max(1, (output.rows || 24) - 1);
-                else if (key.name === 'home') repl.help.top = 0;
-                else if (key.name === 'end') repl.help.top = Number.MAX_SAFE_INTEGER;
-                render();
-                return;
-            }
-            void keyRouter.press(text, key).then(result => {
-                if (result.pageDelta) top = Math.max(0, top + result.pageDelta * Math.max(1, (output.rows || 24) - 2));
-                if (result.exit) leave(); else render();
+            void modeRouter.press(text, key).then(mode => {
+                if (mode.exit) leave(); else if (mode.render) render();
             }, fail);
         } catch (error) { fail(error); }
     };
@@ -839,11 +792,8 @@ async function terminalRepl(session: Session): Promise<void> {
                 pending = pending.slice(at + marker.length);
                 if (paste === undefined) { keyInput.write(before); paste = ''; }
                 else {
-                    if (!repl.running) {
-                        if (repl.savePrompt) {
-                            if (!repl.savePrompt.choosing) repl.savePrompt.filename.insert((paste + before).replace(/[\r\n]/g, ''));
-                        } else if (!repl.help) book.insert((paste + before).replace(/\r\n?/g, '\n'));
-                    }
+                    const value = paste + before;
+                    if (!modeRouter.paste(value)) book.insert(value.replace(/\r\n?/g, '\n'));
                     paste = undefined;
                     repl.dismiss();
                     render();
