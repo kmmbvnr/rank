@@ -74,6 +74,7 @@ export function notebookFrame(
     breakpoints?: ReadonlyMap<number, ReadonlySet<number>>, promptLabel = 'rank> ',
     promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean }[]>,
     promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string }[],
+    promptOutputFocus?: { readonly line: number; readonly offset: number },
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -93,15 +94,22 @@ export function notebookFrame(
             : pending || cell.status === 'idle' ? '\x1b[90m' : '\x1b[32m';
         const sourceRows = editableRows(cell.source, bodyWidth);
         const labelRow = prompt ? 0 : sourceRows.findIndex(row => row.text.trim() !== '');
+        const activeSourceLine = cell.source.slice(0, notebook.cursor).split('\n').length;
         for (const [line, item] of sourceRows.entries()) {
             const offset = item.points[0]?.offset ?? 0;
             const sourceLine = cell.source.slice(0, offset).split('\n').length;
             const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
-            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : item.text.trim() === '' ? '      ' : '    · ')
+            const liveProgress = live && !editingField && !breakpoint;
+            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : liveProgress ? '    ● '
+                : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
-            const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m' : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
+            const progressColor = sourceLine === activeSourceLine ? '\x1b[33m'
+                : promptOutputs?.has(sourceLine) ? '\x1b[32m' : '\x1b[90m';
+            const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
+                : liveProgress ? progressColor + prefix + '\x1b[0m'
+                : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
             rows.push((gutter > 0 ? painted : '') + item.text);
-            if (index === notebook.active && !editingField) {
+            if (index === notebook.active && !editingField && !promptOutputFocus) {
                 const point = item.points.find(point => point.offset === notebook.cursor);
                 if (point) caret = { row: rows.length - 1, column: gutter + point.column };
             }
@@ -118,6 +126,10 @@ export function notebookFrame(
                     for (const result of editableRows(clean(output.text), Math.max(1, bodyWidth - indent))) {
                         rows.push((output.error ? '\x1b[31m' : '\x1b[90m')
                             + clipped(marker + result.text, width) + '\x1b[0m');
+                        if (!output.error && promptOutputFocus?.line === sourceLine) {
+                            const point = result.points.find(point => point.offset === promptOutputFocus.offset);
+                            if (point) caret = { row: rows.length - 1, column: gutter + indent + point.column };
+                        }
                     }
                 }
             }

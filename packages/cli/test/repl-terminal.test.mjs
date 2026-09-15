@@ -10,7 +10,7 @@ import Database from 'better-sqlite3';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
 const { Terminal } = xterm;
-const UP = '\x1b[A', DOWN = '\x1b[B', CLEAR = '\x15', ENTER = '\r', END = '\x05';
+const UP = '\x1b[A', DOWN = '\x1b[B', RIGHT = '\x1b[C', CLEAR = '\x15', ENTER = '\r', END = '\x05';
 const running = keys => ({ keys, until: 'Running' });
 const paused = keys => ({ keys, until: 'Paused' });
 
@@ -565,6 +565,23 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
     assert.doesNotMatch(frames[6].text, /Result \*= 2\n        6/);
     assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Result \*= 2/);
     assert.match(frames[7].text, /Result \*= 2\n        6/);
+});
+
+test('loop arrows keep the cursor on the visible iteration and defer body evaluation', async t => {
+    const frames = await drive(t, [
+        'for i in 1 to 3' + ENTER,
+        RIGHT,
+        'A = i' + ENTER,
+        RIGHT,
+        ENTER,
+    ], 80, 18);
+    assert.match(frames[0].text.split('\n')[frames[0].cursorY], /i = 1 · iteration 1/);
+    assert.match(frames[1].text.split('\n')[frames[1].cursorY], /i = 2 · iteration 2/);
+    assert.doesNotMatch(frames[1].text, /A = i/);
+    assert.match(frames[2].text, /A = i\n\s+2/);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /i = 3 · iteration 3/);
+    assert.doesNotMatch(frames[3].text, /A = i\n\s+2/);
+    assert.match(frames[4].text, /A = i\n\s+3/);
 });
 
 

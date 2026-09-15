@@ -49,6 +49,20 @@ test('pause footer shows an unknown-key status', () => {
     assert.equal(frame.lines.at(-1), 'Unknown key: x');
 });
 
+test('live replay marks evaluated, current and remaining source lines', () => {
+    const book = new Notebook();
+    book.replace('fun inspect N\n  A = N + 1\n  B = A * 2\nend');
+    book.cursor = book.current.source.indexOf('B =') + 'B = A * 2'.length;
+    const outputs = new Map([[1, []], [2, [{ text: '3', error: false }]]]);
+    const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',
+        undefined, 'rank> ', outputs);
+    const sourceLine = value => frame.lines.find(line => line.includes(value));
+    assert.match(sourceLine('fun inspect'), /\x1b\[32m/);
+    assert.match(sourceLine('A = N'), /\x1b\[32m/);
+    assert.match(sourceLine('B = A'), /\x1b\[33m/);
+    assert.match(sourceLine('end'), /\x1b\[90m/);
+});
+
 async function draw(terminal, book, top = 0, hint = '', running = false) {
     if (terminal.buffer.active.type !== 'alternate') await write(terminal, '\x1b[?1049h');
     const frame = notebookFrame(book, terminal.cols, terminal.rows, top, hint, running);

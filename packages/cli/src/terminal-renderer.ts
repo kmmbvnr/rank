@@ -63,7 +63,7 @@ export class TerminalRenderer {
         if (!repl.running) this.lastPause = undefined;
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
-            repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields);
+            repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus);
         this.top = frame.top;
         this.output.write(drawFrame(frame));
     }

@@ -29,7 +29,7 @@ function scenario() {
             assert.ok(editor.cursor >= 0 && editor.cursor <= editor.current.source.length, trace.join(' -> '));
             assert.equal(repl.exampleFields.filter(field => field.active).length, 1, trace.join(' -> '));
             const frame = notebookFrame(book, 80, 40, 0, repl.suggestion, false, true, '', 'Running…',
-                undefined, repl.promptLabel, repl.liveOutputs, repl.exampleFields);
+                undefined, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus);
             assert.match(clean(frame.lines[frame.cursor.row]),
                 new RegExp(`^\\s*${repl.examplePrompt.parameter} =`), trace.join(' -> '));
         }
@@ -42,8 +42,10 @@ function scenario() {
     const ctrlR = () => key('\x12', { ctrl: true, name: 'r' }, 'Ctrl-R');
     const up = () => key('', { name: 'up' }, 'Up');
     const down = () => key('', { name: 'down' }, 'Down');
+    const left = () => key('', { name: 'left' }, 'Left');
+    const right = () => key('', { name: 'right' }, 'Right');
 
-    return { session, repl, book, trace, type, clear, backspace, enter, ctrlR, up, down };
+    return { session, repl, book, trace, type, clear, backspace, enter, ctrlR, up, down, left, right };
 }
 
 test('generated live-function editing scenarios recover from likely user mistakes', async () => {
@@ -151,5 +153,48 @@ test('real key routing edits all argument fields and returns from the body to th
         assert.equal(s.repl.liveOutputs.has(2), false, 'selected body line waits for Enter');
         await s.enter();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['7']);
+    } finally { s.session.dispose(); }
+});
+
+test('arrow keys select a function loop iteration without evaluating its body', async () => {
+    const s = scenario();
+    try {
+        await s.type('fun total N');
+        await s.enter();
+        await s.type('3');
+        await s.enter();
+        await s.type('Sum = 0');
+        await s.enter();
+        await s.type('for I in 1 to N');
+        await s.enter();
+        await s.type('Sum += I');
+        await s.enter();
+        assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['1']);
+
+        const source = s.book.current.source;
+        await s.right();
+        assert.equal(s.book.current.source, source);
+        assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 2 · iteration 2']);
+        assert.equal(s.repl.liveOutputs.has(4), false);
+        assert.match(s.repl.suggestion, /iteration 2 · Enter recalculate/);
+        const focused = notebookFrame(s.book, 80, 20, 0, s.repl.suggestion, false, true, '', 'Running…',
+            undefined, s.repl.promptLabel, s.repl.liveOutputs, s.repl.exampleFields, s.repl.liveIterationFocus);
+        assert.match(clean(focused.lines[focused.cursor.row]), /I = 2 · iteration 2/);
+
+        await s.enter();
+        assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 2 · iteration 2']);
+        assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['3']);
+        assert.equal(s.book.current.source, source);
+
+        await s.left();
+        assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 1 · iteration 1']);
+        assert.equal(s.repl.liveOutputs.has(4), false);
+        await s.enter();
+        assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['1']);
+
+        s.book.insert('X', true);
+        const cursor = s.book.cursor;
+        await s.left();
+        assert.equal(s.book.cursor, cursor - 1, 'arrows keep editing a non-empty line');
     } finally { s.session.dispose(); }
 });

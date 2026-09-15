@@ -79,7 +79,10 @@ export class KeyRouter {
                     book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()));
             } else if (key.name === 'pageup' || key.name === 'pagedown') {
                 return { exit: false, pageDelta: key.name === 'pageup' ? -1 : 1 };
-            } else if (key.name === 'left' || key.name === 'right') book.horizontal(key.name === 'left' ? -1 : 1);
+            } else if (key.name === 'left' || key.name === 'right') {
+                const direction = key.name === 'left' ? -1 : 1;
+                if (!await repl.moveLiveIteration(direction)) book.horizontal(direction);
+            }
             else if (key.name === 'home' || key.ctrl && key.name === 'a') book.lineEdge(false);
             else if (key.name === 'end' || key.ctrl && key.name === 'e') {
                 if (key.ctrl && key.name === 'end') book.toPrompt(); else book.lineEdge(true);

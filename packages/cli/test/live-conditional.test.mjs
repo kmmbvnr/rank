@@ -164,3 +164,92 @@ test('cancelling a reopened if restores its cell and returns to the prompt', asy
         assert.equal(s.repl.notebook.current.source, '');
     } finally { s.session.dispose(); }
 });
+
+test('a collection loop previews one selected iteration and waits for explicit recalculation', async () => {
+    const s = scenario();
+    try {
+        await s.line('for I in 1 to 3');
+        assert.deepEqual(s.output(1), ['I = 1 · iteration 1']);
+        await s.line('Value = I * 2');
+        assert.deepEqual(s.output(2), ['2']);
+
+        const source = s.repl.notebook.current.source;
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.equal(s.repl.notebook.current.source, source);
+        assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
+        assert.equal(s.repl.liveOutputs.has(2), false, 'selecting must clear stale body previews');
+        assert.match(s.repl.suggestion, /iteration 2 · Enter recalculate/);
+
+        await s.repl.submit();
+        assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
+        assert.deepEqual(s.output(2), ['4']);
+        assert.equal(s.repl.notebook.current.source, source, 'recalculation must not add a blank line');
+
+        await s.repl.submit();
+        assert.notEqual(s.repl.notebook.current.source, source, 'the next Enter keeps a blank line');
+
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        await s.repl.submit();
+        assert.deepEqual(s.output(1), ['iteration 4 · loop skipped']);
+        assert.deepEqual(s.output(2), []);
+    } finally { s.session.dispose(); }
+});
+
+test('a condition-controlled loop previews at most one iteration', async () => {
+    for (const [condition, expected, body] of [
+        ['false', 'false · loop skipped', []],
+        ['true', 'true · loop runs', ['2']],
+    ]) {
+        const s = scenario();
+        try {
+            await s.line(`for ${condition}`);
+            assert.deepEqual(s.output(1), [expected]);
+            await s.line('Value = 2');
+            assert.deepEqual(s.output(2), body);
+        } finally { s.session.dispose(); }
+    }
+});
+
+test('a nested if follows the selected function-loop iteration', async () => {
+    const s = scenario();
+    try {
+        await s.line('fun inspect N');
+        s.repl.exampleEditor.insert('3');
+        await s.repl.submit();
+        await s.line('for I in 1 to N');
+        await s.line('if I equal 2');
+        await s.line('Seen = I');
+        assert.deepEqual(s.output(3), ['false · branch skipped']);
+        assert.deepEqual(s.output(4), []);
+
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        assert.deepEqual(s.output(2), ['I = 2 · iteration 2']);
+        assert.equal(s.repl.liveOutputs.has(3), false);
+        assert.equal(s.repl.liveOutputs.has(4), false);
+        await s.repl.submit();
+        assert.deepEqual(s.output(2), ['I = 2 · iteration 2']);
+        assert.deepEqual(s.output(3), ['true · branch runs']);
+        assert.deepEqual(s.output(4), ['2']);
+    } finally { s.session.dispose(); }
+});
+
+test('a nested loop keeps its own selected iteration for each outer value', async () => {
+    const s = scenario();
+    try {
+        await s.line('for I in 1 to 2');
+        await s.line('for J in 3 to 4');
+        await s.line('Value = I * 10 + J');
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        await s.repl.submit();
+        assert.deepEqual(s.output(2), ['J = 4 · iteration 2']);
+        assert.deepEqual(s.output(3), ['14']);
+        await s.line('end');
+
+        assert.equal(await s.repl.moveLiveIteration(1), true);
+        await s.repl.submit();
+        assert.deepEqual(s.output(1), ['I = 2 · iteration 2']);
+        assert.deepEqual(s.output(2), ['J = 4 · iteration 2']);
+        assert.deepEqual(s.output(3), ['24']);
+    } finally { s.session.dispose(); }
+});

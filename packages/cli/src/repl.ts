@@ -47,6 +47,9 @@ export class NotebookRepl {
     get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
         return this.liveFunction.fields;
     }
+    get liveIterationFocus(): { line: number; offset: number } | undefined {
+        return this.liveFunction.iterationFocus ?? this.liveConditional.iterationFocus;
+    }
 
     get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
         const pause = this.session.pauseState;
@@ -139,6 +142,11 @@ export class NotebookRepl {
         this.liveFunction.moveField(direction);
     }
 
+    async moveLiveIteration(direction: number): Promise<boolean> {
+        if (await this.liveFunction.moveIteration(direction)) return true;
+        return this.liveConditional.moveIteration(direction);
+    }
+
     focusExampleFromBody(): boolean {
         return this.liveFunction.focusExampleFromBody();
     }
@@ -194,7 +202,7 @@ export class NotebookRepl {
         const book = this.notebook;
         let currentRaw = book.current.source.trim();
         if (this.liveFunction.enabled && !book.current.source.includes('\n')
-            && /^\s*(?:fun|memo|if)\b/.test(currentRaw)) {
+            && /^\s*(?:fun|memo|if|for)\b/.test(currentRaw)) {
             book.formatCurrentLine(line => this.session.format(line));
             currentRaw = book.current.source.trim();
         }
