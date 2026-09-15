@@ -6031,15 +6031,19 @@ text conversion as problem 16 gives the digit sum `648`.
 rem Project Euler 21
 rem https://projecteuler.net/problem=21
 
-B = A proper_divisor_sum
-Partner = B proper_divisor_sum
-if B not equal A and Partner equal A
-  Total += A
-end
+Candidates = (2 until Limit) array
+Partners = Candidates proper_divisor_sum rank 0
+Reverse = Partners proper_divisor_sum rank 0
+Amicable = Partners not equal Candidates
+Amicable and= Reverse equal Candidates
+Values = Candidates Amicable
+Answer = Values + reduce
 ```
 
-`proper_divisor_sum` visits divisor pairs only through the square root. The
-search adds each amicable value below 10000 and produces `31626`.
+`proper_divisor_sum` selects divisor pairs only through the square root and
+reduces their two sums. Rank-0 application computes every partner and reverse
+partner, then a boolean mask selects the amicable values. Their seeded sum is
+`31626` below 10000.
 
 ## 22. Names scores
 

@@ -15,17 +15,13 @@ Answer print
 rem Test every value against the proper
 rem divisor sum of its partner.
 fun amicable_sum Limit
-  Total = 0
-  for A in 2 until Limit
-    B = A proper_divisor_sum
-    if B not equal A
-      Partner = B proper_divisor_sum
-      if Partner equal A
-        Total += A
-      end
-    end
-  end
-  return Total
+  Candidates = (2 until Limit) array
+  Partners = Candidates proper_divisor_sum rank 0
+  Reverse = Partners proper_divisor_sum rank 0
+  Amicable = Partners not equal Candidates
+  Amicable and= Reverse equal Candidates
+  Values = Candidates Amicable
+  return Values + reduce
 end
 
 
@@ -36,17 +32,14 @@ fun proper_divisor_sum N
     return 0
   end
 
-  Total = 1
-  Divisor = 2
-  for Divisor * Divisor at most N
-    if N multiple by Divisor
-      Total += Divisor
-      Pair = N // Divisor
-      if Pair not equal Divisor
-        Total += Pair
-      end
-    end
-    Divisor += 1
+  Root = N isqrt
+  Divisors = 2 to Root
+  Factors = Divisors (N multiple by Divisors)
+  Pairs = N // Factors
+  Total = Factors + reduce with 1
+  Total += Pairs + reduce
+  if Root ** 2 equal N
+    Total -= Root
   end
   return Total
 end
