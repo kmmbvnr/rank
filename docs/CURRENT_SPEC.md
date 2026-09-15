@@ -5960,12 +5960,16 @@ digit, and `sum` reduces the resulting sequence to `1366`.
 rem Project Euler 17
 rem https://projecteuler.net/problem=17
 
-Answer = 1000 number_letter_total
+Numbers = 1 to Limit
+Counts = Numbers letters rank 0
+Answer = Counts + reduce with 0
 ```
 
 `number_letter_total` creates the small English length tables once and defines
-a local `letters` helper that captures them. It implements British `and`
-without constructing the spelled-out text. The total is `21124`.
+a local `letters` helper that captures them. Rank-0 application converts every
+number to a letter count, and the seeded reduction adds the counts. The helper
+implements British `and` without constructing the spelled-out text. The total
+is `21124`.
 
 ## 18. Maximum path sum I
 
