@@ -55,7 +55,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1 with 1
+Products = Windows * reduce rank 1
 Answer = Products max
 ```
 
@@ -135,7 +135,7 @@ to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits Width window
-Products = Windows * reduce rank 1 with 1
+Products = Windows * reduce rank 1
 Answer = Products max
 ```
 
@@ -201,19 +201,20 @@ the glyph unambiguous in Rank source.
 
 When a loop only transforms values and carries one accumulator, canonical Rank
 style expresses the work as a data chain. Select the inputs, transform them,
-then use `reduce` when only the final state is needed:
+then use a named reduction when only the final state is needed:
 
 ```rank
 Even = Values (Values even)
 Squares = Even * Even
-Total = Squares + reduce
+Total = Squares sum
 ```
 
 This replaces the imperative chain `test each value -> update Total -> return
-Total`. Each named value exposes one stage to the REPL. Use `with Seed` when an
-additional initial value must participate in the reduction. Omit a seed that
-only repeats the operation's built-in identity, such as `0` for `+` or `1` for
-`*`.
+Total`. Each named value exposes one stage to the REPL. Prefer `sum`, `count`,
+`min`, `max`, `all`, and `any` when their names describe the operation. Use a
+symbolic modifier such as `* reduce` when no clearer named reduction exists or
+when `rank` selects cells. Use `with Seed` only when an additional initial value
+must participate in the reduction.
 
 Use `scan with Seed` when every intermediate accumulator state is part of the
 result:

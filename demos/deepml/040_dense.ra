@@ -29,7 +29,7 @@ end
 fun parameters Layer
   W = Layer .weights
   Bias = Layer .bias
-  WSize = W shape * reduce with 1
+  WSize = W shape * reduce
   return WSize + (Bias len)
 end
 

@@ -13,6 +13,6 @@ Number = "7316717653133062491922511967442657474235534919493496983520312774506326
 
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1 with 1
+Products = Windows * reduce rank 1
 Answer = Products max
 Answer print

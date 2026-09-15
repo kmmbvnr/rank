@@ -10,7 +10,7 @@ Threshold = 1000000
 
 Rows = 1 to 100
 Large = Rows large_choices rank 0
-Answer = Large + reduce with 0
+Answer = Large sum
 Answer print
 
 

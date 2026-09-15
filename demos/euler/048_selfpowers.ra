@@ -20,7 +20,7 @@ fun self_power_tail Limit Digits
   Modulus = 10 ** Digits
   Numbers = 1 to Limit
   Powers = Numbers modular_self_power rank 0
-  Total = Powers + reduce
+  Total = Powers sum
   return Total % Modulus
 
   fun modular_self_power N

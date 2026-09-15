@@ -31,7 +31,7 @@ fun polynomial_features X Degree
       for Choice in Indices D multicomb
         Term = 1
         if D greater 0
-          Term = Row Choice * reduce with 1
+          Term = Row Choice * reduce
         end
         Terms Position = Term
         Position += 1

@@ -152,7 +152,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1 with 1
+Products = Windows * reduce rank 1
 Answer = Products max
 ```
 
@@ -323,12 +323,12 @@ rem https://projecteuler.net/problem=17
 
 Numbers = 1 to Limit
 Counts = Numbers letters rank 0
-Answer = Counts + reduce
+Answer = Counts sum
 ```
 
 `number_letter_total` creates the small English length tables once and defines
 a local `letters` helper that captures them. Rank-0 application converts every
-number to a letter count, and the reduction adds the counts. The helper
+number to a letter count, and `sum` adds the counts. The helper
 implements British `and` without constructing the spelled-out text. The total
 is `21124`.
 
@@ -375,7 +375,7 @@ The twentieth-century count is `171`.
 rem Project Euler 20
 rem https://projecteuler.net/problem=20
 
-Factorial = (1 to 100) * reduce with 1
+Factorial = (1 to 100) * reduce
 Digits = Factorial text
 Values = Digits integer rank 0
 Answer = Values sum
@@ -396,7 +396,7 @@ Reverse = Partners proper_divisor_sum rank 0
 Amicable = Partners not equal Candidates
 Amicable and= Reverse equal Candidates
 Values = Candidates Amicable
-Answer = Values + reduce
+Answer = Values sum
 ```
 
 `proper_divisor_sum` selects divisor pairs only through the square root and
@@ -417,13 +417,13 @@ Values = Sorted name_value rank 0
 Count = Sorted len
 Positions = (1 to Count) array
 Scores = Values * Positions
-Answer = Scores + reduce
+Answer = Scores sum
 ```
 
 The program accepts the official names file as a path argument. It removes the
 outer quotes and splits the CSV text. Rank-0 application derives every name's
 letter value, array multiplication applies the one-based positions, and a
-reduction sums the scores. The official input is embedded only in the
+named `sum` reduction adds the scores. The official input is embedded only in the
 test; the program tree needs no fixture file. The answer is `871198282`.
 
 ## 23. Non-abundant sums
@@ -516,11 +516,11 @@ rem https://projecteuler.net/problem=28
 Layers = 1 to (Size - 1) // 2
 Sides = Layers * 2 + 1
 Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
-Answer = Corners + reduce with 1
+Answer = 1 + (Corners sum)
 ```
 
 Each concentric layer contributes its four corners. Array arithmetic evaluates
-all layer contributions, and the seeded reduction includes the center cell even
+all layer contributions, and the separate `1` includes the center cell even
 when there are no outer layers. The formula gives `669171001` for a 1001 by
 1001 spiral without constructing the matrix.
 
@@ -831,11 +831,11 @@ run of four integers begins at `134043`.
 ```rank
 Numbers = 1 to Limit
 Powers = Numbers modular_self_power rank 0
-Total = Powers + reduce
+Total = Powers sum
 Answer = Total % Modulus
 ```
 
-A local rank-0 operation computes each modular self power. The reduction
+A local rank-0 operation computes each modular self power. `sum`
 adds them, and one final remainder keeps the requested decimal suffix. Modular
 exponentiation avoids large intermediate powers. The final ten digits are
 `9110846700`.

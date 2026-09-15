@@ -45,5 +45,5 @@ fun factorial N
   if N equal 0
     return 1
   end
-  return (1 to N) * reduce with 1
+  return (1 to N) * reduce
 end

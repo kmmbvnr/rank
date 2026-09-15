@@ -33,7 +33,7 @@ fun names_score Names
   Count = Sorted len
   Positions = (1 to Count) array
   Scores = Values * Positions
-  return Scores + reduce
+  return Scores sum
 end
 
 
@@ -43,5 +43,5 @@ fun name_value Name
   Base = "A" codepoint
   Codes = Name codepoint rank 0
   Values = Codes - Base + 1
-  return Values + reduce
+  return Values sum
 end

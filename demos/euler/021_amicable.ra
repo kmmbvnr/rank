@@ -21,7 +21,7 @@ fun amicable_sum Limit
   Amicable = Partners not equal Candidates
   Amicable and= Reverse equal Candidates
   Values = Candidates Amicable
-  return Values + reduce
+  return Values sum
 end
 
 
@@ -36,8 +36,8 @@ fun proper_divisor_sum N
   Divisors = 2 to Root
   Factors = Divisors (N multiple by Divisors)
   Pairs = N // Factors
-  Total = Factors + reduce with 1
-  Total += Pairs + reduce
+  Total = 1 + (Factors sum)
+  Total += Pairs sum
   if Root ** 2 equal N
     Total -= Root
   end

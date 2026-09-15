@@ -17,5 +17,5 @@ fun spiral_diagonal_sum Size
   Layers = 1 to (Size - 1) // 2
   Sides = Layers * 2 + 1
   Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
-  return Corners + reduce with 1
+  return 1 + (Corners sum)
 end

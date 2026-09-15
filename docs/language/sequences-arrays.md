@@ -650,7 +650,7 @@ A reduction collapses values:
 
 ```rank
 Total = A + reduce with 0
-Product = A * reduce with 1
+Product = A * reduce
 ```
 
 Without an explicit rank, reduction consumes the complete finite value in
@@ -659,7 +659,7 @@ to one atom while preserving its leading frame:
 
 ```rank
 RowTotals = M + reduce rank 1 with 0
-BlockProducts = Blocks * reduce rank 2 with 1
+BlockProducts = Blocks * reduce rank 2
 ```
 
 `with Seed` supplies an explicit initial accumulator. The seed is combined with

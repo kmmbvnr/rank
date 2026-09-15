@@ -41,5 +41,5 @@ rem Convert A through Z to values 1 through 26.
 fun word_value Word
   Letters = Word codepoint rank 0
   Values = Letters - 64
-  return Values + reduce
+  return Values sum
 end
