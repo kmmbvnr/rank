@@ -152,6 +152,20 @@ test('an open function evaluates each body line on example arguments', async t =
     assert.equal(output(book.cells[1]), '<function inc>');
 });
 
+test('a live function named like an operator alias keeps its name in the preview call', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('A = array 1 2 3');
+    await enter('fun plus X Y');
+    repl.exampleEditor.replace('A');
+    await repl.submit();
+    repl.exampleEditor.replace('A + 1');
+    await repl.submit();
+    book.insert('return X + Y - 1');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['2 4 6']);
+    assert.equal(repl.liveOutputs.get(2).some(line => line.error), false);
+});
+
 test('all function argument fields stay visible below the unchanged header', async t => {
     const { repl, book, enter } = setup(t, true);
     await enter('fun add X Y');

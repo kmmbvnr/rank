@@ -402,6 +402,18 @@ test('arrow keys edit visible function arguments and return to them from the bod
     assert.match(frames[9].text, /<function add>/);
 });
 
+test('a live function named plus is not rewritten to an operator in its preview call', async t => {
+    const frames = await drive(t, [
+        'A = array 1 2 3' + ENTER,
+        'fun plus X Y' + ENTER,
+        'A' + ENTER,
+        'A+1' + ENTER,
+        'return X + Y -1' + ENTER,
+    ], 100, 24);
+    assert.match(frames[4].text, /return X \+ Y -\s?1\n\s+2 4 6/);
+    assert.doesNotMatch(frames[4].text, /error:|\(A\) \(A \+ 1\) \+/);
+});
+
 test('Esc skips a function example without adding its draft to the program', async t => {
     const frames = await drive(t, [
         'fun twice X' + ENTER,

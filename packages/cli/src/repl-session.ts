@@ -190,10 +190,12 @@ export function createReplSession() {
             errorOffset = undefined;
             width = Math.min(WIDTH, textColumns(columns));
             loadedFile = undefined;
+            const localFunctions = new Set([...text.matchAll(/^\s*(?:fun|memo)\s+([a-z][A-Za-z0-9_]*|update)\b/gm)]
+                .map(match => match[1]));
             const source = text.split('\n').map(line => {
                 const indent = /^ */.exec(line)![0];
                 const formatted = formatLine(line.slice(indent.length));
-                return indent + (aliases ? expand(formatted, interpreter) : formatted);
+                return indent + (aliases ? expand(formatted, interpreter, localFunctions) : formatted);
             }).join('\n').trimEnd();
             const fork = interpreter.forkForPreview(emit);
             try {
@@ -537,8 +539,8 @@ export function createReplSession() {
 
 interface EditorBindings { variables: ReadonlyMap<string, unknown>; modules: ReadonlySet<string> }
 
-function expand(text: string, interpreter: EditorBindings): string {
-    const isBound = (name: string): boolean => interpreter.variables.has(name);
+function expand(text: string, interpreter: EditorBindings, localNames: ReadonlySet<string> = new Set()): string {
+    const isBound = (name: string): boolean => interpreter.variables.has(name) || localNames.has(name);
     return expandOperators(expandCompoundKeywords(text, isBound), isBound);
 }
 
