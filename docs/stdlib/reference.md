@@ -300,6 +300,7 @@ Shapes, orderings, windows and lazy sources.
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, until or from. |
+| `Mask indices` | array | Zero-based positions of the true values in a boolean vector. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |

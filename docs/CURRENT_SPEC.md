@@ -2455,6 +2455,11 @@ A finite lazy source may define a direct cardinality count. The numbers module
 uses this hook for `N divisors count`; other numeric sequences still fail the
 boolean-cell requirement.
 
+`Mask indices` returns the zero-based positions of `true` values in a rank-1
+boolean array. It returns an integer vector; an empty or all-false mask returns
+an empty vector. Scalars, tensors and arrays containing non-booleans are
+rejected.
+
 Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
 between numeric values and broadcast over arrays:
 
@@ -6429,6 +6434,25 @@ end
 
 Prefix sums make every interval sum constant time, and lengths are tried from
 largest to smallest. The result below one million is `997651`.
+
+## 51. Prime digit replacements
+
+```rank
+Places = 0 until (Digits len - 1)
+Same = (Digits Places equal Digit) indices
+
+for Pick in Same 3 combinations
+  Family = Prime Pick replacement_family
+  if (Family in primes) count at least 8
+    return true
+  end
+end
+```
+
+`indices` turns the equality mask into candidate positions, while fixing the
+last digit avoids replacements that are necessarily even or divisible by 5.
+Each family is formed by adding the combined decimal place weight, and planned
+membership in `primes` checks the whole family. The smallest match is `121313`.
 
 
 ---

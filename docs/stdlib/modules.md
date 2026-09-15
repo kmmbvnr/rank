@@ -518,6 +518,7 @@ window
 copy
 sort
 argsort
+indices
 count
 ```
 
@@ -580,6 +581,15 @@ Order = Events argsort by .time .delta
 
 The result is a new rank-1 array. Key values use the ordinary numeric, text,
 boolean or symbol ordering.
+
+`indices` returns the zero-based positions of `true` values in a rank-1 boolean
+array. The result is an integer vector, and an empty or all-false mask produces
+an empty vector:
+
+```rank
+Places = (array true false true false) indices
+rem 0 2
+```
 
 ## Tables
 

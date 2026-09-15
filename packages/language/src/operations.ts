@@ -436,6 +436,8 @@ export const operations: readonly Operation[] = [
     { name: 'fibonacci', module: 'sequences', arities: [], form: 'fibonacci', result: 'sequence',
         lazy: true,
         summary: 'Unbounded lazy Fibonacci numbers; bound with to, until or from.' },
+    { name: 'indices', module: 'sequences', arities: [1], form: 'Mask indices', result: 'array',
+        summary: 'Zero-based positions of the true values in a boolean vector.' },
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
     { name: 'primes', module: 'sequences', arities: [], form: 'primes', result: 'sequence',

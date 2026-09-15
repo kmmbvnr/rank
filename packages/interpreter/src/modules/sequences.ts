@@ -69,6 +69,7 @@ export const sequencesModule: RuntimeModule = {
     all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),
     any: () => native('any', 1, arguments_ => booleanReduction(arguments_[0], 'any')),
     count: () => native('count', 1, arguments_ => countTrue(arguments_[0])),
+    indices: () => native('indices', 1, arguments_ => trueIndices(arguments_[0])),
 };
 
 function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
@@ -145,6 +146,21 @@ function countTrue(value: RankValue): bigint {
         if (item) count += 1n;
     }
     return count;
+}
+
+function trueIndices(value: RankValue): RankArray {
+    if (!isRankArray(value) || value.shape.length !== 1) {
+        throw new RankError('indices expects a rank-1 array', 'TypeError');
+    }
+    const positions: bigint[] = [];
+    for (let index = 0; index < value.shape[0]; index += 1) {
+        const item = readArrayItem(value, index);
+        if (typeof item !== 'boolean') {
+            throw new RankError('indices expects boolean values', 'TypeError');
+        }
+        if (item) positions.push(BigInt(index));
+    }
+    return ownedArray(positions, [positions.length]);
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {

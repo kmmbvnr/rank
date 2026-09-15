@@ -536,6 +536,27 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toBe('false true');
     });
 
+    it('returns the true positions of a boolean vector', () => {
+        expect(run('use sequences\n(array true false true false) indices')).toBe('0 2');
+        expect(run('use sequences\n(array false false) indices')).toBe('');
+        const empty = 'Mask = array shape 0\nend\nMask';
+        expect(run(`use sequences\n${empty} indices`)).toBe('');
+        expect(() => run('use sequences\n(array true 1) indices'))
+            .toThrowError('indices expects boolean values');
+        expect(() => run('use sequences\ntrue indices'))
+            .toThrowError('indices expects a rank-1 array');
+        expect(() => run([
+            'use sequences',
+            'Mask = array shape 2 2',
+            '  true false',
+            '  false true',
+            'end',
+            'Mask indices',
+        ].join('\n'))).toThrowError('indices expects a rank-1 array');
+        expect(() => run('(array true false) indices'))
+            .toThrowError('unknown name: indices');
+    });
+
     it('updates values with compound assignment', () => {
         expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue %= 4\nValue')).toBe('1');
         expect(run('Mask = true\nMask and= true\nMask xor= true\nMask or= true\nMask')).toBe('true');

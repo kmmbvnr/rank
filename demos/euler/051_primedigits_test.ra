@@ -1,0 +1,17 @@
+use testing
+
+test "smallest eight-prime family"
+  use "051_primedigits"
+  run
+
+  Answer equal 121313
+end
+
+test "known replacement family"
+  use "051_primedigits"
+  use sequences
+
+  Family = 121313 (array 0 2 4) replacement_family
+  Family equal array 121313 222323 323333 424343 525353 626363 727373 828383 929393
+  (Family in primes) count equal 8
+end

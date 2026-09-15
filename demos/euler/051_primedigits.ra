@@ -1,0 +1,71 @@
+rem Prime Digit Replacements
+rem https://projecteuler.net/problem=51
+rem Find the smallest prime in an eight-prime
+rem digit-replacement family
+
+use sequences
+use algo
+use io
+
+Answer = smallest_prime_replacement
+Answer print
+
+
+rem Search primes in ascending order, replacing three
+rem equal digits while leaving the final digit fixed.
+fun smallest_prime_replacement
+  Lower = 1000
+  Upper = 10000
+
+  for true
+    for Prime in (primes from Lower) until Upper
+      if Prime has_eight_prime_family
+        return Prime
+      end
+    end
+
+    Lower = Upper
+    Upper *= 10
+  end
+end
+
+
+fun has_eight_prime_family Prime
+  Digits = Prime text integer rank 0
+  Last = Digits len - 1
+  Places = 0 until Last
+
+  for Digit in 0 to 2
+    Same = (Digits Places equal Digit) indices
+
+    for Pick in Same 3 combinations
+      Family = Prime Pick replacement_family
+      if (Family in primes) count at least 8
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
+
+rem Replace every selected decimal position with
+rem each legal digit by adding its combined weight.
+fun replacement_family Prime Pick
+  Digits = Prime text integer rank 0
+  Width = Digits len
+  Digit = Digits (Pick 0)
+  Weight = 0
+
+  for Place in Pick
+    Weight += 10 ** (Width - Place - 1)
+  end
+
+  Replacements = 0 to 9
+  if 0 in Pick
+    Replacements = 1 to 9
+  end
+
+  return Prime + (Replacements - Digit) * Weight
+end
