@@ -12,6 +12,7 @@ interface PreviewState {
 const REACHED = 'RankReplPreviewReached';
 const VALUE = 'RankReplPreviewValue';
 const SKIPPED = '.replPreviewSkipped';
+const BRANCH_RUNS = '.replPreviewBranchRuns';
 
 /** Builds and evaluates isolated prefixes while a block is being written. */
 export class LivePreviewRunner {
@@ -49,7 +50,8 @@ export class LivePreviewRunner {
         const previews = previewTargets(source, start, end, throughLine).map(target => ({
             line: target + 1,
             source: build(source, target),
-            condition: /^(?:if|elif)\b/.test(lines[target].trim()),
+            branch: /^(?:if|elif)\b/.test(lines[target].trim()) ? 'condition' as const
+                : lines[target].trim() === 'else' ? 'else' as const : undefined,
         }));
         const changed = previews.some(item => state.prefixes.has(item.line)
                 && state.prefixes.get(item.line) !== item.source)
@@ -61,7 +63,7 @@ export class LivePreviewRunner {
         for (const item of previews) {
             if (state.outputs.has(item.line)) continue;
             const result = await this.preview(item.source);
-            state.outputs.set(item.line, displayOutput(result.output, item.condition));
+            state.outputs.set(item.line, displayOutput(result.output, item.branch));
             state.prefixes.set(item.line, item.source);
         }
     }
@@ -77,7 +79,7 @@ function previewTargets(source: string, start: number, end: number, throughLine?
         const closingBlock = line.trim() === 'end' ? state.blocks.at(-1) : undefined;
         state = addLine(state, line.trim(), index + 1 < end);
         const first = line.trim().split(/\s+/, 1)[0];
-        const resultLine = !['else', 'end', 'break', 'continue', 'for', 'try', 'catch', 'finally'].includes(first)
+        const resultLine = !['end', 'break', 'continue', 'for', 'try', 'catch', 'finally'].includes(first)
             || first === 'end' && closingBlock !== undefined;
         if (state.pending === '' && resultLine
             && (throughLine === undefined || index + 1 <= throughLine)) targets.push(index);
@@ -95,12 +97,21 @@ function conditionalBodyEnd(source: string): number {
     return lines.at(-1)?.trim() === 'end' ? lines.length - 1 : lines.length;
 }
 
-function displayOutput(output: OutputLine[], condition: boolean): OutputLine[] {
-    if (output.some(line => !line.error && line.text === SKIPPED)) {
-        return condition ? [{ text: 'not evaluated · branch skipped', error: false }] : [];
+function displayOutput(output: OutputLine[], branch?: 'condition' | 'else'): OutputLine[] {
+    if (branch === 'else') {
+        if (output.some(line => !line.error && line.text === BRANCH_RUNS)) {
+            return [{ text: 'branch runs', error: false }];
+        }
+        const errors = output.filter(line => line.error);
+        return errors.length ? errors : [{ text: 'branch skipped', error: false }];
     }
-    if (condition && output.length === 0) return [{ text: 'not evaluated · branch skipped', error: false }];
-    if (!condition) return output;
+    if (output.some(line => !line.error && line.text === SKIPPED)) {
+        return branch === 'condition' ? [{ text: 'not evaluated · branch skipped', error: false }] : [];
+    }
+    if (branch === 'condition' && output.length === 0) {
+        return [{ text: 'not evaluated · branch skipped', error: false }];
+    }
+    if (branch !== 'condition') return output;
     let result = output.length - 1;
     while (result >= 0 && output[result].error) result -= 1;
     return output.map((line, index) => index !== result ? line : line.text === 'true'
@@ -161,6 +172,11 @@ function addTarget(state: CellState, line: string, insideFunction: boolean): Cel
         state = addResult(state, 'true');
         state = addLine(state, 'else');
         state = addResult(state, 'false');
+        return addLine(state, 'end');
+    }
+    if (line === 'else') {
+        state = addLine(state, line);
+        state = addResult(state, BRANCH_RUNS);
         return addLine(state, 'end');
     }
     const returned = /^return\s+(.+)$/.exec(line);

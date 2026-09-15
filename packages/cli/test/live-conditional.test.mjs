@@ -26,6 +26,7 @@ test('an open top-level if previews its conditions and only the selected branch'
         await s.line('X = 2');
         assert.deepEqual(s.output(4), ['2']);
         await s.line('else');
+        assert.deepEqual(s.output(5), ['branch skipped']);
         await s.line('X = 3');
         assert.deepEqual(s.output(6), []);
         assert.equal(s.session.names.includes('X'), false, 'preview must not change the global session');
@@ -54,6 +55,7 @@ test('a function previews if lines with its example and skips inactive nested co
         assert.deepEqual(s.output(5), ['5']);
         await s.line('else');
         assert.equal(s.repl.notebook.current.source.split('\n')[5], '  else');
+        assert.deepEqual(s.output(6), ['branch skipped']);
         await s.line('Y = X - 3');
         assert.equal(s.repl.notebook.current.source.split('\n')[6], '    Y = X - 3');
         assert.deepEqual(s.output(7), []);
@@ -67,6 +69,15 @@ test('an if nested in an inactive branch is not evaluated', async () => {
         await s.line('if 1 / 0 equal 0');
         assert.deepEqual(s.output(2), ['not evaluated · branch skipped']);
         assert.equal(s.repl.liveOutputs?.get(2)?.some(item => item.error), false);
+    } finally { s.session.dispose(); }
+});
+
+test('else reports when its branch is selected', async () => {
+    const s = scenario();
+    try {
+        await s.line('if false');
+        await s.line('else');
+        assert.deepEqual(s.output(2), ['branch runs']);
     } finally { s.session.dispose(); }
 });
 
