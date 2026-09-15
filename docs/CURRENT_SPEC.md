@@ -6462,14 +6462,20 @@ concatenation is `296962999629`.
 ## 50. Consecutive prime sum
 
 ```rank
+Prefix = Primes + scan with 0
+Below = Prefix less Limit
+Length = (Prefix take while Below) len - 1
+
 Total = Prefix End - Prefix Start
 if Total in primes
   return Total
 end
 ```
 
-Prefix sums make every interval sum constant time, and lengths are tried from
-largest to smallest. The result below one million is `997651`.
+A seeded scan builds the zero-based prefix table. `take while` finds the longest
+prefix whose sum stays below the limit without a mutable accumulator. Every
+interval sum is then constant time, and lengths are tried from largest to
+smallest. The result below one million is `997651`.
 
 ## 51. Prime digit replacements
 

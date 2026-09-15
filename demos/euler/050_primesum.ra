@@ -18,19 +18,9 @@ rem constant time; lengths are tried longest first.
 fun longest_prime_sum Limit
   Primes = primes until Limit array
   Count = Primes len
-  Prefix = array shape (Count + 1) fill 0
-  for Prime I in Primes
-    Next = I + 1
-    Prefix Next = Prefix I + Prime
-  end
-
-  Length = 0
-  for I in 1 to Count
-    if Prefix I at least Limit
-      break
-    end
-    Length = I
-  end
+  Prefix = Primes + scan with 0
+  Below = Prefix less Limit
+  Length = (Prefix take while Below) len - 1
 
   for Length greater 0
     LastStart = Count - Length
