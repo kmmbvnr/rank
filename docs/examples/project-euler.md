@@ -732,16 +732,15 @@ program never constructs the million-character prefix. The product is `210`.
 ## 41. Pandigital prime
 
 ```rank
-for CandidateText in Digits permutations
-  Candidate = CandidateText integer
-  if Candidate in primes
-    return Candidate
-  end
-end
+CandidateTexts = Digits permutations
+Candidates = CandidateTexts integer rank 0
+Prime = Candidates in primes
+Answer = (Candidates first where Prime) default 0
 ```
 
 Descending digits make lazy permutations arrive from largest to smallest. The
-first prime is `7652413`.
+integer conversion and prime mask remain lazy, so `first where` stops at the
+first match. The first prime is `7652413`.
 
 ## 42. Coded triangle numbers
 
