@@ -5,6 +5,7 @@ import {
     isRankArray,
     isRankQueue,
     isRankSequence,
+    isRankSequenceMask,
     type RankArray,
     type RankSequence,
     type RankSequenceMask,
@@ -145,6 +146,137 @@ export function scanSequence(
             }
         },
     });
+}
+
+export function firstWhereValue(
+    source: RankValue,
+    mask: RankValue,
+    returnIndex = false,
+): RankValue {
+    validateAlignedSizes(source, mask, 'first where');
+    if (isRankSequence(source) && isRankSequenceMask(mask) && mask.source === source) {
+        let index = 0n;
+        for (const value of source.plan.iterate()) {
+            if (mask.predicate.test(value)) return returnIndex ? index : value;
+            index += 1n;
+        }
+        throw new MissingValueError(`first${returnIndex ? ' index' : ''} where found no matching value`);
+    }
+    const values = rankOneValues(source, 'first where');
+    const selected = maskValues(source, mask, 'first where');
+    let index = 0n;
+    while (true) {
+        const value = values.next();
+        const choice = selected.next();
+        if (value.done || choice.done) {
+            if (value.done !== choice.done) throw new RankError('first where source and mask have different lengths');
+            break;
+        }
+        if (choice.value) return returnIndex ? index : value.value;
+        index += 1n;
+    }
+    throw new MissingValueError(`first${returnIndex ? ' index' : ''} where found no matching value`);
+}
+
+export function takeWhileValue(source: RankValue, mask: RankValue): RankValue {
+    validateAlignedSizes(source, mask, 'take while');
+    if (isRankSequence(source)) {
+        const sourcePlan = source.plan;
+        return sequence({
+            name: `${sourcePlan.name} take while`,
+            singlePass: sourcePlan.singlePass,
+            size: { kind: 'unknown' },
+            captures: sourcePlan.captures,
+            *iterate() {
+                if (isRankSequenceMask(mask) && mask.source === source) {
+                    for (const value of sourcePlan.iterate()) {
+                        if (!mask.predicate.test(value)) return;
+                        yield value;
+                    }
+                    return;
+                }
+                const values = rankOneValues(source, 'take while');
+                const selected = maskValues(source, mask, 'take while');
+                while (true) {
+                    const value = values.next();
+                    const choice = selected.next();
+                    if (value.done || choice.done) {
+                        if (value.done !== choice.done) {
+                            throw new RankError('take while source and mask have different lengths');
+                        }
+                        return;
+                    }
+                    if (!choice.value) return;
+                    yield value.value;
+                }
+            },
+        });
+    }
+
+    const values = rankOneValues(source, 'take while');
+    const selected = maskValues(source, mask, 'take while');
+    const result: RankValue[] = [];
+    while (true) {
+        const value = values.next();
+        const choice = selected.next();
+        if (value.done || choice.done) {
+            if (value.done !== choice.done) throw new RankError('take while source and mask have different lengths');
+            break;
+        }
+        if (!choice.value) break;
+        result.push(value.value);
+    }
+    return typeof source === 'string' ? result.join('') : ownedArray(result);
+}
+
+function* rankOneValues(value: RankValue, operation: string): IterableIterator<RankValue> {
+    if (isRankArray(value)) {
+        if (value.shape.length !== 1) throw new RankError(`${operation} expects a rank-1 source`);
+        for (let index = 0; index < value.shape[0]; index += 1) {
+            yield value.itemAt?.(index) ?? value.items[index];
+        }
+        return;
+    }
+    if (isRankQueue(value)) { yield* value.items; return; }
+    if (typeof value === 'string') { yield* value; return; }
+    if (isRankSequence(value)) { yield* value.plan.iterate(); return; }
+    throw new RankError(`${operation} expects a rank-1 source`);
+}
+
+function* maskValues(
+    source: RankValue,
+    mask: RankValue,
+    operation: string,
+): IterableIterator<boolean> {
+    if (isRankSequence(source) && isRankSequenceMask(mask) && mask.source === source) {
+        for (const value of source.plan.iterate()) yield mask.predicate.test(value);
+        return;
+    }
+    for (const value of rankOneValues(mask, operation)) {
+        if (typeof value !== 'boolean') throw new RankError(`${operation} expects a boolean mask`);
+        yield value;
+    }
+}
+
+function validateAlignedSizes(source: RankValue, mask: RankValue, operation: string): void {
+    const sourceSize = rankOneSize(source, operation);
+    const maskSize = rankOneSize(mask, operation);
+    if (sourceSize !== undefined && maskSize !== undefined && sourceSize !== maskSize) {
+        throw new RankError(`${operation} mask length ${maskSize} does not match source length ${sourceSize}`);
+    }
+}
+
+function rankOneSize(value: RankValue, operation: string): bigint | undefined {
+    if (isRankArray(value)) {
+        if (value.shape.length !== 1) throw new RankError(`${operation} expects a rank-1 source`);
+        return BigInt(value.shape[0]);
+    }
+    if (isRankQueue(value)) return BigInt(value.items.length);
+    if (typeof value === 'string') return BigInt([...value].length);
+    if (isRankSequence(value)) {
+        return value.plan.size.kind === 'exact' ? value.plan.size.value : undefined;
+    }
+    throw new RankError(`${operation} expects a rank-1 source`);
 }
 
 function scanSize(size: SequenceSize, seeded: boolean): SequenceSize {

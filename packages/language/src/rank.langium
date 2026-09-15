@@ -223,6 +223,9 @@ PowerExpression returns Expression:
         operator='**' right=PowerExpression)?;
 
 ApplicationExpression returns Expression:
+    FirstIndexWhereExpression |
+    FirstWhereExpression |
+    TakeWhileExpression |
     TableWritePreviewExpression |
     TableWriteExpression |
     TableFilterExpression |
@@ -237,6 +240,15 @@ ApplicationExpression returns Expression:
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
     ({infer MaterializeExpression.source=current} 'array')?;
+
+FirstWhereExpression:
+    source=PrimaryExpression 'first' 'where' mask=Expression;
+
+FirstIndexWhereExpression:
+    source=PrimaryExpression 'first' 'index' 'where' mask=Expression;
+
+TakeWhileExpression:
+    source=PrimaryExpression 'take' 'while' mask=Expression;
 
 TableWriteExpression:
     source=PrimaryExpression sourceFields+=LabelLiteral?

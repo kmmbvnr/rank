@@ -224,6 +224,11 @@ This replaces `start Total at 0 -> append Total -> update Total for each value
 -> append each new Total`. The result begins with the seed, so it can be used
 directly as a zero-based prefix table.
 
-Keep a `for` loop when the algorithm needs an early `break` or `return`, carries
-several changing states, mutates shared structures, consumes external input, or
-becomes less clear when split into collection operations.
+Use `first where`, `first index where`, `take while`, `all`, or `any` when an
+ordered search can stop after a mask decides its result. These operations only
+read the demanded prefix of a lazy sequence.
+
+Keep a `for` loop when the algorithm carries several changing states, mutates
+shared structures, consumes external input, performs effects, or becomes less
+clear when split into collection operations. An early `break` or `return` tied
+to those behaviors remains ordinary loop control.

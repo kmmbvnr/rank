@@ -2507,6 +2507,27 @@ an unbounded source is valid when a later operation requests only a finite
 prefix or a particular position. Higher-rank arrays are rejected. `scan`
 currently has no `rank` or `axis` form.
 
+## Short-circuiting selection
+
+A rank-1 value and an aligned boolean mask support three ordered operations:
+
+```rank
+Match = Values first where Mask
+Position = Values first index where Mask
+Prefix = Values take while Mask
+```
+
+`first where` returns the first value selected by the mask. `first index where`
+returns its zero-based position. Both stop reading as soon as the mask first
+produces `true`. If no position matches, they raise `.Missing`, so `default`
+can provide a fallback.
+
+`take while` returns the leading values for which the mask remains `true` and
+stops before the first `false`. Array and queue sources produce an array, text
+produces text, and a sequence produces another lazy sequence. It can therefore
+bound an unbounded source without reading the rest. Known unequal source and
+mask lengths are errors.
+
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary
@@ -7201,8 +7222,13 @@ This replaces `start Total at 0 -> append Total -> update Total for each value
 -> append each new Total`. The result begins with the seed, so it can be used
 directly as a zero-based prefix table.
 
-Keep a `for` loop when the algorithm needs an early `break` or `return`, carries
-several changing states, mutates shared structures, consumes external input, or
-becomes less clear when split into collection operations.
+Use `first where`, `first index where`, `take while`, `all`, or `any` when an
+ordered search can stop after a mask decides its result. These operations only
+read the demanded prefix of a lazy sequence.
+
+Keep a `for` loop when the algorithm carries several changing states, mutates
+shared structures, consumes external input, performs effects, or becomes less
+clear when split into collection operations. An early `break` or `return` tied
+to those behaviors remains ordinary loop control.
 
 ---

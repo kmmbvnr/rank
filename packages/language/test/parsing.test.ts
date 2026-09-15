@@ -26,6 +26,15 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
+    it('parses short-circuiting sequence selectors', async () => {
+        const document = await parse([
+            'A = Values first where Mask',
+            'I = Values first index where Mask',
+            'Prefix = Values take while Mask',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+    });
     it('parses contextual table blocks, field lists, records and per-key directions', async () => {
         const document = await parse([
             'R = Db .members filter .id greater 0',

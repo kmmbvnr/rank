@@ -59,7 +59,7 @@ const OPEN_WORDS = new Set([
     'and', 'or', 'xor', 'not', 'to', 'until', 'by', 'default', 'fill', 'equal', 'less',
     'greater', 'in', 'is', 'at', 'least', 'most', 'multiple', 'use', 'as',
     'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
-    'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin',
+    'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin', 'where', 'while',
 ]);
 
 /** Block keywords, recognized only as the first word of a statement. */
@@ -82,6 +82,7 @@ export const OPERATOR_KEYWORDS = [
     'and', 'or', 'xor', 'not', 'equal', 'not equal', 'less', 'greater',
     'at least', 'at most', 'multiple by', 'in', 'is', 'to', 'until', 'by',
     'default', 'fill', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
+    'first where', 'first index where', 'take while',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
     'innerjoin on', 'set add', 'counter add', 'filter', 'select', 'ascending', 'descending',
 ];

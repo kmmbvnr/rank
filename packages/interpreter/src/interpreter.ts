@@ -44,6 +44,8 @@ import {
     isExpressionStatement,
     isFlagStatement,
     isForStatement,
+    isFirstIndexWhereExpression,
+    isFirstWhereExpression,
     isFunctionStatement,
     isIfStatement,
     isIndexAssignmentStatement,
@@ -61,6 +63,7 @@ import {
     isTableSelectExpression,
     isTableWriteExpression,
     isTableWritePreviewExpression,
+    isTakeWhileExpression,
     isRunStatement,
     isReturnStatement,
     isKeyedSortExpression,
@@ -131,6 +134,7 @@ import {
     atSequence,
     boundSequence,
     filterSequence,
+    firstWhereValue,
     lowerBoundSequence,
     mapSequence,
     materializeSequence,
@@ -138,6 +142,7 @@ import {
     sequenceMask,
     scanSequence,
     sequenceValues,
+    takeWhileValue,
     windowValue,
     zipSequences,
 } from './sequence.js';
@@ -2170,6 +2175,20 @@ export class Interpreter {
                 const to = expression.to.name;
                 if (isRankSqliteTable(edges)) return reachSqlite(edges, starts, from, to);
                 return reachTable(edges, starts, from, to);
+            };
+        }
+        if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                const source = yield* resume(interpreter.evaluateTask(expression.source));
+                const mask = yield* resume(interpreter.evaluateTask(expression.mask));
+                return firstWhereValue(source, mask, isFirstIndexWhereExpression(expression));
+            };
+        }
+        if (isTakeWhileExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                const source = yield* resume(interpreter.evaluateTask(expression.source));
+                const mask = yield* resume(interpreter.evaluateTask(expression.mask));
+                return takeWhileValue(source, mask);
             };
         }
         if (isNameExpression(expression)) {

@@ -749,6 +749,27 @@ an unbounded source is valid when a later operation requests only a finite
 prefix or a particular position. Higher-rank arrays are rejected. `scan`
 currently has no `rank` or `axis` form.
 
+## Short-circuiting selection
+
+A rank-1 value and an aligned boolean mask support three ordered operations:
+
+```rank
+Match = Values first where Mask
+Position = Values first index where Mask
+Prefix = Values take while Mask
+```
+
+`first where` returns the first value selected by the mask. `first index where`
+returns its zero-based position. Both stop reading as soon as the mask first
+produces `true`. If no position matches, they raise `.Missing`, so `default`
+can provide a fallback.
+
+`take while` returns the leading values for which the mask remains `true` and
+stops before the first `false`. Array and queue sources produce an array, text
+produces text, and a sequence produces another lazy sequence. It can therefore
+bound an unbounded source without reading the rest. Known unequal source and
+mask lengths are errors.
+
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary
