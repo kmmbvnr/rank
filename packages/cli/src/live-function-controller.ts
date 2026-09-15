@@ -257,7 +257,7 @@ export class LiveFunctionController {
 
     private async updatePreviews(reset = false, throughLine?: number): Promise<void> {
         if (!this.live) return;
-        await this.preview.update(this.live, this.notebook.current.source, reset, throughLine);
+        await this.preview.updateFunction(this.live, this.notebook.current.source, reset, throughLine);
         this.updateSuggestion();
     }
 

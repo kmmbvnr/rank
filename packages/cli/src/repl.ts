@@ -8,6 +8,7 @@ import { Notebook, splitSource } from './notebook.js';
 import { KeyRouter, type Key } from './key-router.js';
 import { FileWorkflow, type SavePrompt } from './file-workflow.js';
 import { ExecutionRunner } from './execution-runner.js';
+import { LiveConditionalController } from './live-conditional-controller.js';
 import { LiveFunctionController } from './live-function-controller.js';
 import { createReplSession, type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
@@ -24,6 +25,7 @@ export class NotebookRepl {
     pauseTop = 0;
     readonly breakpoints = new Map<number, Set<number>>();
     private readonly liveFunction: LiveFunctionController;
+    private readonly liveConditional: LiveConditionalController;
     private readonly files: FileWorkflow;
     private readonly execution: ExecutionRunner;
 
@@ -37,8 +39,10 @@ export class NotebookRepl {
         return 'rank> ';
     }
 
-    get liveOutputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.liveFunction.outputs; }
-    get liveEditing(): boolean { return this.liveFunction.editing; }
+    get liveOutputs(): ReadonlyMap<number, OutputLine[]> | undefined {
+        return this.liveFunction.outputs ?? this.liveConditional.outputs;
+    }
+    get liveEditing(): boolean { return this.liveFunction.editing || this.liveConditional.editing; }
     get exampleEditor(): Notebook | undefined { return this.liveFunction.editor; }
     get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
         return this.liveFunction.fields;
@@ -103,9 +107,12 @@ export class NotebookRepl {
         this.liveFunction = new LiveFunctionController(
             this.notebook, session, columns, text => { this.suggestion = text; }, render, functionExamples,
         );
+        this.liveConditional = new LiveConditionalController(
+            this.notebook, session, columns, text => { this.suggestion = text; }, render, functionExamples,
+        );
         this.files = new FileWorkflow(
             this.notebook, session, this.breakpoints, start => this.execution.prepareFunctions(start),
-            () => { this.liveFunction.clear(); this.help = undefined; this.dismiss(); },
+            () => { this.liveFunction.clear(); this.liveConditional.clear(); this.help = undefined; this.dismiss(); },
             () => this.running, running => { this.execution.setRunning(running); }, render,
         );
     }
@@ -115,7 +122,8 @@ export class NotebookRepl {
     cancelExample(): void { this.liveFunction.cancelExample(); }
 
     cancelLiveFunction(): void {
-        this.liveFunction.cancel();
+        if (this.liveFunction.editing) this.liveFunction.cancel();
+        else this.liveConditional.cancel();
         this.completion = undefined;
     }
 
@@ -134,6 +142,7 @@ export class NotebookRepl {
     async rerun(): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;
         if (await this.liveFunction.rerun()) return false;
+        if (await this.liveConditional.rerun()) return false;
         return this.submit(true);
     }
 
@@ -176,6 +185,7 @@ export class NotebookRepl {
         if (this.examplePrompt) return this.liveFunction.acceptExample();
         await this.files.ready;
         if (force && await this.liveFunction.forcePreview()) return false;
+        if (force && await this.liveConditional.forcePreview()) return false;
         this.dismiss();
         const book = this.notebook;
         const currentRaw = book.current.source.trim();
@@ -183,7 +193,8 @@ export class NotebookRepl {
             this.render();
             return false;
         }
-        if (!book.atPrompt && !force && !this.liveFunction.editing) { book.newline(); return false; }
+        if (await this.liveConditional.begin(currentRaw)) return false;
+        if (!book.atPrompt && !force && !this.liveEditing) { book.newline(); return false; }
         if (force) {
             if (book.current.status === 'interrupted') book.replayFrom = book.active;
             book.toPrompt();
@@ -192,6 +203,9 @@ export class NotebookRepl {
         const liveResult = await this.liveFunction.submit();
         if (liveResult === 'handled') return false;
         if (liveResult === 'replay') return this.submit(true);
+        const conditionalResult = await this.liveConditional.submit();
+        if (conditionalResult === 'handled') return false;
+        if (conditionalResult === 'replay') return this.submit(true);
         const draft = this.session.isCommand(raw) ? raw : book.preparePrompt(line => this.session.format(line));
         if (draft === undefined) return false;
         // Commit input before replay: even if an earlier instruction fails, this text stays in the document.
