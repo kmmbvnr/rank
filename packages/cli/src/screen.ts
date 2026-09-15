@@ -242,8 +242,8 @@ export function pauseFrame(
     }
     if (source && line !== undefined && line >= 1 && line <= source.length) {
         append(pause.activity === `before line ${line}` ? '● Next to execute' : '● Currently executing');
-        const start = Math.max(0, line - 3);
-        const end = Math.min(source.length, line + 2);
+        const start = Math.max(0, Math.min(line - 3, source.length - 4));
+        const end = Math.min(source.length, start + 4);
         const digits = String(end).length;
         for (let index = start; index < end; index++) {
             const current = index === line - 1;

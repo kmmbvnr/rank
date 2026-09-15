@@ -22,8 +22,8 @@ test('pause context marks the current line in color and fits narrow terminals', 
         const output = text(terminal);
         assert.match(output, /● 4 │     Total \+= I/);
         assert.match(output, /2 │   Total = 0/);
-        assert.match(output, /6 │   return Total/);
-        assert.doesNotMatch(output, /fun count|7 │/);
+        assert.match(output, /5 │   end/);
+        assert.doesNotMatch(output, /fun count|6 │|7 │/);
         const row = output.split('\n').findIndex(line => line.startsWith('● 4'));
         const marker = terminal.buffer.active.getLine(row).getCell(0);
         assert.ok(marker.isBold());
@@ -31,6 +31,17 @@ test('pause context marks the current line in color and fits narrow terminals', 
         for (const line of frame.lines) assert.ok(stringWidth(line) < columns);
         assert.equal(terminal.buffer.active.baseY, 0);
     }
+});
+
+test('pause context keeps four source lines and stable state position near the start', () => {
+    const source = 'for\n  Lower = Power\n  Upper = (10 * Power - 1)\nend';
+    const state = 'Call stack (outermost first):\n<cell>\n\nVariables (current scope):\n  Power = 1';
+    const frames = [1, 2].map(line => pauseFrame({ source, line, activity: `before line ${line}`, state }, 80, 20));
+    for (const frame of frames) assert.equal(frame.lines.filter(row => row.includes('│')).length, 4);
+    assert.equal(
+        frames[0].lines.findIndex(row => row.includes('Variables (current scope):')),
+        frames[1].lines.findIndex(row => row.includes('Variables (current scope):')),
+    );
 });
 
 test('pause footer shows an unknown-key status', () => {
