@@ -29,11 +29,11 @@ rem Sort names and multiply each letter sum
 rem by its one-based position.
 fun names_score Names
   Sorted = Names sort
-  Total = 0
-  for Name i in Sorted
-    Total += Name name_value * (i + 1)
-  end
-  return Total
+  Values = Sorted name_value rank 0
+  Count = Sorted len
+  Positions = (1 to Count) array
+  Scores = Values * Positions
+  return Scores + reduce with 0
 end
 
 
@@ -41,10 +41,7 @@ rem Convert A through Z to values 1 through
 rem 26 using Unicode code points.
 fun name_value Name
   Base = "A" codepoint
-  Total = 0
-  for C in Name
-    Value = C codepoint - Base + 1
-    Total += Value
-  end
-  return Total
+  Codes = Name codepoint rank 0
+  Values = Codes - Base + 1
+  return Values + reduce with 0
 end

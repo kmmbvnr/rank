@@ -6047,13 +6047,19 @@ rem https://projecteuler.net/problem=22
 
 Text = Input read
 Names = Text names_from_text
-Answer = Names names_score
+Sorted = Names sort
+Values = Sorted name_value rank 0
+Count = Sorted len
+Positions = (1 to Count) array
+Scores = Values * Positions
+Answer = Scores + reduce with 0
 ```
 
 The program accepts the official names file as a path argument. It removes the
-outer quotes, splits the CSV text, sorts the names, and derives letter values
-from Unicode code points. The official input is embedded only in the test; the
-program tree needs no fixture file. The answer is `871198282`.
+outer quotes and splits the CSV text. Rank-0 application derives every name's
+letter value, array multiplication applies the one-based positions, and a
+seeded reduction sums the scores. The official input is embedded only in the
+test; the program tree needs no fixture file. The answer is `871198282`.
 
 ## 23. Non-abundant sums
 
