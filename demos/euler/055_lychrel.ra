@@ -1,0 +1,46 @@
+rem Lychrel Numbers
+rem https://projecteuler.net/problem=55
+rem Count numbers below Limit that do not
+rem form a palindrome within fifty reverse-add steps
+
+use text
+use io
+use cli
+
+option Limit integer = 10000
+
+Answer = Limit lychrel_count
+Answer print
+
+
+rem Count candidates that remain non-palindromic after fifty steps.
+fun lychrel_count Limit
+  Count = 0
+  for N in 1 until Limit
+    if N lychrel
+      Count += 1
+    end
+  end
+  return Count
+end
+
+
+rem Reverse and add N, stopping when a palindrome appears.
+fun lychrel N
+  Value = N
+  for Iteration in 1 to 50
+    Back = Value text reverse integer
+    Value += Back
+    if Value palindrome
+      return false
+    end
+  end
+  return true
+end
+
+
+rem Return true when a nonnegative integer reads the same in both directions.
+fun palindrome Value
+  Text = Value text
+  return Text equal Text reverse
+end
