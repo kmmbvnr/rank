@@ -9,7 +9,7 @@ import { formatSource } from './source-format.js';
 import { textColumns } from './screen.js';
 import {
     EMPTY_CELL, OPERATOR_ALIASES, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS,
-    expandCompoundKeywords, expandOperators, formatLine, isEmpty, type CellState,
+    expandCompoundKeywords, expandOperators, formatLine, isEmpty, tokenize, type CellState,
 } from './repl-input.js';
 
 const WIDTH = 40;
@@ -564,10 +564,15 @@ function isCommand(text: string, interpreter: EditorBindings): boolean {
 }
 
 
-function complete(line: string, interpreter: EditorBindings, state: CellState): [string[], string] {
+function complete(source: string, interpreter: EditorBindings, state: CellState): [string[], string] {
+    const start = source.lastIndexOf('\n') + 1;
+    const line = source.slice(start);
+    const localNames = draftBindings(source.slice(0, start));
+    const bindings = { modules: interpreter.modules, variables: new Map(interpreter.variables) };
+    for (const name of localNames) bindings.variables.set(name, true);
     const word = /[A-Za-z_][A-Za-z0-9_]*$/.exec(line)?.[0] ?? '';
     const before = line.slice(0, line.length - word.length).trimEnd();
-    const pool = [...new Set(candidates(before, interpreter, state))];
+    const pool = [...new Set(candidates(before, bindings, state))];
     // A spelled operator is two words, so `at le` has to reach `at least`. Try
     // the longest run of typed words first and give back what it replaces.
     for (const typed of prefixes(line, word)) {
@@ -577,6 +582,39 @@ function complete(line: string, interpreter: EditorBindings, state: CellState): 
         return [hits.length === 1 ? [`${hits[0]} `] : hits, typed];
     }
     return [[], word];
+}
+
+/** Read declarations without requiring a finished or executable block. */
+function draftBindings(source: string): Set<string> {
+    let names = new Set<string>();
+    const blocks: (Set<string> | undefined)[] = [];
+    for (const line of source.split('\n')) {
+        const tokens = tokenize(line).filter(token => token.kind !== 'comment');
+        const first = tokens[0]?.text;
+        if (first === 'end') {
+            const outer = blocks.pop();
+            if (outer) names = outer;
+        } else if (first === 'fun' || first === 'memo') {
+            blocks.push(names);
+            names = new Set(names);
+            for (const token of tokens.slice(2)) {
+                if (token.kind === 'variable') names.add(token.text);
+            }
+        } else {
+            if (['for', 'if', 'try', 'test'].includes(first)) blocks.push(undefined);
+            if (tokens[0]?.kind === 'variable' && tokens[1]?.text === '=') names.add(first);
+            if (first === 'for' && tokens[1]?.kind === 'variable' && tokens[2]?.text === 'in') {
+                names.add(tokens[1].text);
+            }
+            if (first === 'unpack') {
+                for (const token of tokens.slice(1)) {
+                    if (token.text === '=') break;
+                    if (token.kind === 'variable') names.add(token.text);
+                }
+            }
+        }
+    }
+    return names;
 }
 
 /** The trailing words of a line, longest run first, down to the last word. */

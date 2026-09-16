@@ -596,6 +596,46 @@ test('completion has one replaceable suggestion and is dismissed without executi
     assert.equal(book.current.source, 'N multiple by ');
 });
 
+test('completion sees declarations before the cursor in an unfinished function', t => {
+    const { repl, book, session } = setup(t);
+    const source = 'use text\nfun palindrome N\n  Text = N text\n  return Text equal Text reverse\nend\n'
+        + 'fun lychel Number\n  for # in 1 to 50\n    Back = Number text reverse integer\n    Number += B';
+    book.replace(source);
+    repl.complete();
+    assert.equal(book.current.source, source + 'ack ');
+    assert.ok(!session.names.includes('Back'), 'completion does not execute the draft');
+
+    repl.dismiss();
+    book.replace(source.slice(0, -1) + 'Num');
+    repl.complete();
+    assert.ok(book.current.source.endsWith('Number += Number '));
+
+    for (const name of ['Text', 'Future', 'Quoted', 'Commented']) {
+        repl.dismiss();
+        const prefix = source.slice(0, source.lastIndexOf('\n'))
+            + '\n    S = "Quoted = 1"\n    rem Commented = 1\n    Number += ' + name.slice(0, 3);
+        const suffix = '\n    Future = 1\n  end\nend';
+        book.replace(prefix + suffix, prefix.length);
+        repl.complete();
+        assert.equal(book.current.source, prefix + suffix, `${name} is not in scope before the cursor`);
+    }
+});
+
+test('completion keeps loop declarations inside their enclosing function', t => {
+    const { repl, book } = setup(t);
+    const prefix = 'fun example Number\n  for Item in Number\n    unpack Left Right = Item\n  end\n  return ';
+    for (const [typed, completed] of [['It', 'Item '], ['Le', 'Left '], ['Ri', 'Right ']]) {
+        repl.dismiss();
+        book.replace(prefix + typed);
+        repl.complete();
+        assert.equal(book.current.source, prefix + completed);
+    }
+    repl.dismiss();
+    book.replace(prefix + 'Number\nend\nLe');
+    repl.complete();
+    assert.ok(book.current.source.endsWith('\nLe'));
+});
+
 test('Enter reruns a corrected error at its focused source line', async t => {
     const { repl, book, enter } = setup(t);
     await enter('Missing + 1');

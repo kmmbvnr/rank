@@ -300,8 +300,7 @@ export class NotebookRepl {
             return;
         }
         const prefix = book.current.source.slice(0, book.cursor);
-        const line = prefix.slice(prefix.lastIndexOf('\n') + 1);
-        const [candidates, word] = this.session.complete(line);
+        const [candidates, word] = this.session.complete(prefix);
         if (!candidates.length) { this.suggestion = 'No completions'; return; }
         const from = book.cursor - word.length;
         const candidate = candidates[0];

@@ -98,6 +98,8 @@ test('worker keeps editing metadata and file state in sync', { timeout: 10000 },
     const s = await session(t);
     await s.execute('use numbers', 0, []);
     assert.ok(s.complete('fac')[0].includes('factors '));
+    assert.deepEqual(s.complete('fun lychel N\n  for # in 1 to 50\n    Back = N text reverse integer\n    N += B'),
+        [['Back '], 'B']);
     await s.execute('alias off', 1, []);
     assert.equal(s.format('A plus B'), 'A plus B');
     await s.execute('fun help\n  return 3\nend', 2, []);
