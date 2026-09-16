@@ -58,7 +58,7 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement:
-    ('fun' | memo?='memo') name=(WORD | 'update') parameters+=Identifier* NL+
+    ('fun' | memo?='memo') name=(WORD | 'first' | 'take' | 'update') parameters+=Identifier* NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
@@ -415,7 +415,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete';
+    VARIABLE | WORD | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -424,7 +424,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'index' | 'shape' | 'sql' | 'explain' | 'update';
+    VARIABLE | WORD | QUALIFIED_NAME | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

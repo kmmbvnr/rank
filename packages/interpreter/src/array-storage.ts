@@ -352,7 +352,7 @@ export function prepareArrayReader(
         let offset = 0;
         for (let axis = 0; axis < indices.length; axis++) {
             const index = indices[axis];
-            if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+            if (index < 0n) throw new MissingValueError(`array index out of bounds on axis ${axis}`);
             const position = Number(index);
             if (position >= shape[axis]) {
                 throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
