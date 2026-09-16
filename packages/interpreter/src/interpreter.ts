@@ -27,7 +27,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
-    REDUCE_OPERATORS, OUTER_OPERATORS,
+    REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS,
     isAddStatement,
     isAliasedTableExpression,
     isAllAxisExpression,
@@ -2232,6 +2232,14 @@ export class Interpreter {
                     return interpreter.evaluateUnary(left.operator, powered);
                 };
             }
+            const comparison = explicitComparisonRank(expression);
+            if (comparison) {
+                return function* (): Execution<RankValue> {
+                    const left = yield* resume(interpreter.evaluateTask(comparison.left));
+                    const right = yield* resume(interpreter.evaluateTask(comparison.right));
+                    return interpreter.compareAtRank(left, right, comparison);
+                };
+            }
             const outer = explicitOuterApplication(expression);
             if (outer) {
                 return function* (): Execution<RankValue> {
@@ -2981,6 +2989,9 @@ export class Interpreter {
             try {
                 this.options.onScalarFunctionExecuted?.();
                 return kernel.run(arguments_, locate);
+            } catch (error) {
+                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                throw error;
             } finally { if (!tail) this.callDepth -= 1; }
         };
     }
@@ -3021,6 +3032,9 @@ export class Interpreter {
         return this.withResourceScope(() => {
             try {
                 return this.withLexicalFrame(frame, direct);
+            } catch (error) {
+                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                throw error;
             } finally {
                 this.callDepth -= 1;
             }
@@ -3045,6 +3059,7 @@ export class Interpreter {
         if (inspectionEnabled()) this.debugCalls.push({ name: statement.name, frame });
         let result: RankValue | undefined;
         let pending: unknown;
+        let compiledTail = false;
         try {
             while (true) {
                 checkpoint();
@@ -3063,6 +3078,7 @@ export class Interpreter {
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
                         if (error.compiled) {
+                            compiledTail = true;
                             // Keep the tail driver's logical depth and resource scope;
                             // this proven scalar body needs no new lexical frame.
                             try { result = error.compiled(error.arguments_, true); }
@@ -3072,6 +3088,7 @@ export class Interpreter {
                         const reusable = statement === error.definition.statement
                             && frame.parent === error.definition.context ? frame : undefined;
                         statement = error.definition.statement;
+                        arguments_ = error.arguments_;
                         frame = this.functionFrame(statement, error.arguments_, error.definition.context, reusable);
                         if (error.definition.direct) {
                             this.localFrame = frame;
@@ -3097,6 +3114,7 @@ export class Interpreter {
                 this.debugStatement = callerStatement;
                 inspectExecution(() => this.inspectionState());
             }
+            if (pending instanceof RankError && !compiledTail) pending.addCall(statement.name, statement.parameters, arguments_);
             this.finishResourceScope(scope, result, pending);
         }
         return result!;
@@ -3161,6 +3179,7 @@ export class Interpreter {
                             );
                         } catch (error) {
                             if (error instanceof ReturnSignal && error.value === undefined) return;
+                            if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
                             throw error;
                         }
                         if (next.done) return;
@@ -3987,6 +4006,51 @@ export class Interpreter {
             },
         };
         return builtin ? registerArrayDependencies(result, [value]) : result;
+    }
+
+    private compareAtRank(left: RankValue, right: RankValue, spec: ComparisonRank): RankValue {
+        if (isRankSqliteExpression(left) || isRankSqliteExpression(right)) {
+            if (spec.rank !== 0 || spec.axes !== undefined) {
+                throw new RankError('SQLite comparisons support rank 0 without axis', 'TypeError');
+            }
+            return this.evaluateBinary(spec.operator, left, right);
+        }
+        if (spec.axes === undefined && spec.rank === 0
+            && (isRankSequence(left) || isRankSequence(right))) {
+            if (isRankSequence(left) && isRankSequence(right)) {
+                return mapBinary(left, right, spec.operator,
+                    (a, b) => compareCells(spec.operator, a, b));
+            }
+            return this.sequenceComparison(spec.operator, left, right);
+        }
+        const cells = (value: RankValue): OuterCells => {
+            if (isRankSequence(value)) {
+                if (value.plan.size.kind === 'infinite') {
+                    throw new RankError('rank comparison requires a bounded sequence');
+                }
+                const items: RankValue[] = [];
+                for (const item of value.plan.iterate()) {
+                    checkpoint('comparing sequence cells');
+                    items.push(item);
+                }
+                value = ownedArray(items, [items.length]);
+            }
+            if (isRankQueue(value)) value = asRankArray(value)!;
+            if (spec.axes !== undefined) {
+                if (!isRankArray(value)) throw new RankError('axis rank expects arrays');
+                return tensorCells(value, tensorFrameAxes(value.shape, spec.axes, spec.rank));
+            }
+            return dyadicCells(value, spec.rank);
+        };
+        const a = cells(left), b = cells(right);
+        if (a.frameShape.length === 0 && b.frameShape.length === 0) {
+            return compareCells(spec.operator, a.cellAt(0), b.cellAt(0));
+        }
+        return mapBroadcastArrays(
+            derivedArray(a.frameShape, [left].filter(isRankArray), a.cellAt),
+            derivedArray(b.frameShape, [right].filter(isRankArray), b.cellAt),
+            (x, y) => compareCells(spec.operator, x, y),
+        );
     }
 
     private evaluateOuter(operator: string, left: RankValue, right: RankValue): RankValue {
@@ -6023,6 +6087,28 @@ interface OuterApplication {
     readonly right: Expression;
 }
 
+interface ComparisonRank extends OuterApplication {
+    readonly rank: number;
+    readonly axes?: readonly number[];
+}
+
+function explicitComparisonRank(expression: Expression): ComparisonRank | undefined {
+    if (!isBinaryExpression(expression) || !COMPARISON_OPERATORS.has(expression.operator)) return undefined;
+    const parts = flattenApplication(expression.right);
+    if (!isNamed(parts[0], 'rank') && !isNamed(parts[0], 'axis')) return undefined;
+    const rankIndex = parts.findIndex(part => isNamed(part, 'rank'));
+    if (rankIndex < 0 || rankIndex !== parts.length - 2
+        || (isNamed(parts[0], 'rank') ? rankIndex !== 0 : rankIndex < 2)) {
+        throw new RankError('comparison expects rank R or axis A ... rank R');
+    }
+    const rank = safeDimension(integerLiteral(parts[rankIndex + 1], 'rank'), 'rank');
+    const axes = rankIndex === 0 ? undefined : parts.slice(1, rankIndex)
+        .map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis'));
+    const operands = flattenApplication(expression.left);
+    if (operands.length !== 2) throw new RankError(`rank comparison expects two operands, got ${operands.length}`);
+    return { operator: expression.operator, left: operands[0], right: operands[1], rank, axes };
+}
+
 function explicitOuterApplication(expression: Expression): OuterApplication | undefined {
     if (!isBinaryExpression(expression)
         || !OUTER_OPERATORS.has(expression.operator)
@@ -6340,6 +6426,36 @@ function expectBoolean(value: RankValue): boolean {
         throw new RankError(`expected boolean, got ${typeName(value)}`);
     }
     return value;
+}
+
+function compareCells(operator: string, left: RankValue, right: RankValue): boolean {
+    if (operator === 'equal' || operator === 'notequal') {
+        const equal = equalValues(left, right);
+        return operator === 'equal' ? equal : !equal;
+    }
+    const order = compareCellOrder(left, right, new WeakMap());
+    if (operator === 'less') return order < 0;
+    if (operator === 'greater') return order > 0;
+    if (operator === 'atleast') return order >= 0;
+    return order <= 0;
+}
+
+function compareCellOrder(left: RankValue, right: RankValue, compared: WeakMap<object, WeakSet<object>>): number {
+    if (isRankArray(left) && isRankArray(right)) {
+        if (alreadyCompared(left, right, compared)) return 0;
+        const a = arraySize(left.shape), b = arraySize(right.shape);
+        for (let index = 0; index < Math.min(a, b); index++) {
+            checkpoint('comparing cells');
+            const order = compareCellOrder(arrayItem(left, index), arrayItem(right, index), compared);
+            if (order) return order;
+        }
+        if (a !== b) return a - b;
+        for (let axis = 0; axis < Math.min(left.shape.length, right.shape.length); axis++) {
+            if (left.shape[axis] !== right.shape[axis]) return left.shape[axis] - right.shape[axis];
+        }
+        return left.shape.length - right.shape.length;
+    }
+    return compareOrderedValues(left, right, orderedKind(left));
 }
 
 function equalValues(left: RankValue, right: RankValue): boolean {

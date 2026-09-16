@@ -10,7 +10,7 @@ test "official perfect correlation"
   Expected = array shape 2 2 fill 1.0
 
   Actual = X correlation_matrix
-  (Actual equal Expected) and reduce with true
+  Actual Expected equal rank 2
 end
 
 test "official three features"
@@ -48,7 +48,7 @@ test "official cross correlation"
   end
 
   Actual = X Y calculate_correlation
-  (Actual equal Expected) and reduce with true
+  Actual Expected equal rank 2
 end
 
 test "sample counts must match"

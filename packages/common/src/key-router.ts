@@ -18,8 +18,18 @@ export class KeyRouter {
     ) {}
 
     async press(text: string, key: Key = {}): Promise<KeyResult> {
+        try { return await this.route(text, key); }
+        finally { this.repl.notebook.discardEmptyLine(); }
+    }
+
+    private async route(text: string, key: Key): Promise<KeyResult> {
         const repl = this.repl;
         const book = repl.notebook;
+        if ((key.name === 'return' || key.name === 'enter') && !key.meta
+            && repl.advancing && !repl.exampleEditor && !repl.liveIterationFocused) {
+            repl.insertEvaluationLine();
+            return { exit: false };
+        }
         if (key.ctrl && key.name === 'r' && repl.advancing) {
             key = { name: 'return' };
             text = '\r';
@@ -126,6 +136,10 @@ export class KeyRouter {
                 const neighbor = rows[row + (key.name === 'up' ? -1 : 1)];
                 const nextLine = neighbor?.points[0] === undefined ? undefined
                     : book.current.source.slice(0, neighbor.points[0].offset).split('\n').length;
+                if (key.name === 'up' && line === 2 && nextLine === 1
+                    && repl.reopenExample(true)) return { exit: false };
+                if (key.name === 'down' && line === 1 && nextLine === 2
+                    && repl.reopenExample()) return { exit: false };
                 if (nextLine !== line && repl.focusLiveIterationFromBody(header)) return { exit: false };
                 book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);
                 if (fromPrompt && !book.atPrompt) repl.editSource();

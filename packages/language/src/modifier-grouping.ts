@@ -4,6 +4,8 @@ import {
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
 
+export const COMPARISON_OPERATORS = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
+
 export const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
 export const OUTER_OPERATORS = new Set([
     '+', '-', '*', '**', '/', '//', '%',
@@ -43,13 +45,17 @@ export function groupModifiers(expression: Expression): Expression {
         const parts = flattenApplication(expression.right);
         const reduce = REDUCE_OPERATORS.has(expression.operator) && named(parts[0], 'reduce');
         const scan = REDUCE_OPERATORS.has(expression.operator) && named(parts[0], 'scan');
-        const supported = reduce || scan || (REDUCE_OPERATORS.has(expression.operator)
+        const comparison = COMPARISON_OPERATORS.has(expression.operator)
+            && (named(parts[0], 'rank') || named(parts[0], 'axis'));
+        const supported = comparison || reduce || scan || (REDUCE_OPERATORS.has(expression.operator)
             && named(parts[0], 'segment'))
             || (OUTER_OPERATORS.has(expression.operator) && named(parts[0], 'outer'));
         if (!supported) return expression;
         const ranked = reduce && named(parts[1], 'rank');
         const seeded = (reduce || scan) && named(parts[ranked ? 3 : 1], 'with');
-        const end = (ranked ? 3 : 1) + (seeded ? 2 : 0);
+        const rankPosition = comparison ? parts.findIndex(part => named(part, 'rank')) : -1;
+        if (comparison && rankPosition < 0) return expression;
+        const end = comparison ? rankPosition + 2 : (ranked ? 3 : 1) + (seeded ? 2 : 0);
         if (parts.length <= end) return expression;
         prefix = { ...expression, right: applicationExpression(parts.slice(0, end)) } as Expression;
         rest = parts.slice(end);

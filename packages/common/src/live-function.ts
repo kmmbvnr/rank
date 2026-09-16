@@ -32,6 +32,7 @@ export class LiveFunctionSession {
     readonly originalSource?: string;
     stopLine?: number;
     argumentError?: { readonly source: string; readonly message: string };
+    readonly summaries = new Map<number, { source: string; text: string }>();
 
     constructor(init: LiveFunctionInit, names: readonly string[]) {
         this.name = init.name;
@@ -54,13 +55,15 @@ export class LiveFunctionSession {
             index: this.argument, count: this.parameters.length };
     }
 
-    get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
-        if (this.skipped || this.argument === undefined && this.values.length !== this.parameters.length) return undefined;
+    get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[] | undefined {
+        if (this.skipped) return undefined;
         return this.parameters.map((name, index) => ({
             name,
             source: index === this.argument ? this.argumentEditor.current.source : this.values[index] ?? '',
             cursor: index === this.argument ? this.argumentEditor.cursor : 0,
             active: index === this.argument,
+            summary: this.summaries.get(index)?.source === (index === this.argument
+                ? this.argumentEditor.current.source.trim() : this.values[index]) ? this.summaries.get(index)?.text : undefined,
             error: index === this.argument && this.argumentError?.source === this.argumentEditor.current.source
                 ? this.argumentError.message : undefined,
         }));

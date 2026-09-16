@@ -63,6 +63,7 @@ export class Notebook {
     private experimentalFrom?: number;
     private preferredColumn?: number;
     private temporaryHead?: number;
+    private temporaryLine?: { cell: NotebookCell; source: string; start: number; end: number };
     private readonly undoStack = new Map<number, Edit[]>();
     private readonly redoStack = new Map<number, Edit[]>();
 
@@ -75,6 +76,7 @@ export class Notebook {
         this.replayFrom = undefined;
         this.experimentalFrom = undefined;
         this.temporaryHead = undefined;
+        this.temporaryLine = undefined;
         this.nextId = 0;
         this.append();
         this.toPrompt();
@@ -183,6 +185,65 @@ export class Notebook {
         const scan = scanLine(line);
         const extra = scan.opens.length > scan.closes || scan.folds ? '  ' : '';
         this.insert('\n' + indent + extra);
+    }
+
+    indentToCode(): boolean {
+        const source = this.current.source;
+        const start = source.lastIndexOf('\n', this.cursor - 1) + 1;
+        const end = source.indexOf('\n', start);
+        const line = source.slice(start, end < 0 ? source.length : end);
+        const leading = /^ */.exec(line)![0];
+        if (this.cursor > start + leading.length) return false;
+        let state = EMPTY_CELL;
+        for (const previous of source.slice(0, start).split('\n')) {
+            if (previous.trim()) state = addLine(state, previous.trim(), true);
+        }
+        const indent = nextIndent(state, startsDedent(line));
+        const target = start + Math.max(indent.length, leading.length);
+        if (this.cursor >= target) return false;
+        if (leading.length < indent.length)
+            this.replace(source.slice(0, start) + indent + source.slice(start + leading.length), target);
+        else this.cursor = target;
+        return true;
+    }
+
+    temporaryNewline(): void {
+        this.discardEmptyLine();
+        if (this.temporaryLine) {
+            if (!this.temporaryLine.source.slice(this.temporaryLine.start, this.temporaryLine.end).trim()) return;
+            this.temporaryLine = undefined;
+        }
+        this.newline();
+        const source = this.current.source;
+        const start = source.lastIndexOf('\n', this.cursor - 1) + 1;
+        const end = source.indexOf('\n', this.cursor);
+        const stop = end < 0 ? source.length : end;
+        if (!source.slice(start, stop).trim())
+            this.temporaryLine = { cell: this.current, source, start, end: stop };
+    }
+
+    discardEmptyLine(): void {
+        const pending = this.temporaryLine;
+        if (!pending) return;
+        if (pending.cell.source !== pending.source) {
+            const source = pending.cell.source;
+            const suffix = pending.source.slice(pending.end);
+            const end = source.length - suffix.length;
+            if (!source.startsWith(pending.source.slice(0, pending.start)) || !source.endsWith(suffix)
+                || end < pending.start || source.slice(pending.start, end).includes('\n')) {
+                this.temporaryLine = undefined;
+                return;
+            }
+            pending.source = source;
+            pending.end = end;
+        }
+        if (this.current === pending.cell && this.cursor >= pending.start && this.cursor <= pending.end) return;
+        this.temporaryLine = undefined;
+        if (pending.source.slice(pending.start, pending.end).trim()) return;
+        const from = pending.start - 1;
+        pending.cell.source = pending.source.slice(0, from) + pending.source.slice(pending.end);
+        if (this.current === pending.cell && this.cursor > pending.end)
+            this.cursor -= pending.end - from;
     }
 
     erase(backward: boolean): void {

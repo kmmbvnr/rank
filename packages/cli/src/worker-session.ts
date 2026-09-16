@@ -96,8 +96,8 @@ export async function createWorkerSession() {
             void call<void>('replaceFile', file).catch(fail);
         },
         saveFile(lines: string[], target: string) { return call<{ ok: boolean; output: Execution['output'] }>('saveFile', lines, target); },
-        preview(text: string, columns?: number) { return call<Execution>('preview', text, columns); },
-        async execute(...args: [string, number, string[], number?, boolean?]): Promise<Execution> {
+        preview(text: string, columns?: number, summaryOnly?: boolean) { return call<Execution>('preview', text, columns, summaryOnly); },
+        async execute(...args: [string, number, string[], number?, boolean?, boolean?]): Promise<Execution> {
             resume();
             Atomics.store(signal, 0, 0);
             active = true;

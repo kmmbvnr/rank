@@ -20,13 +20,13 @@ test "official paired batches"
     1 2
     3 4
   end) and reduce with true
-  (First .y equal array 1 2) and reduce with true
+  (First .y) (array 1 2) equal rank 1
 
   Last = Batches 2
   (Last .x equal array shape 1 2
     9 10
   end) and reduce with true
-  (Last .y equal array 5) and reduce with true
+  (Last .y) (array 5) equal rank 1
 end
 
 test "official feature-only batches"

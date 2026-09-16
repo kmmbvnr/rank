@@ -47,6 +47,41 @@ test('terminal renderer honors the render gate and suppresses writes after close
     assert.equal(renderer.closed, true);
 });
 
+test('clicks use wrapped Unicode positions and copy view leaves the cursor alone', t => {
+    const { repl, renderer, writes } = setup(t);
+    repl.notebook.replace('界'.repeat(40));
+    renderer.render();
+    renderer.click(10, 1);
+    assert.equal(repl.notebook.cursor, 38);
+    renderer.copyKey({ sequence: '\x08' });
+    renderer.render();
+    assert.match(writes.at(-1), /\x1b\[\?1000l/);
+    renderer.click(6, 0);
+    assert.equal(repl.notebook.cursor, 38);
+});
+
+test('copy view scrolls through source and excludes command cells', t => {
+    const { repl, renderer, writes } = setup(t);
+    repl.notebook.enqueue('help');
+    repl.notebook.cells[0].command = true;
+    repl.notebook.replace(Array.from({ length: 45 }, (_, i) => `A${i} = ${i}`).join('\n'));
+    renderer.copyKey({ sequence: '\x08' });
+    renderer.render();
+    assert.match(writes.at(-1), /A0 = 0/);
+    assert.doesNotMatch(writes.at(-1), /help|rank>|Ctrl-/);
+    renderer.copyKey({ name: 'pagedown' });
+    renderer.render();
+    assert.match(writes.at(-1), /A20 = 20/);
+    assert.doesNotMatch(writes.at(-1), /A0 = 0/);
+    renderer.copyKey({ name: 'end' });
+    renderer.render();
+    assert.match(writes.at(-1), /A44 = 44/);
+    renderer.copyKey({ name: 'home' });
+    renderer.copyKey({ name: 'up' });
+    renderer.render();
+    assert.match(writes.at(-1), /A0 = 0/);
+});
+
 test('terminal renderer keeps the paused screen with a running footer while advancing', async () => {
     let pauseState = { source: 'for\nend', line: 1, activity: 'before line 1', state: 'Variables:\n  N = 1' };
     const repl = {
@@ -67,4 +102,49 @@ test('terminal renderer keeps the paused screen with a running footer while adva
     assert.match(writes.at(-1), /Paused · before line 1/);
     assert.match(writes.at(-1), /Running… 1\.2s · \^C stop · \^P pause/);
     assert.doesNotMatch(writes.at(-1), /rank> /);
+});
+
+test('wheel scrolls the viewport and typing resumes following the unchanged cursor', t => {
+    const { repl, renderer, writes } = setup(t);
+    repl.notebook.replace(Array.from({ length: 45 }, (_, i) => `A${i} = ${i}`).join('\n'));
+    const cursor = repl.notebook.cursor;
+    renderer.render();
+    assert.doesNotMatch(writes.at(-1), /A0 = 0/);
+    for (let i = 0; i < 20; i++) renderer.scroll(-1);
+    assert.match(writes.at(-1), /A0 = 0/);
+    renderer.scroll(1);
+    assert.doesNotMatch(writes.at(-1), /A0 = 0/);
+    assert.match(writes.at(-1), /A3 = 3/);
+    assert.equal(repl.notebook.cursor, cursor);
+    renderer.followKey('a');
+    renderer.render();
+    assert.match(writes.at(-1), /A44 = 44/);
+});
+
+test('Ctrl-R anchors the screen cursor when examples appear and typing keeps that viewport', async t => {
+    const session = createReplSession();
+    t.after(() => session.dispose());
+    const repl = new NotebookRepl(session, undefined, undefined, true);
+    const writes = [];
+    const renderer = new TerminalRenderer(repl, new TerminalModeRouter(repl),
+        { columns: 80, rows: 20, write: text => writes.push(text) });
+    const book = repl.notebook;
+    book.replace('fun inc X'); await repl.submit();
+    repl.exampleEditor.replace('2'); await repl.submit();
+    book.insert('Result = X + 1'); await repl.submit();
+    book.insert('end'); await repl.submit();
+    book.active = 0;
+    book.cursor = book.current.source.indexOf('\nend');
+    renderer.render();
+    const caret = () => [...writes.at(-1).matchAll(/\x1b\[(\d+);(\d+)H/g)].at(-1)[1];
+    const row = caret();
+    renderer.followKey('r', true);
+    await repl.rerun();
+    renderer.render();
+    assert.equal(caret(), row);
+    assert.match(writes.at(-1), /X = 2/);
+    renderer.followKey('space');
+    book.insert(' ');
+    renderer.render();
+    assert.equal(caret(), row);
 });

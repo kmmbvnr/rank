@@ -38,10 +38,39 @@ not selection is active. The terminal's default
 cursor style is restored on exit.
 The `▶` source marker identifies the next line to evaluate, including while the
 cursor is on the iteration selector. Changing the iteration recalculates only
-the prefix above that marker. Enter/Ctrl-R advances it with evaluation; ordinary
+the prefix above that marker. Ctrl-R advances it with evaluation; ordinary
 text editing has no marker. If the selector and marker fit together they remain
 visible; otherwise the footer names the next source line, for example `▶ line 6`.
-Function example arguments are reopened explicitly with Ctrl-T, not Up.
+Ctrl-R on a function body line evaluates through that line using the existing
+example arguments; it asks for arguments only when values are missing or skipped.
+Entering evaluation with Ctrl-R keeps the cursor at the same screen row when example fields and preview
+results appear above it, scrolling the viewport as needed.
+During source evaluation, Enter inserts a temporary newline, including before
+`end`. Leaving that line empty removes it; entering code keeps it. Existing blank
+lines are preserved. Ctrl-R continues evaluation with the saved example arguments.
+Enter still accepts parameter examples and iteration selections.
+Ctrl-T reopens function example arguments. Up from the first visual row of the
+function body focuses the last parameter's example value; Up/Down then move
+between parameters. Up from the first parameter reaches the function header;
+Down from the last reaches the first body line. Down from the header returns to
+the first parameter. Arrow navigation preserves example edits without evaluating
+them. Enter accepts the example and returns to the body.
+The mouse wheel scrolls the terminal viewport by three rows without moving the
+editing cursor. Typing or cursor navigation brings the cursor back into view.
+In the terminal, a left click places the cursor in source or an example value,
+including wrapped rows. Clicking results does not edit them. Copy view disables
+mouse capture so the terminal can select text normally; leaving the REPL restores
+normal mouse handling.
+Accepted examples display a bounded value summary below each parameter, unless
+it repeats the expression already shown in the field. Text
+keeps its quotes, and arrays show their shape and up to eight items. Editing the
+expression hides its old summary until it is accepted again. Summaries do not
+consume sequences or evaluate lazy array items.
+
+Runtime errors inside user functions include the function name and argument
+values, including the actual cell passed by `rank`. Nested calls retain up to
+eight frames; tail calls show the current call. These details also appear in
+compact REPL errors without replacing the original error kind or source location.
 
 Up above the first source row opens a blank instruction before it, so imports
 can be added above an unfinished first block. Up on that empty instruction does
@@ -67,14 +96,17 @@ continues one step at a time; at a loop it opens the iteration preview rather
 than executing the whole loop. Completing an existing block also stops before
 the next instruction. A grouped cell keeps its surrounding source intact when
 only one of its statements is run. Partial grouped-cell execution remains pending.
+When Ctrl-R runs a whole cell, it removes bindings first declared by that cell
+before evaluating it again, so an edited declaration can change its type or name.
+Assignments to names declared in other cells still check their existing types.
 Ctrl-R at the bottom prompt retains submission behavior.
 On the first nonempty source instruction, Ctrl-R resets interpreter state first,
 but still executes just that instruction. Continuing with Enter from there is a
 clean sequential run; live iteration previews remain experiments until committed.
 Esc leaves stepping. Moving up from `rank>` into earlier source always returns
 to text editing, even if that instruction previously had an open live preview.
-During this evaluation mode Ctrl-R is an alias for Enter: it confirms an
-iteration selection, advances to the body, and evaluates subsequent lines.
+During this evaluation mode Ctrl-R confirms an iteration selection, advances to
+the body, and evaluates subsequent lines. Enter in source inserts a temporary line.
 After leaving evaluation mode it resumes its normal start/restart behavior.
 
 Ctrl-L restarts the document from fresh interpreter state, resetting variables,
@@ -169,11 +201,20 @@ formatted on submission, so typing `+=` never rewrites it midway through the
 keystroke sequence. Operator aliases such as `gets`, `plus` and `times` retain
 their existing rules and can be disabled with `alias off`.
 
-Bracketed paste inserts text, including newlines, without executing it. Home/End
+Bracketed paste inserts text, including newlines, without executing it. On Enter,
+top-level instructions become separate cells with their own results, while blocks
+and multiline expressions stay together. Home/End
 move to the logical line boundaries. Backspace/Delete operate on grapheme clusters.
 Page Up/Page Down scroll through output without moving the source cursor.
 Ctrl-Z/Ctrl-Y undo and redo edits within the current instruction. Ctrl-P/Ctrl-N
 recall typed history. Ctrl-C returns to the prompt and clears the draft; Ctrl-Q exits.
+
+In the terminal, Ctrl-H toggles a read-only copy view: only source remains,
+including the unfinished draft, without prompts, line numbers, results, example
+fields, or the footer. Arrows and Page Up/Down scroll; Home/End jump to the ends.
+Ctrl-H or Esc restores the previous view and editing cursor. Typing and pasting
+in copy view do not edit the document. Ctrl-H uses byte 0x08; Backspace sent as
+DEL (0x7f) still deletes normally.
 History persists in `~/.rank_history`.
 
 ## Saving and exiting
@@ -224,3 +265,6 @@ Tests cover document replay with the interpreter, final screen contents and curs
 positions in a terminal emulator, and real keyboard input through a PTY. These
 include exact-width wraps, Unicode, resize, scrolling, completion replacement,
 paste, error focus and recovery.
+
+Tab in leading whitespace first moves to the code indentation, inserting missing
+spaces according to the enclosing blocks. Once there, Tab offers completion.

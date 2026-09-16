@@ -29,6 +29,22 @@ async function session(t) {
     return value;
 }
 
+test('Ctrl-R through the worker replaces the selected declaration type', async t => {
+    const s = await session(t);
+    const repl = new NotebookRepl(s);
+    const book = repl.notebook;
+    for (const source of ['use text', 'Ranks = "234567890"', 'Count = 7']) {
+        book.toPrompt();
+        book.replace(source);
+        await repl.submit();
+    }
+    book.active = 1;
+    book.replace('Ranks = "234567890" "" split');
+    await repl.rerun();
+    assert.equal(book.cells[1].status, 'ok', JSON.stringify(book.cells[1].output));
+    assert.equal((await s.execute('Count', 100, [])).output[0].text, '7');
+});
+
 async function stop(session, source, id = 2) {
     const pending = session.execute(source, id, []);
     const timer = setTimeout(() => session.interrupt(), 150);

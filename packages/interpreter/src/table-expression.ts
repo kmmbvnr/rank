@@ -1,5 +1,5 @@
 import {
-    flattenApplication as flatten, applicationExpression, groupedExpression,
+    flattenApplication as flatten, applicationExpression, groupedExpression, COMPARISON_OPERATORS,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isStringLiteral, isUnaryExpression, type Expression,
@@ -34,10 +34,17 @@ export function tableExpression(
         if (isNumberLiteral(node) || isStringLiteral(node) || isBooleanLiteral(node)) return node;
         if (isParenthesizedExpression(node)) return { ...node, value: lower(node.value) } as Expression;
         if (isUnaryExpression(node)) return { ...node, operand: lower(node.operand) } as Expression;
-        if (isBinaryExpression(node)) return {
-            ...node, left: lower(node.left), right: lower(node.right),
-            step: node.step ? lower(node.step) : undefined,
-        } as Expression;
+        if (isBinaryExpression(node)) {
+            const modifier = flatten(node.right);
+            if (COMPARISON_OPERATORS.has(node.operator) && isNameExpression(modifier[0])
+                && ['rank', 'axis'].includes(modifier[0].name)) {
+                return { ...node, left: application(flatten(node.left).map(lower)) } as Expression;
+            }
+            return {
+                ...node, left: lower(node.left), right: lower(node.right),
+                step: node.step ? lower(node.step) : undefined,
+            } as Expression;
+        }
         if (isArrayExpression(node)) {
             const item = <T extends { value: Expression }>(value: T): T =>
                 ({ ...value, value: lower(value.value) });

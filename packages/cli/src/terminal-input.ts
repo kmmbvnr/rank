@@ -12,6 +12,8 @@ export class TerminalInputDecoder {
     constructor(
         private readonly keys: (text: string) => void,
         private readonly pasted: (text: string) => void,
+        private readonly clicked: (column: number, row: number) => void = () => {},
+        private readonly scrolled: (direction: number) => void = () => {},
     ) {}
 
     write(chunk: Buffer): void {
@@ -31,6 +33,23 @@ export class TerminalInputDecoder {
         for (;;) {
             const marker = this.paste === undefined ? PASTE_START : PASTE_END;
             const at = this.pending.indexOf(marker);
+            if (this.paste === undefined) {
+                const mouse = this.pending.indexOf('\x1b[<');
+                if (mouse >= 0 && (at < 0 || mouse < at)) {
+                    this.keys(this.pending.slice(0, mouse));
+                    this.pending = this.pending.slice(mouse);
+                    const report = /^\x1b\[<(\d+);(\d+);(\d+)([Mm])/.exec(this.pending);
+                    if (report) {
+                        this.pending = this.pending.slice(report[0].length);
+                        if (report[1] === '0' && report[4] === 'M')
+                            this.clicked(Number(report[2]) - 1, Number(report[3]) - 1);
+                        if (report[4] === 'M' && (report[1] === '64' || report[1] === '65'))
+                            this.scrolled(report[1] === '64' ? -1 : 1);
+                        continue;
+                    }
+                    if (/^\x1b\[<[\d;]*$/.test(this.pending)) return;
+                }
+            }
             if (at >= 0) {
                 const before = this.pending.slice(0, at);
                 this.pending = this.pending.slice(at + marker.length);

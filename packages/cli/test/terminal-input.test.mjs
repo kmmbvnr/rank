@@ -45,3 +45,28 @@ test('end flushes an unfinished ordinary sequence or paste', () => {
     pasted.decoder.end();
     assert.deepEqual(pasted.pastes, ['unfinished']);
 });
+
+test('mouse reports split across chunks are clicks, not inserted text', () => {
+    const keys = [], pastes = [], clicks = [];
+    const decoder = new TerminalInputDecoder(text => keys.push(text), text => pastes.push(text),
+        (column, row) => clicks.push([column, row]));
+    decoder.write(Buffer.from('A\x1b['));
+    for (const char of '<0;17;2M') decoder.write(Buffer.from(char));
+    decoder.write(Buffer.from('\x1b[<0;17;2m\x1b[<64;17;2MB'));
+    decoder.write(Buffer.from('\x1b[200~\x1b[<0;1;1M\x1b[201~'));
+    assert.equal(keys.join(''), 'AB');
+    assert.deepEqual(clicks, [[16, 1]]);
+    assert.deepEqual(pastes, ['\x1b[<0;1;1M']);
+});
+
+test('wheel reports scroll in both directions without becoming keys or clicks', () => {
+    const keys = [], scrolls = [], clicks = [];
+    const decoder = new TerminalInputDecoder(text => keys.push(text), () => {},
+        (...point) => clicks.push(point), direction => scrolls.push(direction));
+    decoder.write(Buffer.from('A\x1b['));
+    for (const char of '<64;10;3M') decoder.write(Buffer.from(char));
+    decoder.write(Buffer.from('\x1b[<65;10;3M\x1b[<65;10;3mB'));
+    assert.deepEqual(scrolls, [-1, 1]);
+    assert.deepEqual(clicks, []);
+    assert.equal(keys.join(''), 'AB');
+});

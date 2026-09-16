@@ -14,7 +14,7 @@ test "official triangle"
     3.0 3.0
     2.5 4.0
   end
-  (Actual equal Expected) and reduce with true
+  Actual Expected equal rank 2
 end
 
 test "official square"
@@ -35,7 +35,7 @@ test "official square"
     0.0 3.0
     -1.0 3.0
   end
-  (Actual equal Expected) and reduce with true
+  Actual Expected equal rank 2
 end
 
 test "empty point set keeps its shape"

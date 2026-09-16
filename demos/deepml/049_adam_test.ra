@@ -17,7 +17,7 @@ test "official equal parameters"
   Actual = Input adam_optimizer
   Expected = array 0.99000325 0.99000325
   Rounded = Actual round 8
-  (Rounded equal Expected) and reduce with true
+  Rounded Expected equal rank 1
 end
 
 test "official unequal parameters"
@@ -39,7 +39,7 @@ test "official unequal parameters"
     0.19001678 12.29000026
   end
   Rounded = Actual round 8
-  (Rounded equal Expected) and reduce with true
+  Rounded Expected equal rank 1
 end
 
 test "zero gradient keeps parameters"
@@ -56,5 +56,5 @@ test "zero gradient keeps parameters"
     .gradient = Grad
   end
   Actual = Input adam_optimizer
-  (Actual equal X) and reduce with true
+  Actual X equal rank 1
 end

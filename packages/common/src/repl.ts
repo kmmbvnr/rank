@@ -34,7 +34,7 @@ export class NotebookRepl {
     }
     get liveEditing(): boolean { return this.liveFunction.editing || this.liveConditional.editing; }
     get exampleEditor(): Notebook | undefined { return this.liveFunction.editor; }
-    get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
+    get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[] | undefined {
         return this.liveFunction.fields;
     }
     iterationSelecting = false;
@@ -98,11 +98,12 @@ export class NotebookRepl {
 
     private suggestionText = '';
     get suggestion(): string {
-        if (this.stepping) return 'Enter step · Ctrl-L run all';
+        if (this.stepping) return 'Enter newline · ^R step · ^L run all';
         if (this.liveIterationFocused) return this.iterationSelecting
             ? '←/→ select · Esc edit · ^L run all'
             : 'Enter select · Esc edit · ^L run all';
-        return this.suggestionText || this.liveFunction?.status || this.liveConditional?.status || '';
+        return this.suggestionText || (this.advancing ? 'Enter newline · ^R run · ^L run all' : '')
+            || this.liveFunction?.status || this.liveConditional?.status || '';
     }
     set suggestion(value: string) { this.suggestionText = value; }
     help?: { text: string; top: number };
@@ -150,6 +151,8 @@ export class NotebookRepl {
         this.liveFunction.moveField(direction);
     }
 
+    reopenExample(last = false): boolean { return this.liveFunction.reopenArguments(last); }
+
     async moveLiveIteration(direction: number): Promise<boolean> {
         if (await this.liveFunction.moveIteration(direction)) return true;
         return this.liveConditional.moveIteration(direction);
@@ -169,6 +172,15 @@ export class NotebookRepl {
         this.evaluationCell = undefined;
         if (closed) this.render();
         return focused || closed || stepping;
+    }
+
+    insertEvaluationLine(): void {
+        const source = this.notebook.current.source;
+        this.notebook.temporaryNewline();
+        if (source !== this.notebook.current.source) {
+            this.liveFunction.invalidatePreviews();
+            this.liveConditional.invalidatePreviews();
+        }
     }
 
     async selectIteration(): Promise<void> {
@@ -276,6 +288,7 @@ export class NotebookRepl {
 
     complete(): void {
         const book = this.notebook;
+        if (book.indentToCode()) { this.dismiss(); return; }
         if (this.completion) {
             const item = this.completion;
             item.index = (item.index + 1) % item.candidates.length;

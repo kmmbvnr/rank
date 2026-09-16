@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Interpreter, RankError } from '../src/index.js';
+import { Interpreter, RankError, summarizeValue, type RankValue } from '../src/index.js';
 
 function failure(source: string, interpreter = new Interpreter(() => {}, { sourceId: 'contest.ra' })): RankError {
     try { interpreter.execute(source); }
@@ -32,6 +32,49 @@ describe('runtime diagnostics', () => {
         const error = failure(source);
         expect(error.location?.sourceLine).toContain('/ 0');
         expect(error.location?.column).toBe(3);
+        expect(error.formatCalls()).toContain('bad\n  N = 1');
+    });
+
+    it('shows the actual cell passed to a ranked function', () => {
+        const error = failure(`use sequences
+use text
+Ranks = "23456789TJQKA"
+fun card_value Card
+  Rank = Card 0
+  return Ranks Rank find
+end
+Values = ("5H 5C" "" split) card_value rank 0
+Values 1`);
+        expect(error.rankKind).toBe('Missing');
+        expect(error.formatCalls()).toContain('card_value\n  Card = "H"');
+        expect(error.message).toBe('find found no matching value');
+    });
+
+    it('keeps arguments for nested and memoized calls', () => {
+        const error = failure(`memo bad N
+  return N / 0
+end
+fun outer X
+  Value = X bad
+  return Value
+end
+7 outer`);
+        expect(error.formatCalls()).toBe('bad\n  N = 7\nouter\n  X = 7');
+    });
+
+    it('reports the current tail-call arguments', () => {
+        const error = failure('fun down N\n  if N equal 0\n    return 1 / 0\n  end\n  return (N - 1) down\nend\n10000 down');
+        expect(error.formatCalls()).toBe('down\n  N = 0');
+    });
+
+    it('bounds summaries without reading lazy array items or consuming sequences', () => {
+        const lazy = { kind: 'array', shape: [1000], itemAt: () => { throw new Error('evaluated'); },
+            get items(): RankValue[] { throw new Error('materialized'); } } as RankValue;
+        expect(summarizeValue(lazy)).toBe('array[1000]');
+        expect(summarizeValue({ kind: 'sequence' } as RankValue)).toBe('<sequence>');
+        expect(summarizeValue('a'.repeat(1000)).length).toBeLessThan(100);
+        expect(summarizeValue({ kind: 'array', shape: [3], items: ['H', ' ', '5H'] }))
+            .toBe('array[3]: "H" " " "5H"');
     });
 
     it('keeps the original trace when an error is caught and raised again', () => {

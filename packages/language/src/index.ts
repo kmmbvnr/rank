@@ -8,4 +8,4 @@ export * from './analysis/bindings.js';
 export * from './analysis/types.js';
 export * from './expression-grouping.js';
 export * from './expressions.js';
-export { REDUCE_OPERATORS, OUTER_OPERATORS } from './modifier-grouping.js';
+export { REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS } from './modifier-grouping.js';

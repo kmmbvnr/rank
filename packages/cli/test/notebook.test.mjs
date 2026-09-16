@@ -18,6 +18,27 @@ function setup(t, functionExamples = false) {
 
 const output = cell => cell.output.map(line => line.text).join('\n');
 
+test('pasted instructions have separate cells and results while blocks stay together', async t => {
+    const { book, enter } = setup(t);
+    await enter('use sequences\nuse text\nuse io');
+    assert.deepEqual(book.cells.slice(0, -1).map(cell => cell.source),
+        ['use sequences', 'use text', 'use io']);
+    await enter('A = 1\nif true\n  A += 2\nend\nA');
+    assert.deepEqual(book.cells.slice(3, -1).map(cell => cell.source),
+        ['A = 1', 'if true\n  A += 2\nend', 'A']);
+    assert.equal(output(book.cells[3]), '1');
+    assert.equal(output(book.cells[5]), '3');
+    assert.ok(book.cells.slice(0, -1).every(cell => cell.status === 'ok'));
+});
+
+test('an error in pasted instructions keeps the remaining cells pending', async t => {
+    const { book, enter } = setup(t);
+    await enter('A = 1\nMissing\nB = 2');
+    assert.deepEqual(book.cells.slice(0, -1).map(cell => cell.status), ['ok', 'error', 'idle']);
+    assert.equal(book.active, 1);
+    assert.equal(book.cells[2].source, 'B = 2');
+});
+
 test('leaving an unused insertion row above the file restores cell numbering and replay position', () => {
     for (const leave of ['down', 'prompt']) {
         const book = new Notebook();
@@ -260,6 +281,30 @@ test('an invalid example argument is rejected before the function preview runs',
     assert.equal(repl.exampleFields[0].error, undefined);
 });
 
+test('example summaries distinguish split characters from cards and hide stale edits', async t => {
+    const { repl, enter } = setup(t, true);
+    await enter('use text');
+    await enter('fun hand_score Cards');
+    repl.exampleEditor.replace('"5H 5C" "" split');
+    await repl.submit();
+    assert.equal(repl.exampleFields[0].summary, 'array[5]: "5" "H" " " "5" "C"');
+    repl.reopenExample();
+    repl.exampleEditor.replace('"5H 5C" " " split');
+    assert.equal(repl.exampleFields[0].summary, undefined);
+    await repl.submit();
+    assert.equal(repl.exampleFields[0].summary, 'array[2]: "5H" "5C"');
+    for (const literal of ['"5H 5C"', '42', 'true']) {
+        repl.reopenExample();
+        repl.exampleEditor.replace(literal);
+        await repl.submit();
+        assert.equal(repl.exampleFields[0].summary, undefined);
+    }
+    repl.reopenExample();
+    repl.exampleEditor.replace('40 + 2');
+    await repl.submit();
+    assert.equal(repl.exampleFields[0].summary, '42');
+});
+
 test('example arguments are evaluated before entering the function body', async t => {
     const { repl, book, enter } = setup(t, true);
     await enter('fun family Prime Pick');
@@ -403,8 +448,11 @@ test('Ctrl-R reopens a completed function at the cursor with its previous exampl
     await repl.rerun();
     assert.equal(repl.liveEditing, true);
     assert.equal(book.current.source, 'fun inc X\n  Result = X + 1\n  Result *= 2\nend');
-    assert.equal(repl.exampleEditor.current.source, '2');
+    assert.equal(repl.exampleEditor, undefined);
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['3']);
+    assert.deepEqual(repl.liveOutputs.get(3).map(line => line.text), ['6']);
 
+    repl.reopenExample();
     repl.exampleEditor.replace('5');
     await repl.submit();
     assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['6']);
@@ -424,6 +472,17 @@ test('Ctrl-R reopens a completed function at the cursor with its previous exampl
     assert.equal(output(book.cells[0]), '<function inc>');
 });
 
+test('Ctrl-R still requests a missing example after leaving its field by arrow', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.moveExampleField(1);
+    book.insert('return X + 1');
+    await repl.rerun();
+    assert.equal(repl.examplePrompt.parameter, 'X');
+    assert.equal(repl.exampleEditor.current.source, '');
+    assert.equal(repl.liveOutputs.size, 0);
+});
+
 test('Ctrl-R on a completed function header prepares its first body line', async t => {
     const { repl, book, enter } = setup(t, true);
     await enter('fun inc X');
@@ -436,7 +495,7 @@ test('Ctrl-R on a completed function header prepares its first body line', async
     book.active = 0;
     book.cursor = 'fun inc X'.length;
     await repl.rerun();
-    await repl.submit();
+    assert.equal(repl.exampleEditor, undefined);
     assert.equal(repl.liveOutputs.size, 0);
     assert.equal(book.cursor, book.current.source.indexOf('\n', book.current.source.indexOf('return')));
 });
@@ -452,6 +511,20 @@ test('live function previews read current globals without changing them', async 
     assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['1 9 3']);
     const global = await session.execute('A', 99, []);
     assert.deepEqual(global.output.map(line => line.text), ['1 2 3']);
+});
+
+test('live function previews evaluate a multiline assignment as one statement', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('use sequences');
+    await enter('fun hand_score Cards');
+    repl.exampleEditor.replace('array 3 3 4 5 11');
+    await repl.submit();
+    book.insert('WheelMask = (\n  Cards equal (array 0 1 2 3 12)\n)');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(4), [{ text: 'false false false false false', error: false }]);
+    book.insert('Wheel = WheelMask all');
+    await repl.submit();
+    assert.deepEqual(repl.liveOutputs.get(5), [{ text: 'false', error: false }]);
 });
 
 test('long source never acquires new lines or parentheses from terminal width', async t => {
@@ -829,9 +902,41 @@ test('a later assignment still respects the type declared above the replay bound
     assert.match(output(book.cells[1]), /X has type integer/);
 });
 
+test('Ctrl-R replaces a declaration type while retaining other cells and their values', async t => {
+    const { repl, book, enter, edit, session } = setup(t);
+    await enter('use sequences');
+    await enter('use text');
+    await enter('Ranks = "234567890"');
+    await enter('Count = 7');
+    edit(2, 'Ranks = "234567890" "" split');
+    await repl.rerun();
+    assert.equal(book.cells[2].status, 'ok', output(book.cells[2]));
+    assert.match(output(await session.execute('vars', 100, [])), /Ranks array 9/);
+    assert.equal((await session.execute('Count', 101, [])).output[0].text, '7');
+    edit(2, 'Cards = "new"');
+    await repl.rerun();
+    assert.equal(book.cells[2].status, 'ok');
+    assert.equal((await session.execute('Ranks', 102, [])).ok, false);
+    assert.equal((await session.execute('Cards', 103, [])).ok, true);
+});
+
+test('Ctrl-R on a later assignment retains the declaration type and current value', async t => {
+    const { repl, book, enter, edit } = setup(t);
+    await enter('use numbers');
+    await enter('Count = 1');
+    await enter('Count += 1');
+    book.active = 2;
+    await repl.rerun();
+    assert.equal(output(book.cells[2]), '3');
+    edit(2, 'Count = "text"');
+    await repl.rerun();
+    assert.equal(book.cells[2].status, 'error');
+    assert.match(output(book.cells[2]), /Count has type integer/);
+});
+
 test('declarations made before an error are removed when that instruction is corrected', async t => {
     const { book, enter, edit } = setup(t);
-    await enter('X = 1\nMissing');
+    await enter('if true\n  X = 1\n  Missing\nend');
     assert.equal(book.cells[0].status, 'error');
     edit(0, 'X = array 1 2 3');
     await enter('');
@@ -974,4 +1079,71 @@ test('loading reports invalid function declarations and still declares later val
     assert.match(output(book.cells[2]), /memo functions cannot yield/);
     assert.ok(repl.session.snapshot().names.includes('good'));
     assert.ok(!repl.session.snapshot().names.includes('A'));
+});
+
+test('leaving function evaluation retains edited example arguments for the next Ctrl-R', async t => {
+    const { repl, book, enter } = setup(t, true);
+    await enter('fun inc X');
+    repl.exampleEditor.replace('2');
+    await repl.submit();
+    book.insert('Result = X + 1');
+    await repl.submit();
+    book.insert('end');
+    await repl.submit();
+    book.active = 0;
+    book.cursor = book.current.source.indexOf('\nend');
+    await repl.rerun();
+    repl.reopenExample();
+    repl.exampleEditor.replace('5');
+    await repl.submit();
+    assert.equal(repl.editSource(), true);
+    const cursor = book.cursor;
+    await repl.submit();
+    assert.equal(book.current.source.slice(cursor), '\n  \nend');
+    book.insert('Result *= 2');
+    await repl.rerun();
+    assert.equal(repl.exampleEditor, undefined);
+    assert.equal(repl.exampleFields[0].source, '5');
+    assert.deepEqual(repl.liveOutputs.get(3).map(line => line.text), ['12']);
+});
+
+test('temporary evaluation lines preserve existing blanks and populated lines', () => {
+    const book = new Notebook();
+    book.replace('fun f\n  A = 1\n\nend', 'fun f\n  A = 1'.length);
+    const original = book.current.source;
+    book.temporaryNewline();
+    book.insert('   ');
+    book.cursor = book.current.source.length;
+    book.discardEmptyLine();
+    assert.equal(book.current.source, original);
+    book.cursor = 'fun f\n  A = 1'.length;
+    book.temporaryNewline();
+    book.insert('B = 2');
+    book.temporaryNewline();
+    assert.match(book.current.source, /B = 2\n  \n\nend$/);
+    book.cursor = 0;
+    book.discardEmptyLine();
+    assert.match(book.current.source, /B = 2\n\nend$/);
+});
+
+test('Tab places the cursor at the block indentation before offering completion', t => {
+    const { repl, book } = setup(t);
+    let completions = 0;
+    repl.session.complete = () => { completions++; return [[], '']; };
+    for (const [source, line, indent] of [
+        ['fun f X\n\nend', 1, 2],
+        ['fun f X\n  if true\n\n  end\nend', 2, 4],
+        ['fun f X\n  if true\n  end\nend', 2, 2],
+        ['fun f X\n  Value = X\nend', 1, 2],
+    ]) {
+        const start = source.split('\n').slice(0, line).join('\n').length + 1;
+        book.replace(source, start);
+        const before = completions;
+        repl.complete();
+        assert.equal(book.cursor, start + indent);
+        assert.equal(completions, before);
+        assert.ok(book.current.source.slice(start).startsWith(' '.repeat(indent)));
+        repl.complete();
+        assert.equal(completions, before + 1);
+    }
 });

@@ -174,7 +174,8 @@ test('generated live-function editing scenarios recover from likely user mistake
                             if (argumentTypo) {
                                 await s.type('A = 1');
                                 await s.enter();
-                                assert.ok(s.repl.examplePrompt, s.trace.join(' -> '));
+                                await s.ctrlT();
+                            assert.ok(s.repl.examplePrompt, s.trace.join(' -> '));
                                 assert.match(s.repl.exampleFields[0].error, /Syntax/);
                                 await s.clear();
                             }
@@ -199,6 +200,7 @@ test('generated live-function editing scenarios recover from likely user mistake
                             const extraUps = selected === 'header' ? 3 : selected === 'first body line' ? 2 : 1;
                             for (let index = 0; index < extraUps; index++) await s.up();
                             await s.ctrlR();
+                            await s.ctrlT();
                             assert.ok(s.repl.examplePrompt, s.trace.join(' -> '));
                             await s.clear();
                             await s.type(replacement);
@@ -210,9 +212,9 @@ test('generated live-function editing scenarios recover from likely user mistake
                             assert.equal(s.repl.liveOutputs.has(selectedLine), false, s.trace.join(' -> '));
                             if (selectedLine === 3) assert.equal(s.repl.liveOutputs.has(2), true, s.trace.join(' -> '));
 
-                            await s.enter();
+                            await s.ctrlR();
                             assert.ok(s.repl.liveOutputs.get(selectedLine)?.every(line => !line.error), s.trace.join(' -> '));
-                            for (let guard = 0; s.repl.liveEditing && guard < 4; guard++) await s.enter();
+                            for (let guard = 0; s.repl.liveEditing && guard < 4; guard++) await s.ctrlR();
                             assert.equal(s.repl.liveEditing, false, s.trace.join(' -> '));
                             assert.equal(s.book.cells[0].status, 'ok', s.trace.join(' -> '));
                             cases++;
@@ -246,10 +248,9 @@ test('real key routing edits all argument fields and returns from the body to th
         await s.enter();
         assert.equal(s.repl.examplePrompt, undefined);
         await s.type('return X + Y');
-        await s.enter();
+        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['5']);
 
-        await s.up(); // empty line -> first body line
         await s.ctrlT(); // arguments are opened explicitly, not by an arrow key
         await s.down();
         assert.equal(s.repl.examplePrompt.parameter, 'Y');
@@ -257,7 +258,7 @@ test('real key routing edits all argument fields and returns from the body to th
         await s.type('4');
         await s.enter();
         assert.equal(s.repl.liveOutputs.has(2), false, 'selected body line waits for Enter');
-        await s.enter();
+        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['7']);
     } finally { s.session.dispose(); }
 });
@@ -351,7 +352,7 @@ test('arrow keys select a function loop iteration without evaluating its body', 
 
         await s.enter();
         assert.equal(s.repl.liveIterationFocused, false);
-        await s.enter();
+        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 2 · iteration 2']);
         assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['3']);
         assert.equal(s.book.current.source, source);
@@ -363,7 +364,7 @@ test('arrow keys select a function loop iteration without evaluating its body', 
         assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['I = 1 · iteration 1']);
         assert.equal(s.repl.liveOutputs.has(4), false);
         await s.enter();
-        await s.enter();
+        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(4).map(line => line.text), ['1']);
 
         s.book.insert('X', true);
@@ -398,7 +399,7 @@ test('Up traverses wrapped body rows before reaching the passive iteration row',
     } finally { s.session.dispose(); }
 });
 
-test('Ctrl-R on the first source resets state but runs only one instruction; Enter continues green', async () => {
+test('Ctrl-R on the first source resets state but runs only one instruction; Ctrl-R continues green', async () => {
     const s = scenario();
     try {
         for (const line of ['Count = 0', 'Count += 1', 'Count']) { await s.type(line); await s.enter(); }
@@ -415,8 +416,8 @@ test('Ctrl-R on the first source resets state but runs only one instruction; Ent
         assert.equal(s.book.isExperimental(0), false);
         const stray = await s.session.execute('Stray', 1001, []);
         assert.equal(stray.ok, false);
-        await s.enter();
-        await s.enter();
+        await s.ctrlR();
+        await s.ctrlR();
         assert.deepEqual(s.book.cells[2].output.map(line => line.text), ['1']);
         assert.equal(s.book.atPrompt, true);
         assert.ok(s.book.cells.slice(0, -1).every((cell, index) => cell.status === 'ok' && !s.book.isExperimental(index)));
@@ -428,7 +429,7 @@ test('Ctrl-R on the first source resets state but runs only one instruction; Ent
     } finally { s.session.dispose(); }
 });
 
-test('Ctrl-R runs only the selected expression and Enter stops at the following loop header', async () => {
+test('Ctrl-R runs only the selected expression and Ctrl-R stops at the following loop header', async () => {
     const s = scenario();
     try {
         await s.type('use sequences');
@@ -448,12 +449,12 @@ test('Ctrl-R runs only the selected expression and Enter stops at the following 
         assert.equal(s.book.cells[1].executed, undefined);
         assert.equal(s.book.cells[2].executed, undefined);
         assert.equal(s.repl.stepping, true);
-        await s.enter();
+        await s.ctrlR();
         assert.equal(s.repl.liveIterationFocus.line, 1);
         assert.deepEqual(s.repl.liveOutputs.get(1).map(line => line.text), ['i = 10 · iteration 1']);
         assert.equal(s.repl.liveOutputs.has(2), false);
         await s.enter();
-        await s.enter();
+        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['10']);
         assert.equal(s.book.cells[2].executed, undefined);
         assert.equal(s.book.fileLines().join('\n'), source);
@@ -610,7 +611,7 @@ test('Enter after selecting an iteration from the header continues into the body
         assert.equal(s.book.cursor, source.indexOf('\nend'));
         assert.equal(s.book.current.source, source);
         assert.equal(s.repl.liveOutputs.has(2), false);
-        await s.enter();
+        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['1']);
         assert.equal(s.book.current.source, source);
     } finally { s.session.dispose(); }
@@ -685,5 +686,32 @@ test('Ctrl-R previews code; Ctrl-G explicitly selects the loop and returns to th
         await s.esc();
         assert.equal(s.repl.liveIterationFocused, false);
         assert.equal(s.book.cursor, cursor);
+    } finally { s.session.dispose(); }
+});
+
+test('evaluation Enter inserts a disposable line and preserves entered code', async () => {
+    const s = scenario();
+    try {
+        await s.type('fun inc X'); await s.enter();
+        await s.type('2'); await s.enter();
+        await s.type('Result = X + 1'); await s.enter();
+        await s.type('end'); await s.enter();
+        s.book.active = 0;
+        s.book.cursor = s.book.current.source.indexOf('\nend');
+        await s.ctrlR();
+        const source = s.book.current.source;
+        await s.enter();
+        assert.equal(s.book.current.source, source.replace('\nend', '\n  \nend'));
+        await s.down();
+        assert.equal(s.book.current.source, source);
+        await s.up();
+        s.book.lineEdge(true);
+        await s.enter();
+        await s.type('Result *= 2');
+        await s.down();
+        assert.match(s.book.current.source, /Result \*= 2\nend$/);
+        await s.up();
+        await s.ctrlR();
+        assert.deepEqual(s.repl.liveOutputs.get(3).map(line => line.text), ['6']);
     } finally { s.session.dispose(); }
 });

@@ -395,7 +395,9 @@ therefore be pure: its result and observable behavior may depend only on its
 arguments and immutable captured values. The runtime does not yet prove this
 property; static effect analysis is tracked separately as tooling work.
 
-Explicit binary rank overrides remain deferred.
+Comparisons support explicit binary cell rank and frame axes; see
+[Binary comparison rank](sequences-arrays.md#binary-comparison-rank).
+General binary function rank overrides remain deferred.
 
 A future axis-qualified cell view can be passed to `outer`: `axis` order will
 define frame order and `rank` will define its cells. This will support pairings

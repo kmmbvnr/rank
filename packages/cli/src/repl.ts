@@ -91,7 +91,11 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     const onKey = (text: string, key: Key = {}): void => {
         if (renderer.closed) return;
         try {
-            renderer.followKey(key.name);
+            if ((renderer.copying || !modeRouter.active) && renderer.copyKey(key)) {
+                render();
+                return;
+            }
+            renderer.followKey(key.name, !!key.ctrl && key.name === 'r' && !repl.advancing && !repl.exampleEditor);
             if (!modeRouter.active) {
                 void keyRouter.press(text, key).then(result => {
                     if (result.pageDelta) renderer.page(result.pageDelta);
@@ -107,10 +111,13 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     const inputDecoder = new TerminalInputDecoder(
         text => { keyInput.write(text); },
         value => {
-            if (!modeRouter.paste(value)) book.insert(value.replace(/\r\n?/g, '\n'));
+            if (renderer.copying) return;
+            if (!modeRouter.paste(value)) (repl.exampleEditor ?? book).insert(value.replace(/\r\n?/g, '\n'));
             repl.dismiss();
             render();
         },
+        (column, row) => { renderer.click(column, row); },
+        direction => { renderer.scroll(direction); },
     );
     const onData = (chunk: Buffer): void => { inputDecoder.write(chunk); };
     const wasRaw = input.isRaw;
@@ -124,7 +131,7 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     try {
         input.setRawMode(true);
         input.resume();
-        output.write('\x1b[?1049h\x1b[?2004h\x1b[2J');
+        output.write('\x1b[?1049h\x1b[?2004h\x1b[?1006h\x1b[2J');
         render();
         await ended;
     } finally {
@@ -138,7 +145,7 @@ async function terminalRepl(session: ReplSession): Promise<void> {
         process.off('SIGHUP', leave);
         input.setRawMode(wasRaw);
         input.pause();
-        output.write('\x1b[0 q\x1b[?2004l\x1b[?25h\x1b[?1049l');
+        output.write('\x1b[0 q\x1b[?1000l\x1b[?1006l\x1b[?2004l\x1b[?25h\x1b[?1049l');
         try { await fs.writeFile(historyFile(), keyRouter.history.map(item => item.replace(/\n/g, ' ')).join('\n') + '\n'); }
         catch { /* A read-only home does not prevent using the REPL. */ }
     }

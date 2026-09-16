@@ -1,0 +1,114 @@
+rem Poker Hands
+rem https://projecteuler.net/problem=54
+rem Count hands won by Player 1
+
+use sequences
+use text
+use io
+use cli
+
+argument Input path = "demos/euler/fixtures/0054_poker.txt"
+
+Ranks = "23456789TJQKA"
+
+Hands = Input readlines
+Answer = Hands poker_wins
+Answer print
+
+
+rem Compare each deal's category and tie-break cards.
+fun poker_wins Hands
+  Wins = 0
+  for Line in Hands
+    if Line len equal 0
+      continue
+    end
+    Cards = Line " " split
+    P1 = Cards from 0 until 5
+    P2 = Cards from 5 until 10
+    S1 = P1 hand_score
+    S2 = P2 hand_score
+    if S1 S2 greater rank 1
+      Wins += 1
+    end
+  end
+  return Wins
+end
+
+
+rem Category followed by five tie-break ranks, highest first.
+fun hand_score Cards
+  Values = Cards card_value rank 0
+  Suits = Cards card_suit rank 0
+
+  Sorted = Values sort
+  Distinct = Sorted unique len
+  Span = Sorted 4 - Sorted 0
+
+  Straight = Distinct equal 5
+  Straight and= Span equal 4
+
+  Wheel = Sorted (array 0 1 2 3 12) equal rank 1
+  Straight or= Wheel
+
+  Flush = Suits unique len equal 1
+
+  Same = Values Values equal outer
+  Freq = Same count rank 1
+
+  MaxFreq = Freq max
+  PairCards = (Freq equal 2) count
+  Pairs = PairCards // 2
+
+  Trips = MaxFreq equal 3
+  Quads = MaxFreq equal 4
+  HasPair = Pairs equal 1
+  FullHouse = Trips and HasPair
+
+  if Straight and Flush
+    Kind = 8
+  elif Quads
+    Kind = 7
+  elif FullHouse
+    Kind = 6
+  elif Flush
+    Kind = 5
+  elif Straight
+    Kind = 4
+  elif Trips
+    Kind = 3
+  elif Pairs equal 2
+    Kind = 2
+  elif HasPair
+    Kind = 1
+  else
+    Kind = 0
+  end
+
+  Keys = Freq * 13 + Values
+  Order = Keys argsort descending
+  Ties = Values Order
+
+  if Straight
+    High = Sorted 4
+    if Wheel
+      High = 3
+    end
+    Ties = array High 0 0 0 0
+  end
+
+  return array Kind (Ties 0) (Ties 1) (Ties 2) (Ties 3) (Ties 4)
+end
+
+
+rem Convert a card rank to 0..12.
+fun card_value Card
+  Rank = Card 0
+  return Ranks Rank find
+end
+
+
+rem Return the suit character.
+fun card_suit Card
+  return Card 1
+end

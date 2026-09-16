@@ -103,9 +103,9 @@ export function notebookFrame(
     suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
     breakpoints?: ReadonlyMap<number, ReadonlySet<number>>, promptLabel = 'rank> ',
     promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
-    promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string }[],
+    promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[],
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
-    stepping = false,
+    stepping = false, anchoredCursorRow?: number,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -198,6 +198,10 @@ export function notebookFrame(
                             if (point) caret = { row: rows.length - 1, column: gutter + point.column };
                         }
                     }
+                    if (field.summary && !field.error) {
+                        for (const summaryRow of editableRows('→ ' + clean(field.summary), bodyWidth))
+                            rows.push('\x1b[90m' + ' '.repeat(gutter) + summaryRow.text + '\x1b[0m');
+                    }
                     if (field.error) {
                         for (const errorRow of errorRows('! ' + clean(field.error), Math.max(1, Math.min(width, 40) - gutter)))
                             rows.push('\x1b[31m' + ' '.repeat(gutter) + errorRow.text + '\x1b[0m');
@@ -220,7 +224,7 @@ export function notebookFrame(
     }
     const footerRows = height > 1 ? 1 : 0;
     const viewportHeight = Math.max(1, height - footerRows);
-    let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - viewportHeight)));
+    let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - (followCursor ? 1 : viewportHeight))));
     if (followCursor && caret.row < top) top = caret.row;
     if (followCursor && caret.row >= top + viewportHeight) top = caret.row - viewportHeight + 1;
     if (followCursor && promptOutputFocus && nextEvalRow !== undefined
@@ -234,6 +238,8 @@ export function notebookFrame(
         const end = rows.length - caret.row <= viewportHeight ? rows.length - 1 : errorEnd;
         top = Math.max(top, Math.min(caret.row, end - viewportHeight + 1));
     }
+    if (followCursor && anchoredCursorRow !== undefined)
+        top = Math.max(0, caret.row - Math.min(anchoredCursorRow, viewportHeight - 1));
     const lines = rows.slice(top, top + viewportHeight);
     while (lines.length < viewportHeight) lines.push('');
     if (footerRows) {

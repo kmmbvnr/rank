@@ -397,6 +397,12 @@ Earlier = "Ada" less "Grace"
 Mask = Names at most "M"
 ```
 
+For whole-cell comparisons use postfix `A B equal rank 1` (vectors),
+`A B equal rank 2` (matrices), or an explicit frame axis such as
+`A B equal axis 1 rank 1` (matrix columns). The same modifiers support
+`not equal`, `less`, `greater`, `at least`, and `at most`; see
+[Binary comparison rank](sequences-arrays.md#binary-comparison-rank).
+
 `Value type` returns a symbol such as `.integer`, `.text`, `.array`, `.record`
 or `.object`. `Value is .integer` is the short boolean type guard. Its right side
 must be a known runtime type symbol.

@@ -13,7 +13,7 @@ const precedence: Readonly<Record<string, number>> = {
     to: 1, until: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, '%': 3, '**': 4,
 };
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is']);
-const symbolic = new Set(['reduce', 'scan', 'outer', 'segment']);
+const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);
 const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'ascending', 'descending']);
 
 export interface GroupingDiagnostic {

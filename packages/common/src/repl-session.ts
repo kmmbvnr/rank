@@ -1,6 +1,6 @@
 import { RankSession } from './session.js';
 import {
-    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, isNativeFunction, isRankArray, standardModules, type RankValue, type InterpreterOptions,
+    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, standardModules, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
@@ -18,6 +18,7 @@ const COMMANDS = ['help', 'forms', 'ops', 'vars', 'full', 'list', 'save', 'load'
 export interface OutputLine { readonly text: string; readonly error: boolean; readonly inlineText?: string }
 export interface ProgramFile { readonly path: string; readonly source: string }
 export interface Execution {
+    readonly valueSummary?: string;
     readonly source: string;
     readonly output: OutputLine[];
     readonly command: boolean;
@@ -125,7 +126,7 @@ export function createReplSession(host: ReplHost = {}) {
             if (load && isCommand(line, interpreter)) return completeLoadPath(load[1]);
             return complete(line, interpreter, EMPTY_CELL);
         },
-        async execute(text: string, id: number, file: string[], columns = 80, sourceOnly = false): Promise<Execution> {
+        async execute(text: string, id: number, file: string[], columns = 80, sourceOnly = false, replaceDeclarations = false): Promise<Execution> {
             output = [];
             interrupted = false;
             errorOffset = undefined;
@@ -152,6 +153,11 @@ export function createReplSession(host: ReplHost = {}) {
                 replay.atLine(id);
                 if (cmd) await command(source.trim(), session);
                 else {
+                    if (replaceDeclarations) {
+                        const names = [...declarations].filter(([, owner]) => owner === id).map(([name]) => name);
+                        interpreter.forgetBindings(names);
+                        for (const name of names) declarations.delete(name);
+                    }
                     const before = interpreter.bindingNames();
                     try { run(interpreter, source, session); }
                     finally {
@@ -167,7 +173,7 @@ export function createReplSession(host: ReplHost = {}) {
                 ok: !interrupted && !output.some(line => line.error), errorOffset,
             };
         },
-        preview(text: string, columns = 80): Execution {
+        preview(text: string, columns = 80, summaryOnly = false): Execution {
             output = [];
             interrupted = false;
             errorOffset = undefined;
@@ -181,13 +187,17 @@ export function createReplSession(host: ReplHost = {}) {
                 return indent + (aliases ? expand(formatted, interpreter, localFunctions) : formatted);
             }).join('\n').trimEnd();
             const fork = interpreter.forkForPreview(emit);
+            let valueSummary: string | undefined;
             try {
                 const result = fork.execute(source);
-                if (result !== undefined) display(result);
+                if (result !== undefined) {
+                    if (summaryOnly) valueSummary = summarizeValue(result);
+                    else display(result);
+                }
             } catch (error) { reportError(error, source); }
             finally { fork.dispose(); }
             return { source, output, command: false, exit: false,
-                ok: !output.some(line => line.error), errorOffset };
+                ok: !output.some(line => line.error), errorOffset, valueSummary };
         },
         dispose(): void {
             try { replay.dispose(); } finally { runtime.dispose(); }
@@ -231,6 +241,7 @@ export function createReplSession(host: ReplHost = {}) {
             text: chalk.red(`error: ${message}`), error: true,
             ...(error instanceof RankError && error.location?.sourceId === sourceId
                 ? { inlineText: `${error.rankKind}: ${error.message}`
+                    + (error.formatCalls() ? `\n${error.formatCalls()}` : '')
                     + (previewExpression ? `\n${previewExpression}` : '') } : {}),
         });
         return false;

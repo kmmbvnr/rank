@@ -46,10 +46,11 @@ export class LiveFunctionController {
         return this.focusedIteration !== undefined
             ? '←/→ select · Esc edit · ^L run all'
             : /^\s*for\s/m.test(this.notebook.current.source) ? 'Eval · ^G loop · Esc edit · ^L run all'
+            : this.live.existing ? 'Enter newline · ^R run · ^T args · ^L run all'
             : 'Enter try · ^T args · ^L run all';
     }
     get editor(): Notebook | undefined { return this.prompt ? this.live?.argumentEditor : undefined; }
-    get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string }[] | undefined {
+    get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[] | undefined {
         return this.editing ? this.live?.fields : undefined;
     }
     get hasParameters(): boolean { return !!this.live?.parameters.length; }
@@ -62,11 +63,11 @@ export class LiveFunctionController {
         this.clearIterationFocus();
     }
 
-    reopenArguments(): boolean {
+    reopenArguments(last = false): boolean {
         if (!this.editing || !this.live?.parameters.length) return false;
         this.live.source = this.notebook.current.source;
         this.live.stopLine = selectedLine(this.live.source, this.notebook.cursor);
-        this.live.openArguments(0, this.session.names);
+        this.live.openArguments(last ? this.live.parameters.length - 1 : 0, this.session.names);
         this.updateExampleSuggestion();
         return true;
     }
@@ -102,8 +103,24 @@ export class LiveFunctionController {
     }
 
     moveField(direction: number): void {
-        if (!this.live || this.live.argument === undefined) return;
-        this.live.moveArgument(direction, this.session.names);
+        const live = this.live;
+        if (!live || live.argument === undefined) return;
+        const next = live.argument + direction;
+        if (next < 0 || next >= live.parameters.length) {
+            live.saveArgument();
+            live.argument = undefined;
+            live.stopLine = undefined;
+            this.notebook.replace(live.source);
+            if (live.values.some((value, index) => value !== live.argumentBackup[index])) {
+                live.outputs.clear();
+                live.prefixes.clear();
+            }
+            this.clearIterationFocus();
+            this.placeCursorAtLineEnd(direction < 0 ? 0 : 1);
+            this.updateSuggestion();
+            return;
+        }
+        live.moveArgument(direction, this.session.names);
         this.updateExampleSuggestion();
     }
 
@@ -131,12 +148,13 @@ export class LiveFunctionController {
         live.source = this.notebook.current.source;
         live.stopLine = selectedLine(live.source, this.notebook.cursor);
         const header = isIterationHeader(live.source.split('\n')[live.stopLine - 1]);
-        if (live.parameters.length && (!header || live.skipped || live.values.length !== live.parameters.length)) {
+        if (live.parameters.length && (live.skipped || live.parameters.some((_, index) => !live.values[index]?.trim()))) {
             live.openArguments(0, this.session.names);
             this.updateExampleSuggestion();
         } else {
+            live.argument = undefined;
             const line = live.stopLine;
-            await this.updatePreviews(true, header ? line : line - 1);
+            await this.updatePreviews(true, currentLineNumber(this.notebook) === 1 ? line - 1 : line);
             this.clearIterationFocus();
             this.placeCursorAtLineEnd(line - 1);
             if (header) this.focusIteration(line);
@@ -148,6 +166,8 @@ export class LiveFunctionController {
 
     leavePreview(): boolean {
         if (!this.editing || !this.live?.existing) return false;
+        if (!this.live.skipped && this.live.parameters.every((_, index) => this.live!.values[index]?.trim()))
+            this.examples.set(this.live.name, [...this.live.values]);
         this.clear();
         this.setSuggestion('');
         return true;
@@ -254,6 +274,8 @@ export class LiveFunctionController {
         live.saveArgument();
         const error = live.syntaxError(live.values[current], this.session.names);
         if (error) return this.rejectArgument(live, current, error, 'is not an expression');
+        const currentError = await this.runtimeError(live.values[current], current);
+        if (currentError) return this.rejectArgument(live, current, currentError, 'cannot be evaluated');
         live.argumentError = undefined;
         if (current + 1 < live.parameters.length) {
             live.focusArgument(current + 1, this.session.names);
@@ -266,7 +288,8 @@ export class LiveFunctionController {
             if (fieldError) return this.rejectArgument(live, index, fieldError, 'is not an expression');
         }
         for (let index = 0; index < live.parameters.length; index++) {
-            const fieldError = await this.runtimeError(live.values[index]);
+            if (index === current) continue;
+            const fieldError = await this.runtimeError(live.values[index], index);
             if (fieldError) return this.rejectArgument(live, index, fieldError, 'cannot be evaluated');
         }
         live.argument = undefined;
@@ -312,10 +335,13 @@ export class LiveFunctionController {
         return false;
     }
 
-    private async runtimeError(value: string): Promise<string | undefined> {
-        const result = await this.session.preview(`Example = (${value})`, this.columns());
-        const diagnostic = result.output.find(line => line.error)?.text.split('\n')[0]
-            .replace(/\x1b\[[0-9;]*m/g, '');
+    private async runtimeError(value: string, index: number): Promise<string | undefined> {
+        const result = await this.session.preview(`(${value})`, this.columns(), true);
+        this.live?.summaries.delete(index);
+        if (result.ok && result.valueSummary !== undefined && result.valueSummary !== value.trim())
+            this.live?.summaries.set(index, { source: value, text: result.valueSummary });
+        const failure = result.output.find(line => line.error);
+        const diagnostic = (failure?.inlineText ?? failure?.text)?.replace(/\x1b\[[0-9;]*m/g, '');
         return diagnostic?.replace(/^error:\s*RankError\s*\[([^\]]+)\]:\s*/, '$1: ');
     }
 

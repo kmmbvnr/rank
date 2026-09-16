@@ -641,8 +641,54 @@ Digits = "1203" integer rank 0
 rem Value is 1203; Digits are 1 2 0 3
 ```
 
-Rank-0 application over a lazy sequence remains lazy. Binary rank
-specifications remain deferred.
+Rank-0 application over a lazy sequence remains lazy.
+
+### Binary comparison rank
+
+Infix comparisons keep their elementwise behavior. Postfix comparisons accept
+an explicit cell rank and return one boolean for each pair of cells:
+
+```rank
+A equal B
+A B equal rank 0
+A B equal rank 1
+A B equal rank 2
+```
+
+`rank 0` compares individual array elements. `rank 1` compares whole vectors,
+or corresponding trailing rows of matrices. `rank 2` compares whole matrices.
+A rank at least as large as an operand's array rank uses that operand whole.
+`equal` and `not equal` compare cell shapes and nested values. `less`, `greater`,
+`at least` and `at most` order cells lexicographically by their items in storage
+order: the first difference decides, a matching shorter prefix comes first,
+and shape dimensions break ties when all items match. Incompatible scalar
+families still raise `.TypeError`. Text remains an atomic value in these binary
+comparisons.
+
+The leading frame shapes use trailing-axis broadcasting. For example, a
+matrix and a vector with `rank 1` compare every matrix row with that vector.
+Incompatible frame shapes raise `.DimensionMismatch`. Different cell shapes
+are unequal; they are not broadcast inside a whole-cell comparison. Results
+are lazy over array frames and reflect changes to their source arrays.
+
+An explicit `axis` list names frame axes for **both** array operands, retaining
+the listed order. The remaining axes form each cell:
+
+```rank
+A B equal axis 0 rank 1
+A B equal axis 1 rank 1
+A B less axis 1 rank 1 count
+```
+
+For matrices these compare rows, columns, and count columns of `A` that sort
+before the corresponding columns of `B`. Axis numbers must be unique and in
+bounds; the number of frame axes plus the cell rank must equal each operand's
+array rank. Explicit axes require arrays on both sides.
+
+Sequences stay lazy at `rank 0`; a higher rank materializes a bounded sequence
+for comparison as one vector. Known infinite sequences are rejected for a
+whole-vector comparison. These explicit binary forms currently apply to the
+six comparison operators above; general binary function rank remains deferred.
 
 ## Reduce
 
@@ -809,7 +855,8 @@ may depend only on its arguments and immutable captured values. The runtime does
 not yet prove this property; static effect analysis is tracked separately as
 tooling work.
 
-Explicit binary rank overrides remain deferred.
+Explicit binary comparison rank and frame axes are supported as described
+in the Rank section. General binary function rank overrides remain deferred.
 
 An axis-qualified cell view may become an operand of `outer`. Its `axis` order
 will define frame order and its `rank` will define the cells, allowing rows of

@@ -13,7 +13,7 @@ test "official inferred width"
     1 0 0
   end
 
-  (Actual equal Expected) and reduce with true
+  Actual Expected equal rank 2
 end
 
 test "official explicit width"
@@ -29,7 +29,7 @@ test "official explicit width"
     0 0 0 1
   end
 
-  (Actual equal Expected) and reduce with true
+  Actual Expected equal rank 2
 end
 
 test "explicit width allows no rows"

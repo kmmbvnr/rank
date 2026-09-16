@@ -1,4 +1,4 @@
-import type { Notebook } from './notebook.js';
+import { splitSource, type Notebook } from './notebook.js';
 import type { ReplSession } from './repl-types.js';
 
 /** Runs committed cells and owns transient running and interruption state. */
@@ -57,7 +57,9 @@ export class ExecutionRunner {
     async execute(draft: string, command: boolean, force: boolean): Promise<boolean> {
         this.steppedPrefix = undefined;
         const book = this.notebook;
-        if (draft.trim() !== '' || !force && book.dirtyFrom < 0) book.enqueue(draft);
+        if (draft.trim() !== '' || !force && book.dirtyFrom < 0) {
+            for (const source of command || draft === '' ? [draft] : splitSource(draft)) book.enqueue(source);
+        }
         if (command) book.cells[book.cells.length - 2].command = true;
         const start = book.dirtyFrom;
         if (start < 0 && !command) return false;
@@ -116,7 +118,7 @@ export class ExecutionRunner {
         const partial = source !== original;
         return this.exclusive(async () => {
             book.beginExecution(index);
-            const exit = await this.run(index, source, partial ? { source: original, offset } : undefined);
+            const exit = await this.run(index, source, partial ? { source: original, offset } : undefined, !partial);
             const consecutive = offset === 0 || this.steppedPrefix?.id === cell.id
                 && this.steppedPrefix.source === original && this.steppedPrefix.next === offset;
             this.steppedPrefix = partial && cell.status === 'ok' && consecutive
@@ -135,7 +137,7 @@ export class ExecutionRunner {
         });
     }
 
-    private async run(index: number, source: string, enclosing?: { source: string; offset: number }): Promise<boolean> {
+    private async run(index: number, source: string, enclosing?: { source: string; offset: number }, replaceDeclarations = false): Promise<boolean> {
         const book = this.notebook;
         const cell = book.cells[index];
         book.active = index;
@@ -150,7 +152,7 @@ export class ExecutionRunner {
             await new Promise<void>(resolve => setTimeout(resolve, 0));
             this.session.setDebugBreakpoints?.(book.cells.flatMap(item =>
                 [...(this.breakpoints.get(item.id) ?? [])].map(line => ({ source: item.source, line }))));
-            const pending = this.session.execute(source, cell.id, book.fileLines(), this.columns(), cell.fileSource);
+            const pending = this.session.execute(source, cell.id, book.fileLines(), this.columns(), cell.fileSource, replaceDeclarations);
             if (this.stopping) this.session.interrupt?.();
             const result = await pending;
             if (result.exit) return true;

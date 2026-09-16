@@ -204,6 +204,10 @@ function skippedReturn(line: string): string {
 }
 
 function addTarget(state: CellState, line: string, insideFunction: boolean, iteration: number): CellState {
+    if (state.pending) {
+        line = `${state.pending} ${line}`;
+        state = { ...state, pending: '' };
+    }
     const condition = /^(if|elif)\s+(.+)$/.exec(line);
     if (condition) {
         state = addLine(state, line);

@@ -83,6 +83,42 @@ async function drive(t, steps, columns = 60, rows = 18) {
     return frames;
 }
 
+test('Ctrl-H toggles source-only copying and restores the editor cursor', async t => {
+    const frames = await drive(t, [
+        'A = 1' + ENTER,
+        'A + 2' + ENTER,
+        'Draft = "ab"' + '\x1b[D',
+        '\x08',
+        'ignored\x1b[200~paste\x1b[201~',
+        '\x08',
+        '\x7f',
+        '\x08',
+        '\x1b',
+    ]);
+    assert.equal(frames[3].text.trimEnd(), 'A = 1\nA + 2\nDraft = "ab"');
+    assert.equal(frames[4].text, frames[3].text);
+    assert.equal(frames[5].text, frames[2].text);
+    assert.equal(frames[5].cursorX, frames[2].cursorX);
+    assert.equal(frames[5].cursorY, frames[2].cursorY);
+    assert.match(frames[6].text, /Draft = "a"/);
+    assert.equal(frames[8].text, frames[6].text);
+});
+
+test('copy view hides live function example fields and preserves their focus', async t => {
+    const frames = await drive(t, [
+        'fun hand_score Cards' + ENTER,
+        '"example"' + '\x1b[D',
+        '\x08',
+        '\x08',
+        ENTER,
+        'Cards' + ENTER,
+    ]);
+    assert.equal(frames[2].text.trimEnd(), 'fun hand_score Cards');
+    assert.equal(frames[3].text, frames[1].text);
+    assert.equal(frames[3].cursorX, frames[1].cursorX);
+    assert.equal(frames[3].cursorY, frames[1].cursorY);
+});
+
 test('real keyboard edits an old instruction, stops at its error, then resumes without losing new input', async t => {
     const frames = await drive(t, [
         'A = 1' + ENTER,
@@ -126,6 +162,8 @@ test('bracketed multiline paste stays editable until Enter and tab suggestions n
     assert.match(frames[0].text, /^rank> A = 1/);
     assert.doesNotMatch(frames[0].text, /●/);
     assert.match(frames[1].text, /\n      3\n/);
+    assert.match(frames[1].text, /●  1› A = 1/);
+    assert.match(frames[1].text, /●  2› B = A \+ 2/);
     assert.equal((frames[2].text.match(/Tab:/g) ?? []).length, 1);
     assert.equal((frames[3].text.match(/Tab:/g) ?? []).length, 1);
     assert.doesNotMatch(frames[4].text, /Tab:/);
@@ -479,6 +517,20 @@ test('an unknown debugger key is reported in the pause footer', async t => {
     assert.match(frames[2].text, /\n      1\n/);
 });
 
+test('bracketed paste uses the cursor in the focused function argument', async t => {
+    const frames = await drive(t, [
+        'fun hand_score Cards' + ENTER,
+        '""\x1b[D',
+        '\x1b[200~5H 5C 6S 7S KD\x1b[201~',
+        ENTER,
+        'Cards' + ENTER,
+    ], 100, 30);
+    assert.match(frames[1].text, /Cards = ""/);
+    assert.match(frames[2].text, /rank> fun hand_score Cards\n\s+Cards = "5H 5C 6S 7S KD"/);
+    assert.equal(frames[2].cursorX, '      Cards = "5H 5C 6S 7S KD'.length);
+    assert.match(frames[4].text, /\n        5H 5C 6S 7S KD\n/);
+});
+
 test('an open function evaluates body lines immediately on example arguments', async t => {
     const frames = await drive(t, [
         'fun inc N' + ENTER,
@@ -500,6 +552,79 @@ test('an open function evaluates body lines immediately on example arguments', a
     assert.doesNotMatch(frames[2].text + frames[3].text, /Paused/);
     assert.match(frames[4].text, /●\s*1› fun inc N/);
     assert.match(frames[4].text, /<function inc>/);
+});
+
+test('up from the first body line reopens Cards for an array example', async t => {
+    const frames = await drive(t, [
+        'fun hand_score Cards' + ENTER,
+        '"5H 5C"' + ENTER,
+        'return Cards',
+        UP,
+        CLEAR + 'array "5H" "5C"' + ENTER,
+        ENTER,
+        'end' + ENTER,
+    ]);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s+Cards = "5H 5C"/);
+    assert.match(frames[4].text, /Cards = array "5H" "5C"/);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /return Cards/);
+    assert.match(frames[5].text, /return Cards\n\s+5H 5C/);
+    assert.doesNotMatch(frames[5].text, /Runtime:|cannot receive/);
+    assert.match(frames[6].text, /<function hand_score>/);
+});
+
+test('mouse clicks place the cursor in argument values and source', async t => {
+    const frames = await drive(t, [
+        'fun hand_score Cards' + ENTER,
+        '"ab"' + ENTER,
+        'return Cards',
+        '\x1b[<0;17;2M\x1b[<0;17;2m' + 'X',
+        '\x1b[<0;21;3M\x1b[<0;21;3m' + ' ',
+    ]);
+    assert.match(frames[3].text, /Cards = "aXb"/);
+    assert.equal(frames[3].cursorY, 1);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /return Cards/);
+    assert.equal(frames[4].cursorY, 2);
+    assert.match(frames[4].text, /Cards = "aXb"/);
+    assert.doesNotMatch(frames[4].text, /<0;/);
+});
+
+test('arrows leave example fields in both directions without losing edits or evaluating', async t => {
+    const frames = await drive(t, [
+        'fun hand_score Cards' + ENTER,
+        'array "5H" "5C"' + ENTER,
+        'Values = Cards',
+        UP,
+        UP,
+        DOWN,
+        CLEAR + 'array "KD"' + DOWN,
+        UP,
+        DOWN,
+    ]);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /Cards = array/);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /fun hand_score Cards/);
+    assert.match(frames[5].text.split('\n')[frames[5].cursorY], /Cards = array/);
+    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Values = Cards/);
+    assert.match(frames[7].text.split('\n')[frames[7].cursorY], /Cards = array "KD"/);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /Values = Cards/);
+    assert.doesNotMatch(frames[8].text, /\n\s+KD\n|→ array\[2\]/);
+});
+
+test('function examples show split values and ranked failures show the failing card', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER,
+        'fun hand_score Cards' + ENTER,
+        '"5H 5C" "" split' + ENTER,
+        'Values = Cards card_value rank 0' + ENTER,
+        UP,
+        CLEAR + '"5H 5C" " " split' + ENTER,
+        ENTER,
+    ], 60, 24);
+    assert.match(frames[2].text, /→ array\[5\]: "5" "H" " " "5" "C"/);
+    assert.match(frames[3].text, /card_value\n[^\n]*Card = "H"/);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /Cards = /);
+    assert.match(frames[5].text, /→ array\[2\]: "5H" "5C"/);
+    assert.doesNotMatch(frames[6].text, /Missing:|Card = "H"/);
+    assert.match(frames[6].text, /Values = Cards card_value rank 0\n\s+3 3/);
 });
 
 test('arrow keys edit visible function arguments and return to them from the body', async t => {
@@ -600,18 +725,18 @@ test('Ctrl-R reruns an unfinished function and leaves it open at the current lin
         '4' + ENTER,
         'Result = N + 1',
         '\x12',
-        ENTER,
-        ENTER,
-        'return Result' + ENTER,
-        'end' + ENTER,
+        '',
+        '\x12',
+        'return Result' + '\x12',
+        'end' + '\x12',
     ], 80, 20);
     assert.match(frames[3].text, /Result = N \+ 1/);
     assert.match(frames[3].text, /N = 4/);
-    assert.match(frames[3].text, /Example inc · N \(1\/1\)/);
-    assert.doesNotMatch(frames[3].text, /Result = N \+ 1\n        5/);
+    assert.doesNotMatch(frames[3].text, /Example inc/);
+    assert.match(frames[3].text, /Result = N \+ 1\n        5/);
     assert.doesNotMatch(frames[3].text, /<function inc>|●\s*1›/);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /Result = N \+ 1/);
-    assert.doesNotMatch(frames[4].text, /Result = N \+ 1\n        5/);
+    assert.match(frames[4].text, /Result = N \+ 1\n        5/);
     assert.match(frames[5].text, /Result = N \+ 1\n        5/);
     assert.match(frames[6].text, /return Result\n        5/);
     assert.match(frames[7].text, /<function inc>/);
@@ -659,6 +784,32 @@ test('a live eval error keeps the terminal cursor on the erroneous line', async 
     assert.doesNotMatch(frame.text, /<function inc>/);
 });
 
+test('postfix comparisons select whole arrays and column cells in the terminal', async t => {
+    const frames = await drive(t, [
+        'A = array shape 2 2 fill 1' + ENTER,
+        'B = array shape 2 2 fill 1' + ENTER,
+        'B 0 1 = 9' + ENTER,
+        'A B equal rank 2' + ENTER,
+        'A B equal axis 1 rank 1' + ENTER,
+    ], 80, 22);
+    assert.match(frames[3].text, /false/);
+    assert.match(frames[4].text, /true false/);
+    assert.doesNotMatch(frames[4].text, /Syntax:|Runtime:/);
+});
+
+test('multiline assignment previews work in the terminal', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~fun hand_score Cards\n  WheelMask = (\n    Cards equal (array 0 1 2 3 12)\n  )\nend\x1b[201~' + ENTER,
+        UP,
+        UP,
+        '\x12',
+        'array 3 3 4 5 11' + ENTER,
+        '\x12',
+    ], 80, 22);
+    assert.match(frames[5].text, /false false false false false/);
+    assert.doesNotMatch(frames[5].text, /Syntax:/);
+});
+
 test('Ctrl-R reopens a completed function at the selected line with its old example', async t => {
     const frames = await drive(t, [
         'fun inc X' + ENTER,
@@ -666,18 +817,21 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
         'Result = X + 1' + ENTER,
         'Result *= 2' + ENTER,
         'end' + ENTER,
-        UP + UP + '\x12',
-        ENTER,
-        ENTER,
+        UP,
+        UP,
+        '\x12',
+        '\x12',
+        '\x12',
     ], 80, 22);
-    assert.match(frames[5].text, /●\s*1› fun inc X\n\s+X = 2/);
-    assert.match(frames[5].text, /Example inc · X \(1\/1\)/);
-    assert.match(frames[5].text.split('\n')[frames[5].cursorY], /X = 2/);
-    assert.doesNotMatch(frames[5].text, /<function inc>/);
-    assert.match(frames[6].text, /Result = X \+ 1\n        3/);
-    assert.doesNotMatch(frames[6].text, /Result \*= 2\n        6/);
-    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Result \*= 2/);
+    assert.equal(frames[7].cursorY, frames[6].cursorY);
+    assert.doesNotMatch(frames[7].text, /Example inc/);
+    assert.match(frames[7].text.split('\n')[frames[7].cursorY], /Result \*= 2/);
     assert.match(frames[7].text, /Result \*= 2\n        6/);
+    assert.doesNotMatch(frames[7].text, /<function inc>/);
+    assert.match(frames[8].text, /Result = X \+ 1\n        3/);
+    assert.match(frames[8].text, /Result \*= 2\n        6/);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /end/);
+    assert.match(frames[9].text, /<function inc>/);
 });
 
 test('loop arrows keep the cursor on the visible iteration and defer body evaluation', async t => {
@@ -803,4 +957,82 @@ test('debugging a loaded file uses document line numbers for cells and function 
     assert.ok(frames[3].text.indexOf('Call stack') < frames[3].text.indexOf('● 6 │'));
     assert.ok(frames[3].text.indexOf('Variables (current scope)') > frames[3].text.indexOf('● 6 │'));
     assert.doesNotMatch(frames[3].text, /<repl>:/);
+});
+
+test('mouse wheel scrolls source without moving the editing cursor', async t => {
+    const source = Array.from({ length: 35 }, (_, i) => `rem row${i}`).join('\n');
+    const frames = await drive(t, [
+        '\x1b[200~' + source + '\x1b[201~',
+        '\x1b[<64;10;3M'.repeat(20),
+        '\x1b[<65;10;3M',
+        'X',
+    ], 80, 12);
+    assert.match(frames[0].text, /row34/);
+    assert.match(frames[1].text, /row0\b/);
+    assert.doesNotMatch(frames[2].text, /row0\b/);
+    assert.match(frames[2].text, /row3\b/);
+    assert.match(frames[3].text, /row34X/);
+    assert.doesNotMatch(frames[3].text, /64;10|65;10/);
+});
+
+test('Esc leaves function evaluation so Enter inserts a line before end', async t => {
+    const frames = await drive(t, [
+        'fun inc X' + ENTER,
+        '2' + ENTER,
+        'Result = X + 1' + ENTER,
+        'end' + ENTER,
+        UP,
+        UP,
+        END,
+        '\x12',
+        '\x1b',
+        ENTER,
+        'Result *= 2',
+        '\x12',
+    ], 80, 22);
+    assert.match(frames[7].text, /Enter newline · \^R run/);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /Result = X \+ 1/);
+    assert.match(frames[9].text.split('\n')[frames[9].cursorY], /^\s*[·●]?\s*$/);
+    assert.match(frames[10].text, /Result \*= 2\n.*end/);
+    assert.match(frames[11].text, /Result \*= 2\n        6/);
+    assert.doesNotMatch(frames[11].text, /Example inc/);
+});
+
+test('Enter during evaluation inserts a temporary line that disappears when left empty', async t => {
+    const frames = await drive(t, [
+        'fun inc X' + ENTER,
+        '2' + ENTER,
+        'Result = X + 1' + ENTER,
+        'end' + ENTER,
+        UP, UP, END, '\x12',
+        ENTER,
+        DOWN,
+        UP, END, ENTER,
+        'Result *= 2',
+        DOWN,
+        UP,
+        '\x12',
+    ], 80, 22);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /^\s*[·●▶]?\s*$/);
+    assert.match(frames[9].text, /Result = X \+ 1\n[^\n]*end/);
+    assert.match(frames[14].text, /Result \*= 2\n[^\n]*end/);
+    assert.match(frames[16].text, /Result \*= 2\n        6/);
+    assert.doesNotMatch(frames[16].text, /Example inc/);
+});
+
+test('Tab restores indentation on an empty function line before completion', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~fun identity X\n  return X\n\nend\x1b[201~',
+        ENTER,
+        UP,
+        UP,
+        '\x01',
+        '\t',
+        'Value = 1',
+    ], 80, 18);
+    assert.equal(frames[4].cursorX, 6);
+    assert.equal(frames[5].cursorX, 8);
+    assert.equal(frames[5].cursorY, frames[4].cursorY);
+    assert.doesNotMatch(frames[5].text, /No completions/);
+    assert.match(frames[6].text, /  Value = 1/);
 });

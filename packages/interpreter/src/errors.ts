@@ -1,4 +1,5 @@
 import type { RankErrorValue, RankValue } from './value.js';
+import { summarizeValue } from './value-summary.js';
 
 export interface RankErrorLocation {
     readonly sourceId: string;
@@ -9,6 +10,15 @@ export interface RankErrorLocation {
 
 export class RankError extends Error {
     location?: RankErrorLocation;
+    private readonly calls: string[] = [];
+
+    addCall(name: string, parameters: readonly string[], values: readonly RankValue[]): void {
+        if (this.calls.length >= 8) return;
+        this.calls.push(`${name}\n` + parameters.slice(0, 8).map((parameter, index) =>
+            `  ${parameter} = ${values[index] === undefined ? '<missing>' : summarizeValue(values[index])}`).join('\n'));
+    }
+
+    formatCalls(): string { return this.calls.join('\n'); }
 
     constructor(
         message: string,
@@ -33,7 +43,8 @@ export class RankError extends Error {
     }
 
     format(): string {
-        const heading = `${this.name} [${this.rankKind}]: ${this.message}`;
+        const heading = `${this.name} [${this.rankKind}]: ${this.message}`
+            + (this.calls.length ? `\n${this.formatCalls()}` : '');
         if (!this.location) return heading;
         const { sourceId, line, column, sourceLine } = this.location;
         const prefix = `${line} | `;

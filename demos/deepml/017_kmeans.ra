@@ -42,7 +42,7 @@ fun k_means Points K Centroids Max
       end
     end
 
-    if (Next equal Centroids) all
+    if Next Centroids equal rank 2
       break
     end
 
