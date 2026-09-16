@@ -11,6 +11,7 @@ import type { ReplSession } from './repl-types.js';
 import { TerminalModeRouter } from './terminal-modes.js';
 import { TerminalRenderer } from './terminal-renderer.js';
 import { TerminalInputDecoder } from './terminal-input.js';
+import { systemClipboard } from './clipboard.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
@@ -81,7 +82,7 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     const render = (): void => renderer?.render();
     const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
     const book = repl.notebook;
-    const keyRouter = new KeyRouter(repl, history, () => output.columns || 80);
+    const keyRouter = new KeyRouter(repl, history, () => output.columns || 80, systemClipboard());
     const modeRouter = new TerminalModeRouter(repl, () => output.rows || 24);
     renderer = new TerminalRenderer(repl, modeRouter, output);
     let finish!: () => void;
@@ -112,12 +113,16 @@ async function terminalRepl(session: ReplSession): Promise<void> {
         text => { keyInput.write(text); },
         value => {
             if (renderer.copying) return;
-            if (!modeRouter.paste(value)) (repl.exampleEditor ?? book).insert(value.replace(/\r\n?/g, '\n'));
+            if (!modeRouter.paste(value)) {
+                if (!repl.exampleEditor) repl.editSource();
+                (repl.exampleEditor ?? book).insert(value.replace(/\r\n?/g, '\n'));
+            }
             repl.dismiss();
             render();
         },
         (column, row) => { renderer.click(column, row); },
         direction => { renderer.scroll(direction); },
+        (column, row, released) => { renderer.drag(column, row, released); },
     );
     const onData = (chunk: Buffer): void => { inputDecoder.write(chunk); };
     const wasRaw = input.isRaw;
@@ -145,7 +150,7 @@ async function terminalRepl(session: ReplSession): Promise<void> {
         process.off('SIGHUP', leave);
         input.setRawMode(wasRaw);
         input.pause();
-        output.write('\x1b[0 q\x1b[?1000l\x1b[?1006l\x1b[?2004l\x1b[?25h\x1b[?1049l');
+        output.write('\x1b[0 q\x1b[?1000l\x1b[?1002l\x1b[?1006l\x1b[?2004l\x1b[?25h\x1b[?1049l');
         try { await fs.writeFile(historyFile(), keyRouter.history.map(item => item.replace(/\n/g, ' ')).join('\n') + '\n'); }
         catch { /* A read-only home does not prevent using the REPL. */ }
     }

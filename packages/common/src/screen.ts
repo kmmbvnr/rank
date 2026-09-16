@@ -55,6 +55,19 @@ export function editableRows(source: string, columns: number): TextRow[] {
     return rows;
 }
 
+function selectedRow(row: TextRow, range?: { from: number; to: number }): string {
+    if (!range) return row.text;
+    let offset = row.points[0].offset;
+    let column = 0;
+    return graphemes(row.text).map(part => {
+        const point = row.points.find(point => point.column === column);
+        if (point) offset = point.offset;
+        column += stringWidth(part.segment);
+        return offset >= range.from && offset < range.to
+            ? '\x1b[7m' + part.segment + '\x1b[27m' : part.segment;
+    }).join('');
+}
+
 function clean(text: string): string { return stripVTControlCharacters(text).replace(/\r/g, ''); }
 
 /** Diagnostics wrap at spaces; only an oversized word needs a hard break. */
@@ -103,7 +116,8 @@ export function notebookFrame(
     suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
     breakpoints?: ReadonlyMap<number, ReadonlySet<number>>, promptLabel = 'rank> ',
     promptOutputs?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
-    promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[],
+    promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string;
+        selection?: { from: number; to: number } }[],
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number,
 ): ScreenFrame {
@@ -155,7 +169,7 @@ export function notebookFrame(
             if (nextEval) { nextEvalRow = rows.length; nextEvalSourceLine = sourceLine; }
             targets[rows.length] = { kind: 'source', cell: index, line: sourceLine,
                 points: item.points.map(point => ({ offset: point.offset, column: gutter + point.column })) };
-            rows.push((gutter > 0 ? painted : '') + item.text);
+            rows.push((gutter > 0 ? painted : '') + selectedRow(item, notebook.selectionRange(index)));
             if (index === notebook.active && !editingField && !promptOutputFocus) {
                 const point = item.points.find(point => point.offset === notebook.cursor);
                 if (point) caret = { row: rows.length - 1, column: gutter + point.column };
@@ -192,7 +206,9 @@ export function notebookFrame(
                         targets[rows.length] = { kind: 'example', cell: index, line: sourceLine, field: fieldIndex,
                             points: fieldRow.points.filter(point => point.offset >= label.length)
                                 .map(point => ({ offset: point.offset - label.length, column: gutter + point.column })) };
-                        rows.push('\x1b[90m' + ' '.repeat(gutter) + fieldRow.text + '\x1b[0m');
+                        const range = field.selection && { from: field.selection.from + label.length,
+                            to: field.selection.to + label.length };
+                        rows.push('\x1b[90m' + ' '.repeat(gutter) + selectedRow(fieldRow, range) + '\x1b[0m');
                         if (field.active) {
                             const point = fieldRow.points.find(point => point.offset === label.length + field.cursor);
                             if (point) caret = { row: rows.length - 1, column: gutter + point.column };

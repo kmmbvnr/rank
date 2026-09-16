@@ -83,6 +83,60 @@ async function drive(t, steps, columns = 60, rows = 18) {
     return frames;
 }
 
+test('Enter after end returns to rank prompt after previewing an unfinished function', async t => {
+    const frames = await drive(t, [
+        'fun digit_sum N' + ENTER,
+        '"123456"' + ENTER,
+        'Digits = N text integer rank 0' + '\x12',
+        ENTER,
+        'return Digits sum' + ENTER,
+        'end' + ENTER,
+        '123456 digit_sum' + ENTER,
+    ]);
+    assert.match(frames[5].text.split('\n')[frames[5].cursorY], /^rank>\s*$/);
+    assert.match(frames[6].text, /\n\s*21\n/);
+    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /^rank>\s*$/);
+    assert.doesNotMatch(frames[6].text, /Example digit_sum/);
+});
+
+test('a function containing for returns to rank prompt after selecting an iteration', async t => {
+    const frames = await drive(t, [
+        'fun total N' + ENTER,
+        '3' + ENTER,
+        'Sum = 0' + ENTER,
+        'for I in 1 to N' + '\x12',
+        RIGHT,
+        ENTER,
+        ENTER,
+        'Sum += I' + ENTER,
+        'end' + ENTER,
+        'return Sum' + ENTER,
+        'end' + ENTER,
+        '3 total' + ENTER,
+    ], 80, 24);
+    assert.match(frames[4].text, /I = 2 · iteration 2/);
+    assert.doesNotMatch(frames[8].text, /<function total>/);
+    assert.match(frames[10].text.split('\n')[frames[10].cursorY], /^rank>\s*$/);
+    assert.match(frames[11].text, /\n\s*6\n/);
+    assert.match(frames[11].text.split('\n')[frames[11].cursorY], /^rank>\s*$/);
+});
+
+test('Shift selection and mouse dragging replace source without executing pasted code', async t => {
+    const frames = await drive(t, [
+        'abcdef',
+        '\x1b[1;2D\x1b[1;2D\x1b[1;2D',
+        'XYZ',
+        '\x1b[<0;7;1M\x1b[<32;10;1M\x1b[<0;10;1m',
+        '\x1b[200~123\n456\x1b[201~',
+        '\x1a',
+    ]);
+    assert.match(frames[1].raw, /\x1b\[7m/);
+    assert.match(frames[2].text, /rank> abcXYZ/);
+    assert.match(frames[3].raw, /\x1b\[7m/);
+    assert.match(frames[4].text, /rank> 123\n\s*· 456XYZ/);
+    assert.match(frames[5].text, /rank> abcXYZ/);
+});
+
 test('Ctrl-H toggles source-only copying and restores the editor cursor', async t => {
     const frames = await drive(t, [
         'A = 1' + ENTER,

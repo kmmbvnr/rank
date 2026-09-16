@@ -62,6 +62,7 @@ export class LiveConditionalController {
     }
 
     async begin(source: string): Promise<boolean> {
+        if (this.live && !this.notebook.cells.some(cell => cell.id === this.live!.cellId)) this.clear();
         if (!this.enabled || this.live || source.includes('\n')
             || !/^\s*(?:if\s+.+|for(?:\s.*)?)$/.test(source)) return false;
         const existing = !this.notebook.atPrompt;

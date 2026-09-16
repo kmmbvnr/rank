@@ -51,6 +51,95 @@ function scenario() {
         esc: () => key('', { name: 'escape' }, 'Esc') };
 }
 
+for (const trailingBlank of [false, true]) {
+    test(`Enter after the outer end finishes a new function after Ctrl-R (trailing blank: ${trailingBlank})`, async () => {
+        const s = scenario();
+        try {
+            await s.type('fun digit_sum N');
+            await s.enter();
+            await s.type('"123456"');
+            await s.enter();
+            await s.type('Digits = N text integer rank 0');
+            await s.ctrlR();
+            await s.enter();
+            await s.type('return Digits sum');
+            await s.enter();
+            await s.type(trailingBlank ? 'end\n  ' : 'end');
+            await s.enter();
+            assert.equal(s.repl.liveEditing, false);
+            assert.equal(s.repl.advancing, false);
+            assert.equal(s.book.current.source, '');
+            assert.equal(s.book.cells[0].status, 'ok');
+            await s.type('123456 digit_sum');
+            await s.enter();
+            assert.equal(s.book.cells.at(-2).output[0].text, '21');
+        } finally { s.session.dispose(); }
+    });
+}
+
+test('Enter after a nested end keeps a new function open after Ctrl-R', async () => {
+    const s = scenario();
+    try {
+        await s.type('fun identity N');
+        await s.enter();
+        await s.type('3');
+        await s.enter();
+        await s.type('if N greater 0');
+        await s.ctrlR();
+        await s.enter();
+        await s.type('return N');
+        await s.enter();
+        await s.type('end');
+        await s.enter();
+        assert.equal(s.repl.liveEditing, true);
+        assert.equal(s.book.cells.length, 1);
+        await s.type('end');
+        await s.enter();
+        assert.equal(s.repl.liveEditing, false);
+        assert.equal(s.book.current.source, '');
+    } finally { s.session.dispose(); }
+});
+
+for (const selectIteration of [false, true]) {
+    test(`a for inside a new function closes separately from the function (select iteration: ${selectIteration})`, async () => {
+        const s = scenario();
+        try {
+            await s.type('fun total N');
+            await s.enter();
+            await s.type('3');
+            await s.enter();
+            await s.type('Sum = 0');
+            await s.enter();
+            await s.type('for I in 1 to N');
+            if (selectIteration) {
+                await s.ctrlR();
+                assert.equal(s.repl.liveIterationFocused, true);
+                await s.right();
+                assert.match(s.repl.liveOutputs.get(3)[0].text, /I = 2/);
+                await s.enter();
+                assert.equal(s.repl.liveIterationFocused, false);
+            }
+            await s.enter();
+            await s.type('Sum += I');
+            await s.enter();
+            await s.type('end');
+            await s.enter();
+            assert.equal(s.repl.liveEditing, true);
+            assert.equal(s.book.cells.length, 1);
+            await s.type('return Sum');
+            await s.enter();
+            await s.type('end');
+            await s.enter();
+            assert.equal(s.repl.liveEditing, false);
+            assert.equal(s.repl.liveIterationFocused, false);
+            assert.equal(s.book.current.source, '');
+            await s.type('3 total');
+            await s.enter();
+            assert.equal(s.book.cells.at(-2).output[0].text, '6');
+        } finally { s.session.dispose(); }
+    });
+}
+
 test('Ctrl-L resets retained state, runs the entire document and clears orange provenance', async () => {
     const s = scenario();
     try {

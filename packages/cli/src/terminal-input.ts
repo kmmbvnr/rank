@@ -14,6 +14,7 @@ export class TerminalInputDecoder {
         private readonly pasted: (text: string) => void,
         private readonly clicked: (column: number, row: number) => void = () => {},
         private readonly scrolled: (direction: number) => void = () => {},
+        private readonly dragged: (column: number, row: number, released: boolean) => void = () => {},
     ) {}
 
     write(chunk: Buffer): void {
@@ -43,6 +44,8 @@ export class TerminalInputDecoder {
                         this.pending = this.pending.slice(report[0].length);
                         if (report[1] === '0' && report[4] === 'M')
                             this.clicked(Number(report[2]) - 1, Number(report[3]) - 1);
+                        if (report[1] === '32' && report[4] === 'M' || report[1] === '0' && report[4] === 'm')
+                            this.dragged(Number(report[2]) - 1, Number(report[3]) - 1, report[4] === 'm');
                         if (report[4] === 'M' && (report[1] === '64' || report[1] === '65'))
                             this.scrolled(report[1] === '64' ? -1 : 1);
                         continue;

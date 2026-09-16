@@ -5,6 +5,7 @@ import { enclosingIterationLine, LivePreviewRunner } from './live-preview.js';
 import type { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
+import { EMPTY_CELL, addLine, isComplete } from './repl-input.js';
 
 export type LiveSubmitResult = 'absent' | 'handled' | 'complete' | 'replay';
 
@@ -32,6 +33,14 @@ export class LiveFunctionController {
     }
     get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.editing ? this.live?.outputs : undefined; }
     get editing(): boolean { return this.live !== undefined && this.live.cellId === this.notebook.current.id; }
+    get completing(): boolean {
+        if (!this.editing || this.live!.existing || this.prompt) return false;
+        const source = this.notebook.current.source;
+        if (source.slice(this.notebook.cursor).trim()) return false;
+        let state = EMPTY_CELL;
+        for (const line of source.split('\n')) state = addLine(state, line.trim(), true);
+        return isComplete(state);
+    }
     get iterationFocus(): { line: number; offset: number; nextLine: number } | undefined {
         if (!this.editing || !this.live || this.prompt || this.focusedIteration === undefined) return undefined;
         const text = this.live.outputs.get(this.focusedIteration)?.find(output => !output.error)?.text;
@@ -125,6 +134,7 @@ export class LiveFunctionController {
     }
 
     begin(source: string): boolean {
+        if (this.live && !this.notebook.cells.some(cell => cell.id === this.live!.cellId)) this.clear();
         if (!this.enabled || this.live || source.includes('\n')) return false;
         const match = /^\s*(?:fun|memo)\s+([a-z][A-Za-z0-9_]*|update)((?:\s+[A-Za-z][A-Za-z0-9_]*)*)\s*$/.exec(source);
         if (!match) return false;
@@ -235,13 +245,14 @@ export class LiveFunctionController {
         const source = this.notebook.current.source;
         const lines = source.split('\n');
         const currentLine = source.slice(0, this.notebook.cursor).split('\n').length - 1;
-        if (currentLine < lines.length - 1) {
+        const completing = this.completing;
+        if (!completing && currentLine < lines.length - 1) {
             await this.updatePreviews(false, currentLine + 1);
             this.placeCursorAfterLine(currentLine);
             this.render();
             return 'handled';
         }
-        if (!lines[currentLine].trim()) {
+        if (!completing && !lines[currentLine].trim()) {
             this.notebook.newline();
             this.updateSuggestion();
             this.render();

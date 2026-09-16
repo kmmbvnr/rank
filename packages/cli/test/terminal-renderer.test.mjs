@@ -60,6 +60,24 @@ test('clicks use wrapped Unicode positions and copy view leaves the cursor alone
     assert.equal(repl.notebook.cursor, 38);
 });
 
+test('mouse dragging selects source across cells while skipping rendered output', async t => {
+    const { repl, renderer, writes } = setup(t);
+    repl.notebook.replace('A = 1');
+    await repl.submit();
+    repl.notebook.replace('A + 2');
+    await repl.submit();
+    renderer.render();
+    renderer.click(6, 0);
+    renderer.drag(11, 2, false);
+    assert.equal(repl.notebook.selectedText, 'A = 1\nA + 2');
+    assert.match(writes.at(-1), /\x1b\[7m/);
+    renderer.drag(11, 2, true);
+    renderer.drag(6, 4, false);
+    assert.equal(repl.notebook.selectedText, 'A = 1\nA + 2');
+    renderer.click(6, 4);
+    assert.equal(repl.notebook.selection, undefined);
+});
+
 test('copy view scrolls through source and excludes command cells', t => {
     const { repl, renderer, writes } = setup(t);
     repl.notebook.enqueue('help');

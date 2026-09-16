@@ -33,6 +33,7 @@ export class NotebookRepl {
         return this.liveFunction.outputs ?? this.liveConditional.outputs;
     }
     get liveEditing(): boolean { return this.liveFunction.editing || this.liveConditional.editing; }
+    get completingLiveFunction(): boolean { return this.liveFunction.completing; }
     get exampleEditor(): Notebook | undefined { return this.liveFunction.editor; }
     get exampleFields(): { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[] | undefined {
         return this.liveFunction.fields;

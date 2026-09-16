@@ -5,19 +5,27 @@ const HISTORY_LIMIT = 500;
 
 export interface Key { name?: string; ctrl?: boolean; meta?: boolean; shift?: boolean; sequence?: string }
 export interface KeyResult { exit: boolean; pageDelta?: number }
+export interface Clipboard {
+    read(): Promise<string>;
+    write(text: string): Promise<void>;
+}
 
 /** Routes keys while the notebook or a live-function example field has focus. */
 export class KeyRouter {
     private historyIndex = -1;
     private historyDraft = '';
+    private copiedText = '';
+    private clipboardPending?: Promise<void>;
 
     constructor(
         readonly repl: NotebookRepl,
         readonly history: string[] = [],
         private readonly columns = () => 80,
+        private readonly clipboard?: Clipboard,
     ) {}
 
     async press(text: string, key: Key = {}): Promise<KeyResult> {
+        while (this.clipboardPending) await this.clipboardPending;
         try { return await this.route(text, key); }
         finally { this.repl.notebook.discardEmptyLine(); }
     }
@@ -25,8 +33,58 @@ export class KeyRouter {
     private async route(text: string, key: Key): Promise<KeyResult> {
         const repl = this.repl;
         const book = repl.notebook;
+        const editor = repl.exampleEditor ?? book;
+        const navigation = ['left', 'right', 'up', 'down', 'home', 'end'].includes(key.name ?? '');
+        if (key.shift && navigation && !key.ctrl && !key.meta) {
+            if (editor === book) repl.editSource();
+            editor.selectMove(key.name!, textColumns(this.columns()));
+            repl.dismiss();
+            return { exit: false };
+        }
+        if (key.ctrl && (key.name === 'v' || (key.name === 'c' || key.name === 'x') && editor.selection)) {
+            this.clipboardPending = (async () => {
+                try {
+                    if (key.name === 'v') {
+                        const text = await this.clipboard?.read() ?? this.copiedText;
+                        if (text) {
+                            if (editor === book) repl.editSource();
+                            editor.insert(text.replace(/\r\n?/g, '\n'));
+                        }
+                    } else {
+                        const text = editor.selectedText;
+                        await this.clipboard?.write(text);
+                        this.copiedText = text;
+                        if (key.name === 'x') editor.replaceSelection('');
+                    }
+                    repl.dismiss();
+                } catch {
+                    repl.suggestion = 'Clipboard unavailable · use system Copy/Paste';
+                }
+            })();
+            try { await this.clipboardPending; }
+            finally { this.clipboardPending = undefined; }
+            return { exit: false };
+        }
+        if (editor.selection && !key.ctrl && !key.meta && (navigation || key.name === 'escape')) {
+            const range = editor.selection;
+            editor.clearSelection();
+            if (key.name === 'left' || key.name === 'right') {
+                editor.active = key.name === 'left' ? range.start : range.end;
+                editor.cursor = key.name === 'left' ? range.from : range.to;
+            } else if (key.name === 'up' || key.name === 'down') {
+                editor.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()));
+            } else if (key.name === 'home' || key.name === 'end') editor.lineEdge(key.name === 'end');
+            repl.dismiss();
+            return { exit: false };
+        }
+        if (editor.selection && (key.name === 'return' || key.name === 'enter') && !key.ctrl && !key.meta) {
+            editor.replaceSelection('\n');
+            return { exit: false };
+        }
+        if (key.ctrl || key.meta || key.name === 'tab' || navigation && !key.shift) editor.clearSelection();
         if ((key.name === 'return' || key.name === 'enter') && !key.meta
-            && repl.advancing && !repl.exampleEditor && !repl.liveIterationFocused) {
+            && repl.advancing && !repl.exampleEditor && !repl.liveIterationFocused
+            && !repl.completingLiveFunction) {
             repl.insertEvaluationLine();
             return { exit: false };
         }

@@ -207,7 +207,31 @@ and multiline expressions stay together. Home/End
 move to the logical line boundaries. Backspace/Delete operate on grapheme clusters.
 Page Up/Page Down scroll through output without moving the source cursor.
 Ctrl-Z/Ctrl-Y undo and redo edits within the current instruction. Ctrl-P/Ctrl-N
-recall typed history. Ctrl-C returns to the prompt and clears the draft; Ctrl-Q exits.
+recall typed history. Ctrl-C without a selection returns to the prompt and clears
+the draft; Ctrl-Q exits.
+
+Shift+arrows and Shift+Home/End select source, including across instructions.
+Selection excludes prompts, outputs, and command cells. In the browser, Cmd-C/X/V
+on macOS and Ctrl-C/X/V on other platforms copy, cut, and paste without executing.
+The CLI uses Ctrl-C/X/V for its internal selection on all platforms: terminal
+applications handle Command shortcuts themselves and do not forward them to Rank.
+On macOS, terminal Cmd-C copies the terminal's native selection and Cmd-V pastes;
+it does not copy Rank's internal Shift selection. Typing, Backspace, Delete, or a paste
+replaces the selection; Esc clears it. Ctrl-Z/Ctrl-Y undo and redo edits.
+Example argument fields support the same selection and clipboard keys.
+The CLI uses the system clipboard: `pbcopy`/`pbpaste` on macOS, PowerShell on
+Windows, or `wl-copy`/`wl-paste` on Wayland and `xclip` on X11. If the clipboard
+is unavailable, it reports the failure and leaves the selection intact.
+The terminal's own paste shortcut and bracketed paste remain supported.
+While execution is running, Ctrl-C still interrupts it.
+
+In the terminal, dragging the left mouse button selects source. The browser also
+supports native mouse selection and touch long-press selection with the system
+Copy menu. Copying a range containing source omits prompts, markers, and output.
+Rendering waits while a native selection is active so selection handles survive
+viewport changes. A quick vertical swipe scrolls; long-press selection is left
+to the browser. Browser copy, cut, and paste use native clipboard events,
+including Cmd-C/X/V on macOS, without requesting clipboard API permissions.
 
 In the terminal, Ctrl-H toggles a read-only copy view: only source remains,
 including the unfinished draft, without prompts, line numbers, results, example

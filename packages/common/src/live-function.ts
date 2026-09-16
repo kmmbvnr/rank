@@ -55,13 +55,15 @@ export class LiveFunctionSession {
             index: this.argument, count: this.parameters.length };
     }
 
-    get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string }[] | undefined {
+    get fields(): { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string;
+        selection?: { from: number; to: number } }[] | undefined {
         if (this.skipped) return undefined;
         return this.parameters.map((name, index) => ({
             name,
             source: index === this.argument ? this.argumentEditor.current.source : this.values[index] ?? '',
             cursor: index === this.argument ? this.argumentEditor.cursor : 0,
             active: index === this.argument,
+            selection: index === this.argument ? this.argumentEditor.selectionRange(0) : undefined,
             summary: this.summaries.get(index)?.source === (index === this.argument
                 ? this.argumentEditor.current.source.trim() : this.values[index]) ? this.summaries.get(index)?.text : undefined,
             error: index === this.argument && this.argumentError?.source === this.argumentEditor.current.source

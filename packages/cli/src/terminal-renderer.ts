@@ -4,6 +4,7 @@ import { drawFrame, editableRows, helpFrame, notebookFrame, pauseFrame, saveFram
 import type { Key } from './key-router.js';
 import type { ScreenTarget } from './screen.js';
 import type { TerminalModeRouter } from './terminal-modes.js';
+import type { Notebook } from './notebook.js';
 
 interface TerminalOutput {
     readonly columns?: number;
@@ -21,6 +22,7 @@ export class TerminalRenderer {
     private targets: readonly (ScreenTarget | undefined)[] = [];
     private cursorRow?: number;
     private anchoredCursorRow?: number;
+    private mouseEditor?: { book: Notebook; field?: number };
 
     click(column: number, row: number): void {
         if (this.stopped || this.copying || this.modes.active) return;
@@ -30,18 +32,37 @@ export class TerminalRenderer {
         const point = target.points.reduce((nearest, point) =>
             Math.abs(point.column - column) < Math.abs(nearest.column - column) ? point : nearest);
         const repl = this.repl;
+        this.mouseEditor = undefined;
+        repl.notebook.clearSelection();
+        repl.exampleEditor?.clearSelection();
         if (target.kind === 'example') {
             if (!repl.exampleEditor && !repl.reopenExample()) return;
             repl.moveExampleField(target.field! - repl.examplePrompt!.index);
             repl.exampleEditor!.cursor = point.offset;
+            this.mouseEditor = { book: repl.exampleEditor!, field: target.field };
         } else if (target.kind === 'source') {
             if (repl.examplePrompt) repl.moveExampleField(-repl.examplePrompt.index - 1);
             repl.releaseLiveIteration();
             repl.notebook.active = target.cell;
             repl.notebook.cursor = point.offset;
+            this.mouseEditor = { book: repl.notebook };
         }
         repl.dismiss();
         repl.notebook.discardEmptyLine();
+        this.followCursor = true;
+        this.render();
+    }
+
+    drag(column: number, row: number, released: boolean): void {
+        const editor = this.mouseEditor;
+        if (released) this.mouseEditor = undefined;
+        if (!editor || this.stopped || this.copying || this.modes.active) return;
+        const target = this.targets[row];
+        if (!target?.points.length || (editor.field === undefined ? target.kind !== 'source'
+            : target.kind !== 'example' || target.field !== editor.field)) return;
+        const point = target.points.reduce((nearest, point) =>
+            Math.abs(point.column - column) < Math.abs(nearest.column - column) ? point : nearest);
+        editor.book.selectTo(editor.field === undefined ? target.cell : 0, point.offset, true);
         this.followCursor = true;
         this.render();
     }
@@ -103,7 +124,7 @@ export class TerminalRenderer {
     render(): void {
         if (this.stopped || !this.modes.allowRender()) return;
         this.targets = [];
-        const mouse = this.copying ? '\x1b[?1000l' : '\x1b[?1000h';
+        const mouse = this.copying ? '\x1b[?1000l\x1b[?1002l' : '\x1b[?1000h\x1b[?1002h';
         const repl = this.repl;
         if (this.copying) {
             const source = repl.notebook.cells.filter(cell => !cell.command).map(cell => cell.source).join('\n');

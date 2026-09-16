@@ -70,3 +70,16 @@ test('wheel reports scroll in both directions without becoming keys or clicks', 
     assert.deepEqual(clicks, []);
     assert.equal(keys.join(''), 'AB');
 });
+
+test('mouse drag and release reports are decoded without inserting escape sequences', () => {
+    const keys = [], clicks = [], drags = [];
+    const decoder = new TerminalInputDecoder(text => keys.push(text), () => {},
+        (...point) => clicks.push(point), () => {}, (...point) => drags.push(point));
+    for (const report of ['<0;7;1M', '<32;12;2M', '<0;12;2m']) {
+        decoder.write(Buffer.from('\x1b['));
+        for (const byte of Buffer.from(report)) decoder.write(Buffer.from([byte]));
+    }
+    assert.deepEqual(clicks, [[6, 0]]);
+    assert.deepEqual(drags, [[11, 1, false], [11, 1, true]]);
+    assert.equal(keys.join(''), '');
+});
