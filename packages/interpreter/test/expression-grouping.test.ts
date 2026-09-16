@@ -34,6 +34,34 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('M = array shape 2 2\n 1 7 4 2\nend\n2 + M 0 max axis 0')).toBe('9');
     });
 
+    it('explains implicit addressing while preparing a postfix call', () => {
+        const source = 'A = array 1 2 3\nfun add X Y\n return X + Y\nend\n';
+        expect(run(source + 'A copy A add')).toBe('2 4 6');
+        expect(run(source + 'A copy (A copy) add')).toBe('2 4 6');
+        expect(run(source + 'Indices = array 2 0\nA Indices copy')).toBe('3 1');
+        expect(run(source + 'Indices = array 2 0\nA copy Indices copy')).toBe('3 1');
+        try {
+            run(source + 'A copy A copy add');
+            throw new Error('expected rejection');
+        } catch (error) {
+            expect(error).toBeInstanceOf(RankError);
+            expect((error as RankError).rankKind).toBe('Missing');
+            expect((error as RankError).message).toContain('array index out of bounds on axis 0: 3');
+            expect((error as RankError).message).toContain('While preparing arguments for copy');
+            expect((error as RankError).message).toContain('receiver and its selectors');
+            expect((error as RankError).message).toContain('group each argument with parentheses');
+        }
+    });
+
+    it('explains the same addressing error across separate REPL inputs', () => {
+        const runtime = new Interpreter(() => {}, { scalarCompilation: compiled, blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
+        runtime.execute('use sequences');
+        runtime.execute('A = array 1 2 3');
+        runtime.execute('fun add X Y\n return X + Y\nend');
+        expect(() => runtime.execute('A copy A copy add')).toThrowError('While preparing arguments for copy');
+        expect(formatValue(runtime.execute('A copy (A copy) add')!)).toBe('2 4 6');
+    });
+
     it('treats each comparison operand and logical clause independently', () => {
         const arrays = 'A = array 1 2\nB = array 1 3\n';
         expect(run(arrays + 'A len equal B len')).toBe('true');

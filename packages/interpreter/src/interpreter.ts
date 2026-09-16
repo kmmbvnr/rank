@@ -5259,7 +5259,17 @@ function callArguments(
         const firstLength = values.length - arity + 1;
         const firstParts = values.slice(0, firstLength);
         if (!canApplySelectors(firstParts)) continue;
-        return [select(firstParts), ...values.slice(firstLength)];
+        let first: RankValue;
+        try {
+            first = select(firstParts);
+        } catch (error) {
+            if (error instanceof RankError) {
+                error.message += `\nWhile preparing arguments for ${fn.name}: the first ${firstLength} values were interpreted as a receiver and its selectors.`
+                    + '\nTo pass independently computed arguments, group each argument with parentheses.';
+            }
+            throw error;
+        }
+        return [first, ...values.slice(firstLength)];
     }
 
     return values;
