@@ -7,7 +7,7 @@
     "private": true,
     "scripts": {
         "clean": "node -e \"\"",
-        "build": "npm run build --workspace @arrrank/web && cap sync",
+        "build": "npm run build --workspace @arrrank/web -- --mode mobile && cap sync",
         "android:apk": "npm run build && cd android && ./gradlew assembleDebug",
         "open:android": "cap open android",
         "open:ios": "cap open ios"

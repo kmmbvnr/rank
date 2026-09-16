@@ -76,6 +76,8 @@ execution direction and its semantic requirements.
 - [Open questions](design/open-questions.md)
 - [Array element types and compact storage](design/array-element-types.md)
 - [Numerical scripting roadmap](design/numerical-scripting-roadmap.md)
+- [R data-analysis roadmap](design/r-data-analysis-roadmap.md)
+- [Task corpora: numerical, R and contest problems](design/task-corpora.md)
 
 ## Development workflow
 

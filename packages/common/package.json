@@ -20,9 +20,22 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "@arrrank/interpreter": "0.0.1"
+        "@arrrank/interpreter": "0.0.1",
+        "@arrrank/language": "0.0.1",
+        "string-width": "^7.2.0",
+        "strip-ansi": "^7.1.0"
     },
     "devDependencies": {
         "vitest": "~3.2.7"
+    },
+    "exports": {
+        ".": {
+            "types": "./out/index.d.ts",
+            "default": "./out/index.js"
+        },
+        "./*": {
+            "types": "./out/*.d.ts",
+            "default": "./out/*.js"
+        }
     }
 }

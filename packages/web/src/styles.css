@@ -1,126 +1,39 @@
 :root {
     color-scheme: dark;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    color: #e8edf2;
-    background: #101418;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 14px;
+    line-height: 1.5;
     font-synthesis: none;
+    color: #e5e5e5;
+    background: #000;
+    --height: 100dvh;
+    --top: 0px;
+    --chrome-height: max(44px, env(safe-area-inset-top));
+    --terminal-inset: 10px;
 }
-
 * { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    min-width: 280px;
-    min-height: 100vh;
-    background: radial-gradient(circle at top left, #253126 0, #101418 38rem);
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+#terminal { position: fixed; top: calc(var(--top) + var(--chrome-height) + var(--terminal-inset)); left: var(--terminal-inset); width: calc(100% - 2 * var(--terminal-inset)); height: calc(var(--height) - var(--chrome-height) - 2 * var(--terminal-inset)); overflow: hidden; touch-action: none; }
+#screen { margin: 0; font: inherit; user-select: none; }
+.terminal-row { height: 1.5em; white-space: pre; }
+#measure { position: absolute; visibility: hidden; white-space: pre; font: inherit; }
+#caret { position: absolute; left: 0; top: 0; height: 1.5em; background: #fff; mix-blend-mode: difference; pointer-events: none; }
+#terminal.focused #caret { animation: caret-blink 1s step-end infinite; }
+#terminal:not(.focused) #caret { background: transparent; outline: 1px solid #fff; outline-offset: -1px; }
+@keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #terminal.focused #caret { animation: none; } }
+#input {
+    position: absolute; width: 2px; height: 1.5em; padding: 0; margin: 0;
+    border: 0; outline: 0; resize: none; overflow: hidden;
+    font: inherit; font-size: 16px; opacity: .01; color: transparent;
+    background: transparent; caret-color: transparent;
 }
-
-button, textarea, input { font: inherit; }
-
-.shell {
-    width: min(1100px, 100%);
-    margin: 0 auto;
-    padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
-}
-
-header, .panel-heading, .actions, .inputs {
-    display: flex;
-    align-items: center;
-}
-
-header {
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 22px;
-}
-
-.eyebrow {
-    margin: 0 0 6px;
-    color: #a9e34b;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-}
-
-h1 { margin: 0; font-family: system-ui, sans-serif; font-size: clamp(1.4rem, 4vw, 2.4rem); }
-h2 { margin: 0; font-size: 1rem; }
-.status { color: #9aa7b2; white-space: nowrap; }
-
-.workspace {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 14px;
-}
-
-.panel {
-    min-width: 0;
-    overflow: hidden;
-    border: 1px solid #35414b;
-    border-radius: 14px;
-    background: rgb(20 26 31 / 92%);
-    box-shadow: 0 18px 50px rgb(0 0 0 / 25%);
-}
-
-.panel-heading {
-    min-height: 48px;
-    justify-content: space-between;
-    padding: 0 16px;
-    border-bottom: 1px solid #35414b;
-}
-
-.panel-heading span, .inputs span { color: #7f8c96; font-size: .78rem; }
-
-#source, #output {
-    width: 100%;
-    min-height: 360px;
-    margin: 0;
-    padding: 18px;
-    border: 0;
-    border-radius: 0;
-    color: #e8edf2;
-    background: #0c1013;
-    line-height: 1.55;
-    tab-size: 4;
-}
-
-#source { display: block; resize: vertical; outline: none; }
-#source:focus { box-shadow: inset 3px 0 #a9e34b; }
-#output { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-
-.inputs {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 16px 0;
-}
-
-#stdin {
-    flex: 1 1 100%;
-    resize: vertical;
-    padding: 10px;
-    border: 1px solid #35414b;
-    border-radius: 8px;
-    color: inherit;
-    background: #151c21;
-}
-
-#files { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.file-button, button {
-    cursor: pointer;
-    border: 0;
-    border-radius: 9px;
-    padding: 10px 16px;
-    color: #101418;
-    background: #a9e34b;
-}
-
-.actions { gap: 10px; padding: 12px 16px 16px; }
-button.secondary { color: #e8edf2; background: #35414b; }
-button:disabled { cursor: default; opacity: .45; }
-.text-button { padding: 4px; color: #9aa7b2; background: transparent; }
-
-@media (max-width: 720px) {
-    .shell { padding-inline: 10px; }
-    header { align-items: flex-start; }
-    .workspace { grid-template-columns: 1fr; }
-    #source, #output { min-height: 260px; }
-    .result-panel { min-height: 320px; }
-}
+#chrome { position: fixed; top: var(--top); right: 0; left: 0; height: var(--chrome-height); z-index: 2; background: #000; }
+button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#menu-toggle { position: absolute; right: max(4px, env(safe-area-inset-right)); bottom: 0; width: 44px; height: 44px; background: transparent; font-size: 25px; }
+#commands { position: absolute; top: 100%; right: 8px; width: 280px; padding: 6px; background: #181818; border: 1px solid #333; border-radius: 6px; }
+#commands button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 8px; background: transparent; text-align: left; }
+#commands button:active, #commands button:focus-visible { background: #333; }
+#commands kbd { color: #888; font: inherit; font-size: 12px; }
+.arrows { display: flex; }
+#commands .arrows button { justify-content: center; }

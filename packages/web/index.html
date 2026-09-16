@@ -1,54 +1,94 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-        <meta name="theme-color" content="#101418">
-        <meta name="description" content="Write and run Rank programs in your browser.">
-        <link rel="icon" href="data:,">
-        <title>Rank</title>
-    </head>
-    <body>
-        <main class="shell">
-            <header>
-                <div>
-                    <p class="eyebrow">Rank</p>
-                    <h1>Array programming, in your pocket.</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="An array-oriented programming language designed for vertical screens and phone keyboards. Compact enough for your pocket. Powerful enough for programming contests, data analysis, and neural networks.">
+    <meta name="theme-color" content="#f1f4ef">
+    <link rel="icon" href="data:,">
+    <title>Rank — small screens, big algorithms</title>
+    <script type="module" src="/src/site.ts"></script>
+</head>
+<body>
+    <header>
+        <a href="./" aria-label="Rank home"><strong>Rank</strong></a>
+        <nav aria-label="Main navigation">
+            <a href="./console.html">Console</a>
+            <a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/docs/index.md">Wiki</a>
+            <a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank">Source</a>
+        </nav>
+    </header>
+    <main>
+        <section class="hero" aria-labelledby="intro">
+            <div class="intro">
+                <p class="edition">The Rank programming language / pre-alpha</p>
+                <h1 id="intro">Small screens. Big algorithms.</h1>
+                <p class="lead">An array-oriented programming language designed for vertical screens and phone keyboards.</p>
+            </div>
+            <figure>
+                <div class="console-label"><a href="./console.html?example=fibonacci">Expand ↗</a></div>
+                <iframe src="./console.html?example=fibonacci" title="Interactive Rank console" aria-describedby="console-help"></iframe>
+                <figcaption id="console-help">Click a line to edit. Enter evaluates.<br>Ctrl-R steps. Ctrl-L runs all. Ctrl-G selects an iteration.</figcaption>
+            </figure>
+            <div class="details">
+                <p>Compact enough for your pocket. Powerful enough for programming contests, data analysis, and neural networks.</p>
+                <p>Unlock the GPU and NPU already in your device to hack anywhere.</p>
+                <p><a href="./console.html">Open the console →</a> &nbsp; <a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/docs/index.md">Read the wiki →</a></p>
+                <p>Try on your computer.</p>
+                <pre class="install-command" aria-label="Run Rank locally"><code>npx @arrrank/cli</code><button type="button" data-copy-command aria-label="Copy npx @arrrank/cli"><span aria-live="polite">Copy</span></button></pre>
+                <p><small>Requires Node.js 22.12+, Python and a C++20 build toolchain.</small></p>
+                <div class="mobile-downloads">
+                    <div class="store-badges" aria-describedby="beta-status">
+                        <span role="link" aria-disabled="true" aria-label="Google Play — closed beta"><img src="/src/assets/google-play.svg" alt="Get it on Google Play" width="135" height="40"></span>
+                        <span role="link" aria-disabled="true" aria-label="App Store — closed beta"><img src="/src/assets/app-store.svg" alt="Download on the App Store" width="120" height="40"></span>
+                    </div>
+                    <p id="beta-status">Closed beta</p>
                 </div>
-                <p id="runtime-status" class="status" aria-live="polite">Ready</p>
-            </header>
-
-            <section class="workspace" aria-label="Rank workspace">
-                <div class="panel source-panel">
-                    <div class="panel-heading">
-                        <label for="source">Program</label>
-                        <span>40 columns</span>
-                    </div>
-                    <textarea id="source" spellcheck="false" autocapitalize="off">use numbers
-A = array 1 2 3 4 5
-A sum</textarea>
-                    <div class="inputs">
-                        <label for="stdin">Input</label>
-                        <textarea id="stdin" rows="2" placeholder="stdin values, prepared before Run"></textarea>
-                        <label class="file-button" for="files">Add files</label>
-                        <input id="files" type="file" multiple>
-                        <span id="file-summary">No files</span>
-                    </div>
-                    <div class="actions">
-                        <button id="run" type="button">Run</button>
-                        <button id="stop" class="secondary" type="button" disabled>Stop</button>
-                    </div>
-                </div>
-
-                <div class="panel result-panel">
-                    <div class="panel-heading">
-                        <h2>Result</h2>
-                        <button id="clear" class="text-button" type="button">Clear</button>
-                    </div>
-                    <pre id="output" tabindex="0" aria-live="polite">Run the program to see its output.</pre>
-                </div>
-            </section>
-        </main>
-        <script type="module" src="/src/main.ts"></script>
-    </body>
+            </div>
+        </section>
+        <section id="language" aria-labelledby="language-title">
+            <h2 id="language-title">The language</h2>
+            <p>Rank is a modern BASIC with an array-oriented model. Source is designed to stay around 40 characters per line, using words and familiar keyboard symbols rather than punctuation-heavy syntax.</p>
+            <p>Data flows through functions from left to right. A range can feed directly into a sum:</p>
+            <pre><code><span class="prompt">rank&gt; </span>use numbers
+<span class="prompt">rank&gt; </span>1 to 5 sum</code>
+<samp>15</samp></pre>
+            <p>Work with whole arrays and tensors, or select rows from a table. Arithmetic applies to each element without writing a loop:</p>
+            <pre><code><span class="prompt">rank&gt; </span>A = array 1 2 3</code>
+<samp>1 2 3</samp>
+<code><span class="prompt">rank&gt; </span>A * 10 + 1</code>
+<samp>11 21 31</samp></pre>
+            <p>A notebook-style CLI with editable cells, inline results and step-by-step execution, available in your terminal, browser and on your phone.</p>
+        </section>
+        <section id="advanced" aria-labelledby="advanced-title">
+            <h2 id="advanced-title">Advanced capabilities</h2>
+            <p>Tensor operations include broadcasting, reductions along <code>axis</code>, operations on cells with <code>rank</code>, matrix multiplication and linear-system solvers.</p>
+            <pre><code>M = (1 to 9) (array 3 3) reshape
+Blocks = M (array 2 2) window
+Blocks sum rank 2</code>
+<samp>12 16 24 28
+shape 2 2</samp></pre>
+            <p>Built-in primitives for programming contests include sliding windows, Fenwick trees, segment trees and priority queues. Lazy ranges and generators let you process sequences without first storing every element.</p>
+        </section>
+        <section id="rust" aria-labelledby="rust-title">
+            <h2 id="rust-title">Compile to Rust</h2>
+            <p>Lazy sequences and array operations can be fused into efficient loops without intermediate arrays.</p>
+            <p>AI-assisted compilation turns Rank programs into standalone Rust. Generated agent prompts carry the source, AST, type and loop analysis, tests and optimization guidance. The resulting Rust is checked against the original Rank program on the same test inputs.</p>
+            <p><a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/packages/compile/README.md">Rust workflow →</a></p>
+        </section>
+        <section id="examples" aria-labelledby="examples-title">
+            <h2 id="examples-title">Notable examples</h2>
+            <ul>
+                <li><a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/demos/deepml/041_conv2d.ra">Simple Conv2D — Deep-ML 41</a><br>Two-dimensional convolution with stride and padding in a three-line function body.</li>
+                <li><a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/demos/cses/range/015_subarraysum.ra">Subarray Sum Queries — CSES 1190</a><br>Maximum subarray sums after point updates, using a built-in segment tree.</li>
+                <li><a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/demos/deepml/053_attention.ra">Self Attention — Deep-ML 53</a><br>Scaled dot-product attention with matrix operations and numerically stable softmax.</li>
+                <li><a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/demos/euler/004_palproduct.ra">Largest Palindrome Product — Project Euler 4</a><br>Find the largest palindromic product using an outer product and a boolean mask.</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <span>Rank · <a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/LICENSE">MIT license</a></span>
+        <span><a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/tree/main/demos">Examples</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank/blob/main/docs/index.md">Wiki</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/kmmbvnr/rank">GitHub</a></span>
+    </footer>
+</body>
 </html>

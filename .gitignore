@@ -1,6 +1,7 @@
 .DS_Store
 node_modules/
 dist/
+dist-mobile/
 out/
 **/src/generated/
 **/*.tsbuildinfo
@@ -16,3 +17,5 @@ demos/pgexercises/data/
 demos/tpch/data/
 
 packages/cli/native/build/
+.playwright-cli/
+output/playwright/

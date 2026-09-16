@@ -1,0 +1,67 @@
+:root { color-scheme: light; }
+body { max-width: 1080px; margin: 0 auto; padding: 0 32px; background: #f1f4ef; color: #000; font-family: serif; font-size: 16px; line-height: 1.35; }
+a { text-underline-offset: auto; }
+a:link { color: #00e; }
+a:visited { color: #551a8b; }
+a:hover { color: #111; }
+a:focus-visible { outline: 2px solid #274e88; outline-offset: 4px; }
+body > header { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding: 24px 0 20px; border-bottom: 1px solid #cccac0; }
+header > a:link, header > a:visited { color: inherit; font-size: 26px; text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 24px; font-size: 16px; }
+.hero { display: grid; grid-template-columns: 364px minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: 'console intro' 'console details'; column-gap: 64px; align-items: start; padding: 48px 0 36px; }
+.intro { grid-area: intro; min-width: 0; }
+.details { grid-area: details; min-width: 0; }
+figure { grid-area: console; margin: 0; min-width: 0; }
+.console-label { display: flex; justify-content: flex-end; padding-bottom: 9px; font-size: 14px; }
+iframe { display: block; width: 100%; height: 544px; border: 1px solid #222; box-sizing: border-box; background: #000; }
+figcaption { text-align: left; margin: 12px 0 0; color: #666459; font-size: 14px; }
+.edition { margin: 0 0 16px; font-size: 14px; }
+h1 { margin: 0 0 .67em; font-size: 2em; line-height: normal; font-weight: bold; letter-spacing: normal; }
+.lead { font-size: inherit; line-height: inherit; }
+p { margin: 0 0 18px; }
+code, pre, kbd { font-family: 'Courier New', Courier, monospace; font-size: .86em; }
+code { color: inherit; background: #efeee7; padding: 2px 4px; }
+pre { color: #292923; background: #efeee7; padding: 14px 18px; border: 1px solid #dedcd2; }
+pre code { padding: 0; font-size: inherit; }
+.install-command { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 12px; }
+.install-command code { min-width: 0; overflow-x: auto; }
+.install-command button { flex: none; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #00e; font: 14px serif; text-decoration: underline; cursor: pointer; }
+.install-command button:focus-visible { outline: 2px solid #274e88; outline-offset: -2px; }
+.store-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.store-badges img { display: block; height: 40px; width: auto; filter: grayscale(1); opacity: .45; }
+.store-badges [aria-disabled] { cursor: not-allowed; }
+#beta-status { margin: 8px 0 18px; color: #666459; font-size: 13px; }
+:is(#language, #advanced, #rust) { margin-left: calc(364px + 64px); border-top: 1px solid #cccac0; padding: 12px 0 20px; }
+:is(#language, #advanced, #rust) p { max-width: 72ch; }
+:is(#language, #advanced) pre { padding: 0; border: 0; background: transparent; }
+:is(#language, #advanced) :is(code, samp) { color: inherit; background: transparent; font: inherit; }
+:is(#language, #advanced) samp { color: #777; user-select: none; }
+:is(#language, #advanced) .prompt { color: #777; user-select: none; }
+h2 { font-size: 24px; font-weight: bold; margin: 20px 0 12px; }
+small { font-size: 13px; }
+#examples { margin-left: calc(364px + 64px); border-top: 1px solid #cccac0; padding: 12px 0 24px; }
+#examples ul { padding-left: 20px; }
+#examples li { margin-bottom: 16px; }
+footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 96px; border-top: 1px solid #cccac0; padding: 16px 0 calc(20px + env(safe-area-inset-bottom, 0px)); font-size: 13px; color: #666459; }
+@media (max-width: 800px) {
+    body { padding: 0 16px; }
+    body > header { gap: 12px; padding: 8px 0; align-items: center; }
+    header > a:link, header > a:visited { font-size: 24px; }
+    nav { gap: 12px; }
+    header a, .console-label a { display: inline-flex; align-items: center; min-height: 44px; }
+    .hero { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: 'intro' 'console' 'details'; gap: 20px; padding: 20px 0 24px; }
+    .edition { margin-bottom: 8px; }
+    h1 { font-size: 28px; margin-bottom: 12px; }
+    .lead { margin-bottom: 0; }
+    figure { width: 100%; max-width: 420px; justify-self: center; }
+    .console-label { padding-bottom: 0; margin-top: -12px; }
+    iframe { height: clamp(280px, 50svh, 440px); }
+    figcaption { font-size: 13px; margin-top: 8px; }
+    :is(#language, #advanced, #rust, #examples) { margin-left: 0; }
+    footer { gap: 8px; padding-top: 16px; }
+}
+@media (max-width: 380px) {
+    body { padding: 0 12px; }
+    nav { gap: 10px; }
+    h1 { font-size: 26px; }
+}

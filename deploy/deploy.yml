@@ -1,0 +1,85 @@
+# Deploy the Rank static site to root@viewflow.io.
+#
+# Usage from the repository root:
+#   npm run build --workspace @arrrank/web
+#   ansible-galaxy install -r deploy/requirements.yml
+#   ansible-playbook -i deploy/inventory.ini deploy/deploy.yml
+- name: Rank static site
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    domain: rank.viewflow.io
+    srv_dir: /srv/rank-viewflow-io
+    docroot: /srv/rank-viewflow-io/public
+    webroot: /srv/rank-viewflow-io/.letsencrypt
+    nginx_conf: /etc/nginx/sites-available/rank-viewflow-io.conf
+    acme_email: mikhail@viewflow.io
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.shell: nginx -t && systemctl reload nginx
+
+  tasks:
+    - name: Create site directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+      loop:
+        - "{{ docroot }}"
+        - "{{ webroot }}/.well-known/acme-challenge"
+
+    - name: Sync built site
+      ansible.posix.synchronize:
+        src: ../packages/web/dist/
+        dest: "{{ docroot }}/"
+        delete: true
+      notify: Reload nginx
+
+    - name: Check for TLS certificate
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+      register: cert
+
+    - name: Install temporary HTTP vhost for certificate issuance
+      ansible.builtin.copy:
+        dest: "{{ nginx_conf }}"
+        mode: "0644"
+        content: |
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name {{ domain }};
+              location /.well-known/acme-challenge/ { root {{ webroot }}; }
+              location / { return 200 'ok'; add_header Content-Type text/plain; }
+          }
+      when: not cert.stat.exists
+
+    - name: Enable temporary HTTP vhost and reload nginx
+      ansible.builtin.shell: ln -sf {{ nginx_conf }} /etc/nginx/sites-enabled/rank-viewflow-io.conf && nginx -t && systemctl reload nginx
+      when: not cert.stat.exists
+
+    - name: Issue TLS certificate
+      ansible.builtin.command:
+        cmd: >-
+          certbot certonly --webroot -w {{ webroot }}
+          -d {{ domain }} -m {{ acme_email }} --agree-tos --non-interactive
+        creates: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+      when: not cert.stat.exists
+
+    - name: Install HTTPS vhost
+      ansible.builtin.copy:
+        src: rank-viewflow-io.conf
+        dest: "{{ nginx_conf }}"
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Enable HTTPS vhost
+      ansible.builtin.file:
+        src: "{{ nginx_conf }}"
+        dest: /etc/nginx/sites-enabled/rank-viewflow-io.conf
+        state: link
+      notify: Reload nginx

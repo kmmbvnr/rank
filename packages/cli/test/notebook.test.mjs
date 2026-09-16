@@ -523,6 +523,17 @@ test('completion has one replaceable suggestion and is dismissed without executi
     assert.equal(book.current.source, 'N multiple by ');
 });
 
+test('Enter reruns a corrected error at its focused source line', async t => {
+    const { repl, book, enter } = setup(t);
+    await enter('Missing + 1');
+    assert.equal(book.current.status, 'error');
+    book.replace('1 + 2');
+    await repl.submit();
+    assert.equal(book.cells[0].status, 'ok');
+    assert.equal(output(book.cells[0]), '3');
+    assert.equal(book.atPrompt, true);
+});
+
 test('commands do not replay as side effects or enter saved program text', async t => {
     const { book, enter, edit } = setup(t);
     await enter('A = 1');

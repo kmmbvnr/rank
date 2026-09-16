@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" href="data:,">
+    <title>Rank console</title>
+</head>
+<body>
+    <header id="chrome">
+        <button id="menu-toggle" aria-label="Terminal commands" aria-expanded="false" aria-controls="commands">⋮</button>
+        <nav id="commands" aria-label="Terminal commands" hidden>
+            <button data-key="r" data-ctrl="true">Step <kbd>Ctrl-R</kbd></button>
+            <button data-key="l" data-ctrl="true">Run all from start <kbd>Ctrl-L</kbd></button>
+            <button data-key="g" data-ctrl="true">Select iteration <kbd>Ctrl-G</kbd></button>
+            <div class="arrows">
+                <button data-key="left" aria-label="Left">←</button>
+                <button data-key="up" aria-label="Up">↑</button>
+                <button data-key="down" aria-label="Down">↓</button>
+                <button data-key="right" aria-label="Right">→</button>
+            </div>
+            <button data-key="tab">Complete <kbd>Tab</kbd></button>
+            <button data-key="escape">Edit <kbd>Esc</kbd></button>
+            <button data-key="c" data-ctrl="true">Stop <kbd>Ctrl-C</kbd></button>
+        </nav>
+    </header>
+    <main id="terminal" aria-label="Rank terminal">
+        <div id="screen" role="region" aria-label="Rank notebook"></div>
+        <div id="caret" aria-hidden="true"></div>
+        <textarea id="input" aria-label="Rank terminal input" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" enterkeyhint="enter"></textarea>
+    </main>
+    <span id="measure" aria-hidden="true">0000000000</span>
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

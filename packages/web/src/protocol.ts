@@ -1,20 +1,11 @@
-export interface BrowserFile {
-    readonly name: string;
-    readonly data: ArrayBuffer;
+import type { SessionSnapshot } from '@arrrank/common/repl-session';
+
+export interface BrowserFile { readonly name: string; readonly data: ArrayBuffer }
+export type SessionMethod = 'execute' | 'preview' | 'prepareFunctions' | 'rewind' | 'resetExecution';
+export interface WorkerRequest { id: number; method: SessionMethod; args: unknown[] }
+export interface WorkerResponse {
+    id: number;
+    result?: unknown;
+    error?: string;
+    snapshot: SessionSnapshot;
 }
-
-export type WorkerRequest = {
-    readonly type: 'run';
-    readonly id: number;
-    readonly source: string;
-    readonly input: string;
-    readonly files: readonly BrowserFile[];
-};
-
-export type WorkerResponse = {
-    readonly type: 'result';
-    readonly id: number;
-    readonly ok: boolean;
-    readonly output: readonly string[];
-    readonly durationMs: number;
-};
