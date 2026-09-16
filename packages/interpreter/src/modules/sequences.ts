@@ -1,7 +1,7 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
 import { sequence, windowValue } from '../sequence.js';
@@ -69,6 +69,8 @@ export const sequencesModule: RuntimeModule = {
     all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),
     any: () => native('any', 1, arguments_ => booleanReduction(arguments_[0], 'any')),
     count: () => native('count', 1, arguments_ => countTrue(arguments_[0])),
+    find: () => native('find', 2, arguments_ => findValue(arguments_[0], arguments_[1])),
+    findall: () => native('findall', 2, arguments_ => findAllValues(arguments_[0], arguments_[1])),
     indices: () => native('indices', 1, arguments_ => trueIndices(arguments_[0])),
 };
 
@@ -161,6 +163,40 @@ function trueIndices(value: RankValue): RankArray {
         if (item) positions.push(BigInt(index));
     }
     return ownedArray(positions, [positions.length]);
+}
+
+function findValue(source: RankValue, target: RankValue): bigint {
+    const values = findSource(source, 'find');
+    const targetKey = setValueKey(target);
+    let index = 0n;
+    for (const value of values) {
+        if (setValueKey(value) === targetKey) return index;
+        index += 1n;
+    }
+    throw new MissingValueError('find found no matching value');
+}
+
+function findAllValues(source: RankValue, target: RankValue): RankArray {
+    const values = findSource(source, 'findall');
+    const targetKey = setValueKey(target);
+    const positions: bigint[] = [];
+    let index = 0n;
+    for (const value of values) {
+        if (setValueKey(value) === targetKey) positions.push(index);
+        index += 1n;
+    }
+    return ownedArray(positions, [positions.length]);
+}
+
+function* findSource(source: RankValue, operation: string): IterableIterator<RankValue> {
+    if (typeof source === 'string') {
+        yield* source;
+        return;
+    }
+    if (!isRankArray(source) || source.shape.length !== 1) {
+        throw new RankError(`${operation} expects text or a rank-1 array`, 'TypeError');
+    }
+    for (let index = 0; index < source.shape[0]; index += 1) yield readArrayItem(source, index);
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {

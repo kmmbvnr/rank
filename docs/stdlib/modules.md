@@ -521,6 +521,8 @@ sort
 argsort
 indices
 count
+find
+findall
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
@@ -591,6 +593,10 @@ an empty vector:
 Places = (array true false true false) indices
 rem 0 2
 ```
+
+`Values Target find` returns the first zero-based position equal to `Target`.
+`findall` returns every matching position; an empty result is an empty vector.
+Both accept rank-1 arrays and text, indexed by Unicode code point.
 
 ## Tables
 

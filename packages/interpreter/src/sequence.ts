@@ -90,7 +90,7 @@ export function lowerBoundSequence(
 }
 
 export function atSequence(source: RankSequence, index: bigint): RankValue {
-    if (index < 0n) throw new RankError('sequence index must be nonnegative');
+    if (index < 0n) throw new MissingValueError('sequence index out of bounds');
     if (source.plan.size.kind === 'exact' && index >= source.plan.size.value) {
         throw new MissingValueError(`sequence index out of bounds: ${index}`);
     }

@@ -1250,8 +1250,8 @@ Data .Age = Data .Age default Median
 ```
 
 The left side is evaluated first. The fallback expression is evaluated only
-when addressing finds no value. `default` does not hide invalid negative indices,
-type errors or failures such as division by zero.
+when addressing finds no value, including a negative or out-of-bounds index.
+`default` does not hide type errors or failures such as division by zero.
 
 ---
 
@@ -2466,6 +2466,12 @@ boolean-cell requirement.
 boolean array. It returns an integer vector; an empty or all-false mask returns
 an empty vector. Scalars, tensors and arrays containing non-booleans are
 rejected.
+
+`Values Target find` returns the zero-based position of the first value equal
+to `Target`. It raises `.Missing` when no value matches, so `default` supplies
+a fallback. `Values Target findall` returns every matching position and returns
+an empty vector when there are none. Both accept rank-1 arrays and text, whose
+positions count Unicode code points.
 
 Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
 between numeric values and broadcast over arrays:

@@ -5020,7 +5020,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         if (typeof receiver === 'object' && receiver.kind === 'array') {
             const size = receiver.shape.length === 1 ? receiver.shape[0] : -1;
             if (size >= 0) {
-                if (values[1] < 0n) throw new RankError('array index must be nonnegative on axis 0');
+                if (values[1] < 0n) throw new MissingValueError('array index out of bounds on axis 0');
                 const position = Number(values[1]);
                 if (position >= size) {
                     throw new MissingValueError(`array index out of bounds on axis 0: ${values[1]}`);
@@ -5058,7 +5058,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
         const atoms = [...values[0]];
         const index = values[1];
-        if (index < 0n) throw new RankError('text index must be nonnegative');
+        if (index < 0n) throw new MissingValueError('text index out of bounds');
         if (index >= BigInt(atoms.length)) {
             throw new MissingValueError(`text index out of bounds: ${index}`);
         }
@@ -5117,7 +5117,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     }
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
         const position = values[1];
-        if (position < 0n) throw new RankError('queue index must be nonnegative');
+        if (position < 0n) throw new MissingValueError('queue index out of bounds');
         if (values[0] instanceof RankDeque) {
             const item = values[0].at(Number(position));
             if (item === undefined) throw new MissingValueError(`queue index out of bounds: ${position}`);
@@ -5412,7 +5412,7 @@ function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
     for (let axis = 0; axis < indices.length; axis += 1) {
         const index = indices[axis];
         const size = shape[axis];
-        if (index < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (index < 0n) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
         const position = Number(index);
         if (position >= size) {
             throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);

@@ -95,9 +95,17 @@ describe('Rank expressions and sequences', () => {
             'end',
             '7 lookup',
         ].join('\n'))).toBe('-1');
-        expect(() => run('(array 10 20) (-1) default 99'))
-            .toThrowError('array index must be nonnegative on axis 0');
+        expect(run('(array 10 20) (-1) default 99')).toBe('99');
         expect(() => run('1 / 0 default 99')).toThrowError('division by zero');
+    });
+
+    it('finds one or every matching position', () => {
+        expect(run('use sequences\n(array 2 3 4 3) 3 find')).toBe('1');
+        expect(run('use sequences\n(array 2 3 4 3) 3 findall')).toBe('1 3');
+        expect(run('use sequences\n"23456789TJQKA" "2" find')).toBe('0');
+        expect(run('use sequences\n"234232" "2" findall')).toBe('0 3 5');
+        expect(run('use sequences\n(array 2 3) 9 find default -1')).toBe('-1');
+        expect(run('use sequences\n(array 2 3) 9 findall')).toBe('');
     });
 
     it('defaults sparse reads lazily without swallowing key or fallback errors', () => {
@@ -696,8 +704,7 @@ describe('Rank expressions and sequences', () => {
             'R = 1 to 5',
             'R from 3',
         ].join('\n'))).toThrowError('does not support from');
-        expect(() => run('use sequences\nprimes (-1)'))
-            .toThrowError('sequence index must be nonnegative');
+        expect(run('use sequences\nprimes (-1) default 99')).toBe('99');
         expect(() => run('use sequences\n(primes until 10) 4'))
             .toThrowError('sequence index out of bounds: 4');
         expect(run('use sequences\n4 in fibonacci')).toBe('false');
