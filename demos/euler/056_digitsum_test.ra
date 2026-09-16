@@ -1,0 +1,16 @@
+use testing
+
+test "official answer"
+  use "056_digitsum"
+  run
+
+  Best equal 972
+end
+
+test "known powers"
+  use "056_digitsum"
+
+  2 ** 15 equal 32768
+  32768 digit_sum equal 26
+  99 ** 95 digit_sum equal 972
+end
