@@ -287,6 +287,11 @@ Node print
 rem {.data = 2, .grad = 0, .op = .leaf}
 ```
 
+`less`, `greater`, `at most`, and `at least` compare records
+lexicographically in declaration order. Both records must declare the same
+fields in the same order, and each compared field must itself have an order.
+`sort` uses this same order. Structural `equal` still ignores field order.
+
 Records differ from JSON `object` values and sparse `index` values. An
 `object` is read by dynamic text keys, while a record declares its fields in
 Rank source and accesses them with symbols. An `index` remains open to new
@@ -2558,6 +2563,17 @@ produces a material rank-1 array. A sequence produces another lazy sequence, so
 an unbounded source is valid when a later operation requests only a finite
 prefix or a particular position. Higher-rank arrays are rejected. `scan`
 currently has no `rank` or `axis` form.
+
+A binary user function can also accumulate states:
+
+```rank
+States = Steps with Start with next scan
+```
+
+`next State Step` receives the previous state and the next source item. The
+seed is the first result. Without a seed, `Steps next scan` starts from the
+first source item. The function is resolved once when the scan is created;
+sequence sources remain lazy.
 
 ## Short-circuiting selection
 

@@ -51,7 +51,7 @@ export function browserSession(onFailure: (message: string) => void): ReplSessio
             pending.clear();
             snapshot = { names: [], modules: [], aliases: true };
             worker = createWorker();
-            onFailure('Stopped · Ctrl-L restart');
+            onFailure('Stopped');
         },
     };
 }

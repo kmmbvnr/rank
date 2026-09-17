@@ -20,8 +20,9 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 #caret { position: absolute; left: 0; top: 0; height: 1.5em; background: #fff; mix-blend-mode: difference; pointer-events: none; }
 #terminal.focused #caret { animation: caret-blink 1s step-end infinite; }
 #terminal:not(.focused) #caret { background: transparent; outline: 1px solid #fff; outline-offset: -1px; }
+.mobile #terminal #caret { background: #fff; outline: 0; animation: caret-blink 1s step-end infinite; }
 @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { #terminal.focused #caret { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #terminal.focused #caret, .mobile #terminal #caret { animation: none; } }
 #input {
     position: absolute; width: 2px; height: 1.5em; padding: 0; margin: 0;
     border: 0; outline: 0; resize: none; overflow: hidden;
@@ -34,6 +35,15 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #commands { position: absolute; top: 100%; right: 8px; width: 280px; padding: 6px; background: #181818; border: 1px solid #333; border-radius: 6px; }
 #commands button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 8px; background: transparent; text-align: left; }
 #commands button:active, #commands button:focus-visible { background: #333; }
-#commands kbd { color: #888; font: inherit; font-size: 12px; }
 .arrows { display: flex; }
 #commands .arrows button { justify-content: center; }
+#run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - 72px - env(safe-area-inset-bottom, 0px)); right: max(12px, env(safe-area-inset-right)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 1px solid #555; border-radius: 50%; background: #202820; color: #fff; touch-action: none; user-select: none; }
+#run-button svg { position: absolute; inset: 2px; width: 50px; height: 50px; transform: rotate(-90deg); fill: none; stroke-width: 3; }
+#run-button .run-progress-track { stroke: #405040; }
+#run-button .run-progress-ring { stroke: #80e0a0; stroke-dasharray: 126; stroke-dashoffset: 126; }
+#run-button.holding .run-progress-ring { animation: run-hold-progress 700ms linear forwards; }
+#run-button span { position: relative; margin-left: 3px; font-size: 23px; }
+#run-button:focus-visible { outline: 2px solid #80e0a0; outline-offset: 3px; }
+@keyframes run-hold-progress { to { stroke-dashoffset: 0; } }
+@media (max-width: 800px) { #run-button { display: flex; } }
+.mobile #run-button { display: flex; }

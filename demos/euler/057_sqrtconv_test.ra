@@ -1,0 +1,19 @@
+use testing
+
+test "official answer"
+  use "057_sqrtconv"
+  run
+
+  Answer equal 153
+end
+
+test "first convergents"
+  use "057_sqrtconv"
+  Start = record
+    .num = 3
+    .den = 2
+  end
+  Second = Start 0 next
+  Second .num equal 7
+  Second .den equal 5
+end

@@ -337,7 +337,7 @@ export class NotebookRepl {
             return false;
         }
         if (await this.liveConditional.begin(currentRaw)) return false;
-        if (!book.atPrompt && !force && !this.liveEditing && book.current.status !== 'error') {
+        if (!book.atPrompt && !force && !this.liveEditing) {
             book.newline();
             return false;
         }

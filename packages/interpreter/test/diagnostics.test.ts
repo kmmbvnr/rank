@@ -126,6 +126,11 @@ end
         expect(new Interpreter().execute('use numbers\n-1 abs')).toBe(1n);
     });
 
+    it('explains scan when it is used without a binary operator', () => {
+        expect(failure('fun next State Ignored\n  return State\nend\nState = 0\nRange = 1 to 3\nRange next scan with State').message)
+            .toBe('scan needs an operator, e.g. Range + scan with 0');
+    });
+
     it('formats parser errors with source context too', () => {
         const error = failure('X =');
         expect(error.rankKind).toBe('Syntax');

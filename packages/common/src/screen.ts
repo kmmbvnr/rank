@@ -119,7 +119,7 @@ export function notebookFrame(
     promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string;
         selection?: { from: number; to: number } }[],
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
-    stepping = false, anchoredCursorRow?: number,
+    stepping = false, anchoredCursorRow?: number, showShortcutHints = true,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -238,7 +238,7 @@ export function notebookFrame(
         if (index === notebook.active && cell.status === 'error' && cell.executed === cell.source
             && (index === dirty || !pending)) errorEnd = rows.length - 1;
     }
-    const footerRows = height > 1 ? 1 : 0;
+    const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus) ? 1 : 0;
     const viewportHeight = Math.max(1, height - footerRows);
     let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - (followCursor ? 1 : viewportHeight))));
     if (followCursor && caret.row < top) top = caret.row;
@@ -260,11 +260,13 @@ export function notebookFrame(
     while (lines.length < viewportHeight) lines.push('');
     if (footerRows) {
         const footerWidth = Math.min(40, width);
-        let status = !followCursor ? 'PgUp/PgDn scroll · Esc return' : running ? runningStatus
-            : suggestion || (notebook.atPrompt
-                ? 'Ctrl-L run all'
-                : 'Ctrl-R run · Ctrl-L run all');
-        if (followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
+        let status = '';
+        if (!followCursor) {
+            if (showShortcutHints) status = 'PgUp/PgDn scroll · Esc return';
+        } else if (running) status = runningStatus;
+        else status = suggestion || (showShortcutHints
+            ? notebook.atPrompt ? 'Ctrl-L run all' : 'Ctrl-R run · Ctrl-L run all' : '');
+        if (showShortcutHints && followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
             && (nextEvalRow < top || nextEvalRow >= top + viewportHeight))
             status = `▶ line ${nextEvalSourceLine} · ${promptOutputFocus.active ? '←/→' : 'Enter'} · Esc · ^L run all`;
         let label = running ? '' : fileStatus;

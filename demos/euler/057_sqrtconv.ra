@@ -1,0 +1,28 @@
+rem Square Root Convergents
+rem https://projecteuler.net/problem=57
+rem Count expansions of sqrt 2 whose numerator
+rem has more digits than the denominator
+
+use sequences
+use io
+
+Start = record
+  .num = 3
+  .den = 2
+end
+States = (1 until 1000) with Start with next scan
+Longer = States longer rank 0
+Answer = Longer count
+Answer print
+
+
+fun next State Ignored
+  return record
+    .num = State .num + 2 * State .den
+    .den = State .num + State .den
+  end
+end
+
+fun longer State
+  return State .num text len greater State .den text len
+end

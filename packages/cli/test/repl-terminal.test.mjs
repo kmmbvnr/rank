@@ -99,6 +99,21 @@ test('Enter after end returns to rank prompt after previewing an unfinished func
     assert.doesNotMatch(frames[6].text, /Example digit_sum/);
 });
 
+test('Enter after an unknown name edits the failed cell without duplicating it', async t => {
+    const frames = await drive(t, ['sadsadafsdfddsds' + ENTER, ENTER, ENTER, ENTER], 40, 18);
+    for (const frame of frames.slice(1)) {
+        assert.match(frame.text, /1› sadsadafsdfddsds/);
+        assert.doesNotMatch(frame.text, /2› sadsadafsdfddsds/);
+    }
+});
+
+test('clearing an unknown name removes its error before removing the cell', async t => {
+    const frames = await drive(t, ['Missing' + ENTER, CLEAR], 40, 18);
+    assert.match(frames[0].text, /Runtime: unknown name: Missing/);
+    assert.match(frames[1].text, /rank> /);
+    assert.doesNotMatch(frames[1].text, /Runtime: unknown name|unknown name: Missing/);
+});
+
 test('a function containing for returns to rank prompt after selecting an iteration', async t => {
     const frames = await drive(t, [
         'fun total N' + ENTER,

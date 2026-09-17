@@ -30,6 +30,25 @@ describe('scan modifier', () => {
         expect(run('Empty = array shape 0 fill 0\nEmpty + scan with 10')).toBe('10');
     });
 
+    it('scans with a user-defined binary function and a seed', () => {
+        expect(run([
+            'fun next State Ignored',
+            '  return record',
+            '    .num = State .num + 2 * State .den',
+            '    .den = State .num + State .den',
+            '  end',
+            'end',
+            'Start = record',
+            '  .num = 3',
+            '  .den = 2',
+            'end',
+            'States = (1 to 3) with Start with next scan',
+            '(States 3) .num',
+        ].join('\n'))).toBe('41');
+        expect(run('fun add A B\n  return A + B\nend\n(array 2 3 4) add scan'))
+            .toBe('2 5 9');
+    });
+
     it('keeps sequence scans lazy, including unbounded sources', () => {
         expect(run([
             'use sequences',

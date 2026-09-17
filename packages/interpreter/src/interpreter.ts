@@ -2629,6 +2629,20 @@ export class Interpreter {
                     );
                 };
             }
+            const namedScan = explicitNamedScanApplication(parts);
+            if (namedScan) {
+                return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(namedScan.source));
+                    const seed = namedScan.seed === undefined
+                        ? undefined : yield* resume(interpreter.evaluateTask(namedScan.seed));
+                    const operation = yield* resume(interpreter.evaluateTask(namedScan.operation));
+                    if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
+                        throw new RankError('scan requires a binary operation');
+                    }
+                    return interpreter.scanValues(source, operation.name, seed,
+                        (left, right) => operation.call([left, right]));
+                };
+            }
             const axisSelection = explicitAxisSelection(parts);
             if (axisSelection) {
                 return function* (): Execution<RankValue> {
@@ -3580,7 +3594,9 @@ export class Interpreter {
         const hint = providers.length > 0
             ? `; did you forget ${providers.map(provider => `\`${provider}\``).join(' or ')}?`
             : '';
-        throw new RankError(`unknown name: ${name}${hint}`);
+        throw new RankError(name === 'scan' && !hint
+            ? 'scan needs an operator, e.g. Range + scan with 0'
+            : `unknown name: ${name}${hint}`);
     }
 
     private resolveVariable(name: string): RankValue {
@@ -4122,10 +4138,15 @@ export class Interpreter {
     }
 
     private evaluateScan(operator: string, value: RankValue, seed?: RankValue): RankValue {
+        return this.scanValues(value, operator, seed,
+            numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b)));
+    }
+
+    private scanValues(value: RankValue, operator: string, seed: RankValue | undefined,
+        operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
         if (valueRank(value) !== 1) {
             throw new RankError(`${operator} scan expects a rank-1 value`);
         }
-        const operation = numericKernel(operator, (a, b) => this.evaluateBinary(operator, a, b));
         if (isRankSequence(value)) {
             return scanSequence(value, operator, seed, operation);
         }
@@ -6167,6 +6188,22 @@ interface NamedSegmentApplication {
     readonly identity?: Expression;
     readonly source: Expression;
     readonly operation: Expression;
+}
+
+interface NamedScanApplication {
+    readonly seed?: Expression;
+    readonly source: Expression;
+    readonly operation: Expression;
+}
+
+function explicitNamedScanApplication(parts: Expression[]): NamedScanApplication | undefined {
+    if (parts.length === 6 && isNamed(parts[1], 'with') && isNamed(parts[3], 'with') && isNamed(parts[5], 'scan')) {
+        return { source: parts[0], seed: parts[2], operation: parts[4] };
+    }
+    if (parts.length === 3 && isNamed(parts[2], 'scan')) {
+        return { source: parts[0], operation: parts[1] };
+    }
+    return undefined;
 }
 
 function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {

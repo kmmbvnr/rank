@@ -15,6 +15,10 @@ const measure = document.querySelector<HTMLElement>('#measure')!;
 const chrome = document.querySelector<HTMLElement>('#chrome')!;
 const menuToggle = document.querySelector<HTMLButtonElement>('#menu-toggle')!;
 const commands = document.querySelector<HTMLElement>('#commands')!;
+const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
+const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
+const stoppedMessage = () => compact() ? 'Stopped' : 'Stopped · Ctrl-L restart';
+if (import.meta.env.MODE === 'mobile') document.documentElement.classList.add('mobile');
 if (import.meta.env.MODE !== 'mobile') {
     chrome.hidden = true;
     document.documentElement.style.setProperty('--chrome-height', '0px');
@@ -65,11 +69,13 @@ function render(): void {
         frame = helpFrame(repl.help.text, columns, rows, repl.help.top);
         repl.help.top = frame.top;
     } else {
+        const showShortcutHints = !compact();
+        const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
         frame = notebookFrame(repl.notebook, columns, rows, top,
-            failure || repl.suggestion, busy || repl.running, follow, '',
-            failure || (repl.running ? repl.runningStatus : 'Running… · ^C stop'),
+            shownFailure || (showShortcutHints ? repl.suggestion : ''), busy || repl.running, follow, '',
+            shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
-            repl.liveIterationFocus, repl.stepping);
+            repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints);
         top = frame.top;
     }
     screen.replaceChildren(...frame.lines.map(line => {
@@ -109,7 +115,7 @@ async function press(key: Key, text = ''): Promise<void> {
         return;
     }
     if (needsRestart && (key.name === 'return' || key.ctrl && key.name === 'r')) {
-        failure = 'Stopped · Ctrl-L restart'; render(); return;
+        failure = 'Stopped'; render(); return;
     }
     const command = repl.notebook.current.source.trim();
     if (session.isCommand(command) && /^(save|load|exit|quit)(?:\s|$)/.test(command)
@@ -129,7 +135,7 @@ async function press(key: Key, text = ''): Promise<void> {
             if (result.pageDelta) top = Math.max(0, top + result.pageDelta * Math.max(1, rows - 2));
         }
     } catch (error) {
-        failure = needsRestart ? 'Stopped · Ctrl-L restart' : String(error);
+        failure = needsRestart ? 'Stopped' : String(error);
         for (const cell of repl.notebook.cells) if (cell.status === 'running') cell.status = 'interrupted';
     } finally { busy = false; render(); }
 }
@@ -202,6 +208,38 @@ commands.onclick = event => {
     input.focus({ preventScroll: true });
     void press({ name: button.dataset.key, ctrl: button.dataset.ctrl === 'true' });
 };
+let hold: { pointerId: number; x: number; y: number; timer: ReturnType<typeof setTimeout>; long: boolean } | undefined;
+function endHold(pointerId: number, step: boolean): void {
+    if (!hold || hold.pointerId !== pointerId) return;
+    const wasLong = hold.long;
+    clearTimeout(hold.timer);
+    hold = undefined;
+    runButton.classList.remove('holding');
+    if (step && !wasLong) void press({ name: 'r', ctrl: true });
+}
+runButton.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || hold || busy || repl.running) return;
+    event.preventDefault();
+    runButton.setPointerCapture(event.pointerId);
+    runButton.classList.add('holding');
+    hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false,
+        timer: setTimeout(() => {
+            if (!hold || hold.pointerId !== event.pointerId) return;
+            hold.long = true;
+            void press({ name: 'l', ctrl: true });
+        }, 700) };
+});
+runButton.addEventListener('pointermove', event => {
+    if (hold?.pointerId === event.pointerId && Math.hypot(event.clientX - hold.x, event.clientY - hold.y) > 16)
+        endHold(event.pointerId, false);
+});
+runButton.addEventListener('pointerup', event => endHold(event.pointerId, true));
+runButton.addEventListener('pointercancel', event => endHold(event.pointerId, false));
+runButton.addEventListener('lostpointercapture', event => endHold(event.pointerId, false));
+runButton.addEventListener('contextmenu', event => event.preventDefault());
+runButton.addEventListener('click', event => {
+    if (event.detail === 0) void press({ name: 'r', ctrl: true });
+});
 document.addEventListener('paste', event => {
     const selected = sourceSelection(screen, frame.targets ?? [], repl.notebook, getSelection());
     if (!selected && event.target !== input) return;

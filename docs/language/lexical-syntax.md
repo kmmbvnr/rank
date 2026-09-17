@@ -203,6 +203,11 @@ Node print
 rem {.data = 2, .grad = 0, .op = .leaf}
 ```
 
+`less`, `greater`, `at most`, and `at least` compare records
+lexicographically in declaration order. Both records must declare the same
+fields in the same order, and each compared field must itself have an order.
+`sort` uses this same order. Structural `equal` still ignores field order.
+
 Records differ from JSON `object` values and sparse `index` values. An
 `object` is read by dynamic text keys, while a record declares its fields in
 Rank source and accesses them with symbols. An `index` remains open to new

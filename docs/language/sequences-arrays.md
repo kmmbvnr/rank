@@ -795,6 +795,17 @@ an unbounded source is valid when a later operation requests only a finite
 prefix or a particular position. Higher-rank arrays are rejected. `scan`
 currently has no `rank` or `axis` form.
 
+A binary user function can also accumulate states:
+
+```rank
+States = Steps with Start with next scan
+```
+
+`next State Step` receives the previous state and the next source item. The
+seed is the first result. Without a seed, `Steps next scan` starts from the
+first source item. The function is resolved once when the scan is created;
+sequence sources remain lazy.
+
 ## Short-circuiting selection
 
 A rank-1 value and an aligned boolean mask support three ordered operations:

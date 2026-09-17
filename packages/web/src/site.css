@@ -44,6 +44,7 @@ small { font-size: 13px; }
 #examples li { margin-bottom: 16px; }
 footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 96px; border-top: 1px solid #cccac0; padding: 16px 0 calc(20px + env(safe-area-inset-bottom, 0px)); font-size: 13px; color: #666459; }
 @media (max-width: 800px) {
+    .shortcut-help { display: none; }
     body { padding: 0 16px; }
     body > header { gap: 12px; padding: 8px 0; align-items: center; }
     header > a:link, header > a:visited { font-size: 24px; }

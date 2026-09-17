@@ -28,7 +28,7 @@ describe('Rank expressions and sequences', () => {
         expect(() => run('1 less "2"'))
             .toThrowError('ordered values must have one comparable type');
         expect(() => run('record\n  .value = 1\nend less 2'))
-            .toThrowError('ordered values must be comparable scalars');
+            .toThrowError('ordered values must have one comparable type');
     });
 
     it('continues infix expressions inside parentheses', () => {

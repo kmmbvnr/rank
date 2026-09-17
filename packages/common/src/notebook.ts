@@ -51,6 +51,13 @@ export interface NotebookCell {
     status: 'idle' | 'running' | 'ok' | 'error' | 'interrupted';
 }
 
+function clearEmptyResult(cell: NotebookCell): void {
+    if (cell.source.trim() !== '') return;
+    cell.output = [];
+    cell.errorOffset = undefined;
+    cell.status = 'idle';
+}
+
 interface Edit { source: string; cursor: number; document?: NotebookCell[]; replayFrom?: number }
 
 /** Source and cursor are independent of terminal rows and execution state. */
@@ -157,6 +164,7 @@ export class Notebook {
             const includesPrompt = range.end === this.cells.length - 1;
             this.cells.splice(range.start + 1, range.end - range.start);
             first.source = source;
+            clearEmptyResult(first);
             if (includesPrompt) this.append();
             this.active = range.start;
             this.cursor = range.from + text.length;
@@ -251,6 +259,7 @@ export class Notebook {
             this.undoStack.set(this.current.id, history);
             this.redoStack.delete(this.current.id);
             this.current.source = source;
+            clearEmptyResult(this.current);
         }
         this.cursor = Math.max(0, Math.min(cursor, source.length));
         this.preferredColumn = undefined;

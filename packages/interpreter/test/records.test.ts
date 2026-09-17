@@ -41,6 +41,57 @@ describe('Rank records', () => {
         ].join('\n'))).toBe('false');
     });
 
+    it('orders records lexicographically in field declaration order', () => {
+        const source = [
+            'A = record',
+            '  .num = 7',
+            '  .den = 5',
+            'end',
+            'B = record',
+            '  .num = 8',
+            '  .den = 4',
+            'end',
+            'Same = record',
+            '  .den = 5',
+            '  .num = 7',
+            'end',
+            'Different = record',
+            '  .num = 8',
+            'end',
+        ].join('\n');
+        expect(run(source + '\nA equal Same')).toBe('true');
+        expect(run(source + '\nA at least A and A at most A')).toBe('true');
+        expect(run(source + '\nA less B')).toBe('true');
+        expect(run(source + '\nB greater A')).toBe('true');
+        expect(run(source + '\nA at most B')).toBe('true');
+        expect(run(source + '\nB at least A')).toBe('true');
+        expect(run(source + '\nA greater B')).toBe('false');
+        expect(run(source + '\nuse sequences\nSorted = (array B A) sort\nSorted 0 equal A'))
+            .toBe('true');
+        expect(() => run(source + '\nA greater Same'))
+            .toThrowError('ordered records must have the same fields in the same order');
+        expect(() => run(source + '\nA greater Different'))
+            .toThrowError('ordered records must have the same fields in the same order');
+    });
+
+    it('orders records with nested record fields', () => {
+        expect(run([
+            'A = record',
+            '  .key = record',
+            '    .major = 1',
+            '    .minor = 2',
+            '  end',
+            'end',
+            'B = record',
+            '  .key = record',
+            '    .major = 1',
+            '    .minor = 3',
+            '  end',
+            'end',
+            'A less B',
+        ].join('\n'))).toBe('true');
+    });
+
     it('uses structural record values in sets', () => {
         expect(run([
             'use algo',
