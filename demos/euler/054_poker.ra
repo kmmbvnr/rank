@@ -24,8 +24,8 @@ fun poker_wins Hands
       continue
     end
     Cards = Line " " split
-    P1 = Cards from 0 until 5
-    P2 = Cards from 5 until 10
+    P1 = Cards 5 take
+    P2 = Cards 5 drop 5 take
     S1 = P1 hand_score
     S2 = P2 hand_score
     if S1 S2 greater rank 1

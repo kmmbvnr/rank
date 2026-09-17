@@ -1,0 +1,10 @@
+use testing
+
+test "official answer"
+  use "058_spiral"
+  run
+
+  Side equal 26241
+  PrimeCount equal 5248
+  Diagonals equal 52481
+end

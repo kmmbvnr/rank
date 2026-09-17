@@ -121,6 +121,6 @@ rem requested leading decimal digits.
 fun leading_sum Numbers Digits
   Total = Numbers sum
   Text = Total text
-  Prefix = Text from 0 until Digits
+  Prefix = Text Digits take
   return Prefix integer
 end

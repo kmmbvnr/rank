@@ -517,6 +517,8 @@ shape
 transpose
 window
 copy
+take
+drop
 sort
 argsort
 indices
@@ -525,10 +527,19 @@ find
 findall
 ```
 
+`Values Count take` keeps at most `Count` leading items; `Values Count drop`
+skips them. Counts must be nonnegative integers and are clamped to the source
+length. Both accept text, arrays and sequences. Arrays return lazy views along
+the leading axis; text counts Unicode code points. Sequences stay lazy, and
+`take` can bound an infinite source before `copy`. See
+[Take and drop](../language/sequences-arrays.md#take-and-drop).
+
 `copy` eagerly copies a material or lazy array into independent writable dense
 storage while preserving its shape. On a numeric `+ segment`, it creates an
-independent persistent version that shares unchanged nodes. It does not accept
-a sequence; postfix `array` materializes a finite sequence into a rank-1 array.
+independent persistent version that shares unchanged nodes. On a finite
+sequence, it materializes values and stacks equally shaped array items along
+a new leading axis, like postfix `array`. `transpose` requires an array, so
+copy a sequence explicitly before transposing it.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, supports `to` and `until`, and may seek to a

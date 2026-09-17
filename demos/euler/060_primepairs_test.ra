@@ -1,0 +1,91 @@
+use testing
+
+test "official minimum over the complete upper-bound search"
+  use "060_primepairs"
+  run
+
+  Upper equal 26033
+  Answer equal 26033
+end
+
+test "concatenation and compatibility in both directions"
+  use "060_primepairs"
+
+  13 7 concat equal 137
+  7 13 concat equal 713
+  3 10 concat equal 310
+  3 7 compatible
+  7 3 compatible
+  not (13 7 compatible)
+  not (7 13 compatible)
+end
+
+test "small graph excludes two and five and keeps prime pairs"
+  use "060_primepairs"
+  use sequences
+
+  Data = 20 build
+  Vals = Data .primes
+  Graph = Data .graph
+  (Vals equal (array 3 7 11 13 17 19)) all
+  Neighbors = Graph 3
+  ((array 7 11 17) in Neighbors) all
+  not (13 in Neighbors)
+  not (19 in Neighbors)
+  Reverse = Graph 7
+  3 in Reverse
+end
+
+test "known five-prime set forms a complete graph"
+  use "060_primepairs"
+  use sequences
+
+  Vals = array 13 5197 5701 6733 8389
+  for P i in Vals
+    for Q in Vals (i + 1) drop
+      if not (P Q compatible)
+        return false
+      end
+    end
+  end
+  Vals sum equal 26033
+end
+
+test "search improves an earlier clique and keeps calls independent"
+  use "060_primepairs"
+  use graph
+  use sequences
+
+  Vals = array 1 2 3 4 5 6 7 100
+  Graph = new graph Vals .undirected
+  First = array 1 2 3 4 100
+  Second = array 2 3 4 5 6
+  for Group in (array First Second)
+    for P i in Group
+      for Q in Group (i + 1) drop
+        Graph add P Q
+      end
+    end
+  end
+  Data = record
+    .primes = Vals
+    .graph = Graph
+  end
+  A = Data 200 min_five
+  B = Data 19 min_five
+  C = Data 200 min_five
+  ((array A B C) equal (array 20 19 20)) all
+end
+
+test "no five-clique leaves the supplied bound unchanged"
+  use "060_primepairs"
+  use graph
+
+  Vals = array 3 7 11 13 17
+  Graph = new graph Vals .undirected
+  Data = record
+    .primes = Vals
+    .graph = Graph
+  end
+  Data 100 min_five equal 100
+end

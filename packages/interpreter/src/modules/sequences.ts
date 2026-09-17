@@ -4,7 +4,7 @@ import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
-import { sequence, windowValue } from '../sequence.js';
+import { materializeSequence, sequence, takeDropValue, windowValue } from '../sequence.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
@@ -45,6 +45,8 @@ export const sequencesModule: RuntimeModule = {
         chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
+    take: () => native('take', 2, ([source, count]) => takeDropValue(source, count)),
+    drop: () => native('drop', 2, ([source, count]) => takeDropValue(source, count, true)),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     copy: () => native('copy', 1, arguments_ =>
         arguments_[0] instanceof FlatRecords
@@ -223,7 +225,8 @@ function* collectionValues(value: RankValue, operation: string): IterableIterato
 }
 
 function copyArray(value: RankValue): RankArray {
-    if (!isRankArray(value)) throw new RankError('copy expects an array');
+    if (isRankSequence(value)) return materializeSequence(value);
+    if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const items = Array.from(
         { length: size },
@@ -233,6 +236,9 @@ function copyArray(value: RankValue): RankArray {
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {
+    if (isRankSequence(value)) {
+        throw new RankError('transpose expects an array; use copy to materialize the sequence');
+    }
     if (!isRankArray(value)) throw new RankError('transpose expects an array');
     const permutation = axes
         ? [...axes]
@@ -700,7 +706,7 @@ function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     };
 }
 
-const membershipPrimes = [2n, 3n];
+const membershipPrimes = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n];
 
 function membershipInteger(value: RankValue): bigint | undefined {
     if (typeof value === 'bigint') return value;
@@ -712,10 +718,18 @@ function membershipInteger(value: RankValue): bigint | undefined {
 
 function primeMembership(value: bigint): boolean {
     if (value < 2n) return false;
-    extendMembershipPrimes(value);
     for (const prime of membershipPrimes) {
         if (prime * prime > value) return true;
         if (value % prime === 0n) return value === prime;
+    }
+    // Reject known factors before generating any more trial divisors.
+    // Only newly generated primes need checking after the extension.
+    const checked = membershipPrimes.length;
+    extendMembershipPrimes(value);
+    for (let index = checked; index < membershipPrimes.length; index += 1) {
+        const prime = membershipPrimes[index];
+        if (prime * prime > value) return true;
+        if (value % prime === 0n) return false;
     }
     return true;
 }

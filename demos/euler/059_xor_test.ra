@@ -1,0 +1,45 @@
+use testing
+
+test "official ciphertext and recovered key"
+  use "059_xor"
+  run
+
+  Cipher len equal 1455
+  Key (array 101 120 112) equal rank 1
+  Answer equal 129448
+  Prefix = Plain from 0 until 10
+  Prefix (array 65 110 32 101 120 116 114 97 99 116) equal rank 1
+end
+
+test "XOR example and repeating key round trip"
+  use "059_xor"
+  use bits
+
+  Example = (array 65) (array 42) decrypt
+  Example (array 107) equal rank 1
+  Message = array 65 110 32 101 120 116 114
+  Password = array 101 120 112
+  Encrypted = Message Password decrypt
+  Restored = Encrypted Password decrypt
+  Restored Message equal rank 1
+end
+
+test "key stream stacks explicitly in lexicographic order"
+  use "059_xor"
+  use sequences
+
+  Keys = keys copy
+  (Keys shape) (array 17576 3) equal rank 1
+  (Keys 0) (array 97 97 97) equal rank 1
+  (Keys 1) (array 97 97 98) equal rank 1
+  (Keys 26) (array 97 98 97) equal rank 1
+  (Keys 17575) (array 122 122 122) equal rank 1
+end
+
+test "key enumeration can stop after one row"
+  use "059_xor"
+  for Key in keys
+    Key (array 97 97 97) equal rank 1
+    break
+  end
+end

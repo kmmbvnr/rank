@@ -13,9 +13,9 @@ Answer print
 rem Search increasing prime pairs and derive
 rem the only possible third arithmetic term.
 fun prime_permutation_sequence Lower Upper
-  Values = primes until Upper array
+  Values = (primes from Lower) until Upper array
   for A in Values
-    if A at least Lower and A not equal 1487
+    if A not equal 1487
       Key = A text sort
       for B in Values
         if B greater A

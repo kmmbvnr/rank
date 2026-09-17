@@ -1,0 +1,80 @@
+rem XOR Decryption
+rem https://projecteuler.net/problem=59
+
+use bits
+use text
+use sequences
+use io
+use cli
+
+argument Input path = "demos/euler/fixtures/0059_cipher.txt"
+
+Cipher = Input read "," split integer rank 0
+Weights = english_weights
+Key = Cipher Weights best_key
+Plain = Cipher Key decrypt
+Answer = Plain sum
+Answer print
+
+
+rem Stream the three-letter keys without building a matrix.
+fun keys
+  for A in 97 to 122
+    for B in 97 to 122
+      for C in 97 to 122
+        yield array A B C
+      end
+    end
+  end
+end
+
+
+rem Gather repeats the key; bxor applies to corresponding bytes.
+fun decrypt Cipher Key
+  Size = Cipher len
+  Positions = (0 until Size) copy
+  Slots = Positions % (Key len)
+  KeyStream = Key Slots
+  return Cipher KeyStream bxor
+end
+
+
+rem Prefer common English letters and spaces; penalize control bytes.
+fun english_weights
+  Weights = array shape 128 fill -100
+  for Code in 32 to 126
+    Weights Code = 0
+  end
+  Letters = "abcdefghijklmnopqrstuvwxyz"
+  Frequencies = array 8 1 3 4 13 2 2 6 7 1 1 4 2 7 8 2 1 6 6 9 3 1 2 1 2 1
+  for Letter I in Letters
+    Code = Letter codepoint
+    Weights Code = Frequencies I
+    Weights (Code - 32) = Frequencies I
+  end
+  Weights 32 = 15
+  Weights 9 = 0
+  Weights 10 = 0
+  Weights 13 = 0
+  return Weights
+end
+
+
+rem Reuse byte positions and score each key as it arrives.
+fun best_key Cipher Weights
+  Size = Cipher len
+  Positions = (0 until Size) copy
+  Slots = Positions % 3
+  BestScore = -101 * (Cipher len) - 1
+  BestKey = array 97 97 97
+  for Key in keys
+    KeyStream = Key Slots
+    Plain = Cipher KeyStream bxor
+    Score = Weights Plain sum
+    if Score greater BestScore
+      BestScore = Score
+      BestKey = Key
+    end
+  end
+  return BestKey
+end

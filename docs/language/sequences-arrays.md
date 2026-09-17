@@ -54,18 +54,55 @@ general lazy operation with the same observable result.
 Sequence plans expose lower- and upper-bound hooks, so other ordered sources
 can implement `from`, `to` and `until` without enumerating discarded prefixes.
 
+## Take and drop
+
+`take` keeps at most the requested number of leading items. `drop` skips that
+many items and returns the remaining tail. Both belong to `sequences`:
+
+```rank
+use sequences
+FirstFive = primes 5 take
+NextFive = primes 5 drop 5 take
+Values = NextFive copy
+Prefix = "abcdef" 3 take
+Tail = "abcdef" 3 drop
+```
+
+The count must be a nonnegative integer. Counts larger than a finite source
+are clamped: `take` returns all its items and `drop` returns an empty result.
+`take 0` reads nothing; `drop 0` preserves all items. Text counts Unicode code
+points. Arrays return lazy views along their leading axis, preserving the
+remaining dimensions. Writes to the source are visible through those views;
+use `copy` for an independent snapshot.
+
+Sequences remain lazy, including user generators. `take` stops without
+requesting an extra item and closes the source iterator. `drop` traverses the
+skipped prefix when demanded. Neither operation makes a single-pass source
+replayable. `take` bounds an infinite source by count; `drop` alone leaves it
+infinite. Materializing a bounded sequence still uses `copy` or postfix `array`.
+
+`from` on an ordered source sets a value bound. For example,
+`(primes from 10) 3 take copy` gives `11 13 17`, while
+`primes 10 drop 3 take copy` gives `31 37 41`. General generators and mapped
+sequences do not acquire value bounds through `take` or `drop`. Numeric ranges
+already specify their starting value, as in `10 to 20`.
+
 ## Explicit materialization
 
 Postfix `array` consumes a sequence and stores its yielded items in a dense
-rank-1 array:
+array:
 
 ```rank
 Values = 3 weird array
 ```
 
-Materialization is eager and preserves each yielded value as one array item;
-it does not flatten yielded collections. An empty sequence produces an array
-with shape `0`. A single-pass generator is consumed by this operation.
+Materialization is eager. Scalar or record items produce a rank-1 array.
+Array items with the same shape are stacked along a new leading axis: `N`
+items of shape `3` produce shape `N 3`, and `N` items of shape `2 3` produce
+shape `N 2 3`. Different item shapes, or a mixture of arrays and non-arrays,
+raise `DimensionMismatch`. An empty sequence has shape `0`. A single-pass
+generator is consumed, and each yielded array is copied before requesting
+the next item.
 
 A sequence known to be infinite is rejected. A sequence whose finiteness is
 unknown is evaluated until it ends, so materialization may raise a delayed
@@ -104,9 +141,25 @@ use sequences
 Writable = Source copy
 ```
 
-Changing the copy does not change the source. `copy` does not accept a
-sequence; postfix `array` remains the operation that materializes a finite
-sequence into a rank-1 array.
+Changing the copy does not change the source. `copy` also consumes a finite
+sequence, using the same stacking rule as postfix `array`:
+
+```rank
+fun rows
+  yield array 1 2 3
+  yield array 4 5 6
+end
+Rows = rows
+Matrix = Rows copy
+Matrix shape          rem 2 3
+Matrix transpose      rem requires an array
+```
+
+`Rows` stays a stream of row values until explicitly copied. Iteration can
+consume one row at a time, including rows with different shapes. `shape` on
+the stream describes its one-dimensional sequence length; `Matrix shape`
+describes the materialized tensor. `transpose` does not implicitly consume a
+sequence: use `copy` first. User generators remain single-pass.
 
 ## Derived values and mutation
 
@@ -568,7 +621,8 @@ Total = M sum axis 0 sum
 
 `rank` consumes its integer argument; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
-For example, a seeded scan is named before its result feeds `sum`. `segment`
+`with` consumes one seed or identity operand before the chain continues.
+For example, `A + scan with 0 sum` sums the scan results. `segment`
 constructs the algorithmic collection described in
 [Collections](collections.md). Operands are evaluated once. Parentheses remain
 available to make grouping explicit.
@@ -798,7 +852,8 @@ currently has no `rank` or `axis` form.
 A binary user function can also accumulate states:
 
 ```rank
-States = Steps with Start with next scan
+States = Steps next scan with Start
+Prefixes = Steps next scan
 ```
 
 `next State Step` receives the previous state and the next source item. The

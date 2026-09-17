@@ -1109,6 +1109,21 @@ Negative = Pred less 0
 Pred Negative = 0
 ```
 
+## Positional prefixes and tails
+
+With `use sequences`, `Values Count take` keeps at most `Count` leading items,
+and `Values Count drop` skips them. `Count` must be a nonnegative integer;
+counts beyond a finite source are clamped. Text counts Unicode code points.
+Arrays return lazy views along their leading axis, preserving other dimensions.
+Sequences remain lazy and preserve single-pass behavior. `take` reads no extra
+item and closes its iterator on completion. `take 0` does not read the source.
+`drop` traverses the skipped prefix when demanded. Explicit `copy` or postfix
+`array` materializes the result.
+
+`primes 5 take` selects five primes by position. `(primes from 5)` sets an
+inclusive lower value bound. Value bounds are supported by the ordered source;
+`take` and `drop` apply to arbitrary sequences.
+
 ## Slices and ranges
 
 Numeric ranges are first-class sequences. Their compact form does not use
@@ -1871,15 +1886,19 @@ can implement `from`, `to` and `until` without enumerating discarded prefixes.
 ## Explicit materialization
 
 Postfix `array` consumes a sequence and stores its yielded items in a dense
-rank-1 array:
+array:
 
 ```rank
 Values = 3 weird array
 ```
 
-Materialization is eager and preserves each yielded value as one array item;
-it does not flatten yielded collections. An empty sequence produces an array
-with shape `0`. A single-pass generator is consumed by this operation.
+Materialization is eager. Scalar or record items produce a rank-1 array.
+Array items with the same shape are stacked along a new leading axis: `N`
+items of shape `3` produce shape `N 3`, and `N` items of shape `2 3` produce
+shape `N 2 3`. Different item shapes, or a mixture of arrays and non-arrays,
+raise `DimensionMismatch`. An empty sequence has shape `0`. A single-pass
+generator is consumed, and each yielded array is copied before requesting
+the next item.
 
 A sequence known to be infinite is rejected. A sequence whose finiteness is
 unknown is evaluated until it ends, so materialization may raise a delayed
@@ -1918,9 +1937,25 @@ use sequences
 Writable = Source copy
 ```
 
-Changing the copy does not change the source. `copy` does not accept a
-sequence; postfix `array` remains the operation that materializes a finite
-sequence into a rank-1 array.
+Changing the copy does not change the source. `copy` also consumes a finite
+sequence, using the same stacking rule as postfix `array`:
+
+```rank
+fun rows
+  yield array 1 2 3
+  yield array 4 5 6
+end
+Rows = rows
+Matrix = Rows copy
+Matrix shape          rem 2 3
+Matrix transpose      rem requires an array
+```
+
+`Rows` stays a stream of row values until explicitly copied. Iteration can
+consume one row at a time, including rows with different shapes. `shape` on
+the stream describes its one-dimensional sequence length; `Matrix shape`
+describes the materialized tensor. `transpose` does not implicitly consume a
+sequence: use `copy` first. User generators remain single-pass.
 
 ## Sliding windows
 
@@ -2326,7 +2361,8 @@ Total = M sum axis 0 sum
 
 `rank` consumes its integer argument; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
-For example, a seeded scan is named before its result feeds `sum`. `segment`
+`with` consumes one seed or identity operand before the chain continues.
+For example, `A + scan with 0 sum` sums the scan results. `segment`
 constructs the algorithmic collection described in
 [Collections](language/collections.md). Operands are evaluated once.
 Parentheses remain available to make grouping explicit.
@@ -2567,7 +2603,8 @@ currently has no `rank` or `axis` form.
 A binary user function can also accumulate states:
 
 ```rank
-States = Steps with Start with next scan
+States = Steps next scan with Start
+Prefixes = Steps next scan
 ```
 
 `next State Step` receives the previous state and the next source item. The
@@ -2999,6 +3036,36 @@ Tree = Values Operation segment
 resolves `Operation` once when the tree is built. It therefore honors a
 user-defined `min` or any other binary function. Rank does not try to prove
 that the operation is associative.
+
+User-defined record states can supply an explicit neutral element:
+
+```rank
+Tree = Values combine segment with Identity
+```
+
+Each input element is already a state. `combine Left Right` must return a
+state, be associative, and leave both operands unchanged. `Identity` must
+satisfy `combine Identity X = X` and `combine X Identity = X`; these laws are
+part of the caller's contract and are not checked at runtime. The function
+and identity are evaluated once during construction.
+
+Ranges remain inclusive. With an explicit identity, `Tree I (I - 1) query`
+returns the identity for `0 <= I <= Tree len`. An empty tree therefore accepts
+`Tree 0 (-1) query`. Other reversed ranges and out-of-bounds positions are
+errors. Without an explicit identity, the existing range rules apply.
+
+A [flat record array](language/sequences-arrays.md#flat-record-arrays) makes the tree
+store its nodes in a compact buffer with the same schema. Reads return record
+copies. Replace a whole leaf with `Tree Position = State` to recompute its
+ancestors. A schema mismatch or overflow during an update leaves the stored
+tree unchanged. Flat identities are copied on construction and on empty reads.
+Ordinary record trees retain the existing reference semantics. Eligible pure
+integer `combine` functions use a scalar kernel without intermediate records.
+Query intermediates keep arbitrary-precision integer semantics; only stored
+nodes are checked against the signed 64-bit limit.
+
+Only point updates are supported for user-defined operations. Lazy range
+updates need an additional action algebra and are not inferred from `combine`.
 
 A point uses ordinary zero-based addressing. Assignment changes the point and
 updates its ancestors:
@@ -4990,8 +5057,10 @@ count
 
 `copy` eagerly copies a material or lazy array into independent writable dense
 storage while preserving its shape. On a numeric `+ segment`, it creates an
-independent persistent version that shares unchanged nodes. It does not accept
-a sequence; postfix `array` materializes a finite sequence into a rank-1 array.
+independent persistent version that shares unchanged nodes. On a finite
+sequence, it materializes values and stacks equally shaped array items along
+a new leading axis, like postfix `array`. `transpose` requires an array, so
+copy a sequence explicitly before transposing it.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, supports `to` and `until`, and may seek to a
@@ -7167,6 +7236,20 @@ Windows = Digits Width window
 Products = Windows * reduce rank 1
 Answer = Products max
 ```
+
+Keep lines short enough to read on a narrow screen, aiming for roughly 40
+columns. Use fewer parentheses by giving intermediate results short,
+meaningful names. Name the value or its role, such as `Range`, `States` or
+`DigitCounts`; avoid placeholders such as `Temp` or `Result2`. Split a long
+expression into named steps when that makes the computation easier to follow.
+Keep parentheses where they are needed to express the intended grouping.
+
+```rank
+Range = 1 until 1000
+States = Range next scan with Start
+```
+
+Here `Start` is the first state, so the 999 range items produce 1000 states.
 
 ### Rationale: Readability, debugging, and the BASIC spirit
 

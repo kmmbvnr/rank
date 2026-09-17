@@ -1,5 +1,5 @@
 import { checkpoint, interruptibleValues } from './interrupt.js';
-import { derivedArray, ownedArray } from './array-storage.js';
+import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
     isRankArray,
@@ -105,6 +105,60 @@ export function atSequence(source: RankSequence, index: bigint): RankValue {
         current += 1n;
     }
     throw new MissingValueError(`sequence index out of bounds: ${index}`);
+}
+
+/** Positional prefixes and tails; array views and sequence plans stay lazy. */
+export function takeDropValue(source: RankValue, count: RankValue, drop = false): RankValue {
+    const name = drop ? 'drop' : 'take';
+    if (typeof count !== 'bigint' || count < 0n) {
+        throw new RankError(`${name} expects a nonnegative integer count`);
+    }
+    if (typeof source === 'string') {
+        const points = [...source];
+        const offset = Number(count < BigInt(points.length) ? count : BigInt(points.length));
+        return (drop ? points.slice(offset) : points.slice(0, offset)).join('');
+    }
+    if (isRankArray(source) && source.shape.length > 0) {
+        const length = source.shape[0];
+        const offset = Number(count < BigInt(length) ? count : BigInt(length));
+        const cellSize = source.shape.slice(1).reduce((a, b) => a * b, 1);
+        const shape = [drop ? length - offset : offset, ...source.shape.slice(1)];
+        return derivedArray(shape, [source], index =>
+            readArrayItem(source, index + (drop ? offset * cellSize : 0)));
+    }
+    if (!isRankSequence(source)) {
+        throw new RankError(`${name} expects text, an array or a sequence`);
+    }
+    const plan = source.plan;
+    const size: SequenceSize = plan.size.kind === 'exact'
+        ? { kind: 'exact', value: drop
+            ? (plan.size.value > count ? plan.size.value - count : 0n)
+            : (plan.size.value < count ? plan.size.value : count) }
+        : drop ? plan.size
+            : plan.size.kind === 'infinite' || count === 0n
+                ? { kind: 'exact', value: count }
+                : { kind: 'unknown' };
+    return sequence({
+        name: `${plan.name} ${count} ${name}`,
+        singlePass: plan.singlePass,
+        captures: plan.captures,
+        size,
+        *iterate() {
+            if (!drop && count === 0n) return;
+            let remaining = count;
+            for (const value of plan.iterate()) {
+                checkpoint('reading sequence');
+                if (drop) {
+                    if (remaining > 0n) remaining -= 1n;
+                    else yield value;
+                } else {
+                    yield value;
+                    remaining -= 1n;
+                    if (remaining === 0n) return;
+                }
+            }
+        },
+    });
 }
 
 export function mapSequence(
@@ -319,8 +373,33 @@ export function materializeSequence(source: RankSequence): RankArray {
     if (source.plan.size.kind === 'infinite') {
         throw new RankError('cannot materialize an infinite sequence');
     }
-    const items = [...interruptibleValues(source.plan.iterate(), 'materializing sequence')];
-    return ownedArray(items);
+    const items: RankValue[] = [];
+    let cellShape: readonly number[] | undefined;
+    let arrays: boolean | undefined;
+    let count = 0;
+    for (const value of interruptibleValues(source.plan.iterate(), 'materializing sequence')) {
+        const array = isRankArray(value);
+        arrays ??= array;
+        if (arrays !== array) {
+            throw new RankError('materialized sequence items must have the same shape', 'DimensionMismatch');
+        }
+        if (array) {
+            cellShape ??= value.shape;
+            if (cellShape.length !== value.shape.length
+                || cellShape.some((size, axis) => size !== value.shape[axis])) {
+                throw new RankError('materialized sequence items must have the same shape', 'DimensionMismatch');
+            }
+            const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+            for (let index = 0; index < size; index += 1) {
+                checkpoint('materializing sequence');
+                items.push(readArrayItem(value, index));
+            }
+        } else {
+            items.push(value);
+        }
+        count += 1;
+    }
+    return ownedArray(items, [count, ...(cellShape ?? [])]);
 }
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {

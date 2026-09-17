@@ -1,0 +1,26 @@
+rem Spiral Primes
+rem https://projecteuler.net/problem=58
+
+use sequences
+use io
+
+Side = 1
+PrimeCount = 0
+CornerPositions = 1 to 3
+
+for
+  Side += 2
+  Step = Side - 1
+  Square = Side * Side
+
+  Corners = Square - Step * CornerPositions
+  PrimeMask = Corners in primes
+  PrimeCount += PrimeMask count
+
+  Diagonals = 2 * Side - 1
+  if PrimeCount * 10 less Diagonals
+    break
+  end
+end
+
+Side print

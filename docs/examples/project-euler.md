@@ -902,3 +902,54 @@ The two seeded scans build the numerator and denominator products for every
 binomial coefficient in a row, including the initial coefficient `1`. Applying
 the row function with `rank 0` and reducing its counts with seed `0` gives
 `4075` values above one million.
+
+## 59. XOR decryption
+
+```rank
+for Key in keys
+  KeyStream = Key Slots
+  Plain = Cipher KeyStream bxor
+  Score = Weights Plain sum
+  if Score greater BestScore
+    BestScore = Score
+    BestKey = Key
+  end
+end
+```
+
+The generator yields each three-letter key as an array. The loop consumes one
+key at a time; it does not build a `17576 3` matrix. `Slots` holds the repeating
+positions `0 1 2`, and an ASCII weight table scores the decrypted bytes. The
+official fixture gives key `exp` and ASCII sum `129448`.
+
+To inspect every key as a matrix, use `Keys = keys copy` explicitly. The copy
+stacks the rows, after which `Keys transpose` and column addressing are available.
+
+## 60. Prime pair sets
+
+[Demo](../../demos/euler/060_primepairs.ra) ·
+[Tests](../../demos/euler/060_primepairs_test.ra)
+
+```rank
+Seed = 10000 build
+Upper = Seed 50000 min_five
+Full = Upper build
+Answer = Full Upper min_five
+```
+
+`build` returns a record containing ascending primes and an undirected graph.
+An edge joins two primes when both decimal concatenations are prime. The
+builder excludes `2` and `5` and rejects pairs whose sum is divisible by three,
+except pairs involving `3`.
+
+`min_five Data Best` defines a local `search Rest Need Sum`. The local function
+captures the graph and updates `Best` in its enclosing call. Each recursive
+call passes only its remaining candidates, required count and current sum.
+`drop` selects later candidates; membership in the current vertex's neighbors
+filters them. An explicit `copy` stores the filtered candidates for recursive
+search. `take` selects the cheapest possible continuation for pruning.
+
+The first pass finds a set with sum `26033`. Every member of a cheaper set
+would be below that sum, so the second pass searches all primes below `26033`.
+It finds no improvement. Tests also check pair compatibility, a small graph,
+and a synthetic graph where the first five-clique is not the cheapest.
