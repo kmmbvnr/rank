@@ -105,6 +105,7 @@ export interface ScreenFrame {
     readonly lines: string[];
     readonly cursor: { row: number; column: number };
     readonly top: number;
+    readonly maxTop?: number;
     readonly cursorVisible: boolean;
     readonly cursorStyle?: 2 | 6;
     readonly targets?: readonly (ScreenTarget | undefined)[];
@@ -119,7 +120,7 @@ export function notebookFrame(
     promptFields?: readonly { name: string; source: string; cursor: number; active: boolean; error?: string; summary?: string;
         selection?: { from: number; to: number } }[],
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
-    stepping = false, anchoredCursorRow?: number, showShortcutHints = true,
+    stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -240,6 +241,7 @@ export function notebookFrame(
     }
     const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus) ? 1 : 0;
     const viewportHeight = Math.max(1, height - footerRows);
+    const maxTop = Math.max(0, rows.length - viewportHeight);
     let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - (followCursor ? 1 : viewportHeight))));
     if (followCursor && caret.row < top) top = caret.row;
     if (followCursor && caret.row >= top + viewportHeight) top = caret.row - viewportHeight + 1;
@@ -256,8 +258,9 @@ export function notebookFrame(
     }
     if (followCursor && anchoredCursorRow !== undefined)
         top = Math.max(0, caret.row - Math.min(anchoredCursorRow, viewportHeight - 1));
-    const lines = rows.slice(top, top + viewportHeight);
-    while (lines.length < viewportHeight) lines.push('');
+    const renderedHeight = viewportHeight + Math.max(0, overscanRows);
+    const lines = rows.slice(top, top + renderedHeight);
+    while (lines.length < renderedHeight) lines.push('');
     if (footerRows) {
         const footerWidth = Math.min(40, width);
         let status = '';
@@ -283,7 +286,7 @@ export function notebookFrame(
         lines.push(clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth));
     }
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
-        top, targets: targets.slice(top, top + viewportHeight),
+        top, maxTop, targets: targets.slice(top, top + renderedHeight),
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
             : promptOutputs || notebook.atPrompt || stepping ? 2 : 6 };

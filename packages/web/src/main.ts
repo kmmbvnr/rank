@@ -28,12 +28,14 @@ let rows = 24;
 let cellWidth = 8;
 let cellHeight = 22;
 let top = 0;
+let scrollFraction = 0;
 let follow = true;
 let busy = false;
 let composing = false;
 let failure = '';
 let needsRestart = false;
 let frame: ScreenFrame;
+let storedNotebook = '';
 const session = browserSession(message => { failure = message; needsRestart = true; render(); });
 const repl = new NotebookRepl(session, () => render(), () => columns, true);
 const keys = new KeyRouter(repl, [], () => columns, {
@@ -66,17 +68,21 @@ function render(): void {
     // Replacing the DOM would destroy the phone's selection handles and Copy menu.
     if (nativeSelection()) return;
     if (repl.help) {
+        scrollFraction = 0;
         frame = helpFrame(repl.help.text, columns, rows, repl.help.top);
         repl.help.top = frame.top;
     } else {
         const showShortcutHints = !compact();
         const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
+        if (follow || shownFailure || repl.running) scrollFraction = 0;
         frame = notebookFrame(repl.notebook, columns, rows, top,
             shownFailure || (showShortcutHints ? repl.suggestion : ''), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
-            repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints);
+            repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints,
+            compact() && !shownFailure && !repl.running ? 1 : 0);
         top = frame.top;
+        if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
     }
     screen.replaceChildren(...frame.lines.map(line => {
         const row = document.createElement('div');
@@ -84,8 +90,9 @@ function render(): void {
         paintLine(row, line);
         return row;
     }));
+    screen.style.transform = scrollFraction ? `translateY(${-scrollFraction}px)` : '';
     const left = frame.cursor.column * cellWidth;
-    const y = frame.cursor.row * cellHeight;
+    const y = frame.cursor.row * cellHeight - scrollFraction;
     caret.style.transform = `translate(${left}px, ${y}px)`;
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
     caret.hidden = !frame.cursorVisible || !!repl.help;
@@ -102,14 +109,19 @@ function render(): void {
             input.setSelectionRange(from, to, book.cursor === from ? 'backward' : 'forward');
     }
     try {
-        localStorage.setItem(storageKey, JSON.stringify({
+        const savedNotebook = JSON.stringify({
             cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
             draft: repl.notebook.cells.at(-1)!.source,
-        }));
+        });
+        if (savedNotebook !== storedNotebook) {
+            localStorage.setItem(storageKey, savedNotebook);
+            storedNotebook = savedNotebook;
+        }
     } catch { failure = 'Cannot save local draft'; }
 }
 
 async function press(key: Key, text = ''): Promise<void> {
+    stopMomentum();
     if (busy || repl.running) {
         if (key.ctrl && key.name === 'c') session.interrupt?.();
         return;
@@ -141,6 +153,7 @@ async function press(key: Key, text = ''): Promise<void> {
 }
 
 function applyInput(): void {
+    stopMomentum();
     if (busy || repl.running || repl.help || repl.liveIterationFocused) { render(); return; }
     const book = editor();
     const previous = book.current.source;
@@ -289,9 +302,10 @@ document.addEventListener('selectionchange', () => {
 });
 
 async function locate(x: number, y: number): Promise<void> {
+    stopMomentum();
     if (busy || repl.running || repl.help) { input.focus({ preventScroll: true }); return; }
     const rect = terminal.getBoundingClientRect();
-    const row = Math.floor((y - rect.top) / cellHeight);
+    const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
     const column = Math.round((x - rect.left) / cellWidth);
     const target = frame.targets?.[row];
     repl.notebook.clearSelection();
@@ -336,33 +350,72 @@ terminal.addEventListener('pointerup', event => {
     pointer = undefined;
 });
 terminal.addEventListener('pointercancel', () => { pointer = undefined; });
-let swipe: { y: number; top: number; time: number; scrolling: boolean } | undefined;
+let momentumFrame: number | undefined;
+function stopMomentum(): void {
+    if (momentumFrame !== undefined) cancelAnimationFrame(momentumFrame);
+    momentumFrame = undefined;
+}
+function scrollToPixels(position: number): boolean {
+    const limited = Math.max(0, Math.min(position, (frame.maxTop ?? 0) * cellHeight));
+    follow = false;
+    top = Math.floor(limited / cellHeight);
+    scrollFraction = limited - top * cellHeight;
+    render();
+    return limited !== position;
+}
+function coast(velocity: number): void {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(velocity) < 0.05) return;
+    let previous = performance.now();
+    const step = (now: number) => {
+        const elapsed = Math.min(32, now - previous);
+        previous = now;
+        const edge = scrollToPixels(top * cellHeight + scrollFraction + velocity * elapsed);
+        velocity *= Math.exp(-elapsed / 180);
+        momentumFrame = !edge && Math.abs(velocity) >= 0.02 ? requestAnimationFrame(step) : undefined;
+    };
+    momentumFrame = requestAnimationFrame(step);
+}
+let swipe: { y: number; pixels: number; time: number; lastY: number; lastTime: number;
+    velocity: number; scrolling: boolean } | undefined;
 terminal.addEventListener('touchstart', event => {
     if (event.touches.length !== 1 || event.target === input) { swipe = undefined; return; }
-    swipe = { y: event.touches[0].clientY, top, time: performance.now(), scrolling: false };
+    stopMomentum();
+    const now = performance.now();
+    swipe = { y: event.touches[0].clientY, pixels: top * cellHeight + scrollFraction,
+        time: now, lastY: event.touches[0].clientY, lastTime: now, velocity: 0, scrolling: false };
 }, { passive: true });
 terminal.addEventListener('touchmove', event => {
     if (!swipe || event.touches.length !== 1 || nativeSelection()) return;
-    const distance = swipe.y - event.touches[0].clientY;
+    const now = performance.now();
+    const y = event.touches[0].clientY;
+    const distance = swipe.y - y;
     if (!swipe.scrolling) {
-        if (performance.now() - swipe.time > 350 || Math.abs(distance) < 10) return;
+        if (now - swipe.time > 350 || Math.abs(distance) < 10) return;
         swipe.scrolling = true;
     }
     event.preventDefault();
-    follow = false;
-    top = Math.max(0, swipe.top + Math.round(distance / cellHeight));
-    render();
+    const speed = (swipe.lastY - y) / Math.max(1, now - swipe.lastTime);
+    swipe.velocity = 0.65 * swipe.velocity + 0.35 * speed;
+    swipe.lastY = y;
+    swipe.lastTime = now;
+    scrollToPixels(swipe.pixels + distance);
 }, { passive: false });
-terminal.addEventListener('touchend', () => { swipe = undefined; });
+terminal.addEventListener('touchend', () => {
+    if (swipe?.scrolling && performance.now() - swipe.lastTime < 80) coast(swipe.velocity);
+    swipe = undefined;
+});
 terminal.addEventListener('touchcancel', () => { swipe = undefined; });
 terminal.addEventListener('wheel', event => {
     event.preventDefault();
-    follow = false;
-    top = Math.max(0, top + Math.sign(event.deltaY) * 3);
-    render();
+    stopMomentum();
+    const scale = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? cellHeight
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? rows * cellHeight : 1;
+    scrollToPixels(top * cellHeight + scrollFraction + event.deltaY * scale);
 }, { passive: false });
 
 function resize(): void {
+    stopMomentum();
+    scrollFraction = 0;
     const viewport = window.visualViewport;
     const height = viewport?.height ?? innerHeight;
     document.documentElement.style.setProperty('--height', height + 'px');

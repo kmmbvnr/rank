@@ -315,6 +315,17 @@ test('Page Up can inspect output taller than the screen without moving the sourc
     assert.equal(book.atPrompt, true);
 });
 
+test('mobile scroll frames include one clipped row for pixel-smooth movement', () => {
+    const book = new Notebook();
+    for (let index = 0; index < 5; index++) book.enqueue(`Value = ${index}`);
+    const frame = notebookFrame(book, 40, 3, 1, '', false, false, '', 'Running…',
+        undefined, 'rank> ', undefined, undefined, undefined, false, undefined, false, 1);
+    assert.equal(frame.top, 1);
+    assert.equal(frame.lines.length, 4);
+    assert.equal(frame.targets.length, 4);
+    assert.equal(frame.maxTop, 3);
+});
+
 test('an error near the bottom reveals its wrapped diagnostic and the prompt while keeping the edit cursor', async t => {
     const terminal = new Terminal({ cols: 70, rows: 12, allowProposedApi: true });
     t.after(() => terminal.dispose());

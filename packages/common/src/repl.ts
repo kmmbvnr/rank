@@ -209,10 +209,14 @@ export class NotebookRepl {
         this.stepTarget = undefined;
         this.iterationSelecting = false;
         const book = this.notebook;
+        const targetIndex = book.active;
+        const targetCursor = book.cursor;
+        const pendingFrom = book.dirtyFrom;
         const firstSource = book.cells.findIndex(cell => !cell.command && cell.source.trim() !== '');
         const firstPart = splitSource(book.current.source).find(part => part.trim() !== '');
         const firstEnd = firstPart === undefined ? -1 : book.current.source.indexOf(firstPart) + firstPart.length;
-        if (!book.atPrompt && book.active === firstSource && book.cursor <= firstEnd) {
+        if (!book.atPrompt && (book.active === firstSource && book.cursor <= firstEnd
+            || pendingFrom === firstSource && firstSource < targetIndex)) {
             await this.execution.exclusive(async () => {
                 await this.session.resetExecution();
                 book.resetExecution();
@@ -220,6 +224,22 @@ export class NotebookRepl {
                 this.liveConditional.invalidatePreviews();
                 await this.execution.prepareFunctions();
             });
+        }
+        if (!book.atPrompt && book.dirtyFrom >= 0 && book.dirtyFrom < targetIndex) {
+            const start = book.dirtyFrom;
+            for (let index = start; index < targetIndex; index++) {
+                const cell = book.cells[index];
+                if (cell.command) continue;
+                if (cell.source.trim() === '') {
+                    cell.executed = cell.source;
+                    cell.output = [];
+                    cell.status = 'idle';
+                    continue;
+                }
+                const exit = await this.execution.executeOne(index, cell.source, 0);
+                if (exit || cell.status === 'error' || cell.status === 'interrupted') return exit;
+            }
+            book.selectTo(targetIndex, targetCursor);
         }
         if (await this.liveFunction.rerun() || await this.liveConditional.rerun()) {
             this.evaluationCell = book.current.id;
@@ -241,6 +261,14 @@ export class NotebookRepl {
             offset += source.length + 1;
         }
         const source = parts[selected] ?? '';
+        if (selected > 0 && book.current.status === 'idle' && book.current.executed === undefined) {
+            let prefixOffset = 0;
+            for (const part of parts.slice(0, selected)) {
+                const exit = await this.execution.executeOne(index, part, prefixOffset);
+                if (exit || book.cells[index].status === 'error' || book.cells[index].status === 'interrupted') return exit;
+                prefixOffset += part.length + 1;
+            }
+        }
         const exit = await this.execution.executeOne(index, source, offset);
         if (exit || book.current.status === 'error' || book.current.status === 'interrupted') return exit;
         if (selected + 1 < parts.length) book.cursor = offset + source.length + 1;

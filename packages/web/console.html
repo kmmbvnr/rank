@@ -11,7 +11,7 @@
     <header id="chrome">
         <button id="menu-toggle" aria-label="Terminal commands" aria-expanded="false" aria-controls="commands">⋮</button>
         <nav id="commands" aria-label="Terminal commands" hidden>
-            <button data-key="r" data-ctrl="true">Step</button>
+            <button data-key="r" data-ctrl="true">Run through selected line</button>
             <button data-key="l" data-ctrl="true">Run all from start</button>
             <button data-key="g" data-ctrl="true">Select iteration</button>
             <div class="arrows">
@@ -30,10 +30,10 @@
         <div id="caret" aria-hidden="true"></div>
         <textarea id="input" aria-label="Rank terminal input" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" enterkeyhint="enter"></textarea>
     </main>
-    <button id="run-button" type="button" aria-label="Step; hold to run all from start">
-        <svg viewBox="0 0 48 48" aria-hidden="true">
-            <circle class="run-progress-track" cx="24" cy="24" r="20"></circle>
-            <circle class="run-progress-ring" cx="24" cy="24" r="20"></circle>
+    <button id="run-button" type="button" aria-label="Run through selected line; hold to run all from start">
+        <svg viewBox="0 0 72 72" aria-hidden="true">
+            <circle class="run-progress-track" cx="36" cy="36" r="30.5"></circle>
+            <circle class="run-progress-ring" cx="36" cy="36" r="30.5"></circle>
         </svg>
         <span aria-hidden="true">▶</span>
     </button>
