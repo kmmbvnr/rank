@@ -1,4 +1,5 @@
 use testing
+use text
 
 test "official thousand deals"
   use "054_poker"

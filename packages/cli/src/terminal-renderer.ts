@@ -162,6 +162,12 @@ export class TerminalRenderer {
             return;
         }
         if (!repl.running) { this.lastPause = undefined; this.lastPauseToken = undefined; }
+        if (this.anchoredCursorRow !== undefined && repl.notebook.atPrompt && !repl.liveEditing) {
+            // Finishing Ctrl-R returns to the prompt; keep its result in view
+            // instead of pinning the prompt to the old source row.
+            this.anchoredCursorRow = undefined;
+            this.top = 0;
+        }
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus, repl.stepping,

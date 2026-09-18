@@ -195,6 +195,18 @@ test('the next-eval marker is not repeated on wraps and its line remains visible
     assert.ok(frame.lines.every(line => stringWidth(line) <= 39));
 });
 
+test('a wide footer preserves the filename and saved state while editing', () => {
+    const book = new Notebook();
+    book.enqueue('A = 1');
+    book.active = 0;
+    for (const state of ['saved', 'unsaved']) {
+        const frame = notebookFrame(book, 80, 8, 0, '', false, true, `keys.ra · ${state}`);
+        assert.match(frame.lines.at(-1), new RegExp(`keys.ra · ${state}`));
+        assert.match(frame.lines.at(-1), /Ctrl-R run · Ctrl-L run all/);
+        assert.ok(stringWidth(frame.lines.at(-1)) <= 79);
+    }
+});
+
 test('restart hint fits a 40-column screen at the prompt and in earlier code', () => {
     const book = new Notebook();
     book.enqueue('A = 1');

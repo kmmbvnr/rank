@@ -262,7 +262,7 @@ export function notebookFrame(
     const lines = rows.slice(top, top + renderedHeight);
     while (lines.length < renderedHeight) lines.push('');
     if (footerRows) {
-        const footerWidth = Math.min(40, width);
+        const footerWidth = width;
         let status = '';
         if (!followCursor) {
             if (showShortcutHints) status = 'PgUp/PgDn scroll · Esc return';
@@ -272,6 +272,7 @@ export function notebookFrame(
         if (showShortcutHints && followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
             && (nextEvalRow < top || nextEvalRow >= top + viewportHeight))
             status = `▶ line ${nextEvalSourceLine} · ${promptOutputFocus.active ? '←/→' : 'Enter'} · Esc · ^L run all`;
+        status = clipped(status, Math.min(40, width));
         let label = running ? '' : fileStatus;
         if (label && followCursor) {
             const available = footerWidth - stringWidth(status) - 3;

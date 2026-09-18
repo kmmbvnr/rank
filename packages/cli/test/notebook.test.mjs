@@ -39,6 +39,14 @@ test('an error in pasted instructions keeps the remaining cells pending', async 
     assert.equal(book.cells[2].source, 'B = 2');
 });
 
+test('submitting a multiline draft preserves breakpoints on their source lines', async t => {
+    const { repl, book, enter } = setup(t);
+    repl.breakpoints.set(book.current.id, new Set([1, 4, 7]));
+    await enter('A = 0\n\nfor I in 1 to 2\n  A += I\nend\n\nA');
+    assert.deepEqual(book.cells.map(cell => [...(repl.breakpoints.get(cell.id) ?? [])]),
+        [[1], [2], [1], []]);
+});
+
 test('leaving an unused insertion row above the file restores cell numbering and replay position', () => {
     for (const leave of ['down', 'prompt']) {
         const book = new Notebook();
@@ -636,12 +644,12 @@ test('completion keeps loop declarations inside their enclosing function', t => 
     assert.ok(book.current.source.endsWith('\nLe'));
 });
 
-test('Enter reruns a corrected error at its focused source line', async t => {
+test('Ctrl-R reruns a corrected error at its focused source line', async t => {
     const { repl, book, enter } = setup(t);
     await enter('Missing + 1');
     assert.equal(book.current.status, 'error');
     book.replace('1 + 2');
-    await repl.submit();
+    await repl.rerun();
     assert.equal(book.cells[0].status, 'ok');
     assert.equal(output(book.cells[0]), '3');
     assert.equal(book.atPrompt, true);

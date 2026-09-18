@@ -75,18 +75,20 @@ end`, 1, [])).ok, true);
 test('a lazy generator reports its frame without consuming it during inspection', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    assert.equal((await session.execute(`fun items N
+    const source = `fun items N
   Total = 0
   for I in 1 to N
     Total = Total + I
   end
   yield Total
-end`, 0, [])).ok, true);
+end`;
+    assert.equal((await session.execute(source, 0, [])).ok, true);
+    session.setDebugBreakpoints([{ source, line: 2 }]);
     const execution = session.execute('1000000 items sum', 1, []);
-    await delay(30);
-    const state = await paused(session);
+    const state = await nextPause(session);
     assert.match(state.state, /items/);
     assert.match(state.state, /N = 1000000/);
+    session.setDebugBreakpoints([]);
     session.resume();
     const result = await execution;
     assert.equal(result.ok, true, JSON.stringify(result.output));

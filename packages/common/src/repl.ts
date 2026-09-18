@@ -57,7 +57,7 @@ export class NotebookRepl {
 
     get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
         const pause = this.session.pauseState;
-        if (!pause?.source || pause.line === undefined || !this.session.savedFile) return pause;
+        if (!pause?.source || pause.line === undefined) return pause;
         const cells = this.notebook.cells.slice(0, -1).filter(cell => !cell.command);
         // Prefer the running cell when identical statements appear more than once.
         const current = this.notebook.current;

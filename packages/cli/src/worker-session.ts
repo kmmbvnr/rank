@@ -10,6 +10,7 @@ export async function createWorkerSession() {
     let active = false;
     let debugNext = false;
     let stepToMain = false;
+    let stepNextCell = false;
     let pauseState: PauseSnapshot | undefined;
     let execution: Promise<Execution> | undefined;
     let disposed = false;
@@ -33,6 +34,7 @@ export async function createWorkerSession() {
             if (active && Atomics.load(signal, 1) === 1) {
                 pauseState = message.pause;
                 stepToMain = false;
+                stepNextCell = false;
             }
             return;
         }
@@ -60,15 +62,15 @@ export async function createWorkerSession() {
         Atomics.store(signal, 1, 0);
         Atomics.notify(signal, 1);
     };
-    const interrupt = () => { stepToMain = false; if (active) { Atomics.store(signal, 0, 1); resume(); } };
+    const interrupt = () => { stepToMain = false; stepNextCell = false; if (active) { Atomics.store(signal, 0, 1); resume(); } };
     return {
         get pauseState() { return pauseState; },
         get pauseRequested() { return active && Atomics.load(signal, 1) === 1; },
         pause(): void { if (active) Atomics.store(signal, 1, 1); },
-        resume: () => resume(),
-        step(iteration = false): void { if (pauseState) resume(iteration ? 3 : 2); },
+        resume: () => { stepNextCell = false; resume(); },
+        step(iteration = false): void { if (pauseState) { stepNextCell = true; resume(iteration ? 3 : 2); } },
         stepToMain(): void { if (pauseState) { stepToMain = true; resume(4); } },
-        endDebugRun(): void { stepToMain = false; },
+        endDebugRun(): void { stepToMain = false; stepNextCell = false; },
         debugNext(): void { debugNext = true; },
         setDebugBreakpoints(points: { source: string; line: number }[]): void {
             void call<void>('setDebugBreakpoints', points).catch(fail);
@@ -82,6 +84,7 @@ export async function createWorkerSession() {
         async resetExecution(): Promise<void> {
             debugNext = false;
             stepToMain = false;
+            stepNextCell = false;
             resume();
             Atomics.store(signal, 0, 0);
             await call<void>('resetExecution');
@@ -101,11 +104,11 @@ export async function createWorkerSession() {
             resume();
             Atomics.store(signal, 0, 0);
             active = true;
-            execution = call<Execution>(debugNext || stepToMain ? 'debugExecute' : 'execute', ...args);
+            execution = call<Execution>(debugNext || stepToMain || stepNextCell ? 'debugExecute' : 'execute', ...args);
             debugNext = false;
             try {
                 const result = await execution;
-                if (!result.ok) stepToMain = false;
+                if (!result.ok) { stepToMain = false; stepNextCell = false; }
                 return result;
             }
             finally { active = false; execution = undefined; resume(); }

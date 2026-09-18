@@ -296,10 +296,11 @@ Shapes, orderings, windows and lazy sources.
 | `Mask any` | boolean | True when one boolean cell is true; empty collections are false. |
 | `Values argsort` | array | Stable zero-based positions that put the values in order. |
 | `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
-| `Values copy` | array | Independent writable dense copy of an array, its shape preserved. |
-| `Mask count` | integer | Number of true cells in a boolean array or sequence. |
-| `Values Target find` | integer | First zero-based position equal to Target, or Missing. |
-| `Values Target findall` | array | Every zero-based position equal to Target. |
+| `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped sequence items stack. |
+| `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
+| `Values Count drop` | value, lazy | Skips Count leading items; sequences stay lazy and arrays slice their leading axis. |
+| `Values Target find` | integer | First zero-based position equal to Target in a vector or text. |
+| `Values Target findall` | array | Every zero-based position equal to Target in a vector or text. |
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, until or from. |
 | `Mask indices` | array | Zero-based positions of the true values in a boolean vector. |
@@ -308,6 +309,7 @@ Shapes, orderings, windows and lazy sources.
 | `Value shape` | array | Axis lengths as a rank-1 array. |
 | `Values sort` | array | Stable ascending sort into a new rank-1 array. |
 | `Matrix transpose` | array | Reverses the axes of an array. |
+| `Values Count take` | value, lazy | Keeps at most Count leading items; sequences stay lazy and arrays slice their leading axis. |
 | `Values unique` | array | Distinct values in first-appearance order. |
 | `Values Width window` | array, lazy | Overlapping complete cells of that size, with optional stride and padding. |
 

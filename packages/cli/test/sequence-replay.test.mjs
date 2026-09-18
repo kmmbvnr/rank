@@ -154,11 +154,13 @@ end`);
     assert.deepEqual(s.output, Array.from({ length: 21 }, (_, index) => String(index)));
 });
 
-test('filtered generators use the source tape', t => {
+test('generator masks and explicit selection use the source tape', t => {
     const s = session(t);
     const mask = s.run(1, 'G = 3 nums\nM = G greater 3');
     assert.equal(s.look(mask).text, 'false true true');
-    assert.equal(formatValue(s.run(2, 'M array')), '4 5');
+    assert.equal(formatValue(s.run(2, 'M array')), 'false true true');
+    s.replay.rewind(2);
+    assert.equal(formatValue(s.run(2, 'G M array')), '4 5');
     s.replay.rewind(2);
     assert.equal(formatValue(s.run(2, 'G array')), '3 4 5');
 });
@@ -370,7 +372,7 @@ test('Fibonacci reductions and combined masks read the stream rather than a fres
 test('filtered views retain their stream source when assigned and bounded again', t => {
     const s = session(t);
     const g = s.run(1, 'G = primes');
-    s.run(2, 'H = (G greater 5) until 100');
+    s.run(2, 'H = (G (G greater 5)) until 100');
     assert.equal(s.run(3, 'H until 20 sum'), 67n);
     assert.match(s.look(g).text, /^23 29 31/);
     assert.equal(s.run(4, 'H until 30 sum'), 52n);

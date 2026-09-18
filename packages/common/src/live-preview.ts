@@ -22,6 +22,7 @@ const ITERATION = 'RankReplPreviewIteration';
 
 /** Builds and evaluates isolated prefixes while a block is being written. */
 export class LivePreviewRunner {
+    private readonly updates = new WeakMap<PreviewState, number>();
     constructor(private readonly preview: Preview) {}
 
     async updateFunction(
@@ -48,6 +49,8 @@ export class LivePreviewRunner {
         reset: boolean,
         throughLine?: number,
     ): Promise<void> {
+        const update = (this.updates.get(state) ?? 0) + 1;
+        this.updates.set(state, update);
         if (reset) {
             state.outputs.clear();
             state.prefixes.clear();
@@ -68,6 +71,7 @@ export class LivePreviewRunner {
         for (const item of previews) {
             if (state.outputs.has(item.line)) continue;
             const result = await this.preview(item.source);
+            if (this.updates.get(state) !== update) return;
             state.outputs.set(item.line, displayOutput(result.output, item.control));
             state.prefixes.set(item.line, item.source);
         }

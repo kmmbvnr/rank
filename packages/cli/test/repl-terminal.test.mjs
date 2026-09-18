@@ -264,7 +264,7 @@ test('the next-eval marker remains in the branch body while the iterator is sele
     const frames = await drive(t, [
         '\x1b[200~' + source + '\x1b[201~' + ENTER,
         UP + UP + UP + END,
-        { keys: '\x12', until: 'Eval' },
+        { keys: '\x12', until: 'Enter newline' },
         { keys: '\x07', until: '←/→ select' },
         { keys: RIGHT.repeat(8), until: 'i = 9 · iteration 9' },
         '\x12',
@@ -306,16 +306,16 @@ test('Ctrl-R on an expression stops before the loop; returning from rank> edits 
         '\x1b[200~for i in 10 to 100\n  (array i)\nend\x1b[201~' + ENTER,
         UP + UP + UP + UP,
         '\x12',
-        ENTER,
-        ENTER,
-        ENTER,
+        '\x12',
+        '\x12',
+        '\x12',
         { keys: '\x1b', until: 'Ctrl-R run' },
         '\x1b',
         UP,
         ENTER,
     ], 40, 16);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /for i in 10 to 100/);
-    assert.match(frames[4].text, /Enter step/);
+    assert.match(frames[4].text, /Enter newline · \^R step/);
     assert.match(frames[5].text, /i = 10 · iteration 1/);
     assert.match(frames[7].text, /\(array i\)\n\s+10/);
     assert.match(frames[9].text.split('\n')[frames[9].cursorY], /^rank> /);
@@ -347,7 +347,7 @@ test('completed loop headers reopen with Ctrl-R and Ctrl-G, then Esc restores ed
     assert.match(frames[6].text, /i = 10 · iteration 1/);
     assert.match(frames[7].text, /i = 11 · iteration 2/);
     assert.match(frames[8].text, /Ctrl-R run · Ctrl-L run all/);
-    assert.equal(frames[8].cursorY, frames[2].cursorY);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /for i in 10 to 100/);
     assert.match(frames[10].text.split('\n')[frames[10].cursorY], /\(array i\) len/);
     assert.doesNotMatch(frames[10].text, /\(array i\) len\n\s+1/);
     assert.match(frames[11].text, /\(array i\) len\n\s+1/);
@@ -385,14 +385,14 @@ test('Ctrl-R reruns an edit and the footer advertises a full restart', async t =
     assert.doesNotMatch(frames[2].text, /F5/);
 });
 
-test('an error at the bottom scrolls its full diagnostic and prompt into view', async t => {
+test('an error at the bottom keeps its compact diagnostic and source cursor in view', async t => {
     const frames = await drive(t, [
         ...Array.from({ length: 8 }, (_, i) => `A = ${i}` + ENTER),
         'Missing' + ENTER,
     ], 70, 12);
     const frame = frames.at(-1);
     assert.match(frame.text, /unknown name/);
-    assert.match(frame.text, /\^\nrank> /);
+    assert.match(frame.text, /Runtime: unknown name: Missing\nrank> /);
     assert.match(frame.text.split('\n')[frame.cursorY], /› Missing$/);
     assert.equal(frame.cursorX, 13);
 });
@@ -672,7 +672,7 @@ test('arrows leave example fields in both directions without losing edits or eva
     assert.match(frames[3].text.split('\n')[frames[3].cursorY], /Cards = array/);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /fun hand_score Cards/);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /Cards = array/);
-    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Values = Cards/);
+    assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Values = Cards/, frames[6].text);
     assert.match(frames[7].text.split('\n')[frames[7].cursorY], /Cards = array "KD"/);
     assert.match(frames[8].text.split('\n')[frames[8].cursorY], /Values = Cards/);
     assert.doesNotMatch(frames[8].text, /\n\s+KD\n|→ array\[2\]/);
@@ -768,7 +768,7 @@ test('a runtime error in a function example stays on its argument field', async 
         '0 1 2' + ENTER,
         CLEAR + 'array 0 1 2' + ENTER,
     ], 100, 20);
-    assert.match(frames[2].text, /Pick = 0 1 2\n\s+! Runtime: value application requires a sequence and one selector/);
+    assert.match(frames[2].text, /Pick = 0 1 2\n\s+! Runtime: value application\s+requires a sequence and one\s+selector/);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /Pick = 0 1 2/);
     assert.doesNotMatch(frames[2].text, /\(123123\) \(0 1 2\) family|<repl>:\d+:/);
     assert.match(frames[3].text, /Pick = array 0 1 2/);
@@ -822,8 +822,8 @@ test('Enter on an empty live-function line preserves a blank without inserting e
     assert.match(frames[3].text, /return X \+ 1\n        2/);
     assert.match(frames[3].text, /Enter try · \^T args · \^L run all/);
     assert.doesNotMatch(frames[3].text, /<function inc>|\n\s*end\s*\n/);
-    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*$/);
-    assert.match(frames[4].text, /return X \+ 1\n        2\n        \n    ·   return X \+ 2/);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*▶?\s*$/);
+    assert.match(frames[4].text, /return X \+ 1\n        2\n    ●   \n    ▶   return X \+ 2/);
 });
 
 test('Enter reevaluates an edited function line without inserting end', async t => {
@@ -848,7 +848,8 @@ test('a live eval error keeps the terminal cursor on the erroneous line', async 
         'resutl = X + 2' + ENTER,
     ], 80, 20);
     const frame = frames[2];
-    assert.match(frame.text, /error: RankError \[Syntax\]/);
+    assert.match(frame.text, /Syntax:/);
+    assert.doesNotMatch(frame.text, /error: RankError/);
     assert.match(frame.text.split('\n')[frame.cursorY], /resutl = X \+ 2/);
     assert.doesNotMatch(frame.text, /<function inc>/);
 });
@@ -908,16 +909,16 @@ test('loop arrows keep the cursor on the visible iteration and defer body evalua
         'for i in 1 to 3' + ENTER,
         '\x07' + RIGHT,
         ENTER,
-        'A = i' + ENTER,
+        'A = i' + '\x12',
         UP + UP,
         ENTER + RIGHT,
         ENTER,
-        ENTER,
+        '\x12',
     ], 80, 18);
     assert.doesNotMatch(frames[0].text.split('\n')[frames[0].cursorY], /iteration/);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /i = 2 · iteration 2/);
     assert.doesNotMatch(frames[1].text, /A = i/);
-    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /●/);
+    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /▶/);
     assert.match(frames[3].text, /A = i\n\s+2/);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /i = 2 · iteration 2/);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /i = 3 · iteration 3/);

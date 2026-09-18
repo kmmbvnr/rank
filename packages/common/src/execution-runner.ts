@@ -58,7 +58,22 @@ export class ExecutionRunner {
         this.steppedPrefix = undefined;
         const book = this.notebook;
         if (draft.trim() !== '' || !force && book.dirtyFrom < 0) {
-            for (const source of command || draft === '' ? [draft] : splitSource(draft)) book.enqueue(source);
+            const draftId = book.cells.at(-1)!.id;
+            const originalLines = book.cells.at(-1)!.source.split('\n');
+            // preparePrompt omits blank lines before the draft is split.
+            const points = [...(this.breakpoints.get(draftId) ?? [])]
+                .filter(line => command || originalLines[line - 1]?.trim())
+                .map(line => command ? line : originalLines.slice(0, line).filter(text => text.trim()).length);
+            this.breakpoints.delete(draftId);
+            let offset = 0;
+            for (const source of command || draft === '' ? [draft] : splitSource(draft)) {
+                const id = book.cells.at(-1)!.id;
+                const lines = source.split('\n').length;
+                const selected = points.filter(line => line > offset && line <= offset + lines);
+                if (selected.length) this.breakpoints.set(id, new Set(selected.map(line => line - offset)));
+                book.enqueue(source);
+                offset += lines;
+            }
         }
         if (command) book.cells[book.cells.length - 2].command = true;
         const start = book.dirtyFrom;

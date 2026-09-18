@@ -251,10 +251,12 @@ Undoing an edit back to the saved text clears the unsaved marker. Execution stat
 and saved status are independent.
 
 Run hints fit within 40 terminal columns (reserving the last column for safe
-terminal rendering). The bottom prompt shows `Ctrl-L run all` without an Enter
-hint. The source editor shows `Ctrl-R run · Ctrl-L run all`;
-`^` means Ctrl. Live loop source shows `Eval · ^G loop · Esc edit · ^L run all`,
-an iteration row shows `Enter select · Esc edit · ^L run all`, and active
+terminal rendering). On wider terminals the footer uses the available width to
+keep the file name and saved state visible. The bottom prompt shows `Ctrl-L run all`
+without an Enter hint. The source editor shows `Ctrl-R run · Ctrl-L run all`;
+`^` means Ctrl. During source evaluation the hint is `Enter newline · ^R run · ^L run all`
+(or `^R step` at the next instruction).
+An iteration row shows `Enter select · Esc edit · ^L run all`, and active
 selection shows `←/→ select · Esc edit · ^L run all`.
 
 Ctrl-Q, Ctrl-D on an empty line, `exit`, and `quit` offer to save if source has

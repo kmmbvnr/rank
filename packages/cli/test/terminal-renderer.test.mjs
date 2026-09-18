@@ -139,6 +139,23 @@ test('wheel scrolls the viewport and typing resumes following the unchanged curs
     assert.match(writes.at(-1), /A44 = 44/);
 });
 
+test('Ctrl-R keeps the result visible when execution returns to the prompt', async t => {
+    const { repl, renderer, writes } = setup(t);
+    const book = repl.notebook;
+    book.replace('A = 1');
+    await repl.submit();
+    book.active = 0;
+    book.replace('A = 5');
+    renderer.render();
+    renderer.followKey('r', true);
+    await repl.rerun();
+    renderer.render();
+    assert.equal(book.atPrompt, true);
+    assert.match(writes.at(-1), /A = 5/);
+    assert.match(writes.at(-1), /      5/);
+    assert.match(writes.at(-1), /rank> /);
+});
+
 test('Ctrl-R anchors the screen cursor when examples appear and typing keeps that viewport', async t => {
     const session = createReplSession();
     t.after(() => session.dispose());

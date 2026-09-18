@@ -16,6 +16,7 @@ export class KeyRouter {
     private historyDraft = '';
     private copiedText = '';
     private clipboardPending?: Promise<void>;
+    private pendingInput?: Promise<void>;
 
     constructor(
         readonly repl: NotebookRepl,
@@ -25,6 +26,18 @@ export class KeyRouter {
     ) {}
 
     async press(text: string, key: Key = {}): Promise<KeyResult> {
+        // Preserve input order while an example or live preview is awaiting
+        // the worker. Running-code controls must remain immediately available.
+        if (this.repl.running) return this.pressNow(text, key);
+        const result = this.pendingInput
+            ? this.pendingInput.then(() => this.pressNow(text, key)) : this.pressNow(text, key);
+        const pending = result.then(() => {}, () => {});
+        this.pendingInput = pending;
+        void pending.then(() => { if (this.pendingInput === pending) this.pendingInput = undefined; });
+        return result;
+    }
+
+    private async pressNow(text: string, key: Key): Promise<KeyResult> {
         while (this.clipboardPending) await this.clipboardPending;
         try { return await this.route(text, key); }
         finally { this.repl.notebook.discardEmptyLine(); }
