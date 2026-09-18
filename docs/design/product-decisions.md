@@ -74,7 +74,7 @@ Answer = Products max
    meaningful variables keep the mental model accessible, straightforward, and
    concrete.
 
-Short, unambiguous postfix pipelines (`Fib even sum`, `Text reverse print`) are
+Short, unambiguous postfix pipelines (`Fib Mask sum`, `Text reverse print`) are
 supported where they remain intuitive, but intermediate variables remain the
 canonical idiomatic style.
 
@@ -152,24 +152,23 @@ comfortably on a phone screen.
 
 ---
 
-## 6. Consumable lazy sequence masks
+## 6. Boolean sequence masks and explicit selection
 
-Lazy masks created by predicates (e.g. `Fib even`) retain their underlying
-source and can be consumed directly by operations:
+Lazy masks retain their source for optimized selection, but every operation
+that consumes the mask itself sees boolean values. Prefix `array Mask` and
+postfix `Mask array` therefore agree.
 
 ```rank
 Fib = fibonacci to Limit
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 ```
 
-### Rationale: Eliminating ceremonial boilerplate
+### Rationale: One meaning for a mask
 
-Previously, applying a mask required re-referencing the original sequence
-(`Fib (Fib even) sum`). Making lazy masks directly consumable eliminates this
-syntactic stutter while preserving the first-class nature of masks:
-- They can still be named and reused: `Mask = Fib even`;
-- They can still be composed: `Mask or= N multiple by 5`;
-- They still participate in explicit addressing: `Selected = Fib Mask`.
+Materialization and iteration must not silently turn a boolean mask into source
+values. Selection is always explicit (`Fib Mask`); the planner can still push
+that selection into the source without materializing intermediate booleans.
 
 ---
 

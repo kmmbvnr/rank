@@ -41,13 +41,13 @@ use sequences
 use numbers
 
 Fib = fibonacci to 4000000
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 ```
 
-The bounded Fibonacci source stays lazy. The source-bound mask made by `even`
-also acts as the selected sequence, so `sum` can consume it directly. The
-planner pushes the predicate into the Fibonacci source, which can generate only
-even terms.
+The bounded Fibonacci source stays lazy. Explicit selection with `Fib Mask`
+lets the planner push the predicate into the Fibonacci source, which can
+generate only even terms. The mask itself contains boolean values.
 
 ## 3. Largest prime factor
 

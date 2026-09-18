@@ -280,7 +280,8 @@ consumes the values accumulated before it according to its declared arity, and
 its result becomes the first value available to the next function:
 
 ```rank
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 Text reverse print
 A B matmul round 6
 ```

@@ -364,7 +364,8 @@ consumes the values accumulated before it according to its declared arity, and
 its result becomes the first value available to the next function:
 
 ```rank
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 Text reverse print
 A B matmul round 6
 ```
@@ -2184,21 +2185,21 @@ mask with a following operation, or push predicates into a source such as a
 table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
-A lazy sequence mask retains its source and is itself a selected sequence when
-used by a sequence operation. The explicit addressing form remains valid, and
-the two examples below are equivalent:
+A lazy sequence mask contains one boolean per source item. Display, iteration,
+indexing, reductions, `copy`, and postfix `array` all consume those booleans.
+Selection is explicit:
 
 ```rank
 Mask = Fib even
-Answer = Fib Mask sum
-
-Answer = Fib even sum
+Selected = Fib Mask
+Answer = Selected sum
 ```
 
-Iteration, indexing, reductions and transformations such as `window` consume
-the matching source values. Boolean composition still combines the deferred
-predicates. A materialized boolean array does not retain a source and therefore
-still needs an explicit value on its left when used for selection.
+The mask retains its source so explicit selection can push the predicate into
+that source without allocating a boolean array. This does not change the mask's
+values. Bound the source before creating a mask, or bound the explicitly selected
+sequence when its source supports value bounds. A boolean mask itself does not
+inherit numeric `from`, `to`, or `until` bounds from its source.
 
 Reusing a mask does not promise that its computed bits are cached. A mask
 captures the logical values of its operands when it is created, rather than
@@ -2541,9 +2542,8 @@ known, while `count` examines the complete cell. An empty collection produces
 `true` for `all`, `false` for `any` and zero for `count`. All three support
 `rank` and `axis`. A known unbounded sequence is rejected.
 
-A lazy sequence mask is also accepted by `count`. It returns the number of
-source items selected by the mask and lets the source plan provide a direct
-count without enumerating those items.
+A lazy sequence mask is also accepted by `count`. It counts its `true` values,
+just as it does for a boolean array.
 
 A finite lazy source may define a direct cardinality count. The numbers module
 uses this hook for `N divisors count`; other numeric sequences still fail the
@@ -4844,9 +4844,8 @@ boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
 and zero, respectively. Known unbounded sequences are rejected.
 
-A lazy sequence mask is also accepted by `count`. It returns the number of
-source items selected by the mask and lets the source plan provide a direct
-count without enumerating those items.
+A lazy sequence mask is also accepted by `count`. It counts its `true` values,
+just as it does for a boolean array.
 
 A finite lazy source may also define a direct cardinality count. For example,
 `N divisors count` returns the number of positive divisors without enumerating
@@ -5821,13 +5820,13 @@ use sequences
 use numbers
 
 Fib = fibonacci to 4000000
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 ```
 
-The bounded Fibonacci source stays lazy. The source-bound mask made by `even`
-also acts as the selected sequence, so `sum` can consume it directly. The
-planner pushes the predicate into the Fibonacci source, which can generate only
-even terms.
+The bounded Fibonacci source stays lazy. Explicit selection with `Fib Mask`
+lets the planner push the predicate into the Fibonacci source, which can
+generate only even terms. The mask itself contains boolean values.
 
 ## 3. Largest prime factor
 
@@ -7266,7 +7265,7 @@ Here `Start` is the first state, so the 999 range items produce 1000 states.
    meaningful variables keep the mental model accessible, straightforward, and
    concrete.
 
-Short, unambiguous postfix pipelines (`Fib even sum`, `Text reverse print`) are
+Short, unambiguous postfix pipelines (`Fib Mask sum`, `Text reverse print`) are
 supported where they remain intuitive, but intermediate variables remain the
 canonical idiomatic style.
 
@@ -7344,24 +7343,23 @@ comfortably on a phone screen.
 
 ---
 
-## 6. Consumable lazy sequence masks
+## 6. Boolean sequence masks and explicit selection
 
-Lazy masks created by predicates (e.g. `Fib even`) retain their underlying
-source and can be consumed directly by operations:
+Lazy masks retain their source for optimized selection, but every operation
+that consumes the mask itself sees boolean values. Prefix `array Mask` and
+postfix `Mask array` therefore agree.
 
 ```rank
 Fib = fibonacci to Limit
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 ```
 
-### Rationale: Eliminating ceremonial boilerplate
+### Rationale: One meaning for a mask
 
-Previously, applying a mask required re-referencing the original sequence
-(`Fib (Fib even) sum`). Making lazy masks directly consumable eliminates this
-syntactic stutter while preserving the first-class nature of masks:
-- They can still be named and reused: `Mask = Fib even`;
-- They can still be composed: `Mask or= N multiple by 5`;
-- They still participate in explicit addressing: `Selected = Fib Mask`.
+Materialization and iteration must not silently turn a boolean mask into source
+values. Selection is always explicit (`Fib Mask`); the planner can still push
+that selection into the source without materializing intermediate booleans.
 
 ---
 

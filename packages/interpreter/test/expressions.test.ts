@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue, isRankSequence } from '../src/index.js';
+import { Interpreter, formatValue } from '../src/index.js';
 import { MemoryIo, run } from './support.js';
 
 describe('Rank expressions and sequences', () => {
@@ -583,86 +583,44 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('combines masks from repeated built-in sequence references', () => {
-        expect(run('use sequences\nuse numbers\n(fibonacci multiple by 5 or fibonacci multiple by 3) to 100'))
+        expect(run('use sequences\nuse numbers\n(fibonacci (fibonacci multiple by 5 or fibonacci multiple by 3)) to 100'))
             .toBe('3 5 21 55');
-        expect(run('use sequences\nuse numbers\n(primes multiple by 5 or primes multiple by 3) to 100'))
+        expect(run('use sequences\nuse numbers\n(primes (primes multiple by 5 or primes multiple by 3)) to 100'))
             .toBe('3 5');
         expect(() => run('use sequences\nuse numbers\nfibonacci even or primes even'))
             .toThrowError('cannot combine masks from different sequences');
     });
 
-    it('bounds and filters Fibonacci lazily', () => {
-        const interpreter = new Interpreter();
-        const result = interpreter.execute([
-            'use sequences',
-            'use numbers',
-            'Fib = fibonacci to 100',
-            'Mask = Fib even',
-            'Mask sum',
-        ].join('\n'));
-        expect(formatValue(result!)).toBe('44');
-
-        const mask = interpreter.variables.get('Mask');
-        expect(mask && isRankSequence(mask) && mask.plan.name).toBe('even fibonacci');
-        expect(mask && isRankSequence(mask) && mask.plan.size)
-            .toEqual({ kind: 'exact', value: 3n });
-
-        expect(run([
-            'use sequences',
-            'use numbers',
-            'Fib = fibonacci to 100',
-            'Mask = Fib even',
-            'Fib Mask sum',
-        ].join('\n'))).toBe('44');
-        expect(run([
-            'use sequences',
-            'use numbers',
-            'Fib = fibonacci to 100',
-            'Fib even sum',
-        ].join('\n'))).toBe('44');
-        expect(run([
-            'use sequences',
-            'use numbers',
-            'Fib = fibonacci to 100',
-            'Fib even 1',
-        ].join('\n'))).toBe('8');
-        expect(run([
-            'use sequences',
-            'use numbers',
-            'Total = 0',
-            'Fib = fibonacci to 100',
-            'for Value i in Fib even',
-            '  Total += Value',
-            'end',
-            'Total',
-        ].join('\n'))).toBe('44');
-        expect(run([
-            'use sequences',
-            'use numbers',
-            'Fib = fibonacci to 100',
-            'Pairs = Fib even 2 window',
-            'Pairs 1 + reduce',
-        ].join('\n'))).toBe('42');
+    it('consumes sequence masks as booleans and selects values explicitly', () => {
+        const setup = 'use sequences\nB = 1 to 3\nMask = B greater 2\n';
+        for (const expression of ['Mask', 'array Mask', 'Mask array', 'Mask copy']) {
+            expect(run(setup + expression)).toBe('false false true');
+        }
+        expect(run(setup + 'B Mask')).toBe('3');
+        expect(run(setup + '(B Mask) array')).toBe('3');
+        expect(run(setup + 'Mask len')).toBe('3');
+        expect(run(setup + 'Mask 0')).toBe('false');
+        expect(run(setup + 'Mask count')).toBe('1');
+        expect(run(setup + 'Mask any')).toBe('true');
+        expect(run(setup + 'Mask all')).toBe('false');
+        expect(run(setup + '(not Mask) array')).toBe('true true false');
+        expect(run(setup + '(Mask or (B equal 1)) array')).toBe('true false true');
+        expect(run(setup + 'Mask 2 take array')).toBe('false false');
+        expect(run(setup + 'Mask 2 window')).toBe('false false false true');
+        expect(run(setup + 'Result = true\nfor Value in Mask\nResult and= Value\nend\nResult'))
+            .toBe('false');
+        expect(run('use sequences\nB = 1 until 1\nMask = B greater 2\nMask len')).toBe('0');
     });
 
-    it('bounds a mask over an endless sequence', () => {
-        // A value bound and a filter keep the same items in either order, so a
-        // mask offers the bounds its source offers.
-        expect(run('use sequences\nuse numbers\n(primes multiple by 5) until 100'))
-            .toBe('5');
-        expect(run('use sequences\nuse numbers\n(fibonacci multiple by 2) until 100'))
+    it('keeps explicit Fibonacci selection lazy', () => {
+        const setup = 'use sequences\nuse numbers\nFib = fibonacci to 100\nMask = Fib even\n';
+        expect(run(setup + 'Fib Mask sum')).toBe('44');
+        expect(run(setup + 'Mask count')).toBe('3');
+        expect(run(setup + '(Fib Mask) 1')).toBe('8');
+        expect(run(setup + 'Pairs = (Fib Mask) 2 window\nPairs 1 + reduce')).toBe('42');
+        expect(run('use sequences\nuse numbers\nFib = fibonacci\nMask = Fib even\n(Fib Mask) until 100'))
             .toBe('2 8 34');
-        expect(run('use sequences\nuse numbers\nB = primes multiple by 3\nB until 20'))
-            .toBe('3');
-        expect(run([
-            'use sequences',
-            'use numbers',
-            'F = fibonacci multiple by 2',
-            'G = F from 10',
-            'G until 100',
-        ].join('\n'))).toBe('34');
-        // A source without bounds still says so rather than running forever.
-        expect(() => run('use numbers\n(1 until 20 multiple by 3) until 10'))
+        expect(() => run('use sequences\nuse numbers\nMask = primes even\nMask until 100'))
             .toThrowError('does not support until');
     });
 

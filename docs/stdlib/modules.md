@@ -311,9 +311,8 @@ boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
 and zero, respectively. Known unbounded sequences are rejected.
 
-A lazy sequence mask is also accepted by `count`. It returns the number of
-source items selected by the mask and lets the source plan provide a direct
-count without enumerating those items.
+A lazy sequence mask is also accepted by `count`. It counts its `true` values,
+just as it does for a boolean array.
 
 A finite lazy source may also define a direct cardinality count. For example,
 `N divisors count` returns the number of positive divisors without enumerating

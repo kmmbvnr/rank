@@ -19,7 +19,6 @@ import {
     isRankObject,
     isRankQueue,
     isRankSequence,
-    isRankSequenceMask,
     isRankSqliteExpression,
     isRankSqliteTable,
     isRankTableAlias,
@@ -136,11 +135,6 @@ function countTrue(value: RankValue): bigint {
             }
             return planned;
         }
-    }
-    if (isRankSequenceMask(value)) {
-        let selected = 0n;
-        for (const _ of value.plan.iterate()) selected += 1n;
-        return selected;
     }
     let count = 0n;
     for (const item of collectionValues(value, 'count')) {

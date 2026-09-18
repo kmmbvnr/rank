@@ -427,24 +427,21 @@ mask with a following operation, or push predicates into a source such as a
 table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
-A lazy sequence mask retains its source and is itself a selected sequence when
-used by a sequence operation. The explicit addressing form remains valid, and
-the two examples below are equivalent:
+A lazy sequence mask contains one boolean per source item. Display, iteration,
+indexing, reductions, `copy`, and postfix `array` all consume those booleans.
+Selection is explicit:
 
 ```rank
 Mask = Fib even
-Answer = Fib Mask sum
-
-Answer = Fib even sum
+Selected = Fib Mask
+Answer = Selected sum
 ```
 
-Iteration, indexing, reductions and transformations such as `window` consume
-the matching source values. So do the bounds `to`, `until` and `from`, whenever
-the source itself accepts them: a bound and a mask keep the same items in either
-order, so `(primes multiple by 5) until 100` is bounded rather than endless.
-Boolean composition still combines the deferred predicates. A materialized
-boolean array does not retain a source and therefore still needs an explicit
-value on its left when used for selection.
+The mask retains its source so explicit selection can push the predicate into
+that source without allocating a boolean array. This does not change the mask's
+values. Bound the source before creating a mask, or bound the explicitly selected
+sequence when its source supports value bounds. A boolean mask itself does not
+inherit numeric `from`, `to`, or `until` bounds from its source.
 
 Reusing a mask does not promise that its computed bits are cached. A mask
 captures the logical values of its operands when it is created, rather than
@@ -801,9 +798,8 @@ known, while `count` examines the complete cell. An empty collection produces
 `true` for `all`, `false` for `any` and zero for `count`. All three support
 `rank` and `axis`. A known unbounded sequence is rejected.
 
-A lazy sequence mask is also accepted by `count`. It returns the number of
-source items selected by the mask and lets the source plan provide a direct
-count without enumerating those items.
+A lazy sequence mask is also accepted by `count`. It counts its `true` values,
+just as it does for a boolean array.
 
 A finite lazy source may define a direct cardinality count. The numbers module
 uses this hook for `N divisors count`; other numeric sequences still fail the

@@ -23,8 +23,8 @@ export function sequenceMask(
     source: RankSequence,
     predicate: SequencePredicate,
 ): RankSequenceMask {
-    const selected = filterSequence(source, predicate);
-    return { kind: 'sequence', plan: selected.plan, source, predicate };
+    const mapped = mapSequence(source, predicate.name, value => predicate.test(value));
+    return { kind: 'sequence', plan: mapped.plan, source, predicate };
 }
 
 export function filterSequence(
@@ -40,7 +40,7 @@ export function filterSequence(
 /**
  * A value bound and a filter keep the same items whichever order they run in,
  * so a filtered plan can offer the bounds its source offers. Without this a
- * mask over an endless source has nothing to stop it: `primes multiple by 5`
+ * selection over an endless source has nothing to stop it: `P (P multiple by 5)`
  * could not then be bounded by `until`.
  */
 function filteredPlan(source: SequencePlan, predicate: SequencePredicate): SequencePlan {

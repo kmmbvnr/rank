@@ -16,7 +16,7 @@ describe('positional take and drop', () => {
 
     it('composes with finite, descending and filtered sequences', () => {
         expect(run('use sequences\n(10 to 1 by -2) 2 drop 2 take copy')).toBe('6 4');
-        expect(run('use sequences\nuse numbers\nF = fibonacci even\nF 2 drop 3 take copy')).toBe('34 144 610');
+        expect(run('use sequences\nuse numbers\nMask = fibonacci even\nF = fibonacci Mask\nF 2 drop 3 take copy')).toBe('34 144 610');
         expect(run('use sequences\n(1 to 3) 9 take copy')).toBe('1 2 3');
         expect(run('use sequences\n(1 to 3) 9 drop copy len')).toBe('0');
         expect(run('use sequences\nprimes 0 take copy len')).toBe('0');

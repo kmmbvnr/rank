@@ -31,7 +31,7 @@ Sleep 500ms
 Type "Fib = fibonacci to Limit"
 Enter
 Sleep 1s
-Type "Fib even sum"
+Type "Fib (Fib even) sum"
 Enter
 Sleep 2s
 
