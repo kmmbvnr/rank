@@ -25,8 +25,7 @@ rem concatenations are prime.
 fun build Limit
   Candidates = primes from 3
   Vals = Candidates until Limit copy
-  Keep = Vals not equal 5
-  Vals = (Vals Keep) copy
+  Vals = (Vals filter not equal 5) copy
   Graph = new graph Vals .undirected
 
   for P i in Vals
@@ -98,8 +97,7 @@ fun min_five Data Best
 
       Later = Rest (i + 1) drop
       Neighbors = Graph P
-      Mask = Later in Neighbors
-      Next = (Later Mask) copy
+      Next = (Later filter in Neighbors) copy
       Next Left Total search
     end
     return Best

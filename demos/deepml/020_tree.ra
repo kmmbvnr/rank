@@ -30,8 +30,7 @@ fun learn_tree Data Attrs Target
     end
   end
 
-  Mask = Attrs not equal Best
-  Rest = Attrs Mask array
+  Rest = (Attrs filter not equal Best) array
   Nodes = Data Best Rest Target branch
   index Best = Nodes
   return index

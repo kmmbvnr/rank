@@ -77,12 +77,13 @@ Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
 Products = Factors Factors * outer
-Mask = Products palindrome rank 0
-Answer = Products Mask max
+Palindromes = Products filter palindrome rank 0
+Answer = Palindromes max
 ```
 
 `outer` constructs the multiplication table lazily. Ranked `palindrome` checks
-each scalar product, and its boolean tensor selects the candidates for `max`.
+each scalar product, and `filter` selects the candidates for `max` without
+naming the table twice.
 The helper converts each number to text and compares it with `reverse`.
 
 ## 5. Smallest multiple

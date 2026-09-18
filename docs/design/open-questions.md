@@ -116,6 +116,30 @@ within a line, then AND between complete lines. Arbitrary pure Rank functions
 inside contextual expressions, grouped SQL aggregates and further backend
 operations remain future work.
 
+## Continuing a chain after a filter
+
+A `filter` condition extends to the end of its line, so a following operation
+must be parenthesized: `(N filter even) sum`, `(Vals filter not equal 5) copy`.
+The block form has the same limit after `end`. This is the same boundary
+problem as [Addressing followed by operations](#addressing-followed-by-operations)
+above: `array`, `copy` and any other trailing word is currently read as part of
+the condition's right operand, because a comparison operand is an ordinary
+application chain.
+
+A rule that ends a subjectless condition at its operand would make
+`Vals filter not equal 5 array` read as intended, at the cost of making
+`filter greater Vals max` mean `filter greater Vals` followed by `max`.
+Deciding it requires settling whether the same rule applies to table
+conditions, which today do absorb the rest of the line. No spelling is fixed.
+
+## Filter frames of two or more axes
+
+`filter` selects along the frame a ranked predicate produces. A rank-1 frame
+selects along one axis, including an explicit `axis N`. A frame of two or more
+axes has no defined output yet: the surviving cells no longer form a rectangle,
+so the result would have to ravel the frame, and the raveled order needs a
+decision before implementation.
+
 ## Negative indexing
 
 `default` is cleanest if out-of-range coordinates are truly absent. Python-style

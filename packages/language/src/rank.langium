@@ -190,6 +190,23 @@ AddressItem:
     sign=('+' | '-')? value=ArrayAtom |
     all?='#';
 
+// A filter condition may drop its leading operand: the filtered value itself
+// becomes the left side, so `filter greater 5` reads as `each value greater 5`.
+// Field paths already elide the same subject in table conditions.
+FilterCondition returns Expression:
+    SubjectComparisonChain | Expression;
+
+// The chain starts with a comparison, which keeps it apart from an ordinary
+// expression. Later operands may also be plain predicates: `greater 5 and even`.
+SubjectComparisonChain returns Expression:
+    SubjectComparison
+    ({infer BinaryExpression.left=current}
+        operator=('or' | 'and' | 'xor')
+        (right=SubjectComparison | right=NotExpression))*;
+
+SubjectComparison returns Expression:
+    {infer SubjectComparisonExpression} operator=ComparisonOperator right=DefaultExpression;
+
 OrExpression returns Expression:
     XorExpression
     ({infer BinaryExpression.left=current}
@@ -265,8 +282,8 @@ PrimaryApplicationExpression returns Expression:
              'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
              'delete') |
         {infer TableFilterExpression.source=current} sourceFields+=LabelLiteral?
-            'filter' (condition=Expression |
-                NL+ (conditions+=Expression NL+)+ 'end') |
+            'filter' (condition=FilterCondition |
+                NL+ (conditions+=FilterCondition NL+)+ 'end') |
         {infer TableSelectExpression.source=current} sourceFields+=LabelLiteral?
             'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
                 NL+ (entries+=SelectEntry NL+)+ 'end') |

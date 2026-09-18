@@ -28,7 +28,8 @@ This wiki contains only the current design. Deprecated experiments are omitted.
 9. Selection should reuse Rank's general addressing model.
 10. Boolean masks are ordinary first-class values.
 11. Boolean addressing is the fundamental selection primitive.
-12. The `filter ... end` clause is concise source/query syntax, not mutation.
+12. The `filter` clause is concise source/query syntax over masks, not
+    mutation. It applies to collections and to tables.
 13. User-facing syntax should stay simple even if implementations use macros,
     compiler extensions or optimized execution plans internally.
 14. Combine compatible tensor operations internally; readable temporary names
@@ -2212,6 +2213,86 @@ order, fuse operations or recompute values without changing program meaning.
 
 Addressing does not mutate `A` or `N`.
 
+## Filter clause
+
+`filter` selects from a value without naming it twice. The filtered value is
+the elided subject of the condition, so a leading comparison operator takes it
+as the left operand:
+
+```rank
+Large = N filter greater 5
+Ordinary = N filter not equal 5
+Known = N filter in primes
+```
+
+Any other condition is a predicate applied to the value:
+
+```rank
+Even = N filter even
+Palindromes = Products filter palindrome rank 0
+```
+
+A predicate follows the ordinary rank rules, so `rank` and `axis` choose the
+cells it receives and therefore the axis the result is selected along. A
+predicate over whole cells keeps the frame axis, which selects rows or columns
+rather than atoms:
+
+```rank
+rem M has shape 3 2
+Heavy = M filter row_total rank 1
+rem Heavy has shape 2 2: the rows the predicate kept
+
+Wide = M filter column_total axis 1 rank 1
+rem Wide has shape 3 1: the columns the predicate kept
+```
+
+Without a cell rank the predicate applies to atoms, the frame is the whole
+shape, and the result is the selected atoms as a rank-1 value. A frame of two
+or more axes is not supported yet.
+
+Conditions combine with `and`, `or` and `xor` inside one line. A block combines
+complete lines with `and`, as a table condition block does:
+
+```rank
+Kept = N filter
+  greater 2
+  even
+end
+```
+
+A condition that supplies its own operands is left alone, so an existing mask
+or a full comparison still works:
+
+```rank
+Kept = N filter (N greater Limit)
+```
+
+Filtering a lazy sequence stays lazy, and filtering an array yields a lazy
+selection. Materialize it with `copy` or postfix `array` when the result must
+be an array.
+
+A condition extends to the end of its line, so a following operation needs
+parentheses:
+
+```rank
+Total = (N filter even) sum
+Values = (N filter greater 5) array
+```
+
+`filter` is source syntax over the mask model above, not a separate kind of
+value, and it does not change its input. It does not replace a named mask: a
+mask can be built from one value and applied to another, which a filter
+condition cannot express, because the condition's subject is the filtered
+value itself.
+
+```rank
+Mask = Labels equal Wanted
+Cluster = Points Mask
+```
+
+A condition that names a column is a table query instead; see
+[Tables](tables.md). Filtering a plain array or sequence needs no `use tables`.
+
 ## Ordering and uniqueness
 
 `sort`, `argsort` and `unique` have intrinsic rank 1. `sort` and `unique`
@@ -3876,6 +3957,10 @@ The result is a rank-1 array view whose rows remain lazy; it retains the table
 header, including when no row matches. The input rows are not copied or
 changed. SQLite extends its parameterized WHERE plan without reading rows.
 Existing missing-cell and SQL NULL predicate behavior is unchanged.
+
+The same clause filters a plain array or sequence, where the elided subject is
+the value itself rather than a column; see
+[Sequences and arrays](sequences-arrays.md).
 
 Use `Data = Data filter ...` to keep the next step under the same variable
 name. Other references to the input retain the preceding table. The earlier
@@ -5856,12 +5941,13 @@ Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
 Products = Factors Factors * outer
-Mask = Products palindrome rank 0
-Answer = Products Mask max
+Palindromes = Products filter palindrome rank 0
+Answer = Palindromes max
 ```
 
 `outer` constructs the multiplication table lazily. Ranked `palindrome` checks
-each scalar product, and its boolean tensor selects the candidates for `max`.
+each scalar product, and `filter` selects the candidates for `max` without
+naming the table twice.
 The helper converts each number to text and compares it with `reverse`.
 
 ## 5. Smallest multiple

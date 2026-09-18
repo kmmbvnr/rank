@@ -15,6 +15,8 @@ import {
     isKeyedJoinExpression,
     isKeyedReachExpression,
     isMaterializeExpression,
+    isSubjectComparisonExpression,
+    isTableFilterExpression,
     isUnpackStatement,
     isUnaryExpression,
 } from '../src/index.js';
@@ -757,5 +759,44 @@ describe('Rank grammar', () => {
         expect(isExpressionStatement(
             document.parseResult.value.statements[3],
         )).toBe(true);
+    });
+
+    it('parses a filter condition whose leading operand is elided', async () => {
+        const document = await parse([
+            'A = N filter greater 5',
+            'B = N filter not equal 5',
+            'C = N filter in primes',
+            'D = N filter multiple by 3 or multiple by 5',
+            'E = N filter at least 3 and at most 9',
+            'F = N filter greater 5 and even',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statement = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(statement)).toBe(true);
+        if (!isAssignmentStatement(statement)) return;
+        expect(isTableFilterExpression(statement.value)).toBe(true);
+        if (!isTableFilterExpression(statement.value)) return;
+        expect(isSubjectComparisonExpression(statement.value.condition!)).toBe(true);
+    });
+
+    it('keeps a filter condition that names its own operand', async () => {
+        const document = await parse([
+            'A = Data filter .Age greater 18',
+            'B = N filter even',
+            'C = N filter (N greater Limit)',
+            'D = N filter',
+            '  greater 2',
+            '  even',
+            'end',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const first = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(first)).toBe(true);
+        if (!isAssignmentStatement(first)) return;
+        expect(isTableFilterExpression(first.value)).toBe(true);
+        if (!isTableFilterExpression(first.value)) return;
+        expect(isSubjectComparisonExpression(first.value.condition!)).toBe(false);
     });
 });

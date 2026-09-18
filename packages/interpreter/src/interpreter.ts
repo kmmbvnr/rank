@@ -17,7 +17,7 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
-import { TABLE_INPUT, tableExpression } from './table-expression.js';
+import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
@@ -1863,7 +1863,15 @@ export class Interpreter {
         }
         if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {
             return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', isTableFilterExpression(expression) ? 'filter' : 'select');
+                // Filtering a plain collection is ordinary selection, so it needs
+                // no table vocabulary. A condition naming a column is a table query.
+                const conditions = !isTableFilterExpression(expression) ? []
+                    : expression.condition ? [expression.condition] : expression.conditions;
+                const collection = isTableFilterExpression(expression)
+                    && expression.sourceFields.length === 0 && !conditions.some(readsFields);
+                if (!collection) {
+                    interpreter.requireModule('tables', isTableFilterExpression(expression) ? 'filter' : 'select');
+                }
                 let source = yield* resume(interpreter.evaluateTask(expression.source));
                 for (const field of expression.sourceFields) {
                     source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
@@ -1896,7 +1904,11 @@ export class Interpreter {
                     });
                     return selectGroupedTable(source, specs);
                 }
-                if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
+                if (collection) {
+                    if (!isRankArray(source) && !isRankSequence(source)) {
+                        throw new RankError('filter expects an array, sequence or table', 'TypeError');
+                    }
+                } else if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
                     throw new RankError('filter/select expects a rank-1 table or SQLite view', 'TypeError');
                 }
                 const previous = interpreter.localFrame;
@@ -1904,6 +1916,7 @@ export class Interpreter {
                 frame.set(TABLE_INPUT, source);
                 interpreter.localFrame = frame;
                 const contextual = (node: Expression): Evaluation<RankValue> => {
+                    if (collection) return interpreter.evaluateTask(collectionExpression(node));
                     const lowered = tableExpression(node, name => {
                         const value = interpreter.resolve(name);
                         if (!isNativeFunction(value)) return undefined;
@@ -1921,10 +1934,35 @@ export class Interpreter {
                 };
                 try {
                     if (isTableFilterExpression(expression)) {
-                        const conditions = expression.condition ? [expression.condition] : expression.conditions;
                         let mask = yield* resume(contextual(conditions[0]));
                         for (const condition of conditions.slice(1)) {
                             mask = interpreter.evaluateBinary('and', mask, yield* resume(contextual(condition)));
+                        }
+                        if (collection) {
+                            if (!isRankArray(mask) && !isRankSequenceMask(mask)) {
+                                throw new RankError('filter requires a boolean mask over the filtered value', 'TypeError');
+                            }
+                            // A predicate with a cell rank yields one value per frame cell,
+                            // so the mask selects along the frame rather than over atoms.
+                            if (isRankArray(source) && isRankArray(mask)
+                                && mask.shape.length < source.shape.length
+                                && arraySize(mask.shape) !== arraySize(source.shape)) {
+                                const axes = conditions.length === 1 ? frameAxes(conditions[0]) : [];
+                                if (axes.length > 1 || mask.shape.length > 1) {
+                                    throw new RankError('filter does not support a frame of two or more axes yet', 'TypeError');
+                                }
+                                const axis = axes[0] ?? 0;
+                                if (axis >= source.shape.length) {
+                                    throw new RankError(`array has no axis ${axis}`, 'DimensionMismatch');
+                                }
+                                if (mask.shape[0] !== source.shape[axis]) {
+                                    throw new RankError(`filter mask length ${mask.shape[0]} does not match axis `
+                                        + `${axis} of shape ${source.shape.join(' ')}`, 'DimensionMismatch');
+                                }
+                                return selectAxis(source, axis, mask);
+                            }
+                            // Selection already defines every mask shape a collection allows.
+                            return interpreter.applySelectors([source, mask]);
                         }
                         if (isRankArray(source)) {
                             if (!isRankArray(mask) || mask.shape.length !== 1

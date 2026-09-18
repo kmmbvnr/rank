@@ -2,12 +2,75 @@ import {
     flattenApplication as flatten, applicationExpression, groupedExpression, COMPARISON_OPERATORS,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression,
-    isStringLiteral, isUnaryExpression, type Expression,
+    isStringLiteral, isSubjectComparisonExpression, isUnaryExpression, groupModifiers,
+    type Expression,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
 
 // An unspellable local makes the receiver lexical, including in lazy results.
 export const TABLE_INPUT = '$table';
+
+const LOGICAL_OPERATORS = new Set(['and', 'or', 'xor']);
+
+/** True when a condition names a column, which makes it a table query. */
+export function readsFields(expression: Expression): boolean {
+    if (isLabelLiteral(expression)) return true;
+    const children: Expression[] = isApplicationExpression(expression) ? flatten(expression)
+        : isBinaryExpression(expression)
+            ? [expression.left, expression.right, ...expression.step ? [expression.step] : []]
+        : isSubjectComparisonExpression(expression) ? [expression.right]
+        : isUnaryExpression(expression) ? [expression.operand]
+        : isParenthesizedExpression(expression) ? [expression.value]
+        : [];
+    return children.some(readsFields);
+}
+
+/**
+ * The frame axes an explicit `axis` names inside a predicate. A predicate with
+ * a cell rank produces one mask value per frame cell, so its frame decides
+ * which axes of the source the mask selects along.
+ */
+export function frameAxes(expression: Expression): number[] {
+    const parts = flatten(expression);
+    const start = parts.findIndex(part => isNameExpression(part) && part.name === 'axis');
+    if (start < 0) return [];
+    const axes: number[] = [];
+    for (let index = start + 1; index < parts.length; index += 1) {
+        const part = parts[index];
+        if (!isNumberLiteral(part)) break;
+        axes.push(Number(part.value));
+    }
+    return axes;
+}
+
+/**
+ * Lower a filter condition over a plain collection. The filtered value is the
+ * elided subject: a leading comparison operator takes it as the left operand,
+ * and any other leaf is a predicate applied to it. Conditions that already
+ * name their own subject are left alone.
+ */
+export function collectionExpression(expression: Expression): Expression {
+    const input = { $type: 'NameExpression', name: TABLE_INPUT } as Expression;
+
+    function lower(node: Expression): Expression {
+        if (isSubjectComparisonExpression(node)) {
+            return { $type: 'BinaryExpression', left: input, operator: node.operator,
+                right: node.right, $cstNode: node.$cstNode } as Expression;
+        }
+        if (isBinaryExpression(node) && LOGICAL_OPERATORS.has(node.operator)) {
+            return { ...node, left: lower(node.left), right: lower(node.right) } as Expression;
+        }
+        if (isUnaryExpression(node) && node.operator === 'not') {
+            return { ...node, operand: lower(node.operand) } as Expression;
+        }
+        // A binary or parenthesized condition already supplies its own operands.
+        if (isBinaryExpression(node) || isParenthesizedExpression(node)) return node;
+        // Prepending the subject shifts every modifier, so rebind them here:
+        // the program-wide grouping pass has already run.
+        return groupModifiers(applicationExpression([input, ...flatten(node)], node));
+    }
+    return lower(expression);
+}
 
 function application(parts: Expression[]): Expression {
     return applicationExpression(parts.map(part => isApplicationExpression(part) ? groupedExpression(part) : part));

@@ -15,8 +15,7 @@ Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
 Products = Factors Factors * outer
-Mask = Products palindrome rank 0
-Palindromes = Products Mask
+Palindromes = Products filter palindrome rank 0
 
 Answer = Palindromes max
 
