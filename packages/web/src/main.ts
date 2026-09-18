@@ -414,11 +414,13 @@ async function locate(x: number, y: number): Promise<void> {
             Math.abs(point.column - column) < Math.abs(best.column - column) ? point : best);
         repl.notebook.cursor = point.offset;
     } else if (target?.kind === 'example') {
-        const active = repl.exampleFields?.findIndex(field => field.active) ?? 0;
-        repl.moveExampleField(target.field! - active);
-        const point = target.points.reduce<typeof target.points[number] | undefined>((best, point) =>
-            !best || Math.abs(point.column - column) < Math.abs(best.column - column) ? point : best, undefined);
-        if (point && repl.exampleEditor) repl.exampleEditor.cursor = point.offset;
+        // A tapped example value is usually a closed, greyed field: reopen the editor on it.
+        if (repl.exampleEditor || repl.reopenExample()) {
+            repl.moveExampleField(target.field! - (repl.examplePrompt?.index ?? 0));
+            const point = target.points.reduce<typeof target.points[number] | undefined>((best, point) =>
+                !best || Math.abs(point.column - column) < Math.abs(best.column - column) ? point : best, undefined);
+            if (point && repl.exampleEditor) repl.exampleEditor.cursor = point.offset;
+        }
     } else if (target?.kind === 'iteration') {
         repl.notebook.active = target.cell;
         if (!repl.liveIterationFocused) repl.focusLiveIterationFromBody(target.line);
