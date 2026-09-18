@@ -165,19 +165,66 @@ test('inspection does not evaluate a ranked array shape while paused inside its 
     assert.deepEqual((await session.execute('121 palindrome', 3, [])).output.map(line => line.text), ['true']);
 });
 
-test('inspection shows globals once and orders current-line variables before recent reads', { timeout: 10000 }, async t => {
+test('inspection shows globals once and keeps declaration order across steps', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    const source = 'A = 1\nB = 2\nC = 3\nD = 4\nA\nB\nC + 0\n"D"';
-    session.setDebugBreakpoints([{ source, line: 7 }, { source, line: 8 }]);
+    const source = 'A = 1\nB = 2\nC = 3\nD = 4\nA\nB\nC + 0\nA += 10\nE = 5\nB';
+    session.setDebugBreakpoints([{ source, line: 7 }, { source, line: 10 }]);
     const execution = session.execute(source, 0, []);
     const first = (await nextPause(session)).state;
     assert.doesNotMatch(first, /Globals:/);
-    assert.deepEqual([...first.matchAll(/^  ([A-D]) =/gm)].map(match => match[1]), ['C', 'B', 'A', 'D']);
+    assert.deepEqual([...first.matchAll(/^  ([A-D]) =/gm)].map(match => match[1]), ['A', 'B', 'C', 'D']);
     session.resume();
     const second = (await nextPause(session)).state;
-    // A string containing a name is not a reference to that variable.
-    assert.deepEqual([...second.matchAll(/^  ([A-D]) =/gm)].map(match => match[1]), ['C', 'B', 'A', 'D']);
+    // Assignment keeps the existing row; a new variable is appended.
+    assert.deepEqual([...second.matchAll(/^  ([A-E]) =/gm)].map(match => match[1]), ['A', 'B', 'C', 'D', 'E']);
+    session.resume();
+    assert.equal((await execution).ok, true);
+});
+
+test('pause marks variables read by the next expression, including compound targets', { timeout: 10000 }, async t => {
+    const session = await createWorkerSession();
+    t.after(() => session.dispose());
+    const source = 'A = 2\nB = 3\nResult = A + B\nB += A';
+    session.setDebugBreakpoints([{ source, line: 3 }, { source, line: 4 }]);
+    const execution = session.execute(source, 0, []);
+    const first = await nextPause(session);
+    assert.equal(first.activity, 'before line 3');
+    assert.deepEqual(first.bindings.filter(binding => binding.read).map(binding => binding.name), ['A', 'B']);
+    session.resume();
+    const second = await nextPause(session);
+    assert.deepEqual(second.bindings.filter(binding => binding.read).map(binding => binding.name), ['A', 'B']);
+    assert.deepEqual(second.bindings.filter(binding => binding.write).map(binding => binding.name), ['B']);
+    assert.equal(second.bindings.find(binding => binding.name === 'Result').read, false);
+    session.resume();
+    assert.equal((await execution).ok, true);
+});
+
+test('pause marks an existing assignment target and skips a new one', { timeout: 10000 }, async t => {
+    const session = await createWorkerSession();
+    t.after(() => session.dispose());
+    const source = 'A = 1\nA = 2\nNew = A';
+    session.setDebugBreakpoints([{ source, line: 2 }, { source, line: 3 }]);
+    const execution = session.execute(source, 0, []);
+    const first = await nextPause(session);
+    assert.deepEqual(first.bindings.filter(binding => binding.write).map(binding => binding.name), ['A']);
+    assert.deepEqual(first.bindings.filter(binding => binding.read).map(binding => binding.name), []);
+    session.resume();
+    const second = await nextPause(session);
+    assert.deepEqual(second.bindings.filter(binding => binding.write).map(binding => binding.name), []);
+    assert.deepEqual(second.bindings.filter(binding => binding.read).map(binding => binding.name), ['A']);
+    session.resume();
+    assert.equal((await execution).ok, true);
+});
+
+test('pause does not mark reads in later conditional branches', { timeout: 10000 }, async t => {
+    const session = await createWorkerSession();
+    t.after(() => session.dispose());
+    const source = 'A = 2\nB = 3\nif A less 3\n  A += 1\nelif B greater 0\n  B += 1\nend';
+    session.setDebugBreakpoints([{ source, line: 3 }]);
+    const execution = session.execute(source, 0, []);
+    const pause = await nextPause(session);
+    assert.deepEqual(pause.bindings.filter(binding => binding.read).map(binding => binding.name), ['A']);
     session.resume();
     assert.equal((await execution).ok, true);
 });
@@ -192,7 +239,7 @@ test('inspection lists each call frame once and preserves shadowed values', { ti
     session.setDebugBreakpoints([{ source: fn, line: 6 }]);
     const execution = session.execute('10 outer', 3, []);
     const state = (await nextPause(session)).state;
-    assert.match(state, /Variables \(current scope\):\n  N = 11\n  B = 2\n  A = 1/);
+    assert.match(state, /Variables \(current scope\):\n  N = 11\n  A = 1\n  B = 2/);
     assert.match(state, /outer locals:\n  N = 10/);
     assert.match(state, /Globals:\n  N = 99/);
     assert.doesNotMatch(state, /inner locals:/);

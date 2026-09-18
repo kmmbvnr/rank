@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
-import { checkpoint, InterruptedError, interruptsEnabled, interruptibleCallback, interruptibleValues, withInterrupt } from '../src/interrupt.js';
+import { checkpoint, InterruptedError, interruptsEnabled, interruptibleCallback, interruptibleValues, withInterrupt, type InterruptSignal, type PauseSnapshot } from '../src/interrupt.js';
 import { sortValue } from '../src/modules/sequences.js';
 import { linalgModule } from '../src/modules/linalg.js';
 import { graphModule } from '../src/modules/graph.js';
@@ -20,6 +20,32 @@ const context = { output() {}, random: Math.random, seedRandom() {}, ownFile() {
 const vector = (size: number): RankArray => ({ kind: 'array', shape: [size], items: Array.from({ length: size }, (_, i) => BigInt(size - i)) });
 
 describe('interactive host cancellation', () => {
+    it('steps through a host signal without replaying or losing variables', () => {
+        const words = [0, 1, 0];
+        const signal: InterruptSignal = {
+            length: 3,
+            load: index => words[index],
+            store: (index, value) => { words[index] = value; },
+            exchange: (index, value) => { const previous = words[index]; words[index] = value; return previous; },
+            wait: () => { throw new Error('The host should have resumed execution'); },
+        };
+        const pauses: PauseSnapshot[] = [];
+        const runtime = withInterrupt(signal, () => new Interpreter(), () => {});
+        runtime.execute('Total = 0');
+        const result = withInterrupt(signal,
+            () => runtime.execute('for I in 1 to 3\n  Total += I\nend\nTotal'),
+            pause => {
+                pauses.push(pause);
+                words[1] = 0;
+                words[2] = pauses.length < 4 ? 2 : 0;
+            });
+        expect(result).toBe(6n);
+        expect(pauses).toHaveLength(4);
+        expect(pauses.every(pause => pause.source && pause.line && pause.state?.includes('Total'))).toBe(true);
+        expect(runtime.variables.get('Total')).toBe(6n);
+        expect(interruptsEnabled()).toBe(false);
+    });
+
     it('is absent by default, and restores the outer mode after cancellation', () => {
         const call = (value: number) => value + 1;
         const values = [1, 2, 3];

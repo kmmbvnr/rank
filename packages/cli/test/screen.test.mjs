@@ -23,21 +23,23 @@ test('pause context marks the current line in color and fits narrow terminals', 
         assert.match(output, /● 4 │     Total \+= I/);
         assert.match(output, /2 │   Total = 0/);
         assert.match(output, /5 │   end/);
-        assert.doesNotMatch(output, /fun count|6 │|7 │/);
+        assert.match(output, /6 │   return Total/);
+        assert.match(output, /7 │ end/);
+        assert.doesNotMatch(output, /fun count/);
         const row = output.split('\n').findIndex(line => line.startsWith('● 4'));
         const marker = terminal.buffer.active.getLine(row).getCell(0);
         assert.ok(marker.isBold());
-        assert.equal(marker.getFgColor(), 3);
+        assert.equal(marker.getFgColor(), 179);
         for (const line of frame.lines) assert.ok(stringWidth(line) < columns);
         assert.equal(terminal.buffer.active.baseY, 0);
     }
 });
 
-test('pause context keeps four source lines and stable state position near the start', () => {
-    const source = 'for\n  Lower = Power\n  Upper = (10 * Power - 1)\nend';
+test('pause context keeps six source lines and stable state position near the start', () => {
+    const source = 'for\n  Lower = Power\n  Upper = (10 * Power - 1)\n  Width = Upper - Lower\n  Power *= 10\nend';
     const state = 'Call stack (outermost first):\n<cell>\n\nVariables (current scope):\n  Power = 1';
     const frames = [1, 2].map(line => pauseFrame({ source, line, activity: `before line ${line}`, state }, 80, 20));
-    for (const frame of frames) assert.equal(frame.lines.filter(row => row.includes('│')).length, 4);
+    for (const frame of frames) assert.equal(frame.lines.filter(row => row.includes('│')).length, 6);
     assert.equal(
         frames[0].lines.findIndex(row => row.includes('Variables (current scope):')),
         frames[1].lines.findIndex(row => row.includes('Variables (current scope):')),
@@ -47,6 +49,36 @@ test('pause context keeps four source lines and stable state position near the s
 test('pause footer shows an unknown-key status', () => {
     const frame = pauseFrame({ activity: 'evaluating' }, 80, 8, 0, 'Unknown key: x');
     assert.equal(frame.lines.at(-1), 'Unknown key: x');
+});
+
+test('pause code keeps six screen rows when source lines wrap', () => {
+    const state = 'Variables (current scope):\n  N = 1';
+    const short = 'A = 1\nB = 2\nC = 3\nD = 4\nE = 5\nF = 6\nG = 7';
+    const long = short.replace('C = 3', 'LongVariable = AnotherVariable + YetAnotherVariable');
+    const frames = [short, long].map(source => pauseFrame({ source, line: 3, state }, 24, 24));
+    const variables = frame => frame.lines.findIndex(row => row.includes('Variables'));
+    assert.equal(variables(frames[0]), variables(frames[1]));
+    assert.ok(frames[1].lines.some(row => row.includes('● 3')));
+    const code = frames[1].lines.slice(2, 8).join('').replace(/\x1b\[[0-9;]*m/g, '');
+    assert.ok(code.includes('LongVariable = AnotherVariable + YetAnotherVariable'));
+    assert.ok(!code.includes('F = 6'), 'following context gives way to wrapped rows');
+});
+
+test('pause colors upcoming reads and writes without coloring unrelated variables', () => {
+    const pause = { activity: 'before line 3', line: 3,
+        state: 'Variables (current scope):\n  A = 3\n  B = 2\n  Total = 5', bindings: [
+            { name: 'A', read: true },
+            { name: 'B' },
+            { name: 'Total', read: true, write: true },
+        ] };
+    const frame = pauseFrame(pause, 40, 20);
+    assert.ok(frame.lines.includes('\x1b[38;5;110m  A = 3\x1b[0m'));
+    assert.ok(frame.lines.includes('\x1b[38;5;179m  Total = 5\x1b[0m'));
+    assert.ok(frame.lines.includes('  B = 2'));
+    const busy = pauseFrame({ ...pause, activity: 'searching primes' }, 40, 20);
+    assert.ok(busy.lines.includes('  A = 3'));
+    assert.ok(busy.lines.includes('  B = 2'));
+    assert.ok(busy.lines.includes('  Total = 5'));
 });
 
 test('live replay marks evaluated lines orange and remaining lines gray', () => {

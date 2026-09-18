@@ -18,6 +18,7 @@ export class TerminalRenderer {
     private followCursor = true;
     private stopped = false;
     private lastPause?: PauseSnapshot;
+    private lastPauseToken?: PauseSnapshot;
     private copyTop: number | undefined;
     private targets: readonly (ScreenTarget | undefined)[] = [];
     private cursorRow?: number;
@@ -143,7 +144,10 @@ export class TerminalRenderer {
             return;
         }
         const pause = repl.pauseSnapshot;
-        if (pause) this.lastPause = pause;
+        if (pause && repl.session.pauseState !== this.lastPauseToken) {
+            this.lastPause = pause;
+            this.lastPauseToken = repl.session.pauseState;
+        }
         if (repl.running && (pause || this.modes.waitingForPause && this.lastPause)) {
             const frame = pauseFrame(pause ?? this.lastPause!, this.columns, this.rows, repl.pauseTop,
                 pause ? this.modes.pauseStatus : repl.runningStatus);
@@ -157,7 +161,7 @@ export class TerminalRenderer {
             this.output.write(mouse + drawFrame(frame));
             return;
         }
-        if (!repl.running) this.lastPause = undefined;
+        if (!repl.running) { this.lastPause = undefined; this.lastPauseToken = undefined; }
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus, repl.stepping,

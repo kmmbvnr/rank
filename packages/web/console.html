@@ -9,6 +9,7 @@
 </head>
 <body>
     <header id="chrome">
+        <span id="brand" aria-label="Rank">RANK</span>
         <button id="menu-toggle" aria-label="Terminal commands" aria-expanded="false" aria-controls="commands">⋮</button>
         <nav id="commands" aria-label="Terminal commands" hidden>
             <button data-key="r" data-ctrl="true">Run through selected line</button>
@@ -20,6 +21,9 @@
                 <button data-key="down" aria-label="Down">↓</button>
                 <button data-key="right" aria-label="Right">→</button>
             </div>
+            <button data-debug data-key="t" hidden>Step into line</button>
+            <button data-debug data-key="n" hidden>Next iteration</button>
+            <button data-debug data-key="g" hidden>Return to main</button>
             <button data-key="tab">Complete</button>
             <button data-key="escape">Edit</button>
             <button data-key="c" data-ctrl="true">Stop</button>
@@ -31,11 +35,15 @@
         <textarea id="input" aria-label="Rank terminal input" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" enterkeyhint="enter"></textarea>
     </main>
     <button id="run-button" type="button" aria-label="Run through selected line; hold to run all from start">
-        <svg viewBox="0 0 72 72" aria-hidden="true">
-            <circle class="run-progress-track" cx="36" cy="36" r="30.5"></circle>
-            <circle class="run-progress-ring" cx="36" cy="36" r="30.5"></circle>
+        <svg class="run-progress" viewBox="0 0 72 72" aria-hidden="true">
+            <rect class="run-progress-track" x="4" y="4" width="64" height="64" rx="20"></rect>
+            <rect class="run-progress-ring" x="4" y="4" width="64" height="64" rx="20" pathLength="100"></rect>
         </svg>
-        <span aria-hidden="true">▶</span>
+        <svg class="run-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="play-icon" d="M8 5v14l11-7z"></path>
+            <path class="step-icon" d="M5 5v14l10-7zM17 5h3v14h-3z"></path>
+            <path class="pause-icon" d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
+        </svg>
     </button>
     <span id="measure" aria-hidden="true">0000000000</span>
     <script type="module" src="/src/main.ts"></script>

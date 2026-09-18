@@ -1,8 +1,9 @@
 import './styles.css';
+import type { PauseSnapshot } from '@arrrank/interpreter';
 import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
-import { notebookFrame, helpFrame, type ScreenFrame } from '@arrrank/common/screen';
+import { notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
@@ -18,6 +19,12 @@ const commands = document.querySelector<HTMLElement>('#commands')!;
 const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
 const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
 const stoppedMessage = () => compact() ? 'Stopped' : 'Stopped · Ctrl-L restart';
+function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
+    const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
+    if (capacitor?.getPlatform() === 'android') {
+        void fetch('/__rank_haptic?kind=' + kind, { cache: 'no-store' }).catch(() => {});
+    } else navigator.vibrate?.(kind === 'hold' ? 25 : kind === 'step' ? 5 : 10);
+}
 if (import.meta.env.MODE === 'mobile') document.documentElement.classList.add('mobile');
 if (import.meta.env.MODE !== 'mobile') {
     chrome.hidden = true;
@@ -36,7 +43,9 @@ let failure = '';
 let needsRestart = false;
 let frame: ScreenFrame;
 let storedNotebook = '';
-const session = browserSession(message => { failure = message; needsRestart = true; render(); });
+let lastPause: PauseSnapshot | undefined;
+let paintedLines: string[] = [];
+const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
 const repl = new NotebookRepl(session, () => render(), () => columns, true);
 const keys = new KeyRouter(repl, [], () => columns, {
     read: () => navigator.clipboard.readText(),
@@ -65,9 +74,29 @@ function nativeSelection(): boolean {
 }
 
 function render(): void {
+    const paused = session.pauseState;
+    modes.allowRender();
+    if (paused) lastPause = paused;
+    if (!repl.running) lastPause = undefined;
+    const shownPause = paused ?? (modes.waitingForPause ? lastPause : undefined);
+    runButton.dataset.state = shownPause ? 'paused' : repl.running ? 'running' : 'idle';
+    runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
+        : repl.running ? 'Pause and debug; hold to stop' : 'Run through selected line; hold to run all from start');
+    runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
+    for (const button of commands.querySelectorAll<HTMLElement>('[data-debug]')) button.hidden = !shownPause;
+    for (const button of commands.querySelectorAll<HTMLButtonElement>('button[data-key]')) {
+        button.disabled = repl.running && button.dataset.key !== 'c'
+            && !(paused && (button.hasAttribute('data-debug') || ['up', 'down'].includes(button.dataset.key!)));
+    }
     // Replacing the DOM would destroy the phone's selection handles and Copy menu.
     if (nativeSelection()) return;
-    if (repl.help) {
+    if (shownPause) {
+        scrollFraction = 0;
+        frame = pauseFrame(shownPause, columns, rows, repl.pauseTop,
+            compact() ? 'Paused' : modes.pauseStatus);
+        repl.pauseTop = frame.top;
+        top = frame.top;
+    } else if (repl.help) {
         scrollFraction = 0;
         frame = helpFrame(repl.help.text, columns, rows, repl.help.top);
         repl.help.top = frame.top;
@@ -84,12 +113,21 @@ function render(): void {
         top = frame.top;
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
     }
-    screen.replaceChildren(...frame.lines.map(line => {
-        const row = document.createElement('div');
-        row.className = 'terminal-row';
+    if (screen.children.length !== frame.lines.length) {
+        screen.replaceChildren(...frame.lines.map(() => {
+            const row = document.createElement('div');
+            row.className = 'terminal-row';
+            return row;
+        }));
+        paintedLines = [];
+    }
+    frame.lines.forEach((line, index) => {
+        if (paintedLines[index] === line) return;
+        const row = screen.children[index] as HTMLElement;
+        row.replaceChildren();
         paintLine(row, line);
-        return row;
-    }));
+    });
+    paintedLines = [...frame.lines];
     screen.style.transform = scrollFraction ? `translateY(${-scrollFraction}px)` : '';
     const left = frame.cursor.column * cellWidth;
     const y = frame.cursor.row * cellHeight - scrollFraction;
@@ -122,7 +160,12 @@ function render(): void {
 
 async function press(key: Key, text = ''): Promise<void> {
     stopMomentum();
-    if (busy || repl.running) {
+    if (repl.running) {
+        await modes.press(text, key);
+        render();
+        return;
+    }
+    if (busy) {
         if (key.ctrl && key.name === 'c') session.interrupt?.();
         return;
     }
@@ -202,6 +245,9 @@ input.addEventListener('keydown', event => {
         ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
         Home: 'home', End: 'end', PageUp: 'pageup', PageDown: 'pagedown',
     };
+    if (session.pauseState && ['t', 'n', 'g'].includes(event.key)) {
+        event.preventDefault(); void press({ name: event.key }); return;
+    }
     if (names[event.key] || event.ctrlKey) {
         event.preventDefault();
         void press({ name: names[event.key] ?? event.key.toLowerCase(), ctrl: event.ctrlKey,
@@ -211,35 +257,64 @@ input.addEventListener('keydown', event => {
 function closeMenu(): void { commands.hidden = true; menuToggle.setAttribute('aria-expanded', 'false'); }
 chrome.addEventListener('pointerdown', event => event.preventDefault());
 menuToggle.onclick = () => {
+    haptic();
     commands.hidden = !commands.hidden;
     menuToggle.setAttribute('aria-expanded', String(!commands.hidden));
 };
 commands.onclick = event => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-key]');
-    if (!button) return;
+    if (!button || button.disabled) return;
+    haptic(button.dataset.key === 't' && !!session.pauseState ? 'step' : 'tap');
     closeMenu();
     input.focus({ preventScroll: true });
     void press({ name: button.dataset.key, ctrl: button.dataset.ctrl === 'true' });
 };
-let hold: { pointerId: number; x: number; y: number; timer: ReturnType<typeof setTimeout>; long: boolean } | undefined;
+function runAction(): void {
+    if (runButton.disabled || busy && !repl.running) return;
+    haptic(session.pauseState ? 'step' : 'tap');
+    if (session.pauseState) void press({ name: 't' });
+    else if (repl.running) { session.pause?.(); render(); }
+    else void press({ name: 'r', ctrl: true });
+}
+let hold: { pointerId: number; x: number; y: number; timer?: ReturnType<typeof setTimeout>; long: boolean; running: boolean; action: 'stop' | 'continue' | 'restart' } | undefined;
+function rippleRunButton(x: number, y: number): void {
+    const box = runButton.getBoundingClientRect();
+    runButton.style.setProperty('--ripple-x', `${x - box.left}px`);
+    runButton.style.setProperty('--ripple-y', `${y - box.top}px`);
+    runButton.classList.remove('rippling');
+    void runButton.offsetWidth;
+    runButton.classList.add('rippling');
+}
+runButton.addEventListener('animationend', event => {
+    if (event.animationName === 'run-ripple') runButton.classList.remove('rippling');
+});
 function endHold(pointerId: number, step: boolean): void {
     if (!hold || hold.pointerId !== pointerId) return;
     const wasLong = hold.long;
+    const wasRunning = hold.running;
     clearTimeout(hold.timer);
     hold = undefined;
     runButton.classList.remove('holding');
-    if (step && !wasLong) void press({ name: 'r', ctrl: true });
+    if (step && !wasLong && wasRunning === repl.running) runAction();
 }
 runButton.addEventListener('pointerdown', event => {
-    if (!event.isPrimary || hold || busy || repl.running) return;
+    if (!event.isPrimary || hold || busy && !repl.running) return;
     event.preventDefault();
+    rippleRunButton(event.clientX, event.clientY);
     runButton.setPointerCapture(event.pointerId);
     runButton.classList.add('holding');
-    hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false,
+    hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false, running: repl.running,
+        action: session.pauseState ? 'continue' : repl.running ? 'stop' : 'restart',
         timer: setTimeout(() => {
             if (!hold || hold.pointerId !== event.pointerId) return;
             hold.long = true;
-            void press({ name: 'l', ctrl: true });
+            const action = hold.action;
+            if (action === 'stop' && !repl.running || action === 'continue' && !session.pauseState
+                || action === 'restart' && repl.running) return;
+            haptic('hold');
+            if (action === 'stop') void press({ name: 'c', ctrl: true });
+            else if (action === 'continue') { session.resume?.(); render(); }
+            else void press({ name: 'l', ctrl: true });
         }, 700) };
 });
 runButton.addEventListener('pointermove', event => {
@@ -251,7 +326,11 @@ runButton.addEventListener('pointercancel', event => endHold(event.pointerId, fa
 runButton.addEventListener('lostpointercapture', event => endHold(event.pointerId, false));
 runButton.addEventListener('contextmenu', event => event.preventDefault());
 runButton.addEventListener('click', event => {
-    if (event.detail === 0) void press({ name: 'r', ctrl: true });
+    if (event.detail === 0) {
+        const box = runButton.getBoundingClientRect();
+        rippleRunButton(box.left + box.width / 2, box.top + box.height / 2);
+        runAction();
+    }
 });
 document.addEventListener('paste', event => {
     const selected = sourceSelection(screen, frame.targets ?? [], repl.notebook, getSelection());
@@ -335,8 +414,10 @@ async function locate(x: number, y: number): Promise<void> {
 }
 
 let pointer: { x: number; y: number; moved: boolean; time: number } | undefined;
+let tapped = false;
 terminal.addEventListener('pointerdown', event => {
     closeMenu();
+    tapped = false;
     if (event.target === input) return;
     pointer = { x: event.clientX, y: event.clientY, moved: false, time: performance.now() };
 });
@@ -345,17 +426,33 @@ terminal.addEventListener('pointermove', event => {
     pointer.moved = true;
 });
 terminal.addEventListener('pointerup', event => {
-    if (pointer && !pointer.moved && !nativeSelection() && performance.now() - pointer.time < 350)
-        void locate(event.clientX, event.clientY);
+    tapped = !!pointer && !pointer.moved && !nativeSelection() && performance.now() - pointer.time < 350;
     pointer = undefined;
 });
-terminal.addEventListener('pointercancel', () => { pointer = undefined; });
+terminal.addEventListener('mousedown', event => {
+    // Android sends a compatibility mousedown after touch pointerup. Its default
+    // action blurs the textarea and dismisses the keyboard before click arrives.
+    if (tapped) event.preventDefault();
+});
+terminal.addEventListener('click', event => {
+    if (tapped) {
+        event.preventDefault();
+        void locate(event.clientX, event.clientY);
+    }
+    tapped = false;
+});
+terminal.addEventListener('pointercancel', () => { pointer = undefined; tapped = false; });
 let momentumFrame: number | undefined;
 function stopMomentum(): void {
     if (momentumFrame !== undefined) cancelAnimationFrame(momentumFrame);
     momentumFrame = undefined;
 }
 function scrollToPixels(position: number): boolean {
+    if (session.pauseState) {
+        repl.pauseTop = Math.floor(position / cellHeight);
+        render();
+        return false;
+    }
     const limited = Math.max(0, Math.min(position, (frame.maxTop ?? 0) * cellHeight));
     follow = false;
     top = Math.floor(limited / cellHeight);

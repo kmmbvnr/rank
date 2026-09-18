@@ -30,6 +30,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
     background: transparent; caret-color: transparent;
 }
 #chrome { position: fixed; top: var(--top); right: 0; left: 0; height: var(--chrome-height); z-index: 2; background: #000; }
+#brand { position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 0; display: flex; align-items: center; height: 44px; color: #e5e5e5; font-family: system-ui, sans-serif; font-size: 17px; font-weight: 950; font-style: italic; font-synthesis: weight style; letter-spacing: -.06em; pointer-events: none; }
 button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 #menu-toggle { position: absolute; right: max(4px, env(safe-area-inset-right)); bottom: 0; width: 44px; height: 44px; background: transparent; font-size: 25px; }
 #commands { position: absolute; top: 100%; right: 8px; width: 280px; padding: 6px; background: #181818; border: 1px solid #333; border-radius: 6px; }
@@ -37,15 +38,28 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #commands button:active, #commands button:focus-visible { background: #333; }
 .arrows { display: flex; }
 #commands .arrows button { justify-content: center; }
-#run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - 72px - env(safe-area-inset-bottom, 0px)); right: max(12px, env(safe-area-inset-right)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 1px solid #555; border-radius: 50%; background: #202820; color: #fff; touch-action: none; user-select: none; }
-#run-button svg { position: absolute; left: -8px; top: -8px; width: 72px; height: 72px; transform: rotate(-135deg); fill: none; stroke-width: 4; pointer-events: none; }
+#run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - 72px - env(safe-area-inset-bottom, 0px)); right: max(12px, env(safe-area-inset-right)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 0; border-radius: 16px; background: var(--run-background, #41465b); color: var(--run-foreground, #dce1f9); touch-action: none; user-select: none; }
+#run-button::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; background: radial-gradient(circle 54px at var(--ripple-x, 50%) var(--ripple-y, 50%), color-mix(in srgb, currentColor 24%, transparent) 0%, transparent 100%); transform-origin: var(--ripple-x, 50%) var(--ripple-y, 50%); }
+#run-button.rippling::before { animation: run-ripple 500ms ease-out; }
+#run-button.holding:not(:disabled) { filter: brightness(1.08); }
+@keyframes run-ripple { from { opacity: .8; transform: scale(.15); } to { opacity: 0; transform: scale(1.5); } }
+@media (prefers-reduced-motion: reduce) { #run-button.rippling::before { animation-duration: 120ms; } }
+#run-button .run-progress { position: absolute; left: -8px; top: -8px; width: 72px; height: 72px; fill: none; stroke-width: 4; pointer-events: none; }
 #run-button .run-progress-track, #run-button .run-progress-ring { opacity: 0; transition: opacity 0s; }
 #run-button.holding .run-progress-track, #run-button.holding .run-progress-ring { opacity: 1; transition-delay: 120ms; }
-#run-button .run-progress-track { stroke: #405040; }
-#run-button .run-progress-ring { stroke: #80e0a0; stroke-dasharray: 192; stroke-dashoffset: 192; }
+#run-button .run-progress-track { stroke: var(--run-background, #41465b); }
+#run-button .run-progress-ring { stroke: var(--run-foreground, #dce1f9); stroke-dasharray: 100; stroke-dashoffset: 100; }
 #run-button.holding .run-progress-ring { animation: run-hold-progress 580ms linear 120ms forwards; }
-#run-button span { position: relative; margin-left: 3px; font-size: 23px; }
+#run-button .run-icon { width: 28px; height: 28px; fill: currentColor; pointer-events: none; }
+#run-button .pause-icon, #run-button .step-icon { display: none; }
+#run-button[data-state="paused"] .play-icon, #run-button[data-state="running"] .play-icon { display: none; }
+#run-button[data-state="running"] .pause-icon { display: initial; }
 #run-button:focus-visible { outline: 2px solid #80e0a0; outline-offset: 3px; }
 @keyframes run-hold-progress { to { stroke-dashoffset: 0; } }
 @media (max-width: 800px) { #run-button { display: flex; } }
 .mobile #run-button { display: flex; }
+
+#commands button[hidden] { display: none; }
+#run-button:disabled { opacity: .65; }
+
+#run-button[data-state="paused"] .step-icon { display: initial; }

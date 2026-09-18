@@ -3,6 +3,7 @@ package com.arrrank.app;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.WebViewListener;
 import android.os.Bundle;
+import android.os.Build;
 import android.graphics.Color;
 import android.webkit.WebView;
 import androidx.core.view.ViewCompat;
@@ -38,11 +39,20 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        bridge.setWebViewClient(new DebugSignalClient(bridge));
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         hideSystemBars();
         bridge.addWebViewListener(new WebViewListener() {
             @Override
-            public void onPageLoaded(WebView webView) { scheduleKeyboard(); }
+            public void onPageLoaded(WebView webView) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    String background = String.format("#%06x", getColor(android.R.color.system_accent1_700) & 0xffffff);
+                    String foreground = String.format("#%06x", getColor(android.R.color.system_accent1_100) & 0xffffff);
+                    webView.evaluateJavascript("document.documentElement.style.setProperty('--run-background','" + background
+                        + "');document.documentElement.style.setProperty('--run-foreground','" + foreground + "');", null);
+                }
+                scheduleKeyboard();
+            }
         });
     }
 

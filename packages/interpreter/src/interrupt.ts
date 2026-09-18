@@ -9,7 +9,15 @@ export class InterruptedError extends RankError {
 
 // Execution is synchronous; each worker owns its own module state. Include lazy
 // preview/formatting in this scope, since it can do the actual computation.
-let flag: Int32Array | undefined;
+export interface InterruptSignal {
+    readonly length: number;
+    load(index: number): number;
+    store(index: number, value: number): void;
+    exchange(index: number, value: number): number;
+    wait(index: number, value: number): void;
+}
+
+let flag: InterruptSignal | undefined;
 let ticks = 0;
 let cancelled = false;
 export interface PauseSnapshot {
@@ -18,6 +26,7 @@ export interface PauseSnapshot {
     state?: string;
     line?: number;
     source?: string;
+    bindings?: { name: string; read?: boolean; write?: boolean }[];
 }
 interface DebugPoint {
     source: string;
@@ -37,23 +46,24 @@ export function setDebugBreakpoints(points: { source: string; line: number }[]):
 /** Called before a statement, or at the beginning of a loop iteration. */
 export function debugExecutionPoint(next: DebugPoint): void {
     if (!paused || !flag || cancelled) return;
-    if (flag.length > 2 && Atomics.exchange(flag, 2, 0) === 2) stepping = 'line';
+    if (flag.length > 2 && flag.exchange(2, 0) === 2) stepping = 'line';
     const stop = stepping === 'line'
         || stepping === 'iteration' && (!targetLoop || next.depth < targetDepth
             || next.depth === targetDepth && (next.iteration === targetLoop || !next.loops.includes(targetLoop)))
         || stepping === 'main' && next.depth === 0 && next.topLevel && !next.iteration
         || stepping !== 'main' && breakpoints.some(item => item.line === next.line && item.source.trim() === next.source.trim());
     point = next;
-    if (stop) Atomics.store(flag, 1, 1);
+    if (stop) flag.store(1, 1);
     checkInterrupt('before line ' + next.line);
 }
 
-let inspect: (() => string) | undefined;
+type Inspection = Pick<PauseSnapshot, 'state' | 'bindings'>;
+let inspect: (() => string | Inspection) | undefined;
 let paused: ((snapshot: PauseSnapshot) => void) | undefined;
 export function inspectionEnabled(): boolean { return paused !== undefined; }
-export function inspectExecution(provider: () => string): void { if (paused) inspect = provider; }
+export function inspectExecution(provider: () => string | Inspection): void { if (paused) inspect = provider; }
 
-export function withInterrupt<T>(signal: Int32Array, run: () => T, onPause?: (snapshot: PauseSnapshot) => void): T {
+export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () => T, onPause?: (snapshot: PauseSnapshot) => void): T {
     const previousCancelled = cancelled;
     cancelled = false;
     const previousPoint = point;
@@ -69,7 +79,13 @@ export function withInterrupt<T>(signal: Int32Array, run: () => T, onPause?: (sn
     const previousInspect = inspect;
     paused = onPause;
     inspect = undefined;
-    flag = signal;
+    flag = signal instanceof Int32Array ? {
+        length: signal.length,
+        load: index => Atomics.load(signal, index),
+        store: (index, value) => { Atomics.store(signal, index, value); },
+        exchange: (index, value) => Atomics.exchange(signal, index, value),
+        wait: (index, value) => { Atomics.wait(signal, index, value); },
+    } : signal;
     ticks = 0;
     try { return run(); }
     finally {
@@ -85,7 +101,7 @@ export function withInterrupt<T>(signal: Int32Array, run: () => T, onPause?: (sn
     }
 }
 
-/** Only the interactive CLI worker installs a signal. File and pipe execution do not. */
+/** Interactive workers install a signal. File and pipe execution do not. */
 export function interruptsEnabled(): boolean { return flag !== undefined; }
 
 export function checkpoint(activity?: string, work = 1, details?: () => Record<string, string>): void {
@@ -99,19 +115,21 @@ export function checkpoint(activity?: string, work = 1, details?: () => Record<s
 /** Check at host boundaries even when the operation had no cooperative loop. */
 export function checkInterrupt(activity?: string, details?: () => Record<string, string>): void {
     if (!flag) return;
-    if (Atomics.exchange(flag, 0, 0)) { cancelled = true; throw new InterruptedError(activity); }
+    if (flag.exchange(0, 0)) { cancelled = true; throw new InterruptedError(activity); }
     // A separate word keeps pause requests invisible to the native SQLite monitor.
-    if (!cancelled && paused && flag.length > 1 && Atomics.load(flag, 1) === 1) {
+    if (!cancelled && paused && flag.length > 1 && flag.load(1) === 1) {
         stepping = undefined;
-        paused({ activity, details: details?.(), state: inspect?.(), line: point?.line, source: point?.source });
-        while (Atomics.load(flag, 1) === 1 && !Atomics.load(flag, 0)) {
-            Atomics.wait(flag, 1, 1);
+        const inspected = inspect?.();
+        paused({ activity, details: details?.(), ...(typeof inspected === 'string' ? { state: inspected } : inspected),
+            line: point?.line, source: point?.source });
+        while (flag.load(1) === 1 && !flag.load(0)) {
+            flag.wait(1, 1);
         }
-        const command = flag.length > 2 ? Atomics.exchange(flag, 2, 0) : 0;
+        const command = flag.length > 2 ? flag.exchange(2, 0) : 0;
         stepping = command === 2 ? 'line' : command === 3 ? 'iteration' : command === 4 ? 'main' : undefined;
         targetLoop = point?.loops.at(-1);
         targetDepth = point?.depth ?? 0;
-        if (Atomics.exchange(flag, 0, 0)) { cancelled = true; throw new InterruptedError(activity); }
+        if (flag.exchange(0, 0)) { cancelled = true; throw new InterruptedError(activity); }
     }
 }
 

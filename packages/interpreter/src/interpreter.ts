@@ -1,4 +1,5 @@
 import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution, debugExecutionPoint } from './interrupt.js';
+import { AstUtils } from 'langium';
 import { registerFlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -16,7 +17,6 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
-import { AstUtils } from 'langium';
 import { TABLE_INPUT, tableExpression } from './table-expression.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
@@ -405,19 +405,35 @@ export class Interpreter {
     private readonly generatorResourceScopes = new Set<Set<RankFile>>();
     private debugStatement?: Statement;
     private readonly debugCalls: { name: string; frame: LocalFrame }[] = [];
-    private readonly debugReads = new WeakMap<object, Map<string, number>>();
-    private debugReadClock = 0;
-
-    private debugRead(name: string): void {
-        if (!inspectionEnabled()) return;
-        const scope = this.localFrame?.find(name) ?? this.variables;
-        if (scope === this.variables && !this.variables.has(name)) return;
-        let reads = this.debugReads.get(scope);
-        if (!reads) this.debugReads.set(scope, reads = new Map());
-        reads.set(name, ++this.debugReadClock);
-    }
-
-    private inspectionState(): string {
+    private inspectionState(): Pick<import('./interrupt.js').PauseSnapshot, 'state' | 'bindings'> {
+        const inspected: NonNullable<import('./interrupt.js').PauseSnapshot['bindings']> = [];
+        const reads = new Set<string>();
+        const writes = new Map<string, LocalFrame | Map<string, RankValue>>();
+        const markWrite = (name: string, mutate: boolean) => {
+            if (name.includes('.')) return;
+            const frame = this.localFrame?.find(name);
+            const target = mutate ? frame ?? (this.variables.has(name) ? this.variables : undefined)
+                : frame ?? this.localFrame ?? this.variables;
+            if (target && target.get(name) !== undefined)
+                writes.set(name, target);
+        };
+        const statement = this.debugStatement;
+        if (statement) {
+            const visit = (node: import('langium').AstNode) => {
+                if (isNameExpression(node)) reads.add(node.name);
+                for (const child of AstUtils.streamContents(node)) {
+                    if (!child.$type.endsWith('Statement') && !child.$type.endsWith('Clause')) visit(child);
+                }
+            };
+            visit(statement);
+            if ((isAssignmentStatement(statement) && statement.operator !== '=')
+                || isArrayAssignmentStatement(statement))
+                reads.add(statement.name);
+            if (isAssignmentStatement(statement)) markWrite(statement.name, false);
+            if (isArrayAssignmentStatement(statement)) markWrite(statement.name, true);
+            if (isUnpackStatement(statement))
+                for (const name of statement.names) if (name !== '#') markWrite(name, false);
+        }
         const node = this.debugStatement?.$cstNode;
         const line = node?.range.start.line;
         const describe = (value: RankValue): string => {
@@ -433,26 +449,14 @@ export class Interpreter {
             if (isRankSequence(value)) return `<sequence ${value.plan.name}>`;
             return `<${value.kind}>`;
         };
-        const currentNames = new Set<string>();
-        if (this.debugStatement) {
-            for (const expression of AstUtils.streamAst(this.debugStatement)) {
-                if (isNameExpression(expression) && expression.$cstNode?.range.start.line === line)
-                    currentNames.add(expression.name);
-            }
-            if (isAssignmentStatement(this.debugStatement)) currentNames.add(this.debugStatement.name);
-        }
         const bindings = (scope: LocalFrame | Map<string, RankValue>) => {
             const values = scope instanceof LocalFrame ? scope.values : scope;
-            const reads = this.debugReads.get(scope);
-            const priority = (name: string) => currentNames.has(name)
-                && (this.localFrame?.find(name) ?? this.variables) === scope;
             const entries = [...values].filter(([, value]) => !isNativeFunction(value));
-            entries.sort(([a], [b]) => Number(priority(b)) - Number(priority(a))
-                || (reads?.get(b) ?? 0) - (reads?.get(a) ?? 0));
             const lines: string[] = [];
             for (const [name, value] of entries) {
                 if (lines.length === 100) { lines.push('  …'); break; }
                 lines.push(`  ${name} = ${describe(value)}`);
+                inspected.push({ name, read: reads.delete(name), write: writes.get(name) === scope });
             }
             return lines.join('\n') || '  (none)';
         };
@@ -467,7 +471,8 @@ export class Interpreter {
             sections.push(`${call.name} locals:\n${bindings(call.frame)}`);
         }
         if (!seen.has(this.variables)) sections.push(`Globals:\n${bindings(this.variables)}`);
-        return `${location}\n\nCall stack (outermost first):\n<cell>\n${this.debugCalls.map(call => call.name).join('\n')}\n\n${sections.join('\n\n')}`;
+        return { state: `${location}\n\nCall stack (outermost first):\n<cell>\n${this.debugCalls.map(call => call.name).join('\n')}\n\n${sections.join('\n\n')}`,
+            bindings: inspected };
     }
 
     private callDepth = 0;
@@ -1755,7 +1760,6 @@ export class Interpreter {
                     if (slot !== undefined) {
                         const value = frame.read(slot, name);
                         if (value !== undefined) {
-                            this.debugRead(name);
                             return this.directNameValue(value);
                         }
                     }
@@ -3713,7 +3717,6 @@ export class Interpreter {
     }
 
     private findVariable(name: string): RankValue | undefined {
-        this.debugRead(name);
         return this.localFrame?.lookup(name) ?? this.variables.get(name);
     }
 

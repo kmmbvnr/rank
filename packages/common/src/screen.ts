@@ -348,16 +348,39 @@ export function pauseFrame(
     }
     if (source && line !== undefined && line >= 1 && line <= source.length) {
         append(pause.activity === `before line ${line}` ? '● Next to execute' : '● Currently executing');
-        const start = Math.max(0, Math.min(line - 3, source.length - 4));
-        const end = Math.min(source.length, start + 4);
+        const start = Math.max(0, Math.min(line - 3, source.length - 6));
+        const end = Math.min(source.length, start + 6);
         const digits = String(end).length;
+        const code: string[] = [];
+        let currentStart = 0;
+        let currentHeight = 0;
         for (let index = start; index < end; index++) {
             const current = index === line - 1;
-            append(`${current ? '●' : ' '} ${String(index + 1).padStart(digits)} │ ${source[index]}`,
-                current ? '\x1b[1;33m' : '\x1b[90m');
+            const label = `${current ? '●' : ' '} ${String(index + 1).padStart(digits)} │ ${source[index]}`;
+            const wrapped = editableRows(clean(label), width);
+            // The editor reserves a cursor row at exact width; paused code has no cursor.
+            if (wrapped.length > 1 && wrapped.at(-1)!.text === '') wrapped.pop();
+            if (current) { currentStart = code.length; currentHeight = wrapped.length; }
+            const color = current ? '\x1b[1;38;5;179m' : '\x1b[90m';
+            code.push(...wrapped.map(row => color + row.text + '\x1b[0m'));
         }
+        // Six screen rows, including wraps. Keep the current line in view and
+        // trim following context before moving the variables below the code.
+        const first = Math.max(0, currentStart + Math.min(currentHeight, 6) - 6);
+        const visible = code.slice(first, first + 6);
+        rows.push(...visible);
+        for (let index = visible.length; index < 6; index++) rows.push('');
     }
-    append('\n' + state);
+    let bindingIndex = 0;
+    let inBindings = false;
+    append('');
+    for (const row of state.split('\n')) {
+        if (/^(Variables \(current scope\)|Globals|.* locals):$/.test(row)) inBindings = true;
+        const binding = inBindings && /^  \S+ = /.test(row) ? pause.bindings?.[bindingIndex++] : undefined;
+        const next = pause.activity === `before line ${pause.line}`;
+        const focus = next && binding?.write ? '\x1b[38;5;179m' : next && binding?.read ? '\x1b[38;5;110m' : '';
+        append(row, focus);
+    }
     for (const [key, value] of Object.entries(pause.details ?? {})) append(`${key}: ${value}`);
     const contentHeight = Math.max(1, height - 1);
     const top = Math.max(0, Math.min(previousTop, rows.length - contentHeight));
