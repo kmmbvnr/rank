@@ -29,10 +29,13 @@ describe('shared expression grouping', () => {
         ['M sum axis 0 rank 1', 'use numbers'],
         ['M argsort axis 1 descending', 'use sequences\nuse numbers'],
         ['M + scan', 'use numbers'],
+        ['M next scan', 'use numbers'],
+        ['M next scan with Seed', 'use numbers'],
+        ['M next scan with (1 + 2)', 'use numbers'],
         ['M + reduce rank 1', 'use numbers'],
         ['A B * outer', 'use numbers'],
         ['M min segment', 'use algo\nuse numbers'],
-        ['M with Identity with combine segment', 'use algo\nuse numbers'],
+        ['M combine segment with Identity', 'use algo\nuse numbers'],
     ])('groups %s before the next call for every syntax consumer', async (prefix, imports) => {
         const document = await parse(`${imports}\n${prefix} sum`);
         expect(document.parseResult.parserErrors).toEqual([]);

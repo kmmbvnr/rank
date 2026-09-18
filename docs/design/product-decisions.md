@@ -59,6 +59,20 @@ Products = Windows * reduce rank 1
 Answer = Products max
 ```
 
+Keep lines short enough to read on a narrow screen, aiming for roughly 40
+columns. Use fewer parentheses by giving intermediate results short,
+meaningful names. Name the value or its role, such as `Range`, `States` or
+`DigitCounts`; avoid placeholders such as `Temp` or `Result2`. Split a long
+expression into named steps when that makes the computation easier to follow.
+Keep parentheses where they are needed to express the intended grouping.
+
+```rank
+Range = 1 until 1000
+States = Range next scan with Start
+```
+
+Here `Start` is the first state, so the 999 range items produce 1000 states.
+
 ### Rationale: Readability, debugging, and the BASIC spirit
 
 1. **Self-documenting dataflow on narrow screens:** On a 40-column display,

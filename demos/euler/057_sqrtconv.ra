@@ -10,7 +10,8 @@ Start = record
   .num = 3
   .den = 2
 end
-States = (1 until 1000) with Start with next scan
+Range = 1 until 1000
+States = Range next scan with Start
 Longer = States longer rank 0
 Answer = Longer count
 Answer print

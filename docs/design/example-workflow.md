@@ -82,6 +82,17 @@ task when that division makes review clearer.
 
 ## Preferred Rank solution style
 
+Keep lines near 40 columns. Reduce parentheses by naming intermediate values
+with short names that describe their contents or role. For example:
+
+```rank
+Range = 1 until 1000
+States = Range next scan with Start
+```
+
+Keep parentheses when they are needed for grouping. See the
+[intermediate-variable style rule](product-decisions.md#2-intentional-intermediate-variables-over-vertical-pipelines).
+
 Start with the data transformation. Use array and sequence operations for work
 that applies to a whole collection:
 

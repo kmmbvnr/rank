@@ -21,7 +21,7 @@ Values 1 .sum = 20
 Values 1 .count = 1
 Values 2 .sum = 30
 Values 2 .count = 1
-Tree = Values with Identity with combine segment
+Tree = Values combine segment with Identity
 (Tree 0 2 query) print
 
 State = Values 1

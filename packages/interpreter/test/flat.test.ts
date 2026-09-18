@@ -33,7 +33,7 @@ array (Values 0 .n) (Values 1 .n) (Copy 0 .n)`)).toBe('4 90 6');
         expect(run(setup + `Values = 3 Zero flat
 Values 0 .n = 2
 Values 1 .n = 3
-Tree = Values with Zero with combine segment
+Tree = Values combine segment with Zero
 Before = Tree 0 2 query
 Leaf = Tree 0
 Leaf .n = 100
@@ -46,8 +46,8 @@ array (Before .n) (After .n) (Empty .n) (Values 1 .n)`)).toBe('5 102 0 3');
     it('supports ordinary records, conversion and empty monoids', () => {
         expect(run(setup + `Values = (array Zero Zero) flat
 Tree = Values combine segment
-Empty = (0 Zero flat) with Zero with combine segment
-Plain = (array Zero Zero) with Zero with combine segment
+Empty = (0 Zero flat) combine segment with Zero
+Plain = (array Zero Zero) combine segment with Zero
 array ((Tree 0 1 query) .n) ((Empty 0 (-1) query) .n) ((Plain 0 1 query) .n)`)).toBe('0 0 0');
     });
 
@@ -56,7 +56,7 @@ array ((Tree 0 1 query) .n) ((Empty 0 (-1) query) .n) ((Plain 0 1 query) .n)`)).
 fun merge A B
   return A + B
 end
-Tree = (array "a" "b" "c") with "" with merge segment
+Tree = (array "a" "b" "c") merge segment with ""
 array (Tree 0 2 query) (Tree 2 1 query)`)).toBe('abc ');
     });
 
@@ -90,18 +90,18 @@ array (Tree 0 2 query) (Tree 2 1 query)`)).toBe('abc ');
     });
     it('continues a monoid pipeline and preserves the flat identity by value', () => {
         expect(run(setup + `Values = 0 Zero flat
-Tree = Values with Zero with combine segment
+Tree = Values combine segment with Zero
 Zero .n = 10
 First = Tree 0 (-1) query
 First .n = 20
-array ((Tree 0 (-1) query) .n) ((Values with First with combine segment 0 (-1) query) .n)`)).toBe('0 20');
+array ((Tree 0 (-1) query) .n) ((Values combine segment with First 0 (-1) query) .n)`)).toBe('0 20');
     });
 
     it('rejects invalid schemas, bounds and writes through tree leaf snapshots', () => {
         expect(() => run(setup + 'Values = 1 Zero flat\nValues 1 .n = 2')).toThrow('out of bounds');
         expect(() => run(setup + 'Values = 1 Zero flat\nTree = Values combine segment\nTree 0 .n = 2'))
             .toThrow('segment assignment expects one integer index');
-        expect(() => run(setup + 'Values = 0 Zero flat\nTree = Values with Zero with combine segment\nTree 1 0 query'))
+        expect(() => run(setup + 'Values = 0 Zero flat\nTree = Values combine segment with Zero\nTree 1 0 query'))
             .toThrow('out of bounds');
         const invalid = record(0n);
         invalid.entries.set('extra', true);

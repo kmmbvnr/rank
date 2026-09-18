@@ -23,10 +23,10 @@ function boundary(parts: Expression[]): number | undefined {
         && (named(part, 'ascending') || named(part, 'descending'))
         && parts.slice(0, index).some(p => named(p, 'sort') || named(p, 'argsort')));
     if (direction >= 0) return direction < parts.length - 1 ? direction + 1 : undefined;
-    if (parts.length > 6 && named(parts[1], 'with') && named(parts[3], 'with') && named(parts[5], 'segment')) return 6;
-    if (parts.length > 6 && named(parts[1], 'with') && named(parts[3], 'with') && named(parts[5], 'scan')) return 6;
-    if (parts.length > 3 && named(parts[2], 'segment')) return 3;
-    if (parts.length > 3 && named(parts[2], 'scan')) return 3;
+    if (named(parts[2], 'segment') || named(parts[2], 'scan')) {
+        const end = named(parts[3], 'with') ? 5 : 3;
+        return parts.length > end ? end : undefined;
+    }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
     if (rank >= 0 && parts.length > rank + 2) return rank + 2;
     const axis = parts.findIndex((part, index) => index >= 2 && named(part, 'axis'));

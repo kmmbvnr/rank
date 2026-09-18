@@ -6197,8 +6197,8 @@ interface NamedScanApplication {
 }
 
 function explicitNamedScanApplication(parts: Expression[]): NamedScanApplication | undefined {
-    if (parts.length === 6 && isNamed(parts[1], 'with') && isNamed(parts[3], 'with') && isNamed(parts[5], 'scan')) {
-        return { source: parts[0], seed: parts[2], operation: parts[4] };
+    if (parts.length === 5 && isNamed(parts[2], 'scan') && isNamed(parts[3], 'with')) {
+        return { source: parts[0], seed: parts[4], operation: parts[1] };
     }
     if (parts.length === 3 && isNamed(parts[2], 'scan')) {
         return { source: parts[0], operation: parts[1] };
@@ -6207,8 +6207,8 @@ function explicitNamedScanApplication(parts: Expression[]): NamedScanApplication
 }
 
 function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {
-    if (parts.length === 6 && isNamed(parts[1], 'with') && isNamed(parts[3], 'with') && isNamed(parts[5], 'segment')) {
-        return { source: parts[0], identity: parts[2], operation: parts[4] };
+    if (parts.length === 5 && isNamed(parts[2], 'segment') && isNamed(parts[3], 'with')) {
+        return { source: parts[0], identity: parts[4], operation: parts[1] };
     }
     if (parts.length !== 3 || !isNamed(parts[2], 'segment')) return undefined;
     return { source: parts[0], operation: parts[1] };
@@ -6289,6 +6289,7 @@ function explicitCollectionMutation(
     }
     if (!isApplicationExpression(expression)) return undefined;
     const parts = flattenApplication(expression);
+    if (explicitNamedScanApplication(parts) || explicitNamedSegmentApplication(parts)) return undefined;
     const receiver = parts[0];
     const operation = parts[1];
     if (!isNameExpression(receiver)

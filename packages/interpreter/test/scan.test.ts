@@ -42,7 +42,7 @@ describe('scan modifier', () => {
             '  .num = 3',
             '  .den = 2',
             'end',
-            'States = (1 to 3) with Start with next scan',
+            'States = (1 to 3) next scan with Start',
             '(States 3) .num',
         ].join('\n'))).toBe('41');
         expect(run('fun add A B\n  return A + B\nend\n(array 2 3 4) add scan'))
@@ -55,6 +55,28 @@ describe('scan modifier', () => {
             'Prefix = primes + scan with 0',
             'Prefix 4',
         ].join('\n'))).toBe('17');
+    });
+
+    it('uses named scans with optional seeds and continues the pipeline', () => {
+        const setup = 'use sequences\nfun combine A B\n  return A + B\nend\n';
+        expect(run(setup + '(array 2 3 4) combine scan with 0')).toBe('0 2 5 9');
+        expect(run(setup + '(array 2 3 4) combine scan with (10 + 1) sum')).toBe('60');
+        expect(run(setup + '(array 2 3 4) combine scan sum')).toBe('16');
+        expect(run(setup + 'Empty = array shape 0 fill 0\nEmpty combine scan with 7')).toBe('7');
+        expect(run(setup + 'Empty = array shape 0 fill 0\nEmpty combine scan len')).toBe('0');
+        expect(run(setup + 'Prefix = primes combine scan with 0\nPrefix 4')).toBe('17');
+    });
+
+    it('accepts min and max as named scan operations', () => {
+        expect(run('(array 3 1 2) min scan with 9')).toBe('9 3 1 1');
+        expect(run('(array 3 1 2) max scan')).toBe('3 3 3');
+    });
+
+    it.each(['add', 'remove'])('uses a function named %s without treating scan as mutation', name => {
+        const setup = `fun ${name} A B\n  return A + B\nend\nValues = array 2 3 4\n`;
+        expect(run(setup + `Values ${name} scan with 0`)).toBe('0 2 5 9');
+        expect(run(setup + `Values ${name} scan`)).toBe('2 5 9');
+        expect(run('use algo\n' + setup + `Values ${name} segment with 0`)).toBeDefined();
     });
 
     it('rejects higher ranks', () => {

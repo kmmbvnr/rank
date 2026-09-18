@@ -14,7 +14,7 @@ const precedence: Readonly<Record<string, number>> = {
 };
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is']);
 const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);
-const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'ascending', 'descending']);
+const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'scan', 'ascending', 'descending']);
 
 export interface GroupingDiagnostic {
     readonly message: string;

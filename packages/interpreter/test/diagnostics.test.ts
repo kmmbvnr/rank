@@ -127,7 +127,7 @@ end
     });
 
     it('explains scan when it is used without a binary operator', () => {
-        expect(failure('fun next State Ignored\n  return State\nend\nState = 0\nRange = 1 to 3\nRange next scan with State').message)
+        expect(failure('State = 0\nRange = 1 to 3\nRange scan with State').message)
             .toBe('scan needs an operator, e.g. Range + scan with 0');
     });
 

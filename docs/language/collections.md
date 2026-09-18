@@ -351,7 +351,7 @@ that the operation is associative.
 User-defined record states can supply an explicit neutral element:
 
 ```rank
-Tree = Values with Identity with combine segment
+Tree = Values combine segment with Identity
 ```
 
 Each input element is already a state. `combine Left Right` must return a
