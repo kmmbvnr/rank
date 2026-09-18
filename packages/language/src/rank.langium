@@ -2,6 +2,29 @@ grammar Rank
 
 interface Expression {}
 
+interface KeyedRollingExpression extends Expression {
+    source: Expression
+    width: Expression
+    operator: string
+    field: LabelLiteral
+}
+
+interface KeyedJoinExpression extends Expression {
+    left: Expression
+    right: Expression
+    operator: string
+    fields: LabelLiteral[]
+    pairs: JoinFieldPair[]
+}
+
+interface KeyedReachExpression extends Expression {
+    edges: Expression
+    starts: Expression
+    operator: string
+    from: LabelLiteral
+    to: LabelLiteral
+}
+
 entry Program:
     NL*
     (statements+=Statement
@@ -24,13 +47,12 @@ Statement:
     TryStatement |
     IfStatement |
     ForStatement |
-    PushStatement |
     AddStatement |
     IndexAssignmentStatement |
     UnpackStatement |
     ArrayAssignmentStatement |
     AssignmentStatement |
-    ExpressionStatement;
+    ExpressionOrPushStatement;
 
 UseStatement:
     'use' (module=WORD | path=STRING ('as' alias=Identifier)?);
@@ -111,9 +133,6 @@ ForStatement:
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
-PushStatement:
-    receiver=Expression 'push' value=Expression;
-
 AddStatement:
     structure=SET_ADD value=Expression;
 
@@ -134,8 +153,11 @@ AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | '%=' |
     'and=' | 'or=' | 'xor=';
 
-ExpressionStatement:
-    value=Expression;
+ExpressionOrPushStatement:
+    Expression (
+        {infer PushStatement.receiver=current} 'push' value=Expression |
+        {infer ExpressionStatement.value=current}
+    );
 
 Expression returns Expression:
     OrExpression;
@@ -222,33 +244,52 @@ PowerExpression returns Expression:
     ({infer BinaryExpression.left=current}
         operator='**' right=PowerExpression)?;
 
+// Parse the recursive primary once before choosing its contextual suffix.
+// Repeating PrimaryExpression in every alternative makes LL(*) lookahead
+// enumerate combinations of alternatives through nested parentheses.
 ApplicationExpression returns Expression:
-    FirstIndexWhereExpression |
-    FirstWhereExpression |
-    TakeWhileExpression |
+    PrimaryApplicationExpression |
     TableWritePreviewExpression |
-    TableWriteExpression |
-    TableFilterExpression |
-    TableSelectExpression |
-    AliasedTableExpression |
-    KeyedSortExpression |
-    KeyedGroupExpression |
-    KeyedRollingExpression |
-    KeyedJoinExpression |
-    KeyedReachExpression |
-    UnaryExpression
+    NonPrimaryExpression
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
     ({infer MaterializeExpression.source=current} 'array')?;
 
-FirstWhereExpression:
-    source=PrimaryExpression 'first' 'where' mask=Expression;
-
-FirstIndexWhereExpression:
-    source=PrimaryExpression 'first' 'index' 'where' mask=Expression;
-
-TakeWhileExpression:
-    source=PrimaryExpression 'take' 'while' mask=Expression;
+PrimaryApplicationExpression returns Expression:
+    PrimaryExpression (
+        {infer FirstIndexWhereExpression.source=current} 'first' 'index' 'where' mask=Expression |
+        {infer FirstWhereExpression.source=current} 'first' 'where' mask=Expression |
+        {infer TakeWhileExpression.source=current} 'take' 'while' mask=Expression |
+        {infer TableWriteExpression.source=current} sourceFields+=LabelLiteral?
+            ('insert' values+=NameExpression+ |
+             'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
+             'delete') |
+        {infer TableFilterExpression.source=current} sourceFields+=LabelLiteral?
+            'filter' (condition=Expression |
+                NL+ (conditions+=Expression NL+)+ 'end') |
+        {infer TableSelectExpression.source=current} sourceFields+=LabelLiteral?
+            'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
+                NL+ (entries+=SelectEntry NL+)+ 'end') |
+        {infer AliasedTableExpression.source=current} field=LabelLiteral?
+            'alias' name=LabelLiteral |
+        {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY)
+            (fields+=SortField+ | key=NameExpression direction=WORD?) |
+        {infer KeyedGroupExpression.source=current} operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+ |
+        // A second primary is shared by ordinary calls and keyed operations.
+        // Normalize this temporary node to the public AST after parsing.
+        {infer PrimaryTailExpression.head=current} argument=PrimaryExpression (
+            operator=ROLLING_BY field=LabelLiteral |
+            operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
+            operator=(LEFTJOIN_ON | INNERJOIN_ON) NL* pairs+=JoinFieldPair+ |
+            operator=REACH_BY from=LabelLiteral to=LabelLiteral |
+            arguments+=ApplicationArgument*
+                ({infer MaterializeExpression.source=current} 'array')?
+        ) |
+        {infer ApplicationExpression.head=current} arguments+=NonPrimaryArgument
+            arguments+=ApplicationArgument*
+            ({infer MaterializeExpression.source=current} 'array')? |
+        ({infer MaterializeExpression.source=current} 'array')?
+    );
 
 TableWriteExpression:
     source=PrimaryExpression sourceFields+=LabelLiteral?
@@ -259,16 +300,6 @@ TableWriteExpression:
 TableWritePreviewExpression:
     mode=('sql' | 'explain') write=TableWriteExpression;
 
-TableFilterExpression:
-    source=PrimaryExpression sourceFields+=LabelLiteral?
-    'filter' (condition=Expression |
-        NL+ (conditions+=Expression NL+)+ 'end');
-
-TableSelectExpression:
-    source=PrimaryExpression sourceFields+=LabelLiteral?
-    'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
-        NL+ (entries+=SelectEntry NL+)+ 'end');
-
 SelectEntry:
     RecordField | SelectLocal;
 
@@ -278,45 +309,27 @@ SelectLocal:
 SortField:
     field=LabelLiteral direction=WORD?;
 
-AliasedTableExpression:
-    source=PrimaryExpression field=LabelLiteral?
-    'alias' name=LabelLiteral;
-
-KeyedSortExpression:
-    source=PrimaryExpression operator=(SORT_BY | ARGSORT_BY)
-    (fields+=SortField+ | key=NameExpression direction=WORD?);
-
-KeyedGroupExpression:
-    source=PrimaryExpression operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+;
-
-KeyedRollingExpression:
-    source=PrimaryExpression width=PrimaryExpression operator=ROLLING_BY field=LabelLiteral;
-
-KeyedJoinExpression:
-    left=PrimaryExpression right=PrimaryExpression
-    (operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
-     operator=(LEFTJOIN_ON | INNERJOIN_ON) NL* pairs+=JoinFieldPair+);
-
-KeyedReachExpression:
-    edges=PrimaryExpression starts=PrimaryExpression
-    operator=REACH_BY from=LabelLiteral to=LabelLiteral;
-
 JoinFieldPair:
     left=LabelLiteral 'equal' right=LabelLiteral;
 
 UnaryExpression returns Expression:
+    NonPrimaryExpression | PrimaryExpression;
+
+NonPrimaryExpression returns Expression:
     UnpackExpression |
     {infer UnaryExpression}
         operator=('+' | '-') operand=UnaryExpression |
     ArrayExpression |
-    RecordExpression |
-    PrimaryExpression;
+    RecordExpression;
 
 UnpackExpression:
     'unpack' value=PrimaryExpression;
 
 ApplicationArgument returns Expression:
-    UnpackExpression | PrimaryExpression | ArrayExpression;
+    NonPrimaryArgument | PrimaryExpression;
+
+NonPrimaryArgument returns Expression:
+    UnpackExpression | ArrayExpression;
 
 PrimaryExpression returns Expression:
     ArrayAtom | AllAxisExpression;

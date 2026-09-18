@@ -1,5 +1,6 @@
 import { type Module, type AstNode, type ParserOptions, inject, createLangiumParser } from 'langium';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
+import { normalizePrimaryApplications } from './primary-applications.js';
 import { isProgram } from './generated/ast.js';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { RankGeneratedModule, RankGeneratedSharedModule } from './generated/module.js';
@@ -33,6 +34,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
             parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
                 const result = parse<T>(input, options);
                 if (!result.lexerErrors.length && !result.parserErrors.length && isProgram(result.value)) {
+                    normalizePrimaryApplications(result.value);
                     groupExpressions(result.value, options as GroupingOptions);
                 }
                 return result;

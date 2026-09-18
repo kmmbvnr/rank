@@ -1,4 +1,4 @@
-import { EmptyFileSystem } from 'langium';
+import { AstUtils, EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -26,6 +26,57 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
+    it('restores keyed operands and their containers after sharing the application prefix', async () => {
+        const document = await parse([
+            'A = (Rows) (3) rolling by .time',
+            'B = (Left) (Right) leftjoin by .id',
+            'C = (Left) (Right) innerjoin on .id equal .key',
+            'D = (Edges) (Starts) reach by .src .dst',
+            'E = f (g (1)) array',
+            '(Items) push (Value)',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statements = document.parseResult.value.statements;
+        const values = statements.slice(0, 5).map(statement => {
+            if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+            return statement.value;
+        });
+        expect(values.map(value => value.$type)).toEqual([
+            'KeyedRollingExpression', 'KeyedJoinExpression', 'KeyedJoinExpression',
+            'KeyedReachExpression', 'MaterializeExpression',
+        ]);
+        for (const node of AstUtils.streamAst(document.parseResult.value)) {
+            expect(node.$type).not.toBe('PrimaryTailExpression');
+            for (const child of AstUtils.streamContents(node)) {
+                expect(child.$container).toBe(node);
+            }
+        }
+        expect(statements[5].$type).toBe('PushStatement');
+        expect(values[0]).toMatchObject({
+            source: { value: { name: 'Rows' } }, width: { value: { value: 3n } }, field: { name: 'time' },
+        });
+        expect(values[1]).toMatchObject({
+            left: { value: { name: 'Left' } }, right: { value: { name: 'Right' } }, fields: [{ name: 'id' }],
+        });
+        expect(values[2]).toMatchObject({ pairs: [{ left: { name: 'id' }, right: { name: 'key' } }] });
+        expect(values[3]).toMatchObject({
+            edges: { value: { name: 'Edges' } }, starts: { value: { name: 'Starts' } },
+            from: { name: 'src' }, to: { name: 'dst' },
+        });
+    });
+
+    it('keeps the operand boundaries of contextual operations', async () => {
+        for (const source of [
+            'X = A B C rolling by .time', 'X = A B C leftjoin by .id',
+            'X = A B C reach by .src .dst', 'X = A B first where Mask',
+            'X = A B leftjoin by .id array',
+        ]) {
+            const document = await parse(source);
+            expect(document.parseResult.parserErrors.length, source).toBeGreaterThan(0);
+        }
+    });
+
     it('parses short-circuiting sequence selectors', async () => {
         const document = await parse([
             'A = Values first where Mask',
