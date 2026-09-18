@@ -582,7 +582,10 @@ test('typing compound operators does not split them; a comma in text remains lit
     assert.equal(book.current.source, 'S = "one,');
     book.replace('A *');
     book.insert(',', true);
-    assert.equal(book.current.source, 'A *=');
+    assert.equal(book.current.source, 'A *= ');
+    book.replace('Total');
+    book.insert(',', true);
+    assert.equal(book.current.source, 'Total = ');
 });
 
 test('completion has one replaceable suggestion and is dismissed without execution', t => {

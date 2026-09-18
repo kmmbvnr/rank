@@ -298,6 +298,19 @@ export function formatLine(text: string): string {
     return collapseSpaces(spaceOperators(expandAssignKey(text)));
 }
 
+/**
+ * The assign key as it lands while it is typed: `,` becomes `=`, spaced the way
+ * the finished line would space it, and joined to a preceding `+`, `and` and the
+ * other compound operators. Returns the rewritten line prefix, or undefined
+ * where `=` cannot go — inside a text literal or a comment, where `,` is a comma.
+ */
+export function typeAssignKey(linePrefix: string, lineSuffix = ''): string | undefined {
+    if (insideText(linePrefix)) return undefined;
+    const typed = linePrefix + ',' + (lineSuffix.startsWith(' ') ? '' : ' ');
+    const expanded = expandAssignKey(typed);
+    return expanded === typed ? undefined : expanded;
+}
+
 /** True when the position sits inside a text literal or a comment. */
 export function insideText(prefix: string): boolean {
     const last = tokenize(prefix).at(-1);

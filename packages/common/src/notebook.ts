@@ -1,6 +1,6 @@
 import {
-    EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty, insideText,
-    nextIndent, scanLine, startsDedent,
+    EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty,
+    nextIndent, scanLine, startsDedent, typeAssignKey,
 } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import { editableRows, graphemes, type TextRow } from './screen.js';
@@ -266,17 +266,24 @@ export class Notebook {
     }
 
     insert(text: string, typed = false): void {
+        // The assign key rewrites the line it lands on, so it replaces any selection first.
+        if (typed && text === ',' && this.selection) this.replaceSelection('');
         if (this.selection) {
-            const range = this.selection;
-            const prefix = this.cells[range.start].source.slice(0, range.from);
-            if (typed && text === ',' && !insideText(prefix.slice(prefix.lastIndexOf('\n') + 1))) text = '=';
             this.replaceSelection(text);
             return;
         }
         const source = this.current.source;
         const prefix = source.slice(0, this.cursor);
-        if (typed && text === ',' && !insideText(prefix.slice(prefix.lastIndexOf('\n') + 1))) text = '=';
-        this.replace(prefix + text + source.slice(this.cursor), this.cursor + text.length);
+        const suffix = source.slice(this.cursor);
+        if (typed && text === ',') {
+            const start = prefix.lastIndexOf('\n') + 1;
+            const assign = typeAssignKey(prefix.slice(start), suffix.split('\n')[0]);
+            if (assign !== undefined) {
+                this.replace(source.slice(0, start) + assign + suffix, start + assign.length);
+                return;
+            }
+        }
+        this.replace(prefix + text + suffix, this.cursor + text.length);
     }
 
     newline(): void {
