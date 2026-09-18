@@ -239,6 +239,14 @@ function applicationType(expression: Expression, lookup: TypeLookup): Types {
     // Leading operands beyond the arity are addressing that the runtime folds
     // into one value first, so the operation still decides the result.
     if (parts.length - 1 < Math.min(...operation.arities)) return UNKNOWN;
+    if (operation.name === 'even' || operation.name === 'odd') {
+        // These predicates map over collections. Addressing or an unresolved
+        // call chain needs runtime information before its shape is known.
+        if (parts.length !== 2) return UNKNOWN;
+        const operand = typeOf(head, lookup);
+        if (same(operand, 'array') || same(operand, 'sequence')) return operand;
+        return within(operand, NUMBERS) ? ['boolean'] : UNKNOWN;
+    }
     return resultTypes(operation);
 }
 

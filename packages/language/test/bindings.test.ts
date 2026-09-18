@@ -240,6 +240,24 @@ describe('type facts', () => {
         expect(named(result, 'program', 'Size').types).toEqual(['integer']);
     });
 
+    it('preserves collection types for even and odd masks', async () => {
+        const result = await facts([
+            'use numbers',
+            'Values = array 1 2 3',
+            'Range = 1 to 3',
+            'Scalar = 2 even',
+            'ArrayMask = Values odd',
+            'SequenceMask = Range even',
+            'UnknownMask = Input odd',
+            'Addressed = Values 0 even',
+        ], ['Input']);
+        expect(named(result, 'program', 'Scalar').types).toEqual(['boolean']);
+        expect(named(result, 'program', 'ArrayMask').types).toEqual(['array']);
+        expect(named(result, 'program', 'SequenceMask').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'UnknownMask').types).toEqual([]);
+        expect(named(result, 'program', 'Addressed').types).toEqual([]);
+    });
+
     it('says nothing where nothing is proved', async () => {
         const result = await facts([
             'fun choose Flag',
