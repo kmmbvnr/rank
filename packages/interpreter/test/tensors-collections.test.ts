@@ -353,7 +353,7 @@ describe('Rank tensors and collections', () => {
         expect(() => run('use sequences\n42 copy'))
             .toThrowError('copy expects an array');
         expect(() => run('use sequences\nfibonacci copy'))
-            .toThrowError('copy expects an array');
+            .toThrowError('cannot materialize an infinite sequence');
         expect(() => run('A = array 1 2\nA copy'))
             .toThrowError('unknown name: copy');
     });
