@@ -34,6 +34,14 @@
         <div id="caret" aria-hidden="true"></div>
         <textarea id="input" aria-label="Rank terminal input" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" enterkeyhint="enter"></textarea>
     </main>
+    <div id="iteration-controls" hidden>
+        <button id="iteration-prev" type="button" aria-label="Previous loop iteration">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5v14l-9-7z"></path></svg>
+        </button>
+        <button id="iteration-next" type="button" aria-label="Next loop iteration">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5v14l9-7z"></path></svg>
+        </button>
+    </div>
     <button id="run-button" type="button" aria-label="Run through selected line; hold to run all from start">
         <svg class="run-progress" viewBox="0 0 72 72" aria-hidden="true">
             <rect class="run-progress-track" x="4" y="4" width="64" height="64" rx="20"></rect>

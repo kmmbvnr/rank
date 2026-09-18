@@ -17,6 +17,9 @@ const chrome = document.querySelector<HTMLElement>('#chrome')!;
 const menuToggle = document.querySelector<HTMLButtonElement>('#menu-toggle')!;
 const commands = document.querySelector<HTMLElement>('#commands')!;
 const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
+const iterationControls = document.querySelector<HTMLElement>('#iteration-controls')!;
+const iterationPrev = document.querySelector<HTMLButtonElement>('#iteration-prev')!;
+const iterationNext = document.querySelector<HTMLButtonElement>('#iteration-next')!;
 const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
 const stoppedMessage = () => compact() ? 'Stopped' : 'Stopped · Ctrl-L restart';
 function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
@@ -83,6 +86,9 @@ function render(): void {
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
         : repl.running ? 'Pause and debug; hold to stop' : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
+    // The steppers only make sense while the cursor sits on a loop being previewed.
+    iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
+    iterationPrev.disabled = iterationNext.disabled = busy;
     for (const button of commands.querySelectorAll<HTMLElement>('[data-debug]')) button.hidden = !shownPause;
     for (const button of commands.querySelectorAll<HTMLButtonElement>('button[data-key]')) {
         button.disabled = repl.running && button.dataset.key !== 'c'
@@ -276,6 +282,18 @@ function runAction(): void {
     else if (repl.running) { session.pause?.(); render(); }
     else void press({ name: 'r', ctrl: true });
 }
+async function moveIteration(direction: -1 | 1): Promise<void> {
+    if (busy || repl.running || !repl.liveIterationAvailable) return;
+    haptic('step');
+    // Arrows only step the iteration once the loop line is focused and being selected.
+    if (!repl.liveIterationFocus?.active) await press({ name: 'g', ctrl: true });
+    await press({ name: direction < 0 ? 'left' : 'right' });
+    input.focus({ preventScroll: true });
+}
+// Tapping a stepper must not move the keyboard focus out of the terminal input.
+iterationControls.addEventListener('pointerdown', event => event.preventDefault());
+iterationPrev.onclick = () => { void moveIteration(-1); };
+iterationNext.onclick = () => { void moveIteration(1); };
 let hold: { pointerId: number; x: number; y: number; timer?: ReturnType<typeof setTimeout>; long: boolean; running: boolean; action: 'stop' | 'continue' | 'restart' } | undefined;
 function rippleRunButton(x: number, y: number): void {
     const box = runButton.getBoundingClientRect();

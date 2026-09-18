@@ -54,6 +54,14 @@ export class NotebookRepl {
         return focus ? { ...focus, active: this.iterationSelecting } : undefined;
     }
     get liveIterationFocused(): boolean { return this.liveIterationFocus !== undefined; }
+    /** Whether an iteration can be stepped here: one is selected, or the cursor sits inside a loop. */
+    get liveIterationAvailable(): boolean {
+        if (this.liveIterationFocused) return true;
+        if (!this.liveEditing || this.examplePrompt || this.running || this.help || this.savePrompt) return false;
+        const source = this.notebook.current.source;
+        const line = source.slice(0, this.notebook.cursor).split('\n').length - 1;
+        return enclosingIterationLine(source, 0, line) !== undefined;
+    }
 
     get pauseSnapshot(): import('@arrrank/interpreter').PauseSnapshot | undefined {
         const pause = this.session.pauseState;
