@@ -115,7 +115,9 @@ export class KeyRouter {
         const example = repl.exampleEditor;
         if (example) {
             if (key.name === 'escape' || key.ctrl && key.name === 'c') repl.cancelExample();
-            else if (key.name === 'return' || key.name === 'enter') return { exit: await repl.submit() };
+            // Run (Ctrl-R, the mobile play button) accepts the typed example, exactly like Enter.
+            else if (key.name === 'return' || key.name === 'enter' || key.ctrl && key.name === 'r')
+                return { exit: await repl.submit() };
             else if (key.name === 'tab') repl.cycleExampleCandidate();
             else if (key.name === 'up' || key.name === 'down') repl.moveExampleField(key.name === 'up' ? -1 : 1);
             else if (key.name === 'backspace' || key.name === 'delete') example.erase(key.name === 'backspace');
