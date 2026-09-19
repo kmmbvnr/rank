@@ -1,0 +1,35 @@
+use testing
+
+test "official part 1 examples"
+  use "001_taxicab"
+
+  Answer = "R2, L3" solve
+  Answer 0 equal 5
+
+  Answer = "R2, R2, R2" solve
+  Answer 0 equal 2
+
+  Answer = "R5, L5, R5, R3" solve
+  Answer 0 equal 12
+end
+
+test "first block visited twice"
+  use "001_taxicab"
+
+  Answer = "R8, R4, R4, R8" solve
+  Answer equal array 8 4
+end
+
+test "no block is visited twice"
+  use "001_taxicab"
+
+  Answer = "R2, L3" solve
+  Answer 1 equal -1
+end
+
+test "returning to the start counts"
+  use "001_taxicab"
+
+  Answer = "R1, R1, R1, R1" solve
+  Answer equal array 0 0
+end

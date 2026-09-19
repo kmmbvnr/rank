@@ -1,0 +1,68 @@
+rem Advent of Code 2016 - Day 1
+rem No Time for a Taxicab
+rem https://adventofcode.com/2016/day/1
+
+use io
+use cli
+use text
+use numbers
+use sequences
+use algo
+
+argument Input path
+
+Answers = Input read solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the distance to the last block and to the first block visited twice.
+rem A part 2 of -1 means no block was visited twice.
+fun solve Text
+  Seen = new set
+  Seen add array 0 0
+  Part2 = -1
+  Last = array 0 0
+
+  for Pos in Text walk
+    Size = Seen len
+    Seen add Pos
+    if Part2 equal -1 and Seen len equal Size
+      Part2 = Pos abs sum
+    end
+    Last = Pos
+  end
+
+  Part1 = Last abs sum
+  return array Part1 Part2
+end
+
+
+rem Yield each block position after one step.
+rem The walk starts at the origin facing north. A right turn maps (X, Y)
+rem to (Y, -X): swap the coordinates and negate the second one. A left turn
+rem is the same with both signs flipped.
+fun walk Text
+  Pos = array 0 0
+  Dir = array 0 1
+  Swap = array 1 0
+  Signs = array 1 -1
+
+  for Token in Text words
+    Turn = Token 0
+    Steps = Token 1 drop integer
+
+    Dir = Dir Swap * Signs
+    if Turn equal "l"
+      Dir = 0 - Dir
+    end
+
+    for i in 0 until Steps
+      Pos = Pos + Dir
+      yield Pos
+    end
+  end
+end
