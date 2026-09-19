@@ -1,3 +1,21 @@
+import stringWidth from 'string-width';
+
+const graphemes = new Intl.Segmenter();
+
+/** Only plain ASCII is sure to advance by one cell, so pin every other glyph to the grid. */
+function pinned(text: string): Node {
+    const cell = document.createElement('span');
+    cell.style.display = 'inline-block';
+    cell.style.width = (stringWidth(text) || 1) + 'ch';
+    cell.style.textAlign = 'center';
+    // The glyph lives in its own span so the fallback font it picks cannot
+    // change the `ch` the cell is measured in.
+    const glyph = document.createElement('span');
+    glyph.textContent = text;
+    cell.append(glyph);
+    return cell;
+}
+
 /** Render the shared terminal's SGR spans without interpreting output as HTML. */
 export function paintLine(row: HTMLElement, line: string): void {
     const colors: Record<number, string> = {
@@ -10,7 +28,15 @@ export function paintLine(row: HTMLElement, line: string): void {
     function append(text: string): void {
         if (!text) return;
         const span = document.createElement('span');
-        span.textContent = text;
+        // A fallback font gives markers and letters outside ASCII their own advance,
+        // which shifts the rest of the row away from the cell the caret is drawn in.
+        if (/[^\x20-\x7e]/.test(text)) {
+            for (const part of text.split(/([^\x20-\x7e]+)/)) {
+                if (!part) continue;
+                if (!/[^\x20-\x7e]/.test(part)) span.append(part);
+                else for (const { segment } of graphemes.segment(part)) span.append(pinned(segment));
+            }
+        } else span.textContent = text;
         span.style.color = inverse ? '#000' : color;
         if (inverse) span.style.backgroundColor = color || '#e5e5e5';
         row.append(span);
