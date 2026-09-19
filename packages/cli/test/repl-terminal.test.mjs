@@ -268,7 +268,6 @@ test('the next-eval marker remains in the branch body while the iterator is sele
         { keys: '\x07', until: '←/→ select' },
         { keys: RIGHT.repeat(8), until: 'i = 9 · iteration 9' },
         '\x12',
-        '\x12',
         { keys: '\x1b', until: 'Ctrl-L run all' },
     ], 40, 18);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /\(array i i i\)/);
@@ -278,10 +277,9 @@ test('the next-eval marker remains in the branch body while the iterator is sele
     assert.match(frames[4].text, /else\n\s+branch runs/);
     assert.match(frames[4].text, /▶\s+\(array i i i\)/);
     assert.doesNotMatch(frames[4].text, /9 9 9/);
-    assert.match(frames[5].text, /▶\s+\(array i i i\)/);
-    assert.match(frames[6].text, /9 9 9/);
-    assert.match(frames[6].text, /▶\s+end/);
-    assert.doesNotMatch(frames[7].text, /▶/);
+    assert.match(frames[5].text, /9 9 9/);
+    assert.match(frames[5].text, /▶\s+end/);
+    assert.doesNotMatch(frames[6].text, /▶/);
 });
 
 test('leaving an unused top insertion row restores the original numbering', async t => {
@@ -308,7 +306,6 @@ test('Ctrl-R on an expression stops before the loop; returning from rank> edits 
         '\x12',
         '\x12',
         '\x12',
-        '\x12',
         { keys: '\x1b', until: 'Ctrl-R run' },
         '\x1b',
         UP,
@@ -317,11 +314,11 @@ test('Ctrl-R on an expression stops before the loop; returning from rank> edits 
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /for i in 10 to 100/);
     assert.match(frames[4].text, /Enter newline · \^R step/);
     assert.match(frames[5].text, /i = 10 · iteration 1/);
-    assert.match(frames[7].text, /\(array i\)\n\s+10/);
-    assert.match(frames[9].text.split('\n')[frames[9].cursorY], /^rank> /);
+    assert.match(frames[6].text, /\(array i\)\n\s+10/);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /^rank> /);
+    assert.doesNotMatch(frames[9].text, /iteration 1/);
+    assert.match(frames[9].text, /Ctrl-R run · Ctrl-L run all/);
     assert.doesNotMatch(frames[10].text, /iteration 1/);
-    assert.match(frames[10].text, /Ctrl-R run · Ctrl-L run all/);
-    assert.doesNotMatch(frames[11].text, /iteration 1/);
 });
 
 test('completed loop headers reopen with Ctrl-R and Ctrl-G, then Esc restores editing', async t => {
@@ -337,7 +334,6 @@ test('completed loop headers reopen with Ctrl-R and Ctrl-G, then Esc restores ed
         { keys: '\x1b', until: 'Ctrl-R run' },
         '\x12',
         '\x12',
-        '\x12',
     ], 40, 14);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /for i in 10 to 100/);
     assert.match(frames[3].text.split('\n')[frames[3].cursorY], /i = 10 · iteration 1/);
@@ -348,9 +344,8 @@ test('completed loop headers reopen with Ctrl-R and Ctrl-G, then Esc restores ed
     assert.match(frames[7].text, /i = 11 · iteration 2/);
     assert.match(frames[8].text, /Ctrl-R run · Ctrl-L run all/);
     assert.match(frames[8].text.split('\n')[frames[8].cursorY], /for i in 10 to 100/);
-    assert.match(frames[10].text.split('\n')[frames[10].cursorY], /\(array i\) len/);
-    assert.doesNotMatch(frames[10].text, /\(array i\) len\n\s+1/);
-    assert.match(frames[11].text, /\(array i\) len\n\s+1/);
+    assert.match(frames[9].text, /i = 10 · iteration 1/);
+    assert.match(frames[10].text, /\(array i\) len\n\s+1/);
 });
 
 test('iteration selection needs Enter or Ctrl-G on a 40-column terminal', async t => {

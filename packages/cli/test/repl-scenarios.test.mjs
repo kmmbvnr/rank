@@ -613,8 +613,6 @@ test('the next-eval marker stays at the recalculation boundary while selecting a
         assert.equal(s.repl.liveOutputs.has(6), false);
         assert.match(clean(frame().lines.join('\n')), /▶\s+\(array i i i\)/);
         await s.ctrlR();
-        assert.match(clean(frame().lines.join('\n')), /▶\s+\(array i i i\)/);
-        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(6).map(line => line.text), ['9 9 9']);
         assert.match(clean(frame().lines.join('\n')), /▶\s+end/);
         await s.esc();
@@ -622,7 +620,7 @@ test('the next-eval marker stays at the recalculation boundary while selecting a
     } finally { s.session.dispose(); }
 });
 
-test('repeated Ctrl-R behaves like Enter throughout evaluation and stops being an alias after Esc', async () => {
+test('repeated Ctrl-R evaluates line by line and stops being an Enter alias after Esc', async () => {
     const s = scenario();
     try {
         await s.type('Before = 0');
@@ -636,11 +634,9 @@ test('repeated Ctrl-R behaves like Enter throughout evaluation and stops being a
         const source = s.book.current.source;
         await s.ctrlR();
         assert.equal(s.repl.iterationSelecting, true);
+        // Run leaves the iteration and evaluates the next line in the same press.
         await s.ctrlR();
         assert.equal(s.repl.liveIterationFocused, false);
-        assert.equal(s.book.cursor, source.indexOf('\nend'));
-        assert.equal(s.repl.liveOutputs.has(2), false);
-        await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['1']);
         assert.equal(s.book.cursor, source.length);
         await s.ctrlR();

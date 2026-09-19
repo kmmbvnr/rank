@@ -101,6 +101,9 @@ export class KeyRouter {
             repl.insertEvaluationLine();
             return { exit: false };
         }
+        // Run leaves the iteration it just previewed behind instead of spending a
+        // press on releasing it; only the arrows stay to pick another iteration.
+        if (key.ctrl && key.name === 'r' && repl.liveIterationFocused) leaveIteration(repl);
         if (key.ctrl && key.name === 'r' && repl.advancing) {
             key = { name: 'return' };
             text = '\r';
@@ -138,14 +141,8 @@ export class KeyRouter {
                 return { exit: false };
             }
             if (key.name === 'return' || key.name === 'enter') {
-                if (repl.iterationSelecting) {
-                    const line = repl.liveIterationFocus!.line;
-                    const lines = book.current.source.split('\n');
-                    const headerEnd = lines.slice(0, line).join('\n').length;
-                    repl.releaseLiveIteration();
-                    if (book.cursor <= headerEnd)
-                        book.cursor = lines.slice(0, Math.min(line + 1, lines.length)).join('\n').length;
-                } else repl.iterationSelecting = true;
+                if (repl.iterationSelecting) leaveIteration(repl);
+                else repl.iterationSelecting = true;
                 return { exit: false };
             }
             if (key.name === 'escape') {
@@ -235,4 +232,15 @@ export class KeyRouter {
         }
         return { exit: false };
     }
+}
+
+/** Drops the iteration highlight and puts the cursor on the first body line. */
+function leaveIteration(repl: NotebookRepl): void {
+    const book = repl.notebook;
+    const line = repl.liveIterationFocus!.line;
+    const lines = book.current.source.split('\n');
+    const headerEnd = lines.slice(0, line).join('\n').length;
+    repl.releaseLiveIteration();
+    if (book.cursor <= headerEnd)
+        book.cursor = lines.slice(0, Math.min(line + 1, lines.length)).join('\n').length;
 }
