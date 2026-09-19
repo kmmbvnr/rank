@@ -74,6 +74,7 @@ Adults = Data Mask
 - [Product decisions](design/product-decisions.md)
 - [Value semantics](design/value-semantics.md)
 - [Open questions](design/open-questions.md)
+- [Abstract interpretation and shape inference](design/abstract-interpretation-shape-inference.md)
 - [Competitive-programming library roadmap](design/competitive-programming-library.md)
 
 ## Marketing

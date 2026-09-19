@@ -91,6 +91,7 @@ execution direction and its semantic requirements.
 - [Simpler table programs: design decision](design/table-query-ergonomics.md)
 - [Performance roadmap: remaining work](design/performance-roadmap.md)
 - [Tensor fusion improvement plan](design/tensor-fusion-plan.md)
+- [Abstract interpretation and symbolic shape inference](design/abstract-interpretation-shape-inference.md)
 - [NPU and GPU tensor backends: research notes](design/npu-backends.md)
 - [Mobile hardware and live shaders](design/mobile-graphics.md)
 - [Parallel tensor worker results](design/tensor-workers-results.md)
