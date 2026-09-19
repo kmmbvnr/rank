@@ -55,6 +55,21 @@ tractable and exact:
    Langium. Diagnostics can be emitted directly through `ValidationAcceptor` in
    [`RankValidator`](../packages/language/src/rank-validator.ts) to highlight
    errors inline in the editor as code is typed.
+5. **Line-level error localization (no pipeline obscurity):**
+   In languages relying on long vertical or point-free pipelines
+   (`data.filter(...).map(...).reduce(...).window(...)`), compiler and runtime
+   errors are notoriously difficult to localize. The failure often blames a
+   200-character line or a nested lambda deep within a monolithic chain where
+   intermediate shapes are completely invisible.
+
+   In Rank, because lines are strictly budgeted to ~40 characters and
+   intermediate variables are explicitly named (`Digits`, `Windows`,
+   `Products`), **every line corresponds to exactly one transformation step**.
+   When an error occurs, the validator does not report a vague failure in the
+   middle of a pipeline; it reports the failure directly on the specific line,
+   referencing the named input operand, its known shape, and the contradictory
+   operation. On small mobile screens, this produces compact, non-wrapping
+   diagnostics that immediately explain what went wrong.
 
 ---
 
@@ -226,6 +241,27 @@ The validator runs in memory as a non-executing traversal over the Langium AST:
 
 The pass executes within milliseconds on programs up to hundreds of lines,
 making it suitable for live typing in both the CLI and mobile web environments.
+
+### Line-level diagnostic presentation
+
+Compare how an axis/rank mismatch is presented:
+
+**In a monolithic fluent pipeline (JavaScript / Python):**
+```text
+TypeError: axis 2 is out of bounds for array of dimension 2
+at line 42: Data.filter(x => x > 0).window(5).map(w => w.sum()).reduce((a, b) => a + b, axis=2)...
+                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+```
+*The developer must mentally unpack what shape `filter` returned, what `window` produced, and how `map` affected the axes before understanding why axis 2 is invalid.*
+
+**In Rank:**
+```rank
+4 | Windows = Digits 5 window
+5 | Total = Windows * reduce rank 3
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Cannot reduce rank 3: 'Windows' has rank 2 (shape [N - 4, 5])
+```
+*The error is anchored directly to line 5, names the single intermediate variable `Windows`, displays its known rank and shape, and explains the invalid reduction in a concise 1-2 line message tailored for small screens.*
 
 ---
 
