@@ -1,0 +1,78 @@
+rem Advent of Code 2016 - Day 2
+rem Bathroom Security
+rem https://adventofcode.com/2016/day/2
+
+use io
+use cli
+use sequences
+
+argument Input path
+
+Answers = Input readlines solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the door codes for the square and the diamond keypad.
+fun solve Lines
+  Square = (
+    "....."
+    + ".123."
+    + ".456."
+    + ".789."
+    + "....."
+  )
+  Diamond = (
+    "......."
+    + "...1..."
+    + "..234.."
+    + ".56789."
+    + "..ABC.."
+    + "...D..."
+    + "......."
+  )
+
+  Part1 = Lines Square 5 code
+  Part2 = Lines Diamond 7 code
+  return array Part1 Part2
+end
+
+
+rem Walk every line on a keypad and collect the key where each line ends.
+rem The keypad is one text with a border of dots, so a move is a fixed offset
+rem and a dot means there is no key to step onto.
+fun code Lines Pad Width
+  Pos = Pad "5" find
+  Code = ""
+
+  for Line in Lines
+    for C in Line
+      Move = C Width offset
+      Next = Pos + Move
+      if Pad Next not equal "."
+        Pos = Next
+      end
+    end
+    Code += Pad Pos
+  end
+
+  return Code
+end
+
+
+rem Return how far one direction moves on a keypad of the given width.
+fun offset C Width
+  if C equal "U"
+    return 0 - Width
+  end
+  if C equal "D"
+    return Width
+  end
+  if C equal "L"
+    return -1
+  end
+  return 1
+end

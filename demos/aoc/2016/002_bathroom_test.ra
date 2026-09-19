@@ -1,0 +1,24 @@
+use testing
+
+test "official example"
+  use "002_bathroom"
+
+  Lines = array shape 4
+    "ULL"
+    "RRDDD"
+    "LURDL"
+    "UUUUD"
+  end
+
+  Lines solve equal array "1985" "5DB3"
+end
+
+test "walls keep the finger in place"
+  use "002_bathroom"
+
+  Lines = array shape 1
+    "UUUULLLL"
+  end
+
+  Lines solve equal array "1" "5"
+end
