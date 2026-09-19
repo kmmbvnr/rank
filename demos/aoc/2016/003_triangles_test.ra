@@ -1,0 +1,28 @@
+use testing
+
+test "impossible triangle"
+  use "003_triangles"
+
+  Answer = "5 10 25\n3 4 5\n3 4 5" solve
+  Answer 0 equal 2
+end
+
+test "rows and columns give different counts"
+  use "003_triangles"
+  use text
+
+  Lines = array shape 9
+    "101 301 501"
+    "102 302 502"
+    "103 303 503"
+    "201 202 203"
+    "201 202 203"
+    "201 202 203"
+    "5 10 25"
+    "5 10 25"
+    "5 10 25"
+  end
+
+  Answer = Lines "\n" join solve
+  Answer equal array 3 9
+end
