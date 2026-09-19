@@ -13,7 +13,7 @@ import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
-    isRecordExpression, isStdinExpression, isStringLiteral, isUnaryExpression,
+    isRecordExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type Expression,
 } from '../generated/ast.js';
@@ -111,7 +111,7 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isNumberLiteral(expression)) {
         return typeof expression.value === 'bigint' ? ['integer'] : ['real'];
     }
-    if (isStringLiteral(expression)) return ['text'];
+    if (isStringLiteral(expression) || isTextBlockExpression(expression)) return ['text'];
     if (isBooleanLiteral(expression)) return ['boolean'];
     if (isLabelLiteral(expression)) return ['symbol'];
     if (isArrayExpression(expression) || isMaterializeExpression(expression)) return ['array'];

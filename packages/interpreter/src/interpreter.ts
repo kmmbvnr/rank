@@ -33,6 +33,7 @@ import {
     isAllAxisExpression,
     isArrayAssignmentStatement,
     isArrayExpression,
+    isTextBlockExpression,
     isArgsStatement,
     isArgumentStatement,
     isApplicationExpression,
@@ -1757,6 +1758,10 @@ export class Interpreter {
         };
         if (isNumberLiteral(expression) || isBooleanLiteral(expression) || isStringLiteral(expression)) {
             return () => expression.value;
+        }
+        if (isTextBlockExpression(expression)) {
+            const value = expression.parts.join(expression.mode === 'lines' ? '\n' : '');
+            return () => value;
         }
         if (isLabelLiteral(expression)) return () => ({ kind: 'label', name: expression.name });
         if (isNameExpression(expression)) {

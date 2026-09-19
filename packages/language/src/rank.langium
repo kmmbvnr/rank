@@ -55,7 +55,7 @@ Statement:
     ExpressionOrPushStatement;
 
 UseStatement:
-    'use' (module=WORD | path=STRING ('as' alias=Identifier)?);
+    'use' (module=(WORD | 'text') | path=STRING ('as' alias=Identifier)?);
 
 RunStatement:
     'run' path=STRING?;
@@ -80,7 +80,7 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement:
-    ('fun' | memo?='memo') name=(WORD | 'first' | 'take' | 'update') parameters+=Identifier* NL+
+    ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update') parameters+=Identifier* NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
@@ -170,6 +170,11 @@ ArrayExpression:
         ) |
         items+=ArrayItem+
     );
+
+// One quoted line per source line, glued or joined by `lines`. `rem` lines are
+// hidden and blank lines collapse into NL+, so only the quoted lines remain.
+TextBlockExpression:
+    'text' mode=WORD? NL+ (parts+=STRING NL+)* 'end';
 
 RecordExpression:
     'record' NL+
@@ -267,6 +272,7 @@ PowerExpression returns Expression:
 ApplicationExpression returns Expression:
     PrimaryApplicationExpression |
     TableWritePreviewExpression |
+    TextBlockExpression |
     NonPrimaryExpression
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
@@ -445,7 +451,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete';
+    VARIABLE | WORD | 'text' | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -454,7 +460,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update';
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

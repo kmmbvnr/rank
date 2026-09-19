@@ -663,6 +663,45 @@ Text is a rank-1 sequence of Unicode code points. One code point is an atomic
 text. The editor should make quotes cheap to enter, but quotes remain ordinary
 source syntax.
 
+A quoted literal understands `\n`, `\t`, `\"` and `\\`.
+
+### Multiline text
+
+`text … end` writes one text across several source lines, so a keypad, map or
+lookup row can use the whole width of a narrow screen. Every line inside the
+block is an ordinary quoted literal. By default the lines are glued into one
+text with nothing between them; the value is still a rank-1 sequence of code
+points, so a grid is addressed with its width:
+
+```rank
+Pad = text
+  "....."
+  ".123."
+  ".456."
+  ".789."
+  "....."
+end
+Key = Pad 6
+rem "1"
+```
+
+`text lines … end` joins the lines with `\n` instead, and there is no trailing
+line break:
+
+```rank
+Message = text lines
+  "First line"
+  "Second line"
+end
+```
+
+The quotes make every space explicit, so `"  #  "` keeps its leading and
+trailing spaces. `rem` lines and blank lines between the quoted lines are
+ignored. A block is the whole right side of an assignment, with nothing after
+`end`; name the text before applying anything to it. Any other word after
+`text` is a syntax error. `text` remains an ordinary function and module name
+everywhere else, as in `Number text` and `use text`.
+
 ---
 
 # Modules, programs and inputs
