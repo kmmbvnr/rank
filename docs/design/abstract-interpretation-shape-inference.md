@@ -177,7 +177,90 @@ The abstract interpreter defines transfer rules for each Rank primitive:
 
 ---
 
-## 5. Bidirectional function parameter inference
+## 5. Variable reassignment: Flow-sensitive typing vs. loop invariants
+
+Rank's runtime enforces that a variable cannot change its primitive element
+type (`packages/interpreter/src/interpreter.ts:3754`):
+```rank
+A = 1
+A = "text"   <-- Throws: 'A has type integer and cannot receive text'
+```
+
+A crucial design question is: **does introducing shape typing mean a
+variable's shape must also be globally invariant across assignments?**
+
+### Empirical evidence: Why global shape freezing is rejected
+
+An analysis of the repository's `demos/` directory shows **524 files** and
+**1,265 variables** with reassignments. In canonical Rank programs, variables
+routinely change their rank, length, or table schema across execution steps:
+
+1. **Rank transition (1D vector to 2D matrix):**
+   In [`demos/cses/tree/012_pathqueries2.ra`](../../demos/cses/tree/012_pathqueries2.ra):
+   ```rank
+   18: Queries = stdin .integer (Q * 3) array   # 1D vector (rank 1)
+   19: Queries = Queries (array Q 3) reshape    # 2D matrix [Q, 3] (rank 2)
+   ```
+2. **Length changes via filtering:**
+   In [`demos/euler/002_evenfib.ra`](../../demos/euler/002_evenfib.ra) and
+   `demos/pgexercises/`:
+   ```rank
+   R = Db .bookings
+   R = R filter ...   # Filtered subset; row count dynamically changes
+   ```
+3. **Table column schema evolution:**
+   ```rank
+   R = B F innerjoin by .facid
+   R = R select .facid .slots   # Column schema narrows to two fields
+   ```
+
+Freezing variable shapes globally would break more than half the existing
+demos and force artificial variable names (`RawQueries`, `MatrixQueries`,
+`FilteredR`), violating the 40-column budget and idiomatic Rank style.
+
+### The rule: Flow-sensitive typing in sequential code
+
+In sequential code, the validator tracks shapes using **flow-sensitive
+typing** (analogous to SSA versions $V_1 \to V_2$):
+- Each assignment `V = expr` updates the known shape of `V` for subsequent
+  lines.
+- At line 18, `Queries` has shape `[Q * 3]` (rank 1).
+- At line 19, after `reshape`, `Queries` is tracked as shape `[Q, 3]` (rank 2).
+- Subsequent lines validate against the rank-2 matrix.
+- The primitive element type (`elemType: integer`) remains invariant, adhering
+  to existing runtime rules.
+
+### The strict exception: Loop-carried shape invariants
+
+The single place where changing shape is **strictly prohibited** is inside a
+loop body for variables carried across iterations (`loopCarried: true` in
+[`analysis/bindings.ts`](../packages/language/src/analysis/bindings.ts)):
+
+```rank
+rem FORBIDDEN: Growing an array inside a loop
+Arr = 1 to 5 array
+for i in 1 to N
+  Arr = Arr (array i) join   <-- ERROR: Loop-carried 'Arr' cannot change shape across iterations
+end
+```
+
+**Rationale:**
+- **Algorithmic efficiency:** Repeated array concatenation or resizing inside a
+  loop introduces hidden $O(N^2)$ memory reallocation and garbage collection
+  churn, violating Rank's core design for "big algorithms".
+- **Mechanical sympathy & compilation:** A loop-carried variable with a stable
+  shape allows fixed-buffer memory reuse and direct lowering into fast Rust
+  loops or C kernels. Variable-shaped accumulators prevent vectorization.
+- **Idiomatic Rank style:** Rank provides whole-array primitives (`window`,
+  `outer`, `scan with Seed`, `array shape N fill 0`) to construct collections
+  without imperative growing loops.
+- **Formal rule:** If variable $V$ is read and written in the same loop
+  (`loopCarried == true`), its rank and shape must be an invariant:
+  $$\text{Shape}(V_{\text{in}}) = \text{Shape}(V_{\text{out}})$$
+
+---
+
+## 6. Bidirectional function parameter inference
 
 User functions in Rank do not declare parameter types:
 
@@ -211,7 +294,7 @@ inference:
 
 ---
 
-## 6. Architecture of the dry-run validator
+## 7. Architecture of the dry-run validator
 
 The validator runs in memory as a non-executing traversal over the Langium AST:
 
@@ -265,15 +348,17 @@ at line 42: Data.filter(x => x > 0).window(5).map(w => w.sum()).reduce((a, b) =>
 
 ---
 
-## 7. Implementation roadmap
+## 8. Implementation roadmap
 
-### Stage 1: Static Rank (Dimensionality) Checker
+### Stage 1: Static Rank (Dimensionality) Checker & Loop Invariant Enforcement
 *Focus: Catch dimension and axis count bugs immediately with minimal complexity.*
 - Extend `analysis/types.ts` with `rank: number` metadata for every `Types`
   result.
 - Check reductions: enforce $0 \le K < \text{rank}$ on all `reduce rank K`.
 - Check axis operations: enforce $0 \le A < \text{rank}$ on `axis A`.
 - Check selectors: enforce selector count $\le \text{rank}$ on `#` slice chains.
+- Enforce loop invariants: flag any `loopCarried` variable whose rank differs
+  between loop entry and loop iteration end.
 - Hook diagnostics into `RankValidator.checkExpressions`.
 
 ### Stage 2: Literal & Affine Shape Propagation
@@ -283,6 +368,7 @@ at line 42: Data.filter(x => x > 0).window(5).map(w => w.sum()).reduce((a, b) =>
 - Compute affine shapes for `window` (`[N - K + 1, K]`) and `outer`
   (`[*shapeA, *shapeB]`).
 - Validate binary elementwise operations when both operand shapes are known.
+- Enforce exact shape invariance for loop-carried variables where known.
 
 ### Stage 3: Call-Site Function Inference
 *Focus: Check function bodies and call sites without type annotations.*
