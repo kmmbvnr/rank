@@ -41,10 +41,11 @@ for (const compiled of [true, false]) describe(`comparison rank (compiled: ${com
             .toBe('true true true true true false');
     });
 
-    it('broadcasts frames, handles empty frames and tracks mutations', () => {
+    it('broadcasts frames, handles empty frames and keeps a named result', () => {
         expect(run('A = array shape 2 3 fill 1\nB = array 1 1 1\nA B equal rank 1')).toBe('true true');
         expect(run('A = array shape 0 3 fill 1\nB = array 1 1 1\nR = A B equal rank 1\nR shape')).toBe('0');
-        expect(run(matrix + 'R = A B equal rank 1\nBefore = R 0\nB 0 1 = 1\nR 0')).toBe('true');
+        expect(run(matrix + 'R = A B equal rank 1\nBefore = R 0\nB 0 1 = 1\nR 0')).toBe('false');
+        expect(run(matrix + 'R = A B equal rank 1\nB 0 1 = 1\n(A B equal rank 1) 0')).toBe('true');
         expect(() => run('A = array shape 2 3 fill 1\nB = array shape 4 3 fill 1\nA B equal rank 1'))
             .toThrow('shape mismatch');
     });

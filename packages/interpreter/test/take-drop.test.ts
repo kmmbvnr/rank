@@ -78,7 +78,7 @@ Prefix = Tail 1 take`);
         expect(run('use sequences\nfun values\n  yield 1\nend\nvalues 9 drop copy len')).toBe('0');
     });
 
-    it('slices the leading array axis lazily and tracks source mutation', () => {
+    it('slices the leading array axis lazily and keeps a named slice', () => {
         const source = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
         const tail = takeDropValue(source, 1n, true);
         expect(isRankArray(tail)).toBe(true);
@@ -90,7 +90,8 @@ M = A (array 3 2 2) reshape
 T = M 1 drop 1 take`);
         expect(runtime.execute('T copy')).toMatchObject({ shape: [1, 2, 2], items: [5n, 6n, 7n, 8n] });
         runtime.execute('M 1 0 0 = 99');
-        expect(runtime.execute('T 0 0 0')).toBe(99n);
+        expect(runtime.execute('T 0 0 0')).toBe(5n);
+        expect(runtime.execute('(M 1 drop 1 take) 0 0 0')).toBe(99n);
         expect(runtime.execute('M 99 drop shape')).toMatchObject({ items: [0n, 2n, 2n] });
         expect(run('use sequences\nM = array shape 3 0 fill 0\nM 1 drop shape')).toBe('2 0');
         expect(run('use sequences\n(array 1 2 3) 9999999999999999999999999 take')).toBe('1 2 3');

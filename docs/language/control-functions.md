@@ -429,8 +429,10 @@ end
 ```
 
 `yield Value` emits exactly one sequence item and suspends the function. An
-array or other collection is one item and is not flattened. Local variables
-retain their values between yields. Errors in the body are raised only when
+array or other collection is one item and is not flattened. The consumer
+receives a value, so a generator may reuse one buffer between yields without
+changing what it already emitted. Local variables retain their values between
+yields. Errors in the body are raised only when
 iteration reaches the failing statement.
 
 User generators are single-pass because they may read input, use files or

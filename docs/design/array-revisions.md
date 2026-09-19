@@ -22,7 +22,18 @@ revision updates only when the region cannot observe intermediate changes
 through lazy inputs, iterators, container operations or user calls. The first
 write publishes a revision, including when execution subsequently raises.
 
-Unknown host buffers do not provide reliable revisions and use uncached reads.
+Unknown host buffers do not provide reliable revisions, so a reader over one
+cannot prove a cell still holds. What it can do is bound how long a stale cell
+could go unnoticed: only the embedder writes such a buffer, and only while it
+has control. Cells read from one are kept for a single stretch of work the
+embedder asked for — one `execute`, one call into a Rank function, or one read
+of a lazy value it holds — and dropped when control returns. No cache crosses
+that boundary, so what an embedder reads is as live as before, while a chain of
+readers within one stretch costs its depth once rather than once per cell.
+Without that bound, a step that reads the step before it twice — gradient
+descent — costs an exponent in its number of steps. A host function called back
+from Rank runs inside the stretch, not outside it, so a buffer it writes there
+is seen on the next one.
 Replacing public storage or installing accessors disables the fast proof.
 Tracked JSON/CSV rows and grouped/joined tables preserve dependency metadata.
 Pure builtin tensor operations are covered; this does not introduce automatic
@@ -94,7 +105,8 @@ Three small runtime changes address observed overhead:
   `(1 to N) array` produced an untracked buffer, so downstream tensor caches
   could not reuse their cells. This was the main problem in Euler 009.
 - A derived reader reuses its local validation result within the same write
-  epoch. Unknown host buffers still read live and retain no cell cache.
+  epoch. Unknown host buffers still read live across a return to the host; see
+  above for the cell cache they keep inside one stretch of work.
 - Compiled loops prepare tensor readers and writers only for array slots.
   Scalar and container variables no longer allocate unused tensor accessors.
 

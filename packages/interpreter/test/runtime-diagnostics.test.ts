@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { currentDiagnostics } from '../src/diagnostics.js';
-import { derivedArray, ownedArray } from '../src/array-storage.js';
+import { createArraySnapshot, derivedArray, ownedArray } from '../src/array-storage.js';
 import type { RankArray } from '../src/value.js';
 
 describe('runtime diagnostics and stable tensor reads', () => {
@@ -31,8 +31,11 @@ describe('runtime diagnostics and stable tensor reads', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { tensorReadHoisting });
         try {
-            stats.run(() => runtime.execute(`A = array 1 2 3
-B = A * 2`));
+            // Naming B freezes A against Rank writes, so the invalidation this
+            // test is about comes through storage the embedding still owns.
+            const source = createArraySnapshot([1n, 2n, 3n]);
+            runtime.variables.set('A', source);
+            stats.run(() => runtime.execute('B = A * 2'));
             (runtime.variables.get('B') as RankArray).items;
             const before = stats.validationRequests;
             expect(stats.run(() => runtime.execute(`Total = 0
@@ -44,7 +47,7 @@ Total`))).toBe(200n);
             expect(stats.hoistedReaders).toBe(tensorReadHoisting ? 1 : 0);
             if (tensorReadHoisting) expect(stats.validationRequests - before).toBeLessThan(10);
             else expect(stats.validationRequests - before).toBeGreaterThanOrEqual(100);
-            runtime.execute('A 0 = 7');
+            source.items[0] = 7n;
             // An invalidated cache is not materialized speculatively at loop entry.
             expect(stats.run(() => runtime.execute(`Total = 0
 for I in 0 until 2
@@ -55,23 +58,24 @@ Total`))).toBe(28n);
         } finally { runtime.dispose(); }
     });
 
-    it('retains checks when writes through an alias affect the cached tensor', () => {
+    // A second name cannot reach the cached tensor at all: its first write takes
+    // a copy, so the cache needs no invalidation.
+    it('keeps a cached tensor clear of writes through another name', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
             stats.run(() => runtime.execute(`A = array 1
-Alias = A
+Other = A
 B = A * 2`));
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute(`Total = 0
 for I in 1 to 3
-  Alias 0 = I
+  Other 0 = I
   Total += B 0
 end
-Total`))).toBe(12n);
+Total`))).toBe(6n);
             expect(stats.compiledLoops).toBe(1);
-            expect(stats.hoistedReaders).toBe(0);
-            expect(stats.invalidations).toBe(3);
+            expect(stats.invalidations).toBe(0);
         } finally { runtime.dispose(); }
     });
 

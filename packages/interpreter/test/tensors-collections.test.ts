@@ -212,9 +212,15 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('-1 -1 -1 7 -1 -1');
         expect(run([
             'A = array shape 2 fill 0',
-            'Alias = A',
+            'Other = A',
             'A 1 = 9',
-            'Alias 1',
+            'Other 1',
+        ].join('\n'))).toBe('0');
+        expect(run([
+            'A = array shape 2 fill 0',
+            'Other = A',
+            'A 1 = 9',
+            'A 1',
         ].join('\n'))).toBe('9');
         expect(run('Empty = array shape 0 3 fill 5\nEmpty')).toBe('');
     });

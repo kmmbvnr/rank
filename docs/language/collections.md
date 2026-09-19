@@ -203,7 +203,10 @@ A Row Column = Value
 ```
 
 An `index` writes a sparse tuple key. An array write requires one in-bounds
-index per dense axis and changes the existing material array.
+index per dense axis and changes the array this name holds; a second name that
+was given the same array keeps what it was given. An `index` is a reference
+structure, so every name for it sees the write. See
+[values and sharing](values-addressing.md#values-and-sharing).
 
 ### Set
 

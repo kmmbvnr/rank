@@ -182,10 +182,11 @@ from its initial value and keeps that type on later direct or compound
 assignment. `Value type` returns `.record`, and `Value is .record` is its
 type guard.
 
-Records have reference semantics. Assignment, function arguments and storage
-inside another structure preserve the same record identity, so mutation through
-one alias is visible through the others. Addressing may continue through arrays,
-queues and nested records:
+Records have reference semantics, one of the few exceptions to
+[values and sharing](values-addressing.md#values-and-sharing). Assignment,
+function arguments and storage inside another structure preserve the same record
+identity, so mutation through one alias is visible through the others.
+Addressing may continue through arrays, queues and nested records:
 
 ```rank
 Tape 0 .grad += Change
@@ -194,8 +195,10 @@ Node .parent .grad += Change
 
 Equality is structural even though mutation is shared by reference. Two records
 are equal when they contain the same field names and recursively equal values;
-field declaration order does not matter. Records may therefore be used as set
-elements. `print` includes their fields in declaration order so a result remains
+field declaration order does not matter. A record may be used as a set element,
+but its identity travels with it: changing a field afterwards changes the
+element in place and the set no longer matches it by its stored key. Store a
+value the set can keep, or leave the record unchanged while the set holds it. `print` includes their fields in declaration order so a result remains
 useful to a person and to a line-oriented grader:
 
 ```rank

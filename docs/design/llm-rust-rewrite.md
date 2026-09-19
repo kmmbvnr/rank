@@ -38,6 +38,13 @@ project starts with a compile-time placeholder; the agent supplies the Rust.
 The package can also write just the task to stdout for an agent's stdin or a
 chat attachment. It does not select a provider or run an agent automatically.
 
+Rank has [value semantics](value-semantics.md): a name holds its own value, so
+an array is owned storage in Rust rather than shared mutable state. This is the
+rule a port drops most quietly, because the natural Rust translation of shared
+storage does not compile and the natural compiling translation is a different
+program. `demos/structures/sharing.ra` probes each place that can go wrong; its
+output is the oracle.
+
 The agent may fuse pure sequences, masks, outer products and reductions into
 loops. Named intermediates should not require temporary arrays. It must preserve
 boundaries, evaluation order, integer semantics and observable effects. The

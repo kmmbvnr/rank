@@ -4,7 +4,7 @@ import { registerFlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem } from './array-storage.js';
+import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem, arrayForWrite, noteArrayBinding, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
@@ -493,6 +493,11 @@ export class Interpreter {
     }
 
     execute(source: string): RankValue | undefined {
+        enterRuntime();
+        try { return this.executeSource(source); } finally { leaveRuntime(); }
+    }
+
+    private executeSource(source: string): RankValue | undefined {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
         });
@@ -1558,6 +1563,15 @@ export class Interpreter {
                 }
                 return result;
             };
+            // A write is where sharing has to be paid for: shared storage
+            // becomes this name's own copy, which the name then keeps.
+            const rebind = this.compileAssign(statement.name);
+            const owned = (target: RankValue): RankValue => {
+                const copy = arrayForWrite(target);
+                if (copy === undefined) return target;
+                rebind(copy);
+                return copy;
+            };
             const address = statement.indices.length === 1 ? statement.indices[0] : undefined;
             const directIndex = address && !address.all && !address.sign && !address.spread && address.value
                 ? this.compileDirectExpression(address.value) : undefined;
@@ -1571,7 +1585,7 @@ export class Interpreter {
                 const operator = statement.operator === '='
                     ? undefined : assignmentOperator(statement.operator);
                 return { stream: (): Evaluation<RankValue | undefined> => {
-                    const target = this.resolveVariable(statement.name);
+                    const target = owned(this.resolveVariable(statement.name));
                     const selector = directIndex();
                     if (typeof selector === 'bigint' && typeof target === 'object'
                         && target.kind === 'array' && target.shape.length === 1
@@ -1589,7 +1603,7 @@ export class Interpreter {
                 } };
             }
             return { stream: (): Evaluation<RankValue | undefined> => {
-                const target = this.resolveVariable(statement.name);
+                const target = owned(this.resolveVariable(statement.name));
                 // Selectors that all complete hand straight over to the general
                 // form, so the usual case adds no second generator to drive.
                 return flatMapResult(
@@ -1867,12 +1881,22 @@ export class Interpreter {
                 // no table vocabulary. A condition naming a column is a table query.
                 const conditions = !isTableFilterExpression(expression) ? []
                     : expression.condition ? [expression.condition] : expression.conditions;
-                const collection = isTableFilterExpression(expression)
+                // Syntax only proposes the collection form; the source settles it.
+                // A mask over a table column names no field, so the condition
+                // alone cannot tell the two apart.
+                let collection = isTableFilterExpression(expression)
                     && expression.sourceFields.length === 0 && !conditions.some(readsFields);
                 if (!collection) {
                     interpreter.requireModule('tables', isTableFilterExpression(expression) ? 'filter' : 'select');
                 }
                 let source = yield* resume(interpreter.evaluateTask(expression.source));
+                // A table source keeps the table form even when its condition
+                // names no column: only that path returns rows that are still a
+                // table. A plain collection needs no table vocabulary.
+                if (collection && isTableSource(source)) {
+                    collection = false;
+                    interpreter.requireModule('tables', 'filter');
+                }
                 for (const field of expression.sourceFields) {
                     source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
                 }
@@ -1916,7 +1940,17 @@ export class Interpreter {
                 frame.set(TABLE_INPUT, source);
                 interpreter.localFrame = frame;
                 const contextual = (node: Expression): Evaluation<RankValue> => {
-                    if (collection) return interpreter.evaluateTask(collectionExpression(node));
+                    if (collection) {
+                        // A bare name is a predicate when it names an operation
+                        // and the mask itself when it names data, so a computed
+                        // mask reads the same bare as it does parenthesized.
+                        const bound = isNameExpression(node)
+                            ? interpreter.findVariable(node.name) : undefined;
+                        if (bound !== undefined && !isNativeFunction(bound)) {
+                            return interpreter.evaluateTask(node);
+                        }
+                        return interpreter.evaluateTask(collectionExpression(node));
+                    }
                     const lowered = tableExpression(node, name => {
                         const value = interpreter.resolve(name);
                         if (!isNativeFunction(value)) return undefined;
@@ -3004,9 +3038,18 @@ export class Interpreter {
             monadicRank: 'all',
             dyadicRanks: statement.parameters.length === 2 ? ['all', 'all'] : undefined,
             captures: context?.captures(),
-            call: arguments_ => generator
-                ? this.callGeneratorFunction(statement, arguments_, context)
-                : runExecution(execute(arguments_)),
+            // What a caller outside the runtime reaches. A Rank call made from a
+            // Rank body takes a shorter path, so the stretch this opens is the
+            // work our embedder asked for; readers over storage we cannot track
+            // keep their cells for exactly that long. See enterRuntime.
+            call: arguments_ => {
+                enterRuntime();
+                try {
+                    return generator
+                        ? this.callGeneratorFunction(statement, arguments_, context)
+                        : runExecution(execute(arguments_));
+                } finally { leaveRuntime(); }
+            },
         };
         if (!generator) {
             functionExecutions.set(fn, execute);
@@ -3674,6 +3717,7 @@ export class Interpreter {
                 // remembers them and the write costs one store rather than a
                 // lookup for the types and a second for the value.
                 if (global !== undefined && global.has(received)) {
+                    noteArrayBinding(value);
                     this.variables.set(name, value);
                     return;
                 }
@@ -3711,7 +3755,10 @@ export class Interpreter {
                 );
             }
             if (frame) frame.set(name, value);
-            else this.variables.set(name, value);
+            else {
+                noteArrayBinding(value);
+                this.variables.set(name, value);
+            }
             return;
         }
         const previous = frame ? frame.get(name) : this.variables.get(name);
@@ -3726,6 +3773,7 @@ export class Interpreter {
             frame.define(name, value, settled);
             return;
         }
+        noteArrayBinding(value);
         this.variables.set(name, value);
         this.variableTypes.set(name, settled);
     }
@@ -3750,6 +3798,7 @@ export class Interpreter {
                 `record field .${field} has type ${expected} and cannot receive ${received}`,
             );
         }
+        noteArrayBinding(result);
         record.entries.set(field, result);
         return result;
     }
@@ -5713,6 +5762,14 @@ function memoScalarKey(value: RankValue): string {
     if (isRankLabel(value)) return `label:${value.name}`;
     if (isRankDate(value)) return `${value.kind}:${formatValue(value)}`;
     throw new RankError('memo arguments and results must be scalar values');
+}
+
+/** A table is a SQLite view or a rank-1 array of object rows. */
+function isTableSource(value: RankValue): boolean {
+    if (isRankSqliteTable(value)) return true;
+    if (!isRankArray(value) || value.kind !== 'array' || value.shape.length !== 1) return false;
+    if (value.columnNames !== undefined) return true;
+    return value.shape[0] > 0 && isRankObject(arrayItem(value, 0));
 }
 
 function assignmentOperator(operator: string): string {

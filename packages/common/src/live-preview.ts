@@ -203,8 +203,14 @@ function conditionalPreviewSource(preview: PreviewState, source: string, target:
     ].join('\n');
 }
 
+/**
+ * A preview returns the value it reached, which a generator cannot do, so an
+ * earlier `yield` becomes a plain evaluation of the item it would have emitted.
+ */
 function skippedReturn(line: string): string {
-    return /^return\b/.test(line) ? `return ${SKIPPED}` : line;
+    if (/^return\b/.test(line)) return `return ${SKIPPED}`;
+    const yielded = /^yield\s+(.+)$/.exec(line);
+    return yielded ? `${VALUE} = (${yielded[1]})` : line;
 }
 
 function addTarget(state: CellState, line: string, insideFunction: boolean, iteration: number): CellState {

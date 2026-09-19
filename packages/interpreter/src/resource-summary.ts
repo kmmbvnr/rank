@@ -1,3 +1,4 @@
+import { noteArrayBinding } from './array-storage.js';
 import type { RankValue } from './value.js';
 
 // A possible resource insertion invalidates earlier proofs, including proofs held
@@ -45,7 +46,9 @@ export class ResourceMap<T> extends Map<string, T> {
     constructor(private readonly valueOfEntry: (entry: T) => RankValue) { super(); }
 
     override set(key: string, value: T): this {
-        this.resources.include(this.valueOfEntry(value));
+        const entry = this.valueOfEntry(value);
+        this.resources.include(entry);
+        noteArrayBinding(entry);
         return super.set(key, value);
     }
 }

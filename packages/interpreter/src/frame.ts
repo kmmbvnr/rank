@@ -1,4 +1,12 @@
+import { noteArrayBinding } from './array-storage.js';
 import type { RankValue } from './value.js';
+
+// Every write to a name passes here, and most of them carry a number or a
+// string. Reaching into another module to learn that costs more than asking
+// first, so only a value that could be an array leaves this one.
+function noteBinding(value: RankValue): void {
+    if (typeof value === 'object') noteArrayBinding(value);
+}
 
 // A call links to its definition's environment, never to the caller's locals.
 // Closures and suspended generators keep these frames alive by reference.
@@ -46,6 +54,7 @@ export class LocalFrame {
     }
 
     set(name: string, value: RankValue): void {
+        noteBinding(value);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
             return;
@@ -55,6 +64,7 @@ export class LocalFrame {
 
     // A name arrives with both its value and the types it settles on.
     define(name: string, value: RankValue, types: ReadonlySet<string>): void {
+        noteBinding(value);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
             this.mappedTypes!.set(name, types);
@@ -73,6 +83,7 @@ export class LocalFrame {
         if (this.slots[slot] === undefined) return false;
         const accepted = this.slotTypes[slot];
         if (accepted === undefined || !accepted.has(received)) return false;
+        noteBinding(value);
         this.slots[slot] = value;
         return true;
     }
@@ -82,6 +93,7 @@ export class LocalFrame {
     bindStore(name: string): (value: RankValue) => void {
         const slot = this.layout.get(name)!;
         return value => {
+            noteBinding(value);
             if (this.mappedValues) this.mappedValues.set(name, value);
             else this.slots[slot] = value;
         };

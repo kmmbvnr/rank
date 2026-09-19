@@ -153,7 +153,9 @@ fun fused A
   return (A + (A change)) + reduce
 end
 `);
-        expect(call(runtime, 'fused', vector([1n, 2n]))).toBe(22n);
+        // change returns its own array, so the left operand still reads 1 2 and
+        // the result no longer depends on which side is evaluated first.
+        expect(call(runtime, 'fused', vector([1n, 2n]))).toBe(14n);
         runtime.variables.set('A', vector([1n, 2n]));
         expect(runtime.execute('((A + scan) * 2) + reduce')).toBe(8n);
         runtime.dispose();

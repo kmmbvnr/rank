@@ -59,12 +59,29 @@ interface OwnedStorage {
     scalarOnly: boolean;
     stable: boolean;
     resources: ResourceSummary;
+    owners?: number;
     nestedEpoch?: number;
     checkedBirth?: number;
     nestedRevision?: number;
 }
 let writeRevision = 0;
 let creationSerial = 0;
+
+// A buffer we cannot track changes only while the host holds control: a JS
+// caller writing its own array is not running Rank at that moment. A reader
+// over one may therefore keep its cells for one stretch of work we were asked
+// to do, and reads live again as soon as control could have left us. Without
+// that, a reader standing on a reader recomputes the chain below it for every
+// cell, and a loop whose step reads the step before it twice — gradient
+// descent — costs an exponent in its number of steps.
+let runtimeDepth = 0;
+let hostEntry = 0;
+
+/** Opens a stretch of work the host asked for. Nested calls extend the one
+ * already open; only the outermost hands control back. */
+export function enterRuntime(): void { runtimeDepth += 1; }
+export function leaveRuntime(): void { if ((runtimeDepth -= 1) === 0) hostEntry += 1; }
+
 const mutationBirths = new Float64Array(1024);
 
 function noteMutation(birth: number): number {
@@ -160,6 +177,84 @@ export function ownedArray(
     return state.resources.track(value);
 }
 
+// An array is a value: a name holds its own, and a write through one name is
+// never visible through another. Tracking every reference would need real
+// counting, so a binding records only the two states a write has to tell
+// apart. A fresh expression result is unbound and is written in place; storing
+// it in a second binding marks it shared, and the next write through either
+// name takes a private copy first. The copy starts unbound again, so a name
+// pays for sharing once rather than on every write.
+const SHARED = 2;
+
+// Storage the runtime owns and readers it built already carry a record, and a
+// binding is frequent enough that a table of its own would be felt: an inner
+// loop binds a row and an intermediate on every pass. Only arrays reaching us
+// from a host buffer or a plain literal need one.
+interface Ownership { owners?: number }
+const foreignOwners = new WeakMap<RankArray, Ownership>();
+
+function ownership(value: RankArray): Ownership | undefined {
+    return ownedStorage.get(value) ?? derivedRevisions.get(value) ?? foreignOwners.get(value);
+}
+
+function ownershipFor(value: RankArray): Ownership {
+    const record = ownership(value);
+    if (record !== undefined) return record;
+    const created: Ownership = {};
+    foreignOwners.set(value, created);
+    return created;
+}
+
+// A lazy reader over stored sources is a binding of those sources: once it is
+// itself retained, a later write to a source must not change what it reports.
+// A reader may stand on further readers, so the whole chain it reaches is
+// shared. The dependency graph is a DAG that can name one source twice, so
+// stop at anything already marked.
+function shareSources(value: RankArray): void {
+    for (const source of derivedRevisions.get(value)?.sources ?? []) {
+        const record = ownershipFor(source);
+        if (record.owners === SHARED) continue;
+        record.owners = SHARED;
+        shareSources(source);
+    }
+}
+
+/** Records that a value reached a binding: a name, parameter, field or slot. */
+export function noteArrayBinding(value: RankValue): void {
+    if (typeof value !== 'object' || value.kind !== 'array') return;
+    const record = ownershipFor(value);
+    const owners = record.owners ?? 0;
+    if (owners === SHARED) return;
+    shareSources(value);
+    record.owners = owners + 1;
+}
+
+/** True when a write has to take a private copy before it changes a cell. */
+export function isSharedArray(value: RankValue): boolean {
+    return typeof value === 'object' && value.kind === 'array'
+        && (ownership(value)?.owners ?? 0) >= SHARED;
+}
+
+/** Storage this name owns alone. The result is unbound: the caller binds it. */
+export function privateArrayCopy(value: RankArray): RankArray {
+    const items = [...value.items];
+    const copy = ownedArray(
+        items, value.shape, false,
+        (value as { columnNames?: readonly string[] }).columnNames,
+    );
+    // Both arrays now reach the same nested values, so neither owns them alone.
+    for (const item of items) {
+        if (typeof item === 'object' && item.kind === 'array') ownershipFor(item).owners = SHARED;
+    }
+    return copy;
+}
+
+/** The private storage a write goes to, copied from shared storage if needed. */
+export function arrayForWrite(value: RankValue): RankArray | undefined {
+    if (!isSharedArray(value)) return undefined;
+    return privateArrayCopy(value as RankArray);
+}
+
 /** Unknown host storage has no reliable revision and must not retain derived caches. */
 export function arrayRevision(value: RankArray): number | undefined {
     return valueRevision(value);
@@ -216,7 +311,13 @@ function containedRevision(values: Iterable<RankValue>, own: number): number | u
 // Validate each node once per write epoch, rather than expanding every path.
 const derivedRevisions = new WeakMap<object, {
     revision: () => number | undefined; epoch: number; cached?: number; checkedBirth?: number;
+    // What binding this reader has to freeze; a reader over no stored array
+    // has none, so only the readers that can be frozen carry the list.
+    sources?: readonly RankArray[];
+    owners?: number;
 }>();
+
+type DerivedRecord = NonNullable<ReturnType<typeof derivedRevisions.get>>;
 
 /** Cache a pure reader only while all its explicit dependencies have known revisions.
  * Untracked host buffers remain live: retained aliases can mutate outside Rank.
@@ -236,19 +337,25 @@ export function derivedArray(
         }
         return current;
     };
+    const record: DerivedRecord = { revision, epoch: -1, sources: dependencies };
     let seen: number | undefined;
     let validatedEpoch = -1;
+    let validatedEntry = -1;
     const cells = new Map<number, RankValue>();
     let materialized: RankValue[] | undefined;
     let compilerCache: RankValue[] | undefined;
     const valid = () => {
         if (diagnostics) diagnostics.validationRequests++;
-        // No writes means the previous dependency proof still holds. Keep this
-        // local: tensor kernels read many cells in the same write epoch.
-        if (validatedEpoch === writeRevision) return seen !== undefined;
+        // No writes means the previous dependency proof still holds, and a proof
+        // outlives a return to the host. A reader that has none holds only for
+        // the stretch that filled its cells. Keep this local: tensor kernels
+        // read many cells in the same write epoch.
+        if (validatedEpoch === writeRevision
+            && (seen !== undefined || validatedEntry === hostEntry)) return seen !== undefined;
         if (diagnostics) diagnostics.dependencyValidations++;
         const current = arrayRevision(value);
         validatedEpoch = writeRevision;
+        validatedEntry = hostEntry;
         if (current === undefined || current !== seen) {
             if (diagnostics && seen !== undefined) diagnostics.invalidations++;
             cells.clear();
@@ -258,37 +365,60 @@ export function derivedArray(
         }
         return current !== undefined;
     };
+    // Nothing observed since the read began could have changed under it: no
+    // write landed, and control never left the runtime.
+    const undisturbed = (epoch: number, entry: number) =>
+        writeRevision === epoch && hostEntry === entry;
     const itemAt = (index: number): RankValue => {
-        const cacheable = valid();
-        if (cacheable && cells.has(index)) {
+        if (runtimeDepth === 0) {
+            enterRuntime();
+            try { return readCell(index); } finally { leaveRuntime(); }
+        }
+        return readCell(index);
+    };
+    const readCell = (index: number): RankValue => {
+        const tracked = valid();
+        if (cells.has(index)) {
             if (diagnostics) diagnostics.cacheHits++;
             return cells.get(index)!;
         }
         const started = seen;
         const startedEpoch = writeRevision;
+        const startedEntry = hostEntry;
         if (diagnostics) diagnostics.cacheMisses++;
         const result = read(index);
         if (diagnostics) diagnostics.cellsComputed++;
         // A dependency may have changed during the reader. Never retain that read.
-        if (cacheable && (writeRevision === startedEpoch || arrayRevision(value) === started)) cells.set(index, result);
+        if (undisturbed(startedEpoch, startedEntry)
+            || (tracked && arrayRevision(value) === started)) cells.set(index, result);
         return result;
     };
     const value: RankArray = {
         kind: 'array', shape, itemAt,
         containsFiles: fileFree ? false : undefined,
         get items() {
-            const cacheable = valid();
-            if (materialized) return materialized;
-            const started = seen;
-            const items = Array.from(
-                { length: shape.reduce((size, dimension) => size * dimension, 1) },
-                interruptibleCallback((_: unknown, index: number) => itemAt(index), 'materializing array'),
-            );
-            if (cacheable && arrayRevision(value) === started) materialized = items;
-            return items;
+            if (runtimeDepth === 0) {
+                enterRuntime();
+                try { return readAll(); } finally { leaveRuntime(); }
+            }
+            return readAll();
         },
     };
-    derivedRevisions.set(value, { revision, epoch: -1 });
+    function readAll(): RankValue[] {
+        const tracked = valid();
+        if (materialized) return materialized;
+        const started = seen;
+        const startedEpoch = writeRevision;
+        const startedEntry = hostEntry;
+        const items = Array.from(
+            { length: shape.reduce((size, dimension) => size * dimension, 1) },
+            interruptibleCallback((_: unknown, index: number) => itemAt(index), 'materializing array'),
+        );
+        if (undisturbed(startedEpoch, startedEntry)
+            || (tracked && arrayRevision(value) === started)) materialized = items;
+        return items;
+    }
+    derivedRevisions.set(value, record);
     return registerCachedArray(value, () => {
         if (!valid()) return undefined;
         if (compilerCache) return compilerCache;

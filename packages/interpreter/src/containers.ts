@@ -1,5 +1,6 @@
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
+import { noteArrayBinding } from './array-storage.js';
 import { isRankQueue, type RankValue } from './value.js';
 import { ResourceSummary } from './resource-summary.js';
 
@@ -31,12 +32,14 @@ export class RankDeque {
     }
     push(value: RankValue): this {
         this.resources.include(value);
+        noteArrayBinding(value);
         this.typeSummary = undefined;
         this.entries.set(this.last++, value);
         return this;
     }
     pushFront(value: RankValue): this {
         this.resources.include(value);
+        noteArrayBinding(value);
         this.typeSummary = undefined;
         this.entries.set(--this.first, value);
         return this;
@@ -76,6 +79,7 @@ export class RankHeap {
         }
         this.priorityKind = kind;
         this.resources.include(value);
+        noteArrayBinding(value);
         const entry = { value, priority, order: this.nextOrder++ };
         let index = this.entries.length;
         this.entries.push(entry);

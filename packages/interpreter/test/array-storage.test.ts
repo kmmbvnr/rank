@@ -38,12 +38,13 @@ describe('eager array storage', () => {
         expect(eagerArrayStorage(createArraySnapshot([input]))).toBeUndefined();
     });
 
-    it('observes Rank writes through aliases between fused calls', () => {
+    it('fuses each name over the value that name holds', () => {
         const runtime = new Interpreter();
         runtime.execute('fun total A\n return (A * 2) + reduce\nend\nA = array 1 2\nB = A');
         expect(runtime.execute('A total')).toBe(6n);
         runtime.execute('B 0 = 10');
-        expect(runtime.execute('A total')).toBe(24n);
+        expect(runtime.execute('A total')).toBe(6n);
+        expect(runtime.execute('B total')).toBe(24n);
         runtime.dispose();
     });
 

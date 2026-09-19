@@ -2,6 +2,102 @@
 
 Rank uses whitespace-based application and addressing.
 
+## Values and sharing
+
+A name holds its own value. Assignment, argument passing, `yield` and storage
+inside another structure each give the receiver a value, so a write through one
+name is never visible through another:
+
+```rank
+use sequences
+A = array 1 2 3
+B = A
+B 0 = 99
+```
+
+`A` remains `1 2 3` and `B` is `99 2 3`. The same rule covers functions: a
+function cannot change the data its caller passed in. To hand a changed value
+back, return it.
+
+```rank
+fun bump V
+  V 0 = 99
+  return V
+end
+A = array 1 2 3
+C = A bump
+```
+
+`A` remains `1 2 3` and `C` is `99 2 3`.
+
+Copying is what the rule means, not what the runtime does. Storage is shared
+until a write needs it, and only a write to a value that two names can reach
+takes a copy. A name that alone owns its array writes into it, so building an
+array cell by cell allocates once:
+
+```rank
+A = array shape 1000 fill 0
+for I in 0 until 1000
+  A I = I * I
+end
+```
+
+A generator that reuses one buffer therefore emits values, not its buffer:
+
+```rank
+use algo
+fun walk
+  Pos = array 1 1
+  for # in 1 to 3
+    Pos 0 += 1
+    yield Pos
+  end
+end
+Seen = set
+for P in walk
+  Seen add P
+end
+```
+
+`Seen` holds `2 1`, `3 1` and `4 1`. A collection keeps what it was given, so
+its contents cannot change under it and a set keeps its distinct elements.
+
+### Reference values
+
+A few structures carry identity rather than contents. Assignment, argument
+passing and storage share them, and a change through one name is visible
+through every other:
+
+- records, and the `object` values that JSON and table rows use;
+- graphs and their disjoint-set structures;
+- the `algo` structures `index`, `queue`, `deque`, `stack`, `heap`, `set`,
+  `counter`, `multiset`, `orderedset`, `fenwick` and segment trees;
+- open files, SQLite databases and other handles;
+- generator sequences, which are single-pass.
+
+These are the deliberate exception and the list is closed. Everything else —
+numbers, text, symbols, dates, arrays and tensors — is a value.
+
+### Naming a lazy result
+
+A derived array such as `A * 2` computes its cells when they are demanded. A
+name freezes what it reports: writing to a source afterwards builds a new value
+for that source and leaves the named result alone.
+
+```rank
+use sequences
+A = array 1 2
+B = A * 2
+A 0 = 5
+```
+
+`B` remains `2 4` while `A` becomes `5 2`. This holds through a chain of lazy
+readers: naming the last one freezes every source it reads through. To compute
+a result from current values, write the expression again.
+
+`copy` remains the way to force storage for a lazy result, and is no longer
+needed to protect one name from another's writes.
+
 ## General form
 
 ```rank

@@ -49,8 +49,11 @@ describe('dates', () => {
         const runtime = new Interpreter();
         runtime.execute('use dates\nDates = array "2024-02-29"\nTimes = Dates date datetime');
         expect(formatValue(runtime.execute('Times 0')!)).toBe('2024-02-29 00:00:00');
+        // Times holds what it was given; a later write to Dates builds a new value.
         runtime.execute('Dates 0 = "2024-03-01"');
-        expect(formatValue(runtime.execute('Times 0')!)).toBe('2024-03-01 00:00:00');
+        expect(formatValue(runtime.execute('Times 0')!)).toBe('2024-02-29 00:00:00');
+        expect(formatValue(runtime.execute('(Dates date datetime) 0')!))
+            .toBe('2024-03-01 00:00:00');
         expect(() => run('use dates\nDates = (array "2024-01-01" "bad") date datetime\nDates 1'))
             .toThrowError('invalid date: bad');
     });
@@ -135,7 +138,9 @@ describe('dates', () => {
         expect(formatValue(runtime.execute('End')!))
             .toBe('2024-03-01 00:30:00 2024-03-01 00:30:00');
         runtime.execute('Slots 0 = 1');
-        expect(formatValue(runtime.execute('End 0')!)).toBe('2024-03-01 00:00:00');
+        expect(formatValue(runtime.execute('End 0')!)).toBe('2024-03-01 00:30:00');
+        expect(formatValue(runtime.execute('(Starts datetime + Slots * Slot) 0')!))
+            .toBe('2024-03-01 00:00:00');
     });
 
     it('finds month boundaries for dates, datetimes and lazy arrays', () => {
@@ -157,7 +162,9 @@ describe('dates', () => {
         runtime.execute('use dates\nDates = array "2012-01-15"\nParsed = Dates date\nStarts = Parsed monthstart');
         expect(formatValue(runtime.execute('Starts 0')!)).toBe('2012-01-01 00:00:00');
         runtime.execute('Dates 0 = "2012-02-15"');
-        expect(formatValue(runtime.execute('Starts 0')!)).toBe('2012-02-01 00:00:00');
+        expect(formatValue(runtime.execute('Starts 0')!)).toBe('2012-01-01 00:00:00');
+        expect(formatValue(runtime.execute('(Dates date monthstart) 0')!))
+            .toBe('2012-02-01 00:00:00');
     });
 
     it('preserves tensor shape and delays errors until a cell is read', () => {

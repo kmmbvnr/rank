@@ -11,7 +11,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
-import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, ownedArray, arrayRevision } from './array-storage.js';
+import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, ownedArray, arrayRevision, arrayForWrite } from './array-storage.js';
 
 
 interface IterationBinding {
@@ -710,8 +710,16 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 if (!host.arrayWrites) return recordFallback('loop:input-type');
                 continue;
             }
-            const value = host.read(name);
+            let value = host.read(name);
             if (!value) return recordFallback('loop:input-type');
+            // Generated code writes cells straight into borrowed storage, so a
+            // shared array becomes this name's own copy before the region runs
+            // rather than at the first write inside it.
+            const privately = arrayForWrite(value);
+            if (privately !== undefined) {
+                host.writer(name)(privately);
+                value = privately;
+            }
             if (isRankIndex(value) && info.compound) return recordFallback('loop:input-type');
             if (!isRankIndex(value)) {
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'

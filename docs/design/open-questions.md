@@ -206,6 +206,10 @@ The language server and small-screen UI can use the same result to distinguish
 effectful calls and warn at operations that may reorder or repeat evaluation.
 The exact diagnostic policy and any source annotation remain undecided.
 
+Under [value semantics](value-semantics.md) this analysis is an optimization
+rather than a safety net: a function cannot change what its caller passed, so
+proving that one only reads its parameter removes a copy rather than a defect.
+
 ## Join variants
 
 `leftjoin by`, `innerjoin by` and explicit `equal` key pairs with `on` work on

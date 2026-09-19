@@ -16,6 +16,11 @@ For example, a cached `Data .Age` projection is refreshed after a write to
 invalidation; more selective reuse would be an optimization, not a requirement
 for correct programs. Independent copied arrays remain independent.
 
+Rows are objects, so a table is a value whose rows carry identity. Two names for
+one table therefore share its rows, and a column write through either is visible
+through both. `copy` forces the table's own storage and does not separate the
+rows inside it; `select` builds new rows, so it does.
+
 ## SQLite
 
 With `use tables`, an existing SQLite database can be opened read-only:

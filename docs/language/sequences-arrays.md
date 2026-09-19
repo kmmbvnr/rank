@@ -164,25 +164,26 @@ sequence: use `copy` first. User generators remain single-pass.
 ## Derived values and mutation
 
 Built-in pure tensor computations reuse demanded cells while their source
-arrays are unchanged. A write updates the source revision; it does not execute
-or walk dependent expressions. When a result is demanded, it checks its
-source revisions, including dependencies through intermediate arrays. It
-reuses cached cells if they are still valid and recomputes them otherwise.
-Re-reading a result therefore computes current values:
+arrays are unchanged. Naming a derived array is one of those sources' bindings,
+so a later write to a source builds a new value for the written name and leaves
+the named result alone:
 
 ```rank
 use sequences
 A = array 1 2
 B = A * 2
 Before = B 0
-Snapshot = B copy
 A 0 = 5
 After = B 0
 ```
 
-`Before` is `2`, `After` is `10`, and `Snapshot 0` remains `2`. Forcing a
-lazy result does not turn its relationship with its sources into a snapshot;
-`copy` is the explicit operation for independent storage.
+`Before` and `After` are both `2`, and `A` is `5 2`. Naming the last reader in
+a chain freezes every source it reads through. Write the expression again to
+compute a result from current values.
+
+`copy` forces storage for a lazy result. It is no longer needed to keep one
+name safe from another's writes; see
+[values and sharing](values-addressing.md#values-and-sharing).
 
 This applies to arithmetic and broadcasting, numeric transformations, axis
 reductions, transpose and slice views, array windows, matrix multiplication,
@@ -191,9 +192,12 @@ array; there is no promise of per-cell invalidation. Errors are not retained
 as successful cached values. An unrelated array write does not discard valid
 computed cells.
 
-This cache policy does not introduce implicit replay of I/O or generators.
-User-function effect and capture analysis is a separate concern from the
-built-in pure tensor operations described here.
+A cached result is therefore invalidated by writes that value semantics does
+not redirect: writes made through the embedding's own storage, and writes to an
+array that only unnamed readers inside the same expression observe. This cache
+policy does not introduce implicit replay of I/O or generators. User-function
+effect and capture analysis is a separate concern from the built-in pure tensor
+operations described here.
 
 For TypeScript embedding, `createArraySnapshot` makes owned array storage.
 Writes through its public `items` invalidate dependent computations. Plain
@@ -507,6 +511,19 @@ or a full comparison still works:
 ```rank
 Kept = N filter (N greater Limit)
 ```
+
+A bare name is a predicate when it names an operation and the mask itself when
+it names data, so a mask computed earlier reads the same with or without
+parentheses:
+
+```rank
+Mask = N greater 5
+Kept = N filter Mask
+```
+
+`filter` over a table keeps the table form even when its condition names no
+column, because only that form returns rows that are still a table. A table is
+a SQLite view or a rank-1 value of rows, and filtering one needs `use tables`.
 
 Filtering a lazy sequence stays lazy, and filtering an array yields a lazy
 selection. Materialize it with `copy` or postfix `array` when the result must

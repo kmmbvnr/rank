@@ -32,6 +32,20 @@ describe('filter over plain collections', () => {
         expect(run(`${NUMBERS}B = N filter\n  greater 2\n  even\n  less 9\nend\nB`)).toBe('4 6 8');
     });
 
+    it('takes a bare name that holds a mask as the mask itself', () => {
+        expect(run(`${NUMBERS}K = N greater 5\nN filter K`)).toBe('6 7 8 9 10');
+        expect(run(`${NUMBERS}K = N even\nN filter K`)).toBe('2 4 6 8 10');
+        // A name that holds an operation is still a predicate over the value.
+        expect(run(`${NUMBERS}fun big X\n  return X greater 7\nend\nP = big\nN filter P`))
+            .toBe('8 9 10');
+    });
+
+    it('selects table rows with a mask computed from a column', () => {
+        const rows = 'use json\nuse tables\n'
+            + 'R = "[{\\"a\\":1},{\\"a\\":3},{\\"a\\":5}]" json\n';
+        expect(run(`${rows}Mask = R .a greater 2\n(R filter Mask) len`)).toBe('2');
+    });
+
     it('keeps a condition that names its own subject', () => {
         expect(run(`${NUMBERS}Limit = 6\nN filter (N greater Limit)`)).toBe('7 8 9 10');
     });

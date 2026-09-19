@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type RankValue } from '../src/index.js';
 import { MissingValueError, RankError } from '../src/errors.js';
+import { createArraySnapshot } from '../src/array-storage.js';
 
 function run(operation: string, axes: string, shape: number[], cells: RankValue[], fused: boolean,
     failAt?: number, missingAt?: number) {
@@ -55,15 +56,19 @@ describe('axis statistics reader fusion', () => {
         expect(run('std', '0', [3, 2], [1n, 2n, 3n, 4n, 5n, 6n], true).value)
             .toEqual({ shape: [2], items: [Math.sqrt(8 / 3), Math.sqrt(8 / 3)] });
     });
-    it('retains repeated indexed evaluation after mutation', () => {
+    // Naming M freezes A against Rank writes, so the cache is exercised through
+    // storage the embedding still owns.
+    it('retains repeated indexed evaluation after a host write', () => {
         for (const tensorFusion of [false, true]) {
             const runtime = new Interpreter(undefined, { tensorFusion });
             try {
-                runtime.execute('use stats\nuse sequences\nA = array shape 2 2\n  1 2\n  3 4\nend\nM = A mean axis 0');
+                const source = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
+                runtime.variables.set('A', source);
+                runtime.execute('use stats\nuse sequences\nM = A mean axis 0');
                 const m = runtime.variables.get('M')!;
                 if (!isRankArray(m)) throw new Error('missing array');
                 expect(m.itemAt!(0)).toBe(2);
-                runtime.execute('A 0 0 = 5');
+                source.items[0] = 5n;
                 expect(m.itemAt!(0)).toBe(4);
             } finally { runtime.dispose(); }
         }

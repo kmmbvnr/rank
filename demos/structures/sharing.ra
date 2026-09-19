@@ -1,0 +1,61 @@
+rem Probes for value semantics. Each block is a place where a rewrite can
+rem quietly reintroduce shared mutable state, so the output is the oracle.
+rem See docs/language/values-addressing.md for the rules being checked.
+
+use io
+use sequences
+
+rem A second name receives a value, not the first name's storage.
+A = array 1 2 3
+B = A
+B 0 = 99
+A print
+B print
+
+rem A function cannot change what its caller passed in.
+fun bump V
+  V 0 = 99
+  return V
+end
+Kept = array 1 2 3
+Changed = Kept bump
+Kept print
+Changed print
+
+rem A generator may reuse one buffer between yields; what it already
+rem emitted keeps the contents it had.
+fun walk
+  Pos = array 1 1
+  for # in 1 to 3
+    Pos 0 += 1
+    yield Pos
+  end
+end
+Rows = array shape 3 2 fill 0
+At = 0
+for P in walk
+  Rows At # = P
+  At += 1
+end
+Rows print
+
+rem A stored value stays what it was when it was stored.
+Held = array 1 2
+Store = array shape 1 2 fill 0
+Store 0 # = Held
+Held 0 = 9
+Store print
+
+rem A named lazy result is fixed; write the expression again to recompute.
+Source = array 1 2
+Doubled = Source * 2
+Source 0 = 5
+Doubled print
+(Source * 2) print
+
+rem A name that owns its array writes into it, with no copy.
+Counts = array shape 5 fill 0
+for I in 0 until 5
+  Counts I = I * I
+end
+Counts print

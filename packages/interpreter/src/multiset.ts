@@ -1,3 +1,4 @@
+import { noteArrayBinding } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import {
@@ -39,6 +40,7 @@ export class RankMultiset {
             throw new RankError('multiset values must have one comparable type');
         }
         this.valueKind ??= kind;
+        noteArrayBinding(value);
         this.root = this.insert(this.root, value);
         this.total += 1;
         return this;

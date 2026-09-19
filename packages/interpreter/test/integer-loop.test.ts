@@ -764,7 +764,8 @@ end`);
         expect(result.containers).toContainEqual(['A', [2, 2], ['9', '0', '0', '0']]);
     });
 
-    it('reads earlier writes through an alias', () => {
+    // B keeps the zeros it was given: the write to A goes to storage of its own.
+    it('reads the value the other name kept, not the writes it did not see', () => {
         const result = compare(`A = array shape 6 fill 0
 B = A
 A 0 = 1
@@ -772,7 +773,7 @@ for I in 1 until 6
   A I = (B (I - 1)) * 2
 end
 A`);
-        expect(result.value).toBe('1 2 4 8 16 32');
+        expect(result.value).toBe('1 0 0 0 0 0');
         expect(result.loops).toBe(1);
     });
 
@@ -842,7 +843,7 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('observes writes to future elements through an alias', () => {
+    it('keeps an iterated array clear of writes through another name', () => {
         const result = compare(`A = array 1 2 3
 B = A
 Total = 0
@@ -851,7 +852,7 @@ for Value i in A
   Total += Value
 end
 Total`);
-        expect(result.value).toBe('13');
+        expect(result.value).toBe('6');
         expect(result.loops).toBe(1);
     });
 
@@ -1251,7 +1252,7 @@ end`);
 });
 
 describe('boolean arrays in compiled regions', () => {
-    it('reads and writes boolean cells through aliases', () => {
+    it('keeps boolean cells private to the name that writes them', () => {
         const result = compare(`A = array true false false false
 B = A
 Count = 0
@@ -1264,7 +1265,7 @@ for I in 1 until 4
   end
 end
 Count`);
-        expect(result.value).toBe('3');
+        expect(result.value).toBe('0');
         expect(result.loops).toBe(1);
     });
 
@@ -1511,7 +1512,7 @@ end
 A = array 0 0
 Result = A perform
 A`);
-        expect(result.value).toBe('1 9');
+        expect(result.value).toBe('0 0');
         expect(result.loops).toBe(1);
     });
 

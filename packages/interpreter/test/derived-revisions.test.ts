@@ -27,7 +27,10 @@ B = A A + outer`);
         } finally { runtime.dispose(); }
     });
 
-    it('does not batch revisions when a compiled loop reads a lazy dependent', () => {
+    // Retaining B freezes A, so the loop writes storage of its own. Batching a
+    // compiled region's writes is safe for exactly that reason: nothing a name
+    // still holds can read the cells it changes.
+    it('keeps a compiled loop away from a retained lazy dependent', () => {
         let loops = 0;
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => { loops++; } });
         try {
@@ -40,8 +43,10 @@ for I in 0 until 2
   A 0 = I + 1
   Answer += B 0
 end
-Answer`)).toBe(6n);
+Answer`)).toBe(0n);
             expect(loops).toBeGreaterThan(0);
+            expect(runtime.execute('B 0')).toBe(0n);
+            expect(runtime.execute('A 0')).toBe(2n);
         } finally { runtime.dispose(); }
     });
 
@@ -50,15 +55,14 @@ Answer`)).toBe(6n);
         try {
             runtime.execute(`use numbers
 A = array 0
-B = A * 2
-Warm = B sum`);
+Warm = (A * 2) sum`);
             expect(() => runtime.execute(`for I in 0 until 3
   A 0 = I + 1
   if I equal 1
     Bad = 1 // 0
   end
 end`)).toThrow('division by zero');
-            expect(runtime.execute('B 0')).toBe(4n);
+            expect(runtime.execute('(A * 2) 0')).toBe(4n);
         } finally { runtime.dispose(); }
     });
 
@@ -109,20 +113,18 @@ end`)).toThrow('division by zero');
         { expression: 'A 0', before: [1n, 2n], after: [5n, 2n] },
         { expression: 'A A matmul', before: [7n, 10n, 15n, 22n], after: [31n, 18n, 27n, 22n] },
         { expression: 'A round 0', before: [1n, 2n, 3n, 4n], after: [5n, 2n, 3n, 4n] },
-    ])('refreshes $expression after materialization', ({ expression, before, after }) => {
+    ])('refreshes $expression after a host write to its storage', ({ expression, before, after }) => {
         const runtime = new Interpreter();
         try {
+            const source = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
+            runtime.variables.set('A', source);
             runtime.execute(`use numbers
 use sequences
 use linalg
-A = array shape 2 2
-  1 2
-  3 4
-end
 Result = ${expression}`);
             const result = runtime.variables.get('Result') as RankArray;
             expect(result.items).toEqual(before);
-            runtime.execute('A 0 0 = 5');
+            source.items[0] = 5n;
             expect(result.items).toEqual(after);
             expect(result.itemAt!(0)).toBe(after[0]);
         } finally { runtime.dispose(); }
@@ -131,13 +133,14 @@ Result = ${expression}`);
     it('invalidates window cells and their downstream arithmetic', () => {
         const runtime = new Interpreter();
         try {
+            const source = createArraySnapshot([1n, 2n, 3n]);
+            runtime.variables.set('A', source);
             runtime.execute(`use sequences
-A = array 1 2 3
 W = A 2 window
 Result = W * 2`);
             const result = runtime.variables.get('Result') as RankArray;
             expect(result.items).toEqual([2n, 4n, 4n, 6n]);
-            runtime.execute('A 1 = 5');
+            source.items[1] = 5n;
             expect(result.items).toEqual([2n, 10n, 10n, 6n]);
         } finally { runtime.dispose(); }
     });
@@ -148,13 +151,13 @@ Result = W * 2`);
             runtime.execute(`use numbers
 use stats
 A = array shape 2 2 fill 1
-Means = A mean axis 1`);
-            const means = runtime.variables.get('Means') as RankArray;
-            expect(means.items).toEqual([1, 1]);
+Warm = (A mean axis 1) sum`);
+            expect(runtime.execute('(A mean axis 1) 0')).toBe(1);
             runtime.execute(`for I in 0 until 2
   A I 0 = 3
 end`);
-            expect(means.items).toEqual([2, 2]);
+            expect(runtime.execute('(A mean axis 1) 0')).toBe(2);
+            expect(runtime.execute('(A mean axis 1) 1')).toBe(2);
         } finally { runtime.dispose(); }
     });
 
@@ -197,5 +200,27 @@ end`);
         expect(result.itemAt!(0)).toBe(9n);
         expect(result.items).toEqual([9n]);
         expect(materializedArrayItems(result)).toBeUndefined();
+    });
+
+    // Each reader here reads the one below it twice, so without a cache the
+    // chain costs two to the power of its depth. The host cannot write between
+    // the cells of one materialization, which is what lets the cells be kept.
+    it('reads an untracked chain once per cell rather than once per path', () => {
+        const source: RankArray = { kind: 'array', items: [1n, 2n], shape: [2] };
+        let reads = 0;
+        let below = source;
+        for (let level = 0; level < 12; level++) {
+            const under = below;
+            below = derivedArray([2], [under], index => {
+                reads++;
+                return (under.itemAt?.(index) ?? under.items[index] as bigint)
+                    + (under.itemAt?.(index) ?? under.items[index] as bigint);
+            });
+        }
+        expect(below.items).toEqual([4096n, 8192n]);
+        expect(reads).toBe(24);
+        // A write the host makes between two stretches of work is still seen.
+        source.items[0] = 2n;
+        expect(below.items).toEqual([8192n, 8192n]);
     });
 });

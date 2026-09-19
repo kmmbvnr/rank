@@ -72,6 +72,7 @@ Adults = Data Mask
 - [Kaggle examples](examples/kaggle.md)
 - [TPC-H examples](examples/tpch.md)
 - [Product decisions](design/product-decisions.md)
+- [Value semantics](design/value-semantics.md)
 - [Open questions](design/open-questions.md)
 - [Competitive-programming library roadmap](design/competitive-programming-library.md)
 
@@ -267,10 +268,11 @@ from its initial value and keeps that type on later direct or compound
 assignment. `Value type` returns `.record`, and `Value is .record` is its
 type guard.
 
-Records have reference semantics. Assignment, function arguments and storage
-inside another structure preserve the same record identity, so mutation through
-one alias is visible through the others. Addressing may continue through arrays,
-queues and nested records:
+Records have reference semantics, one of the few exceptions to
+[values and sharing](values-addressing.md#values-and-sharing). Assignment,
+function arguments and storage inside another structure preserve the same record
+identity, so mutation through one alias is visible through the others.
+Addressing may continue through arrays, queues and nested records:
 
 ```rank
 Tape 0 .grad += Change
@@ -279,8 +281,10 @@ Node .parent .grad += Change
 
 Equality is structural even though mutation is shared by reference. Two records
 are equal when they contain the same field names and recursively equal values;
-field declaration order does not matter. Records may therefore be used as set
-elements. `print` includes their fields in declaration order so a result remains
+field declaration order does not matter. A record may be used as a set element,
+but its identity travels with it: changing a field afterwards changes the
+element in place and the set no longer matches it by its stored key. Store a
+value the set can keep, or leave the record unchanged while the set holds it. `print` includes their fields in declaration order so a result remains
 useful to a person and to a line-oriented grader:
 
 ```rank
@@ -899,6 +903,102 @@ An open import uses their names directly; an aliased import uses names such as
 # Values and addressing
 
 Rank uses whitespace-based application and addressing.
+
+## Values and sharing
+
+A name holds its own value. Assignment, argument passing, `yield` and storage
+inside another structure each give the receiver a value, so a write through one
+name is never visible through another:
+
+```rank
+use sequences
+A = array 1 2 3
+B = A
+B 0 = 99
+```
+
+`A` remains `1 2 3` and `B` is `99 2 3`. The same rule covers functions: a
+function cannot change the data its caller passed in. To hand a changed value
+back, return it.
+
+```rank
+fun bump V
+  V 0 = 99
+  return V
+end
+A = array 1 2 3
+C = A bump
+```
+
+`A` remains `1 2 3` and `C` is `99 2 3`.
+
+Copying is what the rule means, not what the runtime does. Storage is shared
+until a write needs it, and only a write to a value that two names can reach
+takes a copy. A name that alone owns its array writes into it, so building an
+array cell by cell allocates once:
+
+```rank
+A = array shape 1000 fill 0
+for I in 0 until 1000
+  A I = I * I
+end
+```
+
+A generator that reuses one buffer therefore emits values, not its buffer:
+
+```rank
+use algo
+fun walk
+  Pos = array 1 1
+  for # in 1 to 3
+    Pos 0 += 1
+    yield Pos
+  end
+end
+Seen = set
+for P in walk
+  Seen add P
+end
+```
+
+`Seen` holds `2 1`, `3 1` and `4 1`. A collection keeps what it was given, so
+its contents cannot change under it and a set keeps its distinct elements.
+
+### Reference values
+
+A few structures carry identity rather than contents. Assignment, argument
+passing and storage share them, and a change through one name is visible
+through every other:
+
+- records, and the `object` values that JSON and table rows use;
+- graphs and their disjoint-set structures;
+- the `algo` structures `index`, `queue`, `deque`, `stack`, `heap`, `set`,
+  `counter`, `multiset`, `orderedset`, `fenwick` and segment trees;
+- open files, SQLite databases and other handles;
+- generator sequences, which are single-pass.
+
+These are the deliberate exception and the list is closed. Everything else —
+numbers, text, symbols, dates, arrays and tensors — is a value.
+
+### Naming a lazy result
+
+A derived array such as `A * 2` computes its cells when they are demanded. A
+name freezes what it reports: writing to a source afterwards builds a new value
+for that source and leaves the named result alone.
+
+```rank
+use sequences
+A = array 1 2
+B = A * 2
+A 0 = 5
+```
+
+`B` remains `2 4` while `A` becomes `5 2`. This holds through a chain of lazy
+readers: naming the last one freezes every source it reads through. To compute
+a result from current values, write the expression again.
+
+`copy` remains the way to force storage for a lazy result, and is no longer
+needed to protect one name from another's writes.
 
 ## General form
 
@@ -1749,8 +1849,10 @@ end
 ```
 
 `yield Value` emits exactly one sequence item and suspends the function. An
-array or other collection is one item and is not flattened. Local variables
-retain their values between yields. Errors in the body are raised only when
+array or other collection is one item and is not flattened. The consumer
+receives a value, so a generator may reuse one buffer between yields without
+changing what it already emitted. Local variables retain their values between
+yields. Errors in the body are raised only when
 iteration reaches the failing statement.
 
 User generators are single-pass because they may read input, use files or
@@ -2266,6 +2368,19 @@ or a full comparison still works:
 ```rank
 Kept = N filter (N greater Limit)
 ```
+
+A bare name is a predicate when it names an operation and the mask itself when
+it names data, so a mask computed earlier reads the same with or without
+parentheses:
+
+```rank
+Mask = N greater 5
+Kept = N filter Mask
+```
+
+`filter` over a table keeps the table form even when its condition names no
+column, because only that form returns rows that are still a table. A table is
+a SQLite view or a rank-1 value of rows, and filtering one needs `use tables`.
 
 Filtering a lazy sequence stays lazy, and filtering an array yields a lazy
 selection. Materialize it with `copy` or postfix `array` when the result must
@@ -2973,7 +3088,10 @@ A Row Column = Value
 ```
 
 An `index` writes a sparse tuple key. An array write requires one in-bounds
-index per dense axis and changes the existing material array.
+index per dense axis and changes the array this name holds; a second name that
+was given the same array keeps what it was given. An `index` is a reference
+structure, so every name for it sees the write. See
+[values and sharing](values-addressing.md#values-and-sharing).
 
 ### Set
 
