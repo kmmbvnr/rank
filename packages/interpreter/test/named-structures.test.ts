@@ -177,7 +177,45 @@ Seen len
         expect(() => run('use algo\nnew unknown')).toThrowError('unknown structure');
         expect(() => run('use algo\nA = array 1 2\nA add 3')).toThrowError('add expects a graph, set, counter or multiset');
         expect(() => run('use algo\nA = array 1 2\nA remove 1'))
-            .toThrowError('remove expects a set or multiset');
+            .toThrowError('remove expects a set, counter or multiset');
+    });
+
+    it('supports iteration, membership, removal and sorting for counters', () => {
+        expect(run(`
+use algo
+use sequences
+Counts = new counter
+Counts add 7
+Counts add 2
+Counts add 7
+Result = 0
+for Key in Counts
+  Result = Result * 10 + Key
+end
+HasSeven = 7 in Counts
+HasThree = 3 in Counts
+Counts remove 7
+CountSeven = Counts 7
+Counts remove 7
+HasSevenAfter = 7 in Counts
+Counts remove 2
+EmptyLen = Counts len
+array Result HasSeven HasThree CountSeven HasSevenAfter EmptyLen
+`)).toBe('72 true false 1 false 0');
+
+        expect(() => run('use algo\nC = new counter\nC remove 1'))
+            .toThrowError('counter does not contain the value');
+
+        expect(run(`
+use algo
+use sequences
+C = new counter
+C add "c"
+C add "a"
+C add "b"
+M = C multiset
+array (M 0) (M 1) (M 2)
+`)).toBe('a b c');
     });
 
     it('creates fresh values in loops and keeps recursive implicit instances separate', () => {
@@ -202,3 +240,4 @@ array (A len) (B len) (10 down)
 `)).toBe('1 0 1');
     });
 });
+

@@ -4711,6 +4711,11 @@ export class Interpreter {
                 typesOf(value.entries.values()),
                 new Set(['integer']),
             ]);
+        } else if (isRankCounter(value)) {
+            this.declareLoopTypes(binding.names, [
+                typesOf(Array.from(value.entries.values(), entry => entry.value)),
+                new Set(['integer']),
+            ]);
         } else if (typeof value === 'string') {
             this.declareLoopTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
         }
@@ -5180,6 +5185,7 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankArray(value)) return value.items;
     if (isRankQueue(value)) return value.items;
     if (isRankSet(value)) return value.entries.values();
+    if (isRankCounter(value)) return Array.from(value.entries.values(), entry => entry.value);
     if (isRankMultiset(value)) return value.values();
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
@@ -5879,7 +5885,7 @@ function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) 
         return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
     };
     if (isRankIndex(right)) return value => right.entries.has(indexKey([value]));
-    if (isRankSet(right)) return value => right.entries.has(setValueKey(value));
+    if (isRankSet(right) || isRankCounter(right)) return value => right.entries.has(setValueKey(value));
     if (isRankMultiset(right)) return value => right.has(value);
     const source = asRankArray(right);
     if (source) return membershipLookup(reductionValues(source, 'in'));

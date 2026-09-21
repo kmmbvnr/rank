@@ -288,6 +288,7 @@ export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[
     }
     if (isRankQueue(value)) return [...value.items];
     if (isRankSet(value)) return [...value.entries.values()];
+    if (isRankCounter(value)) return Array.from(value.entries.values(), entry => entry.value);
     if (isRankMultiset(value)) return [...value.values()];
     if (isRankSequence(value)) {
         if (value.plan.size.kind === 'infinite') {

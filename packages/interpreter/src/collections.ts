@@ -53,9 +53,21 @@ export function addToCollection(target: RankValue, value: RankValue): RankValue 
 
 export function removeFromCollection(target: RankValue, value: RankValue): RankValue {
     if (isRankMultiset(target)) return target.remove(value);
-    if (!isRankSet(target)) throw new RankError('remove expects a set or multiset');
+    if (isRankCounter(target)) {
+        const key = setValueKey(value);
+        const existing = target.entries.get(key);
+        if (!existing) throw new MissingValueError('counter does not contain the value');
+        if (existing.count <= 1n) {
+            target.entries.delete(key);
+        } else {
+            existing.count -= 1n;
+        }
+        return target;
+    }
+    if (!isRankSet(target)) throw new RankError('remove expects a set, counter or multiset');
     if (!target.entries.delete(setValueKey(value))) {
         throw new MissingValueError('set does not contain the value');
     }
     return target;
 }
+

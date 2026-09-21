@@ -3,6 +3,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import {
     isRankArray,
+    isRankCounter,
     isRankMultiset,
     isRankQueue,
     isRankSequence,
@@ -245,6 +246,7 @@ function finiteValues(value: RankValue): Iterable<RankValue> {
     }
     if (isRankQueue(value)) return value.items;
     if (isRankSet(value)) return value.entries.values();
+    if (isRankCounter(value)) return Array.from(value.entries.values(), entry => entry.value);
     if (isRankMultiset(value)) return value.values();
     if (isRankSequence(value)) {
         if (value.plan.size.kind === 'infinite') {

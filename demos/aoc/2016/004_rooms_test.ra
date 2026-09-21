@@ -1,0 +1,35 @@
+use testing
+use text
+
+test "official real rooms and decoy"
+  use "004_rooms"
+
+  Lines = array shape 4
+    "aaaaa-bbb-z-y-x-123[abxyz]"
+    "a-b-c-d-e-f-g-h-987[abcde]"
+    "not-a-real-room-404[oarel]"
+    "totally-real-room-200[decoy]"
+  end
+
+  Answer = Lines solve
+  Answer 0 equal 1514
+end
+
+test "decryption of encrypted name"
+  use "004_rooms"
+
+  Plain = "qzmt-zixmtkozy-ivhz" 343 decrypt
+  Plain equal "very encrypted name"
+end
+
+test "northpole room identification"
+  use "004_rooms"
+
+  Lines = array shape 2
+    "qzmt-zixmtkozy-ivhz-343[abcde]"
+    "opsuiqpmf-pckfdu-tupsbhf-987[pfusb]"
+  end
+
+  Answer = Lines solve
+  Answer equal array 987 987
+end

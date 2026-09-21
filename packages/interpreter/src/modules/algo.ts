@@ -10,6 +10,7 @@ import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
 import {
     isRankArray,
+    isRankCounter,
     isRankQueue,
     isRankSequence,
     isRankSet,
@@ -197,6 +198,7 @@ function finiteItems(value: RankValue, operation: string): RankValue[] {
     );
     if (isRankQueue(value)) return [...value.items];
     if (isRankSet(value)) return [...value.entries.values()];
+    if (isRankCounter(value)) return Array.from(value.entries.values(), entry => entry.value);
     if (isRankSequence(value)) {
         if (value.plan.size.kind === 'infinite') {
             throw new RankError(`${operation} requires a bounded sequence`);

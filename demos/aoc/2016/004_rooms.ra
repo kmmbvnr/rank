@@ -1,0 +1,76 @@
+rem Advent of Code 2016 - Day 4
+rem Security Through Obscurity
+rem https://adventofcode.com/2016/day/4
+
+use io
+use cli
+use text
+use sequences
+
+argument Input path
+
+Answers = Input readlines solve
+Part1 = Answers 0
+Part2 = Answers 1
+
+Part1 print
+Part2 print
+
+
+rem Return the sum of real room sector IDs and the northpole room sector ID.
+fun solve Lines
+  if Lines type equal .text
+    Lines = Lines "\n" split
+  end
+
+  Target = "northpole object storage"
+  Part1 = 0
+  Part2 = 0
+
+  for Line in Lines
+    unpack Name Sector Checksum = Line room
+
+    if Name Checksum valid
+      Part1 += Sector
+
+      Plain = Name Sector decrypt
+      if Plain equal Target
+        Part2 = Sector
+      end
+    end
+  end
+
+  return array Part1 Part2
+end
+
+
+rem Parse a room line into name, sector ID, and checksum.
+fun room Line
+  Pattern = "/text-/integer[/word]"
+  return Line Pattern parse
+end
+
+
+rem Check if the room checksum matches the five most frequent letters.
+rem When frequencies tie, letters are compared alphabetically.
+fun valid Name Checksum
+  Letters = Name "-" "" translate
+  Chars = Letters "" split
+  Common = Chars 5 vocab
+  Expected = Common "" join
+  return Expected equal Checksum
+end
+
+
+rem Decrypt a room name with a Caesar cipher shifted by sector ID.
+rem Dashes are replaced with spaces.
+fun decrypt Name Sector
+  Alphabet = "abcdefghijklmnopqrstuvwxyz"
+  Shift = Sector % 26
+  Tail = Alphabet from Shift until 26
+  Head = Alphabet from 0 until Shift
+  Cipher = Tail + Head
+
+  Plain = Name Alphabet Cipher translate
+  return Plain "-" " " translate
+end
