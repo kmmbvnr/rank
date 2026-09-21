@@ -550,18 +550,35 @@ not enumerate the results.
 `counter` is a frequency map:
 
 ```rank
-counter add X
-Count = counter X
-Kinds = counter len
+Counts = new counter
+Counts add X
+Counts remove X
+Present = X in Counts
+Count = Counts X
+Kinds = Counts len
+
+for Key in Counts
+  Count = Counts Key
+end
 ```
 
-The first use lazily creates one counter in the current function-call workspace.
-`add` increments the frequency by one. Addressing an absent key returns zero,
-and `len` returns the number of distinct keys. Scalar and array keys use the
-same equality as `set` elements. Separate and recursive calls receive separate
-counters. `counter` is a first-class value with runtime type `.counter`.
+The first use of bare `counter` lazily creates one counter in the current
+function-call workspace, or `new counter` allocates a named instance.
+`add` increments the frequency of an element by one. `remove` decrements
+the frequency by one and removes the entry when its count reaches zero
+(raising `.Missing` if the element was not present). Addressing an absent key
+returns zero without raising an error. `Key in Counts` checks whether an
+element currently has a non-zero count. `len` returns the number of distinct
+keys.
 
-Counter iteration and direct frequency assignment are not defined yet.
+Iterating with `for Key in Counts` yields the distinct keys in insertion order,
+identical to `set`. Counters can also be converted to ordered multisets with
+`Counts multiset` or passed to collection sequences.
+
+Direct frequency reassignment (e.g. `Counts X = N`) is not defined. Scalar and
+array keys use the same structural equality as `set` elements. Separate and
+recursive calls receive separate implicit counters. `counter` is a
+first-class value with runtime type `.counter`.
 
 If multiple structures of the same type are needed, they should be given
 explicit names.

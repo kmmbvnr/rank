@@ -75,13 +75,29 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 - **Heap:** Min-priority queue with $O(\log N)$ insertion and extraction. `Heap push Value` uses the value as priority; `Heap Priority Value enqueue` accepts an explicit payload.
 - Empty removals raise `.Missing`, composing cleanly with `default` (`Q pop default -1`).
 
-### 5. Ordered Multiset and Binary Search (`floor`, `ceiling`)
+### 5. Unique Sets and Frequency Counters (`set`, `counter`)
+- **Set (`new set` / `set`):** Unordered collection of distinct values with structural equality.
+  * `Seen add X`: Adds element if absent.
+  * `Seen remove X`: Removes element, raising `.Missing` if absent.
+  * `X in Seen`: Boolean membership test.
+  * `for X in Seen`: Iteration over elements in insertion order.
+  * `Seen len`: Distinct element count.
+- **Counter (`new counter` / `counter`):** Stateful frequency map.
+  * `Counts add X`: Increments element frequency by 1.
+  * `Counts remove X`: Decrements frequency by 1, removing key when count reaches 0. Raises `.Missing` if absent.
+  * `Counts X`: Lookup count (returns 0 for absent elements without error).
+  * `X in Counts`: Boolean membership test (true if count > 0).
+  * `for Key in Counts`: Iteration over distinct keys in insertion order.
+  * `Counts len`: Distinct key count.
+  * `Counts multiset`: Conversion to ordered multiset.
+
+### 6. Ordered Multiset and Binary Search (`floor`, `ceiling`)
 - `Bag = new multiset` maintains elements in sorted order with duplicates in $O(\log N)$ time.
 - `Bag floor X`: Finds the greatest element $\le X$.
 - `Bag ceiling X` (alias `lowerbound`): Finds the smallest element $\ge X$.
 - Out-of-range bounds raise `.Missing` and fallback via `default`.
 
-### 6. Logarithmic Range Structures (`fenwick`, `segment`, `wavelet`)
+### 7. Logarithmic Range Structures (`fenwick`, `segment`, `wavelet`)
 - **Fenwick Tree (`N fenwick`):** Point update `F I += Delta` and prefix sums `F sum I` in $O(\log N)$.
 - **Segment Tree (`Values min segment`, `Values + segment`):** Range queries and point/range updates in $O(\log N)$. Supports associative combinators with optional identity seeds (`segment with Identity`), lazy propagation, and $O(1)$ persistent copy-on-write versioning (`Version = Tree copy`).
 - **Wavelet Matrix (`Values wavelet`):** Range value-frequency queries (`within`, `sumwithin`, `missing`) over immutable arrays in $O(\log S)$ time.

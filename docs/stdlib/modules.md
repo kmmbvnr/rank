@@ -1168,6 +1168,7 @@ Tree = Values min segment
 Data = Values wavelet
 Seen add Value
 Counts add Value
+Counts remove Value
 Bag = Values multiset
 Bag add Value
 Bag remove Value
@@ -1179,6 +1180,9 @@ Pairs = Values 2 combinations
 Repeated = Values 2 multicomb
 ```
 
+`new set` and `new counter` create unique sets and stateful frequency maps
+supporting `add`, `remove`, `in` membership, `len`, and `for Key in Collection`
+iteration over keys in insertion order.
 `new stack`, `new deque` and `new heap` create empty named containers.
 `pop` and `peek` work on queues, stacks, deques and heaps. Deques also provide
 `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and `peekback`.
