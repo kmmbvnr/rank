@@ -1,7 +1,7 @@
 import { Interpreter } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { createArraySnapshot, derivedArray, materializedArrayItems, ownedArray } from '../src/array-storage.js';
-import type { RankArray } from '../src/value.js';
+import type { RankArray, RankPlainArray } from '../src/value.js';
 
 describe('derived array revisions', () => {
     it('tracks materialized sequences through cached outer products', () => {
@@ -206,15 +206,15 @@ end`);
     // chain costs two to the power of its depth. The host cannot write between
     // the cells of one materialization, which is what lets the cells be kept.
     it('reads an untracked chain once per cell rather than once per path', () => {
-        const source: RankArray = { kind: 'array', items: [1n, 2n], shape: [2] };
+        const source: RankPlainArray = { kind: 'array', items: [1n, 2n], shape: [2] };
         let reads = 0;
-        let below = source;
+        let below: RankArray = source;
         for (let level = 0; level < 12; level++) {
             const under = below;
             below = derivedArray([2], [under], index => {
                 reads++;
-                return (under.itemAt?.(index) ?? under.items[index] as bigint)
-                    + (under.itemAt?.(index) ?? under.items[index] as bigint);
+                return ((under.itemAt?.(index) ?? under.items[index]) as bigint)
+                    + ((under.itemAt?.(index) ?? under.items[index]) as bigint);
             });
         }
         expect(below.items).toEqual([4096n, 8192n]);

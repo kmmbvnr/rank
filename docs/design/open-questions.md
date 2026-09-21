@@ -448,3 +448,28 @@ Start with short result annotations suitable for a narrow mobile screen; keep
 compiler diagnostics in the detail view. The metadata API, timing boundaries, isolated preview mechanism and visual
 design remain to be decided. This is a future tooling design, not a change to
 current Rank evaluation semantics.
+
+## Copy-on-Write Performance-Cliff Static Diagnostics (LSP Linting)
+
+While Rank's "Reset-to-Unbound" invariant (ADR-0001) and Automatic Compile-Time In-Place lowering (ADR-0004) protect against $O(N^2)$ cascades for loops with pre-existing aliases, an accidental anti-pattern remains possible: re-creating an alias *inside* an imperative loop body:
+
+```rank
+for i in 0 until N
+  B = A          rem Alias created INSIDE loop body!
+  A i = i        rem Performance Cliff: CoW copy triggered on every iteration!
+end
+```
+
+Because mainstream languages with CoW (like Swift) fail silently with no compile-time feedback, developers only discover this cliff through profilers or production OOM crashes.
+
+### Proposed Diagnostic Rule in `RankValidator`
+
+Rank's Langium Language Server and lexical analysis ([bindings.ts](../../packages/language/src/analysis/bindings.ts)) already track `loopCarried`, `reads`, `writes`, and lexical scopes. This enables an edit-time static diagnostic pass:
+1. **Loop Alias Detection:** When an addressed mutation (`A i = ...` or `A += ...`) occurs inside a `for` loop body, inspect the bindings of `A`:
+   - If an alias `B = A` is bound inside the loop scope or loop-carried across turns, mark the assignment statement.
+2. **Inline LSP Diagnostic:**
+   > *`Performance warning: array 'A' has an active alias 'B' created inside the loop body. In-place mutation will trigger an O(N) memory allocation on every iteration. Move the alias outside the loop or avoid aliasing.`*
+3. **Open Decisions:**
+   - Should this warning be elevated to an error under a future `--strict-perf` flag for competitive programming and judge submissions?
+   - How should the analyzer treat bounded micro-loops ($N \le 8$) where cache effects dominate over allocation cost?
+

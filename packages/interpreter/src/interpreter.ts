@@ -3111,11 +3111,13 @@ export class Interpreter {
                 `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
             );
         }
+        const prepared = prepareFunction(statement);
         const frame = reusable?.reset() ? reusable
-            : new LocalFrame(parent, prepareFunction(statement).layout);
+            : new LocalFrame(parent, prepared.layout);
         statement.parameters.forEach((parameter, index) => {
             const argument = arguments_[index];
-            frame.define(parameter, argument, new Set([typeName(argument)]));
+            const borrowed = prepared.borrowedParameters.has(parameter);
+            frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
         });
         return frame;
     }

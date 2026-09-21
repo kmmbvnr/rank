@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, createArraySnapshot, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
-import { eagerArrayStorage } from '../src/array-storage.js';
+import { eagerArrayStorage, isSharedArray } from '../src/array-storage.js';
 import { MemoryIo } from './support.js';
 
 describe('eager array storage', () => {
@@ -71,6 +71,42 @@ describe('eager array storage', () => {
     it('observes changes to the matrix between Rank loop iterations', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use numbers\nA = array shape 2 2\n 1 2 3 4\nend\nTotal = 0\nfor Row in A\n Total += Row sum\n A 1 0 = 10\nend\nTotal')).toBe(17n);
+        runtime.dispose();
+    });
+
+    it('infers borrowed parameters so reader calls do not mark unique arrays as shared', () => {
+        const runtime = new Interpreter();
+        runtime.execute(`fun inspect V
+  return V 0
+end
+A = array 10 20 30
+First = A inspect`);
+        const array = runtime.variables.get('A') as RankArray;
+        expect(runtime.variables.get('First')).toBe(10n);
+        // A must NOT be marked shared!
+        expect(isSharedArray(array)).toBe(false);
+
+        // Mutating A after inspect must happen in-place without cloning the buffer!
+        const originalItems = array.items;
+        runtime.execute('A 0 = 99');
+        expect(array.items).toBe(originalItems);
+        expect(array.items[0]).toBe(99n);
+        runtime.dispose();
+    });
+
+    it('marks array shared when parameter is returned or mutated', () => {
+        const runtime = new Interpreter();
+        runtime.execute(`fun bump V
+  V 0 = 99
+  return V
+end
+A = array 10 20 30
+B = A bump`);
+        const arrayA = runtime.variables.get('A') as RankArray;
+        const arrayB = runtime.variables.get('B') as RankArray;
+        expect(arrayA.items[0]).toBe(10n);
+        expect(arrayB.items[0]).toBe(99n);
+        expect(arrayA.items).not.toBe(arrayB.items);
         runtime.dispose();
     });
 });

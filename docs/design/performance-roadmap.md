@@ -62,6 +62,9 @@ because a name has not been reassigned.
 Why: cross-expression fusion, retained proofs and buffer reuse require more
 than operation-local stability. Reuse also needs proof that no live alias can
 observe overwritten contents. No immutable keyword is planned.
+See [ADR-0004](../adr/implementation/0004-perceus-borrow-inference-and-compile-time-in-place.md)
+for parameter borrow inference and [Open Questions](open-questions.md#copy-on-write-performance-cliff-static-diagnostics-lsp-linting)
+for proposed static performance-cliff diagnostics in loops.
 
 ## Acceptance rules
 

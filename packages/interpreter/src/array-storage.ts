@@ -229,6 +229,17 @@ export function noteArrayBinding(value: RankValue): void {
     record.owners = owners + 1;
 }
 
+/** Ensures that a borrowed array has at least one binding recorded (owners = 1),
+ * but does not mark it shared (owners = 2). */
+export function noteArrayBorrow(value: RankValue): void {
+    if (typeof value !== 'object' || value.kind !== 'array') return;
+    const record = ownershipFor(value);
+    if ((record.owners ?? 0) === 0) {
+        shareSources(value);
+        record.owners = 1;
+    }
+}
+
 /** True when a write has to take a private copy before it changes a cell. */
 export function isSharedArray(value: RankValue): boolean {
     return typeof value === 'object' && value.kind === 'array'
