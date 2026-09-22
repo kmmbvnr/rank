@@ -83,6 +83,14 @@ async function drive(t, steps, columns = 60, rows = 18) {
     return frames;
 }
 
+test('type diagnostics appear while typing before Enter', async t => {
+    const frames = await drive(t, ['Count = 1' + ENTER, 'Count = "wrong"', CLEAR + 'Count + 2'], 40, 18);
+    assert.match(frames[1].text, /TypeError/);
+    assert.match(frames[1].text, /cannot receive text/);
+    assert.doesNotMatch(frames[2].text, /TypeError|cannot receive/);
+    assert.match(frames[2].text, /rank> Count \+ 2/);
+});
+
 test('Enter after end returns to rank prompt after previewing an unfinished function', async t => {
     const frames = await drive(t, [
         'fun digit_sum N' + ENTER,

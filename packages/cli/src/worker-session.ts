@@ -77,6 +77,8 @@ export async function createWorkerSession() {
         },
         get savedFile() { return snapshot.savedFile; },
         get names() { return snapshot.names; },
+        get diagnosticFacts() { return snapshot.diagnosticFacts ?? []; },
+        get testExamples() { return snapshot.testExamples; },
         format(line: string) { return editor.format(line); },
         isCommand(source: string) { return editor.isCommand(source); },
         complete(line: string) { return editor.complete(line); },

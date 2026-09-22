@@ -2,6 +2,7 @@ import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Program, RankAstType, TextBlockExpression } from './generated/ast.js';
 import type { RankServices } from './rank-module.js';
 import { expressionDiagnostics } from './expression-grouping.js';
+import { analyzeValues } from './analysis/value-diagnostics.js';
 
 export function registerValidationChecks(services: RankServices): void {
     const validator = services.validation.RankValidator;
@@ -22,6 +23,11 @@ export class RankValidator {
     checkExpressions(program: Program, accept: ValidationAcceptor): void {
         for (const error of expressionDiagnostics(program)) {
             accept('error', error.message, { node: error.node, range: error.cst?.range });
+        }
+        const parsed = program.$document?.parseResult;
+        if (parsed?.lexerErrors.length || parsed?.parserErrors.length || expressionDiagnostics(program).length) return;
+        for (const diagnostic of analyzeValues(program).diagnostics) {
+            accept('error', diagnostic.message, { node: diagnostic.node, code: diagnostic.kind });
         }
     }
 

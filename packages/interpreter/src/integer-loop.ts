@@ -1,7 +1,7 @@
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import {
-    flattenApplication,
+    flattenApplication, expressionFacts,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement,
@@ -149,17 +149,20 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         return index;
     }
     function knownType(expression: Expression): Term['type'] | undefined {
-        while (isParenthesizedExpression(expression)) expression = expression.value;
-        if (isNameExpression(expression)) {
-            const local = localTypes.get(expression.name);
-            if (local) return local;
+        const fact = expressionFacts(expression, name => {
+            const local = localTypes.get(name);
+            if (local) return { types: [local] };
             // This only selects a specialization; required inputs are guarded
             // again on every entry. Never retain a value or invocation frame.
-            const value = host.read(expression.name);
-            if (value && isRankBytes(value)) return 'bytes';
-            if (typeof value === 'string') return 'text';
-        }
-        return undefined;
+            const value = host.read(name);
+            if (value && isRankBytes(value)) return { types: ['bytes'] };
+            if (typeof value === 'string') return { types: ['text'] };
+            if (typeof value === 'bigint') return { types: ['integer'] };
+            if (typeof value === 'boolean') return { types: ['boolean'] };
+            return undefined;
+        });
+        const type = fact.types.length === 1 ? fact.types[0] : undefined;
+        return type === 'integer' || type === 'boolean' || type === 'text' || type === 'bytes' ? type : undefined;
     }
     function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
         if (serial > 256) return undefined;
@@ -371,11 +374,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
             return { code: name, type: 'integer' };
         }
-        const textPair = (['equal', 'notequal'].includes(e.operator) || host.nativeCalls && e.operator === '+') && (isStringLiteral(e.right)
-            || isNameExpression(e.right) && localTypes.get(e.right.name) === 'text');
+        const textPair = (['equal', 'notequal'].includes(e.operator) || host.nativeCalls && e.operator === '+')
+            && knownType(e.right) === 'text';
         const booleanPair = ['and', 'or', 'xor'].includes(e.operator)
-            || ['equal', 'notequal'].includes(e.operator) && (isBooleanLiteral(e.right)
-                || isNameExpression(e.right) && localTypes.get(e.right.name) === 'boolean');
+            || ['equal', 'notequal'].includes(e.operator) && knownType(e.right) === 'boolean';
         const left = emit(e.left, lines, textPair || host.nativeCalls && e.operator === '+' && knownType(e.left) === 'text'
             ? 'text' : booleanPair ? 'boolean' : undefined);
         const right = emit(e.right, lines, left?.type === 'text' ? 'text' : booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);

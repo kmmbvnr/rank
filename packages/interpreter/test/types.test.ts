@@ -3,8 +3,8 @@ import * as path from 'node:path';
 import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { analyzeBindings } from '@arrrank/language';
-import { Interpreter, parse, typeName } from '../src/index.js';
+import { analyzeBindings, analyzeValues } from '@arrrank/language';
+import { Interpreter, isRankArray, parse, typeName } from '../src/index.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
 
@@ -55,6 +55,26 @@ describe('inferred types against the values a run produced', () => {
                 interpreter.dispose();
             }
             ran += 1;
+
+            const values = analyzeValues(parse(source, file));
+            for (const diagnostic of values.diagnostics) {
+                contradictions.push(`${path.relative(demos, file)}: false diagnostic: ${diagnostic.message}`);
+            }
+            for (const [name, fact] of values.bindings) {
+                const value = interpreter.variables.get(name);
+                if (value === undefined) continue;
+                if (fact.types.length && !fact.types.includes(typeName(value))) {
+                    contradictions.push(`${path.relative(demos, file)} ${name}: value analysis inferred ${fact.types.join(' or ')}, ran as ${typeName(value)}`);
+                }
+                if (isRankArray(value)) {
+                    if (fact.rank !== undefined && fact.rank !== value.shape.length) {
+                        contradictions.push(`${path.relative(demos, file)} ${name}: inferred rank ${fact.rank}, ran as ${value.shape.length}`);
+                    }
+                    if (fact.shape?.some((dimension, axis) => dimension !== null && dimension !== value.shape[axis])) {
+                        contradictions.push(`${path.relative(demos, file)} ${name}: inferred shape ${fact.shape}, ran as ${value.shape}`);
+                    }
+                }
+            }
 
             const program = facts.scopes.find(scope => scope.kind === 'program')!;
             for (const binding of program.bindings) {

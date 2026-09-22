@@ -121,6 +121,7 @@ export function notebookFrame(
         selection?: { from: number; to: number } }[],
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
+    diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -178,8 +179,10 @@ export function notebookFrame(
             const nextOffset = sourceRows[line + 1]?.points[0]?.offset;
             const nextLine = nextOffset === undefined ? undefined
                 : cell.source.slice(0, nextOffset).split('\n').length;
-            if (live && nextLine !== sourceLine) {
-                for (const output of promptOutputs?.get(sourceLine) ?? []) {
+            if ((live || index === notebook.active && diagnostics) && nextLine !== sourceLine) {
+                const outputs = [...(live ? promptOutputs?.get(sourceLine) ?? [] : []),
+                    ...(index === notebook.active ? diagnostics?.get(sourceLine) ?? [] : [])];
+                for (const output of outputs) {
                     const sourceText = cell.source.split('\n')[sourceLine - 1] ?? '';
                     const indent = stringWidth(/^\s*/.exec(sourceText)?.[0] ?? '');
                     const marker = output.error && gutter > 0

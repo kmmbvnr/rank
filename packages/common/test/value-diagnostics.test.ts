@@ -1,0 +1,135 @@
+import { expect, it } from 'vitest';
+import { NotebookRepl } from '../src/repl.js';
+import { createReplSession } from '../src/repl-session.js';
+import { notebookValueDiagnostics } from '../src/value-diagnostics.js';
+import { notebookFrame } from '../src/screen.js';
+import { Notebook } from '../src/notebook.js';
+
+it('invalidates cached hints when a later local test changes', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.enqueue('fun addone X\n return X + 1\nend');
+        repl.notebook.replace('test "local"\n (3 addone) equal 4\nend');
+        repl.notebook.active = 0;
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('Expected: integer');
+        repl.notebook.cells[1].source = 'test "local"\n (3 addone) equal "changed"\nend';
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('Expected: text');
+    } finally { session.dispose(); }
+});
+
+it('combines local and companion tests and refreshes local expectations after edits', () => {
+    const book = new Notebook();
+    book.enqueue('fun addone X\n return X + 1\nend');
+    book.replace('test "local"\n (3 addone) equal 4\nend');
+    book.active = 0;
+    const companion = { path: '/tmp/helpers_test.ra', examples: [{ name: 'addone',
+        arguments: [{ types: ['integer'] }], expected: { types: ['integer'] }, test: 'external', line: 3 }] };
+    const lines = () => notebookValueDiagnostics(book, [], companion).get(1)!;
+    expect(lines()).toHaveLength(2);
+    expect(lines()[0].text).toContain('helpers_test.ra:3');
+    expect(lines()[1].text).toContain('this file:5');
+    expect(lines()[1].text).toContain('Expected: integer\nFrom code: integer');
+    book.cells[1].source = 'test "local"\n (3 addone) equal "changed"\nend';
+    expect(lines()[1].text).toContain('Expected: text\nFrom code: integer');
+    book.cells[1].source = '';
+    expect(lines()).toHaveLength(1);
+    expect(book.cells.every(cell => cell.executed === undefined)).toBe(true);
+});
+
+it('shows a proven error while typing, without evaluating the draft', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('Count = 1');
+        await repl.submit();
+        repl.notebook.replace('Count = "wrong"');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('cannot receive text');
+        expect(repl.diagnosticOutputs).toBe(repl.diagnosticOutputs);
+        expect(session.diagnosticFacts.find(([name]) => name === 'Count')?.[1].types).toEqual(['integer']);
+        expect(repl.liveOutputs).toBeUndefined();
+        const frame = notebookFrame(repl.notebook, 40, 20, 0, '', false, true, '', '',
+            undefined, 'rank> ', undefined, undefined, undefined, false, undefined, true, 0, repl.diagnosticOutputs);
+        expect(frame.lines.join('\n')).toContain('TypeError');
+        expect(frame.lines.join('\n')).not.toContain('▶');
+    } finally { session.dispose(); }
+});
+
+it('withdraws a diagnostic when the draft is incomplete or corrected', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('Count = 1');
+        await repl.submit();
+        repl.notebook.replace('Count +');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        repl.notebook.replace('Count + 2');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+    } finally { session.dispose(); }
+});
+
+it('drops runtime shape facts after an earlier source edit', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('A = array shape 2 3 fill 0');
+        await repl.submit();
+        repl.notebook.replace('A # # #');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('rank 2');
+        repl.notebook.cells[0].source = 'A = array shape 2 3 4 fill 0';
+        expect(notebookValueDiagnostics(repl.notebook, session.diagnosticFacts).size).toBe(0);
+    } finally { session.dispose(); }
+});
+
+it('loads companion examples without executing tests and separates expected from inferred types', async () => {
+    const reads: string[] = [];
+    const session = createReplSession({ readFile: async path => {
+        reads.push(path);
+        return 'test "sample"\n use "helpers"\n (3 addone) equal 4\nend';
+    } });
+    try {
+        const source = 'fun addone X\n return X + 1\nend';
+        session.replaceFile({ path: '/tmp/helpers.ra', source });
+        await session.prepareFunctions([]);
+        expect(reads).toEqual(['/tmp/helpers_test.ra']);
+        expect(session.names).not.toContain('addone');
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace(source);
+        const text = repl.diagnosticOutputs?.get(1)?.map(line => line.text).join('\n');
+        expect(text).toContain('helpers_test.ra:3');
+        expect(text).toContain('Expected: integer');
+        expect(text).toContain('From code: integer');
+        repl.notebook.replace('fun addone X\n return "changed"\nend');
+        expect(repl.diagnosticOutputs?.get(1)?.map(line => line.text).join('\n')).toContain('From code: text');
+        expect(reads).toHaveLength(1);
+    } finally { session.dispose(); }
+});
+
+it('clears companion hints when the file disappears on refresh', async () => {
+    let exists = true;
+    const session = createReplSession({ readFile: async () => {
+        if (!exists) throw new Error('missing');
+        return 'test "sample"\n use "helpers"\n (3 addone) equal 4\nend';
+    } });
+    try {
+        session.replaceFile({ path: '/tmp/helpers.ra', source: '' });
+        await session.prepareFunctions([]);
+        expect(session.testExamples?.examples).toHaveLength(1);
+        exists = false;
+        await session.prepareFunctions([]);
+        expect(session.testExamples).toBeUndefined();
+    } finally { session.dispose(); }
+});
+
+it('uses the recorded union for assignment, not only the last loop value', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('for Value in array 1 "two"\n Value = Value\nend');
+        await repl.submit();
+        repl.notebook.replace('Value = 3');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        repl.notebook.replace('Value = true');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('integer or text');
+    } finally { session.dispose(); }
+});

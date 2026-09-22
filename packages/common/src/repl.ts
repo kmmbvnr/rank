@@ -7,6 +7,7 @@ import { LiveFunctionController } from './live-function-controller.js';
 import { enclosingIterationLine } from './live-preview.js';
 import { type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
+import { notebookValueDiagnostics } from './value-diagnostics.js';
 
 
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
@@ -32,6 +33,18 @@ export class NotebookRepl {
     get liveOutputs(): ReadonlyMap<number, OutputLine[]> | undefined {
         return this.liveFunction.outputs ?? this.liveConditional.outputs;
     }
+    get diagnosticOutputs(): ReadonlyMap<number, OutputLine[]> | undefined {
+        if (this.running) return undefined;
+        const facts = this.session.diagnosticFacts;
+        const key = JSON.stringify([this.notebook.active, this.notebook.dirtyFrom,
+            this.notebook.cells.map(cell =>
+                [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts, this.session.testExamples]);
+        if (this.diagnosticCache?.key !== key) this.diagnosticCache = {
+            key, outputs: notebookValueDiagnostics(this.notebook, facts, this.session.testExamples),
+        };
+        return this.diagnosticCache.outputs;
+    }
+    private diagnosticCache?: { key: string; outputs: ReadonlyMap<number, OutputLine[]> };
     get liveEditing(): boolean { return this.liveFunction.editing || this.liveConditional.editing; }
     get completingLiveFunction(): boolean { return this.liveFunction.completing; }
     get exampleEditor(): Notebook | undefined { return this.liveFunction.editor; }

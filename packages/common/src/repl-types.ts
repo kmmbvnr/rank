@@ -1,7 +1,7 @@
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { createReplSession, type Execution } from './repl-session.js';
 
-type FunctionPreparation = ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>;
+type FunctionPreparation = Awaited<ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>>;
 
 export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview' | 'resetExecution'> & {
     resetExecution: () => void | Promise<void>;

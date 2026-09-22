@@ -1,6 +1,8 @@
 import { RankSession } from './session.js';
+import { runtimeValueFacts } from './value-diagnostics.js';
+import { functionTestExamples, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
-    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, standardModules, type RankValue, type InterpreterOptions,
+    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
@@ -50,6 +52,7 @@ export function createReplSession(host: ReplHost = {}) {
     let errorOffset: number | undefined;
     let loadedFile: ProgramFile | undefined;
     let savedFile: ProgramFile | undefined;
+    let testExamples: { path: string; examples: FunctionTestExample[] } | undefined;
     const declarations = new Map<string, number>();
     const say = (text = ''): void => { output.push({ text, error: false }); };
     const warn = (text: string): void => { output.push({ text, error: true }); };
@@ -74,6 +77,7 @@ export function createReplSession(host: ReplHost = {}) {
         aliases = true;
         last = undefined;
         declarations.clear();
+        testExamples = undefined;
         output = [];
         errorOffset = undefined;
         loadedFile = undefined;
@@ -83,8 +87,11 @@ export function createReplSession(host: ReplHost = {}) {
         resetExecution,
         get savedFile() { return savedFile; },
         get names() { return [...interpreter.bindingNames()]; },
+        get diagnosticFacts() { return runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name)); },
+        get testExamples() { return testExamples; },
         snapshot(): SessionSnapshot {
-            return { names: [...interpreter.variables.keys()], modules: [...interpreter.modules], aliases, savedFile };
+            return { names: [...interpreter.variables.keys()], modules: [...interpreter.modules], aliases, savedFile,
+                diagnosticFacts: runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name)), testExamples };
         },
         replaceFile(file: ProgramFile): void {
             resetExecution();
@@ -109,7 +116,17 @@ export function createReplSession(host: ReplHost = {}) {
             interpreter.forgetBindings(names);
             for (const name of names) declarations.delete(name);
         },
-        prepareFunctions(cells: { id: number; source: string }[]): { id: number; output: OutputLine[]; errorOffset?: number }[] {
+        async prepareFunctions(cells: { id: number; source: string }[]): Promise<{ id: number; output: OutputLine[]; errorOffset?: number }[]> {
+            testExamples = undefined;
+            const file = savedFile;
+            if (file?.path.endsWith('.ra') && !file.path.endsWith('_test.ra') && host.readFile) {
+                const path = file.path.slice(0, -3) + '_test.ra';
+                try {
+                    const source = await host.readFile(path);
+                    if (savedFile === file) testExamples = { path, examples: functionTestExamples(parse(source),
+                        file.path.split(/[\\/]/).at(-1)!.slice(0, -3)) };
+                } catch { /* Missing or incomplete tests are not errors in the edited program. */ }
+            }
             return cells.flatMap(({ id, source }) => {
                 const first = source.split('\n').find(line => line.trim() && !/^\s*rem(?:\s|$)/.test(line));
                 if (!first || !/^\s*(?:fun|memo)\b/.test(first)) return [];
@@ -316,6 +333,7 @@ export function createReplSession(host: ReplHost = {}) {
             if (!host.writeFile) throw new Error('File saving is unavailable');
             await host.writeFile(name, source);
             savedFile = { path: fileArgument(name), source };
+            testExamples = undefined;
             say(`${lines.length} lines to ${name}`);
         } catch (error) {
             warn(chalk.red(String(error)));
@@ -659,6 +677,8 @@ function candidates(
 
 
 export interface SessionSnapshot {
+    testExamples?: { path: string; examples: FunctionTestExample[] };
+    diagnosticFacts?: [string, ValueFacts][];
     names: string[];
     modules: string[];
     aliases: boolean;

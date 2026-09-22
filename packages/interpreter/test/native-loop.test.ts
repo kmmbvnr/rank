@@ -27,6 +27,21 @@ function compare(source: string) {
 
 describe('guarded native loop calls', () => {
     it.each([
+        'use text\nInput = "ABC"\nTotal = 0\nfor I in 1 to 3\n if Input equal ("abc" + "")\n  Total += 1\n end\nend\nTotal',
+        'Total = 0\nfor I in 1 to 3\n Total += ("ёж" bytes) len\nend\nTotal',
+    ])('uses shared expression facts to choose guarded specializations: %s', source => {
+        expect(compare(source).loops).toBeGreaterThan(0);
+    });
+
+    it('rechecks shared type hints when a function is called with another type', () => {
+        const result = compare('fun check X\n Total = 0\n for I in 1 to 2\n'
+            + '  if X equal ("abc" + "")\n   Total += 1\n  end\n end\n return Total\nend\n'
+            + 'array ("abc" check) (42 check) ("abc" check)');
+        expect(result.result).toBe('2 0 2');
+        expect(result.loops).toBeGreaterThan(0);
+    });
+
+    it.each([
         `S = "a😀ёж"\nOut = ""\nfor I in 0 until 4\n Out += S I\nend\nOut`,
         `S = "😀"\nOut = ""\nfor I in 0 to 1\n Out += S I\nend`,
         `S = "😀"\nfor I in -1 to 0\n Out = S I\nend`,

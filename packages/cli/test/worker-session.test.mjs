@@ -29,6 +29,17 @@ async function session(t) {
     return value;
 }
 
+test('worker transports current value facts for non-executing diagnostics', async t => {
+    const s = await session(t);
+    const repl = new NotebookRepl(s);
+    repl.notebook.replace('A = array shape 2 3 fill 0');
+    await repl.submit();
+    assert.deepEqual(s.diagnosticFacts.find(([name]) => name === 'A')[1].shape, [2, 3]);
+    repl.notebook.replace('A # # #');
+    assert.match(repl.diagnosticOutputs.get(1)[0].text, /3 selectors exceed array rank 2/);
+    assert.equal(repl.notebook.current.status, 'idle');
+});
+
 test('Ctrl-R through the worker replaces the selected declaration type', async t => {
     const s = await session(t);
     const repl = new NotebookRepl(s);

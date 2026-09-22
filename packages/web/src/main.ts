@@ -115,7 +115,7 @@ function render(): void {
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints,
-            compact() && !shownFailure && !repl.running ? 1 : 0);
+            compact() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs);
         top = frame.top;
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
     }
