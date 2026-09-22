@@ -86,7 +86,7 @@ fun hand_score Cards
   end
 
   Keys = Freq * 13 + Values
-  Order = Keys argsort descending
+  Order = Keys argsort .descending
   Ties = Values Order
 
   if Straight

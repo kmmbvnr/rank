@@ -21,7 +21,7 @@ H = S select
   .surname = .surname
   .hours = (.slots + 10) // 20 * 10
 end
-H = H sort by .hours descending
+H = H sort by .hours .descending
 R = H select
   .firstname = .firstname
   .surname = .surname

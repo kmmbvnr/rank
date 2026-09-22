@@ -53,10 +53,10 @@ export const sequencesModule: RuntimeModule = {
         || arguments_[0] instanceof RankPersistentSumSegment
             ? arguments_[0].copy()
             : copyArray(arguments_[0])),
-    sort: () => native('sort', 1, arguments_ => sortValue(arguments_[0]), 1),
+    sort: () => native('sort', [1, 2], arguments_ => sortValue(arguments_[0]), 1),
     argsort: () => native(
         'argsort',
-        1,
+        [1, 2],
         arguments_ => argsortValue(arguments_[0]),
         1,
         undefined,

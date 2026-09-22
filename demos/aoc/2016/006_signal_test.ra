@@ -1,0 +1,38 @@
+use testing
+
+test "official example"
+  use "006_signal"
+
+  Lines = array shape 16
+    "eedadn"
+    "drvtee"
+    "eandsr"
+    "raavrd"
+    "atevrs"
+    "tsrnev"
+    "sdttsa"
+    "rasrtv"
+    "nssdts"
+    "ntnada"
+    "svetve"
+    "tesnvt"
+    "vntsnd"
+    "vrdear"
+    "dvrsen"
+    "enarar"
+  end
+
+  Lines solve equal array "easter" "advent"
+end
+
+test "selects different common and rare letters"
+  use "006_signal"
+
+  Lines = array shape 3
+    "ab"
+    "ab"
+    "cb"
+  end
+
+  Lines solve equal array "ab" "cb"
+end

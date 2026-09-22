@@ -118,7 +118,7 @@ Rows tied on every key receive the same one-based rank, and the next rank
 skips the positions occupied by the tie:
 
 ```rank
-R = Members sort by .hours descending
+R = Members sort by .hours .descending
 Out = R select
   .rank = ranknumber
   .hours = .hours

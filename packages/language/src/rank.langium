@@ -80,7 +80,7 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement:
-    ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update') parameters+=Identifier* NL+
+    ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending') parameters+=Identifier* NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
@@ -296,7 +296,7 @@ PrimaryApplicationExpression returns Expression:
         {infer AliasedTableExpression.source=current} field=LabelLiteral?
             'alias' name=LabelLiteral |
         {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY)
-            (fields+=SortField+ | key=NameExpression direction=WORD?) |
+            (fields+=SortField+ | key=NameExpression direction=SortDirection?) |
         {infer KeyedGroupExpression.source=current} operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+ |
         // A second primary is shared by ordinary calls and keyed operations.
         // Normalize this temporary node to the public AST after parsing.
@@ -330,7 +330,10 @@ SelectLocal:
     name=VARIABLE '=' value=Expression;
 
 SortField:
-    field=LabelLiteral direction=WORD?;
+    field=LabelLiteral direction=SortDirection?;
+
+SortDirection returns string:
+    '.' ('ascending' | 'descending');
 
 JoinFieldPair:
     left=LabelLiteral 'equal' right=LabelLiteral;
@@ -451,7 +454,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'text' | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete';
+    VARIABLE | WORD | 'text' | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete' | 'ascending' | 'descending';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -460,7 +463,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update';
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'ascending' | 'descending';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

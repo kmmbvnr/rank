@@ -24,7 +24,7 @@ describe('Rank tables', () => {
             'use json', 'use tables', 'use sequences',
             'Rows = "[{\\"hours\\":10},{\\"hours\\":30},{\\"hours\\":20},',
             '  {\\"hours\\":20}]" json',
-            'Sorted = Rows sort by .hours descending',
+            'Sorted = Rows sort by .hours .descending',
             'Out = Sorted select',
             '  .hours = .hours',
             '  .rank = ranknumber',
@@ -182,7 +182,7 @@ describe('Rank tables', () => {
             'use json', 'use tables', 'use sequences',
             'Rows = "[{\\"key\\":2},{\\"key\\":1},{}]" json',
             'Asc = Rows sort by .key',
-            'Desc = Rows sort by .key descending',
+            'Desc = Rows sort by .key .descending',
         ].join('\n'));
         expect(formatValue(runtime.execute('Asc .key default 0')!)).toBe('1 2 0');
         expect(formatValue(runtime.execute('Desc .key default 0')!)).toBe('2 1 0');

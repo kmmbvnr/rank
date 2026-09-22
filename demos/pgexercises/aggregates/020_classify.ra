@@ -26,7 +26,7 @@ end
 N = R len
 Top = (N + 2) // 3
 Middle = (N + 1) // 3
-R = R sort by .revenue descending .name
+R = R sort by .revenue .descending .name
 R = R select
   .name = .name
   .position = rownumber

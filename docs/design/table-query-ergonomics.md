@@ -44,7 +44,7 @@ R = R select
   .cost = Guest GCost MCost choose
 end
 R = R filter .cost greater 30
-Result = R sort by .cost descending
+Result = R sort by .cost .descending
 ```
 
 The query body changed from 29 to 19 nonblank lines, including `end` and

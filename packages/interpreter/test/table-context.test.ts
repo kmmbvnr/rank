@@ -19,7 +19,7 @@ describe('contextual table operations', () => {
             + '  .id equal 1 or .id equal 2\n  .cost greater 10\nend\n'
             + 'Out = Rows select\n  Cost = .cost * 2\n'
             + '  .name = .name\n  .total = Cost\nend\n'
-            + 'Out = Out sort by .total descending .name ascending');
+            + 'Out = Out sort by .total .descending .name .ascending');
         expect(formatValue(runtime.execute('Out .total')!)).toBe('40');
         expect(formatValue(runtime.execute('Cost')!)).toBe('999');
         expect(formatValue(runtime.execute('Saved .id')!)).toBe('1 2 3');
@@ -92,10 +92,10 @@ describe('contextual table operations', () => {
 describe('sort directions', () => {
     it('orders text and retains source positions for equal descending keys', () => {
         const { runtime } = setup();
-        runtime.execute('Out = Rows sort by .cost descending .name ascending\n'
-            + 'Order = Rows argsort by .cost descending\n'
-            + 'Text = "a😀b" sort descending\n'
-            + 'Ties = (array 2 1 2 1) argsort descending');
+        runtime.execute('Out = Rows sort by .cost .descending .name .ascending\n'
+            + 'Order = Rows argsort by .cost .descending\n'
+            + 'Text = "a😀b" sort .descending\n'
+            + 'Ties = (array 2 1 2 1) argsort .descending');
         expect(formatValue(runtime.execute('Out .id')!)).toBe('2 3 1');
         expect(formatValue(runtime.execute('Order')!)).toBe('1 2 0');
         expect(formatValue(runtime.execute('Text')!)).toBe('😀ba');
@@ -105,10 +105,10 @@ describe('sort directions', () => {
     it('supports function keys and tensor sort/argsort directions', () => {
         const { runtime } = setup();
         runtime.execute('fun cost R\n  return R .cost\nend\n'
-            + 'Out = Rows sort by cost descending\n'
+            + 'Out = Rows sort by cost .descending\n'
             + 'M = array shape 2 3\n  3 1 2\n  0 5 4\nend\n'
-            + 'S = M sort descending\nI = M argsort axis 0 descending\n'
-            + 'R = M sort rank 1 ascending');
+            + 'S = M sort .descending\nI = M argsort axis 0 .descending\n'
+            + 'R = M sort rank 1 .ascending');
         expect(formatValue(runtime.execute('Out .id')!)).toBe('2 3 1');
         expect(formatValue(runtime.execute('S')!)).toBe('3 2 1 5 4 0');
         expect(formatValue(runtime.execute('I')!)).toBe('0 1 1 1 0 0');
@@ -120,8 +120,8 @@ describe('sort directions', () => {
     it('orders date keys and continues a pipeline after direction', () => {
         const { runtime } = setup();
         runtime.execute('use dates\nDates = (array "2020-01-02" "2020-01-01" "2020-01-02") date\n'
-            + 'Rows .day = Dates\nR = Rows sort by .day descending\n'
-            + 'First = (array 1 3 2) sort descending 0');
+            + 'Rows .day = Dates\nR = Rows sort by .day .descending\n'
+            + 'First = (array 1 3 2) sort .descending 0');
         expect(formatValue(runtime.execute('R .id')!)).toBe('1 3 2');
         expect(formatValue(runtime.execute('First')!)).toBe('3');
     });

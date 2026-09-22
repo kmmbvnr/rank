@@ -1,0 +1,44 @@
+rem Advent of Code 2016 - Day 6
+rem Signals and Noise
+rem https://adventofcode.com/2016/day/6
+
+use io
+use cli
+use text
+use sequences
+
+argument Input path
+
+Answers = Input readlines solve
+Answers 0 print
+Answers 1 print
+
+
+rem Return the messages formed by the most and least frequent letters in each column.
+fun solve Lines
+  Rows = Lines len
+  Cols = Lines 0 len
+  Text = Lines "" join
+  Grid = Text (array Rows Cols) reshape
+
+  Width = Grid len axis 1
+  Most = ""
+  Least = ""
+  MostDirection = .descending
+  LeastDirection = .ascending
+
+  for J in 0 until Width
+    Column = Grid axis 1 J
+    Letters = Column unique
+    Matches = Column Letters equal outer
+    Counts = Matches count axis 0
+
+    Order = Counts argsort MostDirection
+    Most += Letters (Order 0)
+
+    Order = Counts argsort LeastDirection
+    Least += Letters (Order 0)
+  end
+
+  return array Most Least
+end

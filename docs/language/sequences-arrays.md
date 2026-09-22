@@ -606,15 +606,15 @@ Order = Events argsort by .time .delta
 Order = Values argsort by magnitude
 ```
 
-Directions may be written for the whole sort or for individual keys:
+Directions are symbols and may be written for the whole sort or for individual keys:
 
 ```rank
-Sorted = Values sort descending
-Order = Values argsort descending
-Rows = Events sort by .cost descending .name
+Sorted = Values sort .descending
+Order = Values argsort .descending
+Rows = Events sort by .cost .descending .name
 ```
 
-`ascending` is the explicit spelling of the default direction. In `sort by`
+`.ascending` is the explicit spelling of the default direction. In `sort by`
 and `argsort by`, a direction belongs to the preceding field or function key.
 Descending reverses comparison, preserving the order of ties in arrays. It
 works for text and date keys as well as numbers. Plain directions also compose

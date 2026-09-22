@@ -34,7 +34,7 @@ downloaded data.
 All eight tasks use Rank operations on lazy SQLite views. Contextual `filter`
 and `select` blocks remove repeated table prefixes and separate column-record
 variables. Task 4 keeps short role aliases for its self join. Tasks 6 and 8
-use `choose` and `sort by .cost descending`; their full results stay in SQLite
+use `choose` and `sort by .cost .descending`; their full results stay in SQLite
 until CSV, with no sort helper column or cleanup materialization. Task 7 uses
 `lookup` for a correlated scalar subquery. Task 8 names its priced intermediate.
 

@@ -12,7 +12,7 @@ A card_game print
 
 rem Find Alice's advantage when both players take the largest remaining card.
 fun card_game A
-  Sorted = A sort descending
+  Sorted = A sort .descending
   Alice = 0
   Bob = 0
 

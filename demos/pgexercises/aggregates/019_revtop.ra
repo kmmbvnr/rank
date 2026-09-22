@@ -23,7 +23,7 @@ G = R group by .name
 R = G select
   .revenue = .revenue sum
 end
-R = R sort by .revenue descending
+R = R sort by .revenue .descending
 R = R select
   .name = .name
   .rank = ranknumber

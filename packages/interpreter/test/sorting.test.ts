@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
 describe('argsort', () => {
+    it('accepts a direction symbol or a variable holding one', () => {
+        expect(run([
+            'use sequences',
+            'Values = array 2 1 3',
+            'Descending = Values argsort .descending',
+            'Direction = .ascending',
+            'Ascending = Values argsort Direction',
+            '(Descending equal array 2 0 1) and reduce',
+            '(Ascending equal array 1 0 2) and reduce',
+        ].join('\n'))).toBe('true');
+    });
+
     it('returns stable zero-based positions for arrays and text', () => {
         expect(run([
             'use sequences',
@@ -58,6 +70,8 @@ describe('argsort', () => {
             .toThrowError('argsort axis out of bounds: 1');
         expect(() => run('Values = array 1\nValues argsort'))
             .toThrowError('unknown name: argsort');
+        expect(() => run('use sequences\n(array 1) argsort .backwards'))
+            .toThrowError('sort direction must be .ascending or .descending');
     });
 });
 

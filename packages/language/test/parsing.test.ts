@@ -101,7 +101,7 @@ describe('Rank grammar', () => {
             'end',
             'One = R select .total',
             'Dynamic = R select Cols',
-            'S = R sort by .total descending .name ascending',
+            'S = R sort by .total .descending .name .ascending',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -109,7 +109,7 @@ describe('Rank grammar', () => {
         const statement = document.parseResult.value.statements[5];
         if (!isAssignmentStatement(statement) || !isKeyedSortExpression(statement.value)) throw new Error('expected sort');
         expect(statement.value.fields.map(field => [field.field.name, field.direction]))
-            .toEqual([['total', 'descending'], ['name', 'ascending']]);
+            .toEqual([['total', '.descending'], ['name', '.ascending']]);
     });
 
     it('rejects empty table blocks, condition assignment and the superseded select call', async () => {

@@ -547,6 +547,12 @@ export class Interpreter {
         return new Set([...this.variables.keys(), ...this.variableTypes.keys()]);
     }
 
+    /** Assignment contracts for editor diagnostics, copied without exposing runtime state. */
+    bindingTypeNames(name: string): readonly string[] | undefined {
+        const types = this.variableTypes.get(name);
+        return types === undefined ? undefined : [...types];
+    }
+
     /** Copy the current bindings without rerunning the program that produced them. */
     forkForPreview(output: Output = this.output): Interpreter {
         const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored,
@@ -2215,7 +2221,7 @@ export class Interpreter {
                 const source = yield* resume(interpreter.evaluateTask(expression.source));
                 if (isRankSqliteTable(source) && !indices && expression.fields.length > 0) {
                     return sortSqlite(source, expression.fields.map(field => field.field.name),
-                        expression.fields.map(field => sortDescending(field.direction)));
+                        expression.fields.map(field => sortFieldDescending(field.direction)));
                 }
                 const items = sortByItems(source, operation);
                 const resultWithSchema = (result: RankArray): RankArray => {
@@ -2241,7 +2247,7 @@ export class Interpreter {
                         }
                     }
                     return resultWithSchema(sortByKeys(items, keys, operation, indices,
-                        expression.fields.map(field => sortDescending(field.direction))));
+                        expression.fields.map(field => sortFieldDescending(field.direction))));
                 }
                 if (!expression.key) throw new RankError(`${operation} requires a key`);
                 const key = yield* resume(interpreter.evaluateTask(expression.key));
@@ -2254,7 +2260,7 @@ export class Interpreter {
                     interpreter.ownFiles(value);
                     keys.push([value]);
                 }
-                return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortDescending(expression.direction)]));
+                return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortFieldDescending(expression.direction)]));
             };
         }
         if (isKeyedGroupExpression(expression)) {
@@ -2515,8 +2521,9 @@ export class Interpreter {
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
             const direction = parts.at(-1);
-            if (direction && isNameExpression(direction)
-                && ['ascending', 'descending'].includes(direction.name)
+            if (parts.length > 2 && direction && (isLabelLiteral(direction)
+                || (isNameExpression(direction) && /^[A-Z]/.test(direction.name)))
+                && !isNamed(direction, 'sort') && !isNamed(direction, 'argsort')
                 && parts.some(part => isNamed(part, 'sort') || isNamed(part, 'argsort'))) {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'sort direction');
@@ -2527,13 +2534,13 @@ export class Interpreter {
                     const name = typeof operation === 'string' ? operation
                         : operation && isNameExpression(operation) ? operation.name : undefined;
                     if (name !== 'sort' && name !== 'argsort') {
-                        throw new RankError('ascending/descending must follow sort or argsort', 'TypeError');
+                        throw new RankError('sort direction must follow sort or argsort', 'TypeError');
                     }
                     const fn = interpreter.resolve(name);
                     if (fn !== interpreter.standardFunctions.get(standardModules.sequences[name]) || !isNativeFunction(fn)) {
                         throw new RankError('sort direction requires the standard sort or argsort', 'TypeError');
                     }
-                    const descending = direction.name === 'descending';
+                    const descending = sortDescending(yield* resume(interpreter.evaluateTask(direction)));
                     if (axis) return argsortAxis(yield* resume(interpreter.evaluateTask(axis.source)), axis.axis, descending);
                     const source = yield* resume(interpreter.evaluateTask(applicationParts((ranked?.parts ?? parts).slice(0, -1))));
                     const directed: NativeFunction = { ...fn, call: args => name === 'sort'
@@ -6844,11 +6851,23 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
     return files;
 }
 
-function sortDescending(direction: string | undefined): boolean {
-    if (direction !== undefined && direction !== 'ascending' && direction !== 'descending') {
-        throw new RankError('sort direction must be ascending or descending', 'TypeError');
+function sortDescending(direction: RankValue): boolean {
+    if (!isRankLabel(direction) || (direction.name !== 'ascending' && direction.name !== 'descending')) {
+        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
     }
-    return direction === 'descending';
+    return direction.name === 'descending';
+}
+
+function sortFieldDescending(direction: unknown): boolean {
+    const value = typeof direction === 'string' ? direction
+        : direction && typeof direction === 'object' && 'name' in direction
+            ? (direction as { name?: unknown }).name
+            : undefined;
+    const name = typeof value === 'string' ? value.replace(/^\./, '') : undefined;
+    if (name && name !== 'ascending' && name !== 'descending') {
+        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
+    }
+    return name === 'descending';
 }
 
 function inputDeclarationName(statement: Statement): string {

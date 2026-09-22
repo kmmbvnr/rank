@@ -45,7 +45,7 @@ array-valued columns to SQLite rows by position; it needs an explicit ordering
 and alignment contract before implementation. This limitation remains even
 though contextual `rownumber` covers numbering and `ranknumber` covers tied ranks.
 
-The ranked-member exercise uses `sort by .hours descending` followed by
+The ranked-member exercise uses `sort by .hours .descending` followed by
 `.rank = ranknumber` in `select`. A banding window remains unimplemented:
 
 ```rank
@@ -472,4 +472,3 @@ Rank's Langium Language Server and lexical analysis ([bindings.ts](../../package
 3. **Open Decisions:**
    - Should this warning be elevated to an error under a future `--strict-perf` flag for competitive programming and judge submissions?
    - How should the analyzer treat bounded micro-loops ($N \le 8$) where cache effects dominate over allocation cost?
-

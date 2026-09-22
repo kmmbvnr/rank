@@ -27,7 +27,7 @@ describe('shared expression grouping', () => {
         ['"1203" integer rank 0', 'use text\nuse numbers'],
         ['M sum axis 0', 'use numbers'],
         ['M sum axis 0 rank 1', 'use numbers'],
-        ['M argsort axis 1 descending', 'use sequences\nuse numbers'],
+        ['M argsort axis 1 .descending', 'use sequences\nuse numbers'],
         ['M + scan', 'use numbers'],
         ['M next scan', 'use numbers'],
         ['M next scan with Seed', 'use numbers'],

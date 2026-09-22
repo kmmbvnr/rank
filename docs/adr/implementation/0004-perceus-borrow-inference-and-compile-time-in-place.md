@@ -69,7 +69,7 @@ The compiler leverages [bindings.ts](file:///Users/kmmbvnr/Workspace/Playground/
 All standard library data transformations (`sequences`, `tables`, `graphs`) adhere to the **Functional But In-Place (FBIP)** design pattern:
 
 ```rank
-TopUsers = Users filter .Active 1 sort by .Score descending
+TopUsers = Users filter .Active 1 sort by .Score .descending
 ```
 
 1. **Equational Surface API:** To the user, functions behave purely equationally: `Sorted = A sort` produces a new value without modifying the syntax or semantics of `A`.

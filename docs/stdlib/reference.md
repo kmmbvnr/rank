@@ -320,7 +320,7 @@ These need `use sequences` but have no name to look up.
 | --- | --- |
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
-| `Values sort descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
+| `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
 
 ## stats
 

@@ -19,6 +19,6 @@ R = B select
   .starttime = Start
   .endtime = End
 end
-R = R sort by .endtime descending .starttime descending
+R = R sort by .endtime .descending .starttime .descending
 Result = R from 0 until 10
 Result OutputPath csv

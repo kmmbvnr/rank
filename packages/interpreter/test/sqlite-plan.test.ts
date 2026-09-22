@@ -72,7 +72,7 @@ it('pushes select ranknumber into an ordered SQLite window', () => {
     const io = new CountingSqliteIo({});
     const runtime = new Interpreter(undefined, { io });
     runtime.execute('use tables\nuse sequences\nDb = "club.sqlite3" sqlite\n'
-        + 'R = Db .facilities\nR = R sort by .name descending\n'
+        + 'R = Db .facilities\nR = R sort by .name .descending\n'
         + 'Out = R select\n  .rank = ranknumber\n  .title = .name\nend\n'
         + 'Statement = Out sql');
     expect(io.reads).toEqual([]);
@@ -116,7 +116,7 @@ it('keeps contextual filters, calculations and descending sort in a bound plan',
         + 'R = Db .facilities filter .name equal "Tennis Court 1"\n'
         + 'R = R select\n  Flag = .name equal "Tennis Court 1"\n'
         + '  .title = Flag .name "fallback" choose\nend\n'
-        + 'R = R sort by .title descending\nStatement = R sql');
+        + 'R = R sort by .title .descending\nStatement = R sql');
     expect(io.reads).toEqual([]);
     const text = formatValue(runtime.execute('Statement .text')!);
     expect(text).toContain('WHERE');

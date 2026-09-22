@@ -1,5 +1,5 @@
 import {
-    isApplicationExpression, isBinaryExpression, isNameExpression, isNumberLiteral,
+    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral,
     type Expression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
@@ -17,10 +17,15 @@ function named(expression: Expression | undefined, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
 }
 
+function isSortDirection(expression: Expression | undefined): boolean {
+    return isLabelLiteral(expression)
+        && (expression.name === 'ascending' || expression.name === 'descending');
+}
+
 /** The end of a modified call when another pipeline step follows it. */
 function boundary(parts: Expression[]): number | undefined {
     const direction = parts.findIndex((part, index) => index > 1
-        && (named(part, 'ascending') || named(part, 'descending'))
+        && isSortDirection(part)
         && parts.slice(0, index).some(p => named(p, 'sort') || named(p, 'argsort')));
     if (direction >= 0) return direction < parts.length - 1 ? direction + 1 : undefined;
     if (named(parts[2], 'segment') || named(parts[2], 'scan')) {
