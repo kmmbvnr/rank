@@ -1,6 +1,7 @@
 import { interruptibleCallback } from '../interrupt.js';
 import { RankError } from '../errors.js';
-import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankValue } from '../value.js';
+import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankBytes, type RankValue } from '../value.js';
+import { withTypedCalls } from '../typed-native.js';
 import { mapSequence } from '../sequence.js';
 import { derivedArray, readArrayItem } from '../array-storage.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -74,14 +75,17 @@ export const textModule: RuntimeModule = {
         }
         return parseText(value, format);
     }),
-    startswith: () => native('startswith', 2, ([value, prefix]) => startsWith(value, prefix)),
-    lower: () => native('lower', 1, ([value]) => {
+    startswith: () => withTypedCalls(native('startswith', 2, ([value, prefix]) => startsWith(value, prefix)), {
+        'text,text': arguments_ => (arguments_[0] as string).startsWith(arguments_[1] as string),
+        'bytes,bytes': arguments_ => bytesStartWith(arguments_[0] as RankBytes, arguments_[1] as RankBytes),
+    }),
+    lower: () => withTypedCalls(native('lower', 1, ([value]) => {
         if (isRankArray(value)) {
             return mapTextArguments([value], args => lowerText(args[0]));
         }
         if (isRankSqliteExpression(value)) return textFunctionSqlite('rank_lower', [value]);
         return lowerText(value);
-    }),
+    }), { text: arguments_ => (arguments_[0] as string).toLowerCase() }),
     lpad: () => native('lpad', 3, arguments_ => {
         if (arguments_.some(isRankArray)) {
             return mapTextArguments(arguments_, args => lpadText(args[0], args[1], args[2]));
@@ -152,16 +156,20 @@ function startsWith(value: RankValue, prefix: RankValue): RankValue {
         return textFunctionSqlite('rank_startswith', [value, prefix], true);
     }
     if (isRankBytes(value) && isRankBytes(prefix)) {
-        if (prefix.data.length > value.data.length) return false;
-        for (let index = 0; index < prefix.data.length; index += 1) {
-            if (value.data[index] !== prefix.data[index]) return false;
-        }
-        return true;
+        return bytesStartWith(value, prefix);
     }
     if (typeof value !== 'string' || typeof prefix !== 'string') {
         throw new RankError('startswith expects text and a text prefix, or bytes and a byte prefix');
     }
     return value.startsWith(prefix);
+}
+
+function bytesStartWith(value: RankBytes, prefix: RankBytes): boolean {
+    if (prefix.data.length > value.data.length) return false;
+    for (let index = 0; index < prefix.data.length; index += 1) {
+        if (value.data[index] !== prefix.data[index]) return false;
+    }
+    return true;
 }
 
 function mapTextArguments(

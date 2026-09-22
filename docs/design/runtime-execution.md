@@ -442,8 +442,8 @@ for measured effects and scope.
 The whole-loop compiler also supports text concatenation and compact byte
 registers. An explicit signature table in `loop-builtins.ts` permits synchronous
 calls to `bytes`, `startswith`, `lower`, `codepoint`, `character`, `join` on text
-vectors, and `md5`. These calls retain the ordinary builtin implementations, including Unicode
-rules, errors and interruption checks. Byte length and single-integer indexing
+vectors, and `md5`. These calls preserve Unicode rules, errors and interruption
+checks. Byte length and single-integer indexing
 do not materialize a bigint array.
 
 Before entering each region, the runtime checks required input types and binds
@@ -466,6 +466,29 @@ may invoke Rank code or mutate bindings are excluded. Byte mutation and arrays
 containing byte values also remain outside this extension. `nativeLoopCompilation: false`
 disables the extension for differential tests. See the
 [benchmark results](../../benchmarks/native-loop-results.md).
+
+### Type-specialized builtin kernels
+
+`typed-native.ts` lets a builtin register internal kernels for complete input
+signatures, such as `text,text` or `bytes,bytes`. The compiler proves the arity
+and each argument type before selecting a kernel. Binding still checks the
+loaded module, exact function identity and effect contract at every region
+entry. Registration alone does not permit compilation of a new function.
+
+The current kernels cover text/byte `startswith`, text/byte `bytes`, text `lower`
+and text/byte `md5`. They skip repeated type/arity checks and, where applicable,
+array broadcasting dispatch. Ordinary array calls keep their existing behavior.
+No input values or digests are cached, and byte results retain value semantics.
+Other builtins keep checked calls; domain checks such as valid Unicode code
+points are not implied by a scalar type and must not be removed.
+
+When an interrupt signal is installed, binding selects the original native
+wrapper so checks before and after calls remain intact. This decision is made
+again on later invocations of a cached loop. `typedNativeCalls: false` disables
+only the kernels, leaving loop compilation enabled for differential tests and
+benchmarks. Use `node benchmarks/native-loop.mjs --typed` for general workloads
+and `node benchmarks/aoc-chess.mjs --typed` for complete searches.
+See [typed-kernel measurements](../../benchmarks/typed-native-results.md).
 
 ### Trusted host implementations
 

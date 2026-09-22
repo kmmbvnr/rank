@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, formatValue, isRankArray, pureHostFunction } from '../src/index.js';
 
-function run(source: string, nativeLoopCompilation: boolean) {
+function run(source: string, nativeLoopCompilation: boolean, typedNativeCalls = true) {
     let loops = 0;
     const runtime = new Interpreter(undefined, {
-        nativeLoopCompilation, onIntegerLoopExecuted: () => loops++,
+        nativeLoopCompilation, typedNativeCalls, onIntegerLoopExecuted: () => loops++,
     });
     try {
         let result: string | undefined, error: string | undefined;
@@ -20,6 +20,7 @@ function run(source: string, nativeLoopCompilation: boolean) {
 }
 function compare(source: string) {
     const reference = run(source, false), compiled = run(source, true);
+    expect(run(source, true, false)).toEqual(compiled);
     expect({ ...compiled, loops: 0 }).toEqual({ ...reference, loops: 0 });
     return compiled;
 }

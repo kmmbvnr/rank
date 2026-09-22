@@ -1,5 +1,6 @@
 import { RankError } from '../errors.js';
 import { ByteArray } from '../bytes.js';
+import { withTypedCalls } from '../typed-native.js';
 import { readArrayItem } from '../array-storage.js';
 import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, type RankValue } from '../value.js';
 import { numericExtreme, sumValue } from './numbers.js';
@@ -11,7 +12,7 @@ const encoder = new TextEncoder();
 
 /** Ordinary functions available in every workspace without a use statement. */
 export const coreModule: RuntimeModule = {
-    bytes: () => native('bytes', 1, ([value]) => {
+    bytes: () => withTypedCalls(native('bytes', 1, ([value]) => {
         if (isRankBytes(value)) return value;
         if (typeof value === 'string') return new ByteArray(encoder.encode(value));
         if (!isRankArray(value) || value.shape.length !== 1) {
@@ -29,6 +30,9 @@ export const coreModule: RuntimeModule = {
             data[index] = Number(item);
         }
         return new ByteArray(data);
+    }), {
+        text: arguments_ => new ByteArray(encoder.encode(arguments_[0] as string)),
+        bytes: arguments_ => arguments_[0],
     }),
     integer: () => native('integer', 1, ([value]) => integerValue(value), 1),
     real: () => native('real', 1, ([value]) => realValue(value), 1),

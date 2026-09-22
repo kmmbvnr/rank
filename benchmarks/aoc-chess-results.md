@@ -1,5 +1,8 @@
 # Complete AoC 2016 day 5 searches
 
+These measurements precede type-specialized builtin kernels. See the
+[later kernel comparison](typed-native-results.md) for that separate change.
+
 Measured on 2026-09-22 with Node v24.15.0:
 
 ```sh

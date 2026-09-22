@@ -8,11 +8,11 @@ import { nodeMd5 } from '../packages/cli/out/node-crypto.js';
 
 const [mode, part] = process.argv.slice(2);
 const passwords = { part1: '18f47a30', part2: '05ace8e3' };
-if (!mode) {
+if (!mode || mode === '--typed') {
     const samples = new Map();
     for (let round = 0; round < 3; round++) {
         for (const part of Object.keys(passwords)) {
-            for (const mode of ['reference', 'compiled']) {
+            for (const mode of process.argv[2] === '--typed' ? ['generic', 'compiled'] : ['reference', 'compiled']) {
                 const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), mode, part], { encoding: 'utf8' });
                 assert.equal(child.status, 0, child.stderr || child.stdout);
                 const result = JSON.parse(child.stdout);
@@ -27,12 +27,12 @@ if (!mode) {
         console.log(JSON.stringify({ key, seconds, median: [...seconds].sort((a, b) => a - b)[1] }));
     }
 } else {
-    assert.ok(['reference', 'compiled'].includes(mode));
+    assert.ok(['reference', 'generic', 'compiled'].includes(mode));
     assert.ok(Object.hasOwn(passwords, part));
     const source = readFileSync(new URL('../demos/aoc/2016/005_chess.ra', import.meta.url), 'utf8');
     let loops = 0;
     const runtime = new Interpreter(undefined, {
-        md5: nodeMd5, nativeLoopCompilation: mode === 'compiled',
+        md5: nodeMd5, nativeLoopCompilation: mode !== 'reference', typedNativeCalls: mode !== 'generic',
         onIntegerLoopExecuted: () => loops++,
         loadModule: () => ({ id: '/005_chess.ra', source }),
     });
@@ -42,7 +42,7 @@ if (!mode) {
         const password = runtime.execute(`"abc" ${part}`);
         const seconds = (performance.now() - start) / 1000;
         assert.equal(password, passwords[part]);
-        assert.equal(loops, mode === 'compiled' ? 1 : 0);
+        assert.equal(loops, mode !== 'reference' ? 1 : 0);
         console.log(JSON.stringify({ node: process.version, mode, part, password, loops, seconds }));
     } finally { runtime.dispose(); }
 }

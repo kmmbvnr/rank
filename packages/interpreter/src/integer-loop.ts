@@ -33,7 +33,7 @@ interface Host {
     readonly extrema: boolean;
     readonly absolute: boolean;
     readonly scalarText: boolean;
-    builtinCall(module: string, name: string): ((arguments_: RankValue[]) => RankValue) | undefined;
+    builtinCall(module: string, name: string, types: readonly string[]): ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     scalarFunction(name: string, arity: number): {
         type: 'integer' | 'boolean';
@@ -266,6 +266,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     ? loopBuiltins[last.name] : undefined;
                 if (signature && signature.inputs.length === parts.length - 1) {
                     const arguments_: string[] = [];
+                    const types: string[] = [];
                     let firstType: Term['type'] | undefined;
                     for (const [index, input] of signature.inputs.entries()) {
                         let part = parts[index];
@@ -279,6 +280,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                             arrays.set(part.name, info);
                             if (!assigned.has(part.name)) arrayInputs.add(part.name);
                             arguments_.push(`r${info.slot}`);
+                            types.push('text-array');
                             continue;
                         }
                         const expected = input === 'same' ? firstType
@@ -288,9 +290,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                             || input === 'text-or-bytes' && !['text', 'bytes'].includes(value.type)) return undefined;
                         firstType ??= value.type;
                         arguments_.push(value.code);
+                        types.push(value.type);
                     }
                     const name = `v${serial++}`, index = calls.length;
-                    calls.push({ name: last.name, locals: [], bind: () => host.builtinCall(signature.module, last.name) });
+                    calls.push({ name: last.name, locals: [], bind: () => host.builtinCall(signature.module, last.name, types) });
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
                     return { code: name, type: signature.result };
                 }

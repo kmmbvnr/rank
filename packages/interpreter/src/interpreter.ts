@@ -7,6 +7,7 @@ import { compileScalarFunction } from './scalar-function-kernel.js';
 import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem, arrayForWrite, noteArrayBinding, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
+import { typedNativeCall } from './typed-native.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -267,6 +268,8 @@ export interface InterpreterOptions {
     readonly directLoopControl?: boolean;
     /** Compile guarded synchronous text/byte builtin calls inside loops. */
     readonly nativeLoopCompilation?: boolean;
+    /** Use checked native wrappers even in typed loops when false. */
+    readonly typedNativeCalls?: boolean;
     /** Compile function bodies with a terminal return continuation. */
     readonly functionBodyCompilation?: boolean;
     readonly onFunctionBodyCompiled?: (source: string) => void;
@@ -1330,7 +1333,7 @@ export class Interpreter {
                 booleanLocals: this.options.booleanLoopCompilation !== false,
                 scalarText: this.options.scalarTextCompilation !== false,
                 nativeCalls: this.options.nativeLoopCompilation !== false,
-                builtinCall: (module, name) => {
+                builtinCall: (module, name, types) => {
                     if (!this.modules.has(module)) return undefined;
                     // Unknown host callbacks may mutate bindings or re-enter Rank.
                     if (module === 'crypto' && name === 'md5' && this.options.md5
@@ -1338,7 +1341,8 @@ export class Interpreter {
                     try {
                         const value = this.resolve(name);
                         return isNativeFunction(value) && value === this.standardFunctions.get(standardModules[module][name])
-                            ? value.call : undefined;
+                            ? this.options.typedNativeCalls === false ? value.call : typedNativeCall(value, types)
+                            : undefined;
                     } catch { return undefined; }
                 },
                 scalarFunction: (name, arity) => {
@@ -3452,6 +3456,7 @@ export class Interpreter {
             directIteration: this.options.directIteration,
             directLoopControl: this.options.directLoopControl,
             nativeLoopCompilation: this.options.nativeLoopCompilation,
+            typedNativeCalls: this.options.typedNativeCalls,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
             onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
@@ -3568,6 +3573,7 @@ export class Interpreter {
             directIteration: this.options.directIteration,
             directLoopControl: this.options.directLoopControl,
             nativeLoopCompilation: this.options.nativeLoopCompilation,
+            typedNativeCalls: this.options.typedNativeCalls,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
             onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,

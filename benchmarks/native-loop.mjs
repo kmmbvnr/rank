@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { Interpreter } from '../packages/interpreter/out/index.js';
 
-const count = 100_000;
+const count = Number(process.argv[4] ?? 100_000);
 const cases = {
     text: {
         body: 'S = "item" + (I text)\nif S "item1" startswith\n continue\nend\nTotal += S len',
@@ -14,6 +14,10 @@ const cases = {
     bytes: {
         body: 'B = ("item" + (I text)) bytes\nif B Prefix startswith\n continue\nend\nTotal += B 4',
         oracle: i => String(i).startsWith('1') ? 0 : String(i).charCodeAt(0),
+    },
+    bytePrefix: {
+        body: 'if Header Prefix startswith\n Total += I\nend',
+        oracle: i => i,
     },
     unicode: {
         body: 'S = ((1040 + I % 32) character) lower\nTotal += S codepoint',
@@ -28,17 +32,18 @@ const cases = {
     },
 };
 const selected = process.argv[2];
-if (!selected) {
+if (!selected || selected === '--typed') {
     for (const name of Object.keys(cases)) {
-        for (const mode of ['reference', 'compiled']) {
-            const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), name, mode], { stdio: 'inherit' });
+        for (const mode of selected === '--typed' ? ['generic', 'compiled'] : ['reference', 'compiled']) {
+            const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), name, mode,
+                String(selected === '--typed' ? 1_000_000 : count)], { stdio: 'inherit' });
             assert.equal(child.status, 0);
         }
     }
 } else {
     assert.ok(Object.hasOwn(cases, selected));
     const mode = process.argv[3];
-    assert.ok(['reference', 'compiled'].includes(mode));
+    assert.ok(['reference', 'generic', 'compiled'].includes(mode));
     const { body, oracle } = cases[selected];
     const expected = n => {
         let sum = 0n;
@@ -47,16 +52,18 @@ if (!selected) {
     };
     const warmExpected = expected(10_000), fullExpected = expected(count);
     let loops = 0;
-    // Both modes retain direct break/continue. Only native loop compilation differs.
+    // Generic keeps loop compilation but uses checked, polymorphic builtin calls.
     // Leave md5 unset: arbitrary host callbacks are not proven pure.
     const runtime = new Interpreter(undefined, {
-        nativeLoopCompilation: mode === 'compiled', onIntegerLoopExecuted: () => loops++,
+        nativeLoopCompilation: mode !== 'reference', typedNativeCalls: mode !== 'generic',
+        onIntegerLoopExecuted: () => loops++,
     });
     try {
         runtime.execute(`use text\nuse crypto
 fun work Count
   Total = 0
   Prefix = "item1" bytes
+  Header = "item123payload" bytes
   Empty = "" bytes
   for I in 0 until Count
     ${body}
@@ -71,7 +78,7 @@ end`);
             milliseconds.push(Number((performance.now() - start).toFixed(2)));
             assert.equal(result, fullExpected);
         }
-        assert.equal(loops, mode === 'compiled' ? 6 : 0);
+        assert.equal(loops, mode !== 'reference' ? 6 : 0);
         const median = [...milliseconds].sort((a, b) => a - b)[2];
         console.log(JSON.stringify({ node: process.version, case: selected, mode, count, median, milliseconds }));
     } finally { runtime.dispose(); }
