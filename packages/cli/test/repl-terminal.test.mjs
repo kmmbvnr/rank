@@ -109,6 +109,15 @@ test('rank diagnostics appear for inline shaped arrays before Enter', async t =>
     assert.doesNotMatch(frames[2].text, /DimensionMismatch|cannot receive/);
 });
 
+test('loop rank diagnostics appear before executing the pasted draft', async t => {
+    const frames = await drive(t, ['A = array 1 2' + ENTER,
+        '\x1b[200~for I in 1 to 3\n A = array shape 2 2 fill 0\nend\x1b[201~'], 80, 22);
+    assert.match(frames[1].text, /DimensionMismatch/);
+    assert.match(frames[1].text, /A has rank 1/);
+    assert.match(frames[1].text, /cannot receive rank 2/);
+    assert.doesNotMatch(frames[1].text, /Runtime:/);
+});
+
 test('excess indices are diagnosed before Enter and an edited error disappears before Ctrl-R', async t => {
     const frames = await drive(t, ['A = array 2 2 2 2 shape 2 2' + ENTER,
         'A 0 0' + ENTER, 'A 0 0' + ENTER, 'A 0 0 0 0 0', ENTER,

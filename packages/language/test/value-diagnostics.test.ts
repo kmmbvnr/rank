@@ -65,6 +65,56 @@ it('does not reuse dimensions across a conditional reassignment', () => {
     expect(messages('A = array 1 2\nif Flag\n A = array 1 2 3\nend\nB = array 1 2 3\nA + B')).toEqual([]);
 });
 
+it('joins new bindings from nested branches and preserves their common rank', () => {
+    const body = 'if Flag\n if Other\n  M = array shape 2 3 fill 0\n else\n  M = array shape 4 3 fill 0\n end\nelse\n M = array shape 5 3 fill 0\nend\n';
+    expect(messages(body + 'M # # #')).toEqual(['3 selectors exceed array rank 2']);
+    expect(messages(body + 'M = array shape 7 8 fill 0')).toEqual([]);
+    expect(messages(body + 'M = array 1 2')).toEqual(['M has rank 2 and cannot receive rank 1']);
+    expect(messages('fun choose Flag Other\n' + body + 'return M\nend\nA = X Y choose\nA # # #'))
+        .toEqual(['3 selectors exceed array rank 2']);
+    expect(messages('if Flag\n M = array shape 2 3 fill 0\nend\nM # # #')).toEqual([]);
+});
+
+it('respects ordered elif reachability and unreachable side effects', () => {
+    expect(messages('if false\n A = "bad"\nelif true\n A = 1\nelse\n A = "bad"\nend\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('fun choose X\n if false\n  return "bad"\n elif true\n  return 1\n else\n  return "bad"\n end\nend\nA = Flag choose\nA = "bad"'))
+        .toEqual(['A has type integer and cannot receive text']);
+    expect(messages('A = array 1 2\nif true\n A = array 1 2 3\nelif change\n A = array 1\nend\nA + (array 1 2)'))
+        .toEqual(['shape mismatch: [3] and [2]']);
+});
+
+it('checks loop binding contracts without freezing iteration dimensions', () => {
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n A = array shape 2 2 fill 0\nend'))
+        .toEqual(['A has rank 1 and cannot receive rank 2']);
+    expect(messages('Count = 1\nfor I in 1 to 3\n Count = "bad"\nend'))
+        .toEqual(['Count has type integer and cannot receive text']);
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n A + (array 1 2 3)\n A = array 1 2 3\nend\nA + (array 1 2)'))
+        .toEqual([]);
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n for J in 1 to 2\n A = array shape 2 2 fill 0\n end\nend'))
+        .toEqual(['A has rank 1 and cannot receive rank 2']);
+});
+
+it('does not diagnose empty or unproven loops or statements after a loop exit', () => {
+    for (const header of ['I in 1 until 1', 'I in Items', 'false']) {
+        expect(messages(`A = 1\nfor ${header}\n A = "bad"\nend`)).toEqual([]);
+    }
+    expect(messages('A = array 1 2\nfor I in 1 until 1\n A = array 1 2 3\nend\nA + (array 1 2 3)'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages('A = 1\nfor I in 1 to 3\n break\n A = "bad"\nend')).toEqual([]);
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n continue\n A = array shape 2 2 fill 0\nend')).toEqual([]);
+});
+
+it('keeps loop contracts in functions and after loops while discarding mutation facts', () => {
+    expect(messages('fun make X\n A = array shape 2 3 fill 0\n for I in 1 to 3\n A = array shape 4 3 fill 0\n end\n return A\nend\nM = 0 make\nM # # #'))
+        .toEqual(['3 selectors exceed array rank 2']);
+    expect(messages('A = array 1 2\nfor I in Items\n A = array 1 2 3\nend\nA = array shape 2 2 fill 0'))
+        .toEqual(['A has rank 1 and cannot receive rank 2']);
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual([]);
+    expect(messages('fun choose X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 choose\nA = true'))
+        .toEqual([]);
+});
+
 it('checks reductions against the actual runtime rule, allowing full rank', () => {
     expect(messages('A = array shape 2 3 fill 0\nA + reduce rank 3'))
         .toEqual(['rank 3 exceeds value rank 2']);

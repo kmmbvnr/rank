@@ -3,9 +3,9 @@ import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral,
     isNumberLiteral, isStringLiteral, isLabelLiteral, isTextBlockExpression,
-    isAssignmentStatement, isBinaryExpression, isExpressionStatement,
+    isAssignmentStatement, isBinaryExpression, isExpressionStatement, isStatement, isExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement,
-    type Expression, type Program, type Statement, type FunctionStatement,
+    type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
 } from '../generated/ast.js';
 import { compoundType } from './types.js';
 import { flattenApplication } from '../expressions.js';
@@ -44,6 +44,35 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const contractRank = (fact: ValueFacts | undefined): number | undefined => fact?.acceptedArrayRank ?? arrayRank(fact);
     const invalidate = (fact: ValueFacts | undefined): ValueFacts => ({ types: [], acceptedArrayRank: contractRank(fact) });
 
+    function mergeEnvironments(env: Map<string, ValueFacts>, paths: readonly Map<string, ValueFacts>[]): void {
+        const names = new Set(paths.flatMap(path => [...path.keys()]));
+        for (const name of names) {
+            const facts = paths.map(path => path.get(name) ?? UNKNOWN_VALUE);
+            const first = facts[0];
+            if (facts.every(fact => fact === first)) { env.set(name, first); continue; }
+            const rank = contractRank(first);
+            const accepted = facts.map(fact => ({ types: fact.acceptedTypes ?? fact.types }));
+            env.set(name, { ...joinValueFacts(facts), acceptedTypes: joinValueFacts(accepted).types,
+                acceptedArrayRank: facts.every(fact => contractRank(fact) === rank) ? rank : undefined });
+        }
+    }
+
+    function conditionalPaths(statement: IfStatement, env: Map<string, ValueFacts>): { items: readonly Statement[]; env: Map<string, ValueFacts> }[] {
+        const paths: { items: readonly Statement[]; env: Map<string, ValueFacts> }[] = [];
+        const pending = new Map(env);
+        for (const clause of [{ condition: statement.condition, statements: statement.thenStatements }, ...statement.elifClauses]) {
+            invalidateCalls(clause.condition, pending);
+            const start = diagnostics.length;
+            inspect(clause.condition, pending);
+            if (paths.length) diagnostics.length = start;
+            if (isBooleanLiteral(clause.condition) && !clause.condition.value) continue;
+            paths.push({ items: clause.statements, env: new Map(pending) });
+            if (isBooleanLiteral(clause.condition) && clause.condition.value) return paths;
+        }
+        paths.push({ items: statement.elseStatements, env: pending });
+        return paths;
+    }
+
     function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression): ValueFacts {
         const definition = functions.get(name);
         if (!definition || caller.get(name) !== functionBindings.get(name)
@@ -80,18 +109,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 return { values, fallsThrough: false };
             }
             if (isIfStatement(statement)) {
-                invalidateCalls(statement.condition, env);
-                inspect(statement.condition, env);
-                for (const clause of statement.elifClauses) invalidateCalls(clause.condition, env);
-                const alternatives = [...statement.elifClauses.map(clause => clause.statements), statement.elseStatements];
-                const branches = isBooleanLiteral(statement.condition)
-                    ? statement.condition.value ? [statement.thenStatements] : alternatives
-                    : [statement.thenStatements, ...alternatives];
+                const branches = conditionalPaths(statement, env);
                 const survivors: Map<string, ValueFacts>[] = [];
                 for (const branch of branches) {
-                    const local = new Map(env);
+                    const local = branch.env;
                     const diagnosticStart = diagnostics.length;
-                    const result = returnPaths(branch, local);
+                    const result = returnPaths(branch.items, local);
                     // A call-site fact must not accuse an unproven branch of executing.
                     // Return facts still join all possible paths conservatively.
                     if (branches.length > 1) diagnostics.length = diagnosticStart;
@@ -99,7 +122,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     if (result.fallsThrough) survivors.push(local);
                 }
                 if (!survivors.length) return { values, fallsThrough: false };
-                for (const name of env.keys()) env.set(name, joinValueFacts(survivors.map(local => local.get(name) ?? UNKNOWN_VALUE)));
+                mergeEnvironments(env, survivors);
+            } else if (isForStatement(statement)) {
+                // A return/break/continue inside a loop needs a separate exit analysis.
+                if ([...AstUtils.streamAllContents(statement)].some(node =>
+                    isReturnStatement(node) || node.$type === 'BreakStatement' || node.$type === 'ContinueStatement')) {
+                    return { values: [UNKNOWN_VALUE], fallsThrough: true };
+                }
+                loop(statement, env);
             } else if (isAssignmentStatement(statement) || isExpressionStatement(statement)) {
                 statements([statement], env);
             } else {
@@ -108,6 +138,58 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
         }
         return { values, fallsThrough: true };
+    }
+
+    function loop(statement: ForStatement, env: Map<string, ValueFacts>): void {
+        const condition = statement.condition;
+        if (condition && isBooleanLiteral(condition) && !condition.value) return;
+        const membership = condition && isBinaryExpression(condition) && condition.operator === 'in'
+            && isNameExpression(condition.left) ? condition : undefined;
+        const source = membership ? membership.right : condition;
+        if (source) invalidateCalls(source, env);
+        const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
+        const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
+        if (count === 0) return;
+        const contents = [...AstUtils.streamAllContents(statement)];
+        if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
+            || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
+                && !isExpressionStatement(node) && !isIfStatement(node) && !isForStatement(node))) {
+            // Destructuring, mutation and non-local exits need their own flow rules.
+            for (const [name, fact] of env) env.set(name, invalidate(fact));
+            return;
+        }
+        const local = new Map(env);
+        // Widen before examining the body: later iterations may have different
+        // lengths and elements. Only an existing binding contract is invariant.
+        for (const node of contents) {
+            if (isAssignmentStatement(node)) {
+                const previous = local.get(node.name);
+                const types = previous?.acceptedTypes ?? previous?.types ?? [];
+                const rank = contractRank(previous);
+                local.set(node.name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                    ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+            }
+        }
+        invalidateCalls(statement, local);
+        if (membership && isNameExpression(membership.left)) {
+            const types = collection.elements ?? [];
+            local.set(membership.left.name, { types, acceptedTypes: types,
+                ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                    ? { rank: 0, shape: [] } : {}) });
+        }
+        const start = diagnostics.length;
+        statements(statement.statements, local);
+        if (count == null || count <= 0) diagnostics.length = start;
+        // No final-iteration dimensions are proven. Keep contracts, not body values.
+        for (const node of contents) {
+            if (isAssignmentStatement(node)) {
+                const fact = local.get(node.name);
+                const rank = contractRank(fact);
+                local.set(node.name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
+                    acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+            }
+        }
+        mergeEnvironments(env, [env, local]);
     }
 
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
@@ -291,17 +373,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 env.set(statement.name, fact);
                 functionBindings.set(statement.name, fact);
                 functions.set(statement.name, statement);
-            } else if (isIfStatement(statement) || isForStatement(statement)) {
-                invalidateCalls(statement, env);
-                if (statement.condition) {
-                    invalidateCalls(statement.condition, env);
-                    inspect(statement.condition, env);
+            } else if (isIfStatement(statement)) {
+                const paths = conditionalPaths(statement, env);
+                for (const path of paths) {
+                    const start = diagnostics.length;
+                    statements(path.items, path.env);
+                    if (paths.length > 1) diagnostics.length = start;
                 }
-                // Do not retain pre-loop lengths after a possible write. In particular,
-                // the first iteration is not evidence about later iterations.
-                for (const node of AstUtils.streamAllContents(statement)) {
-                    if (isAssignmentStatement(node)) env.set(node.name, invalidate(env.get(node.name)));
-                }
+                mergeEnvironments(env, paths.map(path => path.env));
+            } else if (isForStatement(statement)) {
+                loop(statement, env);
             } else {
                 // Unsupported statements may mutate bindings through closures or imports.
                 for (const [name, fact] of env) env.set(name, invalidate(fact));

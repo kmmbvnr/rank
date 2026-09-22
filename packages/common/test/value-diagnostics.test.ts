@@ -149,6 +149,40 @@ it('checks function argument shapes without changing runtime arrays', async () =
     } finally { session.dispose(); }
 });
 
+it('checks loop ranks in an unexecuted draft and clears the error after an edit', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('A = array 1 2');
+        await repl.submit();
+        repl.notebook.replace('for I in 1 to 3\n A = array shape 2 2 fill 0\nend');
+        expect(repl.diagnosticOutputs?.get(2)?.[0].text)
+            .toBe('DimensionMismatch: A has rank 1 and cannot receive rank 2');
+        expect(repl.notebook.current.executed).toBeUndefined();
+        expect(session.names).not.toContain('I');
+        expect(session.diagnosticFacts.find(([name]) => name === 'A')?.[1].shape).toEqual([2]);
+        repl.notebook.replace('for I in 1 to 3\n A = array 1 2 3\nend');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        repl.notebook.replace('for I in 1 until 1\n A = array shape 2 2 fill 0\nend');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+    } finally { session.dispose(); }
+});
+
+it('uses joined branch ranks in a draft without executing either branch', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const branches = 'if Flag\n M = array shape 2 3 fill 0\nelse\n M = array shape 4 3 fill 0\nend\n';
+        repl.notebook.replace(branches + 'M # # #');
+        expect(repl.diagnosticOutputs?.get(6)?.[0].text)
+            .toBe('DimensionMismatch: 3 selectors exceed array rank 2');
+        expect(session.names).not.toContain('M');
+        expect(repl.notebook.current.executed).toBeUndefined();
+        repl.notebook.replace(branches + 'M # #');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+    } finally { session.dispose(); }
+});
+
 it('reports an axis change before Enter and withdraws it after correction', async () => {
     const session = createReplSession();
     try {

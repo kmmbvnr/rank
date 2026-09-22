@@ -47,6 +47,21 @@ compound assignments and unsupported expressions, including table writes and
 I/O. It is a conservative syntax check for diagnostics, not a public purity
 annotation or permission for the compiler to remove guards.
 
+Conditional analysis joins bindings from each reachable branch, including new
+locals assigned in every branch. A shared array rank survives different axis
+lengths; differing lengths become unknown. Literal boolean conditions select
+reachable `if` and `elif` branches in order. Errors within a branch are suppressed
+when its execution is uncertain, while facts after the conditional describe all
+surviving paths.
+
+Simple loops check existing binding types and array ranks. Assigned bindings
+lose their exact dimensions before the body is inspected, so the first
+iteration cannot fix the lengths used in later iterations. Body diagnostics
+require a provably nonempty one-dimensional collection; empty loops are skipped.
+Unknown iteration counts retain runtime checks. Loops with mutation statements,
+destructuring or `break`, `continue` and `return` remain conservative. No loop
+executes during this analysis.
+
 When preparing a file-backed CLI notebook, the host reads the adjacent
 `<name>_test.ra` if it exists. Direct calls and assigned call results compared
 with `equal` supply example argument facts and expected result facts. Aliased
