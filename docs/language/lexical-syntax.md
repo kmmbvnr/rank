@@ -511,7 +511,9 @@ rather than a separate runtime type.
 
 ### Explicit conversions
 
-`integer`, `real` and `text` are core functions and require no `use`.
+`integer`, `real`, `text` and `bytes` are core functions and require no `use`.
+`bytes` encodes text as UTF-8 or packs a rank-1 array of integers in `0..255`.
+For example, `(array 0 0 255) bytes` creates three bytes without text conversion.
 Assignment never converts between integer and real. Convert the value before
 assigning it to a variable or record field of the other type:
 

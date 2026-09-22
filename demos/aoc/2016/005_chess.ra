@@ -1,0 +1,65 @@
+rem Advent of Code 2016 - Day 5
+rem How About a Nice Game of Chess?
+rem https://adventofcode.com/2016/day/5
+
+use io
+use cli
+use text
+use crypto
+
+argument Input path
+
+Door = Input readlines 0
+Door part1 print
+Door part2 print
+
+
+fun part1 Door
+  Password = ""
+  Prefix = (array 0 0) bytes
+  Digits = "0123456789abcdef"
+  N = 0
+
+  for
+    Hash = (Door + (N text)) md5
+    N += 1
+
+    rem Five hex zeros are two zero bytes and one zero high nibble.
+    if Hash Prefix startswith
+      if Hash 2 less 16
+        Password += Digits (Hash 2)
+        if Password len equal 8
+          return Password
+        end
+      end
+    end
+  end
+end
+
+
+fun part2 Door
+  Password = array shape 8 fill ""
+  Prefix = (array 0 0) bytes
+  Digits = "0123456789abcdef"
+  Filled = 0
+  N = 0
+
+  for
+    Hash = (Door + (N text)) md5
+    N += 1
+
+    if Hash Prefix startswith
+      rem A valid position also guarantees the fifth hex digit is zero.
+      Position = Hash 2
+      if Position less 8
+        if Password Position equal ""
+          Password Position = Digits ((Hash 3) // 16)
+          Filled += 1
+          if Filled equal 8
+            return Password "" join
+          end
+        end
+      end
+    end
+  end
+end

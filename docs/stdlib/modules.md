@@ -1,7 +1,7 @@
 # Standard library
 
 Rank starts with a small core. Ranges and `len`, `sum`, `min`, `max` are
-available without imports, as are explicit `integer`, `real` and `text`
+available without imports, as are explicit `integer`, `real`, `text` and `bytes`
 conversions. Further vocabulary is introduced through `use` modules.
 This page explains what each module means and how its operations behave at the
 edges. For the complete list of names, with the form each one is written in and
@@ -41,6 +41,18 @@ construction and are then enabled semantically by the corresponding `use`.
 converts integers or decimal text to binary64; `text` renders a scalar.
 Assignment itself never converts between numeric types. See
 [explicit conversions](../language/lexical-syntax.md#explicit-conversions).
+
+`Value bytes` converts a rank-1 integer array to compact binary data. Each
+integer must be in `0..255`; values outside that range raise `.DomainError`,
+and non-integer elements or other array ranks raise `.TypeError`. Text is
+encoded as UTF-8. An existing bytes value is preserved.
+
+```rank
+Prefix = (array 0 0) bytes
+Signature = (array 137 80 78 71) bytes
+Payload = "Rank" bytes
+Empty = "" bytes
+```
 
 `len`, `sum`, `min` and `max` need no import. `len` measures text or a
 collection; `sum` reduces numeric values; `min` and `max` reduce a collection
@@ -792,6 +804,15 @@ available as the error value respectively.
 Ready = Text "Rank" startswith
 ```
 
+Two bytes values use a direct byte comparison with no text conversion or
+slice allocation. An empty prefix matches any value; a longer prefix never
+matches. Text and bytes cannot be mixed implicitly.
+
+```rank
+Signature = (array 137 80 78 71) bytes
+IsPngPrefix = Header Signature startswith
+```
+
 `lower` converts Unicode text to lowercase. `startswith` broadcasts over text
 arrays; `lower` maps over them lazily. Both compile to SQLite expressions for
 database columns. `"part" in Text` tests an exact substring and also works on
@@ -968,13 +989,18 @@ with `is`.
 
 ## Cryptography
 
-`use crypto` provides hash and related byte operations. `md5` hashes the UTF-8
-encoding of text and returns 16 `bytes`; formatting remains an explicit step:
+`use crypto` provides hash and related byte operations. `md5` hashes bytes
+directly or the UTF-8 encoding of text and returns 16 `bytes`; formatting
+remains an explicit step:
 
 ```rank
 Digest = Text md5
 Hash = Digest hex
 ```
+
+The CLI uses Node's native MD5 implementation. Browser and other hosts use the
+portable implementation unless they supply an `InterpreterOptions.md5` callback.
+Both accept text or bytes and return the same 16-byte digest.
 
 ## File I/O
 

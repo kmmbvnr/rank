@@ -592,7 +592,9 @@ rather than a separate runtime type.
 
 ### Explicit conversions
 
-`integer`, `real` and `text` are core functions and require no `use`.
+`integer`, `real`, `text` and `bytes` are core functions and require no `use`.
+`bytes` encodes text as UTF-8 or packs a rank-1 array of integers in `0..255`.
+For example, `(array 0 0 255) bytes` creates three bytes without text conversion.
 Assignment never converts between integer and real. Convert the value before
 assigning it to a variable or record field of the other type:
 
@@ -715,7 +717,7 @@ a consuming line restores the position before that line. Normal file execution
 keeps native sources repeatable. See [sequence previews](design/generator-previews.md).
 
 Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
-conversions `integer`, `real`, `text` are available
+conversions `integer`, `real`, `text`, `bytes` are available
 without imports. The catalogue groups them under `core`; no `use core` is
 needed. These functions remain ordinary names and may be overridden by user
 functions. `numbers` still provides `sqrt`, `abs`, number theory and
@@ -5534,6 +5536,15 @@ available as the error value respectively.
 Ready = Text "Rank" startswith
 ```
 
+Two bytes values use a direct byte comparison with no text conversion or
+slice allocation. An empty prefix matches any value; a longer prefix never
+matches. Text and bytes cannot be mixed implicitly.
+
+```rank
+Signature = (array 137 80 78 71) bytes
+IsPngPrefix = Header Signature startswith
+```
+
 `lower` converts Unicode text to lowercase. `startswith` broadcasts over text
 arrays; `lower` maps over them lazily. Both compile to SQLite expressions for
 database columns. `"part" in Text` tests an exact substring and also works on
@@ -5710,13 +5721,18 @@ with `is`.
 
 ## Cryptography
 
-`use crypto` provides hash and related byte operations. `md5` hashes the UTF-8
-encoding of text and returns 16 `bytes`; formatting remains an explicit step:
+`use crypto` provides hash and related byte operations. `md5` hashes bytes
+directly or the UTF-8 encoding of text and returns 16 `bytes`; formatting
+remains an explicit step:
 
 ```rank
 Digest = Text md5
 Hash = Digest hex
 ```
+
+The CLI uses Node's native MD5 implementation. Browser and other hosts use the
+portable implementation unless they supply an `InterpreterOptions.md5` callback.
+Both accept text or bytes and return the same 16-byte digest.
 
 ## File I/O
 

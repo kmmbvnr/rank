@@ -10,6 +10,7 @@ import * as path from 'node:path';
 import * as url from 'node:url';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
+import { nodeMd5 } from './node-crypto.js';
 import { startRepl } from './repl.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -66,6 +67,7 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
         args,
         input: new NodeInput(),
         io: nodeIo,
+        md5: nodeMd5,
         sourceId,
         loadModule,
     });
@@ -239,6 +241,7 @@ async function runTests(target: string): Promise<void> {
         const source = await fs.readFile(file, 'utf8');
         const interpreter = new Interpreter(() => undefined, {
             io: nodeIo,
+            md5: nodeMd5,
             sourceId: file,
             testing: true,
             loadModule,

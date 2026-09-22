@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import { createReplSession as createSession, sessionEditor as editor, type SessionSnapshot } from '@arrrank/common/repl-session';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
+import { nodeMd5 } from './node-crypto.js';
 export type { Execution, OutputLine, ProgramFile, SessionSnapshot } from '@arrrank/common/repl-session';
 function fileArgument(text: string): string {
     const quoted = (text.startsWith('"') && text.endsWith('"'))
@@ -39,7 +40,7 @@ function completeLoadPath(typed: string): [string[], string] {
 
 export function createReplSession() {
     return createSession({
-        options: { input: new NodeInput(), io: nodeIo, sourceId: path.join(process.cwd(), '<repl>'), loadModule },
+        options: { input: new NodeInput(), io: nodeIo, md5: nodeMd5, sourceId: path.join(process.cwd(), '<repl>'), loadModule },
         colors: chalk,
         resolvePath: text => text ? path.resolve(fileArgument(text)) : '',
         completePath: completeLoadPath,

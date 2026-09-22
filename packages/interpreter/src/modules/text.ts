@@ -3,6 +3,7 @@ import { RankError } from '../errors.js';
 import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankValue } from '../value.js';
 import { mapSequence } from '../sequence.js';
 import { derivedArray, readArrayItem } from '../array-storage.js';
+import { mapBroadcastArrays } from '../tensor.js';
 import { roundValue } from './numbers.js';
 import { textFunctionSqlite } from './sqlite.js';
 import { native } from './shared.js';
@@ -73,16 +74,7 @@ export const textModule: RuntimeModule = {
         }
         return parseText(value, format);
     }),
-    startswith: () => native('startswith', 2, arguments_ => {
-        const [value, prefix] = arguments_;
-        if (isRankSqliteExpression(value) || isRankSqliteExpression(prefix)) {
-            return textFunctionSqlite('rank_startswith', arguments_, true);
-        }
-        if (typeof value !== 'string' || typeof prefix !== 'string') {
-            throw new RankError('startswith expects text and a text prefix');
-        }
-        return value.startsWith(prefix);
-    }, 'all', [0, 0]),
+    startswith: () => native('startswith', 2, ([value, prefix]) => startsWith(value, prefix)),
     lower: () => native('lower', 1, ([value]) => {
         if (isRankArray(value)) {
             return mapTextArguments([value], args => lowerText(args[0]));
@@ -142,6 +134,35 @@ export const textModule: RuntimeModule = {
     }),
 
 };
+
+function startsWith(value: RankValue, prefix: RankValue): RankValue {
+    // Bytes are whole binary values here; ordinary arrays keep text broadcasting.
+    const valueArray = isRankArray(value) && !isRankBytes(value);
+    const prefixArray = isRankArray(prefix) && !isRankBytes(prefix);
+    if (valueArray && prefixArray) return mapBroadcastArrays(value, prefix, startsWith);
+    if (valueArray) {
+        return derivedArray(value.shape, [value], index =>
+            startsWith(readArrayItem(value, index), prefix), true);
+    }
+    if (prefixArray) {
+        return derivedArray(prefix.shape, [prefix], index =>
+            startsWith(value, readArrayItem(prefix, index)), true);
+    }
+    if (isRankSqliteExpression(value) || isRankSqliteExpression(prefix)) {
+        return textFunctionSqlite('rank_startswith', [value, prefix], true);
+    }
+    if (isRankBytes(value) && isRankBytes(prefix)) {
+        if (prefix.data.length > value.data.length) return false;
+        for (let index = 0; index < prefix.data.length; index += 1) {
+            if (value.data[index] !== prefix.data[index]) return false;
+        }
+        return true;
+    }
+    if (typeof value !== 'string' || typeof prefix !== 'string') {
+        throw new RankError('startswith expects text and a text prefix, or bytes and a byte prefix');
+    }
+    return value.startsWith(prefix);
+}
 
 function mapTextArguments(
     values: RankValue[], call: (arguments_: RankValue[]) => RankValue,

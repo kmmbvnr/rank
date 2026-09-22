@@ -92,6 +92,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 | `Left min Right` | number | Smaller of two numbers, or the smallest of one collection. |
 | `Values sum` | number | Adds every numeric cell of an array, collection or finite sequence. |
 | `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
+| `Value bytes` | bytes | Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes. |
 | `Value integer` | integer | Truncates a finite real toward zero, preserves an integer, or parses signed decimal integer text. |
 | `Value real` | real | Converts an integer or decimal text to a real, or preserves a real. |
 | `Value text` | text | Formats one scalar as text; a .Nf literal after it selects fixed decimals. |
@@ -110,7 +111,7 @@ Hashes and related byte operations.
 
 | Form | Result | Summary |
 | --- | --- | --- |
-| `Text md5` | bytes | MD5 digest of the UTF-8 encoding, as 16 bytes. |
+| `Value md5` | bytes | MD5 digest of bytes or UTF-8 text, as 16 bytes. |
 
 ## dates
 
@@ -387,7 +388,7 @@ Splitting, formatting, parsing and code points.
 | `Text Pattern parse` | array | Captures /integer, /real, /word and /text from a complete pattern match. |
 | `Text reverse` | text | Reverses text by Unicode code point. |
 | `Text Separator split` | array | Splits at every exact occurrence of a separator, keeping empty parts. |
-| `Text Prefix startswith` | boolean | Exact case-sensitive prefix test. |
+| `Value Prefix startswith` | boolean | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |
 | `Text lower` | text | Converts Unicode text to lowercase. |
 | `Text Width Fill lpad` | text | Pads text on the left without truncating longer values. |
 | `Text Chars Replacement translate` | text | Replaces listed characters, deleting those with no replacement. |

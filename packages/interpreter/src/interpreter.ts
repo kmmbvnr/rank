@@ -226,6 +226,8 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Optional host MD5 implementation; portable hashing is the default. */
+    readonly md5?: (value: string | Uint8Array) => Uint8Array;
     /** Host-owned buffering for single-pass sources, installed only at creation. */
     readonly wrapSinglePassSequence?: (source: RankSequence) => RankSequence;
     /** Optional host cursors for repeatable sequence values saved by assignment. */
@@ -3365,6 +3367,7 @@ export class Interpreter {
     private useFile(specifier: string, alias?: string): LoadedProgram {
         const loaded = this.load(specifier);
         const child = new Interpreter(this.output, {
+            md5: this.options.md5,
             wrapSinglePassSequence: this.options.wrapSinglePassSequence,
             wrapStoredSequence: this.options.wrapStoredSequence,
             input: this.options.input,
@@ -3480,6 +3483,7 @@ export class Interpreter {
         }
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
+            md5: this.options.md5,
             input: this.options.input,
             scalarEntryCompilation: this.options.scalarEntryCompilation,
             compiledScalarTailCalls: this.options.compiledScalarTailCalls,
@@ -3670,6 +3674,7 @@ export class Interpreter {
                 const value = fn({
                     output: this.output,
                     io: this.options.io,
+                    md5: this.options.md5,
                     random: this.random,
                     seedRandom: seed => this.random[SEED_RANDOM](seed),
                     ownFile: file => this.ownFile(file),

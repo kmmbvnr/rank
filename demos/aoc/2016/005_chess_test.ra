@@ -1,0 +1,23 @@
+use testing
+
+test "first official matching hash"
+  use crypto
+  use text
+  Hash = "abc3231929" md5
+  Prefix = (array 0 0) bytes
+  Hash Prefix startswith
+  Hash 2 equal 1
+  (Hash 3) // 16 equal 5
+end
+
+test "five hex zeros require only twenty zero bits"
+  use text
+  Prefix = (array 0 0) bytes
+  Hash = (array 0 0 15 255) bytes
+  Hash Prefix startswith
+  Hash 2 less 16
+
+  Hash = (array 0 0 16 0) bytes
+  Hash Prefix startswith
+  Hash 2 at least 16
+end

@@ -1,12 +1,35 @@
 import { RankError } from '../errors.js';
-import { formatValue, isRankDate, isRankLabel, type RankValue } from '../value.js';
+import { ByteArray } from '../bytes.js';
+import { readArrayItem } from '../array-storage.js';
+import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, type RankValue } from '../value.js';
 import { numericExtreme, sumValue } from './numbers.js';
 import { lengthOf } from './sequences.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
+const encoder = new TextEncoder();
+
 /** Ordinary functions available in every workspace without a use statement. */
 export const coreModule: RuntimeModule = {
+    bytes: () => native('bytes', 1, ([value]) => {
+        if (isRankBytes(value)) return value;
+        if (typeof value === 'string') return new ByteArray(encoder.encode(value));
+        if (!isRankArray(value) || value.shape.length !== 1) {
+            throw new RankError('bytes expects text or a rank-1 integer array', 'TypeError');
+        }
+        const data = new Uint8Array(value.shape[0]);
+        for (let index = 0; index < data.length; index += 1) {
+            const item = readArrayItem(value, index);
+            if (typeof item !== 'bigint') {
+                throw new RankError('bytes expects integer elements', 'TypeError');
+            }
+            if (item < 0n || item > 255n) {
+                throw new RankError('byte must be between 0 and 255', 'DomainError');
+            }
+            data[index] = Number(item);
+        }
+        return new ByteArray(data);
+    }),
     integer: () => native('integer', 1, ([value]) => integerValue(value), 1),
     real: () => native('real', 1, ([value]) => realValue(value), 1),
     text: () => native('text', 1, ([value]) => {
