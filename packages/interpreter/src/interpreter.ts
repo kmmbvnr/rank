@@ -6,6 +6,7 @@ import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem, arrayForWrite, noteArrayBinding, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
+import { isPureHostFunction } from './host-effects.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -226,7 +227,8 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
-    /** Optional host MD5 implementation; portable hashing is the default. */
+    /** Optional host MD5 implementation; portable hashing is the default.
+     * Use pureHostFunction only for implementations that satisfy its contract. */
     readonly md5?: (value: string | Uint8Array) => Uint8Array;
     /** Host-owned buffering for single-pass sources, installed only at creation. */
     readonly wrapSinglePassSequence?: (source: RankSequence) => RankSequence;
@@ -261,6 +263,10 @@ export interface InterpreterOptions {
     readonly tensorCellCompilation?: boolean;
     /** Iterate scalar streams without per-element entry wrappers. */
     readonly directIteration?: boolean;
+    /** Carry ordinary loop jumps through blocks without throwing signals. */
+    readonly directLoopControl?: boolean;
+    /** Compile guarded synchronous text/byte builtin calls inside loops. */
+    readonly nativeLoopCompilation?: boolean;
     /** Compile function bodies with a terminal return continuation. */
     readonly functionBodyCompilation?: boolean;
     readonly onFunctionBodyCompiled?: (source: string) => void;
@@ -305,7 +311,10 @@ interface LoadedProgram {
     readonly program: Program;
 }
 
+interface LoopControl { signal?: 'break' | 'continue' }
+
 interface ExecutionContext {
+    readonly loopControl?: LoopControl;
     readonly assertBooleanExpressions: boolean;
     readonly insideLoop: boolean;
     readonly insideFinally: boolean;
@@ -735,12 +744,13 @@ export class Interpreter {
         insideFinally = false,
         insideGenerator = false,
         tailCallsAllowed = true,
+        loopControl?: LoopControl,
     ): Evaluation<RankValue | undefined> {
         // Ordinary blocks keep their compact context; only protected blocks
         // need to carry the additional tail-call flag.
         const context: ExecutionContext = tailCallsAllowed
-            ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator }
-            : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, tailCallsAllowed: false };
+            ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl }
+            : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, tailCallsAllowed: false };
         const block = this.compiledBlock(statements);
         if (block) return block(context);
         let result: RankValue | undefined;
@@ -764,6 +774,7 @@ export class Interpreter {
                     if ('done' in task) result = task.value;
                     else return this.continueStatementStream(statements, index, context, task);
                 }
+                if (loopControl?.signal) return completed(result);
             }
         } catch (error) {
             throw this.locateError(error, statements[index]);
@@ -820,18 +831,18 @@ export class Interpreter {
     }
 
     private prepareLoopBody(
-        statements: Statement[], context: ExecutionContext, iterable: boolean,
+        statements: Statement[], context: ExecutionContext, iterable: boolean, loopControl?: LoopControl,
     ): () => Evaluation<RankValue | undefined> {
         const block = this.compiledBlock(statements);
         const tailCallsAllowed = iterable ? false : context.tailCallsAllowed !== false;
         if (block) {
             const bodyContext: ExecutionContext = tailCallsAllowed
-                ? { ...context, insideLoop: true }
-                : { ...context, insideLoop: true, tailCallsAllowed: false };
+                ? { ...context, insideLoop: true, loopControl }
+                : { ...context, insideLoop: true, loopControl, tailCallsAllowed: false };
             return () => block(bodyContext);
         }
         return () => this.executeStatementStream(statements, context.assertBooleanExpressions,
-            true, context.insideFinally, context.insideGenerator, tailCallsAllowed);
+            true, context.insideFinally, context.insideGenerator, tailCallsAllowed, loopControl);
     }
 
     private *continueCompiledBlock(
@@ -840,6 +851,7 @@ export class Interpreter {
     ): Execution<RankValue | undefined> {
         try {
             const value = (yield { task }) as RankValue | undefined;
+            if (context.loopControl?.signal) return value;
             const next = block(context, index + 1, value);
             return 'done' in next ? next.value : (yield { task: next }) as RankValue | undefined;
         } catch (error) { throw this.locateError(error, statements[index]); }
@@ -916,6 +928,7 @@ export class Interpreter {
     ): Execution<RankValue | undefined> {
         try {
             let result = yield* resume(first);
+            if (context.loopControl?.signal) return result;
             for (index += 1; index < statements.length; index += 1) {
                 checkpoint();
                 const prepared = this.preparedStatement(statements, index);
@@ -930,6 +943,7 @@ export class Interpreter {
                 result = 'run' in prepared
                     ? prepared.run(context)
                     : yield* resume(prepared.stream(context));
+                if (context.loopControl?.signal) return result;
             }
             return result;
         } catch (error) {
@@ -1058,6 +1072,10 @@ export class Interpreter {
                 if (!context.insideLoop) {
                     throw new RankError(`${operation} is only valid inside a for loop`);
                 }
+                if (context.loopControl) {
+                    context.loopControl.signal = operation;
+                    return undefined;
+                }
                 throw signal;
             } };
         }
@@ -1134,6 +1152,7 @@ export class Interpreter {
                         branch, context.assertBooleanExpressions, context.insideLoop,
                         context.insideFinally, context.insideGenerator,
                         context.tailCallsAllowed,
+                        context.loopControl,
                     );
                 } };
             }
@@ -1148,6 +1167,7 @@ export class Interpreter {
                 context.insideFinally,
                 context.insideGenerator,
                 context.tailCallsAllowed,
+                context.loopControl,
             );
             // Only a condition that actually suspends needs a task to drive it;
             // the rest pick their branch and hand the block straight back.
@@ -1184,6 +1204,9 @@ export class Interpreter {
                 : [];
             const reference: PreparedStatement = { stream: function* (context) {
                 const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
+                // Each loop owns its jumps. Branches share this carrier, while
+                // protected try/catch/finally blocks retain exception unwinding.
+                const loopControl: LoopControl | undefined = interpreter.options.directLoopControl !== false ? {} : undefined;
                 let result: RankValue | undefined;
                 let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
                 if (binding) {
@@ -1211,7 +1234,7 @@ export class Interpreter {
                             // A body that finishes on its own needs no task; only
                             // one that suspends goes back to the driver.
                             const body = interpreter.options.loopPreparation !== false
-                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, true))()
+                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, true, loopControl))()
                                 : interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
@@ -1219,9 +1242,17 @@ export class Interpreter {
                                 insideFinally,
                                 insideGenerator,
                                 false, // Returning must close this iterator after the callee finishes.
+                                loopControl,
                             );
-                            result = 'done' in body
+                            const value = 'done' in body
                                 ? body.value : (yield { task: body }) as RankValue | undefined;
+                            if (loopControl?.signal) {
+                                const signal = loopControl.signal;
+                                loopControl.signal = undefined;
+                                if (signal === 'break') break;
+                                continue;
+                            }
+                            result = value;
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             if (error instanceof ContinueSignal) continue;
@@ -1244,7 +1275,7 @@ export class Interpreter {
                         }
                         try {
                             const body = interpreter.options.loopPreparation !== false
-                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, false))()
+                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, false, loopControl))()
                                 : interpreter.executeStatementStream(
                                 statement.statements,
                                 assertBooleanExpressions,
@@ -1252,9 +1283,17 @@ export class Interpreter {
                                 insideFinally,
                                 insideGenerator,
                                 context.tailCallsAllowed,
+                                loopControl,
                             );
-                            result = 'done' in body
+                            const value = 'done' in body
                                 ? body.value : (yield { task: body }) as RankValue | undefined;
+                            if (loopControl?.signal) {
+                                const signal = loopControl.signal;
+                                loopControl.signal = undefined;
+                                if (signal === 'break') break;
+                                continue;
+                            }
+                            result = value;
                         } catch (error) {
                             if (error instanceof BreakSignal) break;
                             if (error instanceof ContinueSignal) continue;
@@ -1281,6 +1320,7 @@ export class Interpreter {
                 textArrayLoops: this.options.textArrayLoopCompilation !== false,
                 nestedLoops: this.options.nestedLoopCompilation !== false,
                 arrayRead: atArray,
+                textRead: (source, index) => applySelectors([source, index]) as string,
                 returns: this.options.loopReturnCompilation !== false,
                 canReturn: () => this.localFrame !== undefined,
                 returnValue: value => { throw new ReturnSignal(value); },
@@ -1289,6 +1329,18 @@ export class Interpreter {
                 booleanArrays: this.options.booleanArrayCompilation !== false,
                 booleanLocals: this.options.booleanLoopCompilation !== false,
                 scalarText: this.options.scalarTextCompilation !== false,
+                nativeCalls: this.options.nativeLoopCompilation !== false,
+                builtinCall: (module, name) => {
+                    if (!this.modules.has(module)) return undefined;
+                    // Unknown host callbacks may mutate bindings or re-enter Rank.
+                    if (module === 'crypto' && name === 'md5' && this.options.md5
+                        && !isPureHostFunction(this.options.md5)) return undefined;
+                    try {
+                        const value = this.resolve(name);
+                        return isNativeFunction(value) && value === this.standardFunctions.get(standardModules[module][name])
+                            ? value.call : undefined;
+                    } catch { return undefined; }
+                },
                 scalarFunction: (name, arity) => {
                     if (this.options.scalarCallCompilation === false) return undefined;
                     const value = this.findVariable(name);
@@ -3398,6 +3450,8 @@ export class Interpreter {
             nestedLoopCompilation: this.options.nestedLoopCompilation,
             tensorCellCompilation: this.options.tensorCellCompilation,
             directIteration: this.options.directIteration,
+            directLoopControl: this.options.directLoopControl,
+            nativeLoopCompilation: this.options.nativeLoopCompilation,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
             onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,
@@ -3512,6 +3566,8 @@ export class Interpreter {
             nestedLoopCompilation: this.options.nestedLoopCompilation,
             tensorCellCompilation: this.options.tensorCellCompilation,
             directIteration: this.options.directIteration,
+            directLoopControl: this.options.directLoopControl,
+            nativeLoopCompilation: this.options.nativeLoopCompilation,
             functionBodyCompilation: this.options.functionBodyCompilation,
             onFunctionBodyCompiled: this.options.onFunctionBodyCompiled,
             onFunctionBodyExecuted: this.options.onFunctionBodyExecuted,

@@ -66,6 +66,8 @@ end`);
 }
 
 if (process.argv.includes('--full')) {
+    // This counting wrapper is intentionally untrusted and keeps the reference
+    // loop. Use aoc-chess.mjs to compare complete compiled/reference searches.
     const source = readFileSync(new URL('../demos/aoc/2016/005_chess.ra', import.meta.url), 'utf8');
     let hashes = 0;
     const runtime = new Interpreter(undefined, {

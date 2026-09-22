@@ -26,9 +26,17 @@ serially, with no test suite running alongside them.
 
 The last case is about 3.69 times faster than the first on this workload.
 Byte comparison alone does not explain that gain. In the interpreter's
-fallback loop path, `continue` throws an internal control-flow signal. A
+fallback loop path at the time of this measurement, `continue` threw an internal control-flow signal. A
 positive `if` avoids throwing on almost every rejected hash. Native Node MD5
 also avoids the portable hash implementation and a separate UTF-8 input buffer.
+
+Ordinary fallback-loop jumps now avoid exception unwinding. The separate
+[loop-control benchmark](loop-control-results.md) compares both implementations;
+the numbers above remain the original measurements.
+
+For complete searches with trusted Node MD5 and compiled string operations, use
+`node benchmarks/aoc-chess.mjs`. The `--full` run below retains an untrusted
+hash-counting wrapper and therefore measures the reference loop.
 
 The demo checks completion only when it adds a password character, and gets
 the needed hex digits from individual bytes. It never formats a full digest.

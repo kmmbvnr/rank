@@ -1,6 +1,7 @@
 export * from './errors.js';
 export { summarizeValue } from './value-summary.js';
 export * from './interpreter.js';
+export { pureHostFunction } from './host-effects.js';
 export * from './io.js';
 export * from './parser.js';
 export * from './segment.js';

@@ -8,7 +8,8 @@ import {
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankBytes, isRankIndex, type RankArray, type RankValue } from './value.js';
+import { loopBuiltins, type LoopAtomType } from './loop-builtins.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
 import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, ownedArray, arrayRevision, arrayForWrite } from './array-storage.js';
@@ -32,6 +33,8 @@ interface Host {
     readonly extrema: boolean;
     readonly absolute: boolean;
     readonly scalarText: boolean;
+    builtinCall(module: string, name: string): ((arguments_: RankValue[]) => RankValue) | undefined;
+    readonly nativeCalls: boolean;
     scalarFunction(name: string, arity: number): {
         type: 'integer' | 'boolean';
         locals: readonly string[];
@@ -47,6 +50,7 @@ interface Host {
     extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
+    textRead(source: string, index: bigint): string;
     iteration(condition: Expression | undefined): IterationBinding | undefined;
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;
@@ -57,7 +61,7 @@ interface Host {
     compiled?(source: string): void;
     executed?(): void;
 }
-interface Term { code: string; type: 'integer' | 'boolean' | 'text'; ascii?: boolean }
+interface Term { code: string; type: LoopAtomType; ascii?: boolean }
 const comparisons: Record<string, string> = {
     less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==',
 };
@@ -144,6 +148,19 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         if (index < 0) { index = names.length; names.push(name); }
         return index;
     }
+    function knownType(expression: Expression): Term['type'] | undefined {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isNameExpression(expression)) {
+            const local = localTypes.get(expression.name);
+            if (local) return local;
+            // This only selects a specialization; required inputs are guarded
+            // again on every entry. Never retain a value or invocation frame.
+            const value = host.read(expression.name);
+            if (value && isRankBytes(value)) return 'bytes';
+            if (typeof value === 'string') return 'text';
+        }
+        return undefined;
+    }
     function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
         if (serial > 256) return undefined;
         if (isParenthesizedExpression(e)) return emit(e.value, lines, hint, tail);
@@ -195,6 +212,12 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 return { code: name, type: 'text', ascii: true };
             }
             if (op === 'len' && host.scalarText) {
+                if (host.nativeCalls && knownType(e.head) === 'bytes') {
+                    const value = emit(e.head, lines, 'bytes');
+                    if (!value) return undefined;
+                    builtins.set(op, 'core');
+                    return { code: `BigInt(${value.code}.shape[0])`, type: 'integer' };
+                }
                 const array = isNameExpression(e.head) ? arrays.get(e.head.name) : undefined;
                 if (array && isNameExpression(e.head)) {
                     if (!assigned.has(e.head.name)) arrayInputs.add(e.head.name);
@@ -239,6 +262,38 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         if (isApplicationExpression(e)) {
             const parts = flattenApplication(e), last = parts.at(-1);
             if (last && isNameExpression(last) && !last.name.includes('.')) {
+                const signature = host.nativeCalls && Object.prototype.hasOwnProperty.call(loopBuiltins, last.name)
+                    ? loopBuiltins[last.name] : undefined;
+                if (signature && signature.inputs.length === parts.length - 1) {
+                    const arguments_: string[] = [];
+                    let firstType: Term['type'] | undefined;
+                    for (const [index, input] of signature.inputs.entries()) {
+                        let part = parts[index];
+                        while (isParenthesizedExpression(part)) part = part.value;
+                        if (input === 'text-array') {
+                            if (!host.textArrayLoops || !isNameExpression(part) || part.name.includes('.')) return undefined;
+                            const previous = arrays.get(part.name);
+                            if (previous && (previous.rank !== 1 || previous.type !== 'text')
+                                || localTypes.has(part.name)) return undefined;
+                            const info = previous ?? { slot: slot(part.name), rank: 1, type: 'text' as const };
+                            arrays.set(part.name, info);
+                            if (!assigned.has(part.name)) arrayInputs.add(part.name);
+                            arguments_.push(`r${info.slot}`);
+                            continue;
+                        }
+                        const expected = input === 'same' ? firstType
+                            : input === 'text-or-bytes' ? knownType(part) ?? (isNameExpression(part) ? 'text' : undefined) : input;
+                        const value = emit(parts[index], lines, expected);
+                        if (!value || expected && value.type !== expected
+                            || input === 'text-or-bytes' && !['text', 'bytes'].includes(value.type)) return undefined;
+                        firstType ??= value.type;
+                        arguments_.push(value.code);
+                    }
+                    const name = `v${serial++}`, index = calls.length;
+                    calls.push({ name: last.name, locals: [], bind: () => host.builtinCall(signature.module, last.name) });
+                    lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
+                    return { code: name, type: signature.result };
+                }
                 const callable = host.scalarFunction(last.name, parts.length - 1);
                 if (callable) {
                     const arguments_: string[] = [];
@@ -258,9 +313,25 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (!host.arrayReads) return undefined;
             const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
+            if (host.nativeCalls && host.textLoops && knownType(head) === 'text') {
+                if (arguments_.length !== 1) return undefined;
+                const receiver = emit(head, lines, 'text'), index = emit(arguments_[0], lines, 'integer');
+                if (!receiver || index?.type !== 'integer') return undefined;
+                const name = `v${serial++}`;
+                lines.push(`const ${name} = textRead(${receiver.code}, ${index.code});`);
+                return { code: name, type: 'text' };
+            }
+            if (host.nativeCalls && knownType(head) === 'bytes') {
+                if (arguments_.length !== 1) return undefined;
+                const receiver = emit(head, lines, 'bytes'), index = emit(arguments_[0], lines, 'integer');
+                if (!receiver || index?.type !== 'integer') return undefined;
+                const name = `v${serial++}`;
+                lines.push(`const ${name} = arrayRead(${receiver.code}, [${index.code}]);`);
+                return { code: name, type: 'integer' };
+            }
             const previous = arrays.get(head.name);
             const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? 'integer';
-            if (type === 'text') return undefined;
+            if (type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || type === 'bytes') return undefined;
             if (hint && hint !== type || type === 'boolean' && !host.booleanArrays) return undefined;
             if (previous && previous.rank !== arguments_.length) return undefined;
             const indices: string[] = [];
@@ -297,16 +368,21 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
             return { code: name, type: 'integer' };
         }
-        const textPair = ['equal', 'notequal'].includes(e.operator) && (isStringLiteral(e.right)
+        const textPair = (['equal', 'notequal'].includes(e.operator) || host.nativeCalls && e.operator === '+') && (isStringLiteral(e.right)
             || isNameExpression(e.right) && localTypes.get(e.right.name) === 'text');
         const booleanPair = ['and', 'or', 'xor'].includes(e.operator)
             || ['equal', 'notequal'].includes(e.operator) && (isBooleanLiteral(e.right)
                 || isNameExpression(e.right) && localTypes.get(e.right.name) === 'boolean');
-        const left = emit(e.left, lines, textPair ? 'text' : booleanPair ? 'boolean' : undefined);
+        const left = emit(e.left, lines, textPair || host.nativeCalls && e.operator === '+' && knownType(e.left) === 'text'
+            ? 'text' : booleanPair ? 'boolean' : undefined);
         const right = emit(e.right, lines, left?.type === 'text' ? 'text' : booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);
         if (!left || !right) return undefined;
         const a = left.code, b = right.code, op = e.operator;
         const name = `v${serial++}`;
+        if (host.nativeCalls && left.type === 'text' && right.type === 'text' && op === '+') {
+            lines.push(`const ${name} = (${a}) + (${b});`);
+            return { code: name, type: 'text' };
+        }
         if (left.type === 'boolean' && right.type === 'boolean' && ['and', 'or', 'xor'].includes(op)) {
             lines.push(`const ${name} = (${a}) ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} (${b});`);
             return { code: name, type: 'boolean' };
@@ -485,7 +561,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 }
                 const expected = booleanUpdate ? 'boolean' : compound ? 'integer' : target.type ?? arrays.get(assignment.name)?.type;
                 const value = emit(assignment.value, lines, expected);
-                if (!value || value.type === 'text' || value.type === 'boolean' && !host.booleanArrays
+                if (!value || value.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || value.type === 'bytes' || value.type === 'boolean' && !host.booleanArrays
                     || expected && value.type !== expected
                     || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== value.type) return undefined;
                 target.type = value.type;
@@ -569,7 +645,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                         lines.push(`const ${shape} = [${dimensions.join(',')}];`,
                             `const ${size} = ${shape}.reduce((a,b) => a * BigInt(b), 1n);`);
                         const fill = emit(expression.fill, lines);
-                        if (!fill || fill.type === 'text' || fill.type === 'boolean' && !host.booleanArrays) return undefined;
+                        if (!fill || fill.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || fill.type === 'bytes' || fill.type === 'boolean' && !host.booleanArrays) return undefined;
                         rank = dimensions.length; type = fill.type;
                         value = `created${serial++}`;
                         lines.push(`const ${value} = ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true);`);
@@ -602,7 +678,9 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
             const lines: string[] = [];
             const booleanUpdate = ['and=', 'or=', 'xor='].includes(assignment.operator);
-            const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : undefined);
+            const textUpdate = host.nativeCalls && assignment.operator === '+='
+                && (localTypes.get(assignment.name) === 'text' || typeof host.read(assignment.name) === 'string');
+            const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
             if (!value || value.type === 'boolean' && !host.booleanLocals) return undefined;
             const previousType = localTypes.get(assignment.name);
             if (previousType && previousType !== value.type) return undefined;
@@ -612,7 +690,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 const op = assignment.operator.slice(0, -1);
                 if (booleanUpdate && value.type === 'boolean') {
                     result = `(r${destination}) ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} (${result})`;
-                } else if (value.type !== 'integer') return undefined;
+                } else if (value.type === 'text' && host.nativeCalls && op === '+') result = `(r${destination}) + (${result})`;
+                else if (value.type !== 'integer') return undefined;
                 else if (['+', '-', '*'].includes(op)) result = `(r${destination}) ${op} (${result})`;
                 else if (op === '%' || op === '//') {
                     lines.push(`if ((${result}) === 0n) throw zero();`);
@@ -645,6 +724,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
         }
     }
+    // Local text aliases need copy-on-write at the individual store, not just
+    // at region entry. Keep those writes interpreted until that lowering exists.
+    if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
+        && (writable.has(target) || writable.has(source)))) return undefined;
     const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
         ${names.length ? `let ${names.map((name, index) => {
             const value = `r${index} = input[${index}]`;
@@ -662,13 +745,13 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
-        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue, stableReads: boolean) => prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint); }
+        calls.length || iterators.length ? (value: RankValue) => value : borrowArrayStorage, prepareScalarArrayWriter, (value: RankValue, stableReads: boolean) => prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead); }
     catch { return undefined; }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
@@ -684,7 +767,9 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         const values: (RankValue | undefined)[] = [];
         for (const index of required) {
             const value = host.read(names[index]);
-            if (typeof value !== (localTypes.get(names[index]) === 'text' ? 'string' : localTypes.get(names[index]) === 'boolean' ? 'boolean' : 'bigint')) return recordFallback('loop:input-type');
+            const type = localTypes.get(names[index]);
+            if (type === 'bytes' ? value === undefined || !isRankBytes(value)
+                : typeof value !== (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint')) return recordFallback('loop:input-type');
             values[index] = value;
         }
         for (const [name, info] of containers) {

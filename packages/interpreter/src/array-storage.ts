@@ -454,7 +454,7 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
 }
 
 /** Prepare once per compiled region; avoid a WeakMap lookup on each write. */
-export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | boolean) => void {
+export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | boolean | string) => void {
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     if (!state) return (index, item) => { array.items[index] = item; };

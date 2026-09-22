@@ -2,7 +2,11 @@ import { completed, type Evaluation, type Execution } from './execution.js';
 import type { RankValue } from './value.js';
 
 type Value = RankValue | undefined;
-interface Context { readonly insideFinally: boolean; readonly insideGenerator: boolean }
+interface Context {
+    readonly insideFinally: boolean;
+    readonly insideGenerator: boolean;
+    readonly loopControl?: { signal?: 'break' | 'continue' };
+}
 interface Step<C> {
     readonly run?: (context: C) => Value;
     readonly stream?: (context: C) => Evaluation<Value>;
@@ -39,6 +43,7 @@ export function compileBlock<C extends Context>(length: number, host: Host<C>): 
                 if (task.done) result = task.value;
                 else return pause(index, task, context, run);
             }
+            if (context.loopControl?.signal) return complete(result);
         }`).join('\n');
         const source = `"use strict"; let ${Array.from({ length }, (_, i) => `s${i}`).join(',')};
             return function run(context, index = 0, result) {

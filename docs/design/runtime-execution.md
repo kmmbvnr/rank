@@ -421,6 +421,82 @@ tail-call policy. Break/continue, condition evaluation, bindings and iteration s
 use the existing loop handler. This is preparation of repeated body execution,
 not full lowering of loop control. `loopPreparation: false` disables the reuse.
 
+## Direct control in general loops
+
+Each general loop invocation owns a small control carrier. Ordinary `break` and
+`continue` set that carrier; branch blocks stop dispatching and the nearest loop
+consumes the jump. Both compiled and reference dispatch check the carrier after
+completed commands and after suspended commands resume. A jump preserves the
+last completed iteration's result. Nested loops and function calls do not share
+their enclosing loop's carrier.
+
+Protected blocks retain exception-based jumps so `try/catch/finally` keeps its
+existing unwinding behavior. Iterator closing and cancellation also retain their
+existing paths. `directLoopControl: false` selects the exception-based reference
+implementation. Fully compiled integer loops already use native jumps and are
+unchanged. See the [benchmark results](../../benchmarks/loop-control-results.md)
+for measured effects and scope.
+
+## Typed builtin calls in loops
+
+The whole-loop compiler also supports text concatenation and compact byte
+registers. An explicit signature table in `loop-builtins.ts` permits synchronous
+calls to `bytes`, `startswith`, `lower`, `codepoint`, `character`, `join` on text
+vectors, and `md5`. These calls retain the ordinary builtin implementations, including Unicode
+rules, errors and interruption checks. Byte length and single-integer indexing
+do not materialize a bigint array.
+
+Before entering each region, the runtime checks required input types and binds
+only the original functions from loaded modules. Rebound functions, unsupported
+argument types and broadcasting retain reference execution. A cached plan never
+retains input values or invocation frames. Type selection can use the first
+invocation's text/byte inputs; a later incompatible invocation falls back rather
+than running with stale type assumptions. Writes to called names prevent lowering.
+
+Text indexing uses the interpreter's Unicode code-point semantics and bounds
+errors. Text `+=`, indexed text-array reads/writes and text-filled local arrays
+are supported. Required array inputs are checked for rank and element types;
+their storage must already be materialized. Writes retain array revision tracking
+and the existing copy-on-write entry checks. Writes involving text-array aliases
+created inside a compiled region fall back, since entry checks alone cannot
+preserve those copies. Read-only local aliases remain supported.
+
+The signature table is an allowlist, not a general effect analysis. Calls that
+may invoke Rank code or mutate bindings are excluded. Byte mutation and arrays
+containing byte values also remain outside this extension. `nativeLoopCompilation: false`
+disables the extension for differential tests. See the
+[benchmark results](../../benchmarks/native-loop-results.md).
+
+### Trusted host implementations
+
+The embedding API exports `pureHostFunction(implementation)`. It returns the same
+function and records its identity in a private weak set. The caller promises
+synchronous, deterministic results without modifying arguments or Rank state,
+re-entering Rank, or producing observable side effects. Fresh result allocations
+and thrown errors are allowed. This is a trusted declaration, not runtime proof
+or an isolation boundary; a false declaration can cause incorrect execution.
+
+The Node MD5 implementation declares this contract. A supplied MD5 callback is
+eligible for loop compilation only if it declares the contract too. Wrapping a
+trusted function creates an untrusted function unless the wrapper is separately
+declared. Module and builtin-identity guards still apply. Marking an arbitrary
+function pure does not add its signature to the compiler or enable memoization.
+Rank source syntax is unchanged.
+
+```ts
+import { pureHostFunction } from '@arrrank/interpreter';
+import { hash } from 'node:crypto';
+
+const nodeMd5 = pureHostFunction((value: string | Uint8Array): Uint8Array =>
+    hash('md5', value, 'buffer'));
+```
+
+The [full AoC benchmark](../../benchmarks/aoc-chess.mjs) imports the unchanged demo,
+checks both official passwords and asserts that each search enters a compiled
+loop. It compares against the same Node backend with native loop compilation
+disabled, in separate sequential processes. See the
+[full-search results](../../benchmarks/aoc-chess-results.md).
+
 ## Whole integer loops
 
 `integer-loop.ts` lowers conditional, inline numeric-range and stored integer-vector
