@@ -1,0 +1,17 @@
+rem Cody 43007: pairwise point distances
+rem Points are point by coordinate.
+
+use linalg
+use numbers
+use sequences
+
+
+rem Avoid an N N P temporary tensor.
+fun pair_distances Points
+  Norm2 = Points * Points sum axis 1
+  PointsT = Points transpose
+  Dot = Points PointsT matmul
+  Squared = Norm2 Norm2 + outer
+  Squared -= Dot * 2
+  return Squared 0 max sqrt
+end

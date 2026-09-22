@@ -77,6 +77,7 @@ export const modules: readonly Module[] = [
     { name: 'crypto', summary: 'Hashes and related byte operations.' },
     { name: 'dates', summary: 'Calendar dates and local date-times.' },
     { name: 'graph', summary: 'Graphs, disjoint sets, rooted trees and their algorithms.' },
+    { name: 'grids', summary: 'Neighbors and straight segments of dense rank-2 arrays.' },
     { name: 'images', summary: 'Image directories decoded into tensors.' },
     { name: 'io', summary: 'Standard input, whole-file text and stateful file handles.' },
     { name: 'json', summary: 'JSON decoding.' },
@@ -282,6 +283,11 @@ export const operations: readonly Operation[] = [
     { name: 'resize', module: 'images', arities: [3], form: 'Images Height Width resize',
         result: 'array', lazy: true, effects: ['io'],
         summary: 'Decodes every image and stretches it into a lazy RGB tensor.' },
+
+    { name: 'neighbors', module: 'grids', arities: [3, 4], form: 'Grid Row Column .eight neighbors', result: 'array',
+        summary: 'In-bounds row and column pairs around one grid cell; four neighbors by default.' },
+    { name: 'segments', module: 'grids', arities: [2], form: 'Grid Width segments', result: 'array',
+        summary: 'All in-bounds horizontal, vertical and diagonal segments of a fixed width.' },
 
     { name: 'append', module: 'io', arities: [2], form: 'Text Path append', result: 'text',
         effects: ['io'], summary: 'Appends UTF-8 text to a file, creating it when missing.' },

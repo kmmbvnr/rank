@@ -177,6 +177,15 @@ These need `use graph` but have no name to look up.
 | `Graph add From To` | Adds an edge, a weighted edge, or a bulk M by 2 or M by 3 array. |
 | `Graph edges Vertex` | Lazy outgoing entries of a vertex as array Next Cost pairs. |
 
+## grids
+
+Neighbors and straight segments of dense rank-2 arrays.
+
+| Form | Result | Summary |
+| --- | --- | --- |
+| `Grid Row Column .eight neighbors` | array | In-bounds row and column pairs around one grid cell; four neighbors by default. |
+| `Grid Width segments` | array | All in-bounds horizontal, vertical and diagonal segments of a fixed width. |
+
 ## images
 
 Image directories decoded into tensors.

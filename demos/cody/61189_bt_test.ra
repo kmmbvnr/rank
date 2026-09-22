@@ -1,0 +1,49 @@
+use testing
+
+
+test "varied acceleration stops"
+  use sequences
+  use "61189_bt"
+  Acceleration = array -2.0 -4.0 -4.0
+  Result = 10.0 Acceleration 1.0 brake
+
+  Result .stopped
+  Result .time equal 3.0
+  Result .distance equal 17.0
+  Expected = array shape 4
+    10.0 8.0 4.0 0.0
+  end
+  Result .speeds equal Expected
+end
+
+
+test "stops inside final sample"
+  use sequences
+  use "61189_bt"
+  Acceleration = array -2.0 -4.0
+  Result = 5.0 Acceleration 1.0 brake
+
+  Result .stopped
+  Result .time equal 1.75
+  Result .distance equal 5.125
+  Expected = array shape 3
+    5.0 3.0 0.0
+  end
+  Result .speeds equal Expected
+end
+
+
+test "returns an unfinished path"
+  use sequences
+  use "61189_bt"
+  Acceleration = array -1.0 -1.0
+  Result = 4.0 Acceleration 0.5 brake
+
+  not Result .stopped
+  Result .time equal 1.0
+  Result .distance equal 3.5
+  Expected = array shape 3
+    4.0 3.5 3.0
+  end
+  Result .speeds equal Expected
+end

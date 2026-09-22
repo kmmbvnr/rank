@@ -1,0 +1,43 @@
+rem Cody 71: missing weather data
+rem 9999 marks an interpolated reading.
+
+use sequences
+use text
+
+
+rem Parse readings and interpolate gaps.
+fun interpolate_weather Source
+  if Source type equal .text
+    Rows = Source "\n" split
+    return Rows interpolate_readings
+  end
+  return Source interpolate_readings
+end
+
+
+fun interpolate_readings Lines
+  Readings = Lines real rank 0 copy
+  N = Readings len
+
+  for Start in 0 until N
+    if Readings Start equal 9999
+      End = Start
+      for Readings End equal 9999
+        End += 1
+      end
+
+      Before = Start - 1
+      Anchor = Readings Before
+      Change = Readings End - Anchor
+      Gap = End - Start + 1
+      Step = Change / Gap
+      for i in Start until End
+        Offset = i - Start + 1
+        Result = Anchor + Step * Offset
+        Readings i = Result
+      end
+    end
+  end
+
+  return Readings
+end

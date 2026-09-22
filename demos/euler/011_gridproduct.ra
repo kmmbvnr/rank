@@ -3,9 +3,9 @@ rem https://projecteuler.net/problem=11
 rem Find the greatest product of adjacent
 rem values in four straight directions
 
-use sequences
 use io
 use cli
+use grids
 
 option Width integer = 4
 
@@ -39,40 +39,15 @@ Answer print
 rem Search horizontal, vertical and both
 rem downward diagonal directions.
 fun greatest_product Grid Width
-  Rows = Grid len
-  Columns = Grid len axis 1
-  Directions = array shape 4 2
-    0 1
-    1 0
-    1 1
-    1 -1
-  end
+  Segments = Grid Width segments
   Best = 0
 
-  for Y in 0 until Rows
-    for X in 0 until Columns
-      for Direction in Directions
-        DY = Direction 0
-        DX = Direction 1
-        LastY = Y + (Width - 1) * DY
-        LastX = X + (Width - 1) * DX
-
-        Inside = LastY at least 0
-        Inside and= LastY less Rows
-        Inside and= LastX at least 0
-        Inside and= LastX less Columns
-
-        if Inside
-          Product = 1
-          for K in 0 until Width
-            Row = Y + K * DY
-            Column = X + K * DX
-            Product *= Grid Row Column
-          end
-          Best = Best max Product
-        end
-      end
+  for Segment in Segments
+    Product = 1
+    for Value in Segment
+      Product *= Value
     end
+    Best = Best max Product
   end
 
   return Best

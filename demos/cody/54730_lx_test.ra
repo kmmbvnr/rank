@@ -1,0 +1,51 @@
+use testing
+
+
+test "keeps eight-neighbor extrema"
+  use sequences
+  use "54730_lx"
+  Grid = array shape 3 3
+    1 2 3
+    2 9 2
+    3 2 1
+  end
+  Expected = array shape 3 3
+    1 0 0
+    0 9 0
+    0 0 1
+  end
+
+  Grid local_extrema equal Expected
+end
+
+
+test "ties are not extrema"
+  use sequences
+  use "54730_lx"
+  Grid = array shape 2 3
+    1 1 2
+    -1 2 3
+  end
+  Expected = array shape 2 3
+    0 0 0
+    -1 0 3
+  end
+
+  Grid local_extrema equal Expected
+end
+
+
+test "compares edge cells in bounds"
+  use sequences
+  use "54730_lx"
+  Grid = array shape 2 2
+    1 3
+    2 4
+  end
+  Expected = array shape 2 2
+    1 0
+    0 4
+  end
+
+  Grid local_extrema equal Expected
+end

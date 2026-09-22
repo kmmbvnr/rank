@@ -1,0 +1,38 @@
+use testing
+
+
+test "recovers a two-material mixture"
+  use sequences
+  use "00843_um"
+  Basis = array shape 3 2
+    1.0 0.0
+    0.0 1.0
+    1.0 1.0
+  end
+  Spectrum = array 0.25 0.75 1.0
+
+  Actual = Basis Spectrum unmix
+  Fractions = Actual .fractions
+  Fractions equal array 0.25 0.75
+  Actual .fitted equal Spectrum
+  Actual .error at most 0.000001
+end
+
+
+test "fits a noisy spectrum"
+  use numbers
+  use sequences
+  use "00843_um"
+  Basis = array shape 3 2
+    1.0 0.0
+    0.0 1.0
+    1.0 1.0
+  end
+  Spectrum = array 0.5 0.4 0.95
+  Expected = array 0.516667 0.416667
+
+  Actual = Basis Spectrum unmix
+  Rounded = Actual .fractions round 6
+  Rounded equal Expected
+  Actual .error greater 0
+end

@@ -16,6 +16,26 @@ task, record whether it is clear in current Rank, needs a library operation,
 exposes a general language problem, or needs an environment feature. See
 [Numerical scripting roadmap](numerical-scripting-roadmap.md).
 
+### Engineering and real-data seed set
+
+The following Cody-inspired tasks are a proposed numerical corpus. Rank owns
+the programs, inputs and oracle tests; the linked task is a
+source of the scenario rather than a test copied verbatim. Work through this
+list one task at a time. A task earns a language addition only when the Rank
+program or a measured workload makes the missing general capability clear.
+
+| Task | Source | Primary contract | Status |
+| --- | --- | --- | --- |
+| Architecture interfaces | [Cody 61467](https://www.mathworks.com/matlabcentral/cody/problems/61467) | Count and inspect directed, weighted connectivity matrices. | Candidate |
+| Missing weather readings | [Cody 71](https://www.mathworks.com/matlabcentral/cody/problems/71) | Parse a table, retain several missing runs and interpolate them. | Implemented: `demos/cody/00071_wx.ra` |
+| Pairwise point distances | [Cody 43007](https://www.mathworks.com/matlabcentral/cody/problems/43007) | Produce an `N N` distance matrix from `N P` points without an accidental `N N P` allocation. | Implemented: `demos/cody/43007_pd.ra` |
+| Hyperspectral unmixing | [Cody 843](https://www.mathworks.com/matlabcentral/cody/problems/843) | Fit material fractions from one spectrum and a library matrix. | Implemented: normal-equation baseline in `demos/cody/00843_um.ra`; constraints remain a gap |
+| Local grid extrema | [Cody 54730](https://www.mathworks.com/matlabcentral/cody/problems/54730-local-extrema) | Preserve strict extrema against in-bounds eight-neighbors. | Implemented: `demos/cody/54730_lx.ra` |
+| Sensor vignetting correction | [Cody 682](https://www.mathworks.com/matlabcentral/cody/problems/682) | Apply a per-column calibration vector to an image. | Candidate |
+| Noisy-signal filtering | [Cody 220](https://www.mathworks.com/matlabcentral/cody/problems/220) | Recover a sampled signal with a stated quality oracle. | Candidate: assess DSP names and FFT/filtering |
+| Tolerance flood fill | [Cody 46028](https://www.mathworks.com/matlabcentral/cody/problems/46028) | Traverse a four-neighbor numeric image region within a seed tolerance. | Implemented: `demos/cody/46028_ff.ra` |
+| Emergency braking trajectory | [Cody 61189](https://www.mathworks.com/matlabcentral/cody/problems/61189) | Model a time series with variable deceleration, stopping event and distance. | Implemented: `demos/cody/61189_bt.ra` |
+
 ## R data analysis
 
 [Exercism's R track](https://exercism.org/tracks/r) is a structured source of

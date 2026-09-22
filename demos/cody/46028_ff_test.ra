@@ -1,0 +1,56 @@
+use testing
+
+
+test "fills a tolerance region"
+  use sequences
+  use "46028_ff"
+  Grid = array shape 4 4
+    10 10 50 11
+    11 12 50 10
+    50 12 50 10
+    10 50 10 10
+  end
+  Expected = array shape 4 4
+    true true false false
+    true true false false
+    false true false false
+    false false false false
+  end
+
+  Actual = Grid 0 0 2 tolerance_fill
+  Actual equal Expected
+end
+
+
+test "does not cross a diagonal"
+  use sequences
+  use "46028_ff"
+  Grid = array shape 2 2
+    5 100
+    100 5
+  end
+  Expected = array shape 2 2
+    true false
+    false false
+  end
+
+  Actual = Grid 0 0 0 tolerance_fill
+  Actual equal Expected
+end
+
+
+test "fills through an edge"
+  use sequences
+  use "46028_ff"
+  Grid = array shape 2 3
+    8 9 10
+    8 9 10
+  end
+  Expected = array shape 2 3
+    true true true
+    true true true
+  end
+
+  Actual = Grid 0 2 2 tolerance_fill
+  Actual equal Expected
+end

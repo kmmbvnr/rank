@@ -4,6 +4,7 @@ import { coreModule } from './core.js';
 import { cryptoModule } from './crypto.js';
 import { datesModule } from './dates.js';
 import { graphModule } from './graph.js';
+import { gridsModule } from './grids.js';
 import { imagesModule } from './images.js';
 import { ioModule } from './io.js';
 import { jsonModule } from './json.js';
@@ -25,6 +26,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     crypto: cryptoModule,
     dates: datesModule,
     graph: graphModule,
+    grids: gridsModule,
     images: imagesModule,
     io: ioModule,
     json: jsonModule,

@@ -1,0 +1,53 @@
+use testing
+
+
+test "planar point distances"
+  use numbers
+  use sequences
+  use "43007_pd"
+  Points = array shape 3 2
+    0 0
+    3 4
+    0 4
+  end
+  Expected = array shape 3 3
+    0 5 4
+    5 0 3
+    4 3 0
+  end
+
+  Actual = Points pair_distances
+  Actual equal Expected
+end
+
+
+test "uses every coordinate"
+  use numbers
+  use sequences
+  use "43007_pd"
+  Points = array shape 3 3
+    1 2 2
+    4 6 2
+    1 2 8
+  end
+  Root = 61 sqrt
+  Expected = array shape 3 3
+    0 5 6
+    5 0 Root
+    6 Root 0
+  end
+
+  Actual = Points pair_distances
+  Actual equal Expected
+end
+
+
+test "empty point set"
+  use numbers
+  use sequences
+  use "43007_pd"
+  Points = array shape 0 3 fill 0
+  Actual = Points pair_distances
+
+  Actual shape equal array 0 0
+end

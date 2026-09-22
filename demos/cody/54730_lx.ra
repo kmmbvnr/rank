@@ -1,0 +1,36 @@
+rem Cody 54730: local grid extrema
+rem Tied values are not extrema.
+
+use grids
+use sequences
+
+
+rem Keep strict eight-neighbor extrema.
+fun local_extrema Grid
+  H = Grid len
+  W = Grid 0 len
+  Result = Grid copy
+
+  for Y in 0 until H
+    for X in 0 until W
+      Value = Grid Y X
+      Higher = true
+      Lower = true
+      Around = Grid Y X .eight neighbors
+
+      for Point in Around
+        unpack NextY NextX = Point
+        Other = Grid NextY NextX
+        Higher and= Value greater Other
+        Lower and= Value less Other
+      end
+
+      if Higher or Lower
+        continue
+      end
+      Result Y X = 0
+    end
+  end
+
+  return Result
+end

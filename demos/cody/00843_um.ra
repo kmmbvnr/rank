@@ -1,0 +1,24 @@
+rem Cody 843: hyperspectral unmixing
+rem Basis columns are material spectra.
+
+use linalg
+use numbers
+use sequences
+
+
+rem Fit fractions to one spectrum.
+fun unmix Basis Spectrum
+  BasisT = Basis transpose
+  Gram = BasisT Basis matmul
+  Projection = BasisT Spectrum matmul
+  Fractions = Gram Projection solve
+  Fitted = Basis Fractions matmul
+  Residual = Spectrum - Fitted
+  Error = Residual * Residual sum sqrt
+
+  return record
+    .fractions = Fractions
+    .fitted = Fitted
+    .error = Error
+  end
+end

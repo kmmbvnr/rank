@@ -1,0 +1,40 @@
+use testing
+
+
+test "fills one gap"
+  use sequences
+  use "00071_wx"
+  Lines = array "11" "9999" "9999" "17"
+
+  Expected = array shape 4
+    11.0 13.0 15.0 17.0
+  end
+  Actual = Lines interpolate_weather
+  Actual equal Expected
+end
+
+
+test "parses text with several gaps"
+  use sequences
+  use "00071_wx"
+  Text = "0\n9999\n20\n9999\n9999\n50"
+  Expected = array shape 6
+    0.0 10.0 20.0 30.0 40.0 50.0
+  end
+
+  Actual = Text interpolate_weather
+  Actual equal Expected
+end
+
+
+test "keeps decimal readings"
+  use sequences
+  use "00071_wx"
+  Lines = array "2.5" "3.75" "4.0"
+
+  Expected = array shape 3
+    2.5 3.75 4.0
+  end
+  Actual = Lines interpolate_weather
+  Actual equal Expected
+end

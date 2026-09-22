@@ -1,0 +1,46 @@
+rem Cody 46028: tolerance flood fill
+rem Values join when close to the seed.
+
+use algo
+use grids
+use numbers
+use sequences
+
+
+rem Mark the four-neighbor seed region.
+fun tolerance_fill Grid StartY StartX T
+  H = Grid len
+  W = Grid 0 len
+  Seed = Grid StartY StartX
+  Mask = array shape H W fill false
+  Pending = new queue
+  Pending push StartY * W + StartX
+  Mask StartY StartX = true
+  Head = 0
+
+  for Head less Pending len
+    Position = Pending Head
+    Y = Position // W
+    X = Position % W
+    Neighbors = Grid Y X neighbors
+
+    for Point in Neighbors
+      unpack NextY NextX = Point
+      if Mask NextY NextX
+        continue
+      end
+
+      Cell = Grid NextY NextX
+      Difference = Cell - Seed abs
+      if Difference greater T
+        continue
+      end
+      Mask NextY NextX = true
+      Pending push NextY * W + NextX
+    end
+
+    Head += 1
+  end
+
+  return Mask
+end
