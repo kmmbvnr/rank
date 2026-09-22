@@ -1,0 +1,99 @@
+rem Advent of Code 2016 - Day 7
+rem Internet Protocol Version 7
+rem https://adventofcode.com/2016/day/7
+
+use io
+use cli
+use text
+use sequences
+
+argument Input path
+
+Lines = Input readlines
+
+Part1 = Lines tls rank 0 count
+Part2 = Lines ssl rank 0 count
+
+Part1 print
+Part2 print
+
+
+rem TLS needs an ABBA outside brackets and none inside them.
+fun tls Address
+  Parts = Address (array "[" "]") split
+
+  I = 0 until (Parts len)
+  SuperMask = I % 2 equal 0
+  HyperMask = I % 2 equal 1
+
+  Super = Parts SuperMask "[[[[" join
+  Hyper = Parts HyperMask "]]]]" join
+
+  Good = Super has_abba
+  Bad = Hyper has_abba
+
+  return Good and not Bad
+end
+
+
+rem Test whether text contains ABBA.
+fun has_abba Text
+  Windows = Text 4 window
+  Mask = Windows is_abba rank 0
+  return Mask any
+end
+
+
+rem Test one four-character window.
+fun is_abba Text
+  A = Text 0
+  B = Text 1
+
+  Outer = A equal Text 3
+  Inner = B equal Text 2
+  Different = A not equal B
+
+  return Outer and Inner and Different
+end
+
+
+rem SSL needs an outside ABA whose matching BAB occurs inside brackets.
+fun ssl Address
+  Parts = Address (array "[" "]") split
+
+  I = 0 until (Parts len)
+  SuperMask = I % 2 equal 0
+  HyperMask = I % 2 equal 1
+
+  Super = Parts SuperMask "[[[[" join
+  Hyper = Parts HyperMask "]]]]" join
+
+  Windows = Super 3 window
+  Mask = Windows is_aba rank 0
+  ABAs = Windows Mask
+
+  BABs = ABAs to_bab rank 0
+  HyperWindows = Hyper 3 window
+
+  return (BABs in HyperWindows) any
+end
+
+
+rem Test one three-character window.
+fun is_aba Text
+  A = Text 0
+  B = Text 1
+
+  Outer = A equal Text 2
+  Different = A not equal B
+
+  return Outer and Different
+end
+
+
+rem Convert ABA to corresponding BAB.
+fun to_bab Text
+  A = Text 0
+  B = Text 1
+  return B + A + B
+end

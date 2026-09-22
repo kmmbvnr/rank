@@ -1,0 +1,34 @@
+use testing
+
+test "official TLS examples"
+  use "007_ipv7"
+
+  "abba[mnop]qrst" tls
+  not ("abcd[bddb]xyyx" tls)
+  not ("aaaa[qwer]tyui" tls)
+  "ioxxoj[asdfgh]zxcvbn" tls
+end
+
+test "official SSL examples"
+  use "007_ipv7"
+
+  "aba[bab]xyz" ssl
+  not ("xyx[xyx]xyx" ssl)
+  "aaa[kek]eke" ssl
+  "zazbz[bzb]cdb" ssl
+end
+
+test "counts TLS and SSL addresses separately"
+  use "007_ipv7"
+  use sequences
+
+  Lines = array shape 4
+    "abba[mnop]qrst"
+    "aba[bab]xyz"
+    "abcd[bddb]xyyx"
+    "zazbz[bzb]cdb"
+  end
+
+  Lines tls rank 0 count equal 1
+  Lines ssl rank 0 count equal 2
+end
