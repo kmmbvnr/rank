@@ -34,6 +34,33 @@ it('does not freeze elastic dimensions or require known external values', () => 
     expect(messages('A = array shape N 3 fill 0\nB = array shape 4 3 fill 0\nA + B')).toEqual([]);
 });
 
+it('keeps the first array rank across assignments and unknown calls', () => {
+    for (const replacement of ['array 2 2 2 2 shape 2 2', 'array shape 2 2\n 2 2\n 2 2\nend',
+        'array shape N 2 fill 0', 'array shape 0 2 fill 0']) {
+        expect(messages(`A = array 1 2 3\nA = ${replacement}`))
+            .toEqual(['A has rank 1 and cannot receive rank 2']);
+    }
+    expect(messages('A = array 1 2\nA = 0 external\nA = array shape 2 2 fill 0'))
+        .toEqual(['A has rank 1 and cannot receive rank 2']);
+    expect(messages('A = array shape 2 2 fill 0\nA = array shape 3 4 fill 0')).toEqual([]);
+    expect(messages('A = array 1 2\nA += array shape 2 2 fill 0'))
+        .toEqual(['A has rank 1 and cannot receive rank 2']);
+});
+
+it('checks inline array element counts without executing dimensions', () => {
+    expect(messages('M = array 1 2 3 shape 2 2')).toEqual(['array shape 2 2 expects 4 elements, got 3']);
+    expect(messages('M = array 1 2 3 4 shape 2 2')).toEqual([]);
+    expect(messages('M = array 1 2 shape N 2')).toEqual([]);
+});
+
+it('gives function locals their own rank contract', () => {
+    expect(messages('A = array 1 2\nfun make N\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
+    expect(messages('fun change A\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))
+        .toEqual(['change: A has rank 1 and cannot receive rank 2']);
+    expect(messages('A = array 1 2\nuse sequences\nA = array 1 2 3 4 shape 2 2'))
+        .toEqual(['A has rank 1 and cannot receive rank 2']);
+});
+
 it('does not reuse dimensions across a conditional reassignment', () => {
     expect(messages('A = array 1 2\nif Flag\n A = array 1 2 3\nend\nB = array 1 2 3\nA + B')).toEqual([]);
 });

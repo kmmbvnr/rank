@@ -87,11 +87,11 @@ export function createReplSession(host: ReplHost = {}) {
         resetExecution,
         get savedFile() { return savedFile; },
         get names() { return [...interpreter.bindingNames()]; },
-        get diagnosticFacts() { return runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name)); },
+        get diagnosticFacts() { return runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name), name => interpreter.bindingArrayRank(name)); },
         get testExamples() { return testExamples; },
         snapshot(): SessionSnapshot {
             return { names: [...interpreter.variables.keys()], modules: [...interpreter.modules], aliases, savedFile,
-                diagnosticFacts: runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name)), testExamples };
+                diagnosticFacts: runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name), name => interpreter.bindingArrayRank(name)), testExamples };
         },
         replaceFile(file: ProgramFile): void {
             resetExecution();

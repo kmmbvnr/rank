@@ -19,6 +19,7 @@ it('separates scalar type, array elements, rank and dimensions', () => {
     expect(facts('42')).toEqual({ types: ['integer'], rank: 0, shape: [], integer: '42' });
     expect(facts('array 1 2 3')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [3], integers: [1, 2, 3] });
     expect(facts('array shape 2 3 fill 0')).toEqual({ types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3] });
+    expect(facts('array 1 2 3 4 shape 2 2')).toEqual({ types: ['array'], elements: ['integer'], rank: 2, shape: [2, 2] });
 });
 
 it('retains rank when a dimension is unknown', () => {

@@ -5,7 +5,8 @@ import type { OutputLine } from './repl-session.js';
 
 /** Copy metadata, never array cells, lazy sequences, getters or function results. */
 export function runtimeValueFacts(values: ReadonlyMap<string, RankValue>,
-    acceptedTypes: (name: string) => readonly string[] | undefined = () => undefined): [string, ValueFacts][] {
+    acceptedTypes: (name: string) => readonly string[] | undefined = () => undefined,
+    acceptedArrayRank: (name: string) => number | undefined = () => undefined): [string, ValueFacts][] {
     const facts: [string, ValueFacts][] = [];
     for (const [name, value] of values) {
         if (isNativeFunction(value)) continue;
@@ -20,7 +21,7 @@ export function runtimeValueFacts(values: ReadonlyMap<string, RankValue>,
             fact = { types: [value.kind], rank: value.shape.length, shape: [...value.shape],
                 ...(value.kind === 'bytes' ? { elements: ['integer'] } : {}) };
         } else fact = { types: [value.kind === 'label' ? 'symbol' : value.kind] };
-        facts.push([name, { ...fact, acceptedTypes: acceptedTypes(name) }]);
+        facts.push([name, { ...fact, acceptedTypes: acceptedTypes(name), acceptedArrayRank: acceptedArrayRank(name) }]);
     }
     return facts;
 }
@@ -45,7 +46,20 @@ export function notebookValueDiagnostics(book: Notebook, runtime: readonly [stri
             } catch { bindings.clear(); functions.clear(); }
         }
     }
-    if (cleanPrefix) for (const [name, fact] of runtime) bindings.set(name, fact);
+    if (cleanPrefix) {
+        const sequential = book.cells.slice(0, book.active).every((_, index) => !book.isExperimental(index));
+        for (const [name, fact] of runtime) {
+            const inferred = bindings.get(name);
+            // Runtime metadata omits array cells. Keep proven source element
+            // types only for an unchanged sequential prefix with matching shape.
+            // Calls and element writes invalidate these facts in the analyzer.
+            const elements = sequential && inferred?.types.join() === fact.types.join()
+                && inferred.rank === fact.rank && inferred.shape?.length === fact.shape?.length
+                && inferred.shape?.every((size, axis) => size === fact.shape![axis])
+                ? inferred.elements : undefined;
+            bindings.set(name, { ...fact, ...(elements && !fact.elements ? { elements } : {}) });
+        }
+    }
     try {
         const program = parse(current.source);
         const definitions = program.statements.filter(isFunctionStatement);

@@ -3,6 +3,17 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank tensors and collections', () => {
+    it('reports excess indices on a scalar cell as a dimension mismatch', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('A = array 2 2 2 2 shape 2 2');
+            expect(() => runtime.execute('A 0 0 0 0 0')).toThrowError('5 selectors exceed array rank 2');
+            expect(() => runtime.execute('A 0 0 0'))
+                .toThrowError(expect.objectContaining({ rankKind: 'DimensionMismatch' }));
+            expect(runtime.execute('A 0 0')).toBe(2n);
+        } finally { runtime.dispose(); }
+    });
+
     it('constructs and addresses shaped arrays in row-major order', () => {
         expect(run([
             'T = array shape 2 2 2',

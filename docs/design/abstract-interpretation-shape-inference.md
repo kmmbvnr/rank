@@ -3,8 +3,9 @@
 Implementation note: this is the original architectural proposal. For the
 current editing-time checker and its limits, see
 [Type and shape diagnostics during editing](value-diagnostics.md).
-The proposal's rank-invariant assignment rule and prohibition on growing arrays
-in loops are not implemented language rules. Runtime reductions allow a cell
+Array bindings now keep their rank on reassignment, with elastic axis lengths.
+The proposal's prohibition on growing arrays in loops is not implemented.
+Runtime reductions allow a cell
 rank equal to the input rank; the strict inequality below is not the current
 contract. Claims about fully decidable ranks, coverage percentages and latency
 below are proposal claims, not measured guarantees of the implementation.

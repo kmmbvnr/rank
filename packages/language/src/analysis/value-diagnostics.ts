@@ -38,13 +38,25 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const activeCalls = new Set<string>();
     let remainingCalls = 100;
 
+    const arrayRank = (fact: ValueFacts | undefined): number | undefined =>
+        fact?.types.length && fact.types.every(type => type === 'array' || type === 'bytes') ? fact.rank : undefined;
+    const contractRank = (fact: ValueFacts | undefined): number | undefined => fact?.acceptedArrayRank ?? arrayRank(fact);
+    const invalidate = (fact: ValueFacts | undefined): ValueFacts => ({ types: [], acceptedArrayRank: contractRank(fact) });
+
     function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression): ValueFacts {
         const definition = functions.get(name);
         if (!definition || caller.get(name) !== functionBindings.get(name)
             || definition.parameters.length !== arguments_.length || activeCalls.has(name)
             || remainingCalls-- <= 0) return UNKNOWN_VALUE;
         const local = new Map(caller);
-        definition.parameters.forEach((parameter, index) => local.set(parameter, arguments_[index]));
+        // Top-level functions create local bindings on assignment, rather than
+        // inheriting the assignment contracts of equally named globals.
+        for (const node of AstUtils.streamAllContents(definition)) {
+            if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)) local.delete(node.name);
+        }
+        definition.parameters.forEach((parameter, index) => local.set(parameter, {
+            ...arguments_[index], acceptedArrayRank: arrayRank(arguments_[index]), acceptedTypes: arguments_[index].types,
+        }));
         activeCalls.add(name);
         const diagnosticStart = diagnostics.length;
         try {
@@ -114,7 +126,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && !findOperation(node.name)))) return;
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
-        for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, UNKNOWN_VALUE);
+        for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
     }
 
     function inspect(expression: Expression, env: Map<string, ValueFacts>): ValueFacts {
@@ -127,6 +139,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (isArrayExpression(expression)) {
             for (const item of [...expression.items, ...expression.dimensions, ...expression.rows.flatMap(row => row.items)]) inspect(item.value, env);
             if (expression.fill) inspect(expression.fill, env);
+            const shape = expressionFacts(expression, lookup).shape;
+            if (expression.dimensions.length && !expression.fill && shape?.every(n => n !== null)) {
+                const expected = shape.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
+                const actual = expression.items.length + expression.rows.reduce((count, row) => count + row.items.length, 0);
+                if (expected !== BigInt(actual)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                    message: `array shape ${shape.join(' ')} expects ${expected} elements, got ${actual}` });
+            }
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
@@ -203,15 +222,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const previous = env.get(statement.name);
                 let next = inspect(statement.value, env);
                 if (statement.operator !== '=') next = {
+                    ...expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
+                        left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name)),
                     types: compoundType(statement.operator, previous?.types ?? [], next.types),
                 };
                 const accepted = previous?.acceptedTypes ?? previous?.types;
+                const expectedRank = contractRank(previous);
+                const receivedRank = arrayRank(next);
                 if (accepted?.length && next.types.length
                     && next.types.every(type => !accepted.includes(type))) {
                     diagnostics.push({ node: statement.value, kind: 'TypeError',
                         message: `${statement.name} has type ${accepted.join(' or ')} and cannot receive ${next.types.join(' or ')}` });
+                } else if (expectedRank !== undefined && receivedRank !== undefined && expectedRank !== receivedRank) {
+                    diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
+                        message: `${statement.name} has rank ${expectedRank} and cannot receive rank ${receivedRank}` });
                 }
-                env.set(statement.name, { ...next, acceptedTypes: accepted ?? next.types });
+                env.set(statement.name, { ...next, acceptedTypes: accepted ?? next.types,
+                    acceptedArrayRank: expectedRank ?? receivedRank });
             } else if (isExpressionStatement(statement)) {
                 invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
@@ -229,11 +256,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 // Do not retain pre-loop lengths after a possible write. In particular,
                 // the first iteration is not evidence about later iterations.
                 for (const node of AstUtils.streamAllContents(statement)) {
-                    if (isAssignmentStatement(node)) env.set(node.name, UNKNOWN_VALUE);
+                    if (isAssignmentStatement(node)) env.set(node.name, invalidate(env.get(node.name)));
                 }
             } else {
                 // Unsupported statements may mutate bindings through closures or imports.
-                for (const name of env.keys()) env.set(name, UNKNOWN_VALUE);
+                for (const [name, fact] of env) env.set(name, invalidate(fact));
             }
         }
     }

@@ -724,6 +724,16 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
+    it('parses inline array shapes without consuming shape as an element', async () => {
+        const document = await parse('M = array 1 2 3 4 shape 2 2');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const statement = document.parseResult.value.statements[0];
+        expect(statement).toMatchObject({ value: { $type: 'ArrayExpression',
+            items: [{ value: { value: 1n } }, { value: { value: 2n } }, { value: { value: 3n } }, { value: { value: 4n } }],
+            dimensions: [{ value: { value: 2n } }, { value: { value: 2n } }] } });
+    });
+
     it('parses an array as the right operand of a comparison', async () => {
         const document = await parse('Answer equal array 7 0 8');
         expect(document.parseResult.lexerErrors).toEqual([]);

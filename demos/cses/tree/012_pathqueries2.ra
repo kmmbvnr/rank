@@ -15,8 +15,8 @@ for i in 1 until N
   B = stdin .integer
   Graph add A B
 end
-Queries = stdin .integer (Q * 3) array
-Queries = Queries (array Q 3) reshape
+RawQueries = stdin .integer (Q * 3) array
+Queries = RawQueries (array Q 3) reshape
 
 Rooted = Graph 1 root
 Answers = Values Rooted Queries maximums

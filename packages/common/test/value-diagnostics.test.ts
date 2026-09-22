@@ -55,6 +55,44 @@ it('shows a proven error while typing, without evaluating the draft', async () =
     } finally { session.dispose(); }
 });
 
+it('checks excess scalar indices at a clean prompt and removes stale execution errors after editing', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        for (const source of ['A = array 2 2 2 2 shape 2 2', 'A 0 0', 'A 0 0']) {
+            repl.notebook.replace(source);
+            await repl.submit();
+        }
+        repl.notebook.replace('A 0 0 0 0 0');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text)
+            .toBe('DimensionMismatch: 5 selectors exceed array rank 2');
+        await repl.submit();
+        expect(repl.notebook.current.status).toBe('error');
+        repl.notebook.replace('A 0 0');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        const frame = notebookFrame(repl.notebook, 80, 20, 0, '', false, true, '', '',
+            undefined, 'rank> ', undefined, undefined, undefined, false, undefined, true, 0, repl.diagnosticOutputs);
+        expect(frame.lines.join('\n')).not.toMatch(/Runtime:|DimensionMismatch:|requires a sequence|exceed array rank/);
+        expect(session.diagnosticFacts.find(([name]) => name === 'A')?.[1].shape).toEqual([2, 2]);
+    } finally { session.dispose(); }
+});
+
+it('does not reuse source element types after an array write', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        for (const source of ['A = array 1 2', 'A 0 = "abc"']) {
+            repl.notebook.replace(source);
+            await repl.submit();
+            expect(repl.notebook.cells.at(-2)?.status).toBe('ok');
+        }
+        repl.notebook.replace('A 0 0');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        await repl.submit();
+        expect(repl.notebook.cells.at(-2)?.output[0].text).toBe('a');
+    } finally { session.dispose(); }
+});
+
 it('withdraws a diagnostic when the draft is incomplete or corrected', async () => {
     const session = createReplSession();
     try {
@@ -65,6 +103,24 @@ it('withdraws a diagnostic when the draft is incomplete or corrected', async () 
         expect(repl.diagnosticOutputs?.size).toBe(0);
         repl.notebook.replace('Count + 2');
         expect(repl.diagnosticOutputs?.size).toBe(0);
+    } finally { session.dispose(); }
+});
+
+it('reports an axis change before Enter and withdraws it after correction', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('A = array 1 2 3');
+        await repl.submit();
+        repl.notebook.replace('A = array shape 2 2\n 2 2\n 2 2\nend');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text)
+            .toBe('DimensionMismatch: A has rank 1 and cannot receive rank 2');
+        expect(session.diagnosticFacts.find(([name]) => name === 'A')?.[1].shape).toEqual([3]);
+        repl.notebook.replace('A = array 2 3 4 5');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        repl.notebook.replace('A = array shape 2 2 fill 0');
+        repl.notebook.cells[0].source = 'A = array shape 3 3 fill 0';
+        expect(notebookValueDiagnostics(repl.notebook, session.diagnosticFacts).size).toBe(0);
     } finally { session.dispose(); }
 });
 

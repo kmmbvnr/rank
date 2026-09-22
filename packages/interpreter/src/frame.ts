@@ -1,5 +1,5 @@
 import { noteArrayBinding, noteArrayBorrow } from './array-storage.js';
-import type { RankValue } from './value.js';
+import { checkBindingRank, isRankArray, type RankValue } from './value.js';
 
 // Every write to a name passes here, and most of them carry a number or a
 // string. Reaching into another module to learn that costs more than asking
@@ -20,6 +20,7 @@ export class LocalFrame {
     // The types a name accepts live in its own slot, so a write that already
     // knows the slot checks them without looking the name up a second time.
     private readonly slotTypes: (ReadonlySet<string> | undefined)[] = [];
+    private arrayRanks: Map<string, number> | undefined;
 
     constructor(
         readonly parent: LocalFrame | undefined,
@@ -57,6 +58,7 @@ export class LocalFrame {
     }
 
     set(name: string, value: RankValue): void {
+        this.checkRank(name, value);
         noteBinding(value);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
@@ -67,6 +69,7 @@ export class LocalFrame {
 
     // A name arrives with both its value and the types it settles on.
     define(name: string, value: RankValue, types: ReadonlySet<string>, borrowed = false): void {
+        this.checkRank(name, value);
         noteBinding(value, borrowed);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
@@ -86,6 +89,10 @@ export class LocalFrame {
         if (this.slots[slot] === undefined) return false;
         const accepted = this.slotTypes[slot];
         if (accepted === undefined || !accepted.has(received)) return false;
+        if (isRankArray(value)) {
+            const previous = this.slots[slot]!;
+            if (!isRankArray(previous) || previous.shape.length !== value.shape.length) return false;
+        }
         noteBinding(value);
         this.slots[slot] = value;
         return true;
@@ -120,7 +127,15 @@ export class LocalFrame {
         if (this.mappedValues) return false;
         this.slots.length = 0;
         this.slotTypes.length = 0;
+        this.arrayRanks?.clear();
         return true;
+    }
+
+    private checkRank(name: string, value: RankValue): void {
+        if (!isRankArray(value)) return;
+        const previous = this.arrayRanks?.get(name);
+        const rank = checkBindingRank(name, previous, value)!;
+        if (previous === undefined) (this.arrayRanks ??= new Map()).set(name, rank);
     }
 
     // Reading a variable only wants the value, so the walk keeps it rather than

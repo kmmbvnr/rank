@@ -275,6 +275,16 @@ export function isRankFunctionalGraph(value: RankValue): value is RankFunctional
     return typeof value === 'object' && value.kind === 'functional';
 }
 
+/** Array bindings keep their number of axes; lengths remain elastic. */
+export function checkBindingRank(name: string, expected: number | undefined, value: RankValue): number | undefined {
+    if (!isRankArray(value)) return expected;
+    const received = value.shape.length;
+    if (expected !== undefined && expected !== received) {
+        throw new RankError(`${name} has rank ${expected} and cannot receive rank ${received}`, 'DimensionMismatch');
+    }
+    return received;
+}
+
 export function isRankArray(value: RankValue): value is RankArray {
     return typeof value === 'object' && (value.kind === 'array' || value.kind === 'bytes');
 }

@@ -153,6 +153,7 @@ import {
     formatValue,
     isNativeFunction,
     isRankArray,
+    checkBindingRank,
     isRankBytes,
     isRankCounter,
     isRankDate,
@@ -416,6 +417,7 @@ export class Interpreter {
     private readonly standardSequences = new Map<RuntimeModule[string], RankSequence>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
+    private readonly variableArrayRanks = new Map<string, number>();
     private readonly resourceScopes: Set<RankFile>[] = [];
     private readonly generatorResourceScopes = new Set<Set<RankFile>>();
     private debugStatement?: Statement;
@@ -553,6 +555,10 @@ export class Interpreter {
         return types === undefined ? undefined : [...types];
     }
 
+    bindingArrayRank(name: string): number | undefined {
+        return this.variableArrayRanks.get(name);
+    }
+
     /** Copy the current bindings without rerunning the program that produced them. */
     forkForPreview(output: Output = this.output): Interpreter {
         const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored,
@@ -560,6 +566,7 @@ export class Interpreter {
         const fork = new Interpreter(output, options);
         for (const module of this.modules) fork.modules.add(module);
         for (const [name, types] of this.variableTypes) fork.variableTypes.set(name, types);
+        for (const [name, rank] of this.variableArrayRanks) fork.variableArrayRanks.set(name, rank);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
         for (const [name, value] of this.variables) {
             const definition = isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
@@ -579,6 +586,7 @@ export class Interpreter {
         for (const name of names) {
             this.variables.delete(name);
             this.variableTypes.delete(name);
+            this.variableArrayRanks.delete(name);
         }
     }
 
@@ -1926,7 +1934,7 @@ export class Interpreter {
         }
         if (isArrayExpression(expression)) {
             return function* (): Execution<RankValue> {
-                const items = yield* resume(mapExecution(expression.dimensions.length > 0
+                const items = yield* resume(mapExecution(expression.rows.length > 0
                     ? expression.rows.flatMap(row => row.items)
                     : expression.items, item => interpreter.evaluateArrayItem(item)));
                 if (expression.dimensions.length === 0) return array(items);
@@ -3798,6 +3806,7 @@ export class Interpreter {
                 // remembers them and the write costs one store rather than a
                 // lookup for the types and a second for the value.
                 if (global !== undefined && global.has(received)) {
+                    this.checkGlobalRank(name, value);
                     noteArrayBinding(value);
                     this.variables.set(name, value);
                     return;
@@ -3837,6 +3846,7 @@ export class Interpreter {
             }
             if (frame) frame.set(name, value);
             else {
+                this.checkGlobalRank(name, value);
                 noteArrayBinding(value);
                 this.variables.set(name, value);
             }
@@ -3854,9 +3864,19 @@ export class Interpreter {
             frame.define(name, value, settled);
             return;
         }
+        this.checkGlobalRank(name, value);
         noteArrayBinding(value);
         this.variables.set(name, value);
         this.variableTypes.set(name, settled);
+    }
+
+    private checkGlobalRank(name: string, value: RankValue): void {
+        if (!isRankArray(value)) return;
+        const previous = this.variableArrayRanks.get(name);
+        const current = previous === undefined ? this.variables.get(name) : undefined;
+        const expected = previous ?? (current !== undefined && isRankArray(current) ? current.shape.length : undefined);
+        const rank = checkBindingRank(name, expected, value)!;
+        if (previous === undefined) this.variableArrayRanks.set(name, rank);
     }
 
     private assignRecordField(
@@ -5400,6 +5420,10 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         const indices = values.slice(1) as bigint[];
         if (source.shape.length > 0 && indices.length > source.shape.length) {
             const selected = atArray(source, indices.slice(0, source.shape.length));
+            if (typeof selected === 'bigint' || typeof selected === 'number'
+                || typeof selected === 'boolean' || isRankLabel(selected)) {
+                throw new RankError(`${indices.length} selectors exceed array rank ${source.shape.length}`, 'DimensionMismatch');
+            }
             return applySelectors([selected, ...indices.slice(source.shape.length)], missing);
         }
         return atArray(source, indices);

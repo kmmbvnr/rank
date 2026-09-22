@@ -7,10 +7,37 @@ An atom has shape `[]`. A tensor stores a flat sequence of atoms with a
 rectangular shape `[D1, D2, ...]`. Lazy dimensions may have an exact, unknown
 finite, or infinite size; asking for an unknown finite shape is a demand point.
 
+An array variable keeps the number of axes of its first value. Axis lengths may
+change, but assigning a different rank raises `DimensionMismatch` and leaves
+the previous value in place. Use a new variable for a reshape that changes rank:
+
+```rank
+use sequences
+A = array 1 2 3 4
+A = array 5 6 7 8 9 10
+M = A (array 2 3) reshape
+```
+
+`A` stays a vector; `M` is a matrix. Assigning `M` back to `A` is an error.
+Function parameters and local variables establish their rank per call.
+
 ## Core operations
 
 The current implementation includes dense construction through `array shape`
 and dynamic row-major `reshape`:
+
+List values followed by `shape` to create a tensor on one line:
+
+```rank
+M = array 1 2 3 4 shape 2 2
+Zeros = array shape 2 2 fill 0
+```
+
+Values use row-major order. Their count must equal the product of the dimensions.
+The `shape` suffix needs no import. Use `(shape)` to store the function itself
+as an array element.
+
+Reshape an existing value with:
 
 ```rank
 M = Values (array Rows Columns) reshape

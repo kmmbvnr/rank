@@ -10,6 +10,7 @@ import { flattenApplication } from '../expressions.js';
 export interface ValueFacts {
     readonly types: Types;
     readonly acceptedTypes?: Types;
+    readonly acceptedArrayRank?: number;
     readonly elements?: Types;
     readonly rank?: number;
     readonly shape?: readonly (number | null)[];
@@ -47,8 +48,11 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 return Number.isSafeInteger(size) && size >= 0 ? size : null;
             });
             const fill = expression.fill && expressionFacts(expression.fill, lookup);
+            const items = [...expression.items, ...expression.rows.flatMap(row => row.items)]
+                .map(item => expressionFacts(item.value, lookup));
             return { types: ['array'], rank: shape.length, shape,
-                ...(fill && isAtom(fill) ? { elements: fill.types } : {}) };
+                ...(fill && isAtom(fill) ? { elements: fill.types }
+                    : !fill && items.length && items.every(isAtom) ? { elements: [...new Set(items.flatMap(item => item.types))] } : {}) };
         }
         // Nested array literals and row assembly need the runtime's cell rules.
         const items = expression.items.map(item => expressionFacts(item.value, lookup));

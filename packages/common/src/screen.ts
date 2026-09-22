@@ -230,6 +230,8 @@ export function notebookFrame(
             }
         }
         for (const output of live ? [] : cell.output) {
+            // A failed execution describes its original source, not the edited draft.
+            if (output.error && cell.executed !== undefined && cell.executed !== cell.source) continue;
             const marker = (output.error || pending) && gutter > 0
                 ? (' '.repeat(gutter) + (output.error ? '! ' : '~ ')).slice(-gutter) : ' '.repeat(gutter);
             const text = clean(output.inlineText ?? output.text);

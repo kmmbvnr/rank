@@ -54,8 +54,11 @@ an imported name may shadow the local function. No tests execute during this
 analysis.
 
 Text has runtime rank one but is an atom in arithmetic and array construction.
-`reduce rank R` permits R equal to the input rank. Neither rank changes nor array
-growth are prohibited by this diagnostic pass.
+`reduce rank R` permits R equal to the input rank. Array bindings keep the number
+of axes established by their first array value. Reassignment may change axis
+lengths, including growing arrays inside loops. A known rank change reports
+`DimensionMismatch` before execution; the runtime checks unknown results too.
+Function parameters establish their array rank separately for each call.
 
 ## Conservative boundaries
 

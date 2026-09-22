@@ -168,7 +168,7 @@ ArrayExpression:
             'fill' fill=Expression |
             NL+ (rows+=ArrayRow NL+)* 'end'
         ) |
-        items+=ArrayItem+
+        items+=ArrayItem+ ('shape' dimensions+=ArrayItem+)?
     );
 
 // One quoted line per source line, glued or joined by `lines`. `rem` lines are
@@ -188,7 +188,18 @@ ArrayRow:
     items+=ArrayItem+;
 
 ArrayItem:
-    sign=('+' | '-')? value=ArrayAtom;
+    sign=('+' | '-')? value=ArrayItemAtom;
+
+// Bare `shape` ends inline values; `(shape)` still denotes the function value.
+ArrayItemAtom returns Expression:
+    NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
+    NewStructureExpression | StdinExpression | ArrayNameExpression | ParenthesizedExpression;
+
+ArrayNameExpression infers NameExpression:
+    name=ArrayReferenceName;
+
+ArrayReferenceName returns string:
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'sql' | 'explain' | 'update' | 'ascending' | 'descending';
 
 AddressItem:
     spread?='unpack' value=ArrayAtom |

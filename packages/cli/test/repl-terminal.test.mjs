@@ -91,6 +91,29 @@ test('type diagnostics appear while typing before Enter', async t => {
     assert.match(frames[2].text, /rank> Count \+ 2/);
 });
 
+test('rank diagnostics appear for inline shaped arrays before Enter', async t => {
+    const frames = await drive(t, ['A = array 1 2 3' + ENTER,
+        'A = array 1 2 3 4 shape 2 2', CLEAR + 'A = array 2 3 4 5'], 80, 18);
+    assert.match(frames[1].text, /DimensionMismatch/);
+    assert.match(frames[1].text, /A has rank 1/);
+    assert.match(frames[1].text, /cannot receive rank 2/);
+    assert.doesNotMatch(frames[2].text, /DimensionMismatch|cannot receive/);
+});
+
+test('excess indices are diagnosed before Enter and an edited error disappears before Ctrl-R', async t => {
+    const frames = await drive(t, ['A = array 2 2 2 2 shape 2 2' + ENTER,
+        'A 0 0' + ENTER, 'A 0 0' + ENTER, 'A 0 0 0 0 0', ENTER,
+        END + '\x7f'.repeat(6), '\x12'], 80, 18);
+    assert.match(frames[3].text, /DimensionMismatch/);
+    assert.match(frames[3].text, /5 selectors/);
+    assert.match(frames[3].text, /exceed array rank 2/);
+    assert.match(frames[4].text, /DimensionMismatch/);
+    assert.doesNotMatch(frames[5].text, /DimensionMismatch|Runtime:|requires a sequence/);
+    assert.match(frames[5].text, /A 0 0/);
+    assert.doesNotMatch(frames[6].text, /DimensionMismatch|Runtime:/);
+    assert.match(frames[6].text, /\n\s*2\n/);
+});
+
 test('Enter after end returns to rank prompt after previewing an unfinished function', async t => {
     const frames = await drive(t, [
         'fun digit_sum N' + ENTER,

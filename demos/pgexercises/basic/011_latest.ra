@@ -10,7 +10,7 @@ argument OutputPath path = "demos/pgexercises/data/011_latest.csv"
 
 Db = DbPath sqlite
 Rows = (Db .members) array
-Dates = Rows .joindate sort
+Dates = (Rows .joindate) sort
 Latest = Dates (Dates len - 1)
 First = Rows from 0 until 1
 Result = First select
