@@ -1,8 +1,7 @@
 import {
     isYieldStatement, isFunctionStatement, isTestStatement,
     isIfStatement, isForStatement, isTryStatement,
-    isAssignmentStatement, isArrayAssignmentStatement, isIndexAssignmentStatement,
-    isAddStatement, isPushStatement, isUnpackStatement, isReturnStatement,
+    isReturnStatement, isApplicationExpression, isNumberLiteral,
     isNameExpression, isParenthesizedExpression,
     type FunctionStatement, type Statement, type Expression,
 } from '@arrrank/language';
@@ -34,8 +33,6 @@ export function prepareFunction(statement: FunctionStatement): PreparedFunction 
 
 function inferBorrowedParameters(statement: FunctionStatement, isGenerator: boolean): ReadonlySet<string> {
     if (isGenerator || statement.parameters.length === 0) return new Set();
-    const borrowed = new Set(statement.parameters);
-
     const isDirectName = (expr: Expression | undefined, target: string): boolean => {
         if (!expr) return false;
         if (isNameExpression(expr) && expr.name === target) return true;
@@ -43,72 +40,42 @@ function inferBorrowedParameters(statement: FunctionStatement, isGenerator: bool
         return false;
     };
 
-    function visit(node: unknown): void {
-        if (!node || typeof node !== 'object') return;
-        if (Array.isArray(node)) {
-            for (const item of node) visit(item);
-            return;
-        }
+    // Without call-effect and alias analysis, an unfamiliar name can invoke a
+    // zero-argument function that writes the caller's array. Even another
+    // parameter can be such a callback. Prove a small pure subset per parameter;
+    // everything else keeps the normal copy-on-write binding.
+    function onlyReads(node: unknown, parameter: string): boolean {
+        if (!node || typeof node !== 'object') return true;
+        if (Array.isArray(node)) return node.every(child => onlyReads(child, parameter));
         const obj = node as Record<string, unknown>;
-        const type = String(obj.$type ?? '');
-
-        // 1. Direct mutation of the parameter name:
-        if (isAssignmentStatement(obj) || isArrayAssignmentStatement(obj)
-            || isIndexAssignmentStatement(obj) || isAddStatement(obj) || isPushStatement(obj)) {
-            if (typeof obj.name === 'string' && borrowed.has(obj.name)) {
-                borrowed.delete(obj.name);
-            }
-            // Storing the parameter into another variable, collection, or array cell:
-            if (obj.value) {
-                for (const param of borrowed) {
-                    if (isDirectName(obj.value as Expression, param)) borrowed.delete(param);
-                }
-            }
+        if (isNameExpression(obj)) return obj.name === parameter;
+        if (isReturnStatement(obj) && isDirectName(obj.value, parameter)) return false;
+        if (isApplicationExpression(obj)) {
+            // Juxtaposition is both calling and addressing. Only literal
+            // indexing of this parameter is known to be a read when it is an
+            // array (the only value whose ownership borrowing changes).
+            return isDirectName(obj.head, parameter)
+                && obj.arguments.every(isNumberLiteral);
         }
-        if (isUnpackStatement(obj) && Array.isArray(obj.names)) {
-            for (const name of obj.names) {
-                if (typeof name === 'string' && borrowed.has(name)) borrowed.delete(name);
-            }
-        }
-
-        // 2. Returning the parameter directly escapes it to the caller:
-        if (isReturnStatement(obj) && obj.value) {
-            for (const param of borrowed) {
-                if (isDirectName(obj.value, param)) borrowed.delete(param);
-            }
-        }
-
-        // 3. Captures in nested functions:
-        if (isFunctionStatement(obj) && obj !== statement) {
-            function checkCapture(nested: unknown): void {
-                if (!nested || typeof nested !== 'object') return;
-                if (Array.isArray(nested)) { for (const it of nested) checkCapture(it); return; }
-                const nestedObj = nested as Record<string, unknown>;
-                if (isNameExpression(nestedObj) && borrowed.has(nestedObj.name)) {
-                    borrowed.delete(nestedObj.name);
-                }
-                for (const [key, child] of Object.entries(nestedObj)) {
-                    if (!key.startsWith('$')) checkCapture(child);
-                }
-            }
-            checkCapture(obj.statements);
-            return;
-        }
-
-        // 4. Storing parameter into a record field:
-        if (type === 'RecordField' && obj.value) {
-            for (const param of borrowed) {
-                if (isDirectName(obj.value as Expression, param)) borrowed.delete(param);
-            }
-        }
-
-        for (const [key, child] of Object.entries(obj)) {
-            if (!key.startsWith('$')) visit(child);
+        switch (obj.$type) {
+            case 'ReturnStatement':
+            case 'IfStatement':
+            case 'ElifClause':
+            case 'BinaryExpression':
+            case 'UnaryExpression':
+            case 'ParenthesizedExpression':
+            case 'NumberLiteral':
+            case 'BooleanLiteral':
+            case 'StringLiteral':
+            case 'LabelLiteral':
+                return Object.entries(obj).every(([key, child]) =>
+                    key.startsWith('$') || onlyReads(child, parameter));
+            default:
+                return false;
         }
     }
 
-    visit(statement.statements);
-    return borrowed;
+    return new Set(statement.parameters.filter(parameter => onlyReads(statement.statements, parameter)));
 }
 
 function statementsContainYield(statements: readonly Statement[]): boolean {

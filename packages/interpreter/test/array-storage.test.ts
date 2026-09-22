@@ -109,4 +109,67 @@ B = A bump`);
         expect(arrayA.items).not.toBe(arrayB.items);
         runtime.dispose();
     });
+
+    it.each([
+        'A 0 = 99\n  return V 0',
+        'Ignored = mutate\n  return V 0',
+        'return mutate + (V 0)',
+    ])('isolates writes through another name: %s', body => {
+        const runtime = new Interpreter();
+        try {
+            expect(runtime.execute(`A = array 10 20
+fun mutate
+  A 0 = 99
+  return 0
+end
+fun inspect V
+  ${body}
+end
+A inspect`)).toBe(10n);
+            expect(runtime.execute('A 0')).toBe(10n);
+        } finally {
+            runtime.dispose();
+        }
+    });
+
+    it('protects arrays when another parameter is a callback', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`A = array 10 20
+fun mutate
+  A 0 = 99
+  return 0
+end
+fun inspect V F
+  return F + (V 0)
+end`);
+            const inspect = runtime.variables.get('inspect');
+            if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
+            expect(inspect.call([
+                runtime.variables.get('A')!, runtime.variables.get('mutate')!,
+            ])).toBe(10n);
+            expect(runtime.execute('A 0')).toBe(10n);
+        } finally {
+            runtime.dispose();
+        }
+    });
+
+    it('copies a captured parameter before a nested function writes it', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`fun outer V
+  fun mutate
+    V 0 = 99
+    return 0
+  end
+  Ignored = mutate
+  return 0
+end
+A = array 10 20
+Ignored = A outer`);
+            expect(runtime.execute('A 0')).toBe(10n);
+        } finally {
+            runtime.dispose();
+        }
+    });
 });
