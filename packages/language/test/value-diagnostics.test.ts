@@ -98,6 +98,30 @@ it('infers a helper result from its body and literal call arguments', () => {
         .toEqual(['A has type integer and cannot receive text']);
 });
 
+it('checks variable arguments and results through local calculations and helper calls', () => {
+    const helpers = 'fun increment X\n Y = X + 1\n return Y\nend\nfun twice X\n Y = X increment\n return Y increment\nend\n';
+    expect(messages(helpers + 'Input = "bad"\nInput twice'))
+        .toContain('twice: increment: operator + does not accept text and integer');
+    expect(messages(helpers + 'Input = 3\nResult = Input twice\nResult = "bad"'))
+        .toEqual(['Result has type integer and cannot receive text']);
+    expect(messages(helpers + 'Input = Unknown\nInput twice')).toEqual([]);
+});
+
+it('checks array argument shapes and preserves the rank of computed results', () => {
+    const helper = 'fun combine A B\n Result = A + B\n return Result\nend\n';
+    expect(messages(helper + 'A = array shape 2 3 fill 0\nB = array shape 2 4 fill 0\nA B combine'))
+        .toEqual(['combine: shape mismatch: [2, 3] and [2, 4]']);
+    expect(messages(helper + 'A = array shape 2 3 fill 0\nB = array shape 1 3 fill 0\nC = A B combine\nC # # #'))
+        .toEqual(['3 selectors exceed array rank 2']);
+});
+
+it('does not preserve caller facts through unknown calls, mutations or recursive helpers', () => {
+    for (const body of ['X external\n return X + 1', 'X 0 = 1\n return X + 1', 'return X helper',
+        'X delete\n return X + 1', 'X += 1\n return X + 1', 'Y = stdin .integer\n return X + 1']) {
+        expect(messages(`fun helper X\n ${body}\nend\nInput = "bad"\nInput helper`)).toEqual([]);
+    }
+});
+
 it('does not guess results for recursion and joins all covered return paths', () => {
     expect(messages('fun again X\n return X again\nend\nA = 1 again\nA = "x"')).toEqual([]);
     expect(messages('fun choose X\n if X\n  return 1\n end\n return "x"\nend\nA = Flag choose\nA = true'))

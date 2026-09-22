@@ -2,6 +2,7 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral,
+    isNumberLiteral, isStringLiteral, isLabelLiteral, isTextBlockExpression,
     isAssignmentStatement, isBinaryExpression, isExpressionStatement,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement,
     type Expression, type Program, type Statement, type FunctionStatement,
@@ -111,13 +112,56 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
         const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment']);
+        const checking = new Set<string>();
+        const checked = new Map<string, boolean>();
         const readOnly = (name: string): boolean => {
+            if (checked.has(name)) return checked.get(name)!;
             const definition = functions.get(name);
             if (!definition || env.get(name) !== functionBindings.get(name)
-                || definition.statements.length !== 1 || !isReturnStatement(definition.statements[0])) return false;
-            return [...AstUtils.streamAllContents(definition)].every(node => !isApplicationExpression(node)
-                && (!isNameExpression(node) || definition.parameters.includes(node.name)
-                    || /^[A-Z]/.test(node.name) && !env.get(node.name)?.types.includes('function')));
+                || checking.has(name)) return false;
+            const contents = [...AstUtils.streamAllContents(definition)];
+            if (!contents.some(isReturnStatement)) return false;
+            const locals = new Set([...definition.parameters,
+                ...contents.filter(isAssignmentStatement).map(node => node.name)]);
+            const safeExpression = (value: Expression): boolean => {
+                if (isNameExpression(value)) return locals.has(value.name)
+                    || /^[A-Z]/.test(value.name) && !env.get(value.name)?.types.includes('function');
+                if (isApplicationExpression(value)) {
+                    const parts = flattenApplication(value);
+                    const target = parts.at(-1)!;
+                    return isNameExpression(target) && !locals.has(target.name) && readOnly(target.name)
+                        && parts.slice(0, -1).every(safeExpression);
+                }
+                if (isNumberLiteral(value) || isStringLiteral(value) || isBooleanLiteral(value)
+                    || isLabelLiteral(value) || isTextBlockExpression(value)) return true;
+                if (isParenthesizedExpression(value)) return safeExpression(value.value);
+                if (isUnaryExpression(value)) return safeExpression(value.operand);
+                if (isBinaryExpression(value)) return safeExpression(value.left) && safeExpression(value.right)
+                    && (!value.step || safeExpression(value.step));
+                if (isArrayExpression(value)) return [...value.items, ...value.dimensions, ...value.rows.flatMap(row => row.items)]
+                    .every(item => safeExpression(item.value)) && (!value.fill || safeExpression(value.fill));
+                // In particular, table writes, stdin and lazy materialization
+                // must not be classified as safe just because their children are.
+                return false;
+            };
+            const safeStatement = (statement: Statement): boolean => {
+                // Compound assignment can resolve to a captured binding.
+                if (isAssignmentStatement(statement)) return statement.operator === '=' && safeExpression(statement.value);
+                if (isExpressionStatement(statement)) return safeExpression(statement.value);
+                if (isReturnStatement(statement)) return !statement.value || safeExpression(statement.value);
+                if (isIfStatement(statement)) return safeExpression(statement.condition)
+                    && statement.thenStatements.every(safeStatement)
+                    && statement.elifClauses.every(clause => safeExpression(clause.condition) && clause.statements.every(safeStatement))
+                    && statement.elseStatements.every(safeStatement);
+                return false;
+            };
+            checking.add(name);
+            try {
+                const result = definition.statements.every(safeStatement);
+                checked.set(name, result);
+                return result;
+            }
+            finally { checking.delete(name); }
         };
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
         if (!nodes.some(node => isNameExpression(node) && (

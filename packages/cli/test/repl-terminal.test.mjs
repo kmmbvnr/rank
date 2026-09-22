@@ -91,6 +91,15 @@ test('type diagnostics appear while typing before Enter', async t => {
     assert.match(frames[2].text, /rank> Count \+ 2/);
 });
 
+test('function argument diagnostics appear before Enter and disappear after correction', async t => {
+    const frames = await drive(t, ['\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER,
+        'Input = "bad"' + ENTER, 'Input increment', CLEAR + '3 increment'], 60, 22);
+    assert.match(frames[2].text, /TypeError: increment:/);
+    assert.match(frames[2].text, /does not accept/);
+    assert.doesNotMatch(frames[3].text, /TypeError|does not accept/);
+    assert.match(frames[3].text, /rank> 3 increment/);
+});
+
 test('rank diagnostics appear for inline shaped arrays before Enter', async t => {
     const frames = await drive(t, ['A = array 1 2 3' + ENTER,
         'A = array 1 2 3 4 shape 2 2', CLEAR + 'A = array 2 3 4 5'], 80, 18);

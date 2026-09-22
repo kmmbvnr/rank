@@ -106,6 +106,49 @@ it('withdraws a diagnostic when the draft is incomplete or corrected', async () 
     } finally { session.dispose(); }
 });
 
+it('checks function arguments and inferred results before execution and refreshes after edits', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        for (const source of ['fun increment X\n Y = X + 1\n return Y\nend', 'Input = "bad"']) {
+            repl.notebook.replace(source);
+            await repl.submit();
+            expect(repl.notebook.cells.at(-2)?.status).toBe('ok');
+        }
+        repl.notebook.replace('Input increment');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text)
+            .toBe('TypeError: increment: operator + does not accept text and integer');
+        expect(repl.notebook.current.executed).toBeUndefined();
+        expect(session.names).not.toContain('Y');
+        repl.notebook.replace('3 increment');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        repl.notebook.replace('Result = 3 increment\nResult = "bad"');
+        expect(repl.diagnosticOutputs?.get(2)?.[0].text)
+            .toBe('TypeError: Result has type integer and cannot receive text');
+        expect(session.names).not.toContain('Result');
+        repl.notebook.replace('Input increment');
+        repl.notebook.cells[0].source = 'fun increment X\n Y = X + "suffix"\n return Y\nend';
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+    } finally { session.dispose(); }
+});
+
+it('checks function argument shapes without changing runtime arrays', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        for (const source of ['fun combine A B\n Result = A + B\n return Result\nend',
+            'Left = array shape 2 3 fill 0', 'Right = array shape 2 4 fill 0']) {
+            repl.notebook.replace(source);
+            await repl.submit();
+        }
+        repl.notebook.replace('Left Right combine');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text)
+            .toBe('DimensionMismatch: combine: shape mismatch: [2, 3] and [2, 4]');
+        expect(session.diagnosticFacts.find(([name]) => name === 'Left')?.[1].shape).toEqual([2, 3]);
+        expect(session.names).not.toContain('Result');
+    } finally { session.dispose(); }
+});
+
 it('reports an axis change before Enter and withdraws it after correction', async () => {
     const session = createReplSession();
     try {

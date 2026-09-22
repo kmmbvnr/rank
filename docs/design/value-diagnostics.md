@@ -35,6 +35,18 @@ finite one-dimensional windows, scalar/whole-axis addressing and rank bounds.
 Assignments and return branches in function bodies can be analyzed at a call
 site; recursive and unsupported control flow remains unknown.
 
+Call-site facts survive functions with plain local assignments, arithmetic,
+array literals and calls to other supported functions. This lets the checker
+report incompatible variable arguments and infer result types and ranks through
+helper chains. Messages identify the called function. Unknown argument facts do
+not produce an error, and tests do not restrict a function to the types in its
+examples.
+
+This preservation check rejects recursive calls, dynamic function arguments,
+compound assignments and unsupported expressions, including table writes and
+I/O. It is a conservative syntax check for diagnostics, not a public purity
+annotation or permission for the compiler to remove guards.
+
 When preparing a file-backed CLI notebook, the host reads the adjacent
 `<name>_test.ra` if it exists. Direct calls and assigned call results compared
 with `equal` supply example argument facts and expected result facts. Aliased
