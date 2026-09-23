@@ -118,6 +118,16 @@ test('loop rank diagnostics appear before executing the pasted draft', async t =
     assert.doesNotMatch(frames[1].text, /Runtime:/);
 });
 
+test('scalar diagnostics survive a known array write in an unexecuted draft', async t => {
+    const frames = await drive(t, [
+        '\x1b[200~fun change X\n X 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"\x1b[201~',
+    ], 80, 28);
+    assert.match(frames[0].text, /TypeError/);
+    assert.match(frames[0].text, /operator \+ does not/);
+    assert.match(frames[0].text, /integer and text/);
+    assert.doesNotMatch(frames[0].text, /Runtime:/);
+});
+
 test('excess indices are diagnosed before Enter and an edited error disappears before Ctrl-R', async t => {
     const frames = await drive(t, ['A = array 2 2 2 2 shape 2 2' + ENTER,
         'A 0 0' + ENTER, 'A 0 0' + ENTER, 'A 0 0 0 0 0', ENTER,

@@ -5,6 +5,20 @@ import { notebookValueDiagnostics } from '../src/value-diagnostics.js';
 import { notebookFrame } from '../src/screen.js';
 import { Notebook } from '../src/notebook.js';
 
+it('retains scalar diagnostics after a known write without executing the draft', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('fun change X\n X 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"');
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        expect(text()).toContain('does not accept integer and text');
+        expect(session.diagnosticFacts.some(([name]) => name === 'A' || name === 'Count')).toBe(false);
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace('fun change X\n X external\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"');
+        expect(text()).not.toContain('does not accept');
+    } finally { session.dispose(); }
+});
+
 it('invalidates cached hints when a later local test changes', () => {
     const session = createReplSession();
     try {

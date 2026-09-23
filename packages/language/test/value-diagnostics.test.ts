@@ -179,6 +179,23 @@ it('does not guess results for recursion and joins all covered return paths', ()
     expect(messages('fun choose X\n if X\n  return 1\n end\nend\nA = Flag choose\nA = true')).toEqual([]);
 });
 
+it('preserves unrelated scalar facts across known parameter and captured writes', () => {
+    for (const target of ['X', 'Shared']) {
+        expect(messages(`fun change X\n ${target} 0 = 1\n return 0\nend\nShared = array 1 2\nCount = 3\nShared change\nCount + "bad"`))
+            .toEqual(['operator + does not accept integer and text']);
+    }
+    expect(messages('fun write X\n X 0 = 1\n return 0\nend\nfun helper X\n X write\n return 0\nend\nA = array 1 2\nCount = 3\nA helper\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('discards possible reference aliases and falls back for unknown effects', () => {
+    const prefix = 'fun change X\n X 0 = 1\n return 0\nend\nA = array true false\nAlias = A\nCount = 3\n';
+    expect(messages(prefix + 'A change\nAlias + 1')).toEqual([]);
+    expect(messages(prefix + 'A external\nCount + "bad"')).toEqual([]);
+    expect(messages(prefix + 'Unknown change\nCount + "bad"')).toEqual([]);
+    expect(messages('fun change X\n Alias = X\n Alias 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"')).toEqual([]);
+});
+
 it('joins function result dimensions without freezing elastic lengths', () => {
     expect(messages('fun choose X\n if X\n  return array shape 2 3 fill 0\n else\n  return array shape 4 3 fill 0\n end\nend\nA = Flag choose\nA # # #'))
         .toEqual(['3 selectors exceed array rank 2']);

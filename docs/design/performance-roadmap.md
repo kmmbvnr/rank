@@ -53,6 +53,13 @@ costs. A fast isolated kernel is insufficient if full demo execution regresses.
 
 ## Broader alias and effect analysis
 
+The [diagnostics and optimization plan](analysis-and-optimization-plan.md)
+now gives this work a staged consumer: first more precise REPL facts under
+copy-on-write, then broader borrowing and retained compiler proofs. It does not
+authorize general buffer reuse without a measured workload and a no-observer
+proof. The older offline result below remains a limit on the reuse motivation,
+not a reason to discard useful diagnostic analysis.
+
 The offline prototype found no unaffected fresh-array candidate among its
 51 array-syntax bindings in 249 parsed functions. Keep it offline until a
 specific transformation benefits from better type/effect information.

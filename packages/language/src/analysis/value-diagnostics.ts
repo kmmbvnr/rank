@@ -2,7 +2,6 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral,
-    isNumberLiteral, isStringLiteral, isLabelLiteral, isTextBlockExpression,
     isAssignmentStatement, isBinaryExpression, isExpressionStatement, isStatement, isExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement,
     type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
@@ -10,6 +9,7 @@ import {
 import { compoundType } from './types.js';
 import { flattenApplication } from '../expressions.js';
 import { findOperation } from '../operations.js';
+import { functionEffects } from './function-effects.js';
 import { expressionFacts, incompatibleShapes, isAtom, joinValueFacts, UNKNOWN_VALUE, type ValueFacts, type FactLookup } from './value-facts.js';
 
 export interface ValueDiagnostic {
@@ -194,65 +194,43 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
         const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment']);
-        const checking = new Set<string>();
-        const checked = new Map<string, boolean>();
-        const readOnly = (name: string): boolean => {
-            if (checked.has(name)) return checked.get(name)!;
-            const definition = functions.get(name);
-            if (!definition || env.get(name) !== functionBindings.get(name)
-                || checking.has(name)) return false;
-            const contents = [...AstUtils.streamAllContents(definition)];
-            if (!contents.some(isReturnStatement)) return false;
-            const locals = new Set([...definition.parameters,
-                ...contents.filter(isAssignmentStatement).map(node => node.name)]);
-            const safeExpression = (value: Expression): boolean => {
-                if (isNameExpression(value)) return locals.has(value.name)
-                    || /^[A-Z]/.test(value.name) && !env.get(value.name)?.types.includes('function');
-                if (isApplicationExpression(value)) {
-                    const parts = flattenApplication(value);
-                    const target = parts.at(-1)!;
-                    return isNameExpression(target) && !locals.has(target.name) && readOnly(target.name)
-                        && parts.slice(0, -1).every(safeExpression);
-                }
-                if (isNumberLiteral(value) || isStringLiteral(value) || isBooleanLiteral(value)
-                    || isLabelLiteral(value) || isTextBlockExpression(value)) return true;
-                if (isParenthesizedExpression(value)) return safeExpression(value.value);
-                if (isUnaryExpression(value)) return safeExpression(value.operand);
-                if (isBinaryExpression(value)) return safeExpression(value.left) && safeExpression(value.right)
-                    && (!value.step || safeExpression(value.step));
-                if (isArrayExpression(value)) return [...value.items, ...value.dimensions, ...value.rows.flatMap(row => row.items)]
-                    .every(item => safeExpression(item.value)) && (!value.fill || safeExpression(value.fill));
-                // In particular, table writes, stdin and lazy materialization
-                // must not be classified as safe just because their children are.
-                return false;
-            };
-            const safeStatement = (statement: Statement): boolean => {
-                // Compound assignment can resolve to a captured binding.
-                if (isAssignmentStatement(statement)) return statement.operator === '=' && safeExpression(statement.value);
-                if (isExpressionStatement(statement)) return safeExpression(statement.value);
-                if (isReturnStatement(statement)) return !statement.value || safeExpression(statement.value);
-                if (isIfStatement(statement)) return safeExpression(statement.condition)
-                    && statement.thenStatements.every(safeStatement)
-                    && statement.elifClauses.every(clause => safeExpression(clause.condition) && clause.statements.every(safeStatement))
-                    && statement.elseStatements.every(safeStatement);
-                return false;
-            };
-            checking.add(name);
-            try {
-                const result = definition.statements.every(safeStatement);
-                checked.set(name, result);
-                return result;
-            }
-            finally { checking.delete(name); }
-        };
+        const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
+            name => env.get(name)?.types.includes('function') ?? false);
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
-        if (!nodes.some(node => isNameExpression(node) && (
-            env.get(node.name)?.types.includes('function') && !readOnly(node.name)
-            || /^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)
-                && !findOperation(node.name)))) return;
+        let unknown = false;
+        let mutation = false;
+        for (const node of nodes) {
+            if (!isNameExpression(node)) continue;
+            if (env.get(node.name)?.types.includes('function')) {
+                const result = effects(node.name);
+                unknown ||= result.unknown;
+                mutation ||= result.parameters.size > 0 || result.captures.size > 0;
+                // Other indexed structures can invoke user callbacks on writes.
+                const array = (fact: ValueFacts | undefined) => !!fact?.types.length
+                    && fact.types.every(type => type === 'array');
+                for (const capture of result.captures) unknown ||= !array(env.get(capture));
+                if (result.parameters.size) {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    if (parts.at(-1) !== node || parts.length - 1 !== functions.get(node.name)?.parameters.length) unknown = true;
+                    else for (const index of result.parameters) {
+                        unknown ||= !array(expressionFacts(parts[index], name => env.get(name)));
+                    }
+                }
+            } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)
+                && !findOperation(node.name)) unknown = true;
+        }
+        if (!unknown && !mutation) return;
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
-        for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+        // Known indexed writes cannot rebind unrelated scalar names. Reference
+        // values may alias, including through REPL snapshots or nested objects.
+        const immutable = new Set(['integer', 'real', 'boolean', 'text', 'symbol']);
+        for (const [name, fact] of env) if (!fact.types.includes('function')
+            && (unknown || !fact.types.length || !fact.types.every(type => immutable.has(type)))) {
+            env.set(name, invalidate(fact));
+        }
     }
 
     function inspect(expression: Expression, env: Map<string, ValueFacts>): ValueFacts {

@@ -3,6 +3,10 @@
 This page describes non-executing diagnostics for the REPL and editor.
 The checker does not change Rank's runtime rules.
 
+The proposed [diagnostics and optimization plan](analysis-and-optimization-plan.md)
+sets out the delivery order, value-semantics checks and proof gates for runtime
+use. It distinguishes the current implementation below from future work.
+
 ## Contract
 
 - Report proven incompatible assignments and operations before execution.
@@ -42,10 +46,24 @@ helper chains. Messages identify the called function. Unknown argument facts do
 not produce an error, and tests do not restrict a function to the types in its
 examples.
 
-This preservation check rejects recursive calls, dynamic function arguments,
-compound assignments and unsupported expressions, including table writes and
-I/O. It is a conservative syntax check for diagnostics, not a public purity
-annotation or permission for the compiler to remove guards.
+`analysis/function-effects.ts` summarizes possible indexed writes to parameters
+and captured objects. Calls to supported helpers map written parameters back to
+the caller's parameters. Conditional effects include all branches. The pass
+uses current function binding identities and a budget of 100 definitions.
+
+Known indexed writes to array targets preserve unrelated immutable scalar facts.
+Unknown target types and other indexed structures retain full invalidation,
+since their writes may invoke callbacks. Reference
+values still lose their facts because aliases can cross arguments, containers
+and REPL snapshots. A parameter marked read-only does not prove that its object
+cannot be changed through another argument. This pass does not yet track alias
+provenance or preserve separate, unaliased arrays across a write.
+
+Recursive calls, dynamic function arguments, compound assignments, writes
+through local aliases or rebound parameters, loops, functions without returns,
+and unsupported expressions including I/O remain unknown. Unknown effects
+keep the previous full invalidation behavior. The summary is for diagnostics,
+not a public purity annotation or permission for the compiler to remove guards.
 
 Conditional analysis joins bindings from each reachable branch, including new
 locals assigned in every branch. A shared array rank survives different axis
