@@ -16,7 +16,7 @@ export interface FunctionEffects {
     readonly returns: readonly ReturnOrigin[];
 }
 
-/** A direct return's relation to the inputs. Unknown includes possible escape. */
+/** A return path's relation to inputs. Unknown includes possible escape. */
 export type ReturnOrigin = { readonly kind: 'fresh' | 'unknown' }
     | { readonly kind: 'parameter'; readonly index: number }
     | { readonly kind: 'capture'; readonly name: string };
@@ -40,32 +40,74 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const assignments = new Set([...AstUtils.streamAllContents(definition)]
             .filter(isAssignmentStatement).map(node => node.name));
         const locals = new Set([...definition.parameters, ...assignments]);
-        const origin = (value: Expression | undefined): ReturnOrigin => {
+        const origin = (value: Expression | undefined, aliases: ReadonlyMap<string, ReturnOrigin>): readonly ReturnOrigin[] => {
             while (value && isParenthesizedExpression(value)) value = value.value;
             if (value && isNameExpression(value)) {
-                if (assignments.has(value.name)) return { kind: 'unknown' };
+                const alias = aliases.get(value.name);
+                if (alias) return [alias];
                 const index = definition.parameters.indexOf(value.name);
-                if (index >= 0) return { kind: 'parameter', index };
-                return locals.has(value.name) || isFunction(value.name) ? { kind: 'unknown' }
-                    : { kind: 'capture', name: value.name };
+                if (index >= 0) return [{ kind: 'parameter', index }];
+                return [locals.has(value.name) || isFunction(value.name) ? { kind: 'unknown' }
+                    : { kind: 'capture', name: value.name }];
+            }
+            if (value && isApplicationExpression(value)) {
+                const parts = flattenApplication(value);
+                const target = parts.at(-1)!;
+                if (isNameExpression(target) && !locals.has(target.name)
+                    && resolve(target.name)?.parameters.length === parts.length - 1) {
+                    const helper = analyze(target.name);
+                    if (!helper.unknown) return helper.returns.flatMap(item => {
+                        if (item.kind === 'parameter') return origin(parts[item.index], aliases);
+                        // A capture belongs to the helper's lexical scope,
+                        // which a name in this caller cannot identify safely.
+                        if (item.kind === 'capture') return [{ kind: 'unknown' }];
+                        return [item];
+                    });
+                }
             }
             if (value && !definition.memo && ![value, ...AstUtils.streamAllContents(value)]
                 .some(node => isNameExpression(node) || isApplicationExpression(node)
                     || node.$type === 'StdinExpression' || node.$type === 'MaterializeExpression')
                 && expression(value)) {
-                return { kind: 'fresh' };
+                return [{ kind: 'fresh' }];
             }
-            return { kind: 'unknown' };
+            return [{ kind: 'unknown' }];
         };
         const returnOrigins = (): readonly ReturnOrigin[] => {
+            const same = (a: ReturnOrigin, b: ReturnOrigin) => JSON.stringify(a) === JSON.stringify(b);
+            const merge = (paths: readonly Map<string, ReturnOrigin>[]): Map<string, ReturnOrigin> => {
+                const merged = new Map<string, ReturnOrigin>();
+                for (const name of new Set(paths.flatMap(path => [...path.keys()]))) {
+                    const values = paths.map(path => path.get(name));
+                    merged.set(name, values.every(value => value && same(value, values[0]!))
+                        ? values[0]! : { kind: 'unknown' });
+                }
+                return merged;
+            };
+            const returned: ReturnOrigin[] = [];
+            const walk = (items: readonly Statement[], aliases: Map<string, ReturnOrigin>): Map<string, ReturnOrigin> | undefined => {
+                for (const item of items) {
+                    if (isAssignmentStatement(item)) {
+                        const values = origin(item.value, aliases);
+                        aliases.set(item.name, values.length === 1 ? values[0] : { kind: 'unknown' });
+                    } else if (isReturnStatement(item)) {
+                        returned.push(...origin(item.value, aliases));
+                        return undefined;
+                    } else if (isIfStatement(item)) {
+                        const paths = [item.thenStatements, ...item.elifClauses.map(clause => clause.statements),
+                            item.elseStatements];
+                        const survivors = paths.map(path => walk(path, new Map(aliases)))
+                            .filter((path): path is Map<string, ReturnOrigin> => path !== undefined);
+                        if (!survivors.length) return undefined;
+                        aliases = merge(survivors);
+                    }
+                }
+                return aliases;
+            };
+            if (walk(definition.statements, new Map())) returned.push({ kind: 'unknown' });
             const origins = new Map<string, ReturnOrigin>();
-            for (const node of AstUtils.streamAllContents(definition)) {
-                if (!isReturnStatement(node)) continue;
-                const item = origin(node.value);
+            for (const item of returned) {
                 origins.set(JSON.stringify(item), item);
-            }
-            if (!isReturnStatement(definition.statements.at(-1))) {
-                origins.set('unknown', { kind: 'unknown' });
             }
             return [...origins.values()];
         };

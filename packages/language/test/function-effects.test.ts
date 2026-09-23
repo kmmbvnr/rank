@@ -27,7 +27,7 @@ it('maps helper writes to the enclosing parameters', () => {
             returns: [{ kind: 'parameter', index: 0 }] });
 });
 
-it('records direct result origins without guessing through locals or expressions', () => {
+it('records direct result origins and follows straight-line local names', () => {
     expect(analyze('fun helper X\n return X\nend').returns)
         .toEqual([{ kind: 'parameter', index: 0 }]);
     expect(analyze('fun helper\n return Shared\nend').returns)
@@ -35,13 +35,32 @@ it('records direct result origins without guessing through locals or expressions
     expect(analyze('fun helper X\n return array 1 2\nend').returns)
         .toEqual([{ kind: 'fresh' }]);
     expect(analyze('fun helper X\n Y = X\n return Y\nend').returns)
-        .toEqual([{ kind: 'unknown' }]);
+        .toEqual([{ kind: 'parameter', index: 0 }]);
     expect(analyze('fun helper X\n X = array 1 2\n return X\nend').returns)
-        .toEqual([{ kind: 'unknown' }]);
+        .toEqual([{ kind: 'fresh' }]);
+    expect(analyze('fun helper X\n Y = X\n Y = array 1 2\n return Y\nend').returns)
+        .toEqual([{ kind: 'fresh' }]);
     expect(analyze('fun helper X\n if Flag\n  return X\n end\n return array 1 2\nend').returns)
+        .toEqual([{ kind: 'parameter', index: 0 }, { kind: 'fresh' }]);
+    expect(analyze('fun helper X\n Y = array 1 2\n if Flag\n  return X\n end\n return Y\nend').returns)
         .toEqual([{ kind: 'parameter', index: 0 }, { kind: 'fresh' }]);
     expect(analyze('fun helper X\n if Flag\n  return X\n end\nend').returns)
         .toEqual([{ kind: 'parameter', index: 0 }, { kind: 'unknown' }]);
+    expect(analyze('fun helper X\n return X\n return array 1 2\nend').returns)
+        .toEqual([{ kind: 'parameter', index: 0 }]);
+});
+
+it('joins returned origins through branches and resolved helpers', () => {
+    expect(analyze('fun helper X Y\n if Flag\n  Result = X\n else\n  Result = Y\n end\n return Result\nend').returns)
+        .toEqual([{ kind: 'unknown' }]);
+    expect(analyze('fun helper X\n if Flag\n  Result = X\n else\n  Result = X\n end\n return Result\nend').returns)
+        .toEqual([{ kind: 'parameter', index: 0 }]);
+    expect(analyze('fun identity X\n return X\nend\nfun helper X\n Y = X identity\n return Y\nend').returns)
+        .toEqual([{ kind: 'parameter', index: 0 }]);
+    expect(analyze('fun choose X\n if Flag\n  return X\n end\n return array 1 2\nend\nfun helper Y\n return Y choose\nend').returns)
+        .toEqual([{ kind: 'parameter', index: 0 }, { kind: 'fresh' }]);
+    expect(analyze('fun source\n return Shared\nend\nfun helper\n return source\nend').returns)
+        .toEqual([{ kind: 'unknown' }]);
 });
 
 it('unions possible branch effects', () => {

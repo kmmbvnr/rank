@@ -50,9 +50,12 @@ examples.
 and captured objects. Calls to supported helpers map written parameters back to
 the caller's parameters. Conditional effects include all branches. The pass
 uses current function binding identities and a budget of 100 definitions.
-It also records direct return origins: a parameter, captured name, input-free
-expression or unknown. Rebound names and possible fallthrough remain unknown.
-This return summary is not yet consumed by borrowing or the compiler.
+It also records return origins: a parameter, captured name, input-free
+expression or unknown. Straight-line local assignments and supported helper
+returns can carry these origins; branch paths join conservatively. A helper's
+capture cannot be identified by the caller's bare name, so it remains unknown.
+Possible fallthrough also remains unknown. This return summary is not yet
+consumed by borrowing or the compiler.
 
 Known integer or whole-axis replacement of array cells now preserves facts for
 other array bindings, following array value semantics and copy-on-write. Direct
