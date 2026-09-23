@@ -222,12 +222,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (!survivors.length) return { values, fallsThrough: false };
                 mergeEnvironments(env, survivors);
             } else if (isForStatement(statement)) {
-                // A return/break/continue inside a loop needs a separate exit analysis.
-                if ([...AstUtils.streamAllContents(statement)].some(node =>
-                    isReturnStatement(node) || node.$type === 'BreakStatement' || node.$type === 'ContinueStatement')) {
+                const contents = [...AstUtils.streamAllContents(statement)];
+                if (contents.some(node => node.$type === 'BreakStatement' || node.$type === 'ContinueStatement')) {
                     return { values: [UNKNOWN_VALUE], fallsThrough: true };
                 }
-                loop(statement, env);
+                if (contents.some(isReturnStatement)) values.push(...loopReturnPaths(statement, env));
+                else loop(statement, env);
             } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
                 || isExpressionStatement(statement) || isFunctionStatement(statement)) {
                 if (!statements([statement], env)) return { values, fallsThrough: false };
@@ -288,6 +288,47 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
         }
         mergeEnvironments(env, [env, local]);
+    }
+
+    function loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): ValueFacts[] {
+        const condition = statement.condition;
+        if (condition && isBooleanLiteral(condition) && !condition.value) return [];
+        const membership = condition && isBinaryExpression(condition) && condition.operator === 'in'
+            && isNameExpression(condition.left) ? condition : undefined;
+        const source = membership ? membership.right : condition;
+        if (source) invalidateCalls(source, env);
+        const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
+        const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
+        if (count === 0) return [];
+        const local = new Map(env);
+        for (const node of AstUtils.streamAllContents(statement)) {
+            if (!isAssignmentStatement(node)) continue;
+            const previous = local.get(node.name);
+            const types = previous?.acceptedTypes ?? previous?.types ?? [];
+            const rank = contractRank(previous);
+            local.set(node.name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+        }
+        if (membership && isNameExpression(membership.left)) {
+            const types = collection.elements ?? [];
+            local.set(membership.left.name, { types, acceptedTypes: types,
+                ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                    ? { rank: 0, shape: [] } : {}) });
+        }
+        const start = diagnostics.length;
+        const returned = returnPaths(statement.statements, local);
+        if (count == null || count <= 0) diagnostics.length = start;
+        if (returned.fallsThrough) {
+            for (const node of AstUtils.streamAllContents(statement)) {
+                if (!isAssignmentStatement(node)) continue;
+                const fact = local.get(node.name);
+                const rank = contractRank(fact);
+                local.set(node.name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
+                    acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+            }
+            mergeEnvironments(env, [env, local]);
+        }
+        return returned.values;
     }
 
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {

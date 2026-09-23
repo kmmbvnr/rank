@@ -114,7 +114,7 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
         .toEqual(['A has rank 1 and cannot receive rank 2']);
     expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual([]);
     expect(messages('fun choose X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 choose\nA = true'))
-        .toEqual([]);
+        .toEqual(['A has type integer or text and cannot receive boolean']);
 });
 
 it('checks reductions against the actual runtime rule, allowing full rank', () => {
@@ -197,6 +197,24 @@ it('infers the result of the unchanged CSES maximum-subarray loop', () => {
         .toEqual(['operator + does not accept integer and text']);
 });
 
+it('infers returns from loops in unchanged reverse-integer and bill-count demos', () => {
+    for (const [path, moduleName, type, rank] of [
+        ['leetcode/007_revint', '007_revint', 'integer', 0],
+        ['atcoder/beginners/010_otoshidama', '010_otoshidama', 'array', 1],
+    ] as const) {
+        const source = readFileSync(new URL(`../../../demos/${path}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/${path}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        expect(program.parserErrors).toEqual([]);
+        expect(testProgram.parserErrors).toEqual([]);
+        const examples = functionTestExamples(testProgram.value, moduleName);
+        const results = analyzeValues(program.value, new Map(), new Map(), examples).functionResults;
+        expect(results.length).toBeGreaterThan(0);
+        expect(results.every(result => result.types.join() === type && result.rank === rank)).toBe(true);
+    }
+});
+
 it('does not infer scalar results for array-valued demo test examples', () => {
     const conflicts: string[] = [];
     const paths = [
@@ -276,8 +294,26 @@ it('retains unrelated facts after the unchanged reverse-integer loop with an ear
     const definition = source.slice(source.indexOf('fun reverse'));
     expect(messages(`${definition}\nCount = 3\n123 reverse\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nResult = 123 reverse\nResult + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
     const uncertain = definition.replace('Result = Result * 10 + Digit', 'Unknown external');
     expect(messages(`${uncertain}\nCount = 3\n123 reverse\nCount + "bad"`)).toEqual([]);
+});
+
+it('checks the result rank of the unchanged bill-count loop before execution', () => {
+    const source = readFileSync(new URL('../../../demos/atcoder/beginners/010_otoshidama.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun otoshidama'));
+    expect(messages(`${definition}\nResult = 9 45000 otoshidama\nResult # #`))
+        .toEqual(['2 selectors exceed array rank 1']);
+});
+
+it('keeps unsupported loop exits unknown when inferring returned values', () => {
+    for (const exit of ['break', 'continue']) {
+        expect(messages(`fun choose N\n for I in 0 until N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 choose\nA = true`))
+            .toEqual([]);
+    }
+    expect(messages('fun choose\n for I in 0 until 0\n  return "text"\n end\n return 1\nend\nA = choose\nA = true'))
+        .toEqual(['A has type integer and cannot receive boolean']);
 });
 
 it('retains unrelated facts after the unchanged marble-count text loop', () => {
