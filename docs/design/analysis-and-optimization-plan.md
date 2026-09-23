@@ -7,6 +7,11 @@ The first delivery covers direct array replacements with proven integer or
 whole-axis selectors and supported function writes under array value semantics.
 Other provenance cases in stage 1 remain open.
 
+Stage 2 has started with direct return-origin summaries. They distinguish an
+input-free result from a directly returned parameter or capture. Local aliases,
+indirect returns and paths that may fall through remain unknown. Runtime
+borrowing does not consume these summaries yet.
+
 ## Goal and rules
 
 Give the REPL useful type and shape errors before execution. Reuse the analysis

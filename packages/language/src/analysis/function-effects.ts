@@ -13,14 +13,21 @@ export interface FunctionEffects {
     readonly unknown: boolean;
     readonly parameters: ReadonlySet<number>;
     readonly captures: ReadonlySet<string>;
+    readonly returns: readonly ReturnOrigin[];
 }
+
+/** A direct return's relation to the inputs. Unknown includes possible escape. */
+export type ReturnOrigin = { readonly kind: 'fresh' | 'unknown' }
+    | { readonly kind: 'parameter'; readonly index: number }
+    | { readonly kind: 'capture'; readonly name: string };
 
 /** Resolve only definitions whose binding identity is still known at the call site. */
 export function functionEffects(resolve: (name: string) => FunctionStatement | undefined,
     isFunction: (name: string) => boolean): (name: string) => FunctionEffects {
     const cache = new Map<string, FunctionEffects>();
     const active = new Set<string>();
-    const unknown: FunctionEffects = { unknown: true, parameters: new Set(), captures: new Set() };
+    const unknown: FunctionEffects = { unknown: true, parameters: new Set(), captures: new Set(),
+        returns: [{ kind: 'unknown' }] };
     let budget = 100;
     function analyze(name: string): FunctionEffects {
         const cached = cache.get(name);
@@ -33,6 +40,35 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const assignments = new Set([...AstUtils.streamAllContents(definition)]
             .filter(isAssignmentStatement).map(node => node.name));
         const locals = new Set([...definition.parameters, ...assignments]);
+        const origin = (value: Expression | undefined): ReturnOrigin => {
+            while (value && isParenthesizedExpression(value)) value = value.value;
+            if (value && isNameExpression(value)) {
+                if (assignments.has(value.name)) return { kind: 'unknown' };
+                const index = definition.parameters.indexOf(value.name);
+                if (index >= 0) return { kind: 'parameter', index };
+                return locals.has(value.name) || isFunction(value.name) ? { kind: 'unknown' }
+                    : { kind: 'capture', name: value.name };
+            }
+            if (value && !definition.memo && ![value, ...AstUtils.streamAllContents(value)]
+                .some(node => isNameExpression(node) || isApplicationExpression(node)
+                    || node.$type === 'StdinExpression' || node.$type === 'MaterializeExpression')
+                && expression(value)) {
+                return { kind: 'fresh' };
+            }
+            return { kind: 'unknown' };
+        };
+        const returnOrigins = (): readonly ReturnOrigin[] => {
+            const origins = new Map<string, ReturnOrigin>();
+            for (const node of AstUtils.streamAllContents(definition)) {
+                if (!isReturnStatement(node)) continue;
+                const item = origin(node.value);
+                origins.set(JSON.stringify(item), item);
+            }
+            if (!isReturnStatement(definition.statements.at(-1))) {
+                origins.set('unknown', { kind: 'unknown' });
+            }
+            return [...origins.values()];
+        };
         const write = (target: string): boolean => {
             // Rebound parameters and local aliases need provenance analysis.
             if (assignments.has(target) || target.includes('.')) return false;
@@ -91,7 +127,11 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         };
         active.add(name);
         try {
-            const result = definition.statements.every(statement) ? { unknown: false, parameters, captures } : unknown;
+            let origins: readonly ReturnOrigin[] | undefined;
+            const result = definition.statements.every(statement) ? {
+                unknown: false, parameters, captures,
+                get returns() { return origins ??= returnOrigins(); },
+            } : unknown;
             cache.set(name, result);
             return result;
         } finally { active.delete(name); }
