@@ -27,6 +27,13 @@ describe('value semantics for arrays', () => {
         expect(run(`${bump}C = A bump\nC`)).toBe('99 2 3');
     });
 
+    it('keeps top-level function assignments local and allows nested captures', () => {
+        const local = `${SEQ}A = array 1 2\nfun change\n A = array 1 2 3\n return 0\nend\nchange\n`;
+        expect(run(`${local}A`)).toBe('1 2');
+        const captured = `${SEQ}fun outer\n A = array 1 2\n B = A\n fun change\n  A = array 1 2 3\n  return 0\n end\n change\n return A\nend\n`;
+        expect(run(`${captured}outer`)).toBe('1 2 3');
+    });
+
     it('separates each argument from the others', () => {
         expect(run(`${SEQ}fun both X Y\n  X 0 = 7\n  return Y 0\nend\n`
             + 'A = array 1 2\nR = A A both\nA')).toBe('1 2');

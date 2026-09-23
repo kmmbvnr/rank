@@ -1,4 +1,4 @@
-import { EmptyFileSystem } from 'langium';
+import { AstUtils, EmptyFileSystem } from 'langium';
 import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import { isFunctionStatement, type Program } from '../src/generated/ast.js';
@@ -9,7 +9,8 @@ beforeAll(() => { services = createRankServices(EmptyFileSystem); });
 function analyze(source: string, name = 'helper') {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
-    const definitions = new Map(parsed.value.statements.filter(isFunctionStatement).map(node => [node.name, node]));
+    const definitions = new Map([...AstUtils.streamAllContents(parsed.value)]
+        .filter(isFunctionStatement).map(node => [node.name, node]));
     return functionEffects(name => definitions.get(name), name => definitions.has(name))(name);
 }
 
@@ -32,10 +33,12 @@ it('unions possible branch effects', () => {
 
 it('keeps aliases, recursion, dynamic calls, I/O and compound assignments unknown', () => {
     for (const body of ['Y = X\n Y 0 = 1', 'X = Other\n X 0 = 1', 'X helper',
-        'X external', 'Y = stdin .integer', 'X += 1', 'Module.X = 1', 'for\n break\nend']) {
+        'X external', 'Y = stdin .integer', 'X += 1', 'X 0 += 1', 'X .field = 1',
+        'Module.X = 1', 'for\n break\nend']) {
         expect(analyze(`fun helper X\n ${body}\n return 0\nend`).unknown, body).toBe(true);
     }
     expect(analyze('fun helper X callback\n X callback\n return 0\nend').unknown).toBe(true);
+    expect(analyze('fun outer\n A = array 1 2\n fun helper\n  A = array 3 4\n  return 0\n end\n return helper\nend').unknown).toBe(true);
 });
 
 it('does not confuse a helper capture with an equally named caller local', () => {

@@ -51,13 +51,19 @@ and captured objects. Calls to supported helpers map written parameters back to
 the caller's parameters. Conditional effects include all branches. The pass
 uses current function binding identities and a budget of 100 definitions.
 
-Known indexed writes to array targets preserve unrelated immutable scalar facts.
-Unknown target types and other indexed structures retain full invalidation,
-since their writes may invoke callbacks. Reference
-values still lose their facts because aliases can cross arguments, containers
-and REPL snapshots. A parameter marked read-only does not prove that its object
-cannot be changed through another argument. This pass does not yet track alias
-provenance or preserve separate, unaliased arrays across a write.
+Known literal-integer or whole-axis replacement of array cells now preserves
+facts for other array bindings, following array value semantics and copy-on-write.
+A write through a parameter changes that parameter's value, not its caller's array.
+A write to a captured array binding discards its element facts but keeps its
+rank and shape. Direct writes follow the same rule. Plain assignment inside a
+top-level function creates a local binding. Plain assignment inside a nested
+function may find an enclosing frame and is treated as unknown. Other indexed
+structures retain full invalidation because their writes may invoke callbacks.
+
+Reference-bearing structures and unknown selectors still use conservative
+invalidation. A parameter marked read-only does not prove that its value cannot
+escape through another path. This pass does not establish ownership or remove
+runtime checks.
 
 Recursive calls, dynamic function arguments, compound assignments, writes
 through local aliases or rebound parameters, loops, functions without returns,

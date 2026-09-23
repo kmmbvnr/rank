@@ -2,14 +2,14 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral,
-    isAssignmentStatement, isBinaryExpression, isExpressionStatement, isStatement, isExpression,
+    isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isStatement, isExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement,
     type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
 } from '../generated/ast.js';
 import { compoundType } from './types.js';
 import { flattenApplication } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { functionEffects } from './function-effects.js';
+import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { expressionFacts, incompatibleShapes, isAtom, joinValueFacts, UNKNOWN_VALUE, type ValueFacts, type FactLookup } from './value-facts.js';
 
 export interface ValueDiagnostic {
@@ -130,7 +130,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     return { values: [UNKNOWN_VALUE], fallsThrough: true };
                 }
                 loop(statement, env);
-            } else if (isAssignmentStatement(statement) || isExpressionStatement(statement)) {
+            } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
+                || isExpressionStatement(statement)) {
                 statements([statement], env);
             } else {
                 // Unknown control flow may return, yield, throw or alter captured state.
@@ -198,17 +199,19 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             name => env.get(name)?.types.includes('function') ?? false);
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
         let unknown = false;
-        let mutation = false;
+        const written = new Set<string>();
         for (const node of nodes) {
             if (!isNameExpression(node)) continue;
             if (env.get(node.name)?.types.includes('function')) {
                 const result = effects(node.name);
                 unknown ||= result.unknown;
-                mutation ||= result.parameters.size > 0 || result.captures.size > 0;
                 // Other indexed structures can invoke user callbacks on writes.
                 const array = (fact: ValueFacts | undefined) => !!fact?.types.length
                     && fact.types.every(type => type === 'array');
-                for (const capture of result.captures) unknown ||= !array(env.get(capture));
+                for (const capture of result.captures) {
+                    unknown ||= !array(env.get(capture));
+                    written.add(capture);
+                }
                 if (result.parameters.size) {
                     let site: AstNode = node;
                     while (isApplicationExpression(site.$container)) site = site.$container;
@@ -221,15 +224,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)
                 && !findOperation(node.name)) unknown = true;
         }
-        if (!unknown && !mutation) return;
+        if (!unknown && !written.size) return;
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
-        // Known indexed writes cannot rebind unrelated scalar names. Reference
-        // values may alias, including through REPL snapshots or nested objects.
-        const immutable = new Set(['integer', 'real', 'boolean', 'text', 'symbol']);
-        for (const [name, fact] of env) if (!fact.types.includes('function')
-            && (unknown || !fact.types.length || !fact.types.every(type => immutable.has(type)))) {
-            env.set(name, invalidate(fact));
+        if (unknown) {
+            for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+            return;
+        }
+        // Parameter arrays have value semantics. A write to one parameter
+        // cannot alter its caller's array, even if two arguments share storage.
+        for (const name of written) {
+            const fact = env.get(name);
+            if (fact) env.set(name, { ...fact, elements: undefined, integers: undefined });
         }
     }
 
@@ -343,6 +349,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
                 env.set(statement.name, { ...next, acceptedTypes: accepted ?? next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });
+            } else if (isArrayAssignmentStatement(statement)) {
+                for (const index of statement.indices) if (index.value) {
+                    invalidateCalls(index.value, env);
+                    inspect(index.value, env);
+                }
+                invalidateCalls(statement.value, env);
+                inspect(statement.value, env);
+                const fact = env.get(statement.name);
+                if (isPlainArrayWrite(statement) && fact?.types.length
+                    && fact.types.every(type => type === 'array')) {
+                    env.set(statement.name, { ...fact, elements: undefined, integers: undefined });
+                } else {
+                    for (const [name, value] of env) if (!value.types.includes('function')) env.set(name, invalidate(value));
+                }
             } else if (isExpressionStatement(statement)) {
                 invalidateCalls(statement.value, env);
                 inspect(statement.value, env);

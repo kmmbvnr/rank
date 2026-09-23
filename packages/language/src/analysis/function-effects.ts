@@ -4,7 +4,7 @@ import {
     isBinaryExpression, isBooleanLiteral, isExpressionStatement, isIfStatement, isLabelLiteral,
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement,
     isStringLiteral, isTextBlockExpression, isUnaryExpression,
-    type Expression, type FunctionStatement, type Statement,
+    type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 
@@ -76,8 +76,11 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             return false;
         };
         const statement = (item: Statement): boolean => {
-            if (isAssignmentStatement(item)) return item.operator === '=' && !item.name.includes('.') && expression(item.value);
-            if (isArrayAssignmentStatement(item)) return write(item.name) && expression(item.value)
+            // Runtime assignment searches enclosing frames before making a local.
+            if (isAssignmentStatement(item)) return item.operator === '=' && !item.name.includes('.')
+                && (definition.parameters.includes(item.name) || definition.$container.$type === 'Program')
+                && expression(item.value);
+            if (isArrayAssignmentStatement(item)) return isPlainArrayWrite(item) && write(item.name) && expression(item.value)
                 && item.indices.every(index => !index.value || expression(index.value));
             if (isExpressionStatement(item)) return expression(item.value);
             if (isReturnStatement(item)) return !item.value || expression(item.value);
@@ -94,4 +97,10 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         } finally { active.delete(name); }
     }
     return analyze;
+}
+
+/** Numeric/whole-axis replacement cannot invoke a table field or container callback. */
+export function isPlainArrayWrite(statement: ArrayAssignmentStatement): boolean {
+    return statement.operator === '=' && statement.indices.every(index => !index.spread
+        && (index.all || isNumberLiteral(index.value) && typeof index.value.value === 'bigint'));
 }

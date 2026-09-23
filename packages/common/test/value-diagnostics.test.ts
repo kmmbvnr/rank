@@ -19,6 +19,20 @@ it('retains scalar diagnostics after a known write without executing the draft',
     } finally { session.dispose(); }
 });
 
+it('retains shape diagnostics for a separate array after a draft write', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const prefix = 'fun change X\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
+        repl.notebook.replace(prefix + 'B change\nA + C');
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        expect(text()).toContain('shape mismatch: [2] and [3]');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace(prefix + 'B change\nA + (array 3 4)');
+        expect(text()).not.toContain('shape mismatch');
+    } finally { session.dispose(); }
+});
+
 it('invalidates cached hints when a later local test changes', () => {
     const session = createReplSession();
     try {

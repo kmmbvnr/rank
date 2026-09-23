@@ -188,12 +188,40 @@ it('preserves unrelated scalar facts across known parameter and captured writes'
         .toEqual(['operator + does not accept integer and text']);
 });
 
-it('discards possible reference aliases and falls back for unknown effects', () => {
+it('follows copy-on-write when a function writes a parameter array', () => {
+    const code = 'fun change X\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
+    expect(messages(code + 'Result = B change\nA + C')).toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages(code + 'Result = B change\nB + C')).toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages('A = array 1 2\nB = A\nB 0 = 9\nA + (array 1 2 3)'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+});
+
+it('invalidates the written binding while retaining independent array facts', () => {
+    const code = 'A = array 1 2\nB = A\nC = array 3 4 5\n';
+    expect(messages(code + 'A 0 = "x"\nB + C'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages(code + 'fun change\n A 0 = "x"\n return 0\nend\nchange\nB + C'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages(code + 'fun change\n A 0 = "x"\n return 0\nend\nchange\nA + (array 1 2)'))
+        .toEqual([]);
+});
+
+it('distinguishes local assignment from a possible nested capture', () => {
+    expect(messages('A = array 1 2\nfun change\n A = array 1 2 3\n return 0\nend\nchange\nA + (array 1 2)'))
+        .toEqual([]);
+    expect(messages('A = array 1 2\nfun change\n A = array 1 2 3\n return 0\nend\nchange\nA + (array 1 2 3)'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages('fun outer\n A = array 1 2\n fun change\n  A = array 1 2 3\n  return 0\n end\n change\n return A\nend\nR = outer\nR + (array 1 2)'))
+        .toEqual([]);
+});
+
+it('falls back for unknown effects and reference-like writes', () => {
     const prefix = 'fun change X\n X 0 = 1\n return 0\nend\nA = array true false\nAlias = A\nCount = 3\n';
-    expect(messages(prefix + 'A change\nAlias + 1')).toEqual([]);
+    expect(messages(prefix + 'A change\nAlias + 1')).toEqual(['operator + does not accept boolean and integer']);
     expect(messages(prefix + 'A external\nCount + "bad"')).toEqual([]);
     expect(messages(prefix + 'Unknown change\nCount + "bad"')).toEqual([]);
     expect(messages('fun change X\n Alias = X\n Alias 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"')).toEqual([]);
+    expect(messages('A = array true false\nB = A\nA 0 += 1\nB + 1')).toEqual([]);
 });
 
 it('joins function result dimensions without freezing elastic lengths', () => {
