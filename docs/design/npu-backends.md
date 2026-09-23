@@ -93,6 +93,28 @@ custom build or a dedicated bridge before choosing this dependency.
 Phones also need an application host with a JavaScript engine and the native
 libraries for that OS. A desktop Bun addon does not supply that mobile host.
 
+## Future zero-copy tensor handoff
+
+A materialized numeric Rank tensor could hold a contiguous typed buffer plus
+its shape. If its element type and layout match a model input, an ONNX Runtime
+adapter could pass that buffer to `Tensor.fromPinnedBuffer` without first
+building another JS array. This is a reason to design [compact array
+storage](array-element-types.md) and the inference boundary together. It is
+not possible with today's ordinary Rank arrays, whose numeric cells live in
+JS arrays. [ONNX Runtime tensor factory](https://onnxruntime.ai/docs/api/js/interfaces/TensorFactory.html).
+
+The adapter must keep the buffer alive and prevent writes while inference uses
+it. A Rank write during that period would need to wait or take a copy. Lazy
+results, non-contiguous views and inputs requiring a different element type or
+layout still need materialization or conversion. Exact Rank integers cannot be
+silently narrowed to a fixed-width model input.
+
+This is a possible no-copy *handoff* at the Rank/ONNX boundary, not a promise
+that ONNX Runtime will avoid copies during execution or transfer to a GPU.
+Test buffer identity, ownership and full inference time with a specific Node
+binding and model before claiming an end-to-end zero-copy path. The choice of
+typed storage and the public Rank API remain open.
+
 ## Proposed first experiment
 
 Start on a Mac M5 with one reusable `matmul -> add bias -> sigmoid` graph.
