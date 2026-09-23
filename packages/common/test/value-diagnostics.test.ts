@@ -1,9 +1,23 @@
+import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { NotebookRepl } from '../src/repl.js';
 import { createReplSession } from '../src/repl-session.js';
 import { notebookValueDiagnostics } from '../src/value-diagnostics.js';
 import { notebookFrame } from '../src/screen.js';
 import { Notebook } from '../src/notebook.js';
+
+it('shows a proven mixed-yield error in an unexecuted REPL draft', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        repl.notebook.replace('fun stream X\n yield 1\n yield X\nend\nS = "x" stream');
+        expect(text()).toContain('stream yields incompatible types: integer and text');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace('fun stream X\n yield 1\n yield X\nend\nS = 2 stream');
+        expect(text()).not.toContain('yields incompatible types');
+    } finally { session.dispose(); }
+});
 
 it('retains scalar diagnostics after a known write without executing the draft', () => {
     const session = createReplSession();
@@ -33,6 +47,27 @@ it('retains draft diagnostics across a proven eager-array reader and withdraws t
     } finally { session.dispose(); }
 });
 
+it('shows the unchanged maximum-subarray reader result in a draft and retracts an unsupported effect proof', () => {
+    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun max_subarray'));
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        const draft = (array: string) => `${definition}\nA = ${array}\nCount = 3\n`
+            + 'Result = A max_subarray\nResult + "bad"\nCount + "bad"';
+        repl.notebook.replace(draft('array 1 2 3'));
+        expect(text()).toContain('operator + does not accept integer and text');
+        expect(text().match(/operator \+ does not accept integer and text/g)).toHaveLength(2);
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace(draft('array shape 3 fill 1'));
+        expect(text()).not.toContain('operator + does not accept integer and text');
+        repl.notebook.replace(`${definition}\nfun max X Y\n X external\n return X\nend\n`
+            + 'A = array 1 2 3\nCount = 3\nResult = A max_subarray\nCount + "bad"');
+        expect(text()).not.toContain('operator + does not accept integer and text');
+    } finally { session.dispose(); }
+});
+
 it('retains draft diagnostics across a helper that reads its own eager array', () => {
     const session = createReplSession();
     try {
@@ -44,6 +79,19 @@ it('retains draft diagnostics across a helper that reads its own eager array', (
         expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
         repl.notebook.replace(prefix.replace('Temp = array 1 2', 'Temp = Unknown') + 'helper\nCount + "bad"');
         expect(text()).not.toContain('does not accept');
+    } finally { session.dispose(); }
+});
+
+it('withdraws draft facts across I/O without reading a file', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        repl.notebook.replace('use io\nCount = 3\nCount + "bad"');
+        expect(text()).toContain('does not accept integer and text');
+        repl.notebook.replace('use io\nCount = 3\n"missing-file" read\nCount + "bad"');
+        expect(text()).not.toContain('does not accept');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
     } finally { session.dispose(); }
 });
 

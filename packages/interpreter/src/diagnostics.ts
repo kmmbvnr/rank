@@ -7,6 +7,7 @@ export class RuntimeDiagnostics {
     cellsComputed = 0;
     invalidations = 0;
     hoistedReaders = 0;
+    loopElementScans = 0;
     compiledLoops = 0;
     compiledTensors = 0;
     cowCopies = 0;

@@ -18,3 +18,19 @@ it('does not analyze a parser-recovered incomplete draft', async () => {
     expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     expect(document.diagnostics?.filter(diagnostic => diagnostic.code === 'TypeError')).toEqual([]);
 });
+
+it('locates incompatible yield types before a generator is called', async () => {
+    const document = await parse('fun stream\n yield 1\n yield "x"\nend\n', { validation: true });
+    expect(document.diagnostics).toContainEqual(expect.objectContaining({
+        message: 'stream yields incompatible types: integer and text', code: 'TypeError',
+        range: expect.objectContaining({ start: expect.objectContaining({ line: 2 }) }),
+    }));
+});
+
+it('locates incompatible yields through a straight-line local alias', async () => {
+    const document = await parse('fun stream\n Cell = 1\n yield Cell\n yield "x"\nend\n', { validation: true });
+    expect(document.diagnostics).toContainEqual(expect.objectContaining({
+        message: 'stream yields incompatible types: integer and text', code: 'TypeError',
+        range: expect.objectContaining({ start: expect.objectContaining({ line: 3 }) }),
+    }));
+});

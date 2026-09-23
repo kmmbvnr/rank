@@ -15,7 +15,7 @@ import {
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
-    type Expression,
+    type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
 import { findOperation, operationArities, type Operation, type ResultKind } from '../operations.js';
 
@@ -51,6 +51,15 @@ const COMPARISONS = new Set([
 const BOOLEANS = new Set(['and', 'or', 'xor']);
 
 const ARITHMETIC = new Set(['+', '-', '*', '/', '//', '%', '**']);
+const MAPPED_UNARY_NUMBERS = new Set([
+    'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cos', 'cosh',
+    'exp', 'log', 'sin', 'sinh', 'tan', 'tanh',
+]);
+
+/** Scalar-cell operations whose successful array/sequence result keeps the input kind. */
+export function mapsScalarCells(operation: Operation): boolean {
+    return operation.monadicRank === 0 || MAPPED_UNARY_NUMBERS.has(operation.name);
+}
 
 /** `new <structure>` and the runtime type it produces. */
 const STRUCTURES: Record<string, string> = {
@@ -144,6 +153,7 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         if (expression.operator === 'not') {
             return same(operand, 'boolean') ? ['boolean'] : UNKNOWN;
         }
+        if (same(operand, 'array') || same(operand, 'sequence')) return operand;
         return within(operand, NUMBERS) ? operand : UNKNOWN;
     }
     if (isBinaryExpression(expression)) {
@@ -220,7 +230,7 @@ function elementwise(left: Types, right: Types): Types | undefined {
  * catalogue vocabulary that no binding hides. Anything else — addressing, a
  * user function, a receiver method in the middle of the chain — is unknown.
  */
-function applicationType(expression: Expression, lookup: TypeLookup): Types {
+function applicationType(expression: ApplicationExpression, lookup: TypeLookup): Types {
     const parts = flattenApplication(expression);
     const last = parts.at(-1);
     // `new graph Nodes .undirected` is a constructor call, not an application
@@ -236,9 +246,26 @@ function applicationType(expression: Expression, lookup: TypeLookup): Types {
     if (lookup(last.name) !== undefined) return UNKNOWN;
     const operation = findOperation(last.name);
     if (operation === undefined) return UNKNOWN;
+    const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
+        && operation.arities.join() === '1';
+    const arity = unaryTail ? 1 : parts.length - 1;
+    const source = typeOf(unaryTail ? expression.head : head, lookup);
+    if (operation.arities.includes(arity)) {
+        if (arity === 1 && mapsScalarCells(operation)
+            && (same(source, 'array') || same(source, 'sequence'))) return source;
+        if (arity === 2 && operation.name === 'round'
+            && (same(source, 'array') || same(source, 'sequence'))) return source;
+        if (arity === 2) {
+            const right = typeOf(parts[1], lookup);
+            if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
+                && (same(source, 'array') || same(right, 'array'))) return ['array'];
+            if (operation.name === 'matmul' && same(source, 'array') && same(right, 'array')) return UNKNOWN;
+            if (operation.name === 'missing' && same(right, 'array')) return UNKNOWN;
+        }
+    }
     // Leading operands beyond the arity are addressing that the runtime folds
     // into one value first, so the operation still decides the result.
-    if (parts.length - 1 < Math.min(...operation.arities)) return UNKNOWN;
+    if (arity < Math.min(...operation.arities)) return UNKNOWN;
     if (operation.name === 'even' || operation.name === 'odd') {
         // These predicates map over collections. Addressing or an unresolved
         // call chain needs runtime information before its shape is known.

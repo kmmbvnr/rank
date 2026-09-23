@@ -1,8 +1,6 @@
 import {
-    isYieldStatement, isFunctionStatement, isTestStatement,
-    isIfStatement, isForStatement, isTryStatement,
-    flatArrayBorrowCandidates,
-    type FunctionStatement, type Statement,
+    isFunctionStatement, functionYields, flatArrayBorrowCandidates,
+    type FunctionStatement,
 } from '@arrrank/language';
 
 export interface PreparedFunction {
@@ -18,7 +16,7 @@ const prepared = new WeakMap<FunctionStatement, PreparedFunction>();
 export function prepareFunction(statement: FunctionStatement): PreparedFunction {
     let result = prepared.get(statement);
     if (!result) {
-        const generator = statementsContainYield(statement.statements);
+        const generator = functionYields(statement).length > 0;
         result = {
             generator,
             locals: statement.statements.filter(isFunctionStatement),
@@ -36,27 +34,4 @@ function inferBorrowedParameters(statement: FunctionStatement, isGenerator: bool
     // only accepts proofs that do not resolve another function.
     const indices = flatArrayBorrowCandidates(statement, () => undefined);
     return new Set(statement.parameters.filter((_, index) => indices.has(index)));
-}
-
-function statementsContainYield(statements: readonly Statement[]): boolean {
-    return statements.some(statement => {
-        if (isYieldStatement(statement)) return true;
-        if (isFunctionStatement(statement) || isTestStatement(statement)) return false;
-        if (isIfStatement(statement)) {
-            return statementsContainYield(statement.thenStatements)
-                || statement.elifClauses.some(clause =>
-                    statementsContainYield(clause.statements))
-                || statementsContainYield(statement.elseStatements);
-        }
-        if (isForStatement(statement)) {
-            return statementsContainYield(statement.statements);
-        }
-        if (isTryStatement(statement)) {
-            return statementsContainYield(statement.statements)
-                || statement.catches.some(clause =>
-                    statementsContainYield(clause.statements))
-                || statementsContainYield(statement.finallyStatements);
-        }
-        return false;
-    });
 }

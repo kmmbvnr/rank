@@ -42,6 +42,45 @@ describe('value semantics for arrays', () => {
         expect(run(`${local}A`)).toBe('1 2');
         const captured = `${SEQ}fun outer\n A = array 1 2\n B = A\n fun change\n  A = array 1 2 3\n  return 0\n end\n change\n return A\nend\n`;
         expect(run(`${captured}outer`)).toBe('1 2 3');
+        const second = `${SEQ}fun outer\n Y = array 1 2\n Z = array 3 4\n fun change\n  Z = array 5 6 7\n  return 0\n end\n change\n return Z\nend\n`;
+        expect(run(`${second}outer`)).toBe('5 6 7');
+        expect(run(`${second.replace('return Z', 'return Y')}outer`)).toBe('1 2');
+        const grandchild = `${SEQ}fun outer\n Z = array 1 2\n Y = array 3 4\n fun middle\n  fun change\n   Z = array 5 6 7\n   return 0\n  end\n  change\n  return 0\n end\n middle\n return Z\nend\n`;
+        expect(run(`${grandchild}outer`)).toBe('5 6 7');
+        expect(run(`${grandchild.replace('return Z', 'return Y')}outer`)).toBe('3 4');
+    });
+
+    it('returns a privately written array without changing an equal-named global', () => {
+        const source = `${SEQ}Temp = array 4 5\nfun build\n Temp = array 1 2\n Temp 0 = 9\n return Temp\nend\nResult = build\n`;
+        expect(run(source + 'Result')).toBe('9 2');
+        expect(run(source + 'Temp')).toBe('4 5');
+    });
+
+    it('reads a global capture despite an equally named caller parameter', () => {
+        expect(run(`${SEQ}Shared = array 1 2\nfun read\n return Shared 0\nend\n`
+            + 'fun outer Shared\n return read\nend\n(array 3 4) outer')).toBe('1');
+        expect(run('Offset = 1\nfun read Ignored\n return Offset\nend\n'
+            + 'fun outer Offset\n return 1 read\nend\n"x" outer')).toBe('1');
+    });
+
+    it('writes the global capture, not an equally named caller parameter', () => {
+        const source = `${SEQ}Shared = array 1 2\nOther = array 3 4\n`
+            + 'fun write Value\n Shared 0 = Value\n return 0\nend\n'
+            + 'fun outer Shared\n 9 write\n return Shared 0\nend\nOther outer\n';
+        expect(run(source + 'Shared 0')).toBe('9');
+        expect(run(source + 'Other 0')).toBe('3');
+    });
+
+    it('lets a direct nested helper read and write its parent argument', () => {
+        const reader = `${SEQ}fun outer X\n fun read\n  return X 0\n end\n return read\nend\nA = array 1 2\n`;
+        expect(run(reader + 'A outer')).toBe('1');
+        const writer = `${SEQ}fun outer X\n fun change\n  X 0 = 9\n  return 0\n end\n change\n return X 0\nend\nA = array 1 2\n`;
+        expect(run(writer + 'A outer')).toBe('9');
+        expect(run(writer + 'Ignored = A outer\nA 0')).toBe('1');
+    });
+
+    it('reads a private eager array through two lexical helper frames', () => {
+        expect(run(`${SEQ}fun outer N\n Temp = array 1 2\n fun middle\n  fun read\n   return Temp 0\n  end\n  return read\n end\n return middle\nend\n0 outer`)).toBe('1');
     });
 
     it('separates each argument from the others', () => {

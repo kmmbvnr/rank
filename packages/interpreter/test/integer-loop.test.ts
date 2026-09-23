@@ -661,6 +661,13 @@ end`);
 });
 
 describe('integer array reads in compiled loops', () => {
+    it('preserves partial writes and error order with a scalar helper between reads', () => {
+        const result = compare('fun divide N\n return 10 // (N - 2)\nend\nB = array 6\nTotal = 0\nfor I in 1 to 3\n Total += B 0\n Value = I divide\nend');
+        expect(result.loops).toBe(1);
+        expect(result).toHaveProperty('error');
+        expect(result.variables).toContainEqual(['Total', '12']);
+    });
+
     it('reads full matrix coordinates inside one nested region', () => {
         const result = compare(`A = array shape 2 3
   1 2 3

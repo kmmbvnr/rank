@@ -108,9 +108,7 @@ describe('copy kernel host values', () => {
         const reference = execute(items, shape, false);
         const actual = execute(items, shape, true);
         expect(actual.result).toEqual(reference.result);
-        if (items.every(x => typeof x === 'bigint' || typeof x === 'number' && Number.isFinite(x))) {
-            expect(actual.kernels).toBe(1);
-            expect(actual.sources[0].match(/for \(let i/g)).toHaveLength(1);
-        }
+        expect(actual.kernels).toBe(0);
+        expect(actual.sources).toEqual([]);
     });
 });

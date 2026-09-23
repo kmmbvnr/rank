@@ -3,8 +3,9 @@ import {
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isStringLiteral, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
-import { typeOf, type Types } from './types.js';
+import { mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
 import { flattenApplication } from '../expressions.js';
+import { findOperation } from '../operations.js';
 
 /** Serializable facts only: inspecting these never evaluates user code. */
 export interface ValueFacts {
@@ -22,13 +23,18 @@ export interface ValueFacts {
 
 export const UNKNOWN_VALUE: ValueFacts = { types: [] };
 export type FactLookup = ((name: string) => ValueFacts | undefined) & {
-    call?: (name: string, arguments_: readonly ValueFacts[]) => ValueFacts;
+    invoke?: (name: string, arguments_: readonly ValueFacts[]) => ValueFacts;
+    arity?: (name: string) => number | undefined;
 };
 
 /** Start with facts that follow directly from syntax, retaining unknown lengths. */
 export function expressionFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isParenthesizedExpression(expression)) return expressionFacts(expression.value, lookup);
-    if (isNameExpression(expression)) return lookup(expression.name) ?? UNKNOWN_VALUE;
+    if (isNameExpression(expression)) {
+        const value = lookup(expression.name);
+        return value?.types.includes('function') && lookup.invoke && lookup.arity?.(expression.name) === 0
+            ? lookup.invoke(expression.name, []) : value ?? UNKNOWN_VALUE;
+    }
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
         ...(typeof expression.value === 'bigint' ? { integer: String(expression.value) } : {}),
@@ -40,6 +46,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         const operand = expressionFacts(expression.operand, lookup);
         if (operand.integer !== undefined) return { ...operand,
             integer: String(BigInt(operand.integer) * (expression.operator === '-' ? -1n : 1n)) };
+        if (operand.types.join() === 'array' || operand.types.join() === 'sequence') return {
+            types: operand.types, rank: operand.rank, shape: operand.shape, elements: operand.elements,
+        };
     }
     if (isArrayExpression(expression)) {
         if (expression.dimensions.length) {
@@ -79,6 +88,20 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             ? { ...source, types: ['array'] } : { types: ['array'] };
     }
     if (isBinaryExpression(expression)) {
+        if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)
+            && isNameExpression(expression.right) && expression.right.name === 'outer'
+            && lookup('outer') === undefined && isApplicationExpression(expression.left)) {
+            const operands = flattenApplication(expression.left);
+            if (operands.length === 2) {
+                const left = expressionFacts(operands[0], lookup);
+                const right = expressionFacts(operands[1], lookup);
+                if (left.shape && right.shape && left.types.join() === 'array'
+                    && right.types.join() === 'array') {
+                    const shape = [...left.shape, ...right.shape];
+                    return { types: ['array'], rank: shape.length, shape };
+                }
+            }
+        }
         const left = expressionFacts(expression.left, lookup);
         const right = expressionFacts(expression.right, lookup);
         if (expression.operator === 'to' || expression.operator === 'until') {
@@ -95,28 +118,111 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [length] };
         }
         if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)) {
-            const types = typeOf(expression, name => lookup(name)?.types);
+            const inferred = typeOf(expression, name => lookup(name)?.types);
+            const scalarNumbers = [left, right].every(value => value.rank === 0
+                && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
+            const integerArithmetic = scalarNumbers && ['+', '-', '*'].includes(expression.operator)
+                && left.types.join() === 'integer' && right.types.join() === 'integer';
+            const scalarTypes = integerArithmetic ? ['integer'] as Types
+                : inferred.length ? inferred : scalarNumbers ? ['integer', 'real'] as Types : inferred;
+            const collections = [left, right].map(value => value.types.join())
+                .filter(type => type === 'array' || type === 'sequence');
+            const types = collections.length && collections.every(type => type === collections[0])
+                ? [collections[0]] : scalarTypes;
             if (types.join() === 'text') return { types, rank: 1, shape: [null] };
             if (left.rank === 0 && right.rank === 0) return { types, rank: 0, shape: [] };
             const leftShape = isAtom(left) ? [] : left.shape;
             const rightShape = isAtom(right) ? [] : right.shape;
             if (leftShape && rightShape && !incompatibleShapes(left, right)) {
-                const shape = Array.from({ length: Math.max(leftShape.length, rightShape.length) }, (_, index) => {
-                    const offset = Math.max(leftShape.length, rightShape.length) - index;
-                    const a = offset > leftShape.length ? 1 : leftShape.at(-offset);
-                    const b = offset > rightShape.length ? 1 : rightShape.at(-offset);
-                    return a == null || b == null ? null : a === 1 ? b : a;
-                });
+                const shape = broadcastShape(leftShape, rightShape);
                 return { types, rank: shape.length, shape };
             }
         }
     }
     if (isApplicationExpression(expression)) {
         const parts = flattenApplication(expression);
-        const source = expressionFacts(parts[0], lookup);
         const last = parts.at(-1)!;
-        if (isNameExpression(last) && lookup(last.name)?.types.includes('function') && lookup.call) {
-            return lookup.call(last.name, parts.slice(0, -1).map(part => expressionFacts(part, lookup)));
+        const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
+            && isNameExpression(last) && lookup(last.name) === undefined
+            && findOperation(last.name)?.arities.join() === '1';
+        const source = expressionFacts(unaryTail ? expression.head : parts[0], lookup);
+        if (isNameExpression(last) && lookup(last.name) === undefined) {
+            const operation = findOperation(last.name);
+            const arity = unaryTail ? 1 : parts.length - 1;
+            if (operation?.arities.includes(arity)) {
+                const collection = source.types.join() === 'array' || source.types.join() === 'sequence';
+                if (arity === 1 && collection && mapsScalarCells(operation)) return {
+                    types: source.types, rank: source.rank, shape: source.shape,
+                    elements: resultTypes(operation),
+                };
+                if (last.name === 'round' && arity === 2 && collection) return {
+                    types: source.types, rank: source.rank, shape: source.shape, elements: source.elements,
+                };
+                if (last.name === 'transpose' && arity === 1 && source.types.join() === 'array'
+                    && source.shape) return { types: ['array'], rank: source.shape.length,
+                    shape: [...source.shape].reverse(), elements: source.elements };
+                if (arity === 2) {
+                    const right = expressionFacts(parts[1], lookup);
+                    if (operation.dyadicRanks?.[0] === 'all' && operation.dyadicRanks[1] === 1
+                        && right.types.join() === 'array' && right.rank !== undefined && right.rank > 1) {
+                        return { types: ['array'], rank: right.rank - 1,
+                            shape: right.shape?.slice(0, -1) ?? Array(right.rank - 1).fill(null),
+                            elements: resultTypes(operation) };
+                    }
+                    if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
+                        && (source.types.join() === 'array' || right.types.join() === 'array')) {
+                        const leftArray = source.types.join() === 'array';
+                        const rightArray = right.types.join() === 'array';
+                        const array = leftArray ? source : right;
+                        const shape = leftArray && rightArray
+                            ? source.shape && right.shape && !incompatibleShapes(source, right)
+                                ? broadcastShape(source.shape, right.shape) : undefined
+                            : array.shape;
+                        return { types: ['array'], rank: shape?.length ?? (leftArray !== rightArray ? array.rank : undefined),
+                            shape, elements: resultTypes(operation) };
+                    }
+                    if (last.name === 'matmul' && source.types.join() === 'array'
+                        && right.types.join() === 'array' && source.shape?.length && right.shape?.length) {
+                        const elements = [...(source.elements ?? []), ...(right.elements ?? [])];
+                        const types: Types = source.elements?.length && right.elements?.length
+                            && elements.every(type => type === 'integer')
+                            ? ['integer'] : elements.includes('real') ? ['real'] : ['integer', 'real'];
+                        const shape = [...source.shape.slice(0, -1), ...right.shape.slice(1)];
+                        return shape.length ? { types: ['array'], rank: shape.length, shape, elements: types }
+                            : { types, rank: 0, shape: [] };
+                    }
+                }
+            }
+        }
+        if (source.types.join() === 'array' && source.shape && parts.length >= 4
+            && isNameExpression(parts[1]) && parts[1].name === 'sum' && lookup('sum') === undefined
+            && isNameExpression(parts[2]) && parts[2].name === 'axis') {
+            const axes = parts.slice(3).map(part => expressionFacts(part, lookup).integer);
+            if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
+                && Number(axis) >= 0 && Number(axis) < source.shape!.length)
+                && new Set(axes).size === axes.length) {
+                const shape = source.shape.filter((_, axis) => !axes.includes(String(axis)));
+                const elements = source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')
+                    ? source.elements : ['integer', 'real'];
+                return shape.length ? { types: ['array'], rank: shape.length, shape, elements }
+                    : { types: elements, rank: 0, shape: [] };
+            }
+        }
+        if (isNameExpression(last) && last.name === 'len' && lookup(last.name) === undefined
+            && parts.length === 2 && source.types.join() === 'array') {
+            return { types: ['integer'], rank: 0, shape: [] };
+        }
+        if (isNameExpression(last) && lookup(last.name) === undefined && ['min', 'max'].includes(last.name)
+            && parts.length === 3) {
+            const other = expressionFacts(parts[1], lookup);
+            if (source.rank === 0 && other.rank === 0
+                && [source, other].every(value => value.types.length > 0
+                    && value.types.every(type => type === 'integer' || type === 'real'))) {
+                return { types: [...new Set([...source.types, ...other.types])], rank: 0, shape: [] };
+            }
+        }
+        if (isNameExpression(last) && lookup(last.name)?.types.includes('function') && lookup.invoke) {
+            return lookup.invoke(last.name, parts.slice(0, -1).map(part => expressionFacts(part, lookup)));
         }
         if (isNameExpression(last) && lookup(last.name) === undefined) {
             if (last.name === 'window' && parts.length === 3 && source.rank === 1 && source.shape?.[0] != null) {
@@ -152,6 +258,15 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     return { types: typeOf(expression, name => lookup(name)?.types) };
 }
 
+function broadcastShape(left: readonly (number | null)[], right: readonly (number | null)[]): (number | null)[] {
+    return Array.from({ length: Math.max(left.length, right.length) }, (_, index) => {
+        const offset = Math.max(left.length, right.length) - index;
+        const a = offset > left.length ? 1 : left.at(-offset);
+        const b = offset > right.length ? 1 : right.at(-offset);
+        return a == null || b == null ? null : a === 1 ? b : a;
+    });
+}
+
 /** Unknown axes are not mismatches. Singleton axes follow runtime broadcasting. */
 export function incompatibleShapes(left: ValueFacts, right: ValueFacts): boolean {
     // Text participates in scalar operations; its code-point length is not a broadcast axis.
@@ -175,10 +290,12 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const first = values[0];
     const types = values.every(value => value.types.length)
         ? [...new Set(values.flatMap(value => value.types))] : [];
-    const rank = values.every(value => value.rank === first.rank) ? first.rank : undefined;
+    const scalar = types.length > 0 && types.every(type =>
+        ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
+    const rank = scalar ? 0 : values.every(value => value.rank === first.rank) ? first.rank : undefined;
     const shape = rank !== undefined && values.every(value => value.shape?.length === rank)
         ? first.shape!.map((dimension, axis) => values.every(value => value.shape![axis] === dimension) ? dimension : null)
-        : undefined;
+        : scalar ? [] : undefined;
     const elements = values.every(value => value.elements?.length)
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),

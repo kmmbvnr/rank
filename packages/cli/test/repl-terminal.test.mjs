@@ -45,8 +45,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
             const waiting = until ? `![regexp {${until}} $screen]`
                 : '$screen eq "" || [regexp {(Running|Stopping|Pausing)} $screen]';
             return [
-                ...(until || /[\r\x11\x12\x13\x14\x10\x07\x0e]/.test(keys) || /^[tng]$/.test(keys)
-                    ? ['set screen ""'] : []),
+                ...(until || keys !== '' ? ['set screen ""'] : []),
                 `send -- [binary format H* {${Buffer.from(keys).toString('hex')}}]`,
                 'read_frame 1',
                 'set deadline [expr {[clock milliseconds] + 10000}]',
@@ -365,7 +364,7 @@ test('Ctrl-R on an expression stops before the loop; returning from rank> edits 
         '\x12',
         '\x12',
         '\x12',
-        { keys: '\x1b', until: 'Ctrl-R run' },
+        { keys: '\x1b', until: 'Ctrl-R run|Ctrl-L run all' },
         '\x1b',
         UP,
         ENTER,

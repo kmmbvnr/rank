@@ -11,15 +11,82 @@ unknown facts. This is not an ownership proof for the compiler.
 Stage 2 has started with return-origin summaries. They distinguish an input-free
 result from a returned parameter or capture, including straight-line local
 aliases and supported helper returns. Branches join conservatively. Helper
-captures, unsupported indirection and paths that may fall through remain
-unknown. The effect summary now tracks direct numeric indexed reads through
+captures and unsupported indirection remain unknown. A path that reaches the
+end without `return` throws and adds no result type. The diagnostic pass stops
+after a direct call to a non-generator function with no `return` outside
+`try/catch`. Its effect summary remains unknown in other contexts, including
+conditional calls. Generator calls have a sequence result; literal
+`yield` expressions, stable parameters and straight-line local literal or
+parameter aliases can supply possible element types.
+The REPL now infers a direct top-level call's result from eager value arguments
+before invalidating caller facts for the call. It does not snapshot arguments
+that themselves call functions, or do this inside another call analysis.
+Loop analysis no longer scans the entire `for` as a call before walking its
+body: the loop variable was mistaken for an unknown function and erased input
+facts. With a literal integer array, the unchanged CSES `max_subarray` function
+now has an integer result, and the REPL reports an incompatible later `+`.
+Unknown calls inside the loop still invalidate facts. This is a diagnostic
+gain, not an effect summary or compiler optimization for that function.
+The analyzer reports proven mixed yielded types, including at a call where
+argument types settle the question. It does not add a runtime type check.
+An unknown yielded value leaves the element type unknown. The effect summary
+now tracks direct numeric indexed reads through
 resolved helpers and private eager literal arrays. Diagnostics retain unrelated
 facts across those reads only when array cells cannot invoke lazy code; lazy or
 unknown arrays keep the conservative boundary. Runtime borrowing does not
 consume these summaries yet.
+The summary also treats a direct write to a private literal array created in
+the function's initial straight-line assignment prefix as local. If the written
+value may contain an argument or capture, the returned array's origin remains
+unknown. A resolved helper's indexed write is also local when its argument is
+such a private array and the helper does not read that parameter. Known cell
+types are dropped after the call. Input aliases and captured writes through
+helpers still need separate proofs. Direct single-cell
+replacements with scalar literals also retain the eager-reader fact for a later indexed
+read of that private array.
+The summary also distinguishes captured value reads from indexed reads and
+marks direct and transitive `stdin` and catalogued I/O operations. Because
+host callbacks may re-enter Rank, diagnostics still invalidate value facts
+across those calls. Direct operations marked as I/O, random or mutating also
+invalidate unrelated facts unless a narrower rule proves them safe.
+Top-level captured reads and indexed writes now retain their global binding
+through a helper call even when its caller has an equally named parameter.
+A direct nested helper can also map an indexed read or write of its parent's
+unrebound parameter back to that parameter. Indexed reads of parameters
+rebound before a helper call, and captures without a stable lexical path
+still fall back to unknown. Reader chains through
+two nested frames can use a parent's private eager scalar-literal array when
+that binding is neither replaced nor written.
+A direct nested helper can also replace its parent's parameter or a local
+binding created in the parent's initial straight-line assignment prefix. This
+is separate from an indexed array write. Diagnostics discard that binding's
+old value facts while retaining unrelated shapes; return-origin analysis no
+longer trusts the old local value. Conditional or later enclosing assignments
+remain unknown.
+A grandchild helper can pass a binding replacement through one straight-line
+intermediate function when the outer binding was created in that prefix and
+the intermediate function cannot bind the same name. Shadowing or control flow
+in the intermediate function still makes this effect unknown.
+Functions with repeated parameter names keep unknown effect and borrow proofs.
 
 Stage 3 has a first, separate flat-array borrow candidate check. It accepts
-direct numeric reads and a chain of resolved one-argument reader helpers.
+direct numeric reads, parameter-indexed reads guarded by bigint arguments,
+bigint arithmetic (`+`, `-`, `*`, `//`, `%`) in selectors and chains of resolved reader helpers
+that pass those guards through. A straight-line local assignment can carry a
+bigint selector proof to a later read, or hold a proven non-escaping read
+expression for a later return or scalar expression. This includes results of
+resolved reader helpers. A discarded scalar cell read is also accepted.
+An `if` whose condition is a boolean parameter can also join read-only
+branches. The call checks that parameter's type, including when a resolved
+helper forwards it.
+Assignments to local scalar results or selectors inside those branches are
+accepted when every path proves the value needed after the `if`. Selector
+parameter guards from all paths are combined. A path with an escaping array
+value fails the proof. A counted `for I in Start until End` can also borrow
+when both bounds are proven integers and the body only reads scalar cells or
+updates proven scalar locals. The loop's possible zero-iteration path is joined
+with its body facts. Dynamic iteration, array writes, escaping values and
+callbacks still use ordinary CoW binding.
 Returns, aliases, writes, callbacks and unsupported statements fail the check.
 The interpreter now uses this result when the argument is an owned, stable,
 one-dimensional scalar array and every helper still resolves to the same
@@ -38,6 +105,67 @@ point to derived-array allocation and garbage collection in K-means, but to
 per-cell reader paths in gradient descent and Adam. Treat these as separate
 leads; neither justifies a representation change without a before/after demo
 measurement.
+
+A first stage-5 compiler use now keeps a cached tensor reader across calls to
+functions already proved scalar-only by `scalarFunctionResult`, and across
+synchronous builtins registered in `loopBuiltins`. Callable identity and module
+availability are checked at region entry; external MD5 additionally needs its
+explicit pure-host contract. Unknown calls still disable this reader path.
+On Apple M5 / Node v24.15.0, `node benchmarks/tensor-read-helper.mjs scalar`
+measured 5.76 ms with read hoisting off and 3.64 ms with it on; the `builtin`
+mode measured 5.87 ms and 3.35 ms. Each result is the median of nine
+alternating warm calls over 100,000 iterations. The runtime recorded one
+hoisted reader only with hoisting on.
+This is a targeted microbenchmark, not a measured improvement in an existing
+demo. Broader compiler use and the stage-5 differential gate remain open.
+
+A guarded range-reader trial removed per-cell bounds checks for `A I` inside
+`for I in 0 until N` when entry guards proved `N <= A shape 0`. It passed
+compiled/interpreted result, error-order and partial-write tests. An isolated
+warm comparison on Apple M5 / Node v24.15.0 used parentheses around `I` to
+disable only the draft range proof. At 200,000 cells the medians were 6.43 ms
+with the proof and 6.37 ms with checked reads. Across three runs of one million
+cells, the proof measured 33.48, 33.28 and 33.28 ms; checked reads measured
+33.70, 33.55 and 33.34 ms. Each run used nine alternating samples. The
+improvement was too small to justify the guard and its semantic risk, so the
+range-reader code was removed. Bounds checks remain in the compiler.
+
+Compiled loops now reuse a successful input-cell type check when the same
+array has a tracked, unchanged storage revision. A changed revision forces a
+new scan. Host-owned arrays without a revision use the interpreted path:
+scanning their cells at region entry could invoke a getter for a cell the loop
+would never read.
+
+Fused reductions and tensor kernels also decline host-owned arrays before
+inspecting their cells. A JavaScript Proxy can make such reads observable.
+Tracked Rank arrays still use these paths; tests cover both cases.
+
+`node benchmarks/loop-element-guard.mjs 200000 200` measured 1.51 ms for 200
+warm calls reading one cell from the same owned array, with one cell-type scan
+across 203 calls including warmups. Before this cache, a separate run of the
+same case took 184.33 ms and scanned at every entry. These are separate runs,
+not an alternating comparison. The result applies to repeated calls on stable
+large arrays. On the unchanged CSES Maximum Subarray Sum demo,
+`node benchmarks/loop-guard-demo.mjs 20000 100` measured 49.42 ms per batch
+when 100 calls reused one input array, and 58.84 ms when each call received
+a different prebuilt array (medians of nine alternating batches, Apple M5 /
+Node v24.15.0). The first case made no element-type scans during timed
+batches; the second made 100 per batch. Input identity and storage locality
+also differ, so this is a scenario comparison, not an isolated speedup
+attributable to the cache.
+
+A compiled loop with a shared array destination used to copy that array at
+region entry even when the loop had no iterations. The entry check now sends
+a proven empty numeric range or empty array iteration to the interpreter
+before that copy. It also sends a proven zero range step back, preserving the
+error without copying. Existing nonempty shared-array loops still compile.
+This does not defer CoW until the first actual write: a nonempty loop whose
+conditional body skips every write can still make an unnecessary copy.
+The entry path now checks storage and cell types for every destination before
+copying any shared destination. If a later destination fails its guard, the
+interpreter resumes with no speculative CoW copy. Tests cover one and two
+destinations with a skipped write; this is a fallback-correctness change, not
+a measured speedup.
 
 ## Goal and rules
 
@@ -63,10 +191,10 @@ in execution only when a transformation has all the proofs it needs.
 | --- | --- | --- |
 | Language value facts and diagnostics | Types, element types, rank, partial shapes, selected operations, call-site inference, branch joins and simple loops; safe single-cell writes retain possible element types | Unsupported paths remain unknown; not a whole-program proof |
 | Shared REPL diagnostics | Metadata snapshots, edit invalidation, same-file and host-loaded `_test.ra` examples | No test execution or array-cell inspection; browser companion loading needs a host |
-| Diagnostic function effects | Possible indexed writes and numeric reads of parameters/captures through supported helper calls | Reader facts require proven eager scalar cells; no escape analysis |
-| Integer-loop compiler | Uses `expressionFacts` for specialization hints and checks inputs on entry | Does not consume the new diagnostic effect summary as a safety proof |
-| Runtime parameter borrowing | Direct syntactic readers plus guarded flat-array helper chains | Aliases, nested values and unknown calls use ordinary CoW binding |
-| Flat-array borrow candidates | Direct numeric reads and resolved single-argument reader helpers | Runtime checks owned flat storage and current helper identities before use |
+| Diagnostic function effects | Possible indexed writes, numeric reads, captured value reads and catalogued I/O through supported helper calls | Reader facts require proven eager scalar cells; no escape analysis |
+| Integer-loop compiler | Uses `expressionFacts` for specialization hints and checks inputs on entry; unchanged tracked array storage reuses its element-type check; scalar-only callees and guarded synchronous builtins keep cached tensor readers stable | Untracked host arrays use the interpreter; does not consume the new diagnostic effect summary as a safety proof |
+| Runtime parameter borrowing | Direct readers and guarded flat-array helper chains, including bigint selector parameters | Aliases, nested values and unknown calls use ordinary CoW binding |
+| Flat-array borrow candidates | Direct numeric or guarded parameter reads through resolved helpers, including scalar locals joined across read-only `if` branches and counted reader loops | Runtime checks flat scalar storage, selector types and current helper identities before use |
 | Array ownership/storage | CoW, conservative shared flags, revisions and guarded reader/writer paths | Shared flags are not exact live reference counts |
 | Host purity | `pureHostFunction` marks an exact implementation with a trusted contract | No inferred guarantee for arbitrary external handlers |
 
@@ -201,6 +329,108 @@ Check edits and retained execution as well as fresh programs.
 
 ### 2. Describe function results and effects
 
+Corpus check (2026-09-23): `node benchmarks/analysis-coverage.mjs` parsed
+459 unchanged demo files. It found known effect summaries for 25 of 568
+top-level functions. None of the 356 functions containing a `for` has a
+known summary. In Deep-ML, the count is 3 of 75 functions; `linear_regression`,
+`k_means` and `adam_optimizer` are all unknown. A useful broadening step needs
+control-flow joins for effects and return origins across loop entry, body,
+back edge and exit. It must treat zero iterations, `break`, `continue`,
+and writes to captured bindings without assuming a loop runs once. Count
+newly covered unchanged demo functions after each change; a new isolated
+example alone is not evidence that this stage helps ordinary programs.
+A separate pass over companion `_test.ra` files found 1,197 function examples;
+424 have a nonempty inferred result type. This counts inferred facts, not
+correctness against the expected results and not effect proofs. All four
+examples of the unchanged CSES `008_maxsubarray` have an inferred integer
+result. Keep this metric separate from the 25 known effect summaries.
+Call-site effect analysis now uses proven eager-array and scalar facts for a
+counted numeric reader loop. It joins local facts with the zero-iteration
+path and repeats until stable; unsupported exits and branches retain the
+unknown fallback. `len` over a proven eager array and binary `max` over
+proven scalar numbers have narrow no-callback contracts. On unchanged CSES
+`008_maxsubarray`, this retains an unrelated caller type after a call on an
+eager literal array. A shaped fill array without an eager-cell proof still
+invalidates that type. The corpus pass finds 31 of 1,197 test-example calls
+with known effect summaries, including all four `008_maxsubarray` examples.
+That count includes other already-supported
+functions; it is not an elapsed-time gain or a function-wide proof. The 25
+unconditional summaries among 568 functions have not increased.
+A corpus expectation check now compares known result types and ranks with
+the examples in `_test.ra`. It found 16 incompatible examples before the
+collection-result fixes and zero afterward, among the same 424 inferred
+results. The fixes preserve array shape through scalar-cell operations,
+`sum axis`, `outer`, `transpose` and `matmul`; the unchanged Cody
+`pair_distances` demo has a paired runtime matrix test. The check treats
+integer and real expectations as compatible because Rank equality can compare
+them numerically. Expected values are examples, not type contracts, so zero
+conflicts is a regression check rather than proof of analyzer soundness.
+A shared REPL test uses the unchanged `max_subarray` definition in an
+unexecuted draft. It reports both the integer result mismatch and an
+unrelated caller mismatch on an eager literal input. Editing the input to a
+shaped fill array withdraws both diagnostics. Redefining its `max` helper
+with an unknown call also withdraws the retained caller diagnostic.
+The effect pass now joins call-site value facts across `if` branches. The
+operation catalogue gives `odd`, `even` and `binomialmod` an explicit
+no-callback contract only for proven scalar integer operands. On the
+unchanged CSES `017_brackets1` function, a call with integer input now keeps
+an unrelated caller type and reports a later bad addition before execution.
+An unknown or array input does not get that proof. After rebuilding the
+language package, the corpus has 40 of 1,197 test-example calls with known
+effects, up from 31. Unconditional summaries remain 25 of 568, and no loop
+function has an unconditional summary. This is a diagnostic gain; no runtime
+speedup was measured for this demo.
+The call-site pass also handles a condition-controlled `for` loop when its
+condition and body have known effects, its body has no unsupported exit, and
+local facts settle after joining the zero-iteration path with the back edge.
+On the unchanged LeetCode `009_palnum` demo, all ten integer test calls now
+have known effects. A REPL test retains an unrelated caller type after the
+call and withdraws that diagnostic when an unknown call is inserted into the
+loop. The corpus count is now 50 of 1,197 test-example calls. Unconditional
+loop summaries remain at zero; this change did not measure execution speed.
+The pass now also includes `return` paths inside a supported loop. It checks
+the return expression's effects and records its possible origin, while a
+binding assigned in the loop has unknown origin on a later iteration. This
+adds all eight integer examples from the unchanged LeetCode `007_revint`
+demo and two examples from AtCoder `010_otoshidama`. The corpus count is now
+60 of 1,197 test-example calls. A REPL test retains an unrelated caller type
+after `reverse` and withdraws that diagnostic when the loop contains an
+unknown call. `break`, `continue`, `yield` and `try` still make this loop rule
+unknown. Unconditional loop summaries remain at zero.
+Proven scalar integer `+=`, `-=`, `*=`, `//=`, and `%=` assignments now keep
+their integer facts. A `for` loop can also traverse a proven text parameter
+without a callback. The caller accepts text reads as safe because Rank text
+is immutable; it still requires eager scalar cells for array reads. On the
+unchanged AtCoder `003_marbles` demo, this retains an unrelated caller type
+and reports a later bad addition before execution. The corpus now has 118
+of 1,197 example calls with known effects and 427 with inferred result types,
+up from 60 and 424. These counts are analysis coverage, not elapsed-time gains.
+A trial that added numeric-range loop traversal alone raised known summaries
+from 25 to 26 of 568 functions. It was removed. The remaining functions also
+use operations such as `len`, `max` and `matmul`; their catalogue entries do
+not prove that evaluating them cannot call back into Rank through lazy or
+host-owned values. The next analysis must combine control-flow joins with
+operation contracts and input facts. Do not infer a no-callback contract from
+the absence of an `effects` flag.
+
+Use unchanged demos as the next gate. For CSES `008_maxsubarray`, show a
+specific retained caller fact or early diagnostic after its call, as well as
+the current integer result diagnostic. For Deep-ML `015_gd`, `017_kmeans` and
+`049_adam`, identify the operation or callback boundary that prevents a
+summary before extending it. Recount the whole corpus after a general loop
+and operation-contract change. If it only adds isolated synthetic cases or
+cannot change a diagnostic or a guarded runtime path in these demos, revise
+the analysis design instead of adding more syntax cases.
+
+Current Deep-ML boundaries are distinct. `linear_regression` checks shapes
+with `if` and `raise` before its loop; the fact-specific effect pass cannot
+traverse that branch, and `transpose`, `matmul` and `round` have no narrow
+no-callback contracts here. `k_means` has nested loops, a `break`, indexed
+array writes and `sum`/`mean` on derived arrays. `adam_optimizer` calls the
+passed `Gradient` function inside a loop and uses an in-place update of `X`.
+These functions must stay unknown until their respective effects and value
+origins can be proved. A loop rule alone would not cover them.
+
 Extend the current possible-write summary as needed to distinguish:
 
 - parameter-local writes from writes to captured bindings or reachable state;
@@ -223,6 +453,30 @@ Tests in the same file and `_test.ra` remain examples only.
 
 ### 3. Prove non-escape and extend borrowing
 
+The same corpus check found four syntactic borrow candidates among 568
+functions and none in Deep-ML. This count does not establish that any
+runtime-owned flat array avoids a copy. The current Deep-ML CoW profile at
+256 elements remains 0, 1 and 0 copies for gradient descent, K-means and
+Adam. Do not present more borrow-proof cases as a demo speedup without a
+before/after run of an unchanged program that actually takes the path.
+With guarded core `len`, `min` and `max`, the corpus has nine syntactic
+candidates, including the unchanged CSES `max_subarray` and AtCoder
+`best_score`. This count assumes the builtins keep their identities. Runtime
+checks those identities and requires owned, flat scalar arrays for each
+borrowed parameter and every other parameter whose indexed read the proof
+uses. The proof rejects an escaping return or an unknown call. A redefined
+builtin, host-owned or non-flat argument, and unsupported syntax use ordinary
+CoW binding. These new guards do not make the Deep-ML functions candidates.
+
+Source inspection accounts for all nine candidates. Four are text readers in
+AoC IPv7 and Euler poker, so their string inputs fail the flat-array guard.
+AoC `cookiescore` reads an arithmetic result, and `wins` reads such a result
+alongside the boss array; both require flat-array arguments that those call
+sites do not supply. The remaining three are `max_subarray`, `best_score` and
+`expected_inversions`. Their source programs do not write the input after the
+reader call. This is a call-site audit, not a runtime profile of all nine
+programs. It gives no evidence of a whole-demo speedup from broader borrowing.
+
 Track whether an argument or something reachable from it can leave the call:
 through a return, yield, retained container, closure, captured binding or unknown
 callee. Begin with flat arrays and supported readers. Keep nested values and
@@ -239,6 +493,11 @@ open. Do not add mandatory ownership annotations or move errors to Rank.
 
 Done when negative tests cover returned aliases, closure capture, generators,
 container retention, helper replacement and the same value in two parameters.
+Language proof tests reject the escaping cases. Runtime tests confirm the
+ordinary CoW path for returned aliases, closures, generators and containers;
+they also check helper replacement and repeated arguments. This closes that
+negative-test gate for owned flat scalar arrays. It does not prove non-escape
+for nested values or arbitrary callbacks.
 
 ### 4. First runtime use: broader inferred borrowing
 
@@ -249,6 +508,30 @@ classifiers. Keep the current conservative path for every unsupported case.
 The guarded flat-array reader-helper subset already avoids marking its caller's
 array shared. Extend that benefit only where a broader non-escape proof supports
 it; a later write can then avoid an unnecessary CoW copy.
+
+`node benchmarks/demo-reader-write.mjs 2048 16` compared this borrowing on
+and off in one runtime on Apple M5 / Node v24.15.0. It used the unchanged
+`max_subarray` and `best_score` functions, 16 fresh owned inputs per sample,
+two warmups and nine alternating samples per mode. Input creation was outside
+the timer. The read-then-write case timed each call and one later write to
+each input. The control disabled runtime borrow candidates only; both
+functions have no prepared static borrow proof. Median batch times changed
+from 2.18 to 1.00 ms for `max_subarray` and from 6.90 to 3.24 ms for
+`best_score`. CoW copies fell from 16
+and 48 per batch to zero, with equal result checksums in every sample. This
+measures a reader-then-write workload, not a speedup of either demo's
+original whole program. Tests cover compiled and interpreted loops,
+redefined builtins, a non-flat cross-argument guard, repeated arguments and
+a returned alias.
+
+The same benchmark also measures calls without the later write. Both modes
+made zero copies. Median batch times were 1.00 ms without inferred borrowing
+and 0.97 ms with it for `max_subarray`, and 3.38 ms versus 3.31 ms for
+`best_score`. These small differences do not establish a speedup for the
+original demos. The borrowing benefit depends on an input being written after
+the reader call; neither original demo does that. Do not extend this proof
+solely to increase candidate counts. Find a measured end-to-end workload
+before broadening it further.
 
 Gate: interpreted and optimized results/errors agree; deterministic ownership
 or copy-path tests prove that a copy is avoided; repeated benchmarks show the
@@ -353,11 +636,13 @@ of faster execution. Keep failed experiments documented and out of the runtime.
 
 ## Immediate next delivery
 
-Extend stage 2 effects only as needed for a concrete diagnostic or borrow case.
-Add paired analysis and runtime regressions before changing the borrowing
-convention again. Choose the next execution optimization from a measured demo
-bottleneck. The current CoW demo measurements do not show that broader escape
-analysis would make those demos faster.
+Choose one unchanged demo with a measured bottleneck before extending the
+analysis again. Name the diagnostic or runtime decision that the new fact
+would change, then compare that decision and whole-workload cost with the
+current analyzer. If the new rule only increases candidate counts, stop that
+line of work. Add paired analysis and runtime regressions before changing the
+borrowing convention again. The current CoW measurements do not show that
+broader escape analysis would make the original demos faster.
 
 Related plans: [performance](performance-roadmap.md),
 [value semantics](value-semantics.md), [tensor fusion](tensor-fusion-plan.md),

@@ -57,6 +57,15 @@ G Mask sum`)).toBe(5n);
         } finally { interpreter.dispose(); }
     });
 
+    it('materializes no cells when a generator skips its only yield', () => {
+        expect(run('use sequences\nfun empty\n if false\n  yield 1\n end\nend\nA = empty array\nA shape'))
+            .toBe('0');
+    });
+
+    it('does not check yielded types at runtime', () => {
+        expect(run('use sequences\nfun mixed\n yield 1\n yield "x"\nend\nmixed array')).toBe('1 x');
+    });
+
     it('uses nullary results as selectors and independent operands', () => {
         expect(run(`use numbers
 fun pos

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter } from '../src/index.js';
+import { Interpreter, createArraySnapshot } from '../src/index.js';
 
 function run(shapes: number[][], body: string, fused: boolean) {
     let kernels = 0;
@@ -12,11 +12,10 @@ use numbers
 fun probe A B C
   ${body}
 end`);
-        const args = shapes.map((shape, n) => ({
-            kind: 'array' as const, shape,
-            items: Array.from({ length: shape.reduce((a, b) => a * b, 1) },
-                (_, i) => BigInt((i + n) % 7 + 1)),
-        }));
+        const args = shapes.map((shape, n) => createArraySnapshot(
+            Array.from({ length: shape.reduce((a, b) => a * b, 1) },
+                (_, i) => BigInt((i + n) % 7 + 1)), shape,
+        ));
         const fn = runtime.variables.get('probe')!;
         if (typeof fn !== 'object' || fn.kind !== 'function') throw new Error('missing probe');
         const result = fn.call(args);

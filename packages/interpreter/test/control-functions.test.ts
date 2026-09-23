@@ -135,6 +135,19 @@ describe('Rank control flow and functions', () => {
         ].join('\n'))).toBe('true');
     });
 
+    it('can catch a function that reaches its end without returning', () => {
+        expect(run([
+            'fun fail',
+            '  X = 1',
+            'end',
+            'try',
+            '  fail',
+            'catch Error',
+            '  Error .Message',
+            'end',
+        ].join('\n'))).toBe('function fail reached end without return');
+    });
+
     it('raises, catches and rethrows user errors', () => {
         expect(run([
             'try',

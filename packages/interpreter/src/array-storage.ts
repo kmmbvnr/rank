@@ -9,14 +9,15 @@ export function eagerArrayStorage(value: RankValue): {
     shape: readonly number[]; read: (index: number) => RankValue;
 } | undefined {
     const owned = typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
-    if (!owned && (!isRankArray(value) || 'itemAt' in value)) return undefined;
-    if (owned && !owned.stable) return undefined;
-    const items = owned?.items ?? Object.getOwnPropertyDescriptor(value, 'items')?.value;
+    // A host array may expose observable item getters (including through a
+    // Proxy). Inspecting its cells to select a fast path would read ahead.
+    if (!owned?.stable) return undefined;
+    const items = owned.items;
     if (!Array.isArray(items)
         || !items.every(item => typeof item === 'number' || typeof item === 'bigint' || typeof item === 'boolean')) {
         return undefined;
     }
-    return { shape: owned?.shape ?? (value as RankArray).shape, read: index => items[index] };
+    return { shape: owned.shape, read: index => items[index] };
 }
 
 /** A shallow copy for our JS callers, not an immutability or isolation boundary. */
@@ -513,6 +514,31 @@ export function prepareArrayReader(
             offset = offset * shape[axis] + position;
         }
         return items[offset];
+    };
+}
+
+/** One-axis compiled reads avoid allocating a selector tuple for every cell. */
+export function prepareScalarArrayReader(
+    value: RankValue | undefined,
+    fallback: (source: RankArray, indices: readonly bigint[]) => RankValue,
+    stableReads = false,
+): (index: bigint) => RankValue {
+    const array = value as RankArray;
+    if (!value || !isRankArray(value) || array.shape.length !== 1) return index => fallback(array, [index]);
+    const state = borrowedStorage.get(array);
+    const cached = !state && stableReads && arrayRevision(array) !== undefined
+        ? materializedArrayItems(array) : undefined;
+    if (!state && !cached) return index => fallback(array, [index]);
+    if (cached) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.hoistedReaders++;
+    }
+    const items = state?.items ?? cached!, length = array.shape[0];
+    return index => {
+        if (index < 0n) throw new MissingValueError('array index out of bounds on axis 0');
+        const position = Number(index);
+        if (position >= length) throw new MissingValueError(`array index out of bounds on axis 0: ${index}`);
+        return items[position];
     };
 }
 

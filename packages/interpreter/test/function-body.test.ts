@@ -26,6 +26,11 @@ function compare(source: string, options?: InterpreterOptions) {
 }
 
 describe('compiled function body completion', () => {
+    it('keeps a function loop binder local when a global has the same name', () => {
+        const result = compare('I = 99\nfun count A\n Total = 0\n for I in 0 until (A len)\n  Total += A I\n end\n return Total\nend\n(array 2 3) count\nI');
+        expect(result).toMatchObject({ value: '99' });
+    });
+
     it.each(['0', 'false', '""'])('returns %s without treating it as missing', value => {
         const result = compare(`fun answer X\n  Y = X\n  return Y\nend\n${value} answer`);
         expect(result.entries).toBeGreaterThan(0);

@@ -3,6 +3,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { expressionFacts, incompatibleShapes, type ValueFacts } from '../src/analysis/value-facts.js';
+import { typeOf } from '../src/analysis/types.js';
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });
@@ -40,6 +41,39 @@ it('uses supplied facts without evaluating bindings', () => {
     expect(facts('array shape N fill 0', new Map([['N', {
         types: ['integer'], rank: 0, shape: [], integer: '5',
     }]])).shape).toEqual([5]);
+});
+
+it('keeps proven numeric builtins and arithmetic scalar', () => {
+    const bindings = new Map<string, ValueFacts>([['A', {
+        types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
+    }], ['I', { types: ['integer'], rank: 0, shape: [] }]]);
+    expect(facts('A len', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('A I', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('(A I) + 1', bindings)).toMatchObject({ rank: 0 });
+    expect(facts('(A I) max 1', bindings)).toMatchObject({ rank: 0 });
+    expect(facts('1 max 2', new Map([['max', { types: ['function'] }]]))).not.toMatchObject({ rank: 0 });
+});
+
+it('keeps collection kinds through mapped numeric operations and ranked modifiers', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['M', { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'] }],
+        ['V', { types: ['array'], rank: 1, shape: [3], elements: ['integer'] }],
+        ['W', { types: ['array'], rank: 1, shape: [3], elements: ['integer'] }],
+    ]);
+    expect(facts('M sum axis 1', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3] });
+    expect(facts('V W + outer', bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [3, 3] });
+    expect(facts('(M 0 max) sqrt', bindings).types).toEqual(['array']);
+    expect(facts('M round 2', bindings).types).toEqual(['array']);
+    expect(facts('-M', bindings).types).toEqual(['array']);
+    expect(facts('V W matmul', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>('A = M sqrt\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(typeOf(statement.value, name => bindings.get(name)?.types)).toEqual(['array']);
+});
+
+it('does not mistake a plain lookup function for a call resolver', () => {
+    expect(facts('1 helper', new Map([['helper', { types: ['function'] }]]))).toEqual({ types: [] });
 });
 
 it('propagates finite range lengths through materialization', () => {

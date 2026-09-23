@@ -29,7 +29,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
-    flatArrayBorrowCandidates,
+    flatArrayBorrowProofs,
     REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS,
     isAddStatement,
     isAliasedTableExpression,
@@ -343,7 +343,7 @@ interface FunctionDefinition {
 }
 interface BorrowProof {
     readonly bindings: ReadonlyMap<string, RankValue | undefined>;
-    readonly candidates: ReadonlySet<number>;
+    readonly candidates: ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>>;
 }
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 
@@ -3199,14 +3199,17 @@ export class Interpreter {
             ? this.borrowCandidates(statement, parent) : undefined;
         statement.parameters.forEach((parameter, index) => {
             const argument = arguments_[index];
+            const guards = candidates?.get(index);
             const borrowed = isFlatScalarArray(argument)
-                && (prepared.borrowedParameters.has(parameter) || !!candidates?.has(index));
+                && (prepared.borrowedParameters.has(parameter)
+                    || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
+                        ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
             frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
         });
         return frame;
     }
 
-    private borrowCandidates(statement: FunctionStatement, parent: LocalFrame | undefined): ReadonlySet<number> {
+    private borrowCandidates(statement: FunctionStatement, parent: LocalFrame | undefined): ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>> {
         const cache = parent ? this.localBorrowProofs.get(parent) : this.globalBorrowProofs;
         const current = cache?.get(statement);
         const lookup = (name: string) => parent?.lookup(name) ?? this.variables.get(name);
@@ -3214,7 +3217,7 @@ export class Interpreter {
             return current.candidates;
         }
         const bindings = new Map<string, RankValue | undefined>();
-        const candidates = flatArrayBorrowCandidates(statement, name => {
+        const candidates = flatArrayBorrowProofs(statement, name => {
             // These names bypass ordinary variable lookup in resolve().
             if (name.includes('.') || name === 'index' || name === 'queue'
                 || name === 'set' || name === 'counter') return undefined;
@@ -3222,6 +3225,12 @@ export class Interpreter {
             bindings.set(name, bound);
             const helper = bound && isNativeFunction(bound) ? functionDefinitions.get(bound) : undefined;
             return helper?.interpreter === this && helper.context === parent ? helper.statement : undefined;
+        }, name => {
+            const bound = lookup(name);
+            bindings.set(name, bound);
+            const expected = standardModules.core[name];
+            const actual = bound ?? this.resolve(name);
+            return actual === this.standardFunctions.get(expected);
         });
         const proof = { bindings, candidates };
         if (parent) {

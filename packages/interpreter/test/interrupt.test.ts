@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
+import { Interpreter, createArraySnapshot, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
 import { checkpoint, InterruptedError, interruptsEnabled, interruptibleCallback, interruptibleValues, withInterrupt, type InterruptSignal, type PauseSnapshot } from '../src/interrupt.js';
 import { sortValue } from '../src/modules/sequences.js';
 import { linalgModule } from '../src/modules/linalg.js';
@@ -17,7 +17,7 @@ function cancel<T>(run: () => T): T {
 
 const context = { output() {}, random: Math.random, seedRandom() {}, ownFile() {} };
 
-const vector = (size: number): RankArray => ({ kind: 'array', shape: [size], items: Array.from({ length: size }, (_, i) => BigInt(size - i)) });
+const vector = (size: number): RankArray => createArraySnapshot(Array.from({ length: size }, (_, i) => BigInt(size - i)));
 
 describe('interactive host cancellation', () => {
     it('steps through a host signal without replaying or losing variables', () => {

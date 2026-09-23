@@ -88,6 +88,24 @@ end
         runtime.dispose();
     });
 
+    it('does not probe host array cells while choosing the fast path', () => {
+        const runtime = new Interpreter();
+        runtime.execute('fun fused A B\n  return (A * 2 + B) + reduce\nend');
+        const reads: string[] = [];
+        const host = (name: string): RankArray => ({
+            kind: 'array', shape: [2], containsFiles: false,
+            items: new Proxy([1n, 2n], {
+                get(items, key, receiver) {
+                    if (key === '0' || key === '1') reads.push(`${name}${key}`);
+                    return Reflect.get(items, key, receiver);
+                },
+            }),
+        });
+        expect(call(runtime, 'fused', host('a'), host('b'))).toBe(9n);
+        expect(reads).toEqual(['a0', 'b0', 'a1', 'b1']);
+        runtime.dispose();
+    });
+
     it('reads lazy operands in tree order and observes mutations between calls', () => {
         const runtime = new Interpreter();
         runtime.execute('fun fused A B\n  return (A + (B * 2)) + reduce\nend');

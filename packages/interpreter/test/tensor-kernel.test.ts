@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, type RankArray, type RankValue } from '../src/index.js';
 import { RankError } from '../src/errors.js';
 import { TokenInput } from './support.js';
 
@@ -48,6 +48,32 @@ B = array true false true false true
 A B 3 probe print`;
 
 describe('tensor pipeline fusion', () => {
+    it('declines host arrays without probing their cells', () => {
+        const source = probe.replace('A = array 1 2 3\nB = array true false true false true\n', '');
+        const execute = (fused: boolean) => {
+            const reads: string[] = [];
+            let kernels = 0;
+            const runtime = new Interpreter(() => {}, {
+                tensorFusion: fused, onTensorKernelExecuted: () => kernels++,
+            });
+            const host = (name: string, items: RankValue[]): RankArray => ({
+                kind: 'array', shape: [items.length], containsFiles: false,
+                items: new Proxy(items, {
+                    get(values, key, receiver) {
+                        if (typeof key === 'string' && /^\d+$/.test(key)) reads.push(`${name}${key}`);
+                        return Reflect.get(values, key, receiver);
+                    },
+                }),
+            });
+            runtime.variables.set('A', host('a', [1n, 2n, 3n]));
+            runtime.variables.set('B', host('b', [true, false, true, false, true]));
+            try { return { value: formatValue(runtime.execute(source)!), reads, kernels }; }
+            finally { runtime.dispose(); }
+        };
+        const reference = execute(false);
+        const compiled = execute(true);
+        expect(compiled).toEqual({ ...reference, kernels: 0 });
+    });
     it('fuses an independently named pipeline and preserves all', () => {
         expect(compare(probe)).not.toHaveProperty('error');
         expect(compare(probe)).toMatchObject({ output: ['true'], kernels: 2 });

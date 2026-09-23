@@ -1897,6 +1897,11 @@ changing what it already emitted. Local variables retain their values between
 yields. Errors in the body are raised only when
 iteration reaches the failing statement.
 
+If execution reaches no `yield`, the generator produces an empty sequence.
+The edit-time analyzer reports different yielded types when it can prove them,
+including from known call arguments. Unknown types are not rejected. The
+interpreter does not check that yielded items have one type.
+
 User generators are single-pass because they may read input, use files or
 perform other effects. A second attempt to consume the same generator sequence
 raises `.ConsumedSequence`; call the function again to create a new sequence.

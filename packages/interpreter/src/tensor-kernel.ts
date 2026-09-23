@@ -8,7 +8,7 @@ import {
 } from '@arrrank/language';
 import { type RankValue, isRankArray } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { materializedArrayItems, ownedArray } from './array-storage.js';
+import { arrayRevision, materializedArrayItems, ownedArray } from './array-storage.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
@@ -138,6 +138,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 if (numeric(value) || typeof value === 'boolean' || host.textDigits && typeof value === 'string') {
                     result = { scalar: value, boolean: typeof value === 'boolean', slot: scalars.push(value!) - 1 };
                 } else if (value && isRankArray(value)) {
+                    // Host-owned arrays can run getters while probing their
+                    // cells. Only tracked storage is safe to inspect here.
+                    if (arrayRevision(value) === undefined) return undefined;
                     const items = materializedArrayItems(value);
                     if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
                         || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;

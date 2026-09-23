@@ -38,6 +38,18 @@ explicit array dimensions, arithmetic broadcasting, reshape element counts,
 finite one-dimensional windows, scalar/whole-axis addressing and rank bounds.
 Assignments and return branches in function bodies can be analyzed at a call
 site; recursive and unsupported control flow remains unknown.
+Only paths that execute `return` contribute a function result type. Reaching
+the end throws instead of returning an unknown value. The pass stops after a
+direct call to a non-generator function with no `return`. Calls under
+`try/catch` and conditional calls keep conservative effect facts because
+execution may continue on another path.
+
+A generator call has sequence type even if its body yields no item on that
+run. The analyzer joins possible element types from name-free `yield`
+expressions and from parameters that cannot be rebound. It leaves element
+types unknown for mutable captures and unsupported paths. Different yielded
+types remain possible at runtime, but the analyzer reports an error when it
+can prove a generator yields different types. It adds no runtime check.
 
 Call-site facts survive functions with plain local assignments, arithmetic,
 array literals and calls to other supported functions. This lets the checker
@@ -60,12 +72,31 @@ The pass also accepts a top-level function's private eager literal array when
 its first statement creates the array and neither reassigns nor writes it.
 This covers a direct read or a read through a resolved helper. A local alias,
 unknown cell or later write does not qualify.
+For effect summaries, a direct indexed write to that private array is local
+when the array is not rebound and no nested function can retain it. This
+preserves unrelated caller facts. A value taken from an argument or capture
+can escape through a returned array cell, so the return origin stays unknown.
+The eager-reader proof retains the array only when every direct indexed write
+replaces one cell with a numeric, boolean or symbol literal. Values read from
+arguments and whole-axis replacements still lose that proof.
+The summary records bare reads of captured names separately from indexed reads.
+For a top-level function called from another function, a captured read or
+indexed write uses the top-level call environment even if the caller has a
+parameter with the same name. A direct nested helper maps reads and writes of
+its parent's unrebound parameter to that parameter. A nested reader chain can
+also read a private eager scalar-literal array from its parent. Rebound
+parameters and uncertain lexical captures still fall back.
+It also marks direct and helper-mediated `stdin` use and catalogued I/O
+operations. Host callbacks may re-enter Rank, so diagnostics still discard
+value facts across such a call. A shadowed operation name stays unknown.
+Direct operations catalogued as I/O, random or mutating also discard facts.
+Uncatalogued external calls remain unknown.
 It also records return origins: a parameter, captured name, input-free
 expression or unknown. Straight-line local assignments and supported helper
 returns can carry these origins; branch paths join conservatively. A helper's
 capture cannot be identified by the caller's bare name, so it remains unknown.
-Possible fallthrough also remains unknown. This return summary is not yet
-consumed by borrowing or the compiler.
+Fallthrough is an error path, not a returned value. This return summary is not
+yet consumed by borrowing or the compiler.
 
 Known integer or whole-axis replacement of array cells now preserves facts for
 other array bindings, following array value semantics and copy-on-write. Direct
@@ -90,7 +121,7 @@ runtime checks.
 
 Recursive calls, dynamic function arguments, compound assignments, writes
 through local aliases or rebound parameters, loops, functions without returns,
-and unsupported expressions including I/O remain unknown. Unknown effects
+and unsupported expressions or external I/O remain unknown. Unknown effects
 keep the previous full invalidation behavior. The summary is for diagnostics,
 not a public purity annotation or permission for the compiler to remove guards.
 

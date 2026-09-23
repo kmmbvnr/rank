@@ -48,6 +48,8 @@ export interface Operation {
     /** Present when the result is produced on demand rather than at once. */
     readonly lazy?: true;
     readonly effects?: readonly Effect[];
+    /** Proven scalar integer operands cannot invoke a Rank callback. Throws are allowed. */
+    readonly scalarIntegerNoCallback?: true;
 }
 
 /** A library module or the always-available core catalogue group. */
@@ -361,7 +363,8 @@ export const operations: readonly Operation[] = [
     { name: 'binomial', module: 'numbers', arities: [2], form: 'N K binomial', result: 'integer',
         dyadicRanks: [0, 0], summary: 'Exact binomial coefficient.' },
     { name: 'binomialmod', module: 'numbers', arities: [3], form: 'N K Modulus binomialmod',
-        result: 'integer', summary: 'Binomial coefficient calculated directly modulo a prime.' },
+        result: 'integer', scalarIntegerNoCallback: true,
+        summary: 'Binomial coefficient calculated directly modulo a prime.' },
     { name: 'cos', module: 'numbers', arities: [1], form: 'Angle cos', result: 'real',
         summary: 'Cosine of an angle in radians.' },
     { name: 'cosh', module: 'numbers', arities: [1], form: 'Value cosh', result: 'real',
@@ -369,7 +372,7 @@ export const operations: readonly Operation[] = [
     { name: 'divisors', module: 'numbers', arities: [1], form: 'N divisors', result: 'sequence',
         lazy: true, summary: 'Lazy ascending sequence of the positive divisors.' },
     { name: 'even', module: 'numbers', arities: [1], form: 'Value even', result: 'boolean',
-        summary: 'True for an even integer.' },
+        scalarIntegerNoCallback: true, summary: 'True for an even integer.' },
     { name: 'exp', module: 'numbers', arities: [1], form: 'Value exp', result: 'real',
         summary: 'Natural exponential.' },
     { name: 'factors', module: 'numbers', arities: [1], form: 'N factors', result: 'sequence',
@@ -392,7 +395,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: [0, 0],
         summary: 'Smaller of two numbers, or the smallest of one collection.' },
     { name: 'odd', module: 'numbers', arities: [1], form: 'Value odd', result: 'boolean',
-        summary: 'True for an odd integer.' },
+        scalarIntegerNoCallback: true, summary: 'True for an odd integer.' },
     { name: 'powmod', module: 'numbers', arities: [3], form: 'Base Exponent Modulus powmod',
         result: 'integer',
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
