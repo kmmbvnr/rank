@@ -355,12 +355,19 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     inspect(index.value, env);
                 }
                 invalidateCalls(statement.value, env);
-                inspect(statement.value, env);
+                const replacement = inspect(statement.value, env);
                 const fact = env.get(statement.name);
                 if (isPlainArrayWrite(statement, value => expressionFacts(value, name => env.get(name)).types.join() === 'integer')
                     && fact?.types.length
                     && fact.types.every(type => type === 'array')) {
-                    env.set(statement.name, { ...fact, elements: undefined, integers: undefined });
+                    // Keep old element types as conservative possibilities;
+                    // a known scalar replacement adds its possible types.
+                    const oneCell = statement.indices.length === 1 && !statement.indices[0].all
+                        && fact.rank === 1 && isAtom(replacement) && replacement.types.length > 0;
+                    env.set(statement.name, { ...fact,
+                        elements: oneCell && fact.elements?.length
+                            ? [...new Set([...fact.elements, ...replacement.types])] : undefined,
+                        integers: undefined });
                 } else {
                     for (const [name, value] of env) if (!value.types.includes('function')) env.set(name, invalidate(value));
                 }

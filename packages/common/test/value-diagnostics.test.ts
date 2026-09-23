@@ -33,6 +33,33 @@ it('retains shape diagnostics for a separate array after a draft write', () => {
     } finally { session.dispose(); }
 });
 
+it('retains cell-type diagnostics after a safe draft replacement', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        for (const source of ['A = array 1 2', 'B = A', 'A 0 = 3']) repl.notebook.enqueue(source);
+        repl.notebook.replace('A + (array true false)');
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        expect(text()).toContain('operator + does not accept integer and boolean');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace('A + (array 3 4)');
+        expect(text()).not.toContain('does not accept');
+    } finally { session.dispose(); }
+});
+
+it('recomputes cell types after an earlier source edit', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace('A = array 1 2');
+        await repl.submit();
+        repl.notebook.replace('A 0 = 3\nA + (array true false)');
+        expect(repl.diagnosticOutputs?.get(2)?.[0].text).toContain('integer and boolean');
+        repl.notebook.cells[0].source = 'A = array shape 2 fill X';
+        expect(notebookValueDiagnostics(repl.notebook, session.diagnosticFacts).size).toBe(0);
+    } finally { session.dispose(); }
+});
+
 it('invalidates cached hints when a later local test changes', () => {
     const session = createReplSession();
     try {

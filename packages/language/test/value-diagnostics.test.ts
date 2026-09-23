@@ -217,6 +217,28 @@ it('uses proven integer selectors through assignments and branch joins', () => {
         .toEqual([]);
 });
 
+it('retains known cell types after a proven single-cell replacement', () => {
+    const code = 'A = array 1 2\nB = A\nA 0 = 3\n';
+    expect(messages(code + 'A + (array true false)'))
+        .toEqual(['operator + does not accept integer and boolean']);
+    expect(messages(code + 'B + (array true false)'))
+        .toEqual(['operator + does not accept integer and boolean']);
+    expect(messages('A = array 1 2\nif Flag\n A 0 = 3\nend\nA + (array true false)'))
+        .toEqual(['operator + does not accept integer and boolean']);
+    expect(messages('A = array 1 2\nA 0 = true\nA + (array 3 4)')).toEqual([]);
+    expect(messages('A = array 1 2\nA # = 3\nA + (array true false)')).toEqual([]);
+});
+
+it('keeps array values separate across rebinding and joined write paths', () => {
+    expect(messages('A = array 1 2\nB = A\nA = array 3 4 5\nB + A'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    const prefix = 'A = array 1 2\nC = array 3 4 5\nif Flag\n B = A\nelse\n B = C\nend\nB 0 = 9\n';
+    expect(messages(prefix + 'A + C')).toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages(prefix + 'B + A')).toEqual([]);
+    expect(messages('A = array 1 2\nB = A * 2\nA 0 = 9\nB + (array 1 2 3)'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+});
+
 it('distinguishes local assignment from a possible nested capture', () => {
     expect(messages('A = array 1 2\nfun change\n A = array 1 2 3\n return 0\nend\nchange\nA + (array 1 2)'))
         .toEqual([]);

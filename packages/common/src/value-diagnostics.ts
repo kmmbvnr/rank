@@ -52,7 +52,8 @@ export function notebookValueDiagnostics(book: Notebook, runtime: readonly [stri
             const inferred = bindings.get(name);
             // Runtime metadata omits array cells. Keep proven source element
             // types only for an unchanged sequential prefix with matching shape.
-            // Calls and element writes invalidate these facts in the analyzer.
+            // Effectful calls and unsupported writes invalidate these facts in
+            // the analyzer; proven single-cell scalar writes may retain them.
             const elements = sequential && inferred?.types.join() === fact.types.join()
                 && inferred.rank === fact.rank && inferred.shape?.length === fact.shape?.length
                 && inferred.shape?.every((size, axis) => size === fact.shape![axis])

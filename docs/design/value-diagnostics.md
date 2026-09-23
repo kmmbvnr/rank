@@ -61,9 +61,14 @@ Known integer or whole-axis replacement of array cells now preserves facts for
 other array bindings, following array value semantics and copy-on-write. Direct
 writes can use a proven integer selector from a binding; function summaries
 currently require literal integer selectors.
+A direct single-cell replacement in a rank-1 array also keeps the known
+element types when the new cell is a known scalar. It adds the replacement
+type to the possible element types and discards exact element values. Whole-axis
+and unknown replacements still discard element types.
+
 A write through a parameter changes that parameter's value, not its caller's array.
 A write to a captured array binding discards its element facts but keeps its
-rank and shape. Direct writes follow the same rule. Plain assignment inside a
+rank and shape. Plain assignment inside a
 top-level function creates a local binding. Plain assignment inside a nested
 function may find an enclosing frame and is treated as unknown. Other indexed
 structures retain full invalidation because their writes may invoke callbacks.

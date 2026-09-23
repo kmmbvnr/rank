@@ -3,9 +3,10 @@
 Status: proposed implementation sequence, based on the implementation on
 2026-09-23. This plan does not introduce syntax or change runtime semantics.
 
-The first delivery covers direct array replacements with proven integer or
-whole-axis selectors and supported function writes under array value semantics.
-Other provenance cases in stage 1 remain open.
+Stages 0–1 are complete for the supported array-value diagnostic scope: fresh
+bindings, direct aliases, rebinding, branch joins and proven indexed writes.
+Unknown calls, nested references and host-owned storage still fall back to
+unknown facts. This is not an ownership proof for the compiler.
 
 Stage 2 has started with return-origin summaries. They distinguish an input-free
 result from a returned parameter or capture, including straight-line local
@@ -56,7 +57,7 @@ in execution only when a transformation has all the proofs it needs.
 
 | Component | Implemented scope | Boundary |
 | --- | --- | --- |
-| Language value facts and diagnostics | Types, element types, rank, partial shapes, selected operations, call-site inference, branch joins and simple loops | Unsupported paths remain unknown; not a whole-program proof |
+| Language value facts and diagnostics | Types, element types, rank, partial shapes, selected operations, call-site inference, branch joins and simple loops; safe single-cell writes retain possible element types | Unsupported paths remain unknown; not a whole-program proof |
 | Shared REPL diagnostics | Metadata snapshots, edit invalidation, same-file and host-loaded `_test.ra` examples | No test execution or array-cell inspection; browser companion loading needs a host |
 | Diagnostic function effects | Possible indexed writes to parameters/captures and supported helper calls | Preserves scalar facts for known array writes; conservatively drops reference facts; no escape analysis |
 | Integer-loop compiler | Uses `expressionFacts` for specialization hints and checks inputs on entry | Does not consume the new diagnostic effect summary as a safety proof |
@@ -82,32 +83,27 @@ implemented. Type and rank diagnostics already run before execution in the
 REPL and editor. Array bindings keep their rank while axis lengths may change.
 Unknown cases still need runtime checks. The stages below extend that baseline:
 
-1. **Finish value provenance and selective invalidation (stages 0–1).** The
-   direct array-write cases are covered. Add regression cases and analysis for
-   local aliases, branch joins, nested/reference-bearing values, lazy snapshots
-   and host-written storage. Preserve facts about unaffected arrays without
-   retaining stale facts after an unsupported write.
-2. **Complete function result and effect summaries (stage 2).** Return origins
+1. **Complete function result and effect summaries (stage 2).** Return origins
    and some parameter/capture writes are known. Distinguish local writes from
    captured or reachable writes, reads of mutable captures, I/O and transitive
    helper effects. Map summaries to the actual call and binding; recursion,
    dynamic callbacks and unsupported calls remain conservative.
-3. **Prove non-escape and broaden inferred borrowing (stages 3–4).** The current
+2. **Prove non-escape and broaden inferred borrowing (stages 3–4).** The current
    runtime borrows only guarded flat scalar arrays read directly or through a
    narrow helper chain. Cover more reader patterns only after proving no write
    and no escape through a return, closure, generator or retained container.
    Test repeated arguments and helper replacement. Keep ordinary CoW binding
    whenever the proof fails. Measure copy savings and elapsed time separately;
    the current demo profile does not justify broad liveness work for CoW alone.
-4. **Use stable proofs in compiled regions (stage 5).** Remove repeated type or
+3. **Use stable proofs in compiled regions (stage 5).** Remove repeated type or
    element checks and generic array dispatch only where guards and effect
    boundaries make that safe. Bounds-check removal needs its own index-range and
    stable-shape proof. Differential tests must preserve error order and writes.
-5. **Extend edit-time diagnostics (stage 6).** Add supported `is` narrowing,
+4. **Extend edit-time diagnostics (stage 6).** Add supported `is` narrowing,
    loop fixed points, reachable `break`/`continue`/return paths, result-shape
    relationships and missing operation rules. Function tests remain examples,
    never universal type contracts or compiler proofs.
-6. **Consider buffer reuse and in-place lowering only for measured bottlenecks
+5. **Consider buffer reuse and in-place lowering only for measured bottlenecks
    (stage 7).** Prove last use and absence of observers before reusing storage;
    retain CoW as the fallback. The Roc/Koka/Perceus-style implementation idea
    does not add Rust-style ownership annotations or move errors to Rank.
@@ -149,6 +145,11 @@ it does not wait for complete language coverage in stage 6.
 
 ### 0. Lock down the semantic baseline
 
+Status: complete for the paired value-semantics cases used by diagnostics.
+The interpreter tests distinguish array aliases, parameter writes, captured
+bindings, nested reference values and retained lazy readers. Unsupported host
+effects remain an unknown boundary in the diagnostic pass.
+
 Audit the current effect pass against value semantics before extending it.
 Add paired analysis/runtime cases for assignment, parameter passing, returned
 arrays, captured writes, nested values, lazy snapshots and host-written storage.
@@ -165,10 +166,21 @@ effect pass agrees with them. No optimization change in this stage.
 
 ### 1. Track value provenance and selective invalidation
 
+Status: complete for the supported array-value diagnostic scope. The analyzer
+keeps facts per binding, so a direct alias can share storage at runtime without
+sharing later writes as a logical value. It joins facts after branches and
+discards exact element values after a write; a known rank-1 single-cell scalar
+replacement retains the union of possible element types. There is no static
+reference count or general object-graph provenance map. Unknown calls, nested
+references and host-owned values keep conservative invalidation. Language,
+REPL and runtime tests cover aliases, rebinding, branch writes, lazy snapshots,
+unsupported effects and edits to earlier source.
+
 Start with fresh array construction, direct assignments, rebinding and direct
 indexed writes in straight-line code. Distinguish binding identity, logical
-array value and possible shared storage. Extend to branch joins next; differing
-origins form a conservative set, with a budget that falls back to unknown.
+array value and possible shared storage. At branch joins, retain only facts
+supported by every reachable path; differing dimensions become unknown. The
+pass does not retain a set of physical storage origins.
 
 Classify what a write can invalidate: element facts, dimensions, the current
 value or an entire unknown reachable region. Preserve accepted binding contracts.
@@ -337,12 +349,11 @@ of faster execution. Keep failed experiments documented and out of the runtime.
 
 ## Immediate next delivery
 
-Finish the unsupported provenance cases in stage 1 and extend stage 2 effects
-only as needed for a concrete diagnostic or borrow case. Add paired analysis
-and runtime regressions before changing the borrowing convention again. Choose
-the next execution optimization from a measured demo bottleneck; the current
-CoW demo measurements do not show that broader escape analysis would make
-those demos faster.
+Extend stage 2 effects only as needed for a concrete diagnostic or borrow case.
+Add paired analysis and runtime regressions before changing the borrowing
+convention again. Choose the next execution optimization from a measured demo
+bottleneck. The current CoW demo measurements do not show that broader escape
+analysis would make those demos faster.
 
 Related plans: [performance](performance-roadmap.md),
 [value semantics](value-semantics.md), [tensor fusion](tensor-fusion-plan.md),

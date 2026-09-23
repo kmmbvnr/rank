@@ -22,6 +22,15 @@ describe('value semantics for arrays', () => {
         expect(run(`${SEQ}A = array 1 2 3\nB = A\nB 0 = 9\nB 1 = 8\nA`)).toBe('1 2 3');
     });
 
+    it('keeps branch-selected aliases separate after a write', () => {
+        const source = `${SEQ}A = array 1 2\nC = array 3 4 5\n`;
+        for (const condition of ['true', 'false']) {
+            const branch = `if ${condition}\n B = A\nelse\n B = C\nend\nB 0 = 9\n`;
+            expect(run(`${source}${branch}A`)).toBe('1 2');
+            expect(run(`${source}${branch}C`)).toBe('3 4 5');
+        }
+    });
+
     it('does not let a function change its caller', () => {
         const bump = `${SEQ}fun bump V\n  V 0 = 99\n  return V\nend\nA = array 1 2 3\n`;
         expect(run(`${bump}C = A bump\nA`)).toBe('1 2 3');
