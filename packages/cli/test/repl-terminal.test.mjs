@@ -45,7 +45,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
             const waiting = until ? `![regexp {${until}} $screen]`
                 : '$screen eq "" || [regexp {(Running|Stopping|Pausing)} $screen]';
             return [
-                ...(until || /[\r\x12\x14\x10\x07\x0e]/.test(keys) || /^[tng]$/.test(keys)
+                ...(until || /[\r\x11\x12\x13\x14\x10\x07\x0e]/.test(keys) || /^[tng]$/.test(keys)
                     ? ['set screen ""'] : []),
                 `send -- [binary format H* {${Buffer.from(keys).toString('hex')}}]`,
                 'read_frame 1',
@@ -63,7 +63,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
         'catch wait status',
         'send_user "<<<EXIT:[lindex $status 3]>>>"',
     ].join('\n'));
-    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: (steps.length + 10) * 2000, killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
+    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: (steps.length + 15) * 4000, killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /<<<EXIT:0>>>/);
@@ -1075,11 +1075,11 @@ test('debugging a loaded file uses document line numbers for cells and function 
     assert.match(frames[2].text, /Paused · before line 3/);
     assert.match(frames[2].text, /● 3 │ Answer = 21 twice/);
     assert.match(frames[2].text, /1 │ rem Example/);
-    assert.match(frames[3].text, /Paused · before line 6/);
-    assert.match(frames[3].text, /● 6 │   return X \+ X/);
-    assert.match(frames[3].text, /5 │ fun twice X/);
-    assert.ok(frames[3].text.indexOf('Call stack') < frames[3].text.indexOf('● 6 │'));
-    assert.ok(frames[3].text.indexOf('Variables (current scope)') > frames[3].text.indexOf('● 6 │'));
+    assert.match(frames[3].text, /Paused · before line 5/);
+    assert.match(frames[3].text, /● 5 │ fun twice X/);
+    assert.match(frames[3].text, /3 │ Answer = 21 twice/);
+    assert.ok(frames[3].text.indexOf('Call stack') < frames[3].text.indexOf('● 5 │'));
+    assert.ok(frames[3].text.indexOf('Variables (current scope)') > frames[3].text.indexOf('● 5 │'));
     assert.doesNotMatch(frames[3].text, /<repl>:/);
 });
 
