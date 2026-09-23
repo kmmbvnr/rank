@@ -10,6 +10,8 @@ with main and list the remaining host-array and scalar-addressing costs.
 The [flat segment comparison](flat-segment-results.md) measures retained memory,
 builds, queries, and updates with JavaScript and Rank combine functions.
 The [speed follow-up](flat-segment-speed.md) measures scalar combine specialization.
+The [Arrow table experiment](arrow-titanic-experiment.md) compares retained
+memory and feature preparation on synthetic Titanic rows.
 
 ## Benchmark commands
 

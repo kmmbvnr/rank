@@ -137,6 +137,7 @@ Structures, modules, and query syntax that extend the core language via `use`:
 - [Mobile hardware and live shaders](design/mobile-graphics.md)
 - [Parallel tensor worker results](design/tensor-workers-results.md)
 - [Performance measurements and benchmark commands](design/performance-measurements.md)
+- [Arrow table storage experiment](design/arrow-titanic-experiment.md)
 
 ---
 
