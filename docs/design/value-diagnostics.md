@@ -51,8 +51,10 @@ and captured objects. Calls to supported helpers map written parameters back to
 the caller's parameters. Conditional effects include all branches. The pass
 uses current function binding identities and a budget of 100 definitions.
 
-Known literal-integer or whole-axis replacement of array cells now preserves
-facts for other array bindings, following array value semantics and copy-on-write.
+Known integer or whole-axis replacement of array cells now preserves facts for
+other array bindings, following array value semantics and copy-on-write. Direct
+writes can use a proven integer selector from a binding; function summaries
+currently require literal integer selectors.
 A write through a parameter changes that parameter's value, not its caller's array.
 A write to a captured array binding discards its element facts but keeps its
 rank and shape. Direct writes follow the same rule. Plain assignment inside a

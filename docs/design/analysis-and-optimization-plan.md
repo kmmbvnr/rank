@@ -3,9 +3,9 @@
 Status: proposed implementation sequence, based on the implementation on
 2026-09-23. This plan does not introduce syntax or change runtime semantics.
 
-The first delivery now covers direct literal-integer and whole-axis array
-replacements and supported function writes under array value semantics. Other
-provenance cases in stage 1 remain open.
+The first delivery covers direct array replacements with proven integer or
+whole-axis selectors and supported function writes under array value semantics.
+Other provenance cases in stage 1 remain open.
 
 ## Goal and rules
 

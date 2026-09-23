@@ -13,6 +13,7 @@ describe('value semantics for arrays', () => {
         expect(run(`${SEQ}A = array 1 2 3\nB = A\nB 0 = 99\nA`)).toBe('1 2 3');
         expect(run(`${SEQ}A = array 1 2 3\nB = A\nB 0 = 99\nB`)).toBe('99 2 3');
         expect(run(`${SEQ}A = array 1 2 3\nB = A\nB 0 += 5\nA`)).toBe('1 2 3');
+        expect(run(`${SEQ}I = 0\nA = array 1 2\nB = A\nB I = 9\nA`)).toBe('1 2');
     });
 
     it('keeps writing in place after the first private copy', () => {

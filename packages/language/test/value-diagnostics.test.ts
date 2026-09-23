@@ -206,6 +206,17 @@ it('invalidates the written binding while retaining independent array facts', ()
         .toEqual([]);
 });
 
+it('uses proven integer selectors through assignments and branch joins', () => {
+    const code = 'I = 0\nA = array 1 2\nB = A\nC = array 3 4 5\n';
+    expect(messages(code + 'A I = 9\nB + C'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages(code + 'if Flag\n A I = 9\nend\nB + C'))
+        .toEqual(['shape mismatch: [2] and [3]']);
+    expect(messages(code + 'A I = "x"\nA + (array 3 4)')).toEqual([]);
+    expect(messages('Key = .n\nA = array true false\nB = A\nA Key = 1\nB + 1'))
+        .toEqual([]);
+});
+
 it('distinguishes local assignment from a possible nested capture', () => {
     expect(messages('A = array 1 2\nfun change\n A = array 1 2 3\n return 0\nend\nchange\nA + (array 1 2)'))
         .toEqual([]);

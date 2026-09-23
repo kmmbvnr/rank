@@ -100,7 +100,9 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
 }
 
 /** Numeric/whole-axis replacement cannot invoke a table field or container callback. */
-export function isPlainArrayWrite(statement: ArrayAssignmentStatement): boolean {
+export function isPlainArrayWrite(statement: ArrayAssignmentStatement,
+    integer: (value: Expression) => boolean = value => isNumberLiteral(value)
+        && typeof value.value === 'bigint'): boolean {
     return statement.operator === '=' && statement.indices.every(index => !index.spread
-        && (index.all || isNumberLiteral(index.value) && typeof index.value.value === 'bigint'));
+        && (index.all || index.value !== undefined && integer(index.value)));
 }

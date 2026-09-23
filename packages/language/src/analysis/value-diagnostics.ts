@@ -357,7 +357,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
                 const fact = env.get(statement.name);
-                if (isPlainArrayWrite(statement) && fact?.types.length
+                if (isPlainArrayWrite(statement, value => expressionFacts(value, name => env.get(name)).types.join() === 'integer')
+                    && fact?.types.length
                     && fact.types.every(type => type === 'array')) {
                     env.set(statement.name, { ...fact, elements: undefined, integers: undefined });
                 } else {
