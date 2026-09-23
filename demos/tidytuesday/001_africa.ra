@@ -1,0 +1,57 @@
+rem TidyTuesday: Languages of Africa
+rem https://github.com/rfordatascience/tidytuesday
+
+use cli
+use numbers
+use sequences
+use stats
+use tables
+
+argument DataPath path = "demos/tidytuesday/data/africa.csv"
+argument OutputPath path = "demos/tidytuesday/africa_family_summary.csv"
+
+Data = DataPath csv
+Summary = Data solve
+Summary OutputPath csv
+
+
+rem Summarize families by native speakers.
+fun family_statistics Data
+  Groups = Data group by .family
+  Summary = Groups select
+    .languages_count = count
+    .total_speakers = .native_speakers sum
+    .avg_speakers = .native_speakers mean
+  end
+  return Summary sort by .total_speakers .descending
+end
+
+
+rem Summarize language counts per country.
+fun languages_by_country Data
+  Groups = Data group by .country
+  Summary = Groups select
+    .languages_count = count
+    .total_speakers = .native_speakers sum
+    .avg_speakers = .native_speakers mean
+  end
+  return Summary sort by .languages_count .descending
+end
+
+
+rem Summarize multi-country languages.
+fun multi_country_summary Data
+  Groups = Data group by .language .family
+  Summary = Groups select
+    .country_count = count
+    .native_speakers = .native_speakers max
+  end
+  Multi = Summary filter .country_count greater 1
+  return Multi sort by .country_count .descending
+end
+
+
+rem Main solver returning family stats.
+fun solve Data
+  return Data family_statistics
+end

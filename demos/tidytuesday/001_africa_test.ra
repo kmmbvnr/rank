@@ -1,0 +1,111 @@
+use testing
+
+test "family_statistics aggregates and sorts by total native speakers"
+  use json
+  use tables
+  use "001_africa"
+
+  Sample = "[{\"language\":\"Amharic\",\"family\":\"Afroasiatic\",\"native_speakers\":35000000,\"country\":\"Ethiopia\"}, {\"language\":\"Hausa\",\"family\":\"Afroasiatic\",\"native_speakers\":54000000,\"country\":\"Nigeria\"}, {\"language\":\"Swahili\",\"family\":\"Niger–Congo\",\"native_speakers\":18000000,\"country\":\"Kenya\"}]" json
+
+  Stats = Sample family_statistics
+  Families = Stats .family
+  Totals = Stats .total_speakers
+  Counts = Stats .languages_count
+
+  Afro = array "Afroasiatic" "Niger–Congo"
+  ExpectedTotals = array 89000000 18000000
+  ExpectedCounts = array 2 1
+
+  OkFam = Families equal Afro
+  OkTot = Totals equal ExpectedTotals
+  OkCnt = Counts equal ExpectedCounts
+  OkFam and OkTot and OkCnt
+end
+
+
+test "languages_by_country ranks countries by number of spoken languages"
+  use json
+  use tables
+  use "001_africa"
+
+  Sample = "[{\"language\":\"Afar\",\"family\":\"Afroasiatic\",\"native_speakers\":2500000,\"country\":\"Ethiopia\"}, {\"language\":\"Amharic\",\"family\":\"Afroasiatic\",\"native_speakers\":35000000,\"country\":\"Ethiopia\"}, {\"language\":\"Swahili\",\"family\":\"Niger–Congo\",\"native_speakers\":18000000,\"country\":\"Kenya\"}]" json
+
+  Counts = Sample languages_by_country
+  Countries = Counts .country
+  LangCounts = Counts .languages_count
+
+  ExpectedCountries = array "Ethiopia" "Kenya"
+  ExpectedLangCounts = array 2 1
+
+  OkCountries = Countries equal ExpectedCountries
+  OkCounts = LangCounts equal ExpectedLangCounts
+  OkCountries and OkCounts
+end
+
+
+test "multi_country_summary isolates languages present in multiple countries"
+  use json
+  use tables
+  use "001_africa"
+
+  Sample = "[{\"language\":\"Arabic\",\"family\":\"Afroasiatic\",\"native_speakers\":150000000,\"country\":\"Egypt\"}, {\"language\":\"Arabic\",\"family\":\"Afroasiatic\",\"native_speakers\":150000000,\"country\":\"Sudan\"}, {\"language\":\"Amharic\",\"family\":\"Afroasiatic\",\"native_speakers\":35000000,\"country\":\"Ethiopia\"}]" json
+
+  Multi = Sample multi_country_summary
+  Langs = Multi .language
+  CountryCounts = Multi .country_count
+
+  ExpectedLangs = array "Arabic"
+  ExpectedCounts = array 2
+
+  OkLangs = Langs equal ExpectedLangs
+  OkCounts = CountryCounts equal ExpectedCounts
+  OkLangs and OkCounts
+end
+
+
+test "solves full Africa dataset family statistics"
+  use cli
+  use tables
+  use "001_africa"
+
+  Data = "demos/tidytuesday/data/africa.csv" csv
+  Summary = Data solve
+  TopFamily = (Summary .family) 0
+  TopSpeakers = (Summary .total_speakers) 0
+
+  OkFamily = TopFamily equal "Afroasiatic"
+  OkSpeakers = TopSpeakers equal 2369939800
+  OkFamily and OkSpeakers
+end
+
+
+test "identifies Cameroon as country with most spoken languages in dataset"
+  use cli
+  use tables
+  use "001_africa"
+
+  Data = "demos/tidytuesday/data/africa.csv" csv
+  CountryStats = Data languages_by_country
+  TopCountry = (CountryStats .country) 0
+  TopCount = (CountryStats .languages_count) 0
+
+  OkCountry = TopCountry equal "Cameroon"
+  OkCount = TopCount equal 96
+  OkCountry and OkCount
+end
+
+
+test "identifies Soninke as top multi-country language"
+  use cli
+  use tables
+  use "001_africa"
+
+  Data = "demos/tidytuesday/data/africa.csv" csv
+  MultiStats = Data multi_country_summary
+  TopLang = (MultiStats .language) 0
+  TopCountries = (MultiStats .country_count) 0
+
+  OkLang = TopLang equal "Soninke"
+  OkCountries = TopCountries equal 13
+  OkLang and OkCountries
+end
