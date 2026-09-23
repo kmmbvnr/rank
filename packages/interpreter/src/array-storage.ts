@@ -101,6 +101,13 @@ function onlyNewObjectsChanged(epoch: number, checkedBirth: number): boolean {
 }
 const ownedStorage = new WeakMap<RankArray, OwnedStorage>();
 
+/** Cheap borrow guard: no lazy cells or nested values can escape through indexing. */
+export function isFlatScalarArray(value: RankValue): boolean {
+    if (typeof value !== 'object' || value === null) return false;
+    const storage = ownedStorage.get(value as RankArray);
+    return !!storage?.stable && storage.scalarOnly && storage.shape.length === 1;
+}
+
 /** Takes exclusive ownership of fresh storage. JS sees a write-tracked facade;
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(
@@ -249,6 +256,11 @@ export function isSharedArray(value: RankValue): boolean {
 /** Storage this name owns alone. The result is unbound: the caller binds it. */
 export function privateArrayCopy(value: RankArray): RankArray {
     const items = [...value.items];
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        diagnostics.cowCopies++;
+        diagnostics.cowCopiedCells += items.length;
+    }
     const copy = ownedArray(
         items, value.shape, false,
         (value as { columnNames?: readonly string[] }).columnNames,

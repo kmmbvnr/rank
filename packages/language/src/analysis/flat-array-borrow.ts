@@ -24,7 +24,9 @@ export function flatArrayBorrowCandidates(definition: FunctionStatement,
                 if (!node || typeof node !== 'object') return true;
                 if (Array.isArray(node)) return node.every(child => onlyReads(child, parameter));
                 const item = node as Record<string, unknown>;
-                if (isNameExpression(item)) return item.name === parameter;
+                // A bare array can feed a lazy result, even inside arithmetic.
+                // Only the indexed-read case below consumes a flat scalar cell.
+                if (isNameExpression(item)) return false;
                 if (isReturnStatement(item) && directName(item.value, parameter)) return false;
                 if (isApplicationExpression(item)) {
                     // Only direct numeric indexing is known to read a flat array.

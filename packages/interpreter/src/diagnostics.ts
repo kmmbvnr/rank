@@ -9,6 +9,8 @@ export class RuntimeDiagnostics {
     hoistedReaders = 0;
     compiledLoops = 0;
     compiledTensors = 0;
+    cowCopies = 0;
+    cowCopiedCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */

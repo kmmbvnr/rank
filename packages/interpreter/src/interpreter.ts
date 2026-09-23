@@ -4,7 +4,7 @@ import { registerFlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem, arrayForWrite, noteArrayBinding, enterRuntime, leaveRuntime } from './array-storage.js';
+import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
 import { typedNativeCall } from './typed-native.js';
@@ -29,6 +29,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
+    flatArrayBorrowCandidates,
     REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS,
     isAddStatement,
     isAliasedTableExpression,
@@ -340,6 +341,10 @@ interface FunctionDefinition {
     readonly context: LocalFrame | undefined;
     readonly direct: (() => RankValue) | undefined;
 }
+interface BorrowProof {
+    readonly bindings: ReadonlyMap<string, RankValue | undefined>;
+    readonly candidates: ReadonlySet<number>;
+}
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 
 class TailCallSignal {
@@ -411,6 +416,8 @@ export class Interpreter {
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
     private readonly functionBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
+    private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
+    private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
@@ -3187,12 +3194,42 @@ export class Interpreter {
         const prepared = prepareFunction(statement);
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepared.layout);
+        const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
+            && !prepared.borrowedParameters.has(statement.parameters[index]))
+            ? this.borrowCandidates(statement, parent) : undefined;
         statement.parameters.forEach((parameter, index) => {
             const argument = arguments_[index];
-            const borrowed = prepared.borrowedParameters.has(parameter);
+            const borrowed = isFlatScalarArray(argument)
+                && (prepared.borrowedParameters.has(parameter) || !!candidates?.has(index));
             frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
         });
         return frame;
+    }
+
+    private borrowCandidates(statement: FunctionStatement, parent: LocalFrame | undefined): ReadonlySet<number> {
+        const cache = parent ? this.localBorrowProofs.get(parent) : this.globalBorrowProofs;
+        const current = cache?.get(statement);
+        const lookup = (name: string) => parent?.lookup(name) ?? this.variables.get(name);
+        if (current && [...current.bindings].every(([name, value]) => lookup(name) === value)) {
+            return current.candidates;
+        }
+        const bindings = new Map<string, RankValue | undefined>();
+        const candidates = flatArrayBorrowCandidates(statement, name => {
+            // These names bypass ordinary variable lookup in resolve().
+            if (name.includes('.') || name === 'index' || name === 'queue'
+                || name === 'set' || name === 'counter') return undefined;
+            const bound = lookup(name);
+            bindings.set(name, bound);
+            const helper = bound && isNativeFunction(bound) ? functionDefinitions.get(bound) : undefined;
+            return helper?.interpreter === this && helper.context === parent ? helper.statement : undefined;
+        });
+        const proof = { bindings, candidates };
+        if (parent) {
+            const local = cache ?? new WeakMap<FunctionStatement, BorrowProof>();
+            local.set(statement, proof);
+            if (!cache) this.localBorrowProofs.set(parent, local);
+        } else this.globalBorrowProofs.set(statement, proof);
+        return candidates;
     }
 
     // A single return whose expression contains no applications cannot make a

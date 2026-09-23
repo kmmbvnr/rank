@@ -16,8 +16,23 @@ unknown. Runtime borrowing does not consume these summaries yet.
 Stage 3 has a first, separate flat-array borrow candidate check. It accepts
 direct numeric reads and a chain of resolved one-argument reader helpers.
 Returns, aliases, writes, callbacks and unsupported statements fail the check.
-The interpreter does not use the new helper-chain result yet; call identity and
-argument kind still need runtime guards.
+The interpreter now uses this result when the argument is an owned, stable,
+one-dimensional scalar array and every helper still resolves to the same
+lexical frame. Other calls use ordinary CoW binding.
+
+Both direct and helper borrowing now use the same conservative check. A bare
+array used in arithmetic, such as `return X * 2`, is not a borrow candidate:
+its result may depend on `X` after the call. The current demo profile is in
+[CoW demo results](../../benchmarks/cow-demos-results.md). Gradient descent
+and Adam have no measured CoW copies at the sampled sizes; K-means has one.
+These observations do not establish an elapsed-time improvement.
+The K-means copy begins on the second iteration and an isolated copy costs
+far less than the full call. Do not extend liveness analysis for this case
+without a workload where copies account for meaningful time. CPU samples
+point to derived-array allocation and garbage collection in K-means, but to
+per-cell reader paths in gradient descent and Adam. Treat these as separate
+leads; neither justifies a representation change without a before/after demo
+measurement.
 
 ## Goal and rules
 
@@ -45,8 +60,8 @@ in execution only when a transformation has all the proofs it needs.
 | Shared REPL diagnostics | Metadata snapshots, edit invalidation, same-file and host-loaded `_test.ra` examples | No test execution or array-cell inspection; browser companion loading needs a host |
 | Diagnostic function effects | Possible indexed writes to parameters/captures and supported helper calls | Preserves scalar facts for known array writes; conservatively drops reference facts; no escape analysis |
 | Integer-loop compiler | Uses `expressionFacts` for specialization hints and checks inputs on entry | Does not consume the new diagnostic effect summary as a safety proof |
-| Runtime parameter borrowing | `prepared-function.ts` recognizes a small syntactic read-only subset | General helpers, aliases and escaping results need stronger proof |
-| Flat-array borrow candidates | Direct numeric reads and resolved single-argument reader helpers | Analysis only; not yet connected to runtime borrowing |
+| Runtime parameter borrowing | Direct syntactic readers plus guarded flat-array helper chains | Aliases, nested values and unknown calls use ordinary CoW binding |
+| Flat-array borrow candidates | Direct numeric reads and resolved single-argument reader helpers | Runtime checks owned flat storage and current helper identities before use |
 | Array ownership/storage | CoW, conservative shared flags, revisions and guarded reader/writer paths | Shared flags are not exact live reference counts |
 | Host purity | `pureHostFunction` marks an exact implementation with a trusted contract | No inferred guarantee for arbitrary external handlers |
 
@@ -59,6 +74,48 @@ Implementation references:
 [host effects](../../packages/interpreter/src/host-effects.ts).
 The accepted [borrow/in-place ADR](../adr/implementation/0004-perceus-borrow-inference-and-compile-time-in-place.md)
 states the direction; it is not evidence that every lowering it describes exists.
+
+## What remains
+
+This is the working backlog, not a claim that the accepted ADRs are fully
+implemented. Type and rank diagnostics already run before execution in the
+REPL and editor. Array bindings keep their rank while axis lengths may change.
+Unknown cases still need runtime checks. The stages below extend that baseline:
+
+1. **Finish value provenance and selective invalidation (stages 0–1).** The
+   direct array-write cases are covered. Add regression cases and analysis for
+   local aliases, branch joins, nested/reference-bearing values, lazy snapshots
+   and host-written storage. Preserve facts about unaffected arrays without
+   retaining stale facts after an unsupported write.
+2. **Complete function result and effect summaries (stage 2).** Return origins
+   and some parameter/capture writes are known. Distinguish local writes from
+   captured or reachable writes, reads of mutable captures, I/O and transitive
+   helper effects. Map summaries to the actual call and binding; recursion,
+   dynamic callbacks and unsupported calls remain conservative.
+3. **Prove non-escape and broaden inferred borrowing (stages 3–4).** The current
+   runtime borrows only guarded flat scalar arrays read directly or through a
+   narrow helper chain. Cover more reader patterns only after proving no write
+   and no escape through a return, closure, generator or retained container.
+   Test repeated arguments and helper replacement. Keep ordinary CoW binding
+   whenever the proof fails. Measure copy savings and elapsed time separately;
+   the current demo profile does not justify broad liveness work for CoW alone.
+4. **Use stable proofs in compiled regions (stage 5).** Remove repeated type or
+   element checks and generic array dispatch only where guards and effect
+   boundaries make that safe. Bounds-check removal needs its own index-range and
+   stable-shape proof. Differential tests must preserve error order and writes.
+5. **Extend edit-time diagnostics (stage 6).** Add supported `is` narrowing,
+   loop fixed points, reachable `break`/`continue`/return paths, result-shape
+   relationships and missing operation rules. Function tests remain examples,
+   never universal type contracts or compiler proofs.
+6. **Consider buffer reuse and in-place lowering only for measured bottlenecks
+   (stage 7).** Prove last use and absence of observers before reusing storage;
+   retain CoW as the fallback. The Roc/Koka/Perceus-style implementation idea
+   does not add Rust-style ownership annotations or move errors to Rank.
+
+The [proposed step-mode CoW display](repl-input.md#proposed-cow-display-during-stepping)
+is a separate observability task. Runtime copy counters exist, but `Ctrl-R`
+does not yet show the copies made by each committed step. An edit-time CoW hint
+would be a prediction, not the same thing as this runtime measurement.
 
 ## Shared analysis, separate consumers
 
@@ -173,9 +230,9 @@ Use stage 3 proofs to extend the existing `prepared-function.ts` borrowing
 decision. Prefer reusing shared rules over maintaining two independent effect
 classifiers. Keep the current conservative path for every unsupported case.
 
-This is the first planned new execution optimization: a proven reader helper
-does not unnecessarily mark its caller's array shared. A later write can avoid
-a CoW copy. Existing simple reader borrowing remains the baseline.
+The guarded flat-array reader-helper subset already avoids marking its caller's
+array shared. Extend that benefit only where a broader non-escape proof supports
+it; a later write can then avoid an unnecessary CoW copy.
 
 Gate: interpreted and optimized results/errors agree; deterministic ownership
 or copy-path tests prove that a copy is avoided; repeated benchmarks show the
@@ -280,10 +337,12 @@ of faster execution. Keep failed experiments documented and out of the runtime.
 
 ## Immediate next delivery
 
-Start with stage 0 and the straight-line subset of stage 1. Add value-semantics
-regressions, then replace broad array-fact invalidation where the runtime rules
-justify it. Do not change the compiler or borrowing convention in that delivery.
-Review that result before adding escape summaries.
+Finish the unsupported provenance cases in stage 1 and extend stage 2 effects
+only as needed for a concrete diagnostic or borrow case. Add paired analysis
+and runtime regressions before changing the borrowing convention again. Choose
+the next execution optimization from a measured demo bottleneck; the current
+CoW demo measurements do not show that broader escape analysis would make
+those demos faster.
 
 Related plans: [performance](performance-roadmap.md),
 [value semantics](value-semantics.md), [tensor fusion](tensor-fusion-plan.md),

@@ -94,6 +94,91 @@ First = A inspect`);
         runtime.dispose();
     });
 
+    it('borrows through a resolved reader helper without copying the caller array', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`fun read V
+  return V 0
+end
+fun inspect V
+  return V read
+end
+A = array 10 20 30
+First = A inspect`);
+            const array = runtime.variables.get('A') as RankArray;
+            expect(runtime.variables.get('First')).toBe(10n);
+            expect(isSharedArray(array)).toBe(false);
+            const items = array.items;
+            runtime.execute('A 0 = 99');
+            expect(array.items).toBe(items);
+        } finally { runtime.dispose(); }
+    });
+
+    it('drops helper borrowing after the helper is redefined to return its argument', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`fun read V
+  return V 0
+end
+fun inspect V
+  return V read
+end
+A = array 10 20
+First = A inspect`);
+            expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(false);
+            runtime.execute('fun read V\n return V\nend\nB = A inspect');
+            const array = runtime.variables.get('A') as RankArray;
+            expect(isSharedArray(array)).toBe(true);
+            runtime.execute('A 0 = 99');
+            expect((runtime.variables.get('B') as RankArray).items[0]).toBe(10n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps matrix rows on the ordinary ownership path', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`fun read V
+  return V 0
+end
+fun inspect V
+  return V read
+end
+A = array 1 2 3 4 shape 2 2
+Row = A inspect`);
+            expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(true);
+            runtime.execute('A 0 0 = 9');
+            expect((runtime.variables.get('Row') as RankArray).items[0]).toBe(1n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('does not borrow a direct reader that returns a matrix row', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('fun read V\n return V 0\nend\nA = array 1 2 3 4 shape 2 2\nRow = A read');
+            expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(true);
+            runtime.execute('A 0 0 = 9');
+            expect((runtime.variables.get('Row') as RankArray).items[0]).toBe(1n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps the same array shared when another parameter also binds it', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`fun read V
+  return V 0
+end
+fun inspect A B
+  return A read
+end
+Value = array 10 20`);
+            const value = runtime.variables.get('Value') as RankArray;
+            const inspect = runtime.variables.get('inspect');
+            if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
+            expect(inspect.call([value, value])).toBe(10n);
+            expect(isSharedArray(value)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it('marks array shared when parameter is returned or mutated', () => {
         const runtime = new Interpreter();
         runtime.execute(`fun bump V

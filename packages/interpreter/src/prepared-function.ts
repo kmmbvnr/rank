@@ -1,9 +1,8 @@
 import {
     isYieldStatement, isFunctionStatement, isTestStatement,
     isIfStatement, isForStatement, isTryStatement,
-    isReturnStatement, isApplicationExpression, isNumberLiteral,
-    isNameExpression, isParenthesizedExpression,
-    type FunctionStatement, type Statement, type Expression,
+    flatArrayBorrowCandidates,
+    type FunctionStatement, type Statement,
 } from '@arrrank/language';
 
 export interface PreparedFunction {
@@ -33,49 +32,10 @@ export function prepareFunction(statement: FunctionStatement): PreparedFunction 
 
 function inferBorrowedParameters(statement: FunctionStatement, isGenerator: boolean): ReadonlySet<string> {
     if (isGenerator || statement.parameters.length === 0) return new Set();
-    const isDirectName = (expr: Expression | undefined, target: string): boolean => {
-        if (!expr) return false;
-        if (isNameExpression(expr) && expr.name === target) return true;
-        if (isParenthesizedExpression(expr)) return isDirectName(expr.value, target);
-        return false;
-    };
-
-    // Without call-effect and alias analysis, an unfamiliar name can invoke a
-    // zero-argument function that writes the caller's array. Even another
-    // parameter can be such a callback. Prove a small pure subset per parameter;
-    // everything else keeps the normal copy-on-write binding.
-    function onlyReads(node: unknown, parameter: string): boolean {
-        if (!node || typeof node !== 'object') return true;
-        if (Array.isArray(node)) return node.every(child => onlyReads(child, parameter));
-        const obj = node as Record<string, unknown>;
-        if (isNameExpression(obj)) return obj.name === parameter;
-        if (isReturnStatement(obj) && isDirectName(obj.value, parameter)) return false;
-        if (isApplicationExpression(obj)) {
-            // Juxtaposition is both calling and addressing. Only literal
-            // indexing of this parameter is known to be a read when it is an
-            // array (the only value whose ownership borrowing changes).
-            return isDirectName(obj.head, parameter)
-                && obj.arguments.every(isNumberLiteral);
-        }
-        switch (obj.$type) {
-            case 'ReturnStatement':
-            case 'IfStatement':
-            case 'ElifClause':
-            case 'BinaryExpression':
-            case 'UnaryExpression':
-            case 'ParenthesizedExpression':
-            case 'NumberLiteral':
-            case 'BooleanLiteral':
-            case 'StringLiteral':
-            case 'LabelLiteral':
-                return Object.entries(obj).every(([key, child]) =>
-                    key.startsWith('$') || onlyReads(child, parameter));
-            default:
-                return false;
-        }
-    }
-
-    return new Set(statement.parameters.filter(parameter => onlyReads(statement.statements, parameter)));
+    // Dynamic helper calls need a call-site identity guard, so preparation
+    // only accepts proofs that do not resolve another function.
+    const indices = flatArrayBorrowCandidates(statement, () => undefined);
+    return new Set(statement.parameters.filter((_, index) => indices.has(index)));
 }
 
 function statementsContainYield(statements: readonly Statement[]): boolean {

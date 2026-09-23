@@ -45,9 +45,11 @@ it('proves a flat-array reader does not escape through a resolved helper', () =>
 
 it('keeps aliases, returns, writes and unknown calls outside the borrow proof', () => {
     for (const body of ['return X', 'Y = X\n return Y 0', 'X 0 = 1\n return X 0',
-        'Shared 0 = 1\n return X 0', 'return X external', 'return X helper']) {
+        'Shared 0 = 1\n return X 0', 'return X external', 'return X helper',
+        'return X * 2', 'return (X + 1) 0']) {
         expect(borrowCandidates(`fun helper X\n ${body}\nend`), body).toEqual(new Set());
     }
+    expect(borrowCandidates('fun helper X\n return (X 0) * 2\nend')).toEqual(new Set([0]));
     expect(borrowCandidates('fun helper X callback\n callback\n return X 0\nend'))
         .toEqual(new Set());
     expect(borrowCandidates('fun read X\n return X\nend\nfun helper A\n return A read\nend'))

@@ -116,6 +116,31 @@ draft is preserved for further editing, with its old live previews cleared.
 The restart does not save or reload the file and preserves its saved/unsaved
 status. External effects from the previous run are not undone.
 
+## Proposed CoW display during stepping
+
+This is a future REPL display idea, not current behavior. After a committed
+`Ctrl-R` step, show the actual copy-on-write (CoW) work beneath the source that
+just ran, alongside its result. Keep the `▶` marker on the *next* source line:
+
+```text
+●  2› A 0 = 9
+      CoW: 1 copy · 2048 cells
+▶  3› A sum
+```
+
+When no copy occurred, show a muted `CoW: none` in step mode. If several copies
+occurred, show their total count and total copied cells, not just a yes/no
+badge. Count the difference between the previous and current execution stops;
+show the final difference when execution ends without another stop. A step that
+runs a loop iteration or nested call may cover several source lines. In that
+case the label describes the whole step, not a proven copy location on one line.
+
+The label is runtime evidence, not an edit-time prediction or an error. It must
+not count uncommitted iteration previews as part of a real step. The display
+should stay out of saved `.ra` source and ordinary program output. Whether it
+appears by default for every step or behind a performance-detail toggle remains
+open; this mockup assumes it is visible while stepping.
+
 The first error stops replay and places the cursor at the end of the failing line
 when its location belongs to the current instruction. Later instructions, including
 the newly submitted one, stay in the document waiting to run. Correct the error,

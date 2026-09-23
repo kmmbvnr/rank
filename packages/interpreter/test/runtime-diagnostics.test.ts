@@ -5,6 +5,19 @@ import { createArraySnapshot, derivedArray, ownedArray } from '../src/array-stor
 import type { RankArray } from '../src/value.js';
 
 describe('runtime diagnostics and stable tensor reads', () => {
+    it('counts only copy-on-write copies and their cells', () => {
+        const stats = new RuntimeDiagnostics();
+        const runtime = new Interpreter();
+        try {
+            stats.run(() => runtime.execute('A = array 1 2 3\nA 0 = 9'));
+            expect([stats.cowCopies, stats.cowCopiedCells]).toEqual([0, 0]);
+            stats.run(() => runtime.execute('B = A\nB 1 = 8'));
+            expect([stats.cowCopies, stats.cowCopiedCells]).toEqual([1, 3]);
+            stats.run(() => runtime.execute('B 2 = 7'));
+            expect([stats.cowCopies, stats.cowCopiedCells]).toEqual([1, 3]);
+        } finally { runtime.dispose(); }
+    });
+
     it('counts lazy work without forcing cells and restores nested scopes', () => {
         const stats = new RuntimeDiagnostics();
         const source = ownedArray([2n]);
