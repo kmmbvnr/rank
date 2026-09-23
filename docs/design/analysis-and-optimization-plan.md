@@ -13,6 +13,12 @@ aliases and supported helper returns. Branches join conservatively. Helper
 captures, unsupported indirection and paths that may fall through remain
 unknown. Runtime borrowing does not consume these summaries yet.
 
+Stage 3 has a first, separate flat-array borrow candidate check. It accepts
+direct numeric reads and a chain of resolved one-argument reader helpers.
+Returns, aliases, writes, callbacks and unsupported statements fail the check.
+The interpreter does not use the new helper-chain result yet; call identity and
+argument kind still need runtime guards.
+
 ## Goal and rules
 
 Give the REPL useful type and shape errors before execution. Reuse the analysis
@@ -40,12 +46,14 @@ in execution only when a transformation has all the proofs it needs.
 | Diagnostic function effects | Possible indexed writes to parameters/captures and supported helper calls | Preserves scalar facts for known array writes; conservatively drops reference facts; no escape analysis |
 | Integer-loop compiler | Uses `expressionFacts` for specialization hints and checks inputs on entry | Does not consume the new diagnostic effect summary as a safety proof |
 | Runtime parameter borrowing | `prepared-function.ts` recognizes a small syntactic read-only subset | General helpers, aliases and escaping results need stronger proof |
+| Flat-array borrow candidates | Direct numeric reads and resolved single-argument reader helpers | Analysis only; not yet connected to runtime borrowing |
 | Array ownership/storage | CoW, conservative shared flags, revisions and guarded reader/writer paths | Shared flags are not exact live reference counts |
 | Host purity | `pureHostFunction` marks an exact implementation with a trusted contract | No inferred guarantee for arbitrary external handlers |
 
 Implementation references:
 [value diagnostics](value-diagnostics.md),
 [prepared functions](../../packages/interpreter/src/prepared-function.ts),
+[flat-array borrow candidates](../../packages/language/src/analysis/flat-array-borrow.ts),
 [integer loops](../../packages/interpreter/src/integer-loop.ts),
 [array storage](../../packages/interpreter/src/array-storage.ts),
 [host effects](../../packages/interpreter/src/host-effects.ts).

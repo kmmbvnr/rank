@@ -9,6 +9,7 @@ export * from './analysis/types.js';
 export * from './analysis/value-facts.js';
 export * from './analysis/value-diagnostics.js';
 export * from './analysis/function-effects.js';
+export * from './analysis/flat-array-borrow.js';
 export * from './analysis/test-examples.js';
 export * from './expression-grouping.js';
 export * from './expressions.js';

@@ -3,6 +3,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import { isFunctionStatement, type Program } from '../src/generated/ast.js';
 import { functionEffects } from '../src/analysis/function-effects.js';
+import { flatArrayBorrowCandidates } from '../src/analysis/flat-array-borrow.js';
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });
@@ -12,6 +13,13 @@ function analyze(source: string, name = 'helper') {
     const definitions = new Map([...AstUtils.streamAllContents(parsed.value)]
         .filter(isFunctionStatement).map(node => [node.name, node]));
     return functionEffects(name => definitions.get(name), name => definitions.has(name))(name);
+}
+function borrowCandidates(source: string, name = 'helper', resolveHelpers = true) {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
+    expect(parsed.parserErrors).toEqual([]);
+    const definitions = new Map([...AstUtils.streamAllContents(parsed.value)]
+        .filter(isFunctionStatement).map(node => [node.name, node]));
+    return flatArrayBorrowCandidates(definitions.get(name)!, helper => resolveHelpers ? definitions.get(helper) : undefined);
 }
 
 it('distinguishes reads, parameter writes and captured object writes', () => {
@@ -25,6 +33,27 @@ it('maps helper writes to the enclosing parameters', () => {
     expect(analyze('fun write X\n X 0 = 1\n return 0\nend\nfun helper A B\n B write\n return A\nend'))
         .toEqual({ unknown: false, parameters: new Set([1]), captures: new Set(),
             returns: [{ kind: 'parameter', index: 0 }] });
+});
+
+it('proves a flat-array reader does not escape through a resolved helper', () => {
+    expect(borrowCandidates('fun helper X\n return X 0\nend')).toEqual(new Set([0]));
+    expect(borrowCandidates('fun read X\n return X 0\nend\nfun helper A\n return A read\nend'))
+        .toEqual(new Set([0]));
+    expect(borrowCandidates('fun helper X\n if true\n  return X 0\n else\n  return X 1\n end\nend'))
+        .toEqual(new Set([0]));
+});
+
+it('keeps aliases, returns, writes and unknown calls outside the borrow proof', () => {
+    for (const body of ['return X', 'Y = X\n return Y 0', 'X 0 = 1\n return X 0',
+        'Shared 0 = 1\n return X 0', 'return X external', 'return X helper']) {
+        expect(borrowCandidates(`fun helper X\n ${body}\nend`), body).toEqual(new Set());
+    }
+    expect(borrowCandidates('fun helper X callback\n callback\n return X 0\nend'))
+        .toEqual(new Set());
+    expect(borrowCandidates('fun read X\n return X\nend\nfun helper A\n return A read\nend'))
+        .toEqual(new Set());
+    expect(borrowCandidates('fun read X\n return X 0\nend\nfun helper A\n return A read\nend', 'helper', false))
+        .toEqual(new Set());
 });
 
 it('records direct result origins and follows straight-line local names', () => {
