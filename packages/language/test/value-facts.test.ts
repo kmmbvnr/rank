@@ -17,9 +17,17 @@ function facts(source: string, bindings = new Map<string, ValueFacts>()): ValueF
 
 it('separates scalar type, array elements, rank and dimensions', () => {
     expect(facts('42')).toEqual({ types: ['integer'], rank: 0, shape: [], integer: '42' });
-    expect(facts('array 1 2 3')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [3], integers: [1, 2, 3] });
+    expect(facts('array 1 2 3')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [3],
+        integers: [1, 2, 3], eagerScalarCells: true });
     expect(facts('array shape 2 3 fill 0')).toEqual({ types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3] });
     expect(facts('array 1 2 3 4 shape 2 2')).toEqual({ types: ['array'], elements: ['integer'], rank: 2, shape: [2, 2] });
+});
+
+it('proves eager cells only for scalar array literals', () => {
+    expect(facts('array true false').eagerScalarCells).toBe(true);
+    expect(facts('array X').eagerScalarCells).toBeUndefined();
+    expect(facts('array shape 2 fill 0').eagerScalarCells).toBeUndefined();
+    expect(facts('(1 to 3) array').eagerScalarCells).toBeUndefined();
 });
 
 it('retains rank when a dimension is unknown', () => {

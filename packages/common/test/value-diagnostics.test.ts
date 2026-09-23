@@ -19,6 +19,34 @@ it('retains scalar diagnostics after a known write without executing the draft',
     } finally { session.dispose(); }
 });
 
+it('retains draft diagnostics across a proven eager-array reader and withdraws them after an edit', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const prefix = 'fun read X\n return X 0\nend\nA = array 1 2\nCount = 3\n';
+        repl.notebook.replace(prefix + 'A read\nCount + "bad"');
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        expect(text()).toContain('does not accept integer and text');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace(prefix + 'A 0 = Unknown\nA read\nCount + "bad"');
+        expect(text()).not.toContain('does not accept');
+    } finally { session.dispose(); }
+});
+
+it('retains draft diagnostics across a helper that reads its own eager array', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const prefix = 'fun read X\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend\nCount = 3\n';
+        repl.notebook.replace(prefix + 'helper\nCount + "bad"');
+        const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
+        expect(text()).toContain('does not accept integer and text');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace(prefix.replace('Temp = array 1 2', 'Temp = Unknown') + 'helper\nCount + "bad"');
+        expect(text()).not.toContain('does not accept');
+    } finally { session.dispose(); }
+});
+
 it('retains shape diagnostics for a separate array after a draft write', () => {
     const session = createReplSession();
     try {

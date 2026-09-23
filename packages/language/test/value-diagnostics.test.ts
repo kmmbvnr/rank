@@ -188,6 +188,31 @@ it('preserves unrelated scalar facts across known parameter and captured writes'
         .toEqual(['operator + does not accept integer and text']);
 });
 
+it('keeps unrelated facts across proven eager-cell reader helpers', () => {
+    const readers = 'fun read X\n return X 0\nend\nfun helper A\n return A read\nend\n';
+    expect(messages(readers + 'A = array 1 2\nCount = 3\nA helper\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('fun read\n return Shared 0\nend\nShared = array 1 2\nCount = 3\nread\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(readers + 'A = array 1 2\nA 0 = 3\nCount = 3\nA helper\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('keeps unrelated facts across a reader of its own eager literal array', () => {
+    const reader = 'fun read X\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend\n';
+    expect(messages(reader + 'Count = 3\nhelper\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('fun helper\n Temp = Source\n return Temp 0\nend\nCount = 3\nhelper\nCount + "bad"'))
+        .toEqual([]);
+});
+
+it('does not trust indexed readers of lazy or unsupported array values', () => {
+    const reader = 'fun read X\n return X 0\nend\n';
+    expect(messages(reader + 'A = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
+    expect(messages(reader + 'A = array 1 2\nA # = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
+    expect(messages(reader + 'A = array 1 2\nA 0 = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
+});
+
 it('follows copy-on-write when a function writes a parameter array', () => {
     const code = 'fun change X\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
     expect(messages(code + 'Result = B change\nA + C')).toEqual(['shape mismatch: [2] and [3]']);

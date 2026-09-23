@@ -12,6 +12,8 @@ export interface ValueFacts {
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
     readonly elements?: Types;
+    /** Proven eager scalar cells; reading one cannot run a lazy callback. */
+    readonly eagerScalarCells?: true;
     readonly rank?: number;
     readonly shape?: readonly (number | null)[];
     readonly integer?: string;
@@ -57,8 +59,11 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         // Nested array literals and row assembly need the runtime's cell rules.
         const items = expression.items.map(item => expressionFacts(item.value, lookup));
         if (!expression.rows.length && items.every(isAtom)) {
+            const eagerScalarCells = items.every(item => item.rank === 0 && item.types.length > 0
+                && item.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type)));
             return { types: ['array'], rank: 1, shape: [items.length],
                 elements: [...new Set(items.flatMap(item => item.types))],
+                ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}),
                 ...(items.every(item => item.integer !== undefined) ? {
                     integers: items.map((item, index) => {
                         const n = Number(item.integer) * (expression.items[index].sign === '-' ? -1 : 1);
@@ -177,5 +182,6 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const elements = values.every(value => value.elements?.length)
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
-        ...(elements ? { elements } : {}) };
+        ...(elements ? { elements } : {}),
+        ...(values.every(value => value.eagerScalarCells) ? { eagerScalarCells: true as const } : {}) };
 }

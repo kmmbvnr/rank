@@ -24,15 +24,43 @@ function borrowCandidates(source: string, name = 'helper', resolveHelpers = true
 
 it('distinguishes reads, parameter writes and captured object writes', () => {
     expect(analyze('fun helper X Y\n return X + Y\nend'))
-        .toEqual({ unknown: false, parameters: new Set(), captures: new Set(), returns: [{ kind: 'unknown' }] });
+        .toEqual({ unknown: false, parameters: new Set(), captures: new Set(),
+            readParameters: new Set(), readCaptures: new Set(), returns: [{ kind: 'unknown' }] });
     expect(analyze('fun helper X Y\n X 0 = Y\n Shared 0 = 1\n return 0\nend'))
-        .toEqual({ unknown: false, parameters: new Set([0]), captures: new Set(['Shared']), returns: [{ kind: 'fresh' }] });
+        .toEqual({ unknown: false, parameters: new Set([0]), captures: new Set(['Shared']),
+            readParameters: new Set(), readCaptures: new Set(), returns: [{ kind: 'fresh' }] });
 });
 
 it('maps helper writes to the enclosing parameters', () => {
     expect(analyze('fun write X\n X 0 = 1\n return 0\nend\nfun helper A B\n B write\n return A\nend'))
         .toEqual({ unknown: false, parameters: new Set([1]), captures: new Set(),
+            readParameters: new Set(), readCaptures: new Set(),
             returns: [{ kind: 'parameter', index: 0 }] });
+});
+
+it('records indexed reads through resolved helpers', () => {
+    expect(analyze('fun helper X\n return X 0\nend')).toMatchObject({
+        unknown: false, readParameters: new Set([0]), readCaptures: new Set(),
+    });
+    expect(analyze('fun read X\n return X 0\nend\nfun helper A\n return A read\nend')).toMatchObject({
+        unknown: false, readParameters: new Set([0]), readCaptures: new Set(),
+    });
+    expect(analyze('fun helper\n return Shared 0\nend')).toMatchObject({
+        unknown: false, readParameters: new Set(), readCaptures: new Set(['Shared']),
+    });
+    expect(analyze('fun read X\n return Shared 0\nend\nfun helper Shared\n return 1 read\nend').unknown).toBe(true);
+});
+
+it('proves reads of a private eager literal array, including through a helper', () => {
+    expect(analyze('fun helper\n Temp = array 1 2\n return Temp 0\nend')).toMatchObject({
+        unknown: false, readParameters: new Set(), readCaptures: new Set(),
+    });
+    expect(analyze('fun read X\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend'))
+        .toMatchObject({ unknown: false, readParameters: new Set(), readCaptures: new Set() });
+    for (const body of ['Temp = Source\n return Temp 0', 'Temp = array 1 2\n Temp 0 = Source\n return Temp 0',
+        'Temp = array 1 2\n Temp = Source\n return Temp 0', 'return Temp 0\n Temp = array 1 2']) {
+        expect(analyze(`fun helper\n ${body}\nend`).unknown, body).toBe(true);
+    }
 });
 
 it('proves a flat-array reader does not escape through a resolved helper', () => {

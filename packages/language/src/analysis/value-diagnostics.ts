@@ -212,13 +212,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     unknown ||= !array(env.get(capture));
                     written.add(capture);
                 }
-                if (result.parameters.size) {
+                for (const capture of result.readCaptures) {
+                    unknown ||= !env.get(capture)?.eagerScalarCells;
+                }
+                if (result.parameters.size || result.readParameters.size) {
                     let site: AstNode = node;
                     while (isApplicationExpression(site.$container)) site = site.$container;
                     const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
                     if (parts.at(-1) !== node || parts.length - 1 !== functions.get(node.name)?.parameters.length) unknown = true;
-                    else for (const index of result.parameters) {
-                        unknown ||= !array(expressionFacts(parts[index], name => env.get(name)));
+                    else {
+                        for (const index of result.parameters) {
+                            unknown ||= !array(expressionFacts(parts[index], name => env.get(name)));
+                        }
+                        for (const index of result.readParameters) {
+                            unknown ||= !expressionFacts(parts[index], name => env.get(name)).eagerScalarCells;
+                        }
                     }
                 }
             } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)
@@ -235,7 +243,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // cannot alter its caller's array, even if two arguments share storage.
         for (const name of written) {
             const fact = env.get(name);
-            if (fact) env.set(name, { ...fact, elements: undefined, integers: undefined });
+            if (fact) env.set(name, { ...fact, elements: undefined, integers: undefined, eagerScalarCells: undefined });
         }
     }
 
@@ -367,7 +375,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     env.set(statement.name, { ...fact,
                         elements: oneCell && fact.elements?.length
                             ? [...new Set([...fact.elements, ...replacement.types])] : undefined,
-                        integers: undefined });
+                        integers: undefined,
+                        eagerScalarCells: oneCell && fact.eagerScalarCells
+                            && replacement.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                            ? true : undefined });
                 } else {
                     for (const [name, value] of env) if (!value.types.includes('function')) env.set(name, invalidate(value));
                 }

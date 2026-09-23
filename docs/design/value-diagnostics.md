@@ -50,6 +50,16 @@ examples.
 and captured objects. Calls to supported helpers map written parameters back to
 the caller's parameters. Conditional effects include all branches. The pass
 uses current function binding identities and a budget of 100 definitions.
+It also records direct numeric indexed reads through resolved helpers. A call
+with such a read preserves unrelated facts only when the argument or capture
+is a proven eager scalar-cell array. Direct rank-one literals of scalar values
+establish that fact; safe scalar-cell writes retain it. Unknown replacements, lazy arrays
+and retained runtime metadata do not establish it, because reading a lazy cell
+may run code.
+The pass also accepts a top-level function's private eager literal array when
+its first statement creates the array and neither reassigns nor writes it.
+This covers a direct read or a read through a resolved helper. A local alias,
+unknown cell or later write does not qualify.
 It also records return origins: a parameter, captured name, input-free
 expression or unknown. Straight-line local assignments and supported helper
 returns can carry these origins; branch paths join conservatively. A helper's

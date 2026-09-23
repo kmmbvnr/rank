@@ -13,6 +13,8 @@ export interface FunctionEffects {
     readonly unknown: boolean;
     readonly parameters: ReadonlySet<number>;
     readonly captures: ReadonlySet<string>;
+    readonly readParameters: ReadonlySet<number>;
+    readonly readCaptures: ReadonlySet<string>;
     readonly returns: readonly ReturnOrigin[];
 }
 
@@ -27,6 +29,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
     const cache = new Map<string, FunctionEffects>();
     const active = new Set<string>();
     const unknown: FunctionEffects = { unknown: true, parameters: new Set(), captures: new Set(),
+        readParameters: new Set(), readCaptures: new Set(),
         returns: [{ kind: 'unknown' }] };
     let budget = 100;
     function analyze(name: string): FunctionEffects {
@@ -37,9 +40,23 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         if (![...AstUtils.streamAllContents(definition)].some(isReturnStatement)) return unknown;
         const parameters = new Set<number>();
         const captures = new Set<string>();
+        const readParameters = new Set<number>();
+        const readCaptures = new Set<string>();
         const assignments = new Set([...AstUtils.streamAllContents(definition)]
             .filter(isAssignmentStatement).map(node => node.name));
         const locals = new Set([...definition.parameters, ...assignments]);
+        const eagerLocals = new Set<string>();
+        const descendants = [...AstUtils.streamAllContents(definition)];
+        for (const item of definition.statements.slice(0, 1)) {
+            if (!isAssignmentStatement(item) || item.operator !== '=' || !isArrayExpression(item.value)
+                || definition.$container.$type !== 'Program' || definition.parameters.includes(item.name)
+                || item.value.dimensions.length || item.value.rows.length || item.value.fill
+                || !item.value.items.every(cell => isNumberLiteral(cell.value)
+                    || isBooleanLiteral(cell.value) || isLabelLiteral(cell.value))) continue;
+            if (descendants.filter(isAssignmentStatement).filter(other => other.name === item.name).length !== 1) continue;
+            if (descendants.some(node => isArrayAssignmentStatement(node) && node.name === item.name)) continue;
+            eagerLocals.add(item.name);
+        }
         const origin = (value: Expression | undefined, aliases: ReadonlyMap<string, ReturnOrigin>): readonly ReturnOrigin[] => {
             while (value && isParenthesizedExpression(value)) value = value.value;
             if (value && isNameExpression(value)) {
@@ -119,11 +136,24 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             else captures.add(target);
             return true;
         };
+        const read = (target: string): boolean => {
+            if (target.includes('.') || isFunction(target)) return false;
+            if (assignments.has(target)) return eagerLocals.has(target);
+            const index = definition.parameters.indexOf(target);
+            if (index >= 0) readParameters.add(index);
+            else if (!locals.has(target)) readCaptures.add(target);
+            else return false;
+            return true;
+        };
         const expression = (value: Expression): boolean => {
             if (isNameExpression(value)) return locals.has(value.name)
                 || /^[A-Z]/.test(value.name) && !isFunction(value.name);
             if (isApplicationExpression(value)) {
                 const parts = flattenApplication(value);
+                if (isNameExpression(parts[0]) && parts.length > 1
+                    && parts.slice(1).every(part => isNumberLiteral(part) && typeof part.value === 'bigint')) {
+                    return read(parts[0].name);
+                }
                 const target = parts.at(-1)!;
                 if (!isNameExpression(target) || locals.has(target.name)) return false;
                 const helper = resolve(target.name);
@@ -136,10 +166,19 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     if (locals.has(capture)) return false;
                     captures.add(capture);
                 }
+                for (const capture of effects.readCaptures) {
+                    if (locals.has(capture)) return false;
+                    readCaptures.add(capture);
+                }
                 for (const index of effects.parameters) {
                     let argument = parts[index];
                     while (isParenthesizedExpression(argument)) argument = argument.value;
                     if (!isNameExpression(argument) || !write(argument.name)) return false;
+                }
+                for (const index of effects.readParameters) {
+                    let argument = parts[index];
+                    while (isParenthesizedExpression(argument)) argument = argument.value;
+                    if (!isNameExpression(argument) || !read(argument.name)) return false;
                 }
                 return true;
             }
@@ -171,7 +210,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         try {
             let origins: readonly ReturnOrigin[] | undefined;
             const result = definition.statements.every(statement) ? {
-                unknown: false, parameters, captures,
+                unknown: false, parameters, captures, readParameters, readCaptures,
                 get returns() { return origins ??= returnOrigins(); },
             } : unknown;
             cache.set(name, result);

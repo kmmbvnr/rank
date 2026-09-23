@@ -12,7 +12,11 @@ Stage 2 has started with return-origin summaries. They distinguish an input-free
 result from a returned parameter or capture, including straight-line local
 aliases and supported helper returns. Branches join conservatively. Helper
 captures, unsupported indirection and paths that may fall through remain
-unknown. Runtime borrowing does not consume these summaries yet.
+unknown. The effect summary now tracks direct numeric indexed reads through
+resolved helpers and private eager literal arrays. Diagnostics retain unrelated
+facts across those reads only when array cells cannot invoke lazy code; lazy or
+unknown arrays keep the conservative boundary. Runtime borrowing does not
+consume these summaries yet.
 
 Stage 3 has a first, separate flat-array borrow candidate check. It accepts
 direct numeric reads and a chain of resolved one-argument reader helpers.
@@ -59,7 +63,7 @@ in execution only when a transformation has all the proofs it needs.
 | --- | --- | --- |
 | Language value facts and diagnostics | Types, element types, rank, partial shapes, selected operations, call-site inference, branch joins and simple loops; safe single-cell writes retain possible element types | Unsupported paths remain unknown; not a whole-program proof |
 | Shared REPL diagnostics | Metadata snapshots, edit invalidation, same-file and host-loaded `_test.ra` examples | No test execution or array-cell inspection; browser companion loading needs a host |
-| Diagnostic function effects | Possible indexed writes to parameters/captures and supported helper calls | Preserves scalar facts for known array writes; conservatively drops reference facts; no escape analysis |
+| Diagnostic function effects | Possible indexed writes and numeric reads of parameters/captures through supported helper calls | Reader facts require proven eager scalar cells; no escape analysis |
 | Integer-loop compiler | Uses `expressionFacts` for specialization hints and checks inputs on entry | Does not consume the new diagnostic effect summary as a safety proof |
 | Runtime parameter borrowing | Direct syntactic readers plus guarded flat-array helper chains | Aliases, nested values and unknown calls use ordinary CoW binding |
 | Flat-array borrow candidates | Direct numeric reads and resolved single-argument reader helpers | Runtime checks owned flat storage and current helper identities before use |
