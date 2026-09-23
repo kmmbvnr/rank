@@ -113,6 +113,7 @@ Structures, modules, and query syntax that extend the core language via `use`:
 - [Product decisions](design/product-decisions.md)
 - [Open questions](design/open-questions.md)
 - [Array element types and compact storage](design/array-element-types.md)
+- [Колоночные таблицы: будущее направление](design/columnar-tables.md)
 - [Numerical scripting roadmap](design/numerical-scripting-roadmap.md)
 - [R data-analysis roadmap](design/r-data-analysis-roadmap.md)
 - [Task corpora: numerical, R and contest problems](design/task-corpora.md)
