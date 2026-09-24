@@ -576,8 +576,8 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
     database.close();
     const sql = 'WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<1000000000) SELECT sum(x) FROM n';
     const frames = await drive(t, [
-        'use tables' + ENTER,
-        `Db = ${JSON.stringify(filename)} sqlite` + ENTER,
+        { keys: 'use tables' + ENTER, until: 'tables' },
+        { keys: `Db = ${JSON.stringify(filename)} sqlite` + ENTER, until: 'sqlite' },
         '',
         running(`Db ${JSON.stringify(sql)} (array shape 0 fill 0) sqlquery array` + ENTER),
         running(UP),
