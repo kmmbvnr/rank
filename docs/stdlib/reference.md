@@ -304,7 +304,7 @@ Shapes, orderings, windows and lazy sources.
 | --- | --- | --- |
 | `Mask all` | boolean | True when every boolean cell is true; empty collections are true. |
 | `Mask any` | boolean | True when one boolean cell is true; empty collections are false. |
-| `Values argsort` | array | Stable zero-based positions that put the values in order. |
+| `Values argsort .descending` | array | Stable zero-based positions that put the values in order. |
 | `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped sequence items stack. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
@@ -317,7 +317,7 @@ Shapes, orderings, windows and lazy sources.
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |
-| `Values sort` | array | Stable ascending sort into a new rank-1 array. |
+| `Values sort .descending` | array | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | Reverses the axes of an array. |
 | `Values Count take` | value, lazy | Keeps at most Count leading items; sequences stay lazy and arrays slice their leading axis. |
 | `Values unique` | array | Distinct values in first-appearance order. |
@@ -337,12 +337,21 @@ Averages, spread, error metrics and covariance.
 
 | Form | Result | Summary |
 | --- | --- | --- |
+| `Features correlation` | array, lazy | Pearson correlation matrix over feature and observation axes. |
+| `Features corr` | array, lazy | Alias for correlation. |
 | `Features covariance` | array, lazy | Sample covariance matrix over feature and observation axes. |
 | `Pred Target mae` | real | Mean absolute error between two broadcast numeric values. |
 | `Values mean` | real | Arithmetic mean, missing table cells skipped. |
 | `Values median` | real | Middle value of a sorted copy, averaging the two middle values when even. |
+| `Values mode` | value | Most frequent value in a collection or array. |
 | `Pred Target mse` | real | Mean squared error between two broadcast numeric values. |
+| `Values P percentile` | value | Percentile P in 0..100. |
+| `Values Q quantile` | value | Linear interpolation quantile Q in 0..1. |
+| `Values skew` | real | Alias for skewness. |
+| `Values skewness` | real | Sample skewness of numeric values. |
 | `Values std` | real | Population standard deviation, dividing by N. |
+| `Values var` | real | Alias for variance. |
+| `Values variance` | real | Population variance of numeric values. |
 
 ## tables
 
