@@ -51,3 +51,36 @@ it('previews a generator body past an earlier yield', async () => {
         session.dispose();
     }
 });
+
+it('shows recursive call for lines invoking the function being defined', async () => {
+    const session = createReplSession();
+    const runner = new LivePreviewRunner(source => session.preview(source));
+    const source = [
+        'memo fib N',
+        '  if N less 2',
+        '    return N',
+        '  else',
+        '    Fib1 = N - 1 fib',
+        '    Fib2 = N - 2 fib',
+        '    return Fib1 + Fib2',
+        '  end',
+    ].join('\n');
+    const live = new LiveFunctionSession(
+        { name: 'fib', parameters: ['N'], header: 'memo fib N', source,
+          values: ['5'], cellId: 1, existing: false }, []);
+    try {
+        await runner.updateFunction(live, source, true);
+        // Line 2: if N less 2 -> false · branch skipped
+        expect(live.outputs.get(2)).toEqual([{ text: 'false · branch skipped', error: false }]);
+        // Line 4: else -> branch runs
+        expect(live.outputs.get(4)).toEqual([{ text: 'branch runs', error: false }]);
+        // Line 5: Fib1 = N - 1 fib -> recursive call
+        expect(live.outputs.get(5)).toEqual([{ text: 'recursive call', error: false }]);
+        // Line 6: Fib2 = N - 2 fib -> recursive call
+        expect(live.outputs.get(6)).toEqual([{ text: 'recursive call', error: false }]);
+        // Line 7: return Fib1 + Fib2 -> recursive call (not a runtime error!)
+        expect(live.outputs.get(7)).toEqual([{ text: 'recursive call', error: false }]);
+    } finally {
+        session.dispose();
+    }
+});

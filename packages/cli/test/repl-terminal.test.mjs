@@ -657,11 +657,11 @@ test('bracketed paste uses the cursor in the focused function argument', async t
 
 test('an open function evaluates body lines immediately on example arguments', async t => {
     const frames = await drive(t, [
-        'fun inc N' + ENTER,
-        '2' + ENTER,
-        'A = N + 1' + ENTER,
-        'A * 2' + ENTER,
-        'end' + ENTER,
+        { keys: 'fun inc N' + ENTER, until: 'Example inc' },
+        { keys: '2' + ENTER, until: 'N = 2' },
+        { keys: 'A = N + 1' + ENTER, until: '3' },
+        { keys: 'A * 2' + ENTER, until: '6' },
+        { keys: 'end' + ENTER, until: '<function inc>' },
     ], 100, 30);
     assert.match(frames[0].text, /rank> fun inc N\n\s+N = /);
     assert.match(frames[0].text, /N = /);

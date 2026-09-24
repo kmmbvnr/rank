@@ -1,4 +1,4 @@
-import { EMPTY_CELL, addLine, cellSource, closeCell, scanLine, type CellState } from './repl-input.js';
+import { EMPTY_CELL, addLine, cellSource, closeCell, scanLine, tokenize, type CellState } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import type { LiveFunctionSession } from './live-function.js';
 
@@ -30,7 +30,7 @@ export class LivePreviewRunner {
     ): Promise<void> {
         if (live.skipped || live.values.length !== live.parameters.length) return;
         await this.update(live, source, 1, functionBodyEnd(source, live.existing),
-            (text, target) => functionPreviewSource(live, text, target), reset, throughLine);
+            (text, target) => functionPreviewSource(live, text, target), reset, throughLine, live.name);
     }
 
     async updateConditional(
@@ -48,6 +48,7 @@ export class LivePreviewRunner {
         build: (source: string, target: number) => string,
         reset: boolean,
         throughLine?: number,
+        functionName?: string,
     ): Promise<void> {
         const update = (this.updates.get(state) ?? 0) + 1;
         this.updates.set(state, update);
@@ -58,8 +59,10 @@ export class LivePreviewRunner {
         const lines = source.split('\n');
         const previews = previewTargets(source, start, end, throughLine).map(target => ({
             line: target + 1,
+            target,
             source: build(source, target),
             control: controlAt(lines[target].trim(), target + 1, state.iterations),
+            recursive: lineCallsFunction(lines[target].trim(), functionName),
         }));
         const changed = previews.some(item => state.prefixes.has(item.line)
                 && state.prefixes.get(item.line) !== item.source)
@@ -68,14 +71,38 @@ export class LivePreviewRunner {
             state.outputs.clear();
             state.prefixes.clear();
         }
+        let priorRecursion = false;
         for (const item of previews) {
-            if (state.outputs.has(item.line)) continue;
+            if (state.outputs.has(item.line)) {
+                if (item.recursive) priorRecursion = true;
+                continue;
+            }
+            if (item.recursive) {
+                state.outputs.set(item.line, [{ text: 'recursive call', error: false }]);
+                state.prefixes.set(item.line, item.source);
+                priorRecursion = true;
+                continue;
+            }
             const result = await this.preview(item.source);
             if (this.updates.get(state) !== update) return;
-            state.outputs.set(item.line, displayOutput(result.output, item.control));
+            const isRecError = result.output.some(line => line.error && !line.text.includes('[Syntax]') && (
+                priorRecursion || (functionName !== undefined && (
+                    line.text.includes(functionName) || (line.inlineText?.includes(functionName) ?? false)
+                ))
+            ));
+            const output = isRecError
+                ? [{ text: 'recursive call', error: false }]
+                : displayOutput(result.output, item.control);
+            state.outputs.set(item.line, output);
             state.prefixes.set(item.line, item.source);
         }
     }
+}
+
+function lineCallsFunction(line: string, name?: string): boolean {
+    if (!name) return false;
+    const tokens = tokenize(line);
+    return tokens.some(token => token.kind === 'word' && token.text === name);
 }
 
 function previewTargets(source: string, start: number, end: number, throughLine?: number): number[] {
