@@ -8,14 +8,11 @@ use sequences
 rem Compute U, singular values and
 rem the right factor V.
 fun svd_2x2 A
-  Shape = A shape
-  if Shape len not equal 2
+  unpack Rows Columns = A shape
+  if Rows not equal 2
     .DimensionMismatch raise
   end
-  if Shape 0 not equal 2
-    .DimensionMismatch raise
-  end
-  if Shape 1 not equal 2
+  if Columns not equal 2
     .DimensionMismatch raise
   end
 
@@ -55,23 +52,19 @@ fun svd_2x2 A
 
   V = array shape 2 2 fill 0.0
   if S0 greater 0
-    V 0 0 = (
-      U 0 0 * A 0 0 + U 1 0 * A 1 0
-    ) / S0
-    V 0 1 = (
-      U 0 0 * A 0 1 + U 1 0 * A 1 1
-    ) / S0
+    Num0 = U 0 0 * A 0 0 + U 1 0 * A 1 0
+    V 0 0 = Num0 / S0
+    Num1 = U 0 0 * A 0 1 + U 1 0 * A 1 1
+    V 0 1 = Num1 / S0
   else
     V 0 0 = 1.0
   end
 
   if S1 greater 0
-    V 1 0 = (
-      U 0 1 * A 0 0 + U 1 1 * A 1 0
-    ) / S1
-    V 1 1 = (
-      U 0 1 * A 0 1 + U 1 1 * A 1 1
-    ) / S1
+    Num2 = U 0 1 * A 0 0 + U 1 1 * A 1 0
+    V 1 0 = Num2 / S1
+    Num3 = U 0 1 * A 0 1 + U 1 1 * A 1 1
+    V 1 1 = Num3 / S1
   else
     V 1 0 = -V 0 1
     V 1 1 = V 0 0
