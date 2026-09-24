@@ -757,16 +757,16 @@ test('function examples show split values and ranked failures show the failing c
 
 test('arrow keys edit visible function arguments and return to them from the body', async t => {
     const frames = await drive(t, [
-        'fun add X Y' + ENTER,
-        '1' + DOWN,
-        '2' + UP,
-        CLEAR + '3' + DOWN,
+        { keys: 'fun add X Y' + ENTER, until: 'X =' },
+        { keys: '1' + DOWN, until: 'Y =' },
+        { keys: '2' + UP, until: 'X = 1' },
+        { keys: CLEAR + '3' + DOWN, until: 'X = 3' },
         ENTER,
-        'return X + Y' + ENTER,
+        { keys: 'return X + Y' + ENTER, until: '5' },
         UP + UP,
-        CLEAR + '4' + ENTER,
-        ENTER,
-        'end' + ENTER,
+        { keys: CLEAR + '4' + ENTER, until: '4' },
+        { keys: ENTER, until: '7' },
+        { keys: 'end' + ENTER, until: '<function add>' },
     ], 100, 30);
     assert.match(frames[1].text, /X = 1\n\s+Y = /);
     assert.match(frames[2].text, /X = 1\n\s+Y = 2/);
