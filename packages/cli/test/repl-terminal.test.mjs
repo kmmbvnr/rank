@@ -804,10 +804,10 @@ test('Esc skips a function example without adding its draft to the program', asy
 
 test('an invalid function example reports syntax at its field and stays editable', async t => {
     const frames = await drive(t, [
-        'A = 1' + ENTER,
-        'fun inc X' + ENTER,
-        'A = 1' + ENTER,
-        CLEAR + 'A' + ENTER,
+        { keys: 'A = 1' + ENTER, until: '1' },
+        { keys: 'fun inc X' + ENTER, until: 'Example inc' },
+        { keys: 'A = 1' + ENTER, until: 'Syntax' },
+        { keys: CLEAR + 'A' + ENTER, until: 'X = A' },
     ], 80, 20);
     assert.match(frames[2].text, /X = A = 1\n\s+! Syntax: Expecting token/);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /X = A = 1/);
