@@ -26,16 +26,10 @@ fun right_triangle_perimeter Limit
     end
 
     for N in 1 until M
-      Difference = M - N
-      if Difference odd
-        Divisor = M N gcd
-        if Divisor equal 1
-          Primitive = 2 * M * (M + N)
-          if Primitive at most Limit
-            for P in Primitive to Limit by Primitive
-              Counts P += 1
-            end
-          end
+      if (M - N) odd and (M N gcd equal 1)
+        P0 = 2 * M * (M + N)
+        for P in P0 to Limit by P0
+          Counts P += 1
         end
       end
     end
