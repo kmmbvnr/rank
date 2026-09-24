@@ -782,9 +782,9 @@ test('a live function named plus is not rewritten to an operator in its preview 
     const frames = await drive(t, [
         { keys: 'A = array 1 2 3' + ENTER, until: '1 2 3' },
         { keys: 'fun plus X Y' + ENTER, until: 'X =' },
-        'A' + ENTER,
-        'A+1' + ENTER,
-        'return X + Y -1' + ENTER,
+        { keys: 'A' + ENTER, until: 'Y =' },
+        { keys: 'A+1' + ENTER, until: 'A\\+1' },
+        { keys: 'return X + Y -1' + ENTER, until: '2 4 6' },
     ], 100, 24);
     assert.match(frames[4].text, /return X \+ Y -\s?1\n\s+2 4 6/);
     assert.doesNotMatch(frames[4].text, /error:|\(A\) \(A \+ 1\) \+/);

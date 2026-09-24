@@ -42,16 +42,11 @@ fun solve Path
     Left = Seen Y (X - 1)
     Right = Seen Y (X + 1)
 
-    if Up and Down
-      if not Left and not Right
-        return 0
-      end
+    if Up and Down and not Left and not Right
+      return 0
     end
-
-    if Left and Right
-      if not Up and not Down
-        return 0
-      end
+    if Left and Right and not Up and not Down
+      return 0
     end
 
     Choice = Path Step
@@ -64,38 +59,35 @@ fun solve Path
     for Move i in Moves
       NY = Y + DYs i
       NX = X + DXs i
-      Visited = Seen NY NX
+      if Seen NY NX
+        continue
+      end
 
-      if not Visited
-        Open = 0
-        for Other j in Moves
-          AY = NY + DYs j
-          AX = NX + DXs j
-          Around = Seen AY AX
-          if not Around
-            Open += 1
-          end
+      Open = 0
+      for Other j in Moves
+        AY = NY + DYs j
+        AX = NX + DXs j
+        if not (Seen AY AX)
+          Open += 1
         end
+      end
 
-        TargetRow = NY equal 7
-        Target = TargetRow and NX equal 1
-        Final = Next equal 48
-        Must = Open equal 1 and not Target
+      IsTarget = NY equal 7 and NX equal 1
+      Must = Open equal 1 and not IsTarget
 
-        if Open equal 0
-          if Target and Final
-            Must = true
-          else
-            Dead = true
-          end
+      if Open equal 0
+        if IsTarget and Next equal 48
+          Must = true
+        else
+          Dead = true
         end
+      end
 
-        if Must
-          if Forced not equal ""
-            Dead = true
-          end
-          Forced = Move
+      if Must
+        if Forced not equal ""
+          Dead = true
         end
+        Forced = Move
       end
     end
 
@@ -104,23 +96,19 @@ fun solve Path
     end
 
     for Move i in Moves
-      Allowed = Choice equal "?"
-      Allowed or= Choice equal Move
-
-      if Forced not equal ""
-        Allowed and= Move equal Forced
+      if Forced not equal "" and Move not equal Forced
+        continue
+      end
+      if Choice not equal "?" and Choice not equal Move
+        continue
       end
 
-      if Allowed
-        NY = Y + DYs i
-        NX = X + DXs i
-        Visited = Seen NY NX
-
-        if not Visited
-          Seen NY NX = true
-          Ways += Next NY NX walk
-          Seen NY NX = false
-        end
+      NY = Y + DYs i
+      NX = X + DXs i
+      if not (Seen NY NX)
+        Seen NY NX = true
+        Ways += Next NY NX walk
+        Seen NY NX = false
       end
     end
 
