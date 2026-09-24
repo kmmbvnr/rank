@@ -9,10 +9,7 @@ use text
 
 argument Input path
 
-Answers = Input readlines solve
-Part1 = Answers 0
-Part2 = Answers 1
-
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
@@ -31,18 +28,13 @@ fun parse Line
 
   if Words 0 equal "toggle"
     Op = "toggle"
-    A = Words 1 "," split
-    B = Words 3 "," split
+    unpack X1 Y1 = Words 1 "," split integer rank 0
+    unpack X2 Y2 = Words 3 "," split integer rank 0
   else
     Op = Words 1
-    A = Words 2 "," split
-    B = Words 4 "," split
+    unpack X1 Y1 = Words 2 "," split integer rank 0
+    unpack X2 Y2 = Words 4 "," split integer rank 0
   end
-
-  X1 = A 0 integer
-  Y1 = A 1 integer
-  X2 = B 0 integer
-  Y2 = B 1 integer
 
   return array Op X1 Y1 X2 Y2
 end
@@ -53,37 +45,26 @@ fun lights Lines
   Count = 0
 
   for Line in Lines
-    Cmd = Line parse
-
-    Op = Cmd 0
-    X1 = Cmd 1
-    Y1 = Cmd 2
-    X2 = Cmd 3
-    Y2 = Cmd 4
+    unpack Op X1 Y1 X2 Y2 = Line parse
 
     for Y in Y1 to Y2
       for X in X1 to X2
         Old = index X Y default false
-
-        if Op equal "on"
-          if not Old
-            index X Y = true
-            Count += 1
-          end
+        New = true
+        if Op equal "off"
+          New = false
         else
-          if Op equal "off"
-            if Old
-              index X Y = false
-              Count -= 1
-            end
+          if Op equal "toggle"
+            New = not Old
+          end
+        end
+
+        if New not equal Old
+          index X Y = New
+          if New
+            Count += 1
           else
-            if Old
-              index X Y = false
-              Count -= 1
-            else
-              index X Y = true
-              Count += 1
-            end
+            Count -= 1
           end
         end
       end
@@ -99,13 +80,7 @@ fun brightness Lines
   Total = 0
 
   for Line in Lines
-    Cmd = Line parse
-
-    Op = Cmd 0
-    X1 = Cmd 1
-    Y1 = Cmd 2
-    X2 = Cmd 3
-    Y2 = Cmd 4
+    unpack Op X1 Y1 X2 Y2 = Line parse
 
     for Y in Y1 to Y2
       for X in X1 to X2
@@ -115,14 +90,14 @@ fun brightness Lines
           Value += 1
           Total += 1
         else
-          if Op equal "off"
+          if Op equal "toggle"
+            Value += 2
+            Total += 2
+          else
             if Value greater 0
               Value -= 1
               Total -= 1
             end
-          else
-            Value += 2
-            Total += 2
           end
         end
 
