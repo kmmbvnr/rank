@@ -26,11 +26,16 @@ fun right_triangle_perimeter Limit
     end
 
     for N in 1 until M
-      if (M - N) odd and (M N gcd equal 1)
-        P0 = 2 * M * (M + N)
-        for P in P0 to Limit by P0
-          Counts P += 1
-        end
+      if (M - N) even
+        continue
+      end
+      if M N gcd not equal 1
+        continue
+      end
+
+      P0 = 2 * M * (M + N)
+      for P in P0 to Limit by P0
+        Counts P += 1
       end
     end
   end
