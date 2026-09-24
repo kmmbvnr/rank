@@ -1070,10 +1070,10 @@ test('debugging a loaded file uses document line numbers for cells and function 
     const target = path.join(directory, 'forward.ra');
     fs.writeFileSync(target, 'rem Example\n\nAnswer = 21 twice\n\nfun twice X\n  return X + X\nend\n');
     const frames = await drive(t, [
-        `load ${target}` + ENTER,
-        ENTER,
+        { keys: `load ${target}` + ENTER, until: 'forward.ra' },
+        { keys: ENTER, until: '<function twice>' },
         paused(UP + UP + UP + UP + UP + '\x14'),
-        '\x14',
+        paused('\x14'),
         ENTER,
         '\x03',
     ], 100, 30);
