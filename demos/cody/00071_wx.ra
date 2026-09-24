@@ -8,8 +8,7 @@ use text
 rem Parse readings and interpolate gaps.
 fun interpolate_weather Source
   if Source type equal .text
-    Rows = Source "\n" split
-    return Rows interpolate_readings
+    return Source "\n" split interpolate_readings
   end
   return Source interpolate_readings
 end
@@ -26,15 +25,13 @@ fun interpolate_readings Lines
         End += 1
       end
 
-      Before = Start - 1
-      Anchor = Readings Before
-      Change = Readings End - Anchor
+      Anchor = Readings (Start - 1)
       Gap = End - Start + 1
-      Step = Change / Gap
+      Step = (Readings End - Anchor) / Gap
+      Val = Anchor
       for i in Start until End
-        Offset = i - Start + 1
-        Result = Anchor + Step * Offset
-        Readings i = Result
+        Val += Step
+        Readings i = Val
       end
     end
   end
