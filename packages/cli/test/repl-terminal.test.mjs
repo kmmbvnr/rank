@@ -1053,7 +1053,11 @@ test('loaded function below its call is available without executing the file on 
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'forward.ra');
     fs.writeFileSync(target, 'Answer = 21 twice\nfun twice X\n  return X + X\nend\n');
-    const frames = await drive(t, [`load ${target}` + ENTER, 'twi\t', CLEAR + ENTER]);
+    const frames = await drive(t, [
+        { keys: `load ${target}` + ENTER, until: 'forward.ra' },
+        { keys: 'twi\t', until: 'twice ' },
+        { keys: CLEAR + ENTER, until: '42' }
+    ]);
     assert.doesNotMatch(frames[0].text, /\n      42\n|error:/);
     assert.match(frames[1].text, /rank> twice /);
     assert.match(frames[2].text, /Answer = 21 twice\n      42\n/);
