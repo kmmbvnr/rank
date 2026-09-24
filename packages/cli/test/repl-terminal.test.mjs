@@ -165,7 +165,7 @@ test('Enter after an unknown name edits the failed cell without duplicating it',
 });
 
 test('clearing an unknown name removes its error before removing the cell', async t => {
-    const frames = await drive(t, ['Missing' + ENTER, CLEAR], 40, 18);
+    const frames = await drive(t, [{ keys: 'Missing' + ENTER, until: 'Runtime' }, CLEAR], 40, 18);
     assert.match(frames[0].text, /Runtime: unknown name: Missing/);
     assert.match(frames[1].text, /rank> /);
     assert.doesNotMatch(frames[1].text, /Runtime: unknown name|unknown name: Missing/);
@@ -213,7 +213,7 @@ test('Ctrl-H toggles source-only copying and restores the editor cursor', async 
     const frames = await drive(t, [
         'A = 1' + ENTER,
         'A + 2' + ENTER,
-        'Draft = "ab"' + '\x1b[D',
+        { keys: 'Draft = "ab"' + '\x1b[D', until: 'Draft' },
         '\x08',
         'ignored\x1b[200~paste\x1b[201~',
         '\x08',
@@ -298,7 +298,7 @@ test('bracketed multiline paste stays editable until Enter and tab suggestions n
 test('help opens outside the document and Esc removes it before returning to editing', async t => {
     const frames = await drive(t, [
         'A = 1' + ENTER,
-        'help' + ENTER,
+        { keys: 'help' + ENTER, until: 'Editing' },
         '\x1b[6~',
         'ignored text',
         '\x1b',
@@ -342,7 +342,7 @@ test('the next-eval marker remains in the branch body while the iterator is sele
 test('leaving an unused top insertion row restores the original numbering', async t => {
     const frames = await drive(t, [
         '1 + 1' + ENTER,
-        UP + UP,
+        { keys: UP + UP, until: '2›' },
         DOWN,
         UP,
         '\x1b',
@@ -506,7 +506,7 @@ test('load waits for Enter and lets the user edit code before the first executio
     const target = path.join(directory, 'pending.ra');
     fs.writeFileSync(target, 'A = Missing\n');
     const frames = await drive(t, [
-        { keys: `load ${target}` + ENTER, until: '· saved' },
+        { keys: `load ${target}` + ENTER, until: 'A = Missing' },
         UP + CLEAR + 'A = 42',
         DOWN + ENTER,
     ]);
@@ -592,7 +592,7 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
 
 test('Ctrl-P shows factor state and Enter continues in the real terminal', async t => {
     const frames = await drive(t, [
-        'use numbers' + ENTER,
+        { keys: 'use numbers' + ENTER, until: 'use numbers' },
         running('170141183460469231731687303715884105727 factors max' + ENTER),
         '\x10',
         running(ENTER),
@@ -732,8 +732,8 @@ test('arrows leave example fields in both directions without losing edits or eva
 
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'card_value' },
-        { keys: 'fun hand_score Cards' + ENTER, until: 'Cards =' },
+        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: '<function card_value>' },
+        'fun hand_score Cards' + ENTER,
         '"5H 5C" "" split' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
         UP,
@@ -774,7 +774,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
     const frames = await drive(t, [
         'A = array 1 2 3' + ENTER,
-        'fun plus X Y' + ENTER,
+        { keys: 'fun plus X Y' + ENTER, until: 'X =' },
         'A' + ENTER,
         'A+1' + ENTER,
         'return X + Y -1' + ENTER,
@@ -818,7 +818,7 @@ test('a runtime error in a function example stays on its argument field', async 
         'fun family Prime Pick' + ENTER,
         '123123' + ENTER,
         '0 1 2' + ENTER,
-        CLEAR + 'array 0 1 2' + ENTER,
+        { keys: CLEAR + 'array 0 1 2' + ENTER, until: 'Pick = array 0 1 2' },
     ], 100, 20);
     assert.match(frames[2].text, /Pick = 0 1 2\n\s+! Runtime: value application\s+requires a sequence and one\s+selector/);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /Pick = 0 1 2/);
@@ -848,7 +848,7 @@ test('Ctrl-R reruns an unfinished function and leaves it open at the current lin
         '\x12',
         '',
         '\x12',
-        'return Result' + '\x12',
+        { keys: 'return Result' + '\x12', until: 'return Result' },
         'end' + '\x12',
     ], 80, 20);
     assert.match(frames[3].text, /Result = N \+ 1/);
@@ -910,7 +910,7 @@ test('postfix comparisons select whole arrays and column cells in the terminal',
     const frames = await drive(t, [
         'A = array shape 2 2 fill 1' + ENTER,
         'B = array shape 2 2 fill 1' + ENTER,
-        'B 0 1 = 9' + ENTER,
+        { keys: 'B 0 1 = 9' + ENTER, until: '9' },
         'A B equal rank 2' + ENTER,
         'A B equal axis 1 rank 1' + ENTER,
     ], 80, 22);
