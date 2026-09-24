@@ -1,0 +1,11 @@
+company_id,legal_nature,company_size,capital_stock,owner_qualification
+1001,EIRELI,Micro,50000,Individual
+1002,EIRELI,Small,150000,Individual
+1003,LLC,Small,300000,Partner
+1004,LLC,Medium,800000,Partner
+1005,LLC,Medium,1200000,Partner
+1006,SA,Medium,5000000,Director
+1007,SA,Large,12000000,Director
+1008,SA,Large,25000000,Director
+1009,LLC,Large,18000000,Partner
+1010,EIRELI,Micro,40000,Individual

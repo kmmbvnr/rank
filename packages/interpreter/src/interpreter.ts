@@ -124,7 +124,7 @@ import {
     sortValue,
     transposeValue,
 } from './modules/sequences.js';
-import { covarianceValue, errorMetricValue, statisticsCell } from './modules/stats.js';
+import { covarianceValue, correlationValue, errorMetricValue, quantileValue, statisticsCell } from './modules/stats.js';
 import { groupTable, rollingTable, joinAliasedTables, joinTables, reachTable, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, reachSqlite, materializeSqlite,
@@ -1995,10 +1995,19 @@ export class Interpreter {
                             throw new RankError('grouped select expects named aggregates', 'TypeError');
                         }
                         const parts = flattenApplication(entry.value);
-                        const field = parts.length === 2 && isLabelLiteral(parts[0])
+                        const field = (parts.length >= 2 && isLabelLiteral(parts[0]))
                             ? parts[0].name : undefined;
                         const operationNode = parts[parts.length - 1];
-                        const aggregateNames = ['count', 'sum', 'min', 'max', 'mean', 'median', 'std'];
+                        const aggregateNames = [
+                            'count', 'sum', 'min', 'max', 'mean', 'median', 'std',
+                            'variance', 'var', 'skewness', 'skew', 'mode', 'quantile', 'percentile',
+                        ];
+                        let parameter: RankValue | undefined;
+                        if (parts.length === 3 && isLabelLiteral(parts[0])) {
+                            if (isNumberLiteral(parts[1])) {
+                                parameter = parts[1].value;
+                            }
+                        }
                         if ((parts.length !== 1 && field === undefined)
                             || !isNameExpression(operationNode)
                             || !aggregateNames.includes(operationNode.name)
@@ -2007,8 +2016,8 @@ export class Interpreter {
                         }
                         const operation = operationNode.name as GroupAggregateOperation;
                         interpreter.requireModule(operation === 'count' ? 'sequences'
-                            : ['mean', 'median', 'std'].includes(operation) ? 'stats' : 'core', operation);
-                        return { name: entry.name, operation, field };
+                            : ['sum', 'min', 'max'].includes(operation) ? 'core' : 'stats', operation);
+                        return { name: entry.name, operation, field, parameter };
                     });
                     return selectGroupedTable(source, specs);
                 }
@@ -2622,6 +2631,16 @@ export class Interpreter {
             const explicitRank = explicitRankApplication(parts);
             if (explicitRank) {
                 return function* (): Execution<RankValue> {
+                    if (explicitRank.parts.length === 3) {
+                        const left = yield* resume(interpreter.evaluateTask(explicitRank.parts[0]));
+                        const right = yield* resume(interpreter.evaluateTask(explicitRank.parts[1]));
+                        const operation = yield* resume(interpreter.evaluateTask(explicitRank.parts[2]));
+                        if (isNativeFunction(operation) && (operation.dyadicRanks || operation.arities.includes(2))) {
+                            return yield* resume(interpreter.applyDyadicAtRank(
+                                left, right, operation, Number(explicitRank.rank),
+                            ));
+                        }
+                    }
                     const source = yield* resume(interpreter.evaluateTask(
                         applicationParts(explicitRank.parts.slice(0, -1)),
                     ));
@@ -2647,6 +2666,28 @@ export class Interpreter {
                     return covarianceValue(
                         (yield* resume(interpreter.evaluateTask(axisCovariance.source))),
                         axisCovariance.axes,
+                    );
+                };
+            }
+            const axisCorrelation = explicitAxisCorrelation(parts);
+            if (axisCorrelation) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('stats', axisCorrelation.name);
+                    return correlationValue(
+                        (yield* resume(interpreter.evaluateTask(axisCorrelation.source))),
+                        axisCorrelation.axes,
+                    );
+                };
+            }
+            const axisQuantile = explicitAxisQuantile(parts);
+            if (axisQuantile) {
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('stats', axisQuantile.isPercentile ? 'percentile' : 'quantile');
+                    return quantileValue(
+                        (yield* resume(interpreter.evaluateTask(axisQuantile.source))),
+                        (yield* resume(interpreter.evaluateTask(axisQuantile.q))),
+                        axisQuantile.axes,
+                        axisQuantile.isPercentile,
                     );
                 };
             }
@@ -2742,6 +2783,11 @@ export class Interpreter {
                         axisReduction.operation === 'mean'
                             || axisReduction.operation === 'median'
                             || axisReduction.operation === 'std'
+                            || axisReduction.operation === 'variance'
+                            || axisReduction.operation === 'var'
+                            || axisReduction.operation === 'skewness'
+                            || axisReduction.operation === 'skew'
+                            || axisReduction.operation === 'mode'
                             ? 'stats'
                             : axisReduction.operation === 'all'
                                 || axisReduction.operation === 'any'
@@ -4142,8 +4188,12 @@ export class Interpreter {
         left: RankValue,
         right: RankValue,
         fn: NativeFunction,
+        customLeftRank?: number,
+        customRightRank?: number,
     ): Evaluation<RankValue> {
-        const [leftRank, rightRank] = fn.dyadicRanks!;
+        const [defaultLeftRank, defaultRightRank] = fn.dyadicRanks ?? ['all', 'all'];
+        const leftRank = customLeftRank ?? defaultLeftRank;
+        const rightRank = customRightRank ?? defaultRightRank;
         const a = dyadicCells(left, leftRank);
         const b = dyadicCells(right, rightRank);
         const frameShape = broadcastShape(
@@ -4413,7 +4463,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean' | 'median' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count',
+        operation: 'sum' | 'mean' | 'median' | 'std' | 'variance' | 'var' | 'skewness' | 'skew' | 'mode' | 'min' | 'max' | 'all' | 'any' | 'count',
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -6211,20 +6261,43 @@ function explicitAxisReduction(
     parts: Expression[],
 ): {
     source: Expression;
-    operation: 'sum' | 'mean' | 'median' | 'std' | 'min' | 'max' | 'all' | 'any' | 'count';
+    operation: 'sum' | 'mean' | 'median' | 'std' | 'variance' | 'var' | 'skewness' | 'skew' | 'mode' | 'min' | 'max' | 'all' | 'any' | 'count';
     axes: readonly number[];
 } | undefined {
     if (parts.length < 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
     if ((operation !== 'sum' && operation !== 'mean' && operation !== 'median' && operation !== 'std'
+        && operation !== 'variance' && operation !== 'var'
+        && operation !== 'skewness' && operation !== 'skew'
+        && operation !== 'mode'
         && operation !== 'min' && operation !== 'max'
         && operation !== 'all' && operation !== 'any' && operation !== 'count')
         || !isNamed(parts[2], 'axis')) return undefined;
     return {
         source: parts[0],
-        operation,
+        operation: operation as any,
         axes: parts.slice(3).map(axis =>
             safeDimension(integerLiteral(axis, `${operation} axis`), `${operation} axis`)),
+    };
+}
+
+function explicitAxisQuantile(
+    parts: Expression[],
+): {
+    source: Expression;
+    q: Expression;
+    isPercentile: boolean;
+    axes: readonly number[];
+} | undefined {
+    if (parts.length < 5 || !isNamed(parts[3], 'axis')) return undefined;
+    const name = isNameExpression(parts[2]) ? parts[2].name : undefined;
+    if (name !== 'quantile' && name !== 'percentile') return undefined;
+    return {
+        source: parts[0],
+        q: parts[1],
+        isPercentile: name === 'percentile',
+        axes: parts.slice(4).map(axis =>
+            safeDimension(integerLiteral(axis, `${name} axis`), `${name} axis`)),
     };
 }
 
@@ -6288,6 +6361,7 @@ function explicitAxisMatmul(parts: Expression[]): AxisMatmulApplication | undefi
 
 interface AxisCovarianceApplication {
     readonly source: Expression;
+    readonly name: string;
     readonly axes: readonly [number, number];
 }
 
@@ -6300,9 +6374,28 @@ function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication 
     }
     return {
         source: parts[0],
+        name: 'covariance',
         axes: [
             safeDimension(integerLiteral(parts[3], 'covariance axis'), 'covariance axis'),
             safeDimension(integerLiteral(parts[4], 'covariance axis'), 'covariance axis'),
+        ],
+    };
+}
+
+function explicitAxisCorrelation(parts: Expression[]): AxisCovarianceApplication | undefined {
+    if (parts.length < 3 || (!isNamed(parts[1], 'correlation') && !isNamed(parts[1], 'corr')) || !isNamed(parts[2], 'axis')) {
+        return undefined;
+    }
+    const name = (parts[1] as any).name;
+    if (parts.length !== 5) {
+        throw new RankError(`${name} axis expects feature and observation axes`);
+    }
+    return {
+        source: parts[0],
+        name,
+        axes: [
+            safeDimension(integerLiteral(parts[3], `${name} axis`), `${name} axis`),
+            safeDimension(integerLiteral(parts[4], `${name} axis`), `${name} axis`),
         ],
     };
 }

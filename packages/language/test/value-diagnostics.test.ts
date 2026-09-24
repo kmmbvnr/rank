@@ -257,6 +257,10 @@ it('retains unrelated facts after the unchanged maximum-subarray reader on eager
     expect(messages(`${definition}\nA = array 1 2 3\nCount = 3\nA max_subarray\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nA = array shape 3 fill 1\nCount = 3\nA max_subarray\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nA = array shape 3 fill Unknown\nCount = 3\nA max_subarray\nCount + "bad"`))
+        .toEqual([]);
+    expect(messages(`${definition}\nA = array shape 3 fill 1\nA 0 = Unknown\nCount = 3\nA max_subarray\nCount + "bad"`))
         .toEqual([]);
     const boundIndex = definition.replace(/\bi\b/g, 'I');
     expect(messages(`${boundIndex}\nI = 0\nA = array 1 2 3\nCount = 3\nA max_subarray\nCount + "bad"`))
@@ -298,6 +302,100 @@ it('retains unrelated facts after the unchanged reverse-integer loop with an ear
         .toEqual(['operator + does not accept integer and text']);
     const uncertain = definition.replace('Result = Result * 10 + Digit', 'Unknown external');
     expect(messages(`${uncertain}\nCount = 3\n123 reverse\nCount + "bad"`)).toEqual([]);
+});
+
+it('retains caller facts across the unchanged modular-power demo for proven integer inputs', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/002_exponentiation.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun power'));
+    expect(messages(`${definition}\nCount = 1\n3 4 power\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nUnknown 4 power\nCount + "bad"`)).toEqual([]);
+});
+
+it('retains caller facts across the unchanged sigmoid demo only for scalar input', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun sigmoid'));
+    expect(messages(`${definition}\nCount = 1\n0.5 sigmoid\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\n(array 0 1) sigmoid\nCount + "bad"`)).toEqual([]);
+});
+
+it('retains caller facts across the unchanged recall demo only for callback-free cells', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun recall'));
+    expect(messages(`${definition}\nCount = 1\n(array 1 0) (array 1 1) recall\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nA = array shape 2 fill 1\nA (array 1 1) recall\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nA = array shape 2 fill Unknown\nA (array 1 1) recall\nCount + "bad"`))
+        .toEqual([]);
+});
+
+it('drops a derived mask read proof after an indexed replacement', () => {
+    const reader = 'fun count_mask Mask\n return Mask count\nend';
+    const before = `${reader}\nMask = (array 1 0) equal 1\nCount = 1`;
+    expect(messages(`${before}\nMask count_mask\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${before}\nMask 0 = "text"\nMask count_mask\nCount + "bad"`)).toEqual([]);
+});
+
+it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
+    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/025_books.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun minimum_reading_time'));
+    expect(messages(`${definition}\nCount = 1\n(array 2 3) minimum_reading_time\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nA = array shape 2 fill 1\nA minimum_reading_time\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nA = array shape 2 fill Unknown\nA minimum_reading_time\nCount + "bad"`))
+        .toEqual([]);
+});
+
+it('retains caller facts across the unchanged softmax pipeline only for safe cells', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/023_softmax.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun softmax'));
+    expect(messages(`${definition}\nCount = 1\n(array 1 2 3) softmax\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nA = array shape 3 fill 1\nA softmax\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nA = array shape 3 fill Unknown\nA softmax\nCount + "bad"`))
+        .toEqual([]);
+});
+
+it('retains a caller fact after the unchanged normal-equation pipeline on eager arrays', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/014_linreg.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun linear_regression'));
+    const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
+    const vector = 'Y = array 1 2 3';
+    expect(messages(`${definition}\nCount = 1\n${matrix}\n${vector}\nX Y linear_regression\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\n${matrix}\n${vector}\nResult = X Y linear_regression\nResult # #`))
+        .toEqual(['2 selectors exceed array rank 1']);
+    expect(messages(`${definition}\nCount = 1\nX = array shape 3 2 fill 1\n${vector}\nX Y linear_regression\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nX = array shape 3 2 fill Unknown\n${vector}\nX Y linear_regression\nCount + "bad"`))
+        .toEqual([]);
+});
+
+it('retains a caller fact after the unchanged gradient-descent loop on numeric arrays', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun linear_regression'));
+    const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
+    const vector = 'Y = array 1 2 3';
+    expect(messages(`${definition}\nCount = 1\n${matrix}\n${vector}\nX Y 0.01 2 linear_regression\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${definition}\nCount = 1\nX = array shape 3 2 fill Unknown\n${vector}\nX Y 0.01 2 linear_regression\nCount + "bad"`))
+        .toEqual([]);
+});
+
+it('skips an unreachable K-means loop body for a proven zero-step call', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun k_means'));
+    const points = 'Points = array shape 2 1\n 0\n 10\nend';
+    const centroids = 'Centroids = array shape 2 1\n 0\n 10\nend';
+    const draft = (steps: number) => `${definition}\nCount = 1\n${points}\n${centroids}`
+        + `\nPoints 2 Centroids ${steps} k_means\nCount + "bad"`;
+    expect(messages(draft(0))).toEqual(['operator + does not accept integer and text']);
+    expect(messages(draft(1))).toEqual([]);
 });
 
 it('checks the result rank of the unchanged bill-count loop before execution', () => {

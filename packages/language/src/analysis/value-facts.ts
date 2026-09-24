@@ -4,8 +4,8 @@ import {
     type Expression,
 } from '../generated/ast.js';
 import { mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
-import { flattenApplication } from '../expressions.js';
-import { findOperation } from '../operations.js';
+import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { findOperation, type Operation } from '../operations.js';
 
 /** Serializable facts only: inspecting these never evaluates user code. */
 export interface ValueFacts {
@@ -15,6 +15,8 @@ export interface ValueFacts {
     readonly elements?: Types;
     /** Proven eager scalar cells; reading one cannot run a lazy callback. */
     readonly eagerScalarCells?: true;
+    /** Derived scalar cells may be lazy, but cannot call Rank code when read. */
+    readonly callbackFreeScalarCells?: true;
     readonly rank?: number;
     readonly shape?: readonly (number | null)[];
     readonly integer?: string;
@@ -26,6 +28,60 @@ export type FactLookup = ((name: string) => ValueFacts | undefined) & {
     invoke?: (name: string, arguments_: readonly ValueFacts[]) => ValueFacts;
     arity?: (name: string) => number | undefined;
 };
+
+/** A catalogue contract applies only to proven scalar operands in its domain. */
+export function hasScalarNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
+    const domain = operation.scalarNoCallback;
+    return !!domain && !operation.effects?.length && operation.arities.includes(operands.length)
+        && operands.every(value => value.rank === 0 && value.types.length > 0
+            && value.types.every(type => type === 'integer' || domain === 'number' && type === 'real'));
+}
+
+/** A scalar-cell array may be eager or a lazy array with a proved callback-free reader. */
+export function hasScalarCellArrayNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
+    const value = operands[0];
+    const domain = operation.scalarCellArrayNoCallback;
+    return !!domain && !operation.effects?.length
+        && operands.length === 1 && operation.arities.includes(1)
+        && value.types.join() === 'array'
+        && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
+        && !!value.elements?.length && value.elements.every(type => domain === 'boolean'
+            ? type === 'boolean' : type === 'integer' || type === 'real');
+}
+
+/** A mapped scalar builtin reads only proved numeric cells from its array input. */
+export function hasMappedScalarNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
+    const value = operands[0];
+    const domain = operation.scalarNoCallback;
+    return !!domain && !operation.effects?.length && operation.arities.includes(1)
+        && operands.length === 1 && mapsScalarCells(operation)
+        && value.types.join() === 'array' && !!value.shape
+        && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
+        && !!value.elements?.length && value.elements.every(type => type === 'integer'
+            || domain === 'number' && type === 'real');
+}
+
+/** Every array read by this builtin has numeric cells that cannot run Rank code. */
+export function hasNumericArrayNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
+    return operation.numericArrayNoCallback === true && !operation.effects?.length
+        && operation.arities.includes(operands.length)
+        && operands.some(value => value.types.join() === 'array')
+        && operands.every(value => value.types.join() === 'array'
+            ? (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
+                && !!value.elements?.length
+                && value.elements.every(type => type === 'integer' || type === 'real')
+            : value.rank === 0 && value.types.length > 0
+                && value.types.every(type => type === 'integer' || type === 'real'));
+}
+
+/** A known Rank array's shape can be read without touching a lazy cell. */
+export function hasArrayHeaderNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
+    const value = operands[0];
+    return operation.arrayHeaderNoCallback === true && !operation.effects?.length
+        && operands.length === 1 && operation.arities.includes(1)
+        && value.types.join() === 'array'
+        && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
+}
 
 /** Start with facts that follow directly from syntax, retaining unknown lengths. */
 export function expressionFacts(expression: Expression, lookup: FactLookup): ValueFacts {
@@ -46,6 +102,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         const operand = expressionFacts(expression.operand, lookup);
         if (operand.integer !== undefined) return { ...operand,
             integer: String(BigInt(operand.integer) * (expression.operator === '-' ? -1n : 1n)) };
+        if (operand.rank === 0 && operand.types.length > 0
+            && operand.types.every(type => type === 'integer' || type === 'real')) {
+            return { types: operand.types, rank: 0, shape: [] };
+        }
         if (operand.types.join() === 'array' || operand.types.join() === 'sequence') return {
             types: operand.types, rank: operand.rank, shape: operand.shape, elements: operand.elements,
         };
@@ -61,9 +121,15 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const fill = expression.fill && expressionFacts(expression.fill, lookup);
             const items = [...expression.items, ...expression.rows.flatMap(row => row.items)]
                 .map(item => expressionFacts(item.value, lookup));
+            const eagerScalarCells = fill
+                ? fill.rank === 0 && fill.types.length > 0
+                    && fill.types.every(type => ['integer', 'real', 'boolean'].includes(type))
+                : items.length > 0 && items.every(item => item.rank === 0 && item.types.length > 0
+                    && item.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type)));
             return { types: ['array'], rank: shape.length, shape,
                 ...(fill && isAtom(fill) ? { elements: fill.types }
-                    : !fill && items.length && items.every(isAtom) ? { elements: [...new Set(items.flatMap(item => item.types))] } : {}) };
+                    : !fill && items.length && items.every(isAtom) ? { elements: [...new Set(items.flatMap(item => item.types))] } : {}),
+                ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}) };
         }
         // Nested array literals and row assembly need the runtime's cell rules.
         const items = expression.items.map(item => expressionFacts(item.value, lookup));
@@ -135,11 +201,39 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const rightShape = isAtom(right) ? [] : right.shape;
             if (leftShape && rightShape && !incompatibleShapes(left, right)) {
                 const shape = broadcastShape(leftShape, rightShape);
-                return { types, rank: shape.length, shape };
+                const safeNumeric = (value: ValueFacts): boolean => (value.rank === 0
+                    && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'))
+                    || (value.types.join() === 'array' && !!value.shape
+                        && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
+                        && !!value.elements?.length
+                        && value.elements.every(type => type === 'integer' || type === 'real'));
+                const callbackFree = types.join() === 'array' && [left, right].every(safeNumeric);
+                return { types, rank: shape.length, shape,
+                    ...(callbackFree ? { elements: ['integer', 'real'] as Types, callbackFreeScalarCells: true as const } : {}) };
+            }
+        }
+        if (['equal', 'notequal', 'and', 'or', 'xor'].includes(expression.operator)) {
+            const allowed = expression.operator === 'equal' || expression.operator === 'notequal'
+                ? ['integer', 'real', 'boolean', 'symbol'] : ['boolean'];
+            const safe = (value: ValueFacts): boolean => (value.rank === 0 && value.types.length > 0
+                && value.types.every(type => allowed.includes(type)))
+                || (value.types.join() === 'array' && !!value.shape
+                    && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
+                    && !!value.elements?.length && value.elements.every(type => allowed.includes(type)));
+            if ([left, right].every(safe) && (left.types.join() === 'array' || right.types.join() === 'array')) {
+                const leftShape = left.rank === 0 ? [] : left.shape!;
+                const rightShape = right.rank === 0 ? [] : right.shape!;
+                if (!incompatibleShapes(left, right)) {
+                    const shape = broadcastShape(leftShape, rightShape);
+                    return { types: ['array'], rank: shape.length, shape, elements: ['boolean'],
+                        callbackFreeScalarCells: true };
+                }
             }
         }
     }
     if (isApplicationExpression(expression)) {
+        const grouped = groupedUnaryDyadicChain(expression, name => lookup(name) === undefined);
+        if (grouped) return expressionFacts(grouped, lookup);
         const parts = flattenApplication(expression);
         const last = parts.at(-1)!;
         const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
@@ -150,17 +244,38 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const operation = findOperation(last.name);
             const arity = unaryTail ? 1 : parts.length - 1;
             if (operation?.arities.includes(arity)) {
+                const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => expressionFacts(part, lookup));
+                if (hasScalarNoCallbackProof(operation, operands)) {
+                    const types = resultTypes(operation);
+                    if (types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
+                        'date', 'datetime', 'duration'].includes(type))) {
+                        return { types, rank: 0, shape: [] };
+                    }
+                }
+                if (hasScalarCellArrayNoCallbackProof(operation, operands)) {
+                    return { types: resultTypes(operation), rank: 0, shape: [] };
+                }
+                if (last.name === 'shape' && arity === 1 && source.types.join() === 'array'
+                    && source.rank !== undefined) return { types: ['array'], rank: 1, shape: [source.rank],
+                    elements: ['integer'], eagerScalarCells: true,
+                    ...(source.shape ? { integers: source.shape } : {}) };
                 const collection = source.types.join() === 'array' || source.types.join() === 'sequence';
                 if (arity === 1 && collection && mapsScalarCells(operation)) return {
                     types: source.types, rank: source.rank, shape: source.shape,
                     elements: resultTypes(operation),
+                    ...(hasMappedScalarNoCallbackProof(operation, operands)
+                        ? { callbackFreeScalarCells: true as const } : {}),
                 };
-                if (last.name === 'round' && arity === 2 && collection) return {
+                if (operation.preservesArrayShape && arity === 2 && collection) return {
                     types: source.types, rank: source.rank, shape: source.shape, elements: source.elements,
+                    ...(hasNumericArrayNoCallbackProof(operation, operands)
+                        ? { callbackFreeScalarCells: true as const } : {}),
                 };
                 if (last.name === 'transpose' && arity === 1 && source.types.join() === 'array'
                     && source.shape) return { types: ['array'], rank: source.shape.length,
-                    shape: [...source.shape].reverse(), elements: source.elements };
+                    shape: [...source.shape].reverse(), elements: source.elements,
+                    ...(hasNumericArrayNoCallbackProof(operation, operands)
+                        ? { callbackFreeScalarCells: true as const } : {}) };
                 if (arity === 2) {
                     const right = expressionFacts(parts[1], lookup);
                     if (operation.dyadicRanks?.[0] === 'all' && operation.dyadicRanks[1] === 1
@@ -188,10 +303,25 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                             && elements.every(type => type === 'integer')
                             ? ['integer'] : elements.includes('real') ? ['real'] : ['integer', 'real'];
                         const shape = [...source.shape.slice(0, -1), ...right.shape.slice(1)];
-                        return shape.length ? { types: ['array'], rank: shape.length, shape, elements: types }
+                        return shape.length ? { types: ['array'], rank: shape.length, shape, elements: types,
+                            ...(hasNumericArrayNoCallbackProof(operation, operands)
+                                ? { callbackFreeScalarCells: true as const } : {}) }
                             : { types, rank: 0, shape: [] };
                     }
                 }
+                if (operation.resultShapeFromOperand !== undefined
+                    && resultTypes(operation).join() === 'array'
+                    && operands[operation.resultShapeFromOperand]?.types.join() === 'array') {
+                    const shapeSource = operands[operation.resultShapeFromOperand];
+                    const callbackFree = hasNumericArrayNoCallbackProof(operation, operands);
+                    return { types: ['array'], rank: shapeSource.rank, shape: shapeSource.shape,
+                        ...(callbackFree ? { elements: ['integer', 'real'] as Types,
+                            callbackFreeScalarCells: true as const } : {}) };
+                }
+                if (hasNumericArrayNoCallbackProof(operation, operands)
+                    && resultTypes(operation).join() === 'array') return {
+                    types: ['array'], elements: ['integer', 'real'], callbackFreeScalarCells: true,
+                };
             }
         }
         if (source.types.join() === 'array' && source.shape && parts.length >= 4
@@ -209,6 +339,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             }
         }
         if (isNameExpression(last) && last.name === 'len' && lookup(last.name) === undefined
+            && parts.length === 2 && source.types.join() === 'array') {
+            return { types: ['integer'], rank: 0, shape: [] };
+        }
+        if (isNameExpression(last) && last.name === 'count' && lookup(last.name) === undefined
             && parts.length === 2 && source.types.join() === 'array') {
             return { types: ['integer'], rank: 0, shape: [] };
         }
@@ -300,5 +434,7 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
         ...(elements ? { elements } : {}),
-        ...(values.every(value => value.eagerScalarCells) ? { eagerScalarCells: true as const } : {}) };
+        ...(values.every(value => value.eagerScalarCells) ? { eagerScalarCells: true as const }
+            : values.every(value => value.eagerScalarCells || value.callbackFreeScalarCells)
+                ? { callbackFreeScalarCells: true as const } : {}) };
 }

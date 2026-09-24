@@ -76,6 +76,137 @@ it('summarizes the unchanged bracket-count demo with proven scalar input', () =>
         .toBe(true);
 });
 
+it('summarizes scalar integer number operations only with proven inputs', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const unknown: ValueFacts = { types: [] };
+    for (const [expression, count] of [['A B gcd', 2], ['A isqrt', 1], ['A B C powmod', 3]] as const) {
+        const parameters = ['A', 'B', 'C'].slice(0, count);
+        const source = `fun helper ${parameters.join(' ')}\n return ${expression}\nend`;
+        expect(analyze(source, 'helper', [], parameters.map(() => integer)).unknown, expression).toBe(false);
+        expect(analyze(source, 'helper', [], parameters.map(() => unknown)).unknown, expression).toBe(true);
+        expect(analyze(source, 'helper', [expression.split(' ').at(-1)!], parameters.map(() => integer)).unknown,
+            expression).toBe(true);
+    }
+    const power = readFileSync(new URL('../../../demos/cses/math/002_exponentiation.ra', import.meta.url), 'utf8');
+    const tower = readFileSync(new URL('../../../demos/cses/math/003_exponentiation2.ra', import.meta.url), 'utf8');
+    expect(analyze(power, 'power', [], [integer, integer]).unknown).toBe(false);
+    expect(analyze(tower, 'power_tower', [], [integer, integer, integer]).unknown).toBe(false);
+});
+
+it('summarizes guarded scalar numeric operations in the unchanged sigmoid demo', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
+    const scalar: ValueFacts = { types: ['real'], rank: 0, shape: [] };
+    const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'sigmoid', [], [scalar])).toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'sigmoid', [], [vector]).unknown).toBe(true);
+    expect(analyze(source, 'sigmoid', ['exp'], [scalar]).unknown).toBe(true);
+    expect(analyze(source, 'sigmoid', [], [{ types: [] }]).unknown).toBe(true);
+});
+
+it('summarizes the unchanged recall demo only with callback-free array cells', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'recall', [], [input, input])).toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'recall', [], [{ ...input, eagerScalarCells: undefined }, input]).unknown).toBe(true);
+    expect(analyze(source, 'recall', ['raise'], [input, input]).unknown).toBe(true);
+    expect(analyze('fun helper X\n .Failure X raise\n return 0\nend', 'helper', [], [input]).unknown)
+        .toBe(true);
+});
+
+it('summarizes callback-free numeric folds in the unchanged four-squares helper', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/026_foursquares.ra', import.meta.url), 'utf8');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [4], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'square_sum', [], [input])).toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'square_sum', [], [{ ...input, eagerScalarCells: undefined }]).unknown).toBe(true);
+});
+
+it('summarizes the unchanged CSES sum-and-max reader only for safe cells', () => {
+    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/025_books.ra', import.meta.url), 'utf8');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'minimum_reading_time', [], [input])).toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'minimum_reading_time', [], [{ ...input, eagerScalarCells: undefined }]).unknown)
+        .toBe(true);
+    expect(analyze(source, 'minimum_reading_time', [], [{ ...input, elements: ['boolean'] }]).unknown)
+        .toBe(true);
+    expect(analyze(source, 'minimum_reading_time', ['sum'], [input]).unknown).toBe(true);
+});
+
+it('summarizes the unchanged softmax pipeline only with callback-free numeric cells', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/023_softmax.ra', import.meta.url), 'utf8');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'softmax', [], [input])).toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'softmax', [], [{ ...input, eagerScalarCells: undefined }]).unknown).toBe(true);
+    expect(analyze(source, 'softmax', ['exp'], [input]).unknown).toBe(true);
+});
+
+it('summarizes the unchanged normal-equation pipeline for callback-free numeric arrays', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/014_linreg.ra', import.meta.url), 'utf8');
+    const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'],
+        eagerScalarCells: true };
+    const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'linear_regression', [], [matrix, vector])).toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'linear_regression', [], [{ ...matrix, eagerScalarCells: undefined }, vector]).unknown)
+        .toBe(true);
+    expect(analyze(source, 'linear_regression', [], [matrix, { ...vector, elements: ['text'] }]).unknown)
+        .toBe(true);
+    expect(analyze(source, 'linear_regression', ['matmul'], [matrix, vector]).unknown).toBe(true);
+});
+
+it('summarizes the unchanged gradient-descent loop for callback-free numeric arrays', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
+    const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'],
+        eagerScalarCells: true };
+    const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
+        eagerScalarCells: true };
+    const rate: ValueFacts = { types: ['real'], rank: 0, shape: [] };
+    const steps: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    expect(analyze(source, 'linear_regression', [], [matrix, vector, rate, steps]))
+        .toMatchObject({ unknown: false, io: false });
+    expect(analyze(source, 'linear_regression', [], [{ ...matrix, eagerScalarCells: undefined }, vector, rate, steps])
+        .unknown).toBe(true);
+    expect(analyze(source, 'linear_regression', ['transpose'], [matrix, vector, rate, steps]).unknown)
+        .toBe(true);
+});
+
+it('does not inspect an unreachable counted-loop body', () => {
+    const source = 'fun helper N\n for I in 0 until N\n  Unknown callback\n end\n return 1\nend';
+    expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '0' }]).unknown)
+        .toBe(false);
+    expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '1' }]).unknown)
+        .toBe(true);
+});
+
+it('keeps the unchanged K-means zero-step call separate from its unsupported loop body', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
+    const points: ValueFacts = { types: ['array'], rank: 2, shape: [2, 1], elements: ['integer'],
+        eagerScalarCells: true };
+    const centroids: ValueFacts = { types: ['array'], rank: 2, shape: [2, 1], elements: ['integer'],
+        eagerScalarCells: true };
+    const integer = (value: string): ValueFacts => ({ types: ['integer'], rank: 0, shape: [], integer: value });
+    expect(analyze(source, 'k_means', [], [points, integer('2'), centroids, integer('0')]).unknown)
+        .toBe(false);
+    expect(analyze(source, 'k_means', [], [points, integer('2'), centroids, integer('1')]).unknown)
+        .toBe(true);
+});
+
+it('accepts only a local numeric array compound update with compatible callback-free cells', () => {
+    const source = 'fun helper X Y\n Temp = X\n Temp -= Y\n return Temp\nend';
+    const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'helper', [], [array, array]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [array, { ...array, eagerScalarCells: undefined }]).unknown)
+        .toBe(true);
+    expect(analyze(source, 'helper', [], [array, { ...array, shape: [3] }]).unknown).toBe(true);
+    expect(analyze(source.replace('Temp = X\n Temp', 'Temp = X\n X'), 'helper', [], [array, array]).unknown)
+        .toBe(true);
+});
+
 it('summarizes the unchanged palindrome demo with proven integer input', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/009_palnum.ra', import.meta.url), 'utf8');
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };

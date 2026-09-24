@@ -1,6 +1,6 @@
 import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
-import { functionTestExamples, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
+import { functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
     Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
@@ -123,8 +123,16 @@ export function createReplSession(host: ReplHost = {}) {
                 const path = file.path.slice(0, -3) + '_test.ra';
                 try {
                     const source = await host.readFile(path);
+                    const names = new Set<string>();
+                    for (const text of [file.source, ...cells.map(cell => cell.source)]) {
+                        try {
+                            for (const definition of parse(text).statements.filter(isFunctionStatement)) {
+                                names.add(definition.name);
+                            }
+                        } catch { /* An unfinished cell cannot add a reliable function name. */ }
+                    }
                     if (savedFile === file) testExamples = { path, examples: functionTestExamples(parse(source),
-                        file.path.split(/[\\/]/).at(-1)!.slice(0, -3)) };
+                        file.path.split(/[\\/]/).at(-1)!.slice(0, -3), names.size ? names : undefined) };
                 } catch { /* Missing or incomplete tests are not errors in the edited program. */ }
             }
             return cells.flatMap(({ id, source }) => {

@@ -51,7 +51,7 @@ for (const path of paths) {
     const testProgram = parser.parse(readFileSync(testPath, 'utf8'));
     if (testProgram.parserErrors.length) throw new Error(`${testPath}: ${testProgram.parserErrors[0].message}`);
     const moduleName = path.split('/').at(-1).replace(/\.ra$/, '');
-    const examples = functionTestExamples(testProgram.value, moduleName);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(byName.keys()));
     counts.testExamples += examples.length;
     counts.knownExampleEffects += examples.filter(example =>
       !effects(example.name, example.arguments).unknown).length;

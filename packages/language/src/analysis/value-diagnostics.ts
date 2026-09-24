@@ -1,7 +1,7 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
-    isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral,
+    isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isStatement, isExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isTryStatement, isUnpackStatement, isYieldStatement,
@@ -358,6 +358,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const array = (fact: ValueFacts | undefined) => !!fact?.types.length
                     && fact.types.every(type => type === 'array');
                 const safeRead = (fact: ValueFacts | undefined) => fact?.eagerScalarCells === true
+                    || fact?.callbackFreeScalarCells === true
                     || fact?.types.join() === 'text';
                 for (const capture of result.captures) {
                     const global = result.globalWriteCaptures.has(capture);
@@ -383,6 +384,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     }
                 }
             } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)) {
+                if (node.name === 'raise') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    if (parts.length === 2 && parts[1] === node && isLabelLiteral(parts[0])) continue;
+                }
                 const operation = findOperation(node.name);
                 if (!operation || operation.effects?.length) unknown = true;
             }
@@ -403,7 +410,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         for (const [source, names] of [[env, written], [globalCallEnvs.at(-1) ?? env, writtenGlobals]] as const) {
             for (const name of names) {
                 const fact = source.get(name);
-                if (fact) source.set(name, { ...fact, elements: undefined, integers: undefined, eagerScalarCells: undefined });
+                if (fact) source.set(name, { ...fact, elements: undefined, integers: undefined,
+                    eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
             }
         }
         for (const name of rebound) {
@@ -516,7 +524,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && !isBooleanLiteral(atom)) return undefined;
             const fact = expressionFacts(atom, name => env.get(name));
             if (!fact.types.length || fact.types.includes('function')
-                || fact.types.includes('array') && !fact.eagerScalarCells) return undefined;
+                || fact.types.includes('array') && !fact.eagerScalarCells && !fact.callbackFreeScalarCells) return undefined;
             arguments_.push(fact);
         }
         return call(target.name, arguments_, new Map(env), value);
@@ -567,6 +575,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         elements: oneCell && fact.elements?.length
                             ? [...new Set([...fact.elements, ...replacement.types])] : undefined,
                         integers: undefined,
+                        callbackFreeScalarCells: undefined,
                         eagerScalarCells: oneCell && fact.eagerScalarCells
                             && replacement.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
                             ? true : undefined });

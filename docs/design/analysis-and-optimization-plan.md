@@ -350,8 +350,8 @@ path and repeats until stable; unsupported exits and branches retain the
 unknown fallback. `len` over a proven eager array and binary `max` over
 proven scalar numbers have narrow no-callback contracts. On unchanged CSES
 `008_maxsubarray`, this retains an unrelated caller type after a call on an
-eager literal array. A shaped fill array without an eager-cell proof still
-invalidates that type. The corpus pass finds 31 of 1,197 test-example calls
+eager literal array. At that point, shaped fill arrays had no eager-cell proof,
+so they invalidated that type. The corpus pass found 31 of 1,197 test-example calls
 with known effect summaries, including all four `008_maxsubarray` examples.
 That count includes other already-supported
 functions; it is not an elapsed-time gain or a function-wide proof. The 25
@@ -367,8 +367,8 @@ them numerically. Expected values are examples, not type contracts, so zero
 conflicts is a regression check rather than proof of analyzer soundness.
 A shared REPL test uses the unchanged `max_subarray` definition in an
 unexecuted draft. It reports both the integer result mismatch and an
-unrelated caller mismatch on an eager literal input. Editing the input to a
-shaped fill array withdraws both diagnostics. Redefining its `max` helper
+unrelated caller mismatch on an eager literal input. At that point, editing
+the input to a shaped fill array withdrew both diagnostics. Redefining its `max` helper
 with an unknown call also withdraws the retained caller diagnostic.
 The effect pass now joins call-site value facts across `if` branches. The
 operation catalogue gives `odd`, `even` and `binomialmod` an explicit
@@ -405,6 +405,100 @@ unchanged AtCoder `003_marbles` demo, this retains an unrelated caller type
 and reports a later bad addition before execution. The corpus now has 118
 of 1,197 example calls with known effects and 427 with inferred result types,
 up from 60 and 424. These counts are analysis coverage, not elapsed-time gains.
+The result pass now collects `return` values inside supported `for` loops. It
+widens bindings assigned in the loop before inspecting its body, retains the
+zero-iteration path and leaves `break` and `continue` unknown. On the unchanged
+LeetCode `007_revint` and AtCoder `010_otoshidama` demos, all ten companion
+examples now have inferred result types and ranks. The REPL reports a result
+type or rank mismatch after either call before running the draft. The corpus
+has 462 of 1,197 examples with inferred results, up from 427, and no conflicts
+with the checked example expectations. Known call-site effects remain at 118.
+These counts do not establish execution speed or complete loop coverage.
+The numeric operation catalogue now gives scalar integer `gcd`, `isqrt` and
+`powmod` calls a no-callback contract. Their scalar results keep rank zero, so
+one proved `powmod` result can feed another. The unchanged CSES exponentiation
+and exponentiation-II demos now retain unrelated caller facts for integer
+inputs; unknown inputs and shadowed operation names do not get this proof.
+Known call-site effects rise from 118 to 142 of 1,197 examples, with zero
+result-expectation conflicts. Both demo test files pass. This is a diagnostic
+coverage change; execution speed has not been measured.
+The same catalogue mechanism now has a scalar-numeric no-callback contract
+for `exp` and `round`. It is checked only when every operand has a proven
+numeric scalar value. Unary signs retain that scalar fact. Four scalar
+examples in the unchanged Deep-ML `022_sigmoid` demo gain known call-site
+effects; its array example remains unknown. The corpus count is 146 of 1,197,
+with zero result-expectation conflicts. A new Rank function can gain an
+inferred summary from its supported body without changing the analyzer. A
+new host builtin can select the `scalarNoCallback` operand domain in the
+catalogue without changing the analyzer, if that contract fits its behavior.
+Other host behavior needs a separate proof rule backed by its implementation;
+the absence of an `effects` flag is not such a contract.
+The analysis now distinguishes eager scalar cells from lazy derived cells
+whose reads cannot call Rank code. Supported scalar comparisons and boolean
+operators carry the second fact through array results, and `count` consumes
+it. A direct label `raise` does not invalidate caller facts during speculative
+result analysis; computed raise arguments remain unknown. On the unchanged
+Deep-ML `052_recall` demo, all six normal examples now have known call-site
+effects. Its seven runtime tests pass, including the dimension-error case.
+The checked corpus has 158 of 1,197 example calls with known effects and
+466 with inferred result types, with zero expectation conflicts. No whole-demo
+speedup was measured.
+Numeric arithmetic now carries the callback-free scalar-cell fact through
+supported array results. The catalogue gives unary `sum`, `min`, `max`, `count`,
+`all` and `any` a shared reduction contract, applied only to an array with
+eager or proved callback-free scalar cells of the required numeric or boolean
+type. The unchanged CSES `missing` and
+`minimum_reading_time` examples now have known call-site effects. The REPL
+retains an unrelated caller fact after `minimum_reading_time` on an eager
+literal input; at that point, shaped fill inputs still had unknown effects. The corpus has
+169 of 1,197 example calls with known effects, 466 with inferred result types,
+and zero expectation conflicts. Both CSES demo test files pass. The Deep-ML
+`linear_regression` function remains unknown: its `matmul` calls and array
+compound update still lack a suitable proof.
+Unary numeric array mapping is now declared in the operation catalogue. The
+analyzer no longer keeps a separate list of names such as `exp`; shape
+preservation for `round` also uses catalogue metadata. On the unchanged
+Deep-ML `023_softmax` demo, all three companion examples have known call-site
+effects for eager numeric inputs, and the REPL can attribute rounded array
+assertions to `softmax`. The test extractor now rejects assertions that belong
+to other functions or unimported builtins. That correction changes the corpus
+denominator: the current pass finds 172 of 1,087 examples with known effects,
+469 inferred results and zero expectation conflicts. These counts cannot be
+compared directly with the earlier 1,197-example pass. No runtime speedup was
+measured.
+The catalogue now describes callback-free numeric array reads for `transpose`,
+`matmul`, `solve` and `round` when every input array has proven eager or
+callback-free numeric cells. Explicit shaped literals with scalar items carry
+the eager-cell fact. On unchanged Deep-ML `014_linreg`, the REPL retains an
+unrelated caller type and infers the result rank from the right operand of
+`solve`. At that point, shaped fill inputs had no eager-cell proof. All four demo tests
+pass. The current corpus has 179 of 1,087 example calls with known effects,
+up from 172; all seven added calls are in Deep-ML. Known function-wide effects
+remain 25 of 573, and no loop function has a known summary. This is a
+diagnostic gain, with no measured execution-speed change.
+Scalar `fill` now gives a shaped array an eager-cell fact: runtime builds an
+owned array of the evaluated integer, real or boolean value. A fill with an
+unknown value still has no such proof. REPL tests now retain unrelated caller
+facts after filled-array calls to unchanged CSES `max_subarray` and
+`minimum_reading_time`, and Deep-ML `recall`, `softmax` and `014_linreg`.
+The current corpus count stays at 179 of 1,087 because its extracted examples
+did not add these filled-array calls. A fresh CoW profile at 256 elements
+still records 0, 1 and 0 copies for gradient descent, K-means and Adam.
+The K-means copy follows a lazy mask of `Labels`; a broader borrow proof
+does not remove that retained reader. No runtime optimization was made.
+The `shape` and `len` catalogue entries now have a guarded array-header
+contract. A shape result is an eager integer array, so its indexed reads do
+not call Rank code. The analysis also retains the left operand of a dyadic
+operation in a chain such as `X transpose Error matmul`, and joins eager and
+callback-free arrays across loop iterations. A local numeric array compound
+update can keep that proof when both arrays have compatible shapes and safe
+cells. These rules cover all three normal examples of unchanged Deep-ML
+`015_gd`; the REPL reports a later bad addition before the call runs. Unknown
+input cells and a shadowed `transpose` still withdraw the proof. The corpus
+has 182 of 1,087 example calls with known effects, up from 179, and zero
+expectation conflicts. All four `015_gd` runtime tests pass. Unconditional
+function summaries remain 25 of 573, with no known loop summary. No speedup
+was measured.
 A trial that added numeric-range loop traversal alone raised known summaries
 from 25 to 26 of 568 functions. It was removed. The remaining functions also
 use operations such as `len`, `max` and `matmul`; their catalogue entries do
@@ -413,23 +507,13 @@ host-owned values. The next analysis must combine control-flow joins with
 operation contracts and input facts. Do not infer a no-callback contract from
 the absence of an `effects` flag.
 
-Use unchanged demos as the next gate. For CSES `008_maxsubarray`, show a
-specific retained caller fact or early diagnostic after its call, as well as
-the current integer result diagnostic. For Deep-ML `015_gd`, `017_kmeans` and
-`049_adam`, identify the operation or callback boundary that prevents a
-summary before extending it. Recount the whole corpus after a general loop
-and operation-contract change. If it only adds isolated synthetic cases or
-cannot change a diagnostic or a guarded runtime path in these demos, revise
-the analysis design instead of adding more syntax cases.
-
-Current Deep-ML boundaries are distinct. `linear_regression` checks shapes
-with `if` and `raise` before its loop; the fact-specific effect pass cannot
-traverse that branch, and `transpose`, `matmul` and `round` have no narrow
-no-callback contracts here. `k_means` has nested loops, a `break`, indexed
-array writes and `sum`/`mean` on derived arrays. `adam_optimizer` calls the
-passed `Gradient` function inside a loop and uses an in-place update of `X`.
-These functions must stay unknown until their respective effects and value
-origins can be proved. A loop rule alone would not cover them.
+The CSES `008_maxsubarray` and Deep-ML `015_gd` call-site diagnostic gates now
+pass for proved inputs. Deep-ML `017_kmeans` and `049_adam` are the next gates.
+`k_means` has nested loops, a `break`, indexed array writes and `sum`/`mean`
+on derived arrays. `adam_optimizer` calls the passed `Gradient` function inside
+a loop and updates `X`. Their effects and value origins remain unknown.
+Recount the corpus after each general rule and require a changed diagnostic
+or guarded runtime decision on an unchanged demo. A count alone is not enough.
 
 Extend the current possible-write summary as needed to distinguish:
 

@@ -51,14 +51,9 @@ const COMPARISONS = new Set([
 const BOOLEANS = new Set(['and', 'or', 'xor']);
 
 const ARITHMETIC = new Set(['+', '-', '*', '/', '//', '%', '**']);
-const MAPPED_UNARY_NUMBERS = new Set([
-    'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cos', 'cosh',
-    'exp', 'log', 'sin', 'sinh', 'tan', 'tanh',
-]);
-
 /** Scalar-cell operations whose successful array/sequence result keeps the input kind. */
 export function mapsScalarCells(operation: Operation): boolean {
-    return operation.monadicRank === 0 || MAPPED_UNARY_NUMBERS.has(operation.name);
+    return operation.monadicRank === 0 || operation.mapsScalarCells === true;
 }
 
 /** `new <structure>` and the runtime type it produces. */
@@ -253,7 +248,7 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     if (operation.arities.includes(arity)) {
         if (arity === 1 && mapsScalarCells(operation)
             && (same(source, 'array') || same(source, 'sequence'))) return source;
-        if (arity === 2 && operation.name === 'round'
+        if (arity === 2 && operation.preservesArrayShape
             && (same(source, 'array') || same(source, 'sequence'))) return source;
         if (arity === 2) {
             const right = typeOf(parts[1], lookup);

@@ -61,10 +61,48 @@ it('shows the unchanged maximum-subarray reader result in a draft and retracts a
         expect(text().match(/operator \+ does not accept integer and text/g)).toHaveLength(2);
         expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
         repl.notebook.replace(draft('array shape 3 fill 1'));
+        expect(text().match(/operator \+ does not accept integer and text/g)).toHaveLength(2);
+        repl.notebook.replace(draft('array shape 3 fill Unknown'));
         expect(text()).not.toContain('operator + does not accept integer and text');
         repl.notebook.replace(`${definition}\nfun max X Y\n X external\n return X\nend\n`
             + 'A = array 1 2 3\nCount = 3\nResult = A max_subarray\nCount + "bad"');
         expect(text()).not.toContain('operator + does not accept integer and text');
+    } finally { session.dispose(); }
+});
+
+it('shows a caller diagnostic after the unchanged gradient-descent loop before execution', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun linear_regression'));
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const draft = (fill: string) => `${definition}\nCount = 1\nX = array shape 3 2 fill ${fill}`
+            + '\nY = array 1 2 3\nX Y 0.01 2 linear_regression\nCount + "bad"';
+        repl.notebook.replace(draft('1'));
+        expect([...repl.diagnosticOutputs!.values()].flat().map(line => line.text).join('\n'))
+            .toContain('operator + does not accept integer and text');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace(draft('Unknown'));
+        expect([...repl.diagnosticOutputs!.values()].flat().map(line => line.text).join('\n'))
+            .not.toContain('operator + does not accept integer and text');
+    } finally { session.dispose(); }
+});
+
+it('keeps a caller diagnostic for an unexecuted zero-step K-means draft', () => {
+    const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
+    const definition = source.slice(source.indexOf('fun k_means'));
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const draft = (steps: number) => `${definition}\nCount = 1`
+            + '\nPoints = array 0 10 shape 2 1\nCentroids = array 0 10 shape 2 1'
+            + `\nPoints 2 Centroids ${steps} k_means\nCount + "bad"`;
+        repl.notebook.replace(draft(0));
+        expect([...repl.diagnosticOutputs!.values()].flat().map(line => line.text).join('\n'))
+            .toContain('operator + does not accept integer and text');
+        repl.notebook.replace(draft(1));
+        expect([...repl.diagnosticOutputs!.values()].flat().map(line => line.text).join('\n'))
+            .not.toContain('operator + does not accept integer and text');
     } finally { session.dispose(); }
 });
 
@@ -366,6 +404,21 @@ it('loads companion examples without executing tests and separates expected from
         repl.notebook.replace('fun addone X\n return "changed"\nend');
         expect(repl.diagnosticOutputs?.get(1)?.map(line => line.text).join('\n')).toContain('From code: text');
         expect(reads).toHaveLength(1);
+    } finally { session.dispose(); }
+});
+
+it('attributes a rounded companion array result to its function', async () => {
+    const session = createReplSession({ readFile: async () =>
+        'test "array"\n use "vectors"\n use numbers\n Result = (array 1 2) rescale\n'
+        + ' Result round 2 equal array 0.5 1.0\nend' });
+    try {
+        session.replaceFile({ path: '/tmp/vectors.ra', source: 'fun rescale X\n return X / 2\nend' });
+        await session.prepareFunctions([]);
+        expect(session.testExamples?.examples).toMatchObject([{ name: 'rescale',
+            expected: { types: ['array'], rank: 1, shape: [2] } }]);
+        await session.prepareFunctions([{ id: 1, source: 'fun rescale X\n return X +\nend' }]);
+        expect(session.testExamples?.examples).toMatchObject([{ name: 'rescale',
+            expected: { types: ['array'], rank: 1, shape: [2] } }]);
     } finally { session.dispose(); }
 });
 

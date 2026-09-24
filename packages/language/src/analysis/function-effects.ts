@@ -7,9 +7,11 @@ import {
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { flattenApplication } from '../expressions.js';
+import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { expressionFacts, joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-facts.js';
+import { expressionFacts, hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
+    hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof,
+    joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-facts.js';
 
 /** Possible effects, not a purity promise. Unknown includes unsupported syntax. */
 export interface FunctionEffects {
@@ -235,7 +237,9 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         };
         const read = (target: string): boolean => {
             if (target.includes('.') || isFunction(target)) return false;
-            if (assignments.has(target)) return eagerLocals.has(target) && !changedLocals.has(target);
+            if (assignments.has(target)) return !changedLocals.has(target) && (eagerLocals.has(target)
+                || facts?.get(target)?.eagerScalarCells === true
+                || facts?.get(target)?.callbackFreeScalarCells === true);
             const index = definition.parameters.indexOf(target);
             if (index >= 0) readParameters.add(index);
             else if (!locals.has(target)) {
@@ -248,6 +252,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const propagate = (name: string, arguments_: readonly Expression[]): boolean => {
             const helper = helperFor(name);
             if (!helper) {
+                if (name === 'raise' && !isBound(name) && arguments_.length === 1
+                    && isLabelLiteral(arguments_[0])) return true;
                 const operation = !isBound(name) && findOperation(name);
                 if (!operation || !operation.arities.includes(arguments_.length)
                     || !arguments_.every(expression)) return false;
@@ -256,20 +262,26 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     return true;
                 }
                 if (!facts || operation.effects?.length) return false;
-                if (name === 'len' && arguments_.length === 1) {
-                    const source = fact(arguments_[0]);
-                    return source.types.length === 1 && source.types[0] === 'array'
-                        && source.eagerScalarCells === true;
+                if (operation.arrayHeaderNoCallback) {
+                    return hasArrayHeaderNoCallbackProof(operation, arguments_.map(fact));
                 }
                 if (name === 'max' && arguments_.length === 2) return arguments_.every(argument => {
                     const value = fact(argument);
                     return value.rank === 0 && value.types.length > 0
                         && value.types.every(type => type === 'integer' || type === 'real');
                 });
-                if (operation.scalarIntegerNoCallback) return arguments_.every(argument => {
-                    const value = fact(argument);
-                    return value.rank === 0 && value.types.join() === 'integer';
-                });
+                if (operation.scalarNoCallback) {
+                    const operands = arguments_.map(fact);
+                    return hasScalarNoCallbackProof(operation, operands)
+                        || hasMappedScalarNoCallbackProof(operation, operands)
+                        || hasNumericArrayNoCallbackProof(operation, operands);
+                }
+                if (operation.scalarCellArrayNoCallback) {
+                    return hasScalarCellArrayNoCallbackProof(operation, arguments_.map(fact));
+                }
+                if (operation.numericArrayNoCallback) {
+                    return hasNumericArrayNoCallbackProof(operation, arguments_.map(fact));
+                }
                 return false;
             }
             if (helper.parameters.length !== arguments_.length) return false;
@@ -351,6 +363,9 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return false;
             }
             if (isApplicationExpression(value)) {
+                const grouped = groupedUnaryDyadicChain(value, name => !isBound(name)
+                    && !locals.has(name) && !isFunction(name));
+                if (grouped) return expression(grouped);
                 const parts = flattenApplication(value);
                 if (isNameExpression(parts[0]) && parts.length > 1 && parts.slice(1).every(part =>
                     isNumberLiteral(part) && typeof part.value === 'bigint'
@@ -386,8 +401,22 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     if (!facts || !['+=', '-=', '*=', '//=', '%='].includes(item.operator)) return false;
                     const target = fact({ $type: 'NameExpression', name: item.name } as Expression);
                     const value = fact(item.value);
-                    if (![target, value].every(part => part.rank === 0 && part.types.join() === 'integer')) return false;
-                    facts.set(item.name, { types: ['integer'], rank: 0, shape: [] });
+                    if ([target, value].every(part => part.rank === 0 && part.types.join() === 'integer')) {
+                        facts.set(item.name, { types: ['integer'], rank: 0, shape: [] });
+                    } else {
+                        const numericArray = (part: ValueFacts) => part.types.join() === 'array'
+                            && (part.eagerScalarCells === true || part.callbackFreeScalarCells === true)
+                            && !!part.elements?.length
+                            && part.elements.every(type => type === 'integer' || type === 'real');
+                        if (definition.parameters.includes(item.name) || capturedBindings.has(item.name)
+                            || !numericArray(target) || !numericArray(value)
+                            || target.rank === undefined || target.rank !== value.rank
+                            || !target.shape || !value.shape
+                            || target.shape.some((size, axis) => size !== null && value.shape![axis] !== null
+                                && size !== value.shape![axis])) return false;
+                        facts.set(item.name, { types: ['array'], rank: target.rank, shape: target.shape,
+                            elements: ['integer', 'real'], callbackFreeScalarCells: true });
+                    }
                 }
                 if (capturedBindings.has(item.name)) {
                     bindingCaptures.add(item.name);
@@ -410,6 +439,12 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             }
             if (isExpressionStatement(item)) return expression(item.value);
             if (isReturnStatement(item)) return !item.value || expression(item.value);
+            if (isForStatement(item) && facts && item.condition && isBinaryExpression(item.condition)
+                && item.condition.operator === 'in') {
+                const iterable = fact(item.condition.right);
+                if ((iterable.types.join() === 'array' || iterable.types.join() === 'sequence')
+                    && iterable.shape?.[0] === 0 && expression(item.condition.right)) return true;
+            }
             if (isForStatement(item) && facts && item.condition && isBinaryExpression(item.condition)
                 && item.condition.operator === 'in' && isNameExpression(item.condition.left)
                 && !definition.parameters.includes(item.condition.left.name)

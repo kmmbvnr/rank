@@ -6,10 +6,10 @@ import { functionTestExamples } from '../src/analysis/test-examples.js';
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });
-function examples(source: string, moduleName: string | null = 'helpers') {
+function examples(source: string, moduleName: string | null = 'helpers', moduleFunctions?: ReadonlySet<string>) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
-    return functionTestExamples(parsed.value, moduleName ?? undefined);
+    return functionTestExamples(parsed.value, moduleName ?? undefined, moduleFunctions);
 }
 it('extracts arguments and expectations without running the test', () => {
     const result = examples('test "one"\n use "helpers"\n A = 3\n B = A addone\n B equal 4\nend');
@@ -24,4 +24,17 @@ it('extracts tests in the same file without an import', () => {
 it('resolves an aliased import and ignores another module', () => {
     expect(examples('test "one"\n use "helpers" as H\n (3 H.addone) equal 4\nend')[0]?.name).toBe('addone');
     expect(examples('test "one"\n use "other"\n (3 addone) equal 4\nend')).toEqual([]);
+});
+
+it('attributes a shape-preserving assertion to the imported function, not round', () => {
+    const source = 'test "array result"\n use "softmaxmod"\n use numbers\n Scores = array 1 2 3\n'
+        + ' Expected = array 0.1 0.2 0.7\n Result = Scores softmax\n Result round 4 equal Expected\nend';
+    expect(examples(source, 'softmaxmod', new Set(['softmax']))).toMatchObject([{
+        name: 'softmax', arguments: [{ types: ['array'], rank: 1, shape: [3] }],
+        expected: { types: ['array'], rank: 1, shape: [3] }, line: 7,
+    }]);
+    expect(examples(source.replace('Expected = array 0.1 0.2 0.7', 'Expected = 1'),
+        'softmaxmod', new Set(['softmax']))).toEqual([]);
+    expect(examples(source.replace(' use numbers\n', ''),
+        'softmaxmod', new Set(['softmax']))).toEqual([]);
 });

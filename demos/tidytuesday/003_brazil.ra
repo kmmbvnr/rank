@@ -1,0 +1,75 @@
+rem TidyTuesday: Brazilian Companies Statistics
+rem https://github.com/rfordatascience/tidytuesday
+
+use cli
+use numbers
+use sequences
+use stats
+use tables
+
+argument DataPath path = "demos/tidytuesday/data/brazil.csv"
+argument OutputPath path = "demos/tidytuesday/brazil_legal_nature_summary.csv"
+
+Data = DataPath csv
+Summary = Data solve
+Summary OutputPath csv
+
+
+rem Summarize capital stock statistics by legal nature.
+fun legal_nature_stats Data
+  Groups = Data group by .legal_nature
+  Summary = Groups select
+    .companies_count = count
+    .total_capital = .capital_stock sum
+    .avg_capital = .capital_stock mean
+    .median_capital = .capital_stock median
+    .p95_capital = .capital_stock 0.95 quantile
+  end
+  return Summary sort by .total_capital .descending
+end
+
+
+rem Summarize capital stock dispersion by company size.
+fun company_size_stats Data
+  Groups = Data group by .company_size
+  Summary = Groups select
+    .companies_count = count
+    .avg_capital = .capital_stock mean
+    .median_capital = .capital_stock median
+    .std_capital = .capital_stock std
+    .var_capital = .capital_stock variance
+    .skew_capital = .capital_stock skewness
+  end
+  return Summary sort by .companies_count .descending
+end
+
+
+rem Filter top capital stock companies and group by owner qualification.
+fun top_capital_owners Data
+  Threshold = Data .capital_stock 0.95 quantile
+  TopCompanies = Data filter .capital_stock greater Threshold
+  Groups = TopCompanies group by .owner_qualification
+  Summary = Groups select
+    .owners_count = count
+    .total_capital = .capital_stock sum
+  end
+  return Summary sort by .total_capital .descending
+end
+
+
+rem Summarize multi-category breakdown by legal nature and company size.
+fun multicategory_summary Data
+  Groups = Data group by .legal_nature .company_size
+  Summary = Groups select
+    .companies_count = count
+    .median_capital = .capital_stock median
+    .p95_capital = .capital_stock 0.95 quantile
+  end
+  return Summary sort by .companies_count .descending
+end
+
+
+rem Main solver returning legal nature stats.
+fun solve Data
+  return Data legal_nature_stats
+end

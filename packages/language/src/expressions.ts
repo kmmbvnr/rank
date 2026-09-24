@@ -1,4 +1,5 @@
-import { isApplicationExpression, type Expression } from './generated/ast.js';
+import { isApplicationExpression, isNameExpression, type Expression } from './generated/ast.js';
+import { findOperation } from './operations.js';
 
 /** Flatten a call chain without crossing an explicit operand group. */
 export function flattenApplication(expression: Expression): Expression[] {
@@ -23,4 +24,17 @@ export function applicationExpression(parts: readonly Expression[], original?: E
 
 export function groupedExpression(value: Expression): Expression {
     return { $type: 'ParenthesizedExpression', value, $cstNode: value.$cstNode } as Expression;
+}
+
+/** Preserve an unbound unary builtin result used as the left operand of a dyadic builtin. */
+export function groupedUnaryDyadicChain(expression: Expression, unbound: (name: string) => boolean): Expression | undefined {
+    const parts = flattenApplication(expression);
+    if (parts.length !== 4 || !isNameExpression(parts[1]) || !isNameExpression(parts[3])) return undefined;
+    const unary = findOperation(parts[1].name);
+    const dyadic = findOperation(parts[3].name);
+    if (!unary || unary.arities.join() !== '1' || !unbound(parts[1].name)
+        || !dyadic?.arities.includes(2) || !unbound(parts[3].name)) return undefined;
+    return applicationExpression([
+        groupedExpression(applicationExpression(parts.slice(0, 2), expression)), parts[2], parts[3],
+    ], expression);
 }

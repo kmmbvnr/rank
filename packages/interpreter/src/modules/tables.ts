@@ -7,7 +7,7 @@ import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, sel
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { sortByKeys } from './sequences.js';
 import { expectNumeric } from './shared.js';
-import { meanValue, medianValue, standardDeviation } from './stats.js';
+import { meanValue, medianValue, standardDeviation, varianceValue, skewnessValue, modeValue, quantileValue } from './stats.js';
 import {
     formatDate,
     formatValue,
@@ -332,12 +332,13 @@ export function rollingTable(source: RankValue, width: RankValue, field: string)
     return { kind: 'grouped-table', fields: [field], groups: [], rollingSource: sorted, rolling };
 }
 
-export type GroupAggregateOperation = 'count' | 'sum' | 'min' | 'max' | 'mean' | 'median' | 'std';
+export type GroupAggregateOperation = 'count' | 'sum' | 'min' | 'max' | 'mean' | 'median' | 'std' | 'variance' | 'var' | 'skewness' | 'skew' | 'mode' | 'quantile' | 'percentile';
 
 export interface GroupAggregateSpec {
     readonly name: string;
     readonly operation: GroupAggregateOperation;
     readonly field?: string;
+    readonly parameter?: RankValue;
 }
 
 export function selectGroupedTable(
@@ -406,8 +407,13 @@ function aggregateGroupRows(
             const data = ownedArray(values);
             const result = spec.operation === 'mean' ? meanValue(data)
                 : spec.operation === 'median' ? medianValue(data)
-                    : spec.operation === 'std' ? standardDeviation(data)
-                        : groupExtreme(values, spec.operation);
+                : spec.operation === 'std' ? standardDeviation(data)
+                : spec.operation === 'variance' || spec.operation === 'var' ? varianceValue(data)
+                : spec.operation === 'skewness' || spec.operation === 'skew' ? skewnessValue(data)
+                : spec.operation === 'mode' ? modeValue(data)
+                : spec.operation === 'quantile' ? quantileValue(data, spec.parameter ?? 0.5)
+                : spec.operation === 'percentile' ? quantileValue(data, spec.parameter ?? 50, undefined, true)
+                : groupExtreme(values, spec.operation as 'min' | 'max');
             entries.set(spec.name, result);
         }
     }

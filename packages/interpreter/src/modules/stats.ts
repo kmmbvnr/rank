@@ -16,6 +16,13 @@ export const statsModule: RuntimeModule = {
     mean: () => native('mean', 1, ([value]) => meanValue(value)),
     median: () => native('median', 1, ([value]) => medianValue(value)),
     std: () => native('std', 1, ([value]) => standardDeviation(value)),
+    variance: () => native('variance', 1, ([value]) => varianceValue(value)),
+    var: () => native('var', 1, ([value]) => varianceValue(value)),
+    quantile: () => native('quantile', [1, 2], args => quantileValue(args[0], args[1] ?? 0.5), 'all', [1, 0]),
+    percentile: () => native('percentile', [1, 2], args => quantileValue(args[0], args[1] ?? 50, undefined, true), 'all', [1, 0]),
+    skewness: () => native('skewness', 1, ([value]) => skewnessValue(value)),
+    skew: () => native('skew', 1, ([value]) => skewnessValue(value)),
+    mode: () => native('mode', 1, ([value]) => modeValue(value)),
     mse: () => native('mse', 2, arguments_ => errorMetricValue(
         arguments_[0],
         arguments_[1],
@@ -30,6 +37,16 @@ export const statsModule: RuntimeModule = {
         'covariance',
         1,
         arguments_ => covarianceValue(arguments_[0]),
+    ),
+    correlation: () => native(
+        'correlation',
+        1,
+        arguments_ => correlationValue(arguments_[0]),
+    ),
+    corr: () => native(
+        'corr',
+        1,
+        arguments_ => correlationValue(arguments_[0]),
     ),
 };
 
@@ -179,6 +196,186 @@ export function standardDeviation(value: RankValue): number {
     return Math.sqrt(squared / values.length);
 }
 
+export function varianceValue(value: RankValue): number {
+    const items = presentValues(value, 'variance');
+    if (items.length === 0) {
+        throw new RankError('variance requires at least one value', 'EmptyReduction');
+    }
+    const values = items.map(item => {
+        const numeric = Number(expectNumeric(item));
+        if (!Number.isFinite(numeric)) {
+            throw new RankError('variance expects finite values', 'DomainError');
+        }
+        return numeric;
+    });
+    const mean = values.reduce((total, item) => total + item, 0) / values.length;
+    const squared = values.reduce((total, item) => {
+        const difference = item - mean;
+        return total + difference * difference;
+    }, 0);
+    return squared / values.length;
+}
+
+export function skewnessValue(value: RankValue): number {
+    const items = presentValues(value, 'skewness');
+    if (items.length === 0) {
+        throw new RankError('skewness requires at least one value', 'EmptyReduction');
+    }
+    const values = items.map(item => {
+        const numeric = Number(expectNumeric(item));
+        if (!Number.isFinite(numeric)) {
+            throw new RankError('skewness expects finite values', 'DomainError');
+        }
+        return numeric;
+    });
+    const n = values.length;
+    const mean = values.reduce((total, item) => total + item, 0) / n;
+    const variance = values.reduce((total, item) => {
+        const diff = item - mean;
+        return total + diff * diff;
+    }, 0) / n;
+    const std = Math.sqrt(variance);
+    if (std === 0 || n < 3) return 0;
+    const m3 = values.reduce((total, item) => {
+        const diff = item - mean;
+        return total + diff * diff * diff;
+    }, 0) / n;
+    return m3 / (std * std * std);
+}
+
+export function modeValue(value: RankValue): RankValue {
+    const items = presentValues(value, 'mode');
+    if (items.length === 0) {
+        throw new RankError('mode requires at least one value', 'EmptyReduction');
+    }
+    const counts = new Map<RankValue, { count: number; order: number }>();
+    let order = 0;
+    for (const item of items) {
+        const existing = counts.get(item);
+        if (existing) {
+            existing.count += 1;
+        } else {
+            counts.set(item, { count: 1, order: order++ });
+        }
+    }
+    let maxCount = 0;
+    let modeItem: RankValue = items[0];
+    let minOrder = Infinity;
+    for (const [item, info] of counts.entries()) {
+        if (info.count > maxCount || (info.count === maxCount && info.order < minOrder)) {
+            maxCount = info.count;
+            modeItem = item;
+            minOrder = info.order;
+        }
+    }
+    return modeItem;
+}
+
+export function quantileValue(
+    value: RankValue,
+    qValue: RankValue = 0.5,
+    axes?: readonly number[],
+    isPercentile = false,
+): RankValue {
+    if (axes !== undefined) {
+        if (!isRankArray(value)) {
+            throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} axis expects an array`);
+        }
+        return quantileByAxes(value, qValue, axes, isPercentile);
+    }
+    const qArray = isRankArray(qValue) ? qValue : undefined;
+    if (qArray) {
+        const quantiles = [];
+        for (let i = 0; i < arraySize(qArray.shape); i++) {
+            const item = readArrayItem(qArray, i);
+            quantiles.push(singleQuantile(value, item, isPercentile));
+        }
+        return ownedArray(quantiles, qArray.shape);
+    }
+    return singleQuantile(value, qValue, isPercentile);
+}
+
+function singleQuantile(value: RankValue, qSingle: RankValue, isPercentile: boolean): number {
+    let q = Number(expectNumeric(qSingle));
+    if (isPercentile) q = q / 100;
+    if (!Number.isFinite(q) || q < 0 || q > 1) {
+        throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} expects q between 0 and 1`, 'DomainError');
+    }
+    const items = presentValues(value, isPercentile ? 'percentile' : 'quantile').map(item => {
+        const numeric = Number(expectNumeric(item));
+        if (!Number.isFinite(numeric)) {
+            throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} expects finite values`, 'DomainError');
+        }
+        return numeric;
+    });
+    if (items.length === 0) {
+        throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} requires at least one value`, 'EmptyReduction');
+    }
+    items.sort(interruptibleCallback((left, right) => left - right, 'sorting'));
+    const n = items.length;
+    if (n === 1) return items[0];
+    const pos = q * (n - 1);
+    const idx = Math.floor(pos);
+    const frac = pos - idx;
+    if (idx >= n - 1) return items[n - 1];
+    return items[idx] + frac * (items[idx + 1] - items[idx]);
+}
+
+function quantileByAxes(
+    value: RankArray,
+    qValue: RankValue,
+    axes: readonly number[],
+    isPercentile: boolean,
+): RankValue {
+    for (const axis of axes) {
+        checkpoint('computing statistics');
+        if (axis >= value.shape.length) {
+            throw new RankError(`array has no axis ${axis}`);
+        }
+    }
+    if (new Set(axes).size !== axes.length) {
+        throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} axes must be unique`);
+    }
+    const selected = new Set(axes);
+    const reducedAxes = value.shape.map((_, axis) => axis).filter(axis => selected.has(axis));
+    const frameAxes = value.shape.map((_, axis) => axis).filter(axis => !selected.has(axis));
+    const reducedShape = reducedAxes.map(axis => value.shape[axis]);
+    const frameShape = frameAxes.map(axis => value.shape[axis]);
+    const reducedSize = arraySize(reducedShape);
+
+    const strides = value.shape.map(() => 1);
+    for (let axis = strides.length - 2; axis >= 0; axis -= 1) {
+        strides[axis] = strides[axis + 1] * value.shape[axis + 1];
+    }
+    const offsetAt = (index: number, axesList: readonly number[]): number => {
+        let offset = 0;
+        for (let current = axesList.length - 1; current >= 0; current -= 1) {
+            const axis = axesList[current];
+            offset += (index % value.shape[axis]) * strides[axis];
+            index = Math.floor(index / value.shape[axis]);
+        }
+        return offset;
+    };
+
+    const valueAt = (frameIndex: number): RankValue => {
+        const start = offsetAt(frameIndex, frameAxes);
+        const items: RankValue[] = [];
+        for (let index = 0; index < reducedSize; index += 1) {
+            checkpoint('computing statistics');
+            try {
+                items.push(readArrayItem(value, start + offsetAt(index, reducedAxes)));
+            } catch (error) {
+                if (!(error instanceof MissingValueError)) throw error;
+            }
+        }
+        return quantileValue({ kind: 'array', items, shape: [items.length] }, qValue, undefined, isPercentile);
+    };
+
+    return frameShape.length === 0
+        ? valueAt(0)
+        : derivedArray(frameShape, [value], valueAt, true);
+}
+
 export function covarianceValue(
     value: RankValue,
     axes?: readonly [number, number],
@@ -262,6 +459,32 @@ export function covarianceValue(
     };
 
     return derivedArray(outputShape, [value], resultAt, true);
+}
+
+export function correlationValue(
+    value: RankValue,
+    axes?: readonly [number, number],
+): RankArray {
+    const cov = covarianceValue(value, axes);
+    const shape = cov.shape;
+    const features = shape[shape.length - 1];
+    const matrixSize = features * features;
+
+    const resultAt = (index: number): number => {
+        const batchIndex = Math.floor(index / matrixSize);
+        const rem = index % matrixSize;
+        const i = Math.floor(rem / features);
+        const j = rem % features;
+        const offsetCov = batchIndex * matrixSize;
+        const covIJ = Number(readArrayItem(cov, offsetCov + i * features + j));
+        const covII = Number(readArrayItem(cov, offsetCov + i * features + i));
+        const covJJ = Number(readArrayItem(cov, offsetCov + j * features + j));
+        if (covII <= 0 || covJJ <= 0) return i === j ? 1 : 0;
+        const r = covIJ / Math.sqrt(covII * covJJ);
+        return Math.max(-1, Math.min(1, r));
+    };
+
+    return derivedArray(shape, [cov], resultAt, true);
 }
 
 export function meanValue(value: RankValue): number {

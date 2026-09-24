@@ -1,0 +1,105 @@
+use testing
+
+test "legal_nature_stats aggregates capital statistics by legal nature"
+  use json
+  use tables
+  use "003_brazil"
+
+  Sample = "[{\"company_id\":1,\"legal_nature\":\"EIRELI\",\"company_size\":\"Micro\",\"capital_stock\":50000,\"owner_qualification\":\"Individual\"}, {\"company_id\":2,\"legal_nature\":\"LLC\",\"company_size\":\"Medium\",\"capital_stock\":500000,\"owner_qualification\":\"Partner\"}, {\"company_id\":3,\"legal_nature\":\"SA\",\"company_size\":\"Large\",\"capital_stock\":10000000,\"owner_qualification\":\"Director\"}]" json
+
+  Stats = Sample legal_nature_stats
+  Natures = Stats .legal_nature
+  Totals = Stats .total_capital
+  Counts = Stats .companies_count
+
+  ExpectedNatures = array "SA" "LLC" "EIRELI"
+  ExpectedTotals = array 10000000 500000 50000
+  ExpectedCounts = array 1 1 1
+
+  OkNat = Natures equal ExpectedNatures
+  OkTot = Totals equal ExpectedTotals
+  OkCnt = Counts equal ExpectedCounts
+  OkNat and OkTot and OkCnt
+end
+
+
+test "company_size_stats calculates dispersion metrics by company size"
+  use json
+  use tables
+  use "003_brazil"
+
+  Sample = "[{\"company_id\":1,\"legal_nature\":\"LLC\",\"company_size\":\"Medium\",\"capital_stock\":100000,\"owner_qualification\":\"Partner\"}, {\"company_id\":2,\"legal_nature\":\"LLC\",\"company_size\":\"Medium\",\"capital_stock\":200000,\"owner_qualification\":\"Partner\"}, {\"company_id\":3,\"legal_nature\":\"LLC\",\"company_size\":\"Medium\",\"capital_stock\":300000,\"owner_qualification\":\"Partner\"}]" json
+
+  Stats = Sample company_size_stats
+  Sizes = Stats .company_size
+  AvgCap = Stats .avg_capital
+  MedCap = Stats .median_capital
+
+  ExpectedSizes = array "Medium"
+  ExpectedAvg = array 200000
+  ExpectedMed = array 200000
+
+  OkSizes = Sizes equal ExpectedSizes
+  OkAvg = AvgCap equal ExpectedAvg
+  OkMed = MedCap equal ExpectedMed
+  OkSizes and OkAvg and OkMed
+end
+
+
+test "top_capital_owners filters high capital companies and aggregates by owner qualification"
+  use json
+  use tables
+  use "003_brazil"
+
+  Sample = "[{\"company_id\":1,\"legal_nature\":\"LLC\",\"company_size\":\"Small\",\"capital_stock\":10000,\"owner_qualification\":\"Partner\"}, {\"company_id\":2,\"legal_nature\":\"SA\",\"company_size\":\"Large\",\"capital_stock\":1000000,\"owner_qualification\":\"Director\"}, {\"company_id\":3,\"legal_nature\":\"SA\",\"company_size\":\"Large\",\"capital_stock\":5000000,\"owner_qualification\":\"Director\"}]" json
+
+  Owners = Sample top_capital_owners
+  Quals = Owners .owner_qualification
+  Counts = Owners .owners_count
+
+  ExpectedQuals = array "Director"
+  ExpectedCounts = array 1
+
+  OkQuals = Quals equal ExpectedQuals
+  OkCounts = Counts equal ExpectedCounts
+  OkQuals and OkCounts
+end
+
+
+test "multicategory_summary aggregates by legal nature and company size"
+  use json
+  use tables
+  use "003_brazil"
+
+  Sample = "[{\"company_id\":1,\"legal_nature\":\"LLC\",\"company_size\":\"Medium\",\"capital_stock\":500000,\"owner_qualification\":\"Partner\"}, {\"company_id\":2,\"legal_nature\":\"LLC\",\"company_size\":\"Medium\",\"capital_stock\":700000,\"owner_qualification\":\"Partner\"}]" json
+
+  Summary = Sample multicategory_summary
+  Natures = Summary .legal_nature
+  Sizes = Summary .company_size
+  Counts = Summary .companies_count
+
+  ExpectedNatures = array "LLC"
+  ExpectedSizes = array "Medium"
+  ExpectedCounts = array 2
+
+  OkNat = Natures equal ExpectedNatures
+  OkSizes = Sizes equal ExpectedSizes
+  OkCnt = Counts equal ExpectedCounts
+  OkNat and OkSizes and OkCnt
+end
+
+
+test "solves full Brazil dataset"
+  use cli
+  use tables
+  use "003_brazil"
+
+  Data = "demos/tidytuesday/data/brazil.csv" csv
+  Summary = Data solve
+  TopNature = (Summary .legal_nature) 0
+  TopTotal = (Summary .total_capital) 0
+
+  OkNature = TopNature equal "SA"
+  OkTotal = TopTotal equal 42000000
+  OkNature and OkTotal
+end

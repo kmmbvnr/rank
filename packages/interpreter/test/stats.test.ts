@@ -247,4 +247,99 @@ describe('Rank statistics', () => {
         expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0 2'))
             .toThrowError('covariance axis out of bounds: 2');
     });
+
+    it('calculates population variance and supports var alias, rank, and axis', () => {
+        expect(run('use stats\n(array 1 2 3 4 5) variance')).toBe('2');
+        expect(run('use stats\n(array 1 2 3 4 5) var')).toBe('2');
+        const source = [
+            'use numbers',
+            'use stats',
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 4 4',
+            'end',
+        ];
+        expect(run([...source, 'Result = M variance rank 1', 'Result round 6'].join('\n')))
+            .toBe('0.666667 0');
+        expect(run([...source, 'Result = M variance axis 0', 'Result round 6'].join('\n')))
+            .toBe('2.25 1 0.25');
+    });
+
+    it('calculates quantile and percentile with rank and axis', () => {
+        expect(run('use stats\n(array 10 20 30 40 50) 0.5 quantile')).toBe('30');
+        expect(run('use stats\n(array 10 20 30 40 50) 50 percentile')).toBe('30');
+        expect(run('use stats\n(array 10 20 30 40 50) 0.25 quantile')).toBe('20');
+        expect(run('use stats\n(array 10 20 30 40 50) 0.75 quantile')).toBe('40');
+        expect(run('use stats\n(array 10 20 30 40 50) (array 0.25 0.75) quantile')).toBe('20 40');
+
+        const source = [
+            'use stats',
+            'M = array shape 2 3',
+            '  10 20 30',
+            '  40 50 60',
+            'end',
+        ];
+        expect(run([...source, 'M 0.5 quantile rank 1'].join('\n'))).toBe('20 50');
+        expect(run([...source, 'M 0.5 quantile axis 0'].join('\n'))).toBe('25 35 45');
+    });
+
+    it('validates quantile input and out of bound q', () => {
+        expect(() => run('use stats\n(array 1 2 3) 1.5 quantile'))
+            .toThrowError('quantile expects q between 0 and 1');
+        expect(() => run('use stats\n(array 1 2 3) 150 percentile'))
+            .toThrowError('percentile expects q between 0 and 1');
+    });
+
+    it('calculates skewness and supports skew alias, rank, and axis', () => {
+        expect(run('use stats\n(array 1 2 3 4 5) skewness')).toBe('0');
+        expect(run('use stats\n(array 1 2 3 4 5) skew')).toBe('0');
+        const source = [
+            'use numbers',
+            'use stats',
+            'M = array shape 2 3',
+            '  1 1 4',
+            '  2 3 4',
+            'end',
+        ];
+        expect(run([...source, 'Result = M skewness rank 1', 'Result round 4'].join('\n')))
+            .toBe('0.7071 0');
+    });
+
+    it('calculates mode with rank and axis', () => {
+        expect(run('use stats\n(array 1 2 2 3 2 4) mode')).toBe('2');
+        expect(run('use stats\n(array "apple" "banana" "apple") mode')).toBe('apple');
+        const source = [
+            'use stats',
+            'M = array shape 2 3',
+            '  1 2 2',
+            '  4 4 3',
+            'end',
+        ];
+        expect(run([...source, 'M mode rank 1'].join('\n'))).toBe('2 4');
+        expect(run([...source, 'M mode axis 0'].join('\n'))).toBe('1 2 2');
+    });
+
+    it('calculates Pearson correlation matrix and supports corr alias', () => {
+        const source = [
+            'use numbers',
+            'use stats',
+            'V = array shape 2 3',
+            '  1 2 3',
+            '  3 2 1',
+            'end',
+            'Result = V correlation',
+            'Result round 4',
+        ];
+        expect(run(source.join('\n'))).toBe('1 -1 -1 1');
+        expect(run([
+            'use numbers',
+            'use stats',
+            'V = array shape 2 3',
+            '  1 2 3',
+            '  3 2 1',
+            'end',
+            'Result = V corr',
+            'Result round 4',
+        ].join('\n'))).toBe('1 -1 -1 1');
+    });
 });

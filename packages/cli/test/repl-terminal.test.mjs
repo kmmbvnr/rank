@@ -40,12 +40,11 @@ async function drive(t, steps, columns = 60, rows = 18) {
         '}',
         ...steps.flatMap((step, index) => {
             const { keys, until } = typeof step === 'string' ? { keys: step } : step;
-            // Ordinary gestures wait for execution to finish. Tests of cancellation
-            // and debugging explicitly wait for the running or paused screen.
             const waiting = until ? `![regexp {${until}} $screen]`
                 : '$screen eq "" || [regexp {(Running|Stopping|Pausing)} $screen]';
             return [
-                ...(until || keys !== '' ? ['set screen ""'] : []),
+                ...(until || /[\r\t\n\x01\x11\x12\x13\x14\x10\x07\x0e\x08\x03\x02\x1b\x15]/.test(keys) || /^[tng]$/.test(keys)
+                    ? ['set screen ""'] : []),
                 `send -- [binary format H* {${Buffer.from(keys).toString('hex')}}]`,
                 'read_frame 1',
                 'set deadline [expr {[clock milliseconds] + 10000}]',
@@ -83,7 +82,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
 }
 
 test('type diagnostics appear while typing before Enter', async t => {
-    const frames = await drive(t, ['Count = 1' + ENTER, 'Count = "wrong"', CLEAR + 'Count + 2'], 40, 18);
+    const frames = await drive(t, ['Count = 1' + ENTER, { keys: 'Count = "wrong"', until: 'TypeError' }, CLEAR + 'Count + 2'], 40, 18);
     assert.match(frames[1].text, /TypeError/);
     assert.match(frames[1].text, /cannot receive text/);
     assert.doesNotMatch(frames[2].text, /TypeError|cannot receive/);
@@ -92,7 +91,7 @@ test('type diagnostics appear while typing before Enter', async t => {
 
 test('function argument diagnostics appear before Enter and disappear after correction', async t => {
     const frames = await drive(t, ['\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER,
-        'Input = "bad"' + ENTER, 'Input increment', CLEAR + '3 increment'], 60, 22);
+        'Input = "bad"' + ENTER, { keys: 'Input increment', until: 'TypeError' }, CLEAR + '3 increment'], 60, 22);
     assert.match(frames[2].text, /TypeError: increment:/);
     assert.match(frames[2].text, /does not accept/);
     assert.doesNotMatch(frames[3].text, /TypeError|does not accept/);
@@ -249,7 +248,7 @@ test('copy view hides live function example fields and preserves their focus', a
 test('real keyboard edits an old instruction, stops at its error, then resumes without losing new input', async t => {
     const frames = await drive(t, [
         'A = 1' + ENTER,
-        'B = A + 1' + ENTER,
+        { keys: 'B = A + 1' + ENTER, until: 'B =' },
         UP + UP + END + CLEAR + 'A = Missing',
         DOWN + DOWN,
         'C = B + 1' + ENTER,
@@ -734,7 +733,7 @@ test('arrows leave example fields in both directions without losing edits or eva
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
         { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'card_value' },
-        'fun hand_score Cards' + ENTER,
+        { keys: 'fun hand_score Cards' + ENTER, until: 'Cards =' },
         '"5H 5C" "" split' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
         UP,
@@ -962,7 +961,7 @@ test('loop arrows keep the cursor on the visible iteration and defer body evalua
         'for i in 1 to 3' + ENTER,
         '\x07' + RIGHT,
         ENTER,
-        'A = i' + '\x12',
+        { keys: 'A = i' + '\x12', until: 'A = i' },
         UP + UP,
         ENTER + RIGHT,
         ENTER,
