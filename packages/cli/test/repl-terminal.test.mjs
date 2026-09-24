@@ -99,8 +99,11 @@ test('function argument diagnostics appear before Enter and disappear after corr
 });
 
 test('rank diagnostics appear for inline shaped arrays before Enter', async t => {
-    const frames = await drive(t, ['A = array 1 2 3' + ENTER,
-        'A = array 1 2 3 4 shape 2 2', CLEAR + 'A = array 2 3 4 5'], 80, 18);
+    const frames = await drive(t, [
+        { keys: 'A = array 1 2 3' + ENTER, until: '1 2 3' },
+        { keys: 'A = array 1 2 3 4 shape 2 2', until: 'DimensionMismatch' },
+        CLEAR + 'A = array 2 3 4 5'
+    ], 80, 18);
     assert.match(frames[1].text, /DimensionMismatch/);
     assert.match(frames[1].text, /A has rank 1/);
     assert.match(frames[1].text, /cannot receive rank 2/);
