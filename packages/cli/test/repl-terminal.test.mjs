@@ -212,11 +212,11 @@ test('Shift selection and mouse dragging replace source without executing pasted
 test('Ctrl-H toggles source-only copying and restores the editor cursor', async t => {
     const frames = await drive(t, [
         'A = 1' + ENTER,
-        'A + 2' + ENTER,
+        { keys: 'A + 2' + ENTER, until: '3' },
         { keys: 'Draft = "ab"' + '\x1b[D', until: 'Draft' },
         '\x08',
         'ignored\x1b[200~paste\x1b[201~',
-        '\x08',
+        { keys: '\x08', until: 'Draft = "ab"' },
         '\x7f',
         '\x08',
         '\x1b',
@@ -773,7 +773,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
 
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
     const frames = await drive(t, [
-        'A = array 1 2 3' + ENTER,
+        { keys: 'A = array 1 2 3' + ENTER, until: '1 2 3' },
         { keys: 'fun plus X Y' + ENTER, until: 'X =' },
         'A' + ENTER,
         'A+1' + ENTER,
