@@ -26,17 +26,13 @@ fun osa Source Target
 
       Delete = D (I - 1) J + 1
       Insert = D I (J - 1) + 1
-      Change = D (I - 1) (J - 1)
-      Change += Cost
-      Best = Delete min Insert
-      Best = Best min Change
+      Change = D (I - 1) (J - 1) + Cost
+      Best = Delete min Insert min Change
 
       if I greater 1 and J greater 1
         C = Target (J - 2)
         Dprev = Source (I - 2)
-        CrossA = A equal C
-        CrossB = Dprev equal B
-        if CrossA and CrossB
+        if A equal C and Dprev equal B
           Swap = D (I - 2) (J - 2) + 1
           Best = Best min Swap
         end
