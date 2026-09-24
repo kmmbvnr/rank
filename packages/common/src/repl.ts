@@ -21,6 +21,7 @@ export class NotebookRepl {
     private readonly execution: ExecutionRunner;
 
     get running(): boolean { return this.execution.running; }
+    get evaluating(): boolean { return this.liveFunction.evaluating || this.liveConditional.evaluating; }
 
     get examplePrompt(): { name: string; parameter?: string; index: number; count: number } | undefined {
         return this.liveFunction.prompt;
@@ -116,10 +117,14 @@ export class NotebookRepl {
 
     get runningStatus(): string { return this.execution.status; }
 
-    interrupt(): void { this.execution.interrupt(); }
+    interrupt(): void {
+        if (this.execution.running) this.execution.interrupt();
+        else this.session.interrupt?.();
+    }
 
     private suggestionText = '';
     get suggestion(): string {
+        if (this.evaluating) return this.liveFunction?.status || this.liveConditional?.status || '';
         if (this.stepping) return 'Enter newline · ^R step · ^L run all';
         if (this.liveIterationFocused) return this.iterationSelecting
             ? '←/→ select · Esc edit · ^L run all'

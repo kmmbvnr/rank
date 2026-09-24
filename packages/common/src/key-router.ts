@@ -28,7 +28,7 @@ export class KeyRouter {
     async press(text: string, key: Key = {}): Promise<KeyResult> {
         // Preserve input order while an example or live preview is awaiting
         // the worker. Running-code controls must remain immediately available.
-        if (this.repl.running) return this.pressNow(text, key);
+        if (this.repl.running || key.ctrl && key.name === 'c') return this.pressNow(text, key);
         const result = this.pendingInput
             ? this.pendingInput.then(() => this.pressNow(text, key)) : this.pressNow(text, key);
         const pending = result.then(() => {}, () => {});
@@ -184,6 +184,10 @@ export class KeyRouter {
                 return { exit };
             }
             if (key.ctrl && key.name === 'c') {
+                if (repl.evaluating) {
+                    repl.interrupt();
+                    return { exit: false };
+                }
                 if (repl.liveEditing) repl.cancelLiveFunction();
                 else { book.toPrompt(); book.replace(''); }
             }

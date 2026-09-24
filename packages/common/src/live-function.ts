@@ -26,6 +26,7 @@ export class LiveFunctionSession {
     readonly outputs = new Map<number, OutputLine[]>();
     readonly prefixes = new Map<number, string>();
     readonly iterations = new Map<number, number>();
+    readonly slowLines = new Set<number>();
     readonly argumentEditor = new Notebook();
     readonly cellId: number;
     readonly existing: boolean;

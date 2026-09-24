@@ -11,6 +11,7 @@ interface LiveConditional {
     readonly outputs: Map<number, OutputLine[]>;
     readonly prefixes: Map<number, string>;
     readonly iterations: Map<number, number>;
+    readonly slowLines: Set<number>;
     readonly cellId: number;
     readonly existing: boolean;
     readonly originalSource?: string;
@@ -22,6 +23,7 @@ export class LiveConditionalController {
     private focusedIteration?: number;
     private focusedThroughLine?: number;
     private readonly preview: LivePreviewRunner;
+    private evaluatingStatus?: string;
 
     constructor(
         private readonly notebook: Notebook,
@@ -31,8 +33,19 @@ export class LiveConditionalController {
         private readonly render: () => void,
         readonly enabled: boolean,
     ) {
-        this.preview = new LivePreviewRunner(source => this.session.preview(source, this.columns()));
+        this.preview = new LivePreviewRunner(
+            source => this.session.preview(source, this.columns()),
+            {
+                onProgress: status => {
+                    this.evaluatingStatus = status;
+                    this.render();
+                },
+                interrupt: () => this.session.interrupt?.(),
+            },
+        );
     }
+
+    get evaluating(): boolean { return this.evaluatingStatus !== undefined; }
 
     get outputs(): ReadonlyMap<number, OutputLine[]> | undefined { return this.editing ? this.live?.outputs : undefined; }
     get editing(): boolean { return this.live !== undefined && this.live.cellId === this.notebook.current.id; }
@@ -46,6 +59,7 @@ export class LiveConditionalController {
                 this.notebook.current.source.split('\n').length) };
     }
     get status(): string | undefined {
+        if (this.evaluatingStatus) return this.evaluatingStatus;
         if (!this.editing || !this.live) return undefined;
         return this.focusedIteration !== undefined
             ? '←/→ select · Esc edit · ^L run all'
@@ -68,7 +82,7 @@ export class LiveConditionalController {
         const existing = !this.notebook.atPrompt;
         this.live = {
             source: `${source.trim()}\n  `,
-            outputs: new Map(), prefixes: new Map(), iterations: new Map(),
+            outputs: new Map(), prefixes: new Map(), iterations: new Map(), slowLines: new Set(),
             cellId: this.notebook.current.id, existing,
             originalSource: existing ? source : undefined,
         };
@@ -223,7 +237,7 @@ export class LiveConditionalController {
             if (!selected || !isIfStatement(selected) && !isForStatement(selected)) return false;
         } catch { return false; }
         this.live = {
-            source, outputs: new Map(), prefixes: new Map(), iterations: new Map(),
+            source, outputs: new Map(), prefixes: new Map(), iterations: new Map(), slowLines: new Set(),
             cellId: this.notebook.current.id,
             existing: true, originalSource: source,
         };

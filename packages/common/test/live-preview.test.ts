@@ -84,3 +84,70 @@ it('shows recursive call for lines invoking the function being defined', async (
         session.dispose();
     }
 });
+
+it('times out long-running previews and skips them in subsequent updates', async () => {
+    let interrupted = false;
+    const progressUpdates: string[] = [];
+    let delayMs = 100;
+    const runner = new LivePreviewRunner(
+        async source => {
+            if (source.includes('Slow')) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                if (interrupted) {
+                    return { ok: false, output: [], source, command: false, exit: false, interrupted: true };
+                }
+            }
+            return { ok: true, output: [{ text: '42', error: false }], source, command: false, exit: false };
+        },
+        {
+            timeoutMs: 50,
+            progressDelayMs: 20,
+            onProgress: status => { if (status) progressUpdates.push(status); },
+            interrupt: () => { interrupted = true; },
+        },
+    );
+    const source = 'fun compute\n  Slow = 1\n  Slow + 1\nend';
+    const live = new LiveFunctionSession(
+        { name: 'compute', parameters: [], header: 'fun compute', source, cellId: 1, existing: false }, []);
+    await runner.updateFunction(live, source, true);
+    // Line 2 (Slow = 1) should have timed out
+    expect(interrupted).toBe(true);
+    expect(progressUpdates.length).toBeGreaterThan(0);
+    expect(live.slowLines.has(2)).toBe(true);
+    expect(live.outputs.get(2)).toEqual([{ text: 'timeout (>1.5s) · ^R to evaluate', error: false }]);
+
+    // On subsequent update (typing more code, reset = false), slow line is skipped immediately without re-evaluating
+    interrupted = false;
+    let evalCount = 0;
+    const runner2 = new LivePreviewRunner(
+        async source => {
+            evalCount++;
+            return { ok: true, output: [{ text: '42', error: false }], source, command: false, exit: false };
+        },
+        { timeoutMs: 50 },
+    );
+    // Line 2 is in slowLines
+    live.outputs.clear();
+    await runner2.updateFunction(live, source, false);
+    // Line 2 should stay annotated as timeout without triggering preview
+    expect(live.outputs.get(2)).toEqual([{ text: 'timeout (>1.5s) · ^R to evaluate', error: false }]);
+
+    // But when reset is true (Ctrl-R forced run), slowLines are cleared and it evaluates
+    await runner2.updateFunction(live, source, true);
+    expect(live.slowLines.has(2)).toBe(false);
+    expect(live.outputs.get(2)).toEqual([{ text: '42', error: false }]);
+});
+
+it('handles manual preview cancellation via interrupt', async () => {
+    const runner = new LivePreviewRunner(
+        async () => ({ ok: false, output: [], source: '', command: false, exit: false, interrupted: true }),
+        { timeoutMs: 5000 },
+    );
+    const source = 'fun compute\n  X = 1\nend';
+    const live = new LiveFunctionSession(
+        { name: 'compute', parameters: [], header: 'fun compute', source, cellId: 1, existing: false }, []);
+    await runner.updateFunction(live, source, true);
+    expect(live.outputs.get(2)).toEqual([{ text: 'cancelled · ^R to evaluate', error: false }]);
+    expect(live.slowLines.has(2)).toBe(true);
+});
+

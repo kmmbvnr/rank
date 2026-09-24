@@ -8,6 +8,14 @@ interface PreviewState {
     readonly outputs: Map<number, OutputLine[]>;
     readonly prefixes: Map<number, string>;
     readonly iterations: Map<number, number>;
+    readonly slowLines?: Set<number>;
+}
+
+export interface LivePreviewOptions {
+    timeoutMs?: number;
+    progressDelayMs?: number;
+    onProgress?: (status: string | undefined) => void;
+    interrupt?: () => void;
 }
 
 interface IterationHeader { readonly names: string; readonly name: string; readonly iterable: string }
@@ -23,7 +31,7 @@ const ITERATION = 'RankReplPreviewIteration';
 /** Builds and evaluates isolated prefixes while a block is being written. */
 export class LivePreviewRunner {
     private readonly updates = new WeakMap<PreviewState, number>();
-    constructor(private readonly preview: Preview) {}
+    constructor(private readonly preview: Preview, private readonly options: LivePreviewOptions = {}) {}
 
     async updateFunction(
         live: LiveFunctionSession, source: string, reset = false, throughLine?: number,
@@ -55,6 +63,7 @@ export class LivePreviewRunner {
         if (reset) {
             state.outputs.clear();
             state.prefixes.clear();
+            state.slowLines?.clear();
         }
         const lines = source.split('\n');
         const previews = previewTargets(source, start, end, throughLine).map(target => ({
@@ -83,8 +92,48 @@ export class LivePreviewRunner {
                 priorRecursion = true;
                 continue;
             }
-            const result = await this.preview(item.source);
+            if (state.slowLines?.has(item.line)) {
+                state.outputs.set(item.line, [{ text: 'timeout (>1.5s) · ^R to evaluate', error: false }]);
+                state.prefixes.set(item.line, item.source);
+                continue;
+            }
+            const timeoutMs = this.options.timeoutMs ?? 1500;
+            const progressDelayMs = this.options.progressDelayMs ?? 300;
+            const started = performance.now();
+            let timer: ReturnType<typeof setInterval> | undefined;
+            let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+            let timedOut = false;
+            if (this.options.onProgress) {
+                timer = setInterval(() => {
+                    const elapsed = performance.now() - started;
+                    if (elapsed >= progressDelayMs) {
+                        this.options.onProgress?.(`Evaluating preview… ${(elapsed / 1000).toFixed(1)}s · ^C cancel`);
+                    }
+                }, 100);
+            }
+            if (timeoutMs > 0 && this.options.interrupt) {
+                timeoutTimer = setTimeout(() => {
+                    timedOut = true;
+                    this.options.interrupt?.();
+                }, timeoutMs);
+            }
+            let result: Execution;
+            try {
+                result = await this.preview(item.source);
+            } finally {
+                if (timer) clearInterval(timer);
+                if (timeoutTimer) clearTimeout(timeoutTimer);
+                this.options.onProgress?.(undefined);
+            }
             if (this.updates.get(state) !== update) return;
+            if (timedOut || result.interrupted) {
+                state.slowLines?.add(item.line);
+                const text = timedOut ? 'timeout (>1.5s) · ^R to evaluate' : 'cancelled · ^R to evaluate';
+                state.outputs.set(item.line, [{ text, error: false }]);
+                state.prefixes.set(item.line, item.source);
+                continue;
+            }
+            state.slowLines?.delete(item.line);
             const isRecError = result.output.some(line => line.error && !line.text.includes('[Syntax]') && (
                 priorRecursion || (functionName !== undefined && (
                     line.text.includes(functionName) || (line.inlineText?.includes(functionName) ?? false)

@@ -16,6 +16,7 @@ export class LiveFunctionController {
     private focusedThroughLine?: number;
     private readonly examples = new Map<string, string[]>();
     private readonly preview: LivePreviewRunner;
+    private evaluatingStatus?: string;
 
     constructor(
         private readonly notebook: Notebook,
@@ -25,8 +26,19 @@ export class LiveFunctionController {
         private readonly render: () => void,
         readonly enabled: boolean,
     ) {
-        this.preview = new LivePreviewRunner(source => this.session.preview(source, this.columns()));
+        this.preview = new LivePreviewRunner(
+            source => this.session.preview(source, this.columns()),
+            {
+                onProgress: status => {
+                    this.evaluatingStatus = status;
+                    this.render();
+                },
+                interrupt: () => this.session.interrupt?.(),
+            },
+        );
     }
+
+    get evaluating(): boolean { return this.evaluatingStatus !== undefined; }
 
     get prompt(): { name: string; parameter?: string; index: number; count: number } | undefined {
         return this.editing ? this.live?.prompt : undefined;
@@ -51,6 +63,7 @@ export class LiveFunctionController {
                 this.notebook.current.source.split('\n').length) };
     }
     get status(): string | undefined {
+        if (this.evaluatingStatus) return this.evaluatingStatus;
         if (!this.editing || !this.live || this.prompt) return undefined;
         return this.focusedIteration !== undefined
             ? '←/→ select · Esc edit · ^L run all'
