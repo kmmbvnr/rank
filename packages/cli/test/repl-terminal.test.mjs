@@ -543,7 +543,11 @@ test('load can be cancelled or replace the old document and its variable types',
 });
 
 test('editing a declaration can change its type on replay', async t => {
-    const frames = await drive(t, ['X = 1' + ENTER, UP + CLEAR + 'X = array 1 2 3', DOWN + ENTER]);
+    const frames = await drive(t, [
+        { keys: 'X = 1' + ENTER, until: '1' },
+        { keys: UP + CLEAR + 'X = array 1 2 3', until: 'X = array 1 2 3' },
+        { keys: DOWN + ENTER, until: '1 2 3' }
+    ]);
     assert.match(frames[2].text, /X = array 1 2 3\n      1 2 3\nrank> /);
     assert.doesNotMatch(frames[2].text, /cannot receive/);
 });
