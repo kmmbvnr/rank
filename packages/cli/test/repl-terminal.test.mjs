@@ -1155,13 +1155,13 @@ test('Enter during evaluation inserts a temporary line that disappears when left
 
 test('Tab restores indentation on an empty function line before completion', async t => {
     const frames = await drive(t, [
-        '\x1b[200~fun identity X\n  return X\n\nend\x1b[201~',
-        ENTER,
+        { keys: '\x1b[200~fun identity X\n  return X\n\nend\x1b[201~', until: 'end' },
+        { keys: ENTER, until: '<function identity>' },
         UP,
         UP,
         '\x01',
         '\t',
-        'Value = 1',
+        { keys: 'Value = 1', until: 'Value = 1' },
     ], 80, 18);
     assert.equal(frames[4].cursorX, 6);
     assert.equal(frames[5].cursorX, 8);
