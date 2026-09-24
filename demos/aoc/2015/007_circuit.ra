@@ -39,52 +39,14 @@ fun circuit Lines Target Override
     Progress = false
 
     for Line in Lines
-      Rule = Line Pattern parse
-      unpack Expression Dest = Rule
+      unpack Expression Dest = Line Pattern parse
 
       if not (Dest in index)
-        Terms = Expression " " split
-        Computed = false
-
-        if Terms len equal 1
-          A = Terms 0
-
-          if A index ready
-            Value = A index signal
-            Computed = true
-          end
-        else
-          if Terms len equal 2
-            A = Terms 1
-
-            Ready = A index ready
-
-            if Terms 0 equal "NOT" and Ready
-              Signal = A index signal
-              Value = Signal bnot
-              Computed = true
-            end
-          else
-            if Terms len equal 3
-              A = Terms 0
-              Op = Terms 1
-              B = Terms 2
-              LeftReady = A index ready
-              RightReady = B index ready
-
-              if LeftReady and RightReady
-                Left = A index signal
-                Right = B index signal
-                Value = Op Left Right operate
-                Computed = true
-              end
-            end
-          end
-        end
-
-        if Computed
+        try
+          Value = Expression index eval_expr
           index Dest = Value 65535 band
           Progress = true
+        catch .NotReady Error
         end
       end
     end
@@ -98,24 +60,34 @@ fun circuit Lines Target Override
 end
 
 
-rem Return true for a decimal literal or a
-rem resolved wire.
-fun ready Token Wires
-  try
-    Token integer
-    return true
-  catch .InvalidNumber Error
-    return Token in Wires
+rem Evaluate an expression or raise .NotReady if any wire is pending.
+fun eval_expr Expression Wires
+  Terms = Expression " " split
+
+  if Terms len equal 1
+    return Terms 0 Wires signal
   end
+
+  if Terms 0 equal "NOT"
+    return (Terms 1 Wires signal) bnot
+  end
+
+  Left = Terms 0 Wires signal
+  Op = Terms 1
+  Right = Terms 2 Wires signal
+  return Op Left Right operate
 end
 
 
-rem Read a decimal literal or wire signal.
+rem Read a decimal literal or wire signal, or fail if not yet resolved.
 fun signal Token Wires
   try
     return Token integer
   catch .InvalidNumber Error
-    return Wires Token
+    if Token in Wires
+      return Wires Token
+    end
+    .NotReady raise
   end
 end
 
