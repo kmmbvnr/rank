@@ -23,9 +23,6 @@ fun polynomial Values Queries
   Line = Size fenwick
   Base = Size fenwick
 
-  Q = Queries len
-  Answers = array shape Q fill 0
-  Count = 0
   for Query in Queries
     unpack Type Left Right = Query
     if Type equal 1
@@ -41,17 +38,15 @@ fun polynomial Values Queries
       Tail = Length * (Length + 1)
       Base After += Tail - B
     else
-      Total = Prefix Right
-      Total -= Prefix (Left - 1)
-      Added = Quad Line Base Right poly
       X = Left - 1
+      Total = Prefix Right - Prefix X
+      Added = Quad Line Base Right poly
       Before = Quad Line Base X poly
-      Total += Added - Before
-      Answers Count = Total
-      Count += 1
+      queue push Total + Added - Before
     end
   end
-  return Answers (0 until Count)
+
+  return queue
 end
 
 
