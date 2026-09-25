@@ -18,18 +18,17 @@ rem Query the built-in max-sum summary.
 fun prefix_queries Values Queries
   Tree = Values maxsum segment
 
-  Q = Queries len
-  Answers = array shape Q fill 0
-  Count = 0
   for Query in Queries
     unpack Type A B = Query
     if Type equal 1
       Tree (A - 1) = B
     else
-      State = Tree (A - 1) (B - 1) query
-      Answers Count = State .prefix
-      Count += 1
+      Left = A - 1
+      Right = B - 1
+      State = Tree Left Right query
+      queue push State .prefix
     end
   end
-  return Answers (0 until Count)
+
+  return queue
 end
