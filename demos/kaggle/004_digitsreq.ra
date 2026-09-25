@@ -21,24 +21,27 @@ Submission OutputPath csv
 rem Use CSV headers to retain pixel order in both files.
 fun solve_table Train Test
   Labels = Train labels
-  Features = (Labels (Labels not equal .label)) array
+  Mask = Labels not equal .label
+  Features = (Labels Mask) array
   X = Train Features
   Xtest = Test Features
   Y = Train .label
   Classes = Y unique
   Pred = X Y Xtest Classes solve
-  Test .ImageId = (1 to (Pred len)) array
+  Count = Pred len
+  Test .ImageId = (1 to Count) array
   Test .Label = Pred
   return Test (array .ImageId .Label)
 end
 
 
 fun centroids X Y Classes
-  Shape = X shape
-  if Shape len not equal 2 or Y len not equal Shape 0
+  unpack Rows Cols = X shape
+  if Y len not equal Rows
     .DimensionMismatch raise
   end
-  Result = array shape (Classes len) (Shape 1) fill 0.0
+  K = Classes len
+  Result = array shape K Cols fill 0.0
   for Class ci in Classes
     Mask = Y equal Class
     Group = X Mask #
@@ -52,17 +55,15 @@ end
 
 
 fun classify X Centers Classes
-  Shape = X shape
-  if Shape len not equal 2
-    .DimensionMismatch raise
-  end
-  Pred = array shape (Shape 0) fill 0
-  for Row in 0 until Shape 0
+  unpack Rows Cols = X shape
+  Pred = array shape Rows fill 0
+  K = Classes len
+  for Row in 0 until Rows
     Point = X Row #
     Delta = Centers - Point
     Dist = Delta * Delta sum axis 1
     Best = 0
-    for Candidate in 1 until (Classes len)
+    for Candidate in 1 until K
       if Dist Candidate less Dist Best
         Best = Candidate
       end
