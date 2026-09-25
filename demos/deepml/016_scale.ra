@@ -11,8 +11,9 @@ fun feature_scaling Data
   Low = Data min axis 0
   High = Data max axis 0
 
+  Range = High - Low
   Std = Delta / Dev
-  Norm = (Data - Low) / (High - Low)
+  Norm = (Data - Low) / Range
   Std = Std round 4
   Norm = Norm round 4
 
