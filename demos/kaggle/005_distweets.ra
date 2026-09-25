@@ -26,7 +26,8 @@ fun solve_table Train Test Limit Rate Steps
   TrainTexts = Train .text default ""
   TestTexts = Test .text default ""
   Vocab = TrainTexts Limit vocab
-  Pred = TrainTexts (Train .target) TestTexts Vocab Rate Steps solve
+  Y = Train .target
+  Pred = TrainTexts Y TestTexts Vocab Rate Steps solve
   Test .target = Pred
   return Test (array .id .target)
 end
@@ -39,7 +40,7 @@ fun term_counts Texts Vocab
   Counts = array shape Rows Columns fill 0.0
   Positions = new index
   for Term Column in Vocab
-    if not (Term in Positions)
+    if Term not in Positions
       Positions Term = new queue
     end
     (Positions Term) push Column
@@ -48,7 +49,7 @@ fun term_counts Texts Vocab
     Words = Text words
     for Word in Words
       if Word in Positions
-        for Column in (Positions Word)
+        for Column in Positions Word
           Counts Row Column += 1.0
         end
       end
@@ -74,7 +75,9 @@ fun tfidf_fit Texts Vocab
     end
   end
   Frequency = Present sum axis 0
-  Idf = (Documents + 1.0) / (Frequency + 1.0) log + 1.0
+  TotalDocs = Documents + 1.0
+  FreqSmoothed = Frequency + 1.0
+  Idf = TotalDocs / FreqSmoothed log + 1.0
   return record
     .vocab = Vocab
     .idf = Idf
