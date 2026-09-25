@@ -27,10 +27,8 @@ fun image_labels Train
   for Name Row in Train .name
     if Name "dog." startswith
       Y Row = 1
-    else
-      if not (Name "cat." startswith)
-        .InvalidText raise
-      end
+    elif not (Name "cat." startswith)
+      .InvalidText raise
     end
   end
   return Y
@@ -41,11 +39,18 @@ fun solve_images Train Test Rate Steps
   Height = 8
   Width = 8
   Features = Height * Width * 3
-  X = (Train Height Width resize) (array (Train len) Features) reshape
-  Xtest = (Test Height Width resize) (array (Test len) Features) reshape
+
+  N = Train len
+  X = Train Height Width resize
+  X = X (array N Features) reshape
+
+  M = Test len
+  Xtest = Test Height Width resize
+  Xtest = Xtest (array M Features) reshape
+
   Y = Train image_labels
   Pred = X Y Xtest Rate Steps solve
-  Ids = array shape (Test len) fill 0
+  Ids = array shape M fill 0
   for Name Row in Test .name
     Prefix = (Name "." split) 0
     Ids Row = Prefix integer
