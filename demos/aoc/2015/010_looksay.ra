@@ -17,7 +17,9 @@ rem Return the lengths after 40 and 50 look-and-say rounds.
 fun solve Value
   After40 = Value 40 describe
   After50 = After40 10 describe
-  return array (After40 len) (After50 len)
+  Part1 = After40 len
+  Part2 = After50 len
+  return array Part1 Part2
 end
 
 
