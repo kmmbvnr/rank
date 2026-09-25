@@ -344,13 +344,13 @@ test('help opens outside the document and Esc removes it before returning to edi
 test('the next-eval marker remains in the branch body while the iterator is selected', async t => {
     const source = 'for i in 1 to 100\n  (array i)\n  if i less 4\n    (array i i)\n  else\n    (array i i i)\n  end\nend';
     const frames = await drive(t, [
-        '\x1b[200~' + source + '\x1b[201~' + ENTER,
+        { keys: '\x1b[200~' + source + '\x1b[201~' + ENTER, until: '100 100 100' },
         UP + UP + UP + END,
         { keys: '\x12', until: 'Enter newline' },
         { keys: '\x07', until: '←/→ select' },
         { keys: RIGHT.repeat(8), until: 'i = 9 · iteration 9' },
         '\x12',
-        { keys: '\x1b', until: 'Ctrl-L run all' },
+        { keys: '\x1b', until: '(\\^L|Ctrl-L) run all' },
     ], 40, 18);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /\(array i i i\)/);
     assert.match(frames[2].text, /▶\s+\(array i i i\)/);

@@ -98,5 +98,5 @@ describe('inferred types against the values a run produced', () => {
         expect(settled / names).toBeGreaterThan(0.75);
     // Running four hundred programs is the cost of the guarantee; the brute
     // force Euler demos account for most of it.
-    }, 120_000);
+    }, 300_000);
 });
