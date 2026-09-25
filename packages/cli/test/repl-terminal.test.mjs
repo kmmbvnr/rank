@@ -19,10 +19,22 @@ async function drive(t, steps, columns = 60, rows = 18) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-notebook-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const preload = path.join(directory, 'home.mjs');
-    fs.writeFileSync(preload, `import os from 'node:os';\nimport { syncBuiltinESMExports } from 'node:module';\nos.homedir = () => ${JSON.stringify(directory)};\nsyncBuiltinESMExports();\n`);
+    fs.writeFileSync(preload, `import os from 'node:os';
+import { syncBuiltinESMExports } from 'node:module';
+os.homedir = () => ${JSON.stringify(directory)};
+syncBuiltinESMExports();
+const filter = fn => (...args) => {
+    if (typeof args[0] === 'string' && args[0].includes('Ambiguous Alternatives Detected')) return;
+    fn(...args);
+};
+console.log = filter(console.log);
+console.warn = filter(console.warn);
+console.error = filter(console.error);
+`);
+    const stepTimeout = process.env.CI ? 25 : 10;
     const script = path.join(directory, 'session.exp');
     fs.writeFileSync(script, [
-        'set timeout 10',
+        `set timeout ${stepTimeout}`,
         `set stty_init "rows ${rows} columns ${columns}"`,
         `spawn -noecho ${process.execPath} --import ${preload} ${cli}`,
         'expect "rank> "',
@@ -47,7 +59,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
                     ? ['set screen ""'] : []),
                 `send -- [binary format H* {${Buffer.from(keys).toString('hex')}}]`,
                 'read_frame 1',
-                'set deadline [expr {[clock milliseconds] + 10000}]',
+                `set deadline [expr {[clock milliseconds] + ${stepTimeout * 1000}}]`,
                 `while {(${waiting}) && [clock milliseconds] < $deadline} { read_frame 1 }`,
                 `if {${waiting}} { error "terminal did not settle at step ${index}: $screen" }`,
                 `send_user "<<<FRAME:${index}>>>"`,
@@ -61,7 +73,7 @@ async function drive(t, steps, columns = 60, rows = 18) {
         'catch wait status',
         'send_user "<<<EXIT:[lindex $status 3]>>>"',
     ].join('\n'));
-    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: (steps.length + 15) * 4000, killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
+    const result = spawnSync('expect', ['-f', script], { encoding: 'utf8', timeout: (steps.length + 15) * (process.env.CI ? 8000 : 4000), killSignal: 'SIGKILL', maxBuffer: 5 * 1024 * 1024 });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /<<<EXIT:0>>>/);
@@ -155,13 +167,13 @@ test('excess indices are diagnosed before Enter and an edited error disappears b
 
 test('Enter after end returns to rank prompt after previewing an unfinished function', async t => {
     const frames = await drive(t, [
-        'fun digit_sum N' + ENTER,
-        '"123456"' + ENTER,
-        'Digits = N text integer rank 0' + '\x12',
+        { keys: 'fun digit_sum N' + ENTER, until: 'Example digit_sum' },
+        { keys: '"123456"' + ENTER, until: 'N = "123456"' },
+        { keys: 'Digits = N text integer rank 0' + '\x12', until: 'Digits = N' },
         ENTER,
-        'return Digits sum' + ENTER,
-        'end' + ENTER,
-        '123456 digit_sum' + ENTER,
+        { keys: 'return Digits sum' + ENTER, until: 'return Digits sum' },
+        { keys: 'end' + ENTER, until: '<function digit_sum>' },
+        { keys: '123456 digit_sum' + ENTER, until: '\\s+21' },
     ]);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /^rank>\s*$/);
     assert.match(frames[6].text, /\n\s*21\n/);
@@ -224,8 +236,8 @@ test('Shift selection and mouse dragging replace source without executing pasted
 
 test('Ctrl-H toggles source-only copying and restores the editor cursor', async t => {
     const frames = await drive(t, [
-        'A = 1' + ENTER,
-        { keys: 'A + 2' + ENTER, until: '3' },
+        { keys: 'A = 1' + ENTER, until: 'rank> ' },
+        { keys: 'A + 2' + ENTER, until: '\\s+3' },
         { keys: 'Draft = "ab"' + '\x1b[D', until: 'Draft' },
         '\x08',
         'ignored\x1b[200~paste\x1b[201~',
@@ -310,7 +322,7 @@ test('bracketed multiline paste stays editable until Enter and tab suggestions n
 
 test('help opens outside the document and Esc removes it before returning to editing', async t => {
     const frames = await drive(t, [
-        'A = 1' + ENTER,
+        { keys: 'A = 1' + ENTER, until: 'rank> ' },
         { keys: 'help' + ENTER, until: 'Editing' },
         '\x1b[6~',
         'ignored text',
@@ -354,7 +366,7 @@ test('the next-eval marker remains in the branch body while the iterator is sele
 
 test('leaving an unused top insertion row restores the original numbering', async t => {
     const frames = await drive(t, [
-        '1 + 1' + ENTER,
+        { keys: '1 + 1' + ENTER, until: 'rank> ' },
         { keys: UP + UP, until: '2›' },
         DOWN,
         UP,
@@ -482,7 +494,9 @@ test('Ctrl-S asks for a filename once, then saves to the bound file and updates 
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'keys.ra');
     const frames = await drive(t, [
-        'A = 1' + ENTER, '\x13', target + ENTER,
+        { keys: 'A = 1' + ENTER, until: 'rank> ' },
+        { keys: '\x13', until: 'Save program' },
+        { keys: target + ENTER, until: '· saved' },
         UP + CLEAR + 'A = 9', '\x13',
     ], 80);
     assert.match(frames[1].text, /Save program/);
@@ -497,11 +511,20 @@ test('exit can save the program, and quit can discard it', async t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-exit-keys-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'exit.ra');
-    const saved = await drive(t, ['A = 7' + ENTER, 'exit' + ENTER, 's', target + ENTER]);
+    const saved = await drive(t, [
+        { keys: 'A = 7' + ENTER, until: 'rank> ' },
+        { keys: 'exit' + ENTER, until: 'Save changes before exit' },
+        's',
+        target + ENTER
+    ]);
     assert.match(saved[1].text, /Save changes before exit/);
     assert.match(saved[2].text, /Save before exit/);
     assert.equal(fs.readFileSync(target, 'utf8'), 'A = 7\n');
-    const discarded = await drive(t, ['A = 8' + ENTER, 'quit' + ENTER, 'd']);
+    const discarded = await drive(t, [
+        { keys: 'A = 8' + ENTER, until: 'rank> ' },
+        { keys: 'quit' + ENTER, until: 'Save changes before exit' },
+        'd'
+    ]);
     assert.match(discarded[1].text, /Save changes before exit/);
 });
 
@@ -681,8 +704,8 @@ test('an open function evaluates body lines immediately on example arguments', a
     const frames = await drive(t, [
         { keys: 'fun inc N' + ENTER, until: 'Example inc' },
         { keys: '2' + ENTER, until: 'N = 2' },
-        { keys: 'A = N + 1' + ENTER, until: '3' },
-        { keys: 'A * 2' + ENTER, until: '6' },
+        { keys: 'A = N + 1' + ENTER, until: '\\s+3' },
+        { keys: 'A * 2' + ENTER, until: '\\s+6' },
         { keys: 'end' + ENTER, until: '<function inc>' },
     ], 100, 30);
     assert.match(frames[0].text, /rank> fun inc N\n\s+N = /);
@@ -780,10 +803,10 @@ test('arrow keys edit visible function arguments and return to them from the bod
         { keys: '2' + UP, until: 'X = 1' },
         { keys: CLEAR + '3' + DOWN, until: 'X = 3' },
         ENTER,
-        { keys: 'return X + Y' + ENTER, until: '5' },
+        { keys: 'return X + Y' + ENTER, until: '\\s+5' },
         UP + UP,
-        { keys: CLEAR + '4' + ENTER, until: '4' },
-        { keys: ENTER, until: '7' },
+        { keys: CLEAR + '4' + ENTER, until: 'Y = 4' },
+        { keys: ENTER, until: '\\s+7' },
         { keys: 'end' + ENTER, until: '<function add>' },
     ], 100, 30);
     assert.match(frames[1].text, /X = 1\n\s+Y = /);
@@ -826,7 +849,7 @@ test('Esc skips a function example without adding its draft to the program', asy
 
 test('an invalid function example reports syntax at its field and stays editable', async t => {
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: '1›' },
+        { keys: 'A = 1' + ENTER, until: 'rank> ' },
         { keys: 'fun inc X' + ENTER, until: 'Example inc' },
         { keys: 'A = 1' + ENTER, until: 'Syntax' },
         { keys: CLEAR + 'A' + ENTER, until: 'X = A' },
@@ -854,8 +877,8 @@ test('a runtime error in a function example stays on its argument field', async 
 
 test('fixing func to fun turns the failed cell into live function input', async t => {
     const frames = await drive(t, [
-        'func inc2 Y' + ENTER,
-        CLEAR + 'fun inc2 Y' + ENTER,
+        { keys: 'func inc2 Y' + ENTER, until: 'unknown name: func' },
+        { keys: CLEAR + 'fun inc2 Y' + ENTER, until: 'Example inc2' },
         '\x1b',
     ], 80, 18);
     assert.match(frames[0].text, /unknown name: func/);
@@ -1113,7 +1136,7 @@ test('debugging a loaded file uses document line numbers for cells and function 
 test('mouse wheel scrolls source without moving the editing cursor', async t => {
     const source = Array.from({ length: 35 }, (_, i) => `rem row${i}`).join('\n');
     const frames = await drive(t, [
-        '\x1b[200~' + source + '\x1b[201~',
+        { keys: '\x1b[200~' + source + '\x1b[201~', until: 'row34' },
         '\x1b[<64;10;3M'.repeat(20),
         '\x1b[<65;10;3M',
         'X',

@@ -23,7 +23,10 @@ Submission OutputPath csv
 fun bike_features Data
   Times = Data .datetime datetime
   Rows = Times len
-  NumericFields = array .season .holiday .workingday .weather .temp .atemp .humidity .windspeed
+  NumericFields = array shape 8
+    .season .holiday .workingday .weather
+    .temp .atemp .humidity .windspeed
+  end
   Numeric = Data NumericFields
   Result = array shape Rows 12 fill 0.0
 
@@ -43,8 +46,8 @@ fun solve Train Test Rate Steps
   Xtest = Test bike_features
   Y = Train .count + 1 log
   Model = X Y Rate Steps Regression.linear
-  Pred = ((Xtest Model Regression.linear_predict) exp - 1) copy
-  Pred (Pred less 0) = 0.0
+  LogPred = Xtest Model Regression.linear_predict
+  Pred = LogPred exp - 1 max 0.0
   Test .count = Pred
   return Test (array .datetime .count)
 end
