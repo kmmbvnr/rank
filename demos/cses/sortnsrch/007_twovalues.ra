@@ -24,8 +24,9 @@ fun find_pair A Target
     Need = Target - Value
 
     if Need in index
-      J = index Need
-      return array (J + 1) (i + 1)
+      First = index Need + 1
+      Second = i + 1
+      return array First Second
     end
 
     index Value = i
