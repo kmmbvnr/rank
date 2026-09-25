@@ -41,13 +41,15 @@ fun spending_features Train Test
   Test .Vip = (Test .VIP default false) Titanic.binary
 
   Features = array .Cryo .Vip .Age .TotalSpend
-  return array (Train Features) (Test Features)
+  X = Train Features
+  Xtest = Test Features
+  return array X Xtest
 end
 
 
 fun solve Train Test Rate Steps
   unpack X Xtest = Train Test spending_features
-  Y = (Train .Transported) Titanic.binary
+  Y = Train .Transported Titanic.binary
   Model = X Y Rate Steps Titanic.logistic
   Pred = Xtest Model Titanic.logistic_predict
   Test .Transported = Pred equal 1
