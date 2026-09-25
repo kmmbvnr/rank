@@ -9,10 +9,15 @@ argument DbPath path = "demos/tpch/data/tpch.sqlite3"
 
 Db = DbPath sqlite
 Lineitem = Db .lineitem
-YearMask = (Lineitem .l_shipdate at least "1994-01-01") and (Lineitem .l_shipdate less "1995-01-01")
-YearRows = Lineitem YearMask
-DiscountMask = (YearRows .l_discount at least 0.05) and (YearRows .l_discount at most 0.07)
-Discounted = YearRows DiscountMask
+YearAfter = Lineitem .l_shipdate at least "1994-01-01"
+YearBefore = Lineitem .l_shipdate less "1995-01-01"
+YearRows = Lineitem (YearAfter and YearBefore)
+
+DiscountLow = YearRows .l_discount at least 0.05
+DiscountHigh = YearRows .l_discount at most 0.07
+Discounted = YearRows (DiscountLow and DiscountHigh)
+
 Limited = Discounted (Discounted .l_quantity less 24)
-Revenue = Limited .l_extendedprice * Limited .l_discount sum
+Price = Limited .l_extendedprice * Limited .l_discount
+Revenue = Price sum
 Revenue print
