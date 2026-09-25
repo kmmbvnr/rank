@@ -23,15 +23,16 @@ fun longest_common A B
   C = M + 1
   Lengths = array shape R C fill 0
 
-  for i in 1 to N
-    for j in 1 to M
-      if A (i - 1) equal B (j - 1)
-        Prior = Lengths (i - 1) (j - 1)
-        Lengths i j = Prior + 1
+  for X i in A
+    Row = i + 1
+    for Y j in B
+      Col = j + 1
+      if X equal Y
+        Lengths Row Col = (Lengths i j) + 1
       else
-        Above = Lengths (i - 1) j
-        Left = Lengths i (j - 1)
-        Lengths i j = Above max Left
+        Above = Lengths i Col
+        Left = Lengths Row j
+        Lengths Row Col = Above max Left
       end
     end
   end
@@ -43,18 +44,21 @@ fun longest_common A B
   Column = M
 
   for Row greater 0 and Column greater 0
-    if A (Row - 1) equal B (Column - 1)
-      Result Position = A (Row - 1)
+    Rprev = Row - 1
+    Cprev = Column - 1
+
+    if A Rprev equal B Cprev
+      Result Position = A Rprev
       Position -= 1
-      Row -= 1
-      Column -= 1
+      Row = Rprev
+      Column = Cprev
     else
-      Above = Lengths (Row - 1) Column
-      Left = Lengths Row (Column - 1)
+      Above = Lengths Rprev Column
+      Left = Lengths Row Cprev
       if Above greater Left
-        Row -= 1
+        Row = Rprev
       else
-        Column -= 1
+        Column = Cprev
       end
     end
   end
