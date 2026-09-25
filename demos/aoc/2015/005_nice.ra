@@ -9,10 +9,7 @@ use sequences
 
 argument Input path
 
-Answers = Input readlines solve
-Part1 = Answers 0
-Part2 = Answers 1
-
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
@@ -41,14 +38,12 @@ fun nice1 S
   Double = false
 
   for C in S
-    if C vowel
+    if C in "aeiou"
       Vowels += 1
     end
   end
 
-  Pairs = S 2 window
-
-  for P in Pairs
+  for P in S 2 window
     if P forbidden
       return false
     end
@@ -63,10 +58,9 @@ end
 
 rem Check for a repeated pair and a letter repeated after one position.
 fun nice2 S
-  Pairs = S 2 window
   Pair = false
 
-  for P i in Pairs
+  for P i in S 2 window
     First = index P default -1
     if First at least 0 and i at least First + 2
       Pair = true
@@ -77,9 +71,8 @@ fun nice2 S
   end
 
   Repeat = false
-  Triples = S 3 window
 
-  for T in Triples
+  for T in S 3 window
     if T 0 equal T 2
       Repeat = true
     end
@@ -89,25 +82,10 @@ fun nice2 S
 end
 
 
-rem Return true for a lowercase vowel.
-fun vowel C
-  if C equal "a" or C equal "e"
-    return true
-  end
-  if C equal "i" or C equal "o" or C equal "u"
-    return true
-  end
-  return false
-end
-
-
 rem Return true for a forbidden adjacent pair.
 fun forbidden Pair
   if Pair equal "ab" or Pair equal "cd"
     return true
   end
-  if Pair equal "pq" or Pair equal "xy"
-    return true
-  end
-  return false
+  return Pair equal "pq" or Pair equal "xy"
 end
