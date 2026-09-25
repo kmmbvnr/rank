@@ -134,11 +134,7 @@ export class LivePreviewRunner {
                 continue;
             }
             state.slowLines?.delete(item.line);
-            const isRecError = result.output.some(line => line.error && !line.text.includes('[Syntax]') && (
-                priorRecursion || (functionName !== undefined && (
-                    line.text.includes(functionName) || (line.inlineText?.includes(functionName) ?? false)
-                ))
-            ));
+            const isRecError = priorRecursion && result.output.some(line => line.error && !line.text.includes('[Syntax]'));
             const output = isRecError
                 ? [{ text: 'recursive call', error: false }]
                 : displayOutput(result.output, item.control);
