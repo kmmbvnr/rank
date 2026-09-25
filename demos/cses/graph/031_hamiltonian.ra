@@ -24,7 +24,9 @@ fun hamiltonian_flights N Edges
   Back = new graph Nodes .directed
   for Edge in Edges
     unpack From To = Edge
-    Back add (To - 1) (From - 1)
+    U = To - 1
+    V = From - 1
+    Back add U V
   end
 
   Ways = array shape States N fill 0
@@ -36,15 +38,14 @@ fun hamiltonian_flights N Edges
       continue
     end
     for City in 1 until N
-      if not (Mask City bit)
+      if Mask City bit equal false
         continue
       end
       Bit = 1 City shl
       Before = Mask Bit bxor
       Total = 0
       for Previous in Back City
-        More = Ways Before Previous
-        Total += More
+        Total += Ways Before Previous
       end
       Ways Mask City = Total % Modulus
     end
