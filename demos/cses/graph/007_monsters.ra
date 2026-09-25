@@ -45,15 +45,13 @@ fun escape_monsters Grid
 
   rem Test a passable grid position.
   fun valid Row Column
-    Inside = Row at least 0
-    Inside and= Row less H
-    Inside and= Column at least 0
-    Inside and= Column less W
-    if not Inside
+    if Row less 0 or Row at least H
       return false
     end
-    Cell = Grid Row Column
-    return Cell not equal "#"
+    if Column less 0 or Column at least W
+      return false
+    end
+    return Grid Row Column not equal "#"
   end
 
   rem Spread all monsters together.
@@ -88,11 +86,11 @@ fun escape_monsters Grid
   for Position in Pending
     Row = Position // W
     Column = Position % W
-    Boundary = Row equal 0
-    Boundary or= Row equal H - 1
-    Boundary or= Column equal 0
-    Boundary or= Column equal W - 1
-    if Boundary
+    if Row equal 0 or Row equal H - 1
+      Escape = Position
+      break
+    end
+    if Column equal 0 or Column equal W - 1
       Escape = Position
       break
     end
@@ -102,9 +100,8 @@ fun escape_monsters Grid
       NY = Row + DY
       NX = Column + DXs Direction
       if NY NX valid
-        Unseen = Parent NY NX equal -1
         Safe = Arrival less Danger NY NX
-        if Unseen and Safe
+        if Parent NY NX equal -1 and Safe
           Parent NY NX = Direction
           Steps NY NX = Arrival
           Pending push NY * W + NX
@@ -113,24 +110,27 @@ fun escape_monsters Grid
     end
   end
 
-  Found = Escape not equal -1
-  Path = ""
-  if Found
-    Position = Escape
-    for Position not equal Start
-      Row = Position // W
-      Column = Position % W
-      Direction = Parent Row Column
-      Path += Moves Direction
-      Row -= DYs Direction
-      Column -= DXs Direction
-      Position = Row * W + Column
+  if Escape equal -1
+    return record
+      .found = false
+      .path = ""
     end
-    Path = Path reverse
+  end
+
+  Position = Escape
+  Path = ""
+  for Position not equal Start
+    Row = Position // W
+    Column = Position % W
+    Direction = Parent Row Column
+    Path += Moves Direction
+    Row -= DYs Direction
+    Column -= DXs Direction
+    Position = Row * W + Column
   end
 
   return record
-    .found = Found
-    .path = Path
+    .found = true
+    .path = Path reverse
   end
 end
