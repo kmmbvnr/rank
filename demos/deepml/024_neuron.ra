@@ -14,7 +14,7 @@ fun single_neuron X Y W Bias
   Error = Pred - Y
   Mse = Error * Error mean
 
-  return array (Pred round 4) (
-    Mse round 4
-  )
+  Pred = Pred round 4
+  Mse = Mse round 4
+  return array Pred Mse
 end
