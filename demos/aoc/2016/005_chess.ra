@@ -54,12 +54,14 @@ fun part2 Door
     if Hash Prefix startswith
       rem A valid position also guarantees the fifth hex digit is zero.
       Position = Hash 2
-      if Position less 8 and Password Position equal ""
-        Nibble = (Hash 3) // 16
-        Password Position = Digits Nibble
-        Filled += 1
-        if Filled equal 8
-          return Password "" join
+      if Position less 8
+        if Password Position equal ""
+          Nibble = (Hash 3) // 16
+          Password Position = Digits Nibble
+          Filled += 1
+          if Filled equal 8
+            return Password "" join
+          end
         end
       end
     end
