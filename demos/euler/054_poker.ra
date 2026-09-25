@@ -97,7 +97,8 @@ fun hand_score Cards
     Ties = array High 0 0 0 0
   end
 
-  return array Kind (Ties 0) (Ties 1) (Ties 2) (Ties 3) (Ties 4)
+  unpack T0 T1 T2 T3 T4 = Ties
+  return array Kind T0 T1 T2 T3 T4
 end
 
 
