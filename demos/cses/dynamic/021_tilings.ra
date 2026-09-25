@@ -39,15 +39,17 @@ fun counting_tilings Height Width
       return 0
     end
 
+    NextRow = Row + 1
     if Mask Row bit
-      return Row + 1 NextMask place
+      return NextRow NextMask place
     end
 
     Bit = 1 Row shl
-    Row + 1 (NextMask Bit bor) place
+    NewMask = NextMask Bit bor
+    NextRow NewMask place
 
-    if Row + 1 less Height
-      if not (Mask (Row + 1) bit)
+    if NextRow less Height
+      if Mask NextRow bit equal false
         Row + 2 NextMask place
       end
     end
