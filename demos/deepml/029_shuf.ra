@@ -14,5 +14,7 @@ fun shuffle_data X Y
   Indices = 0 until Count
   Order = Indices shuffle
 
-  return array (X Order) (Y Order)
+  ShuffledX = X Order
+  ShuffledY = Y Order
+  return array ShuffledX ShuffledY
 end
