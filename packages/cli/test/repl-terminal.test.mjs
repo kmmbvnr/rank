@@ -411,12 +411,12 @@ test('completed loop headers reopen with Ctrl-R and Ctrl-G, then Esc restores ed
 test('iteration selection needs Enter or Ctrl-G on a 40-column terminal', async t => {
     const frames = await drive(t, [
         'for I in 1 to 3' + ENTER,
-        UP,
-        RIGHT,
-        ENTER + RIGHT,
-        '\x1b',
-        '\x07' + RIGHT,
-        '\x1b',
+        { keys: UP, until: 'Enter select' },
+        { keys: RIGHT, until: 'iteration 1' },
+        { keys: ENTER + RIGHT, until: 'iteration 2' },
+        { keys: '\x1b', until: '\\^L run all' },
+        { keys: '\x07' + RIGHT, until: 'iteration 3' },
+        { keys: '\x1b', until: '\\^L run all' },
     ], 40, 12);
     assert.match(frames[1].text, /Enter select · Esc edit · \^L run all/);
     assert.match(frames[2].text, /I = 1 · iteration 1/);
