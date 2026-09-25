@@ -50,14 +50,12 @@ fun search Ingredients Position Remaining Totals
 
   for Amount in 0 to Remaining
     Next = Totals + Ingredient * Amount
-    unpack A B = Ingredients (Position + 1) (Remaining - Amount) Next search
+    NextPos = Position + 1
+    Leftover = Remaining - Amount
+    unpack A B = Ingredients NextPos Leftover Next search
 
-    if A greater Best
-      Best = A
-    end
-    if B greater Best500
-      Best500 = B
-    end
+    Best = Best max A
+    Best500 = Best500 max B
   end
 
   return array Best Best500
@@ -66,9 +64,10 @@ end
 
 rem Clamp four properties at zero and multiply them into one score.
 fun cookiescore Totals
-  Capacity = 0 max (Totals 0)
-  Durability = 0 max (Totals 1)
-  Flavor = 0 max (Totals 2)
-  Texture = 0 max (Totals 3)
+  unpack Capacity Durability Flavor Texture Calories = Totals
+  Capacity = Capacity max 0
+  Durability = Durability max 0
+  Flavor = Flavor max 0
+  Texture = Texture max 0
   return Capacity * Durability * Flavor * Texture
 end
