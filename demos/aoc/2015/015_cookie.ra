@@ -5,6 +5,7 @@ rem https://adventofcode.com/2015/day/15
 use io
 use cli
 use algo
+use sequences
 use text
 
 argument Input path
@@ -20,12 +21,12 @@ fun solve Lines
   Pattern = "/word: capacity /integer, durability /integer, flavor /integer, texture /integer, calories /integer"
 
   for Line in Lines
-    unpack Name Capacity Durability Flavor Texture Calories = Line Pattern parse
-    Ingredient = array Capacity Durability Flavor Texture Calories
+    Parsed = Line Pattern parse
+    Ingredient = Parsed 1 drop
     queue push Ingredient
   end
 
-  Totals = array 0 0 0 0 0
+  Totals = array shape 5 fill 0
   return queue 0 100 Totals search
 end
 
@@ -64,10 +65,7 @@ end
 
 rem Clamp four properties at zero and multiply them into one score.
 fun cookiescore Totals
-  unpack Capacity Durability Flavor Texture Calories = Totals
-  Capacity = Capacity max 0
-  Durability = Durability max 0
-  Flavor = Flavor max 0
-  Texture = Texture max 0
-  return Capacity * Durability * Flavor * Texture
+  Clamped = Totals max 0
+  unpack Cap Dur Fla Tex Cal = Clamped
+  return Cap * Dur * Fla * Tex
 end
