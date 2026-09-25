@@ -49,10 +49,7 @@ fun adaboost_fit X Y Classifiers
 
       for Limit in Limits
         Polarity = 1
-        F = Feature
-        T = Limit
-        P = Polarity
-        Pred = X F T P stump
+        Pred = X Feature Limit Polarity stump
         Wrong = Y not equal Pred
         Error = (Weight Wrong) sum
 
@@ -70,16 +67,16 @@ fun adaboost_fit X Y Classifiers
       end
     end
 
-    Ratio = (1.0 - MinError) / (
-      MinError + 0.0000000001
-    )
-    Best .alpha = 0.5 * (Ratio log)
+    Numerator = 1.0 - MinError
+    Denominator = MinError + 0.0000000001
+    Ratio = Numerator / Denominator
+    Alpha = 0.5 * (Ratio log)
+    Best .alpha = Alpha
 
-    F = Best .feature
-    T = Best .threshold
-    P = Best .polarity
-    Pred = X F T P stump
-    Alpha = Best .alpha
+    Feature = Best .feature
+    Limit = Best .threshold
+    Polarity = Best .polarity
+    Pred = X Feature Limit Polarity stump
     Scale = -Alpha * Y * Pred
     Weight *= Scale exp
     Weight /= Weight sum
