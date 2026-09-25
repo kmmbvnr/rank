@@ -54,41 +54,54 @@ fun fight State BossDamage Hard Best
   end
 
   if Mana at least 53
+    NewMana = Mana - 53
+    NewBoss = Boss - 4
+    NewSpent = Spent + 53
     Next = array shape 7
-      HP (Mana - 53) (Boss - 4) Shield
-      Poison Recharge (Spent + 53)
+      HP NewMana NewBoss Shield
+      Poison Recharge NewSpent
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
   if Mana at least 73
+    NewHP = HP + 2
+    NewMana = Mana - 73
+    NewBoss = Boss - 2
+    NewSpent = Spent + 73
     Next = array shape 7
-      (HP + 2) (Mana - 73) (Boss - 2)
-      Shield Poison Recharge (Spent + 73)
+      NewHP NewMana NewBoss Shield
+      Poison Recharge NewSpent
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
   if Mana at least 113 and Shield equal 0
+    NewMana = Mana - 113
+    NewSpent = Spent + 113
     Next = array shape 7
-      HP (Mana - 113) Boss 6
-      Poison Recharge (Spent + 113)
+      HP NewMana Boss 6
+      Poison Recharge NewSpent
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
   if Mana at least 173 and Poison equal 0
+    NewMana = Mana - 173
+    NewSpent = Spent + 173
     Next = array shape 7
-      HP (Mana - 173) Boss Shield
-      6 Recharge (Spent + 173)
+      HP NewMana Boss Shield
+      6 Recharge NewSpent
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
   if Mana at least 229 and Recharge equal 0
+    NewMana = Mana - 229
+    NewSpent = Spent + 229
     Next = array shape 7
-      HP (Mana - 229) Boss Shield
-      Poison 5 (Spent + 229)
+      HP NewMana Boss Shield
+      Poison 5 NewSpent
     end
     Best = Next BossDamage Hard Best bossturn
   end
@@ -109,7 +122,8 @@ fun bossturn State BossDamage Hard Best
   if Shield greater 0
     Armor = 7
   end
-  HP -= 1 max (BossDamage - Armor)
+  Damage = 1 max (BossDamage - Armor)
+  HP -= Damage
 
   if HP at most 0
     return Best
