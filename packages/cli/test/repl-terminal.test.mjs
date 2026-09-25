@@ -82,7 +82,11 @@ async function drive(t, steps, columns = 60, rows = 18) {
 }
 
 test('type diagnostics appear while typing before Enter', async t => {
-    const frames = await drive(t, ['Count = 1' + ENTER, { keys: 'Count = "wrong"', until: 'TypeError' }, CLEAR + 'Count + 2'], 40, 18);
+    const frames = await drive(t, [
+        { keys: 'Count = 1' + ENTER, until: '1›' },
+        { keys: 'Count = "wrong"', until: 'TypeError' },
+        CLEAR + 'Count + 2'
+    ], 40, 18);
     assert.match(frames[1].text, /TypeError/);
     assert.match(frames[1].text, /cannot receive text/);
     assert.doesNotMatch(frames[2].text, /TypeError|cannot receive/);
@@ -90,8 +94,12 @@ test('type diagnostics appear while typing before Enter', async t => {
 });
 
 test('function argument diagnostics appear before Enter and disappear after correction', async t => {
-    const frames = await drive(t, ['\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER,
-        'Input = "bad"' + ENTER, { keys: 'Input increment', until: 'TypeError' }, CLEAR + '3 increment'], 60, 22);
+    const frames = await drive(t, [
+        { keys: '\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER, until: '<function increment>' },
+        { keys: 'Input = "bad"' + ENTER, until: '2›' },
+        { keys: 'Input increment', until: 'TypeError' },
+        CLEAR + '3 increment'
+    ], 60, 22);
     assert.match(frames[2].text, /TypeError: increment:/);
     assert.match(frames[2].text, /does not accept/);
     assert.doesNotMatch(frames[3].text, /TypeError|does not accept/);
@@ -100,7 +108,7 @@ test('function argument diagnostics appear before Enter and disappear after corr
 
 test('rank diagnostics appear for inline shaped arrays before Enter', async t => {
     const frames = await drive(t, [
-        { keys: 'A = array 1 2 3' + ENTER, until: '1 2 3' },
+        { keys: 'A = array 1 2 3' + ENTER, until: '1›' },
         { keys: 'A = array 1 2 3 4 shape 2 2', until: 'DimensionMismatch' },
         CLEAR + 'A = array 2 3 4 5'
     ], 80, 18);
@@ -111,8 +119,10 @@ test('rank diagnostics appear for inline shaped arrays before Enter', async t =>
 });
 
 test('loop rank diagnostics appear before executing the pasted draft', async t => {
-    const frames = await drive(t, ['A = array 1 2' + ENTER,
-        '\x1b[200~for I in 1 to 3\n A = array shape 2 2 fill 0\nend\x1b[201~'], 80, 22);
+    const frames = await drive(t, [
+        { keys: 'A = array 1 2' + ENTER, until: '1›' },
+        { keys: '\x1b[200~for I in 1 to 3\n A = array shape 2 2 fill 0\nend\x1b[201~', until: 'DimensionMismatch' }
+    ], 80, 22);
     assert.match(frames[1].text, /DimensionMismatch/);
     assert.match(frames[1].text, /A has rank 1/);
     assert.match(frames[1].text, /cannot receive rank 2/);
@@ -454,7 +464,7 @@ test('an error at the bottom keeps its compact diagnostic and source cursor in v
 
 test('Ctrl-Q offers saving and Esc restores the unsubmitted draft and cursor', async t => {
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: '1' },
+        { keys: 'A = 1' + ENTER, until: '1›' },
         { keys: 'B = 2', until: 'B = 2' },
         { keys: '\x11', until: 'Save changes before exit' },
         { keys: '\x1b', until: 'rank> B = 2' },
@@ -552,7 +562,7 @@ test('load can be cancelled or replace the old document and its variable types',
 
 test('editing a declaration can change its type on replay', async t => {
     const frames = await drive(t, [
-        { keys: 'X = 1' + ENTER, until: '1' },
+        { keys: 'X = 1' + ENTER, until: '1›' },
         { keys: UP + CLEAR + 'X = array 1 2 3', until: 'X = array 1 2 3' },
         { keys: DOWN + ENTER, until: '1 2 3' }
     ]);
@@ -788,7 +798,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
 
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
     const frames = await drive(t, [
-        { keys: 'A = array 1 2 3' + ENTER, until: '1 2 3' },
+        { keys: 'A = array 1 2 3' + ENTER, until: '1›' },
         { keys: 'fun plus X Y' + ENTER, until: 'X =' },
         { keys: 'A' + ENTER, until: 'Y =' },
         { keys: 'A+1' + ENTER, until: 'A\\+1' },
@@ -816,7 +826,7 @@ test('Esc skips a function example without adding its draft to the program', asy
 
 test('an invalid function example reports syntax at its field and stays editable', async t => {
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: '1' },
+        { keys: 'A = 1' + ENTER, until: '1›' },
         { keys: 'fun inc X' + ENTER, until: 'Example inc' },
         { keys: 'A = 1' + ENTER, until: 'Syntax' },
         { keys: CLEAR + 'A' + ENTER, until: 'X = A' },
