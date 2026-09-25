@@ -38,17 +38,15 @@ fun collecting_updates Values Swaps
     X = A I
     Y = A J
 
-    Edges = array X Y (X - 1) (Y - 1)
+    PrevX = X - 1
+    PrevY = Y - 1
+    Edges = array X Y PrevX PrevY
     Edges = Edges unique
 
     for Value in Edges
-      Valid = Value at least 1
-      Valid and= Value less N
-      if Valid
+      if Value at least 1 and Value less N
         Next = Value + 1
-        Before = index Value
-        After = index Next
-        if Before greater After
+        if index Value greater index Next
           Rounds -= 1
         end
       end
@@ -60,13 +58,9 @@ fun collecting_updates Values Swaps
     index Y = I
 
     for Value in Edges
-      Valid = Value at least 1
-      Valid and= Value less N
-      if Valid
+      if Value at least 1 and Value less N
         Next = Value + 1
-        Before = index Value
-        After = index Next
-        if Before greater After
+        if index Value greater index Next
           Rounds += 1
         end
       end
