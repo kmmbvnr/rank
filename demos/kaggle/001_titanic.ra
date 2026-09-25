@@ -50,8 +50,8 @@ fun logistic X Y Rate Steps
   end
 
   Center = X mean axis 0
-  Scale = X std axis 0 copy
-  Scale (Scale equal 0) = 1.0
+  Std = X std axis 0
+  Scale = (Std equal 0) 1.0 Std choose
   Z = (X - Center) / Scale
 
   Weights = array shape Columns fill 0.0

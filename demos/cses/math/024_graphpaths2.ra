@@ -61,7 +61,7 @@ fun minplus Left Right
     Column = Left # K
     Row = Right K
     Candidate = Column Row + outer
-    Result = (Result min Candidate) copy
+    Result = Result min Candidate
   end
 
   return Result

@@ -63,17 +63,7 @@ rem Fit smoothed inverse document frequencies on Train only.
 fun tfidf_fit Texts Vocab
   Counts = Texts Vocab term_counts
   Documents = Texts len
-  Terms = Vocab len
-  Present = Counts copy
-  for Row in 0 until Documents
-    for Column in 0 until Terms
-      if Counts Row Column greater 0
-        Present Row Column = 1.0
-      else
-        Present Row Column = 0.0
-      end
-    end
-  end
+  Present = (Counts greater 0) 1.0 0.0 choose
   Frequency = Present sum axis 0
   TotalDocs = Documents + 1.0
   FreqSmoothed = Frequency + 1.0

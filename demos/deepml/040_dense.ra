@@ -50,10 +50,8 @@ fun backward_pass Layer Grad Rate
     Xt = X transpose
     GradW = Xt Grad matmul
     GradB = Grad sum axis 0
-    NextW = W - Rate * GradW copy
-    NextB = Bias - Rate * GradB copy
-    Layer .weights = NextW
-    Layer .bias = NextB
+    Layer .weights = W - Rate * GradW
+    Layer .bias = Bias - Rate * GradB
   end
 
   Wt = W transpose
