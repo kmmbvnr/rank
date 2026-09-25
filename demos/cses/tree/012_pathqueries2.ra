@@ -28,8 +28,8 @@ fun maximums Values Rooted Queries
   Entry = Rooted .entry
   Flat = array shape (Values len) fill 0
   for Node in Rooted .order
-    Value = Values (Node - 1)
-    Flat (Entry Node) = Value
+    Pos = Entry Node
+    Flat Pos = Values (Node - 1)
   end
   Maxima = Flat max segment
   Answers = new queue
@@ -37,7 +37,8 @@ fun maximums Values Rooted Queries
   for Query in Queries
     unpack Type A B = Query
     if Type equal 1
-      Maxima (Entry A) = B
+      Pos = Entry A
+      Maxima Pos = B
     else
       Part = Rooted Maxima A B path_max
       Answers push Part
@@ -74,8 +75,10 @@ fun path_max Rooted Maxima A B
     HeadA = Heads A
   end
 
-  First = (Entry A) min (Entry B)
-  Last = (Entry A) max (Entry B)
+  PosA = Entry A
+  PosB = Entry B
+  First = PosA min PosB
+  Last = PosA max PosB
   Part = Maxima First Last query
   return Best max Part
 end
