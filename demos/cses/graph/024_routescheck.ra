@@ -16,10 +16,9 @@ if Result .possible
   "YES" print
 else
   "NO" print
-  Missing = array shape 2
-    (Result .source) (Result .target)
-  end
-  Missing print
+  Source = Result .source
+  Target = Result .target
+  array Source Target print
 end
 
 
