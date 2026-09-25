@@ -42,18 +42,26 @@ console.error = filter(console.error);
         'set screen ""',
         'proc read_frame {seconds} {',
         '    global screen spawn_id',
+        '    set stop [expr {[clock milliseconds] + 3000}]',
         '    expect -timeout $seconds -re ".+" {',
         '        append screen $expect_out(0,string)',
         // drawFrame starts each screen with ESC[?25l (hide cursor).
         '        set start [string last [binary format H* 1b5b3f32356c] $screen]',
         '        if {$start >= 0} { set screen [string range $screen $start end] }',
-        '        exp_continue -continue_timer',
+        // Read until the terminal stays quiet: a loaded machine may echo the
+        // typed keys well before it starts the execution they submitted.
+        // A running cell redraws its timer constantly, so cap the wait.
+        '        if {[clock milliseconds] < $stop} { exp_continue }',
         '    } eof {} timeout {}',
         '}',
         ...steps.flatMap((step, index) => {
             const { keys, until } = typeof step === 'string' ? { keys: step } : step;
-            const waiting = until ? `![regexp {${until}} $screen]`
-                : '$screen eq "" || [regexp {(Running|Stopping|Pausing)} $screen]';
+            // Keys sent while a cell still runs are typed into it and lost when it
+            // finishes, so a step settles only once execution has ended too.
+            const busy = '[regexp {(Running|Stopping|Pausing)} $screen]';
+            const waiting = !until ? `$screen eq "" || ${busy}`
+                : /Running|Paused|Stopping|Pausing/.test(until) ? `![regexp {${until}} $screen]`
+                : `![regexp {${until}} $screen] || ${busy}`;
             return [
                 ...(until || /[\r\t\n\x01\x11\x12\x13\x14\x10\x07\x0e\x08\x03\x02\x1b\x15]/.test(keys) || /^[tng]$/.test(keys)
                     ? ['set screen ""'] : []),
@@ -236,7 +244,7 @@ test('Shift selection and mouse dragging replace source without executing pasted
 
 test('Ctrl-H toggles source-only copying and restores the editor cursor', async t => {
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: 'rank> ' },
+        { keys: 'A = 1' + ENTER, until: '1›' },
         { keys: 'A + 2' + ENTER, until: '\\s+3' },
         { keys: 'Draft = "ab"' + '\x1b[D', until: 'Draft' },
         '\x08',
@@ -322,7 +330,7 @@ test('bracketed multiline paste stays editable until Enter and tab suggestions n
 
 test('help opens outside the document and Esc removes it before returning to editing', async t => {
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: 'rank> ' },
+        { keys: 'A = 1' + ENTER, until: '1›' },
         { keys: 'help' + ENTER, until: 'Editing' },
         '\x1b[6~',
         'ignored text',
@@ -366,7 +374,7 @@ test('the next-eval marker remains in the branch body while the iterator is sele
 
 test('leaving an unused top insertion row restores the original numbering', async t => {
     const frames = await drive(t, [
-        { keys: '1 + 1' + ENTER, until: 'rank> ' },
+        { keys: '1 + 1' + ENTER, until: '1›' },
         { keys: UP + UP, until: '2›' },
         DOWN,
         UP,
@@ -494,7 +502,7 @@ test('Ctrl-S asks for a filename once, then saves to the bound file and updates 
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'keys.ra');
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: 'rank> ' },
+        { keys: 'A = 1' + ENTER, until: '1›' },
         { keys: '\x13', until: 'Save program' },
         { keys: target + ENTER, until: '· saved' },
         UP + CLEAR + 'A = 9', '\x13',
@@ -512,7 +520,7 @@ test('exit can save the program, and quit can discard it', async t => {
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'exit.ra');
     const saved = await drive(t, [
-        { keys: 'A = 7' + ENTER, until: 'rank> ' },
+        { keys: 'A = 7' + ENTER, until: '1›' },
         { keys: 'exit' + ENTER, until: 'Save changes before exit' },
         's',
         target + ENTER
@@ -521,7 +529,7 @@ test('exit can save the program, and quit can discard it', async t => {
     assert.match(saved[2].text, /Save before exit/);
     assert.equal(fs.readFileSync(target, 'utf8'), 'A = 7\n');
     const discarded = await drive(t, [
-        { keys: 'A = 8' + ENTER, until: 'rank> ' },
+        { keys: 'A = 8' + ENTER, until: '1›' },
         { keys: 'quit' + ENTER, until: 'Save changes before exit' },
         'd'
     ]);
@@ -849,7 +857,7 @@ test('Esc skips a function example without adding its draft to the program', asy
 
 test('an invalid function example reports syntax at its field and stays editable', async t => {
     const frames = await drive(t, [
-        { keys: 'A = 1' + ENTER, until: 'rank> ' },
+        { keys: 'A = 1' + ENTER, until: '1›' },
         { keys: 'fun inc X' + ENTER, until: 'Example inc' },
         { keys: 'A = 1' + ENTER, until: 'Syntax' },
         { keys: CLEAR + 'A' + ENTER, until: 'X = A' },
