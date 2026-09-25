@@ -11,5 +11,6 @@ rem Upper boundary, included.
 option Limit integer = 4000000
 
 Fib = fibonacci to Limit
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 Answer print

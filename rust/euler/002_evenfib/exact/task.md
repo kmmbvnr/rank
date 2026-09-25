@@ -42,7 +42,15 @@ flow left to right: `Fib even sum` means sum(filter_even(Fib)). Consult the pars
 syntax below for grouping; do not infer grouping from whitespace alone.
 
 `fun palindrome X ... return Value ... end` declares a function of X. Function
-declarations can appear after their calls. `X text` converts X to text, `Text
+declarations can appear after their calls. A name holds its own value: `B = A`,
+passing an argument and `yield` each give the receiver a value, so no write can
+reach another name's data and a function cannot change what its caller passed.
+Translate an array as owned storage — `Vec<T>`, moved or borrowed — and never as
+shared mutable state. Naming a computed array fixes it: a later write to one of
+its sources does not change it. The exceptions carry identity and do need shared
+mutation: records, graphs, the `algo` structures (`index`, `queue`, `deque`,
+`stack`, `heap`, `set`, `counter`, `multiset`, `orderedset`, `fenwick`, segment
+trees), open handles and generator sequences. `X text` converts X to text, `Text
 reverse` reverses it, and `Text equal Back` compares values. `less`, `greater`,
 `atleast` and `atmost` mean <, >, >= and <=. `equal`/`notequal` are value equality.
 
@@ -104,8 +112,8 @@ Arithmetic simplifications are allowed only under the selected numeric policy.
 In i64 mode, require checked arithmetic for generated expressions as well.
 
 The analysis records reads, writes, reassignment and loop-carried bindings. It
-does not prove that callbacks lack effects or that arrays do not alias. Preserve
-iteration order, live collection mutation, break/continue, returns and cleanup.
+does not prove that callbacks lack effects. Preserve iteration order, live
+collection mutation, break/continue, returns and cleanup.
 Keep unsupported effects explicit; never remove I/O, errors or cleanup to make
 a loop faster. Do not translate runtime guards into unconditional assumptions.
 
@@ -130,7 +138,7 @@ overflow-checks = true
 
 ## Source: 002_evenfib.ra
 
-SHA-256: 27a1a18ea9872ff2cdabc6b52b083dba7f01ec10a7afb9675b66dec9c30ca3c7
+SHA-256: 15dbd2e7b3f81545c8f9e77bdc36b8509f1ce0f5e178a94dfe2f0089382ba60e
 
 ```rank
 rem Even Fibonacci Numbers
@@ -146,7 +154,8 @@ rem Upper boundary, included.
 option Limit integer = 4000000
 
 Fib = fibonacci to Limit
-Answer = Fib even sum
+Mask = Fib even
+Answer = Fib Mask sum
 Answer print
 ```
 
@@ -234,6 +243,10 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "reads": [
             {
               "line": 14,
+              "column": 8
+            },
+            {
+              "line": 15,
               "column": 10
             }
           ],
@@ -244,7 +257,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "types": "sequence"
         },
         {
-          "name": "Answer",
+          "name": "Mask",
           "kind": "assignment",
           "bound": {
             "line": 14,
@@ -259,6 +272,31 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "reads": [
             {
               "line": 15,
+              "column": 14
+            }
+          ],
+          "reassigned": false,
+          "unused": false,
+          "loopCarried": false,
+          "shadows": false,
+          "types": "sequence"
+        },
+        {
+          "name": "Answer",
+          "kind": "assignment",
+          "bound": {
+            "line": 15,
+            "column": 1
+          },
+          "writes": [
+            {
+              "line": 15,
+              "column": 1
+            }
+          ],
+          "reads": [
+            {
+              "line": 16,
               "column": 1
             }
           ],
@@ -280,11 +318,12 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value even",
       "result": "boolean",
+      "scalarNoCallback": "integer",
       "summary": "True for an even integer.",
       "sites": [
         {
           "line": 14,
-          "column": 14
+          "column": 12
         }
       ]
     },
@@ -317,7 +356,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "summary": "Writes one line and returns the value, so a pipeline continues.",
       "sites": [
         {
-          "line": 15,
+          "line": 16,
           "column": 8
         }
       ]
@@ -330,10 +369,11 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Values sum",
       "result": "number",
+      "scalarCellArrayNoCallback": "number",
       "summary": "Adds every numeric cell of an array, collection or finite sequence.",
       "sites": [
         {
-          "line": 14,
+          "line": 15,
           "column": 19
         }
       ]
@@ -389,6 +429,24 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       },
       {
         "$type": "AssignmentStatement",
+        "name": "Mask",
+        "operator": "=",
+        "value": {
+          "$type": "ApplicationExpression",
+          "head": {
+            "$type": "NameExpression",
+            "name": "Fib"
+          },
+          "arguments": [
+            {
+              "$type": "NameExpression",
+              "name": "even"
+            }
+          ]
+        }
+      },
+      {
+        "$type": "AssignmentStatement",
         "name": "Answer",
         "operator": "=",
         "value": {
@@ -402,7 +460,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
             "arguments": [
               {
                 "$type": "NameExpression",
-                "name": "even"
+                "name": "Mask"
               }
             ]
           },
