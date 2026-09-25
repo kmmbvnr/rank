@@ -453,7 +453,12 @@ test('an error at the bottom keeps its compact diagnostic and source cursor in v
 });
 
 test('Ctrl-Q offers saving and Esc restores the unsubmitted draft and cursor', async t => {
-    const frames = await drive(t, ['A = 1' + ENTER, 'B = 2', '\x11', '\x1b']);
+    const frames = await drive(t, [
+        { keys: 'A = 1' + ENTER, until: '1' },
+        { keys: 'B = 2', until: 'B = 2' },
+        { keys: '\x11', until: 'Save changes before exit' },
+        { keys: '\x1b', until: 'rank> B = 2' },
+    ]);
     assert.match(frames[1].text, /Untitled · unsaved/);
     assert.match(frames[2].text, /Save changes before exit/);
     assert.match(frames[2].text, /discard changes/);
@@ -496,7 +501,10 @@ test('saving before exit uses the loaded file without asking for its name again'
     const target = path.join(directory, 'loaded.ra');
     fs.writeFileSync(target, 'A = 1\n');
     const frames = await drive(t, [
-        `load ${target}` + ENTER, UP + CLEAR + 'A = 2', '\x11', 's',
+        { keys: `load ${target}` + ENTER, until: 'loaded.ra · saved' },
+        { keys: UP + CLEAR + 'A = 2', until: 'A = 2' },
+        { keys: '\x11', until: 'Save changes before exit' },
+        's',
     ]);
     assert.match(frames[0].text, /loaded.ra · saved/);
     assert.match(frames[2].text, /Save changes before exit/);

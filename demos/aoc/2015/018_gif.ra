@@ -44,10 +44,8 @@ fun makegrid Lines Stuck
   for Line Y in Lines
     for C X in Line
       On = C equal "#"
-      if Stuck
-        if X Y N corner
-          On = true
-        end
+      if Stuck and X Y N corner
+        On = true
       end
       queue push On
     end
@@ -65,19 +63,10 @@ fun evolve Grid Stuck
     for X in 0 until N
       On = Grid Y X
       Count = Grid X Y neighbors
+      New = Count equal 3 or (On and Count equal 2)
 
-      if On
-        New = Count equal 2 or Count equal 3
-      elif Count equal 3
+      if Stuck and X Y N corner
         New = true
-      else
-        New = false
-      end
-
-      if Stuck
-        if X Y N corner
-          New = true
-        end
       end
       queue push New
     end
@@ -94,14 +83,16 @@ fun neighbors Grid X Y
 
   for DY in -1 to 1
     for DX in -1 to 1
-      if DX not equal 0 or DY not equal 0
-        XX = X + DX
-        YY = Y + DY
+      if DX equal 0 and DY equal 0
+        continue
+      end
 
-        if XX YY N inside
-          if Grid YY XX
-            Count += 1
-          end
+      XX = X + DX
+      YY = Y + DY
+
+      if XX YY N inside
+        if Grid YY XX
+          Count += 1
         end
       end
     end
@@ -113,11 +104,9 @@ end
 
 rem Test whether a coordinate lies inside an N by N grid.
 fun inside X Y N
-  Result = X at least 0
-  Result and= X less N
-  Result and= Y at least 0
-  Result and= Y less N
-  return Result
+  XIn = X at least 0 and X less N
+  YIn = Y at least 0 and Y less N
+  return XIn and YIn
 end
 
 
