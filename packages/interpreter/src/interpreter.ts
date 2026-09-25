@@ -3898,9 +3898,16 @@ export class Interpreter {
                 // remembers them and the write costs one store rather than a
                 // lookup for the types and a second for the value.
                 if (global !== undefined && global.has(received)) {
-                    this.checkGlobalRank(name, value);
-                    noteArrayBinding(value);
+                    const previousValue = this.variables.get(name);
                     this.variables.set(name, value);
+                    try {
+                        this.checkGlobalRank(name, value);
+                    } catch (error) {
+                        if (previousValue === undefined) this.variables.delete(name);
+                        else this.variables.set(name, previousValue);
+                        throw error;
+                    }
+                    noteArrayBinding(value);
                     return;
                 }
                 this.assign(name, value);
@@ -3938,9 +3945,16 @@ export class Interpreter {
             }
             if (frame) frame.set(name, value);
             else {
-                this.checkGlobalRank(name, value);
-                noteArrayBinding(value);
+                const previousValue = this.variables.get(name);
                 this.variables.set(name, value);
+                try {
+                    this.checkGlobalRank(name, value);
+                } catch (error) {
+                    if (previousValue === undefined) this.variables.delete(name);
+                    else this.variables.set(name, previousValue);
+                    throw error;
+                }
+                noteArrayBinding(value);
             }
             return;
         }
@@ -3956,9 +3970,16 @@ export class Interpreter {
             frame.define(name, value, settled);
             return;
         }
-        this.checkGlobalRank(name, value);
-        noteArrayBinding(value);
+        const previousValue = this.variables.get(name);
         this.variables.set(name, value);
+        try {
+            this.checkGlobalRank(name, value);
+        } catch (error) {
+            if (previousValue === undefined) this.variables.delete(name);
+            else this.variables.set(name, previousValue);
+            throw error;
+        }
+        noteArrayBinding(value);
         this.variableTypes.set(name, settled);
     }
 
