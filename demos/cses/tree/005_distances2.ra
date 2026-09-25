@@ -18,28 +18,31 @@ Tree distance_sums print
 rem Reroot one known distance sum.
 fun distance_sums Tree
   Walk = Tree 1 dfs
+  Order = Walk .order
+  Parents = Walk .parent
+  Distances = Walk .distance
+
   N = Tree len
   Sizes = array shape (N + 1) fill 1
   RootSum = 0
-  for Node in Walk .order
-    RootSum += (Walk .distance) Node
+  for Node in Order
+    RootSum += Distances Node
   end
 
-  Last = Walk .order len - 1
+  Last = Order len - 1
   for i in Last to 1 by -1
-    Node = (Walk .order) i
-    Parent = (Walk .parent) Node
+    Node = Order i
+    Parent = Parents Node
     Sizes Parent += Sizes Node
   end
 
-  Result = array shape N fill 0
-  Result 0 = RootSum
-  for i in 1 until (Walk .order len)
-    Node = (Walk .order) i
-    Parent = (Walk .parent) Node
-    Previous = Result (Parent - 1)
-    Result (Node - 1) = Previous + N
-    Result (Node - 1) -= 2 * Sizes Node
+  Result = array shape (N + 1) fill 0
+  Result 1 = RootSum
+  for i in 1 until (Order len)
+    Node = Order i
+    Parent = Parents Node
+    Diff = 2 * Sizes Node
+    Result Node = Result Parent + N - Diff
   end
-  return Result
+  return Result 1 drop
 end
