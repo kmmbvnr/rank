@@ -5,6 +5,7 @@ rem https://adventofcode.com/2015/day/14
 use io
 use cli
 use algo
+use sequences
 use text
 
 argument Input path
@@ -15,80 +16,44 @@ Part1 print
 Part2 print
 
 
-rem Find the greatest distance and the greatest per-second score.
+rem Find greatest distance and greatest per-second score.
 fun solve Lines Race
   Pattern = "/word can fly /integer km//s for /integer seconds, but then must rest for /integer seconds."
 
   for Line in Lines
     unpack Name Speed Fly Rest = Line Pattern parse
-
-    index Name "speed" = Speed
-    index Name "fly" = Fly
-    index Name "rest" = Rest
-
-    set add Name
+    queue push Speed
+    queue push Fly
+    queue push Rest
   end
 
-  Part1 = 0
+  N = Lines len
+  Data = queue (array N 3) reshape
+  Speeds = Data # 0
+  Flys = Data # 1
+  Rests = Data # 2
 
-  for Name in set
-    Speed = index Name "speed"
-    Fly = index Name "fly"
-    Rest = index Name "rest"
-    Distance = Speed Fly Rest Race distance
+  Distances = Speeds Flys Rests Race distance
+  Part1 = Distances max
 
-    if Distance greater Part1
-      Part1 = Distance
-    end
-  end
-
+  Scores = array shape N fill 0
   for Second in 1 to Race
-    Lead = 0
-
-    for Name in set
-      Speed = index Name "speed"
-      Fly = index Name "fly"
-      Rest = index Name "rest"
-      Distance = Speed Fly Rest Second distance
-
-      if Distance greater Lead
-        Lead = Distance
-      end
-    end
-
-    for Name in set
-      Speed = index Name "speed"
-      Fly = index Name "fly"
-      Rest = index Name "rest"
-      Distance = Speed Fly Rest Second distance
-
-      if Distance equal Lead
-        Score = index Name "score" default 0
-        index Name "score" = Score + 1
-      end
-    end
+    Distances = Speeds Flys Rests Second distance
+    Lead = Distances max
+    Scores += (Distances equal Lead) 1 0 choose
   end
-
-  Part2 = 0
-
-  for Name in set
-    Score = index Name "score" default 0
-
-    if Score greater Part2
-      Part2 = Score
-    end
-  end
+  Part2 = Scores max
 
   return array Part1 Part2
 end
 
 
-rem Calculate one reindeer's distance after a given number of seconds.
+rem Calculate distance for reindeer after Time seconds.
 fun distance Speed Fly Rest Time
   Cycle = Fly + Rest
   Full = Time // Cycle
   Left = Time % Cycle
   Active = Left min Fly
-
-  return (Full * Fly + Active) * Speed
+  FlyTime = Full * Fly + Active
+  return FlyTime * Speed
 end
