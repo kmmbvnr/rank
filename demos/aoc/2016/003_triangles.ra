@@ -9,9 +9,7 @@ use sequences
 
 argument Input path
 
-Answers = Input read solve
-Part1 = Answers 0
-Part2 = Answers 1
+unpack Part1 Part2 = Input read solve
 
 Part1 print
 Part2 print
@@ -24,7 +22,8 @@ fun solve Text
   Sides = Text words integer rank 0
   Height = Sides len // 3
   Table = Sides (array Height 3) reshape
-  Blocks = Sides (array (Height // 3) 3 3) reshape
+  Triangles = Height // 3
+  Blocks = Sides (array Triangles 3 3) reshape
 
   Part1 = Table triangles
   Part2 = Blocks triangles
