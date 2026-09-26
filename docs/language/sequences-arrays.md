@@ -432,13 +432,23 @@ table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
 A lazy sequence mask contains one boolean per source item. Display, iteration,
-indexing, reductions, `copy`, and postfix `array` all consume those booleans.
-Selection is explicit:
+indexing, `count`, `any`, `all`, `copy`, and postfix `array` all consume those
+booleans. Selection is explicit:
 
 ```rank
 Mask = Fib even
 Selected = Fib Mask
 Answer = Selected sum
+```
+
+Numeric operations cannot use booleans, so they read the source items the mask
+selects instead: `sum`, `min`, `max`, `lcm`, `mean`, `median`, `std`,
+`variance`, `skewness`, `quantile` and `percentile`. A pipeline therefore reads
+like a calculator, and both lines below give 44 for `Fib = fibonacci to 100`:
+
+```rank
+Answer = Fib even sum
+Answer = Fib (Fib even) sum
 ```
 
 The mask retains its source so explicit selection can push the predicate into

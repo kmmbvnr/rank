@@ -16,8 +16,11 @@ Functions apply to the data on their left: `N factors` means factors(N), and
 with multiplication before addition and explicit parentheses. Function chains
 flow left to right: `N factors sum` means sum(factors(N)). A predicate keeps the
 shape of its input and gives booleans: `Mask = Fib even` is map(is_even, Fib),
-and only an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
-sum(filter(Fib, Mask)). Consult the parsed
+and an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
+sum(filter(Fib, Mask)). Numeric operations (`sum`, `min`, `max`, `mean`, ...)
+on a mask over a lazy sequence read the items it selects, so `Fib even sum`
+means sum(filter(is_even, Fib)) too; on an array, `A even sum` is an error.
+Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
 `fun palindrome X ... return Value ... end` declares a function of X. Function

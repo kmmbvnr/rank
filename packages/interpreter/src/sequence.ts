@@ -361,6 +361,14 @@ export function zipSequences(
     });
 }
 
+/**
+ * A mask's own items are booleans, which no numeric operation accepts, so
+ * numeric operations read the source items it selects: `Fib even sum`.
+ */
+export function numericSource(value: RankValue): RankValue {
+    return isRankSequenceMask(value) ? filterSequence(value.source, value.predicate) : value;
+}
+
 export function sequenceValues(value: RankValue, operation: string): Iterable<RankValue> {
     if (!isRankSequence(value)) return [value];
     if (value.plan.size.kind === 'infinite') {

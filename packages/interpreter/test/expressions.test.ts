@@ -624,6 +624,20 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('does not support until');
     });
 
+    it('reduces the values a sequence mask selects with numeric operations', () => {
+        const setup = 'use sequences\nuse numbers\nuse stats\nFib = fibonacci to 100\n';
+        expect(run(setup + 'Fib even sum')).toBe('44');
+        expect(run(setup + 'Fib even max')).toBe('34');
+        expect(run(setup + 'Fib even min')).toBe('2');
+        expect(run(setup + 'Fib even median')).toBe('8');
+        expect(run(setup + 'Fib even count')).toBe('3');
+        expect(run(setup + 'Mask = Fib even\nMask sum')).toBe('44');
+        // The mask itself still holds booleans.
+        expect(run(setup + 'Fib even array')).toBe('false true false false true false false true false false');
+        expect(() => run('use sequences\nuse numbers\nfibonacci even sum'))
+            .toThrowError('sum requires a bounded sequence');
+    });
+
     it('does not reduce an unbounded sequence', () => {
         expect(() => run('use sequences\nuse numbers\nfibonacci sum'))
             .toThrowError('sum requires a bounded sequence');

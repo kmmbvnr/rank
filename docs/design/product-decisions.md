@@ -88,7 +88,7 @@ Here `Start` is the first state, so the 999 range items produce 1000 states.
    meaningful variables keep the mental model accessible, straightforward, and
    concrete.
 
-Short, unambiguous postfix pipelines (`Fib Mask sum`, `Text reverse print`) are
+Short, unambiguous postfix pipelines (`Fib even sum`, `Text reverse print`) are
 supported where they remain intuitive, but intermediate variables remain the
 canonical idiomatic style.
 
@@ -168,12 +168,14 @@ comfortably on a phone screen.
 
 ## 6. Boolean sequence masks and explicit selection
 
-Lazy masks retain their source for optimized selection, but every operation
-that consumes the mask itself sees boolean values. Prefix `array Mask` and
-postfix `Mask array` therefore agree.
+Lazy masks retain their source for optimized selection, and every operation
+that consumes the mask as data sees boolean values. Prefix `array Mask` and
+postfix `Mask array` therefore agree. Numeric operations such as `sum`, `max`
+or `mean` cannot use booleans, so they read the source items the mask selects:
 
 ```rank
 Fib = fibonacci to Limit
+Answer = Fib even sum
 Mask = Fib even
 Answer = Fib Mask sum
 ```
@@ -181,8 +183,11 @@ Answer = Fib Mask sum
 ### Rationale: One meaning for a mask
 
 Materialization and iteration must not silently turn a boolean mask into source
-values. Selection is always explicit (`Fib Mask`); the planner can still push
-that selection into the source without materializing intermediate booleans.
+values, so explicit selection (`Fib Mask`) stays the general form; the planner
+can push that selection into the source without materializing intermediate
+booleans. A numeric reduction of booleans would only fail, so it takes the
+selected values instead: the REPL works like a calculator, where `Fib even sum`
+gives the sum of the even Fibonacci numbers.
 
 ---
 
