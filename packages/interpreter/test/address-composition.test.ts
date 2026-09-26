@@ -51,6 +51,16 @@ M`)).toBe('2 2 7 0');
             .toThrow('array index must be nonnegative');
     });
 
+    it('writes through strided range selectors', () => {
+        expect(run(`C = array shape 10 fill 0
+C (2 to 9 by 3) += 1
+C (4 to 0 by -4) = 5
+C`)).toBe('5 0 1 0 5 1 0 0 1 0');
+        expect(run(`M = array shape 3 3 fill 0
+M (0 to 2 by 2) 1 = array 4 6
+M`)).toBe('0 4 0 0 0 0 0 6 0');
+    });
+
     it('unpacks coordinate arrays for reads and writes', () => {
         expect(run(`use algo
 Grid = array shape 2 3 fill 0

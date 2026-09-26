@@ -34,9 +34,7 @@ fun right_triangle_perimeter Limit
       end
 
       P0 = 2 * M * (M + N)
-      for P in P0 to Limit by P0
-        Counts P += 1
-      end
+      Counts (P0 to Limit by P0) += 1
     end
   end
 

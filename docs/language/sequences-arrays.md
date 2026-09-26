@@ -373,6 +373,7 @@ M Row Column = Value
 M # Column = Values
 M # Column *= -1
 M Row = 0
+Counts (Step to Limit by Step) += 1
 ```
 
 An incomplete address preserves its trailing axes, and `#` preserves the axis
