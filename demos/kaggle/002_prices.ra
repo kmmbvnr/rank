@@ -54,7 +54,7 @@ end
 
 fun linear_predict X Model
   Z = (X - Model .center) / Model .scale
-  return Z (Model .weights) matmul + Model .bias
+  return Z Model .weights matmul + Model .bias
 end
 
 

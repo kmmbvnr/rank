@@ -3060,7 +3060,9 @@ export class Interpreter {
                     const a = left();
                     const b = binary ? right() : undefined;
                     const arguments_ = binary ? [a, b!] : [a];
-                    const simple = !isNativeFunction(a) && (b === undefined || !isNativeFunction(b));
+                    // `Record .field fn` reads the field first, on the general path.
+                    const simple = !isNativeFunction(a) && (b === undefined || !isNativeFunction(b))
+                        && !(b !== undefined && isRankLabel(b) && hasField(a, b.name));
                     const fn = (binary ? operation : right)();
                     if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
                         const result = this.applyIntrinsicRank(fn, arguments_);
@@ -5424,6 +5426,10 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+    // `Walk .order i`: read the field, then address what it holds.
+    if (values.length > 2 && isRankLabel(values[1]) && hasField(values[0], values[1].name)) {
+        return applySelectors([applySelectors(values.slice(0, 2)), ...values.slice(2)], missing);
+    }
     if (values.length === 2 && isRankGroupedTable(values[0]) && isRankLabel(values[1])) {
         throw new RankError('grouped tables require a select block', 'TypeError');
     }
@@ -5607,6 +5613,10 @@ function callArguments(
     values: RankValue[],
     select: (values: RankValue[]) => RankValue = applySelectors,
 ): RankValue[] {
+    // `Model .weights matmul`: a label naming a field of the value before it
+    // reads that field; it is not the function's own argument.
+    const fields = readFields(values);
+    if (fields.length < values.length && fn.arities.includes(fields.length)) return fields;
     if (fn.arities.includes(values.length)) return values;
 
     const arities = [...fn.arities].sort((left, right) => right - left);
@@ -5629,6 +5639,24 @@ function callArguments(
     }
 
     return values;
+}
+
+/** Folds each `Record .field` pair whose record has that field into the field's value. */
+function readFields(values: RankValue[]): RankValue[] {
+    const result: RankValue[] = [];
+    for (const value of values) {
+        const receiver = result.at(-1);
+        if (isRankLabel(value) && receiver !== undefined && hasField(receiver, value.name)) {
+            result[result.length - 1] = applySelectors([receiver, value]);
+        } else result.push(value);
+    }
+    return result;
+}
+
+/** A record or object names its fields. Tables are left alone: functions such
+ * as `Rows .when datetime` take a table and a column label as two arguments. */
+function hasField(value: RankValue, name: string): boolean {
+    return (isRankRecord(value) || isRankObject(value)) && value.entries.has(name);
 }
 
 function seedableRandom(source?: () => number): SeedableRandom {

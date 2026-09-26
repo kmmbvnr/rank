@@ -80,7 +80,7 @@ end
 rem Predict integer classes with a 0.5 threshold.
 fun logistic_predict X Model
   Z = (X - Model .center) / Model .scale
-  Score = Z (Model .weights) matmul + Model .bias
+  Score = Z Model .weights matmul + Model .bias
   return (Score sigmoid greater 0.5) binary
 end
 

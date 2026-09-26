@@ -23,8 +23,8 @@ fun subordinates Bosses
   Counts = array shape N fill 0
   Last = Walk .order len - 1
   for i in Last to 1 by -1
-    Employee = (Walk .order) i
-    Boss = (Walk .parent) Employee
+    Employee = Walk .order i
+    Boss = Walk .parent Employee
     Count = Counts (Employee - 1) + 1
     Counts (Boss - 1) += Count
   end

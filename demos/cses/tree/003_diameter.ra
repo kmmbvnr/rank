@@ -18,9 +18,9 @@ rem Find both ends with two searches.
 fun tree_diameter Tree
   First = Tree 1 bfs
   Last = First .order len - 1
-  End = (First .order) Last
+  End = First .order Last
   Second = Tree End bfs
   Last = Second .order len - 1
-  End = (Second .order) Last
-  return (Second .distance) End
+  End = Second .order Last
+  return Second .distance End
 end

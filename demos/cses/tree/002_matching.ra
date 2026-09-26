@@ -24,8 +24,8 @@ fun tree_matching Tree
   Last = Walk .order len - 1
 
   for i in Last to 1 by -1
-    Node = (Walk .order) i
-    Parent = (Walk .parent) Node
+    Node = Walk .order i
+    Parent = Walk .parent Node
     if not Used Node
       if not Used Parent
         Used Node = true

@@ -63,7 +63,7 @@ end
 
 fun probability X Model
   Z = (X - Model .center) / Model .scale
-  Score = Z (Model .weights) matmul + Model .bias
+  Score = Z Model .weights matmul + Model .bias
   return Score Classifier.sigmoid
 end
 

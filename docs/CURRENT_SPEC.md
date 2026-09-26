@@ -1073,6 +1073,13 @@ Only the first argument may absorb a multi-part addressing chain. Use named
 intermediate values when several arguments require addressing. If the left
 chain cannot form one value, the call has too many arguments and is an error.
 
+A field label reads its field before arguments are counted: when a label
+names a field of the record or object just before it, the pair is one value.
+`Model .weights matmul` therefore multiplies by the `.weights` field, and
+`R .slots max` reduces the `.slots` field, without parentheses. A label that
+is not a field of the value before it, such as an option like `.descending`,
+and a column label after a table, stay separate arguments.
+
 For an operation supporting several arities, an exact argument count wins.
 Otherwise Rank tries larger supported arities first. `min` and `max` also
 allow infix calls: `A max B` calls the current `max` with arguments `A` and

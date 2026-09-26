@@ -76,7 +76,7 @@ end
 
 
 fun tfidf_transform Texts Model
-  Counts = Texts (Model .vocab) term_counts
+  Counts = Texts Model .vocab term_counts
   return Counts * Model .idf
 end
 
