@@ -21,7 +21,7 @@ sum(filter(Fib, Mask)). Numeric operations (`sum`, `min`, `max`, `mean`, ...)
 on such a mask read the items it selects, so `Fib even sum` means
 sum(filter(is_even, Fib)) too. The same holds for an array mask made by a
 predicate or by comparing the array with a scalar: `A even sum` sums the even
-cells of A, in row-major order, while neither array has been written since.
+cells of A, in row-major order, as A was when the mask was made.
 Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 

@@ -1,12 +1,14 @@
-import { arrayRevision, ownedArray, readArrayItem, readArrayShape } from './array-storage.js';
+import { arrayRevision, holdArraySource, ownedArray, readArrayItem, readArrayShape } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 /**
  * A boolean array made by testing an array (`A even`, `A greater 3`) remembers
  * the array it tested, so a numeric operation can read the cells it selects:
- * `A even sum`. The link holds only while neither array has been written since.
+ * `A even sum`. Like any named value, the mask keeps the array as it was when
+ * the mask was made: a later write to that array copies it first. Writing the
+ * mask itself changes which cells it selects.
  */
-const masks = new WeakMap<RankArray, { source: RankArray; revision: number; maskRevision: number }>();
+const masks = new WeakMap<RankArray, { source: RankArray; revision: number }>();
 
 export function markArrayMask(mask: RankValue, source: RankValue): RankValue {
     if (!isRankArray(mask) || !isRankArray(source)) return mask;
@@ -14,18 +16,17 @@ export function markArrayMask(mask: RankValue, source: RankValue): RankValue {
     const maskShape = readArrayShape(mask);
     if (shape.length !== maskShape.length || shape.some((size, axis) => size !== maskShape[axis])) return mask;
     const revision = arrayRevision(source);
-    const maskRevision = arrayRevision(mask);
-    if (revision === undefined || maskRevision === undefined) return mask;
-    masks.set(mask, { source, revision, maskRevision });
+    if (revision === undefined) return mask;
+    masks.set(mask, { source, revision });
+    holdArraySource(mask, source);
     return mask;
 }
 
-/** The array a still-valid mask was made from. */
+/** The array a mask was made from, unless that storage changed after all. */
 export function arrayMaskSource(mask: RankValue): RankArray | undefined {
     if (!isRankArray(mask)) return undefined;
     const link = masks.get(mask);
-    if (!link || arrayRevision(link.source) !== link.revision
-        || arrayRevision(mask) !== link.maskRevision) return undefined;
+    if (!link || arrayRevision(link.source) !== link.revision) return undefined;
     return link.source;
 }
 

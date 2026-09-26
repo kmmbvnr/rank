@@ -649,9 +649,10 @@ describe('Rank expressions and sequences', () => {
         expect(run(setup + 'A even')).toBe('false true false true false');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM even sum')).toBe('12');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM (M even)')).toBe('2 4 6');
-        // A write to either array after the mask was made unlinks it.
-        expect(() => run(setup + 'Mask = A even\nA 1 = 10\nMask sum')).toThrowError('expected numeric input');
-        expect(() => run(setup + 'Mask = A even\nMask 0 = true\nMask sum')).toThrowError('expected numeric input');
+        // The mask keeps the array as it was; writing the mask changes the selection.
+        expect(run(setup + 'Mask = A even\nA 1 = 10\nMask sum')).toBe('6');
+        expect(run(setup + 'Mask = A even\nA 1 = 10\nA')).toBe('1 10 3 4 5');
+        expect(run(setup + 'Mask = A even\nMask 0 = true\nMask sum')).toBe('7');
         // Masks of different arrays do not join into a selection.
         expect(() => run(setup + 'B = array 5 4 3 2 1\nMask = A even and (B even)\nMask sum'))
             .toThrowError('expected numeric input');

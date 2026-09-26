@@ -218,8 +218,18 @@ function ownershipFor(value: RankArray): Ownership {
 // A reader may stand on further readers, so the whole chain it reaches is
 // shared. The dependency graph is a DAG that can name one source twice, so
 // stop at anything already marked.
+// Arrays a value keeps reading after it is made, such as the source of a mask.
+const heldSources = new WeakMap<RankArray, RankArray[]>();
+
+/** A value that reads `source` later must see it as it is now. Binding the
+ * value shares the source, so a later write to it copies instead. */
+export function holdArraySource(value: RankArray, source: RankArray): void {
+    heldSources.set(value, [...(heldSources.get(value) ?? []), source]);
+    if ((ownership(value)?.owners ?? 0) > 0) shareSources(value);
+}
+
 function shareSources(value: RankArray): void {
-    for (const source of derivedRevisions.get(value)?.sources ?? []) {
+    for (const source of [...derivedRevisions.get(value)?.sources ?? [], ...heldSources.get(value) ?? []]) {
         const record = ownershipFor(source);
         if (record.owners === SHARED) continue;
         record.owners = SHARED;
