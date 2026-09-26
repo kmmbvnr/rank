@@ -40,7 +40,7 @@ console.error = filter(console.error);
         'expect "rank> "',
         'match_max 100000',
         'set screen ""',
-        'proc read_frame {seconds} {',
+        'proc read_frame {seconds {settled 0}} {',
         '    global screen spawn_id',
         '    set stop [expr {[clock milliseconds] + 3000}]',
         '    expect -timeout $seconds -re ".+" {',
@@ -51,24 +51,27 @@ console.error = filter(console.error);
         // Read until the terminal stays quiet: a loaded machine may echo the
         // typed keys well before it starts the execution they submitted.
         // A running cell redraws its timer constantly, so cap the wait.
-        '        if {[clock milliseconds] < $stop} { exp_continue }',
+        '        if {![expr $settled] && [clock milliseconds] < $stop} { exp_continue }',
         '    } eof {} timeout {}',
         '}',
         ...steps.flatMap((step, index) => {
-            const { keys, until } = typeof step === 'string' ? { keys: step } : step;
+            const { keys, until, early } = typeof step === 'string' ? { keys: step } : step;
             // Keys sent while a cell still runs are typed into it and lost when it
             // finishes, so a step settles only once execution has ended too.
             const busy = '[regexp {(Running|Stopping|Pausing)} $screen]';
             const waiting = !until ? `$screen eq "" || ${busy}`
                 : /Running|Paused|Stopping|Pausing/.test(until) ? `![regexp {${until}} $screen]`
                 : `![regexp {${until}} $screen] || ${busy}`;
+            // An early step ends as soon as its awaited text shows in a whole
+            // frame; drawFrame ends each screen with ESC[?25h (show cursor).
+            const settled = early ? `{!(${waiting}) && [string range $screen end-5 end] eq [binary format H* 1b5b3f323568]}` : '0';
             return [
                 ...(until || /[\r\t\n\x01\x11\x12\x13\x14\x10\x07\x0e\x08\x03\x02\x1b\x15]/.test(keys) || /^[tng]$/.test(keys)
                     ? ['set screen ""'] : []),
                 `send -- [binary format H* {${Buffer.from(keys).toString('hex')}}]`,
-                'read_frame 1',
+                `read_frame 1 ${settled}`,
                 `set deadline [expr {[clock milliseconds] + ${stepTimeout * 1000}}]`,
-                `while {(${waiting}) && [clock milliseconds] < $deadline} { read_frame 1 }`,
+                `while {(${waiting}) && [clock milliseconds] < $deadline} { read_frame 1 ${settled} }`,
                 `if {${waiting}} { error "terminal did not settle at step ${index}: $screen" }`,
                 `send_user "<<<FRAME:${index}>>>"`,
             ];
@@ -601,6 +604,31 @@ test('editing a declaration can change its type on replay', async t => {
     assert.doesNotMatch(frames[2].text, /cannot receive/);
 });
 
+
+const SLOW_LOOP = '\x1b[200~T = 0\nfor I in 1 to 1000000\n  T = T + (I text len)\nend\x1b[201~' + ENTER;
+
+test('keys typed while a cell runs are kept and run at the next prompt', async t => {
+    const frames = await drive(t, [
+        // Type as soon as the loop runs, so a short loop is still running.
+        { keys: SLOW_LOOP, until: 'Running', early: true },
+        { keys: 'B = 21 * 2' + ENTER, until: '\\s42' },
+    ], 60, 18);
+    assert.match(frames[0].text, /Running/);
+    assert.match(frames[1].text, /3› B = 21 \* 2\n\s+42\n/);
+    assert.match(frames[1].text.split('\n')[frames[1].cursorY], /^rank>\s*$/);
+});
+
+test('Ctrl-C drops the keys typed ahead of the stopped cell', async t => {
+    const frames = await drive(t, [
+        { keys: 'use numbers' + ENTER, until: '1›' },
+        running('170141183460469231731687303715884105727 factors' + ENTER),
+        running('B = 1' + ENTER),
+        '\x03',
+    ], 60, 18);
+    assert.match(frames[3].text, /Stopped after/);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^rank>\s*$/);
+    assert.doesNotMatch(frames[3].text, /B = 1/);
+});
 
 test('Ctrl-C interrupts factor search in the real terminal and keeps the session usable', async t => {
     const frames = await drive(t, [

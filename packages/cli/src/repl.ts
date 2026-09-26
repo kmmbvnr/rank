@@ -79,7 +79,11 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     try { history = (await fs.readFile(historyFile(), 'utf8')).split('\n').filter(Boolean).slice(-HISTORY_LIMIT); }
     catch { /* A new session has no history yet. */ }
     let renderer: TerminalRenderer;
-    const render = (): void => renderer?.render();
+    // Input typed while code runs is kept and replayed in order once it ends,
+    // so a terminal can type ahead of a slow cell without losing keys.
+    const typeAhead: { text: string; key?: Key }[] = [];
+    let replayTypeAhead = (): void => {};
+    const render = (): void => { replayTypeAhead(); renderer?.render(); };
     const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
     const book = repl.notebook;
     const keyRouter = new KeyRouter(repl, history, () => output.columns || 80, systemClipboard());
@@ -89,6 +93,30 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     let fail!: (error: unknown) => void;
     const ended = new Promise<void>((resolve, reject) => { finish = resolve; fail = reject; });
     const leave = (): void => { renderer.close(); finish(); };
+    const pressKey = async (text: string, key: Key): Promise<void> => {
+        renderer.followKey(key.name, !!key.ctrl && key.name === 'r' && !repl.advancing && !repl.exampleEditor);
+        if (!modeRouter.active) {
+            const result = await keyRouter.press(text, key);
+            if (result.pageDelta) renderer.page(result.pageDelta);
+            if (result.exit) leave(); else render();
+            return;
+        }
+        const mode = await modeRouter.press(text, key);
+        if (mode.exit) leave(); else if (mode.render) render();
+    };
+    const pasteText = (value: string): void => {
+        if (!modeRouter.paste(value)) {
+            if (!repl.exampleEditor) repl.editSource();
+            (repl.exampleEditor ?? book).insert(value.replace(/\r\n?/g, '\n'));
+        }
+        repl.dismiss();
+        render();
+    };
+    let replaying = false;
+    /** Keys wait while code runs, and behind earlier keys that are still waiting.
+     * A paused run takes debugger keys at once, even if a replayed key started it. */
+    const deferred = (): boolean => repl.running ? !session.pauseState
+        : replaying || typeAhead.length > 0;
     const onKey = (text: string, key: Key = {}): void => {
         if (renderer.closed) return;
         try {
@@ -96,30 +124,41 @@ async function terminalRepl(session: ReplSession): Promise<void> {
                 render();
                 return;
             }
-            renderer.followKey(key.name, !!key.ctrl && key.name === 'r' && !repl.advancing && !repl.exampleEditor);
-            if (!modeRouter.active) {
-                void keyRouter.press(text, key).then(result => {
-                    if (result.pageDelta) renderer.page(result.pageDelta);
-                    if (result.exit) leave(); else render();
-                }, fail);
+            // Stop and pause act on the running code at once; stopping also drops what was typed ahead.
+            const control = repl.running && key.ctrl && (key.name === 'c' || key.name === 'p');
+            if (control && key.name === 'c') typeAhead.length = 0;
+            if (!control && deferred()) {
+                typeAhead.push({ text, key });
+                replayTypeAhead();
                 return;
             }
-            void modeRouter.press(text, key).then(mode => {
-                if (mode.exit) leave(); else if (mode.render) render();
-            }, fail);
+            void pressKey(text, key).catch(fail);
         } catch (error) { fail(error); }
+    };
+    const onPaste = (value: string): void => {
+        if (renderer.copying) return;
+        if (deferred()) {
+            typeAhead.push({ text: value });
+            replayTypeAhead();
+            return;
+        }
+        pasteText(value);
+    };
+    // Replays one input at a time: a replayed Enter may run a cell, and what
+    // follows it belongs to the next prompt.
+    replayTypeAhead = () => {
+        if (replaying || repl.running || renderer.closed || !typeAhead.length) return;
+        replaying = true;
+        void (async () => {
+            while (typeAhead.length && !repl.running && !renderer.closed) {
+                const { text, key } = typeAhead.shift()!;
+                if (key) await pressKey(text, key); else pasteText(text);
+            }
+        })().catch(fail).finally(() => { replaying = false; replayTypeAhead(); });
     };
     const inputDecoder = new TerminalInputDecoder(
         text => { keyInput.write(text); },
-        value => {
-            if (renderer.copying) return;
-            if (!modeRouter.paste(value)) {
-                if (!repl.exampleEditor) repl.editSource();
-                (repl.exampleEditor ?? book).insert(value.replace(/\r\n?/g, '\n'));
-            }
-            repl.dismiss();
-            render();
-        },
+        onPaste,
         (column, row) => { renderer.click(column, row); },
         direction => { renderer.scroll(direction); },
         (column, row, released) => { renderer.drag(column, row, released); },
