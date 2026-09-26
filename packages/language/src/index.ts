@@ -12,6 +12,7 @@ export * from './analysis/function-effects.js';
 export * from './analysis/function-yields.js';
 export * from './analysis/flat-array-borrow.js';
 export * from './analysis/test-examples.js';
+export * from './analysis/block-scope.js';
 export * from './expression-grouping.js';
 export * from './expressions.js';
 export { REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS, groupModifiers } from './modifier-grouping.js';

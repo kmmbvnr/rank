@@ -39,6 +39,7 @@ fun allocate_rooms Data
       Free push Guest .room
     end
 
+    Room = 0
     if Free len greater 0
       Room = Free pop
     else

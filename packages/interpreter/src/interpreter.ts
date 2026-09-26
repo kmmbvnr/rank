@@ -42,6 +42,7 @@ import {
     isArgumentStatement,
     isApplicationExpression,
     isAssignmentStatement,
+    isPreviewName,
     isBinaryExpression,
     isBooleanLiteral,
     isBreakStatement,
@@ -526,7 +527,7 @@ export class Interpreter {
     private executeSource(source: string): RankValue | undefined {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
-        });
+        }, new Set(this.variables.keys()));
         if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
         this.loadedProgram = {
             id: this.options.sourceId ?? '<input>',
@@ -546,7 +547,7 @@ export class Interpreter {
     declareFunctionSource(source: string): string[] {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
-        });
+        }, new Set(this.variables.keys()));
         if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
         validateFunctionPlacement(program.statements, 'top');
         this.declareFunctions(program.statements);
@@ -904,6 +905,13 @@ export class Interpreter {
         let prepared = this.statements.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
+            if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
+                && !insideLoop(statement)) {
+                const names = blockNames(statement);
+                const known = alwaysFresh(statement, names);
+                prepared = this.scopeBlock(prepared, [...names.filter(name => known.has(name)),
+                    ...names.filter(name => !known.has(name))], known.size);
+            }
             if (this.options.tensorFusion !== false
                 && (isAssignmentStatement(statement) || isReturnStatement(statement))) {
                 const tensor = this.prepareTensorGroup(statements, index);
@@ -912,6 +920,56 @@ export class Interpreter {
             this.statements.set(statement, prepared);
         }
         return prepared;
+    }
+
+    // A name a block introduces ends with the block, together with its type.
+    // Blocks inside a loop keep theirs until the outermost block ends: every
+    // iteration then binds a name with the same type, and the block-scope check
+    // has already rejected every read that could see a value kept that long.
+    // The first `known` names are provably unbound on entry and skip the lookup.
+    private scopeBlock(prepared: PreparedStatement, names: readonly string[], known: number): PreparedStatement {
+        if (names.length === 0 || !('stream' in prepared)) return prepared;
+        // A bit per name marks the ones this run introduces, without allocating;
+        // a block with more names than bits groups them into words.
+        if (names.length > 30) {
+            let wrapped: PreparedStatement = prepared;
+            for (let index = 0; index < names.length; index += 30) {
+                wrapped = this.scopeBlock(wrapped, names.slice(index, index + 30),
+                    Math.min(30, Math.max(0, known - index)));
+            }
+            return wrapped;
+        }
+        const interpreter = this;
+        const inner = prepared.stream;
+        const release = (fresh: number) => {
+            for (let index = 0; fresh !== 0; index += 1, fresh >>>= 1) {
+                if (fresh & 1) interpreter.unbind(names[index]);
+            }
+        };
+        const proven = known === 0 ? 0 : (1 << known) - 1;
+        return { ...prepared, stream: context => {
+            let fresh = proven;
+            for (let index = known; index < names.length; index += 1) {
+                if (interpreter.findVariable(names[index]) === undefined) fresh |= 1 << index;
+            }
+            if (fresh === 0) return inner(context);
+            let task: Evaluation<RankValue | undefined>;
+            try { task = inner(context); } catch (error) { release(fresh); throw error; }
+            if ('done' in task) { release(fresh); return task; }
+            return (function* (): Execution<RankValue | undefined> {
+                try { return yield* resume(task); } finally { release(fresh); }
+            })();
+        } };
+    }
+
+    private unbind(name: string): void {
+        const frame = this.localFrame;
+        if (frame) frame.unset(name);
+        else {
+            this.variables.delete(name);
+            this.variableTypes.delete(name);
+            this.variableArrayRanks.delete(name);
+        }
     }
 
     // Eligibility is prepared with the statement itself. Ordinary scalar
@@ -5123,6 +5181,66 @@ function validateInputValue(name: string, valueType: string, value: RankValue): 
 
 function kebabCase(name: string): string {
     return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+/**
+ * Block names no binding outside the block can have set. An assignment inside
+ * a top-level function never reaches globals, so a name that is neither a
+ * parameter nor bound elsewhere in that function is unbound whenever the block
+ * starts. Nested functions and programs share names at runtime and stay checked.
+ */
+function alwaysFresh(statement: Statement, names: readonly string[]): Set<string> {
+    let owner: import('langium').AstNode | undefined = statement.$container;
+    while (owner && !isFunctionStatement(owner)) owner = owner.$container;
+    if (!owner || !isFunctionStatement(owner)) return new Set();
+    for (let node: import('langium').AstNode | undefined = owner.$container; node; node = node.$container) {
+        if (isFunctionStatement(node)) return new Set();
+    }
+    const outside = new Set<string>(owner.parameters);
+    const visit = (node: import('langium').AstNode): void => {
+        if (node === statement || isFunctionStatement(node)) return;
+        if (isAssignmentStatement(node)) outside.add(node.name);
+        else if (isUnpackStatement(node)) node.names.forEach(name => outside.add(name));
+        else if (isForStatement(node)) forIteration(node.condition)?.names.forEach(name => outside.add(name));
+        else if (isTryStatement(node)) node.catches.forEach(clause => outside.add(clause.errorName));
+        for (const child of AstUtils.streamContents(node)) visit(child);
+    };
+    for (const child of AstUtils.streamContents(owner)) visit(child);
+    return new Set(names.filter(name => !outside.has(name)));
+}
+
+/** Whether a loop of the same function or program encloses the statement. */
+function insideLoop(statement: Statement): boolean {
+    for (let node = statement.$container; node && !isFunctionStatement(node); node = node.$container) {
+        if (isForStatement(node)) return true;
+    }
+    return false;
+}
+
+/** Names a block may introduce: loop bindings, assignments, unpacking and caught errors. */
+function blockNames(statement: Statement): string[] {
+    const names = new Set<string>();
+    const visit = (node: Statement): void => {
+        if (isFunctionStatement(node)) return;
+        if (isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
+        else if (isUnpackStatement(node)) for (const name of node.names) names.add(name);
+        else if (isForStatement(node)) {
+            for (const name of forIteration(node.condition)?.names ?? []) if (name !== '#') names.add(name);
+            node.statements.forEach(visit);
+        } else if (isIfStatement(node)) {
+            [node.thenStatements, ...node.elifClauses.map(clause => clause.statements), node.elseStatements]
+                .forEach(branch => branch.forEach(visit));
+        } else if (isTryStatement(node)) {
+            node.statements.forEach(visit);
+            for (const clause of node.catches) {
+                names.add(clause.errorName);
+                clause.statements.forEach(visit);
+            }
+            node.finallyStatements.forEach(visit);
+        }
+    };
+    visit(statement);
+    return [...names].filter(name => !isPreviewName(name));
 }
 
 function forIteration(

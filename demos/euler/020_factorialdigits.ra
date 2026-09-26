@@ -14,9 +14,8 @@ Answer print
 rem Form the factorial with exact integers,
 rem then reduce its decimal digits.
 fun factorial_digit_sum N
-  if N equal 0
-    Factorial = 1
-  else
+  Factorial = 1
+  if N greater 0
     Factorial = (1 to N) * reduce
   end
 

@@ -6,6 +6,7 @@ use io
 
 Side = 1
 PrimeCount = 0
+Diagonals = 1
 CornerPositions = 1 to 3
 
 for

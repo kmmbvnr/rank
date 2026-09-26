@@ -52,6 +52,8 @@ fun robohouses Moves
   set add array 0 0
 
   for C i in Moves
+    X = 0
+    Y = 0
     if i % 2 equal 0
       SantaX += C dx
       SantaY += C dy

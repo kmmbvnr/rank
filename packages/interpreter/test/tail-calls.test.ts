@@ -130,6 +130,7 @@ fun down N
   if N equal 0
     return 0
   end
+  X = 0
   try
     X = 1
   finally

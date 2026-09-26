@@ -47,8 +47,8 @@ describe('guarded native loop calls', () => {
         `S = "😀"\nfor I in -1 to 0\n Out = S I\nend`,
         `S = "😀"\nfor I in 9007199254740993 to 9007199254740994\n Out = S I\nend`,
         `use text\nA = array "a" "b"\nB = A\nfor I in 0 until 2\n A I = "😀"\nend\narray (A "" join) (B "" join)`,
-        `use text\nfor I in 0 until 2\n A = array shape 2 fill "ё"\n A I = "😀"\n S = A ":" join\nend\nS`,
-        `use text\nfor I in 0 until 2\n A = array shape 2 fill "a"\n B = A\n S = B "" join\nend\nS`,
+        `use text\nS = ""\nfor I in 0 until 2\n A = array shape 2 fill "ё"\n A I = "😀"\n S = A ":" join\nend\nS`,
+        `use text\nS = ""\nfor I in 0 until 2\n A = array shape 2 fill "a"\n B = A\n S = B "" join\nend\nS`,
         `use text\nA = array "a" "b"\nOut = ""\nfor I in 0 to 2\n Out += A I\nend`,
         `use text\nA = array "a" "b"\nfor I in 0 to 2\n A I = "😀"\nend`,
         `use text\nA = array "a" "b"\nS = ""\nfor I in 0 until 2\n S += A "" join\n A I = "x"\n S += A "" join\nend\nS`,
@@ -62,7 +62,7 @@ describe('guarded native loop calls', () => {
             let loops = 0;
             const runtime = new Interpreter(undefined, { md5, onIntegerLoopExecuted: () => loops++ });
             try {
-                expect(runtime.execute('use crypto\nfor I in 1 to 2\n H = "abc" md5\nend\nH 0')).toBe(0n);
+                expect(runtime.execute('use crypto\nH = "" bytes\nfor I in 1 to 2\n H = "abc" md5\nend\nH 0')).toBe(0n);
                 expect(loops).toBe(md5 === implementation ? 1 : 0);
             } finally { runtime.dispose(); }
         }

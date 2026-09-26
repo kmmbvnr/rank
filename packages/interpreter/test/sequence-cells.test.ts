@@ -105,6 +105,7 @@ fun rows
     "closed" print
   end
 end
+First = array 0
 for Row in rows
   First = Row
   break

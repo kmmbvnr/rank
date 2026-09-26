@@ -29,11 +29,10 @@ fun josephus N
     Half = N // 2
     NextMul = Mul * 2
 
+    NextAdd = Add - Mul
     if N odd
       Order push Mul + Add
       NextAdd = Add + Mul
-    else
-      NextAdd = Add - Mul
     end
 
     return Half NextMul NextAdd emit

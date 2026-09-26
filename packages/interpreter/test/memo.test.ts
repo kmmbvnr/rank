@@ -14,6 +14,7 @@ fun fib N Cache
     return Cache N
   end
   N print
+  Value = 0
   if N less 2
     Value = N
   else

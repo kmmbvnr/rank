@@ -84,7 +84,7 @@ test('compiled endless loop cancels, bypasses catch, and runs finally', { timeou
     const s = await session(t);
     // Initialize the parser before starting the cancellation timer.
     await s.execute('1', 0, []);
-    const result = await stop(s, 'try\n  for\n    A = 1\n  end\ncatch E\n  Caught = true\nfinally\n  Cleaned = 7\nend');
+    const result = await stop(s, 'Cleaned = 0\ntry\n  for\n    A = 1\n  end\ncatch E\n  Caught = true\nfinally\n  Cleaned = 7\nend');
     assert.equal(result.interrupted, true);
     assert.equal((await s.execute('Cleaned', 3, [])).output[0].text, '7');
     assert.equal((await s.execute('Caught', 4, [])).ok, false);

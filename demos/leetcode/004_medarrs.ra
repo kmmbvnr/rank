@@ -51,6 +51,7 @@ fun median A B
       if MoveRight
         Low = I + 1
       else
+        Left = 0
         if I equal 0
           Q = J - 1
           Left = B Q
@@ -71,6 +72,7 @@ fun median A B
           return Left / 1.0
         end
 
+        Right = 0
         if I equal M
           Right = B J
         else

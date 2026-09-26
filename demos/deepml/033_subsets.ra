@@ -28,6 +28,7 @@ fun random_subsets X Y N Replace Seed
   Result = new queue
 
   for # in 0 until N
+    Ids = Pool
     if Replace
       Ids = Pool Size choices
     else

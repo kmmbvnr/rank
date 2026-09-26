@@ -30,12 +30,11 @@ end
 
 rem Generate the first equal-sum set.
 fun left N
+  I = 1
   if N % 4 equal 3
     yield 1
     yield 2
     I = 4
-  else
-    I = 1
   end
 
   for I at most N
@@ -48,11 +47,10 @@ end
 
 rem Generate the second equal-sum set.
 fun right N
+  I = 2
   if N % 4 equal 3
     yield 3
     I = 5
-  else
-    I = 2
   end
 
   for I at most N

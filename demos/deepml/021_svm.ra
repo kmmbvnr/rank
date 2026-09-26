@@ -21,16 +21,16 @@ fun pegasos X Y Kind Lambda Steps Sigma
       for j in 0 until N
         if Kind equal "linear"
           K = X j * X i sum
+          Score += Alpha j * Y j * K
         elif Kind equal "rbf"
           D = X j - X i
           Power = -(D * D sum) / 1.0
           Power /= 2 * Sigma * Sigma
           K = Power exp
+          Score += Alpha j * Y j * K
         else
           .InvalidInput raise
         end
-
-        Score += Alpha j * Y j * K
       end
 
       Alpha i *= Decay

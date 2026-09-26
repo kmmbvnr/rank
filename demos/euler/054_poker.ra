@@ -65,6 +65,7 @@ fun hand_score Cards
   HasPair = Pairs equal 1
   FullHouse = Trips and HasPair
 
+  Kind = 0
   if Straight and Flush
     Kind = 8
   elif Quads
@@ -81,8 +82,6 @@ fun hand_score Cards
     Kind = 2
   elif HasPair
     Kind = 1
-  else
-    Kind = 0
   end
 
   Keys = Freq * 13 + Values

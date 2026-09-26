@@ -60,10 +60,9 @@ fun execute Program Start
       Operand = Words 1
       Register = Operand 0
       Offset = Words 2 integer
+      Value = B
       if Register equal "a"
         Value = A
-      else
-        Value = B
       end
 
       if Value % 2 equal 0
@@ -76,10 +75,9 @@ fun execute Program Start
       Operand = Words 1
       Register = Operand 0
       Offset = Words 2 integer
+      Value = B
       if Register equal "a"
         Value = A
-      else
-        Value = B
       end
 
       if Value equal 1

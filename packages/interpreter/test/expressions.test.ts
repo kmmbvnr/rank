@@ -177,15 +177,15 @@ describe('Rank expressions and sequences', () => {
             'end',
             'Result',
         ].join('\n'))).toBe('itb');
-        expect(() => run([
+        // The loop name ends with the loop, so the same spelling may start over.
+        expect(run([
             'Values = array 1 "two"',
             'for Value in Values',
             '  Value = Value',
             'end',
             'Value = true',
-        ].join('\n'))).toThrowError(
-            'Value has type integer or text and cannot receive boolean',
-        );
+            'Value',
+        ].join('\n'))).toBe('true');
         expect(() => run('42 is "integer"'))
             .toThrowError('is expects a type symbol on the right');
         expect(() => run('42 is .number'))

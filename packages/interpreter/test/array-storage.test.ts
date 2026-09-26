@@ -145,7 +145,7 @@ First = A inspect`);
     it('borrows a scalar local assigned on every branch', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun inspect V Flag\n if Flag\n  Cell = V 0\n else\n  Cell = V 1\n end\n return Cell\nend\nA = array 10 20');
+            runtime.execute('fun inspect V Flag\n Cell = V 1\n if Flag\n  Cell = V 0\n end\n return Cell\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.execute('A true inspect')).toBe(10n);
             expect(runtime.execute('A false inspect')).toBe(20n);
@@ -187,7 +187,7 @@ First = A inspect`);
     it('joins integer selector guards from separate branches', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun inspect V Flag I J\n if Flag\n  Pos = I\n else\n  Pos = J\n end\n return V Pos\nend\nA = array 10 20');
+            runtime.execute('fun inspect V Flag I J\n Pos = J\n if Flag\n  Pos = I\n end\n return V Pos\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.execute('A true 0 1 inspect')).toBe(10n);
             expect(runtime.execute('A false 0 1 inspect')).toBe(20n);

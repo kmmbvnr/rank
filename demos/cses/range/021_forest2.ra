@@ -16,7 +16,7 @@ for I in 1 to Q
   if Type equal 1
     Y = stdin .integer
     X = stdin .integer
-    Query = array Type Y X
+    Queries push array Type Y X
   else
     Top = stdin .integer
     Left = stdin .integer
@@ -25,8 +25,8 @@ for I in 1 to Q
     Query = array shape 5
       Type Top Left Bottom Right
     end
+    Queries push Query
   end
-  Queries push Query
 end
 
 Grid Queries forest_updates print
@@ -69,10 +69,9 @@ fun forest_updates Grid Queries
       ZeroY = Y - 1
       ZeroX = X - 1
       Old = Trees ZeroY ZeroX
+      Delta = -1
       if Old equal 0
         Delta = 1
-      else
-        Delta = -1
       end
       Trees ZeroY ZeroX += Delta
       RowIndex = Y

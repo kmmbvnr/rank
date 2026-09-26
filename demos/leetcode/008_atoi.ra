@@ -52,11 +52,10 @@ fun atoi Text
   for Position less N
     C = Text Position
 
-    if C in index
-      Digit = index C
-    else
+    if C not in index
       break
     end
+    Digit = index C
 
     if Result less Mult
       return Negative clamp

@@ -29,10 +29,9 @@ fun pandigital_multiple MaximumBase
     end
 
     if Multiplier greater 2
+      IsPandigital = false
       if Text len equal 9
         IsPandigital = Text sort equal Digits
-      else
-        IsPandigital = false
       end
       if IsPandigital
         Candidate = Text integer

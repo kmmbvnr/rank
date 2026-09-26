@@ -33,7 +33,7 @@ test('an open top-level if previews its conditions and only the selected branch'
 
         await s.line('end');
         assert.equal(s.repl.liveEditing, false);
-        assert.equal(s.session.names.includes('X'), true);
+        assert.equal(s.session.names.includes('X'), false, 'a branch name ends with its block');
         assert.deepEqual(s.repl.notebook.cells[0].output.map(item => item.text), ['2']);
     } finally { s.session.dispose(); }
 });

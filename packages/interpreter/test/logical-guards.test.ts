@@ -40,6 +40,7 @@ Log`)).toBe('false true true false');
     it('guard statement conditions and nested chains', () => {
         expect(run(`A = array 1 2 3
 I = 5
+R = ""
 if I less 3 and A I greater 1 or I equal 5
  R = "yes"
 else

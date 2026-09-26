@@ -38,7 +38,7 @@ describe('typed native kernels', () => {
             runtime.variables.set('example', withTypedCalls(native('example', 1, () => 7n), {
                 text: () => 99n,
             }));
-            expect(runtime.execute('for I in 1 to 2\n R = "a" example\nend\nR')).toBe(7n);
+            expect(runtime.execute('R = 0\nfor I in 1 to 2\n R = "a" example\nend\nR')).toBe(7n);
             expect(loops).toBe(0);
         } finally { runtime.dispose(); }
     });
@@ -53,7 +53,7 @@ describe('typed native kernels', () => {
             }),
         });
         try {
-            runtime.execute('use crypto\nfun work\n for I in 1 to 2\n  H = "abc" md5\n end\n return H\nend');
+            runtime.execute('use crypto\nfun work\n H = "" bytes\n for I in 1 to 2\n  H = "abc" md5\n end\n return H\nend');
             runtime.execute('work');
             Atomics.store(signal, 0, 0);
             expect(() => withInterrupt(signal, () => runtime.execute('work'))).toThrow(/md5/);
@@ -70,7 +70,7 @@ describe('typed native kernels', () => {
             try {
                 runtime.execute('use text');
                 for (const convert of ['', ' bytes']) {
-                    expect(runtime.execute(`for I in 1 to 2\n R = (${value}${convert}) (${prefix}${convert}) startswith\nend\nR`)).toBe(expected);
+                    expect(runtime.execute(`R = false\nfor I in 1 to 2\n R = (${value}${convert}) (${prefix}${convert}) startswith\nend\nR`)).toBe(expected);
                 }
                 expect(() => runtime.execute('1 2 startswith')).toThrow(/expects/);
             } finally { runtime.dispose(); }
@@ -81,7 +81,7 @@ describe('typed native kernels', () => {
         for (const typedNativeCalls of [false, true]) {
             const runtime = new Interpreter(undefined, { typedNativeCalls });
             try {
-                runtime.execute('use text\nB = "😀" bytes\nfor I in 1 to 2\n C = B bytes\n S = "İЁ😀" lower\nend');
+                runtime.execute('use text\nB = "😀" bytes\nC = "" bytes\nS = ""\nfor I in 1 to 2\n C = B bytes\n S = "İЁ😀" lower\nend');
                 expect(runtime.variables.get('C')).toBe(runtime.variables.get('B'));
                 expect(runtime.variables.get('S')).toBe('İЁ😀'.toLowerCase());
             } finally { runtime.dispose(); }

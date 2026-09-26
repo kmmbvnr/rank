@@ -1500,6 +1500,32 @@ else
 end
 ```
 
+### Block scope
+
+`if`, `elif`, `else`, `for`, `try`, `catch` and `finally` bodies are blocks. A
+name first assigned inside a block exists only until its `end`; a name that
+already exists outside is updated in place. To use a value after the block,
+assign the name before it:
+
+```rank
+Kind = "lower"
+if Score greater Best
+  Kind = "record"
+elif Score equal Best
+  Kind = "tie"
+end
+Kind print
+```
+
+Reading a block's name after its `end` is reported before the program runs,
+and so is reading a name before its first assignment. A loop iteration therefore
+never sees a value the previous iteration left in a body name; a value carried
+between iterations is assigned before the loop, like an accumulator. Inside a
+loop the name keeps one type for every iteration: a body name bound
+to an integer on the first iteration cannot receive an array on the second.
+Once the outermost loop ends, the name is free again and may be assigned with
+any type.
+
 ## For
 
 Rank uses one `for` statement for every kind of loop. Ranges and sequences are
@@ -1511,9 +1537,17 @@ for i in 1 to 10
 end
 ```
 
-The loop variable is an ordinary name in the current workspace. Each iteration
-assigns the next value to it; after a nonempty loop it retains the last value,
-following Rank's BASIC-like workspace model.
+The loop variable belongs to the loop and does not exist after `end`. When a
+name of the same spelling already exists before the loop, the loop assigns to
+it instead, and after a nonempty loop it holds the last value:
+
+```rank
+I = 0
+for I in 1 to 10
+end
+I print
+rem 10
+```
 
 A condition after `for` is evaluated before every iteration:
 
@@ -1657,8 +1691,8 @@ Trace = Error .Trace
 `.Kind` is a label, `.Message` and `.Trace` are text, `.Value` is the optional
 value attached when the error was raised, and `.Cause` is an optional earlier
 error. Addressing `.Value` or `.Cause` when it is absent produces `.Missing`,
-so `default` can provide a default. Error bindings follow the same inferred-type
-and workspace rules as other names.
+so `default` can provide a default. The error name belongs to its `catch`
+block and follows the same inferred-type rules as other names.
 
 `raise` is a core data-first operation and does not require `use`. Error kinds
 are ordinary labels and need no declaration:
@@ -1968,9 +2002,9 @@ consumer, or its interpreter is disposed.
 
 Resource values such as open files have deterministic lifetimes. A resource is
 owned by the function, test or program execution that creates it and is released
-when that scope exits normally, returns or raises an error. `if` and `for` do not
-create separate ownership scopes because their variables follow Rank's
-BASIC-like workspace rules.
+when that scope exits normally, returns or raises an error. A resource bound
+inside an `if` or `for` block stays owned by the enclosing function, test or
+program: the block ends the name, not the resource.
 
 Returning a resource moves it into the caller's ownership scope:
 

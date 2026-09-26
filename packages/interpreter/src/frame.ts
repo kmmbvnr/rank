@@ -109,6 +109,20 @@ export class LocalFrame {
         };
     }
 
+    /** Forgets a name that ended with its block: its value and the types it accepted. */
+    unset(name: string): void {
+        this.arrayRanks?.delete(name);
+        if (this.mappedValues) {
+            this.mappedValues.delete(name);
+            this.mappedTypes!.delete(name);
+            return;
+        }
+        const slot = this.layout.get(name);
+        if (slot === undefined) return;
+        this.slots[slot] = undefined;
+        this.slotTypes[slot] = undefined;
+    }
+
     typeOf(name: string): ReadonlySet<string> | undefined {
         if (this.mappedTypes) return this.mappedTypes.get(name);
         const slot = this.layout.get(name);

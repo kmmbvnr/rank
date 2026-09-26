@@ -208,6 +208,7 @@ describe('queue iteration type summaries', () => {
         expect(() => run(prelude + `
 Q = new queue
 Q push 1
+V = 0
 for V in Q
   break
 end

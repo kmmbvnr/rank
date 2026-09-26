@@ -25,7 +25,7 @@ describe('value semantics for arrays', () => {
     it('keeps branch-selected aliases separate after a write', () => {
         const source = `${SEQ}A = array 1 2\nC = array 3 4 5\n`;
         for (const condition of ['true', 'false']) {
-            const branch = `if ${condition}\n B = A\nelse\n B = C\nend\nB 0 = 9\n`;
+            const branch = `B = C\nif ${condition}\n B = A\nelse\n B = C\nend\nB 0 = 9\n`;
             expect(run(`${source}${branch}A`)).toBe('1 2');
             expect(run(`${source}${branch}C`)).toBe('3 4 5');
         }

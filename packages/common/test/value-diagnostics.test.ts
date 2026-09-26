@@ -341,9 +341,9 @@ it('uses joined branch ranks in a draft without executing either branch', () => 
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const branches = 'if Flag\n M = array shape 2 3 fill 0\nelse\n M = array shape 4 3 fill 0\nend\n';
+        const branches = 'M = array shape 1 3 fill 0\nif Flag\n M = array shape 2 3 fill 0\nelse\n M = array shape 4 3 fill 0\nend\n';
         repl.notebook.replace(branches + 'M # # #');
-        expect(repl.diagnosticOutputs?.get(6)?.[0].text)
+        expect(repl.diagnosticOutputs?.get(7)?.[0].text)
             .toBe('DimensionMismatch: 3 selectors exceed array rank 2');
         expect(session.names).not.toContain('M');
         expect(repl.notebook.current.executed).toBeUndefined();
@@ -438,15 +438,16 @@ it('clears companion hints when the file disappears on refresh', async () => {
     } finally { session.dispose(); }
 });
 
-it('uses the recorded union for assignment, not only the last loop value', async () => {
+it('forgets a loop value and its types once the loop ends', async () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
         repl.notebook.replace('for Value in array 1 "two"\n Value = Value\nend');
         await repl.submit();
-        repl.notebook.replace('Value = 3');
-        expect(repl.diagnosticOutputs?.size).toBe(0);
+        expect(session.names).not.toContain('Value');
         repl.notebook.replace('Value = true');
-        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('integer or text');
+        expect(repl.diagnosticOutputs?.size).toBe(0);
+        await repl.submit();
+        expect(session.names).toContain('Value');
     } finally { session.dispose(); }
 });

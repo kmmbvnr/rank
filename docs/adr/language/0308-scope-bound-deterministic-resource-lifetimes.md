@@ -12,10 +12,10 @@ Managing operating system resources—such as open file handles, database connec
 Mainstream programming languages address this through varying paradigms:
 1. **Context managers with required indentation (Python `with`):** Nesting `with open(...) as f:` blocks adds extra indentation for every opened resource. On mobile devices with a ~40-column width budget (ADR-0000), nesting two or three resources consumes 4 to 8 characters of indentation, severely squeezing usable horizontal line space.
 2. **Explicit deferral statements (Go `defer`):** Requires programmers to remember to write `defer resource.Close()` immediately after acquisition. Forgetting to do so results in silent resource leaks.
-3. **Arbitrary block RAII (C++, Rust):** Automatically drops resources at the closing curly brace of any block. However, in Rank, statements like `if` and `for` follow a flat BASIC-like workspace model without block scoping. Tying resource destruction to statement blocks would risk closing resources prematurely (for example, closing a file created inside an `if` branch before the function finishes using it).
+3. **Arbitrary block RAII (C++, Rust):** Automatically drops resources at the closing curly brace of any block. However, in Rank, statement blocks bound names, not resources (ADR-0307). Tying resource destruction to statement blocks would risk closing resources prematurely (for example, closing a file created inside an `if` branch and stored in an outer name before the function finishes using it).
 4. **Non-deterministic GC finalizers (Java, Python, JS):** Relying on garbage collectors to close file handles leads to unpredictably delayed closures, exhausting file descriptors during rapid batch processing.
 
-Rank needs a deterministic, leak-proof resource management model that requires **zero extra indentation**, works seamlessly with flat workspace scoping, and avoids manual cleanup boilerplate.
+Rank needs a deterministic, leak-proof resource management model that requires **zero extra indentation**, works seamlessly with block-scoped names, and avoids manual cleanup boilerplate.
 
 ## Decision
 

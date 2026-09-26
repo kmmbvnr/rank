@@ -1,13 +1,15 @@
 import { AstUtils, EmptyFileSystem } from 'langium';
 import type { Program } from '@arrrank/language';
 import {
-    createRankServices, expressionDiagnostics, isTextBlockExpression, textBlockModeError, type GroupingOptions,
+    blockScopeDiagnostics, createRankServices, expressionDiagnostics, isTextBlockExpression, textBlockModeError, type GroupingOptions,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;
 
-export function parse(source: string, sourceId = '<input>', grouping: GroupingOptions = {}): Program {
+export function parse(
+    source: string, sourceId = '<input>', grouping: GroupingOptions = {}, known?: ReadonlySet<string>,
+): Program {
     const result = services.parser.LangiumParser.parse<Program>(source, { ...grouping, rule: 'Program' });
     const error = result.lexerErrors[0] ?? result.parserErrors[0];
 
@@ -50,6 +52,16 @@ export function parse(source: string, sourceId = '<input>', grouping: GroupingOp
     if (groupingError) {
         const error = new RankError(groupingError.message, 'Syntax');
         const start = groupingError.cst?.range.start;
+        error.location = {
+            sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
+            sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',
+        };
+        throw error;
+    }
+    const scopeError = blockScopeDiagnostics(result.value, known)[0];
+    if (scopeError) {
+        const error = new RankError(scopeError.message, 'Syntax');
+        const start = scopeError.node.$cstNode?.range.start;
         error.location = {
             sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
             sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',

@@ -26,15 +26,14 @@ rem Parse an instruction into its operation and inclusive rectangle.
 fun parse Line
   Words = Line " " split
 
+  Op = Words 1
+  First = 2
   if Words 0 equal "toggle"
     Op = "toggle"
-    unpack X1 Y1 = Words 1 "," split integer rank 0
-    unpack X2 Y2 = Words 3 "," split integer rank 0
-  else
-    Op = Words 1
-    unpack X1 Y1 = Words 2 "," split integer rank 0
-    unpack X2 Y2 = Words 4 "," split integer rank 0
+    First = 1
   end
+  unpack X1 Y1 = Words First "," split integer rank 0
+  unpack X2 Y2 = Words (First + 2) "," split integer rank 0
 
   return array Op X1 Y1 X2 Y2
 end

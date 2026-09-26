@@ -60,6 +60,7 @@ describe('Rank control flow and functions', () => {
             'Result',
         ].join('\n'))).toBe('one');
         expect(run([
+            'Result = 0',
             'if false',
             '  Result = 1',
             'elif false',
@@ -123,6 +124,9 @@ describe('Rank control flow and functions', () => {
     it('catches typed runtime errors as values', () => {
         expect(run([
             'use text',
+            'Value = 1',
+            'Kind = .none',
+            'Original = ""',
             'try',
             '  Value = "bad" integer',
             'catch .InvalidNumber Error',

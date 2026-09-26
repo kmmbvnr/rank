@@ -123,6 +123,7 @@ Total
         const result = compare(`N = 3
 Step = 1
 Count = 0
+I = 0
 for I in 0 until N by Step
   N = 0
   Step = 10
@@ -216,6 +217,7 @@ Steps`);
     it('merges definite assignments across if, elif and else', () => {
         const result = compare(`Total = 0
 for I in 0 to 5
+  Value = 0
   if I less 2
     Value = 10
   elif I less 4
@@ -448,6 +450,7 @@ end`);
     it('merges only paths that reach the next statement', () => {
         const result = compare(`Total = 0
 for I in 1 to 5
+  Value = 0
   if I less 3
     continue
   elif I equal 5
@@ -635,16 +638,17 @@ end`);
 
     it('does not treat assignments in an empty inner loop as definite', () => {
         const result = compare(`I = 0
+Value = 0
+Answer = 1
 for I less 1
   I += 1
   for J in 1 until 1
     Value = 5
   end
   Answer = Value
-end`);
-        expect(result).toHaveProperty('error');
-        // Outer region declines; its empty inner range still compiles.
-        expect(result.loops).toBe(1);
+end
+Answer`);
+        expect(result.value).toBe('0');
     });
 
     it('compiles nested ranges without imports', () => {
@@ -1013,6 +1017,7 @@ Total`);
 fun ${name} A B
   return A + B
 end
+X = 0
 for I in 1 to 2
   X = I 10 ${name}
 end
@@ -1160,12 +1165,18 @@ end`);
     });
 
     it('retains declared types after the compiled region returns', () => {
-        const result = compare(`for I in 0 until 3
+        const result = compare(`Value = 0
+for I in 0 until 3
   Value = I
 end
 Value = "text"`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
+        expect(compare(`for I in 0 until 3
+  Local = I
+end
+Local = "text"
+Local`)).toMatchObject({ value: 'text', loops: 1 });
     });
 });
 
@@ -1201,6 +1212,7 @@ I`);
     it('merges boolean definitions from both branches', () => {
         const result = compare(`Count = 0
 for I in 0 until 4
+  Flag = false
   if I less 2
     Flag = true
   else
@@ -1237,7 +1249,8 @@ end`);
     });
 
     it('keeps the boolean type after leaving the region', () => {
-        const result = compare(`for I in 0 until 2
+        const result = compare(`Flag = false
+for I in 0 until 2
   Flag = I equal 0
 end
 Flag = 1`);
@@ -1461,11 +1474,13 @@ it('honors the array-write toggle for locally created arrays', () => {
     const runtime = new Interpreter(undefined, { arrayWriteCompilation: false,
         onIntegerLoopExecuted: () => loops++ });
     try {
-        const result = runtime.execute(`for I in 0 until 1
+        const result = runtime.execute(`B = array 0 0
+for I in 0 until 1
   A = array shape 2 fill 0
   A 0 = 7
+  B = A
 end
-A`);
+B`);
         expect(formatValue(result!)).toBe('7 0');
         expect(loops).toBe(0);
     } finally { runtime.dispose(); }
@@ -2068,6 +2083,7 @@ Total`);
 
     it('merges definitions from both continuing branches', () => {
         const result = compare(`fun magnitude X
+  Value = 0
   if X less 0
     Value = -X
   else
@@ -2109,6 +2125,7 @@ end
     return Shared
   end
   Total = 0
+  Shared = 0
   for I in 1 to N
     Value = I helper
     Total += Value
@@ -2127,6 +2144,7 @@ end
   return X
 end
 Total = 0
+I = 0
 for I in 1 to 3
   Total += I increment
 end

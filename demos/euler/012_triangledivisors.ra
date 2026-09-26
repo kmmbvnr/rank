@@ -18,12 +18,11 @@ rem divisor count is greater than Minimum.
 fun first_triangle Minimum
   N = 1
   for true
+    Left = N
+    Right = (N + 1) // 2
     if N even
       Left = N // 2
       Right = N + 1
-    else
-      Left = N
-      Right = (N + 1) // 2
     end
 
     Divisors = Left divisor_count
