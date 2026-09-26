@@ -18,7 +18,9 @@ describe('clearing a failed source line', () => {
         expect(repl.notebook.current.status).toBe('idle');
         expect(repl.notebook.current.output).toEqual([]);
         expect(repl.notebook.current.errorOffset).toBeUndefined();
-        expect(repl.notebook.cells).toHaveLength(2);
+        // The emptied cell folds into the empty prompt below it.
+        expect(repl.notebook.atPrompt).toBe(true);
+        expect(repl.notebook.cells).toHaveLength(1);
     });
 
     it('clears an error from a whitespace-only cell', async () => {

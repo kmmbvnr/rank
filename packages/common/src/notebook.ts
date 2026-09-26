@@ -376,6 +376,11 @@ export class Notebook {
             this.redoStack.delete(removed.id);
             const nextPending = pending > index ? pending - 1 : pending;
             this.replayFrom = nextPending >= 0 && nextPending < this.cells.length - 1 ? nextPending : undefined;
+            // An empty cell right above an empty prompt folds into it, where the cursor already was.
+            if (index === this.active && index === this.cells.length - 1 && this.cells[index].source === '') {
+                this.toPrompt();
+                return;
+            }
             let previous = index - 1;
             while (previous >= 0 && this.cells[previous].command) previous -= 1;
             this.active = previous >= 0 ? previous : Math.min(index, this.cells.length - 1);
@@ -387,6 +392,21 @@ export class Notebook {
         const from = backward ? stops.filter(at => at < this.cursor).at(-1) ?? 0 : this.cursor;
         const to = backward ? this.cursor : stops.find(at => at > this.cursor) ?? source.length;
         this.replace(source.slice(0, from) + source.slice(to), from);
+        if (backward) this.dropClearedLine(source);
+    }
+
+    /** Erasing the last character of a cell's last line removes the line too, so
+     * no blank row is left hanging; an empty prompt right below takes the cursor. */
+    dropClearedLine(before: string): void {
+        if (this.atPrompt) return;
+        const source = this.current.source;
+        const start = source.lastIndexOf('\n') + 1;
+        if (this.cursor < start || source.slice(start).trim()
+            || !before.slice(before.lastIndexOf('\n') + 1).trim()) return;
+        const promptBelow = this.active === this.cells.length - 2 && this.cells.at(-1)!.source === '';
+        this.replace(source.slice(0, Math.max(0, start - 1)));
+        if (this.current.source === '') this.erase(true);
+        else if (promptBelow) this.toPrompt();
     }
 
     horizontal(direction: number): void {

@@ -1198,3 +1198,60 @@ test('Tab places the cursor at the block indentation before offering completion'
         assert.equal(completions, before + 1);
     }
 });
+
+test('erasing the last line above the prompt removes it and moves to the prompt', async t => {
+    const { book, enter } = setup(t);
+    await enter('A = 1');
+    await enter('fun f X\n  return X\nend');
+    book.active = 1;
+    book.cursor = book.current.source.length;
+    book.newline();
+    book.insert('x');
+    book.erase(true);
+    assert.equal(book.cells[1].source, 'fun f X\n  return X\nend');
+    assert.ok(book.atPrompt);
+    assert.equal(book.cursor, 0);
+    book.erase(true);
+    assert.equal(book.active, 1);
+    assert.equal(book.cursor, book.current.source.length);
+});
+
+test('erasing the only character of a cell above the prompt removes the cell', async t => {
+    const { book, enter } = setup(t);
+    await enter('A = 1');
+    book.cells.splice(1, 0, { id: 99, source: 'x', output: [], command: false, status: 'idle' });
+    book.active = 1;
+    book.cursor = 1;
+    book.erase(true);
+    assert.deepEqual(book.cells.map(cell => cell.source), ['A = 1', '']);
+    assert.ok(book.atPrompt);
+});
+
+test('erasing inside a line or on an earlier line keeps the line', async t => {
+    const { book, enter } = setup(t);
+    await enter('if true\n  B = 1\nend');
+    book.active = 0;
+    book.cursor = 'if true\n  B = 1'.length;
+    book.erase(true);
+    assert.equal(book.cells[0].source, 'if true\n  B = \nend');
+    assert.equal(book.active, 0);
+    book.toPrompt();
+    book.replace('x\ny');
+    book.erase(true);
+    assert.equal(book.current.source, 'x\n');
+    assert.ok(book.atPrompt);
+});
+
+test('backspace in an empty cell above an empty prompt folds it into the prompt', async t => {
+    const { book, enter } = setup(t);
+    await enter('A = 1');
+    book.cells.splice(1, 0, { id: 99, source: '', output: [], command: false, status: 'idle' });
+    book.active = 1;
+    book.cursor = 0;
+    book.erase(true);
+    assert.deepEqual(book.cells.map(cell => cell.source), ['A = 1', '']);
+    assert.ok(book.atPrompt);
+    book.erase(true);
+    assert.equal(book.active, 0);
+    assert.equal(book.cursor, 'A = 1'.length);
+});

@@ -218,6 +218,8 @@ function applyInput(): void {
         if (end > start) book.replace(previous.slice(0, start) + previous.slice(end), start);
         else book.cursor = start;
         if (nextEnd > start) book.insert(value.slice(start, nextEnd), true);
+        // A soft keyboard deletes through input events, not Backspace keydowns.
+        else if (end > start) book.dropClearedLine(previous);
     }
     repl.dismiss();
     follow = true;
@@ -232,6 +234,11 @@ input.addEventListener('beforeinput', event => {
         event.preventDefault(); void press({ name: 'return' }); return;
     }
     if (busy || repl.running || repl.liveIterationFocused || repl.help) { event.preventDefault(); return; }
+    // Nothing precedes the caret, so the field cannot delete: let Backspace
+    // join the line or cell above instead of leaving an empty one behind.
+    if (event.inputType === 'deleteContentBackward' && input.selectionStart === 0 && input.selectionEnd === 0) {
+        event.preventDefault(); void press({ name: 'backspace' }); return;
+    }
     if (!event.isComposing && editor().selection && event.inputType === 'insertText' && event.data !== null) {
         event.preventDefault();
         editor().insert(event.data, true);
