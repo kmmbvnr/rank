@@ -76,6 +76,8 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('not 2 even')).toBe('false');
         expect(run('not 2 less 3')).toBe('false');
         expect(run('not 2 even or 3 odd')).toBe('true');
+        expect(run('L = array 1 2 3\nnot 5 in L')).toBe('true');
+        expect(run('use text\nT = "hello"\nnot T "he" startswith')).toBe('false');
         expect(run('(1 equal 2) equal false')).toBe('true');
     });
 
