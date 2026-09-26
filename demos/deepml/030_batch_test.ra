@@ -32,6 +32,7 @@ end
 test "official feature-only batches"
   use "030_batch"
   use sequences
+  use algo
   X = array shape 4 2
     1 1
     2 2
@@ -39,7 +40,12 @@ test "official feature-only batches"
     4 4
   end
 
-  Batches = X 3 batch_iterator array
+  rem The last batch is shorter, so the batches cannot stack into one array.
+  Batches = new queue
+  for Batch in X 3 batch_iterator
+    Batches push Batch
+  end
+
   Batches len equal 2
   (Batches 0 equal array shape 3 2
     1 1
