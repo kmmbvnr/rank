@@ -3,7 +3,7 @@
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "002_evenfib.ra",
   "sourceSha256": "15dbd2e7b3f81545c8f9e77bdc36b8509f1ce0f5e178a94dfe2f0089382ba60e",
-  "taskSha256": "1d1a327eec2e381c0ce3ae9addbabb5d5e3a30d71c0b2a3e67a0ed0328b666e2",
+  "taskSha256": "ff5833fb5e42115cdbe844955db8f2fb40f01144a7a0e627037086868ad621a7",
   "integers": "i64",
   "crate": "rank-002_evenfib-i64"
 }

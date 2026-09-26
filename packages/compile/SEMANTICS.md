@@ -14,7 +14,10 @@ and a newline. `use cli` and `use io` open options/output, not implicit I/O effe
 Functions apply to the data on their left: `N factors` means factors(N), and
 `Values sum` means sum(Values). Binary expressions use ordinary infix arithmetic
 with multiplication before addition and explicit parentheses. Function chains
-flow left to right: `Fib even sum` means sum(filter_even(Fib)). Consult the parsed
+flow left to right: `N factors sum` means sum(factors(N)). A predicate keeps the
+shape of its input and gives booleans: `Mask = Fib even` is map(is_even, Fib),
+and only an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
+sum(filter(Fib, Mask)). Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
 `fun palindrome X ... return Value ... end` declares a function of X. Function
