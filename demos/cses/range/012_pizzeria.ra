@@ -50,7 +50,7 @@ fun deliveries Prices Queries
       R = FromRight Position Last query
       Right = R
       Right -= Position
-      Answers Count = Left min Right
+      Answers Count = Left Right min
       Count += 1
     end
   end

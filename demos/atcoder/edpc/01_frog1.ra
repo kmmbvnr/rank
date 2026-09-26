@@ -33,7 +33,7 @@ fun min_cost H
       Jump2 = Diff2 abs
       Prior2 = Cost Index2
       Step2 = Prior2 + Jump2
-      Best = Best min Step2
+      Best = Best Step2 min
     end
 
     Cost I = Best

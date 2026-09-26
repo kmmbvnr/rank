@@ -167,6 +167,26 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         const type = fact.types.length === 1 ? fact.types[0] : undefined;
         return type === 'integer' || type === 'boolean' || type === 'text' || type === 'bytes' ? type : undefined;
     }
+    const isExtreme = (part: Expression | undefined) => isNameExpression(part) && ['min', 'max'].includes(part.name);
+    // `A B max`, `A max`, or a chain such as `A B max 5 min` that ends in scalar extrema.
+    function extremeChain(parts: readonly Expression[]): boolean {
+        if (!isExtreme(parts.at(-1))) return false;
+        if (parts.length === 2 || parts.length === 3) return !isExtreme(parts[0]) && !isExtreme(parts.at(-2));
+        return parts.length > 3 && !isExtreme(parts.at(-2)) && extremeChain(parts.slice(0, -2));
+    }
+    function emitExtreme(parts: readonly Expression[], lines: string[]): Term | undefined {
+        const last = parts.at(-1);
+        if (!isNameExpression(last)) return undefined;
+        const left = parts.length > 3 ? emitExtreme(parts.slice(0, -2), lines) : emit(parts[0], lines);
+        if (left?.type !== 'integer') return undefined;
+        builtins.set(last.name, 'core');
+        if (parts.length === 2) return left;
+        const right = emit(parts.at(-2)!, lines);
+        if (right?.type !== 'integer') return undefined;
+        const name = `v${serial++}`;
+        lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
+        return { code: name, type: 'integer' };
+    }
     function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
         if (serial > 256) return undefined;
         if (isParenthesizedExpression(e)) return emit(e.value, lines, hint, tail);
@@ -193,18 +213,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         }
         if (host.extrema && isApplicationExpression(e)) {
             const parts = host.extremeParts(e);
-            const last = parts?.at(-1);
-            if (parts && [2, 3].includes(parts.length) && last && isNameExpression(last) && ['min', 'max'].includes(last.name)) {
-                const left = emit(parts[0], lines);
-                if (left?.type !== 'integer') return undefined;
-                builtins.set(last.name, 'core');
-                if (parts.length === 2) return left;
-                const right = emit(parts[1], lines);
-                if (right?.type !== 'integer') return undefined;
-                const name = `v${serial++}`;
-                lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
-                return { code: name, type: 'integer' };
-            }
+            if (parts && extremeChain(parts)) return emitExtreme(parts, lines);
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;

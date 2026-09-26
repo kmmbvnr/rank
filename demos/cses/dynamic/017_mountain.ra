@@ -56,7 +56,7 @@ fun mountain_route Heights
     if Height equal Top .height
       TopPath = Top .path
       CurrentPath = Current .path
-      BestPath = TopPath max CurrentPath
+      BestPath = TopPath CurrentPath max
       Top .path = BestPath
       return 0
     end

@@ -23,7 +23,7 @@ fun removal_game Values
       RightValue = Values Right
       TakeRight = RightValue
       TakeRight -= BeforeRight
-      Best = TakeLeft max TakeRight
+      Best = TakeLeft TakeRight max
       Difference Left = Best
     end
   end

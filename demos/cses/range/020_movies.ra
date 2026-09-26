@@ -20,7 +20,7 @@ rem Greedily jump to earliest endings.
 fun movie_queries Movies Queries
   LastMovie = Movies max
   LastQuery = Queries max
-  LastTime = LastMovie max LastQuery
+  LastTime = LastMovie LastQuery max
   Sentinel = LastTime + 1
   Next = array shape Sentinel fill 0
   Next # = Sentinel
@@ -29,13 +29,13 @@ fun movie_queries Movies Queries
     unpack Start Finish = Movie
     Place = Start - 1
     Current = Next Place
-    Next Place = Current min Finish
+    Next Place = Current Finish min
   end
   for Time in LastTime to 1 by -1
     Place = Time - 1
     Current = Next Place
     Later = Next Time
-    Next Place = Current min Later
+    Next Place = Current Later min
   end
   Path = Next functional
 

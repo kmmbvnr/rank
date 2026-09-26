@@ -57,7 +57,7 @@ fun fight State BossDamage Hard Best
 
   Now = State effects
   if Now .boss at most 0
-    return Best min (Now .spent)
+    return Best Now .spent min
   end
   Mana = Now .mana
 
@@ -115,7 +115,7 @@ rem Apply effects, let the boss attack, then continue with the player turn.
 fun bossturn State BossDamage Hard Best
   Now = State effects
   if Now .boss at most 0
-    return Best min (Now .spent)
+    return Best Now .spent min
   end
 
   Armor = 0
@@ -123,7 +123,7 @@ fun bossturn State BossDamage Hard Best
     Armor = 7
   end
   Next = Now with
-    .hp -= 1 max (BossDamage - Armor)
+    .hp -= 1 (BossDamage - Armor) max
   end
 
   if Next .hp at most 0
@@ -136,9 +136,9 @@ end
 rem Apply active effects once and decrease all effect timers.
 fun effects State
   Next = State with
-    .shield = 0 max (State .shield - 1)
-    .poison = 0 max (State .poison - 1)
-    .recharge = 0 max (State .recharge - 1)
+    .shield = 0 (State .shield - 1) max
+    .poison = 0 (State .poison - 1) max
+    .recharge = 0 (State .recharge - 1) max
   end
   if State .poison greater 0
     Next .boss -= 3

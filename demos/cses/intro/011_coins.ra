@@ -21,8 +21,8 @@ end
 rem Return true when both coin piles can be emptied.
 fun possible A B
   Total = A + B
-  Small = A min B
-  Large = A max B
+  Small = A B min
+  Large = A B max
 
   Divisible = Total multiple by 3
   Balanced = Large at most 2 * Small

@@ -54,8 +54,8 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
     expect(facts('A len', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
     expect(facts('A I', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
     expect(facts('(A I) + 1', bindings)).toMatchObject({ rank: 0 });
-    expect(facts('(A I) max 1', bindings)).toMatchObject({ rank: 0 });
-    expect(facts('1 max 2', new Map([['max', { types: ['function'] }]]))).not.toMatchObject({ rank: 0 });
+    expect(facts('(A I) 1 max', bindings)).toMatchObject({ rank: 0 });
+    expect(facts('1 2 max', new Map([['max', { types: ['function'] }]]))).not.toMatchObject({ rank: 0 });
 });
 
 it('keeps scalar rank through unary signs and guarded numeric builtins', () => {

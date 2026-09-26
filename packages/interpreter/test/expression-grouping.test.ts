@@ -114,7 +114,8 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run(source + 'A 0 Op')).toBe('1 8');
         expect(run(source + '(A 0) max')).toBe('1');
         expect(run(source + 'A max sqrt')).toBe(String(Math.sqrt(8)));
-        expect(run('2 + 3 min 4')).toBe('4');
+        expect(run('2 + 3 4 min')).toBe('4');
+        expect(run('A = array 1 8\nA max 5 min')).toBe('5');
     });
 
     it('normalizes rounding parameters instead of interpreting subtraction as a call', () => {

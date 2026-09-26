@@ -3,5 +3,5 @@ rem https://www.deep-ml.com/problems/42
 
 
 fun relu Z
-  return 0 max Z
+  return 0 Z max
 end

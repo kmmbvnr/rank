@@ -302,7 +302,8 @@ npm run bench:extrema -- --baseline=/path/to/built/baseline
 ```
 
 This builds the candidate; build the baseline separately. Without `--baseline`,
-the command still compares infix min/max against calls through aliases. It
+the command still compares direct min/max against calls through aliases (since
+Issue #21 the direct cases use the postfix form `Best I max`). It
 measures six scalar loops and the unchanged playlist demo at N = 200,000.
 Scalar sources are parsed once, warmed up three times at N = 10,000, then run
 five times at N = 1,000,000. Versions and scalar case order alternate. Playlist

@@ -34,7 +34,7 @@ fun max_value W Weights Values
       Reached = MinWeight Prev
       Candidate = Reached + Weight
       Current = MinWeight V
-      MinWeight V = Current min Candidate
+      MinWeight V = Current Candidate min
     end
   end
 

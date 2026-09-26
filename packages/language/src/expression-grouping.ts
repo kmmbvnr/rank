@@ -144,13 +144,15 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 if (isNameExpression(part) && part.name === 'round' && next && !callable(next)) {
                     parts.push(next, part);
                     index++;
-                } else if (isNameExpression(part) && (part.name === 'min' || part.name === 'max')
-                    && parts.length > 0 && next && !callable(next)
-                    && !(isNameExpression(next) && modifiers.has(next.name))) {
-                    const source = grouped(application([...parts], expression));
-                    parts.splice(0, parts.length, source, next, part);
-                    index++;
-                } else parts.push(part);
+                } else {
+                    // `Left max Right` was an infix form; a chain such as `A B max 5 min` continues with a call.
+                    if (isNameExpression(part) && (part.name === 'min' || part.name === 'max')
+                        && parts.length > 0 && next && index + 2 === original.length && !callable(next)
+                        && !(isNameExpression(next) && modifiers.has(next.name))) {
+                        report(part, `${part.name} is a postfix call. Write \`Left Right ${part.name}\` instead of \`Left ${part.name} Right\`.`);
+                    }
+                    parts.push(part);
+                }
             }
             const first = parts.findIndex((part, index) => index > 0 && callable(part));
             if (first > 0) return [

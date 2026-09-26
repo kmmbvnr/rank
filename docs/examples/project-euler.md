@@ -347,7 +347,7 @@ for Row in (Rows - 2) to 0 by -1
     Right = Left + 1
     LeftValue = Work Left
     RightValue = Work Right
-    BestChild = LeftValue max RightValue
+    BestChild = LeftValue RightValue max
     Work Parent += BestChild
   end
 end

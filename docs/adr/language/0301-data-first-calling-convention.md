@@ -47,6 +47,20 @@ A field label is the exception that needs no variable: a label naming a field of
 ### Comparisons in a Pipeline
 A comparison continues the left-to-right flow like arithmetic does: after a plain left operand it takes the next value, and a following function receives the comparison's result, so `A greater 2 sum` needs no parentheses. When the left operand is already a pipeline (`A len equal B len`, `X date less Y date`), the two sides stay independent, which keeps symmetric comparisons free of parentheses too. `and`, `or` and `xor` always separate independent clauses.
 
+### No Infix Exceptions for Named Functions
+Every named function follows its arguments, including `min` and `max`. They once also had an infix form (`Low max High`), and it was removed (Issue #21):
+- The same word changed meaning with what followed it: `A max` reduced, `A max B` compared.
+- The infix rewrite guessed where its left operand ended, so `Best min Now .spent` took `Now` as the right operand and read `.spent` afterwards.
+- Every new call-grouping rule had to be checked against the rewrite.
+
+```rank
+Bound = Low High max
+Best = Best Now .spent min
+Clamped = Low High max Limit min
+```
+
+`Low max High`, where the last part after `max` is data, is rejected with a hint to write `Low High max`. A chain that continues with a call (`A max 5 min`) is an ordinary postfix chain.
+
 ### 3. Disambiguating Addressing from Calls
 - If the trailing identifier is a function in scope, preceding values are treated as arguments:
   ```rank
@@ -84,3 +98,4 @@ end
 * Section "Control flow and functions" in [docs/language/control-functions.md](../../language/control-functions.md)
 * Commit `92950d0` ("Adopt data-first calls and add Euler 5")
 * Commit `d7e4c13` ("Resolve calls using function arity")
+* Issue #21: remove infix binary `min`/`max` (2026-09-26)

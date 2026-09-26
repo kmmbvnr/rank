@@ -47,7 +47,7 @@ fun collect_coins N Coins Edges
       Collected = Best Current
       Collected += Sums Next
       Previous = Best Next
-      Best Next = Previous max Collected
+      Best Next = Previous Collected max
     end
   end
   return Best max

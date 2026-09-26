@@ -1106,15 +1106,16 @@ is not a field of the value before it, such as an option like `.descending`,
 and a column label after a table, stay separate arguments.
 
 For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. `min` and `max` also
-allow infix calls: `A max B` calls the current `max` with arguments `A` and
-`B`. Chains associate from the left. These names are not reserved; a local
-function or parameter shadows the builtin in both infix and postfix calls.
+Otherwise Rank tries larger supported arities first. `min` and `max` are
+ordinary postfix calls: `A B max` calls the current `max` with arguments `A`
+and `B`, and `A B max 5 min` chains from the left. The infix form `A max B` is
+an error that suggests `A B max`. These names are not reserved; a local
+function or parameter shadows the builtin.
 
 Builtins and aliases use the same argument rules: `Matrix i max` and
 `Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
-addressed row, write `(Matrix i) max`. `Matrix max i` is the infix form of
-the binary call. Two scalar arguments work the same way: `3 4 max` is `4`.
+addressed row, write `(Matrix i) max`. Two scalar arguments work the same
+way: `3 4 max` is `4`.
 A following function starts another step: `Values max sqrt` takes the square
 root of the maximum.
 
@@ -2852,24 +2853,28 @@ a fallback. `Values Target findall` returns every matching position and returns
 an empty vector when there are none. Both accept rank-1 arrays and text, whose
 positions count Unicode code points.
 
-Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
-between numeric values and broadcast over arrays:
+`min` and `max` with one argument reduce one finite collection. With two
+arguments they choose between numeric values and broadcast over arrays. Like
+every other function, they follow their arguments:
 
 ```rank
 Largest = A max
-Bound = Low max High
-Clamped = Values max 0
+Bound = Low High max
+Clamped = Values 0 max
+Best = Best Now .spent min
 ```
 
-Binary chains associate from the left. `axis` and `rank` modify the postfix
-reduction; the binary form already follows ordinary elementwise broadcasting.
+Chains associate from the left: `Low High max Limit min`. `axis` and `rank`
+modify the one-argument reduction; the binary form already follows ordinary
+elementwise broadcasting. Parenthesize a compound operand, as in
+`0 (Limit - Used) max`. The infix form `Low max High` is rejected with a hint
+to write `Low High max`.
 
-Infix calls resolve the function normally, after evaluating the left and right
-operands. A user-defined `min` or `max` takes precedence, even without
-`use numbers`. For example, after `fun max A B` returning `A + B`, both
-`3 max 4` and `3 4 max` return `7`. A named builtin (`Op = max`) supports
-the same lazy binary broadcasting as infix calls. Equal numeric operands
-preserve the left operand, including its integer/real representation.
+A user-defined `min` or `max` takes precedence, even without `use numbers`.
+For example, after `fun max A B` returning `A + B`, `3 4 max` returns `7`.
+A named builtin (`Op = max`) supports the same lazy binary broadcasting.
+Equal numeric operands preserve the left operand, including its integer/real
+representation.
 
 ## Scan
 
@@ -5134,18 +5139,18 @@ incrementally extends factorial and inverse-factorial tables for each modulus,
 so repeated calls cost `O(MaximumN)` preparation and `O(1)` each afterward.
 Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
-Postfix `min` and `max` reduce one collection. Their direct binary forms are
-infix and return the smaller or larger numeric operand:
+With one argument `min` and `max` reduce one collection. With two arguments
+they return the smaller or larger numeric operand:
 
 ```rank
 Smallest = Values min
-Left = A max B
-Bound = Low max Limit min High
+Left = A B max
+Bound = Low Limit max High min
 ```
 
 Binary chains associate from the left and broadcast over arrays using the
-ordinary trailing-axis rules. Parenthesize a compound right operand, as in
-`0 max (Limit - Used)`. A stored operation remains an ordinary function value,
+ordinary trailing-axis rules. Parenthesize a compound operand, as in
+`0 (Limit - Used) max`. A stored operation remains an ordinary function value,
 so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
@@ -6466,7 +6471,7 @@ for Row in (Rows - 2) to 0 by -1
     Right = Left + 1
     LeftValue = Work Left
     RightValue = Work Right
-    BestChild = LeftValue max RightValue
+    BestChild = LeftValue RightValue max
     Work Parent += BestChild
   end
 end
@@ -7145,8 +7150,8 @@ The solution uses only current Rank constructs and runs in linear time.
 
 The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
-Python-style `//`, real `/`, and the infix binary forms `A min B` and
-`A max B`. Array boundaries are handled explicitly, so the algorithm does not
+Python-style `//`, real `/`, and the binary forms `A B min` and
+`A B max`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 
 ## 5. Longest Palindromic Substring

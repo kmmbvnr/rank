@@ -80,7 +80,7 @@ end`;
     it('rechecks a builtin after global shadowing', () => {
         const source = `fun combine A B
   return record
-    .n = (A .n) max (B .n)
+    .n = (A .n) (B .n) max
   end
 end`;
         const fast = fixture(source), slow = fixture(source, false);
@@ -113,7 +113,7 @@ end`;
 fun make max
   fun combine A B
     return record
-      .n = (A .n) max (B .n)
+      .n = (A .n) (B .n) max
     end
   end
   return combine

@@ -73,7 +73,7 @@ fun solve Train Test Rate Steps
 
   Model = X Y Rate Steps linear
   Raw = Xtest Model linear_predict
-  Pred = (Raw exp - 1) max 0.0
+  Pred = (Raw exp - 1) 0.0 max
   Test .SalePrice = Pred
   return Test (array .Id .SalePrice)
 end

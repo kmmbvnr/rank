@@ -33,7 +33,7 @@ fun max_value W Weights Values
         Taken = Best Prev
         Candidate = Taken + Value
         Current = Best Cap
-        Best Cap = Current max Candidate
+        Best Cap = Current Candidate max
       end
     end
   end

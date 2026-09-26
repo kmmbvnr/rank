@@ -44,7 +44,7 @@ fun maximum_reward Jobs
     end
 
     Take = Best Low + Project .reward
-    Best (i + 1) = Best i max Take
+    Best (i + 1) = (Best i) Take max
   end
 
   return Best Count

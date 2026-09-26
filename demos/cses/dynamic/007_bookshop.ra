@@ -24,7 +24,7 @@ fun book_shop Prices Pages Budget
         Base = Best Previous
         Candidate = Base + PageCount
         Current = Best Cost
-        Maximum = Current max Candidate
+        Maximum = Current Candidate max
         Best Cost = Maximum
       end
     end

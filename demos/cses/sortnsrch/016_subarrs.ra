@@ -18,7 +18,7 @@ fun distinct_subarrays A
   for Value i in A
     if Value in index
       Prev = index Value
-      Left = Left max (Prev + 1)
+      Left = Left (Prev + 1) max
     end
 
     index Value = i

@@ -59,7 +59,7 @@ it('summarizes a counted numeric reader loop only with proven call inputs', () =
     expect(analyze(definition.replace('1 until N', 'Items'), 'max_subarray', [], [input]).unknown)
         .toBe(true);
     expect(analyze(definition, 'max_subarray', ['i'], [input]).unknown).toBe(false);
-    expect(analyze(definition.replace('Best = Best max Current', 'if Current\n      Best = Current\n    end'),
+    expect(analyze(definition.replace('Best = Best Current max', 'if Current\n      Best = Current\n    end'),
         'max_subarray', [], [input]).unknown).toBe(false);
     expect(analyze(`fun max X Y\n Shared 0 = 1\n return X\nend\n${definition}`,
         'max_subarray', [], [input]).captures).toEqual(new Set(['Shared']));

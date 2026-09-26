@@ -37,7 +37,7 @@ fun longest_common S T
         Back = j - 1
         Above = Lengths Up j
         Left = Lengths i Back
-        Lengths i j = Above max Left
+        Lengths i j = Above Left max
       end
     end
   end

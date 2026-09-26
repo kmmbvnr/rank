@@ -70,15 +70,15 @@ fun path_max Rooted Maxima A B
     First = Entry HeadA
     Last = Entry A
     Part = Maxima First Last query
-    Best = Best max Part
+    Best = Best Part max
     A = Parents HeadA
     HeadA = Heads A
   end
 
   PosA = Entry A
   PosB = Entry B
-  First = PosA min PosB
-  Last = PosA max PosB
+  First = PosA PosB min
+  Last = PosA PosB max
   Part = Maxima First Last query
-  return Best max Part
+  return Best Part max
 end

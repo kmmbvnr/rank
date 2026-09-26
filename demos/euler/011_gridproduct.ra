@@ -47,7 +47,7 @@ fun greatest_product Grid Width
     for Value in Segment
       Product *= Value
     end
-    Best = Best max Product
+    Best = Best Product max
   end
 
   return Best

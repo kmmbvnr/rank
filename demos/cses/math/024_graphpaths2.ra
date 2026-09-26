@@ -22,7 +22,7 @@ fun min_path Nodes Edges Length
     unpack From To Cost = Edge
     I = From - 1
     J = To - 1
-    Paths I J = Paths I J min Cost
+    Paths I J = (Paths I J) Cost min
   end
 
   Power = Paths Length minplus_power
@@ -61,7 +61,7 @@ fun minplus Left Right
     Column = Left # K
     Row = Right K
     Candidate = Column Row + outer
-    Result = Result min Candidate
+    Result = Result Candidate min
   end
 
   return Result

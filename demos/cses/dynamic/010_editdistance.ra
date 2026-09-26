@@ -26,8 +26,8 @@ fun edit_distance Left Right
         Delete = Previous (j + 1)
         Insert = Current j
         Replace = Previous j
-        Best = Delete min Insert
-        Best = Best min Replace
+        Best = Delete Insert min
+        Best = Best Replace min
         Current (j + 1) = Best + 1
       end
     end

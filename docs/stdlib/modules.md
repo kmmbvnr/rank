@@ -62,7 +62,7 @@ or compare two numeric operands. Numeric ranges also belong to the core:
 Values = 1 to 5
 Total = Values sum
 Size = Values len
-Bound = 0 max Size min 10
+Bound = 0 Size max 10 min
 ```
 
 `use cli` is required for `option`, `argument`, `flag` and `args`.
@@ -287,18 +287,18 @@ so repeated calls cost `O(MaximumN)` preparation and `O(1)` each afterward.
 Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
 The core functions `min` and `max` require no `use numbers`. Their postfix
-forms reduce one collection. Their direct binary forms are
-infix and return the smaller or larger numeric operand:
+forms with one argument reduce one collection. With two arguments they return
+the smaller or larger numeric operand:
 
 ```rank
 Smallest = Values min
-Left = A max B
-Bound = Low max Limit min High
+Left = A B max
+Bound = Low Limit max High min
 ```
 
 Binary chains associate from the left and broadcast over arrays using the
-ordinary trailing-axis rules. Parenthesize a compound right operand, as in
-`0 max (Limit - Used)`. A stored operation remains an ordinary function value,
+ordinary trailing-axis rules. Parenthesize a compound operand, as in
+`0 (Limit - Used) max`. A stored operation remains an ordinary function value,
 so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces

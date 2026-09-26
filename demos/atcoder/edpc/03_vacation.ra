@@ -29,9 +29,9 @@ fun best_score A B C
     Ai = A I
     Bi = B I
     Ci = C I
-    RestB = PrevB max PrevC
-    RestA = PrevA max PrevC
-    RestC = PrevA max PrevB
+    RestB = PrevB PrevC max
+    RestA = PrevA PrevC max
+    RestC = PrevA PrevB max
     NextA = Ai + RestB
     NextB = Bi + RestA
     NextC = Ci + RestC
@@ -40,6 +40,6 @@ fun best_score A B C
     PrevC = NextC
   end
 
-  Best = PrevA max PrevB
-  return Best max PrevC
+  Best = PrevA PrevB max
+  return Best PrevC max
 end

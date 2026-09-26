@@ -138,15 +138,16 @@ is not a field of the value before it, such as an option like `.descending`,
 and a column label after a table, stay separate arguments.
 
 For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. `min` and `max` also
-allow infix calls: `A max B` calls the current `max` with arguments `A` and
-`B`. Chains associate from the left. These names are not reserved; a local
-function or parameter shadows the builtin in both infix and postfix calls.
+Otherwise Rank tries larger supported arities first. `min` and `max` are
+ordinary postfix calls: `A B max` calls the current `max` with arguments `A`
+and `B`, and `A B max 5 min` chains from the left. The infix form `A max B` is
+an error that suggests `A B max`. These names are not reserved; a local
+function or parameter shadows the builtin.
 
 Builtins and aliases use the same argument rules: `Matrix i max` and
 `Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
-addressed row, write `(Matrix i) max`. `Matrix max i` is the infix form of
-the binary call. Two scalar arguments work the same way: `3 4 max` is `4`.
+addressed row, write `(Matrix i) max`. Two scalar arguments work the same
+way: `3 4 max` is `4`.
 A following function starts another step: `Values max sqrt` takes the square
 root of the maximum.
 

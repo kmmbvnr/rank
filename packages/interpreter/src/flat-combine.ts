@@ -68,13 +68,11 @@ function compile(
             return `${parameter === 0 ? 'left' : 'right'}[${field}]`;
         }
         if (chain.length === 3) {
-            const middle = chain[1], last = chain[2];
-            const infix = isNameExpression(middle) && ['min', 'max'].includes(middle.name);
-            const op = infix ? middle : last;
+            const op = chain[2];
             if (!isNameExpression(op) || !['min', 'max'].includes(op.name)
                 || statement.parameters.includes(op.name)) return undefined;
             builtins.add(op.name);
-            const left = emit(chain[0]), right = emit(infix ? chain[2] : chain[1]);
+            const left = emit(chain[0]), right = emit(chain[1]);
             if (left === undefined || right === undefined) return undefined;
             return variable(`${left} ${op.name === 'max' ? '>' : '<'} ${right} ? ${left} : ${right}`);
         }

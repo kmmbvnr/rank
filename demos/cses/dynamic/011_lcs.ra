@@ -32,7 +32,7 @@ fun longest_common A B
       else
         Above = Lengths i Col
         Left = Lengths Row j
-        Lengths Row Col = Above max Left
+        Lengths Row Col = Above Left max
       end
     end
   end

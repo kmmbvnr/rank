@@ -40,7 +40,7 @@ fun maximum_path Triangle Rows
       Right = Left + 1
       LeftValue = Work Left
       RightValue = Work Right
-      BestChild = LeftValue max RightValue
+      BestChild = LeftValue RightValue max
       Work Parent += BestChild
     end
   end

@@ -21,7 +21,7 @@ fun removing_digits N
         Previous = Value - Digit
         Candidate = Steps Previous + 1
         Current = Steps Value
-        Best = Current min Candidate
+        Best = Current Candidate min
         Steps Value = Best
       end
     end

@@ -51,9 +51,9 @@ fun investigate Graph N
       elif Candidate equal Dist Next
         Ways Next += Ways Current
         Ways Next %= Modulus
-        MinFlights Next = MinFlights Next min F
+        MinFlights Next = (MinFlights Next) F min
         F = MaxFlights Current + 1
-        MaxFlights Next = MaxFlights Next max F
+        MaxFlights Next = (MaxFlights Next) F max
       end
     end
   end

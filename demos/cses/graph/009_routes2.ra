@@ -50,7 +50,7 @@ fun all_pairs Graph NodeCount
     Column = Dist # Middle
     Row = Dist Middle
     Through = Column Row + outer
-    Updated = Dist min Through
+    Updated = Dist Through min
     Dist = Updated copy
   end
   return Dist

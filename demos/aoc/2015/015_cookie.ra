@@ -55,8 +55,8 @@ fun search Ingredients Position Remaining Totals
     Leftover = Remaining - Amount
     unpack A B = Ingredients NextPos Leftover Next search
 
-    Best = Best max A
-    Best500 = Best500 max B
+    Best = Best A max
+    Best500 = Best500 B max
   end
 
   return array Best Best500
@@ -65,7 +65,7 @@ end
 
 rem Clamp four properties at zero and multiply them into one score.
 fun cookiescore Totals
-  Clamped = Totals max 0
+  Clamped = Totals 0 max
   unpack Cap Dur Fla Tex Cal = Clamped
   return Cap * Dur * Fla * Tex
 end

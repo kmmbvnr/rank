@@ -14,5 +14,5 @@ fun minimum_reading_time Books
   Total = Books sum
   Longest = Books max
   Twice = Longest * 2
-  return Total max Twice
+  return Total Twice max
 end

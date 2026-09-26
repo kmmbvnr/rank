@@ -11,7 +11,7 @@ for A in 1 until 100
   for # in 1 until 100
     Power *= A
     Total = Power digit_sum
-    Best = Best max Total
+    Best = Best Total max
   end
 end
 

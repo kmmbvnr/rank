@@ -982,11 +982,11 @@ end`);
 });
 
 describe('compiled integer extrema', () => {
-    it('preserves infix chains, parentheses and postfix calls', () => {
+    it('preserves chains, parentheses and postfix calls', () => {
         const result = compare(`use numbers
 Total = 0
 for I in -2 to 2
-  X = I max 0 min 1
+  X = I 0 max 1 min
   Y = I (0 - I) max
   Total += X + Y
 end
@@ -1000,7 +1000,7 @@ Total`);
 A = array 9007199254740993 9007199254740995
 Total = 0
 for I in 0 until 2
-  X = A I max 9007199254740994
+  X = (A I) 9007199254740994 max
   Total += X
 end
 Total`);
@@ -1014,13 +1014,13 @@ fun ${name} A B
   return A + B
 end
 for I in 1 to 2
-  X = I ${name} 10
+  X = I 10 ${name}
 end
 X`);
         expect(result.value).toBe('12');
         expect(result.loops).toBe(0);
         expect(compare(`for I in 0 until 1
-  X = 2 ${name} 3
+  X = 2 3 ${name}
 end`).loops).toBe(1);
     });
 
@@ -1028,7 +1028,7 @@ end`).loops).toBe(1);
         const result = compare(`use numbers
 for I in 0 until 2
   Done = I
-  X = I max (1 // (1 - I))
+  X = I (1 // (1 - I)) max
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -1046,7 +1046,7 @@ end`);
     it('retains skipped malformed chains', () => {
         const result = compare(`use numbers
 for I in 0 until 0
-  X = 1 max 2 3
+  X = 1 2 3 max
 end`);
         expect(result).not.toHaveProperty('error');
     });

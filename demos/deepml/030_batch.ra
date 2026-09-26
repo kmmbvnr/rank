@@ -12,7 +12,7 @@ fun batch_iterator X Size
 
   for First in 0 until N by Size
     Last = First + Size
-    Last = Last min N
+    Last = Last N min
 
     yield X from First until Last
   end
@@ -31,7 +31,7 @@ fun batch_pairs X Y Size
 
   for First in 0 until N by Size
     Last = First + Size
-    Last = Last min N
+    Last = Last N min
 
     Batch = record
       .x = X from First until Last

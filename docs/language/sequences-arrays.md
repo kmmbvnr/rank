@@ -921,24 +921,28 @@ A finite lazy source may define a direct cardinality count. The numbers module
 uses this hook for `N divisors count`; other numeric sequences still fail the
 boolean-cell requirement.
 
-Postfix `min` and `max` reduce one finite collection. Infix binary forms choose
-between numeric values and broadcast over arrays:
+`min` and `max` with one argument reduce one finite collection. With two
+arguments they choose between numeric values and broadcast over arrays. Like
+every other function, they follow their arguments:
 
 ```rank
 Largest = A max
-Bound = Low max High
-Clamped = Values max 0
+Bound = Low High max
+Clamped = Values 0 max
+Best = Best Now .spent min
 ```
 
-Binary chains associate from the left. `axis` and `rank` modify the postfix
-reduction; the binary form already follows ordinary elementwise broadcasting.
+Chains associate from the left: `Low High max Limit min`. `axis` and `rank`
+modify the one-argument reduction; the binary form already follows ordinary
+elementwise broadcasting. Parenthesize a compound operand, as in
+`0 (Limit - Used) max`. The infix form `Low max High` is rejected with a hint
+to write `Low High max`.
 
-Infix calls resolve the function normally, after evaluating the left and right
-operands. A user-defined `min` or `max` takes precedence, even without
-`use numbers`. For example, after `fun max A B` returning `A + B`, both
-`3 max 4` and `3 4 max` return `7`. A named builtin (`Op = max`) supports
-the same lazy binary broadcasting as infix calls. Equal numeric operands
-preserve the left operand, including its integer/real representation.
+A user-defined `min` or `max` takes precedence, even without `use numbers`.
+For example, after `fun max A B` returning `A + B`, `3 4 max` returns `7`.
+A named builtin (`Op = max`) supports the same lazy binary broadcasting.
+Equal numeric operands preserve the left operand, including its integer/real
+representation.
 
 ## Scan
 

@@ -28,6 +28,6 @@ fun solve Weights
 
     Include = Next (Left + Weight) divide
     Exclude = Next Left divide
-    return Include min Exclude
+    return Include Exclude min
   end
 end

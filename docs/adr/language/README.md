@@ -119,7 +119,7 @@ flowchart TD
 | ADR | Title | Summary |
 |---|---|---|
 | [ADR-0300](0300-intentional-intermediate-variables.md) | Intentional Intermediate Variables Over Vertical Pipelines | Self-documenting, REPL-inspectable step-by-step assignments over horizontal pipe chains. |
-| [ADR-0301](0301-data-first-calling-convention.md) | Data-First Calling Convention and Arity Resolution | Postfix call flow (`A B gcd`), zero-parenthesis invocation, and left-associative arity absorption. |
+| [ADR-0301](0301-data-first-calling-convention.md) | Data-First Calling Convention and Arity Resolution | Postfix call flow (`A B gcd`), zero-parenthesis invocation, left-associative arity absorption, and no infix `min`/`max`. |
 | [ADR-0302](0302-function-declarations-closures-and-tail-calls.md) | Function Declarations, Closures, and Tail-Call Optimization (`fun`) | Zero-parenthesis function definitions, declaration hoisting, lexical closures, and guaranteed TCO frame replacement. |
 | [ADR-0303](0303-first-class-automatic-memoization.md) | First-Class Automatic Memoization (`memo`) | First-class `memo` keyword turning pure recursive functions into dynamic programming state caches. |
 | [ADR-0304](0304-unify-loops-under-for.md) | Unification of All Loops Under `for` | Single iteration statement replacing `while`/`loop`, explicit nested blocks, and single-level `break`/`continue`. |

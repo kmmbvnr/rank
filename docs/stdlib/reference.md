@@ -88,8 +88,8 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 
 | Form | Result | Summary |
 | --- | --- | --- |
-| `Left max Right` | number | Larger of two numbers, or the largest of one collection. |
-| `Left min Right` | number | Smaller of two numbers, or the smallest of one collection. |
+| `Left Right max` | number | Larger of two numbers, or the largest of one collection. |
+| `Left Right min` | number | Smaller of two numbers, or the smallest of one collection. |
 | `Values sum` | number | Adds every numeric cell of an array, collection or finite sequence. |
 | `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
 | `Value bytes` | bytes | Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes. |
@@ -101,7 +101,7 @@ These constructs are always available.
 
 | Form | Summary |
 | --- | --- |
-| `Left max Right` | Infix min and max over two numbers. |
+| `Left Right max` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound. |
 | `Low until High` | Counting range with an exclusive upper bound. |
 

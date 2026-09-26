@@ -20,8 +20,8 @@ assert(Number.isSafeInteger(size) && size > 0);
 assert(Number.isSafeInteger(samples) && samples >= 3);
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const bodies = {
-  infixmax: 'Best = Best max I', aliasmax: 'Best = Best I Op',
-  infixmin: 'Best = Best min (-I)', aliasmin: 'Best = Best (-I) Op',
+  directmax: 'Best = Best I max', aliasmax: 'Best = Best I Op',
+  directmin: 'Best = Best (-I) min', aliasmin: 'Best = Best (-I) Op',
   arithmetic: 'Best += I', conditional: 'if I greater Best\n Best = I\n end',
 };
 const source = `use numbers\n${Object.entries(bodies).map(([name, body]) => `
@@ -37,7 +37,7 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const checkouts = { candidate: root, ...(options.baseline ? { baseline: resolve(options.baseline) } : {}) };
 const report = { metadata: { date: new Date().toISOString(), node: process.version,
   cpu: cpus()[0]?.model, size, samples, source, sourceHash: hash(source),
-  policy: 'median ratios: infix/alias <= 1.5; candidate/baseline <= 1.25; alternating order',
+  policy: 'median ratios: direct/alias <= 1.5; candidate/baseline <= 1.25; alternating order',
 }, versions: {}, comparisons: {}, failures: [] };
 const runtimes = {};
 for (const [name, checkout] of Object.entries(checkouts)) {
@@ -90,8 +90,8 @@ const ratio = (label, numerator, denominator, limit) => {
   if (value > limit) report.failures.push(`${label}: ${value.toFixed(2)} > ${limit}`);
 };
 const candidate = report.versions.candidate;
-for (const operation of ['min', 'max']) ratio(`infix/alias ${operation}`,
-  candidate.scalar[`infix${operation}`], candidate.scalar[`alias${operation}`], 1.5);
+for (const operation of ['min', 'max']) ratio(`direct/alias ${operation}`,
+  candidate.scalar[`direct${operation}`], candidate.scalar[`alias${operation}`], 1.5);
 if (report.versions.baseline) {
   for (const key of Object.keys(bodies)) ratio(`candidate/baseline ${key}`,
     candidate.scalar[key], report.versions.baseline.scalar[key], 1.25);

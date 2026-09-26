@@ -23,7 +23,7 @@ fun minimum_coins Coins Target
         Previous = Total - Coin
         Candidate = Best Previous + 1
         Current = Best Total
-        Minimum = Current min Candidate
+        Minimum = Current Candidate min
         Best Total = Minimum
       end
     end

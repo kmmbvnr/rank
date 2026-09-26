@@ -36,13 +36,13 @@ describe('Rank mathematical functions', () => {
             .toThrowError('divisors expects a positive integer');
     });
 
-    it('uses postfix reductions and infix min/max chains', () => {
+    it('uses postfix reductions and binary min/max chains', () => {
         expect(run('use numbers\n(array 3 1 2) max')).toBe('3');
         expect(run('use numbers\n(array 3 1 2) min')).toBe('1');
-        expect(run('use numbers\n3 min 1 min 2')).toBe('1');
-        expect(run('use numbers\n9 min 4 max 7')).toBe('7');
-        expect(run('use numbers\n3 max (1 + 4)')).toBe('5');
-        expect(run('use numbers\n(array 1 4) max 3')).toBe('3 4');
+        expect(run('use numbers\n3 1 min 2 min')).toBe('1');
+        expect(run('use numbers\n9 4 min 7 max')).toBe('7');
+        expect(run('use numbers\n3 (1 + 4) max')).toBe('5');
+        expect(run('use numbers\n(array 1 4) 3 max')).toBe('3 4');
         expect(run([
             'use numbers',
             'M = array shape 2 2',
@@ -52,7 +52,8 @@ describe('Rank mathematical functions', () => {
             '(M 0) max',
         ].join('\n'))).toBe('7');
         expect(run('use numbers\n3 2 max')).toBe('3');
-        expect(run('3 max 2')).toBe('3');
+        expect(run('3 2 max')).toBe('3');
+        expect(() => run('3 max 2')).toThrowError('Write `Left Right max` instead of `Left max Right`');
     });
 
     it('reduces numeric sets', () => {
