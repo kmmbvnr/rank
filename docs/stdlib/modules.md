@@ -549,7 +549,8 @@ the leading axis; text counts Unicode code points. Sequences stay lazy, and
 storage while preserving its shape. On a numeric `+ segment`, it creates an
 independent persistent version that shares unchanged nodes. On a finite
 sequence, it materializes values and stacks equally shaped array items along
-a new leading axis, like postfix `array`. `transpose` requires an array, so
+a new leading axis, like postfix `array`. An array whose cells are arrays or
+finite sequences of one shape stacks them after its own axes. `transpose` requires an array, so
 copy a sequence explicitly before transposing it.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime

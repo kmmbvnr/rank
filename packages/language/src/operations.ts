@@ -464,7 +464,7 @@ export const operations: readonly Operation[] = [
         form: 'Mask TrueValues FalseValues choose', result: 'value', lazy: true,
         summary: 'Selects each cell by a boolean mask; SQLite expressions become CASE.' },
     { name: 'copy', module: 'sequences', arities: [1], form: 'Values copy', result: 'array',
-        summary: 'Independent dense copy of an array or finite sequence; equally shaped sequence items stack.' },
+        summary: 'Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack.' },
     { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer',
         scalarCellArrayNoCallback: 'boolean',
         summary: 'Number of true cells, or of source items a lazy mask selects.' },

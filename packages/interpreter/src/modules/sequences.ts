@@ -4,7 +4,7 @@ import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
-import { materializeSequence, sequence, takeDropValue, windowValue } from '../sequence.js';
+import { materializeSequence, sequence, stackItems, takeDropValue, windowValue } from '../sequence.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
@@ -226,7 +226,10 @@ function copyArray(value: RankValue): RankArray {
         { length: size },
         (_, index) => value.itemAt?.(index) ?? value.items[index],
     );
-    return ownedArray(items, value.shape);
+    // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
+    if (!items.some(item => isRankArray(item) || isRankSequence(item))) return ownedArray(items, value.shape);
+    const cells = items.map(item => isRankSequence(item) ? materializeSequence(item) : item);
+    return stackItems(cells, value.shape, 'array');
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {

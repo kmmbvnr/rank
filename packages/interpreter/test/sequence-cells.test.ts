@@ -130,3 +130,35 @@ Plain = Cipher KeyStream bxor`);
         expect(runtime.execute('Plain sum')).toBe(308n);
     });
 });
+
+describe('arrays of array cells', () => {
+    it('stacks equally shaped cells after the array axes through copy', () => {
+        const runtime = new Interpreter();
+        runtime.execute('use sequences\nA = array 1 2 3\nMatrix = (array A (A * 10)) copy');
+        expect(runtime.variables.get('Matrix')).toMatchObject({
+            shape: [2, 3], items: [1n, 2n, 3n, 10n, 20n, 30n],
+        });
+        expect(runtime.execute('Matrix transpose 2 1')).toBe(30n);
+    });
+
+    it('materializes finite sequence cells before stacking', () => {
+        expect(run('use sequences\nM = (array (1 to 3) (array 4 5 6)) copy\nM shape')).toBe('2 3');
+        expect(run('use sequences\nM = (array (1 to 2) (3 to 4)) copy\nM 1 0')).toBe('3');
+    });
+
+    it('stacks the cells of a matrix of vectors after both axes', () => {
+        expect(run(`use sequences
+V = array 1 2
+Grid = (array V V V V) (array 2 2) reshape
+Grid copy shape`)).toBe('2 2 2');
+    });
+
+    it.each(['array 1 2', '3'])('rejects cells of another shape or kind: %s', other => {
+        expect(() => run(`use sequences\n(array (array 1 2 3) (${other})) copy`))
+            .toThrowError('materialized array items must have the same shape');
+    });
+
+    it('leaves an array of scalar cells unstacked', () => {
+        expect(run('use sequences\n(array 1 2 3) copy shape')).toBe('3');
+    });
+});

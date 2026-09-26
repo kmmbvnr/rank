@@ -312,7 +312,7 @@ Shapes, orderings, windows and lazy sources.
 | `Mask any` | boolean | True when one boolean cell is true; empty collections are false. |
 | `Values argsort .descending` | array | Stable zero-based positions that put the values in order. |
 | `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
-| `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped sequence items stack. |
+| `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
 | `Values Count drop` | value, lazy | Skips Count leading items; sequences stay lazy and arrays slice their leading axis. |
 | `Values Target find` | integer | First zero-based position equal to Target in a vector or text. |

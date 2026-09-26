@@ -161,6 +161,17 @@ the stream describes its one-dimensional sequence length; `Matrix shape`
 describes the materialized tensor. `transpose` does not implicitly consume a
 sequence: use `copy` first. User generators remain single-pass.
 
+An array whose cells are arrays or finite sequences stacks them the same way,
+with the new axes after its own. Every cell must then be an array or sequence
+of one shape; a different shape, or a mixture with scalar cells, raises
+`DimensionMismatch`. Series computed as separate vectors become the columns of
+a matrix:
+
+```rank
+Series = (array Month Interest Balance) copy transpose
+Series shape          rem 360 3 for 360 months
+```
+
 ## Derived values and mutation
 
 Built-in pure tensor computations reuse demanded cells while their source

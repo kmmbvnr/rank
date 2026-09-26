@@ -1,0 +1,78 @@
+rem Dyalog Programming Contest 2010
+rem Task 2: Base Model Calculation
+rem Monthly payments to the bank and the parents,
+rem and fifteen monthly series comparing buying
+rem a home with renting one, a row per month.
+
+use "001_params"
+use io
+use cli
+use sequences
+
+argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+
+Model = Input read getparams buyorrent
+Model .payments print
+Series = Model .series
+Series shape print
+Series 359 14 print
+
+
+rem Payments and a Term by 15 matrix of the series:
+rem month, bank and parent interest, repayment and
+rem balance, tax savings, property tax, home value,
+rem savings while owning, cashout value, rent,
+rem savings while renting and advantage of buying.
+fun buyorrent Params
+  unpack Price Costs Term BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
+  Month = (1 to (Term integer)) copy
+  Bank = BankAmt (BankRate / 1200) Month loan
+  Dad = DadAmt (DadRate / 1200) Month loan
+
+  rem Rent and the assessed home value change once a year.
+  Yearly = (1 + Infl / 100) ** ((Month - 1) // 12)
+  HomeVal = Price * (1 + Infl / 100) ** (Month / 12)
+  Assessed = Price * Yearly * PropRate / 200
+  PropTax = (Month % 6 equal 0) Assessed 0.0 choose
+  TaxSave = Bank .int * Tax / 100
+  Growth = 1 + SavRate / 1200 * (1 - Tax / 100)
+
+  OwnFlow = TaxSave - PropTax - Bank .pmt - Dad .pmt
+  SaveOwn = OwnFlow Growth 0.0 accrue
+  HomeCash = HomeVal + SaveOwn - Bank .bal - Dad .bal
+  MoRent = Rent * Yearly
+  Saved = Price + Costs - BankAmt - DadAmt
+  SaveRent = (-MoRent) Growth Saved accrue
+
+  Series = array Month (Bank .int) (Bank .prn) (Bank .bal) (Dad .int) (Dad .prn) (Dad .bal) TaxSave PropTax HomeVal SaveOwn HomeCash MoRent SaveRent (HomeCash - SaveRent)
+  return record
+    .payments = array (Bank .pmt) (Dad .pmt)
+    .series = Series copy transpose
+  end
+end
+
+
+rem Equal monthly payments over the whole term,
+rem each balance in closed form rather than a loop.
+fun loan Amount Rate Month
+  Payment = Amount * Rate / (1 - (1 + Rate) ** -(Month len))
+  Compound = (1 + Rate) ** Month
+  Balance = Amount * Compound - Payment * (Compound - 1) / Rate
+  Interest = (Balance + Payment) / (1 + Rate) * Rate
+  return record
+    .pmt = Payment
+    .int = Interest
+    .prn = Payment - Interest
+    .bal = Balance
+  end
+end
+
+
+rem Balance after each month: the previous balance
+rem grown by Growth, plus that month's flow.
+rem Discounting to month zero turns it into a sum.
+fun accrue Flow Growth Start
+  Discount = Growth ** -((1 to (Flow len)) copy)
+  Saved = (Flow * Discount) + scan
+  return (Start + Saved) / Discount
+end

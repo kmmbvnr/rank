@@ -384,25 +384,38 @@ export function materializeSequence(source: RankSequence): RankArray {
     if (source.plan.size.kind === 'infinite') {
         throw new RankError('cannot materialize an infinite sequence');
     }
+    return stackItems(interruptibleValues(source.plan.iterate(), 'materializing sequence'), undefined, 'sequence');
+}
+
+/**
+ * Dense array of the items along the frame axes. Array items with one shape
+ * are stacked, their axes following the frame; scalar or record items fill the
+ * frame directly. The frame defaults to one axis holding every item.
+ */
+export function stackItems(
+    values: Iterable<RankValue>,
+    frame: readonly number[] | undefined,
+    source: 'sequence' | 'array',
+): RankArray {
+    const mismatch = () => new RankError(`materialized ${source} items must have the same shape`, 'DimensionMismatch');
     const items: RankValue[] = [];
     let cellShape: readonly number[] | undefined;
     let arrays: boolean | undefined;
     let count = 0;
-    for (const value of interruptibleValues(source.plan.iterate(), 'materializing sequence')) {
+    for (const value of values) {
+        checkpoint(`materializing ${source}`);
         const array = isRankArray(value);
         arrays ??= array;
-        if (arrays !== array) {
-            throw new RankError('materialized sequence items must have the same shape', 'DimensionMismatch');
-        }
+        if (arrays !== array) throw mismatch();
         if (array) {
             cellShape ??= value.shape;
             if (cellShape.length !== value.shape.length
                 || cellShape.some((size, axis) => size !== value.shape[axis])) {
-                throw new RankError('materialized sequence items must have the same shape', 'DimensionMismatch');
+                throw mismatch();
             }
             const size = value.shape.reduce((product, dimension) => product * dimension, 1);
             for (let index = 0; index < size; index += 1) {
-                checkpoint('materializing sequence');
+                checkpoint(`materializing ${source}`);
                 items.push(readArrayItem(value, index));
             }
         } else {
@@ -410,7 +423,7 @@ export function materializeSequence(source: RankSequence): RankArray {
         }
         count += 1;
     }
-    return ownedArray(items, [count, ...(cellShape ?? [])]);
+    return ownedArray(items, [...(frame ?? [count]), ...(cellShape ?? [])]);
 }
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
