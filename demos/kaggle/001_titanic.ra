@@ -35,7 +35,9 @@ fun prepare_features Train Test
   Test .Female = (Test .Sex equal "female") binary
 
   Features = array .Female .Pclass .Age .Fare
-  return array (Train Features) (Test Features)
+  X = Train Features
+  Xtest = Test Features
+  return array X Xtest
 end
 
 
