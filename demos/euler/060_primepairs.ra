@@ -97,7 +97,7 @@ fun min_five Data Best
 
       Later = Rest (i + 1) drop
       Neighbors = Graph P
-      Next = (Later filter in Neighbors) copy
+      Next = Later filter in Neighbors
       Next Left Total search
     end
     return Best

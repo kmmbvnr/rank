@@ -2155,6 +2155,8 @@ export class Interpreter {
                                 }
                                 return selectAxis(source, axis, mask);
                             }
+                            // An empty mask would read as an empty index list and select an array.
+                            if (isRankArray(source) && isRankArray(mask)) return maskSelection(source, mask);
                             // Selection already defines every mask shape a collection allows.
                             return interpreter.applySelectors([source, mask]);
                         }
@@ -4759,7 +4761,7 @@ export class Interpreter {
         }
         if (operator === 'notin') {
             const result = this.evaluateBinary('in', left, right);
-            return isRankSequence(result)
+            return isRankSequence(result) && !isRankSequenceMask(result)
                 ? mapSequence(result, 'not in', item => this.evaluateUnary('not', item))
                 : this.evaluateUnary('not', result);
         }
@@ -4838,7 +4840,8 @@ export class Interpreter {
                 }
                 return ownedArray(items, source.shape, true);
             }
-            if (isRankSequence(left)) return mapSequence(left, 'in', contains);
+            // A membership test over a sequence is a mask, so it can select from that sequence.
+            if (isRankSequence(left)) return sequenceMask(left, { name: 'in', test: item => expectBoolean(contains(item)) });
             return contains(left);
         }
         if (isRankSequence(left) || isRankSequence(right)) {
@@ -5756,7 +5759,11 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         throw new RankError('value application requires a sequence and one selector');
     }
 
-    const [source, selector] = values;
+    return maskSelection(values[0], values[1]);
+}
+
+/** The atoms a boolean mask keeps, as a lazy selection even when nothing is kept. */
+function maskSelection(source: RankArray, selector: RankArray): RankSequence {
     const sourceSize = arraySize(source.shape);
     if (!sameShape(source.shape, selector.shape)) {
         throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);

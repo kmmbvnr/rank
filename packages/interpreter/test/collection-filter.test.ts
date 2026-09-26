@@ -105,4 +105,16 @@ describe('filter over plain collections', () => {
         expect(() => run('use numbers\nX = 3\nX filter greater 1'))
             .toThrow(/array, sequence or table/);
     });
+
+    it('filters the result of a filter by membership', () => {
+        expect(run(`${NUMBERS}Kept = N filter greater 3\nKept filter in (array 2 5 7 11)`)).toBe('5 7');
+        expect(run(`${NUMBERS}Kept = N filter greater 3\nKept filter not in (array 5 7)`)).toBe('4 6 8 9 10');
+    });
+
+    it('returns a lazy selection for an empty array as for any other', () => {
+        expect(run(`${NUMBERS}E = N 10 drop\n(E filter in N) type`)).toBe('.sequence');
+        expect(run(`${NUMBERS}E = N 10 drop\n(E filter greater 1) type`)).toBe('.sequence');
+        expect(run(`${NUMBERS}Next = N filter in N\nfor I in 0 to 10\n  Rest = N I drop\n  Next = Rest filter in N\nend\nNext len`))
+            .toBe('0');
+    });
 });
