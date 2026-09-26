@@ -24,7 +24,7 @@ fun solve N
   queue push 0
   Head = 0
 
-  for Head less queue len
+  for queue len greater Head
     Cell = queue Head
     Y = Cell // N
     X = Cell % N

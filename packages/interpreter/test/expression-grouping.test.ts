@@ -62,10 +62,17 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(formatValue(runtime.execute('A copy (A copy) add')!)).toBe('2 4 6');
     });
 
-    it('treats each comparison operand and logical clause independently', () => {
+    it('applies calls after a comparison to its result and keeps logical clauses independent', () => {
         const arrays = 'A = array 1 2\nB = array 1 3\n';
-        expect(run(arrays + 'A len equal B len')).toBe('true');
+        // After a bare left operand, a call applies to the comparison's result.
+        expect(run(arrays + 'A equal B count')).toBe('1');
         expect(run(arrays + '(A equal B) count')).toBe('1');
+        expect(run('use numbers\nC = array 1 2 3 4\nC greater 2 sum')).toBe('7');
+        expect(run('use numbers\nC = array 1 2 3 4\nC + 1 greater 3 sum')).toBe('9');
+        // A pipeline on the left keeps both sides independent.
+        expect(run(arrays + 'A len equal B len')).toBe('true');
+        expect(run(arrays + 'B len equal 2')).toBe('true');
+        expect(run('use numbers\nC = array 1 2 3 4\nMask = C even or C greater 3\nMask sum')).toBe('6');
         expect(run('not 2 even')).toBe('false');
         expect(run('not 2 less 3')).toBe('false');
         expect(run('not 2 even or 3 odd')).toBe('true');

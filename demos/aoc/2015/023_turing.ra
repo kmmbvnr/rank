@@ -21,7 +21,7 @@ fun execute Program Start
   B = 0
   PC = 0
 
-  for PC at least 0 and PC less Program len
+  for PC at least 0 and Program len greater PC
     Words = Program PC " " split
     Op = Words 0
 

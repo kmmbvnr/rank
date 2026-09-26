@@ -9,7 +9,11 @@ import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
 import { operationArities } from './operations.js';
 
+// A comparison takes one operand on each side and binds below arithmetic, so
+// calls after it apply to its result, as on a calculator: `A greater 2 sum`.
+// Logical operators still separate independent clauses.
 const precedence: Readonly<Record<string, number>> = {
+    equal: 0.5, notequal: 0.5, less: 0.5, greater: 0.5, atleast: 0.5, atmost: 0.5, multipleby: 0.5,
     to: 1, until: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, '%': 3, '**': 4,
 };
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is']);
@@ -43,8 +47,9 @@ export interface GroupingOptions {
 
 /**
  * Whitespace can mean addressing or application. Resolve that distinction once,
- * before analysis and execution consume the tree. Parentheses and comparisons
- * bound independent formulas; arithmetic keeps its mathematical precedence.
+ * before analysis and execution consume the tree. Parentheses bound independent
+ * formulas; arithmetic keeps its mathematical precedence, and comparisons bind
+ * below it, so a call after a comparison applies to the comparison's result.
  */
 export function groupExpressions(program: Program, options: GroupingOptions = {}): void {
     const errors: GroupingDiagnostic[] = [];
@@ -86,6 +91,13 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     const report = (node: AstNode, message: string, property?: string) => {
         errors.push({ node, message, cst: property ? GrammarUtils.findNodeForProperty(node.$cstNode, property) : node.$cstNode });
     };
+    function hasCall(expression: Expression): boolean {
+        if (isMaterializeExpression(expression)) return true;
+        if (isApplicationExpression(expression)) return flatten(expression).slice(1)
+            .some(part => callable(part) || (isNameExpression(part) && symbolic.has(part.name)));
+        return isBinaryExpression(expression) && !!precedence[expression.operator]
+            && (hasCall(expression.left) || hasCall(expression.right));
+    }
     type Token = { kind: 'value'; value: Expression }
         | { kind: 'operator'; value: BinaryExpression }
         | { kind: 'call'; parts: Expression[]; original: Expression }
@@ -93,6 +105,12 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         | { kind: 'materialize'; original: Expression };
 
     function tokens(expression: Expression): Token[] {
+        // A pipeline on the left of a comparison makes it symmetric: each side
+        // keeps its own calls (`A len equal B len`). Only a bare left operand
+        // lets later calls apply to the comparison's result (`A greater 2 sum`).
+        if (isBinaryExpression(expression) && comparisons.has(expression.operator) && hasCall(expression.left)) {
+            return [{ kind: 'value', value: visitChildren(expression) as Expression }];
+        }
         if (isBinaryExpression(expression) && precedence[expression.operator]) {
             const left = flatten(expression.left);
             const last = left.at(-1);

@@ -18,7 +18,7 @@ fun tolerance_fill Grid StartY StartX T
   Mask StartY StartX = true
   Head = 0
 
-  for Head less Pending len
+  for Pending len greater Head
     Position = Pending Head
     Y = Position // W
     X = Position % W

@@ -42,5 +42,5 @@ end
 rem Return true when a nonnegative integer reads the same in both directions.
 fun palindrome Value
   Text = Value text
-  return Text equal Text reverse
+  return Text reverse equal Text
 end

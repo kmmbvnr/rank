@@ -38,7 +38,7 @@ fun range_updates Values Queries
       Right = Query 2 - 1
       Change = Query 3
       Updates Left += Change
-      if Right + 1 less Values len
+      if Values len greater Right + 1
         Updates (Right + 1) -= Change
       end
     else

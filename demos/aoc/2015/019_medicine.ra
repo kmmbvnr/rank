@@ -58,7 +58,7 @@ end
 rem Test whether Pattern occurs at one Unicode position in Text.
 fun matchat Text Pattern Start
   Finish = Start + (Pattern len)
-  if Finish greater Text len
+  if Text len less Finish
     return false
   end
   Part = Text from Start until Finish

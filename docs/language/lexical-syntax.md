@@ -315,9 +315,18 @@ A max + 1
 ```
 
 To process just one operand, group it explicitly: `A - (A mean)` or
-`0 until (Classes len)`. Comparisons separate completed values, so
-`A len equal B len` means `(A len) equal (B len)`. Processing a comparison
-result requires an explicit group: `(A equal B) count`.
+`0 until (Classes len)`.
+
+A comparison works like the arithmetic above it, as on a calculator: after a
+plain left operand, the comparison takes the next value and a following
+function processes its result. `A greater 2 sum` means `(A greater 2) sum`,
+and `A + 1 greater 3 count` counts the cells of `A + 1` above 3. When the left
+operand is itself a pipeline, both sides stay independent, so
+`A len equal B len` still means `(A len) equal (B len)` and
+`X date less Y date` compares two dates. To test a plain value against a
+processed one, put the processed side first (`Text reverse equal Text`,
+`Queue len greater Head`) or group it (`Head less (Queue len)`). `and`, `or`
+and `xor` always separate independent clauses.
 
 An unparenthesized value expression permits a formula, a block of successive
 function calls, and an optional arithmetic continuation. A new function after

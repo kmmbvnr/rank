@@ -71,7 +71,7 @@ fun labyrinth Grid
   queue push Start
   Head = 0
 
-  for Head less queue len
+  for queue len greater Head
     Position = queue Head
     Row = Position // W
     Column = Position % W

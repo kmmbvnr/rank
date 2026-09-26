@@ -21,7 +21,7 @@ fun substring_divisible_sum Digits
 
   fun search Prefix
     Length = Prefix len
-    if Length equal Digits len
+    if Digits len equal Length
       Total += Prefix integer
       return 0
     end

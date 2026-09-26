@@ -44,6 +44,9 @@ Only the first argument may absorb a multi-part addressing chain. If multiple ar
 
 A field label is the exception that needs no variable: a label naming a field of the record or object directly before it is read first, so the pair counts as one argument. `Z Model .weights matmul` passes `Z` and the `.weights` field, and `R .slots max` reduces that field. Labels that are not fields of the preceding value (options such as `.descending`, or a column label after a table) remain separate arguments.
 
+### Comparisons in a Pipeline
+A comparison continues the left-to-right flow like arithmetic does: after a plain left operand it takes the next value, and a following function receives the comparison's result, so `A greater 2 sum` needs no parentheses. When the left operand is already a pipeline (`A len equal B len`, `X date less Y date`), the two sides stay independent, which keeps symmetric comparisons free of parentheses too. `and`, `or` and `xor` always separate independent clauses.
+
 ### 3. Disambiguating Addressing from Calls
 - If the trailing identifier is a function in scope, preceding values are treated as arguments:
   ```rank

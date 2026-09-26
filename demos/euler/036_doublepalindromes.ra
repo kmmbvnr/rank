@@ -20,9 +20,9 @@ fun double_palindrome_sum Limit
   Total = 0
   for Value in 1 until Limit by 2
     Decimal = Value text
-    if Decimal equal Decimal reverse
+    if Decimal reverse equal Decimal
       Binary = Value binary
-      if Binary equal Binary reverse
+      if Binary reverse equal Binary
         Total += Value
       end
     end
