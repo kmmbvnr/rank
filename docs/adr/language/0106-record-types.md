@@ -50,7 +50,22 @@ Records are part of the deliberate, closed list of reference types (ADR-0101):
   ```
   This is critical for autograd graphs, Disjoint-Set Union (DSU), and tree representations.
 
-### 5. Clear Tripartite Distinction
+### 5. Functional Update with a `with` Block
+Because records share identity, deriving a new state from an old one (search nodes, game states, simulations) must not mutate the original. A `with` block makes a shallow copy and changes only the listed fields:
+```rank
+Next = State with
+  .mana -= 53
+  .boss -= 4
+  .spent += 53
+end
+```
+- Each line uses `=` or any compound assignment operator; compound operators read the source record's value.
+- The field rules of assignment still hold: no unknown fields, no repeated fields, no type change.
+- The copy is shallow. Arrays inside keep copy-on-write value semantics; nested records stay shared.
+- Only the block form exists. An inline form (`State with .mana -= 53 .boss -= 4`) was rejected: a field value such as `Mana - 53 .boss` cannot be told apart from a field read without extra lookahead, and the block mirrors `record ... end`.
+- `with` is a contextual keyword: it still works as a name, as in `reduce with`.
+
+### 6. Clear Tripartite Distinction
 Rank strictly differentiates between three data-mapping structures:
 1. **`record`:** Statically closed schema, symbol keys (`.field`), typed fields, reference identity.
 2. **`object`:** Dynamic JSON-compatible key-value maps with string keys (`"key"`).
@@ -63,6 +78,7 @@ Rank strictly differentiates between three data-mapping structures:
 * **Zero class boilerplate:** No `class`, `constructor`, `self`, or `this` keywords needed.
 * **Autograd and graph friendly:** Shared reference semantics allow natural graph algorithms without pointer gymnastics.
 * **Predictable types:** Field types cannot drift or become corrupted during computation.
+* **Cheap state transitions:** `State with ... end` names only the fields that change, so records replace positional state arrays.
 
 ### Negative & Trade-offs
 * **Mutable reference discipline:** Because records share state, developers must exercise care when mutating records stored in sets or memoization caches.
@@ -73,3 +89,4 @@ Rank strictly differentiates between three data-mapping structures:
 * ADR-0101: [Value Semantics with Copy-on-Write for Arrays and Tensors](0101-value-semantics-and-copy-on-write.md)
 * ADR-0105: [Symbol Scalars for Labels, Enums, Fields, and Type Tags](0105-symbol-scalars-for-labels-and-enums.md)
 * Initial commit `f8ef89b` (2026-09-08)
+* Issue #8: functional record update (2026-09-26)

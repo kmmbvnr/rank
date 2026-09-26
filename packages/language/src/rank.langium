@@ -184,6 +184,10 @@ RecordExpression:
 RecordField:
     '.' name=Identifier '=' value=Expression;
 
+// `State with` copies a record and changes the listed fields of the copy.
+RecordUpdateField:
+    '.' name=Identifier operator=AssignmentOperator value=Expression;
+
 ArrayRow:
     items+=ArrayItem+;
 
@@ -199,7 +203,7 @@ ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
 
 ArrayReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'sql' | 'explain' | 'update' | 'ascending' | 'descending';
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 AddressItem:
     spread?='unpack' value=ArrayAtom |
@@ -304,6 +308,8 @@ PrimaryApplicationExpression returns Expression:
         {infer TableSelectExpression.source=current} sourceFields+=LabelLiteral?
             'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
                 NL+ (entries+=SelectEntry NL+)+ 'end') |
+        {infer RecordUpdateExpression.source=current}
+            'with' NL+ (fields+=RecordUpdateField NL+)+ 'end' |
         {infer AliasedTableExpression.source=current} field=LabelLiteral?
             'alias' name=LabelLiteral |
         {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY)
@@ -465,7 +471,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'text' | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'delete' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'text' | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -474,7 +480,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'ascending' | 'descending';
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

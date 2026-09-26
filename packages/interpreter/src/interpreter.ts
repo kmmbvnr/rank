@@ -64,6 +64,7 @@ import {
     isPushStatement,
     isRecordExpression,
     isRecordField,
+    isRecordUpdateExpression,
     isTableFilterExpression,
     isTableSelectExpression,
     isTableWriteExpression,
@@ -2216,6 +2217,27 @@ export class Interpreter {
                     const value = yield* resume(interpreter.evaluateTask(field.value));
                     record.entries.set(field.name, value);
                     record.types.set(field.name, typeName(value));
+                }
+                return record;
+            };
+        }
+        if (isRecordUpdateExpression(expression)) {
+            return function* (): Execution<RankValue> {
+                const source = yield* resume(interpreter.evaluateTask(expression.source));
+                if (!isRankRecord(source)) throw new RankError('with expects a record', 'TypeError');
+                const entries = new ResourceMap<RankValue>(value => value);
+                const record: RankRecord = entries.resources.track({
+                    kind: 'record',
+                    entries,
+                    types: new Map(source.types),
+                });
+                for (const [name, value] of source.entries) entries.set(name, value);
+                const changed = new Set<string>();
+                for (const field of expression.fields) {
+                    if (changed.has(field.name)) throw new RankError(`duplicate record field: .${field.name}`);
+                    changed.add(field.name);
+                    const value = yield* resume(interpreter.evaluateTask(field.value));
+                    interpreter.assignRecordField(record, field.name, field.operator, value);
                 }
                 return record;
             };

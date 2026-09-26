@@ -13,7 +13,7 @@ import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
-    isRecordExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
+    isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
@@ -119,7 +119,7 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isBooleanLiteral(expression)) return ['boolean'];
     if (isLabelLiteral(expression)) return ['symbol'];
     if (isArrayExpression(expression) || isMaterializeExpression(expression)) return ['array'];
-    if (isRecordExpression(expression)) return ['record'];
+    if (isRecordExpression(expression) || isRecordUpdateExpression(expression)) return ['record'];
     if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {
         return expression.sourceFields.length === 0 ? typeOf(expression.source, lookup) : UNKNOWN;
     }

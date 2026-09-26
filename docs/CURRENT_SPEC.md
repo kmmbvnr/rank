@@ -269,6 +269,22 @@ from its initial value and keeps that type on later direct or compound
 assignment. `Value type` returns `.record`, and `Value is .record` is its
 type guard.
 
+`with` makes a changed copy of a record and leaves the original unchanged:
+
+```rank
+Next = State with
+  .mana -= 53
+  .boss -= 4
+  .spent += 53
+end
+```
+
+Each line changes one field with `=` or a compound assignment operator, which
+reads the source record's value. Unlisted fields keep their values in the copy.
+The same field rules apply as for assignment: a field cannot be unknown, repeated
+or given another type. The copy is shallow; a record stored in a field stays
+shared.
+
 Records have reference semantics, one of the few exceptions to
 [values and sharing](values-addressing.md#values-and-sharing). Assignment,
 function arguments and storage inside another structure preserve the same record

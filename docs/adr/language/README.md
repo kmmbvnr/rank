@@ -92,7 +92,7 @@ flowchart TD
 | [ADR-0103](0103-first-class-numeric-ranges.md) | First-Class Numeric Ranges (`to`, `until`, `by`) | Self-evident range sequences: `to` inclusive, `until` exclusive, strict step sign direction. |
 | [ADR-0104](0104-unicode-code-point-semantics-for-text.md) | Unicode Code Point Semantics for Text Strings | Unicode scalar coordinates, surrogate safety, and 40-column multiline blocks (`text`, `text lines`). |
 | [ADR-0105](0105-symbol-scalars-for-labels-and-enums.md) | Symbol Scalars for Labels, Enums, Fields, and Type Tags | Lightweight `.name` tokens for record fields, table columns, ad-hoc enums, and type guards. |
-| [ADR-0106](0106-record-types.md) | Record Types as Closed, Typed Reference Structures | Typo-safe closed schemas with typed fields; explicit reference identity for autograd and graphs. |
+| [ADR-0106](0106-record-types.md) | Record Types as Closed, Typed Reference Structures | Typo-safe closed schemas with typed fields; explicit reference identity for autograd and graphs; `with` blocks for changed copies. |
 | [ADR-0107](0107-universal-missing-value-fallback-default.md) | Universal Missing-Value Fallback via `default` Keyword | Unified absence handling across arrays, maps, and tables without `null` poisoning or `try/catch`. |
 
 ---

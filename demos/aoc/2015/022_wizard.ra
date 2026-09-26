@@ -27,8 +27,14 @@ end
 
 rem Start the search with no active effects and no mana spent.
 fun leastmana BossHP BossDamage PlayerHP PlayerMana Hard
-  State = array shape 7
-    PlayerHP PlayerMana BossHP 0 0 0 0
+  State = record
+    .hp = PlayerHP
+    .mana = PlayerMana
+    .boss = BossHP
+    .shield = 0
+    .poison = 0
+    .recharge = 0
+    .spent = 0
   end
   return State BossDamage Hard 1000000000 fight
 end
@@ -36,72 +42,67 @@ end
 
 rem Search every spell sequence and retain the least mana cost found.
 fun fight State BossDamage Hard Best
-  if State 6 at least Best
+  if State .spent at least Best
     return Best
   end
 
   if Hard
-    State 0 -= 1
-    if State 0 at most 0
+    State = State with
+      .hp -= 1
+    end
+    if State .hp at most 0
       return Best
     end
   end
 
-  unpack HP Mana Boss Shield Poison Recharge Spent = State effects
-
-  if Boss at most 0
-    return Best min Spent
+  Now = State effects
+  if Now .boss at most 0
+    return Best min (Now .spent)
   end
+  Mana = Now .mana
 
   if Mana at least 53
-    NewMana = Mana - 53
-    NewBoss = Boss - 4
-    NewSpent = Spent + 53
-    Next = array shape 7
-      HP NewMana NewBoss Shield
-      Poison Recharge NewSpent
+    Next = Now with
+      .mana -= 53
+      .boss -= 4
+      .spent += 53
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
   if Mana at least 73
-    NewHP = HP + 2
-    NewMana = Mana - 73
-    NewBoss = Boss - 2
-    NewSpent = Spent + 73
-    Next = array shape 7
-      NewHP NewMana NewBoss Shield
-      Poison Recharge NewSpent
+    Next = Now with
+      .hp += 2
+      .mana -= 73
+      .boss -= 2
+      .spent += 73
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
-  if Mana at least 113 and Shield equal 0
-    NewMana = Mana - 113
-    NewSpent = Spent + 113
-    Next = array shape 7
-      HP NewMana Boss 6
-      Poison Recharge NewSpent
+  if Mana at least 113 and Now .shield equal 0
+    Next = Now with
+      .mana -= 113
+      .shield = 6
+      .spent += 113
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
-  if Mana at least 173 and Poison equal 0
-    NewMana = Mana - 173
-    NewSpent = Spent + 173
-    Next = array shape 7
-      HP NewMana Boss Shield
-      6 Recharge NewSpent
+  if Mana at least 173 and Now .poison equal 0
+    Next = Now with
+      .mana -= 173
+      .poison = 6
+      .spent += 173
     end
     Best = Next BossDamage Hard Best bossturn
   end
 
-  if Mana at least 229 and Recharge equal 0
-    NewMana = Mana - 229
-    NewSpent = Spent + 229
-    Next = array shape 7
-      HP NewMana Boss Shield
-      Poison 5 NewSpent
+  if Mana at least 229 and Now .recharge equal 0
+    Next = Now with
+      .mana -= 229
+      .recharge = 5
+      .spent += 229
     end
     Best = Next BossDamage Hard Best bossturn
   end
@@ -112,26 +113,21 @@ end
 
 rem Apply effects, let the boss attack, then continue with the player turn.
 fun bossturn State BossDamage Hard Best
-  unpack HP Mana Boss Shield Poison Recharge Spent = State effects
-
-  if Boss at most 0
-    return Best min Spent
+  Now = State effects
+  if Now .boss at most 0
+    return Best min (Now .spent)
   end
 
   Armor = 0
-  if Shield greater 0
+  if Now .shield greater 0
     Armor = 7
   end
-  Damage = 1 max (BossDamage - Armor)
-  HP -= Damage
-
-  if HP at most 0
-    return Best
+  Next = Now with
+    .hp -= 1 max (BossDamage - Armor)
   end
 
-  Next = array shape 7
-    HP Mana Boss Shield
-    Poison Recharge Spent
+  if Next .hp at most 0
+    return Best
   end
   return Next BossDamage Hard Best fight
 end
@@ -139,18 +135,16 @@ end
 
 rem Apply active effects once and decrease all effect timers.
 fun effects State
-  unpack HP Mana Boss Shield Poison Recharge Spent = State
-
-  if Poison greater 0
-    Boss -= 3
+  Next = State with
+    .shield = 0 max (State .shield - 1)
+    .poison = 0 max (State .poison - 1)
+    .recharge = 0 max (State .recharge - 1)
   end
-  if Recharge greater 0
-    Mana += 101
+  if State .poison greater 0
+    Next .boss -= 3
   end
-
-  Shield = 0 max (Shield - 1)
-  Poison = 0 max (Poison - 1)
-  Recharge = 0 max (Recharge - 1)
-
-  return array HP Mana Boss Shield Poison Recharge Spent
+  if State .recharge greater 0
+    Next .mana += 101
+  end
+  return Next
 end

@@ -17,7 +17,7 @@ import {
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
-    isPushStatement, isRecordExpression, isRecordField, isReturnStatement, isStdinExpression,
+    isPushStatement, isRecordExpression, isRecordField, isRecordUpdateExpression, isReturnStatement, isStdinExpression,
     isTestStatement, isTryStatement, isUnaryExpression, isUnpackExpression,
     isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type Program, type Statement,
@@ -534,6 +534,11 @@ class Analyzer {
             return;
         }
         if (isRecordExpression(expression)) {
+            for (const field of expression.fields) this.expression(field.value);
+            return;
+        }
+        if (isRecordUpdateExpression(expression)) {
+            this.expression(expression.source);
             for (const field of expression.fields) this.expression(field.value);
             return;
         }

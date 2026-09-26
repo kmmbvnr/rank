@@ -186,6 +186,35 @@ describe('Rank records', () => {
         );
     });
 
+    it('copies a record with changed fields', () => {
+        expect(run([
+            'State = record',
+            '  .mana = 500',
+            '  .boss = 50',
+            '  .poison = 0',
+            'end',
+            'Next = State with',
+            '  .mana -= 173',
+            '  rem the comment keeps the block open',
+            '  .poison = 6',
+            'end',
+            'Next .boss -= 3',
+            'array (State .mana) (State .boss) (Next .mana) (Next .boss) (Next .poison)',
+        ].join('\n'))).toBe('500 50 327 47 6');
+    });
+
+    it('checks the fields a record update changes', () => {
+        const node = ['Node = record', '  .value = 1', 'end'];
+        expect(() => run([...node, 'Copy = Node with', '  .other = 2', 'end'].join('\n')))
+            .toThrowError('unknown record field: .other');
+        expect(() => run([...node, 'Copy = Node with', '  .value = 2.0', 'end'].join('\n')))
+            .toThrowError('record field .value has type integer and cannot receive real');
+        expect(() => run([...node, 'Copy = Node with', '  .value = 2', '  .value += 1', 'end'].join('\n')))
+            .toThrowError('duplicate record field: .value');
+        expect(() => run(['Node = 1', 'Copy = Node with', '  .value = 2', 'end'].join('\n')))
+            .toThrowError('with expects a record');
+    });
+
     it('exposes record as a runtime type', () => {
         expect(run([
             'Node = record',
