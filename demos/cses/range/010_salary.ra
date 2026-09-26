@@ -65,5 +65,5 @@ fun salaries Salaries Types As Bs
     end
   end
 
-  return Answers (0 until AnswerCount)
+  return Answers from 0 until AnswerCount
 end

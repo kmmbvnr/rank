@@ -45,5 +45,5 @@ fun path_counts Rooted Paths
     Parent = Parents Node
     Counts Parent += Counts Node
   end
-  return Counts (1 to N)
+  return Counts from 1 to N
 end
