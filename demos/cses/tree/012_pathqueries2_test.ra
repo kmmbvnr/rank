@@ -23,7 +23,7 @@ test "official example"
   Rooted = Graph 1 root
   Q = Queries
   Actual = Values Rooted Q maximums
-  Actual equal (array 4 3)
+  Actual equal array 4 3
 end
 
 test "single node path uses its value"
@@ -40,7 +40,7 @@ test "single node path uses its value"
   end
   Values = array 7
   Actual = Values Rooted Query maximums
-  Actual equal (array 7)
+  Actual equal array 7
 end
 
 test "update changes a later maximum"
@@ -62,7 +62,7 @@ test "update changes a later maximum"
   Values = array 1 2 3 4
   Q = Queries
   Actual = Values Rooted Q maximums
-  Actual equal (array 4 9)
+  Actual equal array 4 9
 end
 
 test "path crosses several heavy chains"
@@ -87,5 +87,5 @@ test "path crosses several heavy chains"
   end
   Values = array 8 1 2 3 10 4 5
   Actual = Values Rooted Query maximums
-  Actual equal (array 10)
+  Actual equal array 10
 end

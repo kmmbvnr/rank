@@ -14,7 +14,7 @@ test "official example"
   end
   Graph add Edges
   Result = Graph 4 3 flight_routes
-  Result equal (array 4 4 7)
+  Result equal array 4 4 7
 end
 
 test "uses a positive cycle"
@@ -29,7 +29,7 @@ test "uses a positive cycle"
   end
   Graph add Edges
   Result = Graph 3 4 flight_routes
-  Result equal (array 2 4 6 8)
+  Result equal array 2 4 6 8
 end
 
 test "keeps equal routes"
@@ -39,7 +39,7 @@ test "keeps equal routes"
   Graph add 1 2 4
   Graph add 1 2 4
   Result = Graph 2 2 flight_routes
-  Result equal (array 4 4)
+  Result equal array 4 4
 end
 
 test "keeps exact large prices"
@@ -50,5 +50,5 @@ test "keeps exact large prices"
   Graph add 1 2 Price
   Graph add 1 2 Price
   Result = Graph 2 2 flight_routes
-  Result equal (array Price Price)
+  Result equal array Price Price
 end

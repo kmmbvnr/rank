@@ -64,5 +64,5 @@ test "supports no roads"
   use sequences
   Roads = array shape 0 2 fill 0
   Actual = 3 Roads road_progress
-  Actual shape equal (array 0 2)
+  Actual shape equal array 0 2
 end

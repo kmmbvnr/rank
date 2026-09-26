@@ -17,11 +17,11 @@ fun rounds P
   Visited = array shape N fill false
 
   for Start in 0 until N
-    if not (Visited Start)
+    if not Visited Start
       Length = 0
       Node = Start
 
-      for not (Visited Node)
+      for not Visited Node
         Visited Node = true
         Node = P Node - 1
         Length += 1

@@ -10,7 +10,7 @@ test "official example"
     1 4
   end
   Result = Next Queries planet_distances
-  Result equal (array 1 2 -1)
+  Result equal array 1 2 -1
 end
 
 test "zero steps and cycle direction"
@@ -24,7 +24,7 @@ test "zero steps and cycle direction"
     2 1
   end
   Result = Next Queries planet_distances
-  Result equal (array 0 2 2 2)
+  Result equal array 0 2 2 2
 end
 
 test "tail cannot be reached backwards"
@@ -38,7 +38,7 @@ test "tail cannot be reached backwards"
     4 3
   end
   Result = Next Queries planet_distances
-  Result equal (array 2 -1 -1 1)
+  Result equal array 2 -1 -1 1
 end
 
 test "separates functional components"
@@ -51,5 +51,5 @@ test "separates functional components"
     2 1
   end
   Result = Next Queries planet_distances
-  Result equal (array -1 1 1)
+  Result equal array -1 1 1
 end

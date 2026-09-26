@@ -55,7 +55,7 @@ test "orthonormal component columns"
   Got = Components shape
   Want = array 3 2
   ShapeOk = Got Want equal rank 1
-  ShapeOk and (Gram Expected equal rank 2)
+  ShapeOk and Gram Expected equal rank 2
 end
 
 test "rejects invalid component counts"

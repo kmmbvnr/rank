@@ -20,7 +20,7 @@ fun distinct2 Values Queries
   N = Values len
   Positions = new index
   for Value I in Values
-    if not (Value in Positions)
+    if not Value in Positions
       Positions Value = new orderedset
     end
     Set = Positions Value
@@ -53,7 +53,7 @@ fun distinct2 Values Queries
         end
         S remove Place
 
-        if not (New in Positions)
+        if not New in Positions
           Positions New = new orderedset
         end
         S = Positions New

@@ -55,7 +55,7 @@ fun forest_updates Grid Queries
 
   Changes = new queue
   for Y in 0 to Size
-    Changes push (Side fenwick)
+    Changes push Side fenwick
   end
 
   Q = Queries len

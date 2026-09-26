@@ -21,7 +21,7 @@ fun elevator_rides Weights Limit
   Rides 0 = 1
 
   fun add_person Mask Person
-    if not (Mask Person bit)
+    if not Mask Person bit
       return 0
     end
 

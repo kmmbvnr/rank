@@ -12,5 +12,5 @@ test "represented odd composites"
 
   9 goldbach_representation
   33 goldbach_representation
-  not (5777 goldbach_representation)
+  not 5777 goldbach_representation
 end

@@ -15,8 +15,8 @@ rem representation of the proposed form.
 fun goldbach_counterexample Start
   Candidate = Start
   for
-    if not (Candidate in primes)
-      if not (Candidate goldbach_representation)
+    if not Candidate in primes
+      if not Candidate goldbach_representation
         return Candidate
       end
     end

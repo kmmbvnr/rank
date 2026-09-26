@@ -40,7 +40,7 @@ fun collatz_length Start Cache
   Path = new stack
   N = Start
 
-  for not (N in Cache)
+  for not N in Cache
     Path push N
     if N even
       N = N // 2

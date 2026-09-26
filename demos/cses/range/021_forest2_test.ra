@@ -9,9 +9,9 @@ test "official example"
     "**.." "****"
   end
   Queries = new queue
-  Queries push (array 2 2 2 3 4)
-  Queries push (array 1 3 3)
-  Queries push (array 2 2 2 3 4)
+  Queries push array 2 2 2 3 4
+  Queries push array 1 3 3
+  Queries push array 2 2 2 3 4
   Actual = Grid Queries forest_updates
   Actual equal array 3 4
 end
@@ -23,11 +23,11 @@ test "toggles corners twice"
     ".." "*."
   end
   Queries = new queue
-  Queries push (array 2 1 1 2 2)
-  Queries push (array 1 1 1)
-  Queries push (array 2 1 1 1 1)
-  Queries push (array 1 1 1)
-  Queries push (array 2 1 1 2 2)
+  Queries push array 2 1 1 2 2
+  Queries push array 1 1 1
+  Queries push array 2 1 1 1 1
+  Queries push array 1 1 1
+  Queries push array 2 1 1 2 2
   Actual = Grid Queries forest_updates
   Actual equal array 1 1 1
 end

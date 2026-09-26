@@ -15,7 +15,7 @@ fun removal_game Values
   Difference = Values copy
 
   for Length in 2 to N
-    for Left in 0 to (N - Length)
+    for Left in 0 to N - Length
       Right = Left + Length - 1
       AfterLeft = Difference (Left + 1)
       TakeLeft = Values Left - AfterLeft

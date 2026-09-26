@@ -14,7 +14,7 @@ test "official example"
   end
   Graph add Edges
   Cycle = Graph 5 find_cycle
-  Cycle equal (array 1 5 3 1)
+  Cycle equal array 1 5 3 1
 end
 
 test "tree has no cycle"
@@ -29,7 +29,7 @@ test "tree has no cycle"
   end
   Graph add Edges
   Cycle = Graph 5 find_cycle
-  Cycle equal (array shape 0 fill 0)
+  Cycle equal array shape 0 fill 0
 end
 
 test "finds a triangle"
@@ -43,7 +43,7 @@ test "finds a triangle"
   end
   Graph add Edges
   Cycle = Graph 3 find_cycle
-  Cycle equal (array 1 3 2 1)
+  Cycle equal array 1 3 2 1
 end
 
 test "searches disconnected components"
@@ -59,5 +59,5 @@ test "searches disconnected components"
   end
   Graph add Edges
   Cycle = Graph 6 find_cycle
-  Cycle equal (array 3 6 5 4 3)
+  Cycle equal array 3 6 5 4 3
 end

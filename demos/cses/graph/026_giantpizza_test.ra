@@ -13,7 +13,7 @@ test "satisfies the official example"
   Choices = Result .included
   Choices 0 or Choices 1
   not (Choices 0) or Choices 2
-  Choices 3 or not (Choices 1)
+  Choices 3 or not Choices 1
 end
 
 test "includes a required topping"
@@ -24,7 +24,7 @@ test "includes a required topping"
   end
   Result = 1 Clauses giant_pizza
   Result .possible equal true
-  Result .included equal (array true)
+  Result .included equal array true
 end
 
 test "excludes a rejected topping"
@@ -35,7 +35,7 @@ test "excludes a rejected topping"
   end
   Result = 1 Clauses giant_pizza
   Result .possible equal true
-  Result .included equal (array false)
+  Result .included equal array false
 end
 
 test "detects contradictory wishes"

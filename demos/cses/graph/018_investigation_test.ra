@@ -13,7 +13,7 @@ test "official example"
   end
   Graph add Edges
   Result = Graph 4 investigate
-  Result equal (array 5 2 1 2)
+  Result equal array 5 2 1 2
 end
 
 test "counts parallel cheapest routes"
@@ -23,7 +23,7 @@ test "counts parallel cheapest routes"
   Graph add 1 2 4
   Graph add 1 2 4
   Result = Graph 2 investigate
-  Result equal (array 4 2 1 1)
+  Result equal array 4 2 1 1
 end
 
 test "tracks flight count bounds"
@@ -39,7 +39,7 @@ test "tracks flight count bounds"
   end
   Graph add Edges
   Result = Graph 4 investigate
-  Result equal (array 6 3 1 3)
+  Result equal array 6 3 1 3
 end
 
 test "keeps exact large prices"
@@ -51,5 +51,5 @@ test "keeps exact large prices"
   Graph add 2 3 Price
   Result = Graph 3 investigate
   Total = 18014398509481986
-  Result equal (array Total 1 2 2)
+  Result equal array Total 1 2 2
 end

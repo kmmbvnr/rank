@@ -3,31 +3,31 @@ use testing
 test "official example"
   use "015_permutationorder"
   Actual = 4 1 kth_permutation
-  Actual equal (array 1 2 3 4)
+  Actual equal array 1 2 3 4
   Actual = 4 2 kth_permutation
-  Actual equal (array 1 2 4 3)
+  Actual equal array 1 2 4 3
   P = array 1 2 3 4
   P permutation_order equal 1
   P = array 1 2 4 3
   P permutation_order equal 2
   Actual = 5 42 kth_permutation
-  Actual equal (array 2 4 5 3 1)
+  Actual equal array 2 4 5 3 1
   P = array 2 4 5 3 1
   P permutation_order equal 42
 end
 
 test "one element"
   use "015_permutationorder"
-  1 1 kth_permutation equal (array 1)
+  1 1 kth_permutation equal array 1
   (array 1) permutation_order equal 1
 end
 
 test "first and last orders"
   use "015_permutationorder"
   Actual = 5 1 kth_permutation
-  Actual equal (array 1 2 3 4 5)
+  Actual equal array 1 2 3 4 5
   Actual = 5 120 kth_permutation
-  Actual equal (array 5 4 3 2 1)
+  Actual equal array 5 4 3 2 1
 end
 
 test "round trips a large rank"

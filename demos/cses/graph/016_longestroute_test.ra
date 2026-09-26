@@ -14,7 +14,7 @@ test "official example"
   Graph add Edges
   Result = Graph 5 longest_route
   Result .found equal true
-  Result .path equal (array 1 3 4 5)
+  Result .path equal array 1 3 4 5
 end
 
 test "reports an unreachable target"
@@ -33,7 +33,7 @@ test "uses a direct flight"
   Graph = new graph (1 to 2) .directed
   Graph add 1 2
   Result = Graph 2 longest_route
-  Result .path equal (array 1 2)
+  Result .path equal array 1 2
 end
 
 test "chooses more cities"
@@ -50,5 +50,5 @@ test "chooses more cities"
   end
   Graph add Edges
   Result = Graph 6 longest_route
-  Result .path equal (array 1 2 3 4 6)
+  Result .path equal array 1 2 3 4 6
 end

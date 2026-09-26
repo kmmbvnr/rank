@@ -21,7 +21,7 @@ fun stick_game N Moves
     Available = Moves at most Sticks
     Legal = Moves Available
     Previous = Sticks - Legal
-    Losing = not (Winning Previous)
+    Losing = not Winning Previous
     Win = Losing any
 
     Winning Sticks = Win

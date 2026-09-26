@@ -7,7 +7,7 @@ test "official example"
     3 1
   end
   Actual = Factors analyze_divisors
-  Actual equal (array 6 28 1728)
+  Actual equal array 6 28 1728
 end
 
 test "single prime power"
@@ -16,7 +16,7 @@ test "single prime power"
     2 3
   end
   Actual = Factors analyze_divisors
-  Actual equal (array 4 15 64)
+  Actual equal array 4 15 64
 end
 
 test "two distinct primes"
@@ -26,7 +26,7 @@ test "two distinct primes"
     5 1
   end
   Actual = Factors analyze_divisors
-  Actual equal (array 4 18 100)
+  Actual equal array 4 18 100
 end
 
 test "large exponent stays modular"

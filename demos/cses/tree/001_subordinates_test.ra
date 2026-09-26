@@ -6,7 +6,7 @@ test "official example"
   use sequences
   Bosses = array 1 1 2 3
   Actual = Bosses subordinates
-  Actual equal (array 4 1 1 0 0)
+  Actual equal array 4 1 1 0 0
 end
 
 test "single director"
@@ -14,7 +14,7 @@ test "single director"
   use graph
   use sequences
   Bosses = array shape 0 fill 0
-  Bosses subordinates equal (array 0)
+  Bosses subordinates equal array 0
 end
 
 test "long reporting chain"
@@ -23,7 +23,7 @@ test "long reporting chain"
   use sequences
   Bosses = array 1 2 3 4 5
   Actual = Bosses subordinates
-  Actual equal (array 5 4 3 2 1 0)
+  Actual equal array 5 4 3 2 1 0
 end
 
 test "boss may have a larger number"
@@ -32,5 +32,5 @@ test "boss may have a larger number"
   use sequences
   Bosses = array 4 1 1 4
   Actual = Bosses subordinates
-  Actual equal (array 4 0 0 2 0)
+  Actual equal array 4 0 0 2 0
 end

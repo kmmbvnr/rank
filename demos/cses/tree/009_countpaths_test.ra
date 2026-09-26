@@ -19,7 +19,7 @@ test "official example"
   end
   Rooted = Tree 1 root
   Actual = Rooted Paths path_counts
-  Actual equal (array 3 1 3 1 1)
+  Actual equal array 3 1 3 1 1
 end
 
 test "one node may form a path"
@@ -30,7 +30,7 @@ test "one node may form a path"
   Rooted = Tree 1 root
   Paths = array shape 1 2 fill 1
   Actual = Rooted Paths path_counts
-  Actual equal (array 1)
+  Actual equal array 1
 end
 
 test "repeated paths accumulate"
@@ -47,7 +47,7 @@ test "repeated paths accumulate"
   end
   Rooted = Tree 1 root
   Actual = Rooted Paths path_counts
-  Actual equal (array 2 2 2 2)
+  Actual equal array 2 2 2 2
 end
 
 test "separate branches meet at root"
@@ -64,5 +64,5 @@ test "separate branches meet at root"
   end
   Rooted = Tree 1 root
   Actual = Rooted Paths path_counts
-  Actual equal (array 2 1 1 1 1)
+  Actual equal array 2 1 1 1 1
 end

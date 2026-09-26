@@ -41,10 +41,10 @@ fun truncatable_prime Value
     Last = Length - Drop
     RightText = Text from 0 until Last
     Right = RightText integer
-    if not (Left in primes)
+    if not Left in primes
       return false
     end
-    if not (Right in primes)
+    if not Right in primes
       return false
     end
   end

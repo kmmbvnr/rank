@@ -12,7 +12,7 @@ test "official example"
   Graph add Edges
   Result = Graph 5 build_teams
   Result .possible equal true
-  Result .teams equal (array 1 2 2 1 2)
+  Result .teams equal array 1 2 2 1 2
 end
 
 test "odd cycle is impossible"
@@ -35,7 +35,7 @@ test "isolated pupils get a team"
   Graph = new graph (1 to 4) .undirected
   Result = Graph 4 build_teams
   Result .possible equal true
-  Result .teams equal (array 1 1 1 1)
+  Result .teams equal array 1 1 1 1
 end
 
 test "colors separate components"

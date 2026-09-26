@@ -21,7 +21,7 @@ test "official example"
   end
   Rooted = Graph 1 root
   Actual = Values Rooted Queries subtree
-  Actual equal (array 8 10)
+  Actual equal array 8 10
 end
 
 test "root query sums every node"
@@ -38,7 +38,7 @@ test "root query sums every node"
   end
   Values = array 2 4 8
   Actual = Values Rooted Query subtree
-  Actual equal (array 14)
+  Actual equal array 14
 end
 
 test "leaf update affects its ancestors"
@@ -57,7 +57,7 @@ test "leaf update affects its ancestors"
   end
   Values = array 1 2 3
   Actual = Values Rooted Queries subtree
-  Actual equal (array 9 7)
+  Actual equal array 9 7
 end
 
 test "chosen root defines the subtree"
@@ -74,5 +74,5 @@ test "chosen root defines the subtree"
   end
   Values = array 5 6 7
   Actual = Values Rooted Query subtree
-  Actual equal (array 11)
+  Actual equal array 11
 end

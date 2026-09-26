@@ -16,5 +16,5 @@ end
 test "trivial zeros"
   use "033_digitfractions"
 
-  not (30 50 curious)
+  not 30 50 curious
 end

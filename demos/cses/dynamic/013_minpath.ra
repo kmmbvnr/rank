@@ -18,7 +18,7 @@ fun minimal_grid_path Grid
   Result = FirstRow 0
 
   if Size greater 1
-    for Diagonal in 1 to (2 * Size - 2)
+    for Diagonal in 1 to 2 * Size - 2
       Candidates = new set
 
       for Row in Current

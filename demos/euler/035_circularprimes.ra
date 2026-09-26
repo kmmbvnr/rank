@@ -31,7 +31,7 @@ fun circular_prime Value
     Right = Text from 0 until Shift
     Rotation = Left + Right
     Number = Rotation integer
-    if not (Number in primes)
+    if not Number in primes
       return false
     end
   end

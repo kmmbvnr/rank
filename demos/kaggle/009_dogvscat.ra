@@ -27,7 +27,7 @@ fun image_labels Train
   for Name Row in Train .name
     if Name "dog." startswith
       Y Row = 1
-    elif not (Name "cat." startswith)
+    elif not Name "cat." startswith
       .InvalidText raise
     end
   end

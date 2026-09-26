@@ -10,7 +10,7 @@ for t in 1 to T
   A = stdin .integer
   B = stdin .integer
 
-  if not (N A B possible)
+  if not N A B possible
     "NO" print
 
   elif A equal 0 and B equal 0

@@ -38,7 +38,7 @@ fun month_days Year Month
   if Month equal 2
     Leap = Year multiple by 4
     Leap and= (
-      not (Year multiple by 100)
+      not Year multiple by 100
       or Year multiple by 400
     )
     if Leap

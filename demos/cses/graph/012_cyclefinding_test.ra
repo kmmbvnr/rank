@@ -11,7 +11,7 @@ test "official example"
   end
   Result = Edges 4 negative_cycle
   Result .found equal true
-  Result .cycle equal (array 4 1 2 4)
+  Result .cycle equal array 4 1 2 4
 end
 
 test "acyclic graph has no cycle"
@@ -45,5 +45,5 @@ test "finds a disconnected cycle"
   end
   Result = Edges 4 negative_cycle
   Result .found equal true
-  Result .cycle equal (array 3 4 3)
+  Result .cycle equal array 3 4 3
 end

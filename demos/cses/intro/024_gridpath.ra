@@ -67,7 +67,7 @@ fun solve Path
       for Other j in Moves
         AY = NY + DYs j
         AX = NX + DXs j
-        if not (Seen AY AX)
+        if not Seen AY AX
           Open += 1
         end
       end
@@ -105,7 +105,7 @@ fun solve Path
 
       NY = Y + DYs i
       NX = X + DXs i
-      if not (Seen NY NX)
+      if not Seen NY NX
         Seen NY NX = true
         Ways += Next NY NX walk
         Seen NY NX = false

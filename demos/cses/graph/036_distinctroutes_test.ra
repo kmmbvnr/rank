@@ -16,8 +16,8 @@ test "official example"
   end
   Routes = 6 Edges distinct_routes
   Routes len equal 2
-  Routes 0 equal (array 1 2 6)
-  Routes 1 equal (array 1 3 4 6)
+  Routes 0 equal array 1 2 6
+  Routes 1 equal array 1 3 4 6
 end
 
 test "returns no route when separated"
@@ -61,5 +61,5 @@ test "does not share a teleporter"
   end
   Routes = 5 Edges distinct_routes
   Routes len equal 1
-  Routes 0 equal (array 1 2 4 5)
+  Routes 0 equal array 1 2 4 5
 end

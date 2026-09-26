@@ -15,7 +15,7 @@ test "official example"
   Graph add Edges
   Result = Graph 5 kingdoms
   Result .count equal 2
-  Result .labels equal (array 1 1 1 2 2)
+  Result .labels equal array 1 1 1 2 2
 end
 
 test "separates an acyclic graph"
@@ -26,7 +26,7 @@ test "separates an acyclic graph"
   Graph add 2 3
   Result = Graph 3 kingdoms
   Result .count equal 3
-  Result .labels equal (array 1 2 3)
+  Result .labels equal array 1 2 3
 end
 
 test "joins one directed cycle"
@@ -39,7 +39,7 @@ test "joins one directed cycle"
   Graph add 4 1
   Result = Graph 4 kingdoms
   Result .count equal 1
-  Result .labels equal (array 1 1 1 1)
+  Result .labels equal array 1 1 1 1
 end
 
 test "keeps isolated planets"
@@ -48,5 +48,5 @@ test "keeps isolated planets"
   Graph = new graph (1 to 3) .directed
   Result = Graph 3 kingdoms
   Result .count equal 3
-  Result .labels equal (array 3 2 1)
+  Result .labels equal array 3 2 1
 end

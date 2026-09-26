@@ -27,7 +27,7 @@ fun substring_divisible_sum Digits
     end
 
     for Digit in Digits
-      if not (Digit in Prefix)
+      if not Digit in Prefix
         Next = Prefix + Digit
         Valid = Next Divisors valid_suffix
         if Valid

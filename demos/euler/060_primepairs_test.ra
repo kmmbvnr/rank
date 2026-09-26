@@ -16,8 +16,8 @@ test "concatenation and compatibility in both directions"
   3 10 concat equal 310
   3 7 compatible
   7 3 compatible
-  not (13 7 compatible)
-  not (7 13 compatible)
+  not 13 7 compatible
+  not 7 13 compatible
 end
 
 test "small graph excludes two and five and keeps prime pairs"
@@ -30,8 +30,8 @@ test "small graph excludes two and five and keeps prime pairs"
   (Vals equal (array 3 7 11 13 17 19)) all
   Neighbors = Graph 3
   ((array 7 11 17) in Neighbors) all
-  not (13 in Neighbors)
-  not (19 in Neighbors)
+  not 13 in Neighbors
+  not 19 in Neighbors
   Reverse = Graph 7
   3 in Reverse
 end
@@ -43,7 +43,7 @@ test "known five-prime set forms a complete graph"
   Vals = array 13 5197 5701 6733 8389
   for P i in Vals
     for Q in Vals (i + 1) drop
-      if not (P Q compatible)
+      if not P Q compatible
         return false
       end
     end
@@ -60,7 +60,7 @@ test "search improves an earlier clique and keeps calls independent"
   Graph = new graph Vals .undirected
   First = array 1 2 3 4 100
   Second = array 2 3 4 5 6
-  for Group in (array First Second)
+  for Group in array First Second
     for P i in Group
       for Q in Group (i + 1) drop
         Graph add P Q

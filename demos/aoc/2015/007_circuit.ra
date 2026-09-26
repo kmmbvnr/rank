@@ -35,13 +35,13 @@ fun circuit Lines Target Override
 
   Pattern = "/text -> /word"
 
-  for not (Target in index)
+  for not Target in index
     Progress = false
 
     for Line in Lines
       unpack Expression Dest = Line Pattern parse
 
-      if not (Dest in index)
+      if not Dest in index
         try
           Value = Expression index eval_expr
           index Dest = Value 65535 band

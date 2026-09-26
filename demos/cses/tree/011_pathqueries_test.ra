@@ -21,7 +21,7 @@ test "official example"
   end
   Rooted = Graph 1 root
   Actual = Values Rooted Queries paths
-  Actual equal (array 11 8)
+  Actual equal array 11 8
 end
 
 test "root path contains only root"
@@ -36,7 +36,7 @@ test "root path contains only root"
     2 1 0
   end
   Actual = (array 9) Rooted Query paths
-  Actual equal (array 9)
+  Actual equal array 9
 end
 
 test "update changes every lower path"
@@ -55,7 +55,7 @@ test "update changes every lower path"
   end
   Values = array 1 2 3
   Actual = Values Rooted Queries paths
-  Actual equal (array 6 14)
+  Actual equal array 6 14
 end
 
 test "sibling update stays off path"
@@ -73,5 +73,5 @@ test "sibling update stays off path"
   end
   Values = array 1 2 3
   Actual = Values Rooted Queries paths
-  Actual equal (array 4)
+  Actual equal array 4
 end

@@ -17,7 +17,7 @@ test "official example"
   end
   Graph add Edges
   Path = Graph 8 mail_delivery
-  Path equal (array 1 2 3 5 4 2 6 3 1)
+  Path equal array 1 2 3 5 4 2 6 3 1
 end
 
 test "walks around a simple square"
@@ -30,7 +30,7 @@ test "walks around a simple square"
   Graph add 3 4
   Graph add 4 1
   Path = Graph 4 mail_delivery
-  Path equal (array 1 2 3 4 1)
+  Path equal array 1 2 3 4 1
 end
 
 test "rejects odd vertex degrees"

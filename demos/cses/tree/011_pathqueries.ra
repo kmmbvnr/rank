@@ -63,7 +63,7 @@ fun paths Values Rooted Queries
         Sums End -= Delta
       end
     else
-      Answers push (Sums sum Position)
+      Answers push Sums sum Position
     end
   end
   return Answers

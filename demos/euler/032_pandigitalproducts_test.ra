@@ -16,5 +16,5 @@ end
 test "repeated digit"
   use "032_pandigitalproducts"
 
-  not ("391867255" "123456789" pandigital)
+  not "391867255" "123456789" pandigital
 end

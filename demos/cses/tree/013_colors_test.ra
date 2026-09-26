@@ -16,7 +16,7 @@ test "official example"
   Rooted = Tree 1 root
   Colors = array 2 3 2 2 1
   Actual = Colors Rooted distinct_colors
-  Actual equal (array 3 1 2 1 1)
+  Actual equal array 3 1 2 1 1
 end
 
 test "one node has one color"
@@ -29,7 +29,7 @@ test "one node has one color"
   Rooted = Tree 1 root
   Colors = array 42
   Actual = Colors Rooted distinct_colors
-  Actual equal (array 1)
+  Actual equal array 1
 end
 
 test "equal colors stay distinct once"
@@ -44,7 +44,7 @@ test "equal colors stay distinct once"
   Rooted = Tree 1 root
   Colors = array 7 7 7 7
   Actual = Colors Rooted distinct_colors
-  Actual equal (array 1 1 1 1)
+  Actual equal array 1 1 1 1
 end
 
 test "branches merge overlapping colors"
@@ -65,5 +65,5 @@ test "branches merge overlapping colors"
   Rooted = Tree 1 root
   Colors = array 1 2 2 3 1 3 4
   Actual = Colors Rooted distinct_colors
-  Actual equal (array 4 3 3 1 1 1 1)
+  Actual equal array 4 3 3 1 1 1 1
 end

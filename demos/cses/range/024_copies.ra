@@ -28,7 +28,7 @@ Values Queries copies print
 rem Copy roots and path-copy on updates.
 fun copies Values Queries
   Versions = new queue
-  Versions push (Values + segment)
+  Versions push Values + segment
   Answers = new queue
 
   for Query in Queries
@@ -36,7 +36,7 @@ fun copies Values Queries
     K = Query 1
     Tree = Versions (K - 1)
     if Type equal 3
-      Versions push (Tree copy)
+      Versions push Tree copy
     else
       A = Query 2
       B = Query 3

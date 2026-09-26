@@ -13,7 +13,7 @@ test "official example"
   end
   Tree add Edges
   Actual = Tree distance_sums
-  Actual equal (array 6 9 5 8 8)
+  Actual equal array 6 9 5 8 8
 end
 
 test "single node has zero sum"
@@ -21,7 +21,7 @@ test "single node has zero sum"
   use graph
   use sequences
   Tree = new graph (array 1) .undirected
-  Tree distance_sums equal (array 0)
+  Tree distance_sums equal array 0
 end
 
 test "path sums are symmetric"
@@ -33,7 +33,7 @@ test "path sums are symmetric"
     Tree add Node (Node + 1)
   end
   Actual = Tree distance_sums
-  Actual equal (array 10 7 6 7 10)
+  Actual equal array 10 7 6 7 10
 end
 
 test "star center has the smallest sum"
@@ -45,5 +45,5 @@ test "star center has the smallest sum"
     Tree add 1 Node
   end
   Actual = Tree distance_sums
-  Actual equal (array 4 7 7 7 7)
+  Actual equal array 4 7 7 7 7
 end

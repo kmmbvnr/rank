@@ -9,7 +9,7 @@ test "official example"
   Graph add 4 5
   Result = Graph course_schedule
   Result .possible equal true
-  Result .order equal (array 3 4 1 5 2)
+  Result .order equal array 3 4 1 5 2
 end
 
 test "cycle makes schedule impossible"
@@ -30,7 +30,7 @@ test "includes isolated courses"
   Graph add 2 3
   Result = Graph course_schedule
   Result .possible equal true
-  Result .order equal (array 1 2 4 3)
+  Result .order equal array 1 2 4 3
 end
 
 test "orders a prerequisite chain"
@@ -41,5 +41,5 @@ test "orders a prerequisite chain"
   Graph add 2 3
   Graph add 1 2
   Result = Graph course_schedule
-  Result .order equal (array 1 2 3 4)
+  Result .order equal array 1 2 3 4
 end

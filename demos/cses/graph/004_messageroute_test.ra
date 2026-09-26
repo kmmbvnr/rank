@@ -14,7 +14,7 @@ test "official example"
   end
   Graph add Edges
   Path = Graph 1 5 message_route
-  Path equal (array 1 4 5)
+  Path equal array 1 4 5
 end
 
 test "unreachable target"
@@ -23,7 +23,7 @@ test "unreachable target"
   Graph = new graph (1 to 4) .undirected
   Graph add 1 2
   Path = Graph 1 4 message_route
-  Path equal (array shape 0 fill 0)
+  Path equal array shape 0 fill 0
 end
 
 test "single node route"
@@ -32,7 +32,7 @@ test "single node route"
   Nodes = array 1
   Graph = new graph Nodes .undirected
   Path = Graph 1 1 message_route
-  Path equal (array 1)
+  Path equal array 1
 end
 
 test "chooses a shortest route"
@@ -49,5 +49,5 @@ test "chooses a shortest route"
   end
   Graph add Edges
   Path = Graph 1 6 message_route
-  Path equal (array 1 4 6)
+  Path equal array 1 4 6
 end

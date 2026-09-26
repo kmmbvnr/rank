@@ -33,9 +33,9 @@ fun police_chase N Edges
   Streets = new queue
   for Edge in Edges
     unpack A B = Edge
-    if A in Cut and not (B in Cut)
+    if A in Cut and not B in Cut
       Streets push Edge
-    elif B in Cut and not (A in Cut)
+    elif B in Cut and not A in Cut
       Streets push array B A
     end
   end

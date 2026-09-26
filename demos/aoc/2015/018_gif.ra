@@ -63,7 +63,7 @@ fun evolve Grid Stuck
     for X in 0 until N
       On = Grid Y X
       Count = Grid X Y neighbors
-      New = Count equal 3 or (On and Count equal 2)
+      New = Count equal 3 or On and Count equal 2
 
       if Stuck and X Y N corner
         New = true

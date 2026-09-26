@@ -5,12 +5,12 @@ test "official example"
   use algo
   Values = array 2 3 1 2 5
   Queries = new queue
-  Queries push (array 3 1)
-  Queries push (array 2 1 1 5)
-  Queries push (array 2 2 1 5)
-  Queries push (array 1 2 2 5)
-  Queries push (array 2 1 1 5)
-  Queries push (array 2 2 1 5)
+  Queries push array 3 1
+  Queries push array 2 1 1 5
+  Queries push array 2 2 1 5
+  Queries push array 1 2 2 5
+  Queries push array 2 1 1 5
+  Queries push array 2 2 1 5
   Actual = Values Queries copies
   Actual equal array 13 13 13 15
 end
@@ -20,14 +20,14 @@ test "versions change independently"
   use algo
   Values = array 1 2 3
   Queries = new queue
-  Queries push (array 3 1)
-  Queries push (array 1 1 1 9)
-  Queries push (array 1 2 3 8)
-  Queries push (array 3 2)
-  Queries push (array 1 3 2 7)
-  Queries push (array 2 1 1 3)
-  Queries push (array 2 2 1 3)
-  Queries push (array 2 3 1 3)
+  Queries push array 3 1
+  Queries push array 1 1 1 9
+  Queries push array 1 2 3 8
+  Queries push array 3 2
+  Queries push array 1 3 2 7
+  Queries push array 2 1 1 3
+  Queries push array 2 2 1 3
+  Queries push array 2 3 1 3
   Actual = Values Queries copies
   Actual equal array 14 11 16
 end

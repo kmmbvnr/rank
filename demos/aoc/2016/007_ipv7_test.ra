@@ -4,8 +4,8 @@ test "official TLS examples"
   use "007_ipv7"
 
   "abba[mnop]qrst" tls
-  not ("abcd[bddb]xyyx" tls)
-  not ("aaaa[qwer]tyui" tls)
+  not "abcd[bddb]xyyx" tls
+  not "aaaa[qwer]tyui" tls
   "ioxxoj[asdfgh]zxcvbn" tls
 end
 
@@ -13,7 +13,7 @@ test "official SSL examples"
   use "007_ipv7"
 
   "aba[bab]xyz" ssl
-  not ("xyx[xyx]xyx" ssl)
+  not "xyx[xyx]xyx" ssl
   "aaa[kek]eke" ssl
   "zazbz[bzb]cdb" ssl
 end

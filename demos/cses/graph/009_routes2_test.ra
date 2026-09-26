@@ -41,7 +41,7 @@ test "zero distance to each city"
   Diagonal = array shape 3
     (Dist 1 1) (Dist 2 2) (Dist 3 3)
   end
-  Diagonal equal (array 0 0 0)
+  Diagonal equal array 0 0 0
 end
 
 test "finds a route through two cities"
