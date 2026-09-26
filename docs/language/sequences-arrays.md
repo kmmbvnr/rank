@@ -664,6 +664,19 @@ cell. Incompatible shapes are errors.
 Rate = Guest GuestRate MemberRate choose
 ```
 
+`Index Choices choose` generalizes the mask to more than two branches. Each
+cell of the integer index names a choice: a leading-axis cell of `Choices`,
+so either an item of `array A B C` or a slice of a stacked tensor. Index and
+choices broadcast by trailing axes, and only the chosen value is read at each
+cell. An index outside the choices raises `.Missing`; a nonintegral index is a
+`.TypeError`. A column index therefore picks a different aggregate for every
+column of a matrix:
+
+```rank
+Index = array 0 2 1
+Picked = Index (array Sums Maxima Means) choose
+```
+
 When the operands are SQLite expressions from one view, `choose` builds a
 parameterized `CASE` expression. It does not read rows. An SQL `NULL` condition
 stays `NULL` instead of selecting the false branch.

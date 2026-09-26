@@ -1,0 +1,41 @@
+rem Dyalog Programming Contest 2010
+rem Task 3: Aggregation Function
+rem Aggregate every column of a matrix over periods
+rem of rows, each column with its own function:
+rem S sum, A average, M maximum, F first, L last.
+
+use "001_params"
+use "002_buyorrent"
+use io
+use cli
+use sequences
+use stats
+use tables
+use text
+
+argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+
+Mat = (1 to 16) copy (array 4 4) reshape
+(Mat 2 "SAMF" aggregate) print
+
+rem Yearly totals of flows, year-end values of balances.
+Model = Input read getparams buyorrent
+Years = Model .series 12 "LSSLSSLSSLLLSLL" aggregate
+Years shape print
+Years 29 print
+
+
+rem Complete periods only: a partial last period is
+rem dropped. An unknown code raises Missing.
+fun aggregate Data Period Ops
+  Groups = Data Period window stride Period axis 0
+  Kinds = "SAMFL" "" split
+  Positions = (0 until (Kinds len)) copy
+  Index = (Ops "" split) Kinds Positions lookup
+  Sums = Groups sum rank 1
+  Means = Groups mean rank 1
+  Maxima = Groups max rank 1
+  First = Groups # # 0
+  Last = Groups # # (Period - 1)
+  return Index (array Sums Means Maxima First Last) choose
+end

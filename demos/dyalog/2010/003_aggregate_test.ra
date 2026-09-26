@@ -1,0 +1,50 @@
+use testing
+
+test "example from the contest"
+  use "003_aggregate"
+  use sequences
+
+  Mat = (1 to 16) copy (array 4 4) reshape
+  Expected = (array (array 6.0 4.0 7.0 4.0) (array 22.0 12.0 15.0 12.0)) copy
+  (Mat 2 "SAMF" aggregate equal Expected) all
+end
+
+test "last and a partial period dropped"
+  use "003_aggregate"
+  use sequences
+
+  Mat = (1 to 10) copy (array 5 2) reshape
+  Result = Mat 2 "LM" aggregate
+  Expected = (array (array 3 4) (array 7 8)) copy
+  Shape = Result shape equal array 2 2
+  Values = Result equal Expected
+  (Shape all) and (Values all)
+end
+
+test "yearly totals of the buy or rent model"
+  use "001_params"
+  use "002_buyorrent"
+  use "003_aggregate"
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Series = Params buyorrent .series
+  Years = Series 12 "LSSLSSLSSLLLSLL" aggregate
+  Interest = Series # 1 12 take sum
+  Shape = Years shape equal array 30 15
+  (Shape all) and (Years 0 1 equal Interest) and (Years 0 3 equal Series 11 3) and (Years 29 14 equal Series 359 14)
+end
+
+test "an unknown code is an error"
+  use "003_aggregate"
+  use sequences
+
+  Raised = false
+  try
+    Result = (array (array 1 2) (array 3 4)) copy 1 "SX" aggregate
+    Result copy
+  catch .Missing Error
+    Raised = true
+  end
+  Raised
+end

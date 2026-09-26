@@ -3994,6 +3994,9 @@ gives a missing result cell. SQLite expressions from the same view compile to
 parameterized `CASE WHEN ... THEN ... WHEN NOT ... THEN ... END`; a SQL `NULL`
 condition leaves the result `NULL`. A nonboolean mask or mismatched array
 shapes are errors.
+`Index Choices choose` selects among more than two branches: each integer index
+cell names a leading-axis cell of `Choices`, with trailing-axis broadcasting
+and only the chosen value read. An index outside the choices raises `.Missing`.
 `M = Db .members alias .m` gives a table view a join role without reading or
 renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under

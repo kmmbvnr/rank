@@ -40,8 +40,8 @@ interface Boundary {
 
 export const sequencesModule: RuntimeModule = {
     flat: () => native('flat', [1, 2], flatRecords),
-    choose: () => native('choose', 3, ([condition, whenTrue, whenFalse]) =>
-        chooseValue(condition, whenTrue, whenFalse)),
+    choose: () => native('choose', [2, 3], ([condition, whenTrue, whenFalse]) =>
+        whenFalse === undefined ? chooseIndexed(condition, whenTrue) : chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
     take: () => native('take', 2, ([source, count]) => takeDropValue(source, count)),
@@ -89,21 +89,7 @@ function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankV
     }
     const shape = arrays.reduce<readonly number[]>(
         (current, array) => broadcastShape(current, array.shape), []);
-    const read = (value: RankValue, index: number): RankValue => {
-        if (!isRankArray(value)) return value;
-        let remaining = index;
-        let offset = 0;
-        let stride = 1;
-        for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
-            const coordinate = remaining % shape[axis];
-            remaining = Math.floor(remaining / shape[axis]);
-            const sourceAxis = axis - (shape.length - value.shape.length);
-            if (sourceAxis < 0) continue;
-            if (value.shape[sourceAxis] !== 1) offset += coordinate * stride;
-            stride *= value.shape[sourceAxis];
-        }
-        return readArrayItem(value, offset);
-    };
+    const read = (value: RankValue, index: number): RankValue => broadcastRead(shape, value, index);
     const fileFree = [whenTrue, whenFalse].every(value => isKnownFileFree(value)
         || (isRankArray(value) && value.containsFiles === false));
     return derivedArray(shape, arrays, index => {
@@ -112,6 +98,62 @@ function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankV
             throw new RankError('choose expects a boolean condition', 'TypeError');
         }
         return read(selected ? whenTrue : whenFalse, index);
+    }, fileFree);
+}
+
+/** The item of `value` at a flat position of `shape`, which it broadcasts to by trailing axes. */
+function broadcastRead(shape: readonly number[], value: RankValue, index: number, base = 0,
+    valueShape: readonly number[] | undefined = isRankArray(value) ? value.shape : undefined): RankValue {
+    if (!isRankArray(value) || !valueShape) return value;
+    let remaining = index;
+    let offset = 0;
+    let stride = 1;
+    for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+        const coordinate = remaining % shape[axis];
+        remaining = Math.floor(remaining / shape[axis]);
+        const sourceAxis = axis - (shape.length - valueShape.length);
+        if (sourceAxis < 0) continue;
+        if (valueShape[sourceAxis] !== 1) offset += coordinate * stride;
+        stride *= valueShape[sourceAxis];
+    }
+    return readArrayItem(value, base + offset);
+}
+
+/**
+ * `Index Choices choose`: each cell of the integer index names the choice,
+ * a leading-axis cell of `Choices`, to read at that position. Index and choices
+ * broadcast by trailing axes, and only the chosen value is read at each cell.
+ */
+function chooseIndexed(index: RankValue, choices: RankValue): RankValue {
+    if (!isRankArray(choices) || choices.shape.length === 0) {
+        throw new RankError('choose expects an array of choices', 'TypeError');
+    }
+    const count = choices.shape[0];
+    const cellShape = choices.shape.slice(1);
+    const cellSize = cellShape.reduce((product, size) => product * size, 1);
+    // A rank-1 array holds whole choices; a higher-rank array holds one per leading cell.
+    const nested = cellShape.length === 0;
+    const candidates = nested ? Array.from({ length: count }, (_, k) => readArrayItem(choices, k)) : [];
+    const pick = (selected: RankValue): number => {
+        if (typeof selected !== 'bigint') throw new RankError('choose expects integer indices', 'TypeError');
+        if (selected < 0n || selected >= BigInt(count)) {
+            throw new MissingValueError(`choose index out of bounds: ${selected}`);
+        }
+        return Number(selected);
+    };
+    const shapes = [
+        ...(isRankArray(index) ? [index.shape] : []),
+        ...(nested ? candidates.filter(isRankArray).map(candidate => candidate.shape) : [cellShape]),
+    ];
+    if (shapes.length === 0) return candidates[pick(index)];
+    const shape = shapes.reduce<readonly number[]>((current, next) => broadcastShape(current, next), []);
+    const sources = [index, ...candidates, choices].filter(isRankArray);
+    const fileFree = isKnownFileFree(choices) || choices.containsFiles === false;
+    return derivedArray(shape, sources, position => {
+        const k = pick(broadcastRead(shape, index, position));
+        return nested
+            ? broadcastRead(shape, candidates[k], position)
+            : broadcastRead(shape, choices, position, k * cellSize, cellShape);
     }, fileFree);
 }
 

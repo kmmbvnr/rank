@@ -335,6 +335,7 @@ These need `use sequences` but have no name to look up.
 | --- | --- |
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
+| `Index Choices choose` | Selects each cell from the choice its integer index names; choices are leading cells. |
 | `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
 
 ## stats
