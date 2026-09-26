@@ -74,16 +74,24 @@ end
 Count`)).toMatchObject({ value: '3', calls: 7 });
     });
 
-    it('preserves eager operand errors in boolean expressions', () => {
+    it('skips the right operand once and or or is decided', () => {
         const result = compare(`fun helper X
   Good = false and (1 // X greater 0)
-  return Good
+  Bad = true or (1 // X greater 0)
+  return Good or Bad
+end
+Result = false
+for I in 0 to 0
+  Result = I helper
+end
+Result`);
+        expect(result).toMatchObject({ value: 'true', calls: 1 });
+        expect(compare(`fun helper X
+  return true and (1 // X greater 0)
 end
 for I in 0 to 0
   Result = I helper
-end`);
-        expect(result).toHaveProperty('error');
-        expect(result.calls).toBe(1);
+end`)).toHaveProperty('error');
     });
 
     it('preserves the existing last duplicate parameter binding', () => {

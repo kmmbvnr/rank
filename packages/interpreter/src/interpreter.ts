@@ -1881,6 +1881,13 @@ export class Interpreter {
             const left = this.compileDirectExpression(expression.left);
             const right = this.compileDirectExpression(expression.right);
             const step = expression.step ? this.compileDirectExpression(expression.step) : undefined;
+            if (left && right && (expression.operator === 'and' || expression.operator === 'or')) {
+                const operator = expression.operator;
+                return () => {
+                    const value = left();
+                    return this.decidesGuard(operator, value) ? value : this.evaluateGuard(operator, value, right());
+                };
+            }
             if (left && right && (!expression.step || step)) {
                 return () => this.evaluateBinary(expression.operator, left(), right(), step?.());
             }
@@ -2536,6 +2543,13 @@ export class Interpreter {
                     }
                     return (yield* resume(interpreter.evaluateTask(expression.right)));
                 };
+            }
+            if (expression.operator === 'and' || expression.operator === 'or') {
+                const operator = expression.operator;
+                const right = () => interpreter.evaluateTask(expression.right);
+                return () => flatMapResult(interpreter.evaluateTask(expression.left), left =>
+                    interpreter.decidesGuard(operator, left) ? completed(left)
+                        : mapResult(right(), value => interpreter.evaluateGuard(operator, left, value)));
             }
             if (!expression.step) {
                 const right = () => interpreter.evaluateTask(expression.right);
@@ -4658,6 +4672,21 @@ export class Interpreter {
     ): RankValue {
         const result = this.evaluateBinaryValue(operator, left, right, rangeStep);
         return isRankArray(result) ? markBinaryMask(operator, left, right, result) : result;
+    }
+
+    /** `and` and `or` after a single boolean are guards: the right side runs only
+     * when the left does not decide, so it must be a single boolean too. */
+    private evaluateGuard(operator: string, left: RankValue, right: RankValue): RankValue {
+        if (typeof left === 'boolean'
+            && (isRankArray(right) || isRankSequence(right) || isRankQueue(right))) {
+            throw new RankError(`${operator} after a single boolean expects a single boolean. `
+                + `Write \`Mask ${operator} Flag\` to combine a mask with a flag.`);
+        }
+        return this.evaluateBinary(operator, left, right);
+    }
+
+    private decidesGuard(operator: string, left: RankValue): boolean {
+        return left === (operator === 'or');
     }
 
     private evaluateBinaryValue(

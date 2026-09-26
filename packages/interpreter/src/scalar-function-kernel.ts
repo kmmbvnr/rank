@@ -51,6 +51,13 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
             lines.push(`const ${result} = ${expression.operator === 'not' ? '!' : expression.operator === '+' ? '' : '-'}(${value});`);
             return result;
         }
+        if (isBinaryExpression(expression) && (expression.operator === 'and' || expression.operator === 'or')) {
+            // The right side runs only when the left does not decide.
+            const left = emit(expression.left, lines), result = `v${serial++}`, guarded: string[] = [];
+            const right = emit(expression.right, guarded);
+            lines.push(`let ${result} = ${left}; if (${expression.operator === 'and' ? '' : '!'}${result}) { ${guarded.join('\n')} ${result} = ${right}; }`);
+            return result;
+        }
         if (isBinaryExpression(expression)) {
             const left = emit(expression.left, lines), right = emit(expression.right, lines);
             return binary(expression.operator, left, right, lines);

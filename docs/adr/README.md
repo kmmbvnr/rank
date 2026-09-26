@@ -23,7 +23,7 @@ Contains the decisions governing the language core that require **no external im
 - **[Act I: Philosophy, Ergonomics & Program Structure](language/README.md#act-i-philosophy-ergonomics--program-structure)** (ADR-0000 – ADR-0003)
 - **[Act II: Value Model & Type System](language/README.md#act-ii-value-model--type-system)** (ADR-0100 – ADR-0107)
 - **[Act III: Arrays, Tensors & Unified Selection Engine](language/README.md#act-iii-arrays-tensors--unified-selection-engine)** (ADR-0200 – ADR-0207)
-- **[Act IV: Computation, Control Flow & Dataflow](language/README.md#act-iv-computation-control-flow--dataflow)** (ADR-0300 – ADR-0308)
+- **[Act IV: Computation, Control Flow & Dataflow](language/README.md#act-iv-computation-control-flow--dataflow)** (ADR-0300 – ADR-0309)
 
 ### 2. [Standard Library & Extensions (`stdlib/`)](stdlib/README.md)
 Contains the decisions governing domain vocabularies, query blocks, and standard library modules loaded via `use`:

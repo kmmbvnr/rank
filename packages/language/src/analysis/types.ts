@@ -177,6 +177,8 @@ function binaryType(operator: string, left: Types, right: Types): Types {
     }
     if (BOOLEANS.has(operator)) {
         if (same(left, 'boolean') && same(right, 'boolean')) return ['boolean'];
+        // After a single boolean, `and` and `or` are guards that accept only a single boolean.
+        if (same(left, 'boolean') && operator !== 'xor') return ['boolean'];
         return elementwise(left, right) ?? UNKNOWN;
     }
     if (operator === '+' && same(left, 'text') && same(right, 'text')) return ['text'];

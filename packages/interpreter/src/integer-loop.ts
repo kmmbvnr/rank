@@ -398,10 +398,18 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             || ['equal', 'notequal'].includes(e.operator) && knownType(e.right) === 'boolean';
         const left = emit(e.left, lines, textPair || host.nativeCalls && e.operator === '+' && knownType(e.left) === 'text'
             ? 'text' : booleanPair ? 'boolean' : undefined);
-        const right = emit(e.right, lines, left?.type === 'text' ? 'text' : booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);
+        // `and` and `or` run their right side only when the left does not decide.
+        const guard = e.operator === 'and' || e.operator === 'or';
+        const rightLines = guard ? [] : lines;
+        const right = emit(e.right, rightLines, left?.type === 'text' ? 'text' : booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);
         if (!left || !right) return undefined;
         const a = left.code, b = right.code, op = e.operator;
         const name = `v${serial++}`;
+        if (guard) {
+            if (left.type !== 'boolean' || right.type !== 'boolean') return undefined;
+            lines.push(`let ${name} = ${a}; if (${op === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${b}; }`);
+            return { code: name, type: 'boolean' };
+        }
         if (host.nativeCalls && left.type === 'text' && right.type === 'text' && op === '+') {
             lines.push(`const ${name} = (${a}) + (${b});`);
             return { code: name, type: 'text' };

@@ -11,7 +11,7 @@ The decisions are structured into four logical acts that build upon each other s
 - [Act I: Philosophy, Ergonomics & Program Structure](#act-i-philosophy-ergonomics--program-structure) (ADR-0000 – ADR-0003)
 - [Act II: Value Model & Type System](#act-ii-value-model--type-system) (ADR-0100 – ADR-0107)
 - [Act III: Arrays, Tensors & Unified Selection Engine](#act-iii-arrays-tensors--unified-selection-engine) (ADR-0200 – ADR-0207)
-- [Act IV: Computation, Control Flow & Dataflow](#act-iv-computation-control-flow--dataflow) (ADR-0300 – ADR-0308)
+- [Act IV: Computation, Control Flow & Dataflow](#act-iv-computation-control-flow--dataflow) (ADR-0300 – ADR-0309)
 
 ---
 
@@ -58,6 +58,7 @@ flowchart TD
         ADR306["0306: Structured Error Handling & Symbol Kinds"]
         ADR307["0307: Statement-Based Conditionals ('if')"]
         ADR308["0308: Scope-Bound Resource Lifetimes"]
+        ADR309["0309: Scalar 'and'/'or' Guards"]
     end
 
     Act1 --> Act2
@@ -127,3 +128,4 @@ flowchart TD
 | [ADR-0306](0306-structured-error-handling-and-symbol-kinds.md) | Structured Error Handling and Symbol Kinds (`try` / `catch` / `raise`) | Postfix error signaling via `raise`, symbol kinds (`.InvalidInput`), and leak-safe `try/catch/finally` blocks. |
 | [ADR-0307](0307-statement-based-conditionals-and-branch-scoping.md) | Statement-Based Conditionals and Branch Scoping (`if`, `elif`, `else`) | Vertically aligned conditional blocks without inline ternary operators, flat workspace scoping, and union widening. |
 | [ADR-0308](0308-scope-bound-deterministic-resource-lifetimes.md) | Scope-Bound Deterministic Resource Lifetimes | Deterministic resource destruction on scope exit with move-on-return, eliminating `with` indentation and `defer`. |
+| [ADR-0309](0309-scalar-and-or-guards.md) | Scalar `and` and `or` as Short-Circuit Guards | After a single boolean the right side runs only when needed; masks on the left stay elementwise. |

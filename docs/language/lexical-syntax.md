@@ -399,6 +399,22 @@ if X equal 0
 end
 ```
 
+After a single boolean, `and` and `or` are guards. The right side runs only
+when the left side does not decide the result, so a bounds check can protect
+the read that follows it:
+
+```rank
+if Position less 8 and Password Position equal ""
+  Password Position = Letter
+end
+```
+
+`false and X` is `false` and `true or X` is `true` without evaluating `X`.
+When the right side does run it must also be a single boolean; to combine a
+mask with a flag, put the mask first: `Mask and Flag`. With an array or mask
+on the left, both sides always run and combine elementwise. `xor` and the
+compound assignments `and=`, `or=` and `xor=` always evaluate both sides.
+
 Current comparison vocabulary includes:
 
 ```rank

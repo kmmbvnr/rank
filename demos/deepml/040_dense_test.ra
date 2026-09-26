@@ -66,7 +66,7 @@ test "parameters and output shape"
   CountOk = Layer parameters equal 9
   Shape = Layer output_shape
   ShapeOk = Shape equal array 3
-  CountOk and ShapeOk
+  ShapeOk and CountOk
 end
 
 test "frozen layer keeps its parameters"

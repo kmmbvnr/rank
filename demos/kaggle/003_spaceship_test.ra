@@ -13,7 +13,7 @@ test "fills spending and builds total spend"
   end
   Shape = X shape
   CorrectShape = Shape 0 equal 2 and Shape 1 equal 4
-  CorrectShape and Xtest equal Expected
+  Xtest equal Expected and CorrectShape
 end
 
 test "builds a boolean transport submission"
