@@ -18,8 +18,10 @@ flow left to right: `N factors sum` means sum(factors(N)). A predicate keeps the
 shape of its input and gives booleans: `Mask = Fib even` is map(is_even, Fib),
 and an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
 sum(filter(Fib, Mask)). Numeric operations (`sum`, `min`, `max`, `mean`, ...)
-on a mask over a lazy sequence read the items it selects, so `Fib even sum`
-means sum(filter(is_even, Fib)) too; on an array, `A even sum` is an error.
+on such a mask read the items it selects, so `Fib even sum` means
+sum(filter(is_even, Fib)) too. The same holds for an array mask made by a
+predicate or by comparing the array with a scalar: `A even sum` sums the even
+cells of A, in row-major order, while neither array has been written since.
 Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 

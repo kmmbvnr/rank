@@ -1,5 +1,6 @@
 import { checkpoint, interruptibleValues } from './interrupt.js';
 import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { arrayMaskSelection } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
     isRankArray,
@@ -363,10 +364,12 @@ export function zipSequences(
 
 /**
  * A mask's own items are booleans, which no numeric operation accepts, so
- * numeric operations read the source items it selects: `Fib even sum`.
+ * numeric operations read the source items it selects: `Fib even sum`,
+ * `A even sum`.
  */
 export function numericSource(value: RankValue): RankValue {
-    return isRankSequenceMask(value) ? filterSequence(value.source, value.predicate) : value;
+    if (isRankSequenceMask(value)) return filterSequence(value.source, value.predicate);
+    return arrayMaskSelection(value) ?? value;
 }
 
 export function sequenceValues(value: RankValue, operation: string): Iterable<RankValue> {

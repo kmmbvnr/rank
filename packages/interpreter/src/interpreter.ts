@@ -1,6 +1,7 @@
 import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution, debugExecutionPoint } from './interrupt.js';
 import { AstUtils } from 'langium';
 import { registerFlatCombine } from './flat-combine.js';
+import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
@@ -4596,6 +4597,12 @@ export class Interpreter {
     }
 
     private evaluateUnary(operator: string, value: RankValue): RankValue {
+        const source = operator === 'not' ? arrayMaskSource(value) : undefined;
+        if (source) return markArrayMask(this.evaluateUnaryValue(operator, value), source);
+        return this.evaluateUnaryValue(operator, value);
+    }
+
+    private evaluateUnaryValue(operator: string, value: RankValue): RankValue {
         if (operator === 'not' && isRankSequenceMask(value)) {
             return sequenceMask(value.source, {
                 name: `not ${value.predicate.name}`,
@@ -4620,6 +4627,16 @@ export class Interpreter {
     }
 
     private evaluateBinary(
+        operator: string,
+        left: RankValue,
+        right: RankValue,
+        rangeStep?: RankValue,
+    ): RankValue {
+        const result = this.evaluateBinaryValue(operator, left, right, rangeStep);
+        return isRankArray(result) ? markBinaryMask(operator, left, right, result) : result;
+    }
+
+    private evaluateBinaryValue(
         operator: string,
         left: RankValue,
         right: RankValue,
@@ -6185,6 +6202,21 @@ function assertTestExpression(value: RankValue): void {
             && value.items.every(item => typeof item === 'boolean')
             && value.items.some(item => item === false);
     if (failed) throw new RankError('boolean test expression evaluated to false');
+}
+
+/** A comparison of an array with a scalar, or a logical join of two masks of the
+ * same array, yields a mask that numeric operations can select through. */
+function markBinaryMask(operator: string, left: RankValue, right: RankValue, result: RankArray): RankValue {
+    if (isPredicateOperator(operator)) {
+        if (isRankArray(left) && typeof right !== 'object') return markArrayMask(result, left);
+        if (isRankArray(right) && typeof left !== 'object') return markArrayMask(result, right);
+        return result;
+    }
+    if (operator === 'and' || operator === 'or' || operator === 'xor') {
+        const source = arrayMaskSource(left);
+        if (source && source === arrayMaskSource(right)) return markArrayMask(result, source);
+    }
+    return result;
 }
 
 function isPredicateOperator(operator: string): boolean {

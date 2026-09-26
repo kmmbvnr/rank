@@ -7,7 +7,6 @@ import {
     isRankSequence,
     type IntrinsicRank,
     type NativeFunction,
-    type RankArray,
     type RankValue,
 } from '../value.js';
 
@@ -47,7 +46,7 @@ export function mapValue(
     operation: (scalar: RankValue) => RankValue,
 ): RankValue {
     if (isRankSequence(value)) return mapSequence(value, 'map', operation);
-    return isRankArray(value) ? array(value.items.map(operation)) : operation(value);
+    return isRankArray(value) ? ownedArray(value.items.map(operation), value.shape) : operation(value);
 }
 
 export function expectInteger(value: RankValue): bigint {
@@ -62,8 +61,4 @@ export function expectNumeric(value: RankValue): bigint | number {
         throw new RankError('expected numeric input');
     }
     return value;
-}
-
-function array(items: RankValue[]): RankArray {
-    return ownedArray(items);
 }

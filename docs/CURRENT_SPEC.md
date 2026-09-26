@@ -2354,6 +2354,12 @@ Answer = Fib even sum
 Answer = Fib (Fib even) sum
 ```
 
+A boolean array made by a predicate (`A even`), by comparing an array with a
+scalar (`A greater 2`), or by `not`, `and`, `or` and `xor` over masks of the
+same array works the same way: `A even sum` adds the even cells of `A`, read in
+row-major order. The link lasts only while neither the array nor the mask has
+been written; after a write, a numeric operation sees the booleans again.
+
 The mask retains its source so explicit selection can push the predicate into
 that source without allocating a boolean array. This does not change the mask's
 values. Bound the source before creating a mask, or bound the explicitly selected

@@ -638,6 +638,25 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('sum requires a bounded sequence');
     });
 
+    it('reduces the cells an array mask selects with numeric operations', () => {
+        const setup = 'use numbers\nuse stats\nA = array 1 2 3 4 5\n';
+        expect(run(setup + 'A even sum')).toBe('6');
+        expect(run(setup + 'A odd max')).toBe('5');
+        expect(run(setup + 'A even mean')).toBe('3');
+        expect(run(setup + 'Mask = A greater 2\nMask sum')).toBe('12');
+        expect(run(setup + 'Mask = A greater 1 and (A less 5)\nMask sum')).toBe('9');
+        expect(run(setup + 'Mask = not (A even)\nMask sum')).toBe('9');
+        expect(run(setup + 'A even')).toBe('false true false true false');
+        expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM even sum')).toBe('12');
+        expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM (M even)')).toBe('2 4 6');
+        // A write to either array after the mask was made unlinks it.
+        expect(() => run(setup + 'Mask = A even\nA 1 = 10\nMask sum')).toThrowError('expected numeric input');
+        expect(() => run(setup + 'Mask = A even\nMask 0 = true\nMask sum')).toThrowError('expected numeric input');
+        // Masks of different arrays do not join into a selection.
+        expect(() => run(setup + 'B = array 5 4 3 2 1\nMask = A even and (B even)\nMask sum'))
+            .toThrowError('expected numeric input');
+    });
+
     it('does not reduce an unbounded sequence', () => {
         expect(() => run('use sequences\nuse numbers\nfibonacci sum'))
             .toThrowError('sum requires a bounded sequence');

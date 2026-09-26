@@ -171,7 +171,9 @@ comfortably on a phone screen.
 Lazy masks retain their source for optimized selection, and every operation
 that consumes the mask as data sees boolean values. Prefix `array Mask` and
 postfix `Mask array` therefore agree. Numeric operations such as `sum`, `max`
-or `mean` cannot use booleans, so they read the source items the mask selects:
+or `mean` cannot use booleans, so they read the source items the mask selects.
+Array masks made by a predicate or a comparison with a scalar do the same, so
+`A even sum` needs no parentheses either:
 
 ```rank
 Fib = fibonacci to Limit

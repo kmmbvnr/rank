@@ -1,4 +1,5 @@
 import { checkpoint } from '../interrupt.js';
+import { markArrayMask } from '../array-mask.js';
 import { derivedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -567,7 +568,7 @@ function predicateFunction(name: string, test: (value: RankValue) => boolean) {
         const value = arguments_[0];
         return isRankSequence(value)
             ? sequenceMask(value, predicate)
-            : mapValue(value, test);
+            : markArrayMask(mapValue(value, test), value);
     });
 }
 
