@@ -137,6 +137,16 @@ names a field of the record or object just before it, the pair is one value.
 is not a field of the value before it, such as an option like `.descending`,
 and a column label after a table, stay separate arguments.
 
+Inside an address, a field label addresses what it reads, so selectors can
+follow it: `Rows 0 .attributes "Rate"` reads the `.attributes` object of the
+first row, then its `"Rate"` entry. An object addressed by an array of text
+keys returns the entries in the order listed.
+
+A few operations declare a label written after their name as a modifier that
+chooses the form of their result instead of a field of it: `Text json .flat`
+and `Text xml .flat` return a table of nodes, as `Values sort .descending`
+reverses the order.
+
 For an operation supporting several arities, an exact argument count wins.
 Otherwise Rank tries larger supported arities first. `min` and `max` are
 ordinary postfix calls: `A B max` calls the current `max` with arguments `A`

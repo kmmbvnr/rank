@@ -28,7 +28,7 @@ Contains the decisions governing the language core that require **no external im
 ### 2. [Standard Library & Extensions (`stdlib/`)](stdlib/README.md)
 Contains the decisions governing domain vocabularies, query blocks, and standard library modules loaded via `use`:
 - **[Block 00xx: Environment Integration & Testing](stdlib/README.md#block-00xx-environment-integration--testing)** (ADR-0000 – ADR-0001)
-- **[Block 01xx: Tabular Data, Query Pipeline & SQLite](stdlib/README.md#block-01xx-tabular-data-query-pipeline--sqlite)** (ADR-0100 – ADR-0102)
+- **[Block 01xx: Tabular Data, Query Pipeline & SQLite](stdlib/README.md#block-01xx-tabular-data-query-pipeline--sqlite)** (ADR-0100 – ADR-0103)
 - **[Block 02xx: Algorithmic Structures & Graphs](stdlib/README.md#block-02xx-algorithmic-structures--graphs)** (ADR-0200 – ADR-0201)
 - **[Block 03xx: Sequences, Windows, Dates & Numerics](stdlib/README.md#block-03xx-sequences-windows-dates--numerics)** (ADR-0300 – ADR-0303)
 

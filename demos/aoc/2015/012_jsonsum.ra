@@ -5,6 +5,7 @@ rem https://adventofcode.com/2015/day/12
 use io
 use cli
 use json
+use tables
 
 argument Input path
 
@@ -15,31 +16,15 @@ Part2 print
 
 
 rem Decode a document and calculate both puzzle sums.
+rem Part 1 reads every number at any depth from the flat
+rem table of nodes; part 2 needs the nesting, so it walks
+rem the tree.
 fun solve Text
-  Data = Text json
-  Part1 = Data sumall
-  Part2 = Data sumnored
+  Nodes = Text json .flat
+  Numbers = Nodes filter .kind equal "integer"
+  Part1 = Numbers .value sum
+  Part2 = Text json sumnored
   return array Part1 Part2
-end
-
-
-rem Sum every numeric value nested in arrays and objects.
-fun sumall Value
-  if Value is .integer or Value is .real
-    return Value
-  end
-
-  Total = 0.0
-  if Value is .array
-    for Item in Value
-      Total += Item sumall
-    end
-  elif Value is .object
-    for Item Key in Value
-      Total += Item sumall
-    end
-  end
-  return Total
 end
 
 

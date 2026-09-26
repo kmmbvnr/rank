@@ -4,8 +4,10 @@ test "official array examples"
   use "012_jsonsum"
   use json
 
-  "[1,2,3]" json sumall equal 6
-  "[1,{\"a\":2},3]" json sumall equal 6
+  ("[1,2,3]" solve 0) equal 6
+  ("[1,{\"a\":2},3]" solve 0) equal 6
+  ("{\"a\":[[[3]]]}" solve 0) equal 3
+  ("[]" solve 0) equal 0
   "[1,\"red\",5]" json sumnored equal 6
 end
 

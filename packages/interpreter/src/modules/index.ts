@@ -16,6 +16,7 @@ import { sqliteModule } from './sqlite.js';
 import { statsModule } from './stats.js';
 import { tablesModule } from './tables.js';
 import { textModule } from './text.js';
+import { xmlModule } from './xml.js';
 import type { RuntimeModule } from './types.js';
 
 export const standardModules: Record<string, RuntimeModule> = {
@@ -38,4 +39,5 @@ export const standardModules: Record<string, RuntimeModule> = {
     tables: { ...tablesModule, ...sqliteModule },
     testing: {},
     text: textModule,
+    xml: xmlModule,
 };

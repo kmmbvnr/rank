@@ -1,0 +1,32 @@
+use testing
+
+test "example case from the contest"
+  use "001_params"
+  run
+
+  Params equal array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+end
+
+test "parameters in table order whatever the attribute order"
+  use "001_params"
+
+  Text = (
+    "<BuyRentCase><Note/><BuyRentParams InitialRent=\"700\" SavingsRate=\"2\" "
+    + "PropertyTax=\"1\" MarginalTax=\"20\" Inflation=\"2\" DadRate=\"4\" DadAmount=\"0\" "
+    + "BankRate=\"6\" BankAmount=\"100000\" LoanTerm=\"240\" ClosingCosts=\"0\" "
+    + "HomePrice=\"200000\"/></BuyRentCase>"
+  )
+  Text getparams equal array 200000.0 0.0 240.0 100000.0 6.0 0.0 4.0 2.0 20.0 1.0 2.0 700.0
+end
+
+test "a missing parameter is an error"
+  use "001_params"
+
+  Raised = false
+  try
+    Params = "<BuyRentCase><BuyRentParams HomePrice=\"1\"/></BuyRentCase>" getparams
+  catch .Missing Error
+    Raised = true
+  end
+  Raised
+end

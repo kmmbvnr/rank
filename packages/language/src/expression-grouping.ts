@@ -3,7 +3,7 @@ import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'l
 import {
     isApplicationExpression, isBinaryExpression, isExpression, isMaterializeExpression,
     isNameExpression,
-    type BinaryExpression, type Expression, type Program,
+    type BinaryExpression, type Expression, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
@@ -87,6 +87,11 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         const supplied = options.bindings?.get(part.name);
         if (supplied !== undefined) return supplied !== false && !supplied.includes(0);
         return (operationArities(part.name)?.length ?? 0) > 0;
+    };
+    const standard = (part: NameExpression): boolean => {
+        const start = part.$cstNode?.range.start;
+        return !(start && sites.has(siteKey(start.line + 1, start.character + 1)))
+            && options.bindings?.get(part.name) === undefined;
     };
     const report = (node: AstNode, message: string, property?: string) => {
         errors.push({ node, message, cst: property ? GrammarUtils.findNodeForProperty(node.$cstNode, property) : node.$cstNode });
@@ -255,7 +260,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         }
         const result = isExpression(node) && (isApplicationExpression(node) || isMaterializeExpression(node)
             || (isBinaryExpression(node) && precedence[node.operator])) ? formula(node) : visitChildren(node);
-        const grouped = modifiers && isExpression(result) ? groupModifiers(result) : result;
+        const grouped = modifiers && isExpression(result) ? groupModifiers(result, standard) : result;
         // Editor lookups starting from concrete syntax use the same grouped tree.
         if (grouped.$cstNode) (grouped.$cstNode as { astNode: AstNode }).astNode = grouped;
         return grouped;

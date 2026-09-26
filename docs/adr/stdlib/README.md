@@ -9,7 +9,7 @@ Decisions in this domain are organized into modular blocks of 100 numbers (`00xx
 ## Table of Contents
 
 - [Block 00xx: Environment Integration & Testing](#block-00xx-environment-integration--testing) (ADR-0000 – ADR-0001)
-- [Block 01xx: Tabular Data, Query Pipeline & SQLite](#block-01xx-tabular-data-query-pipeline--sqlite) (ADR-0100 – ADR-0102)
+- [Block 01xx: Tabular Data, Query Pipeline & SQLite](#block-01xx-tabular-data-query-pipeline--sqlite) (ADR-0100 – ADR-0103)
 - [Block 02xx: Algorithmic Structures & Graphs](#block-02xx-algorithmic-structures--graphs) (ADR-0200 – ADR-0201)
 - [Block 03xx: Sequences, Windows, Dates & Numerics](#block-03xx-sequences-windows-dates--numerics) (ADR-0300 – ADR-0303)
 
@@ -28,6 +28,7 @@ flowchart TD
         ADR100["0100: Columnar Table Model & Row Addressing ('use tables')"]
         ADR101["0101: Declarative Query Pipeline ('select ... end', 'filter', joins)"]
         ADR102["0102: Transparent SQLite Views & Query Translation"]
+        ADR103["0103: Document Trees & Flat Node Tables ('use json', 'use xml')"]
     end
 
     subgraph Block2 ["Block 02xx: Algorithmic Structures & Graphs"]
@@ -69,6 +70,7 @@ flowchart TD
 | [ADR-0100](0100-columnar-table-model-and-record-row-addressing.md) | Columnar Table Model and Record-Row Addressing (`use tables`) | Tables as collections of row objects, lazy symbol projections (`Data .Age`), absence fallback via `default`, and revision tracking. |
 | [ADR-0101](0101-declarative-table-query-pipeline-select-filter-joins.md) | Declarative Table Query Pipeline (`select`, `filter`, joins) | Query shaping blocks (`select ... end`), concise row filters, declarative joins (`innerjoin by`, `leftjoin on`), and group aggregations. |
 | [ADR-0102](0102-transparent-sqlite-views-and-sql-query-translation.md) | Transparent SQLite Views and Query Translation (`use tables`) | Deferred query plans over SQLite files, SQL aggregate pushdown, injection-proof parameters, and `sql`/`explain` inspection. |
+| [ADR-0103](0103-document-trees-and-flat-node-tables.md) | Document Trees and Flat Node Tables (`use json`, `use xml`) | A tree by default and a `.flat` table of nodes for JSON and XML, one row shape (`.depth .parent .kind .name .value`), and object projection by key lists. |
 
 ---
 

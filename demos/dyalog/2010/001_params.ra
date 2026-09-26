@@ -1,0 +1,29 @@
+rem Dyalog Programming Contest 2010
+rem Task 1: Input Processing
+rem Read the twelve model parameters from
+rem a BuyRentCase document, in table order.
+
+use io
+use cli
+use xml
+use tables
+use text
+
+argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+
+Params = Input read getparams
+Params print
+
+
+rem Attributes of BuyRentParams as numbers.
+fun getparams Text
+  Fields = (
+    "HomePrice ClosingCosts LoanTerm "
+    + "BankAmount BankRate DadAmount "
+    + "DadRate Inflation MarginalTax "
+    + "PropertyTax SavingsRate InitialRent"
+  ) " " split
+  Nodes = Text xml .flat
+  Found = Nodes filter .name equal "BuyRentParams"
+  return Found 0 .attributes Fields real rank 0
+end

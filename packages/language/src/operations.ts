@@ -62,6 +62,11 @@ export interface Operation {
     readonly preservesArrayShape?: true;
     /** On a successful call, the result array has this operand's shape. */
     readonly resultShapeFromOperand?: number;
+    /**
+     * Labels written after the name that choose another form of the result,
+     * as in `Text json .flat`. The call receives the label as its last operand.
+     */
+    readonly modifiers?: readonly string[];
 }
 
 /** A library module or the always-available core catalogue group. */
@@ -94,7 +99,7 @@ export const modules: readonly Module[] = [
     { name: 'grids', summary: 'Neighbors and straight segments of dense rank-2 arrays.' },
     { name: 'images', summary: 'Image directories decoded into tensors.' },
     { name: 'io', summary: 'Standard input, whole-file text and stateful file handles.' },
-    { name: 'json', summary: 'JSON decoding.' },
+    { name: 'json', summary: 'JSON decoding into values or a flat table of nodes.' },
     { name: 'linalg', summary: 'Matrix products, solvers and decompositions.' },
     { name: 'numbers', summary: 'Arithmetic, roots, logarithms, trigonometry and number theory.' },
     { name: 'random', summary: 'Seeded pseudorandom sampling.' },
@@ -103,6 +108,7 @@ export const modules: readonly Module[] = [
     { name: 'tables', summary: 'CSV, SQLite, grouping and joins.' },
     { name: 'testing', summary: 'Test blocks.' },
     { name: 'text', summary: 'Splitting, formatting, parsing and code points.' },
+    { name: 'xml', summary: 'XML decoding into a tree or a flat table of nodes.' },
 ];
 
 export const operations: readonly Operation[] = [
@@ -337,8 +343,9 @@ export const operations: readonly Operation[] = [
     { name: 'writebytes', module: 'io', arities: [2], form: 'File Bytes writebytes',
         result: 'file', effects: ['io'], summary: 'Writes a bytes value to an open file.' },
 
-    { name: 'json', module: 'json', arities: [1], form: 'Text json', result: 'value',
+    { name: 'json', module: 'json', arities: [1, 2], form: 'Text json', result: 'value', modifiers: ['flat'],
         summary: 'Decodes a complete JSON document into Rank values.' },
+
 
     { name: 'det', module: 'linalg', arities: [1], form: 'Matrix det', result: 'number',
         monadicRank: 2, summary: 'Determinant of a square numeric matrix, exact for integers.' },
@@ -587,6 +594,9 @@ export const operations: readonly Operation[] = [
         summary: 'Most frequent words, at most Limit of them, ties by code point.' },
     { name: 'words', module: 'text', arities: [1], form: 'Text words', result: 'array',
         summary: 'Lowercase Unicode letter and number runs.' },
+
+    { name: 'xml', module: 'xml', arities: [1, 2], form: 'Text xml', result: 'value', modifiers: ['flat'],
+        summary: 'Decodes a complete XML document into a tree of element nodes.' },
 ];
 
 export const moduleForms: readonly ModuleForm[] = [
@@ -617,6 +627,10 @@ export const moduleForms: readonly ModuleForm[] = [
     { module: 'graph', form: 'Graph edges Vertex',
         example: 'G = new graph .undirected\nG add 1 2\nfor E in G edges 1\n  N = E\nend',
         summary: 'Lazy outgoing entries of a vertex as array Next Cost pairs.' },
+    { module: 'json', form: 'Text json .flat', example: 'Nodes = "[1, 2]" json .flat',
+        summary: 'Rank-1 table of nodes in document order: .depth .parent .kind .name .value.' },
+    { module: 'xml', form: 'Text xml .flat', example: 'Nodes = "<a b=\\"1\\"/>" xml .flat',
+        summary: 'Rank-1 table of nodes in document order, with .attributes for elements.' },
     { module: 'io', form: 'stdin .integer', example: 'N = stdin .integer',
         summary: 'Reads one token of standard input; a count makes it a lazy sequence.' },
     { module: 'numbers', form: 'Values multiple by N', example: 'M = 12 multiple by 3',

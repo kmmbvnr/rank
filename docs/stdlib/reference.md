@@ -224,11 +224,17 @@ These need `use io` but have no name to look up.
 
 ## json
 
-JSON decoding.
+JSON decoding into values or a flat table of nodes.
 
 | Form | Result | Summary |
 | --- | --- | --- |
 | `Text json` | value | Decodes a complete JSON document into Rank values. |
+
+These need `use json` but have no name to look up.
+
+| Form | Summary |
+| --- | --- |
+| `Text json .flat` | Rank-1 table of nodes in document order: .depth .parent .kind .name .value. |
 
 ## linalg
 
@@ -412,3 +418,17 @@ Splitting, formatting, parsing and code points.
 | `Text Chars Replacement translate` | text | Replaces listed characters, deleting those with no replacement. |
 | `Texts Limit vocab` | array | Most frequent words, at most Limit of them, ties by code point. |
 | `Text words` | array | Lowercase Unicode letter and number runs. |
+
+## xml
+
+XML decoding into a tree or a flat table of nodes.
+
+| Form | Result | Summary |
+| --- | --- | --- |
+| `Text xml` | value | Decodes a complete XML document into a tree of element nodes. |
+
+These need `use xml` but have no name to look up.
+
+| Form | Summary |
+| --- | --- |
+| `Text xml .flat` | Rank-1 table of nodes in document order, with .attributes for elements. |

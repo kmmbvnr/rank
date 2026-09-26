@@ -5701,8 +5701,20 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         return values[0].at(values[1]);
     }
     if (isRankObject(values[0])) {
+        // A list of keys reads each one, in the order listed.
+        if (values.length === 2 && isRankArray(values[1]) && values[1].shape.length === 1) {
+            const object = values[0];
+            const keys = values[1];
+            return ownedArray(Array.from({ length: keys.shape[0] }, (_, index) => {
+                const key = arrayItem(keys, index);
+                if (typeof key !== 'string') throw new RankError('object addressing expects text keys');
+                const value = object.entries.get(key);
+                if (value === undefined) throw new MissingValueError(`missing object key: ${key}`);
+                return value;
+            }));
+        }
         if (values.length !== 2 || (typeof values[1] !== 'string' && !isRankLabel(values[1]))) {
-            throw new RankError('object addressing expects one text key');
+            throw new RankError('object addressing expects one text key or an array of them');
         }
         const key = isRankLabel(values[1]) ? values[1].name : values[1];
         const value = values[0].entries.get(key);
@@ -5754,6 +5766,12 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
         const receiver = applySelectors(values.slice(0, -1), missing);
         return applySelectors([receiver, last], missing);
+    }
+    // `Rows 0 .attributes Keys`: a field read inside an address addresses what it returns.
+    const field = values.findIndex((value, index) => index > 1 && isRankLabel(value) && value.name !== '#');
+    if (field > 0 && field < values.length - 1) {
+        const receiver = applySelectors(values.slice(0, field + 1), missing);
+        return applySelectors([receiver, ...values.slice(field + 1)], missing);
     }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
         throw new RankError('value application requires a sequence and one selector');
@@ -5894,7 +5912,9 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (isRankMultiset(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') return true;
     if (isRankObject(values[0]) && values.length === 2
-        && typeof values[1] === 'string') return true;
+        && (typeof values[1] === 'string'
+            || (isRankArray(values[1]) && values[1].shape.length === 1
+                && values[1].items.every(item => typeof item === 'string')))) return true;
     if (isRankRecord(values[0]) && values.length === 2
         && isRankLabel(values[1])) return true;
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') return true;

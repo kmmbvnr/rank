@@ -1,22 +1,51 @@
 import { ownedArray, ownedObject } from '../array-storage.js';
 import { RankError } from '../errors.js';
-import { type RankObject, type RankValue } from '../value.js';
+import { isRankArray, isRankLabel, isRankObject, type RankObject, type RankValue } from '../value.js';
+import { documentForm, nodeTable } from './document.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const jsonModule: RuntimeModule = {
-    json: () => native('json', 1, arguments_ => {
+    json: () => native('json', [1, 2], arguments_ => {
         const text = arguments_[0];
         if (typeof text !== 'string') throw new RankError('json expects text');
+        const form = documentForm('json', arguments_[1]);
+        let value: RankValue;
         try {
-            return new JsonParser(text).parse();
+            value = new JsonParser(text).parse();
         } catch (error) {
             if (error instanceof RankError) throw error;
             const detail = error instanceof Error ? error.message : String(error);
             throw new RankError(`invalid JSON: ${detail}`, 'InvalidJson');
         }
+        return form === 'flat' ? jsonNodes(value) : value;
     }),
 };
+
+interface JsonNode {
+    readonly name: string;
+    readonly value: RankValue;
+}
+
+/** Containers keep `""` as their value; their contents follow as rows of their own. */
+function jsonNodes(root: RankValue): RankValue {
+    return nodeTable<JsonNode>(
+        { name: '', value: root },
+        ({ name, value }) => {
+            const container = isRankArray(value) || isRankObject(value);
+            return {
+                kind: isRankLabel(value) ? value.name : typeof value === 'bigint' ? 'integer'
+                    : typeof value === 'number' ? 'real' : typeof value === 'string' ? 'text'
+                    : typeof value === 'boolean' ? 'boolean' : value.kind,
+                name,
+                value: container ? '' : value,
+            };
+        },
+        ({ value }) => isRankObject(value) ? [...value.entries].map(([name, item]) => ({ name, value: item }))
+            : isRankArray(value) ? (value.items as RankValue[]).map(item => ({ name: '', value: item }))
+            : [],
+    );
+}
 
 class JsonParser {
     private position = 0;

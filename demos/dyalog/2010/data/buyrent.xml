@@ -1,0 +1,6 @@
+<BuyRentCase>
+  <BuyRentParams HomePrice="150000" ClosingCosts="5000" LoanTerm="360"
+    BankAmount="75000" BankRate="10" DadAmount="30000" DadRate="5"
+    Inflation="1.5" MarginalTax="25" PropertyTax="1.75" SavingsRate="3"
+    InitialRent="600" />
+</BuyRentCase>

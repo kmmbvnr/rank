@@ -956,7 +956,7 @@ only complete windows of the conceptually padded source.
 
 ## JSON
 
-`use json` decodes a complete JSON document from text:
+`use json` decodes a complete JSON document from text into Rank values:
 
 ```rank
 Data = Text json
@@ -986,6 +986,72 @@ end
 Object entry order follows the source document. Values may be heterogeneous,
 so the loop value binding receives an inferred union type and can be narrowed
 with `is`.
+
+A list of text keys reads each key in the order listed, and a missing key raises
+`.Missing`:
+
+```rank
+Values = Data (array "name" "age")
+```
+
+### Flat table of nodes
+
+`.flat` after `json` decodes the same document into a rank-1 table with one row
+per value, in document order, so a container precedes its contents:
+
+```rank
+Nodes = Text json .flat
+Numbers = Nodes filter .kind equal "integer"
+Total = Numbers .value sum
+```
+
+Every row is an object with the same fields, shared with `xml .flat`:
+
+| Field | Meaning |
+| --- | --- |
+| `.depth` | Nesting depth; the document value is at 0. |
+| `.parent` | Row number of the enclosing container; -1 for the document value. |
+| `.kind` | `"object"`, `"array"`, `"integer"`, `"real"`, `"text"`, `"boolean"` or `"null"`. |
+| `.name` | The key of an object entry; `""` for array items and the document value. |
+| `.value` | The value of a leaf; `""` for objects and arrays. |
+
+`.kind` is text rather than a label because a label inside a table condition
+names a column. The tree suits documents whose shape is known, where a path
+names what to read; the table suits a search at any depth, which is an ordinary
+filter. `.parent` reaches the enclosing row without a recursive walk.
+
+## XML
+
+`use xml` decodes a complete XML document from text into a tree of nodes:
+
+```rank
+Doc = Text xml
+Params = Doc .children 0 .attributes
+```
+
+A node is an object with `.kind`, `.name`, `.value`, `.attributes` and
+`.children`. Elements have `.kind` `"element"`, their tag name and their
+attributes as a keyed object; their text and comments are children with `.kind`
+`"text"` or `"comment"` and their content in `.value`. `.children` is an array of
+nodes in document order.
+
+`.flat` decodes the document into a table of nodes with the fields of the JSON
+table and `.attributes`, as `⎕XML` does in APL:
+
+```rank
+Nodes = Text xml .flat
+Found = Nodes filter .name equal "BuyRentParams"
+Values = Found 0 .attributes Fields real rank 0
+```
+
+Attribute values stay text; convert them explicitly. The decoder accepts
+elements, attributes, text, comments, CDATA sections, the five predefined
+entities and character references. The XML declaration, processing
+instructions and a document type declaration are skipped, adjacent text and
+CDATA form one text node, and text that is only whitespace between markup is
+dropped. Namespace prefixes are not resolved, so `a:b` is an ordinary name.
+Malformed input raises `.InvalidXml`. Filtering the table by a field needs
+`use tables`, as it does for any table.
 
 ## Cryptography
 
