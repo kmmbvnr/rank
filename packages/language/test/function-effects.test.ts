@@ -93,6 +93,21 @@ it('summarizes scalar integer number operations only with proven inputs', () => 
     expect(analyze(tower, 'power_tower', [], [integer, integer, integer]).unknown).toBe(false);
 });
 
+it('keeps scalar boolean compound assignments local with proven inputs', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const source = readFileSync(new URL('../../../demos/euler/019_sundays.ra', import.meta.url), 'utf8');
+    expect(analyze(source, 'month_days', [], [integer, integer]).unknown).toBe(false);
+    expect(analyze(source, 'month_days', [], [{ types: [] }, integer]).unknown).toBe(true);
+});
+
+it('proves numeric full reductions without invoking lazy cells', () => {
+    const source = 'fun helper Values\n return Values + reduce\nend';
+    const numeric: ValueFacts = { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],
+        callbackFreeScalarCells: true };
+    expect(analyze(source, 'helper', [], [numeric]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [{ ...numeric, callbackFreeScalarCells: undefined }]).unknown).toBe(true);
+});
+
 it('summarizes guarded scalar numeric operations in the unchanged sigmoid demo', () => {
     const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
     const scalar: ValueFacts = { types: ['real'], rank: 0, shape: [] };

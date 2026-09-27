@@ -112,6 +112,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     if (isStringLiteral(expression)) return { types: ['text'], rank: 1,
         shape: [[...expression.value].length], textLiteral: expression.value };
     if (isBooleanLiteral(expression)) return { types: ['boolean'], rank: 0, shape: [] };
+    if (isUnaryExpression(expression) && expression.operator === 'not') {
+        const operand = expressionFacts(expression.operand, lookup);
+        if (operand.rank === 0 && operand.types.join() === 'boolean') {
+            return { types: ['boolean'], rank: 0, shape: [] };
+        }
+    }
     if (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)) {
         const operand = expressionFacts(expression.operand, lookup);
         if (operand.integer !== undefined) return { ...operand,
@@ -170,6 +176,16 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             ? { ...source, types: ['array'] } : { types: ['array'] };
     }
     if (isBinaryExpression(expression)) {
+        if (['+', '*'].includes(expression.operator) && isNameExpression(expression.right)
+            && expression.right.name === 'reduce' && lookup('reduce') === undefined) {
+            const source = expressionFacts(expression.left, lookup);
+            if (['array', 'sequence'].includes(source.types.join()) && source.rank !== undefined
+                && source.rank > 0 && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
+                return { types: source.elements.join() === 'integer' ? ['integer'] : ['integer', 'real'],
+                    rank: 0, shape: [] };
+            }
+        }
         const slice = inlineSliceOperands(expression);
         if (slice) {
             const source = expressionFacts(slice.source, lookup);
@@ -279,6 +295,13 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     ...(callbackFree ? { elements: (integerResult ? ['integer'] : ['integer', 'real']) as Types,
                         callbackFreeScalarCells: true as const } : {}) };
             }
+        }
+        if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby',
+            'and', 'or', 'xor'].includes(expression.operator)
+            && left.rank === 0 && right.rank === 0
+            && left.types.length && right.types.length
+            && typeOf(expression, name => lookup(name)?.types).join() === 'boolean') {
+            return { types: ['boolean'], rank: 0, shape: [] };
         }
         if (['equal', 'notequal', 'and', 'or', 'xor'].includes(expression.operator)) {
             const allowed = expression.operator === 'equal' || expression.operator === 'notequal'

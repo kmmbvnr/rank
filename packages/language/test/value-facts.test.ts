@@ -33,6 +33,25 @@ it('keeps integer cells through integer-only array arithmetic', () => {
     expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['integer', 'real'] });
 });
 
+it('keeps scalar rank through boolean comparisons and negation', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const bindings = new Map([['N', integer]]);
+    expect(facts('N multiple by 4', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('not N equal 4', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('N less 4 or N greater 8', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('N equal 4', new Map([['N', { types: [] }]])).rank).toBeUndefined();
+    expect(facts('(array 1 2) equal 1')).toMatchObject({ types: ['array'], rank: 1,
+        elements: ['boolean'] });
+});
+
+it('infers numeric full reductions only from callback-free scalar cells', () => {
+    expect(facts('(1 to 4) * reduce')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1 2 3) + reduce')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1.5 2.5) + reduce')).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Lazy + reduce', new Map([['Lazy', { types: ['sequence'], rank: 1,
+        shape: [null], elements: ['integer'] }]]))).toEqual({ types: [] });
+});
+
 it('proves eager cells for known atom array literals', () => {
     expect(facts('array true false').eagerScalarCells).toBe(true);
     expect(facts('array shape 2 2\n 1 2\n 3 4\nend').eagerScalarCells).toBe(true);

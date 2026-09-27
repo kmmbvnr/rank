@@ -393,6 +393,14 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             if (isParenthesizedExpression(value)) return expression(value.value);
             if (isUnaryExpression(value)) return expression(value.operand);
             if (isBinaryExpression(value)) {
+                if (['+', '*'].includes(value.operator) && isNameExpression(value.right)
+                    && value.right.name === 'reduce' && !isBound('reduce') && facts) {
+                    const source = fact(value.left);
+                    return ['array', 'sequence'].includes(source.types.join()) && source.rank !== undefined
+                        && source.rank > 0 && !!(source.eagerScalarCells || source.callbackFreeScalarCells)
+                        && !!source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')
+                        && expression(value.left);
+                }
                 if (['+', '-', '*', '/', '//', '%', '**'].includes(value.operator)
                     && isNameExpression(value.right) && value.right.name === 'outer' && !isBound('outer')
                     && isApplicationExpression(value.left) && facts) {
@@ -420,12 +428,17 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (item.operator === '=') {
                     if (facts) facts.set(item.name, fact(item.value));
                 } else {
-                    if (!facts || !['+=', '-=', '*=', '//=', '%='].includes(item.operator)) return false;
+                    if (!facts || !['+=', '-=', '*=', '//=', '%=', 'and=', 'or=', 'xor='].includes(item.operator)) return false;
                     const target = fact({ $type: 'NameExpression', name: item.name } as Expression);
                     const value = fact(item.value);
-                    if ([target, value].every(part => part.rank === 0 && part.types.join() === 'integer')) {
+                    if (['and=', 'or=', 'xor='].includes(item.operator)
+                        && [target, value].every(part => part.rank === 0 && part.types.join() === 'boolean')) {
+                        facts.set(item.name, { types: ['boolean'], rank: 0, shape: [] });
+                    } else if (!['and=', 'or=', 'xor='].includes(item.operator)
+                        && [target, value].every(part => part.rank === 0 && part.types.join() === 'integer')) {
                         facts.set(item.name, { types: ['integer'], rank: 0, shape: [] });
                     } else {
+                        if (['and=', 'or=', 'xor='].includes(item.operator)) return false;
                         const numericArray = (part: ValueFacts) => part.types.join() === 'array'
                             && (part.eagerScalarCells === true || part.callbackFreeScalarCells === true)
                             && !!part.elements?.length
