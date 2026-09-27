@@ -9,7 +9,7 @@ import {
     type YieldStatement,
 } from '../generated/ast.js';
 import { compoundType } from './types.js';
-import { flattenApplication } from '../expressions.js';
+import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields } from './function-yields.js';
@@ -239,6 +239,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         return { values, fallsThrough: true };
     }
 
+    function emptyBuiltinRange(source: Expression | undefined, collection: ValueFacts): boolean {
+        while (source && isParenthesizedExpression(source)) source = source.value;
+        return !!source && isBinaryExpression(source)
+            && (source.operator === 'to' || source.operator === 'until')
+            && !inlineSliceOperands(source) && collection.types.join() === 'sequence'
+            && collection.shape?.[0] === 0;
+    }
+
     function loop(statement: ForStatement, env: Map<string, ValueFacts>): void {
         const condition = statement.condition;
         if (condition && isBooleanLiteral(condition) && !condition.value) return;
@@ -248,7 +256,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (source) invalidateCalls(source, env);
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
         const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
-        if (count === 0) return;
+        if (count === 0) {
+            if (!emptyBuiltinRange(source, collection)) {
+                for (const [name, fact] of env) env.set(name, invalidate(fact));
+            }
+            return;
+        }
         const contents = [...AstUtils.streamAllContents(statement)];
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
@@ -299,7 +312,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (source) invalidateCalls(source, env);
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
         const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
-        if (count === 0) return [];
+        if (count === 0) {
+            if (!emptyBuiltinRange(source, collection)) {
+                for (const [name, fact] of env) env.set(name, invalidate(fact));
+            }
+            return [];
+        }
         const local = new Map(env);
         for (const node of AstUtils.streamAllContents(statement)) {
             if (!isAssignmentStatement(node)) continue;
@@ -337,6 +355,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             name => env.get(name)?.types.includes('function') ?? false,
             name => env.has(name));
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
+        const sliceModifiers = new Set(nodes.filter(isBinaryExpression)
+            .flatMap(node => inlineSliceOperands(node)?.modifiers ?? []));
         let unknown = false;
         const written = new Set<string>();
         const writtenGlobals = new Set<string>();
@@ -344,6 +364,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         for (const node of nodes) {
             if (isStdinExpression(node)) unknown = true;
             if (!isNameExpression(node)) continue;
+            if (sliceModifiers.has(node)) continue;
             if (env.get(node.name)?.types.includes('function')) {
                 let site: AstNode = node;
                 while (isApplicationExpression(site.$container)) site = site.$container;

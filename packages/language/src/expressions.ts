@@ -19,17 +19,19 @@ export function flattenApplication(expression: Expression): Expression[] {
 /** The `from` form of `to`/`until` is a slice, not an integer range. */
 export function inlineSliceOperands(expression: Expression): {
     source: Expression; start: Expression; end: Expression; axis: bigint; inclusive: boolean;
+    modifiers: readonly Expression[];
 } | undefined {
     if (!isBinaryExpression(expression) || (expression.operator !== 'to' && expression.operator !== 'until')) return undefined;
     const parts = flattenApplication(expression.left);
     const base = { end: expression.right, inclusive: expression.operator === 'to' };
     if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from') {
-        return { ...base, source: parts[0], start: parts[2], axis: 0n };
+        return { ...base, source: parts[0], start: parts[2], axis: 0n, modifiers: [parts[1]] };
     }
     if (parts.length === 5 && isNameExpression(parts[1]) && parts[1].name === 'axis'
         && isNumberLiteral(parts[2]) && typeof parts[2].value === 'bigint'
         && isNameExpression(parts[3]) && parts[3].name === 'from') {
-        return { ...base, source: parts[0], start: parts[4], axis: parts[2].value };
+        return { ...base, source: parts[0], start: parts[4], axis: parts[2].value,
+            modifiers: [parts[1], parts[3]] };
     }
     return undefined;
 }

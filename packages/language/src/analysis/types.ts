@@ -155,7 +155,8 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         const slice = inlineSliceOperands(expression);
         if (slice) {
             const source = typeOf(slice.source, lookup);
-            return same(source, 'array') || same(source, 'text') ? source : UNKNOWN;
+            return same(source, 'array') || same(source, 'text') ? source
+                : same(source, 'sequence') || same(source, 'queue') ? ['array'] : UNKNOWN;
         }
         return binaryType(expression.operator,
             typeOf(expression.left, lookup), typeOf(expression.right, lookup));

@@ -55,6 +55,15 @@ it('checks inline array element counts without executing dimensions', () => {
     expect(messages('M = array 1 2 shape N 2')).toEqual([]);
 });
 
+it('keeps slice result types during program analysis', () => {
+    expect(messages('A = (1 to 5) from 1 until 3\nA = "text"'))
+        .toEqual(['A has type array and cannot receive text']);
+    expect(messages('T = "A😀БC" from 1 until 3\nT = array 1 2'))
+        .toEqual(['T has type text and cannot receive array']);
+    expect(messages('Q = new queue\nA = Q from 0 until 0\nA = "text"'))
+        .toEqual(['A has type array and cannot receive text']);
+});
+
 it('gives function locals their own rank contract', () => {
     expect(messages('A = array 1 2\nfun make N\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
     expect(messages('fun change A\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))
@@ -396,6 +405,18 @@ it('skips an unreachable K-means loop body for a proven zero-step call', () => {
         + `\nPoints 2 Centroids ${steps} k_means\nCount + "bad"`;
     expect(messages(draft(0))).toEqual(['operator + does not accept integer and text']);
     expect(messages(draft(1))).toEqual([]);
+});
+
+it('does not keep caller types across an arbitrary empty iterator', () => {
+    const source = 'Count = 1\nfor Cell in Items\n Unknown external\nend\nCount + "bad"\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    for (const type of ['array', 'sequence'] as const) {
+        const items = { types: [type], rank: 1, shape: [0], elements: ['integer'] };
+        expect(analyzeValues(program.value, new Map([['Items', items]])).diagnostics).toEqual([]);
+    }
+    expect(messages(source.replace('Items', '0 until 0')))
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('checks the result rank of the unchanged bill-count loop before execution', () => {

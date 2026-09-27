@@ -7,7 +7,7 @@ import {
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { expressionFacts, hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
     hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof,
@@ -444,7 +444,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 let iterable = item.condition.right;
                 while (isParenthesizedExpression(iterable)) iterable = iterable.value;
                 if (isBinaryExpression(iterable) && (iterable.operator === 'to' || iterable.operator === 'until')
-                    && fact(iterable).shape?.[0] === 0 && expression(iterable)) return true;
+                    && !inlineSliceOperands(iterable) && fact(iterable).shape?.[0] === 0
+                    && expression(iterable)) return true;
             }
             if (isForStatement(item) && facts && item.condition && isBinaryExpression(item.condition)
                 && item.condition.operator === 'in' && isNameExpression(item.condition.left)

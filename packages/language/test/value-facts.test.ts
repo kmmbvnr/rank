@@ -53,11 +53,17 @@ it('recognizes positional slices as arrays rather than integer ranges', () => {
         shape: [null, 4] });
     expect(facts('Unknown from 0 until End')).toEqual({ types: [] });
     expect(facts('1 until 3')).toMatchObject({ types: ['sequence'], shape: [2] });
+    expect(facts('"A😀БC" from 1 until 3')).toMatchObject({ types: ['text'], rank: 1, shape: [2] });
+    expect(facts('(1 to 5) from 1 until 3')).toMatchObject({ types: ['array'], rank: 1,
+        shape: [2], elements: ['integer'] });
+    expect(facts('Queue from 1 to 2', new Map([['Queue', { types: ['queue'] }]])))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null] });
     const parsed = services.Rank.parser.LangiumParser.parse<Program>('Result = Source from 1 until 3\n');
     const assignment = parsed.value.statements[0];
     if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
     expect(typeOf(assignment.value, name => name === 'Source' ? ['array'] : undefined)).toEqual(['array']);
     expect(typeOf(assignment.value, () => undefined)).toEqual([]);
+    expect(typeOf(assignment.value, name => name === 'Source' ? ['sequence'] : undefined)).toEqual(['array']);
 });
 
 it('uses supplied facts without evaluating bindings', () => {
