@@ -51,6 +51,17 @@ it('retains rank when a dimension is unknown', () => {
     expect(facts('Unknown')).toEqual({ types: [] });
 });
 
+it('recognizes implicit local collections without treating other names as values', () => {
+    for (const name of ['queue', 'set', 'counter', 'index']) {
+        expect(facts(name)).toEqual({ types: [name] });
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = ${name}\n`);
+        const statement = parsed.value.statements[0];
+        if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+        expect(typeOf(statement.value, () => undefined)).toEqual([name]);
+    }
+    expect(facts('Unknown')).toEqual({ types: [] });
+});
+
 it('recognizes positional slices as arrays rather than integer ranges', () => {
     const source: ValueFacts = { types: ['array'], rank: 2, shape: [5, 4], elements: ['integer'],
         eagerScalarCells: true };

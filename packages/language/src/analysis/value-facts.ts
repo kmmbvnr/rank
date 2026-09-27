@@ -3,7 +3,7 @@ import {
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isStringLiteral, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
-import { mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
+import { localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation, type Operation } from '../operations.js';
 
@@ -91,8 +91,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     if (isParenthesizedExpression(expression)) return expressionFacts(expression.value, lookup);
     if (isNameExpression(expression)) {
         const value = lookup(expression.name);
+        const local = localCollectionType(expression.name);
         return value?.types.includes('function') && lookup.invoke && lookup.arity?.(expression.name) === 0
-            ? lookup.invoke(expression.name, []) : value ?? UNKNOWN_VALUE;
+            ? lookup.invoke(expression.name, []) : value ?? (local.length ? { types: local } : UNKNOWN_VALUE);
     }
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],

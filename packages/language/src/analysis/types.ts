@@ -63,6 +63,11 @@ const STRUCTURES: Record<string, string> = {
     index: 'index', graph: 'graph', dsu: 'dsu',
 };
 
+/** Runtime types of the interpreter's implicit local collections. */
+export function localCollectionType(name: string): Types {
+    return name === 'queue' || name === 'set' || name === 'counter' || name === 'index' ? [name] : UNKNOWN;
+}
+
 /**
  * A catalogue result kind as runtime types. The kinds that describe a role
  * rather than a representation — an element of a collection, the receiver
@@ -141,8 +146,13 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         return expression.mode.name === 'word' ? ['text'] : UNKNOWN;
     }
     if (isParenthesizedExpression(expression)) return typeOf(expression.value, lookup);
-    if (isNameExpression(expression)) return lookup(expression.name)
-        ?? ((operationArities(expression.name)?.length ?? 0) > 0 ? ['function'] : UNKNOWN);
+    if (isNameExpression(expression)) {
+        const known = lookup(expression.name);
+        if (known) return known;
+        const local = localCollectionType(expression.name);
+        return local.length ? local
+            : (operationArities(expression.name)?.length ?? 0) > 0 ? ['function'] : UNKNOWN;
+    }
     if (isUnaryExpression(expression)) {
         const operand = typeOf(expression.operand, lookup);
         if (expression.operator === 'not') {
