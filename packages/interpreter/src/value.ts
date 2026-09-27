@@ -280,17 +280,23 @@ export interface CollectionElementType {
 export function checkCollectionElementType(
     collection: string, expected: CollectionElementType | undefined, value: RankValue,
 ): CollectionElementType {
-    const type = typeof value === 'object'
-        ? value.kind === 'label' ? 'symbol'
-            : value.kind === 'queue' && 'mode' in value && typeof value.mode === 'string' ? value.mode : value.kind
-        : typeof value === 'bigint' ? 'integer' : typeof value === 'number' ? 'real'
-            : typeof value === 'string' ? 'text' : typeof value;
+    const type = typeName(value);
     const rank = isRankArray(value) ? value.shape.length : undefined;
     if (expected && (expected.type !== type || expected.rank !== rank)) {
         throw new RankError(`${collection} holds ${expected.type}${expected.rank === undefined ? '' : ` rank ${expected.rank}`}`
             + ` and cannot receive ${type}${rank === undefined ? '' : ` rank ${rank}`}`);
     }
     return expected ?? { type, ...(rank === undefined ? {} : { rank }) };
+}
+
+/** The type symbol reported by `type` and enforced by runtime bindings. */
+export function typeName(value: RankValue): string {
+    if (typeof value === 'bigint') return 'integer';
+    if (typeof value === 'number') return 'real';
+    if (typeof value === 'string') return 'text';
+    if (typeof value !== 'object') return typeof value;
+    if (value.kind === 'queue' && 'mode' in value && typeof value.mode === 'string') return value.mode;
+    return value.kind === 'label' ? 'symbol' : value.kind;
 }
 
 export function isRankDsu(value: RankValue): value is RankDsu {

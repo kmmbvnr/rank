@@ -99,6 +99,7 @@ import {
     findOperation,
     axisReductionForm,
     sortDirectionForm,
+    RUNTIME_TYPE_NAMES,
     acceptsBindingType,
     bindingTypeMessage,
     possibleBindingTypeConflict,
@@ -202,6 +203,7 @@ import {
     type RankSet,
     type RankSequence,
     type RankValue,
+    typeName,
     type SequencePredicate,
 } from './value.js';
 
@@ -7031,49 +7033,7 @@ function alreadyCompared(
     return false;
 }
 
-/** The name `type` reports, and the vocabulary static analysis mirrors. */
-export function typeName(value: RankValue): string {
-    // Primitives name themselves far more often than anything else, so they
-    // decide before the class test none of them can ever satisfy.
-    if (typeof value === 'bigint') return 'integer';
-    if (typeof value === 'number') return 'real';
-    if (typeof value === 'string') return 'text';
-    if (typeof value !== 'object') return typeof value;
-    if (value instanceof RankDeque) return value.mode;
-    return value.kind === 'label' ? 'symbol' : value.kind;
-}
-
-const RUNTIME_TYPE_NAMES = new Set([
-    'integer',
-    'real',
-    'boolean',
-    'text',
-    'date',
-    'datetime',
-    'duration',
-    'array',
-    'bytes',
-    'symbol',
-    'object',
-    'record',
-    'file',
-    'error',
-    'index',
-    'queue',
-    'deque',
-    'stack',
-    'set',
-    'counter',
-    'multiset',
-    'fenwick',
-    'segment',
-    'wavelet',
-    'heap',
-    'dsu',
-    'functional',
-    'function',
-    'sequence',
-]);
+export { typeName } from './value.js';
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
     return new Set([...values].map(typeName));
