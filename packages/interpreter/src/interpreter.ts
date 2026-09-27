@@ -21,6 +21,7 @@ import {
 } from './execution.js';
 import { LocalFrame } from './frame.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
+import { compileKeyedTableExpression } from './keyed-table-expression.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
@@ -132,9 +133,9 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, correlationValue, errorMetricValue, quantileValue, statisticsCell } from './modules/stats.js';
-import { groupTable, rollingTable, joinAliasedTables, joinTables, reachTable, projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
+import { projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import {
-    binarySqlite, filterSqlite, joinAliasedSqlite, joinSqlite, reachSqlite, materializeSqlite,
+    binarySqlite, filterSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sliceTextSqlite, sortSqlite, sqliteColumn, sqliteScope,
     sqliteScopedColumn, sqliteTable, sqliteWindowNumber,
     sqliteWrite, executeSqliteWrite, inSqlite, textFunctionSqlite,
@@ -2291,64 +2292,12 @@ export class Interpreter {
                 return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortFieldDescending(expression.direction)]));
             };
         }
-        if (isKeyedGroupExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', expression.operator);
-                const source = yield* resume(interpreter.evaluateTask(expression.source));
-                return groupTable(source, expression.fields.map(field => field.name),
-                    expression.operator === 'rollup by');
-            };
-        }
-        if (isKeyedRollingExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', 'rolling by');
-                const source = yield* resume(interpreter.evaluateTask(expression.source));
-                const width = yield* resume(interpreter.evaluateTask(expression.width));
-                return rollingTable(source, width, expression.field.name);
-            };
-        }
-        if (isKeyedJoinExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', expression.operator);
-                const left = yield* resume(interpreter.evaluateTask(expression.left));
-                const right = yield* resume(interpreter.evaluateTask(expression.right));
-                const mode = expression.operator.startsWith('left') ? 'leftjoin' : 'innerjoin';
-                const leftFields = expression.pairs.length > 0
-                    ? expression.pairs.map(pair => pair.left.name)
-                    : expression.fields.map(field => field.name);
-                const rightFields = expression.pairs.length > 0
-                    ? expression.pairs.map(pair => pair.right.name)
-                    : leftFields;
-                if (isRankTableAlias(left) && isRankTableAlias(right)) {
-                    if (isRankSqliteTable(left.source) && isRankSqliteTable(right.source)) {
-                        return joinAliasedSqlite(left.source, right.source, left.name, right.name,
-                            leftFields, rightFields, mode);
-                    }
-                    if (isRankArray(left.source) && isRankArray(right.source)) {
-                        return joinAliasedTables(left.source, right.source, left.name, right.name,
-                            leftFields, rightFields, mode);
-                    }
-                    throw new RankError(`${mode} expects two aliases of the same table kind`, 'TypeError');
-                }
-                if (isRankTableAlias(left) || isRankTableAlias(right)) {
-                    throw new RankError(`${mode} requires aliases on both sides`, 'TypeError');
-                }
-                if (isRankSqliteTable(left) && isRankSqliteTable(right)) {
-                    return joinSqlite(left, right, leftFields, rightFields, mode);
-                }
-                return joinTables(left, right, leftFields, mode, rightFields);
-            };
-        }
-        if (isKeyedReachExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', 'reach by');
-                const edges = yield* resume(interpreter.evaluateTask(expression.edges));
-                const starts = yield* resume(interpreter.evaluateTask(expression.starts));
-                const from = expression.from.name;
-                const to = expression.to.name;
-                if (isRankSqliteTable(edges)) return reachSqlite(edges, starts, from, to);
-                return reachTable(edges, starts, from, to);
-            };
+        if (isKeyedGroupExpression(expression) || isKeyedRollingExpression(expression)
+            || isKeyedJoinExpression(expression) || isKeyedReachExpression(expression)) {
+            return compileKeyedTableExpression(expression, {
+                requireModule: (module, operation) => this.requireModule(module, operation),
+                evaluate: value => this.evaluateTask(value),
+            })!;
         }
         if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)) {
             return function* (): Execution<RankValue> {
