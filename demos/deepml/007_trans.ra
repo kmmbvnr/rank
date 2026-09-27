@@ -7,12 +7,9 @@ use linalg
 
 rem Transform A by T inverse times A times S.
 fun transform_matrix A T S
-  ARows = A len axis 0
-  ACols = A len axis 1
-  TRows = T len axis 0
-  TCols = T len axis 1
-  SRows = S len axis 0
-  SCols = S len axis 1
+  unpack ARows ACols = A shape
+  unpack TRows TCols = T shape
+  unpack SRows SCols = S shape
 
   if TRows not equal TCols or SRows not equal SCols
     .DimensionMismatch raise
@@ -31,18 +28,12 @@ end
 
 rem Compute a determinant on a private copy by elimination.
 fun determinant A
-  Rows = A len axis 0
-  Cols = A len axis 1
+  unpack Rows Cols = A shape
   if Rows not equal Cols
     .DimensionMismatch raise
   end
 
-  Work = array shape Rows Cols fill 0.0
-  for i in 0 until Rows
-    for j in 0 until Cols
-      Work i j = A i j
-    end
-  end
+  Work = A * 1.0 copy
 
   Result = 1.0
   for i in 0 until Rows
