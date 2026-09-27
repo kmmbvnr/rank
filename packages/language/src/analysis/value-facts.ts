@@ -323,6 +323,28 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         }
     }
     if (isApplicationExpression(expression)) {
+        const ranked = flattenApplication(expression);
+        const rank = ranked.at(-2);
+        const operationName = ranked.at(-3);
+        const rankValue = ranked.at(-1);
+        if (ranked.length >= 4 && isNameExpression(rank) && rank.name === 'rank'
+            && lookup('rank') === undefined && isNumberLiteral(rankValue) && rankValue.value === 0n
+            && isNameExpression(operationName) && lookup(operationName.name) === undefined
+            && ['integer', 'real', 'codepoint'].includes(operationName.name)
+            && isApplicationExpression(expression.head) && isApplicationExpression(expression.head.head)) {
+            const source = expressionFacts(expression.head.head.head, lookup);
+            const kind = source.types.join();
+            const cells = kind === 'text' ? ['text'] : source.elements;
+            if (source.rank !== undefined && source.rank > 0
+                && (kind === 'text' || ['array', 'sequence'].includes(kind)
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells))
+                && cells?.length && cells.every(type => operationName.name === 'codepoint'
+                    ? type === 'text' : ['integer', 'real', 'text'].includes(type))) {
+                return { types: [kind === 'text' ? 'sequence' : kind],
+                    elements: [operationName.name === 'real' ? 'real' : 'integer'],
+                    rank: source.rank, shape: source.shape, callbackFreeScalarCells: true };
+            }
+        }
         const grouped = groupedUnaryDyadicChain(expression, name => lookup(name) === undefined);
         if (grouped) return expressionFacts(grouped, lookup);
         const parts = flattenApplication(expression);
@@ -354,6 +376,11 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const arity = unaryTail ? 1 : parts.length - 1;
             if (operation?.arities.includes(arity)) {
                 const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => expressionFacts(part, lookup));
+                if (last.name === 'text' && arity === 1 && source.rank === 0
+                    && source.types.length > 0 && source.types.every(type =>
+                        ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
+                    return { types: ['text'], rank: 1, shape: [null] };
+                }
                 if (hasScalarNoCallbackProof(operation, operands)) {
                     const types = resultTypes(operation);
                     if (types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',

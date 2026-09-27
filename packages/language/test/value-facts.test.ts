@@ -52,6 +52,19 @@ it('infers numeric full reductions only from callback-free scalar cells', () => 
         shape: [null], elements: ['integer'] }]]))).toEqual({ types: [] });
 });
 
+it('tracks scalar conversions explicitly mapped over collection cells', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    expect(facts('N text', new Map([['N', integer]]))).toEqual({ types: ['text'], rank: 1,
+        shape: [null] });
+    expect(facts('N text integer rank 0', new Map([['N', integer]]))).toMatchObject({
+        types: ['sequence'], elements: ['integer'], rank: 1, callbackFreeScalarCells: true,
+    });
+    expect(facts('(array 1.2 2.3) integer rank 0')).toMatchObject({ types: ['array'],
+        elements: ['integer'], rank: 1, shape: [2], callbackFreeScalarCells: true });
+    expect(facts('Lazy integer rank 0', new Map([['Lazy', { types: ['sequence'],
+        elements: ['real'], rank: 1, shape: [null] }]]))).toEqual({ types: [] });
+});
+
 it('proves eager cells for known atom array literals', () => {
     expect(facts('array true false').eagerScalarCells).toBe(true);
     expect(facts('array shape 2 2\n 1 2\n 3 4\nend').eagerScalarCells).toBe(true);

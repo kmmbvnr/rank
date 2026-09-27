@@ -1085,6 +1085,17 @@ it('infers the unchanged lattice-paths result through integer reductions', () =>
         .toEqual(examples.map(() => ['integer']));
 });
 
+it('infers the unchanged removing-digits result through ranked digit conversion', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/005_removedigits.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/005_removedigits_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '005_removedigits', new Set(['removing_digits']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
