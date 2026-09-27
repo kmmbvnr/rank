@@ -169,6 +169,34 @@ it('keeps types through a scalar lookup in the local index', () => {
         .toEqual([]);
 });
 
+it('infers value types written to a fresh function-local index', () => {
+    expect(messages('use algo\nfun lookup\n index "a" = 1\n return index "a"\nend\nA = lookup\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun lookup\n index "a" = true\n return index "b" default false\nend\nA = lookup\nA + 1'))
+        .toEqual(['operator + does not accept boolean and integer']);
+    expect(messages('use algo\nfun lookup Key Value\n index "a" = 1\n index Key = Value\n return index "a"\nend\nA = Unknown Unknown lookup\nA + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nfun lookup Key\n index "a" = 1\n index "b" = "text"\n return index Key\nend\nA = "a" lookup\nA = true'))
+        .toEqual(['A has type integer or text and cannot receive boolean']);
+    expect(messages('use algo\nfun lookup\n for I in 0 to 1\n  index I = I\n end\n return index 0\nend\nA = lookup\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun lookup\n index 0 = 1\n for I in 0 to 1\n  index I = "text"\n end\n return index 0\nend\nA = lookup\nA + "bad"'))
+        .toEqual([]);
+});
+
+it('infers the unchanged regular-expression matcher from its local index writes', () => {
+    const source = readFileSync(new URL('../../../demos/leetcode/010_regexp.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '010_regexp', new Set(['match']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['boolean']));
+});
+
 it('gives function locals their own rank contract', () => {
     expect(messages('A = array 1 2\nfun make N\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
     expect(messages('fun change A\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))

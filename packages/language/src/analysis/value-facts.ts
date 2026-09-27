@@ -12,6 +12,7 @@ export interface ValueFacts {
     readonly types: Types;
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
+    /** Possible array/sequence cells or values stored in a local index. */
     readonly elements?: Types;
     /** Element types by position for a fixed rank-1 array. */
     readonly positions?: readonly Types[];
@@ -215,6 +216,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         }
         const left = expressionFacts(expression.left, lookup);
         const right = expressionFacts(expression.right, lookup);
+        if (expression.operator === 'default') {
+            const types = left.types.length && right.types.length
+                ? [...new Set([...left.types, ...right.types])] : [];
+            return left.rank === 0 && right.rank === 0 && types.length
+                ? { types, rank: 0, shape: [] } : { types };
+        }
         if (expression.operator === 'to' || expression.operator === 'until') {
             let length: number | null = null;
             const stepText = expression.step ? expressionFacts(expression.step, lookup).integer : '1';
@@ -294,6 +301,16 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             && isNameExpression(last) && lookup(last.name) === undefined
             && findOperation(last.name)?.arities.join() === '1';
         const source = expressionFacts(unaryTail ? expression.head : parts[0], lookup);
+        if (source.types.join() === 'index' && source.elements?.length && parts.length > 1
+            && parts.slice(1).every(part => {
+                const key = expressionFacts(part, lookup);
+                return key.types.length > 0 && key.types.every(type =>
+                    ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
+            })) {
+            const types = source.elements;
+            return types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                ? { types, rank: 0, shape: [] } : { types };
+        }
         if (isNameExpression(last) && lookup(last.name) === undefined) {
             const operation = findOperation(last.name);
             const arity = unaryTail ? 1 : parts.length - 1;
@@ -513,7 +530,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const shape = rank !== undefined && values.every(value => value.shape?.length === rank)
         ? first.shape!.map((dimension, axis) => values.every(value => value.shape![axis] === dimension) ? dimension : null)
         : scalar ? [] : undefined;
-    const elements = values.every(value => value.elements?.length)
+    const elements = values.every(value => value.elements !== undefined
+        && (value.elements.length > 0 || types.join() === 'index'))
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
     const positions = first.positions && values.every(value => value.positions?.length === first.positions!.length)
         ? first.positions.map((_, index) => values.every(value => value.positions![index].length)

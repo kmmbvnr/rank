@@ -186,6 +186,7 @@ export function compoundType(operator: string, left: Types, right: Types): Types
 }
 
 function binaryType(operator: string, left: Types, right: Types): Types {
+    if (operator === 'default') return unionTypes(left, right);
     if (operator === 'to' || operator === 'until') return ['sequence'];
     if (COMPARISONS.has(operator)) {
         if (within(left, SCALARS) && within(right, SCALARS)) return ['boolean'];

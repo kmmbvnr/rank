@@ -181,6 +181,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         definition.parameters.forEach((parameter, index) => local.set(parameter, {
             ...arguments_[index], acceptedArrayRank: arrayRank(arguments_[index]), acceptedTypes: arguments_[index].types,
         }));
+        if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });
         activeCalls.add(name);
         globalCallEnvs.push(globalEnv);
         const diagnosticStart = diagnostics.length;
@@ -343,6 +344,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             return;
         }
         const writes = new Set(contents.filter(isArrayAssignmentStatement).map(node => node.name));
+        const writesIndex = contents.some(isIndexAssignmentStatement);
+        const indexBefore = env.get('index');
+        const indexCandidate = writesIndex && indexBefore?.types.join() === 'index'
+            && indexBefore.elements !== undefined ? indexBefore.elements : undefined;
         const rebound = new Set(contents.flatMap(writtenBindings));
         const candidates = new Map([...writes].flatMap(name => {
             const fact = env.get(name);
@@ -350,7 +355,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && fact.eagerScalarCells && fact.elements?.length
                 ? [[name, fact] as const] : [];
         }));
-        const prepare = (preserved: ReadonlySet<string>): Map<string, ValueFacts> => {
+        const prepare = (preserved: ReadonlySet<string>, indexSeed?: readonly string[]): Map<string, ValueFacts> => {
             const local = new Map(env);
             // Other writes still widen before the body: a later iteration may
             // observe a different value. Preserved cells need a closure proof.
@@ -364,33 +369,49 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
                 if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, local);
             }
+            if (writesIndex) {
+                const index = local.get('index');
+                if (index?.types.join() === 'index') local.set('index', { ...index, elements: indexSeed });
+            }
             if (membership) bindIteration(local, membership.names, collection);
             return local;
         };
         const start = diagnostics.length;
         let preserved = new Set<string>();
         let local: Map<string, ValueFacts>;
-        if (candidates.size && !contents.some(node => isNameExpression(node)
+        if ((candidates.size || indexCandidate !== undefined) && !contents.some(node => isNameExpression(node)
             && env.get(node.name)?.types.includes('function'))) {
             const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
-            const trial = prepare(new Set(candidates.keys()));
-            statements(statement.statements, trial);
-            const closed = [...candidates].every(([name, fact]) => {
-                const after = trial.get(name);
-                return after?.types.join() === 'array' && after.rank === 1 && after.eagerScalarCells
-                    && after.elements?.length === fact.elements!.length
-                    && after.elements.every(type => fact.elements!.includes(type));
-            });
-            if (closed) {
-                local = trial;
-                preserved = new Set(candidates.keys());
-            } else {
+            const restore = () => {
                 diagnostics.length = start;
                 for (const node of contents.filter(isExpression)) {
                     const prior = before.get(node);
                     if (prior) expressions.set(node, prior);
                     else expressions.delete(node);
                 }
+            };
+            let seed = indexCandidate;
+            if (seed?.length === 0) {
+                const first = prepare(new Set(candidates.keys()), seed);
+                statements(statement.statements, first);
+                seed = first.get('index')?.elements;
+                restore();
+            }
+            const trial = prepare(new Set(candidates.keys()), seed);
+            statements(statement.statements, trial);
+            const indexAfter = trial.get('index')?.elements;
+            const closed = [...candidates].every(([name, fact]) => {
+                const after = trial.get(name);
+                return after?.types.join() === 'array' && after.rank === 1 && after.eagerScalarCells
+                    && after.elements?.length === fact.elements!.length
+                    && after.elements.every(type => fact.elements!.includes(type));
+            }) && (indexCandidate === undefined || seed !== undefined && indexAfter !== undefined
+                && indexAfter.every(type => seed.includes(type)));
+            if (closed) {
+                local = trial;
+                preserved = new Set(candidates.keys());
+            } else {
+                restore();
                 local = prepare(preserved);
                 statements(statement.statements, local);
             }
@@ -430,6 +451,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             return [];
         }
         const local = new Map(env);
+        if ([...AstUtils.streamAllContents(statement)].some(isIndexAssignmentStatement)) {
+            const index = local.get('index');
+            if (index?.types.join() === 'index') local.set('index', { ...index, elements: undefined });
+        }
         for (const node of AstUtils.streamAllContents(statement)) {
             for (const name of writtenBindings(node)) {
                 const previous = local.get(name);
@@ -740,18 +765,32 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     forgetNonFunctions(env);
                 }
             } else if (isIndexAssignmentStatement(statement)) {
+                let safeKeys = true;
                 for (const key of statement.keys) {
                     invalidateCalls(key, env);
                     if (!directValue(key)) {
                         forgetNonFunctions(env);
                     }
-                    inspect(key, env);
+                    const fact = inspect(key, env);
+                    safeKeys &&= directValue(key) && fact.types.length > 0
+                        && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
                 }
                 invalidateCalls(statement.value, env);
-                if (!directValue(statement.value)) {
+                const booleanValue = isBinaryExpression(statement.value)
+                    && ['and', 'or', 'xor'].includes(statement.value.operator)
+                    && [statement.value.left, statement.value.right].every(value => directValue(value)
+                        && expressionFacts(value, name => env.get(name)).types.join() === 'boolean');
+                if (!directValue(statement.value) && !booleanValue) {
                     forgetNonFunctions(env);
                 }
-                inspect(statement.value, env);
+                const replacement = inspect(statement.value, env);
+                const index = env.get('index');
+                if (index?.types.join() === 'index' && index.elements !== undefined) {
+                    env.set('index', { ...index,
+                        elements: safeKeys && (directValue(statement.value) || booleanValue)
+                            && replacement.types.length
+                            ? [...new Set([...index.elements, ...replacement.types])] : undefined });
+                }
             } else if (isPushStatement(statement)) {
                 for (const value of [statement.receiver, statement.value]) {
                     invalidateCalls(value, env);
