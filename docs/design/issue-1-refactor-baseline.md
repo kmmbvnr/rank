@@ -42,6 +42,7 @@ storage and compiler modules remain owners where they already have a clear job.
 | Bounded recursion proof | `analysis/numeric-recursion.ts` | Keep eligibility and input widening separate from call-site execution paths |
 | Call analysis and diagnostics | `analysis/function-calls.ts`, `analysis/value-diagnostics.ts` | Keep call-site budgets, recursive probes and call diagnostics in call analysis; join return paths and project remaining diagnostics in value analysis |
 | Table expression evaluation | `interpreter/keyed-table-expression.ts` | Add a keyed table case there with only module and expression-evaluation capabilities |
+| Table queries and writes | `interpreter/table-query-expression.ts` | Keep `filter`, `select` and SQLite write semantics behind table-specific evaluation, frame and builtin-identity capabilities |
 | Selectors and rank application | `interpreter/selectors.ts`, `tensor-index.ts`, `rank-application.ts`, `reduction.ts` | Change concrete indexing, cell/frame assembly or reduction here; keep AST form recognition in language |
 | Value comparison and CLI inputs | `interpreter/value-comparison.ts`, `cli-args.ts` | Keep concrete runtime rules separate from abstract facts |
 | Execution and compiler dispatch | `interpreter.ts`, `statement-control.ts`, `execution.ts`, prepared-function and compiler modules | Keep `try`/`if` suspension and error precedence in statement control; preserve fallback timing and compiled/interpreted parity |

@@ -20,8 +20,8 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
-import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { compileKeyedTableExpression } from './keyed-table-expression.js';
+import { compileTableExpression } from './table-query-expression.js';
 import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
@@ -76,12 +76,7 @@ import {
     isParenthesizedExpression,
     isPushStatement,
     isRecordExpression,
-    isRecordField,
     isRecordUpdateExpression,
-    isTableFilterExpression,
-    isTableSelectExpression,
-    isTableWriteExpression,
-    isTableWritePreviewExpression,
     isTakeWhileExpression,
     isRunStatement,
     isReturnStatement,
@@ -105,7 +100,6 @@ import {
     type FunctionStatement,
     type Program,
     type Statement,
-    findOperation,
     axisReductionForm,
     axisLengthForm,
     symbolicApplicationForm,
@@ -148,12 +142,11 @@ import {
     transposeValue,
 } from './modules/sequences.js';
 import { covarianceValue, correlationValue, errorMetricValue, quantileValue } from './modules/stats.js';
-import { projectAliasedField, projectField, projectFields, selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
+import { projectAliasedField, projectField, projectFields } from './modules/tables.js';
 import {
     binarySqlite, filterSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sliceTextSqlite, sortSqlite, sqliteColumn, sqliteScope,
-    sqliteScopedColumn, sqliteTable, sqliteWindowNumber,
-    sqliteWrite, executeSqliteWrite, inSqlite,
+    sqliteScopedColumn, sqliteTable, inSqlite,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -1863,249 +1856,22 @@ export class Interpreter {
                 return ownedArray(items, shape);
             };
         }
-        if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                // Filtering a plain collection is ordinary selection, so it needs
-                // no table vocabulary. A condition naming a column is a table query.
-                const conditions = !isTableFilterExpression(expression) ? []
-                    : expression.condition ? [expression.condition] : expression.conditions;
-                // Syntax only proposes the collection form; the source settles it.
-                // A mask over a table column names no field, so the condition
-                // alone cannot tell the two apart.
-                let collection = isTableFilterExpression(expression)
-                    && expression.sourceFields.length === 0 && !conditions.some(readsFields);
-                if (!collection) {
-                    interpreter.requireModule('tables', isTableFilterExpression(expression) ? 'filter' : 'select');
-                }
-                let source = yield* resume(interpreter.evaluateTask(expression.source));
-                // A table source keeps the table form even when its condition
-                // names no column: only that path returns rows that are still a
-                // table. A plain collection needs no table vocabulary.
-                if (collection && isTableSource(source)) {
-                    collection = false;
-                    interpreter.requireModule('tables', 'filter');
-                }
-                for (const field of expression.sourceFields) {
-                    source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
-                }
-                if (isRankTableAlias(source)) source = source.source;
-                if (isRankGroupedTable(source)) {
-                    if (!isTableSelectExpression(expression) || expression.columns
-                        || expression.fields.length > 0) {
-                        throw new RankError('grouped tables require a select block', 'TypeError');
-                    }
-                    const specs: GroupAggregateSpec[] = expression.entries.map(entry => {
-                        if (!isRecordField(entry)) {
-                            throw new RankError('grouped select expects named aggregates', 'TypeError');
-                        }
-                        const parts = flattenApplication(entry.value);
-                        const field = (parts.length >= 2 && isLabelLiteral(parts[0]))
-                            ? parts[0].name : undefined;
-                        const operationNode = parts[parts.length - 1];
-                        const aggregateNames = [
-                            'count', 'sum', 'min', 'max', 'mean', 'median', 'std',
-                            'variance', 'var', 'skewness', 'skew', 'mode', 'quantile', 'percentile',
-                        ];
-                        let parameter: RankValue | undefined;
-                        if (parts.length === 3 && isLabelLiteral(parts[0])) {
-                            if (isNumberLiteral(parts[1])) {
-                                parameter = parts[1].value;
-                            }
-                        }
-                        if ((parts.length !== 1 && field === undefined)
-                            || !isNameExpression(operationNode)
-                            || !aggregateNames.includes(operationNode.name)
-                            || (field === undefined && operationNode.name !== 'count')) {
-                            throw new RankError('grouped select expects count or .field aggregate', 'TypeError');
-                        }
-                        const operation = operationNode.name as GroupAggregateOperation;
-                        interpreter.requireModule(operation === 'count' ? 'sequences'
-                            : ['sum', 'min', 'max'].includes(operation) ? 'core' : 'stats', operation);
-                        return { name: entry.name, operation, field, parameter };
-                    });
-                    return selectGroupedTable(source, specs);
-                }
-                if (collection) {
-                    if (!isRankArray(source) && !isRankSequence(source)) {
-                        throw new RankError('filter expects an array, sequence or table', 'TypeError');
-                    }
-                } else if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
-                    throw new RankError('filter/select expects a rank-1 table or SQLite view', 'TypeError');
-                }
-                const previous = interpreter.localFrame;
-                const frame = new LocalFrame(previous);
-                frame.set(TABLE_INPUT, source);
-                interpreter.localFrame = frame;
-                const contextual = (node: Expression): Evaluation<RankValue> => {
-                    if (collection) {
-                        // A bare name is a predicate when it names an operation
-                        // and the mask itself when it names data, so a computed
-                        // mask reads the same bare as it does parenthesized.
-                        const bound = isNameExpression(node)
-                            ? interpreter.findVariable(node.name) : undefined;
-                        if (bound !== undefined && !isNativeFunction(bound)) {
-                            return interpreter.evaluateTask(node);
-                        }
-                        return interpreter.evaluateTask(collectionExpression(node));
-                    }
-                    const lowered = tableExpression(node, name => {
-                        const value = interpreter.resolve(name);
-                        if (!isNativeFunction(value)) return undefined;
-                        const operation = findOperation(value.name);
-                        if (!operation || operation.effects?.length
-                            || interpreter.standardFunctions.get(standardModules[operation.module]?.[operation.name]) !== value) {
-                            throw new RankError('table expressions accept only pure standard-library functions', 'TypeError');
-                        }
-                        if (isRankSqliteTable(source) && ['sum', 'len'].includes(operation.name)) {
-                            throw new RankError('SQLite aggregates inside filter/select expressions are not supported yet', 'TypeError');
-                        }
-                        return value.arities;
-                    });
-                    return interpreter.evaluateTask(lowered);
-                };
-                try {
-                    if (isTableFilterExpression(expression)) {
-                        let mask = yield* resume(contextual(conditions[0]));
-                        for (const condition of conditions.slice(1)) {
-                            mask = interpreter.evaluateBinary('and', mask, yield* resume(contextual(condition)));
-                        }
-                        if (collection) {
-                            if (!isRankArray(mask) && !isRankSequenceMask(mask)) {
-                                throw new RankError('filter requires a boolean mask over the filtered value', 'TypeError');
-                            }
-                            // A predicate with a cell rank yields one value per frame cell,
-                            // so the mask selects along the frame rather than over atoms.
-                            if (isRankArray(source) && isRankArray(mask)
-                                && mask.shape.length < source.shape.length
-                                && arraySize(mask.shape) !== arraySize(source.shape)) {
-                                const axes = conditions.length === 1 ? frameAxes(conditions[0]) : [];
-                                if (axes.length > 1 || mask.shape.length > 1) {
-                                    throw new RankError('filter does not support a frame of two or more axes yet', 'TypeError');
-                                }
-                                const axis = axes[0] ?? 0;
-                                if (axis >= source.shape.length) {
-                                    throw new RankError(`array has no axis ${axis}`, 'DimensionMismatch');
-                                }
-                                if (mask.shape[0] !== source.shape[axis]) {
-                                    throw new RankError(`filter mask length ${mask.shape[0]} does not match axis `
-                                        + `${axis} of shape ${source.shape.join(' ')}`, 'DimensionMismatch');
-                                }
-                                return selectAxis(source, axis, mask);
-                            }
-                            // An empty mask would read as an empty index list and select an array.
-                            if (isRankArray(source) && isRankArray(mask)) return maskSelection(source, mask);
-                            // Selection already defines every mask shape a collection allows.
-                            return interpreter.applySelectors([source, mask]);
-                        }
-                        if (isRankArray(source)) {
-                            if (!isRankArray(mask) || mask.shape.length !== 1
-                                || mask.shape[0] !== source.shape[0]
-                                || !mask.items.every(value => typeof value === 'boolean')) {
-                                throw new RankError('filter requires a boolean mask with one value per row', 'TypeError');
-                            }
-                            const selected = selectAxis(source, 0, mask) as RankArray;
-                            if (source.columnNames) Object.defineProperty(selected, 'columnNames', { value: source.columnNames });
-                            if (source.tableScopes) Object.defineProperty(selected, 'tableScopes', { value: source.tableScopes });
-                            return selected;
-                        }
-                        return interpreter.applySelectors([source, mask]);
-                    }
-                    if (expression.columns) return selectTable(source, yield* resume(interpreter.evaluateTask(expression.columns)));
-                    const entries = new ResourceMap<RankValue>(value => value);
-                    const record: RankRecord = entries.resources.track({ kind: 'record', entries, types: new Map() });
-                    const add = (name: string, value: RankValue): void => {
-                        if (entries.has(name)) throw new RankError(`duplicate select field: .${name}`, 'TypeError');
-                        entries.set(name, value);
-                        record.types.set(name, typeName(value));
-                    };
-                    for (const field of expression.fields) {
-                        add(field.name, interpreter.applySelectors([source, { kind: 'label', name: field.name }]));
-                    }
-                    for (const entry of expression.entries) {
-                        const window = isRecordField(entry) && isNameExpression(entry.value)
-                            && (entry.value.name === 'rownumber' || entry.value.name === 'ranknumber')
-                            ? entry.value.name : undefined;
-                        let value: RankValue;
-                        if (window && isRankSqliteTable(source)) {
-                            value = sqliteWindowNumber(source, window);
-                        } else if (window === 'rownumber' && isRankArray(source)) {
-                            value = derivedArray(source.shape, [source], index => BigInt(index + 1), true);
-                        } else if (window === 'ranknumber' && isRankArray(source)) {
-                            const keys = source.sortKeys;
-                            if (!keys) throw new RankError('ranknumber requires sort by before select', 'TypeError');
-                            const ranks: bigint[] = [];
-                            let rank = 1n;
-                            for (let index = 0; index < keys.length; index += 1) {
-                                if (index > 0 && keys[index].some((key, column) => {
-                                    const previous = keys[index - 1][column];
-                                    return key === undefined || previous === undefined
-                                        ? key !== previous
-                                        : compareOrderedValues(key, previous, orderedKind(key)) !== 0;
-                                })) rank = BigInt(index + 1);
-                                ranks.push(rank);
-                            }
-                            value = derivedArray(source.shape, [source], index => ranks[index], true);
-                        } else {
-                            value = yield* resume(contextual(entry.value));
-                        }
-                        if (isRecordField(entry)) add(entry.name, value);
-                        else {
-                            const previous = frame.get(entry.name);
-                            if (previous !== undefined && typeName(previous) !== typeName(value)) {
-                                throw new RankError(`select local ${entry.name} cannot change type`, 'TypeError');
-                            }
-                            frame.define(entry.name, value, new Set([typeName(value)]));
-                        }
-                    }
-                    return selectTable(source, record);
-                } finally {
-                    interpreter.localFrame = previous;
-                }
-            };
-        }
-        if (isTableWriteExpression(expression) || isTableWritePreviewExpression(expression)) {
-            const write = isTableWritePreviewExpression(expression) ? expression.write : expression;
-            const mode = isTableWritePreviewExpression(expression) ? expression.mode : undefined;
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', 'insert');
-                let source = yield* resume(interpreter.evaluateTask(write.source));
-                for (const field of write.sourceFields) {
-                    source = interpreter.applySelectors([source, { kind: 'label', name: field.name }]);
-                }
-                if (!isRankSqliteTable(source)) throw new RankError('write expects a SQLite table', 'TypeError');
-                const operation = write.values.length > 0 ? 'insert'
-                    : write.entries.length > 0 ? 'update' : 'delete';
-                const values = operation === 'insert'
-                    ? yield* resume(mapExecution(write.values, value => interpreter.evaluateTask(value))) : [];
-                const fields: RankRecord = { kind: 'record', entries: new Map(), types: new Map() };
-                if (operation === 'update') {
-                    const previous = interpreter.localFrame;
-                    const frame = new LocalFrame(previous);
-                    frame.set(TABLE_INPUT, source);
-                    interpreter.localFrame = frame;
-                    try {
-                        for (const entry of write.entries) {
-                            const lowered = tableExpression(entry.value, name => {
-                                const value = interpreter.resolve(name);
-                                if (!isNativeFunction(value)) return undefined;
-                                const info = findOperation(value.name);
-                                if (!info || info.effects?.length
-                                    || interpreter.standardFunctions.get(standardModules[info.module]?.[info.name]) !== value) {
-                                    throw new RankError('update expressions accept pure standard-library functions', 'TypeError');
-                                }
-                                return value.arities;
-                            });
-                            const value = yield* resume(interpreter.evaluateTask(lowered));
-                            if (isRecordField(entry)) {
-                                if (fields.entries.has(entry.name)) throw new RankError('duplicate update field', 'TypeError');
-                                fields.entries.set(entry.name, value);
-                            } else frame.define(entry.name, value, new Set([typeName(value)]));
-                        }
-                    } finally { interpreter.localFrame = previous; }
-                }
-                return executeSqliteWrite(sqliteWrite(source, operation, values, fields), mode);
-            };
-        }
+        const tableQuery = compileTableExpression(expression, () => ({
+            get localFrame() { return interpreter.localFrame; },
+            set localFrame(frame) { interpreter.localFrame = frame; },
+            requireModule: (module, operation) => interpreter.requireModule(module, operation),
+            evaluate: node => interpreter.evaluateTask(node),
+            select: values => interpreter.applySelectors(values),
+            binary: (operator, left, right) => interpreter.evaluateBinary(operator, left, right),
+            resolve: name => interpreter.resolve(name),
+            findVariable: name => interpreter.findVariable(name),
+            isStandardFunction: (module, name, value) => {
+                const factory = standardModules[module]?.[name];
+                return factory !== undefined && interpreter.standardFunctions.get(factory) === value;
+            },
+            maskSelection,
+        }));
+        if (tableQuery) return tableQuery;
         if (isRecordExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const entries = new ResourceMap<RankValue>(value => value);
@@ -5226,14 +4992,6 @@ function memoScalarKey(value: RankValue): string {
     if (isRankLabel(value)) return `label:${value.name}`;
     if (isRankDate(value)) return `${value.kind}:${formatValue(value)}`;
     throw new RankError('memo arguments and results must be scalar values');
-}
-
-/** A table is a SQLite view or a rank-1 array of object rows. */
-function isTableSource(value: RankValue): boolean {
-    if (isRankSqliteTable(value)) return true;
-    if (!isRankArray(value) || value.kind !== 'array' || value.shape.length !== 1) return false;
-    if (value.columnNames !== undefined) return true;
-    return value.shape[0] > 0 && isRankObject(arrayItem(value, 0));
 }
 
 function assignmentOperator(operator: string): string {

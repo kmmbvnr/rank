@@ -25,6 +25,7 @@ const owners = new Set([
     'packages/interpreter/src/resource-ownership.ts',
     'packages/interpreter/src/selectors.ts',
     'packages/interpreter/src/statement-control.ts',
+    'packages/interpreter/src/table-query-expression.ts',
     'packages/interpreter/src/tensor-index.ts',
     'packages/interpreter/src/value-comparison.ts',
 ]);
