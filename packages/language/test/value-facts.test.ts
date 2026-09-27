@@ -117,6 +117,10 @@ it('keeps callback-free numeric cells through arithmetic and scalar folds', () =
         shape: [3], callbackFreeScalarCells: true });
     expect(facts('(Input ** 2) sum', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
     expect(facts('Input max', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Input 0 max', bindings).callbackFreeScalarCells).toBe(true);
+    expect(facts('Input 0 min', bindings).callbackFreeScalarCells).toBe(true);
+    expect(facts('Input 0 max', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
+        .toBeUndefined();
     expect(facts('Input all', bindings).rank).toBeUndefined();
     expect(facts('Input ** 2', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
         .toBeUndefined();

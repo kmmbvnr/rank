@@ -600,7 +600,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const scalar = source.elements?.length && source.elements.every(type =>
                     ['integer', 'real', 'boolean', 'symbol'].includes(type));
                 if (source.types.join() !== 'array' || source.rank !== 1
-                    || source.shape?.[0] !== statement.names.length || !scalar
+                    || source.shape?.[0] != null && source.shape[0] !== statement.names.length || !scalar
                     || !(source.eagerScalarCells || source.callbackFreeScalarCells)) {
                     for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
                     continue;

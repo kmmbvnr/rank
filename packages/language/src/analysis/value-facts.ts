@@ -324,7 +324,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                                 ? broadcastShape(source.shape, right.shape) : undefined
                             : array.shape;
                         return { types: ['array'], rank: shape?.length ?? (leftArray !== rightArray ? array.rank : undefined),
-                            shape, elements: resultTypes(operation) };
+                            shape, elements: resultTypes(operation),
+                            ...(hasNumericArrayNoCallbackProof(operation, operands)
+                                ? { callbackFreeScalarCells: true as const } : {}) };
                     }
                     if (last.name === 'matmul' && source.types.join() === 'array'
                         && right.types.join() === 'array' && source.shape?.length && right.shape?.length) {

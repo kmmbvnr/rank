@@ -75,6 +75,8 @@ it('infers safe unpacked shape cells without losing unrelated types', () => {
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('First = true\nunpack First Second = array 2 3'))
         .toEqual(['First has type boolean and cannot receive integer']);
+    expect(messages('M = array shape N fill 0\nunpack First Second = M\nFirst + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('keeps unrelated facts through local index writes', () => {
@@ -252,6 +254,20 @@ it('infers the result of the unchanged CSES maximum-subarray loop', () => {
     expect(messages(`${source.slice(source.indexOf('fun max_subarray'))}\nA = array 1 2 3\n`
         + 'Result = A max_subarray\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
+});
+
+it('infers scalar results from the unchanged AoC cookie clamp and unpack', () => {
+    const source = readFileSync(new URL('../../../demos/aoc/2015/015_cookie.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/aoc/2015/015_cookie_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '015_cookie')
+        .filter(example => example.name === 'cookiescore');
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults)
+        .toEqual(examples.map(() => ({ types: ['integer', 'real'], rank: 0, shape: [] })));
 });
 
 it('infers returns from loops in unchanged reverse-integer and bill-count demos', () => {
