@@ -589,6 +589,7 @@ export const operations: readonly Operation[] = [
     { name: 'reverse', module: 'text', arities: [1], form: 'Text reverse', result: 'text',
         summary: 'Reverses text by Unicode code point.' },
     { name: 'split', module: 'text', arities: [2], form: 'Text Separator split', result: 'array',
+        denseResult: { shape: [null], elements: ['text'] },
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },
     { name: 'startswith', module: 'text', arities: [2], form: 'Value Prefix startswith',
         result: 'boolean',

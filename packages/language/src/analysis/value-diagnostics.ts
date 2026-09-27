@@ -217,8 +217,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             if (isBreakStatement(statement)) return { values, fallsThrough: false, breaks: [...breaks, env], continues };
             if (isContinueStatement(statement)) return { values, fallsThrough: false, breaks, continues: [...continues, env] };
             if (isReturnStatement(statement)) {
+                const beforeEffects = statement.value && directCallBeforeEffects(statement.value, env);
                 if (statement.value) invalidateCalls(statement.value, env);
-                const observed = statement.value ? inspect(statement.value, env) : UNKNOWN_VALUE;
+                const observed = statement.value ? beforeEffects ?? inspect(statement.value, env) : UNKNOWN_VALUE;
                 const contract = statement.value && isNameExpression(statement.value)
                     ? env.get(statement.value.name) : undefined;
                 const result = observed.types.length || !contract?.acceptedTypes?.length ? observed

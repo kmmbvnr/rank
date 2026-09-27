@@ -144,6 +144,13 @@ it('uses declared dense result shapes for native collection operations', () => {
         new Map([['neighbors', { types: ['function'] }]]))).not.toMatchObject({ eagerScalarCells: true });
 });
 
+it('keeps text cells in the dense result of split', () => {
+    expect(facts('"a,b" "," split')).toEqual({ types: ['array'], rank: 1,
+        shape: [null], elements: ['text'], eagerScalarCells: true });
+    expect(facts('"a,b" "," split', new Map([['split', { types: ['function'] }]])))
+        .not.toMatchObject({ eagerScalarCells: true });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {

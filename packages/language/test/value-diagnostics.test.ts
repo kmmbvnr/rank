@@ -1198,6 +1198,37 @@ it('infers the unchanged local-extrema result through native coordinate pairs', 
         .toEqual(examples.map(() => ['array']));
 });
 
+it('infers the unchanged weather interpolation through direct return calls', () => {
+    const moduleName = '00071_wx';
+    const source = readFileSync(new URL(`../../../demos/cody/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cody/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['interpolate_weather']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('passes a preceding pipeline result to a unary user function', () => {
+    const source = 'use text\nfun count_parts Parts\n return Parts len\nend\n'
+        + 'fun count_source Source\n return Source "," split count_parts\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'count_source', arguments: [{
+        types: ['text'], rank: 1, shape: [3], textLiteral: 'a,b',
+    }] }]).functionResults[0].types).toEqual(['integer']);
+});
+
+it('passes a captured array to a return call before the callee changes its facts', () => {
+    const source = 'fun outer A\n fun change B\n  A 0 = 9\n  return B 0\n end\n return A change\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'outer', arguments: [{
+        types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true,
+    }] }]).functionResults[0].types).toEqual(['integer']);
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;

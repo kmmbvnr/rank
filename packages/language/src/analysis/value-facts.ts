@@ -381,8 +381,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             };
         }
         const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
-            && isNameExpression(last) && lookup(last.name) === undefined
-            && findOperation(last.name)?.arities.join() === '1';
+            && isNameExpression(last) && (lookup(last.name) === undefined
+                ? findOperation(last.name)?.arities.join() === '1'
+                : lookup(last.name)?.types.includes('function') && lookup.arity?.(last.name) === 1);
         const source = expressionFacts(unaryTail ? expression.head : parts[0], lookup);
         if (parts.length === 4 && isNameExpression(last) && last.name === 'outer'
             && lookup('outer') === undefined && isNameExpression(parts[2]) && lookup(parts[2].name) === undefined) {
@@ -589,7 +590,8 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             }
         }
         if (isNameExpression(last) && lookup(last.name)?.types.includes('function') && lookup.invoke) {
-            return lookup.invoke(last.name, parts.slice(0, -1).map(part => expressionFacts(part, lookup)));
+            return lookup.invoke(last.name, unaryTail ? [source]
+                : parts.slice(0, -1).map(part => expressionFacts(part, lookup)));
         }
         if (isNameExpression(last) && lookup(last.name) === undefined) {
             if (last.name === 'window' && parts.length === 3 && source.rank === 1 && source.shape?.[0] != null) {
