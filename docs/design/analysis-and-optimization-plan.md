@@ -512,6 +512,15 @@ pass for proved inputs. Deep-ML `017_kmeans` and `049_adam` are the next gates.
 `k_means` has nested loops, a `break`, indexed array writes and `sum`/`mean`
 on derived arrays. `adam_optimizer` calls the passed `Gradient` function inside
 a loop and updates `X`. Their effects and value origins remain unknown.
+The call-site pass can skip the body of a built-in `to` or `until` range when
+its bounds prove zero iterations. An empty shape fact on an arbitrary array
+or sequence is not enough: starting its iterator may run a callback.
+The corpus check also found 20 CSES result conflicts: `A from L until R`
+was inferred as an integer range even though runtime treats it as a slice.
+Known array sources now retain their rank and partial shape through this
+form; unknown sources stay unknown. The current 1,087 examples have 467
+known results and zero expectation conflicts. The 20 removed results were
+incorrect inferences, not lost valid coverage.
 Recount the corpus after each general rule and require a changed diagnostic
 or guarded runtime decision on an unchanged demo. A count alone is not enough.
 

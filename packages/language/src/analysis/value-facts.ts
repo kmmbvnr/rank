@@ -154,6 +154,39 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             ? { ...source, types: ['array'] } : { types: ['array'] };
     }
     if (isBinaryExpression(expression)) {
+        if (expression.operator === 'to' || expression.operator === 'until') {
+            const parts = flattenApplication(expression.left);
+            const from = parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from';
+            const axisSlice = parts.length === 5 && isNameExpression(parts[1]) && parts[1].name === 'axis'
+                && isNumberLiteral(parts[2]) && typeof parts[2].value === 'bigint'
+                && isNameExpression(parts[3]) && parts[3].name === 'from';
+            if (from || axisSlice) {
+                const source = expressionFacts(parts[0], lookup);
+                if (source.types.join() === 'array') {
+                    const axis = from ? 0 : isNumberLiteral(parts[2]) && typeof parts[2].value === 'bigint'
+                        ? Number(parts[2].value) : NaN;
+                    const start = expressionFacts(parts[from ? 2 : 4], lookup).integer;
+                    const end = expressionFacts(expression.right, lookup).integer;
+                    const shape = source.shape?.slice();
+                    if (shape && Number.isSafeInteger(axis) && axis >= 0 && axis < shape.length) {
+                        shape[axis] = null;
+                        if (start !== undefined && end !== undefined) {
+                            const first = BigInt(start);
+                            const last = BigInt(end) + (expression.operator === 'to' ? 1n : 0n);
+                            const size = source.shape![axis];
+                            if (first >= 0n && last >= 0n && size !== null
+                                && first <= BigInt(size) && last <= BigInt(size)) {
+                                shape[axis] = Number(last > first ? last - first : 0n);
+                            }
+                        }
+                    }
+                    return { types: ['array'], rank: source.rank, shape,
+                        elements: source.elements,
+                        ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
+                }
+                return UNKNOWN_VALUE;
+            }
+        }
         if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)
             && isNameExpression(expression.right) && expression.right.name === 'outer'
             && lookup('outer') === undefined && isApplicationExpression(expression.left)) {

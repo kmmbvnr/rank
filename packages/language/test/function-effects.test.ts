@@ -182,6 +182,14 @@ it('does not inspect an unreachable counted-loop body', () => {
         .toBe(true);
 });
 
+it('does not treat an empty iterator fact as proof that iteration has no callbacks', () => {
+    const source = 'fun helper Values\n for I in Values\n  Unknown callback\n end\n return 1\nend';
+    for (const type of ['array', 'sequence'] as const) {
+        expect(analyze(source, 'helper', [], [{ types: [type], rank: 1, shape: [0] }]).unknown)
+            .toBe(true);
+    }
+});
+
 it('keeps the unchanged K-means zero-step call separate from its unsupported loop body', () => {
     const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
     const points: ValueFacts = { types: ['array'], rank: 2, shape: [2, 1], elements: ['integer'],

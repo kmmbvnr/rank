@@ -441,9 +441,10 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             if (isReturnStatement(item)) return !item.value || expression(item.value);
             if (isForStatement(item) && facts && item.condition && isBinaryExpression(item.condition)
                 && item.condition.operator === 'in') {
-                const iterable = fact(item.condition.right);
-                if ((iterable.types.join() === 'array' || iterable.types.join() === 'sequence')
-                    && iterable.shape?.[0] === 0 && expression(item.condition.right)) return true;
+                let iterable = item.condition.right;
+                while (isParenthesizedExpression(iterable)) iterable = iterable.value;
+                if (isBinaryExpression(iterable) && (iterable.operator === 'to' || iterable.operator === 'until')
+                    && fact(iterable).shape?.[0] === 0 && expression(iterable)) return true;
             }
             if (isForStatement(item) && facts && item.condition && isBinaryExpression(item.condition)
                 && item.condition.operator === 'in' && isNameExpression(item.condition.left)

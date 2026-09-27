@@ -18,6 +18,7 @@ collect('demos');
 paths.sort();
 
 const groups = new Map();
+const conflicts = [];
 for (const path of paths) {
   const parsed = parser.parse(readFileSync(path, 'utf8'));
   if (parsed.parserErrors.length) throw new Error(`${path}: ${parsed.parserErrors[0].message}`);
@@ -68,7 +69,11 @@ for (const path of paths) {
           const incompatibleType = !numeric && result.types.every(type => !expected.types.includes(type));
           const incompatibleRank = result.rank !== undefined && expected.rank !== undefined
             && result.rank !== expected.rank;
-          if (incompatibleType || incompatibleRank) counts.exampleExpectationConflicts++;
+          if (incompatibleType || incompatibleRank) {
+            counts.exampleExpectationConflicts++;
+            if (process.argv.includes('--conflicts')) conflicts.push({ path, name: examples[index].name,
+              arguments: examples[index].arguments, expected, inferred: result });
+          }
         }
       } catch (error) { throw new Error(`${path}: ${error.message}`, { cause: error }); }
     }
@@ -83,3 +88,4 @@ for (const counts of groups.values()) {
   for (const key of Object.keys(total)) total[key] += counts[key];
 }
 console.log(JSON.stringify({ total, groups: Object.fromEntries(groups) }, null, 2));
+if (process.argv.includes('--conflicts')) console.error(JSON.stringify(conflicts, null, 2));

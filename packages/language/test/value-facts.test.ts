@@ -41,6 +41,20 @@ it('retains rank when a dimension is unknown', () => {
     expect(facts('Unknown')).toEqual({ types: [] });
 });
 
+it('recognizes positional slices as arrays rather than integer ranges', () => {
+    const source: ValueFacts = { types: ['array'], rank: 2, shape: [5, 4], elements: ['integer'],
+        eagerScalarCells: true };
+    const bindings = new Map([['Source', source]]);
+    expect(facts('Source from 1 until 3', bindings)).toMatchObject({ types: ['array'], rank: 2,
+        shape: [2, 4], elements: ['integer'] });
+    expect(facts('Source axis 1 from 1 to 2', bindings)).toMatchObject({ types: ['array'], rank: 2,
+        shape: [5, 2], elements: ['integer'] });
+    expect(facts('Source from Start until End', bindings)).toMatchObject({ types: ['array'], rank: 2,
+        shape: [null, 4] });
+    expect(facts('Unknown from 0 until End')).toEqual({ types: [] });
+    expect(facts('1 until 3')).toMatchObject({ types: ['sequence'], shape: [2] });
+});
+
 it('uses supplied facts without evaluating bindings', () => {
     expect(facts('array shape N fill 0', new Map([['N', {
         types: ['integer'], rank: 0, shape: [], integer: '5',
