@@ -17,6 +17,8 @@ function messages(source: string): string[] {
 it('reports an incompatible reassignment before execution', () => {
     expect(messages('Count = 1\nCount = "x"')).toEqual(['Count has type integer and cannot receive text']);
     expect(messages('Count = 1\nCount /= 2')).toEqual(['Count has type integer and cannot receive real']);
+    expect(messages('Count = Unknown\nCount = 1\nCount = "x"'))
+        .toEqual(['Count has type integer and cannot receive text']);
 });
 
 it('reports incompatible scalar operands', () => {
@@ -1210,6 +1212,18 @@ it('infers the unchanged weather interpolation through direct return calls', () 
         .toEqual(examples.map(() => ['array']));
 });
 
+it('infers the unchanged longest-palindrome result through numeric call arguments', () => {
+    const moduleName = '005_longestpal';
+    const source = readFileSync(new URL(`../../../demos/leetcode/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/leetcode/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['longest']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['text']));
+});
+
 it('passes a preceding pipeline result to a unary user function', () => {
     const source = 'use text\nfun count_parts Parts\n return Parts len\nend\n'
         + 'fun count_source Source\n return Source "," split count_parts\nend\n';
@@ -1235,6 +1249,29 @@ it('retains a private scalar parameter type but not its value across an unknown 
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const withCapture = source.replace(' Unknown external', ' fun nested\n  N = 4\n  return 0\n end\n Unknown external');
     expect(analyzeValues(parse(withCapture)).bindings.get('A')?.types).toEqual([]);
+});
+
+it('retains a private text parameter type across an unknown call but not through a nested capture', () => {
+    const source = 'fun outer Text\n Unknown external\n return Text\nend\nA = "abc" outer';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['text']);
+    const withCapture = source.replace(' Unknown external',
+        ' fun nested\n  Text = 4\n  return 0\n end\n Unknown external');
+    expect(analyzeValues(parse(withCapture)).bindings.get('A')?.types).toEqual([]);
+});
+
+it('retains private scalar loop bindings across unknown calls', () => {
+    const source = 'fun outer Text\n for C I in Text\n  Unknown external\n  return I + 1\n end\n return 0\nend\n';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body);
+    const argument = { types: ['text'], rank: 1, shape: [3], textLiteral: 'abc' };
+    expect(analyzeValues(parse(source).value, new Map(), new Map(), [
+        { name: 'outer', arguments: [argument] },
+    ]).functionResults[0].types).toEqual(['integer']);
+    const withCapture = source.replace(' for C I in Text',
+        ' fun nested\n  I = "changed"\n  return 0\n end\n for C I in Text');
+    expect(analyzeValues(parse(withCapture).value, new Map(), new Map(), [
+        { name: 'outer', arguments: [argument] },
+    ]).functionResults[0].types).toEqual([]);
 });
 
 it('infers the unchanged CSES graph-path matrix result', () => {

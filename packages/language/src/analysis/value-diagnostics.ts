@@ -44,7 +44,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
     let remainingCalls = 100;
-    const privateParameters: Set<string>[] = [];
+    const privateBindings: Set<string>[] = [];
 
     function directNoReturnCall(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean {
         const parts = isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
@@ -185,8 +185,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });
         activeCalls.add(name);
         globalCallEnvs.push(globalEnv);
-        privateParameters.push([...AstUtils.streamAllContents(definition)].some(isFunctionStatement)
-            ? new Set() : new Set(definition.parameters));
+        const nodes = [...AstUtils.streamAllContents(definition)];
+        privateBindings.push(nodes.some(isFunctionStatement) ? new Set()
+            : new Set([...definition.parameters, ...nodes.filter(isForStatement)
+                .flatMap(loop => loopBinding(loop.condition)?.names ?? []).filter(name => name !== '#')]));
         const diagnosticStart = diagnostics.length;
         try {
             const result = returnPaths(definition.statements, local);
@@ -196,7 +198,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         } finally {
             activeCalls.delete(name);
             globalCallEnvs.pop();
-            privateParameters.pop();
+            privateBindings.pop();
             if (site) for (let index = diagnosticStart; index < diagnostics.length; index++) {
                 diagnostics[index] = { ...diagnostics[index], node: site, message: `${name}: ${diagnostics[index].message}` };
             }
@@ -678,12 +680,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
         if (unknown) {
-            const protectedNames = privateParameters.at(-1);
+            const protectedNames = privateBindings.at(-1);
             for (const [name, fact] of env) if (!fact.types.includes('function')) {
                 const accepted = fact.acceptedTypes ?? fact.types;
-                env.set(name, protectedNames?.has(name) && fact.rank === 0 && accepted.length > 0
+                const privateValue = protectedNames?.has(name) && accepted.length > 0;
+                env.set(name, privateValue && fact.rank === 0
                     && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
-                    ? { types: accepted, acceptedTypes: accepted, rank: 0, shape: [] } : invalidate(fact));
+                    ? { types: accepted, acceptedTypes: accepted, rank: 0, shape: [] }
+                    : privateValue && fact.types.join() === 'text' && accepted.join() === 'text'
+                        ? { types: ['text'], acceptedTypes: ['text'], rank: 1, shape: [null] }
+                        : invalidate(fact));
             }
             const global = globalCallEnvs.at(-1);
             if (global && global !== env) for (const [name, fact] of global) {
@@ -803,12 +809,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const target = parts.at(-1);
         if (!target || !isNameExpression(target) || env.get(target.name) !== functionBindings.get(target.name)
             || functions.get(target.name)?.parameters.length !== parts.length - 1) return undefined;
+        const numericArgument = (part: Expression): boolean => {
+            if (isParenthesizedExpression(part)) return numericArgument(part.value);
+            if (isUnaryExpression(part) && ['+', '-'].includes(part.operator))
+                return numericArgument(part.operand);
+            if (isBinaryExpression(part) && ['+', '-', '*', '/', '//', '%', '**'].includes(part.operator))
+                return numericArgument(part.left) && numericArgument(part.right);
+            if (!isNameExpression(part) && !isNumberLiteral(part)) return false;
+            const fact = isNameExpression(part) ? env.get(part.name) : expressionFacts(part, name => env.get(name));
+            return fact?.rank === 0 && fact.types.length > 0
+                && fact.types.every(type => type === 'integer' || type === 'real');
+        };
         const arguments_: ValueFacts[] = [];
         for (const part of parts.slice(0, -1)) {
             const atom = isParenthesizedExpression(part) ? part.value : part;
             if (!isNameExpression(atom) && !isNumberLiteral(atom) && !isStringLiteral(atom)
-                && !isBooleanLiteral(atom)) return undefined;
-            const fact = expressionFacts(atom, name => env.get(name));
+                && !isBooleanLiteral(atom) && !numericArgument(part)) return undefined;
+            const fact = expressionFacts(part, name => env.get(name));
             if (!fact.types.length || fact.types.includes('function')
                 || fact.types.includes('array') && !fact.eagerScalarCells && !fact.callbackFreeScalarCells) return undefined;
             arguments_.push(fact);
@@ -839,7 +856,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
                         message: `${statement.name} has rank ${expectedRank} and cannot receive rank ${receivedRank}` });
                 }
-                env.set(statement.name, { ...next, acceptedTypes: accepted ?? next.types,
+                env.set(statement.name, { ...next, acceptedTypes: accepted?.length ? accepted : next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });
                 if (directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
