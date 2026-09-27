@@ -20,20 +20,11 @@ rem Run the light grid, optionally keeping all four corners on.
 fun solve Lines Steps Stuck
   Grid = Lines Stuck makegrid
 
-  for Step in 1 to Steps
+  for # in 1 to Steps
     Grid = Grid Stuck evolve
   end
 
-  Total = 0
-  for Row in Grid
-    for On in Row
-      if On
-        Total += 1
-      end
-    end
-  end
-
-  return Total
+  return Grid count
 end
 
 
