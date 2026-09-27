@@ -13,7 +13,9 @@ export interface ValueFacts {
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
     readonly elements?: Types;
-    /** Proven eager scalar cells; reading one cannot run a lazy callback. */
+    /** Element types by position for a fixed rank-1 array. */
+    readonly positions?: readonly Types[];
+    /** Proven eager cells; reading one cannot run a lazy callback. */
     readonly eagerScalarCells?: true;
     /** Derived scalar cells may be lazy, but cannot call Rank code when read. */
     readonly callbackFreeScalarCells?: true;
@@ -21,6 +23,7 @@ export interface ValueFacts {
     readonly shape?: readonly (number | null)[];
     readonly integer?: string;
     readonly integers?: readonly (number | null)[];
+    readonly textLiteral?: string;
 }
 
 export const UNKNOWN_VALUE: ValueFacts = { types: [] };
@@ -96,7 +99,8 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         ...(typeof expression.value === 'bigint' ? { integer: String(expression.value) } : {}),
     };
     // Runtime rank is one for text, although arithmetic treats the whole text as an atom.
-    if (isStringLiteral(expression)) return { types: ['text'], rank: 1, shape: [[...expression.value].length] };
+    if (isStringLiteral(expression)) return { types: ['text'], rank: 1,
+        shape: [[...expression.value].length], textLiteral: expression.value };
     if (isBooleanLiteral(expression)) return { types: ['boolean'], rank: 0, shape: [] };
     if (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)) {
         const operand = expressionFacts(expression.operand, lookup);
@@ -122,22 +126,24 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const items = [...expression.items, ...expression.rows.flatMap(row => row.items)]
                 .map(item => expressionFacts(item.value, lookup));
             const eagerScalarCells = fill
-                ? fill.rank === 0 && fill.types.length > 0
-                    && fill.types.every(type => ['integer', 'real', 'boolean'].includes(type))
-                : items.length > 0 && items.every(item => item.rank === 0 && item.types.length > 0
-                    && item.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type)));
+                ? fill.types.length > 0 && isAtom(fill)
+                : items.length > 0 && items.every(item => item.types.length > 0 && isAtom(item));
+            const elements = fill && isAtom(fill) ? fill.types
+                : !fill && items.length && items.every(isAtom)
+                    ? [...new Set(items.flatMap(item => item.types))] : undefined;
             return { types: ['array'], rank: shape.length, shape,
-                ...(fill && isAtom(fill) ? { elements: fill.types }
-                    : !fill && items.length && items.every(isAtom) ? { elements: [...new Set(items.flatMap(item => item.types))] } : {}),
+                ...(elements ? { elements } : {}),
+                ...(!fill && shape.length === 1 && elements && elements.length > 1
+                    ? { positions: items.map(item => item.types) } : {}),
                 ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}) };
         }
         // Nested array literals and row assembly need the runtime's cell rules.
         const items = expression.items.map(item => expressionFacts(item.value, lookup));
         if (!expression.rows.length && items.every(isAtom)) {
-            const eagerScalarCells = items.every(item => item.rank === 0 && item.types.length > 0
-                && item.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type)));
+            const eagerScalarCells = items.every(item => item.types.length > 0 && isAtom(item));
+            const elements = [...new Set(items.flatMap(item => item.types))];
             return { types: ['array'], rank: 1, shape: [items.length],
-                elements: [...new Set(items.flatMap(item => item.types))],
+                elements, ...(elements.length > 1 ? { positions: items.map(item => item.types) } : {}),
                 ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}),
                 ...(items.every(item => item.integer !== undefined) ? {
                     integers: items.map((item, index) => {
@@ -284,6 +290,14 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 }
                 if (hasScalarCellArrayNoCallbackProof(operation, operands)) {
                     return { types: resultTypes(operation), rank: 0, shape: [] };
+                }
+                if (last.name === 'parse' && arity === 2 && operands[1].textLiteral !== undefined) {
+                    const positions = parsePositions(operands[1].textLiteral);
+                    if (positions) {
+                        const elements = [...new Set(positions.flat())];
+                        return { types: ['array'], rank: 1, shape: [positions.length], elements,
+                            ...(elements.length > 1 ? { positions } : {}), eagerScalarCells: true };
+                    }
                 }
                 if (last.name === 'shape' && arity === 1 && source.types.join() === 'array'
                     && source.rank !== undefined) return { types: ['array'], rank: 1, shape: [source.rank],
@@ -450,6 +464,21 @@ export function isAtom(facts: ValueFacts): boolean {
     return facts.rank === 0 || facts.types.length === 1 && facts.types[0] === 'text';
 }
 
+function parsePositions(format: string): Types[] | undefined {
+    const positions: Types[] = [];
+    const directivePattern = /\/(integer|real|word|text)/y;
+    for (let index = 0; index < format.length;) {
+        if (format[index] !== '/') { index++; continue; }
+        if (format[index + 1] === '/') { index += 2; continue; }
+        directivePattern.lastIndex = index;
+        const directive = directivePattern.exec(format);
+        if (!directive) return undefined;
+        positions.push([directive[1] === 'word' || directive[1] === 'text' ? 'text' : directive[1]]);
+        index += directive[0].length;
+    }
+    return positions;
+}
+
 /** Facts shared by every reachable path, with a union of possible runtime types. */
 export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     if (!values.length) return UNKNOWN_VALUE;
@@ -464,8 +493,14 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
         : scalar ? [] : undefined;
     const elements = values.every(value => value.elements?.length)
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
+    const positions = first.positions && values.every(value => value.positions?.length === first.positions!.length)
+        ? first.positions.map((_, index) => values.every(value => value.positions![index].length)
+            ? [...new Set(values.flatMap(value => value.positions![index]))] : []) : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
         ...(elements ? { elements } : {}),
+        ...(positions ? { positions } : {}),
+        ...(first.textLiteral !== undefined && values.every(value => value.textLiteral === first.textLiteral)
+            ? { textLiteral: first.textLiteral } : {}),
         ...(values.every(value => value.eagerScalarCells) ? { eagerScalarCells: true as const }
             : values.every(value => value.eagerScalarCells || value.callbackFreeScalarCells)
                 ? { callbackFreeScalarCells: true as const } : {}) };

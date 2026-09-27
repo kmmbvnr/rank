@@ -26,13 +26,23 @@ it('separates scalar type, array elements, rank and dimensions', () => {
         shape: [2, 2], eagerScalarCells: true });
 });
 
-it('proves eager cells only for scalar array literals', () => {
+it('proves eager cells for known atom array literals', () => {
     expect(facts('array true false').eagerScalarCells).toBe(true);
     expect(facts('array shape 2 2\n 1 2\n 3 4\nend').eagerScalarCells).toBe(true);
     expect(facts('array X').eagerScalarCells).toBeUndefined();
     expect(facts('array shape 2 fill 0').eagerScalarCells).toBe(true);
     expect(facts('array shape 2 fill Unknown').eagerScalarCells).toBeUndefined();
     expect(facts('(1 to 3) array').eagerScalarCells).toBeUndefined();
+    expect(facts('array 1 "two"')).toMatchObject({ types: ['array'], rank: 1,
+        shape: [2], elements: ['integer', 'text'], positions: [['integer'], ['text']], eagerScalarCells: true });
+});
+
+it('reads only valid parse directives when inferring captured positions', () => {
+    expect(facts('"/42:x" "///integer:/word" parse')).toMatchObject({
+        types: ['array'], rank: 1, shape: [2], elements: ['integer', 'text'],
+        positions: [['integer'], ['text']], eagerScalarCells: true,
+    });
+    expect(facts('"x" "/invalid" parse').positions).toBeUndefined();
 });
 
 it('retains rank when a dimension is unknown', () => {
@@ -226,7 +236,7 @@ it('propagates reshape and scalar addressing', () => {
 });
 
 it('keeps text rank separate from its role as an array element', () => {
-    expect(facts('"a😀"')).toEqual({ types: ['text'], rank: 1, shape: [2] });
+    expect(facts('"a😀"')).toEqual({ types: ['text'], rank: 1, shape: [2], textLiteral: 'a😀' });
     expect(facts('array "a" "long"').shape).toEqual([2]);
     expect(facts('array -2 3').integers).toEqual([-2, 3]);
 });

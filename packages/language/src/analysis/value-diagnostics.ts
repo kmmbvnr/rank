@@ -448,7 +448,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         for (const [source, names] of [[env, written], [globalCallEnvs.at(-1) ?? env, writtenGlobals]] as const) {
             for (const name of names) {
                 const fact = source.get(name);
-                if (fact) source.set(name, { ...fact, elements: undefined, integers: undefined,
+                if (fact) source.set(name, { ...fact, elements: undefined, integers: undefined, positions: undefined,
                     eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
             }
         }
@@ -597,24 +597,28 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             } else if (isUnpackStatement(statement)) {
                 invalidateCalls(statement.value, env);
                 const source = inspect(statement.value, env);
-                const scalar = source.elements?.length && source.elements.every(type =>
-                    ['integer', 'real', 'boolean', 'symbol'].includes(type));
+                const knownCells = !!source.elements?.length;
                 if (source.types.join() !== 'array' || source.rank !== 1
-                    || source.shape?.[0] != null && source.shape[0] !== statement.names.length || !scalar
+                    || source.shape?.[0] != null && source.shape[0] !== statement.names.length
+                    || !knownCells && source.positions?.length !== statement.names.length
                     || !(source.eagerScalarCells || source.callbackFreeScalarCells)) {
                     for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
                     continue;
                 }
                 for (const [index, name] of statement.names.entries()) {
                     if (name === '#') continue;
-                    const types = source.elements!;
+                    const types = source.positions?.[index] ?? source.elements ?? [];
                     const previous = env.get(name);
                     const accepted = previous?.acceptedTypes ?? previous?.types;
-                    if (accepted?.length && types.every(type => !accepted.includes(type))) {
+                    if (accepted?.length && types.length && types.every(type => !accepted.includes(type))) {
                         diagnostics.push({ node: statement, kind: 'TypeError',
                             message: `${name} has type ${accepted.join(' or ')} and cannot receive ${types.join(' or ')}` });
                     }
-                    env.set(name, { types, rank: 0, shape: [],
+                    const scalarCell = types.length && types.every(type =>
+                        ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
+                    const textCell = types.join() === 'text';
+                    env.set(name, { types,
+                        ...(scalarCell ? { rank: 0, shape: [] } : textCell ? { rank: 1, shape: [null] } : {}),
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
                         acceptedTypes: accepted ?? types });
                 }
@@ -667,7 +671,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     env.set(statement.name, { ...fact,
                         elements: oneCell && fact.elements?.length
                             ? [...new Set([...fact.elements, ...replacement.types])] : undefined,
-                        integers: undefined,
+                        integers: undefined, positions: undefined,
                         callbackFreeScalarCells: undefined,
                         eagerScalarCells: oneCell && fact.eagerScalarCells
                             && replacement.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
