@@ -646,6 +646,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     let site: AstNode = node;
                     while (isParenthesizedExpression(site.$container)) site = site.$container;
                     if (!isApplicationExpression(site.$container)) continue;
+                    if (node.name === 'counter') {
+                        const parts = flattenApplication(site.$container);
+                        const key = parts[1] && expressionFacts(parts[1], name => env.get(name));
+                        if (parts.length === 2 && parts[0] === node && directValue(parts[1])
+                            && key && isAtom(key) && key.types.length > 0
+                            && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
+                                'date', 'datetime'].includes(type))) continue;
+                    }
                     if (node.name === 'queue') {
                         while (isApplicationExpression(site.$container)) site = site.$container;
                         const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
