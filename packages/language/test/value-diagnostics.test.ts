@@ -678,6 +678,28 @@ it('collects returns from reachable loop paths with break and continue', () => {
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
+it('keeps settled types after loop exits without trusting writes or unknown effects', () => {
+    expect(messages('A = 1\nfor I in 1 to 3\n if I equal 2\n  break\n end\nend\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('A = 1\nfor I in 1 to 3\n A external\n break\nend\nA + "bad"'))
+        .toEqual([]);
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n A = array 1 2 3\n break\nend\nA + (array 1 2 3)'))
+        .toEqual([]);
+});
+
+it('infers the unchanged atoi function through both break and return paths', () => {
+    const source = readFileSync(new URL('../../../demos/leetcode/008_atoi.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/leetcode/008_atoi_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '008_atoi', new Set(['atoi', 'clamp']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('retains unrelated facts after the unchanged marble-count text loop', () => {
     const source = readFileSync(new URL('../../../demos/atcoder/beginners/003_marbles.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.indexOf('fun marbles'));

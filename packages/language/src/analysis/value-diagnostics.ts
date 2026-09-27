@@ -202,15 +202,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     interface ReturnPaths {
         values: ValueFacts[];
         fallsThrough: boolean;
-        exitsLoop: boolean;
+        breaks: Map<string, ValueFacts>[];
+        continues: Map<string, ValueFacts>[];
     }
     function returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): ReturnPaths {
         const values: ValueFacts[] = [];
-        let exitsLoop = false;
+        const breaks: Map<string, ValueFacts>[] = [];
+        const continues: Map<string, ValueFacts>[] = [];
         for (const statement of items) {
-            if (isBreakStatement(statement) || isContinueStatement(statement)) {
-                return { values, fallsThrough: false, exitsLoop: true };
-            }
+            if (isBreakStatement(statement)) return { values, fallsThrough: false, breaks: [...breaks, env], continues };
+            if (isContinueStatement(statement)) return { values, fallsThrough: false, breaks, continues: [...continues, env] };
             if (isReturnStatement(statement)) {
                 if (statement.value) invalidateCalls(statement.value, env);
                 const observed = statement.value ? inspect(statement.value, env) : UNKNOWN_VALUE;
@@ -219,7 +220,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const result = observed.types.length || !contract?.acceptedTypes?.length ? observed
                     : { types: contract.acceptedTypes, acceptedArrayRank: contractRank(contract) };
                 if (!statement.value || !directNoReturnCall(statement.value, env)) values.push(result);
-                return { values, fallsThrough: false, exitsLoop };
+                return { values, fallsThrough: false, breaks, continues };
             }
             if (isIfStatement(statement)) {
                 const branches = conditionalPaths(statement, env);
@@ -232,10 +233,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     // Return facts still join all possible paths conservatively.
                     if (branches.length > 1) diagnostics.length = diagnosticStart;
                     values.push(...result.values);
-                    exitsLoop ||= result.exitsLoop;
+                    breaks.push(...result.breaks);
+                    continues.push(...result.continues);
                     if (result.fallsThrough) survivors.push(local);
                 }
-                if (!survivors.length) return { values, fallsThrough: false, exitsLoop };
+                if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
                 mergeEnvironments(env, survivors);
             } else if (isForStatement(statement)) {
                 const contents = [...AstUtils.streamAllContents(statement)];
@@ -246,13 +248,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 || isAddStatement(statement) || isPushStatement(statement)
                 || isUnpackStatement(statement)
                 || isExpressionStatement(statement) || isFunctionStatement(statement)) {
-                if (!statements([statement], env)) return { values, fallsThrough: false, exitsLoop };
+                if (!statements([statement], env)) return { values, fallsThrough: false, breaks, continues };
             } else {
                 // Unknown control flow may return, yield, throw or alter captured state.
-                return { values: [UNKNOWN_VALUE], fallsThrough: true, exitsLoop };
+                return { values: [UNKNOWN_VALUE], fallsThrough: true, breaks, continues };
             }
         }
-        return { values, fallsThrough: true, exitsLoop };
+        return { values, fallsThrough: true, breaks, continues };
     }
 
     function emptyBuiltinRange(source: Expression | undefined, collection: ValueFacts): boolean {
@@ -270,6 +272,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const fact = env.get(node.name);
         if (fact) env.set(node.name, { ...fact, elements: undefined, positions: undefined, integers: undefined,
             eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
+    }
+    function widenLoopExit(contents: readonly AstNode[], env: Map<string, ValueFacts>, preserved: ReadonlySet<string> = new Set()): void {
+        for (const node of contents) {
+            for (const name of writtenBindings(node)) {
+                const fact = env.get(name);
+                const rank = contractRank(fact);
+                env.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
+                    acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+            }
+            if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, env);
+        }
     }
     const directValue = (node: Expression): boolean => isNameExpression(node) || isNumberLiteral(node)
         || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
@@ -334,11 +347,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             return;
         }
         const contents = [...AstUtils.streamAllContents(statement)];
+        const hasExit = contents.some(node => isBreakStatement(node) || isContinueStatement(node));
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
                 && !isUnpackStatement(node) && !isArrayAssignmentStatement(node) && !isIndexAssignmentStatement(node)
                 && !isAddStatement(node) && !isPushStatement(node) && !isExpressionStatement(node)
-                && !isIfStatement(node) && !isForStatement(node))) {
+                && !isIfStatement(node) && !isForStatement(node)
+                && !isBreakStatement(node) && !isContinueStatement(node))) {
             // Mutation and non-local exits need their own flow rules.
             for (const [name, fact] of env) env.set(name, invalidate(fact));
             return;
@@ -379,6 +394,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const start = diagnostics.length;
         let preserved = new Set<string>();
         let local: Map<string, ValueFacts>;
+        if (hasExit) {
+            const body = prepare(preserved);
+            const paths = returnPaths(statement.statements, body);
+            if (count == null || count <= 0) diagnostics.length = start;
+            const exits = [...paths.breaks, ...paths.continues, ...(paths.fallsThrough ? [body] : [])];
+            for (const path of exits) widenLoopExit(contents, path);
+            mergeEnvironments(env, [env, ...exits]);
+            return;
+        }
         if ((candidates.size || indexCandidate !== undefined) && !contents.some(node => isNameExpression(node)
             && env.get(node.name)?.types.includes('function'))) {
             const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
@@ -421,15 +445,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
         if (count == null || count <= 0) diagnostics.length = start;
         // No final-iteration dimensions are proven. Keep contracts, not body values.
-        for (const node of contents) {
-            for (const name of writtenBindings(node)) {
-                const fact = local.get(name);
-                const rank = contractRank(fact);
-                local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
-                    acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
-            }
-            if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, local);
-        }
+        widenLoopExit(contents, local, preserved);
         mergeEnvironments(env, [env, local]);
     }
 
@@ -469,19 +485,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const start = diagnostics.length;
         const returned = returnPaths(statement.statements, local);
         if (count == null || count <= 0) diagnostics.length = start;
-        if (returned.exitsLoop) {
-            for (const [name, fact] of env) env.set(name, invalidate(fact));
-        } else if (returned.fallsThrough) {
-            for (const node of AstUtils.streamAllContents(statement)) {
-                for (const name of writtenBindings(node)) {
-                    const fact = local.get(name);
-                    const rank = contractRank(fact);
-                    local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
-                        acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
-                }
-                widenArrayWrite(node, local);
-            }
-            mergeEnvironments(env, [env, local]);
+        const exits = [...returned.breaks, ...returned.continues, ...(returned.fallsThrough ? [local] : [])];
+        if (exits.length) {
+            const contents = [...AstUtils.streamAllContents(statement)];
+            for (const path of exits) widenLoopExit(contents, path);
+            mergeEnvironments(env, [env, ...exits]);
         }
         return returned.values;
     }
