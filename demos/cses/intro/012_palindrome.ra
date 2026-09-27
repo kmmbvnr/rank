@@ -30,10 +30,8 @@ fun palindrome Text
       Middle = C
     end
 
-    I = 0
-    for I less Half
+    for # in 0 until Half
       Left += C
-      I += 1
     end
   end
 
