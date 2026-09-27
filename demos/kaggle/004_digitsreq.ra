@@ -57,17 +57,11 @@ end
 fun classify X Centers Classes
   unpack Rows Cols = X shape
   Pred = array shape Rows fill 0
-  K = Classes len
   for Row in 0 until Rows
     Point = X Row #
     Delta = Centers - Point
     Dist = Delta * Delta sum axis 1
-    Best = 0
-    for Candidate in 1 until K
-      if Dist Candidate less Dist Best
-        Best = Candidate
-      end
-    end
+    Best = Dist argsort .ascending 0
     Pred Row = Classes Best
   end
   return Pred
