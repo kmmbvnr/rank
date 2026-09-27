@@ -976,6 +976,26 @@ it('infers result facts only from paths that return', () => {
     expect(messages('fun fail\n Value = 1\nend\nA = fail\nA + "bad"')).toEqual([]);
 });
 
+it('keeps a text parameter when an implicit queue selects its characters', () => {
+    const source = 'fun reorder Text\n for I in 0 until 2\n  queue push I\n end\n return Text queue\nend\nA = "abc" reorder';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['text']);
+});
+
+it('infers the unchanged Zigzag demo from its test inputs', () => {
+    const source = readFileSync(new URL('../../../demos/leetcode/006_zigzag.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/leetcode/006_zigzag_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '006_zigzag', new Set(['zigzag']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['text']));
+});
+
 it('infers returns through try and catch without assuming partial writes', () => {
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
     const both = 'fun choose\n try\n  return 1\n catch Error\n  return "fallback"\n end\nend\nA = choose';

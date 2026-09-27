@@ -62,6 +62,19 @@ it('recognizes implicit local collections without treating other names as values
     expect(facts('Unknown')).toEqual({ types: [] });
 });
 
+it('retains result types when a collection selects an axis', () => {
+    expect(facts('"abcd" queue')).toEqual({ types: ['text'], rank: 1, shape: [null] });
+    expect(facts('Source Indices', new Map([
+        ['Source', { types: ['array'], rank: 2, shape: [3, 4], elements: ['integer'], eagerScalarCells: true }],
+        ['Indices', { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true }],
+    ]))).toMatchObject({ types: ['array'], rank: 2, shape: [null, 4], elements: ['integer'],
+        callbackFreeScalarCells: true });
+    expect(facts('Source queue', new Map([
+        ['Source', { types: ['sequence'], rank: 1, shape: [5], elements: ['integer'] }],
+    ]))).toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
+    expect(facts('Unknown queue')).toEqual({ types: [] });
+});
+
 it('reads the declared type and element type of builtin values', () => {
     for (const name of ['fibonacci', 'primes']) {
         expect(facts(name)).toEqual({ types: ['sequence'], elements: ['integer'], rank: 1, shape: [null],

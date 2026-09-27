@@ -461,6 +461,20 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 };
             }
         }
+        if (parts.length === 2 && ['array', 'queue', 'sequence'].includes(
+            expressionFacts(parts[1], lookup).types.join())) {
+            if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+            if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 0) {
+                const shape = source.shape?.slice() ?? Array(source.rank).fill(null);
+                shape[0] = null;
+                return { types: ['array'], rank: source.rank, shape,
+                    ...(source.eagerScalarCells || source.callbackFreeScalarCells
+                        ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
+            }
+            if (source.types.join() === 'sequence' || source.types.join() === 'queue') return {
+                types: ['array'], rank: 1, shape: [null], elements: source.elements,
+            };
+        }
         // Only plain scalar and whole-axis addressing is proven here.
         if (source.types.length === 1 && ['array', 'bytes', 'sequence'].includes(source.types[0])
             && (source.types[0] !== 'sequence' || source.callbackFreeScalarCells) && source.shape

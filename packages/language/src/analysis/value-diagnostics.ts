@@ -519,6 +519,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
         const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from']);
+        const safeRead = (fact: ValueFacts | undefined) => fact?.eagerScalarCells === true
+            || fact?.callbackFreeScalarCells === true || fact?.types.join() === 'text';
         const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
             name => env.get(name)?.types.includes('function') ?? false,
             name => env.has(name));
@@ -546,9 +548,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 // Other indexed structures can invoke user callbacks on writes.
                 const array = (fact: ValueFacts | undefined) => !!fact?.types.length
                     && fact.types.every(type => type === 'array');
-                const safeRead = (fact: ValueFacts | undefined) => fact?.eagerScalarCells === true
-                    || fact?.callbackFreeScalarCells === true
-                    || fact?.types.join() === 'text';
                 for (const capture of result.captures) {
                     const global = result.globalWriteCaptures.has(capture);
                     const source = global ? globalCallEnvs.at(-1) ?? env : env;
@@ -584,6 +583,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     let site: AstNode = node;
                     while (isParenthesizedExpression(site.$container)) site = site.$container;
                     if (!isApplicationExpression(site.$container)) continue;
+                    if (node.name === 'queue') {
+                        while (isApplicationExpression(site.$container)) site = site.$container;
+                        const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                        if (parts.length === 2 && parts[1] === node) {
+                            const source = expressionFacts(parts[0], name => env.get(name));
+                            if (safeRead(source) || source.types.join() === 'queue') continue;
+                        }
+                    }
                 }
                 if (node.name === 'raise') {
                     let site: AstNode = node;
