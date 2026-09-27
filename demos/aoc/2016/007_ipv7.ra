@@ -5,6 +5,7 @@ rem https://adventofcode.com/2016/day/7
 use io
 use cli
 use text
+use numbers
 use sequences
 
 argument Input path
@@ -23,8 +24,8 @@ fun tls Address
   Parts = Address (array "[" "]") split
 
   I = 0 until (Parts len)
-  SuperMask = I % 2 equal 0
-  HyperMask = I % 2 equal 1
+  SuperMask = I even
+  HyperMask = not SuperMask
 
   Super = Parts SuperMask "[[[[" join
   Hyper = Parts HyperMask "]]]]" join
@@ -62,8 +63,8 @@ fun ssl Address
   Parts = Address (array "[" "]") split
 
   I = 0 until (Parts len)
-  SuperMask = I % 2 equal 0
-  HyperMask = I % 2 equal 1
+  SuperMask = I even
+  HyperMask = not SuperMask
 
   Super = Parts SuperMask "[[[[" join
   Hyper = Parts HyperMask "]]]]" join
