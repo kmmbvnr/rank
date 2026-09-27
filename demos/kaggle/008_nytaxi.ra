@@ -25,7 +25,8 @@ fun distance Point
   unpack Lat1 Lon1 Lat2 Lon2 = Point
   DLat = Lat2 - Lat1
   DLon = Lon2 - Lon1
-  return (DLat * DLat + DLon * DLon sqrt) * 111.0
+  Hypot = DLat * DLat + DLon * DLon sqrt
+  return Hypot * 111.0
 end
 
 
@@ -40,9 +41,7 @@ fun taxi_features Data
   Rows = Times len
   Result = array shape Rows 5 fill 0.0
 
-  for Row in 0 until Rows
-    Result Row 0 = Geo Row # distance
-  end
+  Result # 0 = Geo distance rank 1
   Result # 1 = Times hour
   Result # 2 = Times weekday
   Result # 3 = Times month
