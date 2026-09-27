@@ -259,18 +259,58 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const forgetNonFunctions = (env: Map<string, ValueFacts>): void => {
         for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
     };
+    function loopBinding(condition: Expression | undefined): { names: readonly string[]; iterable: Expression } | undefined {
+        if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
+        const parts = flattenApplication(condition.left);
+        if (parts.length < 1 || parts.length > 2 || !parts.every(part =>
+            isNameExpression(part) || isAllAxisExpression(part))) return undefined;
+        return { names: parts.map(part => isNameExpression(part) ? part.name : '#'), iterable: condition.right };
+    }
+
+    function safeIndexedIteration(collection: ValueFacts): boolean {
+        const kind = collection.types.join();
+        return kind === 'text' || kind === 'queue'
+            || collection.rank === 1 && ['array', 'sequence'].includes(kind)
+                && (collection.eagerScalarCells === true || collection.callbackFreeScalarCells === true);
+    }
+
+    function safeIndexedSource(source: Expression): boolean {
+        if (directValue(source)) return true;
+        if (isBinaryExpression(source) && ['to', 'until'].includes(source.operator)) {
+            return directValue(source.left) && directValue(source.right)
+                && (!source.step || directValue(source.step));
+        }
+        if (!isApplicationExpression(source)) return false;
+        const parts = flattenApplication(source);
+        return parts.length === 3 && isNameExpression(parts[2]) && parts[2].name === 'window'
+            && directValue(parts[0]) && directValue(parts[1]);
+    }
+
+    function bindIteration(env: Map<string, ValueFacts>, names: readonly string[], collection: ValueFacts): void {
+        if (names[0] !== '#') {
+            const types = collection.elements ?? (collection.types.join() === 'text' ? ['text'] : []);
+            env.set(names[0], { types, acceptedTypes: types,
+                ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                    ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] } : {}) });
+        }
+        if (names[1] && names[1] !== '#') env.set(names[1], {
+            types: ['integer'], acceptedTypes: ['integer'], rank: 0, shape: [],
+        });
+    }
 
     function loop(statement: ForStatement, env: Map<string, ValueFacts>): void {
         const condition = statement.condition;
         if (condition && isBooleanLiteral(condition) && !condition.value) return;
-        const membership = condition && isBinaryExpression(condition) && condition.operator === 'in'
-            && isNameExpression(condition.left) ? condition : undefined;
-        const source = membership ? membership.right : condition;
+        const candidate = loopBinding(condition);
+        const source = candidate?.iterable ?? condition;
         if (source) invalidateCalls(source, env);
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
+        const membership = candidate && (candidate.names.length === 1
+            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)) ? candidate : undefined;
         const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
         if (count === 0) {
-            if (!emptyBuiltinRange(source, collection)) {
+            if (!emptyBuiltinRange(source, collection)
+                && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
                 for (const [name, fact] of env) env.set(name, invalidate(fact));
             }
             return;
@@ -297,12 +337,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
         }
-        if (membership && isNameExpression(membership.left)) {
-            const types = collection.elements ?? [];
-            local.set(membership.left.name, { types, acceptedTypes: types,
-                ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
-                    ? { rank: 0, shape: [] } : {}) });
-        }
+        if (membership) bindIteration(local, membership.names, collection);
         const start = diagnostics.length;
         statements(statement.statements, local);
         if (count == null || count <= 0) diagnostics.length = start;
@@ -321,14 +356,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     function loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): ValueFacts[] {
         const condition = statement.condition;
         if (condition && isBooleanLiteral(condition) && !condition.value) return [];
-        const membership = condition && isBinaryExpression(condition) && condition.operator === 'in'
-            && isNameExpression(condition.left) ? condition : undefined;
-        const source = membership ? membership.right : condition;
+        const candidate = loopBinding(condition);
+        const source = candidate?.iterable ?? condition;
         if (source) invalidateCalls(source, env);
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
+        const membership = candidate && (candidate.names.length === 1
+            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)) ? candidate : undefined;
         const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
         if (count === 0) {
-            if (!emptyBuiltinRange(source, collection)) {
+            if (!emptyBuiltinRange(source, collection)
+                && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
                 for (const [name, fact] of env) env.set(name, invalidate(fact));
             }
             return [];
@@ -343,12 +380,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
         }
-        if (membership && isNameExpression(membership.left)) {
-            const types = collection.elements ?? [];
-            local.set(membership.left.name, { types, acceptedTypes: types,
-                ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
-                    ? { rank: 0, shape: [] } : {}) });
-        }
+        if (membership) bindIteration(local, membership.names, collection);
         const start = diagnostics.length;
         const returned = returnPaths(statement.statements, local);
         if (count == null || count <= 0) diagnostics.length = start;
@@ -422,6 +454,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     }
                 }
             } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)) {
+                if (node.name === 'index') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)
+                        || isParenthesizedExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    if (!parts.length || parts[0] === node && parts.slice(1).every(directValue)) continue;
+                }
+                if (['queue', 'set', 'counter'].includes(node.name)) {
+                    let site: AstNode = node;
+                    while (isParenthesizedExpression(site.$container)) site = site.$container;
+                    if (!isApplicationExpression(site.$container)) continue;
+                }
                 if (node.name === 'raise') {
                     let site: AstNode = node;
                     while (isApplicationExpression(site.$container)) site = site.$container;

@@ -217,7 +217,8 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     : (distance <= 0n ? 0n : (distance + stride - 1n) / stride);
                 if (count <= BigInt(Number.MAX_SAFE_INTEGER)) length = Number(count);
             }
-            return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [length] };
+            return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [length],
+                callbackFreeScalarCells: true };
         }
         if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)) {
             const inferred = typeOf(expression, name => lookup(name)?.types);
@@ -410,9 +411,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 const width = widthText === undefined ? NaN : Number(widthText);
                 if (Number.isSafeInteger(width) && width > 0) {
                     const count = Math.max(0, source.shape[0] - width + 1);
-                    if (source.types.join() === 'text') return { types: ['sequence'], elements: ['text'], rank: 1, shape: [count] };
+                    if (source.types.join() === 'text') return { types: ['sequence'], elements: ['text'], rank: 1,
+                        shape: [count], callbackFreeScalarCells: true };
                     if (['array', 'bytes', 'sequence'].includes(source.types.join())) return {
                         types: ['array'], elements: source.elements, rank: 2, shape: [count, width],
+                        ...(source.eagerScalarCells || source.callbackFreeScalarCells
+                            ? { callbackFreeScalarCells: true as const } : {}),
                     };
                 }
             }

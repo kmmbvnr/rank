@@ -211,7 +211,8 @@ it('does not mistake a plain lookup function for a call resolver', () => {
 });
 
 it('propagates finite range lengths through materialization', () => {
-    expect(facts('(1 to 5) array')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [5] });
+    expect(facts('(1 to 5) array')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [5],
+        callbackFreeScalarCells: true });
     expect(facts('(1 until 5) array').shape).toEqual([4]);
     expect(facts('(1 to 9 by 2) array').shape).toEqual([5]);
     expect(facts('(9 until 1 by -2) array').shape).toEqual([4]);
@@ -244,5 +245,6 @@ it('keeps text rank separate from its role as an array element', () => {
 it('infers finite windows including an empty frame', () => {
     expect(facts('(1 to 5) 3 window').shape).toEqual([3, 3]);
     expect(facts('(1 to 5) 7 window').shape).toEqual([0, 7]);
-    expect(facts('"abcd" 2 window')).toEqual({ types: ['sequence'], elements: ['text'], rank: 1, shape: [3] });
+    expect(facts('"abcd" 2 window')).toEqual({ types: ['sequence'], elements: ['text'], rank: 1, shape: [3],
+        callbackFreeScalarCells: true });
 });

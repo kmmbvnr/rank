@@ -139,10 +139,34 @@ it('keeps unrelated facts through direct queue pushes but not computed receivers
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\n(A 0) push 2\nCount + "bad"'))
         .toEqual([]);
+    expect(messages('use algo\nCount = 1\nqueue push 2\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
         'use algo\nfun collect X\n Q = new queue\n Q push X\n return Q\nend\nA = 0 collect\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['queue']);
+});
+
+it('infers indexed text loops without trusting an unknown iterator', () => {
+    const reader = 'fun indexed Text\n Count = 0\n for C I in Text\n  Count += I\n end\n return Count\nend\n';
+    expect(messages(reader + 'Result = "abc" indexed\nResult + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('Count = 1\nfor C I in Unknown\n Count += I\nend\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('Count = 1\nA = Unknown\nfor Value I in (A 0) to 3\n Count += I\nend\n'
+        + 'Count + "bad"')).toEqual([]);
+    expect(messages('Count = 1\nA = Unknown\nfor Value I in 0 to 3 by (A 0)\n Count += I\nend\n'
+        + 'Count + "bad"')).toEqual([]);
+    expect(messages('Count = 1\nfor C I in ""\n Count = "bad"\nend\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('keeps types through a scalar lookup in the local index', () => {
+    expect(messages('use algo\nfun read X\n Count = 1\n First = index X default -1\n return Count\nend\n'
+        + 'Result = "x" read\nResult + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nCount = 1\nA = Unknown\nFirst = index (A 0) default -1\nCount + "bad"'))
+        .toEqual([]);
 });
 
 it('gives function locals their own rank contract', () => {
@@ -299,6 +323,20 @@ it('infers scalar results from the unchanged AoC cookie clamp and unpack', () =>
     expect(examples).toHaveLength(2);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults)
         .toEqual(examples.map(() => ({ types: ['integer', 'real'], rank: 0, shape: [] })));
+});
+
+it('infers booleans from the unchanged AoC indexed-window demo', () => {
+    const source = readFileSync(new URL('../../../demos/aoc/2015/005_nice.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/aoc/2015/005_nice_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '005_nice')
+        .filter(example => example.name === 'nice2');
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults)
+        .toEqual(examples.map(() => ({ types: ['boolean'], rank: 0, shape: [] })));
 });
 
 it('infers returns from loops in unchanged reverse-integer and bill-count demos', () => {
