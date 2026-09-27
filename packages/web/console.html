@@ -27,6 +27,7 @@
             <button data-key="tab">Complete</button>
             <button data-key="escape">Edit</button>
             <button data-key="c" data-ctrl="true">Stop</button>
+            <button id="keyboard-toggle" aria-pressed="false">Symbol keyboard</button>
         </nav>
     </header>
     <main id="terminal" aria-label="Rank terminal">
@@ -34,6 +35,16 @@
         <div id="caret" aria-hidden="true"></div>
         <textarea id="input" aria-label="Rank terminal input" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" enterkeyhint="enter"></textarea>
     </main>
+    <div id="keyboard" aria-label="Symbol keyboard" hidden>
+        <div id="keyboard-keys" role="toolbar" aria-label="Names and symbols"></div>
+        <div id="keyboard-bar">
+            <div id="keyboard-tabs" role="tablist" aria-label="Modules in use"></div>
+            <button id="keyboard-letters" type="button" aria-label="Switch to the system keyboard">ABC</button>
+            <button id="keyboard-collapse" type="button" aria-label="Hide symbol keyboard">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5 5 5-5z"></path></svg>
+            </button>
+        </div>
+    </div>
     <div id="iteration-controls" hidden>
         <button id="iteration-prev" type="button" aria-label="Previous loop iteration">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5v14l-9-7z"></path></svg>

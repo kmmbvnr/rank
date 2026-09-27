@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 public class MainActivity extends BridgeActivity {
     private boolean resumed;
     private boolean keyboardRequested;
+    private Boolean imeVisible;
     private final Runnable showKeyboard = () -> {
         if (!resumed || !hasWindowFocus() || keyboardRequested || bridge == null) return;
         WebView webView = bridge.getWebView();
@@ -42,6 +43,7 @@ public class MainActivity extends BridgeActivity {
         bridge.setWebViewClient(new DebugSignalClient(bridge));
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         hideSystemBars();
+        reportKeyboard();
         bridge.addWebViewListener(new WebViewListener() {
             @Override
             public void onPageLoaded(WebView webView) {
@@ -51,8 +53,23 @@ public class MainActivity extends BridgeActivity {
                     webView.evaluateJavascript("document.documentElement.style.setProperty('--run-background','" + background
                         + "');document.documentElement.style.setProperty('--run-foreground','" + foreground + "');", null);
                 }
+                imeVisible = null;
                 scheduleKeyboard();
             }
+        });
+    }
+
+    /** The console shows its symbol keyboard only while the soft keyboard is closed. */
+    private void reportKeyboard() {
+        getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            if (bridge == null) return;
+            WebView webView = bridge.getWebView();
+            WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(webView);
+            if (insets == null) return;
+            boolean visible = insets.isVisible(WindowInsetsCompat.Type.ime());
+            if (imeVisible != null && imeVisible == visible) return;
+            imeVisible = visible;
+            webView.evaluateJavascript("window.rankSoftKeyboard&&window.rankSoftKeyboard(" + visible + ")", null);
         });
     }
 

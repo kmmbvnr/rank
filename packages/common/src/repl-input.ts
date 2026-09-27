@@ -187,7 +187,7 @@ export function expandOperators(line: string, isBound: (name: string) => boolean
     return result + line.slice(at);
 }
 
-function endsOperand(previous: Token | undefined): boolean {
+export function endsOperand(previous: Token | undefined): boolean {
     if (!previous) return false;
     if (previous.kind === 'symbol') return previous.text === ')' || previous.text === '#';
     if (previous.kind === 'comment') return false;

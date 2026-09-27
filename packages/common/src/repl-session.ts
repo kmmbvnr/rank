@@ -87,6 +87,7 @@ export function createReplSession(host: ReplHost = {}) {
         resetExecution,
         get savedFile() { return savedFile; },
         get names() { return [...interpreter.bindingNames()]; },
+        get modules() { return [...interpreter.modules]; },
         get diagnosticFacts() { return runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name), name => interpreter.bindingArrayRank(name)); },
         get testExamples() { return testExamples; },
         snapshot(): SessionSnapshot {

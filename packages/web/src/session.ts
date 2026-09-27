@@ -76,6 +76,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
     }
     return {
         get names() { return snapshot.names; },
+        get modules() { return snapshot.modules; },
         get diagnosticFacts() { return snapshot.diagnosticFacts ?? []; },
         get testExamples() { return snapshot.testExamples; },
         get savedFile() { return undefined; },

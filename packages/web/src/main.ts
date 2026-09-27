@@ -4,6 +4,7 @@ import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
 import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
+import { keyAvailable, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
@@ -20,6 +21,12 @@ const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
 const iterationControls = document.querySelector<HTMLElement>('#iteration-controls')!;
 const iterationPrev = document.querySelector<HTMLButtonElement>('#iteration-prev')!;
 const iterationNext = document.querySelector<HTMLButtonElement>('#iteration-next')!;
+const keyboard = document.querySelector<HTMLElement>('#keyboard')!;
+const keyboardKeys = document.querySelector<HTMLElement>('#keyboard-keys')!;
+const keyboardTabList = document.querySelector<HTMLElement>('#keyboard-tabs')!;
+const keyboardToggle = document.querySelector<HTMLButtonElement>('#keyboard-toggle')!;
+const keyboardCollapse = document.querySelector<HTMLButtonElement>('#keyboard-collapse')!;
+const keyboardLetters = document.querySelector<HTMLButtonElement>('#keyboard-letters')!;
 const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
 const stoppedMessage = () => compact() ? 'Stopped' : 'Stopped · Ctrl-L restart';
 function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
@@ -29,7 +36,10 @@ function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
     } else navigator.vibrate?.(kind === 'hold' ? 25 : kind === 'step' ? 5 : 10);
 }
 if (import.meta.env.MODE === 'mobile') document.documentElement.classList.add('mobile');
-if (import.meta.env.MODE !== 'mobile') {
+const example = new URLSearchParams(location.search).get('example') === 'fibonacci';
+// A phone browser needs the command menu and the symbol keyboard as much as the app does.
+const touchConsole = import.meta.env.MODE === 'mobile' || !example && matchMedia('(pointer: coarse)').matches;
+if (!touchConsole) {
     chrome.hidden = true;
     document.documentElement.style.setProperty('--chrome-height', '0px');
 }
@@ -55,7 +65,6 @@ const keys = new KeyRouter(repl, [], () => columns, {
     write: text => navigator.clipboard.writeText(text),
 });
 const modes = new TerminalModeRouter(repl, () => rows);
-const example = new URLSearchParams(location.search).get('example') === 'fibonacci';
 // The website example must never overwrite a user's main notebook (including on Android).
 const storageKey = example ? 'rank-example-fibonacci-v1' : 'rank-notebook-v1';
 
@@ -90,6 +99,7 @@ function render(): void {
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
     iterationPrev.disabled = iterationNext.disabled = busy;
     for (const button of commands.querySelectorAll<HTMLElement>('[data-debug]')) button.hidden = !shownPause;
+    renderKeyboard();
     for (const button of commands.querySelectorAll<HTMLButtonElement>('button[data-key]')) {
         button.disabled = repl.running && button.dataset.key !== 'c'
             && !(paused && (button.hasAttribute('data-debug') || ['up', 'down'].includes(button.dataset.key!)));
@@ -267,6 +277,108 @@ input.addEventListener('keydown', event => {
             meta: event.metaKey, shift: event.shiftKey }, event.key.length === 1 ? event.key : '');
     }
 });
+const keyboardKey = 'rank-symbol-keyboard-v1';
+let keyboardEnabled = touchConsole;
+try { keyboardEnabled = touchConsole && localStorage.getItem(keyboardKey) !== 'off'; } catch { /* Default stays on. */ }
+let keyboardModule = 'core';
+let keyboardLayout = '';
+let keyboardSize = '';
+let tallestViewport = 0;
+let viewportWidth = 0;
+/** Android reports the soft keyboard itself; a browser only shows it by shrinking the viewport. */
+let nativeSoftKeyboard: boolean | undefined;
+(globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean) => void }).rankSoftKeyboard = visible => {
+    nativeSoftKeyboard = visible;
+    softKeyboard = visible;
+    render();
+};
+/**
+ * The symbol keyboard replaces the soft keyboard rather than stacking with it:
+ * closing the soft keyboard shows the symbols, ABC brings the soft keyboard back.
+ */
+function softKeyboardOpen(height: number): boolean {
+    if (nativeSoftKeyboard !== undefined) return nativeSoftKeyboard;
+    if (innerWidth !== viewportWidth) { viewportWidth = innerWidth; tallestViewport = 0; }
+    // The app may open with the soft keyboard already up, so the screen is the reference too.
+    tallestViewport = Math.max(tallestViewport, height, Math.min(window.screen.height, innerHeight + 200));
+    return height < tallestViewport * 0.8;
+}
+let softKeyboard = false;
+const floatingKeyboard = matchMedia('(orientation: landscape) and (min-width: 640px)');
+floatingKeyboard.addEventListener('change', () => render());
+function renderKeyboard(): void {
+    keyboardToggle.setAttribute('aria-pressed', String(keyboardEnabled));
+    const shown = keyboardEnabled && !softKeyboard;
+    const tabs = keyboardTabs(repl.session.modules);
+    if (!tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
+    const layout = keyboardModule + ':' + tabs.map(tab => tab.module).join(',');
+    if (layout !== keyboardLayout) {
+        keyboardLayout = layout;
+        keyboardTabList.replaceChildren(...tabs.map(tab => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.role = 'tab';
+            button.textContent = tab.module;
+            button.setAttribute('aria-selected', String(tab.module === keyboardModule));
+            button.onclick = () => { haptic(); keyboardModule = tab.module; keyboardKeys.scrollTop = 0; render(); };
+            return button;
+        }));
+        keyboardKeys.replaceChildren(...tabs.find(tab => tab.module === keyboardModule)!.keys.map(key => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = key;
+            button.onclick = () => typeKey(key);
+            return button;
+        }));
+    }
+    keyboard.hidden = !shown;
+    if (!shown) return setKeyboardSize(0, 0);
+    const book = editor();
+    const before = book.current.source.slice(0, book.cursor);
+    const locked = busy || repl.running || !!repl.help || repl.liveIterationFocused;
+    for (const button of keyboardKeys.children as HTMLCollectionOf<HTMLButtonElement>)
+        button.disabled = locked || !keyAvailable(button.textContent!, before);
+    // Landscape leaves the narrow code on the left and floats the keyboard on the right.
+    const floating = floatingKeyboard.matches;
+    keyboard.classList.toggle('floating', floating);
+    setKeyboardSize(floating ? 0 : keyboard.offsetHeight, floating ? keyboard.offsetWidth + 16 : 0);
+}
+function setKeyboardSize(height: number, width: number): void {
+    const size = height + 'x' + width;
+    if (size === keyboardSize) return;
+    keyboardSize = size;
+    document.documentElement.style.setProperty('--keyboard-height', height + 'px');
+    document.documentElement.style.setProperty('--keyboard-width', width + 'px');
+    requestAnimationFrame(resize);
+}
+function typeKey(key: string): void {
+    if (busy || repl.running || repl.help || repl.liveIterationFocused) return;
+    haptic();
+    const book = editor();
+    book.insert(keyText(key, book.current.source.slice(0, book.cursor)), true);
+    repl.dismiss();
+    follow = true;
+    render();
+}
+function setKeyboard(enabled: boolean): void {
+    keyboardEnabled = enabled;
+    try { localStorage.setItem(keyboardKey, enabled ? 'on' : 'off'); } catch { /* Only this visit remembers it. */ }
+    render();
+}
+// Tapping a key must not move focus, or the soft keyboard would come back over it.
+keyboard.addEventListener('pointerdown', event => event.preventDefault());
+keyboardCollapse.onclick = () => { haptic(); setKeyboard(false); };
+// A field that kept focus after Back does not summon the soft keyboard again until it refocuses.
+keyboardLetters.onclick = () => {
+    haptic();
+    // Hide at once so the two keyboards never share the screen while the soft one slides in.
+    softKeyboard = true;
+    render();
+    input.blur();
+    input.focus({ preventScroll: true });
+    setTimeout(resize, 600);
+};
+keyboardToggle.onclick = () => { haptic(); closeMenu(); setKeyboard(!keyboardEnabled); };
 function closeMenu(): void { commands.hidden = true; menuToggle.setAttribute('aria-expanded', 'false'); }
 chrome.addEventListener('pointerdown', event => event.preventDefault());
 menuToggle.onclick = () => {
@@ -553,6 +665,7 @@ function resize(): void {
     scrollFraction = 0;
     const viewport = window.visualViewport;
     const height = viewport?.height ?? innerHeight;
+    softKeyboard = softKeyboardOpen(height);
     document.documentElement.style.setProperty('--height', height + 'px');
     document.documentElement.style.setProperty('--top', (viewport?.offsetTop ?? 0) + 'px');
     cellWidth = measure.getBoundingClientRect().width / 10;
