@@ -16,9 +16,7 @@ fun zigzag Text N
   Cycle = N * 2 - 2
 
   for Row in 0 until N
-    Position = Row
-
-    for Position less Length
+    for Position in Row until Length by Cycle
       queue push Position
 
       if Row greater 0 and Row less N - 1
@@ -28,8 +26,6 @@ fun zigzag Text N
           queue push Diagonal
         end
       end
-
-      Position += Cycle
     end
   end
 
