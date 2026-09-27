@@ -2,7 +2,7 @@ import { AstUtils } from 'langium';
 import {
     isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isExpressionStatement,
-    isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral,
+    isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral, isAllAxisExpression,
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement, isStdinExpression,
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
@@ -117,7 +117,10 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const eagerLocals = new Set<string>();
         const privateArrays = new Set<string>();
         const scalarLiteral = (value: Expression): boolean => isNumberLiteral(value)
-            || isBooleanLiteral(value) || isLabelLiteral(value);
+            || isBooleanLiteral(value) || isLabelLiteral(value)
+            || isNameExpression(value) && !isBound(value.name)
+                && ['integer', 'real', 'boolean', 'text'].includes(findOperation(value.name)?.result ?? '')
+                && findOperation(value.name)?.arities.length === 0;
         for (const item of definition.statements) {
             if (!isAssignmentStatement(item) || item.operator !== '=' || item.name.includes('.')) break;
             if (!isArrayExpression(item.value)
@@ -268,11 +271,11 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (operation.arrayHeaderNoCallback) {
                     return hasArrayHeaderNoCallbackProof(operation, arguments_.map(fact));
                 }
-                if (name === 'max' && arguments_.length === 2) return arguments_.every(argument => {
+                if (name === 'max' && arguments_.length === 2 && arguments_.every(argument => {
                     const value = fact(argument);
                     return value.rank === 0 && value.types.length > 0
                         && value.types.every(type => type === 'integer' || type === 'real');
-                });
+                })) return true;
                 if (operation.scalarNoCallback) {
                     const operands = arguments_.map(fact);
                     return hasScalarNoCallbackProof(operation, operands)
@@ -280,7 +283,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                         || hasNumericArrayNoCallbackProof(operation, operands);
                 }
                 if (operation.scalarCellArrayNoCallback) {
-                    return hasScalarCellArrayNoCallbackProof(operation, arguments_.map(fact));
+                    if (hasScalarCellArrayNoCallbackProof(operation, arguments_.map(fact))) return true;
                 }
                 if (operation.numericArrayNoCallback) {
                     return hasNumericArrayNoCallbackProof(operation, arguments_.map(fact));
@@ -358,6 +361,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (localFunctions.has(value.name)) return propagate(value.name, []);
                 if (locals.has(value.name)) return true;
                 if (isFunction(value.name)) return propagate(value.name, []);
+                const builtin = isBound(value.name) ? undefined : findOperation(value.name);
+                if (builtin?.arities.length === 0 && !builtin.effects?.length) return true;
                 if (!value.name.includes('.') && /^[A-Z]/.test(value.name) && !isFunction(value.name)) {
                     valueCaptures.add(value.name);
                     if (definition.$container.$type === 'Program') globalValueCaptures.add(value.name);
@@ -371,7 +376,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (grouped) return expression(grouped);
                 const parts = flattenApplication(value);
                 if (isNameExpression(parts[0]) && parts.length > 1 && parts.slice(1).every(part =>
-                    isNumberLiteral(part) && typeof part.value === 'bigint'
+                    isAllAxisExpression(part) || isNumberLiteral(part) && typeof part.value === 'bigint'
                     || facts && fact(part).rank === 0 && fact(part).types.join() === 'integer')) {
                     return read(parts[0].name);
                 }
@@ -387,8 +392,22 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             }
             if (isParenthesizedExpression(value)) return expression(value.value);
             if (isUnaryExpression(value)) return expression(value.operand);
-            if (isBinaryExpression(value)) return expression(value.left) && expression(value.right)
-                && (!value.step || expression(value.step));
+            if (isBinaryExpression(value)) {
+                if (['+', '-', '*', '/', '//', '%', '**'].includes(value.operator)
+                    && isNameExpression(value.right) && value.right.name === 'outer' && !isBound('outer')
+                    && isApplicationExpression(value.left) && facts) {
+                    const operands = flattenApplication(value.left);
+                    const numericArray = (operand: Expression) => {
+                        const value = fact(operand);
+                        return value.types.join() === 'array' && !!value.shape
+                            && (value.eagerScalarCells || value.callbackFreeScalarCells)
+                            && value.elements?.length && value.elements.every(type => type === 'integer' || type === 'real');
+                    };
+                    return operands.length === 2 && operands.every(numericArray) && operands.every(expression);
+                }
+                return expression(value.left) && expression(value.right)
+                    && (!value.step || expression(value.step));
+            }
             if (isArrayExpression(value)) return [...value.items, ...value.dimensions, ...value.rows.flatMap(row => row.items)]
                 .every(item => expression(item.value)) && (!value.fill || expression(value.fill));
             return false;

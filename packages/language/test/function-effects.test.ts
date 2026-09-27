@@ -431,6 +431,27 @@ it('proves reads of a private eager literal array, including through a helper', 
     }
 });
 
+it('classifies whole-axis array selection as a guarded read', () => {
+    expect(analyze('fun helper X\n return X # 0\nend')).toMatchObject({ unknown: false,
+        readParameters: new Set([0]), parameters: new Set() });
+});
+
+it('proves numeric outer arithmetic without trusting lazy callback arrays', () => {
+    const source = 'fun helper X Y\n return X Y + outer\nend';
+    const numeric = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true } as const;
+    expect(analyze(source, 'helper', [], [numeric, numeric]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [{ ...numeric, eagerScalarCells: undefined }, numeric]).unknown).toBe(true);
+});
+
+it('uses numeric array proofs for dyadic min and max', () => {
+    const numeric = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true } as const;
+    for (const operation of ['min', 'max']) {
+        const source = `fun helper X Y\n return X Y ${operation}\nend`;
+        expect(analyze(source, 'helper', [], [numeric, numeric]).unknown).toBe(false);
+        expect(analyze(source, 'helper', [], [{ ...numeric, eagerScalarCells: undefined }, numeric]).unknown).toBe(true);
+    }
+});
+
 it('keeps writes to a private literal array local without claiming embedded arguments are fresh', () => {
     expect(analyze('fun helper\n Temp = array 1 2\n Temp 0 = 9\n return Temp\nend'))
         .toMatchObject({ unknown: false, parameters: new Set(), captures: new Set(),

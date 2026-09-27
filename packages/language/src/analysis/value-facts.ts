@@ -210,7 +210,14 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 if (left.shape && right.shape && left.types.join() === 'array'
                     && right.types.join() === 'array') {
                     const shape = [...left.shape, ...right.shape];
-                    return { types: ['array'], rank: shape.length, shape };
+                    const numeric = [left, right].every(value =>
+                        (value.eagerScalarCells || value.callbackFreeScalarCells)
+                        && value.elements?.length && value.elements.every(type => type === 'integer' || type === 'real'));
+                    const integers = ['+', '-', '*'].includes(expression.operator)
+                        && [left, right].every(value => value.elements?.join() === 'integer');
+                    return { types: ['array'], rank: shape.length, shape,
+                        ...(numeric ? { elements: (integers ? ['integer'] : ['integer', 'real']) as Types,
+                            callbackFreeScalarCells: true as const } : {}) };
                 }
             }
         }
@@ -494,7 +501,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 || expressionFacts(part, lookup).types.join() === 'integer')
             && parts.length - 1 <= source.shape.length) {
             const shape = source.shape.filter((_, index) => index >= parts.length - 1 || isAllAxisExpression(parts[index + 1]));
-            if (shape.length) return { types: source.types, elements: source.elements, rank: shape.length, shape };
+            if (shape.length) return { types: source.types, elements: source.elements, rank: shape.length, shape,
+                ...(source.eagerScalarCells || source.callbackFreeScalarCells
+                    ? { callbackFreeScalarCells: true as const } : {}) };
             if (source.elements?.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
             return source.elements?.length && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
                 ? { types: source.elements, rank: 0, shape: [] } : { types: source.elements ?? [] };

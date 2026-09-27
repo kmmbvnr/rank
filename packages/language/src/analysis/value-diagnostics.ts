@@ -317,6 +317,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const directValue = (node: Expression): boolean => isNameExpression(node) || isNumberLiteral(node)
         || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
         || isParenthesizedExpression(node) && directValue(node.value);
+    const safeRead = (fact: ValueFacts | undefined): boolean => fact?.eagerScalarCells === true
+        || fact?.callbackFreeScalarCells === true || fact?.types.join() === 'text';
     const forgetNonFunctions = (env: Map<string, ValueFacts>): void => {
         for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
     };
@@ -419,8 +421,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     integers: undefined, positions: undefined }] as const] : [];
         }));
         const prepare = (preserved: ReadonlySet<string>, indexSeed?: readonly string[],
-            numericSeeds: ReadonlyMap<string, ValueFacts> = new Map()): Map<string, ValueFacts> => {
+            numericSeeds: ReadonlyMap<string, ValueFacts> = new Map(),
+            arraySeeds: ReadonlyMap<string, ValueFacts> = candidates): Map<string, ValueFacts> => {
             const local = new Map(env);
+            for (const name of preserved) if (arraySeeds.has(name)) local.set(name, arraySeeds.get(name)!);
             // Other writes still widen before the body: a later iteration may
             // observe a different value. Preserved cells need a closure proof.
             for (const node of contents) {
@@ -452,8 +456,25 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             mergeEnvironments(env, [env, ...exits]);
             return;
         }
-        if ((candidates.size || numeric.size || indexCandidate !== undefined) && !contents.some(node => isNameExpression(node)
-            && env.get(node.name)?.types.includes('function'))) {
+        const preview = prepare(new Set(candidates.keys()), indexCandidate, numeric);
+        const effects = functionEffects(name => preview.get(name) === functionBindings.get(name)
+            ? functions.get(name) : undefined, name => preview.get(name)?.types.includes('function') ?? false,
+        name => preview.has(name));
+        const safeCalls = contents.filter(isNameExpression).filter(node => preview.get(node.name)?.types.includes('function'))
+            .every(node => {
+                let site: AstNode = node;
+                while (isApplicationExpression(site.$container)) site = site.$container;
+                const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                if (parts.at(-1) !== node || parts.length - 1 !== functions.get(node.name)?.parameters.length
+                    || !parts.slice(0, -1).every(directValue)) return false;
+                const inputs = parts.slice(0, -1).map(part => expressionFacts(part, name => preview.get(name)));
+                const effect = effects(node.name, inputs);
+                return !effect.unknown && !effect.io && !effect.parameters.size && !effect.reboundParameters.size
+                    && !effect.captures.size
+                    && !effect.bindingCaptures.size && !effect.readCaptures.size && !effect.valueCaptures.size
+                    && [...effect.readParameters].every(index => safeRead(inputs[index]));
+            });
+        if ((candidates.size || numeric.size || indexCandidate !== undefined) && safeCalls) {
             const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
             const restore = () => {
                 diagnostics.length = start;
@@ -470,21 +491,33 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 seed = first.get('index')?.elements;
                 restore();
             }
-            const trial = prepare(new Set(candidates.keys()), seed, numeric);
-            statements(statement.statements, trial);
-            const indexAfter = trial.get('index')?.elements;
-            const closed = [...candidates].every(([name, fact]) => {
-                const after = trial.get(name);
-                return after?.types.join() === 'array' && after.rank === fact.rank && after.eagerScalarCells
-                    && after.elements?.length === fact.elements!.length
-                    && after.elements.every(type => fact.elements!.includes(type));
-            }) && [...numeric].every(([name, fact]) => {
-                const after = trial.get(name);
-                return after?.types.join() === 'array' && after.rank === fact.rank
-                    && (after.eagerScalarCells || after.callbackFreeScalarCells)
-                    && after.elements?.length && after.elements.every(type => type === 'integer' || type === 'real');
-            }) && (indexCandidate === undefined || seed !== undefined && indexAfter !== undefined
-                && indexAfter.every(type => seed.includes(type)));
+            const attempt = (arrays: ReadonlyMap<string, ValueFacts>) => {
+                const trial = prepare(new Set(candidates.keys()), seed, numeric, arrays);
+                statements(statement.statements, trial);
+                const indexAfter = trial.get('index')?.elements;
+                const closed = [...arrays].every(([name, fact]) => {
+                    const after = trial.get(name);
+                    return after?.types.join() === 'array' && after.rank === fact.rank && after.eagerScalarCells
+                        && after.elements?.length === fact.elements!.length
+                        && after.elements.every(type => fact.elements!.includes(type));
+                }) && [...numeric].every(([name, fact]) => {
+                    const after = trial.get(name);
+                    return after?.types.join() === 'array' && after.rank === fact.rank
+                        && (after.eagerScalarCells || after.callbackFreeScalarCells)
+                        && after.elements?.length && after.elements.every(type => type === 'integer' || type === 'real');
+                }) && (indexCandidate === undefined || seed !== undefined && indexAfter !== undefined
+                    && indexAfter.every(type => seed.includes(type)));
+                return { trial, closed };
+            };
+            let { trial, closed } = attempt(candidates);
+            if (!closed && [...candidates.values()].some(fact => fact.elements?.every(type =>
+                type === 'integer' || type === 'real'))) {
+                restore();
+                const widened = new Map([...candidates].map(([name, fact]) => [name,
+                    fact.elements?.every(type => type === 'integer' || type === 'real')
+                        ? { ...fact, elements: ['integer', 'real'] as Types } : fact] as const));
+                ({ trial, closed } = attempt(widened));
+            }
             if (closed) {
                 local = trial;
                 preserved = new Set([...candidates.keys(), ...numeric.keys()]);
@@ -551,8 +584,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
         const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from']);
-        const safeRead = (fact: ValueFacts | undefined) => fact?.eagerScalarCells === true
-            || fact?.callbackFreeScalarCells === true || fact?.types.join() === 'text';
         const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
             name => env.get(name)?.types.includes('function') ?? false,
             name => env.has(name));

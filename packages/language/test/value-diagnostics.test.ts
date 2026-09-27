@@ -1022,6 +1022,47 @@ it('keeps numeric matrix cells only when loop rebindings are closed', () => {
         + ' A = array shape 2 3 fill 1\nend\nA + (array shape 2 4 fill 1)')).toEqual([]);
 });
 
+it('joins integer and real cells across proven matrix writes in a loop', () => {
+    const source = 'fun build_matrix Size\n M = array shape Size Size fill infinity\n'
+        + ' for I in 0 until Size\n  M I I = 0\n end\n return M 0 0\nend\nA = 2 build_matrix';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['real', 'integer']);
+    expect(messages('A = array shape 2 2 fill 0\nfor I in 0 until 2\n A I I = 1\nend\nA 0 0 + "x"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('keeps the unchanged LCS element type before widening numeric loop cells', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/011_lcs.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/011_lcs_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '011_lcs', new Set(['longest_common']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('does not close a numeric loop through an effectful helper', () => {
+    const source = 'fun impure X\n Unknown external\n return X\nend\n'
+        + 'fun compute\n A = array 1 2\n for I in 0 until 2\n  A = A impure\n end\n return A 0\nend\nResult = compute';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
+    expect(analyzeValues(parsed.value).bindings.get('Result')?.types).toEqual([]);
+});
+
+it('infers the unchanged CSES min-plus graph-path result through safe helpers', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/024_graphpaths2.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/math/024_graphpaths2_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '024_graphpaths2', new Set(['min_path']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer', 'real']));
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;

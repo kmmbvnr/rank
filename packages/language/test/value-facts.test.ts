@@ -271,6 +271,10 @@ it('keeps collection kinds through mapped numeric operations and ranked modifier
     ]);
     expect(facts('M sum axis 1', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3] });
     expect(facts('V W + outer', bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [3, 3] });
+    expect(facts('V W + outer', bindings).callbackFreeScalarCells).toBeUndefined();
+    const eager = new Map([...bindings].map(([name, value]) => [name, { ...value, eagerScalarCells: true as const }]));
+    expect(facts('V W + outer', eager)).toMatchObject({ types: ['array'], rank: 2, shape: [3, 3],
+        elements: ['integer'], callbackFreeScalarCells: true });
     expect(facts('(M 0 max) sqrt', bindings).types).toEqual(['array']);
     expect(facts('M round 2', bindings).types).toEqual(['array']);
     expect(facts('-M', bindings).types).toEqual(['array']);
@@ -308,6 +312,9 @@ it('propagates reshape and scalar addressing', () => {
         types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3],
     }]]);
     expect(facts('M # 0', bindings).shape).toEqual([2]);
+    expect(facts('M # 0', bindings).callbackFreeScalarCells).toBeUndefined();
+    expect(facts('M # 0', new Map([['M', { ...bindings.get('M')!, eagerScalarCells: true }]])))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [2], callbackFreeScalarCells: true });
     expect(facts('M 0 0', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
 });
 
