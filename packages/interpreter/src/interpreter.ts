@@ -5,7 +5,7 @@ import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { createArraySnapshot, ownedArray, derivedArray, arrayRevision, registerArrayDependencies, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
+import { createArraySnapshot, ownedArray, derivedArray, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
 import { typedNativeCall } from './typed-native.js';
@@ -30,11 +30,13 @@ import { ResourceOwnership } from './resource-ownership.js';
 import { compareCells, equalValues } from './value-comparison.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
 import { ReductionEvaluator, reductionValues } from './reduction.js';
+import { RankApplication, dyadicCells, tensorCells, tensorFrameAxes,
+    type OuterCells } from './rank-application.js';
 import {
     ALL_AXIS, atArray, axisSize, isCollectionSelector, isIntegerCollectionSelector,
     isTensorAddress, scalarArrayWriteOffset, selectAxis, tensorSelection,
 } from './selectors.js';
-import { arrayOffset, coordinatesAt, safeDimension } from './tensor-index.js';
+import { arrayOffset, coordinatesAt, safeDimension, sameShape } from './tensor-index.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
@@ -129,7 +131,7 @@ import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
-import { broadcastShape, mapBroadcastArrays } from './tensor.js';
+import { mapBroadcastArrays } from './tensor.js';
 import { matmulValues } from './modules/linalg.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
@@ -149,7 +151,7 @@ import {
     binarySqlite, filterSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sliceTextSqlite, sortSqlite, sqliteColumn, sqliteScope,
     sqliteScopedColumn, sqliteTable, sqliteWindowNumber,
-    sqliteWrite, executeSqliteWrite, inSqlite, textFunctionSqlite,
+    sqliteWrite, executeSqliteWrite, inSqlite,
 } from './modules/sqlite.js';
 import { parse } from './parser.js';
 import { setValueKey } from './set.js';
@@ -439,6 +441,7 @@ export class Interpreter {
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
     private readonly reductions: ReductionEvaluator;
+    private readonly rankApplication: RankApplication;
     private readonly standardSequences = new Map<RuntimeModule[string], RankSequence>();
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
@@ -534,6 +537,10 @@ export class Interpreter {
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.evaluateBinary(operator, left, right),
             name => this.resolve(name), this.standardFunctions, this.options.tensorFusion !== false,
+        );
+        this.rankApplication = new RankApplication(
+            (fn, args) => this.invoke(fn, args),
+            value => this.resources.ownFiles(value), this.standardFunctions,
         );
     }
 
@@ -2557,7 +2564,7 @@ export class Interpreter {
                         ? sortValue(args[0], descending) : argsortValue(args[0], descending) };
                     return yield* resume(ranked
                         ? interpreter.applyAtRank([source, directed], ranked.rank, ranked.axes)
-                        : interpreter.applyIntrinsicRank(directed, [source]));
+                        : interpreter.rankApplication.applyIntrinsicRank(directed, [source]));
                 };
             }
 
@@ -2622,7 +2629,7 @@ export class Interpreter {
                         const right = yield* resume(interpreter.evaluateTask(explicitRank.parts[1]));
                         const operation = yield* resume(interpreter.evaluateTask(explicitRank.parts[2]));
                         if (isNativeFunction(operation) && (operation.dyadicRanks || operation.arities.includes(2))) {
-                            return yield* resume(interpreter.applyDyadicAtRank(
+                            return yield* resume(interpreter.rankApplication.applyDyadicAtRank(
                                 left, right, operation, Number(explicitRank.rank),
                                 explicitRank.rightRank === undefined ? undefined : Number(explicitRank.rightRank),
                             ));
@@ -3041,7 +3048,7 @@ export class Interpreter {
                         && !(b !== undefined && isRankLabel(b) && hasField(a, b.name));
                     const fn = (binary ? operation : right)();
                     if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
-                        const result = this.applyIntrinsicRank(fn, arguments_);
+                        const result = this.rankApplication.applyIntrinsicRank(fn, arguments_);
                         if ('done' in result) {
                             this.resources.ownFiles(result.value);
                             return result;
@@ -4021,7 +4028,7 @@ export class Interpreter {
                 const definition = functionDefinitions.get(value);
                 if (definition?.interpreter === this) throw new TailCallSignal(definition, arguments_);
             }
-            const task = this.applyIntrinsicRank(value, arguments_);
+            const task = this.rankApplication.applyIntrinsicRank(value, arguments_);
             if (!('done' in task)) return this.continueApplication(values, missing, index + 1, task, tail);
             this.resources.ownFiles(task.value);
             pending = [task.value];
@@ -4122,187 +4129,7 @@ export class Interpreter {
         if (!fn.arities.includes(1)) throw new RankError(`rank requires a unary operation: ${fn.name}`);
         const receivers = values.slice(0, -1);
         if (receivers.length !== 1) throw new RankError('unary rank requires one data value');
-        return yield* resume(this.applyUnaryAtRank(receivers[0], fn, Number(rank), axes));
-    }
-
-    private applyUnaryAtRank(
-        value: RankValue,
-        fn: Extract<RankValue, { kind: 'function' }>,
-        cellRank: number,
-        frameAxes?: readonly number[],
-    ): Evaluation<RankValue> {
-        if (fn.name === 'text' && isRankSqliteExpression(value)) {
-            return completed(textFunctionSqlite(
-                value.boolean ? 'rank_boolean_text' : 'rank_text', [value]));
-        }
-        if (frameAxes !== undefined && !isRankArray(value)) {
-            throw new RankError('axis rank expects an array');
-        }
-        if (typeof value === 'string') {
-            if (cellRank >= 1) return this.invoke(fn, [value]);
-            return completed(mapTextAtoms(value, atom => fn.call([atom]), fn.name));
-        }
-        if (isRankSequence(value)) {
-            if (cellRank >= 1) return this.invoke(fn, [value]);
-            return completed(mapSequence(value, fn.name, atom => fn.call([atom])));
-        }
-        if (isRankArray(value)) {
-            if (frameAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
-            const axes = tensorFrameAxes(value.shape, frameAxes, cellRank);
-            if (axes.length === 0) return this.invoke(fn, [value]);
-            return completed(this.applyToTensorCells(value, fn, axes));
-        }
-        return this.invoke(fn, [value]);
-    }
-
-    private applyIntrinsicRank(
-        fn: NativeFunction,
-        arguments_: RankValue[],
-    ): Evaluation<RankValue> {
-        if (fn.name === 'text' && arguments_.length === 1
-            && isRankSqliteExpression(arguments_[0])) {
-            return completed(textFunctionSqlite(
-                arguments_[0].boolean ? 'rank_boolean_text' : 'rank_text', arguments_));
-        }
-        if (arguments_.length === 1 && fn.monadicRank !== 'all') {
-            return this.applyUnaryAtRank(
-                arguments_[0], fn, fn.monadicRank,
-            );
-        }
-        if (arguments_.length === 2 && fn.dyadicRanks
-            && arguments_.some(isRankArray)) {
-            return this.applyDyadicAtRank(
-                arguments_[0], arguments_[1], fn,
-            );
-        }
-        return this.invoke(fn, arguments_);
-    }
-
-    private applyDyadicAtRank(
-        left: RankValue,
-        right: RankValue,
-        fn: NativeFunction,
-        customLeftRank?: number,
-        customRightRank?: number,
-    ): Evaluation<RankValue> {
-        const [defaultLeftRank, defaultRightRank] = fn.dyadicRanks ?? ['all', 'all'];
-        const leftRank = customLeftRank ?? defaultLeftRank;
-        const rightRank = customRightRank ?? defaultRightRank;
-        const a = dyadicCells(left, leftRank);
-        const b = dyadicCells(right, rightRank);
-        const frameShape = broadcastShape(
-            a.frameShape, b.frameShape,
-        );
-        if (frameShape.length === 0) {
-            return this.invoke(fn, [left, right]);
-        }
-        const applyCell = (x: RankValue, y: RankValue): RankValue => {
-            const result = fn.call([x, y]);
-            if (valueRank(result) !== 0) {
-                throw new RankError(
-                    `rank operation ${fn.name} must return a scalar`,
-                );
-            }
-            this.resources.ownFiles(result);
-            return result;
-        };
-        if (a.frameShape.length === 0) {
-            return completed(lazyArray(frameShape, index =>
-                applyCell(a.cellAt(0), b.cellAt(index)), true));
-        }
-        if (b.frameShape.length === 0) {
-            return completed(lazyArray(frameShape, index =>
-                applyCell(a.cellAt(index), b.cellAt(0)), true));
-        }
-        if (sameShape(a.frameShape, b.frameShape)) {
-            return completed(lazyArray(frameShape, index =>
-                applyCell(a.cellAt(index), b.cellAt(index)), true));
-        }
-        const leftCells = lazyArray(a.frameShape, a.cellAt);
-        const rightCells = lazyArray(b.frameShape, b.cellAt);
-        return completed(mapBroadcastArrays(
-            leftCells,
-            rightCells,
-            applyCell,
-        ));
-    }
-
-    private applyToTensorCells(
-        value: RankArray,
-        fn: Extract<RankValue, { kind: 'function' }>,
-        frameAxes: readonly number[],
-    ): RankValue {
-        const cells = tensorCells(value, frameAxes);
-        const frameSize = arraySize(cells.frameShape);
-        if (frameSize === 0) {
-            const resultShape = fn.monadicResultShape?.(cells.cellShape) ?? [];
-            return lazyArray([...cells.frameShape, ...resultShape], () => {
-                throw new RankError('empty ranked result has no items');
-            });
-        }
-        if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
-
-        const builtin = ['core', 'numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
-            Object.values(standardModules[module]).some(definition => this.standardFunctions.get(definition) === fn));
-        const results = new Map<number, RankValue>();
-        let inputRevision: number | undefined;
-        let materialized: RankValue[] | undefined;
-        const refresh = () => {
-            if (!builtin) return true;
-            const current = arrayRevision(value);
-            if (current === undefined || current !== inputRevision) {
-                results.clear();
-                materialized = undefined;
-                if (current !== inputRevision) resultCellShape = undefined;
-                inputRevision = current;
-            }
-            return current !== undefined;
-        };
-        let resultCellShape: readonly number[] | undefined;
-        const resultAt = (frameIndex: number): RankValue => {
-            const cacheable = refresh();
-            const cached = results.get(frameIndex);
-            if (cached !== undefined) return cached;
-            const result = fn.call([cells.cellAt(frameIndex)]);
-            const shape = isRankArray(result) ? result.shape : [];
-            if (resultCellShape === undefined) {
-                resultCellShape = [...shape];
-            } else if (!sameShape(resultCellShape, shape)) {
-                throw new RankError(
-                    `rank results must have one shape: ${resultCellShape.join(' ')} and ${shape.join(' ')}`,
-                );
-            }
-            this.resources.ownFiles(result);
-            if (cacheable) results.set(frameIndex, result);
-            return result;
-        };
-        const outputShape = (): readonly number[] => {
-            resultAt(0);
-            return [...cells.frameShape, ...resultCellShape!];
-        };
-
-        const result: RankArray = {
-            kind: 'array',
-            get shape() {
-                return outputShape();
-            },
-            itemAt(index) {
-                outputShape();
-                const cellSize = arraySize(resultCellShape!);
-                const frameIndex = Math.floor(index / cellSize);
-                const result = resultAt(frameIndex);
-                return isRankArray(result) ? arrayItem(result, index % cellSize) : result;
-            },
-            get items() {
-                const shape = outputShape();
-                materialized ??= Array.from(
-                    { length: arraySize(shape) },
-                    (_, index) => this.itemAt!(index),
-                );
-                return materialized;
-            },
-        };
-        return builtin ? registerArrayDependencies(result, [value]) : result;
+        return yield* resume(this.rankApplication.applyUnaryAtRank(receivers[0], fn, Number(rank), axes));
     }
 
     private compareAtRank(left: RankValue, right: RankValue, spec: ComparisonRank): RankValue {
@@ -4916,28 +4743,6 @@ function integerLiteral(expression: Expression, name: string): bigint {
     return expression.value;
 }
 
-function tensorFrameAxes(
-    shape: readonly number[],
-    specifiedAxes: readonly number[] | undefined,
-    cellRank: number,
-): readonly number[] {
-    if (cellRank > shape.length) {
-        throw new RankError(`rank ${cellRank} exceeds tensor rank ${shape.length}`);
-    }
-    const frameRank = shape.length - cellRank;
-    const axes = specifiedAxes ?? Array.from({ length: frameRank }, (_, index) => index);
-    if (axes.length !== frameRank) {
-        throw new RankError(
-            `axis count ${axes.length} plus cell rank ${cellRank} must equal tensor rank ${shape.length}`,
-        );
-    }
-    if (new Set(axes).size !== axes.length) throw new RankError('axis numbers must be unique');
-    for (const axis of axes) {
-        if (axis >= shape.length) throw new RankError(`axis out of bounds: ${axis}`);
-    }
-    return axes;
-}
-
 function validateForBindings(names: readonly string[], frameRank: number): void {
     if (names.length !== 1 && names.length !== frameRank + 1) {
         throw new RankError(
@@ -5051,72 +4856,6 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     return lazyArray([size], index => values()[index]);
 }
 
-interface OuterCells {
-    readonly frameShape: readonly number[];
-    readonly cellAt: (frameIndex: number) => RankValue;
-}
-
-function dyadicCells(
-    value: RankValue,
-    rank: IntrinsicRank,
-): OuterCells {
-    if (!isRankArray(value)) {
-        return { frameShape: [], cellAt: () => value };
-    }
-    const cellRank = rank === 'all'
-        ? value.shape.length
-        : Math.min(rank, value.shape.length);
-    const frameShape = value.shape.slice(
-        0, value.shape.length - cellRank,
-    );
-    const cellShape = cellRank === 0
-        ? [] : value.shape.slice(-cellRank);
-    const cellSize = arraySize(cellShape);
-    return {
-        frameShape,
-        cellAt(frameIndex) {
-            if (frameShape.length === 0) return value;
-            const start = frameIndex * cellSize;
-            if (cellRank === 0) return arrayItem(value, start);
-            return derivedArray(cellShape, [value], index =>
-                arrayItem(value, start + index));
-        },
-    };
-}
-
-interface TensorCells {
-    readonly frameShape: readonly number[];
-    readonly cellShape: readonly number[];
-    readonly cellAt: (frameIndex: number) => RankValue;
-}
-
-function tensorCells(source: RankArray, frameAxes: readonly number[]): TensorCells {
-    const frameShape = frameAxes.map(axis => source.shape[axis]);
-    const frameSet = new Set(frameAxes);
-    const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
-    const cellShape = cellAxes.map(axis => source.shape[axis]);
-    return {
-        frameShape,
-        cellShape,
-        cellAt(frameIndex) {
-            const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
-            coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
-                sourceCoordinates[frameAxes[index]] = coordinate;
-            });
-            if (cellShape.length === 0) {
-                return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
-            }
-            return derivedArray(cellShape, [source], cellIndex => {
-                const coordinates = [...sourceCoordinates];
-                coordinatesAt(cellShape, cellIndex).forEach((coordinate, index) => {
-                    coordinates[cellAxes[index]] = coordinate;
-                });
-                return arrayItem(source, arrayOffset(source.shape, coordinates));
-            });
-        },
-    };
-}
-
 function outerCells(
     value: RankValue,
     rank: IntrinsicRank,
@@ -5160,25 +4899,6 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigi
         },
         *iterate() {
             for (let value = start; within(value); value += step) yield value;
-        },
-    });
-}
-
-function mapTextAtoms(
-    value: string,
-    operation: (atom: string) => RankValue,
-    name: string,
-): RankSequence {
-    const atoms = [...value];
-    return sequence({
-        name: `text ${name} rank 0`,
-        size: { kind: 'exact', value: BigInt(atoms.length) },
-        *iterate() {
-            for (const atom of atoms) yield operation(atom);
-        },
-        at(index) {
-            if (index >= BigInt(atoms.length)) return undefined;
-            return operation(atoms[Number(index)]);
         },
     });
 }
@@ -5753,11 +5473,6 @@ function asRankArray(value: RankValue): RankArray | undefined {
     if (isRankArray(value)) return value;
     if (isRankQueue(value)) return { kind: 'array', items: value.items, shape: [value.items.length] };
     return undefined;
-}
-
-function sameShape(left: readonly number[], right: readonly number[]): boolean {
-    return left.length === right.length
-        && left.every((dimension, index) => dimension === right[index]);
 }
 
 function assertTestExpression(value: RankValue): void {

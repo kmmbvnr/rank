@@ -20,3 +20,9 @@ export function arrayOffset(shape: readonly number[], coordinates: readonly numb
     return coordinates.reduce((offset, coordinate, axis) => offset * shape[axis] + coordinate, 0);
 }
 
+
+export function sameShape(left: readonly number[], right: readonly number[]): boolean {
+    return left.length === right.length
+        && left.every((dimension, index) => dimension === right[index]);
+}
+
