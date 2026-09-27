@@ -5,8 +5,7 @@ use sequences
 
 rem Return the inverse of a 2 by 2 matrix.
 fun inverse_2x2 A
-  Rows = A len axis 0
-  Cols = A len axis 1
+  unpack Rows Cols = A shape
   if Rows not equal 2 or Cols not equal 2
     .DimensionMismatch raise
   end
