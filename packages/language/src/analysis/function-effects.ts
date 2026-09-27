@@ -116,13 +116,16 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         };
         const eagerLocals = new Set<string>();
         const privateArrays = new Set<string>();
+        const scalarLiteral = (value: Expression): boolean => isNumberLiteral(value)
+            || isBooleanLiteral(value) || isLabelLiteral(value);
         for (const item of definition.statements) {
             if (!isAssignmentStatement(item) || item.operator !== '=' || item.name.includes('.')) break;
             if (!isArrayExpression(item.value)
                 || definition.$container.$type !== 'Program' || definition.parameters.includes(item.name)
-                || item.value.dimensions.length || item.value.rows.length || item.value.fill
-                || !item.value.items.every(cell => isNumberLiteral(cell.value)
-                    || isBooleanLiteral(cell.value) || isLabelLiteral(cell.value))) continue;
+                || item.value.rows.length
+                || (item.value.dimensions.length ? !item.value.fill || !scalarLiteral(item.value.fill)
+                    || item.value.items.length > 0 : !!item.value.fill
+                        || !item.value.items.every(cell => scalarLiteral(cell.value)))) continue;
             if (descendants.filter(isAssignmentStatement).filter(other => other.name === item.name).length !== 1) continue;
             const writes = descendants.filter((node): node is ArrayAssignmentStatement =>
                 isArrayAssignmentStatement(node) && node.name === item.name);
@@ -425,7 +428,9 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return definition.parameters.includes(item.name) || definition.$container.$type === 'Program';
             }
             if (isArrayAssignmentStatement(item)) {
-                if (!isPlainArrayWrite(item)) return false;
+                if (!isPlainArrayWrite(item, value => isNumberLiteral(value) && typeof value.value === 'bigint'
+                    || privateArrays.has(item.name) && fact(value).rank === 0
+                        && fact(value).types.join() === 'integer')) return false;
                 if (privateArrays.has(item.name)) {
                     if (!expression(item.value) || !item.indices.every(index => !index.value || expression(index.value))) return false;
                     if ([item.value, ...AstUtils.streamAllContents(item.value)].some(node =>

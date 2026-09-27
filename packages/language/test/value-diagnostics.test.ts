@@ -1000,6 +1000,28 @@ it('binds each matrix row as an array when iterating its first axis', () => {
         .bindings.get('A')?.types).toEqual(['text']);
 });
 
+it('preserves scalar cells through a proven integer spread index', () => {
+    const source = 'fun write Position\n A = array shape 2 2 fill 0\n for I in 0 until 2\n'
+        + '  A unpack Position += 1\n end\n return A 0 1\nend\nResult = (array 0 1) write';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    expect(analyzeValues(parse(source)).bindings.get('Result')?.types).toEqual(['integer']);
+    expect(analyzeValues(parse(source.replace('array 0 1', 'array 0'))).bindings.get('Result')?.types).toEqual([]);
+    expect(analyzeValues(parse(source.replace('array 0 1', 'array 0.5 1'))).bindings.get('Result')?.types).toEqual([]);
+});
+
+it('keeps numeric matrix cells only when loop rebindings are closed', () => {
+    const source = 'fun combine Base\n Result = array shape 2 2 fill 1\n'
+        + ' for I in 0 until 3\n  Result = Result Base matmul\n end\n return Result 0 0\nend\n'
+        + 'A = (array 1 2 3 4 shape 2 2) combine';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer', 'real']);
+    const broken = source.replace('Result = Result Base matmul\n end',
+        'Result = Result Base matmul\n  if I equal 1\n   Result = "bad"\n  end\n end');
+    expect(analyzeValues(parse(broken)).bindings.get('A')?.types).toEqual([]);
+    expect(messages('A = array shape 2 2 fill 1\nfor I in 0 until 2\n'
+        + ' A = array shape 2 3 fill 1\nend\nA + (array shape 2 4 fill 1)')).toEqual([]);
+});
+
 it('infers the unchanged Zigzag demo from its test inputs', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/006_zigzag.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/006_zigzag_test.ra', import.meta.url), 'utf8');

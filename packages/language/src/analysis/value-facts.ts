@@ -261,8 +261,16 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                         && !!value.elements?.length
                         && value.elements.every(type => type === 'integer' || type === 'real'));
                 const callbackFree = types.join() === 'array' && [left, right].every(safeNumeric);
+                const integerCells = (value: ValueFacts): boolean => value.rank === 0
+                    && value.types.join() === 'integer'
+                    || value.types.join() === 'array'
+                        && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
+                        && value.elements?.join() === 'integer';
+                const integerResult = ['+', '-', '*'].includes(expression.operator)
+                    && [left, right].every(integerCells);
                 return { types, rank: shape.length, shape,
-                    ...(callbackFree ? { elements: ['integer', 'real'] as Types, callbackFreeScalarCells: true as const } : {}) };
+                    ...(callbackFree ? { elements: (integerResult ? ['integer'] : ['integer', 'real']) as Types,
+                        callbackFreeScalarCells: true as const } : {}) };
             }
         }
         if (['equal', 'notequal', 'and', 'or', 'xor'].includes(expression.operator)) {

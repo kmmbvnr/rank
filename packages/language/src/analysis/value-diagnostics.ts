@@ -9,7 +9,7 @@ import {
     type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
     type YieldStatement,
 } from '../generated/ast.js';
-import { compoundType } from './types.js';
+import { compoundType, type Types } from './types.js';
 import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
@@ -301,8 +301,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             for (const name of writtenBindings(node)) {
                 const fact = env.get(name);
                 const rank = contractRank(fact);
-                env.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
-                    acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+                env.set(name, preserved.has(name) ? { ...fact, types: fact?.types ?? [],
+                    shape: rank === undefined ? undefined : Array(rank).fill(null),
+                    integers: undefined, positions: undefined }
+                    : { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
+                        acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
             if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, env);
         }
@@ -402,7 +405,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && fact.eagerScalarCells && fact.elements?.length
                 ? [[name, fact] as const] : [];
         }));
-        const prepare = (preserved: ReadonlySet<string>, indexSeed?: readonly string[]): Map<string, ValueFacts> => {
+        const numeric = new Map([...rebound].flatMap(name => {
+            const fact = env.get(name);
+            return !writes.has(name) && fact?.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
+                && (fact.eagerScalarCells || fact.callbackFreeScalarCells)
+                && fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
+                ? [[name, { ...fact, shape: Array(fact.rank).fill(null), elements: ['integer', 'real'] as Types,
+                    eagerScalarCells: undefined, callbackFreeScalarCells: true as const,
+                    integers: undefined, positions: undefined }] as const] : [];
+        }));
+        const prepare = (preserved: ReadonlySet<string>, indexSeed?: readonly string[],
+            numericSeeds: ReadonlyMap<string, ValueFacts> = new Map()): Map<string, ValueFacts> => {
             const local = new Map(env);
             // Other writes still widen before the body: a later iteration may
             // observe a different value. Preserved cells need a closure proof.
@@ -411,7 +424,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const previous = local.get(name);
                     const types = previous?.acceptedTypes ?? previous?.types ?? [];
                     const rank = contractRank(previous);
-                    local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                    local.set(name, numericSeeds.get(name) ?? { types, acceptedTypes: types, acceptedArrayRank: rank,
                         ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
                 }
                 if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, local);
@@ -435,7 +448,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             mergeEnvironments(env, [env, ...exits]);
             return;
         }
-        if ((candidates.size || indexCandidate !== undefined) && !contents.some(node => isNameExpression(node)
+        if ((candidates.size || numeric.size || indexCandidate !== undefined) && !contents.some(node => isNameExpression(node)
             && env.get(node.name)?.types.includes('function'))) {
             const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
             const restore = () => {
@@ -448,12 +461,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             };
             let seed = indexCandidate;
             if (seed?.length === 0) {
-                const first = prepare(new Set(candidates.keys()), seed);
+                const first = prepare(new Set(candidates.keys()), seed, numeric);
                 statements(statement.statements, first);
                 seed = first.get('index')?.elements;
                 restore();
             }
-            const trial = prepare(new Set(candidates.keys()), seed);
+            const trial = prepare(new Set(candidates.keys()), seed, numeric);
             statements(statement.statements, trial);
             const indexAfter = trial.get('index')?.elements;
             const closed = [...candidates].every(([name, fact]) => {
@@ -461,11 +474,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 return after?.types.join() === 'array' && after.rank === fact.rank && after.eagerScalarCells
                     && after.elements?.length === fact.elements!.length
                     && after.elements.every(type => fact.elements!.includes(type));
+            }) && [...numeric].every(([name, fact]) => {
+                const after = trial.get(name);
+                return after?.types.join() === 'array' && after.rank === fact.rank
+                    && (after.eagerScalarCells || after.callbackFreeScalarCells)
+                    && after.elements?.length && after.elements.every(type => type === 'integer' || type === 'real');
             }) && (indexCandidate === undefined || seed !== undefined && indexAfter !== undefined
                 && indexAfter.every(type => seed.includes(type)));
             if (closed) {
                 local = trial;
-                preserved = new Set(candidates.keys());
+                preserved = new Set([...candidates.keys(), ...numeric.keys()]);
             } else {
                 restore();
                 local = prepare(preserved);
@@ -856,16 +874,26 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const replacement = inspect(statement.value, env);
                 const fact = env.get(statement.name);
                 const integerSelector = (value: Expression) => expressionFacts(value, name => env.get(name)).types.join() === 'integer';
-                const oneCellSelectors = fact?.rank !== undefined && statement.indices.length === fact.rank
-                    && statement.indices.every(index => !index.all && !index.spread
-                        && !!index.value && integerSelector(index.value));
+                const spreadLength = (value: Expression): number | undefined => {
+                    const selector = expressionFacts(value, name => env.get(name));
+                    return selector.types.join() === 'array' && selector.rank === 1
+                        && (selector.eagerScalarCells || selector.callbackFreeScalarCells)
+                        && selector.elements?.join() === 'integer'
+                        ? selector.shape?.[0] ?? undefined : undefined;
+                };
+                const selectorLengths = statement.indices.map(index => index.all || !index.value ? undefined
+                    : index.spread ? spreadLength(index.value) : integerSelector(index.value) ? 1 : undefined);
+                const oneCellSelectors = fact?.rank !== undefined
+                    && selectorLengths.every(length => length !== undefined)
+                    && selectorLengths.reduce((total, length) => total + (length ?? 0), 0) === fact.rank;
                 const compound = statement.operator !== '=' && oneCellSelectors
                     && fact.eagerScalarCells === true
                     && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
                     && replacement.rank === 0 && replacement.types.length > 0
                     && replacement.types.every(type => type === 'integer' || type === 'real')
                     ? compoundType(statement.operator, fact.elements, replacement.types) : [];
-                if ((isPlainArrayWrite(statement, integerSelector) || compound.length > 0)
+                if ((isPlainArrayWrite(statement, integerSelector)
+                    || statement.operator === '=' && oneCellSelectors || compound.length > 0)
                     && fact?.types.length
                     && fact.types.every(type => type === 'array')) {
                     // Keep old element types as conservative possibilities;

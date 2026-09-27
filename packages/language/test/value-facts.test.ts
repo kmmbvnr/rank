@@ -26,6 +26,13 @@ it('separates scalar type, array elements, rank and dimensions', () => {
         shape: [2, 2], eagerScalarCells: true });
 });
 
+it('keeps integer cells through integer-only array arithmetic', () => {
+    expect(facts('(array 1 2) - 1')).toMatchObject({ types: ['array'], elements: ['integer'],
+        callbackFreeScalarCells: true });
+    expect(facts('(array 1 2) + (array 3 4)')).toMatchObject({ types: ['array'], elements: ['integer'] });
+    expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['integer', 'real'] });
+});
+
 it('proves eager cells for known atom array literals', () => {
     expect(facts('array true false').eagerScalarCells).toBe(true);
     expect(facts('array shape 2 2\n 1 2\n 3 4\nend').eagerScalarCells).toBe(true);

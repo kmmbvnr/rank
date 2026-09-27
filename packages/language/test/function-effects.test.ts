@@ -446,6 +446,15 @@ it('keeps writes to a private literal array local without claiming embedded argu
         .toBe(true);
 });
 
+it('proves writes to a privately allocated numeric matrix in a counted loop', () => {
+    const source = 'fun helper Size\n Temp = array shape Size Size fill 0\n'
+        + ' for I in 0 until Size\n  Temp I I = 1\n end\n return Temp\nend';
+    const integer = [{ types: ['integer'], rank: 0, shape: [] }] as const;
+    expect(analyze(source, 'helper', [], integer)).toMatchObject({ unknown: false,
+        parameters: new Set(), captures: new Set() });
+    expect(analyze(source.replace('fill 0', 'fill Source'), 'helper', [], integer).unknown).toBe(true);
+});
+
 it('keeps a helper write local only for a proven private array argument', () => {
     const write = 'fun write V\n V 0 = 9\n return 0\nend\n';
     expect(analyze(`${write}fun outer\n Temp = array 1 2\n Temp write\n return 0\nend`, 'outer'))
