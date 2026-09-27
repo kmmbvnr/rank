@@ -426,6 +426,11 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const arity = unaryTail ? 1 : parts.length - 1;
             if (operation?.arities.includes(arity)) {
                 const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => expressionFacts(part, lookup));
+                if (operation.denseResult && resultTypes(operation).join() === 'array') return {
+                    types: ['array'], rank: operation.denseResult.shape.length,
+                    shape: operation.denseResult.shape, elements: operation.denseResult.elements,
+                    eagerScalarCells: true,
+                };
                 if (arity === 1 && ['factors', 'divisors'].includes(last.name)
                     && source.rank === 0 && source.types.join() === 'integer') {
                     return { types: ['sequence'], elements: ['integer'], rank: 1,

@@ -133,6 +133,17 @@ it('infers scalar cells and combined shape for a safe named outer operation', ()
         .not.toMatchObject({ callbackFreeScalarCells: true });
 });
 
+it('uses declared dense result shapes for native collection operations', () => {
+    expect(facts('(array 1 2 3 4 shape 2 2) 0 0 .eight neighbors')).toEqual({
+        types: ['array'], rank: 2, shape: [null, 2], elements: ['integer'], eagerScalarCells: true,
+    });
+    expect(facts('(array 1 2 3 4 shape 2 2) 0 0 neighbors')).toEqual({
+        types: ['array'], rank: 2, shape: [null, 2], elements: ['integer'], eagerScalarCells: true,
+    });
+    expect(facts('(array 1 2 3 4 shape 2 2) 0 0 neighbors',
+        new Map([['neighbors', { types: ['function'] }]]))).not.toMatchObject({ eagerScalarCells: true });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {

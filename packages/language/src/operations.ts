@@ -66,6 +66,8 @@ export interface Operation {
     readonly preservesArrayShape?: true;
     /** On a successful call, the result array has this operand's shape. */
     readonly resultShapeFromOperand?: number;
+    /** A fresh dense array with this shape and these proven cell types on every successful call. */
+    readonly denseResult?: { readonly shape: readonly (number | null)[]; readonly elements: readonly string[] };
     /**
      * Labels written after the name that choose another form of the result,
      * as in `Text json .flat`. The call receives the label as its last operand.
@@ -309,6 +311,7 @@ export const operations: readonly Operation[] = [
         summary: 'Decodes every image and stretches it into a lazy RGB tensor.' },
 
     { name: 'neighbors', module: 'grids', arities: [3, 4], form: 'Grid Row Column .eight neighbors', result: 'array',
+        denseResult: { shape: [null, 2], elements: ['integer'] },
         summary: 'In-bounds row and column pairs around one grid cell; four neighbors by default.' },
     { name: 'segments', module: 'grids', arities: [2], form: 'Grid Width segments', result: 'array',
         summary: 'All in-bounds horizontal, vertical and diagonal segments of a fixed width.' },

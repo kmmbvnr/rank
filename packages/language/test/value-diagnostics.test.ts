@@ -1186,6 +1186,18 @@ it('infers the unchanged mex-grid result through a named outer operation', () =>
             elements: ['integer'], callbackFreeScalarCells: true })));
 });
 
+it('infers the unchanged local-extrema result through native coordinate pairs', () => {
+    const moduleName = '54730_lx';
+    const source = readFileSync(new URL(`../../../demos/cody/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cody/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['local_extrema']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
