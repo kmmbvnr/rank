@@ -229,6 +229,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (contents.some(isReturnStatement)) values.push(...loopReturnPaths(statement, env));
                 else loop(statement, env);
             } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
+                || isUnpackStatement(statement)
                 || isExpressionStatement(statement) || isFunctionStatement(statement)) {
                 if (!statements([statement], env)) return { values, fallsThrough: false };
             } else {
@@ -246,6 +247,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             && !inlineSliceOperands(source) && collection.types.join() === 'sequence'
             && collection.shape?.[0] === 0;
     }
+
+    const writtenBindings = (node: AstNode): readonly string[] => isAssignmentStatement(node) ? [node.name]
+        : isUnpackStatement(node) ? node.names.filter(name => name !== '#') : [];
 
     function loop(statement: ForStatement, env: Map<string, ValueFacts>): void {
         const condition = statement.condition;
@@ -265,8 +269,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const contents = [...AstUtils.streamAllContents(statement)];
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
-                && !isExpressionStatement(node) && !isIfStatement(node) && !isForStatement(node))) {
-            // Destructuring, mutation and non-local exits need their own flow rules.
+                && !isUnpackStatement(node) && !isExpressionStatement(node)
+                && !isIfStatement(node) && !isForStatement(node))) {
+            // Mutation and non-local exits need their own flow rules.
             for (const [name, fact] of env) env.set(name, invalidate(fact));
             return;
         }
@@ -274,11 +279,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // Widen before examining the body: later iterations may have different
         // lengths and elements. Only an existing binding contract is invariant.
         for (const node of contents) {
-            if (isAssignmentStatement(node)) {
-                const previous = local.get(node.name);
+            for (const name of writtenBindings(node)) {
+                const previous = local.get(name);
                 const types = previous?.acceptedTypes ?? previous?.types ?? [];
                 const rank = contractRank(previous);
-                local.set(node.name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
                     ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
         }
@@ -293,10 +298,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (count == null || count <= 0) diagnostics.length = start;
         // No final-iteration dimensions are proven. Keep contracts, not body values.
         for (const node of contents) {
-            if (isAssignmentStatement(node)) {
-                const fact = local.get(node.name);
+            for (const name of writtenBindings(node)) {
+                const fact = local.get(name);
                 const rank = contractRank(fact);
-                local.set(node.name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
+                local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
                     acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
         }
@@ -320,12 +325,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
         const local = new Map(env);
         for (const node of AstUtils.streamAllContents(statement)) {
-            if (!isAssignmentStatement(node)) continue;
-            const previous = local.get(node.name);
-            const types = previous?.acceptedTypes ?? previous?.types ?? [];
-            const rank = contractRank(previous);
-            local.set(node.name, { types, acceptedTypes: types, acceptedArrayRank: rank,
-                ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+            for (const name of writtenBindings(node)) {
+                const previous = local.get(name);
+                const types = previous?.acceptedTypes ?? previous?.types ?? [];
+                const rank = contractRank(previous);
+                local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                    ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+            }
         }
         if (membership && isNameExpression(membership.left)) {
             const types = collection.elements ?? [];
@@ -338,11 +344,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (count == null || count <= 0) diagnostics.length = start;
         if (returned.fallsThrough) {
             for (const node of AstUtils.streamAllContents(statement)) {
-                if (!isAssignmentStatement(node)) continue;
-                const fact = local.get(node.name);
-                const rank = contractRank(fact);
-                local.set(node.name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
-                    acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+                for (const name of writtenBindings(node)) {
+                    const fact = local.get(name);
+                    const rank = contractRank(fact);
+                    local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
+                        acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+                }
             }
             mergeEnvironments(env, [env, local]);
         }
@@ -577,6 +584,30 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 env.set(statement.name, { ...next, acceptedTypes: accepted ?? next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });
                 if (directNoReturnCall(statement.value, env)) return false;
+            } else if (isUnpackStatement(statement)) {
+                invalidateCalls(statement.value, env);
+                const source = inspect(statement.value, env);
+                const scalar = source.elements?.length && source.elements.every(type =>
+                    ['integer', 'real', 'boolean', 'symbol'].includes(type));
+                if (source.types.join() !== 'array' || source.rank !== 1
+                    || source.shape?.[0] !== statement.names.length || !scalar
+                    || !(source.eagerScalarCells || source.callbackFreeScalarCells)) {
+                    for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+                    continue;
+                }
+                for (const [index, name] of statement.names.entries()) {
+                    if (name === '#') continue;
+                    const types = source.elements!;
+                    const previous = env.get(name);
+                    const accepted = previous?.acceptedTypes ?? previous?.types;
+                    if (accepted?.length && types.every(type => !accepted.includes(type))) {
+                        diagnostics.push({ node: statement, kind: 'TypeError',
+                            message: `${name} has type ${accepted.join(' or ')} and cannot receive ${types.join(' or ')}` });
+                    }
+                    env.set(name, { types, rank: 0, shape: [],
+                        ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
+                        acceptedTypes: accepted ?? types });
+                }
             } else if (isArrayAssignmentStatement(statement)) {
                 for (const index of statement.indices) if (index.value) {
                     invalidateCalls(index.value, env);

@@ -64,6 +64,19 @@ it('keeps slice result types during program analysis', () => {
         .toEqual(['A has type array and cannot receive text']);
 });
 
+it('infers safe unpacked shape cells without losing unrelated types', () => {
+    expect(messages('M = array shape 2 3 fill 0\nunpack Rows Cols = M shape\nRows + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('Count = 1\nM = array shape 2 3 fill 0\nunpack Rows Cols = M shape\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('Count = 1\nA = array Unknown Unknown\nunpack First Second = A\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('Count = 1\nfor I in 0 until 1\n unpack First Second = array 2 3\nend\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('First = true\nunpack First Second = array 2 3'))
+        .toEqual(['First has type boolean and cannot receive integer']);
+});
+
 it('gives function locals their own rank contract', () => {
     expect(messages('A = array 1 2\nfun make N\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
     expect(messages('fun change A\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))
