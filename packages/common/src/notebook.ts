@@ -213,6 +213,14 @@ export class Notebook {
         this.toPrompt();
     }
 
+    /** A new unexecuted cell above `index`; the active cell keeps its place. */
+    insertCell(index: number, source: string): void {
+        this.clearSelection();
+        this.cells.splice(index, 0, { id: this.nextId++, source, output: [], command: false, status: 'idle' });
+        if (this.active >= index) this.active++;
+        if (this.replayFrom !== undefined && this.replayFrom >= index) this.replayFrom++;
+    }
+
     private append(): void {
         this.cells.push({ id: this.nextId++, source: '', output: [], command: false, status: 'idle' });
     }

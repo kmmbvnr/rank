@@ -3,6 +3,7 @@ import stringWidth from 'string-width';
 import stripVTControlCharacters from 'strip-ansi';
 import type { Notebook } from './notebook.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
+import { importPhrases, missingImports } from './import-fix.js';
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 export const graphemes = (text: string): Intl.SegmentData[] => [...segmenter.segment(text)];
@@ -94,11 +95,18 @@ export function clipped(text: string, width: number): string {
 }
 
 export interface ScreenTarget {
-    readonly kind: 'source' | 'example' | 'iteration';
+    readonly kind: 'source' | 'example' | 'iteration' | 'autofix';
     readonly cell: number;
     readonly line: number;
     readonly field?: number;
     readonly points: { offset: number; column: number }[];
+    /** Import suggestions on an error row, by screen column. */
+    readonly fixes?: readonly { index: number; module: string; from: number; to: number }[];
+}
+
+/** The suggestion under a column of an autofix row. */
+export function fixAt(target: ScreenTarget | undefined, column: number): { index: number; module: string } | undefined {
+    return target?.fixes?.find(fix => column >= fix.from && column < fix.to);
 }
 
 export interface ScreenFrame {
@@ -122,6 +130,7 @@ export function notebookFrame(
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
     diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
+    importFixFocus?: number,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
@@ -229,16 +238,35 @@ export function notebookFrame(
                 }
             }
         }
+        const modules = live ? [] : missingImports(cell.output);
         for (const output of live ? [] : cell.output) {
             // A failed execution describes its original source, not the edited draft.
             if (output.error && cell.executed !== undefined && cell.executed !== cell.source) continue;
             const marker = (output.error || pending) && gutter > 0
                 ? (' '.repeat(gutter) + (output.error ? '! ' : '~ ')).slice(-gutter) : ' '.repeat(gutter);
-            const text = clean(output.inlineText ?? output.text);
+            const cleaned = clean(output.inlineText ?? output.text);
+            const text = output.error ? importPhrases(cleaned).text : cleaned;
             const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
             const layout = output.error ? errorRows : editableRows;
             for (const item of layout(text, outputWidth)) {
-                rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + clipped(marker + item.text, width) + '\x1b[0m');
+                const shown = clipped(marker + item.text, width);
+                if (!output.error || !modules.length) {
+                    rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + shown + '\x1b[0m');
+                    continue;
+                }
+                const focused = index === notebook.active ? importFixFocus : undefined;
+                const fixes: { index: number; module: string; from: number; to: number }[] = [];
+                const painted = shown.replace(/use\u00a0([\w.-]+)/g, (phrase, module: string, at: number) => {
+                    const fix = modules.indexOf(module);
+                    if (fix < 0) return phrase;
+                    const from = stringWidth(shown.slice(0, at));
+                    fixes.push({ index: fix, module, from, to: from + stringWidth(phrase) });
+                    if (fix === focused) caret = { row: rows.length, column: from };
+                    return (fix === focused ? '\x1b[7m' : '\x1b[4m') + phrase
+                        + (fix === focused ? '\x1b[27m' : '\x1b[24m');
+                });
+                if (fixes.length) targets[rows.length] = { kind: 'autofix', cell: index, line: 0, points: [], fixes };
+                rows.push('\x1b[31m' + painted.replace(/\u00a0/g, ' ') + '\x1b[0m');
             }
         }
         if (index === notebook.active && cell.status === 'error' && cell.executed === cell.source

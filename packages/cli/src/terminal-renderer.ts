@@ -2,7 +2,7 @@ import type { PauseSnapshot } from '@arrrank/interpreter';
 import type { NotebookRepl } from './repl.js';
 import { drawFrame, editableRows, helpFrame, notebookFrame, pauseFrame, saveFrame } from './screen.js';
 import type { Key } from './key-router.js';
-import type { ScreenTarget } from './screen.js';
+import { fixAt, type ScreenTarget } from './screen.js';
 import type { TerminalModeRouter } from './terminal-modes.js';
 import type { Notebook } from './notebook.js';
 
@@ -29,6 +29,16 @@ export class TerminalRenderer {
         if (this.stopped || this.copying || this.modes.active) return;
         this.anchoredCursorRow = undefined;
         const target = this.targets[row];
+        const fix = fixAt(target, column);
+        if (fix) {
+            this.mouseEditor = undefined;
+            this.repl.editSource();
+            this.repl.notebook.focusError(target!.cell);
+            this.followCursor = true;
+            void this.repl.applyImportFix(fix.index).then(() => this.render());
+            this.render();
+            return;
+        }
         if (!target || !target.points.length) return;
         const point = target.points.reduce((nearest, point) =>
             Math.abs(point.column - column) < Math.abs(nearest.column - column) ? point : nearest);
@@ -171,7 +181,7 @@ export class TerminalRenderer {
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus, repl.stepping,
-            this.anchoredCursorRow, true, 0, repl.diagnosticOutputs);
+            this.anchoredCursorRow, true, 0, repl.diagnosticOutputs, repl.importFixFocus);
         this.top = frame.top;
         this.cursorRow = frame.cursorVisible ? frame.cursor.row : undefined;
         this.targets = frame.targets ?? [];

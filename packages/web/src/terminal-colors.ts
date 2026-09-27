@@ -24,6 +24,7 @@ export function paintLine(row: HTMLElement, line: string): void {
     };
     let color = '';
     let inverse = false;
+    let underline = false;
     let offset = 0;
     function append(text: string): void {
         if (!text) return;
@@ -39,6 +40,8 @@ export function paintLine(row: HTMLElement, line: string): void {
         } else span.textContent = text;
         span.style.color = inverse ? '#000' : color;
         if (inverse) span.style.backgroundColor = color || '#e5e5e5';
+        // Underlined output is an import suggestion, applied by a tap.
+        if (underline) { span.style.textDecoration = 'underline'; span.style.cursor = 'pointer'; }
         row.append(span);
     }
     for (const match of line.matchAll(/\x1b\[([0-9;]*)m/g)) {
@@ -46,7 +49,9 @@ export function paintLine(row: HTMLElement, line: string): void {
         const codes = match[1].split(';').map(Number);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            if (code === 0) { color = ''; inverse = false; }
+            if (code === 0) { color = ''; inverse = false; underline = false; }
+            else if (code === 4) underline = true;
+            else if (code === 24) underline = false;
             else if (code === 7) inverse = true;
             else if (code === 27) inverse = false;
             else if (code === 39) color = '';

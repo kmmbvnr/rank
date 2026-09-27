@@ -5,6 +5,7 @@ import { ExecutionRunner } from './execution-runner.js';
 import { LiveConditionalController } from './live-conditional-controller.js';
 import { LiveFunctionController } from './live-function-controller.js';
 import { enclosingIterationLine } from './live-preview.js';
+import { importPosition, missingImports } from './import-fix.js';
 import { type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
 import { notebookValueDiagnostics } from './value-diagnostics.js';
@@ -120,6 +121,57 @@ export class NotebookRepl {
     interrupt(): void {
         if (this.execution.running) this.execution.interrupt();
         else this.session.interrupt?.();
+    }
+
+    private importFocus?: { id: number; index: number };
+
+    /** Modules the active cell's last error suggests importing. */
+    get importFixes(): string[] {
+        const cell = this.notebook.current;
+        if (this.running || cell.status !== 'error' || cell.executed !== cell.source) return [];
+        return missingImports(cell.output);
+    }
+
+    /** The focused suggestion under the active cell, while that error stands. */
+    get importFixFocus(): number | undefined {
+        const focus = this.importFocus;
+        if (focus?.id !== this.notebook.current.id || focus.index >= this.importFixes.length) return undefined;
+        return focus.index;
+    }
+
+    focusImportFix(): boolean {
+        if (!this.importFixes.length) return false;
+        this.importFocus = { id: this.notebook.current.id, index: 0 };
+        return true;
+    }
+
+    moveImportFix(direction: number): void {
+        const count = this.importFixes.length;
+        if (this.importFixFocus === undefined || !count) return;
+        this.importFocus!.index = (this.importFixFocus + direction + count) % count;
+    }
+
+    releaseImportFix(): boolean {
+        const focused = this.importFixFocus !== undefined;
+        this.importFocus = undefined;
+        return focused;
+    }
+
+    /** Adds `use module` among the imports, runs it, then reruns the failed instruction. */
+    async applyImportFix(index = this.importFixFocus ?? 0): Promise<boolean> {
+        const module = this.importFixes[index];
+        this.importFocus = undefined;
+        if (module === undefined || this.help || this.savePrompt) return false;
+        const book = this.notebook;
+        const failing = book.active;
+        const cursor = book.cursor;
+        const position = importPosition(book.cells, module, failing);
+        book.insertCell(position, `use ${module}`);
+        book.selectTo(position, 0);
+        const exit = await this.rerun();
+        if (exit || book.cells[position].status !== 'ok') return exit;
+        book.selectTo(failing + 1, cursor);
+        return this.rerun();
     }
 
     private suggestionText = '';

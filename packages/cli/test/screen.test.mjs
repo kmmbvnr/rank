@@ -132,8 +132,10 @@ test('error wrapping keeps words intact in both live and completed instructions'
             const lines = frame.lines.map(line => line.replace(/\x1b\[[0-9;]*m/g, ''))
                 .filter(line => line.startsWith('    ! '));
             assert.ok(lines.every(line => stringWidth(line) <= Math.min(40, columns - 1)));
-            assert.equal(lines.map(line => line.slice(6)).join(' '), message);
+            // A completed error shows its import suggestion unquoted and underlined.
+            assert.equal(lines.map(line => line.slice(6)).join(' '), live ? message : message.replace(/`/g, ''));
             assert.ok(lines.some(line => /\bdid\b/.test(line)));
+            if (!live) assert.ok(lines.some(line => line.includes('use sequences')), 'the suggestion never wraps');
         }
     }
 });

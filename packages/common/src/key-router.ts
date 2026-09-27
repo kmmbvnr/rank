@@ -95,6 +95,16 @@ export class KeyRouter {
             return { exit: false };
         }
         if (key.ctrl || key.meta || key.name === 'tab' || navigation && !key.shift) editor.clearSelection();
+        if (repl.importFixFocus !== undefined && !key.meta) {
+            if (key.name === 'left' || key.name === 'right') {
+                repl.moveImportFix(key.name === 'left' ? -1 : 1);
+                return { exit: false };
+            }
+            if (key.name === 'return' || key.name === 'enter' || key.ctrl && key.name === 'r')
+                return { exit: await repl.applyImportFix() };
+            repl.releaseImportFix();
+            if (key.name === 'up' || key.name === 'down' || key.name === 'escape') return { exit: false };
+        }
         if ((key.name === 'return' || key.name === 'enter') && !key.meta
             && repl.advancing && !repl.exampleEditor && !repl.liveIterationFocused
             && !repl.completingLiveFunction) {
@@ -215,6 +225,8 @@ export class KeyRouter {
                 if (key.name === 'down' && line === 1 && nextLine === 2
                     && repl.reopenExample()) return { exit: false };
                 if (nextLine !== line && repl.focusLiveIterationFromBody(header)) return { exit: false };
+                // Below the last row of a failed cell sits its import suggestion.
+                if (key.name === 'down' && row === rows.length - 1 && repl.focusImportFix()) return { exit: false };
                 book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);
                 if (fromPrompt && !book.atPrompt) repl.editSource();
             } else if (key.name === 'pageup' || key.name === 'pagedown') {

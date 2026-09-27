@@ -3,7 +3,7 @@ import type { PauseSnapshot } from '@arrrank/interpreter';
 import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
-import { notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
+import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
@@ -115,7 +115,7 @@ function render(): void {
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints,
-            compact() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs);
+            compact() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
         top = frame.top;
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
     }
@@ -414,6 +414,17 @@ async function locate(x: number, y: number): Promise<void> {
     const target = frame.targets?.[row];
     repl.notebook.clearSelection();
     repl.exampleEditor?.clearSelection();
+    const fix = fixAt(target, column);
+    if (fix) {
+        repl.editSource();
+        repl.notebook.focusError(target!.cell);
+        // Enter on the focused suggestion runs the fix through the usual key path.
+        repl.focusImportFix();
+        repl.moveImportFix(fix.index);
+        input.focus({ preventScroll: true });
+        await press({ name: 'return' });
+        return;
+    }
     if (target?.kind === 'source') {
         repl.editSource();
         repl.notebook.active = target.cell;

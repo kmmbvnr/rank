@@ -183,3 +183,19 @@ test('Ctrl-R anchors the screen cursor when examples appear and typing keeps tha
     renderer.render();
     assert.equal(caret(), row);
 });
+
+test('clicking an underlined import suggestion adds it and reruns the line', async t => {
+    const { repl, renderer, writes } = setup(t);
+    repl.notebook.replace('X = 4.0 sqrt');
+    await repl.submit();
+    renderer.render();
+    const rows = writes.at(-1).split(/\x1b\[\d+;1H\x1b\[2K/).slice(1);
+    const row = rows.findIndex(line => line.includes('\x1b[4muse numbers'));
+    assert.ok(row > 0);
+    const plain = rows[row].replace(/\x1b\[[0-9;]*m/g, '');
+    renderer.click(plain.indexOf('use numbers') + 2, row);
+    while (repl.running || repl.notebook.cells.length < 3 || repl.notebook.cells[1].status !== 'ok')
+        await new Promise(resolve => setTimeout(resolve, 5));
+    assert.deepEqual(repl.notebook.cells.map(cell => cell.source), ['use numbers', 'X = 4.0 sqrt', '']);
+    assert.equal(repl.notebook.cells[0].status, 'ok');
+});
