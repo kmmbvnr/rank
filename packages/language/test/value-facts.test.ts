@@ -92,6 +92,21 @@ it('tracks callback-free integer factor sequences and distinct values', () => {
     expect(facts('Unknown factors')).toEqual({ types: ['sequence'] });
 });
 
+it('keeps the shape and scalar cells of a dense array copy', () => {
+    const source: ValueFacts = { types: ['array'], rank: 2, shape: [2, 3],
+        elements: ['integer'], callbackFreeScalarCells: true };
+    expect(facts('M copy', new Map([['M', source]]))).toEqual({ types: ['array'],
+        rank: 2, shape: [2, 3], elements: ['integer'], eagerScalarCells: true });
+    expect(facts('M copy', new Map([['M', { ...source, callbackFreeScalarCells: undefined }]])))
+        .toEqual({ types: ['array'] });
+});
+
+it('keeps integer sums of proven scalar cells exact', () => {
+    expect(facts('(array 1 2 3) sum')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(1 to 3) sum')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1 2.5) sum')).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {

@@ -417,6 +417,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                         return { types, rank: 0, shape: [] };
                     }
                 }
+                if (last.name === 'sum' && arity === 1
+                    && ['array', 'sequence'].includes(source.types.join())
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && source.elements?.join() === 'integer') {
+                    return { types: ['integer'], rank: 0, shape: [] };
+                }
                 if (hasScalarCellArrayNoCallbackProof(operation, operands)) {
                     return { types: resultTypes(operation), rank: 0, shape: [] };
                 }
@@ -432,6 +438,14 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     && source.rank !== undefined) return { types: ['array'], rank: 1, shape: [source.rank],
                     elements: ['integer'], eagerScalarCells: true,
                     ...(source.shape ? { integers: source.shape } : {}) };
+                if (last.name === 'copy' && arity === 1 && source.types.join() === 'array'
+                    && source.rank !== undefined && source.shape
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && source.elements?.length && source.elements.every(type =>
+                        ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))) {
+                    return { types: ['array'], rank: source.rank, shape: source.shape,
+                        elements: source.elements, eagerScalarCells: true };
+                }
                 const collection = source.types.join() === 'array' || source.types.join() === 'sequence';
                 if (arity === 1 && collection && mapsScalarCells(operation)) return {
                     types: source.types, rank: source.rank, shape: source.shape,

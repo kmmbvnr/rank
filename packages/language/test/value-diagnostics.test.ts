@@ -1151,6 +1151,17 @@ it('infers the unchanged palindrome result through implicit counter reads', () =
         .toEqual(examples.map(() => ['text']));
 });
 
+it('infers the unchanged removal-game result through a dense array copy', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/015_removal.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/015_removal_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '015_removal', new Set(['removal_game']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
