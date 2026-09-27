@@ -16,6 +16,7 @@ const owners = new Set([
     'packages/language/src/analysis/function-yields.ts',
     'packages/language/src/analysis/numeric-recursion.ts',
     'packages/language/src/analysis/operation-proofs.ts',
+    'packages/language/src/analysis/return-paths.ts',
     'packages/language/src/analysis/value-domain.ts',
     'packages/language/src/analysis/value-facts.ts',
     'packages/language/src/analysis/value-safety.ts',

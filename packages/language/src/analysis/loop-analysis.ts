@@ -15,13 +15,7 @@ import { functionEffects } from './function-effects.js';
 import { expressionFacts } from './value-facts.js';
 import { directValue, safeEmptyArrayIteration, safeIndexedIteration, safeIndexedSource, safeRead } from './value-safety.js';
 import { UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
-
-interface LoopReturnPaths {
-    values: ValueFacts[];
-    fallsThrough: boolean;
-    breaks: Map<string, ValueFacts>[];
-    continues: Map<string, ValueFacts>[];
-}
+import type { ReturnPaths } from './return-paths.js';
 
 interface LoopAnalysisContext {
     diagnostics: { node: AstNode; message: string; kind: 'TypeError' | 'DimensionMismatch' }[];
@@ -32,7 +26,7 @@ interface LoopAnalysisContext {
     inspect(expression: Expression, env: Map<string, ValueFacts>): ValueFacts;
     invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void;
     statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean;
-    returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): LoopReturnPaths;
+    returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): ReturnPaths;
     forgetNonFunctions(env: Map<string, ValueFacts>): void;
 }
 
@@ -375,7 +369,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
         };
         const start = diagnostics.length;
         let local = prepare();
-        let returned: LoopReturnPaths;
+        let returned: ReturnPaths;
         if (closedIndexCandidate) {
             const seed = [...new Set([...indexNames.flatMap(([, fact]) => fact.elements!),
                 ...indexWrites.flatMap(write => expressionFacts(write.value, name => local.get(name)).types)])];

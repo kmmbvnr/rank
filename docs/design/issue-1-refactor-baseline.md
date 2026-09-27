@@ -37,7 +37,7 @@ storage and compiler modules remain owners where they already have a clear job.
 | Names and scopes | `language/analysis/bindings.ts`, `block-scope.ts`; runtime `frame.ts` | Keep static scope facts separate from mutable runtime frames |
 | Binding type and rank | `language/binding-rule.ts`, `type-names.ts`; runtime classification in `interpreter/value.ts` | Change the shared rule or name once, then classify concrete values at runtime |
 | Abstract facts and transfer | `analysis/value-domain.ts`, `binary-facts.ts`, `application-facts.ts`, `value-facts.ts` | Add abstract transfer without evaluating user code or lazy cells |
-| Flow and safety proofs | `analysis/control-flow.ts`, `loop-analysis.ts`, `value-safety.ts`, `operation-proofs.ts` | Keep loop widening and return paths together; prove conflicts conservatively and keep storage and effect guards separate |
+| Flow and safety proofs | `analysis/control-flow.ts`, `loop-analysis.ts`, `return-paths.ts`, `value-safety.ts`, `operation-proofs.ts` | Keep loop widening and return-value joins in their own owners; prove conflicts conservatively and keep storage and effect guards separate |
 | Function yields | `analysis/function-yields.ts` | Summarize generator cells from safe parameter and local facts without executing the body |
 | Bounded recursion proof | `analysis/numeric-recursion.ts` | Keep eligibility and input widening separate from call-site execution paths |
 | Call analysis and diagnostics | `analysis/function-calls.ts`, `analysis/value-diagnostics.ts` | Keep call-site budgets, recursive probes and call diagnostics in call analysis; join return paths and project remaining diagnostics in value analysis |

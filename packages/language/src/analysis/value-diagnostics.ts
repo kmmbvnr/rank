@@ -4,7 +4,7 @@ import {
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement,
-    isBreakStatement, isContinueStatement, isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
+    isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
     type Expression, type Program, type Statement, type FunctionStatement,
@@ -19,6 +19,7 @@ import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { createCallAnalysis } from './function-calls.js';
+import { createReturnPathAnalysis } from './return-paths.js';
 import { createLoopAnalysis } from './loop-analysis.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
@@ -51,7 +52,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const numeric = new Set(['integer', 'real']);
     const functions = new Map(declarations);
     const calls = createCallAnalysis(bindings, functions, diagnostics, expressions,
-        (items, env) => returnPaths(items, env).values,
+        (items, env) => paths.returnPaths(items, env).values,
         (module, name, arguments_) => analyzeValues(module, new Map(), new Map(),
             [{ name, arguments: arguments_ }]).functionResults[0]);
     const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings } = calls;
@@ -61,94 +62,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
     }
 
-    interface ReturnPaths {
-        values: ValueFacts[];
-        fallsThrough: boolean;
-        breaks: Map<string, ValueFacts>[];
-        continues: Map<string, ValueFacts>[];
-    }
-    function returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): ReturnPaths {
-        const values: ValueFacts[] = [];
-        const breaks: Map<string, ValueFacts>[] = [];
-        const continues: Map<string, ValueFacts>[] = [];
-        for (const statement of items) {
-            if (isBreakStatement(statement)) return { values, fallsThrough: false, breaks: [...breaks, env], continues };
-            if (isContinueStatement(statement)) return { values, fallsThrough: false, breaks, continues: [...continues, env] };
-            if (isReturnStatement(statement)) {
-                const beforeEffects = statement.value && directCallBeforeEffects(statement.value, env);
-                if (statement.value) invalidateCalls(statement.value, env);
-                const observed = statement.value ? beforeEffects ?? inspect(statement.value, env) : UNKNOWN_VALUE;
-                const contract = statement.value && isNameExpression(statement.value)
-                    ? env.get(statement.value.name) : undefined;
-                const result = observed.types.length || !contract?.acceptedTypes?.length ? observed
-                    : { types: contract.acceptedTypes, acceptedArrayRank: contractRank(contract) };
-                if (!statement.value || !calls.directNoReturnCall(statement.value, env)) values.push(result);
-                return { values, fallsThrough: false, breaks, continues };
-            }
-            if (isIfStatement(statement)) {
-                const branches = conditionalPaths(statement, env, diagnostics, inspect, invalidateCalls);
-                const survivors: Map<string, ValueFacts>[] = [];
-                for (const branch of branches) {
-                    const local = branch.env;
-                    const diagnosticStart = diagnostics.length;
-                    const result = returnPaths(branch.items, local);
-                    // A call-site fact must not accuse an unproven branch of executing.
-                    // Return facts still join all possible paths conservatively.
-                    if (branches.length > 1) diagnostics.length = diagnosticStart;
-                    values.push(...result.values);
-                    breaks.push(...result.breaks);
-                    continues.push(...result.continues);
-                    if (result.fallsThrough) survivors.push(local);
-                }
-                if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
-                mergeEnvironments(env, survivors);
-            } else if (isTryStatement(statement) && !statement.finallyStatements.length) {
-                if (statement.statements.length === 1 && isExpressionStatement(statement.statements[0])
-                    && calls.directNoReturnCall(statement.statements[0].value, env)) {
-                    return { values, fallsThrough: false, breaks, continues };
-                }
-                const caughtFacts = tryPrefixFacts(statement, env);
-                const success = new Map(env);
-                const tried = returnPaths(statement.statements, success);
-                values.push(...tried.values);
-                breaks.push(...tried.breaks);
-                continues.push(...tried.continues);
-                const survivors = tried.fallsThrough ? [success] : [];
-                for (const clause of statement.catches) {
-                    // An error can occur after any prefix of the try body. Its
-                    // bindings cannot be assumed to have their entry values.
-                    const caught = new Map(env);
-                    forgetNonFunctions(caught);
-                    if (caughtFacts) for (const [name, fact] of caughtFacts) caught.set(name, fact);
-                    caught.set(clause.errorName, UNKNOWN_VALUE);
-                    const start = diagnostics.length;
-                    const path = returnPaths(clause.statements, caught);
-                    diagnostics.length = start;
-                    values.push(...path.values);
-                    breaks.push(...path.breaks);
-                    continues.push(...path.continues);
-                    if (path.fallsThrough) survivors.push(caught);
-                }
-                if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
-                mergeEnvironments(env, survivors);
-            } else if (isForStatement(statement)) {
-                const contents = [...AstUtils.streamAllContents(statement)];
-                if (contents.some(isReturnStatement)) values.push(...loops.loopReturnPaths(statement, env));
-                else loops.loop(statement, env);
-            } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
-                || isIndexAssignmentStatement(statement)
-                || isAddStatement(statement) || isPushStatement(statement)
-                || isUnpackStatement(statement)
-                || isExpressionStatement(statement) || isFunctionStatement(statement)) {
-                if (!statements([statement], env)) return { values, fallsThrough: false, breaks, continues };
-            } else {
-                // Unknown control flow may return, yield, throw or alter captured state.
-                return { values: [UNKNOWN_VALUE], fallsThrough: true, breaks, continues };
-            }
-        }
-        return { values, fallsThrough: true, breaks, continues };
-    }
-
+    const paths = createReturnPathAnalysis({
+        diagnostics,
+        directCallBeforeEffects: (expression, env) => directCallBeforeEffects(expression, env),
+        directNoReturnCall: (expression, env) => calls.directNoReturnCall(expression, env),
+        invalidateCalls: (expression, env) => invalidateCalls(expression, env),
+        inspect: (expression, env) => inspect(expression, env),
+        tryPrefixFacts: (statement, env) => tryPrefixFacts(statement, env),
+        forgetNonFunctions: env => forgetNonFunctions(env),
+        loop: (statement, env) => loops.loop(statement, env),
+        loopReturnPaths: (statement, env) => loops.loopReturnPaths(statement, env),
+        statements: (items, env) => statements(items, env),
+    });
     function insertCollectionElement(name: string, value: ValueFacts, node: Expression,
         env: Map<string, ValueFacts>): void {
         const collection = env.get(name);
@@ -240,7 +165,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         inspect: (expression, env) => inspect(expression, env),
         invalidateCalls: (expression, env) => invalidateCalls(expression, env),
         statements: (items, env) => statements(items, env),
-        returnPaths: (items, env) => returnPaths(items, env),
+        returnPaths: (items, env) => paths.returnPaths(items, env),
         forgetNonFunctions,
     });
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
@@ -946,7 +871,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             } else if (isForStatement(statement)) {
                 loops.loop(statement, env);
             } else if (isTryStatement(statement)) {
-                if (!returnPaths([statement], env).fallsThrough) return false;
+                if (!paths.returnPaths([statement], env).fallsThrough) return false;
             } else {
                 // Unsupported statements may mutate bindings through closures or imports.
                 for (const [name, fact] of env) env.set(name, invalidate(fact));
