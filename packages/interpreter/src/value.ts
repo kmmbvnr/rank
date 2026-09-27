@@ -321,6 +321,12 @@ export function isRankArray(value: RankValue): value is RankArray {
     return typeof value === 'object' && (value.kind === 'array' || value.kind === 'bytes');
 }
 
+export function valueRank(value: RankValue): number {
+    if (isRankArray(value)) return value.shape.length;
+    if (isRankSequence(value) || isRankQueue(value) || typeof value === 'string') return 1;
+    return 0;
+}
+
 export function isRankSqliteDatabase(value: RankValue): value is RankSqliteDatabase {
     return typeof value === 'object' && value.kind === 'sqlite-database';
 }
