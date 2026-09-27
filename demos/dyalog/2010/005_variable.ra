@@ -19,7 +19,8 @@ argument Input path = "demos/dyalog/2010/data/buyrent.xml"
 
 State = 2010 seed
 Params = Input read getparams
-((array 9.0 10000) Params variablerisk) print
+Options = array 9.0 10000
+Options Params variablerisk print
 
 
 rem Shares of simulations in which the variable loan
@@ -57,12 +58,13 @@ fun difference Changes Start Params
   Rate = Official / 1200
   Payment = Balance Rate Term payment
   for Month in 0 until Term
-    if (Month greater 0) and (Month % 12 equal 0)
+    if Month greater 0 and Month % 12 equal 0
       Rate = Official / 1200
       Payment = Balance Rate (Term - Month) payment
     end
     Interest = Balance * Rate
-    Balance = (Balance - (Payment - Interest)) copy
+    Principal = Payment - Interest
+    Balance = (Balance - Principal) copy
     Flow = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
     Saving = (Saving * Growth + Flow) copy
     if Month % 3 equal 2
