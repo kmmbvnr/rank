@@ -89,6 +89,8 @@ export interface Operation {
     readonly modifiers?: readonly string[];
     /** This unary operation accepts the `axis` reduction form. */
     readonly axisReduction?: true;
+    /** A trailing direction label selects the sort form. */
+    readonly sortDirection?: true;
 }
 
 /** A library module or the always-available core catalogue group. */
@@ -506,7 +508,7 @@ export const operations: readonly Operation[] = [
     { name: 'any', module: 'sequences', arities: [1], form: 'Mask any', result: 'boolean', axisReduction: true,
         scalarCellArrayNoCallback: 'boolean',
         summary: 'True when one boolean cell is true; empty collections are false.' },
-    { name: 'argsort', module: 'sequences', arities: [1, 2], form: 'Values argsort .descending', result: 'array',
+    { name: 'argsort', module: 'sequences', arities: [1, 2], form: 'Values argsort .descending', result: 'array', sortDirection: true,
         monadicRank: 1, summary: 'Stable zero-based positions that put the values in order.' },
     { name: 'choose', module: 'sequences', arities: [2, 3],
         form: 'Mask TrueValues FalseValues choose', result: 'value', lazy: true,
@@ -542,7 +544,7 @@ export const operations: readonly Operation[] = [
     { name: 'shape', module: 'sequences', arities: [1], form: 'Value shape', result: 'array',
         arrayHeaderNoCallback: true,
         summary: 'Axis lengths as a rank-1 array.' },
-    { name: 'sort', module: 'sequences', arities: [1, 2], form: 'Values sort .descending', result: 'array',
+    { name: 'sort', module: 'sequences', arities: [1, 2], form: 'Values sort .descending', result: 'array', sortDirection: true,
         monadicRank: 1, summary: 'Stable sort into a new rank-1 array, ascending by default.' },
     { name: 'transpose', module: 'sequences', arities: [1], form: 'Matrix transpose',
         result: 'array', numericArrayNoCallback: true,

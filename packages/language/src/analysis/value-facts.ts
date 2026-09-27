@@ -10,7 +10,7 @@ import {
 import { binaryType, localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation, type Operation } from '../operations.js';
-import { axisReductionForm } from '../application-forms.js';
+import { axisReductionForm, sortDirectionForm } from '../application-forms.js';
 
 /** Serializable facts only: inspecting these never evaluates user code. */
 export interface ValueFacts {
@@ -699,9 +699,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 }
             }
         }
-        if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'sort'
-            && lookup('sort') === undefined && isLabelLiteral(last)
-            && (last.name === 'ascending' || last.name === 'descending')) {
+        const sortDirection = sortDirectionForm(parts, name => lookup(name) === undefined);
+        if (parts.length === 3 && sortDirection?.operation.name === 'sort'
+            && isLabelLiteral(sortDirection.direction)
+            && (sortDirection.direction.name === 'ascending' || sortDirection.direction.name === 'descending')) {
             const sorted = sortedScalarArray(source);
             if (sorted) return sorted;
         }

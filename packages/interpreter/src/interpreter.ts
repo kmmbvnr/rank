@@ -98,6 +98,7 @@ import {
     type Statement,
     findOperation,
     axisReductionForm,
+    sortDirectionForm,
     acceptsBindingType,
     bindingTypeMessage,
     possibleBindingTypeConflict,
@@ -2504,13 +2505,11 @@ export class Interpreter {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
-            const direction = parts.at(-1);
-            if (parts.length > 2 && direction && (isLabelLiteral(direction)
-                || (isNameExpression(direction) && /^[A-Z]/.test(direction.name)))
-                && !isNamed(direction, 'sort') && !isNamed(direction, 'argsort')
-                && parts.some(part => isNamed(part, 'sort') || isNamed(part, 'argsort'))) {
+            const sortDirection = sortDirectionForm(parts);
+            if (sortDirection) {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'sort direction');
+                    const direction = sortDirection.direction;
                     const parts = flattenApplication(expression).slice(0, -1);
                     const axis = explicitAxisArgsort(parts);
                     const ranked = explicitRankApplication(parts);
