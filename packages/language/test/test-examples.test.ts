@@ -26,6 +26,16 @@ it('resolves an aliased import and ignores another module', () => {
     expect(examples('test "one"\n use "other"\n (3 addone) equal 4\nend')).toEqual([]);
 });
 
+it('passes a completed builtin pipeline as one test argument', () => {
+    const source = 'test "pipeline"\n use "helpers"\n use text\n'
+        + ' Lines = array "a" "b"\n Answer = Lines "," join solve\n Answer equal 2\nend';
+    expect(examples(source, 'helpers', new Set(['solve']))).toMatchObject([{
+        name: 'solve', arguments: [{ types: ['text'] }], expected: { types: ['integer'] },
+    }]);
+    expect(examples(source.replace(' use text\n', ''), 'helpers', new Set(['solve']))[0].arguments)
+        .toHaveLength(3);
+});
+
 it('attributes a shape-preserving assertion to the imported function, not round', () => {
     const source = 'test "array result"\n use "softmaxmod"\n use numbers\n Scores = array 1 2 3\n'
         + ' Expected = array 0.1 0.2 0.7\n Result = Scores softmax\n Result round 4 equal Expected\nend';

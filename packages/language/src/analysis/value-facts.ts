@@ -1,9 +1,13 @@
 import {
     isApplicationExpression, isAllAxisExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
-    isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression, isStringLiteral, isUnaryExpression,
+    isFirstIndexWhereExpression, isFirstWhereExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
+    isNumberLiteral,
+    isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
+    isTableFilterExpression,
+    isTakeWhileExpression, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
-import { localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
+import { binaryType, localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation, type Operation } from '../operations.js';
 
@@ -12,19 +16,30 @@ export interface ValueFacts {
     readonly types: Types;
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
-    /** Possible array/sequence cells or values stored in a local index. */
+    /** Possible array/sequence cells or values stored in an index. */
     readonly elements?: Types;
+    /** Rank fixed by the first insertion of an array into a mutable collection. */
+    readonly elementRank?: number;
     /** Element types by position for a fixed rank-1 array. */
     readonly positions?: readonly Types[];
+    /** Complete cell facts for a fixed rank-1 array whose cells may themselves be arrays. */
+    readonly positionFacts?: readonly ValueFacts[];
     /** Proven eager cells; reading one cannot run a lazy callback. */
     readonly eagerScalarCells?: true;
     /** Derived scalar cells may be lazy, but cannot call Rank code when read. */
     readonly callbackFreeScalarCells?: true;
     readonly rank?: number;
     readonly shape?: readonly (number | null)[];
+    readonly boolean?: boolean;
     readonly integer?: string;
     readonly integers?: readonly (number | null)[];
     readonly textLiteral?: string;
+    /** Whether a functional graph carries edge weights; `upto` has a different result in each mode. */
+    readonly functionalWeighted?: boolean;
+    /** Built-in numeric combine proved at construction; user callbacks never get this marker. */
+    readonly segmentOperation?: '+' | 'min' | 'max' | 'maxsum' | 'band' | 'bor' | 'bxor';
+    /** Known fields of a record; absent fields remain unknown. */
+    readonly fields?: Readonly<Record<string, ValueFacts>>;
 }
 
 export const UNKNOWN_VALUE: ValueFacts = { types: [] };
@@ -87,12 +102,29 @@ export function hasArrayHeaderNoCallbackProof(operation: Operation, operands: re
         && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
 }
 
+/** `find` and `findall` hash every source cell and the target without invoking Rank code. */
+export function hasCallbackFreeFindProof(source: ValueFacts, target: ValueFacts): boolean {
+    const scalar = (type: string) => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type);
+    return (source.types.join() === 'text' || source.types.join() === 'array'
+        && source.rank === 1 && (source.eagerScalarCells === true || source.callbackFreeScalarCells === true)
+        && !!source.elements?.length && source.elements.every(scalar))
+        && isAtom(target) && target.types.length > 0 && target.types.every(scalar);
+}
+
 function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
     if (source.types.join() !== 'array' || source.rank !== 1 || !source.shape
         || !(source.eagerScalarCells || source.callbackFreeScalarCells)
         || !source.elements?.length || !source.elements.every(type => type === 'integer' || type === 'real')) return;
     return { types: ['array'], rank: 1, shape: source.shape,
         elements: source.elements, eagerScalarCells: true };
+}
+
+export function stableRecordField(value: ValueFacts): ValueFacts {
+    const { types } = value;
+    return { types,
+        ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
+            'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
+            : types.join() === 'text' ? { rank: 1, shape: [null] } : {}) };
 }
 
 /** Start with facts that follow directly from syntax, retaining unknown lengths. */
@@ -112,18 +144,49 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     ...(builtin.result === 'real' ? { rank: 0, shape: [] } : {}),
                 } : UNKNOWN_VALUE);
     }
+    if (isNewStructureExpression(expression) && expression.structure === 'index') {
+        return { types: ['index'], elements: [] };
+    }
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
         ...(typeof expression.value === 'bigint' ? { integer: String(expression.value) } : {}),
     };
+    if (isLabelLiteral(expression)) return { types: ['symbol'], rank: 0, shape: [] };
+    if (isStdinExpression(expression)) {
+        const elements = expression.mode.name === 'integer' ? ['integer']
+            : expression.mode.name === 'word' ? ['text'] : [];
+        if (!elements.length) return UNKNOWN_VALUE;
+        if (expression.count) {
+            const count = expressionFacts(expression.count, lookup).integer;
+            const size = count === undefined ? NaN : Number(count);
+            return { types: ['sequence'], rank: 1,
+                shape: [Number.isSafeInteger(size) && size >= 0 ? size : null],
+                ...(elements.length ? { elements } : {}) };
+        }
+        return elements.join() === 'integer' ? { types: elements, rank: 0, shape: [] }
+            : elements.join() === 'text' ? { types: elements, rank: 1, shape: [null] } : UNKNOWN_VALUE;
+    }
     // Runtime rank is one for text, although arithmetic treats the whole text as an atom.
     if (isStringLiteral(expression)) return { types: ['text'], rank: 1,
         shape: [[...expression.value].length], textLiteral: expression.value };
-    if (isBooleanLiteral(expression)) return { types: ['boolean'], rank: 0, shape: [] };
+    if (isBooleanLiteral(expression)) return { types: ['boolean'], rank: 0, shape: [], boolean: expression.value };
+    if (isRecordExpression(expression)) return { types: ['record'], fields: Object.fromEntries(
+        expression.fields.map(field => [field.name, stableRecordField(expressionFacts(field.value, lookup))])) };
+    if (isRecordUpdateExpression(expression)) {
+        const source = expressionFacts(expression.source, lookup);
+        if (source.types.join() !== 'record') return { types: ['record'] };
+        if (!source.fields) return source;
+        const fields = { ...source.fields };
+        for (const field of expression.fields) if (fields[field.name]) {
+            fields[field.name] = stableRecordField(fields[field.name]);
+        }
+        return { ...source, fields };
+    }
     if (isUnaryExpression(expression) && expression.operator === 'not') {
         const operand = expressionFacts(expression.operand, lookup);
         if (operand.rank === 0 && operand.types.join() === 'boolean') {
-            return { types: ['boolean'], rank: 0, shape: [] };
+            return { types: ['boolean'], rank: 0, shape: [],
+                ...(operand.boolean === undefined ? {} : { boolean: !operand.boolean }) };
         }
     }
     if (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)) {
@@ -181,9 +244,74 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     if (isMaterializeExpression(expression)) {
         const source = expressionFacts(expression.source, lookup);
         return source.types.length === 1 && source.types[0] === 'sequence'
-            ? { ...source, types: ['array'] } : { types: ['array'] };
+            ? { ...source, types: ['array'],
+                ...(isStdinExpression(expression.source) && source.elements?.length
+                    ? { eagerScalarCells: true as const } : {}) } : { types: ['array'] };
+    }
+    if (isFirstIndexWhereExpression(expression)) return { types: ['integer'], rank: 0, shape: [] };
+    if (isTableFilterExpression(expression) && !expression.sourceFields.length) {
+        const source = expressionFacts(expression.source, lookup);
+        if (source.types.join() === 'array' && source.rank === 1) return {
+            types: ['array'], rank: 1, shape: [null],
+        };
+    }
+    if (isFirstWhereExpression(expression) || isTakeWhileExpression(expression)) {
+        const source = expressionFacts(expression.source, lookup);
+        const mask = expressionFacts(expression.mask, lookup);
+        const safeMask = mask.rank === 1 && mask.elements?.join() === 'boolean'
+            && (mask.eagerScalarCells || mask.callbackFreeScalarCells);
+        const safeSource = source.rank === 1 && source.elements?.length
+            && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
+            && (source.eagerScalarCells || source.callbackFreeScalarCells);
+        if (isTakeWhileExpression(expression)) {
+            if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+            if (source.types.join() === 'queue') return { types: ['array'], rank: 1, shape: [null] };
+            if (source.rank === 1 && ['array', 'sequence'].includes(source.types.join())) {
+                const kind = source.types.join() === 'sequence' ? 'sequence' : 'array';
+                return { types: [kind], rank: 1, shape: [null],
+                    ...(safeSource && safeMask ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
+            }
+            return UNKNOWN_VALUE;
+        }
+        if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [1] };
+        if (safeSource && safeMask && ['array', 'sequence'].includes(source.types.join())) {
+            return source.elements!.join() === 'text'
+                ? { types: ['text'], rank: 1, shape: [null] }
+                : { types: source.elements!, rank: 0, shape: [] };
+        }
+        return UNKNOWN_VALUE;
     }
     if (isBinaryExpression(expression)) {
+        if (expression.operator === '+' && isNameExpression(expression.right)
+            && expression.right.name === 'segment' && lookup('segment') === undefined) {
+            const values = expressionFacts(expression.left, lookup);
+            if (['array', 'sequence'].includes(values.types.join()) && values.rank === 1
+                && (values.eagerScalarCells || values.callbackFreeScalarCells)
+                && values.elements?.length
+                && values.elements.every(type => type === 'integer' || type === 'real')) {
+                return { types: ['segment'], elements: values.elements, segmentOperation: '+' };
+            }
+        }
+        if (['+', '*'].includes(expression.operator) && lookup('scan') === undefined) {
+            const parts = isNameExpression(expression.right) ? [expression.right]
+                : isApplicationExpression(expression.right) ? flattenApplication(expression.right) : [];
+            if ((parts.length === 1 || parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'with')
+                && isNameExpression(parts[0]) && parts[0].name === 'scan') {
+                const source = expressionFacts(expression.left, lookup);
+                const seed = parts[2] && expressionFacts(parts[2], lookup);
+                const numeric = (types: Types | undefined) => !!types?.length
+                    && types.every(type => type === 'integer' || type === 'real');
+                if (['array', 'sequence'].includes(source.types.join()) && source.rank === 1
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells) && numeric(source.elements)
+                    && (!seed || seed.rank === 0 && numeric(seed.types))) {
+                    const length = source.shape?.[0];
+                    const size = length == null ? null : length + (seed ? 1 : 0);
+                    return { types: source.types, rank: 1, shape: [size],
+                        elements: [...new Set([...source.elements!, ...(seed?.types ?? [])])],
+                        callbackFreeScalarCells: true };
+                }
+            }
+        }
         if (['+', '*'].includes(expression.operator) && isNameExpression(expression.right)
             && expression.right.name === 'reduce' && lookup('reduce') === undefined) {
             const source = expressionFacts(expression.left, lookup);
@@ -217,7 +345,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 }
                 if (kind === 'text') return { types: ['text'], rank: 1, shape };
                 if (kind === 'sequence' || kind === 'queue') return { types: ['array'], rank: 1, shape,
-                    elements: source.elements };
+                    elements: source.elements,
+                    ...(kind === 'sequence' && source.callbackFreeScalarCells
+                        ? { callbackFreeScalarCells: true as const } : {}) };
                 return { types: ['array'], rank: source.rank, shape,
                     elements: source.elements,
                     ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
@@ -247,6 +377,16 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         }
         const left = expressionFacts(expression.left, lookup);
         const right = expressionFacts(expression.right, lookup);
+        if (['in', 'notin'].includes(expression.operator)
+            && ['array', 'sequence'].includes(left.types.join()) && left.rank !== undefined
+            && left.elements?.length && (left.eagerScalarCells || left.callbackFreeScalarCells)
+            && left.elements.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
+            && ['array', 'sequence'].includes(right.types.join())
+            && right.elements?.length && (right.eagerScalarCells || right.callbackFreeScalarCells)
+            && right.elements.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))) {
+            return { types: left.types, rank: left.rank, shape: left.shape,
+                elements: ['boolean'], callbackFreeScalarCells: true };
+        }
         if (expression.operator === 'default') {
             const types = left.types.length && right.types.length
                 ? [...new Set([...left.types, ...right.types])] : [];
@@ -287,14 +427,14 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 const shape = broadcastShape(leftShape, rightShape);
                 const safeNumeric = (value: ValueFacts): boolean => (value.rank === 0
                     && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'))
-                    || (value.types.join() === 'array' && !!value.shape
+                    || (['array', 'sequence'].includes(value.types.join()) && !!value.shape
                         && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
                         && !!value.elements?.length
                         && value.elements.every(type => type === 'integer' || type === 'real'));
-                const callbackFree = types.join() === 'array' && [left, right].every(safeNumeric);
+                const callbackFree = ['array', 'sequence'].includes(types.join()) && [left, right].every(safeNumeric);
                 const integerCells = (value: ValueFacts): boolean => value.rank === 0
                     && value.types.join() === 'integer'
-                    || value.types.join() === 'array'
+                    || ['array', 'sequence'].includes(value.types.join())
                         && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
                         && value.elements?.join() === 'integer';
                 const integerResult = ['+', '-', '*', '//', '%'].includes(expression.operator)
@@ -308,7 +448,7 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             'and', 'or', 'xor'].includes(expression.operator)
             && left.rank === 0 && right.rank === 0
             && left.types.length && right.types.length
-            && typeOf(expression, name => lookup(name)?.types).join() === 'boolean') {
+            && binaryType(expression.operator, left.types, right.types).join() === 'boolean') {
             return { types: ['boolean'], rank: 0, shape: [] };
         }
         if (['equal', 'notequal', 'and', 'or', 'xor'].includes(expression.operator)) {
@@ -332,6 +472,27 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     }
     if (isApplicationExpression(expression)) {
         const ranked = flattenApplication(expression);
+        if (ranked.length === 2 && isNewStructureExpression(ranked[0]) && ranked[0].structure === 'dsu') {
+            const values = expressionFacts(ranked[1], lookup);
+            const allowed = ['integer', 'real', 'boolean', 'text', 'symbol'];
+            const elements = values.rank === 0 || values.types.join() === 'text' ? values.types
+                : values.rank === 1 && ['array', 'sequence'].includes(values.types.join())
+                    && (values.eagerScalarCells || values.callbackFreeScalarCells) ? values.elements : undefined;
+            if (elements?.length && elements.every(type => allowed.includes(type))) {
+                return { types: ['dsu'], elements };
+            }
+        }
+        if (ranked.length === 3 && isNewStructureExpression(ranked[0]) && ranked[0].structure === 'graph'
+            && isLabelLiteral(ranked[2]) && ['directed', 'undirected'].includes(ranked[2].name)) {
+            const vertices = expressionFacts(ranked[1], lookup);
+            const allowed = ['integer', 'real', 'boolean', 'text', 'symbol'];
+            const elements = vertices.rank === 0 ? vertices.types
+                : ['array', 'sequence'].includes(vertices.types.join())
+                    && (vertices.eagerScalarCells || vertices.callbackFreeScalarCells) ? vertices.elements : undefined;
+            if (elements?.length && elements.every(type => allowed.includes(type))) {
+                return { types: ['graph'], elements };
+            }
+        }
         if (ranked.length === 3 && isNameExpression(ranked[1]) && ranked[1].name === 'text'
             && lookup('text') === undefined && isStringLiteral(ranked[2])) {
             const source = expressionFacts(ranked[0], lookup);
@@ -370,7 +531,16 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         }
         const grouped = groupedUnaryDyadicChain(expression, name => lookup(name) === undefined);
         if (grouped) return expressionFacts(grouped, lookup);
-        const parts = flattenApplication(expression);
+        const flattened = flattenApplication(expression);
+        let parts = flattened;
+        if (flattened.length > 2 && isLabelLiteral(flattened[1])
+            && expressionFacts(flattened[0], lookup).fields?.[flattened[1].name]) {
+            let prefix: Expression = expression;
+            while (isApplicationExpression(prefix) && flattenApplication(prefix).length > 2) {
+                prefix = prefix.head;
+            }
+            if (isApplicationExpression(prefix)) parts = [prefix, ...flattened.slice(2)];
+        }
         const last = parts.at(-1)!;
         if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from') {
             const source = expressionFacts(parts[0], lookup);
@@ -380,11 +550,133 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}),
             };
         }
+        const headParts = isApplicationExpression(expression.head) ? flattenApplication(expression.head) : [];
+        const headLast = headParts.at(-1);
+        const completedUnaryBuiltin = headParts.length >= 2 && isNameExpression(headLast)
+            && lookup(headLast.name) === undefined && findOperation(headLast.name)?.arities.join() === '1';
         const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
             && isNameExpression(last) && (lookup(last.name) === undefined
                 ? findOperation(last.name)?.arities.join() === '1'
+                    || completedUnaryBuiltin && findOperation(last.name)?.arities.includes(1)
                 : lookup(last.name)?.types.includes('function') && lookup.arity?.(last.name) === 1);
         const source = expressionFacts(unaryTail ? expression.head : parts[0], lookup);
+        if (parts.length === 2 && source.types.join() === 'array' && source.rank === 1 && source.shape) {
+            const fields = expressionFacts(parts[1], lookup);
+            const columns = fields.shape?.[0];
+            if (fields.types.join() === 'array' && fields.rank === 1 && columns != null && columns > 0
+                && fields.eagerScalarCells && fields.elements?.length
+                && fields.elements.every(type => type === 'symbol' || type === 'text')) {
+                return { types: ['array'], rank: 2, shape: [source.shape[0], columns] };
+            }
+        }
+        if (parts.length === 2 && isNameExpression(last) && last.name === 'json'
+            && lookup('json') === undefined && source.textLiteral !== undefined
+            && source.textLiteral.length <= 100_000) {
+            try {
+                const value: unknown = JSON.parse(source.textLiteral);
+                if (Array.isArray(value)) {
+                    const elementTypes = [...new Set(value.map(item => item === null ? 'symbol'
+                        : Array.isArray(item) ? 'array' : typeof item === 'object' ? 'object'
+                            : typeof item === 'number' ? 'integer' : typeof item))];
+                    const types = elementTypes.flatMap(type => type === 'integer' ? ['integer', 'real'] : [type]);
+                    const eagerScalarCells = elementTypes.every(type =>
+                        ['integer', 'boolean', 'text', 'symbol'].includes(type));
+                    return { types: ['array'], rank: 1, shape: [value.length],
+                        ...(types.length ? { elements: [...new Set(types)] } : {}),
+                        ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}) };
+                }
+                if (value === null) return { types: ['symbol'], rank: 0, shape: [] };
+                if (typeof value === 'object') return { types: ['object'] };
+                if (typeof value === 'number') return { types: ['integer', 'real'], rank: 0, shape: [] };
+                if (typeof value === 'boolean') return { types: ['boolean'], rank: 0, shape: [] };
+                if (typeof value === 'string') return { types: ['text'], rank: 1, shape: [[...value].length] };
+            } catch { /* Invalid JSON has no value facts. */ }
+        }
+        if (parts.length === 2 && isNameExpression(last)
+            && ['pop', 'peek', 'popfront', 'peekfront', 'popback', 'peekback'].includes(last.name)
+            && lookup(last.name) === undefined
+            && ['queue', 'stack', 'deque', 'heap'].includes(source.types.join())
+            && source.elements?.length) {
+            const types = source.elements;
+            return types.join() === 'array' && source.elementRank !== undefined
+                ? { types, rank: source.elementRank, shape: Array(source.elementRank).fill(null) }
+                : stableRecordField({ types });
+        }
+        if (parts.length === 3 && isLabelLiteral(parts[1]) && parts[1].name === 'flat'
+            && isNameExpression(last) && ['json', 'xml'].includes(last.name)
+            && lookup(last.name) === undefined && source.types.join() === 'text') {
+            return { types: ['array'], rank: 1, shape: [null], elements: ['object'] };
+        }
+        if (parts.length === 2 && isNameExpression(last) && last.name === 'xml'
+            && lookup(last.name) === undefined && source.types.join() === 'text') {
+            return { types: ['object'] };
+        }
+        const combine = parts.length === 3 && isNameExpression(parts[1]) ? parts[1].name : undefined;
+        if (combine && ['min', 'max', 'maxsum', 'band', 'bor', 'bxor'].includes(combine)
+            && lookup(combine) === undefined
+            && isNameExpression(last) && last.name === 'segment' && lookup('segment') === undefined
+            && ['array', 'sequence'].includes(source.types.join()) && source.rank === 1
+            && (source.eagerScalarCells || source.callbackFreeScalarCells)
+            && source.elements?.length
+            && source.elements.every(type => type === 'integer'
+                || !['band', 'bor', 'bxor'].includes(combine) && type === 'real')) {
+            return { types: ['segment'], elements: source.elements,
+                segmentOperation: combine as 'min' | 'max' | 'maxsum' | 'band' | 'bor' | 'bxor' };
+        }
+        if (parts.length === 2 && source.types.join() === 'segment' && source.segmentOperation
+            && source.elements?.length && expressionFacts(last, lookup).types.join() === 'integer') {
+            return { types: source.elements, rank: 0, shape: [] };
+        }
+        const covarianceName = parts.length === 2 ? last : parts.length === 5 ? parts[1] : undefined;
+        if (covarianceName && isNameExpression(covarianceName)
+            && ['covariance', 'correlation', 'corr'].includes(covarianceName.name)
+            && lookup(covarianceName.name) === undefined
+            && (parts.length === 2 || isNameExpression(parts[2]) && parts[2].name === 'axis')
+            && source.types.join() === 'array' && source.shape && source.shape.length >= 2
+            && (source.eagerScalarCells || source.callbackFreeScalarCells)
+            && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
+            const axes = parts.length === 2 ? [source.shape.length - 2, source.shape.length - 1]
+                : parts.slice(3).map(part => {
+                    const value = expressionFacts(part, lookup).integer;
+                    return value === undefined ? NaN : Number(value);
+                });
+            if (axes.every(axis => Number.isSafeInteger(axis) && axis >= 0 && axis < source.shape!.length)
+                && axes[0] !== axes[1]) {
+                const shape = [...source.shape.filter((_, axis) => !axes.includes(axis)),
+                    source.shape[axes[0]], source.shape[axes[0]]];
+                return { types: ['array'], rank: shape.length, shape,
+                    elements: ['real'], callbackFreeScalarCells: true };
+            }
+        }
+        if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'find'
+            && lookup('find') === undefined && source.types.join() === 'dsu' && source.elements?.length) {
+            return stableRecordField({ types: source.elements });
+        }
+        if (parts.length === 2 && source.types.join() === 'graph' && source.elements?.length
+            && expressionFacts(parts[1], lookup).types.length) return {
+            types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
+            callbackFreeScalarCells: true,
+        };
+        if (parts.length === 2 && source.types.join() === 'record' && isLabelLiteral(last)) {
+            return source.fields?.[last.name] ?? UNKNOWN_VALUE;
+        }
+        if (parts.length === 4 && isNameExpression(parts[1]) && parts[1].name === 'len'
+            && isNameExpression(parts[2]) && parts[2].name === 'axis'
+            && lookup('len') === undefined && lookup('axis') === undefined
+            && isNumberLiteral(parts[3]) && typeof parts[3].value === 'bigint'
+            && source.types.join() === 'array' && source.rank !== undefined) {
+            const axis = Number(parts[3].value);
+            if (Number.isSafeInteger(axis) && axis >= 0 && axis < source.rank) {
+                const dimension = source.shape?.[axis];
+                return { types: ['integer'], rank: 0, shape: [],
+                    ...(dimension === undefined || dimension === null ? {} : { integer: String(dimension) }) };
+            }
+        }
+        if (source.types.join() === 'fenwick'
+            && (parts.length === 2 || parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'sum')
+            && expressionFacts(parts.at(-1)!, lookup).types.join() === 'integer') {
+            return { types: ['integer'], rank: 0, shape: [] };
+        }
         if (parts.length === 4 && isNameExpression(last) && last.name === 'outer'
             && lookup('outer') === undefined && isNameExpression(parts[2]) && lookup(parts[2].name) === undefined) {
             const operation = findOperation(parts[2].name);
@@ -427,19 +719,131 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const arity = unaryTail ? 1 : parts.length - 1;
             if (operation?.arities.includes(arity)) {
                 const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => expressionFacts(part, lookup));
+                if (arity === 1 && last.name === 'eigh' && source.types.join() === 'array'
+                    && source.rank === 2 && source.shape?.length === 2
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
+                    const size = source.shape[0];
+                    return { types: ['array'], rank: 1, shape: [2], elements: ['array'],
+                        positionFacts: [
+                            { types: ['array'], rank: 1, shape: [size], elements: ['real'], eagerScalarCells: true },
+                            { types: ['array'], rank: 2, shape: [size, size], elements: ['real'], eagerScalarCells: true },
+                        ], eagerScalarCells: true };
+                }
+                if (arity === 1 && last.name === 'functional') {
+                    return { types: ['functional'], functionalWeighted: false };
+                }
+                if (arity === 2 && last.name === 'weighted') {
+                    return { types: ['functional'], functionalWeighted: true };
+                }
+                if (arity === 3 && last.name === 'upto' && source.types.join() === 'functional') {
+                    if (source.functionalWeighted === false) return { types: ['integer'], rank: 0, shape: [] };
+                    if (source.functionalWeighted === true) return { types: ['record'], fields: {
+                        count: { types: ['integer'], rank: 0, shape: [] },
+                        sum: { types: ['integer', 'real'], rank: 0, shape: [] },
+                        last: { types: ['integer'], rank: 0, shape: [] },
+                    } };
+                }
+                if (arity === 3 && last.name === 'jump' && source.types.join() === 'functional') {
+                    return { types: ['integer'], rank: 0, shape: [] };
+                }
+                if (arity === 3 && last.name === 'query' && source.types.join() === 'segment'
+                    && source.segmentOperation && source.elements?.length) {
+                    if (source.segmentOperation === 'maxsum') {
+                        const field = { types: source.elements, rank: 0, shape: [] };
+                        return { types: ['record'], fields: {
+                            sum: field, prefix: field, suffix: field, best: field,
+                        } };
+                    }
+                    return { types: source.elements, rank: 0, shape: [] };
+                }
+                if (arity === 1 && last.name === 'components' && source.types.join() === 'dsu') {
+                    return { types: ['integer'], rank: 0, shape: [] };
+                }
+                if (arity === 2 && last.name === 'find' && source.types.join() === 'dsu'
+                    && source.elements?.length) {
+                    return stableRecordField({ types: source.elements });
+                }
+                if (arity === 3 && ['ancestor', 'lca'].includes(last.name) && source.types.join() === 'record'
+                    && source.elements?.length) {
+                    return stableRecordField({ types: source.elements });
+                }
+                if (arity === 2 && ['take', 'drop'].includes(last.name)
+                    && operands[1].types.join() === 'integer' && operands[1].rank === 0
+                    && (operands[1].integer === undefined || BigInt(operands[1].integer) >= 0n)) {
+                    const size = source.shape?.[0];
+                    const count = operands[1].integer;
+                    const leading = size == null || count === undefined ? null
+                        : Number(BigInt(count) < BigInt(size) ? BigInt(count) : BigInt(size));
+                    const length = last.name === 'drop' && size != null && leading != null
+                        ? size - leading : leading;
+                    if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [length] };
+                    if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1,
+                        shape: [length], elements: source.elements,
+                        ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
+                    if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 0) return {
+                        types: ['array'], rank: source.rank,
+                        shape: [length, ...(source.shape?.slice(1) ?? Array(source.rank - 1).fill(null))],
+                        elements: source.elements,
+                        ...(source.eagerScalarCells || source.callbackFreeScalarCells
+                            ? { callbackFreeScalarCells: true as const } : {}),
+                    };
+                }
+                if (operation.result === 'record'
+                    && (operation.recordFields || operation.recordVertexArrays
+                        || operation.recordVertexFields || operation.recordIndexValues)) {
+                    const fields: Record<string, ValueFacts> = Object.fromEntries(Object.entries(operation.recordFields ?? {})
+                        .map(([name, result]) => [name, { types: resultTypes({ result }),
+                            ...(['integer', 'real', 'number', 'boolean'].includes(result)
+                                ? { rank: 0, shape: [] } : {}) }]));
+                    if (source.types.join() === 'graph' && source.elements?.length) {
+                        for (const name of operation.recordVertexArrays ?? []) fields[name] = {
+                            types: ['array'], rank: 1, shape: [null], elements: source.elements,
+                            eagerScalarCells: true,
+                        };
+                        for (const name of operation.recordVertexFields ?? []) fields[name] =
+                            stableRecordField({ types: source.elements });
+                    }
+                    for (const [name, kind] of Object.entries(operation.recordIndexValues ?? {})) fields[name] = {
+                        types: ['index'],
+                        ...(kind === 'vertices' ? source.elements?.length ? { elements: source.elements } : {}
+                            : { elements: kind === 'integer' ? ['integer'] : ['integer', 'real'] }),
+                    };
+                    return { types: ['record'], fields,
+                        ...(last.name === 'root' && source.types.join() === 'graph' && source.elements?.length
+                            ? { elements: source.elements } : {}) };
+                }
                 if (operation.denseResult && resultTypes(operation).join() === 'array') return {
                     types: ['array'], rank: operation.denseResult.shape.length,
                     shape: operation.denseResult.shape, elements: operation.denseResult.elements,
                     eagerScalarCells: true,
                 };
+                if (arity === 1 && last.name === 'indices' && source.types.join() === 'array'
+                    && source.rank === 1 && source.elements?.join() === 'boolean'
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells)) {
+                    return { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true };
+                }
+                if (arity === 2 && last.name === 'findall' && hasCallbackFreeFindProof(source, operands[1])) {
+                    return { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true };
+                }
                 if (arity === 1 && ['factors', 'divisors'].includes(last.name)
                     && source.rank === 0 && source.types.join() === 'integer') {
                     return { types: ['sequence'], elements: ['integer'], rank: 1,
                         shape: [null], callbackFreeScalarCells: true };
                 }
+                if (arity === 1 && last.name === 'permutations' && source.types.join() === 'text') {
+                    return { types: ['sequence'], elements: ['text'], rank: 1, shape: [null],
+                        callbackFreeScalarCells: true };
+                }
                 if (arity === 1 && last.name === 'sort') {
                     const sorted = sortedScalarArray(source);
                     if (sorted) return sorted;
+                }
+                if (arity === 1 && last.name === 'argsort'
+                    && (source.types.join() === 'text' || source.types.join() === 'array'
+                        && source.rank === 1 && (source.eagerScalarCells || source.callbackFreeScalarCells))) {
+                    return { types: ['array'], rank: 1, shape: [source.shape?.[0] ?? null],
+                        elements: ['integer'], eagerScalarCells: true };
                 }
                 if (arity === 1 && last.name === 'unique' && source.rank === 1
                     && ['array', 'sequence'].includes(source.types.join())
@@ -455,6 +859,11 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                         ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
                     return { types: ['text'], rank: 1, shape: [null] };
                 }
+                if (arity === 1 && operation.preservesNumericScalarType && source.rank === 0
+                    && source.types.length > 0
+                    && source.types.every(type => type === 'integer' || type === 'real')) {
+                    return { types: source.types, rank: 0, shape: [] };
+                }
                 if (hasScalarNoCallbackProof(operation, operands)) {
                     const types = resultTypes(operation);
                     if (types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
@@ -462,14 +871,45 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                         return { types, rank: 0, shape: [] };
                     }
                 }
+                if (operation.scalarResult) return { types: resultTypes(operation), rank: 0, shape: [] };
+                if (arity === 2 && last.name === 'startswith') {
+                    const right = operands[1];
+                    if (['text', 'bytes'].includes(source.types.join())
+                        && right.types.join() === source.types.join()) {
+                        return { types: ['boolean'], rank: 0, shape: [] };
+                    }
+                    const leftArray = source.types.join() === 'array';
+                    const rightArray = right.types.join() === 'array';
+                    if (leftArray || rightArray) {
+                        const singleArray = leftArray !== rightArray;
+                        const other = leftArray ? right : source;
+                        const textCells = (value: ValueFacts): boolean => value.types.join() === 'text'
+                            || value.types.join() === 'array' && value.elements?.join() === 'text'
+                                && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
+                        const shape = leftArray && rightArray
+                            ? source.shape && right.shape && !incompatibleShapes(source, right)
+                                ? broadcastShape(source.shape, right.shape) : undefined
+                            : singleArray && other.types.length && !other.types.includes('array')
+                                ? (leftArray ? source : right).shape : undefined;
+                        return { types: ['array'], rank: shape?.length, shape,
+                            ...(textCells(source) && textCells(right) ? { elements: ['boolean'] } : {}) };
+                    }
+                }
                 if (last.name === 'sum' && arity === 1
-                    && ['array', 'sequence'].includes(source.types.join())
-                    && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && (['array', 'sequence'].includes(source.types.join())
+                        && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                        || ['queue', 'stack', 'deque', 'set'].includes(source.types.join()))
                     && source.elements?.join() === 'integer') {
                     return { types: ['integer'], rank: 0, shape: [] };
                 }
+                if (arity === 1 && operation.selectsNumericCell
+                    && ['queue', 'stack', 'deque', 'set'].includes(source.types.join())
+                    && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
+                    return { types: source.elements, rank: 0, shape: [] };
+                }
                 if (hasScalarCellArrayNoCallbackProof(operation, operands)) {
-                    return { types: resultTypes(operation), rank: 0, shape: [] };
+                    return { types: operation.selectsNumericCell ? source.elements! : resultTypes(operation),
+                        rank: 0, shape: [] };
                 }
                 if (last.name === 'parse' && arity === 2 && operands[1].textLiteral !== undefined) {
                     const positions = parsePositions(operands[1].textLiteral);
@@ -572,10 +1012,32 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     : { types: elements, rank: 0, shape: [] };
             }
         }
-        if (isNameExpression(last) && last.name === 'len' && lookup(last.name) === undefined
-            && parts.length === 2 && source.types.join() === 'array') {
-            return { types: ['integer'], rank: 0, shape: [] };
+        if (source.types.join() === 'array' && source.shape && parts.length >= 4
+            && isNameExpression(parts[1]) && ['mean', 'median', 'std', 'variance', 'var', 'skewness', 'skew']
+                .includes(parts[1].name) && lookup(parts[1].name) === undefined
+            && isNameExpression(parts[2]) && parts[2].name === 'axis'
+            && (source.eagerScalarCells || source.callbackFreeScalarCells)
+            && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
+            const axes = parts.slice(3).map(part => expressionFacts(part, lookup).integer);
+            if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
+                && Number(axis) >= 0 && Number(axis) < source.shape!.length)
+                && new Set(axes).size === axes.length) {
+                const shape = source.shape.filter((_, axis) => !axes.includes(String(axis)));
+                return shape.length ? { types: ['array'], rank: shape.length, shape,
+                    elements: ['real'], callbackFreeScalarCells: true }
+                    : { types: ['real'], rank: 0, shape: [] };
+            }
         }
+        if (isNameExpression(last) && last.name === 'len' && lookup(last.name) === undefined
+            && parts.length === 2 && (['array', 'bytes', 'text', 'queue', 'set', 'counter', 'deque', 'heap',
+                'multiset', 'object', 'graph', 'dsu', 'segment', 'wavelet'].includes(source.types.join())
+                || source.types.join() === 'sequence' && source.callbackFreeScalarCells === true)) {
+            const length = ['array', 'text', 'sequence'].includes(source.types.join()) ? source.shape?.[0] : undefined;
+            return { types: ['integer'], rank: 0, shape: [],
+                ...(length !== undefined && length !== null ? { integer: String(length) } : {}) };
+        }
+        if (isNameExpression(last) && last.name === 'len' && lookup(last.name) === undefined
+            && parts.length === 2) return { types: ['integer'], rank: 0, shape: [] };
         if (isNameExpression(last) && last.name === 'count' && lookup(last.name) === undefined
             && parts.length === 2 && source.types.join() === 'array') {
             return { types: ['integer'], rank: 0, shape: [] };
@@ -612,6 +1074,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 const dimensions = expressionFacts(parts[1], lookup).integers;
                 if (dimensions && dimensions.every(n => n === null || n >= 0)) return {
                     types: ['array'], elements: source.elements, rank: dimensions.length, shape: dimensions,
+                    ...((source.eagerScalarCells || source.callbackFreeScalarCells)
+                        && source.elements?.length && source.elements.every(type =>
+                            ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
+                        ? { eagerScalarCells: true as const } : {}),
                 };
             }
         }
@@ -622,6 +1088,26 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         if (parts.length === 2 && source.types.join() === 'counter'
             && expressionFacts(parts[1], lookup).types.length > 0) {
             return { types: ['integer'], rank: 0, shape: [] };
+        }
+        if (source.types.join() === 'array' && source.shape && parts.length - 1 <= source.shape.length) {
+            const selectors = parts.slice(1).map(part => isAllAxisExpression(part)
+                ? undefined : expressionFacts(part, lookup));
+            const integerVector = (value: ValueFacts | undefined): boolean => !!value
+                && ['array', 'sequence'].includes(value.types.join()) && value.rank === 1
+                && value.elements?.join() === 'integer'
+                && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
+            if (selectors.some(integerVector) && parts.slice(1).every((part, index) =>
+                isAllAxisExpression(part) || selectors[index]?.rank === 0
+                    && selectors[index]?.types.join() === 'integer' || integerVector(selectors[index]))) {
+                const shape = source.shape.flatMap((dimension, axis) => {
+                    const selector = selectors[axis];
+                    if (selector?.rank === 0 && selector.types.join() === 'integer') return [];
+                    return [integerVector(selector) ? selector?.shape?.[0] ?? null : dimension];
+                });
+                return { types: ['array'], rank: shape.length, shape, elements: source.elements,
+                    ...((source.eagerScalarCells || source.callbackFreeScalarCells)
+                        ? { callbackFreeScalarCells: true as const } : {}) };
+            }
         }
         if (parts.length === 2 && ['array', 'queue', 'sequence'].includes(
             expressionFacts(parts[1], lookup).types.join())) {
@@ -711,12 +1197,26 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const elements = values.every(value => value.elements !== undefined
         && (value.elements.length > 0 || types.join() === 'index'))
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
+    const elementRank = elements?.join() === 'array' && values.every(value => value.elementRank === first.elementRank)
+        ? first.elementRank : undefined;
     const positions = first.positions && values.every(value => value.positions?.length === first.positions!.length)
         ? first.positions.map((_, index) => values.every(value => value.positions![index].length)
             ? [...new Set(values.flatMap(value => value.positions![index]))] : []) : undefined;
+    const fields = types.join() === 'record' && first.fields
+        ? Object.fromEntries(Object.keys(first.fields).filter(name => values.every(value => value.fields?.[name]))
+            .map(name => [name, joinValueFacts(values.map(value => value.fields![name]))])) : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
+        ...(types.join() === 'boolean' && first.boolean !== undefined
+            && values.every(value => value.boolean === first.boolean) ? { boolean: first.boolean } : {}),
+        ...(first.functionalWeighted !== undefined
+            && values.every(value => value.functionalWeighted === first.functionalWeighted)
+            ? { functionalWeighted: first.functionalWeighted } : {}),
+        ...(first.segmentOperation && values.every(value => value.segmentOperation === first.segmentOperation)
+            ? { segmentOperation: first.segmentOperation } : {}),
         ...(elements ? { elements } : {}),
+        ...(elementRank !== undefined ? { elementRank } : {}),
         ...(positions ? { positions } : {}),
+        ...(fields ? { fields } : {}),
         ...(first.textLiteral !== undefined && values.every(value => value.textLiteral === first.textLiteral)
             ? { textLiteral: first.textLiteral } : {}),
         ...(values.every(value => value.eagerScalarCells) ? { eagerScalarCells: true as const }

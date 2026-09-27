@@ -19,7 +19,7 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Bag ceiling Limit` | element | Smallest stored value at least the limit. |
 | `Values Count combinations` | sequence, lazy | Lazy sequence of the combinations of that size, in input order. |
 | `Heap Priority Value enqueue` | collection, mutates | Inserts a payload into a heap under a separate priority. |
-| `Size fenwick` | structure | Fixed-size integer Fenwick tree with inclusive prefix sums. |
+| `Size fenwick` | fenwick | Fixed-size integer Fenwick tree with inclusive prefix sums. |
 | `Tree Target firstatleast` | integer | First position whose monotone prefix aggregate reaches the target. |
 | `Bag floor Limit` | element | Largest stored value at most the limit. |
 | `Bag lowerbound Value` | element | Smallest stored value at least the query, an alias for ceiling. |
@@ -39,7 +39,7 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Ends Value pushfront` | collection, mutates | Adds a value to the front of a deque. |
 | `Tree Left Right query` | element | Reduces an inclusive segment-tree range in left-to-right order. |
 | `Bag remove Value` | collection, mutates | Removes one occurrence from a set, counter or multiset. |
-| `Values Operation segment` | structure | Segment tree over one associative binary operation. |
+| `Values Operation segment` | segment | Segment tree over one associative binary operation. |
 | `Data Left Right Low High sumwithin` | number | Sums wavelet values inside inclusive position and value ranges. |
 | `Bag upperbound Value` | element | Smallest stored value greater than the query. |
 | `Values wavelet` | structure | Immutable wavelet matrix for range counts and sums. |
@@ -153,19 +153,19 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 | `Graph Start euler` | array | Euler trail using every edge once, or an empty array when none exists. |
 | `Dsu Value find` | element | Representative of the disjoint-set component holding a value. |
 | `Graph floyd` | record | All-pairs shortest distances addressed Distance From To. |
-| `Next functional` | structure | Successor structure prepared for jump, distance and path queries. |
-| `F Start Steps jump` | element | Vertex reached after exactly that many successor steps. |
+| `Next functional` | functional | Successor structure prepared for jump, distance and path queries. |
+| `F Start Steps jump` | integer | Vertex reached after exactly that many successor steps. |
 | `Rooted A B lca` | element | Lowest common ancestor of two vertices. |
 | `F lengths` | array | Path length from every vertex of a functional graph. |
 | `Graph Source Sink maxflow` | record | Maximum flow value, the per-edge flow and the minimum cut. |
 | `Dsu A B merge` | boolean, mutates | Unions two disjoint-set components, true only when they differed. |
 | `Graph mst` | record | Minimum spanning forest: connectivity, component count, weight and edges. |
 | `Tree pathlengths` | sequence, lazy | Lazy sequence of every unordered pair distance in a tree. |
-| `Tree Root root` | structure | Immutable rooted view of a connected undirected tree. |
+| `Tree Root root` | record | Immutable rooted view of a connected undirected tree. |
 | `Graph scc` | record | Strongly connected components of a directed graph. |
 | `Graph topological` | record | Topological order of a directed graph, or possible false. |
-| `F Start Limit upto` | integer | Counts path vertices from a start whose numbers do not exceed a limit. |
-| `Next Cost weighted` | structure | Functional graph carrying numeric edge costs along its paths. |
+| `F Start Limit upto` | value | Counts path vertices through a limit; weighted paths return count, sum and last. |
+| `Next Cost weighted` | functional | Functional graph carrying numeric edge costs along its paths. |
 
 These need `use graph` but have no name to look up.
 

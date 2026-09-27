@@ -11,6 +11,7 @@ import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 
 import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
+    isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
@@ -83,6 +84,9 @@ const RESULTS: Partial<Record<ResultKind, Types>> = {
     array: ['array'],
     table: ['array'],
     sequence: ['sequence'],
+    functional: ['functional'],
+    segment: ['segment'],
+    fenwick: ['fenwick'],
     record: ['record'],
     date: ['date'],
     datetime: ['datetime'],
@@ -163,6 +167,13 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         if (same(operand, 'array') || same(operand, 'sequence')) return operand;
         return within(operand, NUMBERS) ? operand : UNKNOWN;
     }
+    if (isFirstIndexWhereExpression(expression)) return ['integer'];
+    if (isFirstWhereExpression(expression)) return same(typeOf(expression.source, lookup), 'text') ? ['text'] : UNKNOWN;
+    if (isTakeWhileExpression(expression)) {
+        const source = typeOf(expression.source, lookup);
+        return same(source, 'text') || same(source, 'sequence') ? source
+            : same(source, 'array') || same(source, 'queue') ? ['array'] : UNKNOWN;
+    }
     if (isBinaryExpression(expression)) {
         const slice = inlineSliceOperands(expression);
         if (slice) {
@@ -170,6 +181,9 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
             return same(source, 'array') || same(source, 'text') ? source
                 : same(source, 'sequence') || same(source, 'queue') ? ['array'] : UNKNOWN;
         }
+        if (['+', '*', 'and', 'or', 'xor'].includes(expression.operator)
+            && isNameExpression(expression.right) && expression.right.name === 'segment'
+            && lookup('segment') === undefined) return ['segment'];
         return binaryType(expression.operator,
             typeOf(expression.left, lookup), typeOf(expression.right, lookup));
     }
@@ -185,7 +199,7 @@ export function compoundType(operator: string, left: Types, right: Types): Types
     return binaryType(operator.slice(0, -1), left, right);
 }
 
-function binaryType(operator: string, left: Types, right: Types): Types {
+export function binaryType(operator: string, left: Types, right: Types): Types {
     if (operator === 'default') return unionTypes(left, right);
     if (operator === 'to' || operator === 'until') return ['sequence'];
     if (COMPARISONS.has(operator)) {
@@ -212,7 +226,8 @@ function binaryType(operator: string, left: Types, right: Types): Types {
     // Division always produces a real, even when it divides exactly.
     if (operator === '/') return ['real'];
     if (operator === '//' || operator === '%') {
-        return same(left, 'integer') && same(right, 'integer') ? ['integer'] : UNKNOWN;
+        if (same(left, 'integer') && same(right, 'integer')) return ['integer'];
+        return same(left, 'real') || same(right, 'real') ? ['real'] : ['integer', 'real'];
     }
     if (operator === '**') {
         // A negative exponent turns an integer power real, and the exponent is
@@ -278,6 +293,7 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     const arity = unaryTail ? 1 : parts.length - 1;
     const source = typeOf(unaryTail ? expression.head : head, lookup);
     if (operation.arities.includes(arity)) {
+        if (arity === 1 && operation.preservesNumericScalarType && within(source, NUMBERS)) return source;
         if ((arity === 1 && mapsScalarCells(operation) || arity === 2 && operation.preservesArrayShape)
             && !same(source, 'array') && !same(source, 'sequence') && !within(source, NUMBERS)) return UNKNOWN;
         if (arity === 1 && mapsScalarCells(operation)
@@ -286,6 +302,8 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
             && (same(source, 'array') || same(source, 'sequence'))) return source;
         if (arity === 2) {
             const right = typeOf(parts[1], lookup);
+            if (operation.name === 'startswith'
+                && (same(source, 'array') || same(right, 'array'))) return ['array'];
             if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
                 && (same(source, 'array') || same(right, 'array'))) return ['array'];
             if (operation.name === 'matmul' && same(source, 'array') && same(right, 'array')) return UNKNOWN;
@@ -306,7 +324,7 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     return resultTypes(operation);
 }
 
-export function resultTypes(operation: Operation): Types {
+export function resultTypes(operation: Pick<Operation, 'result'>): Types {
     return RESULTS[operation.result] ?? UNKNOWN;
 }
 

@@ -4,7 +4,7 @@ import {
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isExpressionStatement,
     isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral, isAllAxisExpression,
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement, isStdinExpression,
-    isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isYieldStatement,
+    isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isUnpackStatement, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
@@ -19,6 +19,8 @@ export interface FunctionEffects {
     readonly parameters: ReadonlySet<number>;
     readonly reboundParameters: ReadonlySet<number>;
     readonly captures: ReadonlySet<string>;
+    /** Captured arrays whose every summarized write preserves proven numeric scalar cells. */
+    readonly numericCaptureWrites?: ReadonlySet<string>;
     readonly bindingCaptures: ReadonlySet<string>;
     readonly globalWriteCaptures: ReadonlySet<string>;
     readonly readParameters: ReadonlySet<number>;
@@ -38,7 +40,9 @@ export type ReturnOrigin = { readonly kind: 'fresh' | 'unknown' }
 /** Resolve only definitions whose binding identity is still known at the call site. */
 export function functionEffects(resolve: (name: string) => FunctionStatement | undefined,
     isFunction: (name: string) => boolean,
-    isBound: (name: string) => boolean = () => false): (name: string, arguments_?: readonly ValueFacts[]) => FunctionEffects {
+    isBound: (name: string) => boolean = () => false,
+    captureFact: (name: string) => ValueFacts | undefined = () => undefined,
+): (name: string, arguments_?: readonly ValueFacts[]) => FunctionEffects {
     const cache = new WeakMap<FunctionStatement, FunctionEffects>();
     const active = new WeakSet<FunctionStatement>();
     const unknown: FunctionEffects = { unknown: true, parameters: new Set(), reboundParameters: new Set(),
@@ -72,6 +76,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const parameters = new Set<number>();
         const reboundParameters = new Set<number>();
         const captures = new Set<string>();
+        const numericCaptureWrites = new Set<string>();
+        const unprovenCaptureWrites = new Set<string>();
         const bindingCaptures = new Set<string>();
         const globalWriteCaptures = new Set<string>();
         const readParameters = new Set<number>();
@@ -87,6 +93,20 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const grandparent = parent && isFunctionStatement(parent.$container) ? parent.$container : undefined;
         const grandparentLocals = grandparent?.$container.$type === 'Program'
             ? initialLocals(grandparent) : new Set<string>();
+        const enclosingBindings = new Set<string>();
+        for (let scope = definition.$container; isFunctionStatement(scope); scope = scope.$container) {
+            for (const name of scope.parameters) enclosingBindings.add(name);
+            for (const node of AstUtils.streamAllContents(scope)) {
+                if (AstUtils.getContainerOfType(node, isFunctionStatement) !== scope) continue;
+                if (isAssignmentStatement(node) || isFunctionStatement(node)) enclosingBindings.add(node.name);
+                if (isUnpackStatement(node)) for (const name of node.names) enclosingBindings.add(name);
+                if (isForStatement(node) && isBinaryExpression(node.condition) && node.condition.operator === 'in') {
+                    const names = [node.condition.left, ...AstUtils.streamAllContents(node.condition.left)]
+                        .filter(isNameExpression);
+                    for (const binder of names) enclosingBindings.add(binder.name);
+                }
+            }
+        }
         const unshadowedGrandparent = (name: string): boolean => !!parent && !!grandparent
             && (grandparent.parameters.includes(name) || grandparentLocals.has(name))
             && !parent.parameters.includes(name)
@@ -106,7 +126,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             ? new Map(definition.parameters.map((name, index) => [name, inputs[index]] as const)) : undefined;
         const fact = (value: Expression): ValueFacts => expressionFacts(value,
             name => changedLocals.has(name) || reboundParameters.has(definition.parameters.indexOf(name))
-                ? UNKNOWN_VALUE : facts?.get(name) ?? (isFunction(name) ? { types: ['function'] } : undefined));
+                ? UNKNOWN_VALUE : facts?.get(name) ?? (!assignments.has(name) && !locals.has(name)
+                    ? captureFact(name) : undefined) ?? (isFunction(name) ? { types: ['function'] } : undefined));
         const helperFor = (name: string): FunctionStatement | undefined => {
             const local = localFunctions.get(name);
             if (local) return local;
@@ -230,13 +251,15 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             }
             return [...origins.values()];
         };
-        const write = (target: string): boolean => {
+        const write = (target: string, preservesNumericCells = false): boolean => {
             // Rebound parameters and local aliases need provenance analysis.
             if (assignments.has(target) || target.includes('.')) return false;
             const index = definition.parameters.indexOf(target);
             if (index >= 0) parameters.add(index);
             else {
                 captures.add(target);
+                if (preservesNumericCells) numericCaptureWrites.add(target);
+                else unprovenCaptureWrites.add(target);
                 if (definition.$container.$type === 'Program') globalWriteCaptures.add(target);
             }
             return true;
@@ -281,7 +304,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (operation.arrayHeaderNoCallback) {
                     return hasArrayHeaderNoCallbackProof(operation, arguments_.map(fact));
                 }
-                if (name === 'max' && arguments_.length === 2 && arguments_.every(argument => {
+                if ((name === 'max' || name === 'min') && arguments_.length === 2 && arguments_.every(argument => {
                     const value = fact(argument);
                     return value.rank === 0 && value.types.length > 0
                         && value.types.every(type => type === 'integer' || type === 'real');
@@ -314,6 +337,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 }
                 if (locals.has(capture) && !effects.globalWriteCaptures.has(capture)) return false;
                 captures.add(capture);
+                unprovenCaptureWrites.add(capture);
                 if (effects.globalWriteCaptures.has(capture)
                     || helper.$container === definition && definition.$container.$type === 'Program') globalWriteCaptures.add(capture);
             }
@@ -471,11 +495,18 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     bindingCaptures.add(item.name);
                     return true;
                 }
-                return definition.parameters.includes(item.name) || definition.$container.$type === 'Program';
+                return definition.parameters.includes(item.name) || definition.$container.$type === 'Program'
+                    || !isBound(item.name) && !enclosingBindings.has(item.name);
             }
             if (isArrayAssignmentStatement(item)) {
+                const captured = !assignments.has(item.name) && !locals.has(item.name)
+                    ? captureFact(item.name) : undefined;
+                const numericCapture = captured?.types.join() === 'array'
+                    && !!(captured.eagerScalarCells || captured.callbackFreeScalarCells)
+                    && !!captured.elements?.length
+                    && captured.elements.every(type => type === 'integer' || type === 'real');
                 if (!isPlainArrayWrite(item, value => isNumberLiteral(value) && typeof value.value === 'bigint'
-                    || privateArrays.has(item.name) && fact(value).rank === 0
+                    || (privateArrays.has(item.name) || numericCapture) && fact(value).rank === 0
                         && fact(value).types.join() === 'integer')) return false;
                 if (privateArrays.has(item.name)) {
                     if (!expression(item.value) || !item.indices.every(index => !index.value || expression(index.value))) return false;
@@ -484,6 +515,15 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                         changedLocals.add(item.name);
                     }
                     return true;
+                }
+                if (numericCapture) {
+                    const value = fact(item.value);
+                    if (value.rank === 0 && value.types.length
+                        && value.types.every(type => captured.elements!.includes(type))) {
+                        return expression(item.value)
+                            && item.indices.every(index => !index.value || expression(index.value))
+                            && write(item.name, true);
+                    }
                 }
                 return write(item.name) && expression(item.value)
                     && item.indices.every(index => !index.value || expression(index.value));
@@ -604,8 +644,11 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         active.add(definition);
         try {
             let origins: readonly ReturnOrigin[] | undefined;
-            const result = definition.statements.every(statement) ? {
+            const supported = definition.statements.every(statement);
+            for (const name of unprovenCaptureWrites) numericCaptureWrites.delete(name);
+            const result = supported ? {
                 unknown: false, parameters, reboundParameters, captures, bindingCaptures, globalWriteCaptures,
+                ...(numericCaptureWrites.size ? { numericCaptureWrites } : {}),
                 readParameters, readCaptures, globalReadCaptures,
                 valueCaptures, globalValueCaptures, io,
                 get returns() { return origins ??= returnOrigins().map(item =>

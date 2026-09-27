@@ -54,8 +54,19 @@ export function functionTestExamples(program: Program, moduleName?: string,
             if (moduleName !== undefined ? !imported : !localFunctions.has(last.name)) return undefined;
             const name = imported?.alias ? last.name.slice(imported.alias.length + 1) : last.name;
             if (knownFunctions && !knownFunctions.has(name)) return undefined;
+            const prefix = expression.head;
+            const prefixParts = isApplicationExpression(prefix) ? flattenApplication(prefix) : [];
+            const prefixLast = prefixParts.at(-1);
+            const prefixOperation = prefixLast && isNameExpression(prefixLast)
+                && !bindings.has(prefixLast.name) && !localFunctions.has(prefixLast.name)
+                ? findOperation(prefixLast.name) : undefined;
+            const piped = prefixOperation && prefixOperation.arities.includes(prefixParts.length - 1)
+                && (prefixOperation.module === 'core' || test.statements.some(statement =>
+                    isUseStatement(statement) && !statement.alias
+                    && statement.module === prefixOperation.module));
             return { name,
-                arguments: parts.slice(0, -1).map(part => expressionFacts(part, name => bindings.get(name))) };
+                arguments: (piped ? [prefix] : parts.slice(0, -1))
+                    .map(part => expressionFacts(part, name => bindings.get(name))) };
         };
         for (const statement of test.statements) {
             if (isAssignmentStatement(statement) && statement.operator === '=') {

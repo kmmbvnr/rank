@@ -26,6 +26,415 @@ it('separates scalar type, array elements, rank and dimensions', () => {
         shape: [2, 2], eagerScalarCells: true });
 });
 
+it('keeps only shared exact boolean facts across paths', () => {
+    expect(facts('true')).toEqual({ types: ['boolean'], rank: 0, shape: [], boolean: true });
+    expect(facts('not false')).toEqual({ types: ['boolean'], rank: 0, shape: [], boolean: true });
+    const yes = facts('true');
+    const no = facts('false');
+    expect(joinValueFacts([yes, yes]).boolean).toBe(true);
+    expect(joinValueFacts([yes, no]).boolean).toBeUndefined();
+});
+
+it('uses proven indexed scalar facts for comparisons and boolean combinations', () => {
+    const bindings = new Map<string, ValueFacts>([['Values', {
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+    }], ['Index', { types: ['integer'], rank: 0, shape: [] }]]);
+    expect(facts('Values Index less 3', bindings)).toMatchObject({ types: ['boolean'], rank: 0 });
+    expect(facts('(Values Index less 3) and (Values Index equal 1)', bindings))
+        .toMatchObject({ types: ['boolean'], rank: 0 });
+    expect(facts('Values Index less 3', new Map([['Index', bindings.get('Index')!]])))
+        .toEqual({ types: [] });
+});
+
+it('infers the stable outer shape of flat XML and JSON documents', () => {
+    expect(facts('"<root/>" xml')).toEqual({ types: ['object'] });
+    for (const document of ['"<root/>" xml .flat', '"{}" json .flat']) {
+        expect(facts(document)).toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['object'] });
+    }
+    expect(facts('"<root/>" xml .flat', new Map([['xml', { types: ['function'] }]])))
+        .toEqual({ types: [] });
+});
+
+it('infers outer facts from literal JSON without assuming external schemas', () => {
+    expect(facts('"[{\\"x\\":1},{\\"x\\":2}]" json')).toEqual({
+        types: ['array'], rank: 1, shape: [2], elements: ['object'],
+    });
+    expect(facts('"[1, true, null]" json')).toEqual({
+        types: ['array'], rank: 1, shape: [3], elements: ['integer', 'real', 'boolean', 'symbol'],
+        eagerScalarCells: true,
+    });
+    expect(facts('"{\\"x\\":1}" json')).toEqual({ types: ['object'] });
+    expect(facts('"[1, 2]" json', new Map([['json', { types: ['function'] }]]))).toEqual({ types: [] });
+    expect(facts('"not JSON" json')).toEqual({ types: [] });
+    expect(facts('Input json', new Map([['Input', { types: ['text'], rank: 1, shape: [null] }]])))
+        .toEqual({ types: [] });
+});
+
+it('keeps the row and column axes when selecting named table fields', () => {
+    const rows = facts('"[{\\"a\\":1,\\"b\\":2},{\\"a\\":3,\\"b\\":4}]" json');
+    const bindings = new Map<string, ValueFacts>([['Rows', rows]]);
+    expect(facts('array .a .b')).toEqual({ types: ['array'], rank: 1, shape: [2],
+        elements: ['symbol'], eagerScalarCells: true });
+    expect(facts('Rows (array .a .b)', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [2, 2],
+    });
+    expect(facts('Rows (array 0 1)', bindings)).toMatchObject({ types: ['array'], rank: 1 });
+    expect(facts('Rows Keys', new Map([...bindings, ['Keys', { types: ['array'], rank: 1,
+        shape: [null], elements: ['symbol'], eagerScalarCells: true }]]))).not.toMatchObject({ rank: 2 });
+});
+
+it('keeps the outer rank but not row facts across a table filter', () => {
+    const rows = facts('"[{\\"name\\":\\"x\\"},{\\"name\\":\\"y\\"}]" json');
+    expect(facts('Rows filter .name equal "x"', new Map([['Rows', rows]]))).toEqual({
+        types: ['array'], rank: 1, shape: [null],
+    });
+});
+
+it('infers the integer length of a known array axis', () => {
+    const bindings = new Map<string, ValueFacts>([['Matrix', {
+        types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], eagerScalarCells: true,
+    }]]);
+    expect(facts('Matrix len axis 1', bindings)).toEqual({ types: ['integer'], rank: 0,
+        shape: [], integer: '3' });
+    expect(facts('Matrix len axis 2', bindings)).toEqual({ types: [] });
+});
+
+it('infers numeric statistic cells after reducing known array axes', () => {
+    const matrix = facts('array shape 2 3 fill 2');
+    const bindings = new Map<string, ValueFacts>([['Matrix', matrix]]);
+    for (const operation of ['mean', 'std', 'median', 'variance', 'var', 'skewness', 'skew']) {
+        expect(facts(`Matrix ${operation} axis 0`, bindings)).toEqual({
+            types: ['array'], rank: 1, shape: [3], elements: ['real'], callbackFreeScalarCells: true,
+        });
+    }
+    expect(facts('Matrix mean axis 0 1', bindings)).toEqual({ types: ['real'], rank: 0, shape: [] });
+    expect(facts('Matrix mean axis 0', new Map([['Matrix', {
+        types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'],
+    }]]))).toEqual({ types: [] });
+    expect(facts('Matrix mean axis 0', new Map([...bindings, ['mean', { types: ['function'] }]])))
+        .toEqual({ types: [] });
+});
+
+it('infers covariance and correlation matrix shapes from feature axes', () => {
+    const matrix = facts('array shape 2 3 fill 2');
+    const bindings = new Map<string, ValueFacts>([['Matrix', matrix]]);
+    for (const operation of ['covariance', 'correlation', 'corr']) {
+        expect(facts(`Matrix ${operation} axis 1 0`, bindings)).toEqual({
+            types: ['array'], rank: 2, shape: [3, 3], elements: ['real'], callbackFreeScalarCells: true,
+        });
+    }
+    expect(facts('Matrix covariance', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [2, 2], elements: ['real'], callbackFreeScalarCells: true,
+    });
+    const tensor = facts('array shape 2 2 3 fill 1');
+    expect(facts('Tensor covariance axis 0 2', new Map([['Tensor', tensor]]))).toEqual({
+        types: ['array'], rank: 3, shape: [2, 2, 2], elements: ['real'], callbackFreeScalarCells: true,
+    });
+    expect(facts('Matrix covariance axis 1 1', bindings)).toEqual({ types: [] });
+});
+
+it('keeps distinct array ranks in the two eager results of eigh', () => {
+    const matrix = facts('array shape 2 2 fill 1.0');
+    expect(facts('Matrix eigh', new Map([['Matrix', matrix]]))).toEqual({
+        types: ['array'], rank: 1, shape: [2], elements: ['array'], eagerScalarCells: true,
+        positionFacts: [
+            { types: ['array'], rank: 1, shape: [2], elements: ['real'], eagerScalarCells: true },
+            { types: ['array'], rank: 2, shape: [2, 2], elements: ['real'], eagerScalarCells: true },
+        ],
+    });
+});
+
+it('gives finite collection lengths scalar rank', () => {
+    expect(facts('"abc" len')).toEqual({ types: ['integer'], rank: 0, shape: [], integer: '3' });
+    const bindings = new Map<string, ValueFacts>([['Items', { types: ['queue'], elements: ['integer'] }]]);
+    expect(facts('Items len', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Values len', new Map([['Values', facts('array shape 2 3 fill 0')]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [], integer: '2' });
+    expect(facts('Values len', new Map([['Values', { types: ['array'], rank: 1, shape: [null] }]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(1 to 5) len')).toEqual({ types: ['integer'], rank: 0, shape: [], integer: '5' });
+    expect(facts('Values len', new Map([['Values', { types: ['sequence'], rank: 1, shape: [5] }]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+});
+
+it('keeps known record field facts and builtin record contracts', () => {
+    expect(facts('(record\n  .count = 3\n  .name = "a"\nend) .count'))
+        .toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('(record\n  .items = array 1 2\nend) .items')).toEqual({ types: ['array'] });
+    expect(facts('((record\n  .count = 3\nend) with\n  .count += 2\nend) .count'))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(record\n  .count = 3\nend) .missing')).toEqual({ types: [] });
+    const bindings = new Map<string, ValueFacts>([['Graph', { types: ['graph'] }]]);
+    expect(facts('(Graph 1 2 maxflow) .value', bindings)).toEqual({
+        types: ['integer', 'real'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph topological) .possible', bindings)).toEqual({
+        types: ['boolean'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph scc) .count', bindings)).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph mst) .weight', bindings)).toEqual({
+        types: ['integer', 'real'], rank: 0, shape: [],
+    });
+});
+
+it('keeps closed graph vertex types through neighbor lookup', () => {
+    const graph = facts('new graph (1 to 4) .directed');
+    expect(graph).toMatchObject({ types: ['graph'], elements: ['integer'] });
+    expect(facts('Graph 1', new Map([['Graph', graph]]))).toEqual({
+        types: ['sequence'], rank: 1, shape: [null], elements: ['integer'], callbackFreeScalarCells: true,
+    });
+    expect(facts('new graph .directed')).toEqual({ types: ['graph'] });
+    expect(facts('(Graph topological) .order', new Map([['Graph', graph]]))).toEqual({
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+    });
+    const sorted = facts('Graph topological', new Map([['Graph', graph]]));
+    expect(facts('Sorted .order 0', new Map([['Sorted', sorted]]))).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    expect(facts('Sorted .order len', new Map([['Sorted', sorted]]))).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph 1 bfs) .distance 1', new Map([['Graph', graph]]))).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph 1 bfs) .parent 2', new Map([['Graph', graph]]))).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph 1 root) .order', new Map([['Graph', graph]]))).toEqual({
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+    });
+    expect(facts('(Graph 1 root) .parent 2', new Map([['Graph', graph]]))).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    expect(facts('(Graph 1 root) .size 2', new Map([['Graph', graph]]))).toEqual({
+        types: ['integer'], rank: 0, shape: [],
+    });
+    const rooted = facts('Graph 1 root', new Map([['Graph', graph]]));
+    expect(rooted.elements).toEqual(['integer']);
+    expect(facts('Rooted 2 3 lca', new Map([['Rooted', rooted]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Rooted 3 1 ancestor', new Map([['Rooted', rooted]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Rooted 2 3 lca', new Map([['Rooted', { types: ['record'] }]])))
+        .toEqual({ types: [] });
+    expect(facts('((Graph topological) with\n  .order = array "x"\nend) .order',
+        new Map([['Graph', graph]]))).toEqual({ types: ['array'] });
+});
+
+it('distinguishes dsu components from graph components and tracks closed dsu values', () => {
+    const dsu = facts('new dsu (1 to 4)');
+    expect(dsu).toEqual({ types: ['dsu'], elements: ['integer'] });
+    const bindings = new Map<string, ValueFacts>([['Union', dsu]]);
+    expect(facts('Union components', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Union find 2', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('new dsu components')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    const words = facts('new dsu (array "a" "b")');
+    expect(facts('Words find "a"', new Map([['Words', words]])))
+        .toEqual({ types: ['text'], rank: 1, shape: [null] });
+    const mixed = facts('new dsu (array 1 "x")');
+    expect(facts('Mixed find 1', new Map([['Mixed', mixed]])))
+        .toEqual({ types: ['integer', 'text'] });
+    expect(facts('Union find 2', new Map([['Union', { types: ['dsu'] }]])))
+        .toEqual({ types: [] });
+});
+
+it('distinguishes weighted and unweighted functional graph results', () => {
+    const plain = facts('(array 2 2) functional');
+    const weighted = facts('(array 2 2) (array 3 4) weighted');
+    expect(plain).toEqual({ types: ['functional'], functionalWeighted: false });
+    expect(weighted).toEqual({ types: ['functional'], functionalWeighted: true });
+    expect(facts('Path 1 2 upto', new Map([['Path', plain]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Path 1 2 upto', new Map([['Path', weighted]]))).toMatchObject({
+        types: ['record'], fields: { count: { types: ['integer'] },
+            sum: { types: ['integer', 'real'] }, last: { types: ['integer'] } },
+    });
+    expect(facts('Path 1 2 upto', new Map([['Path', { types: ['functional'] }]])))
+        .toEqual({ types: [] });
+    expect(joinValueFacts([plain, weighted])).toEqual({ types: ['functional'] });
+    expect(joinValueFacts([plain, plain])).toEqual(plain);
+    expect(facts('Path 1 2 jump', new Map([['Path', plain]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Path lengths', new Map([['Path', plain]]))).toEqual({
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+    });
+});
+
+it('tracks the kind, cells and leading dimension of take and drop', () => {
+    expect(facts('(array 1 2 3) 1 drop')).toEqual({ types: ['array'], rank: 1,
+        shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(array shape 2 3 fill 0) 1 take')).toEqual({ types: ['array'], rank: 2,
+        shape: [1, 3], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(1 to 5) 2 take')).toEqual({ types: ['sequence'], rank: 1,
+        shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('"abcd" 2 drop')).toEqual({ types: ['text'], rank: 1, shape: [2] });
+    expect(facts('Lazy 1 drop', new Map([['Lazy', { types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'] }]]))).toEqual({
+        types: ['array'], rank: 1, shape: [2], elements: ['integer'],
+    });
+    expect(facts('(array 1 2) 1.5 take')).toEqual({ types: [] });
+});
+
+it('infers numeric scans without treating unsafe cell readers as callback-free', () => {
+    expect(facts('(array 1 2 3) + scan with 0')).toEqual({ types: ['array'], rank: 1,
+        shape: [4], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(1 to 3) * scan with 1')).toEqual({ types: ['sequence'], rank: 1,
+        shape: [4], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(array 1 2 3) + scan')).toEqual({ types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(array 1 2) + scan with 0.5')).toEqual({ types: ['array'], rank: 1,
+        shape: [3], elements: ['integer', 'real'], callbackFreeScalarCells: true });
+    expect(facts('Unsafe + scan with 0', new Map([['Unsafe', { types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'] }]]))).toEqual({ types: [] });
+});
+
+it('keeps numeric cells through callback-free sequence arithmetic', () => {
+    const codes: ValueFacts = { types: ['sequence'], rank: 1, shape: [4],
+        elements: ['integer'], callbackFreeScalarCells: true };
+    const bindings = new Map<string, ValueFacts>([['Codes', codes]]);
+    expect(facts('46 - Codes', bindings)).toEqual({ types: ['sequence'], rank: 1, shape: [4],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(46 - Codes) // 4', bindings)).toEqual({ types: ['sequence'], rank: 1, shape: [4],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    bindings.set('Codes', { ...codes, callbackFreeScalarCells: undefined });
+    expect(facts('46 - Codes', bindings).callbackFreeScalarCells).toBeUndefined();
+});
+
+it('keeps numeric result types for mixed integer-real division and remainder', () => {
+    const bindings = new Map<string, ValueFacts>([['Total', {
+        types: ['integer', 'real'], rank: 0, shape: [],
+    }]]);
+    expect(facts('Total % 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Total // 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('3.5 % 2')).toEqual({ types: ['real'], rank: 0, shape: [] });
+    expect(facts('7 % 2')).toMatchObject({ types: ['integer'], rank: 0 });
+});
+
+it('types safe integer-vector selection and sequence slicing', () => {
+    const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [3, 4],
+        elements: ['integer'], eagerScalarCells: true };
+    const indices: ValueFacts = { types: ['sequence'], rank: 1, shape: [2],
+        elements: ['integer'], callbackFreeScalarCells: true };
+    const bindings = new Map<string, ValueFacts>([['A', matrix], ['I', indices]]);
+    expect(facts('A 0 I', bindings)).toEqual({ types: ['array'], rank: 1, shape: [2],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('A I', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, 4],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    bindings.set('I', { ...indices, callbackFreeScalarCells: undefined });
+    expect(facts('A 0 I', bindings).elements).toBeUndefined();
+    expect(facts('(1 to 4) from 1 to 2')).toEqual({ types: ['array'], rank: 1,
+        shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
+});
+
+it('retains declared stdin cell types after materialization', () => {
+    expect(facts('stdin .integer 3 array')).toEqual({ types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'], eagerScalarCells: true });
+    expect(facts('stdin .word N array', new Map([['N', { types: ['integer'], rank: 0, shape: [] }]])))
+        .toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['text'], eagerScalarCells: true });
+    expect(facts('stdin .integer 3')).toEqual({ types: ['sequence'], rank: 1,
+        shape: [3], elements: ['integer'] });
+});
+
+it('tracks callback-free membership masks and short-circuit selectors', () => {
+    const values: ValueFacts = { types: ['array'], rank: 1, shape: [4], elements: ['integer'],
+        eagerScalarCells: true };
+    const bindings = new Map<string, ValueFacts>([['Values', values]]);
+    const mask = facts('Values in (array 2 4)', bindings);
+    expect(mask).toEqual({ types: ['array'], rank: 1, shape: [4], elements: ['boolean'],
+        callbackFreeScalarCells: true });
+    bindings.set('Mask', mask);
+    expect(facts('Values first where Mask', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Values first index where Mask', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Values take while Mask', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('Q take while Mask', new Map([...bindings, ['Q', { types: ['queue'] }]])))
+        .toEqual({ types: ['array'], rank: 1, shape: [null] });
+    expect(facts('Values first where Unsafe', new Map([...bindings, ['Unsafe', { types: [] }]])))
+        .toEqual({ types: [] });
+    expect(facts('"abcd" permutations')).toEqual({ types: ['sequence'], rank: 1, shape: [null],
+        elements: ['text'], callbackFreeScalarCells: true });
+    expect(facts('Mask indices', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Unsafe indices', new Map([...bindings, ['Unsafe', { types: ['array'], rank: 1,
+        shape: [null], elements: ['boolean'] }]]))).toEqual({ types: ['array'] });
+    expect(facts('"ababa" "a" findall')).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Values 2 findall', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Unsafe 2 findall', new Map([...bindings, ['Unsafe', { types: ['array'], rank: 1,
+        shape: [null], elements: ['integer'] }]]))).toEqual({ types: ['array'] });
+    for (const [source, expected] of [
+        ['Values first index where Mask', 'integer'], ['Values take while Mask', 'array'],
+    ]) {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = ${source}\n`);
+        const statement = parsed.value.statements[0];
+        if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+        expect(typeOf(statement.value, name => bindings.get(name)?.types)).toEqual([expected]);
+    }
+});
+
+it('types Fenwick construction, indexed reads and inclusive prefix sums', () => {
+    expect(facts('5 fenwick')).toEqual({ types: ['fenwick'] });
+    const tree: ValueFacts = { types: ['fenwick'] };
+    expect(facts('F 2', new Map([['F', tree]]))).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('F sum 2', new Map([['F', tree]]))).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('F sum 2', new Map([['F', tree], ['sum', { types: ['function'] }]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+});
+
+it('keeps numeric payloads only for known built-in segment combines', () => {
+    for (const [source, operation] of [['(array 1 2) + segment', '+'],
+        ['(array 1 2) min segment', 'min'], ['(array 1 2) max segment', 'max']]) {
+        const tree = facts(source);
+        expect(tree).toEqual({ types: ['segment'], elements: ['integer'], segmentOperation: operation });
+        expect(facts('Tree 0 1 query', new Map([['Tree', tree]])))
+            .toEqual({ types: ['integer'], rank: 0, shape: [] });
+        expect(facts('Tree 0', new Map([['Tree', tree]])))
+            .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    }
+    const tree: ValueFacts = { types: ['segment'] };
+    expect(facts('Tree 0 0 query', new Map([['Tree', tree]]))).toEqual({ types: [] });
+});
+
+it('infers the built-in maxsum segment profile without assuming a shadowed combine', () => {
+    const tree = facts('(array 1 2) maxsum segment');
+    expect(tree).toEqual({ types: ['segment'], elements: ['integer'], segmentOperation: 'maxsum' });
+    const bindings = new Map([['Tree', tree]]);
+    expect(facts('Tree 0', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Tree 0 1 query', bindings)).toEqual({ types: ['record'], fields: {
+        sum: { types: ['integer'], rank: 0, shape: [] },
+        prefix: { types: ['integer'], rank: 0, shape: [] },
+        suffix: { types: ['integer'], rank: 0, shape: [] },
+        best: { types: ['integer'], rank: 0, shape: [] },
+    } });
+    const mixed = facts('(array 1 2.5) maxsum segment');
+    expect(facts('Tree 0 1 query', new Map([['Tree', mixed]]))?.fields?.best?.types)
+        .toEqual(['integer', 'real']);
+    expect(facts('Values maxsum segment', new Map([['Values', {
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'],
+    }]]))).not.toHaveProperty('segmentOperation');
+    expect(facts('(array 1 2) maxsum segment', new Map([['maxsum', { types: ['function'] }]])))
+        .not.toHaveProperty('segmentOperation');
+});
+
+it('infers integer bitwise segment combines only for built-in operations', () => {
+    for (const operation of ['band', 'bor', 'bxor']) {
+        const tree = facts(`(array 7 3) ${operation} segment`);
+        expect(tree).toEqual({ types: ['segment'], elements: ['integer'], segmentOperation: operation });
+        expect(facts('Tree 0 1 query', new Map([['Tree', tree]])))
+            .toEqual({ types: ['integer'], rank: 0, shape: [] });
+        expect(facts(`(array 1.5 2.5) ${operation} segment`)).not.toHaveProperty('segmentOperation');
+        expect(facts(`(array 7 3) ${operation} segment`, new Map([[operation, { types: ['function'] }]])))
+            .not.toHaveProperty('segmentOperation');
+    }
+});
+
+it('starts each explicit index with a known empty value set', () => {
+    expect(facts('new index')).toEqual({ types: ['index'], elements: [] });
+});
+
 it('keeps integer cells through integer-only array arithmetic', () => {
     expect(facts('(array 1 2) - 1')).toMatchObject({ types: ['array'], elements: ['integer'],
         callbackFreeScalarCells: true });
@@ -101,10 +510,46 @@ it('keeps the shape and scalar cells of a dense array copy', () => {
         .toEqual({ types: ['array'] });
 });
 
+it('materializes proven scalar cells when reshaping an array or sequence', () => {
+    const source: ValueFacts = { types: ['array'], rank: 1, shape: [4],
+        elements: ['integer'], eagerScalarCells: true };
+    expect(facts('Values (array 2 2) reshape', new Map([['Values', source]])))
+        .toEqual({ types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Values (array 2 2) reshape', new Map([['Values', {
+        ...source, eagerScalarCells: undefined,
+    }]]))).toEqual({ types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'] });
+    expect(facts('(1 to 4) (array 2 2) reshape')).toEqual({ types: ['array'], rank: 2, shape: [2, 2],
+        elements: ['integer'], eagerScalarCells: true });
+});
+
 it('keeps integer sums of proven scalar cells exact', () => {
     expect(facts('(array 1 2 3) sum')).toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('(1 to 3) sum')).toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('(array 1 2.5) sum')).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    for (const type of ['queue', 'stack', 'deque', 'set']) {
+        expect(facts('Items sum', new Map([['Items', { types: [type], elements: ['integer'] }]])))
+            .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    }
+    expect(facts('Items sum', new Map([['Items', { types: ['queue'], elements: ['integer', 'real'] }]])))
+        .toEqual({ types: ['integer', 'real'] });
+    expect(facts('Items sum', new Map([
+        ['Items', { types: ['queue'], elements: ['integer'] }],
+        ['sum', { types: ['function'] }],
+    ]))).toEqual({ types: [] });
+});
+
+it('selects numeric cell types from native collections', () => {
+    for (const type of ['queue', 'stack', 'deque', 'set']) {
+        const source: ValueFacts = { types: [type], elements: ['integer'] };
+        expect(facts('Items min', new Map([['Items', source]])))
+            .toEqual({ types: ['integer'], rank: 0, shape: [] });
+        expect(facts('Items max', new Map([['Items', source]])))
+            .toEqual({ types: ['integer'], rank: 0, shape: [] });
+    }
+    expect(facts('Items min', new Map([['Items', { types: ['set'], elements: ['integer', 'real'] }]])))
+        .toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Items min', new Map([['Items', { types: ['set'], elements: ['integer'] }],
+        ['min', { types: ['function'] }]]))).toEqual({ types: [] });
 });
 
 it('keeps scalar cells through a stable numeric sort', () => {
@@ -211,7 +656,7 @@ it('retains result types when a collection selects an axis', () => {
     expect(facts('Source Indices', new Map([
         ['Source', { types: ['array'], rank: 2, shape: [3, 4], elements: ['integer'], eagerScalarCells: true }],
         ['Indices', { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true }],
-    ]))).toMatchObject({ types: ['array'], rank: 2, shape: [null, 4], elements: ['integer'],
+    ]))).toMatchObject({ types: ['array'], rank: 2, shape: [2, 4], elements: ['integer'],
         callbackFreeScalarCells: true });
     expect(facts('Source queue', new Map([
         ['Source', { types: ['sequence'], rank: 1, shape: [5], elements: ['integer'] }],
@@ -289,6 +734,34 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
     expect(facts('1 2 max', new Map([['max', { types: ['function'] }]]))).not.toMatchObject({ rank: 0 });
 });
 
+it('keeps the rank of builtins that always return one scalar', () => {
+    for (const source of ['X Y gcd', 'X lcm', 'X Y lcm', 'X Y Z powmod',
+        'X Y Z binomialmod', 'X len', 'X count', 'X Y find', 'X Y firstatleast',
+        'X position', 'X size', 'X seed', 'X codepoint']) {
+        expect(facts(source)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    }
+    for (const source of ['X Y bit', 'X Y Z connected', 'X Y Z merge',
+        'X eof']) {
+        expect(facts(source)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    }
+    expect(facts('(array 1 2) 1 binomial').types).toEqual(['array']);
+    expect(facts('"abc" "a" startswith')).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('("abc" bytes) ("a" bytes) startswith'))
+        .toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('(array "a" "b") "a" startswith')).toMatchObject({
+        types: ['array'], rank: 1, shape: [2],
+    });
+    expect(facts('"ab" (array "a" "b") startswith')).toMatchObject({
+        types: ['array'], rank: 1, shape: [2],
+    });
+    expect(facts('(array "ab" "bc" shape 2 1) (array "a" "b") startswith'))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [2, 2] });
+    expect(facts('(array "a" "b") Unknown startswith')).toEqual({ types: ['array'] });
+    expect(facts('"abc" "a" startswith',
+        new Map([['startswith', { types: ['function'] }]]))).toEqual({ types: [] });
+    expect(facts('X len', new Map([['len', { types: ['function'] }]]))).not.toHaveProperty('rank');
+});
+
 it('keeps scalar rank through unary signs and guarded numeric builtins', () => {
     const scalar: ValueFacts = { types: ['real'], rank: 0, shape: [] };
     const vector: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['real'] };
@@ -330,7 +803,12 @@ it('keeps callback-free numeric cells through arithmetic and scalar folds', () =
     expect(facts('Input ** 2', bindings)).toMatchObject({ types: ['array'], rank: 1,
         shape: [3], callbackFreeScalarCells: true });
     expect(facts('(Input ** 2) sum', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
-    expect(facts('Input max', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Input max', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Input min', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Input max', new Map([['Input', { ...input, elements: ['real'] }]])))
+        .toEqual({ types: ['real'], rank: 0, shape: [] });
+    expect(facts('Input min', new Map([['Input', { ...input, eagerScalarCells: undefined }]])))
+        .toEqual({ types: ['integer', 'real'] });
     expect(facts('Input 0 max', bindings).callbackFreeScalarCells).toBe(true);
     expect(facts('Input 0 min', bindings).callbackFreeScalarCells).toBe(true);
     expect(facts('Input 0 max', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
@@ -379,6 +857,28 @@ it('keeps a unary builtin result as the left operand of a dyadic builtin', () =>
         ['transpose', { types: ['function'] }]]))).not.toMatchObject({
         rank: 1, callbackFreeScalarCells: true,
     });
+});
+
+it('uses the prior unary result when the next builtin also accepts two operands', () => {
+    const values = facts('array 3 1 3');
+    expect(facts('Values unique sort', new Map([['Values', values]]))).toEqual({
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+    });
+    expect(facts('Values 0 sort', new Map([['Values', values]]))).toEqual({ types: ['array'] });
+    expect(facts('Values unique sort', new Map([['Values', values],
+        ['unique', { types: ['function'] }]]))).not.toHaveProperty('elements');
+});
+
+it('infers integer positions returned by built-in argsort', () => {
+    const values = facts('array 3 1 2');
+    expect(facts('Values argsort', new Map([['Values', values]]))).toEqual({
+        types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
+    });
+    expect(facts('"bca" argsort')).toEqual({
+        types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
+    });
+    expect(facts('Values argsort', new Map([['Values', values],
+        ['argsort', { types: ['function'] }]]))).not.toHaveProperty('elements');
 });
 
 it('joins eager and derived numeric readers without losing the no-callback fact', () => {

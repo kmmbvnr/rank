@@ -39,6 +39,14 @@ array (Q 0) (Q 1) (Q len) Sum (Q + reduce)
 `)).toBe('2 3 2 5 5');
     });
 
+    it('reduces integer collection values as integers', () => {
+        for (const kind of ['queue', 'stack', 'deque', 'set']) {
+            const insert = kind === 'set' ? 'add' : 'push';
+            expect(run(prelude + `C = new ${kind}\nC ${insert} 1\nC ${insert} 2\narray (C sum) (C min) (C max)`))
+                .toBe('3 1 2');
+        }
+    });
+
     it('supports queue iteration that appends work for BFS', () => {
         expect(run(prelude + `
 Q = new queue
@@ -133,7 +141,7 @@ array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5
         }
     });
 
-    it('matches reference models through mixed operations and reuse', () => {
+    it('matches reference models through mixed operations', () => {
         const deque = new RankDeque('deque');
         const heap = new RankHeap();
         const queueModel: bigint[] = [];
@@ -156,8 +164,8 @@ array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5
         expect(deque.items).toEqual(queueModel);
         heapModel.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
         expect(Array.from({ length: heap.size }, () => heap.pop())).toEqual(heapModel);
-        heap.push('reused');
-        expect(heap.pop()).toBe('reused');
+        expect(() => heap.push('reused', 1n)).toThrow('heap holds integer');
+        expect(new RankHeap().push('reused', 1n).pop()).toBe('reused');
     });
 
     it('handles 100000 entries without shifting or recursion', () => {
@@ -192,16 +200,18 @@ describe('queue iteration type summaries', () => {
         const first = queue.iterationTypes(classify);
         expect(queue.iterationTypes(classify)).toBe(first);
         expect(calls).toBe(2);
-        queue.pushFront('text');
-        expect(queue.iterationTypes(classify)).toEqual(new Set(['string', 'bigint']));
+        expect(() => queue.pushFront('text')).toThrow('queue holds integer');
+        queue.pushFront(3n);
+        expect(queue.iterationTypes(classify)).toEqual(new Set(['bigint']));
         expect(first).toEqual(new Set(['bigint']));
         queue.pop();
         expect(queue.iterationTypes(classify)).toEqual(new Set(['bigint']));
         queue.pop(true);
         queue.pop();
         expect(queue.iterationTypes(classify)).toEqual(new Set());
-        queue.push(false);
-        expect(queue.iterationTypes(classify)).toEqual(new Set(['boolean']));
+        expect(() => queue.push(false)).toThrow('queue holds integer');
+        queue.push(4n);
+        expect(queue.iterationTypes(classify)).toEqual(new Set(['bigint']));
     });
 
     it('checks newly inserted types before executing a reused loop', () => {
@@ -220,8 +230,8 @@ end
 `)).toThrow(/cannot receive/);
     });
 
-    it('does not retain removed types in later loop declarations', () => {
-        expect(run(prelude + `
+    it('retains the element contract after the last value is removed', () => {
+        expect(() => run(prelude + `
 Q = new queue
 Q push "text"
 for Old in Q
@@ -234,6 +244,25 @@ for V in Q
   break
 end
 V
-`)).toBe('7');
+`)).toThrow('queue holds text');
+    });
+
+    it('rejects a different array rank without reading its cells', () => {
+        expect(() => run(prelude + `Q = new queue
+Q push array 1 2
+Q push (array 1 2 3 4) (array 2 2) reshape
+`)).toThrow(/rank 1.*rank 2/);
+        let reads = 0;
+        const lazy = { kind: 'array' as const, items: [], shape: [2], itemAt: () => {
+            reads++;
+            throw new Error('array cell was read');
+        } };
+        const queue = new RankDeque().push(lazy);
+        queue.push({ kind: 'array', items: [1n, 2n], shape: [2] });
+        expect(reads).toBe(0);
+        expect(queue.size).toBe(2);
+        expect(run(prelude + 'Q = new queue\nQ push array 1 2\nQ push array "a" "b"\nQ len')).toBe('2');
+        expect(run(prelude + 'H = new heap\nH 1 (array 1 2) enqueue\nH 2 (array "a" "b") enqueue\nH len'))
+            .toBe('2');
     });
 });

@@ -2,9 +2,331 @@ import { EmptyFileSystem } from 'langium';
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
-import type { Program } from '../src/generated/ast.js';
+import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
+import type { ValueFacts } from '../src/analysis/value-facts.js';
+
+it('does not join an explicit raise with successful function returns', () => {
+    const source = 'fun choose Flag\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'choose',
+        arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
+    expect(result.functionResults[0]).toMatchObject({ types: ['integer'], rank: 0 });
+
+    const shadowed = services.Rank.parser.LangiumParser.parse<Program>(
+        'fun raise Error\n return "ok"\nend\n' + source);
+    const shadowedResult = analyzeValues(shadowed.value, new Map(), new Map(), [{ name: 'choose',
+        arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
+    expect(shadowedResult.functionResults[0].types).toEqual(['text', 'integer']);
+});
+
+it('infers covariance results from the declared matrix axis length', () => {
+    const moduleName = '010_cov';
+    const source = readFileSync(new URL(`../../../demos/deepml/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/deepml/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['covariance']));
+    expect(examples).toHaveLength(3);
+    const analysis = analyzeValues(program.value, new Map(), new Map(), examples);
+    expect(analysis.functionResults.map(fact => fact.types)).toEqual(examples.map(() => ['array']));
+});
+
+it('infers the numeric value of the built-in maximum-flow record', () => {
+    const moduleName = '033_downloadspeed';
+    const source = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['download_speed']));
+    expect(examples).toHaveLength(4);
+    const analysis = analyzeValues(program.value, new Map(), new Map(), examples);
+    expect(analysis.functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer', 'real']));
+});
+
+it('reports a record field type mismatch before execution', () => {
+    expect(messages('R = record\n  .count = 1\nend\nR .count + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('R = record\n  .count = 1\nend\nR = R with\n  .count += 2\nend\nR .count + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('R = record\n  .count = 1\nend\nR .count = "x"'))
+        .toEqual(['record field .count has type integer and cannot receive text']);
+    expect(messages('R = record\n  .count = 1\nend\nAlias = R\nR .count = 2\nAlias .count + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('forgets graph result cells after a record alias changes the array field', () => {
+    const source = 'Graph = new graph (1 to 3) .directed\nSorted = Graph topological\n';
+    expect(messages(source + 'Sorted .order 0 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    const before = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(analyzeValues(before.value).bindings.get('Sorted')?.fields?.order?.elements).toEqual(['integer']);
+    const after = services.Rank.parser.LangiumParser.parse<Program>(source
+        + 'Alias = Sorted\nAlias .order = array "x"\n');
+    expect(analyzeValues(after.value).bindings.get('Sorted')?.fields?.order)
+        .toEqual({ types: ['array'] });
+    expect(messages(source + 'Alias = Sorted\nAlias .order = array "x"\nSorted .order 0 + "bad"'))
+        .toEqual([]);
+});
+
+it('retains only stable record field types after a field write', () => {
+    const source = 'fun update Layer X\n Layer .input = X\n return Layer .weights\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'update', arguments: [
+        { types: ['record'], fields: { input: { types: ['array'] }, weights: { types: ['array'] } } },
+        { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true },
+    ] }]);
+    expect(result.functionResults[0].types).toEqual(['array']);
+    const rankChange = services.Rank.parser.LangiumParser.parse<Program>(
+        'R = record\n .items = array 1 2\nend\nR .items = array shape 2 2 fill 0\n');
+    const fields = analyzeValues(rankChange.value);
+    expect(fields.diagnostics).toEqual([]);
+    expect(fields.bindings.get('R')?.fields?.items).toEqual({ types: ['array'] });
+});
+
+it('infers game routes from integer vertices in a closed graph', () => {
+    const moduleName = '017_gameroutes';
+    const source = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['game_routes']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers tree diameter from BFS distance entries', () => {
+    const moduleName = '003_diameter';
+    const source = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['tree_diameter']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers tree matching from DFS vertex and parent entries', () => {
+    const moduleName = '002_matching';
+    const source = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['tree_matching']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('keeps closed graph vertex types across a proven scalar edge insertion', () => {
+    const source = 'G = new graph (1 to 3) .directed\nG add 1 2\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(analyzeValues(program.value).bindings.get('G')?.elements).toEqual(['integer']);
+    const unknown = services.Rank.parser.LangiumParser.parse<Program>(
+        'G = new graph (1 to 3) .directed\nG add Edges\n');
+    expect(analyzeValues(unknown.value).bindings.get('G')?.elements).toBeUndefined();
+});
+
+it('infers subordinates after inserting proven integer edges', () => {
+    const moduleName = '001_subordinates';
+    const source = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['subordinates']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers centroid from rooted tree record fields', () => {
+    const moduleName = '014_centroid';
+    const source = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['centroid']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers tree distance sums through the leading-axis drop', () => {
+    const moduleName = '005_distances2';
+    const source = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['distance_sums']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers road-construction results through closed dsu operations', () => {
+    const moduleName = '023_roadconstruction';
+    const source = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['road_progress']));
+    expect(examples).toHaveLength(3);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers path counts through rooted-tree LCA vertices', () => {
+    const moduleName = '009_countpaths';
+    const source = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/tree/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['path_counts']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers movie-query answers from unweighted functional paths', () => {
+    const moduleName = '020_movies';
+    const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['movie_queries']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers numeric segment-tree demo results after safe point updates', () => {
+    for (const [moduleName, name] of [
+        ['003_dynamicsum', 'dynamic_sums'],
+        ['004_dynamicmin', 'dynamic_mins'],
+        ['008_hotel', 'assign_hotels'],
+        ['009_listremovals', 'removals'],
+    ]) {
+        const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, moduleName, new Set([name]));
+        expect(examples).toHaveLength(2);
+        expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+            .toEqual(examples.map(() => ['array']));
+    }
+});
+
+it('infers the salary-query result through a unary unique-sort pipeline', () => {
+    const moduleName = '010_salary';
+    const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['salaries']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers distinct-query answers from integer argsort positions', () => {
+    const moduleName = '017_distinct';
+    const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['distinct']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers maxsum query fields in range-query demos and after numeric point updates', () => {
+    for (const [moduleName, name] of [
+        ['015_subarraysum', 'max_subarrays'],
+        ['016_subarraysum2', 'range_max_sums'],
+    ]) {
+        const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, moduleName, new Set([name]));
+        expect(examples).toHaveLength(2);
+        expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+            .toEqual(examples.map(() => ['array']));
+    }
+    const source = 'use algo\nTree = (array 1 2) maxsum segment\nAlias = Tree\nAlias 0 = 1.5\n';
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    expect(analysis.bindings.get('Tree')?.elements).toEqual(['integer', 'real']);
+    expect(messages(source + 'State = Tree 0 1 query\nState .best + "bad"'))
+        .toEqual(['operator + does not accept integer or real and text']);
+    expect(messages('use algo\nTree = (array 1 2) maxsum segment\nTree 0 = Unknown\n'
+        + 'State = Tree 0 1 query\nState .best + "bad"')).toEqual([]);
+});
+
+it('keeps integer bitwise segment reads through integer writes but forgets unproven writes', () => {
+    const source = 'use algo\nuse bits\nTree = (array 1 2) bxor segment\nAlias = Tree\nAlias 0 = 3\n';
+    expect(messages(source + 'Tree 0 1 query + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nuse bits\nTree = (array 1 2) bxor segment\nTree 0 = Unknown\n'
+        + 'Tree 0 1 query + "bad"')).toEqual([]);
+    expect(messages('use algo\nuse bits\nTree = (array 1) bxor segment\nTree 0 = 1.5\n'
+        + 'Tree 0 + "bad"')).toEqual([]);
+});
+
+it('widens numeric segment payloads across aliases and forgets unsafe updates', () => {
+    const source = 'use algo\nTree = (array 1 2) + segment\nAlias = Tree\nAlias 0 = 1.5\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    const analysis = analyzeValues(program.value);
+    expect(analysis.bindings.get('Tree')?.elements).toEqual(['integer', 'real']);
+    expect(analysis.bindings.get('Alias')?.elements).toEqual(['integer', 'real']);
+    expect(messages(source + 'Tree 0 1 query + "bad"'))
+        .toEqual(['operator + does not accept integer or real and text']);
+    expect(messages('use algo\nTree = (array 1 2) + segment\nTree 0 = Unknown\nTree 0 1 query + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nCount = 1\nTree = (array 1 2) + segment\n'
+        + 'for I in 0 until 2\n Tree I = 3\nend\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nCount = 1\nTree = (array 1 2) + segment\n'
+        + 'for I in 0 until 2\n Tree I = Unknown\nend\nCount + "bad"'))
+        .toEqual([]);
+});
+
+it('infers PCA results through numeric axis reductions and eigenvector unpacking', () => {
+    const moduleName = '019_pca';
+    const source = readFileSync(new URL(`../../../demos/deepml/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/deepml/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['pca']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('forgets positional eigenvector facts after changing the result array', () => {
+    const source = 'use linalg\nMatrix = array shape 2 2 fill 1.0\nPair = Matrix eigh\n'
+        + 'Pair 1 = array 3 4\nunpack Values Vectors = Pair\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    const analysis = analyzeValues(program.value);
+    expect(analysis.bindings.get('Pair')?.positionFacts).toBeUndefined();
+    expect(analysis.bindings.get('Vectors')?.rank).toBeUndefined();
+});
+
+it('keeps unrelated scalar facts through a proven dsu merge', () => {
+    expect(messages('use graph\nCount = 1\nD = new dsu (1 to 2)\nD merge 1 2\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use graph\nCount = 1\nD = new dsu\nD merge Unknown 2\nCount + "bad"'))
+        .toEqual([]);
+});
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });
@@ -13,6 +335,53 @@ function messages(source: string): string[] {
     expect(parsed.parserErrors).toEqual([]);
     return analyzeValues(parsed.value).diagnostics.map(item => item.message);
 }
+
+it('selects only reachable branches for exact integer comparisons', () => {
+    const source = 'fun choose Values\n N = Values len\n if N equal 0\n  return 1\n'
+        + ' elif N less 2\n  return "one"\n else\n  return false\n end\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const args: ValueFacts[] = [
+        { types: ['array'], rank: 1, shape: [0] },
+        { types: ['array'], rank: 1, shape: [1], elements: ['integer'], eagerScalarCells: true },
+        { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true },
+        { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true },
+    ];
+    expect(args.map(argument => analyzeValues(program.value, new Map(), new Map(), [
+        { name: 'choose', arguments: [argument] },
+    ]).functionResults[0].types)).toEqual([
+        ['integer'], ['text'], ['boolean'], ['integer', 'text', 'boolean'],
+    ]);
+});
+
+it('selects only reachable branches for an unchanged boolean literal binding', () => {
+    const source = 'fun choose Flag\n if Flag\n  return 1\n else\n  return "off"\n end\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect([true, false, undefined].map(boolean => analyzeValues(program.value, new Map(), new Map(), [
+        { name: 'choose', arguments: [{ types: ['boolean'], rank: 0, shape: [],
+            ...(boolean === undefined ? {} : { boolean }) }] },
+    ]).functionResults[0].types)).toEqual([['integer'], ['text'], ['integer', 'text']]);
+    expect(messages('Flag = false\nif not Flag\n A = 1\nelse\n A = "off"\nend\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('narrows type guards in reachable branches without changing a parameter contract', () => {
+    const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
+    const source = parse('fun classify X\n if X is .integer\n  return X\n end\n return "other"\nend');
+    const result = (input: ValueFacts) => analyzeValues(source, new Map(), new Map(), [
+        { name: 'classify', arguments: [input] },
+    ]).functionResults[0].types;
+    expect(result({ types: [] })).toEqual(['integer', 'text']);
+    expect(result({ types: ['boolean'], rank: 0, shape: [] })).toEqual(['text']);
+    expect(result({ types: ['integer'], rank: 0, shape: [] })).toEqual(['integer']);
+    const numeric = parse('fun classify X\n if X is .integer or X is .real\n  return X\n end\n return "other"\nend');
+    expect(analyzeValues(numeric, new Map(), new Map(), [{ name: 'classify', arguments: [
+        { types: [] },
+    ] }]).functionResults[0].types).toEqual(['integer', 'real', 'text']);
+    const complement = parse('fun classify X\n if X is .integer\n  return X\n else\n  return X + "!"\n end\nend');
+    expect(analyzeValues(complement, new Map(), new Map(), [{ name: 'classify', arguments: [
+        { types: ['integer', 'text'] },
+    ] }]).functionResults[0].types).toEqual(['integer', 'text']);
+});
 
 it('reports an incompatible reassignment before execution', () => {
     expect(messages('Count = 1\nCount = "x"')).toEqual(['Count has type integer and cannot receive text']);
@@ -112,6 +481,12 @@ it('infers mixed parse positions in the unchanged AoC snow demo', () => {
     expect(result.functionResults[0].types).toEqual(['integer']);
 });
 
+it('keeps unrelated facts through a scalar minimum helper', () => {
+    expect(messages('fun minimum X Y\n return X Y min\nend\nCount = 1\n'
+        + 'R = 2 3 minimum\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
 it('keeps unrelated facts through local index writes', () => {
     expect(messages('use algo\nCount = 1\nindex "x" = 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -120,6 +495,102 @@ it('keeps unrelated facts through local index writes', () => {
     expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 until 1\n  index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nindex (A 0) = 2\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nCount = 1\nA = Unknown\nindex 0 = (A 0) + 1\nCount + "bad"'))
+        .toEqual([]);
+});
+
+it('keeps unrelated scalar facts through direct named-index writes', () => {
+    expect(messages('use algo\nCount = 1\nCache = new index\nCache "a" = 2\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun read\n Cache = new index\n Count = 1\n'
+        + ' for I in 0 to 2\n  Cache I = I\n end\n return Count\nend\nR = read\nR + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nCount = 1\nCache = new index\nA = Unknown\nCache (A 0) = 2\nCount + "bad"'))
+        .toEqual([]);
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'use algo\nCache = new index\nCache "a" = 2\nR = Cache "a"\n');
+    expect(analyzeValues(parsed.value).bindings.get('R')?.types).toEqual(['integer']);
+    const alias = services.Rank.parser.LangiumParser.parse<Program>(
+        'use algo\nfun read\n index "a" = 1\n Alias = index\n'
+        + ' Alias "b" = "x"\n return index "a"\nend\nR = read\n');
+    expect(analyzeValues(alias.value).bindings.get('R')?.types).toEqual(['integer', 'text']);
+});
+
+it('widens possible named-index values through aliases and forgets unsafe writes', () => {
+    const source = 'use algo\nCache = new index\nCache "a" = 2\nAlias = Cache\nAlias "b" = "text"\n';
+    const result = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    expect(result.bindings.get('Cache')?.elements).toEqual(['integer', 'text']);
+    const read = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(
+        source + 'R = Cache "a"\n').value);
+    expect(read.bindings.get('R')?.types).toEqual(['integer', 'text']);
+    const unsafe = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(
+        'use algo\nCache = new index\nCache "a" = 2\nCache Unknown = 3\nR = Cache "a"\n').value);
+    expect(unsafe.bindings.get('R')?.types).toEqual([]);
+});
+
+it('keeps a closed named-index value type across loop iterations and aliases', () => {
+    const source = 'use algo\nfun lookup\n Cache = new index\n Alias = Cache\n'
+        + ' for I in 0 until 3\n  Alias I = I\n end\n return Cache 1\nend\nR = lookup\n';
+    expect(messages(source + 'R + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun lookup X\n Cache = new index\n'
+        + ' for I in 0 until 3\n  Cache I = X\n end\n return Cache 1\nend\n'
+        + 'R = Unknown lookup\nR + "bad"')).toEqual([]);
+});
+
+it('retains scalar rank for a loop-carried index value', () => {
+    const source = 'use algo\nfun lookup\n Cache = new index\n Position = 0\n'
+        + ' for I in 0 until 3\n  Cache I = Position\n  Position += 1\n end\n'
+        + ' return Cache 1\nend\nR = lookup\n';
+    expect(messages(source + 'R + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('infers a guarded index read before a later loop write', () => {
+    const source = 'use algo\nfun lookup\n Cache = new index\n Total = 0\n Position = 0\n'
+        + ' for I in 0 until 3\n  if I greater 0\n   Total += Cache 0\n  end\n'
+        + '  Cache 0 = Position\n  Position += 1\n end\n return Total\nend\nR = lookup\n';
+    expect(messages(source + 'R + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('includes aliased index writes from earlier iterations in a loop read', () => {
+    const source = 'use algo\nCache = new index\nCache 0 = 1\nAlias = Cache\n'
+        + 'for I in 0 until 2\n Seen = Cache 0\n Alias 0 = "text"\nend\n';
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    const read = [...analysis.expressions].find(([expression]) => expression.$cstNode?.text === 'Cache 0')?.[1];
+    expect(read?.types).toEqual(['integer', 'text']);
+    const implicit = 'use algo\nfun lookup\n index 0 = 1\n Alias = index\n'
+        + ' for I in 0 until 2\n  Seen = Alias 0\n  index 0 = "text"\n end\n return Alias 0\nend\nR = lookup\n';
+    const result = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(implicit).value);
+    expect(result.bindings.get('R')?.types).toEqual(['integer', 'text']);
+});
+
+it('does not reuse an index alias value across a loop that can return early', () => {
+    const source = 'use algo\nfun lookup\n Cache = new index\n Cache 0 = 1\n Alias = Cache\n'
+        + ' for I in 0 until 2\n  if I greater 0\n   return Cache 0\n  end\n'
+        + '  Alias 0 = "text"\n end\n return 0\nend\nR = lookup\n';
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    expect(analysis.bindings.get('R')?.types).toEqual([]);
+});
+
+it('infers a fresh local index read from earlier iterations on an early-return path', () => {
+    const moduleName = '026_reciprocal';
+    const source = readFileSync(new URL(`../../../demos/euler/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/euler/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['cycle_length']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['integer'], ['integer']]);
+    expect(messages(source.slice(source.indexOf('fun cycle_length'))
+        + '\nR = 7 cycle_length\nR + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun lookup X\n Cache = new index\n'
+        + ' for I in 0 until 3\n  if I greater 0\n   return Cache 0\n  end\n'
+        + '  Cache 0 = X\n end\n return 0\nend\nR = Unknown lookup\nR + "bad"'))
         .toEqual([]);
 });
 
@@ -330,6 +801,68 @@ it('does not guess results for recursion and joins all covered return paths', ()
         .toEqual(['A has type integer or text and cannot receive boolean']);
     expect(messages('fun choose X\n if X\n  return 1\n end\nend\nA = Flag choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
+});
+
+it('infers numeric recursive results only when input facts stay invariant', () => {
+    const source = readFileSync(new URL('../../../demos/leetcode/004_medarrs.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/leetcode/004_medarrs_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '004_medarrs', new Set(['median']));
+    expect(examples).toHaveLength(8);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['real'], ['real'], [], ['real'], ['real'], ['real'], [], ['real']]);
+    expect(messages('fun gcd A B\n if B equal 0\n  return A\n end\n'
+        + ' return B (A % B) gcd\nend\nR = 12 8 gcd\nR + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('fun change X\n if X less 1\n  return X\n end\n'
+        + ' return (X / 2) change\nend\nR = 2 change\nR + "bad"'))
+        .toEqual([]);
+    expect(messages('fun swap A B\n if A less 1\n  return A\n end\n'
+        + ' return B A swap\nend\nR = 2 1.0 swap\nR + "bad"'))
+        .toEqual([]);
+    expect(messages('Hidden = 1\nfun captured X\n if X less 1\n  return Hidden\n end\n'
+        + ' return (X - 1) captured\nend\nR = 2 captured\nR + "bad"'))
+        .toEqual([]);
+});
+
+it('closes a numeric recursive result through assignments and arithmetic', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/001_josephus.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/math/001_josephus_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '001_josephus', new Set(['removed']));
+    expect(examples).toHaveLength(9);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(Array.from({ length: 9 }, () => ['integer']));
+    expect(messages('fun change X\n if X less 1\n  return 1\n end\n'
+        + ' Next = (X / 2) change\n return Next + 1\nend\nR = 2 change\nR + "bad"'))
+        .toEqual([]);
+    expect(messages('fun widenresult X\n if X less 1\n  return 1\n end\n'
+        + ' Next = (X - 1) widenresult\n return Next / 2\nend\nR = 2 widenresult\nR + "bad"'))
+        .toEqual([]);
+});
+
+it('keeps a fresh numeric array through a nested read-only helper in a loop', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/012_rectcut.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/012_rectcut_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '012_rectcut', new Set(['rectangle_cuts']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(Array.from({ length: 4 }, () => ['integer']));
+});
+
+it('keeps a fresh numeric array through a proved nested scalar writer', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/020_elevator.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/020_elevator_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '020_elevator', new Set(['elevator_rides']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(Array.from({ length: 4 }, () => ['integer']));
 });
 
 it('uses a settled binding type for a direct return after an unknown branch', () => {
@@ -679,13 +1212,14 @@ it('skips an unreachable K-means loop body for a proven zero-step call', () => {
     expect(messages(draft(1))).toEqual([]);
 });
 
-it('does not keep caller types across an arbitrary empty iterator', () => {
+it('keeps known empty arrays but not arbitrary empty sequences', () => {
     const source = 'Count = 1\nfor Cell in Items\n Unknown external\nend\nCount + "bad"\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
     for (const type of ['array', 'sequence'] as const) {
         const items = { types: [type], rank: 1, shape: [0], elements: ['integer'] };
-        expect(analyzeValues(program.value, new Map([['Items', items]])).diagnostics).toEqual([]);
+        expect(analyzeValues(program.value, new Map([['Items', items]])).diagnostics.map(item => item.message))
+            .toEqual(type === 'array' ? ['operator + does not accept integer and text'] : []);
     }
     expect(messages(source.replace('Items', '0 until 0')))
         .toEqual(['operator + does not accept integer and text']);
@@ -718,6 +1252,22 @@ it('keeps settled types after loop exits without trusting writes or unknown effe
         .toEqual([]);
     expect(messages('A = array 1 2\nfor I in 1 to 3\n A = array 1 2 3\n break\nend\nA + (array 1 2 3)'))
         .toEqual([]);
+});
+
+it('skips a proven empty array loop without needing element facts', () => {
+    expect(messages('Count = 1\nA = array shape 0\nend\nfor Value in A\n Unknown external\nend\n'
+        + 'Count + "bad"')).toEqual(['operator + does not accept integer and text']);
+    expect(messages('Count = 1\nA = Unknown\nfor Value in A\n Unknown external\nend\n'
+        + 'Count + "bad"')).toEqual([]);
+    const moduleName = '013_playlist';
+    const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['longest_distinct']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
 });
 
 it('infers the unchanged atoi function through both break and return paths', () => {
@@ -862,12 +1412,13 @@ it('does not retain facts across direct or transitive stdin reads', () => {
     expect(messages('fun helper\n return input\nend\n' + prefix + 'helper\nCount + "bad"')).toEqual([]);
 });
 
-it('invalidates facts across direct I/O and mutation operations', () => {
+it('invalidates facts across direct I/O but not an unrelated native pop', () => {
     expect(messages('use io\nCount = 3\nstdin .integer\nCount + "bad"')).toEqual([]);
     expect(messages('use io\nCount = 3\n"path" read\nCount + "bad"')).toEqual([]);
     expect(messages('fun file Path\n return Path read\nend\nCount = 3\n"path" file\nCount + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nCount = 3\nQ = new queue\nQ pop\nCount + "bad"')).toEqual([]);
+    expect(messages('use algo\nCount = 3\nQ = new queue\nQ pop\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('follows copy-on-write when a function writes a parameter array', () => {
@@ -1243,12 +1794,375 @@ it('passes a captured array to a return call before the callee changes its facts
     }] }]).functionResults[0].types).toEqual(['integer']);
 });
 
+it('passes a safe indexed scalar to a call before the callee changes its array', () => {
+    const source = 'fun outer A\n fun change X\n  A 0 = 9\n  return X\n end\n'
+        + ' return (A 0) change\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'outer', arguments: [{
+        types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true,
+    }] }]).functionResults[0].types).toEqual(['integer']);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'outer', arguments: [{
+        types: ['array'], rank: 1, shape: [2], elements: ['integer'],
+    }] }]).functionResults[0].types).toEqual([]);
+    const apples = readFileSync(new URL('../../../demos/cses/intro/016_apples.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/intro/016_apples_test.ra', import.meta.url), 'utf8');
+    const appleProgram = services.Rank.parser.LangiumParser.parse<Program>(apples);
+    const appleTests = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(appleTests.value, '016_apples', new Set(['solve']));
+    expect(examples).toHaveLength(3);
+    expect(analyzeValues(appleProgram.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['integer', 'real'], ['integer', 'real'], ['integer']]);
+});
+
+it('keeps the exact numeric scalar type through abs', () => {
+    expect(messages('A = 3 abs\nA = 1.5'))
+        .toEqual(['A has type integer and cannot receive real']);
+    expect(messages('A = 1.5 abs\nA = 2'))
+        .toEqual(['A has type real and cannot receive integer']);
+});
+
+it('keeps the exact numeric cell type through unary min and max', () => {
+    expect(messages('A = (array 1 2 3) max\nA = 1.5'))
+        .toEqual(['A has type integer and cannot receive real']);
+    expect(messages('A = (array 1.5 2.5) min\nA = 1'))
+        .toEqual(['A has type real and cannot receive integer']);
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const withCapture = source.replace(' Unknown external', ' fun nested\n  N = 4\n  return 0\n end\n Unknown external');
     expect(analyzeValues(parse(withCapture)).bindings.get('A')?.types).toEqual([]);
+});
+
+it('keeps a local type when nested functions only read its binding', () => {
+    const source = 'fun outer N\n fun read\n  return N\n end\n Unknown external\n return N + 1\nend\nA = 3 outer';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
+    const withRebinding = source.replace('  return N', '  N = "x"\n  return N');
+    expect(analyzeValues(parse(withRebinding)).bindings.get('A')?.types).toEqual([]);
+});
+
+it('analyzes hoisted local functions declared after return without leaking their binding', () => {
+    const source = 'fun helper X\n return "text"\nend\n'
+        + 'fun outer X\n return X helper\n fun helper Y\n  return Y + 1\n end\nend\n'
+        + 'A = 1 outer\nB = 1 helper\nA + "bad"\nB + 1';
+    expect(messages(source)).toEqual([
+        'operator + does not accept integer and text',
+        'operator + does not accept text and integer',
+    ]);
+});
+
+it('retains the rank of a private array but not its cells after an unknown call', () => {
+    const source = 'fun f\n A = array 1 2\n Unknown external\n return A from 0 to 1\nend\nR = f';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    expect(analyzeValues(parse(source)).bindings.get('R')).toMatchObject({ types: ['array'], rank: 1 });
+    const withCapture = source.replace(' Unknown external',
+        ' fun change\n  A = "x"\n  return 0\n end\n Unknown external');
+    expect(analyzeValues(parse(withCapture)).bindings.get('R')?.types).toEqual([]);
+    expect(analyzeValues(parse('A = array 1 2\nUnknown external\nR = A from 0 to 1'))
+        .bindings.get('R')?.types).toEqual([]);
+});
+
+it('retains the outer type of a private collection but not its contents after an unknown call', () => {
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    for (const kind of ['queue', 'stack', 'deque', 'heap', 'set', 'counter', 'index', 'segment']) {
+        const source = `fun f Value\n C = Value\n Unknown external\n return C\nend\nR = f`;
+        const result = analyzeValues(parse(source), new Map(), new Map(), [{ name: 'f', arguments: [{ types: [kind] }] }]);
+        expect(result.functionResults[0]).toMatchObject({ types: [kind] });
+        expect(result.functionResults[0].elements).toBeUndefined();
+    }
+    const withCapture = 'fun f Value\n C = Value\n fun change\n  C = 1\n  return 0\n end\n Unknown external\n return C\nend';
+    expect(analyzeValues(parse(withCapture), new Map(), new Map(), [
+        { name: 'f', arguments: [{ types: ['queue'] }] },
+    ]).functionResults[0].types).toEqual([]);
+    expect(analyzeValues(parse('C = new queue\nUnknown external\nR = C')).bindings.get('R')?.types).toEqual([]);
+});
+
+it('keeps numeric cells through a callback-free integer-sequence compound write', () => {
+    expect(messages('A = array shape 5 fill 0\nA (1 to 4 by 2) += 1\nA 1 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('A = array shape 5 fill 0\nA (1 to 4 by 2) /= 2\nA 1 + "bad"'))
+        .toEqual(['operator + does not accept integer or real and text']);
+    expect(messages('A = array shape 5 fill 0\nA Unknown += 1\nA 1 + "bad"'))
+        .toEqual([]);
+    expect(messages('A = array shape 5 fill 0\nfor I in 1 to 2\n'
+        + ' if I equal 1\n  continue\n end\n A (1 to 4 by 2) += 1\nend\nA 1 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('A = array shape 5 fill 0\nfor I in 1 to 2\n'
+        + ' if I equal 1\n  A 0 = "x"\n  continue\n end\n A (1 to 4 by 2) += 1\nend\nA 1 + "bad"'))
+        .toEqual([]);
+});
+
+it('infers the unchanged right-triangle perimeter through numeric slice updates', () => {
+    const moduleName = '039_righttriangles';
+    const source = readFileSync(new URL(`../../../demos/euler/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/euler/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['right_triangle_perimeter']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers the unchanged Hamiltonian-flight count through loop exits and array writes', () => {
+    const moduleName = '031_hamiltonian';
+    const source = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['hamiltonian_flights']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers the unchanged longest-prime-sum result through a numeric prefix scan', () => {
+    const moduleName = '050_primesum';
+    const source = readFileSync(new URL(`../../../demos/euler/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/euler/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['longest_prime_sum']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers the unchanged maximum-bounded-sum result through a numeric prefix scan', () => {
+    const moduleName = '035_maxsum2';
+    const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['maximum_bounded_sum']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('keeps numeric matrix cells through a safe vector-index replacement', () => {
+    expect(messages('A = array shape 3 4 fill 0\nI = 1 to 2\nA 0 I = array 5 6\nA 0 1 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('A = array shape 3 4 fill 0\nI = 1 to 2\nA 0 I = array "x" "y"\nA 0 1 + "bad"'))
+        .toEqual([]);
+    expect(messages('A = array shape 3 4 fill 0\nA 0 Unknown = array 5 6\nA 0 1 + "bad"'))
+        .toEqual([]);
+    expect(messages('A = array shape 3 4 fill 0\nA 0 # = array 1 2 3 4\nA 0 1 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('A = array shape 3 4 fill 0\nI = 1 to 2\nA 0 I += array 5 6\nA 0 1 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('A = array shape 3 4 fill 0\nA 0 # = array "a" "b" "c" "d"\nA 0 1 + "bad"'))
+        .toEqual([]);
+    expect(messages('A = array shape 3 4 fill 1.0\nA # 1 *= -1\nA 0 1 + "bad"'))
+        .toEqual(['operator + does not accept real and text']);
+    expect(messages('A = array shape 3 4 fill 1.0\nA # # *= -1\nA 0 1 + "bad"'))
+        .toEqual([]);
+});
+
+it('infers the unchanged forest-query answers through numeric matrix rows', () => {
+    const moduleName = '007_forest';
+    const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['forest_queries']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('infers the unchanged self-power remainder despite an unknown lazy mapper', () => {
+    const moduleName = '048_selfpowers';
+    const source = readFileSync(new URL(`../../../demos/euler/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/euler/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['self_power_tail']));
+    expect(examples).toHaveLength(1);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults[0].types)
+        .toEqual(['integer', 'real']);
+});
+
+it('infers unchanged nested-helper demos without assuming their collection contents', () => {
+    for (const [directory, moduleName, functionName] of [
+        ['graph', '001_countrooms', 'count_rooms'],
+        ['sortnsrch', '018_josephus', 'josephus'],
+    ]) {
+        const source = readFileSync(new URL(`../../../demos/cses/${directory}/${moduleName}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/cses/${directory}/${moduleName}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, moduleName, new Set([functionName]));
+        expect(examples).toHaveLength(4);
+        expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+            .toEqual(examples.map(() => [moduleName === '001_countrooms' ? 'integer' : 'queue']));
+    }
+});
+
+it('infers the unchanged nearest-smaller array despite mutable stack reads', () => {
+    const moduleName = '028_smaller';
+    const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['nearest_smaller']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['array']));
+});
+
+it('does not discard unrelated facts when popping a known native container', () => {
+    for (const [kind, operation] of [['queue', 'pop'], ['stack', 'pop'], ['deque', 'popfront'],
+        ['deque', 'popback'], ['heap', 'pop']]) {
+        expect(messages(`use algo\nA = array 1 2\nQ = new ${kind}\nQ push 1\nQ ${operation}\nA 0 + "bad"`))
+            .toEqual(['operator + does not accept integer and text']);
+    }
+    expect(messages('use algo\nA = array 1 2\nUnknown pop\nA 0 + "bad"')).toEqual([]);
+    expect(messages('use algo\nA = array 1 2\nQ = new stack\n'
+        + 'fun pop X\n A 0 = "changed"\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual([]);
+});
+
+it('infers elements inserted into named collections and rejects a definite mismatch', () => {
+    for (const kind of ['queue', 'stack', 'deque', 'heap']) {
+        const operation = kind === 'deque' ? 'popfront' : 'pop';
+        expect(messages(`use algo\nQ = new ${kind}\nQ push 1\nX = Q ${operation}\nX + "bad"`))
+            .toEqual(['operator + does not accept integer and text']);
+        expect(messages(`use algo\nQ = new ${kind}\nQ push 1\nQ push "bad"`))
+            .toEqual([`Q holds integer and cannot receive text`]);
+    }
+    for (const kind of ['set', 'counter']) {
+        expect(messages(`use algo\nS = new ${kind}\nS add 1\nS add "bad"`))
+            .toEqual([`S holds integer and cannot receive text`]);
+        expect(messages(`use algo\nS = new ${kind}\nS add array 1 2\nS add array 1 2 3 4 shape 2 2`))
+            .toEqual(['S holds array rank 1 and cannot receive rank 2']);
+    }
+    expect(messages('use algo\nQ = new queue\nQ push array 1 2\nQ push array 1 2 3 4 shape 2 2'))
+        .toEqual(['Q holds array rank 1 and cannot receive rank 2']);
+    for (const kind of ['queue', 'set']) {
+        const insert = kind === 'queue' ? 'push' : 'add';
+        const source = `use algo\nfun first_item\n Q = new ${kind}\n Q ${insert} array 1 2 3 4 shape 2 2\n`
+            + ' for Item in Q\n  return Item\n end\n return array shape 2 2 fill 0\nend\nA = first_item\n';
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(program.parserErrors).toEqual([]);
+        expect(analyzeValues(program.value).bindings.get('A')).toMatchObject({ types: ['array'], rank: 2 });
+    }
+    expect(messages('use algo\nQ = new queue\nQ push 1\nAlias = Q\nX = Alias pop\nX + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nQ = new queue\nAlias = Q\nAlias push 1\nX = Q pop\nX + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nQ = new queue\nQ push 1\nQ = new queue\nQ push "text"\nX = Q pop\nX + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nuse io\nQ = new queue\nQ push 1\nInput = stdin .integer\nX = Q pop\nX + "bad"'))
+        .toEqual([]);
+});
+
+it('infers minimal grid path results through a typed set iteration', () => {
+    const moduleName = '013_minpath';
+    const source = readFileSync(new URL(`../../../demos/cses/dynamic/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/dynamic/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['minimal_grid_path']));
+    expect(examples).toHaveLength(4);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['text']));
+});
+
+it('infers table projection ranks from literal JSON test inputs', () => {
+    for (const [moduleName, name] of [['001_titanic', 'solve'], ['004_digitsreq', 'solve_table'],
+        ['005_distweets', 'solve_table']]) {
+        const source = readFileSync(new URL(`../../../demos/kaggle/${moduleName}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/kaggle/${moduleName}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, moduleName, new Set([name]));
+        const results = analyzeValues(program.value, new Map(), new Map(), examples).functionResults;
+        expect(results.some(fact => fact.types.join() === 'array' && fact.rank === 2)).toBe(true);
+    }
+});
+
+it('reports excess axes after filtering a rank-one table', () => {
+    expect(messages('use json\nuse tables\nRows = "[{\\"name\\":\\"x\\"}]" json\n'
+        + 'Found = Rows filter .name equal "x"\nFound # #'))
+        .toEqual(['2 selectors exceed array rank 1']);
+});
+
+it('reports excess axes after a broadcast prefix test', () => {
+    expect(messages('use text\nFlags = (array "ab" "bc") "a" startswith\nFlags 0 0'))
+        .toEqual(['2 selectors exceed array rank 1']);
+});
+
+it('keeps a private outer type after unsupported iteration and unpacking', () => {
+    const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
+    for (const body of ['for X Y in Source\n  X = 0\n end', 'unpack X Y = Source']) {
+        const program = parse(`fun keep Source\n A = array 1 2\n ${body}\n return A\nend`);
+        expect(analyzeValues(program, new Map(), new Map(), [{ name: 'keep', arguments: [{ types: [] }] }])
+            .functionResults[0].types).toEqual(['array']);
+    }
+});
+
+it('keeps the array result of shortest-path demos through heap loops', () => {
+    for (const [moduleName, functionName] of [['008_routes1', 'shortest'],
+        ['013_flightroutes', 'flight_routes']]) {
+        const source = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/cses/graph/${moduleName}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, moduleName, new Set([functionName]));
+        expect(examples).toHaveLength(4);
+        expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+            .toEqual(examples.map(() => ['array']));
+    }
+});
+
+it('infers unchanged range-query results through native stack pops', () => {
+    for (const [moduleName, functionName] of [['013_visible', 'visible'],
+        ['019_increasing', 'increase_costs']]) {
+        const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, moduleName, new Set([functionName]));
+        expect(examples).toHaveLength(2);
+        expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+            .toEqual([['array'], ['array']]);
+    }
+});
+
+it('retains a private container binding after an uncertain indexed write', () => {
+    const source = 'fun collect Tree Key\n Answers = new queue\n Tree Key = 1\n return Answers\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>('use algo\n' + source);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'collect', arguments: [
+        { types: [] }, { types: [] },
+    ] }]).functionResults[0].types).toEqual(['queue']);
+    expect(messages('use algo\nCount = 1\nTree = Unknown\nTree Unknown = 1\nCount + "bad"'))
+        .toEqual([]);
+    const captured = source.replace(' Tree Key = 1', ' fun change\n  Answers = "changed"\n  return 0\n end\n Tree Key = 1');
+    const capturedProgram = services.Rank.parser.LangiumParser.parse<Program>('use algo\n' + captured);
+    expect(analyzeValues(capturedProgram.value, new Map(), new Map(), [{ name: 'collect', arguments: [
+        { types: [] }, { types: [] },
+    ] }]).functionResults[0].types).toEqual([]);
+    const cells = services.Rank.parser.LangiumParser.parse<Program>(
+        'fun read Tree Key\n A = array 1 2\n Tree Key = 1\n return A 0\nend\n');
+    expect(analyzeValues(cells.value, new Map(), new Map(), [{ name: 'read', arguments: [
+        { types: [] }, { types: [] },
+    ] }]).functionResults[0].types).toEqual([]);
+});
+
+it('infers the unchanged range-copy result despite an uncertain indexed write', () => {
+    const moduleName = '024_copies';
+    const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['copies']));
+    expect(examples).toHaveLength(2);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['queue'], ['queue']]);
 });
 
 it('retains a private text parameter type across an unknown call but not through a nested capture', () => {
@@ -1272,6 +2186,195 @@ it('retains private scalar loop bindings across unknown calls', () => {
     expect(analyzeValues(parse(withCapture).value, new Map(), new Map(), [
         { name: 'outer', arguments: [argument] },
     ]).functionResults[0].types).toEqual([]);
+});
+
+it('retains the private loop scalar type across an indirect index write', () => {
+    const moduleName = '020_presents';
+    const source = readFileSync(new URL(`../../../demos/aoc/2015/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/aoc/2015/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['firsthouse']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('retains a private text local through indirect index writes in a loop', () => {
+    const moduleName = '023_reorder';
+    const source = readFileSync(new URL(`../../../demos/cses/intro/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/intro/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['solve']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['text']));
+});
+
+it('retains stdin element types in the unchanged subarray-sums program', () => {
+    const moduleName = '030_sums2';
+    const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const input = program.value.statements.filter(isAssignmentStatement).find(statement => statement.name === 'A');
+    expect(input).toBeDefined();
+    expect(analyzeValues(program.value).expressions.get(input!.value)).toMatchObject({ types: ['array'],
+        rank: 1, elements: ['integer'], eagerScalarCells: true });
+    expect(messages('use io\nA = stdin .integer 2 array\nfor Value in A\n Value + "bad"\nend'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('uses a proved array length as a later shape dimension', () => {
+    const program = services.Rank.parser.LangiumParser.parse<Program>(
+        'A = array 1 2 3\nCount = A len\nB = array shape Count fill 0\n');
+    const analysis = analyzeValues(program.value);
+    expect(analysis.bindings.get('Count')?.integer).toBe('3');
+    expect(analysis.bindings.get('B')?.shape).toEqual([3]);
+    const range = services.Rank.parser.LangiumParser.parse<Program>(
+        'Count = (1 to 5) len\nB = array shape Count fill 0\n');
+    expect(analyzeValues(range.value).bindings.get('B')?.shape).toEqual([5]);
+});
+
+it('invalidates captured facts when len consumes a generator', () => {
+    const generator = 'fun stream\n A 0 = "x"\n yield 1\nend\nS = stream\nA = array 1 2\n';
+    expect(messages(generator + 'N = S len\nA 0 + "bad"')).toEqual([]);
+    expect(messages('use sequences\n' + generator + 'N = S len axis 0\nA 0 + "bad"')).toEqual([]);
+    expect(messages('A = array 1 2\nS = 1 to 5\nN = S len\nA 0 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('infers indices of safe masks without trusting a lazy mask read', () => {
+    expect(messages('use sequences\nMask = array true false true\nI = Mask indices\nI 0 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    const program = services.Rank.parser.LangiumParser.parse<Program>(
+        'use sequences\nfun probe Mask\n A = array 1 2\n Mask indices\n return A 0\nend\n');
+    const input = { types: ['array'], rank: 1, shape: [2], elements: ['boolean'] };
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [input] }])
+        .functionResults[0].types).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [
+        { types: [] },
+    ] }]).functionResults[0].types).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [
+        { ...input, eagerScalarCells: true },
+    ] }]).functionResults[0].types).toEqual(['integer']);
+});
+
+it('infers findall positions only after callback-free source and key reads', () => {
+    expect(messages('use sequences\nI = "ababa" "a" findall\nI 0 + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    const values = { types: ['array'], rank: 1, shape: [2], elements: ['integer'] };
+    const target = { types: ['integer'], rank: 0, shape: [] };
+    for (const operation of ['find', 'findall']) {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(
+            `use sequences\nfun probe Values Target\n A = array 1 2\n Values Target ${operation}\n return A 0\nend\n`);
+        const result = (...arguments_: ValueFacts[]) => analyzeValues(program.value, new Map(), new Map(), [
+            { name: 'probe', arguments: arguments_ },
+        ]).functionResults[0].types;
+        expect(result(values, target)).toEqual([]);
+        expect(result({ ...values, eagerScalarCells: true }, { types: [] })).toEqual([]);
+        expect(result({ ...values, eagerScalarCells: true }, target)).toEqual(['integer']);
+    }
+});
+
+it('infers the unchanged CSES subarray-sums result through computed index values', () => {
+    const moduleName = '030_sums2';
+    const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['count_subarray_sums']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('retains a private scalar after loop widening and an unknown call', () => {
+    const source = 'fun choose Items\n Best = -1\n for I in 0 until 3\n'
+        + '  if Items I external\n   Best = I\n  end\n end\n return Best\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'choose', arguments: [{
+        types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
+    }] }]).functionResults[0].types).toEqual(['integer']);
+    expect(analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source.replace(
+        ' Best = -1', ' fun nested\n  Best = "changed"\n  return 0\n end\n Best = -1')).value,
+    new Map(), new Map(), [{ name: 'choose', arguments: [{
+        types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
+    }] }]).functionResults[0].types).toEqual([]);
+});
+
+it('infers the unchanged Connect X result through later helper calls', () => {
+    const moduleName = '010_connectx';
+    const source = readFileSync(new URL(`../../../demos/kaggle/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/kaggle/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['move']));
+    expect(examples).toHaveLength(6);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers pandigital primes through pure permutations, membership and first where', () => {
+    const moduleName = '041_pandigitalprime';
+    const source = readFileSync(new URL(`../../../demos/euler/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/euler/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['largest_pandigital_prime']));
+    expect(examples).toHaveLength(1);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['integer']]);
+});
+
+it('uses the preceding join result for an imported unary function example', () => {
+    const moduleName = '003_triangles';
+    const source = readFileSync(new URL(`../../../demos/aoc/2016/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/aoc/2016/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['solve']));
+    expect(examples).toHaveLength(1);
+    expect(examples[0].arguments.map(fact => fact.types)).toEqual([['text']]);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults[0].types)
+        .toEqual(['array']);
+});
+
+it('checks scalar cells after reshaping eager input', () => {
+    expect(messages('use sequences\nA = array 1 2 3 4\nB = A (array 2 2) reshape\n'
+        + 'for Row in B\n Row 0 + "bad"\nend'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use sequences\nB = (1 to 4) (array 2 2) reshape\n'
+        + 'for Row in B\n Row 0 + "bad"\nend'))
+        .toEqual(['operator + does not accept integer and text']);
+});
+
+it('infers the unchanged CSES increasing-subsequences Fenwick result', () => {
+    const moduleName = '023_incsubseq2';
+    const source = readFileSync(new URL(`../../../demos/cses/dynamic/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/cses/dynamic/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['increasing_subsequences']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+    expect(messages('use algo\nF = 2 fenwick\nF 0 = 1\n(F sum 0) + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nF = 2 fenwick\nF = 1'))
+        .toEqual(['F has type fenwick and cannot receive integer']);
+    expect(messages('use algo\nF = 2 fenwick\nF "x" = 1'))
+        .toEqual(['fenwick index must be integer, got text']);
+    expect(messages('use algo\nF = 2 fenwick\nF 0 = "x"'))
+        .toEqual(['fenwick value must be integer, got text']);
+    expect(messages('use algo\nF = 2 fenwick\nF 0 /= 2'))
+        .toEqual(['fenwick value must be integer, got real']);
+    expect(messages('use algo\nF = 2 fenwick\nF "x"'))
+        .toEqual(['fenwick index must be integer, got text']);
+    expect(messages('use algo\nF = 2 fenwick\nF sum "x"'))
+        .toEqual(['fenwick index must be integer, got text']);
+    expect(messages('use algo\nF = 2 fenwick\nF X = Y')).toEqual([]);
+    expect(messages('use algo\nF = 2 fenwick\nF X\nF sum X')).toEqual([]);
 });
 
 it('infers the unchanged CSES graph-path matrix result', () => {
@@ -1305,7 +2408,8 @@ it('infers returns through try and catch without assuming partial writes', () =>
     const both = 'fun choose\n try\n  return 1\n catch Error\n  return "fallback"\n end\nend\nA = choose';
     expect(analyzeValues(parse(both)).bindings.get('A')?.types).toEqual(['integer', 'text']);
     const caught = 'fun choose\n Value = 1\n try\n  Value = 2\n  1 / 0\n catch Error\n  return Value\n end\nend\nA = choose';
-    expect(analyzeValues(parse(caught)).bindings.get('A')?.types).toEqual([]);
+    expect(analyzeValues(parse(caught)).bindings.get('A')?.types).toEqual(['integer']);
+    expect(analyzeValues(parse(caught)).bindings.get('A')?.integer).toBeUndefined();
     expect(messages('fun choose\n try\n  return array 1 2\n catch Error\n  return array 3 4\n end\nend\nA = choose\nA # #'))
         .toEqual(['2 selectors exceed array rank 1']);
 });
@@ -1318,6 +2422,8 @@ it('does not analyze statements after a definite no-return call', () => {
         .toEqual([]);
     expect(messages(fail + 'if Flag\n fail\nelse\n A = 1\nend\nA + "bad"')).toEqual([]);
     expect(messages(fail + 'fun choose Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = true choose\nA + "bad"'))
+        .toEqual([]);
+    expect(messages(fail + 'fun choose Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = false choose\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun stream\n if false\n  yield 1\n end\nend\nstream\nA = 1\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);

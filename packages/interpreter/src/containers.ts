@@ -1,7 +1,7 @@
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import { noteArrayBinding } from './array-storage.js';
-import { isRankQueue, type RankValue } from './value.js';
+import { checkCollectionElementType, isRankQueue, type CollectionElementType, type RankValue } from './value.js';
 import { ResourceSummary } from './resource-summary.js';
 
 /** Queue-family storage. Removed entries release their references immediately. */
@@ -12,6 +12,7 @@ export class RankDeque {
     private first = 0;
     private last = 0;
     private typeSummary?: { classify: (value: RankValue) => string; types: ReadonlySet<string> };
+    private acceptedElementType?: CollectionElementType;
 
     constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {
         this.resources.track(this);
@@ -31,6 +32,7 @@ export class RankDeque {
         return this.typeSummary.types;
     }
     push(value: RankValue): this {
+        this.acceptedElementType = checkCollectionElementType(this.mode, this.acceptedElementType, value);
         this.resources.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
@@ -38,6 +40,7 @@ export class RankDeque {
         return this;
     }
     pushFront(value: RankValue): this {
+        this.acceptedElementType = checkCollectionElementType(this.mode, this.acceptedElementType, value);
         this.resources.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
@@ -65,6 +68,7 @@ export class RankHeap {
     readonly kind = 'heap' as const;
     private readonly entries: HeapEntry[] = [];
     private priorityKind?: OrderedKind;
+    private elementType?: CollectionElementType;
     private nextOrder = 0;
 
     constructor() { this.resources.track(this); }
@@ -77,6 +81,7 @@ export class RankHeap {
         if (this.priorityKind !== undefined && this.priorityKind !== kind) {
             throw new RankError('heap priorities must have one comparable type');
         }
+        this.elementType = checkCollectionElementType('heap', this.elementType, value);
         this.priorityKind = kind;
         this.resources.include(value);
         noteArrayBinding(value);
@@ -119,7 +124,13 @@ export class RankHeap {
 
 export function pushCollection(receiver: RankValue, value: RankValue): RankValue {
     if (receiver instanceof RankDeque || receiver instanceof RankHeap) return receiver.push(value);
-    if (isRankQueue(receiver)) { receiver.items.push(value); return receiver; }
+    if (isRankQueue(receiver)) {
+        const previous = receiver.elementType ?? (receiver.items.length
+            ? checkCollectionElementType('queue', undefined, receiver.items[0]) : undefined);
+        receiver.elementType = checkCollectionElementType('queue', previous, value);
+        receiver.items.push(value);
+        return receiver;
+    }
     throw new RankError('push expects a queue, deque, stack or heap receiver');
 }
 

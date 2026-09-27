@@ -142,11 +142,13 @@ export interface RankIndex {
 export interface RankQueue {
     readonly kind: 'queue';
     readonly items: RankValue[];
+    elementType?: CollectionElementType;
 }
 
 export interface RankSet {
     readonly kind: 'set';
     readonly entries: Map<string, RankValue>;
+    elementType?: CollectionElementType;
 }
 
 export interface RankCounterEntry {
@@ -157,6 +159,7 @@ export interface RankCounterEntry {
 export interface RankCounter {
     readonly kind: 'counter';
     readonly entries: Map<string, RankCounterEntry>;
+    elementType?: CollectionElementType;
 }
 
 export interface RankObject {
@@ -266,6 +269,28 @@ export type RankValue = bigint | number | boolean | string | RankArray | RankFil
     RankWavelet;
 
 export type RankGraph = GraphValue;
+
+export interface CollectionElementType {
+    readonly type: string;
+    readonly rank?: number;
+}
+
+/** Match variable contracts without inspecting array cells or invoking lazy code. */
+export function checkCollectionElementType(
+    collection: string, expected: CollectionElementType | undefined, value: RankValue,
+): CollectionElementType {
+    const type = typeof value === 'object'
+        ? value.kind === 'label' ? 'symbol'
+            : value.kind === 'queue' && 'mode' in value && typeof value.mode === 'string' ? value.mode : value.kind
+        : typeof value === 'bigint' ? 'integer' : typeof value === 'number' ? 'real'
+            : typeof value === 'string' ? 'text' : typeof value;
+    const rank = isRankArray(value) ? value.shape.length : undefined;
+    if (expected && (expected.type !== type || expected.rank !== rank)) {
+        throw new RankError(`${collection} holds ${expected.type}${expected.rank === undefined ? '' : ` rank ${expected.rank}`}`
+            + ` and cannot receive ${type}${rank === undefined ? '' : ` rank ${rank}`}`);
+    }
+    return expected ?? { type, ...(rank === undefined ? {} : { rank }) };
+}
 
 export function isRankDsu(value: RankValue): value is RankDsu {
     return typeof value === 'object' && value.kind === 'dsu';

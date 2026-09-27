@@ -145,13 +145,22 @@ Next = Work pop                 rem vertex B
 
 `push` appends to a queue or stack. `pop` removes and returns the oldest queue
 entry or the newest stack entry; `peek` returns that entry without removing it.
+The first inserted element fixes the element's outer type for each queue, stack,
+deque or heap instance. Later insertions must have that type, even after the
+container becomes empty. For arrays, the number of axes must also match;
+array contents are not checked. Heap priorities have their separate ordering
+rule below.
+Set and counter insertions still hash array contents for equality, which may
+read a lazy array; this is separate from the element-type check.
+
 A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
 `peekback`. Its plain `push` appends at the back, and `pop`/`peek` use the front.
 Binary functions use postfix syntax, such as `Ends Value pushfront`.
 
 A heap is a stable min-priority queue. `Heap push Value` uses the value itself
-as its priority. `Heap Priority Value enqueue` accepts a separate payload of
-any type. Priorities must be comparable scalars of one ordering family;
+as its priority. `Heap Priority Value enqueue` accepts a separate payload
+whose type is fixed by the first insertion. Priorities must be comparable
+scalars of one ordering family;
 integer and real priorities can mix. NaN priorities are rejected. Equal
 priorities preserve insertion order. For a numeric max-heap, negate priorities
 when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
@@ -222,6 +231,10 @@ Count = set len
 The first use of `set` lazily creates one set in the current function-call
 workspace. `add` is idempotent: adding an equal value again leaves the set
 unchanged. `remove` deletes that value and raises `.Missing` when it is absent.
+Sets and counters keep the outer type and, for arrays, the rank of their first
+inserted element even after all elements are removed. A mismatched `add` is an
+error. The cells of an array element are not checked.
+
 Scalars, arrays and records can be elements. Array equality includes
 both shape and contents; record equality includes field names and recursively
 equal values. `in` tests membership, and `len` returns the number of unique

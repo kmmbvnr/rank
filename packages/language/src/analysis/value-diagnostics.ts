@@ -1,11 +1,12 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
-    isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
+    isArrayExpression, isMaterializeExpression, isNewStructureExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isStatement, isExpression,
     isBreakStatement, isContinueStatement, isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isAddStatement, isPushStatement, isTryStatement, isUnpackStatement, isYieldStatement,
+    isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
     type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
     type YieldStatement,
 } from '../generated/ast.js';
@@ -14,7 +15,8 @@ import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields } from './function-yields.js';
-import { expressionFacts, incompatibleShapes, isAtom, joinValueFacts, UNKNOWN_VALUE, type ValueFacts, type FactLookup } from './value-facts.js';
+import { expressionFacts, hasCallbackFreeFindProof, incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE,
+    type ValueFacts, type FactLookup } from './value-facts.js';
 
 export interface ValueDiagnostic {
     readonly node: AstNode;
@@ -41,6 +43,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const functions = new Map(declarations);
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
     const activeCalls = new Set<string>();
+    const recursiveProbes = new Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
+        seen: boolean; valid: boolean }>();
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
     let remainingCalls = 100;
@@ -50,6 +54,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const parts = isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
         const target = parts.at(-1);
         if (!target || !isNameExpression(target)) return false;
+        if (target.name === 'raise' && !env.has('raise') && (parts.length === 2 || parts.length === 3)) return true;
         const definition = functions.get(target.name);
         if (!definition || env.get(target.name) !== functionBindings.get(target.name)
             || definition.parameters.length !== parts.length - 1) return false;
@@ -66,6 +71,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const arrayRank = (fact: ValueFacts | undefined): number | undefined =>
         fact?.types.length && fact.types.every(type => type === 'array' || type === 'bytes') ? fact.rank : undefined;
     const contractRank = (fact: ValueFacts | undefined): number | undefined => fact?.acceptedArrayRank ?? arrayRank(fact);
+    const settledShape = (types: Types, rank: number | undefined): Pick<ValueFacts, 'rank' | 'shape'> =>
+        rank !== undefined ? { rank, shape: Array(rank).fill(null) }
+            : types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
+                'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
+                : types.join() === 'text' ? { rank: 1, shape: [null] } : {};
     const invalidate = (fact: ValueFacts | undefined): ValueFacts => ({ types: [], acceptedArrayRank: contractRank(fact) });
 
     function mergeEnvironments(env: Map<string, ValueFacts>, paths: readonly Map<string, ValueFacts>[]): void {
@@ -81,6 +91,67 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
     }
 
+    function typeGuard(expression: Expression): { name: string; types: Types } | undefined {
+        if (isParenthesizedExpression(expression)) return typeGuard(expression.value);
+        if (!isBinaryExpression(expression)) return;
+        if (expression.operator === 'is' && isNameExpression(expression.left) && isLabelLiteral(expression.right)) {
+            return { name: expression.left.name, types: [expression.right.name] };
+        }
+        if (expression.operator === 'or') {
+            const left = typeGuard(expression.left);
+            const right = typeGuard(expression.right);
+            if (left && right && left.name === right.name) return {
+                name: left.name, types: [...new Set([...left.types, ...right.types])],
+            };
+        }
+        return undefined;
+    }
+
+    function narrowGuard(fact: ValueFacts, types: Types): ValueFacts {
+        if (types.join() === fact.types.join()) return { ...fact, acceptedTypes: types };
+        const rank = types.length === 1 && (types[0] === 'array' || types[0] === 'bytes')
+            ? contractRank(fact) : undefined;
+        return { types, acceptedTypes: types, acceptedArrayRank: rank, ...settledShape(types, rank) };
+    }
+
+    function knownIntegerCondition(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean | undefined {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (!isBinaryExpression(expression)
+            || !['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(expression.operator)) return;
+        const integer = (part: Expression): bigint | undefined => {
+            while (isParenthesizedExpression(part)) part = part.value;
+            if (!isNameExpression(part) && !isNumberLiteral(part)
+                && !(isUnaryExpression(part) && ['+', '-'].includes(part.operator)
+                    && isNumberLiteral(part.operand))) return;
+            const value = expressionFacts(part, name => env.get(name)).integer;
+            return value === undefined ? undefined : BigInt(value);
+        };
+        const left = integer(expression.left);
+        const right = integer(expression.right);
+        if (left === undefined || right === undefined) return;
+        switch (expression.operator) {
+            case 'equal': return left === right;
+            case 'notequal': return left !== right;
+            case 'less': return left < right;
+            case 'greater': return left > right;
+            case 'atleast': return left >= right;
+            case 'atmost': return left <= right;
+        }
+        return undefined;
+    }
+
+    function knownBooleanCondition(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean | undefined {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isBooleanLiteral(expression) || isNameExpression(expression)) {
+            return expressionFacts(expression, name => env.get(name)).boolean;
+        }
+        if (isUnaryExpression(expression) && expression.operator === 'not') {
+            const value = knownBooleanCondition(expression.operand, env);
+            return value === undefined ? undefined : !value;
+        }
+        return undefined;
+    }
+
     function conditionalPaths(statement: IfStatement, env: Map<string, ValueFacts>): { items: readonly Statement[]; env: Map<string, ValueFacts> }[] {
         const paths: { items: readonly Statement[]; env: Map<string, ValueFacts> }[] = [];
         const pending = new Map(env);
@@ -89,9 +160,24 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             const start = diagnostics.length;
             inspect(clause.condition, pending);
             if (paths.length) diagnostics.length = start;
-            if (isBooleanLiteral(clause.condition) && !clause.condition.value) continue;
-            paths.push({ items: clause.statements, env: new Map(pending) });
-            if (isBooleanLiteral(clause.condition) && clause.condition.value) return paths;
+            const known = knownBooleanCondition(clause.condition, pending)
+                ?? knownIntegerCondition(clause.condition, pending);
+            if (known === false) continue;
+            const guard = typeGuard(clause.condition);
+            const fact = guard && pending.get(guard.name);
+            const matching = fact && (fact.types.length
+                ? fact.types.filter(type => guard!.types.includes(type)) : guard!.types);
+            if (!fact || !guard || matching?.length) {
+                const branch = new Map(pending);
+                if (guard && fact && matching?.length) branch.set(guard.name, narrowGuard(fact, matching));
+                paths.push({ items: clause.statements, env: branch });
+            }
+            if (guard && fact && fact.types.length) {
+                const remaining = fact.types.filter(type => !guard.types.includes(type));
+                if (!remaining.length) return paths;
+                pending.set(guard.name, narrowGuard(fact, remaining));
+            }
+            if (known === true) return paths;
         }
         paths.push({ items: statement.elseStatements, env: pending });
         return paths;
@@ -153,11 +239,62 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         return [...new Set(cells.flatMap(cell => cell.types))];
     }
 
+    const numericInput = (fact: ValueFacts): boolean => fact.types.length > 0
+        && (fact.rank === 0 && fact.types.every(type => type === 'integer' || type === 'real')
+            || fact.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
+                && !!(fact.eagerScalarCells || fact.callbackFreeScalarCells)
+                && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real'));
+    const widenedInput = (fact: ValueFacts): ValueFacts => ({ types: fact.types, rank: fact.rank,
+        shape: Array(fact.rank!).fill(null), ...(fact.elements ? { elements: fact.elements } : {}),
+        ...(fact.eagerScalarCells ? { eagerScalarCells: true as const } : {}),
+        ...(fact.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) });
+    const sameNumericInput = (left: ValueFacts, right: ValueFacts): boolean => numericInput(right)
+        && left.types.join() === right.types.join() && left.rank === right.rank
+        && left.elements?.join() === right.elements?.join();
+
+    function numericRecursionEligible(name: string, definition: FunctionStatement): boolean {
+        if (definition.$container.$type !== 'Program') return false;
+        const nodes = [...AstUtils.streamAllContents(definition)];
+        if (nodes.some(node => isFunctionStatement(node) || isTryStatement(node) || isYieldStatement(node)
+            || isStdinExpression(node) || isArrayAssignmentStatement(node) || isIndexAssignmentStatement(node)
+            || isAddStatement(node) || isPushStatement(node))) return false;
+        const locals = new Set([...definition.parameters, ...nodes.filter(isAssignmentStatement).map(node => node.name),
+            ...nodes.filter(isUnpackStatement).flatMap(node => node.names),
+            ...nodes.filter(isForStatement).flatMap(node => loopBinding(node.condition)?.names ?? [])]);
+        if (locals.has(name)) return false;
+        const numericSyntax = (part: Expression): boolean => isNameExpression(part) || isNumberLiteral(part)
+            || isParenthesizedExpression(part) && numericSyntax(part.value)
+            || isUnaryExpression(part) && ['+', '-'].includes(part.operator) && numericSyntax(part.operand)
+            || isBinaryExpression(part) && ['+', '-', '*', '/', '//', '%', '**'].includes(part.operator)
+                && numericSyntax(part.left) && numericSyntax(part.right);
+        return nodes.filter(isNameExpression).every(node => {
+            if (node.name === name) {
+                const parent = node.$container;
+                if (!isApplicationExpression(parent)) return false;
+                let call: AstNode = parent;
+                while (isApplicationExpression(call.$container)) call = call.$container;
+                if (!isApplicationExpression(call)) return false;
+                const parts = flattenApplication(call);
+                return parts.at(-1) === node && parts.length === definition.parameters.length + 1
+                    && parts.slice(0, -1).every(numericSyntax);
+            }
+            return locals.has(node.name) || ['len', 'min', 'max', 'odd'].includes(node.name)
+                && !bindings.has(node.name);
+        });
+    }
+
     function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression): ValueFacts {
         const definition = functions.get(name);
         if (!definition || caller.get(name) !== functionBindings.get(name)
-            || definition.parameters.length !== arguments_.length || activeCalls.has(name)
-            || remainingCalls-- <= 0) return UNKNOWN_VALUE;
+            || definition.parameters.length !== arguments_.length) return UNKNOWN_VALUE;
+        if (activeCalls.has(name)) {
+            const probe = recursiveProbes.get(name);
+            if (!probe) return UNKNOWN_VALUE;
+            probe.seen = true;
+            probe.valid &&= arguments_.every((fact, index) => sameNumericInput(probe.inputs[index], fact));
+            return probe.result;
+        }
+        if (remainingCalls-- <= 0) return UNKNOWN_VALUE;
         const yields = functionYields(definition);
         if (yields.length) {
             // A generator call creates a sequence without executing its body.
@@ -183,22 +320,81 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             ...arguments_[index], acceptedArrayRank: arrayRank(arguments_[index]), acceptedTypes: arguments_[index].types,
         }));
         if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });
+        // Runtime declares local functions before executing the body, including
+        // declarations textually after an early return.
+        const hoisted = definition.statements.filter(isFunctionStatement).map(nested => ({
+            nested, previous: functions.get(nested.name), previousBinding: functionBindings.get(nested.name),
+            hadBinding: functionBindings.has(nested.name),
+        }));
+        for (const { nested } of hoisted) {
+            const fact: ValueFacts = { types: ['function'] };
+            local.set(nested.name, fact);
+            functions.set(nested.name, nested);
+            functionBindings.set(nested.name, fact);
+        }
         activeCalls.add(name);
         globalCallEnvs.push(globalEnv);
         const nodes = [...AstUtils.streamAllContents(definition)];
-        privateBindings.push(nodes.some(isFunctionStatement) ? new Set()
-            : new Set([...definition.parameters, ...nodes.filter(isForStatement)
-                .flatMap(loop => loopBinding(loop.condition)?.names ?? []).filter(name => name !== '#')]));
+        const nestedWrites = new Set(nodes.filter(isFunctionStatement).flatMap(nested =>
+            [...AstUtils.streamAllContents(nested)].flatMap(node => isAssignmentStatement(node) ? [node.name]
+                : isFunctionStatement(node) ? [node.name] : isUnpackStatement(node) ? node.names : isForStatement(node)
+                    ? loopBinding(node.condition)?.names ?? [] : [])));
+        privateBindings.push(new Set([...definition.parameters, ...nodes.filter(isAssignmentStatement)
+            .map(statement => statement.name).filter(name => !name.includes('.')), ...nodes.filter(isForStatement)
+            .flatMap(loop => loopBinding(loop.condition)?.names ?? [])]
+            .filter(name => name !== '#' && !nestedWrites.has(name))));
         const diagnosticStart = diagnostics.length;
         try {
             const result = returnPaths(definition.statements, local);
             // Reaching the end throws: only paths that actually return contribute
             // a result value. With no proven return, the result remains unknown.
-            return joinValueFacts(result.values);
+            const ordinary = joinValueFacts(result.values);
+            if (ordinary.types.length || !arguments_.every(numericInput)
+                || !numericRecursionEligible(name, definition)) return ordinary;
+            const inputs = arguments_.map(widenedInput);
+            const widened = new Map(local);
+            definition.parameters.forEach((parameter, index) => widened.set(parameter, {
+                ...inputs[index], acceptedTypes: inputs[index].types,
+                acceptedArrayRank: arrayRank(inputs[index]),
+            }));
+            const before = new Map(expressions);
+            const start = diagnostics.length;
+            let base = joinValueFacts(result.values.filter(fact => fact.types.length));
+            if (!base.types.length) {
+                try {
+                    base = joinValueFacts(returnPaths(definition.statements, new Map(widened)).values
+                        .filter(fact => fact.types.length));
+                } finally {
+                    diagnostics.length = start;
+                    expressions.clear();
+                    for (const [node, fact] of before) expressions.set(node, fact);
+                }
+            }
+            if (base.rank !== 0 || !base.types.length
+                || !base.types.every(type => type === 'integer' || type === 'real')) return ordinary;
+            const probe = { inputs, result: base, seen: false, valid: true };
+            recursiveProbes.set(name, probe);
+            let inferred: ValueFacts;
+            try {
+                inferred = joinValueFacts(returnPaths(definition.statements, widened).values);
+            } finally {
+                recursiveProbes.delete(name);
+                diagnostics.length = start;
+                expressions.clear();
+                for (const [node, fact] of before) expressions.set(node, fact);
+            }
+            return probe.valid && probe.seen && inferred.rank === 0 && inferred.types.length
+                && inferred.types.every(type => base.types.includes(type)) ? inferred : ordinary;
         } finally {
             activeCalls.delete(name);
             globalCallEnvs.pop();
             privateBindings.pop();
+            for (const { nested, previous, previousBinding, hadBinding } of hoisted.reverse()) {
+                if (previous) functions.set(nested.name, previous);
+                else functions.delete(nested.name);
+                if (hadBinding) functionBindings.set(nested.name, previousBinding);
+                else functionBindings.delete(nested.name);
+            }
             if (site) for (let index = diagnosticStart; index < diagnostics.length; index++) {
                 diagnostics[index] = { ...diagnostics[index], node: site, message: `${name}: ${diagnostics[index].message}` };
             }
@@ -300,7 +496,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     function widenArrayWrite(node: AstNode, env: Map<string, ValueFacts>): void {
         if (!isArrayAssignmentStatement(node)) return;
         const fact = env.get(node.name);
-        if (fact) env.set(node.name, { ...fact, elements: undefined, positions: undefined, integers: undefined,
+        if (fact && fact.types.join() !== 'segment') env.set(node.name, { ...fact,
+            elements: undefined, positions: undefined, positionFacts: undefined, integers: undefined,
             eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
     }
     function widenLoopExit(contents: readonly AstNode[], env: Map<string, ValueFacts>, preserved: ReadonlySet<string> = new Set()): void {
@@ -310,9 +507,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const rank = contractRank(fact);
                 env.set(name, preserved.has(name) ? { ...fact, types: fact?.types ?? [],
                     shape: rank === undefined ? undefined : Array(rank).fill(null),
-                    integers: undefined, positions: undefined }
+                    integers: undefined, positions: undefined, positionFacts: undefined }
                     : { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
-                        acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+                        acceptedArrayRank: rank, ...settledShape(fact?.acceptedTypes ?? [], rank) });
             }
             if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, env);
         }
@@ -320,10 +517,68 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const directValue = (node: Expression): boolean => isNameExpression(node) || isNumberLiteral(node)
         || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
         || isParenthesizedExpression(node) && directValue(node.value);
+    const safeCollectionValue = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean =>
+        directValue(node) || isArrayExpression(node)
+            && node.dimensions.every(item => directValue(item.value))
+            && (!node.fill || directValue(node.fill))
+            && [...node.items, ...node.rows.flatMap(row => row.items)].every(item => directValue(item.value))
+            && expressionFacts(node, name => env.get(name)).eagerScalarCells === true;
+    function insertCollectionElement(name: string, value: ValueFacts, node: Expression,
+        env: Map<string, ValueFacts>): void {
+        const collection = env.get(name);
+        if (!collection || !['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(collection.types.join())
+            || !value.types.length) return;
+        const accepted = collection.elements;
+        if (accepted?.length && value.types.every(type => !accepted.includes(type))) {
+            diagnostics.push({ node, kind: 'TypeError',
+                message: `${name} holds ${accepted.join(' or ')} and cannot receive ${value.types.join(' or ')}` });
+            return;
+        }
+        const rank = value.types.join() === 'array' ? value.rank : undefined;
+        if (accepted?.join() === 'array' && collection.elementRank !== undefined
+            && rank !== undefined && collection.elementRank !== rank) {
+            diagnostics.push({ node, kind: 'DimensionMismatch',
+                message: `${name} holds array rank ${collection.elementRank} and cannot receive rank ${rank}` });
+            return;
+        }
+        if (!accepted?.length) env.set(name, { ...collection, elements: value.types,
+            ...(rank !== undefined ? { elementRank: rank } : {}) });
+    }
+    const scalarArithmetic = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean => {
+        if (isParenthesizedExpression(node)) return scalarArithmetic(node.value, env);
+        if (isNumberLiteral(node)) return true;
+        if (isNameExpression(node)) {
+            const fact = env.get(node.name);
+            return fact?.rank === 0 && fact.types.length > 0
+                && fact.types.every(type => type === 'integer' || type === 'real');
+        }
+        if (isUnaryExpression(node) && ['+', '-'].includes(node.operator))
+            return scalarArithmetic(node.operand, env);
+        return isBinaryExpression(node) && ['+', '-', '*', '/', '//', '%', '**'].includes(node.operator)
+            && scalarArithmetic(node.left, env) && scalarArithmetic(node.right, env);
+    };
     const safeRead = (fact: ValueFacts | undefined): boolean => fact?.eagerScalarCells === true
         || fact?.callbackFreeScalarCells === true || fact?.types.join() === 'text';
     const forgetNonFunctions = (env: Map<string, ValueFacts>): void => {
-        for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+        const protectedNames = privateBindings.at(-1);
+        for (const [name, fact] of env) if (!fact.types.includes('function')) {
+            const accepted = fact.acceptedTypes ?? fact.types;
+            const privateValue = protectedNames?.has(name) && accepted.length > 0;
+            const rank = contractRank(fact);
+            // Unknown calls may mutate a private value, but cannot rebind its uncaptured local name.
+            env.set(name, privateValue && fact.types.length > 0
+                && fact.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                ? { types: accepted, acceptedTypes: accepted, rank: 0, shape: [] }
+                : privateValue && fact.types.join() === 'text' && accepted.join() === 'text'
+                    ? { types: ['text'], acceptedTypes: ['text'], rank: 1, shape: [null] }
+                    : privateValue && fact.types.join() === 'array' && accepted.join() === 'array'
+                        ? { types: ['array'], acceptedTypes: ['array'], acceptedArrayRank: rank,
+                            ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) }
+                        : privateValue && fact.types.length === 1 && accepted.join() === fact.types.join()
+                            ? { types: fact.types, acceptedTypes: accepted }
+                            : invalidate(fact));
+        }
     };
     function loopBinding(condition: Expression | undefined): { names: readonly string[]; iterable: Expression } | undefined {
         if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
@@ -352,6 +607,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             && directValue(parts[0]) && directValue(parts[1]);
     }
 
+    function safeEmptyArrayIteration(source: Expression | undefined, collection: ValueFacts): boolean {
+        return !!source && collection.types.join() === 'array' && collection.rank !== undefined
+            && collection.rank > 0 && collection.shape?.[0] === 0 && safeIndexedSource(source);
+    }
+
     function bindIteration(env: Map<string, ValueFacts>, names: readonly string[], collection: ValueFacts): void {
         if (names[0] !== '#') {
             if (collection.types.join() === 'array' && collection.rank !== undefined && collection.rank > 1) {
@@ -364,7 +624,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const types = collection.elements ?? (collection.types.join() === 'text' ? ['text'] : []);
                 env.set(names[0], { types, acceptedTypes: types,
                     ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
-                        ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] } : {}) });
+                        ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] }
+                            : types.join() === 'array' && collection.elementRank !== undefined
+                                ? { rank: collection.elementRank, acceptedArrayRank: collection.elementRank,
+                                    shape: Array(collection.elementRank).fill(null) } : {}) });
             }
         }
         if (names[1] && names[1] !== '#') env.set(names[1], {
@@ -380,13 +643,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (source) invalidateCalls(source, env);
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
         const membership = candidate && (candidate.names.length === 1
-            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)) ? candidate : undefined;
+            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)
+            || safeEmptyArrayIteration(candidate.iterable, collection)) ? candidate : undefined;
         const count = membership && collection.rank !== undefined && collection.rank > 0
             ? collection.shape?.[0] : undefined;
         if (count === 0) {
             if (!emptyBuiltinRange(source, collection)
+                && !safeEmptyArrayIteration(source, collection)
                 && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
-                for (const [name, fact] of env) env.set(name, invalidate(fact));
+                forgetNonFunctions(env);
             }
             return;
         }
@@ -399,15 +664,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && !isIfStatement(node) && !isForStatement(node)
                 && !isBreakStatement(node) && !isContinueStatement(node))) {
             // Mutation and non-local exits need their own flow rules.
-            for (const [name, fact] of env) env.set(name, invalidate(fact));
+            forgetNonFunctions(env);
             return;
         }
         const writes = new Set(contents.filter(isArrayAssignmentStatement).map(node => node.name));
         const writesIndex = contents.some(isIndexAssignmentStatement);
-        const indexBefore = env.get('index');
-        const indexCandidate = writesIndex && indexBefore?.types.join() === 'index'
-            && indexBefore.elements !== undefined ? indexBefore.elements : undefined;
         const rebound = new Set(contents.flatMap(writtenBindings));
+        const touchesIndex = writesIndex || [...writes].some(name => env.get(name)?.types.join() === 'index'
+            || rebound.has(name) || !env.has(name));
+        const knownIndices = touchesIndex ? [...env.values()].filter(fact => fact.types.join() === 'index') : [];
+        const indexCandidate = knownIndices.length && knownIndices.every(fact => fact.elements !== undefined)
+            ? [...new Set(knownIndices.flatMap(fact => fact.elements!))] : undefined;
         const candidates = new Map([...writes].flatMap(name => {
             const fact = env.get(name);
             return !rebound.has(name) && fact?.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
@@ -421,7 +688,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
                 ? [[name, { ...fact, shape: Array(fact.rank).fill(null), elements: ['integer', 'real'] as Types,
                     eagerScalarCells: undefined, callbackFreeScalarCells: true as const,
-                    integers: undefined, positions: undefined }] as const] : [];
+                    integers: undefined, positions: undefined, positionFacts: undefined }] as const] : [];
         }));
         const prepare = (preserved: ReadonlySet<string>, indexSeed?: readonly string[],
             numericSeeds: ReadonlyMap<string, ValueFacts> = new Map(),
@@ -436,13 +703,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const types = previous?.acceptedTypes ?? previous?.types ?? [];
                     const rank = contractRank(previous);
                     local.set(name, numericSeeds.get(name) ?? { types, acceptedTypes: types, acceptedArrayRank: rank,
-                        ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+                        ...settledShape(types, rank) });
                 }
-                if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, local);
+                if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)
+                    && !(indexSeed !== undefined && local.get(node.name)?.types.join() === 'index')) {
+                    widenArrayWrite(node, local);
+                }
             }
-            if (writesIndex) {
-                const index = local.get('index');
-                if (index?.types.join() === 'index') local.set('index', { ...index, elements: indexSeed });
+            if (touchesIndex) {
+                for (const [name, fact] of local) if (fact.types.join() === 'index') {
+                    local.set(name, { ...fact, elements: indexSeed });
+                }
             }
             if (membership) bindIteration(local, membership.names, collection);
             return local;
@@ -450,20 +721,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const start = diagnostics.length;
         let preserved = new Set<string>();
         let local: Map<string, ValueFacts>;
-        if (hasExit) {
-            const body = prepare(preserved);
-            const paths = returnPaths(statement.statements, body);
-            if (count == null || count <= 0) diagnostics.length = start;
-            const exits = [...paths.breaks, ...paths.continues, ...(paths.fallsThrough ? [body] : [])];
-            for (const path of exits) widenLoopExit(contents, path);
-            mergeEnvironments(env, [env, ...exits]);
-            return;
-        }
         const preview = prepare(new Set(candidates.keys()), indexCandidate, numeric);
+        const indexWriteTypes = indexCandidate === undefined ? undefined
+            : contents.flatMap(node => {
+                if (!isIndexAssignmentStatement(node) && (!isArrayAssignmentStatement(node)
+                    || preview.get(node.name)?.types.join() !== 'index')) return [];
+                const value = expressionFacts(node.value, name => preview.get(name));
+                return directValue(node.value) && isAtom(value) ? value.types : [];
+            });
         const effects = functionEffects(name => preview.get(name) === functionBindings.get(name)
             ? functions.get(name) : undefined, name => preview.get(name)?.types.includes('function') ?? false,
-        name => preview.has(name));
-        const safeCalls = contents.filter(isNameExpression).filter(node => preview.get(node.name)?.types.includes('function'))
+        name => preview.has(name), name => preview.get(name));
+        const safeCalls = contents.filter(isNameExpression).filter(node =>
+            AstUtils.getContainerOfType(node, isForStatement) === statement
+                && preview.get(node.name)?.types.includes('function'))
             .every(node => {
                 let site: AstNode = node;
                 while (isApplicationExpression(site.$container)) site = site.$container;
@@ -473,10 +744,39 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const inputs = parts.slice(0, -1).map(part => expressionFacts(part, name => preview.get(name)));
                 const effect = effects(node.name, inputs);
                 return !effect.unknown && !effect.io && !effect.parameters.size && !effect.reboundParameters.size
-                    && !effect.captures.size
-                    && !effect.bindingCaptures.size && !effect.readCaptures.size && !effect.valueCaptures.size
+                    && [...effect.captures].every(name => effect.numericCaptureWrites?.has(name)
+                        && safeRead(preview.get(name)))
+                    && !effect.bindingCaptures.size && !effect.valueCaptures.size
+                    && [...effect.readCaptures].every(name => safeRead(preview.get(name)))
                     && [...effect.readParameters].every(index => safeRead(inputs[index]));
             });
+        if (hasExit) {
+            const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
+            const run = (keep: ReadonlySet<string>) => {
+                const body = prepare(keep);
+                const paths = returnPaths(statement.statements, body);
+                return [...paths.breaks, ...paths.continues, ...(paths.fallsThrough ? [body] : [])];
+            };
+            let exits = candidates.size > 0 && safeCalls ? run(new Set(candidates.keys())) : [];
+            const closed = exits.length > 0 && exits.every(path => [...candidates].every(([name, fact]) => {
+                const after = path.get(name);
+                return after?.types.join() === 'array' && after.rank === fact.rank && after.eagerScalarCells
+                    && after.elements?.length && after.elements.every(type => fact.elements!.includes(type));
+            }));
+            if (closed) preserved = new Set(candidates.keys());
+            else {
+                diagnostics.length = start;
+                for (const [node, prior] of before) {
+                    if (prior) expressions.set(node, prior);
+                    else expressions.delete(node);
+                }
+                exits = run(preserved);
+            }
+            if (count == null || count <= 0) diagnostics.length = start;
+            for (const path of exits) widenLoopExit(contents, path, preserved);
+            mergeEnvironments(env, [env, ...exits]);
+            return;
+        }
         if ((candidates.size || numeric.size || indexCandidate !== undefined) && safeCalls) {
             const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
             const restore = () => {
@@ -487,17 +787,19 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     else expressions.delete(node);
                 }
             };
-            let seed = indexCandidate;
-            if (seed?.length === 0) {
+            let seed = indexCandidate && [...new Set([...indexCandidate, ...(indexWriteTypes ?? [])])];
+            if (seed !== undefined) {
                 const first = prepare(new Set(candidates.keys()), seed, numeric);
                 statements(statement.statements, first);
-                seed = first.get('index')?.elements;
+                const indices = [...first.values()].filter(fact => fact.types.join() === 'index');
+                seed = indices.every(fact => fact.elements !== undefined)
+                    ? [...new Set(indices.flatMap(fact => fact.elements!))] : undefined;
                 restore();
             }
             const attempt = (arrays: ReadonlyMap<string, ValueFacts>) => {
                 const trial = prepare(new Set(candidates.keys()), seed, numeric, arrays);
                 statements(statement.statements, trial);
-                const indexAfter = trial.get('index')?.elements;
+                const indexAfter = [...trial.values()].filter(fact => fact.types.join() === 'index');
                 const closed = [...arrays].every(([name, fact]) => {
                     const after = trial.get(name);
                     return after?.types.join() === 'array' && after.rank === fact.rank && after.eagerScalarCells
@@ -508,8 +810,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     return after?.types.join() === 'array' && after.rank === fact.rank
                         && (after.eagerScalarCells || after.callbackFreeScalarCells)
                         && after.elements?.length && after.elements.every(type => type === 'integer' || type === 'real');
-                }) && (indexCandidate === undefined || seed !== undefined && indexAfter !== undefined
-                    && indexAfter.every(type => seed.includes(type)));
+                }) && (indexCandidate === undefined || seed !== undefined
+                    && indexAfter.every(fact => fact.elements !== undefined
+                        && fact.elements.every(type => seed!.includes(type))));
                 return { trial, closed };
             };
             let { trial, closed } = attempt(candidates);
@@ -523,7 +826,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
             if (closed) {
                 local = trial;
-                preserved = new Set([...candidates.keys(), ...numeric.keys()]);
+                preserved = new Set([...candidates.keys(), ...numeric.keys(),
+                    ...(indexCandidate !== undefined ? [...env].filter(([, fact]) => fact.types.join() === 'index')
+                        .map(([name]) => name) : [])]);
             } else {
                 restore();
                 local = prepare(preserved);
@@ -547,38 +852,92 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (source) invalidateCalls(source, env);
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
         const membership = candidate && (candidate.names.length === 1
-            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)) ? candidate : undefined;
+            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)
+            || safeEmptyArrayIteration(candidate.iterable, collection)) ? candidate : undefined;
         const count = membership && collection.rank !== undefined && collection.rank > 0
             ? collection.shape?.[0] : undefined;
         if (count === 0) {
             if (!emptyBuiltinRange(source, collection)
+                && !safeEmptyArrayIteration(source, collection)
                 && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
                 for (const [name, fact] of env) env.set(name, invalidate(fact));
             }
             return [];
         }
-        const local = new Map(env);
-        if ([...AstUtils.streamAllContents(statement)].some(isIndexAssignmentStatement)) {
-            const index = local.get('index');
-            if (index?.types.join() === 'index') local.set('index', { ...index, elements: undefined });
-        }
-        for (const node of AstUtils.streamAllContents(statement)) {
-            for (const name of writtenBindings(node)) {
-                const previous = local.get(name);
-                const types = previous?.acceptedTypes ?? previous?.types ?? [];
-                const rank = contractRank(previous);
-                local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
-                    ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+        const contents = [...AstUtils.streamAllContents(statement)];
+        const rebound = new Set(contents.flatMap(writtenBindings));
+        const indexWrites = contents.filter(isArrayAssignmentStatement);
+        const indexNames = [...env].filter(([, fact]) => fact.types.join() === 'index');
+        const owner = AstUtils.getContainerOfType(statement, isFunctionStatement);
+        const directIndex = owner?.statements.indexOf(statement) ?? -1;
+        const preceding = directIndex >= 0 ? owner!.statements.slice(0, directIndex) : [];
+        const precedingWrites = preceding.flatMap(node => [node, ...AstUtils.streamAllContents(node)]);
+        const closedIndexCandidate = indexWrites.length > 0 && indexNames.length > 0
+            && indexNames.every(([, fact]) => fact.elements !== undefined)
+            && ![...(globalCallEnvs.at(-1)?.values() ?? [])].some(fact => fact.types.join() === 'index')
+            && indexWrites.every(write => {
+                if (write.operator !== '=' || env.get(write.name)?.types.join() !== 'index') return false;
+                const binding = precedingWrites.filter(node => writtenBindings(node).includes(write.name)
+                    || isForStatement(node) && loopBinding(node.condition)?.names.includes(write.name)).at(-1);
+                return !!binding && isAssignmentStatement(binding) && binding.operator === '='
+                    && isNewStructureExpression(binding.value) && binding.value.structure === 'index';
+            })
+            && !contents.some(node => isIndexAssignmentStatement(node) || isForStatement(node)
+                || isTryStatement(node) || isFunctionStatement(node) || isExpressionStatement(node)
+                || isAddStatement(node) || isPushStatement(node) || isUnpackStatement(node)
+                || isStdinExpression(node))
+            && contents.filter(isNameExpression).every(node => env.get(node.name)?.types.length
+                && env.get(node.name)!.types.every(type => ['integer', 'real', 'boolean', 'index'].includes(type)));
+        const touchesIndex = contents.some(node => isIndexAssignmentStatement(node)
+            || isArrayAssignmentStatement(node) && (env.get(node.name)?.types.join() === 'index'
+                || rebound.has(node.name) || !env.has(node.name)));
+        const prepare = (seed?: readonly string[]): Map<string, ValueFacts> => {
+            const local = new Map(env);
+            if (touchesIndex) for (const [name, fact] of local) if (fact.types.join() === 'index') {
+                local.set(name, { ...fact, elements: seed });
             }
-            widenArrayWrite(node, local);
-        }
-        if (membership) bindIteration(local, membership.names, collection);
+            for (const node of contents) {
+                for (const name of writtenBindings(node)) {
+                    const previous = local.get(name);
+                    const types = previous?.acceptedTypes ?? previous?.types ?? [];
+                    const rank = contractRank(previous);
+                    local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                        ...settledShape(types, rank) });
+                }
+                if (!isArrayAssignmentStatement(node) || seed === undefined
+                    || local.get(node.name)?.types.join() !== 'index') widenArrayWrite(node, local);
+            }
+            if (membership) bindIteration(local, membership.names, collection);
+            return local;
+        };
         const start = diagnostics.length;
-        const returned = returnPaths(statement.statements, local);
+        let local = prepare();
+        let returned: ReturnPaths;
+        if (closedIndexCandidate) {
+            const seed = [...new Set([...indexNames.flatMap(([, fact]) => fact.elements!),
+                ...indexWrites.flatMap(write => expressionFacts(write.value, name => local.get(name)).types)])];
+            const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
+            local = prepare(seed);
+            returned = returnPaths(statement.statements, local);
+            const continuing = [...returned.continues, ...(returned.fallsThrough ? [local] : [])];
+            const closed = continuing.every(path => indexNames.every(([name]) => {
+                const fact = path.get(name);
+                return fact?.types.join() === 'index' && fact.elements !== undefined
+                    && fact.elements.every(type => seed.includes(type));
+            }));
+            if (!closed) {
+                diagnostics.length = start;
+                for (const [node, prior] of before) {
+                    if (prior) expressions.set(node, prior);
+                    else expressions.delete(node);
+                }
+                local = prepare();
+                returned = returnPaths(statement.statements, local);
+            }
+        } else returned = returnPaths(statement.statements, local);
         if (count == null || count <= 0) diagnostics.length = start;
         const exits = [...returned.breaks, ...returned.continues, ...(returned.fallsThrough ? [local] : [])];
         if (exits.length) {
-            const contents = [...AstUtils.streamAllContents(statement)];
             for (const path of exits) widenLoopExit(contents, path);
             mergeEnvironments(env, [env, ...exits]);
         }
@@ -589,19 +948,27 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from']);
         const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
             name => env.get(name)?.types.includes('function') ?? false,
-            name => env.has(name));
+            name => env.has(name), name => env.get(name));
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
         const sliceModifiers = new Set(nodes.filter(isBinaryExpression)
             .flatMap(node => inlineSliceOperands(node)?.modifiers ?? []));
         let unknown = false;
         const written = new Set<string>();
         const writtenGlobals = new Set<string>();
+        const numericWritten = new Set<string>();
+        const numericWrittenGlobals = new Set<string>();
+        const unprovenWritten = new Set<string>();
+        const unprovenWrittenGlobals = new Set<string>();
         const rebound = new Set<string>();
         for (const node of nodes) {
             if (isStdinExpression(node)) unknown = true;
             if (!isNameExpression(node)) continue;
             if (sliceModifiers.has(node)) continue;
             if (env.get(node.name)?.types.includes('function')) {
+                // During the numeric fixed-point check, this recursive call is
+                // provisionally pure; its argument and result types are checked
+                // before the provisional result can escape the analysis.
+                if (activeCalls.has(node.name) && recursiveProbes.has(node.name)) continue;
                 let site: AstNode = node;
                 while (isApplicationExpression(site.$container)) site = site.$container;
                 const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
@@ -619,6 +986,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const source = global ? globalCallEnvs.at(-1) ?? env : env;
                     unknown ||= !array(source.get(capture));
                     (global ? writtenGlobals : written).add(capture);
+                    const preserved = global ? numericWrittenGlobals : numericWritten;
+                    const unproven = global ? unprovenWrittenGlobals : unprovenWritten;
+                    if (result.numericCaptureWrites?.has(capture) && safeRead(source.get(capture))) {
+                        if (!unproven.has(capture)) preserved.add(capture);
+                    } else {
+                        unproven.add(capture);
+                        preserved.delete(capture);
+                    }
                 }
                 for (const capture of result.bindingCaptures) rebound.add(capture);
                 for (const capture of result.readCaptures) {
@@ -672,6 +1047,78 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
                     if (parts.length === 2 && parts[1] === node && isLabelLiteral(parts[0])) continue;
                 }
+                if (node.name === 'add') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    const graph = parts[0] && isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
+                    const scalar = (part: Expression, allowed: readonly string[]) => {
+                        const fact = expressionFacts(part, name => env.get(name));
+                        return directValue(part) && isAtom(fact) && fact.types.length > 0
+                            && fact.types.every(type => allowed.includes(type));
+                    };
+                    if (parts[1] === node && (parts.length === 4 || parts.length === 5)
+                        && graph?.types.join() === 'graph' && graph.elements?.length
+                        && parts.slice(2, 4).every(part => scalar(part,
+                            ['integer', 'real', 'boolean', 'text', 'symbol']))
+                        && (parts.length === 4 || scalar(parts[4], ['integer', 'real']))) continue;
+                }
+                if (node.name === 'merge') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    const dsu = parts[0] && isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
+                    if (parts.length === 4 && parts[1] === node && dsu?.types.join() === 'dsu'
+                        && parts.slice(2).every(part => {
+                            const fact = expressionFacts(part, name => env.get(name));
+                            return directValue(part) && isAtom(fact) && fact.types.length > 0
+                                && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
+                        })) continue;
+                }
+                if (node.name === 'len') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    const source = parts[0] && expressionFacts(parts[0], name => env.get(name));
+                    if (parts.includes(node) && source?.types.join() === 'sequence'
+                        && source.callbackFreeScalarCells !== true) {
+                        unknown = true;
+                        continue;
+                    }
+                }
+                if (node.name === 'indices') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    const source = parts[0] && expressionFacts(parts[0], name => env.get(name));
+                    if (parts.length === 2 && parts[1] === node
+                        && source?.eagerScalarCells !== true && source?.callbackFreeScalarCells !== true) {
+                        unknown = true;
+                        continue;
+                    }
+                }
+                if (node.name === 'find' || node.name === 'findall') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    if (parts.length === 3 && parts[2] === node) {
+                        const source = expressionFacts(parts[0], name => env.get(name));
+                        const target = expressionFacts(parts[1], name => env.get(name));
+                        if (!hasCallbackFreeFindProof(source, target)) {
+                            unknown = true;
+                            continue;
+                        }
+                    }
+                }
+                if (['pop', 'popfront', 'popback'].includes(node.name)) {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    const receiver = parts[0] && isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
+                    const kinds = node.name === 'pop' ? ['queue', 'stack', 'deque', 'heap'] : ['deque'];
+                    if (parts.length === 2 && parts[1] === node && receiver?.types.length
+                        && receiver.types.every(type => kinds.includes(type))) continue;
+                }
                 const operation = findOperation(node.name);
                 if (!operation || operation.effects?.length) unknown = true;
             }
@@ -680,17 +1127,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
         if (unknown) {
-            const protectedNames = privateBindings.at(-1);
-            for (const [name, fact] of env) if (!fact.types.includes('function')) {
-                const accepted = fact.acceptedTypes ?? fact.types;
-                const privateValue = protectedNames?.has(name) && accepted.length > 0;
-                env.set(name, privateValue && fact.rank === 0
-                    && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
-                    ? { types: accepted, acceptedTypes: accepted, rank: 0, shape: [] }
-                    : privateValue && fact.types.join() === 'text' && accepted.join() === 'text'
-                        ? { types: ['text'], acceptedTypes: ['text'], rank: 1, shape: [null] }
-                        : invalidate(fact));
-            }
+            forgetNonFunctions(env);
             const global = globalCallEnvs.at(-1);
             if (global && global !== env) for (const [name, fact] of global) {
                 if (!fact.types.includes('function')) global.set(name, invalidate(fact));
@@ -699,11 +1136,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
         // Parameter arrays have value semantics. A write to one parameter
         // cannot alter its caller's array, even if two arguments share storage.
-        for (const [source, names] of [[env, written], [globalCallEnvs.at(-1) ?? env, writtenGlobals]] as const) {
+        for (const [source, names, preserved] of [[env, written, numericWritten],
+            [globalCallEnvs.at(-1) ?? env, writtenGlobals, numericWrittenGlobals]] as const) {
             for (const name of names) {
                 const fact = source.get(name);
-                if (fact) source.set(name, { ...fact, elements: undefined, integers: undefined, positions: undefined,
-                    eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
+                if (fact) source.set(name, { ...fact,
+                    ...(!preserved.has(name) ? { elements: undefined, eagerScalarCells: undefined,
+                        callbackFreeScalarCells: undefined } : {}),
+                    integers: undefined, positions: undefined, positionFacts: undefined });
             }
         }
         for (const name of rebound) {
@@ -721,6 +1161,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (isParenthesizedExpression(expression)) inspect(expression.value, env);
         if (isMaterializeExpression(expression)) inspect(expression.source, env);
         if (isUnaryExpression(expression)) inspect(expression.operand, env);
+        if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)
+            || isTakeWhileExpression(expression)) {
+            inspect(expression.source, env);
+            inspect(expression.mask, env);
+        }
         if (isArrayExpression(expression)) {
             for (const item of [...expression.items, ...expression.dimensions, ...expression.rows.flatMap(row => row.items)]) inspect(item.value, env);
             if (expression.fill) inspect(expression.fill, env);
@@ -738,6 +1183,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             for (const part of parts.slice(1)) inspect(part, env);
             const selectors = parts.slice(1);
             const last = parts.at(-1);
+            const fenwickSelector = source.types.join() === 'fenwick'
+                && (selectors.length === 1 || selectors.length === 2
+                    && isNameExpression(selectors[0]) && selectors[0].name === 'sum') ? last : undefined;
+            const fenwickIndex = fenwickSelector && expressions.get(fenwickSelector);
+            if (fenwickSelector && fenwickIndex?.types.length
+                && fenwickIndex.types.every(type => type !== 'integer')) {
+                diagnostics.push({ node: fenwickSelector, kind: 'TypeError',
+                    message: `fenwick index must be integer, got ${fenwickIndex.types.join(' or ')}` });
+            }
             if (isNameExpression(last) && last.name === 'reshape' && !lookup(last.name) && parts.length === 3) {
                 const dimensions = expressionFacts(parts[1], lookup).integers;
                 if (dimensions?.every(n => n !== null && n >= 0)
@@ -820,11 +1274,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             return fact?.rank === 0 && fact.types.length > 0
                 && fact.types.every(type => type === 'integer' || type === 'real');
         };
+        const safeIndexedScalar = (value: Expression): boolean => {
+            while (isParenthesizedExpression(value)) value = value.value;
+            if (!isApplicationExpression(value)) return false;
+            const parts = flattenApplication(value);
+            const source = isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
+            const cell = expressionFacts(value, name => env.get(name));
+            return source?.types.join() === 'array' && safeRead(source)
+                && parts.slice(1).every(numericArgument)
+                && cell.rank === 0 && cell.types.length > 0 && cell.types.every(type => numeric.has(type));
+        };
         const arguments_: ValueFacts[] = [];
         for (const part of parts.slice(0, -1)) {
             const atom = isParenthesizedExpression(part) ? part.value : part;
             if (!isNameExpression(atom) && !isNumberLiteral(atom) && !isStringLiteral(atom)
-                && !isBooleanLiteral(atom) && !numericArgument(part)) return undefined;
+                && !isBooleanLiteral(atom) && !numericArgument(part) && !safeIndexedScalar(part)) return undefined;
             const fact = expressionFacts(part, name => env.get(name));
             if (!fact.types.length || fact.types.includes('function')
                 || fact.types.includes('array') && !fact.eagerScalarCells && !fact.callbackFreeScalarCells) return undefined;
@@ -862,17 +1326,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             } else if (isUnpackStatement(statement)) {
                 invalidateCalls(statement.value, env);
                 const source = inspect(statement.value, env);
-                const knownCells = !!source.elements?.length;
+                const knownCells = !!source.elements?.length || !!source.positionFacts?.length;
                 if (source.types.join() !== 'array' || source.rank !== 1
                     || source.shape?.[0] != null && source.shape[0] !== statement.names.length
                     || !knownCells && source.positions?.length !== statement.names.length
                     || !(source.eagerScalarCells || source.callbackFreeScalarCells)) {
-                    for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+                    forgetNonFunctions(env);
                     continue;
                 }
                 for (const [index, name] of statement.names.entries()) {
                     if (name === '#') continue;
-                    const types = source.positions?.[index] ?? source.elements ?? [];
+                    const cell = source.positionFacts?.[index];
+                    const types = cell?.types ?? source.positions?.[index] ?? source.elements ?? [];
                     const previous = env.get(name);
                     const accepted = previous?.acceptedTypes ?? previous?.types;
                     if (accepted?.length && types.length && types.every(type => !accepted.includes(type))) {
@@ -882,10 +1347,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const scalarCell = types.length && types.every(type =>
                         ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
                     const textCell = types.join() === 'text';
-                    env.set(name, { types,
-                        ...(scalarCell ? { rank: 0, shape: [] } : textCell ? { rank: 1, shape: [null] } : {}),
+                    env.set(name, { ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
+                            : textCell ? { rank: 1, shape: [null] } : {})),
+                        types,
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
-                        acceptedTypes: accepted ?? types });
+                        acceptedTypes: accepted ?? types,
+                        ...(cell?.types.join() === 'array' ? { acceptedArrayRank: cell.rank } : {}) });
                 }
             } else if (isAddStatement(statement)) {
                 invalidateCalls(statement.value, env);
@@ -913,33 +1380,56 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && ['and', 'or', 'xor'].includes(statement.value.operator)
                     && [statement.value.left, statement.value.right].every(value => directValue(value)
                         && expressionFacts(value, name => env.get(name)).types.join() === 'boolean');
-                if (!directValue(statement.value) && !booleanValue) {
+                const safeValue = directValue(statement.value) || booleanValue
+                    || scalarArithmetic(statement.value, env);
+                if (!safeValue) {
                     forgetNonFunctions(env);
                 }
                 const replacement = inspect(statement.value, env);
-                const index = env.get('index');
-                if (index?.types.join() === 'index' && index.elements !== undefined) {
-                    env.set('index', { ...index,
-                        elements: safeKeys && (directValue(statement.value) || booleanValue)
-                            && replacement.types.length
-                            ? [...new Set([...index.elements, ...replacement.types])] : undefined });
+                if (env.get('index')?.types.join() === 'index') {
+                    for (const [name, fact] of env) if (fact.types.join() === 'index') {
+                        env.set(name, { ...fact,
+                            elements: fact.elements !== undefined && safeKeys && safeValue && replacement.types.length
+                                ? [...new Set([...fact.elements, ...replacement.types])] : undefined });
+                    }
                 }
             } else if (isPushStatement(statement)) {
+                const receiver = isNameExpression(statement.receiver) ? statement.receiver.name : undefined;
                 for (const value of [statement.receiver, statement.value]) {
                     invalidateCalls(value, env);
-                    if (!directValue(value)) {
+                    if (!safeCollectionValue(value, env)) {
                         forgetNonFunctions(env);
                     }
                     inspect(value, env);
                 }
-            } else if (isArrayAssignmentStatement(statement)) {
-                for (const index of statement.indices) if (index.value) {
-                    invalidateCalls(index.value, env);
-                    inspect(index.value, env);
+                if (receiver && safeCollectionValue(statement.value, env)) {
+                    insertCollectionElement(receiver,
+                        expressionFacts(statement.value, name => env.get(name)), statement.value, env);
                 }
+            } else if (isArrayAssignmentStatement(statement)) {
+                const selectors = statement.indices.map(index => {
+                    if (!index.value) return undefined;
+                    invalidateCalls(index.value, env);
+                    return inspect(index.value, env);
+                });
                 invalidateCalls(statement.value, env);
                 const replacement = inspect(statement.value, env);
                 const fact = env.get(statement.name);
+                const fenwickIndex = statement.indices.length === 1 && !statement.indices[0].all
+                    && !statement.indices[0].spread ? selectors[0] : undefined;
+                const fenwickValueTypes = statement.operator === '=' ? replacement.types
+                    : compoundType(statement.operator, ['integer'], replacement.types);
+                const segmentValueTypes = statement.operator === '=' ? replacement.types
+                    : compoundType(statement.operator, fact?.elements ?? [], replacement.types);
+                if (fact?.types.join() === 'fenwick' && fenwickIndex?.types.length
+                    && fenwickIndex.types.every(type => type !== 'integer')) {
+                    diagnostics.push({ node: statement.indices[0].value!, kind: 'TypeError',
+                        message: `fenwick index must be integer, got ${fenwickIndex.types.join(' or ')}` });
+                } else if (fact?.types.join() === 'fenwick' && fenwickValueTypes.length
+                    && fenwickValueTypes.every(type => type !== 'integer')) {
+                    diagnostics.push({ node: statement.value, kind: 'TypeError',
+                        message: `fenwick value must be integer, got ${fenwickValueTypes.join(' or ')}` });
+                }
                 const integerSelector = (value: Expression) => expressionFacts(value, name => env.get(name)).types.join() === 'integer';
                 const spreadLength = (value: Expression): number | undefined => {
                     const selector = expressionFacts(value, name => env.get(name));
@@ -953,42 +1443,135 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const oneCellSelectors = fact?.rank !== undefined
                     && selectorLengths.every(length => length !== undefined)
                     && selectorLengths.reduce((total, length) => total + (length ?? 0), 0) === fact.rank;
-                const compound = statement.operator !== '=' && oneCellSelectors
+                const indexedCells = fact?.rank === 1 && statement.indices.length === 1
+                    && !statement.indices[0].all && !statement.indices[0].spread
+                    && ['array', 'sequence'].includes(selectors[0]?.types.join() ?? '')
+                    && selectors[0]?.rank === 1 && selectors[0].elements?.join() === 'integer'
+                    && (selectors[0].eagerScalarCells || selectors[0].callbackFreeScalarCells);
+                const integerVector = (selector: ValueFacts | undefined): boolean => !!selector
+                    && ['array', 'sequence'].includes(selector.types.join()) && selector.rank === 1
+                    && selector.elements?.join() === 'integer'
+                    && (selector.eagerScalarCells === true || selector.callbackFreeScalarCells === true);
+                const lineTypes = statement.operator === '=' ? replacement.elements ?? []
+                    : compoundType(statement.operator, fact?.elements ?? [], replacement.elements ?? []);
+                const lineWrite = fact?.rank === statement.indices.length
+                    && fact.eagerScalarCells === true && !!fact.elements?.length
+                    && fact.elements.every(type => type === 'integer' || type === 'real')
+                    && statement.indices.every((index, position) => !index.spread
+                        && (index.all || selectors[position]?.rank === 0 && selectors[position]?.types.join() === 'integer'
+                            || integerVector(selectors[position])))
+                    && statement.indices.filter((index, position) => index.all || integerVector(selectors[position])).length === 1
+                    && replacement.types.join() === 'array' && replacement.rank === 1
+                    && (replacement.eagerScalarCells || replacement.callbackFreeScalarCells)
+                    && !!replacement.elements?.length
+                    && replacement.elements.every(type => type === 'integer' || type === 'real')
+                    && lineTypes.length > 0 && lineTypes.every(type => type === 'integer' || type === 'real');
+                const compound = statement.operator !== '=' && (oneCellSelectors || indexedCells)
                     && fact.eagerScalarCells === true
                     && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
                     && replacement.rank === 0 && replacement.types.length > 0
                     && replacement.types.every(type => type === 'integer' || type === 'real')
                     ? compoundType(statement.operator, fact.elements, replacement.types) : [];
-                if ((isPlainArrayWrite(statement, integerSelector)
-                    || statement.operator === '=' && oneCellSelectors || compound.length > 0)
+                const lineCompound = statement.operator !== '=' && fact?.rank === statement.indices.length
+                    && fact.eagerScalarCells === true && !!fact.elements?.length
+                    && fact.elements.every(type => type === 'integer' || type === 'real')
+                    && statement.indices.every((index, position) => !index.spread
+                        && (index.all || selectors[position]?.rank === 0 && selectors[position]?.types.join() === 'integer'))
+                    && statement.indices.filter(index => index.all).length === 1
+                    && replacement.rank === 0 && replacement.types.length > 0
+                    && replacement.types.every(type => type === 'integer' || type === 'real')
+                    ? compoundType(statement.operator, fact.elements, replacement.types) : [];
+                if (fact?.types.join() === 'fenwick' && statement.indices.length === 1
+                    && !statement.indices[0].all && !statement.indices[0].spread
+                    && fenwickIndex?.types.join() === 'integer'
+                    && fenwickValueTypes.join() === 'integer') {
+                    env.set(statement.name, fact);
+                } else if (fact?.types.join() === 'record' && fact.fields && statement.operator === '='
+                    && statement.indices.length === 1 && !statement.indices[0].all && !statement.indices[0].spread
+                    && statement.indices[0].value && isLabelLiteral(statement.indices[0].value)
+                    && fact.fields[statement.indices[0].value.name]) {
+                    const field = statement.indices[0].value.name;
+                    const expected = fact.fields[field].types;
+                    if (expected.length && replacement.types.length
+                        && replacement.types.every(type => !expected.includes(type))) {
+                        diagnostics.push({ node: statement.value, kind: 'TypeError',
+                            message: `record field .${field} has type ${expected.join(' or ')} and cannot receive ${replacement.types.join(' or ')}` });
+                    }
+                    for (const source of [env, globalCallEnvs.at(-1)]) if (source) for (const [name, value] of source) {
+                        if (value.types.join() === 'record' && value.fields?.[field]) source.set(name, {
+                            ...value, fields: { ...value.fields, [field]: stableRecordField(value.fields[field]) },
+                        });
+                    }
+                } else if (fact?.types.join() === 'segment' && fact.segmentOperation && fact.elements?.length
+                    && (statement.indices.length === 1 || statement.indices.length === 2
+                        && fact.segmentOperation === '+')
+                    && statement.indices.every((index, position) => !index.all && !index.spread
+                        && selectors[position]?.types.join() === 'integer')
+                    && replacement.rank === 0 && replacement.types.length > 0
+                    && replacement.types.every(type => type === 'integer' || type === 'real')
+                    && (!['band', 'bor', 'bxor'].includes(fact.segmentOperation)
+                        || replacement.types.every(type => type === 'integer'))
+                    && segmentValueTypes.length > 0
+                    && segmentValueTypes.every(type => type === 'integer' || type === 'real')) {
+                    // Segment aliases may share storage, so widen every known numeric segment.
+                    for (const source of [env, globalCallEnvs.at(-1)]) if (source) for (const [name, value] of source) {
+                        if (value.types.join() === 'segment' && value.segmentOperation && value.elements?.length) {
+                            source.set(name, { ...value,
+                                elements: [...new Set([...value.elements, ...segmentValueTypes])] });
+                        }
+                    }
+                } else if (fact?.types.join() === 'index' && statement.operator === '='
+                    && statement.indices.every((index, position) => !index.all && !index.spread
+                        && !!index.value && directValue(index.value) && !!selectors[position]?.types.length
+                        && selectors[position]!.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type)))
+                    && directValue(statement.value) && isAtom(replacement) && replacement.types.length > 0
+                    && replacement.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
+                        'date', 'datetime'].includes(type))) {
+                    // Named indices may alias any other index, including the implicit local one.
+                    for (const source of [env, globalCallEnvs.at(-1)]) if (source) for (const [name, value] of source) {
+                        if (value.types.join() === 'index') source.set(name, { ...value,
+                            elements: value.elements === undefined ? undefined
+                                : [...new Set([...value.elements, ...replacement.types])] });
+                    }
+                } else if ((isPlainArrayWrite(statement, integerSelector)
+                    || statement.operator === '=' && oneCellSelectors || compound.length > 0
+                    || lineWrite || lineCompound.length > 0)
                     && fact?.types.length
                     && fact.types.every(type => type === 'array')) {
                     // Keep old element types as conservative possibilities;
                     // a known scalar replacement adds its possible types.
-                    const oneCell = oneCellSelectors && isAtom(replacement) && replacement.types.length > 0;
+                    const oneCell = (oneCellSelectors || indexedCells) && isAtom(replacement)
+                        && replacement.types.length > 0;
+                    const safeCells = oneCell || lineWrite || lineCompound.length > 0;
                     env.set(statement.name, { ...fact,
-                        elements: oneCell && fact.elements?.length
-                            ? [...new Set([...fact.elements, ...(compound.length ? compound : replacement.types)])] : undefined,
-                        integers: undefined, positions: undefined,
+                        elements: safeCells && fact.elements?.length
+                            ? [...new Set([...fact.elements, ...(lineWrite ? lineTypes
+                                : lineCompound.length ? lineCompound
+                                    : compound.length ? compound : replacement.types)])] : undefined,
+                        integers: undefined, positions: undefined, positionFacts: undefined,
                         callbackFreeScalarCells: undefined,
-                        eagerScalarCells: oneCell && fact.eagerScalarCells
-                            && replacement.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                        eagerScalarCells: safeCells && fact.eagerScalarCells
+                            && (lineWrite || lineCompound.length > 0
+                                || replacement.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type)))
                             ? true : undefined });
                 } else {
-                    for (const [name, value] of env) if (!value.types.includes('function')) env.set(name, invalidate(value));
+                    forgetNonFunctions(env);
                 }
             } else if (isExpressionStatement(statement)) {
                 const parts = isApplicationExpression(statement.value)
                     ? flattenApplication(statement.value) : [];
                 const key = parts[2] && expressionFacts(parts[2], name => env.get(name));
-                const counterAdd = parts.length === 3 && isNameExpression(parts[0])
-                    && env.get(parts[0].name)?.types.join() === 'counter'
+                const collectionAdd = parts.length === 3 && isNameExpression(parts[0])
+                    && ['set', 'counter'].includes(env.get(parts[0].name)?.types.join() ?? '')
                     && isNameExpression(parts[1]) && parts[1].name === 'add' && !env.has('add')
-                    && directValue(parts[2]) && key && isAtom(key) && key.types.length > 0
-                    && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
-                        'date', 'datetime'].includes(type));
-                if (!counterAdd) invalidateCalls(statement.value, env);
+                    && safeCollectionValue(parts[2], env) && key && (isAtom(key) && key.types.length > 0
+                        && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
+                            'date', 'datetime'].includes(type)) || key.types.join() === 'array'
+                            && key.eagerScalarCells === true);
+                if (!collectionAdd) invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
+                if (collectionAdd && isNameExpression(parts[0])) insertCollectionElement(parts[0].name,
+                    key!, parts[2], env);
                 if (directNoReturnCall(statement.value, env)) return false;
             } else if (isFunctionStatement(statement)) {
                 const fact = { types: ['function'] };

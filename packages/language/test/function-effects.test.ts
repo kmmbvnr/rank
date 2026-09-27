@@ -9,14 +9,49 @@ import type { ValueFacts } from '../src/analysis/value-facts.js';
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });
-function analyze(source: string, name = 'helper', boundNames: readonly string[] = [], inputs?: readonly ValueFacts[]) {
+function analyze(source: string, name = 'helper', boundNames: readonly string[] = [], inputs?: readonly ValueFacts[],
+    captures: ReadonlyMap<string, ValueFacts> = new Map()) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     const definitions = new Map([...AstUtils.streamAllContents(parsed.value)]
         .filter(isFunctionStatement).map(node => [node.name, node]));
     return functionEffects(name => definitions.get(name), name => definitions.has(name),
-        name => boundNames.includes(name))(name, inputs);
+        name => boundNames.includes(name), name => captures.get(name))(name, inputs);
 }
+
+it('uses a proved captured array for a nested numeric reader without assuming colliding locals', () => {
+    const source = 'fun outer\n Cuts = array shape 2 fill 0\n fun read I\n'
+        + '  Candidate = Cuts I\n  Candidate += 1\n  return Candidate\n end\n return 0\nend';
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const cuts: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'],
+        eagerScalarCells: true };
+    expect(analyze(source, 'read', ['Cuts'], [integer], new Map([['Cuts', cuts]])).unknown).toBe(false);
+    expect([...analyze(source, 'read', ['Cuts'], [integer], new Map([['Cuts', cuts]])).readCaptures])
+        .toEqual(['Cuts']);
+    expect(analyze(source, 'read', ['Cuts'], [integer]).unknown).toBe(true);
+    expect(analyze(source, 'read', ['Cuts', 'Candidate'], [integer], new Map([['Cuts', cuts]])).unknown)
+        .toBe(true);
+});
+
+it('certifies only scalar writes that preserve a captured numeric array cell type', () => {
+    const source = 'fun outer\n A = array shape 2 fill 0\n fun write I V\n'
+        + '  A I = V\n  return 0\n end\n return 0\nend';
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'],
+        eagerScalarCells: true };
+    const captures = new Map([['A', array]]);
+    expect(analyze(source, 'write', ['A'], [integer, integer], captures)).toMatchObject({
+        unknown: false, captures: new Set(['A']), numericCaptureWrites: new Set(['A']),
+    });
+    const incompatible = analyze(source, 'write', ['A'], [integer, { types: ['real'], rank: 0, shape: [] }], captures);
+    expect(incompatible).toMatchObject({ unknown: false, captures: new Set(['A']) });
+    expect(incompatible.numericCaptureWrites).toBeUndefined();
+    const mixed = analyze(source.replace('  return 0', '  A I = 1.0\n  return 0'),
+        'write', ['A'], [integer, integer], captures);
+    expect(mixed.unknown).toBe(false);
+    expect(mixed.numericCaptureWrites).toBeUndefined();
+    expect(analyze(source, 'write', ['A'], [integer, integer]).unknown).toBe(true);
+});
 function borrowCandidates(source: string, name = 'helper', resolveHelpers = true) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
@@ -49,6 +84,13 @@ it('distinguishes reads, parameter writes and captured object writes', () => {
             returns: [{ kind: 'fresh' }] });
 });
 
+it('treats scalar min as callback-free only for proven numeric operands', () => {
+    const source = 'fun helper X Y\n return X Y min\nend';
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    expect(analyze(source, 'helper', [], [integer, integer]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [{ types: [] }, integer]).unknown).toBe(true);
+});
+
 it('summarizes a counted numeric reader loop only with proven call inputs', () => {
     const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
@@ -79,7 +121,9 @@ it('summarizes the unchanged bracket-count demo with proven scalar input', () =>
 it('summarizes scalar integer number operations only with proven inputs', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const unknown: ValueFacts = { types: [] };
-    for (const [expression, count] of [['A B gcd', 2], ['A isqrt', 1], ['A B C powmod', 3]] as const) {
+    for (const [expression, count] of [['A abs', 1], ['A B gcd', 2], ['A isqrt', 1],
+        ['A B C powmod', 3], ['A binary', 1], ['A B binary', 2], ['A B bit', 2],
+        ['A bnot', 1], ['A popcount', 1], ['A B shl', 2], ['A B shr', 2]] as const) {
         const parameters = ['A', 'B', 'C'].slice(0, count);
         const source = `fun helper ${parameters.join(' ')}\n return ${expression}\nend`;
         expect(analyze(source, 'helper', [], parameters.map(() => integer)).unknown, expression).toBe(false);
@@ -87,6 +131,9 @@ it('summarizes scalar integer number operations only with proven inputs', () => 
         expect(analyze(source, 'helper', [expression.split(' ').at(-1)!], parameters.map(() => integer)).unknown,
             expression).toBe(true);
     }
+    expect(analyze('fun helper A\n return A abs\nend', 'helper', [], [{
+        types: ['real'], rank: 0, shape: [],
+    }]).unknown).toBe(false);
     const power = readFileSync(new URL('../../../demos/cses/math/002_exponentiation.ra', import.meta.url), 'utf8');
     const tower = readFileSync(new URL('../../../demos/cses/math/003_exponentiation2.ra', import.meta.url), 'utf8');
     expect(analyze(power, 'power', [], [integer, integer]).unknown).toBe(false);

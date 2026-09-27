@@ -4,7 +4,7 @@ import { RankDeque, RankHeap } from './containers.js';
 import { RankMultiset } from './multiset.js';
 import { dsuFrom } from './dsu.js';
 import { setValueKey } from './set.js';
-import { isRankCounter, isRankMultiset, isRankSet, type RankCounterEntry, type RankValue } from './value.js';
+import { checkCollectionElementType, isRankCounter, isRankMultiset, isRankSet, type RankCounterEntry, type RankValue } from './value.js';
 
 export function newStructure(name: string): RankValue {
     switch (name) {
@@ -41,7 +41,9 @@ export function expectAddCollection(value: RankValue) {
 export function addToCollection(target: RankValue, value: RankValue): RankValue {
     const receiver = expectAddCollection(target);
     if (isRankMultiset(receiver)) return receiver.add(value);
+    const elementType = checkCollectionElementType(receiver.kind, receiver.elementType, value);
     const key = setValueKey(value);
+    receiver.elementType = elementType;
     if (isRankSet(receiver)) receiver.entries.set(key, value);
     else {
         const existing = receiver.entries.get(key);
@@ -70,4 +72,3 @@ export function removeFromCollection(target: RankValue, value: RankValue): RankV
     }
     return target;
 }
-

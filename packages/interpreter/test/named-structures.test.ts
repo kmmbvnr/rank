@@ -86,6 +86,19 @@ array (Seen len) (Counts (array 1 2))
         expect(run('use algo\nSeen = new set\nSeen add 7\nSeen add 2\nSeen add 7\nResult = 0\nfor Value in Seen\n Result = Result * 10 + Value\nend\nResult')).toBe('72');
     });
 
+    it('keeps one element type and array rank in sets and counters', () => {
+        for (const kind of ['set', 'counter']) {
+            expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC add "text"`))
+                .toThrow(`${kind} holds integer and cannot receive text`);
+            expect(() => run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add (array 1 2 3 4) (array 2 2) reshape`))
+                .toThrow(/rank 1.*rank 2/);
+            expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC remove 1\nC add "text"`))
+                .toThrow(`${kind} holds integer and cannot receive text`);
+            expect(run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add array "a" "b"\nC len`))
+                .toBe('2');
+        }
+    });
+
     it('captures named structures in returned local functions', () => {
         expect(run(`
 use algo
@@ -240,4 +253,3 @@ array (A len) (B len) (10 down)
 `)).toBe('1 0 1');
     });
 });
-

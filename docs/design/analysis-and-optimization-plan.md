@@ -69,6 +69,177 @@ the intermediate function cannot bind the same name. Shadowing or control flow
 in the intermediate function still makes this effect unknown.
 Functions with repeated parameter names keep unknown effect and borrow proofs.
 
+As of 2026-09-27, `node benchmarks/analysis-coverage.mjs --conflicts`
+reports known result types for 1041 of 1087 demo test calls, with no inferred
+type/rank conflicts against their examples. The 46 unknown calls span 16
+source files; they are not independent operator gaps. The operation catalogue
+now marks scalar `abs` as preserving integer versus
+real, so REPL assignment diagnostics do not widen its result to both numeric
+types. Unary `min` and `max` over proven callback-free numeric arrays retain
+their cell type. `len` carries a proved first-axis size for arrays, a proved
+code-point count for text, and the exact size of callback-free planned
+sequences, so later shapes can use it. `len` on a generator or another
+unproved lazy sequence can execute Rank code while counting; the analyzer
+invalidates captured facts across that call. These sharpen
+known facts without changing the known-result count.
+`indices` on a proved callback-free boolean vector now yields an eager
+rank-1 integer array. An unproved array read still invalidates affected
+facts before the call. `findall` similarly yields integer positions for a
+proved scalar source and key; `find` and `findall` invalidate facts when either
+read may execute callbacks. These leave the known-result count unchanged.
+`startswith` now reports a scalar boolean for text/byte pairs and preserves
+the broadcast rank of ordinary array operands, without assuming their lazy
+cells are callback-free. This also leaves the known-result count unchanged.
+Pure `X is .type` guards, including `or` over the same name, narrow the facts
+inside a reachable branch. Known-disjoint branches are skipped; unknown inputs
+keep a conservative else path. This does not change a variable's runtime contract.
+Comparisons of exact integer names or literals now skip unreachable `if`/`elif`
+branches. This narrows the single-apple CSES result to integer. A numeric
+recursive proof can seed its base return from widened inputs when the concrete
+input takes only the recursive branch; the median examples keep their prior
+coverage. Unknown comparisons still retain both paths, and the known-result
+count remains unchanged.
+Exact boolean literals and unchanged bindings, including pure `not`, now also
+select reachable branches. Joins retain that value only when every path agrees;
+unknown calls and loop-carried rebinding still drop it. This does not change
+the known-result count, but avoids reporting types from a branch that cannot
+run for a proven flag.
+Representative remaining boundaries are:
+
+- A bounded numeric fixed-point check now infers six `leetcode/004_medarrs`
+  examples and all nine `cses/math/001_josephus` examples. It widens inputs,
+  checks every recursive call preserves their type and rank, then accepts a
+  result only when every return path stays within the base-return type.
+  Recursion over unknown or mutable values still needs #5; a return-only
+  fixed point would be unsound. The two empty-array median cases also need
+  numeric guard/index reasoning: replacing their recursive call with a real
+  literal still leaves their results unknown.
+  `cses/dynamic/021_tilings` has five such unknown examples: its nested
+  recursive `place` writes the captured `Next` array. Removing the current
+  nested-function exclusion without a capture/write proof would be unsound.
+  In the two empty-array median cases, the loop analysis widens `Low`, `High`,
+  `I` and `J` because they may change between iterations. It then cannot prove
+  that branches reading the empty array are unreachable. Exact comparisons of
+  names and literals alone do not close this gap; it needs a sound loop-range
+  invariant and branch constraints for indexed reads.
+- Local functions are registered before analyzing the enclosing body, matching
+  runtime hoisting even when their declarations follow an early `return`.
+  Their binding identity is restored after the call. This makes the three
+  `cses/intro/017_queens` examples inferable.
+- A fully indexed numeric cell from a proved callback-free array is evaluated
+  before a direct call can change that array's facts. This makes all three
+  `cses/intro/016_apples` examples inferable as numeric, though not yet
+  specifically integer.
+- Mutable collection reads in `cses/dynamic/013_minpath`,
+  `cses/intro/020_knight` and several range-query demos depend on the element
+  contract decision in #31. Do not infer a stable element type from one push.
+- A fresh local `index` can now retain its value types on an early-return path
+  when every path starting another iteration keeps a closed set of types.
+  This covers `euler/026_reciprocal`; index aliases, unknown calls and unsafe
+  writes still fall back to unknown.
+- A nested numeric helper may read a proved callback-free captured array
+  without losing its cell type; each nested loop checks its own calls and
+  closure. This covers four `cses/dynamic/012_rectcut` examples. A helper can
+  also preserve the cell type of a captured numeric array through plain scalar
+  writes when its indices and replacement type are proved; this covers four
+  `cses/dynamic/020_elevator` examples. Incompatible or unproved writes still
+  invalidate element facts. The bit-operation catalogue proves callback-free
+  integer calls (`bit`, shifts, `bnot`, `popcount`, `binary`).
+- `pop` on a proved queue, stack, deque or heap (and deque-end pops) now keeps
+  unrelated value facts: these native operations mutate only their receiver.
+  This makes four `cses/range/013_visible` and `019_increasing` examples
+  inferable. An unknown receiver or a shadowed `pop` still invalidates facts.
+- An uncertain indexed write may invalidate contents and non-local bindings,
+  but it cannot rebind a private local name. Preserving only that name's
+  accepted outer type/rank makes another 20 range-query and tree examples
+  inferable; nested functions that can write the name exclude it from this
+  private-binding proof.
+- This private-name proof cannot be applied to globals after an unknown host
+  callback: `Interpreter.variables` is publicly mutable, and a host can write
+  it without the normal assignment type check. Preserving global outer types
+  would first require an enforced host boundary or a trusted pure-call contract.
+- XML/JSON `.flat` now have a known outer array-of-objects type, but document
+  row fields and external CSV table schemas are not inferred from that alone.
+  Flat document rows have fixed fields when created, but object fields remain
+  mutable through aliases; retaining their field facts requires a freshness or
+  mutation proof, or a checked row-schema contract. XML `.attributes` keys are
+  input-defined even though the enclosing node has fixed fields. CSV column
+  types are established only after reading the file. Any proposed declaration
+  of required columns or attributes must be checked against the runtime input
+  before the analyzer treats it as a static fact; test fixtures and path names
+  alone are not a production guarantee. The checked external-schema contract
+  remains open in [#33](https://github.com/kmmbvnr/rank/issues/33).
+- `filter` on a rank-1 array now keeps the result rank while forgetting its
+  row count and cell facts. REPL diagnostics can report excess axes on the
+  filtered result without claiming that mutable object fields stayed typed.
+- A bounded literal JSON text can supply its outer type, array length and
+  direct element types without I/O. A rank-1 table projected by a proved
+  nonempty array of field labels has two result axes. This makes three Kaggle
+  test calls inferable; dynamic JSON/CSV content still has no assumed schema.
+- Direct writes to a known `record` field now check its established outer type
+  and retain only stable field-type facts across aliases. Array rank, shape and
+  element facts remain unknown after such writes: runtime currently permits a
+  field holding a rank-1 array to receive a rank-2 array. A stronger field
+  contract needs a language decision, not an analyzer assumption.
+
+The 46 unknown demo calls currently group by their first visible inference
+boundary (not necessarily their only one):
+
+| Boundary | Calls | Examples / next decision |
+| --- | ---: | --- |
+| Nested collection values and helpers | 11 | Mountain stack records, project queue records and discount-path heap payloads need facts beyond the fixed outer element type. |
+| Recursive calls and guarded reads | 21 | Graph search, tilings, wizard search, tree learning and prime pairs need #5; the two empty-array median cases also need index reasoning under numeric guards. |
+| External row schemas | 2 | Store-sales columns and XML attributes need a trusted schema or a proved fresh, unchanged row. |
+| Test setup return facts | 1 | The house-prices test passes a model built by another function; its inferred return is not carried into the later test call, and the model record still lacks a field-rank contract. |
+| Imported helper summary | 1 | The disaster-tweets solver calls a classifier imported from another module; the current pass has no verified summary for it. |
+| Mutable `index` through helpers | 9 | AoC circuit; determine the value contract and exception-flow proof. |
+| Mutable record fields | 1 | Dense-layer call; field rank/element invariance needs a language decision. |
+
+Audit of all 46 calls (2026-09-27, `node benchmarks/analysis-coverage.mjs
+--unknown`): the groups are a triage, not seven proved single-cause fixes.
+
+| Boundary | Exact unknown calls | Checked limiting evidence |
+| --- | --- | --- |
+| Nested collection values and helpers | `cses/dynamic/017_mountain` (4), `019_projects` (3), `cses/graph/011_discount` (4) | The final result reads a record taken from a stack, a project record in a sorted queue, or a distance updated after unpacking a heap payload. Outer collection facts do not prove those nested fields or payload cells; future heterogeneous collections also rule out assuming them from one insertion. |
+| Recursive calls and guarded reads | `aoc/2015/022_wizard` (2), `cses/dynamic/021_tilings` (5), `cses/graph/006_roundtrip` (4), `cses/intro/024_gridpath` (5), `deepml/020_tree` (2), `euler/060_primepairs` (1), `leetcode/004_medarrs` (2) | The first six use recursive search, a recursive helper, or values written through it. Their return types need sound recursive/capture facts, not a blanket recursion allowance. The two median cases are a separate guarded-index failure: a recursive return replacement alone did not infer them. Thus #5 is relevant but cannot by itself close all 21. |
+| External row schemas | `kaggle/006_storesales` (1), `dyalog/2010/001_params` (1) | The former reads columns after table grouping/joining; the latter selects an XML node and reads input-defined `.attributes`. Neither file paths nor test fixtures establish a checked production schema; see #33. |
+| Test setup return facts | `kaggle/002_prices` (1) | The test builds `Model` with `linear` and passes it to `linear_predict`; `functionTestExamples` collects expression facts but does not analyze the setup call. Injecting a known model alone still fails because mutable record-field reads discard rank facts; see #32. |
+| Imported helper summary | `kaggle/005_distweets` (1) | `solve` calls `Classifier.logistic` and `Classifier.logistic_predict` from `001_titanic`. `analyzeValues` has no module loader and treats `use` aliases as unproved; the validator calls it without imported declarations. A safe fix needs module-aware binding/effect proof. |
+| Mutable `index` through helpers | `aoc/2015/007_circuit` (9) | `circuit` writes `index` under a loop and `try/catch`, then returns `index Target`. The effect pass rejects that control-flow shape (including `try`), and the value pass forgets bindings on catch paths because an error may occur after any body prefix. Closed value facts need both a helper no-write proof and an exception-flow join. |
+| Mutable record fields | `deepml/040_dense` (1) | The test replaces `Layer .weights` and `.bias` before `forward_pass`; the return uses both fields. Runtime permits a rank-changing field replacement, so field type alone cannot certify the array ranks used by `matmul`; see #32. |
+
+The current first-insertion type/rank check for queues, stacks, deques, heaps,
+sets and counters is not a permanent language design constraint: future
+collections are intended to hold heterogeneous values. Do not extend
+`pop`/iteration facts to record fields or other nested payloads merely from
+that check. Existing numeric `sum`/`min`/`max` inferences over collections
+rely on the current runtime contract and must be revisited if insertion
+becomes heterogeneous.
+Passing `linear_predict` a model with known field types and even known field
+ranks still leaves its result unknown: the analyzer drops rank facts on reads
+of mutable record fields, matching runtime's current allowance for rank-changing
+field assignments. Propagating the `linear` setup result through the test alone
+cannot close this example. Likewise, simply supplying the definitions from
+`001_titanic` to the disaster-tweets analysis does not close its imported call:
+the `use` statement invalidates unproved alias bindings. A useful imported
+summary needs module-aware binding and effect proof, not a benchmark-only
+declaration map.
+For `aoc/2015/007_circuit`, `index` writes occur inside a `try` in a loop;
+its catch path may continue after any prefix of the body. A closed set of
+index value types therefore needs both a no-write proof for called helpers
+and an exception-flow join, not just a scan of assignment expressions.
+
+Direct insertion into a named collection now feeds `pop`/`peek` and iteration
+facts, covering `cses/dynamic/013_minpath`. Unsupported loops and unpacking
+retain the outer type of uncaptured private bindings; this makes the results
+of `cses/graph/008_routes1` and `013_flightroutes` inferable without claiming
+that their heap payload cells have known types. Insertion through an untracked
+alias or helper remains unknown.
+
+The next implementation work should start with the shared contracts and
+fixed-point proofs rather than adding demo-specific return annotations. The
+counts are a baseline for coverage, not a correctness or optimization claim.
+
 Stage 3 has a first, separate flat-array borrow candidate check. It accepts
 direct numeric reads, parameter-indexed reads guarded by bigint arguments,
 bigint arithmetic (`+`, `-`, `*`, `//`, `%`) in selectors and chains of resolved reader helpers

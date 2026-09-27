@@ -3105,6 +3105,14 @@ after `add` is evaluated once. Ordinary postfix calls `Name Value add`
 also work, and `add` returns the receiver when used as a function. Named
 queues accept `Name push Value`; named indices use addressed assignment.
 
+The first insertion into a set, counter, queue, stack, deque or heap fixes the
+outer type of its elements for that instance. Later insertions must match even
+after the collection becomes empty. An array element also fixes the number of
+axes, but its cells are not type-checked by this contract. Heap priorities
+retain their separate comparable-type rule.
+Sets and counters still hash array contents for equality, so inserting a lazy
+array into either may evaluate its cells independently of the type check.
+
 Bare `index`, `queue`, `set` and `counter` refer only to the current
 function call's implicit instances, or the module instances at top level.
 Reading and writing use the same instances. To share a structure with another

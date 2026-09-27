@@ -19,7 +19,7 @@ export type Effect = 'io' | 'random' | 'mutates';
 export type ResultKind =
     | 'integer' | 'real' | 'number' | 'boolean' | 'text' | 'bytes'
     | 'array' | 'sequence' | 'table' | 'record' | 'collection'
-    | 'element' | 'structure' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
+    | 'element' | 'structure' | 'functional' | 'segment' | 'fenwick' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
     | 'value' | 'same';
 
 /** One builtin name, either always available in core or opened by a module. */
@@ -42,6 +42,14 @@ export interface Operation {
     /** One sentence describing the result. */
     readonly summary: string;
     readonly result: ResultKind;
+    /** Field result kinds for a built-in record with a stable schema. */
+    readonly recordFields?: Readonly<Record<string, ResultKind>>;
+    /** Fresh rank-1 record fields containing vertices from a closed graph operand. */
+    readonly recordVertexArrays?: readonly string[];
+    /** Scalar record fields containing a vertex from a closed graph operand. */
+    readonly recordVertexFields?: readonly string[];
+    /** Values stored in fresh graph-result index fields. */
+    readonly recordIndexValues?: Readonly<Record<string, 'integer' | 'number' | 'vertices'>>;
     /** Scalar element type of a builtin collection value (zero operands). */
     readonly valueElements?: 'integer' | 'real';
     /** Reading the builtin value's cells cannot call Rank code. */
@@ -54,10 +62,16 @@ export interface Operation {
     readonly effects?: readonly Effect[];
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
     readonly scalarNoCallback?: 'integer' | 'number';
+    /** Every successful call returns one scalar, even when operand facts are unknown. */
+    readonly scalarResult?: true;
+    /** A numeric scalar result keeps its operand's integer or real type. */
+    readonly preservesNumericScalarType?: true;
     /** Unary application maps each scalar cell of an array or sequence. */
     readonly mapsScalarCells?: true;
     /** Accepted cells for a callback-free reduction of one scalar-cell array. */
     readonly scalarCellArrayNoCallback?: 'number' | 'boolean';
+    /** A successful unary reduction returns one of its numeric input cells. */
+    readonly selectsNumericCell?: true;
     /** Numeric array operands with callback-free cells yield no Rank callbacks, including when the result is read. */
     readonly numericArrayNoCallback?: true;
     /** Reads only array metadata, for an array whose representation is already proved callback-free. */
@@ -128,10 +142,10 @@ export const operations: readonly Operation[] = [
     { name: 'enqueue', module: 'algo', arities: [3], form: 'Heap Priority Value enqueue',
         result: 'collection', effects: ['mutates'],
         summary: 'Inserts a payload into a heap under a separate priority.' },
-    { name: 'fenwick', module: 'algo', arities: [1], form: 'Size fenwick', result: 'structure',
+    { name: 'fenwick', module: 'algo', arities: [1], form: 'Size fenwick', result: 'fenwick',
         summary: 'Fixed-size integer Fenwick tree with inclusive prefix sums.' },
     { name: 'firstatleast', module: 'algo', arities: [2], form: 'Tree Target firstatleast',
-        result: 'integer',
+        result: 'integer', scalarResult: true,
         summary: 'First position whose monotone prefix aggregate reaches the target.' },
     { name: 'floor', module: 'algo', arities: [2], form: 'Bag floor Limit', result: 'element',
         summary: 'Largest stored value at most the limit.' },
@@ -178,7 +192,7 @@ export const operations: readonly Operation[] = [
     { name: 'remove', module: 'algo', arities: [2], form: 'Bag remove Value', result: 'collection',
         effects: ['mutates'], summary: 'Removes one occurrence from a set, counter or multiset.' },
     { name: 'segment', module: 'algo', arities: [2], form: 'Values Operation segment',
-        result: 'structure', summary: 'Segment tree over one associative binary operation.' },
+        result: 'segment', summary: 'Segment tree over one associative binary operation.' },
     { name: 'sumwithin', module: 'algo', arities: [5],
         form: 'Data Left Right Low High sumwithin', result: 'number',
         summary: 'Sums wavelet values inside inclusive position and value ranges.' },
@@ -193,23 +207,24 @@ export const operations: readonly Operation[] = [
     { name: 'band', module: 'bits', arities: [2], form: 'A B band', result: 'integer',
         dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Bitwise and.' },
     { name: 'binary', module: 'bits', arities: [1, 2], form: 'Value binary', result: 'text',
-        monadicRank: 0,
+        monadicRank: 0, scalarNoCallback: 'integer',
         summary: 'Formats a nonnegative integer as binary text, a width padding with zeroes.' },
     { name: 'bit', module: 'bits', arities: [2], form: 'Value Position bit', result: 'boolean',
+        scalarNoCallback: 'integer', scalarResult: true,
         summary: 'Tests a zero-based bit position.' },
     { name: 'bnot', module: 'bits', arities: [1], form: 'Value bnot', result: 'integer',
-        monadicRank: 0,
+        monadicRank: 0, scalarNoCallback: 'integer',
         summary: 'Bitwise not in infinite two-complement form, so the result is -Value - 1.' },
     { name: 'bor', module: 'bits', arities: [2], form: 'A B bor', result: 'integer',
         dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Bitwise or.' },
     { name: 'bxor', module: 'bits', arities: [2], form: 'A B bxor', result: 'integer',
         dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Bitwise exclusive or.' },
     { name: 'popcount', module: 'bits', arities: [1], form: 'Value popcount', result: 'integer',
-        monadicRank: 0, summary: 'Number of set bits in a nonnegative integer.' },
+        monadicRank: 0, scalarNoCallback: 'integer', summary: 'Number of set bits in a nonnegative integer.' },
     { name: 'shl', module: 'bits', arities: [2], form: 'Value Count shl', result: 'integer',
-        dyadicRanks: [0, 0], summary: 'Shifts left by a nonnegative bit count.' },
+        dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Shifts left by a nonnegative bit count.' },
     { name: 'shr', module: 'bits', arities: [2], form: 'Value Count shr', result: 'integer',
-        dyadicRanks: [0, 0], summary: 'Arithmetic shift right by a nonnegative bit count.' },
+        dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Arithmetic shift right by a nonnegative bit count.' },
 
     { name: 'md5', module: 'crypto', arities: [1], form: 'Value md5', result: 'bytes',
         summary: 'MD5 digest of bytes or UTF-8 text, as 16 bytes.' },
@@ -250,19 +265,26 @@ export const operations: readonly Operation[] = [
         result: 'record',
         summary: 'Shortest distances allowing negative weights, plus reachable negative cycles.' },
     { name: 'bfs', module: 'graph', arities: [2], form: 'Graph Start bfs', result: 'record',
+        recordVertexArrays: ['order'], recordIndexValues: { distance: 'integer', parent: 'vertices' },
         summary: 'Breadth-first search returning distance, parent and discovery order.' },
     { name: 'bipartite', module: 'graph', arities: [1], form: 'Graph bipartite', result: 'record',
+        recordFields: { possible: 'boolean' },
         summary: 'Two-colouring of an undirected graph, or possible false for an odd cycle.' },
     { name: 'components', module: 'graph', arities: [1], form: 'Graph components', result: 'record',
+        recordFields: { count: 'integer' },
         summary: 'Connected components: their count, a per-vertex index and the roots.' },
     { name: 'connected', module: 'graph', arities: [3], form: 'Dsu A B connected',
-        result: 'boolean', summary: 'True when two values share a disjoint-set representative.' },
+        result: 'boolean', scalarResult: true,
+        summary: 'True when two values share a disjoint-set representative.' },
     { name: 'cycle', module: 'graph', arities: [1], form: 'Graph cycle', result: 'array',
         summary: 'One cycle with its first vertex repeated at the end, or an empty array.' },
     { name: 'dfs', module: 'graph', arities: [2], form: 'Graph Start dfs', result: 'record',
+        recordVertexArrays: ['order'], recordIndexValues: { distance: 'integer', parent: 'vertices' },
         summary: 'Depth-first search returning distance, parent and discovery order.' },
     { name: 'dijkstra', module: 'graph', arities: [2], form: 'Graph Start dijkstra',
-        result: 'record', summary: 'Shortest distances for nonnegative numeric weights.' },
+        result: 'record', recordVertexArrays: ['order'],
+        recordIndexValues: { distance: 'number', parent: 'vertices' },
+        summary: 'Shortest distances for nonnegative numeric weights.' },
     { name: 'distance', module: 'graph', arities: [3], form: 'Rooted A B distance',
         result: 'integer',
         summary: 'Edges between two vertices of a rooted tree or functional graph.' },
@@ -273,34 +295,42 @@ export const operations: readonly Operation[] = [
     { name: 'floyd', module: 'graph', arities: [1], form: 'Graph floyd', result: 'record',
         summary: 'All-pairs shortest distances addressed Distance From To.' },
     { name: 'functional', module: 'graph', arities: [1], form: 'Next functional',
-        result: 'structure',
+        result: 'functional',
         summary: 'Successor structure prepared for jump, distance and path queries.' },
-    { name: 'jump', module: 'graph', arities: [3], form: 'F Start Steps jump', result: 'element',
+    { name: 'jump', module: 'graph', arities: [3], form: 'F Start Steps jump', result: 'integer',
         summary: 'Vertex reached after exactly that many successor steps.' },
     { name: 'lca', module: 'graph', arities: [3], form: 'Rooted A B lca', result: 'element',
         summary: 'Lowest common ancestor of two vertices.' },
     { name: 'lengths', module: 'graph', arities: [1], form: 'F lengths', result: 'array',
+        denseResult: { shape: [null], elements: ['integer'] },
         summary: 'Path length from every vertex of a functional graph.' },
     { name: 'maxflow', module: 'graph', arities: [3], form: 'Graph Source Sink maxflow',
-        result: 'record', summary: 'Maximum flow value, the per-edge flow and the minimum cut.' },
+        result: 'record', recordFields: { value: 'number' },
+        summary: 'Maximum flow value, the per-edge flow and the minimum cut.' },
     { name: 'merge', module: 'graph', arities: [3], form: 'Dsu A B merge', result: 'boolean',
-        effects: ['mutates'],
+        effects: ['mutates'], scalarResult: true,
         summary: 'Unions two disjoint-set components, true only when they differed.' },
     { name: 'mst', module: 'graph', arities: [1], form: 'Graph mst', result: 'record',
+        recordFields: { connected: 'boolean', components: 'integer', weight: 'number' },
         summary: 'Minimum spanning forest: connectivity, component count, weight and edges.' },
     { name: 'pathlengths', module: 'graph', arities: [1], form: 'Tree pathlengths',
         result: 'sequence', lazy: true,
         summary: 'Lazy sequence of every unordered pair distance in a tree.' },
-    { name: 'root', module: 'graph', arities: [2], form: 'Tree Root root', result: 'structure',
+    { name: 'root', module: 'graph', arities: [2], form: 'Tree Root root', result: 'record',
+        recordVertexFields: ['root'], recordVertexArrays: ['order'],
+        recordIndexValues: { parent: 'vertices', depth: 'integer', entry: 'integer',
+            size: 'integer', head: 'vertices' },
         summary: 'Immutable rooted view of a connected undirected tree.' },
     { name: 'scc', module: 'graph', arities: [1], form: 'Graph scc', result: 'record',
+        recordFields: { count: 'integer' },
         summary: 'Strongly connected components of a directed graph.' },
     { name: 'topological', module: 'graph', arities: [1], form: 'Graph topological',
-        result: 'record', summary: 'Topological order of a directed graph, or possible false.' },
-    { name: 'upto', module: 'graph', arities: [3], form: 'F Start Limit upto', result: 'integer',
-        summary: 'Counts path vertices from a start whose numbers do not exceed a limit.' },
+        result: 'record', recordFields: { possible: 'boolean', order: 'array' }, recordVertexArrays: ['order'],
+        summary: 'Topological order of a directed graph, or possible false.' },
+    { name: 'upto', module: 'graph', arities: [3], form: 'F Start Limit upto', result: 'value',
+        summary: 'Counts path vertices through a limit; weighted paths return count, sum and last.' },
     { name: 'weighted', module: 'graph', arities: [2], form: 'Next Cost weighted',
-        result: 'structure',
+        result: 'functional',
         summary: 'Functional graph carrying numeric edge costs along its paths.' },
 
     { name: 'images', module: 'images', arities: [1], form: 'Directory images', result: 'table',
@@ -322,14 +352,15 @@ export const operations: readonly Operation[] = [
         effects: ['io'],
         summary: 'Closes a file early; closing an already closed file does nothing.' },
     { name: 'eof', module: 'io', arities: [1], form: 'File eof', result: 'boolean',
-        effects: ['io'], summary: 'True when the position is at or past the end of the file.' },
+        effects: ['io'], scalarResult: true,
+        summary: 'True when the position is at or past the end of the file.' },
     { name: 'flush', module: 'io', arities: [1], form: 'File flush', result: 'file',
         effects: ['io'], summary: 'Asks the host to write buffered output to the file system.' },
     { name: 'open', module: 'io', arities: [1, 2], form: 'Path open', result: 'file',
         effects: ['io'],
         summary: 'Opens a file, read-only unless a mode label selects write, update or append.' },
     { name: 'position', module: 'io', arities: [1], form: 'File position', result: 'integer',
-        effects: ['io'], summary: 'Current byte offset of an open file.' },
+        effects: ['io'], scalarResult: true, summary: 'Current byte offset of an open file.' },
     { name: 'print', module: 'io', arities: [1], form: 'Value print', result: 'same',
         effects: ['io'],
         summary: 'Writes one line and returns the value, so a pipeline continues.' },
@@ -344,7 +375,7 @@ export const operations: readonly Operation[] = [
     { name: 'seek', module: 'io', arities: [2], form: 'File Offset seek', result: 'file',
         effects: ['io'], summary: 'Sets an absolute byte offset from the beginning.' },
     { name: 'size', module: 'io', arities: [1], form: 'File size', result: 'integer',
-        effects: ['io'], summary: 'Length of an open file in bytes.' },
+        effects: ['io'], scalarResult: true, summary: 'Length of an open file in bytes.' },
     { name: 'write', module: 'io', arities: [2], form: 'Text Path write', result: 'text',
         effects: ['io'], summary: 'Creates or replaces a file with UTF-8 text.' },
     { name: 'writebytes', module: 'io', arities: [2], form: 'File Bytes writebytes',
@@ -371,7 +402,8 @@ export const operations: readonly Operation[] = [
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
     { name: 'abs', module: 'numbers', arities: [1], form: 'Value abs', result: 'number',
-        monadicRank: 0, summary: 'Absolute value, keeping the integer or real type.' },
+        monadicRank: 0, scalarNoCallback: 'number', preservesNumericScalarType: true,
+        summary: 'Absolute value, keeping the integer or real type.' },
     { name: 'acos', module: 'numbers', arities: [1], form: 'Value acos', result: 'real', mapsScalarCells: true,
         summary: 'Inverse cosine in radians, for values from -1 through 1.' },
     { name: 'acosh', module: 'numbers', arities: [1], form: 'Value acosh', result: 'real', mapsScalarCells: true,
@@ -390,7 +422,7 @@ export const operations: readonly Operation[] = [
     { name: 'binomial', module: 'numbers', arities: [2], form: 'N K binomial', result: 'integer',
         dyadicRanks: [0, 0], summary: 'Exact binomial coefficient.' },
     { name: 'binomialmod', module: 'numbers', arities: [3], form: 'N K Modulus binomialmod',
-        result: 'integer', scalarNoCallback: 'integer',
+        result: 'integer', scalarNoCallback: 'integer', scalarResult: true,
         summary: 'Binomial coefficient calculated directly modulo a prime.' },
     { name: 'cos', module: 'numbers', arities: [1], form: 'Angle cos', result: 'real', mapsScalarCells: true,
         summary: 'Cosine of an angle in radians.' },
@@ -407,7 +439,7 @@ export const operations: readonly Operation[] = [
         lazy: true,
         summary: 'Lazy ascending sequence of the prime factors, repeated factors included.' },
     { name: 'gcd', module: 'numbers', arities: [2], form: 'A B gcd', result: 'integer',
-        scalarNoCallback: 'integer',
+        scalarNoCallback: 'integer', scalarResult: true,
         summary: 'Greatest common divisor, always nonnegative.' },
     { name: 'infinity', module: 'numbers', arities: [], form: 'infinity', result: 'real',
         summary: 'The positive infinite real value.' },
@@ -417,21 +449,24 @@ export const operations: readonly Operation[] = [
         monadicRank: 0, scalarNoCallback: 'integer',
         summary: 'Exact integer floor of the square root, calculated without reals.' },
     { name: 'lcm', module: 'numbers', arities: [1, 2], form: 'A B lcm', result: 'integer',
+        scalarResult: true,
         summary: 'Least common multiple, also a reduction over one finite collection.' },
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real', mapsScalarCells: true,
         summary: 'Natural logarithm of a positive finite number.' },
     { name: 'max', module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number',
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
+        selectsNumericCell: true,
         summary: 'Larger of two numbers, or the largest of one collection.' },
     { name: 'min', module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number',
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
+        selectsNumericCell: true,
         summary: 'Smaller of two numbers, or the smallest of one collection.' },
     { name: 'nan', module: 'numbers', arities: [], form: 'nan', result: 'real',
         summary: 'The real not-a-number value, for a result or cell with no numeric value.' },
     { name: 'odd', module: 'numbers', arities: [1], form: 'Value odd', result: 'boolean',
         scalarNoCallback: 'integer', summary: 'True for an odd integer.' },
     { name: 'powmod', module: 'numbers', arities: [3], form: 'Base Exponent Modulus powmod',
-        result: 'integer', scalarNoCallback: 'integer',
+        result: 'integer', scalarNoCallback: 'integer', scalarResult: true,
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
     { name: 'round', module: 'numbers', arities: [2], form: 'Value Places round', result: 'number',
         scalarNoCallback: 'number', numericArrayNoCallback: true, preservesArrayShape: true,
@@ -454,7 +489,7 @@ export const operations: readonly Operation[] = [
         result: 'array', effects: ['random'],
         summary: 'Draws Count values with replacement, complete cells for a tensor.' },
     { name: 'seed', module: 'random', arities: [1], form: 'Seed seed', result: 'integer',
-        effects: ['random'],
+        effects: ['random'], scalarResult: true,
         summary: 'Restarts the pseudorandom stream of the session and returns the seed.' },
     { name: 'shuffle', module: 'random', arities: [1, 2], form: 'Values shuffle', result: 'array',
         effects: ['random'],
@@ -477,11 +512,12 @@ export const operations: readonly Operation[] = [
     { name: 'copy', module: 'sequences', arities: [1], form: 'Values copy', result: 'array',
         summary: 'Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack.' },
     { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer',
-        scalarCellArrayNoCallback: 'boolean',
+        scalarCellArrayNoCallback: 'boolean', scalarResult: true,
         summary: 'Number of true cells, or of source items a lazy mask selects.' },
     { name: 'drop', module: 'sequences', arities: [2], form: 'Values Count drop', result: 'value',
         lazy: true, summary: 'Skips Count leading items; sequences stay lazy and arrays slice their leading axis.' },
     { name: 'find', module: 'sequences', arities: [2], form: 'Values Target find', result: 'integer',
+        scalarResult: true,
         summary: 'First zero-based position equal to Target in a vector or text.' },
     { name: 'findall', module: 'sequences', arities: [2], form: 'Values Target findall', result: 'array',
         summary: 'Every zero-based position equal to Target in a vector or text.' },
@@ -573,7 +609,8 @@ export const operations: readonly Operation[] = [
     { name: 'character', module: 'text', arities: [1], form: 'Code character', result: 'text',
         summary: 'One-character text for a Unicode code point.' },
     { name: 'codepoint', module: 'text', arities: [1], form: 'Character codepoint',
-        result: 'integer', summary: 'Integer code point of exactly one character.' },
+        result: 'integer', scalarResult: true,
+        summary: 'Integer code point of exactly one character.' },
     { name: 'hex', module: 'text', arities: [1], form: 'Bytes hex', result: 'text',
         summary: 'Lowercase hexadecimal text for bytes, without a prefix.' },
     { name: 'bytes', module: 'core', arities: [1], form: 'Value bytes', result: 'bytes',

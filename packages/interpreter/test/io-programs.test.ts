@@ -140,6 +140,19 @@ describe('Rank IO, modules and programs', () => {
             .toThrowError('generator sequence values has already been consumed');
     });
 
+    it('executes generator effects when len must count its elements', () => {
+        expect(run([
+            'fun stream',
+            '  A 0 = "x"',
+            '  yield 1',
+            'end',
+            'S = stream',
+            'A = array 1 2',
+            'N = S len',
+            'A 0',
+        ].join('\n'))).toBe('x');
+    });
+
     it('materializes a finite sequence with postfix array', () => {
         expect(run([
             'fun values N',

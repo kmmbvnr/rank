@@ -19,6 +19,7 @@ paths.sort();
 
 const groups = new Map();
 const conflicts = [];
+const unknowns = [];
 for (const path of paths) {
   const parsed = parser.parse(readFileSync(path, 'utf8'));
   if (parsed.parserErrors.length) throw new Error(`${path}: ${parsed.parserErrors[0].message}`);
@@ -61,6 +62,8 @@ for (const path of paths) {
         const results = analyzeValues(parsed.value, new Map(), new Map(), examples).functionResults;
         counts.knownExampleResults += results.filter(result => result.types.length > 0).length;
         for (const [index, result] of results.entries()) {
+          if (process.argv.includes('--unknown') && !result.types.length) unknowns.push({ path,
+            name: examples[index].name, test: examples[index].test, line: examples[index].line });
           const expected = examples[index].expected;
           if (!result.types.length || !expected.types.length) continue;
           // Numeric equality in a Rank test does not assert the result's numeric type.
@@ -93,3 +96,4 @@ for (const counts of groups.values()) {
 }
 console.log(JSON.stringify({ total, groups: Object.fromEntries(groups) }, null, 2));
 if (process.argv.includes('--conflicts')) console.error(JSON.stringify(conflicts, null, 2));
+if (process.argv.includes('--unknown')) console.error(JSON.stringify(unknowns, null, 2));
