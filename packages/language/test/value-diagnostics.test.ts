@@ -339,6 +339,27 @@ it('infers booleans from the unchanged AoC indexed-window demo', () => {
         .toEqual(examples.map(() => ({ types: ['boolean'], rank: 0, shape: [] })));
 });
 
+it('infers an accumulator across the unchanged CSES dice array-write loop', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/001_dice.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/001_dice_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '001_dice');
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults)
+        .toEqual(examples.map(() => ({ types: ['integer'], rank: 0, shape: [] })));
+});
+
+it('widens array element facts before analyzing repeated writes', () => {
+    expect(messages('Count = 1\nA = array 1 2\nfor I in 0 to 1\n A 0 = "x"\nend\n'
+        + 'A 0 + 1\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('Count = 1\nA = array 1 2\nfor I in 0 to 1\n A Key = 0\nend\n'
+        + 'Count + "bad"')).toEqual([]);
+});
+
 it('infers returns from loops in unchanged reverse-integer and bill-count demos', () => {
     for (const [path, moduleName, type, rank] of [
         ['leetcode/007_revint', '007_revint', 'integer', 0],

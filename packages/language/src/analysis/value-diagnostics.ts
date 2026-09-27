@@ -253,6 +253,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     const writtenBindings = (node: AstNode): readonly string[] => isAssignmentStatement(node) ? [node.name]
         : isUnpackStatement(node) ? node.names.filter(name => name !== '#') : [];
+    function widenArrayWrite(node: AstNode, env: Map<string, ValueFacts>): void {
+        if (!isArrayAssignmentStatement(node)) return;
+        const fact = env.get(node.name);
+        if (fact) env.set(node.name, { ...fact, elements: undefined, positions: undefined, integers: undefined,
+            eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
+    }
     const directValue = (node: Expression): boolean => isNameExpression(node) || isNumberLiteral(node)
         || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
         || isParenthesizedExpression(node) && directValue(node.value);
@@ -318,7 +324,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const contents = [...AstUtils.streamAllContents(statement)];
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
-                && !isUnpackStatement(node) && !isIndexAssignmentStatement(node)
+                && !isUnpackStatement(node) && !isArrayAssignmentStatement(node) && !isIndexAssignmentStatement(node)
                 && !isAddStatement(node) && !isPushStatement(node) && !isExpressionStatement(node)
                 && !isIfStatement(node) && !isForStatement(node))) {
             // Mutation and non-local exits need their own flow rules.
@@ -336,6 +342,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
                     ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
+            widenArrayWrite(node, local);
         }
         if (membership) bindIteration(local, membership.names, collection);
         const start = diagnostics.length;
@@ -349,6 +356,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
                     acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
+            widenArrayWrite(node, local);
         }
         mergeEnvironments(env, [env, local]);
     }
@@ -379,6 +387,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
                     ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
+            widenArrayWrite(node, local);
         }
         if (membership) bindIteration(local, membership.names, collection);
         const start = diagnostics.length;
@@ -392,6 +401,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
                         acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
                 }
+                widenArrayWrite(node, local);
             }
             mergeEnvironments(env, [env, local]);
         }
