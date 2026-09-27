@@ -5,7 +5,7 @@ import { createRankServices } from '../src/rank-module.js';
 import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
-import type { ValueFacts } from '../src/analysis/value-facts.js';
+import type { ValueFacts } from '../src/analysis/value-domain.js';
 
 it('does not join an explicit raise with successful function returns', () => {
     const source = 'fun choose Flag\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';

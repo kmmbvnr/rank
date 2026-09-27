@@ -2,7 +2,8 @@ import {
     isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression, type Expression, type IfStatement, type Statement,
 } from '../generated/ast.js';
-import { expressionFacts, joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-facts.js';
+import { expressionFacts } from './value-facts.js';
+import { joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
 import type { Types } from './types.js';
 
 export const arrayRank = (fact: ValueFacts | undefined): number | undefined =>
@@ -121,4 +122,3 @@ export function conditionalPaths(statement: IfStatement, env: Map<string, ValueF
     paths.push({ items: statement.elseStatements, env: pending });
     return paths;
 }
-

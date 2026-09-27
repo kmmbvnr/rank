@@ -6,7 +6,8 @@ import {
 import { flattenApplication } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { mapsScalarCells } from './types.js';
-import { expressionFacts, type ValueFacts } from './value-facts.js';
+import { expressionFacts } from './value-facts.js';
+import type { ValueFacts } from './value-domain.js';
 
 export interface FunctionTestExample {
     readonly name: string;

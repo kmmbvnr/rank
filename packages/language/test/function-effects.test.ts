@@ -5,7 +5,7 @@ import { createRankServices } from '../src/rank-module.js';
 import { isFunctionStatement, type Program } from '../src/generated/ast.js';
 import { functionEffects } from '../src/analysis/function-effects.js';
 import { flatArrayBorrowCandidates, flatArrayBorrowProofs } from '../src/analysis/flat-array-borrow.js';
-import type { ValueFacts } from '../src/analysis/value-facts.js';
+import type { ValueFacts } from '../src/analysis/value-domain.js';
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });

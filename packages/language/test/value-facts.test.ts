@@ -2,7 +2,8 @@ import { EmptyFileSystem } from 'langium';
 import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
-import { expressionFacts, incompatibleShapes, joinValueFacts, type ValueFacts } from '../src/analysis/value-facts.js';
+import { expressionFacts } from '../src/analysis/value-facts.js';
+import { incompatibleShapes, joinValueFacts, type ValueFacts } from '../src/analysis/value-domain.js';
 import { typeOf } from '../src/analysis/types.js';
 
 let services: ReturnType<typeof createRankServices>;

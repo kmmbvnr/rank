@@ -20,8 +20,9 @@ import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields } from './function-yields.js';
 import { directValue, safeCollectionValue, safeEmptyArrayIteration, safeIndexDefault, safeIndexedIteration, safeIndexedSource, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
-import { expressionFacts, hasCallbackFreeFindProof, incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE,
-    type ValueFacts, type FactLookup } from './value-facts.js';
+import { expressionFacts, hasCallbackFreeFindProof } from './value-facts.js';
+import { incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE,
+    type ValueFacts, type FactLookup } from './value-domain.js';
 
 export interface ValueDiagnostic {
     readonly node: AstNode;

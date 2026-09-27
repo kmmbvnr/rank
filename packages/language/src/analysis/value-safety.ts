@@ -5,7 +5,8 @@ import {
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { expressionFacts, isAtom, type ValueFacts } from './value-facts.js';
+import { expressionFacts } from './value-facts.js';
+import { isAtom, type ValueFacts } from './value-domain.js';
 
 // Proofs used before retaining value facts across reads, writes and iterations.
 // An unproved expression stays unknown; these checks never execute Rank code.

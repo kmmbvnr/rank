@@ -9,6 +9,7 @@ export * from './type-names.js';
 export * from './binding-rule.js';
 export * from './analysis/bindings.js';
 export * from './analysis/types.js';
+export * from './analysis/value-domain.js';
 export * from './analysis/value-facts.js';
 export * from './analysis/value-diagnostics.js';
 export * from './analysis/function-effects.js';
