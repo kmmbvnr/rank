@@ -1,0 +1,91 @@
+rem Dyalog Programming Contest 2010
+rem Task 5: Variable Interest
+rem The central bank moves its rate each quarter by a
+rem die roll: pips minus 3.5, divided by 10, never
+rem below zero. A variable loan takes the rate at the
+rem start of each year and re-amortizes the balance.
+rem Estimate how the variable loan compares with the
+rem fixed one, in five bins of the final difference.
+
+use "001_params"
+use "002_buyorrent"
+use io
+use cli
+use numbers
+use random
+use sequences
+
+argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+
+State = 2010 seed
+Params = Input read getparams
+((array 9.0 10000) Params variablerisk) print
+
+
+rem Shares of simulations in which the variable loan
+rem is ahead by more than 50000, by more than 25000,
+rem within 25000, behind by more than 25000 and
+rem behind by more than 50000.
+fun variablerisk Options Params
+  unpack Start Count = Options
+  Sims = Count integer
+  Quarters = Params 2 integer // 3
+  Rolls = (1 to 6) (Quarters * Sims) choices
+  Changes = ((Rolls - 3.5) / 10) (array Quarters Sims) reshape
+  return Changes Start Params difference bins
+end
+
+
+rem Final advantage of the variable loan over the fixed
+rem one, a lane per column of quarterly rate Changes.
+rem Home value, rent, property tax and the parents'
+rem loan are the same for both loans and cancel: what
+rem remains is the savings from the payment and tax
+rem differences, less the difference of the balances.
+rem Every lane is a vector element, so the only loop is
+rem over months; copy keeps the carried vectors dense.
+fun difference Changes Start Params
+  unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
+  Term = Months integer
+  Sims = Changes shape 1
+  Fixed = BankAmt (BankRate / 1200) ((1 to Term) copy) loan
+  Growth = 1 + SavRate / 1200 * (1 - Tax / 100)
+
+  Official = array shape Sims fill Start * 1.0
+  Balance = array shape Sims fill BankAmt * 1.0
+  Saving = array shape Sims fill 0.0
+  Rate = Official / 1200
+  Payment = Balance Rate Term payment
+  for Month in 0 until Term
+    if (Month greater 0) and (Month % 12 equal 0)
+      Rate = Official / 1200
+      Payment = Balance Rate (Term - Month) payment
+    end
+    Interest = Balance * Rate
+    Balance = (Balance - (Payment - Interest)) copy
+    Flow = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
+    Saving = (Saving * Growth + Flow) copy
+    if Month % 3 equal 2
+      Official = (Official + Changes (Month // 3)) 0.0 max copy
+    end
+  end
+  return Saving - (Balance - Fixed .bal (Term - 1))
+end
+
+
+rem The standard amortization payment for each lane,
+rem an equal share of the balance at a zero rate.
+fun payment Balance Rate Months
+  Annuity = Balance * Rate / (1 - (1 + Rate) ** -Months)
+  return (Rate equal 0) (Balance / Months) Annuity choose
+end
+
+
+fun bins Difference
+  Far = (Difference greater 50000) count
+  Ahead = ((Difference greater 25000) and (Difference at most 50000)) count
+  Even = (Difference abs at most 25000) count
+  Behind = ((Difference less -25000) and (Difference at least -50000)) count
+  Lost = (Difference less -50000) count
+  return (array Far Ahead Even Behind Lost) / (Difference len)
+end

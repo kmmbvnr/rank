@@ -1,0 +1,61 @@
+use testing
+
+rem With no rate changes the variable loan is a fixed
+rem loan at the starting rate, so the difference is the
+rem gap between two full models.
+test "a steady rate matches the full model at that rate"
+  use "002_buyorrent"
+  use "005_variable"
+  use numbers
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Lower = Params copy
+  Lower 4 = 9.0
+  Expected = (Lower buyorrent .series 359 14) - (Params buyorrent .series 359 14)
+  Changes = array shape 120 3 fill 0.0
+  Difference = Changes 9.0 Params difference
+  (Expected greater 1000) and (((Difference - Expected) abs at most 0.01) all)
+end
+
+test "the fixed rate as a steady start makes no difference"
+  use "005_variable"
+  use numbers
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Changes = array shape 120 2 fill 0.0
+  ((Changes 10.0 Params difference) abs at most 0.01) all
+end
+
+test "the rate stops at zero"
+  use "005_variable"
+  use numbers
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Changes = array shape 120 1 fill -0.25
+  Difference = Changes 1.0 Params difference 0
+  (not (Difference isnan)) and (Difference greater 0)
+end
+
+test "shares sum to one and repeat with the seed"
+  use "005_variable"
+  use numbers
+  use random
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  State = 7 seed
+  First = (array 9.0 200) Params variablerisk
+  State = 7 seed
+  Second = (array 9.0 200) Params variablerisk
+  (First len equal 5) and ((First sum - 1) abs at most 0.000001) and ((First equal Second) all)
+end
+
+test "bins split at 25000 and 50000"
+  use "005_variable"
+  use sequences
+
+  Difference = array 60000.0 50000.0 30000.0 -25000.0 0.0 -30000.0 -50000.0 -50001.0
+  (Difference bins equal (array 1 2 2 2 1 / 8)) all
+end
