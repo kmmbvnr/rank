@@ -107,6 +107,18 @@ it('keeps integer sums of proven scalar cells exact', () => {
     expect(facts('(array 1 2.5) sum')).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
 });
 
+it('keeps scalar cells through a stable numeric sort', () => {
+    const values: ValueFacts = { types: ['array'], rank: 1, shape: [3],
+        elements: ['integer'], callbackFreeScalarCells: true };
+    const bindings = new Map([['A', values]]);
+    expect(facts('A sort', bindings)).toEqual({ types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'], eagerScalarCells: true });
+    expect(facts('A sort .descending', bindings)).toEqual({ types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'], eagerScalarCells: true });
+    expect(facts('A sort', new Map([['A', { ...values, callbackFreeScalarCells: undefined }]])))
+        .toEqual({ types: ['array'] });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {

@@ -1,6 +1,6 @@
 import {
     isApplicationExpression, isAllAxisExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
-    isNameExpression, isNumberLiteral, isParenthesizedExpression, isStringLiteral, isUnaryExpression,
+    isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression, isStringLiteral, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
 import { localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
@@ -85,6 +85,14 @@ export function hasArrayHeaderNoCallbackProof(operation: Operation, operands: re
         && operands.length === 1 && operation.arities.includes(1)
         && value.types.join() === 'array'
         && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
+}
+
+function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
+    if (source.types.join() !== 'array' || source.rank !== 1 || !source.shape
+        || !(source.eagerScalarCells || source.callbackFreeScalarCells)
+        || !source.elements?.length || !source.elements.every(type => type === 'integer' || type === 'real')) return;
+    return { types: ['array'], rank: 1, shape: source.shape,
+        elements: source.elements, eagerScalarCells: true };
 }
 
 /** Start with facts that follow directly from syntax, retaining unknown lengths. */
@@ -376,6 +384,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             && isNameExpression(last) && lookup(last.name) === undefined
             && findOperation(last.name)?.arities.join() === '1';
         const source = expressionFacts(unaryTail ? expression.head : parts[0], lookup);
+        if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'sort'
+            && lookup('sort') === undefined && isLabelLiteral(last)
+            && (last.name === 'ascending' || last.name === 'descending')) {
+            const sorted = sortedScalarArray(source);
+            if (sorted) return sorted;
+        }
         if (source.types.join() === 'index' && source.elements?.length && parts.length > 1
             && parts.slice(1).every(part => {
                 const key = expressionFacts(part, lookup);
@@ -395,6 +409,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     && source.rank === 0 && source.types.join() === 'integer') {
                     return { types: ['sequence'], elements: ['integer'], rank: 1,
                         shape: [null], callbackFreeScalarCells: true };
+                }
+                if (arity === 1 && last.name === 'sort') {
+                    const sorted = sortedScalarArray(source);
+                    if (sorted) return sorted;
                 }
                 if (arity === 1 && last.name === 'unique' && source.rank === 1
                     && ['array', 'sequence'].includes(source.types.join())
