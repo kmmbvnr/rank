@@ -1,7 +1,6 @@
-import {
-    isApplicationExpression, isNameExpression, type BinaryExpression, type Expression,
-} from '../generated/ast.js';
-import { flattenApplication, inlineSliceOperands } from '../expressions.js';
+import type { BinaryExpression, Expression } from '../generated/ast.js';
+import { inlineSliceOperands } from '../expressions.js';
+import { symbolicApplicationForm } from '../application-forms.js';
 import { binaryType, typeOf, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, isAtom, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
@@ -11,8 +10,8 @@ export function binaryExpressionFacts(
     expression: BinaryExpression, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
 ): ValueFacts | undefined {
-    if (expression.operator === '+' && isNameExpression(expression.right)
-        && expression.right.name === 'segment' && lookup('segment') === undefined) {
+    const symbolic = symbolicApplicationForm(expression, name => lookup(name) === undefined);
+    if (symbolic?.kind === 'segment' && symbolic.operator === '+') {
         const values = infer(expression.left, lookup);
         if (['array', 'sequence'].includes(values.types.join()) && values.rank === 1
             && (values.eagerScalarCells || values.callbackFreeScalarCells)
@@ -21,28 +20,23 @@ export function binaryExpressionFacts(
             return { types: ['segment'], elements: values.elements, segmentOperation: '+' };
         }
     }
-    if (['+', '*'].includes(expression.operator) && lookup('scan') === undefined) {
-        const parts = isNameExpression(expression.right) ? [expression.right]
-            : isApplicationExpression(expression.right) ? flattenApplication(expression.right) : [];
-        if ((parts.length === 1 || parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'with')
-            && isNameExpression(parts[0]) && parts[0].name === 'scan') {
-            const source = infer(expression.left, lookup);
-            const seed = parts[2] && infer(parts[2], lookup);
-            const numeric = (types: Types | undefined) => !!types?.length
-                && types.every(type => type === 'integer' || type === 'real');
-            if (['array', 'sequence'].includes(source.types.join()) && source.rank === 1
-                && (source.eagerScalarCells || source.callbackFreeScalarCells) && numeric(source.elements)
-                && (!seed || seed.rank === 0 && numeric(seed.types))) {
-                const length = source.shape?.[0];
-                const size = length == null ? null : length + (seed ? 1 : 0);
-                return { types: source.types, rank: 1, shape: [size],
-                    elements: [...new Set([...source.elements!, ...(seed?.types ?? [])])],
-                    callbackFreeScalarCells: true };
-            }
+    if (symbolic?.kind === 'scan' && ['+', '*'].includes(symbolic.operator)) {
+        const source = infer(expression.left, lookup);
+        const seed = symbolic.seed && infer(symbolic.seed, lookup);
+        const numeric = (types: Types | undefined) => !!types?.length
+            && types.every(type => type === 'integer' || type === 'real');
+        if (['array', 'sequence'].includes(source.types.join()) && source.rank === 1
+            && (source.eagerScalarCells || source.callbackFreeScalarCells) && numeric(source.elements)
+            && (!seed || seed.rank === 0 && numeric(seed.types))) {
+            const length = source.shape?.[0];
+            const size = length == null ? null : length + (seed ? 1 : 0);
+            return { types: source.types, rank: 1, shape: [size],
+                elements: [...new Set([...source.elements!, ...(seed?.types ?? [])])],
+                callbackFreeScalarCells: true };
         }
     }
-    if (['+', '*'].includes(expression.operator) && isNameExpression(expression.right)
-        && expression.right.name === 'reduce' && lookup('reduce') === undefined) {
+    if (symbolic?.kind === 'reduce' && ['+', '*'].includes(symbolic.operator)
+        && symbolic.seed === undefined && symbolic.rank === undefined) {
         const source = infer(expression.left, lookup);
         if (['array', 'sequence'].includes(source.types.join()) && source.rank !== undefined
             && source.rank > 0 && (source.eagerScalarCells || source.callbackFreeScalarCells)
@@ -83,13 +77,11 @@ export function binaryExpressionFacts(
         }
         return UNKNOWN_VALUE;
     }
-    if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)
-        && isNameExpression(expression.right) && expression.right.name === 'outer'
-        && lookup('outer') === undefined && isApplicationExpression(expression.left)) {
-        const operands = flattenApplication(expression.left);
-        if (operands.length === 2) {
-            const left = infer(operands[0], lookup);
-            const right = infer(operands[1], lookup);
+    if (symbolic?.kind === 'outer'
+        && ['+', '-', '*', '/', '//', '%', '**'].includes(symbolic.operator)) {
+        if (symbolic.operands.length === 2) {
+            const left = infer(symbolic.operands[0], lookup);
+            const right = infer(symbolic.operands[1], lookup);
             if (left.shape && right.shape && left.types.join() === 'array'
                 && right.types.join() === 'array') {
                 const shape = [...left.shape, ...right.shape];

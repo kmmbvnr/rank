@@ -1,6 +1,7 @@
 import { EmptyFileSystem } from 'langium';
 import { expect, it } from 'vitest';
-import { axisLengthForm, axisReductionForm, sortDirectionForm } from '../src/application-forms.js';
+import { axisLengthForm, axisReductionForm, sortDirectionForm,
+    symbolicApplicationForm } from '../src/application-forms.js';
 import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { flattenApplication } from '../src/expressions.js';
 import { findOperation } from '../src/operations.js';
@@ -45,4 +46,19 @@ it('keeps the axis-length syntax separate from its runtime axis check', () => {
     const parts = flattenApplication(statement.value);
     expect(axisLengthForm(parts)?.kind).toBe('axis-length');
     expect(axisLengthForm(parts, name => name !== 'len')).toBeUndefined();
+});
+
+it('recognizes symbolic modifiers once and respects a shadowed modifier', () => {
+    const symbolic = (source: string, standard: (name: string) => boolean = () => true) => {
+        const parsed = parser.parse<Program>(`Result = ${source}\n`);
+        expect(parsed.parserErrors).toEqual([]);
+        const statement = parsed.value.statements[0];
+        if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+        return symbolicApplicationForm(statement.value, standard);
+    };
+    expect(symbolic('Values + scan with 0')?.kind).toBe('scan');
+    expect(symbolic('Values + reduce rank 1 with 0')?.kind).toBe('reduce');
+    expect(symbolic('Values + segment')?.kind).toBe('segment');
+    expect(symbolic('A B * outer')?.kind).toBe('outer');
+    expect(symbolic('Values + scan', name => name !== 'scan')).toBeUndefined();
 });

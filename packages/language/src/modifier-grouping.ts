@@ -3,17 +3,12 @@ import {
     type Expression, type NameExpression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
-import { sortDirectionForm } from './application-forms.js';
+import { OUTER_OPERATORS, REDUCE_OPERATORS, sortDirectionForm } from './application-forms.js';
 import { findOperation } from './operations.js';
 
 export const COMPARISON_OPERATORS = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
 
-export const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
-export const OUTER_OPERATORS = new Set([
-    '+', '-', '*', '**', '/', '//', '%',
-    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
-    'and', 'or', 'xor', 'multipleby',
-]);
+export { REDUCE_OPERATORS, OUTER_OPERATORS } from './application-forms.js';
 
 function named(expression: Expression | undefined, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;

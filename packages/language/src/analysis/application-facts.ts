@@ -4,7 +4,8 @@ import {
 } from '../generated/ast.js';
 import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { axisLengthForm, axisReductionForm, sortDirectionForm } from '../application-forms.js';
+import { axisLengthForm, axisReductionForm, explicitNamedOuterApplication,
+    explicitNamedSegmentApplication, sortDirectionForm } from '../application-forms.js';
 import { mapsScalarCells, resultTypes, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, stableRecordField, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
@@ -166,10 +167,12 @@ export function applicationExpressionFacts(
         && lookup(last.name) === undefined && source.types.join() === 'text') {
         return { types: ['object'] };
     }
-    const combine = parts.length === 3 && isNameExpression(parts[1]) ? parts[1].name : undefined;
+    const namedSegment = explicitNamedSegmentApplication(parts);
+    const combine = parts.length === 3 && namedSegment && isNameExpression(namedSegment.operation)
+        ? namedSegment.operation.name : undefined;
     if (combine && ['min', 'max', 'maxsum', 'band', 'bor', 'bxor'].includes(combine)
         && lookup(combine) === undefined
-        && isNameExpression(last) && last.name === 'segment' && lookup('segment') === undefined
+        && lookup('segment') === undefined
         && ['array', 'sequence'].includes(source.types.join()) && source.rank === 1
         && (source.eagerScalarCells || source.callbackFreeScalarCells)
         && source.elements?.length
@@ -230,10 +233,11 @@ export function applicationExpressionFacts(
         && infer(parts.at(-1)!, lookup).types.join() === 'integer') {
         return { types: ['integer'], rank: 0, shape: [] };
     }
-    if (parts.length === 4 && isNameExpression(last) && last.name === 'outer'
-        && lookup('outer') === undefined && isNameExpression(parts[2]) && lookup(parts[2].name) === undefined) {
-        const operation = findOperation(parts[2].name);
-        const right = infer(parts[1], lookup);
+    const namedOuter = explicitNamedOuterApplication(parts);
+    if (namedOuter && lookup('outer') === undefined
+        && isNameExpression(namedOuter.operation) && lookup(namedOuter.operation.name) === undefined) {
+        const operation = findOperation(namedOuter.operation.name);
+        const right = infer(namedOuter.right, lookup);
         const domain = operation?.scalarNoCallback;
         const safe = (value: ValueFacts) => (value.types.join() === 'array' || value.types.join() === 'sequence')
             && value.rank !== undefined && value.rank > 0 && !!value.shape

@@ -40,7 +40,7 @@ import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
     flatArrayBorrowProofs,
-    REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS,
+    COMPARISON_OPERATORS,
     isAddStatement,
     isAliasedTableExpression,
     isAllAxisExpression,
@@ -104,6 +104,7 @@ import {
     findOperation,
     axisReductionForm,
     axisLengthForm,
+    symbolicApplicationForm,
     explicitLowerBoundApplication, explicitMaterializePipeline, explicitNamedOuterApplication,
     explicitNamedScanApplication, explicitNamedSegmentApplication, explicitCollectionMutation,
     explicitMultisetMethod, explicitFunctionalMethod, explicitDsuMethod, explicitGraphEdges,
@@ -2381,17 +2382,21 @@ export class Interpreter {
                     return interpreter.compareAtRank(left, right, comparison);
                 };
             }
-            const outer = explicitOuterApplication(expression);
+            const symbolic = symbolicApplicationForm(expression);
+            const outer = symbolic?.kind === 'outer' ? symbolic : undefined;
             if (outer) {
+                if (outer.operands.length !== 2) {
+                    throw new RankError(`outer expects two operands, got ${outer.operands.length}`);
+                }
                 return function* (): Execution<RankValue> {
                     return interpreter.evaluateOuter(
                         outer.operator,
-                        (yield* resume(interpreter.evaluateTask(outer.left))),
-                        (yield* resume(interpreter.evaluateTask(outer.right))),
+                        (yield* resume(interpreter.evaluateTask(outer.operands[0]))),
+                        (yield* resume(interpreter.evaluateTask(outer.operands[1]))),
                     );
                 };
             }
-            const symbolicSegment = explicitSymbolicSegmentApplication(expression);
+            const symbolicSegment = symbolic?.kind === 'segment' ? symbolic : undefined;
             if (symbolicSegment) {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('algo', 'segment');
@@ -2414,7 +2419,7 @@ export class Interpreter {
                     );
                 };
             }
-            const scan = explicitScanApplication(expression);
+            const scan = symbolic?.kind === 'scan' ? symbolic : undefined;
             if (scan) {
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(interpreter.evaluateTask(scan.source));
@@ -2428,7 +2433,11 @@ export class Interpreter {
                     );
                 };
             }
-            const reduction = explicitReduceApplication(expression);
+            const reduction = symbolic?.kind === 'reduce' ? {
+                ...symbolic,
+                rank: symbolic.rank === undefined ? undefined
+                    : safeDimension(integerLiteral(symbolic.rank, 'rank'), 'rank'),
+            } : undefined;
             if (reduction) {
                 const fused = reduction.rank === undefined && reduction.seed === undefined ? compileFusedReduction(
                     reduction.source, reduction.operator, {
@@ -6046,88 +6055,6 @@ function explicitComparisonRank(expression: Expression): ComparisonRank | undefi
     const operands = flattenApplication(expression.left);
     if (operands.length !== 2) throw new RankError(`rank comparison expects two operands, got ${operands.length}`);
     return { operator: expression.operator, left: operands[0], right: operands[1], rank, axes };
-}
-
-function explicitOuterApplication(expression: Expression): OuterApplication | undefined {
-    if (!isBinaryExpression(expression)
-        || !OUTER_OPERATORS.has(expression.operator)
-        || !isNamed(expression.right, 'outer')) return undefined;
-    const operands = flattenApplication(expression.left);
-    if (operands.length !== 2) {
-        throw new RankError(`outer expects two operands, got ${operands.length}`);
-    }
-    return {
-        operator: expression.operator,
-        left: operands[0],
-        right: operands[1],
-    };
-}
-
-interface ReduceApplication {
-    readonly operator: string;
-    readonly source: Expression;
-    readonly rank?: number;
-    readonly seed?: Expression;
-}
-
-interface ScanApplication {
-    readonly operator: string;
-    readonly source: Expression;
-    readonly seed?: Expression;
-}
-
-interface SymbolicSegmentApplication {
-    readonly operator: string;
-    readonly source: Expression;
-}
-
-function explicitSymbolicSegmentApplication(
-    expression: Expression,
-): SymbolicSegmentApplication | undefined {
-    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
-        return undefined;
-    }
-    const parts = flattenApplication(expression.right);
-    if (parts.length !== 1 || !isNamed(parts[0], 'segment')) return undefined;
-    return { operator: expression.operator, source: expression.left };
-}
-
-function explicitScanApplication(expression: Expression): ScanApplication | undefined {
-    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
-        return undefined;
-    }
-    const parts = flattenApplication(expression.right);
-    if (parts.length === 1 && isNamed(parts[0], 'scan')) {
-        return { operator: expression.operator, source: expression.left };
-    }
-    if (parts.length !== 3 || !isNamed(parts[0], 'scan') || !isNamed(parts[1], 'with')) {
-        return undefined;
-    }
-    return { operator: expression.operator, source: expression.left, seed: parts[2] };
-}
-
-function explicitReduceApplication(expression: Expression): ReduceApplication | undefined {
-    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
-        return undefined;
-    }
-    const parts = flattenApplication(expression.right);
-    if (parts.length === 1 && isNamed(parts[0], 'reduce')) {
-        return { operator: expression.operator, source: expression.left };
-    }
-    if (parts.length === 3 && isNamed(parts[0], 'reduce') && isNamed(parts[1], 'with')) {
-        return { operator: expression.operator, source: expression.left, seed: parts[2] };
-    }
-    const ranked = parts.length === 3 || parts.length === 5;
-    if (!ranked || !isNamed(parts[0], 'reduce') || !isNamed(parts[1], 'rank')
-        || (parts.length === 5 && !isNamed(parts[3], 'with'))) {
-        return undefined;
-    }
-    return {
-        operator: expression.operator,
-        source: expression.left,
-        rank: safeDimension(integerLiteral(parts[2], 'rank'), 'rank'),
-        seed: parts[4],
-    };
 }
 
 const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);

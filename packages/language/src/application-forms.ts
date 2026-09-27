@@ -5,6 +5,13 @@ import {
 import { findOperation, type Operation } from './operations.js';
 import { flattenApplication } from './expressions.js';
 
+export const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
+export const OUTER_OPERATORS = new Set([
+    '+', '-', '*', '**', '/', '//', '%',
+    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
+    'and', 'or', 'xor', 'multipleby',
+]);
+
 export interface AxisReductionForm {
     readonly kind: 'axis-reduction';
     readonly source: Expression;
@@ -61,6 +68,51 @@ export function axisReductionForm(
 
 function isNamed(expression: Expression | undefined, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
+}
+
+export type SymbolicApplicationForm =
+    | { readonly kind: 'outer'; readonly operator: string; readonly operands: readonly Expression[] }
+    | { readonly kind: 'segment'; readonly operator: string; readonly source: Expression }
+    | { readonly kind: 'scan'; readonly operator: string; readonly source: Expression; readonly seed?: Expression }
+    | { readonly kind: 'reduce'; readonly operator: string; readonly source: Expression;
+        readonly rank?: Expression; readonly seed?: Expression };
+
+/** Recognize the current symbolic modifier syntax once for runtime and analysis. */
+export function symbolicApplicationForm(
+    expression: Expression, standard: (name: string) => boolean = () => true,
+): SymbolicApplicationForm | undefined {
+    if (!isBinaryExpression(expression)) return undefined;
+    const parts = isApplicationExpression(expression.right)
+        ? flattenApplication(expression.right) : [expression.right];
+    if (OUTER_OPERATORS.has(expression.operator) && isNamed(parts[0], 'outer')
+        && parts.length === 1 && standard('outer')) {
+        return { kind: 'outer', operator: expression.operator,
+            operands: flattenApplication(expression.left) };
+    }
+    if (!REDUCE_OPERATORS.has(expression.operator)) return undefined;
+    if (parts.length === 1 && isNamed(parts[0], 'segment') && standard('segment')) {
+        return { kind: 'segment', operator: expression.operator, source: expression.left };
+    }
+    if (isNamed(parts[0], 'scan') && standard('scan')) {
+        if (parts.length === 1) return { kind: 'scan', operator: expression.operator,
+            source: expression.left };
+        if (parts.length === 3 && isNamed(parts[1], 'with')) return {
+            kind: 'scan', operator: expression.operator, source: expression.left, seed: parts[2],
+        };
+    }
+    if (isNamed(parts[0], 'reduce') && standard('reduce')) {
+        if (parts.length === 1) return { kind: 'reduce', operator: expression.operator,
+            source: expression.left };
+        if (parts.length === 3 && isNamed(parts[1], 'with')) return {
+            kind: 'reduce', operator: expression.operator, source: expression.left, seed: parts[2],
+        };
+        if ((parts.length === 3 || parts.length === 5) && isNamed(parts[1], 'rank')
+            && (parts.length === 3 || isNamed(parts[3], 'with'))) return {
+            kind: 'reduce', operator: expression.operator, source: expression.left,
+            rank: parts[2], seed: parts[4],
+        };
+    }
+    return undefined;
 }
 
 export function explicitLowerBoundApplication(
