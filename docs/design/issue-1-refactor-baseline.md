@@ -40,7 +40,7 @@ storage and compiler modules remain owners where they already have a clear job.
 | Flow and safety proofs | `analysis/control-flow.ts`, `value-safety.ts`, `operation-proofs.ts` | Prove conflicts conservatively; keep storage and effect guards separate |
 | Function yields | `analysis/function-yields.ts` | Summarize generator cells from safe parameter and local facts without executing the body |
 | Bounded recursion proof | `analysis/numeric-recursion.ts` | Keep eligibility and input widening separate from call-site execution paths |
-| Call analysis and diagnostics | `analysis/value-diagnostics.ts` | Keep call-site budgets and source diagnostics together until a smaller contract has a consumer |
+| Call analysis and diagnostics | `analysis/function-calls.ts`, `analysis/value-diagnostics.ts` | Keep call-site budgets, recursive probes and call diagnostics in call analysis; join return paths and project remaining diagnostics in value analysis |
 | Table expression evaluation | `interpreter/keyed-table-expression.ts` | Add a keyed table case there with only module and expression-evaluation capabilities |
 | Selectors and rank application | `interpreter/selectors.ts`, `tensor-index.ts`, `rank-application.ts`, `reduction.ts` | Change concrete indexing, cell/frame assembly or reduction here; keep AST form recognition in language |
 | Value comparison and CLI inputs | `interpreter/value-comparison.ts`, `cli-args.ts` | Keep concrete runtime rules separate from abstract facts |
@@ -68,7 +68,7 @@ language imports of the interpreter, runtime imports back into the facade and
 cycles among the migrated semantic owners. Existing cycles outside these owners
 are not silently claimed to be removed by this check.
 
-The remaining large `prepareStatement`, `compileExpression` and call-analysis
+The remaining large `prepareStatement`, `compileExpression` and value-analysis
 dispatches stay in their current owner when extraction would expose the entire
 interpreter or create a generic state container. Their feature-specific policies
 (return contracts in #3, specialization in #4, bottom/widening in #5) must be

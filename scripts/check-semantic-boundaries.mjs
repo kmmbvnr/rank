@@ -11,6 +11,7 @@ const owners = new Set([
     'packages/language/src/analysis/application-facts.ts',
     'packages/language/src/analysis/binary-facts.ts',
     'packages/language/src/analysis/control-flow.ts',
+    'packages/language/src/analysis/function-calls.ts',
     'packages/language/src/analysis/function-yields.ts',
     'packages/language/src/analysis/numeric-recursion.ts',
     'packages/language/src/analysis/operation-proofs.ts',
