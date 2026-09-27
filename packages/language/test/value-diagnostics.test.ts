@@ -363,6 +363,39 @@ it('infers an accumulator across the unchanged CSES dice array-write loop', () =
         .toEqual(examples.map(() => ({ types: ['integer'], rank: 0, shape: [] })));
 });
 
+it('proves scalar array cell types through closed plain and compound writes in nested loops', () => {
+    const source = 'fun fill_array N\n A = array shape (N + 1) fill 0\n for I in 1 to N\n'
+        + '  A I = A (I - 1) + 1\n end\n return A N\nend\n'
+        + 'fun nested\n A = array 0 0\n for I in 0 to 1\n  for J in 0 to 1\n'
+        + '   A J += 1\n  end\n end\n return A 0\nend\n';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    const result = analyzeValues(parsed.value, new Map(), new Map(), [
+        { name: 'fill_array', arguments: [{ types: ['integer'], rank: 0, shape: [] }] },
+        { name: 'nested', arguments: [] },
+    ]);
+    expect(result.functionResults.map(fact => fact.types)).toEqual([['integer'], ['integer']]);
+    expect(result.diagnostics).toEqual([]);
+    const mixed = source.replace('A I = A (I - 1) + 1', 'A I = "text"');
+    const changed = services.Rank.parser.LangiumParser.parse<Program>(mixed);
+    expect(analyzeValues(changed.value, new Map(), new Map(), [
+        { name: 'fill_array', arguments: [{ types: ['integer'], rank: 0, shape: [] }] },
+    ]).functionResults[0].types).toEqual([]);
+});
+
+it('infers the unchanged CSES book-shop dynamic program from its test inputs', () => {
+    const source = readFileSync(new URL('../../../demos/cses/dynamic/007_bookshop.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/dynamic/007_bookshop_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '007_bookshop', new Set(['book_shop']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('widens array element facts before analyzing repeated writes', () => {
     expect(messages('Count = 1\nA = array 1 2\nfor I in 0 to 1\n A 0 = "x"\nend\n'
         + 'A 0 + 1\nCount + "bad"'))
@@ -780,6 +813,11 @@ it('retains known cell types after a proven single-cell replacement', () => {
         .toEqual(['operator + does not accept integer and boolean']);
     expect(messages('A = array 1 2\nA 0 = true\nA + (array 3 4)')).toEqual([]);
     expect(messages('A = array 1 2\nA # = 3\nA + (array true false)')).toEqual([]);
+    expect(messages('A = array 1 2\nA 0 += 3\nA + (array true false)'))
+        .toEqual(['operator + does not accept integer and boolean']);
+    expect(messages('A = array 1 2\nA 0 %= 3\nA + (array true false)'))
+        .toEqual(['operator + does not accept integer and boolean']);
+    expect(messages('A = array 1 2\nA 0 += "text"\nA + (array true false)')).toEqual([]);
 });
 
 it('keeps array values separate across rebinding and joined write paths', () => {

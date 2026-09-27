@@ -342,22 +342,62 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             for (const [name, fact] of env) env.set(name, invalidate(fact));
             return;
         }
-        const local = new Map(env);
-        // Widen before examining the body: later iterations may have different
-        // lengths and elements. Only an existing binding contract is invariant.
-        for (const node of contents) {
-            for (const name of writtenBindings(node)) {
-                const previous = local.get(name);
-                const types = previous?.acceptedTypes ?? previous?.types ?? [];
-                const rank = contractRank(previous);
-                local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
-                    ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+        const writes = new Set(contents.filter(isArrayAssignmentStatement).map(node => node.name));
+        const rebound = new Set(contents.flatMap(writtenBindings));
+        const candidates = new Map([...writes].flatMap(name => {
+            const fact = env.get(name);
+            return !rebound.has(name) && fact?.types.join() === 'array' && fact.rank === 1
+                && fact.eagerScalarCells && fact.elements?.length
+                ? [[name, fact] as const] : [];
+        }));
+        const prepare = (preserved: ReadonlySet<string>): Map<string, ValueFacts> => {
+            const local = new Map(env);
+            // Other writes still widen before the body: a later iteration may
+            // observe a different value. Preserved cells need a closure proof.
+            for (const node of contents) {
+                for (const name of writtenBindings(node)) {
+                    const previous = local.get(name);
+                    const types = previous?.acceptedTypes ?? previous?.types ?? [];
+                    const rank = contractRank(previous);
+                    local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                        ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
+                }
+                if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, local);
             }
-            widenArrayWrite(node, local);
-        }
-        if (membership) bindIteration(local, membership.names, collection);
+            if (membership) bindIteration(local, membership.names, collection);
+            return local;
+        };
         const start = diagnostics.length;
-        statements(statement.statements, local);
+        let preserved = new Set<string>();
+        let local: Map<string, ValueFacts>;
+        if (candidates.size && !contents.some(node => isNameExpression(node)
+            && env.get(node.name)?.types.includes('function'))) {
+            const before = new Map(contents.filter(isExpression).map(node => [node, expressions.get(node)] as const));
+            const trial = prepare(new Set(candidates.keys()));
+            statements(statement.statements, trial);
+            const closed = [...candidates].every(([name, fact]) => {
+                const after = trial.get(name);
+                return after?.types.join() === 'array' && after.rank === 1 && after.eagerScalarCells
+                    && after.elements?.length === fact.elements!.length
+                    && after.elements.every(type => fact.elements!.includes(type));
+            });
+            if (closed) {
+                local = trial;
+                preserved = new Set(candidates.keys());
+            } else {
+                diagnostics.length = start;
+                for (const node of contents.filter(isExpression)) {
+                    const prior = before.get(node);
+                    if (prior) expressions.set(node, prior);
+                    else expressions.delete(node);
+                }
+                local = prepare(preserved);
+                statements(statement.statements, local);
+            }
+        } else {
+            local = prepare(preserved);
+            statements(statement.statements, local);
+        }
         if (count == null || count <= 0) diagnostics.length = start;
         // No final-iteration dimensions are proven. Keep contracts, not body values.
         for (const node of contents) {
@@ -367,7 +407,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 local.set(name, { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
                     acceptedArrayRank: rank, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) });
             }
-            widenArrayWrite(node, local);
+            if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, local);
         }
         mergeEnvironments(env, [env, local]);
     }
@@ -728,7 +768,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const replacement = inspect(statement.value, env);
                 const fact = env.get(statement.name);
-                if (isPlainArrayWrite(statement, value => expressionFacts(value, name => env.get(name)).types.join() === 'integer')
+                const integerSelector = (value: Expression) => expressionFacts(value, name => env.get(name)).types.join() === 'integer';
+                const compound = statement.operator !== '=' && statement.indices.length === 1
+                    && !!statement.indices[0].value && integerSelector(statement.indices[0].value)
+                    && fact?.rank === 1 && fact.eagerScalarCells === true
+                    && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
+                    && replacement.rank === 0 && replacement.types.length > 0
+                    && replacement.types.every(type => type === 'integer' || type === 'real')
+                    ? compoundType(statement.operator, fact.elements, replacement.types) : [];
+                if ((isPlainArrayWrite(statement, integerSelector) || compound.length > 0)
                     && fact?.types.length
                     && fact.types.every(type => type === 'array')) {
                     // Keep old element types as conservative possibilities;
@@ -737,7 +785,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         && fact.rank === 1 && isAtom(replacement) && replacement.types.length > 0;
                     env.set(statement.name, { ...fact,
                         elements: oneCell && fact.elements?.length
-                            ? [...new Set([...fact.elements, ...replacement.types])] : undefined,
+                            ? [...new Set([...fact.elements, ...(compound.length ? compound : replacement.types)])] : undefined,
                         integers: undefined, positions: undefined,
                         callbackFreeScalarCells: undefined,
                         eagerScalarCells: oneCell && fact.eagerScalarCells
