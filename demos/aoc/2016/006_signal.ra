@@ -9,9 +9,9 @@ use sequences
 
 argument Input path
 
-Answers = Input readlines solve
-Answers 0 print
-Answers 1 print
+unpack Part1 Part2 = Input readlines solve
+Part1 print
+Part2 print
 
 
 rem Return the messages formed by the most and least frequent letters in each column.
@@ -24,8 +24,6 @@ fun solve Lines
   Width = Grid len axis 1
   Most = ""
   Least = ""
-  MostDirection = .descending
-  LeastDirection = .ascending
 
   for J in 0 until Width
     Column = Grid axis 1 J
@@ -33,11 +31,11 @@ fun solve Lines
     Matches = Column Letters equal outer
     Counts = Matches count axis 0
 
-    Order = Counts argsort MostDirection
-    Most += Letters (Order 0)
+    MostIdx = Counts argsort .descending 0
+    Most += Letters MostIdx
 
-    Order = Counts argsort LeastDirection
-    Least += Letters (Order 0)
+    LeastIdx = Counts argsort .ascending 0
+    Least += Letters LeastIdx
   end
 
   return array Most Least
