@@ -19,10 +19,7 @@ fun longest Text
 
     index C = i
     Size = i - Start + 1
-
-    if Size greater Best
-      Best = Size
-    end
+    Best = Best Size max
   end
 
   return Best
