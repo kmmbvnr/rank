@@ -3,6 +3,7 @@ import type { Execution, OutputLine } from './repl-session.js';
 import type { LiveFunctionSession } from './live-function.js';
 
 type Preview = (source: string, syntheticNames: ReadonlySet<string>) => Execution | Promise<Execution>;
+interface GeneratedPreview { readonly source: string; readonly syntheticNames: ReadonlySet<string> }
 
 interface PreviewState {
     readonly outputs: Map<number, OutputLine[]>;
@@ -27,7 +28,6 @@ const SKIPPED = '.replPreviewSkipped';
 const BRANCH_RUNS = '.replPreviewBranchRuns';
 const LOOP_RUNS = '.replPreviewLoopRuns';
 const ITERATION = 'RankReplPreviewIteration';
-const SYNTHETIC_NAMES: ReadonlySet<string> = new Set([REACHED, VALUE, ITERATION]);
 
 /** Builds and evaluates isolated prefixes while a block is being written. */
 export class LivePreviewRunner {
@@ -54,7 +54,7 @@ export class LivePreviewRunner {
         source: string,
         start: number,
         end: number,
-        build: (source: string, target: number) => string,
+        build: (source: string, target: number) => GeneratedPreview,
         reset: boolean,
         throughLine?: number,
         functionName?: string,
@@ -70,7 +70,7 @@ export class LivePreviewRunner {
         const previews = previewTargets(source, start, end, throughLine).map(target => ({
             line: target + 1,
             target,
-            source: build(source, target),
+            ...build(source, target),
             control: controlAt(lines[target].trim(), target + 1, state.iterations),
             recursive: lineCallsFunction(lines[target].trim(), functionName),
         }));
@@ -120,7 +120,7 @@ export class LivePreviewRunner {
             }
             let result: Execution;
             try {
-                result = await this.preview(item.source, SYNTHETIC_NAMES);
+                result = await this.preview(item.source, item.syntheticNames);
             } finally {
                 if (timer) clearInterval(timer);
                 if (timeoutTimer) clearTimeout(timeoutTimer);
@@ -220,7 +220,7 @@ function displayOutput(output: OutputLine[], control?: Control): OutputLine[] {
         : line.text === 'false' ? { ...line, text: 'false · branch skipped' } : line);
 }
 
-function functionPreviewSource(live: LiveFunctionSession, source: string, target: number): string {
+function functionPreviewSource(live: LiveFunctionSession, source: string, target: number): GeneratedPreview {
     const lines = source.split('\n');
     const active = enclosingLoopLines(lines, 1, target);
     omitCompletedLoop(active, lines, 1, target);
@@ -237,7 +237,7 @@ function functionPreviewSource(live: LiveFunctionSession, source: string, target
         : addTarget(state, lines[target].trim(), true, live.iterations.get(target + 1) ?? 0);
     const body = cellSource(closeCell(state)).split('\n').map(line => `  ${line}`).join('\n');
     const call = [...live.values.map(value => `(${value})`), live.name].join(' ');
-    return [
+    return { source: [
         live.header,
         `  ${REACHED} = false`,
         `  ${ITERATION} = 0`,
@@ -248,10 +248,10 @@ function functionPreviewSource(live: LiveFunctionSession, source: string, target
         `  return ${SKIPPED}`,
         'end',
         call,
-    ].join('\n');
+    ].join('\n'), syntheticNames: previewSyntheticNames(active, lines) };
 }
 
-function conditionalPreviewSource(preview: PreviewState, source: string, target: number): string {
+function conditionalPreviewSource(preview: PreviewState, source: string, target: number): GeneratedPreview {
     const lines = source.split('\n');
     const active = enclosingLoopLines(lines, 0, target);
     omitCompletedLoop(active, lines, 0, target);
@@ -266,14 +266,14 @@ function conditionalPreviewSource(preview: PreviewState, source: string, target:
     state = lines[target].trim() === 'end'
         ? addClosedBlockResult(state, lines, 0, target)
         : addTarget(state, lines[target].trim(), false, preview.iterations.get(target + 1) ?? 0);
-    return [
+    return { source: [
         `${REACHED} = false`,
         `${ITERATION} = 0`,
         cellSource(closeCell(state)),
         `if ${reachedCondition(active, lines)}`,
         `  ${VALUE}`,
         'end',
-    ].join('\n');
+    ].join('\n'), syntheticNames: previewSyntheticNames(active, lines) };
 }
 
 /**
@@ -359,7 +359,7 @@ function addClosedBlockResult(state: CellState, lines: string[], start: number, 
 /** Kept as a public helper for callers that build a one-line function preview. */
 export function livePreviewSource(live: LiveFunctionSession, body: string): string {
     const source = `${live.header}\n${body}`;
-    return functionPreviewSource(live, source, source.split('\n').length - 1);
+    return functionPreviewSource(live, source, source.split('\n').length - 1).source;
 }
 
 function controlAt(line: string, number: number, iterations: ReadonlyMap<number, number>): Control | undefined {
@@ -398,6 +398,15 @@ function addActiveLoop(state: CellState, line: string, number: number, iteration
 
 function iterationCounter(number: number): string { return `${ITERATION}${number}`; }
 function iterationSelected(number: number): string { return `${ITERATION}Selected${number}`; }
+
+function previewSyntheticNames(active: ReadonlySet<number>, lines: readonly string[]): ReadonlySet<string> {
+    const names = new Set([REACHED, VALUE, ITERATION]);
+    for (const line of active) if (iterationHeader(lines[line].trim())) {
+        names.add(iterationCounter(line + 1));
+        names.add(iterationSelected(line + 1));
+    }
+    return names;
+}
 
 function reachedCondition(active: ReadonlySet<number>, lines: readonly string[]): string {
     const selected = [...active]
