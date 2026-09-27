@@ -16,20 +16,12 @@ fun gondolas Weights Limit
   A = Weights sort
   I = 0
   J = A len - 1
-  Count = 0
-
   for I less J
     if A I + A J at most Limit
       I += 1
     end
-
     J -= 1
-    Count += 1
   end
 
-  if I equal J
-    Count += 1
-  end
-
-  return Count
+  return A len - I
 end
