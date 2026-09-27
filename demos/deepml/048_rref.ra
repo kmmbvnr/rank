@@ -4,8 +4,7 @@ rem https://www.deep-ml.com/problems/48
 use sequences
 
 fun rref A
-  Rows = A len axis 0
-  Cols = A len axis 1
+  unpack Rows Cols = A shape
   Work = A * 1.0 copy
   Row = 0
 
