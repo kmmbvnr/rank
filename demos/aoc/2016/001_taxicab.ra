@@ -11,10 +11,7 @@ use algo
 
 argument Input path
 
-Answers = Input read solve
-Part1 = Answers 0
-Part2 = Answers 1
-
+unpack Part1 Part2 = Input read solve
 Part1 print
 Part2 print
 
@@ -57,10 +54,10 @@ fun walk Text
 
     Dir = Dir Swap * Signs
     if Turn equal "l"
-      Dir = 0 - Dir
+      Dir = -Dir
     end
 
-    for i in 0 until Steps
+    for # in 0 until Steps
       Pos = Pos + Dir
       yield Pos
     end
