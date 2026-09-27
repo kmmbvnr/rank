@@ -5,10 +5,8 @@ use sequences
 
 rem Multiply two compatible rank-2 matrices.
 fun matrixmul A B
-  Rows = A len axis 0
-  Inner = A len axis 1
-  BRows = B len axis 0
-  Cols = B len axis 1
+  unpack Rows Inner = A shape
+  unpack BRows Cols = B shape
 
   if Inner not equal BRows
     .DimensionMismatch raise
@@ -17,12 +15,11 @@ fun matrixmul A B
   Result = array shape Rows Cols fill 0.0
 
   for i in 0 until Rows
+    Row = A i
     for j in 0 until Cols
-      Sum = 0.0
-      for k in 0 until Inner
-        Sum += A i k * B k j
-      end
-      Result i j = Sum
+      Col = B # j
+      Dot = Row * Col
+      Result i j = Dot sum
     end
   end
 
