@@ -461,6 +461,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 };
             }
         }
+        if (parts.length === 2 && source.types.join() === 'text'
+            && expressionFacts(parts[1], lookup).types.join() === 'integer') {
+            return { types: ['text'], rank: 1, shape: [1] };
+        }
         if (parts.length === 2 && ['array', 'queue', 'sequence'].includes(
             expressionFacts(parts[1], lookup).types.join())) {
             if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };

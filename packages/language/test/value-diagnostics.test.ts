@@ -981,6 +981,8 @@ it('keeps a text parameter when an implicit queue selects its characters', () =>
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['text']);
+    expect(messages('fun character Text I\n return Text I\nend\nA = "abc" 1 character\nA + 1'))
+        .toEqual(['operator + does not accept text and integer']);
 });
 
 it('binds each matrix row as an array when iterating its first axis', () => {

@@ -64,6 +64,14 @@ it('recognizes implicit local collections without treating other names as values
 
 it('retains result types when a collection selects an axis', () => {
     expect(facts('"abcd" queue')).toEqual({ types: ['text'], rank: 1, shape: [null] });
+    expect(facts('"abcd" 2')).toEqual({ types: ['text'], rank: 1, shape: [1] });
+    const selected = services.Rank.parser.LangiumParser.parse<Program>('A = "abcd" 2\n');
+    const statement = selected.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(typeOf(statement.value, () => undefined)).toEqual(['text']);
+    const textSelection = services.Rank.parser.LangiumParser.parse<Program>('A = "abcd" queue\n').value.statements[0];
+    if (!isAssignmentStatement(textSelection)) throw new Error('expected assignment');
+    expect(typeOf(textSelection.value, () => undefined)).toEqual(['text']);
     expect(facts('Source Indices', new Map([
         ['Source', { types: ['array'], rank: 2, shape: [3, 4], elements: ['integer'], eagerScalarCells: true }],
         ['Indices', { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true }],

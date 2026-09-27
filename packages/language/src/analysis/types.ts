@@ -258,6 +258,15 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
         const type = STRUCTURES[head.structure];
         return type === undefined ? UNKNOWN : [type];
     }
+    if (parts.length === 2) {
+        const source = typeOf(head, lookup);
+        const selector = typeOf(parts[1], lookup);
+        if (same(source, 'text') && same(selector, 'integer')) return ['text'];
+        if (['array', 'queue', 'sequence'].some(type => same(selector, type))) {
+            if (same(source, 'text')) return ['text'];
+            if (['array', 'queue', 'sequence'].some(type => same(source, type))) return ['array'];
+        }
+    }
     if (last === undefined || !isNameExpression(last)) return UNKNOWN;
     // A bound name in the last position is data being addressed, or a local
     // that hides the catalogue word, so the catalogue does not apply.
