@@ -17,9 +17,8 @@ fun match Text Pattern
   for PatternSymbol j in Pattern
     if j at least 1 and PatternSymbol equal "*"
       Column = j + 1
-      Previous = Column - 2
-      Empty = index 0 Previous default false
-      index 0 Column = Empty
+      Previous = j - 1
+      index 0 Column = index 0 Previous default false
     end
   end
 
@@ -31,27 +30,12 @@ fun match Text Pattern
       if PatternSymbol equal "*"
         Previous = Column - 2
         Repeated = Pattern Previous
-        Same = Repeated equal "."
-
-        if Repeated equal TextSymbol
-          Same = true
-        end
-
+        Same = Repeated equal "." or Repeated equal TextSymbol
         Zero = index Row Previous default false
-        More = false
-
-        if Same
-          More = index i Column default false
-        end
-
+        More = Same and index i Column default false
         index Row Column = Zero or More
       else
-        Same = PatternSymbol equal "."
-
-        if PatternSymbol equal TextSymbol
-          Same = true
-        end
-
+        Same = PatternSymbol equal "." or PatternSymbol equal TextSymbol
         Previous = Column - 1
         Prefix = index i Previous default false
         index Row Column = Same and Prefix
