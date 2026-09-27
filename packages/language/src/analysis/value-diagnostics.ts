@@ -5,7 +5,7 @@ import {
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isStatement, isExpression,
     isBreakStatement, isContinueStatement, isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
-    isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
+    isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
     type Expression, type Program, type Statement, type FunctionStatement, type ForStatement,
     type TryStatement,
@@ -13,11 +13,14 @@ import {
 import { compoundType, type Types } from './types.js';
 import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { arrayRank, conditionalPaths, contractRank, invalidate, mergeEnvironments, settledShape } from './control-flow.js';
+import { arrayRank, conditionalPaths, contractRank, invalidate, loopBinding,
+    mergeEnvironments, settledShape } from './control-flow.js';
 import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
     provenBindingTypeConflict } from '../binding-rule.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
+import { numericInput, numericRecursionEligible, sameNumericInput,
+    widenedInput } from './numeric-recursion.js';
 import { directValue, safeCollectionValue, safeEmptyArrayIteration, safeIndexDefault, safeIndexedIteration, safeIndexedSource, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
 import { hasCallbackFreeFindProof } from './operation-proofs.js';
@@ -81,50 +84,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             noReturnFunctions.set(definition, noReturn);
         }
         return noReturn;
-    }
-
-    const numericInput = (fact: ValueFacts): boolean => fact.types.length > 0
-        && (fact.rank === 0 && fact.types.every(type => type === 'integer' || type === 'real')
-            || fact.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
-                && !!(fact.eagerScalarCells || fact.callbackFreeScalarCells)
-                && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real'));
-    const widenedInput = (fact: ValueFacts): ValueFacts => ({ types: fact.types, rank: fact.rank,
-        shape: Array(fact.rank!).fill(null), ...(fact.elements ? { elements: fact.elements } : {}),
-        ...(fact.eagerScalarCells ? { eagerScalarCells: true as const } : {}),
-        ...(fact.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) });
-    const sameNumericInput = (left: ValueFacts, right: ValueFacts): boolean => numericInput(right)
-        && left.types.join() === right.types.join() && left.rank === right.rank
-        && left.elements?.join() === right.elements?.join();
-
-    function numericRecursionEligible(name: string, definition: FunctionStatement): boolean {
-        if (definition.$container.$type !== 'Program') return false;
-        const nodes = [...AstUtils.streamAllContents(definition)];
-        if (nodes.some(node => isFunctionStatement(node) || isTryStatement(node) || isYieldStatement(node)
-            || isStdinExpression(node) || isArrayAssignmentStatement(node) || isIndexAssignmentStatement(node)
-            || isAddStatement(node) || isPushStatement(node))) return false;
-        const locals = new Set([...definition.parameters, ...nodes.filter(isAssignmentStatement).map(node => node.name),
-            ...nodes.filter(isUnpackStatement).flatMap(node => node.names),
-            ...nodes.filter(isForStatement).flatMap(node => loopBinding(node.condition)?.names ?? [])]);
-        if (locals.has(name)) return false;
-        const numericSyntax = (part: Expression): boolean => isNameExpression(part) || isNumberLiteral(part)
-            || isParenthesizedExpression(part) && numericSyntax(part.value)
-            || isUnaryExpression(part) && ['+', '-'].includes(part.operator) && numericSyntax(part.operand)
-            || isBinaryExpression(part) && ['+', '-', '*', '/', '//', '%', '**'].includes(part.operator)
-                && numericSyntax(part.left) && numericSyntax(part.right);
-        return nodes.filter(isNameExpression).every(node => {
-            if (node.name === name) {
-                const parent = node.$container;
-                if (!isApplicationExpression(parent)) return false;
-                let call: AstNode = parent;
-                while (isApplicationExpression(call.$container)) call = call.$container;
-                if (!isApplicationExpression(call)) return false;
-                const parts = flattenApplication(call);
-                return parts.at(-1) === node && parts.length === definition.parameters.length + 1
-                    && parts.slice(0, -1).every(numericSyntax);
-            }
-            return locals.has(node.name) || ['len', 'min', 'max', 'odd'].includes(node.name)
-                && !bindings.has(node.name);
-        });
     }
 
     function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression): ValueFacts {
@@ -200,7 +159,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             // a result value. With no proven return, the result remains unknown.
             const ordinary = joinValueFacts(result.values);
             if (ordinary.types.length || !arguments_.every(numericInput)
-                || !numericRecursionEligible(name, definition)) return ordinary;
+                || !numericRecursionEligible(name, definition, bindings)) return ordinary;
             const inputs = arguments_.map(widenedInput);
             const widened = new Map(local);
             definition.parameters.forEach((parameter, index) => widened.set(parameter, {
@@ -455,14 +414,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                             : invalidate(fact));
         }
     };
-    function loopBinding(condition: Expression | undefined): { names: readonly string[]; iterable: Expression } | undefined {
-        if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
-        const parts = flattenApplication(condition.left);
-        if (parts.length < 1 || parts.length > 2 || !parts.every(part =>
-            isNameExpression(part) || isAllAxisExpression(part))) return undefined;
-        return { names: parts.map(part => isNameExpression(part) ? part.name : '#'), iterable: condition.right };
-    }
-
     function bindIteration(env: Map<string, ValueFacts>, names: readonly string[], collection: ValueFacts): void {
         if (names[0] !== '#') {
             if (collection.types.join() === 'array' && collection.rank !== undefined && collection.rank > 1) {
