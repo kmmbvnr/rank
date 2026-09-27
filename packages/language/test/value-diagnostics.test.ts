@@ -2085,6 +2085,47 @@ it('infers table projection ranks from literal JSON test inputs', () => {
     }
 });
 
+it('uses only loaded and unchanged imported function bindings', () => {
+    const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
+    const module = parse('fun twice X\n return X + X\nend');
+    const source = 'use "helper" as M\nfun solve X\n return X M.twice\nend';
+    const example = [{ name: 'solve', arguments: [{ types: ['integer'], rank: 0, shape: [] }] }];
+    const load = (path: string) => path === 'helper' ? module : undefined;
+    expect(analyzeValues(parse(source), new Map(), new Map(), example, load).functionResults[0].types)
+        .toEqual(['integer']);
+    expect(analyzeValues(parse(source), new Map(), new Map(), example).functionResults[0].types)
+        .toEqual([]);
+    const changed = source.replace(' return X M.twice', ' M.twice = X\n return X M.twice');
+    expect(analyzeValues(parse(changed), new Map(), new Map(), example, load).functionResults[0].types)
+        .toEqual([]);
+});
+
+it('checks imported effects before preserving caller globals', () => {
+    const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
+    const program = parse('A = array 1\nuse "helper" as M\nM.read\nR = A 0');
+    const quiet = parse('fun read\n return 0\nend');
+    const noisy = parse('fun read\n Value = stdin .integer\n return 0\nend');
+    expect(analyzeValues(program, new Map(), new Map(), [], path => path === 'helper' ? quiet : undefined)
+        .bindings.get('R')?.types).toEqual(['integer']);
+    expect(analyzeValues(program, new Map(), new Map(), [], path => path === 'helper' ? noisy : undefined)
+        .bindings.get('R')?.types).toEqual([]);
+});
+
+it('infers the disaster-tweets imported prediction result from its module', () => {
+    const moduleName = '005_distweets';
+    const source = readFileSync(new URL(`../../../demos/kaggle/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/kaggle/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const module = readFileSync(new URL('../../../demos/kaggle/001_titanic.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source).value;
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests).value;
+    const importedProgram = services.Rank.parser.LangiumParser.parse<Program>(module).value;
+    const examples = functionTestExamples(testProgram, moduleName, new Set(['solve']));
+    expect(examples).toHaveLength(1);
+    expect(analyzeValues(program, new Map(), new Map(), examples,
+        path => path === '001_titanic' ? importedProgram : undefined).functionResults[0].types)
+        .toEqual(['array']);
+});
+
 it('reports excess axes after filtering a rank-one table', () => {
     expect(messages('use json\nuse tables\nRows = "[{\\"name\\":\\"x\\"}]" json\n'
         + 'Found = Rows filter .name equal "x"\nFound # #'))
@@ -2198,6 +2239,42 @@ it('retains the private loop scalar type across an indirect index write', () => 
     expect(examples.length).toBeGreaterThan(0);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers circuit signals through a read-only helper and a caught retry loop', () => {
+    const moduleName = '007_circuit';
+    const source = readFileSync(new URL(`../../../demos/aoc/2015/${moduleName}.ra`, import.meta.url), 'utf8');
+    const tests = readFileSync(new URL(`../../../demos/aoc/2015/${moduleName}_test.ra`, import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['circuit']));
+    expect(examples).toHaveLength(9);
+    const helperFacts = analyzeValues(program.value, new Map(), new Map(), [
+        { name: 'signal', arguments: [{ types: ['text'], rank: 1, shape: [null] },
+            { types: ['index'], elements: ['integer'] }] },
+        { name: 'eval_expr', arguments: [{ types: ['text'], rank: 1, shape: [null] },
+            { types: ['index'], elements: ['integer'] }] },
+    ]).functionResults;
+    expect(helperFacts.map(fact => fact.types)).toEqual([['integer'], ['integer']]);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+    const unknownHelper = services.Rank.parser.LangiumParser.parse<Program>(source.replace(
+        'Expression index eval_expr', 'Expression index Unproved'));
+    expect(analyzeValues(unknownHelper.value, new Map(), new Map(), examples).functionResults
+        .every(fact => !fact.types.length)).toBe(true);
+    const indexWriter = services.Rank.parser.LangiumParser.parse<Program>(source.replace(
+        'return Wires Token', 'Wires Token = "changed"\n      return Wires Token'));
+    expect(analyzeValues(indexWriter.value, new Map(), new Map(), examples).functionResults
+        .every(fact => !fact.types.length)).toBe(true);
+});
+
+it('joins an index before and after a potentially throwing write', () => {
+    const source = 'fun read\n index "a" = 1\n try\n  index "a" = "x"\n'
+        + '  Value = 1 / 0\n catch .DivisionByZero Error\n end\n return index "a"\nend\n';
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(program.parserErrors).toEqual([]);
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'read', arguments: [] }])
+        .functionResults[0].types).toEqual(['integer', 'text']);
 });
 
 it('retains a private text local through indirect index writes in a loop', () => {

@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, extname, resolve } from 'node:path';
 import { AstUtils, EmptyFileSystem } from 'langium';
 import {
   analyzeValues, createRankServices, flatArrayBorrowProofs, functionEffects,
@@ -20,6 +21,7 @@ paths.sort();
 const groups = new Map();
 const conflicts = [];
 const unknowns = [];
+const importedPrograms = new Map();
 for (const path of paths) {
   const parsed = parser.parse(readFileSync(path, 'utf8'));
   if (parsed.parserErrors.length) throw new Error(`${path}: ${parsed.parserErrors[0].message}`);
@@ -59,7 +61,16 @@ for (const path of paths) {
       !effects(example.name, example.arguments).unknown).length;
     if (examples.length) {
       try {
-        const results = analyzeValues(parsed.value, new Map(), new Map(), examples).functionResults;
+        const load = specifier => {
+          const modulePath = resolve(dirname(path), extname(specifier) ? specifier : `${specifier}.ra`);
+          if (!existsSync(modulePath)) return undefined;
+          if (!importedPrograms.has(modulePath)) {
+            const module = parser.parse(readFileSync(modulePath, 'utf8'));
+            importedPrograms.set(modulePath, module.parserErrors.length ? undefined : module.value);
+          }
+          return importedPrograms.get(modulePath);
+        };
+        const results = analyzeValues(parsed.value, new Map(), new Map(), examples, load).functionResults;
         counts.knownExampleResults += results.filter(result => result.types.length > 0).length;
         for (const [index, result] of results.entries()) {
           if (process.argv.includes('--unknown') && !result.types.length) unknowns.push({ path,

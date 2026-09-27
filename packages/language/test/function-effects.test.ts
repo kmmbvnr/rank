@@ -81,7 +81,7 @@ it('distinguishes reads, parameter writes and captured object writes', () => {
             globalWriteCaptures: new Set(['Shared']),
             readParameters: new Set(), readCaptures: new Set(), globalReadCaptures: new Set(),
             valueCaptures: new Set(), globalValueCaptures: new Set(), io: false,
-            returns: [{ kind: 'fresh' }] });
+            returns: [{ kind: 'fresh' }], result: { types: ['integer'], rank: 0, shape: [] } });
 });
 
 it('treats scalar min as callback-free only for proven numeric operands', () => {
@@ -89,6 +89,27 @@ it('treats scalar min as callback-free only for proven numeric operands', () => 
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     expect(analyze(source, 'helper', [], [integer, integer]).unknown).toBe(false);
     expect(analyze(source, 'helper', [], [{ types: [] }, integer]).unknown).toBe(true);
+});
+
+it('summarizes a caught scalar conversion and a read-only index helper', () => {
+    const source = 'fun helper Key Wires\n try\n  return Key integer\n catch .InvalidNumber Error\n'
+        + '  return Wires Key\n end\nend';
+    const key: ValueFacts = { types: ['text'], rank: 1, shape: [null] };
+    const wires: ValueFacts = { types: ['index'], elements: ['integer'] };
+    expect(analyze(source, 'helper', [], [key, wires])).toMatchObject({ unknown: false,
+        parameters: new Set(), readParameters: new Set([1]), captures: new Set(), io: false });
+    expect(analyze(source.replace('return Wires Key', 'Wires Key = 1\n  return Wires Key'),
+        'helper', [], [key, wires]).unknown).toBe(true);
+    expect(analyze(source.replace('return Wires Key', 'Unknown external\n  return Wires Key'),
+        'helper', [], [key, wires]).unknown).toBe(true);
+});
+
+it('proves the AoC circuit expression helper cannot change its index argument', () => {
+    const source = readFileSync(new URL('../../../demos/aoc/2015/007_circuit.ra', import.meta.url), 'utf8');
+    const text: ValueFacts = { types: ['text'], rank: 1, shape: [null] };
+    const wires: ValueFacts = { types: ['index'], elements: ['integer'] };
+    expect(analyze(source, 'eval_expr', [], [text, wires])).toMatchObject({ unknown: false,
+        parameters: new Set(), readParameters: new Set([1]), result: { types: ['integer'] } });
 });
 
 it('summarizes a counted numeric reader loop only with proven call inputs', () => {

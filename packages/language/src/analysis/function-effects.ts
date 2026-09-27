@@ -11,7 +11,7 @@ import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from
 import { findOperation } from '../operations.js';
 import { expressionFacts, hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
     hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof,
-    joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-facts.js';
+    joinValueFacts, UNKNOWN_VALUE, type FactLookup, type ValueFacts } from './value-facts.js';
 
 /** Possible effects, not a purity promise. Unknown includes unsupported syntax. */
 export interface FunctionEffects {
@@ -30,6 +30,8 @@ export interface FunctionEffects {
     readonly globalValueCaptures: ReadonlySet<string>;
     readonly io: boolean;
     readonly returns: readonly ReturnOrigin[];
+    /** Result facts proved from supported return paths and actual inputs. */
+    readonly result?: ValueFacts;
 }
 
 /** A return path's relation to inputs. Unknown includes possible escape. */
@@ -124,10 +126,6 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             ...[...assignments].filter(name => !capturedBindings.has(name)), ...localFunctions.keys()]);
         const facts = inputs && inputs.length === definition.parameters.length
             ? new Map(definition.parameters.map((name, index) => [name, inputs[index]] as const)) : undefined;
-        const fact = (value: Expression): ValueFacts => expressionFacts(value,
-            name => changedLocals.has(name) || reboundParameters.has(definition.parameters.indexOf(name))
-                ? UNKNOWN_VALUE : facts?.get(name) ?? (!assignments.has(name) && !locals.has(name)
-                    ? captureFact(name) : undefined) ?? (isFunction(name) ? { types: ['function'] } : undefined));
         const helperFor = (name: string): FunctionStatement | undefined => {
             const local = localFunctions.get(name);
             if (local) return local;
@@ -135,8 +133,20 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             const global = resolve(name);
             return global?.$container.$type === 'Program' ? global : undefined;
         };
+        const lookup = ((name: string) => changedLocals.has(name) || reboundParameters.has(definition.parameters.indexOf(name))
+            ? UNKNOWN_VALUE : facts?.get(name) ?? (!assignments.has(name) && !locals.has(name)
+                ? captureFact(name) : undefined) ?? (isFunction(name) ? { types: ['function'] } : undefined)) as FactLookup;
+        lookup.arity = name => helperFor(name)?.parameters.length;
+        lookup.invoke = (name, arguments_) => {
+            const helper = helperFor(name);
+            if (!helper) return UNKNOWN_VALUE;
+            const effects = analyze(helper, arguments_);
+            return effects.unknown ? UNKNOWN_VALUE : effects.result ?? UNKNOWN_VALUE;
+        };
+        const fact = (value: Expression): ValueFacts => expressionFacts(value, lookup);
         const eagerLocals = new Set<string>();
         const privateArrays = new Set<string>();
+        const returnFacts: ValueFacts[] = [];
         const scalarLiteral = (value: Expression): boolean => isNumberLiteral(value)
             || isBooleanLiteral(value) || isLabelLiteral(value)
             || isNameExpression(value) && !isBound(value.name)
@@ -239,6 +249,22 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                         }
                         walk(item.statements, new Map(loopAliases));
                         aliases = loopAliases;
+                    } else if (isTryStatement(item)) {
+                        const survivors: Map<string, ReturnOrigin>[] = [];
+                        const success = walk(item.statements, new Map(aliases));
+                        if (success) survivors.push(success);
+                        const caughtEntry = new Map(aliases);
+                        for (const node of AstUtils.streamAllContents(item)) {
+                            if (isAssignmentStatement(node)) caughtEntry.set(node.name, { kind: 'unknown' });
+                        }
+                        for (const clause of item.catches) {
+                            const caught = new Map(caughtEntry);
+                            caught.set(clause.errorName, { kind: 'unknown' });
+                            const path = walk(clause.statements, caught);
+                            if (path) survivors.push(path);
+                        }
+                        if (!survivors.length) return undefined;
+                        aliases = merge(survivors);
                     }
                 }
                 return aliases;
@@ -281,8 +307,12 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const propagate = (name: string, arguments_: readonly Expression[]): boolean => {
             const helper = helperFor(name);
             if (!helper) {
-                if (name === 'raise' && !isBound(name) && arguments_.length === 1
-                    && isLabelLiteral(arguments_[0])) return true;
+                if (name === 'raise' && !isBound(name) && (arguments_.length === 1 || arguments_.length === 2)
+                    && isLabelLiteral(arguments_[0]) && arguments_.slice(1).every(argument => {
+                        const value = fact(argument);
+                        return value.types.length > 0 && value.types.every(type =>
+                            ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type)) && expression(argument);
+                    })) return true;
                 const operation = !isBound(name) && findOperation(name);
                 if (!operation || !operation.arities.includes(arguments_.length)
                     || !arguments_.every(expression)) return false;
@@ -291,6 +321,13 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     return true;
                 }
                 if (!facts || operation.effects?.length) return false;
+                if (name === 'integer' && arguments_.length === 1) {
+                    const input = fact(arguments_[0]);
+                    return input.types.length > 0 && input.types.every(type => ['integer', 'real', 'text'].includes(type));
+                }
+                if (['split', 'parse'].includes(name) && arguments_.length === 2) {
+                    return arguments_.every(argument => fact(argument).types.join() === 'text');
+                }
                 if (['factors', 'divisors'].includes(name) && arguments_.length === 1) {
                     const source = fact(arguments_[0]);
                     return source.rank === 0 && source.types.join() === 'integer';
@@ -324,7 +361,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return false;
             }
             if (helper.parameters.length !== arguments_.length) return false;
-            const effects = analyze(helper);
+            const effects = analyze(helper, arguments_.map(fact));
             if (effects.unknown || !arguments_.every(expression)) return false;
             io ||= effects.io;
             // Direct nested captures can name this function's parameters.
@@ -411,7 +448,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 const parts = flattenApplication(value);
                 if (isNameExpression(parts[0]) && parts.length > 1 && parts.slice(1).every(part =>
                     isAllAxisExpression(part) || isNumberLiteral(part) && typeof part.value === 'bigint'
-                    || facts && fact(part).rank === 0 && fact(part).types.join() === 'integer')) {
+                    || facts && fact(part).rank === 0 && fact(part).types.join() === 'integer'
+                    || facts && fact(parts[0]).types.join() === 'index' && fact(part).types.join() === 'text')) {
                     return read(parts[0].name);
                 }
                 const target = parts.at(-1)!;
@@ -419,6 +457,11 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (isApplicationExpression(value.head) && value.arguments.length === 1
                     && !isBound(target.name) && findOperation(target.name)?.arities.join() === '1') {
                     return propagate(target.name, [value.head]);
+                }
+                const helper = helperFor(target.name);
+                if (helper && isApplicationExpression(value.head) && value.arguments.length === 1
+                    && helper.parameters.length === value.head.arguments.length + 1) {
+                    return propagate(target.name, [value.head.head, ...value.head.arguments]);
                 }
                 return propagate(target.name, parts.slice(0, -1));
             }
@@ -529,7 +572,36 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     && item.indices.every(index => !index.value || expression(index.value));
             }
             if (isExpressionStatement(item)) return expression(item.value);
-            if (isReturnStatement(item)) return !item.value || expression(item.value);
+            if (isReturnStatement(item)) {
+                if (item.value && !expression(item.value)) return false;
+                returnFacts.push(item.value ? fact(item.value) : UNKNOWN_VALUE);
+                return true;
+            }
+            if (isTryStatement(item) && facts && !item.finallyStatements.length) {
+                const before = new Map(facts);
+                if (!item.statements.every(statement)) return false;
+                const paths = [new Map(facts)];
+                const written = new Set([...AstUtils.streamAllContents(item)]
+                    .filter(node => isAssignmentStatement(node) || isArrayAssignmentStatement(node))
+                    .map(node => node.name));
+                for (const clause of item.catches) {
+                    if (locals.has(clause.errorName) || assignments.has(clause.errorName)) return false;
+                    facts.clear();
+                    for (const [name, value] of before) facts.set(name, written.has(name) ? UNKNOWN_VALUE : value);
+                    locals.add(clause.errorName);
+                    facts.set(clause.errorName, UNKNOWN_VALUE);
+                    const supported = clause.statements.every(statement);
+                    locals.delete(clause.errorName);
+                    facts.delete(clause.errorName);
+                    if (!supported) return false;
+                    paths.push(new Map(facts));
+                }
+                facts.clear();
+                for (const name of new Set(paths.flatMap(path => [...path.keys()]))) {
+                    facts.set(name, joinValueFacts(paths.map(path => path.get(name) ?? UNKNOWN_VALUE)));
+                }
+                return true;
+            }
             if (isForStatement(item) && facts && item.condition && isBinaryExpression(item.condition)
                 && item.condition.operator === 'in') {
                 let iterable = item.condition.right;
@@ -651,6 +723,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 ...(numericCaptureWrites.size ? { numericCaptureWrites } : {}),
                 readParameters, readCaptures, globalReadCaptures,
                 valueCaptures, globalValueCaptures, io,
+                ...(returnFacts.length && returnFacts.every(value => value.types.length)
+                    ? { result: joinValueFacts(returnFacts) } : {}),
                 get returns() { return origins ??= returnOrigins().map(item =>
                     item.kind === 'parameter' && (parameters.has(item.index) || reboundParameters.has(item.index))
                     || item.kind === 'capture' && (captures.has(item.name) || bindingCaptures.has(item.name))

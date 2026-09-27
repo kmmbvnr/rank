@@ -1052,8 +1052,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             }
         }
         if (isNameExpression(last) && lookup(last.name)?.types.includes('function') && lookup.invoke) {
-            return lookup.invoke(last.name, unaryTail ? [source]
-                : parts.slice(0, -1).map(part => expressionFacts(part, lookup)));
+            const pipedArguments = isApplicationExpression(expression.head) && expression.arguments.length === 1
+                && lookup.arity?.(last.name) === expression.head.arguments.length + 1
+                ? [expression.head.head, ...expression.head.arguments] : undefined;
+            return lookup.invoke(last.name, pipedArguments
+                ? pipedArguments.map(part => expressionFacts(part, lookup))
+                : unaryTail ? [source] : parts.slice(0, -1).map(part => expressionFacts(part, lookup)));
         }
         if (isNameExpression(last) && lookup(last.name) === undefined) {
             if (last.name === 'window' && parts.length === 3 && source.rank === 1 && source.shape?.[0] != null) {

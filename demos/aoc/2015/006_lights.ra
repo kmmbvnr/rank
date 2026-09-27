@@ -52,10 +52,8 @@ fun lights Lines
         New = true
         if Op equal "off"
           New = false
-        else
-          if Op equal "toggle"
-            New = not Old
-          end
+        elif Op equal "toggle"
+          New = not Old
         end
 
         if New not equal Old
@@ -88,16 +86,12 @@ fun brightness Lines
         if Op equal "on"
           Value += 1
           Total += 1
-        else
-          if Op equal "toggle"
-            Value += 2
-            Total += 2
-          else
-            if Value greater 0
-              Value -= 1
-              Total -= 1
-            end
-          end
+        elif Op equal "toggle"
+          Value += 2
+          Total += 2
+        elif Value greater 0
+          Value -= 1
+          Total -= 1
         end
 
         index X Y = Value
