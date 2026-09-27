@@ -17,7 +17,7 @@ argument Input path = "demos/dyalog/2010/data/buyrent.xml"
 Params = Input read getparams copy
 rem The initial rent at which buying and renting break even.
 Params 11 = nan
-(0 Params seek) print
+0 Params seek print
 
 
 rem The loan term is a whole number of months and the
@@ -58,7 +58,7 @@ fun seek Target Params
   end
   for
     Mid = (Low + High) / 2
-    if (Mid equal Low) or (Mid equal High)
+    if Mid equal Low or Mid equal High
       .DomainError "no value reaches the target" raise
     end
     MidGap = Mid Pos Params Target gap
