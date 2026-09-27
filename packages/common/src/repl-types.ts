@@ -7,7 +7,8 @@ export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' 
     resetExecution: () => void | Promise<void>;
     readonly names: string[];
     prepareFunctions: (cells: { id: number; source: string }[]) => FunctionPreparation | Promise<FunctionPreparation>;
-    preview: (text: string, columns?: number, summaryOnly?: boolean) => Execution | Promise<Execution>;
+    preview: (text: string, columns?: number, summaryOnly?: boolean,
+        syntheticNames?: ReadonlySet<string>) => Execution | Promise<Execution>;
     interrupt?: () => void;
     pause?: () => void;
     resume?: () => void;

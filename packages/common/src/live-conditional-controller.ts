@@ -34,7 +34,7 @@ export class LiveConditionalController {
         readonly enabled: boolean,
     ) {
         this.preview = new LivePreviewRunner(
-            source => this.session.preview(source, this.columns()),
+            (source, syntheticNames) => this.session.preview(source, this.columns(), false, syntheticNames),
             {
                 onProgress: status => {
                     this.evaluatingStatus = status;

@@ -9,6 +9,7 @@ const services = createRankServices(EmptyFileSystem).Rank;
 
 export function parse(
     source: string, sourceId = '<input>', grouping: GroupingOptions = {}, known?: ReadonlySet<string>,
+    syntheticNames?: ReadonlySet<string>,
 ): Program {
     const result = services.parser.LangiumParser.parse<Program>(source, { ...grouping, rule: 'Program' });
     const error = result.lexerErrors[0] ?? result.parserErrors[0];
@@ -58,7 +59,7 @@ export function parse(
         };
         throw error;
     }
-    const scopeError = blockScopeDiagnostics(result.value, known)[0];
+    const scopeError = blockScopeDiagnostics(result.value, known, syntheticNames)[0];
     if (scopeError) {
         const error = new RankError(scopeError.message, 'Syntax');
         const start = scopeError.node.$cstNode?.range.start;

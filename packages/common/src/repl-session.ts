@@ -199,7 +199,8 @@ export function createReplSession(host: ReplHost = {}) {
                 ok: !interrupted && !output.some(line => line.error), errorOffset,
             };
         },
-        preview(text: string, columns = 80, summaryOnly = false): Execution {
+        preview(text: string, columns = 80, summaryOnly = false,
+            syntheticNames?: ReadonlySet<string>): Execution {
             output = [];
             interrupted = false;
             errorOffset = undefined;
@@ -215,7 +216,7 @@ export function createReplSession(host: ReplHost = {}) {
             const fork = interpreter.forkForPreview(emit);
             let valueSummary: string | undefined;
             try {
-                const result = fork.execute(source);
+                const result = fork.execute(source, syntheticNames);
                 if (result !== undefined) {
                     if (summaryOnly) valueSummary = summarizeValue(result);
                     else display(result);

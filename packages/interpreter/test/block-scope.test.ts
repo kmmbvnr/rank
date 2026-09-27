@@ -95,4 +95,15 @@ end
             expect(() => runtime.execute('Temp')).toThrow('unknown name: Temp');
         } finally { runtime.dispose(); }
     });
+
+    it('uses explicit preview origin rather than a name prefix for block scope', () => {
+        const source = 'if true\n RankReplPreviewCustom = 42\nend\nRankReplPreviewCustom';
+        expect(() => run(source)).toThrow('RankReplPreviewCustom was assigned inside');
+        const runtime = new Interpreter();
+        try {
+            expect(runtime.execute(source, new Set(['RankReplPreviewCustom']))).toBe(42n);
+            expect(() => runtime.execute(source.replace(/Custom/g, 'Other')))
+                .toThrow('RankReplPreviewOther was assigned inside');
+        } finally { runtime.dispose(); }
+    });
 });

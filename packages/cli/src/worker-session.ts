@@ -102,11 +102,12 @@ export async function createWorkerSession() {
             void call<void>('replaceFile', file).catch(fail);
         },
         saveFile(lines: string[], target: string) { return call<{ ok: boolean; output: Execution['output'] }>('saveFile', lines, target); },
-        async preview(text: string, columns?: number, summaryOnly?: boolean): Promise<Execution> {
+        async preview(text: string, columns?: number, summaryOnly?: boolean,
+            syntheticNames?: ReadonlySet<string>): Promise<Execution> {
             Atomics.store(signal, 0, 0);
             active = true;
             try {
-                return await call<Execution>('preview', text, columns, summaryOnly);
+                return await call<Execution>('preview', text, columns, summaryOnly, syntheticNames);
             } finally {
                 active = false;
             }

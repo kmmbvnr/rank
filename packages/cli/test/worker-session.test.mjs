@@ -40,6 +40,15 @@ test('worker transports current value facts for non-executing diagnostics', asyn
     assert.equal(repl.notebook.current.status, 'idle');
 });
 
+test('worker passes explicit live preview names through to block scope', async t => {
+    const s = await session(t);
+    const source = 'if true\n  RankReplPreviewValue = 42\nend\nRankReplPreviewValue';
+    assert.equal((await s.preview(source)).ok, false);
+    const result = await s.preview(source, 80, false, new Set(['RankReplPreviewValue']));
+    assert.equal(result.ok, true, JSON.stringify(result.output));
+    assert.equal(result.output.at(-1)?.text, '42');
+});
+
 test('Ctrl-R through the worker replaces the selected declaration type', async t => {
     const s = await session(t);
     const repl = new NotebookRepl(s);

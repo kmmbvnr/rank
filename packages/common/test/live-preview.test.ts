@@ -8,8 +8,8 @@ it('discards an older iteration preview that finishes after the new selection', 
     let release!: () => void;
     const delayed = new Promise<void>(resolve => { release = resolve; });
     let first = true;
-    const runner = new LivePreviewRunner(async source => {
-        const result = await session.preview(source);
+    const runner = new LivePreviewRunner(async (source, syntheticNames) => {
+        const result = await session.preview(source, 80, false, syntheticNames);
         if (first) {
             first = false;
             await delayed;
@@ -37,7 +37,8 @@ it('discards an older iteration preview that finishes after the new selection', 
 
 it('previews a generator body past an earlier yield', async () => {
     const session = createReplSession();
-    const runner = new LivePreviewRunner(source => session.preview(source));
+    const runner = new LivePreviewRunner((source, syntheticNames) =>
+        session.preview(source, 80, false, syntheticNames));
     const source = 'fun src\n  Pos = array 1 1\n  for # in 1 to 5\n    Pos 0 += 1\n    yield Pos\n  end';
     const live = new LiveFunctionSession(
         { name: 'src', parameters: [], header: 'fun src', source, cellId: 1, existing: false }, []);
@@ -54,7 +55,8 @@ it('previews a generator body past an earlier yield', async () => {
 
 it('shows recursive call for lines invoking the function being defined', async () => {
     const session = createReplSession();
-    const runner = new LivePreviewRunner(source => session.preview(source));
+    const runner = new LivePreviewRunner((source, syntheticNames) =>
+        session.preview(source, 80, false, syntheticNames));
     const source = [
         'memo fib N',
         '  if N less 2',
@@ -150,4 +152,3 @@ it('handles manual preview cancellation via interrupt', async () => {
     expect(live.outputs.get(2)).toEqual([{ text: 'cancelled · ^R to evaluate', error: false }]);
     expect(live.slowLines.has(2)).toBe(true);
 });
-

@@ -46,7 +46,6 @@ import {
     isArgumentStatement,
     isApplicationExpression,
     isAssignmentStatement,
-    isPreviewName,
     isBinaryExpression,
     isBooleanLiteral,
     isBreakStatement,
@@ -530,15 +529,20 @@ export class Interpreter {
         }
     }
 
-    execute(source: string): RankValue | undefined {
+    execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
         enterRuntime();
-        try { return this.executeSource(source); } finally { leaveRuntime(); }
+        const previous = this.syntheticNames;
+        this.syntheticNames = syntheticNames;
+        try { return this.executeSource(source); }
+        finally { this.syntheticNames = previous; leaveRuntime(); }
     }
+
+    private syntheticNames: ReadonlySet<string> = new Set();
 
     private executeSource(source: string): RankValue | undefined {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
-        }, new Set(this.variables.keys()));
+        }, new Set(this.variables.keys()), this.syntheticNames);
         if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
         this.loadedProgram = {
             id: this.options.sourceId ?? '<input>',
@@ -830,7 +834,7 @@ export class Interpreter {
             prepared = this.prepareStatement(statement);
             if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
                 && !insideLoop(statement)) {
-                const names = blockNames(statement);
+                const names = blockNames(statement, this.syntheticNames);
                 const known = alwaysFresh(statement, names);
                 prepared = this.scopeBlock(prepared, [...names.filter(name => known.has(name)),
                     ...names.filter(name => !known.has(name))], known.size);
@@ -5001,7 +5005,7 @@ function insideLoop(statement: Statement): boolean {
 }
 
 /** Names a block may introduce: loop bindings, assignments, unpacking and caught errors. */
-function blockNames(statement: Statement): string[] {
+function blockNames(statement: Statement, syntheticNames: ReadonlySet<string>): string[] {
     const names = new Set<string>();
     const visit = (node: Statement): void => {
         if (isFunctionStatement(node)) return;
@@ -5023,7 +5027,7 @@ function blockNames(statement: Statement): string[] {
         }
     };
     visit(statement);
-    return [...names].filter(name => !isPreviewName(name));
+    return [...names].filter(name => !syntheticNames.has(name));
 }
 
 function forIteration(

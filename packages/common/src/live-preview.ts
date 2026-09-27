@@ -2,7 +2,7 @@ import { EMPTY_CELL, addLine, cellSource, closeCell, scanLine, tokenize, type Ce
 import type { Execution, OutputLine } from './repl-session.js';
 import type { LiveFunctionSession } from './live-function.js';
 
-type Preview = (source: string) => Execution | Promise<Execution>;
+type Preview = (source: string, syntheticNames: ReadonlySet<string>) => Execution | Promise<Execution>;
 
 interface PreviewState {
     readonly outputs: Map<number, OutputLine[]>;
@@ -27,6 +27,7 @@ const SKIPPED = '.replPreviewSkipped';
 const BRANCH_RUNS = '.replPreviewBranchRuns';
 const LOOP_RUNS = '.replPreviewLoopRuns';
 const ITERATION = 'RankReplPreviewIteration';
+const SYNTHETIC_NAMES: ReadonlySet<string> = new Set([REACHED, VALUE, ITERATION]);
 
 /** Builds and evaluates isolated prefixes while a block is being written. */
 export class LivePreviewRunner {
@@ -119,7 +120,7 @@ export class LivePreviewRunner {
             }
             let result: Execution;
             try {
-                result = await this.preview(item.source);
+                result = await this.preview(item.source, SYNTHETIC_NAMES);
             } finally {
                 if (timer) clearInterval(timer);
                 if (timeoutTimer) clearTimeout(timeoutTimer);

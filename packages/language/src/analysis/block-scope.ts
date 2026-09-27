@@ -17,11 +17,6 @@ import {
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 
-/** Names the live preview writes inside blocks and reads after them; they keep flat scope. */
-export function isPreviewName(name: string): boolean {
-    return name.startsWith('RankReplPreview');
-}
-
 export interface BlockScopeDiagnostic {
     readonly node: AstNode;
     readonly message: string;
@@ -52,7 +47,10 @@ function boundNames(statements: readonly Statement[]): Set<string> {
 }
 
 /** `known` names already exist when the program starts, as in a notebook session. */
-export function blockScopeDiagnostics(program: Program, known: ReadonlySet<string> = new Set()): BlockScopeDiagnostic[] {
+export function blockScopeDiagnostics(
+    program: Program, known: ReadonlySet<string> = new Set(),
+    syntheticNames: ReadonlySet<string> = new Set(),
+): BlockScopeDiagnostic[] {
     const diagnostics: BlockScopeDiagnostic[] = [];
 
     /** Visible names per open block, innermost last, and names whose block ended. */
@@ -66,7 +64,7 @@ export function blockScopeDiagnostics(program: Program, known: ReadonlySet<strin
             ended.delete(name);
         };
         const check = (name: string, node: AstNode) => {
-            if (isPreviewName(name) || visible(name)) return;
+            if (syntheticNames.has(name) || visible(name)) return;
             const line = ended.get(name);
             if (line !== undefined) {
                 diagnostics.push({ node, message: `${name} was assigned inside the block that ends at `
