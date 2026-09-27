@@ -64,7 +64,15 @@ it('recognizes implicit local collections without treating other names as values
 
 it('reads the declared type and element type of builtin values', () => {
     for (const name of ['fibonacci', 'primes']) {
-        expect(facts(name)).toEqual({ types: ['sequence'], elements: ['integer'], rank: 1, shape: [null] });
+        expect(facts(name)).toEqual({ types: ['sequence'], elements: ['integer'], rank: 1, shape: [null],
+            callbackFreeScalarCells: true });
+        expect(facts(`${name} from 5`)).toMatchObject({ types: ['sequence'], elements: ['integer'],
+            rank: 1, callbackFreeScalarCells: true });
+        expect(facts(`(${name} from 5) 0`)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+        const lowerBound = services.Rank.parser.LangiumParser.parse<Program>(`A = ${name} from 5\n`);
+        const statement = lowerBound.value.statements[0];
+        if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+        expect(typeOf(statement.value, () => undefined)).toEqual(['sequence']);
     }
     for (const name of ['infinity', 'nan']) {
         expect(facts(name)).toEqual({ types: ['real'], rank: 0, shape: [] });
@@ -77,6 +85,9 @@ it('reads the declared type and element type of builtin values', () => {
         expect(typeOf(statement.value, () => undefined)).toEqual([expected]);
     }
     expect(facts('primes', new Map([['primes', { types: ['text'] }]]))).toEqual({ types: ['text'] });
+    expect(facts('Unknown 0', new Map([['Unknown', {
+        types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],
+    }]]))).toEqual({ types: [] });
 });
 
 it('recognizes positional slices as arrays rather than integer ranges', () => {

@@ -396,6 +396,19 @@ it('infers the unchanged CSES book-shop dynamic program from its test inputs', (
         .toEqual(examples.map(() => ['integer']));
 });
 
+it('infers indexed values from the unchanged CSES next-prime sequence', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/010_nextprime.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/math/010_nextprime_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '010_nextprime', new Set(['next_prime']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('widens array element facts before analyzing repeated writes', () => {
     expect(messages('Count = 1\nA = array 1 2\nfor I in 0 to 1\n A 0 = "x"\nend\n'
         + 'A 0 + 1\nCount + "bad"'))

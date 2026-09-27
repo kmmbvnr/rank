@@ -98,6 +98,7 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 : builtin?.arities.length === 0 ? {
                     types: resultTypes(builtin),
                     ...(builtin.valueElements ? { elements: [builtin.valueElements] } : {}),
+                    ...(builtin.valueCallbackFree ? { callbackFreeScalarCells: true as const } : {}),
                     ...(builtin.result === 'sequence' ? { rank: 1, shape: [null] } : {}),
                     ...(builtin.result === 'real' ? { rank: 0, shape: [] } : {}),
                 } : UNKNOWN_VALUE);
@@ -281,6 +282,14 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         if (grouped) return expressionFacts(grouped, lookup);
         const parts = flattenApplication(expression);
         const last = parts.at(-1)!;
+        if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from') {
+            const source = expressionFacts(parts[0], lookup);
+            const limit = expressionFacts(parts[2], lookup);
+            if (source.types.join() === 'sequence' && limit.types.join() === 'integer') return {
+                types: ['sequence'], elements: source.elements, rank: 1, shape: [null],
+                ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}),
+            };
+        }
         const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
             && isNameExpression(last) && lookup(last.name) === undefined
             && findOperation(last.name)?.arities.join() === '1';
@@ -436,7 +445,8 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             }
         }
         // Only plain scalar and whole-axis addressing is proven here.
-        if (source.types.length === 1 && ['array', 'bytes'].includes(source.types[0]) && source.shape
+        if (source.types.length === 1 && ['array', 'bytes', 'sequence'].includes(source.types[0])
+            && (source.types[0] !== 'sequence' || source.callbackFreeScalarCells) && source.shape
             && parts.slice(1).every(part => isAllAxisExpression(part)
                 || expressionFacts(part, lookup).types.join() === 'integer')
             && parts.length - 1 <= source.shape.length) {

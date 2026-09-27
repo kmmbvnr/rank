@@ -248,6 +248,8 @@ function elementwise(left: Types, right: Types): Types | undefined {
 function applicationType(expression: ApplicationExpression, lookup: TypeLookup): Types {
     const parts = flattenApplication(expression);
     const last = parts.at(-1);
+    if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from'
+        && same(typeOf(parts[0], lookup), 'sequence') && same(typeOf(parts[2], lookup), 'integer')) return ['sequence'];
     // `new graph Nodes .undirected` is a constructor call, not an application
     // of its last operand.
     const head = parts[0];

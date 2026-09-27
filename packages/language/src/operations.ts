@@ -44,6 +44,8 @@ export interface Operation {
     readonly result: ResultKind;
     /** Scalar element type of a builtin collection value (zero operands). */
     readonly valueElements?: 'integer' | 'real';
+    /** Reading the builtin value's cells cannot call Rank code. */
+    readonly valueCallbackFree?: true;
     /** Omitted when the operation takes its whole argument at once (`all`). */
     readonly monadicRank?: IntrinsicRank;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
@@ -483,7 +485,7 @@ export const operations: readonly Operation[] = [
     { name: 'flat', module: 'sequences', arities: [1, 2], form: 'Values flat', result: 'array',
         summary: 'Copies records into fixed-width storage; Count State flat initializes a compact array.' },
     { name: 'fibonacci', module: 'sequences', arities: [], form: 'fibonacci', result: 'sequence',
-        lazy: true, valueElements: 'integer',
+        lazy: true, valueElements: 'integer', valueCallbackFree: true,
         summary: 'Unbounded lazy Fibonacci numbers; bound with to, until or from.' },
     { name: 'indices', module: 'sequences', arities: [1], form: 'Mask indices', result: 'array',
         summary: 'Zero-based positions of the true values in a boolean vector.' },
@@ -491,7 +493,7 @@ export const operations: readonly Operation[] = [
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
     { name: 'primes', module: 'sequences', arities: [], form: 'primes', result: 'sequence',
-        lazy: true, valueElements: 'integer',
+        lazy: true, valueElements: 'integer', valueCallbackFree: true,
         summary: 'Unbounded ascending primes, with planned membership and positional seeking.' },
     { name: 'reshape', module: 'sequences', arities: [2], form: 'Values Shape reshape',
         result: 'array',
