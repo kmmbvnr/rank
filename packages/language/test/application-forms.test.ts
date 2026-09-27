@@ -1,6 +1,6 @@
 import { EmptyFileSystem } from 'langium';
 import { expect, it } from 'vitest';
-import { axisReductionForm, sortDirectionForm } from '../src/application-forms.js';
+import { axisLengthForm, axisReductionForm, sortDirectionForm } from '../src/application-forms.js';
 import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { flattenApplication } from '../src/expressions.js';
 import { findOperation } from '../src/operations.js';
@@ -35,4 +35,14 @@ it('recognizes a directed sort through the operation catalogue and binding ident
     expect(sortDirectionForm(parts)?.operation).toBe(findOperation('sort'));
     expect(sortDirectionForm(parts, name => name !== 'sort')).toBeUndefined();
     expect(sortDirectionForm(parts.slice(0, -1))).toBeUndefined();
+});
+
+it('keeps the axis-length syntax separate from its runtime axis check', () => {
+    const parsed = parser.parse<Program>('Result = Values len axis 2\n');
+    expect(parsed.parserErrors).toEqual([]);
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const parts = flattenApplication(statement.value);
+    expect(axisLengthForm(parts)?.kind).toBe('axis-length');
+    expect(axisLengthForm(parts, name => name !== 'len')).toBeUndefined();
 });

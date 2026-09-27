@@ -98,6 +98,7 @@ import {
     type Statement,
     findOperation,
     axisReductionForm,
+    axisLengthForm,
     explicitLowerBoundApplication, explicitMaterializePipeline, explicitNamedOuterApplication,
     explicitNamedScanApplication, explicitNamedSegmentApplication, explicitCollectionMutation,
     explicitMultisetMethod, explicitFunctionalMethod, explicitDsuMethod, explicitGraphEdges,
@@ -6270,12 +6271,11 @@ function explicitAxisSelection(
 function explicitAxisLength(
     parts: Expression[],
 ): { source: Expression; axis: number } | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'len') || !isNamed(parts[2], 'axis')) {
-        return undefined;
-    }
+    const form = axisLengthForm(parts);
+    if (!form) return undefined;
     return {
-        source: parts[0],
-        axis: safeDimension(integerLiteral(parts[3], 'len axis'), 'len axis'),
+        source: form.source,
+        axis: safeDimension(integerLiteral(form.axis, 'len axis'), 'len axis'),
     };
 }
 

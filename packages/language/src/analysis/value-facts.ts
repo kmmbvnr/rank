@@ -10,7 +10,7 @@ import {
 import { binaryType, localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation, type Operation } from '../operations.js';
-import { axisReductionForm, sortDirectionForm } from '../application-forms.js';
+import { axisLengthForm, axisReductionForm, sortDirectionForm } from '../application-forms.js';
 
 /** Serializable facts only: inspecting these never evaluates user code. */
 export interface ValueFacts {
@@ -661,12 +661,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         if (parts.length === 2 && source.types.join() === 'record' && isLabelLiteral(last)) {
             return source.fields?.[last.name] ?? UNKNOWN_VALUE;
         }
-        if (parts.length === 4 && isNameExpression(parts[1]) && parts[1].name === 'len'
-            && isNameExpression(parts[2]) && parts[2].name === 'axis'
-            && lookup('len') === undefined && lookup('axis') === undefined
-            && isNumberLiteral(parts[3]) && typeof parts[3].value === 'bigint'
+        const axisLength = axisLengthForm(parts, name => lookup(name) === undefined);
+        if (axisLength && isNumberLiteral(axisLength.axis) && typeof axisLength.axis.value === 'bigint'
             && source.types.join() === 'array' && source.rank !== undefined) {
-            const axis = Number(parts[3].value);
+            const axis = Number(axisLength.axis.value);
             if (Number.isSafeInteger(axis) && axis >= 0 && axis < source.rank) {
                 const dimension = source.shape?.[axis];
                 return { types: ['integer'], rank: 0, shape: [],

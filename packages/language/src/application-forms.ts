@@ -18,6 +18,21 @@ export interface SortDirectionForm {
     readonly direction: Expression;
 }
 
+export interface AxisLengthForm {
+    readonly kind: 'axis-length';
+    readonly source: Expression;
+    readonly axis: Expression;
+}
+
+/** Identify `Value len axis N` before either consumer interprets N. */
+export function axisLengthForm(
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true,
+): AxisLengthForm | undefined {
+    if (parts.length !== 4 || !isNamed(parts[1], 'len') || !isNamed(parts[2], 'axis')
+        || !standard('len') || !standard('axis')) return undefined;
+    return { kind: 'axis-length', source: parts[0], axis: parts[3] };
+}
+
 /** Recognize a trailing sort direction, including invalid labels for runtime diagnostics. */
 export function sortDirectionForm(
     parts: readonly Expression[], standard: (name: string) => boolean = () => true,
