@@ -952,7 +952,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     for (const [name, value] of env) if (!value.types.includes('function')) env.set(name, invalidate(value));
                 }
             } else if (isExpressionStatement(statement)) {
-                invalidateCalls(statement.value, env);
+                const parts = isApplicationExpression(statement.value)
+                    ? flattenApplication(statement.value) : [];
+                const key = parts[2] && expressionFacts(parts[2], name => env.get(name));
+                const counterAdd = parts.length === 3 && isNameExpression(parts[0])
+                    && env.get(parts[0].name)?.types.join() === 'counter'
+                    && isNameExpression(parts[1]) && parts[1].name === 'add' && !env.has('add')
+                    && directValue(parts[2]) && key && isAtom(key) && key.types.length > 0
+                    && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
+                        'date', 'datetime'].includes(type));
+                if (!counterAdd) invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
                 if (directNoReturnCall(statement.value, env)) return false;
             } else if (isFunctionStatement(statement)) {

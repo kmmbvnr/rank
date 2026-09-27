@@ -229,7 +229,7 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     const numeric = [left, right].every(value =>
                         (value.eagerScalarCells || value.callbackFreeScalarCells)
                         && value.elements?.length && value.elements.every(type => type === 'integer' || type === 'real'));
-                    const integers = ['+', '-', '*'].includes(expression.operator)
+                    const integers = ['+', '-', '*', '//', '%'].includes(expression.operator)
                         && [left, right].every(value => value.elements?.join() === 'integer');
                     return { types: ['array'], rank: shape.length, shape,
                         ...(numeric ? { elements: (integers ? ['integer'] : ['integer', 'real']) as Types,
@@ -263,7 +263,7 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const inferred = typeOf(expression, name => lookup(name)?.types);
             const scalarNumbers = [left, right].every(value => value.rank === 0
                 && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
-            const integerArithmetic = scalarNumbers && ['+', '-', '*'].includes(expression.operator)
+            const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', '%'].includes(expression.operator)
                 && left.types.join() === 'integer' && right.types.join() === 'integer';
             const scalarTypes = integerArithmetic ? ['integer'] as Types
                 : inferred.length ? inferred : scalarNumbers ? ['integer', 'real'] as Types : inferred;
@@ -289,7 +289,7 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     || value.types.join() === 'array'
                         && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
                         && value.elements?.join() === 'integer';
-                const integerResult = ['+', '-', '*'].includes(expression.operator)
+                const integerResult = ['+', '-', '*', '//', '%'].includes(expression.operator)
                     && [left, right].every(integerCells);
                 return { types, rank: shape.length, shape,
                     ...(callbackFree ? { elements: (integerResult ? ['integer'] : ['integer', 'real']) as Types,
@@ -529,6 +529,10 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
         if (parts.length === 2 && source.types.join() === 'text'
             && expressionFacts(parts[1], lookup).types.join() === 'integer') {
             return { types: ['text'], rank: 1, shape: [1] };
+        }
+        if (parts.length === 2 && source.types.join() === 'counter'
+            && expressionFacts(parts[1], lookup).types.length > 0) {
+            return { types: ['integer'], rank: 0, shape: [] };
         }
         if (parts.length === 2 && ['array', 'queue', 'sequence'].includes(
             expressionFacts(parts[1], lookup).types.join())) {

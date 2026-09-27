@@ -130,6 +130,8 @@ it('keeps unrelated facts through scalar set additions but not lazy array keys',
         .toEqual([]);
     expect(messages('use algo\nCount = 1\nA = Unknown\nset add (A 0)\nCount + "bad"'))
         .toEqual([]);
+    expect(messages('use algo\nCount = 1\nCounts = new counter\nKey = "x"\nCounts add Key\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('keeps unrelated facts through direct queue pushes but not computed receivers', () => {
@@ -1091,6 +1093,17 @@ it('infers the unchanged removing-digits result through ranked digit conversion'
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
     const examples = functionTestExamples(testProgram.value, '005_removedigits', new Set(['removing_digits']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
+it('infers the unchanged creating-strings result through counter reads', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/012_creatingstrings2.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/math/012_creatingstrings2_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '012_creatingstrings2', new Set(['string_count']));
     expect(examples.length).toBeGreaterThan(0);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual(examples.map(() => ['integer']));

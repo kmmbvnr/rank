@@ -31,6 +31,12 @@ it('keeps integer cells through integer-only array arithmetic', () => {
         callbackFreeScalarCells: true });
     expect(facts('(array 1 2) + (array 3 4)')).toMatchObject({ types: ['array'], elements: ['integer'] });
     expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['integer', 'real'] });
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const bindings = new Map<string, ValueFacts>([['A', { types: ['array'], rank: 1,
+        shape: [null], elements: ['integer'], eagerScalarCells: true }], ['I', integer]]);
+    expect(facts('(A I) % 7', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(A I) // 7', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('A % 7', bindings)).toMatchObject({ types: ['array'], elements: ['integer'] });
 });
 
 it('keeps scalar rank through boolean comparisons and negation', () => {
@@ -63,6 +69,17 @@ it('tracks scalar conversions explicitly mapped over collection cells', () => {
         elements: ['integer'], rank: 1, shape: [2], callbackFreeScalarCells: true });
     expect(facts('Lazy integer rank 0', new Map([['Lazy', { types: ['sequence'],
         elements: ['real'], rank: 1, shape: [null] }]]))).toEqual({ types: [] });
+});
+
+it('reads a counter entry as an integer when the key is known', () => {
+    const counter: ValueFacts = { types: ['counter'] };
+    const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {
+        types: ['text'], rank: 1, shape: [1],
+    }]]);
+    expect(facts('Counts Letter', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Counts 7', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Counts Unknown', bindings)).toEqual({ types: [] });
+    expect(facts('Counts type', bindings)).not.toMatchObject({ types: ['integer'] });
 });
 
 it('proves eager cells for known atom array literals', () => {
