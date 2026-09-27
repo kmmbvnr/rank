@@ -91,7 +91,6 @@ import {
     isUseStatement,
     isYieldStatement,
     type AddressItem,
-    type ArrayExpression,
     type ArrayItem,
     type Expression,
     type FunctionStatement,
@@ -99,6 +98,9 @@ import {
     type Statement,
     findOperation,
     axisReductionForm,
+    explicitLowerBoundApplication, explicitMaterializePipeline, explicitNamedOuterApplication,
+    explicitNamedScanApplication, explicitNamedSegmentApplication, explicitCollectionMutation,
+    explicitMultisetMethod, explicitFunctionalMethod, explicitDsuMethod, explicitGraphEdges,
     sortDirectionForm,
     RUNTIME_TYPE_NAMES,
     acceptsBindingType,
@@ -6232,13 +6234,6 @@ interface InlineSlice {
     readonly inclusive: boolean;
 }
 
-function explicitLowerBoundApplication(
-    parts: Expression[],
-): { source: Expression; limit: Expression } | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'from')) return undefined;
-    return { source: parts[0], limit: parts[2] };
-}
-
 function inlineSlice(expression: Expression): InlineSlice | undefined {
     if (!isBinaryExpression(expression)
         || (expression.operator !== 'to' && expression.operator !== 'until')) return undefined;
@@ -6433,21 +6428,6 @@ function isNamed(expression: Expression, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
 }
 
-function explicitMaterializePipeline(parts: Expression[]): {
-    readonly source: readonly Expression[];
-    readonly selector: ArrayExpression;
-    readonly steps: readonly ArrayItem[];
-} | undefined {
-    const position = parts.findIndex((part, index) => index > 0
-        && isArrayExpression(part)
-        && part.dimensions.length === 0
-        && part.items.length > 0
-        && part.items.every(item => !item.sign));
-    if (position < 0 || position !== parts.length - 1) return undefined;
-    const selector = parts[position] as ArrayExpression;
-    return { source: parts.slice(0, position), selector, steps: selector.items };
-}
-
 function explicitRankApplication(
     parts: Expression[],
 ): { parts: Expression[]; rank: bigint; rightRank?: bigint; axes?: readonly number[] } | undefined {
@@ -6484,21 +6464,6 @@ function explicitRankApplication(
         rank: rank.value,
         axes: beforeRank.slice(axisPosition + 1).map(axis =>
             safeDimension(integerLiteral(axis, 'axis rank'), 'axis rank')),
-    };
-}
-
-interface NamedOuterApplication {
-    readonly left: Expression;
-    readonly right: Expression;
-    readonly operation: Expression;
-}
-
-function explicitNamedOuterApplication(parts: Expression[]): NamedOuterApplication | undefined {
-    if (parts.length !== 4 || !isNamed(parts[3], 'outer')) return undefined;
-    return {
-        left: parts[0],
-        right: parts[1],
-        operation: parts[2],
     };
 }
 
@@ -6574,36 +6539,6 @@ function explicitSymbolicSegmentApplication(
     return { operator: expression.operator, source: expression.left };
 }
 
-interface NamedSegmentApplication {
-    readonly identity?: Expression;
-    readonly source: Expression;
-    readonly operation: Expression;
-}
-
-interface NamedScanApplication {
-    readonly seed?: Expression;
-    readonly source: Expression;
-    readonly operation: Expression;
-}
-
-function explicitNamedScanApplication(parts: Expression[]): NamedScanApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'scan') && isNamed(parts[3], 'with')) {
-        return { source: parts[0], seed: parts[4], operation: parts[1] };
-    }
-    if (parts.length === 3 && isNamed(parts[2], 'scan')) {
-        return { source: parts[0], operation: parts[1] };
-    }
-    return undefined;
-}
-
-function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'segment') && isNamed(parts[3], 'with')) {
-        return { source: parts[0], identity: parts[4], operation: parts[1] };
-    }
-    if (parts.length !== 3 || !isNamed(parts[2], 'segment')) return undefined;
-    return { source: parts[0], operation: parts[1] };
-}
-
 function explicitScanApplication(expression: Expression): ScanApplication | undefined {
     if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) {
         return undefined;
@@ -6650,128 +6585,6 @@ interface AxisWindowApplication {
     readonly axes?: readonly number[];
     readonly stride?: Expression;
     readonly padding?: Expression;
-}
-
-interface MultisetMethodApplication {
-    readonly receiver: Expression[];
-    readonly operation: 'floor' | 'ceiling' | 'lowerbound' | 'upperbound';
-    readonly argument: Expression[];
-}
-
-interface CollectionMutationApplication {
-    readonly receiver: Expression;
-    readonly operation: 'add' | 'remove';
-    readonly value: Expression;
-    readonly arguments?: readonly Expression[];
-}
-
-function explicitCollectionMutation(
-    expression: Expression,
-): CollectionMutationApplication | undefined {
-    if (isBinaryExpression(expression)) {
-        const mutation = explicitCollectionMutation(expression.left);
-        if (!mutation) return undefined;
-        return {
-            ...mutation,
-            value: { ...expression, left: mutation.value } as Expression,
-            arguments: undefined,
-        };
-    }
-    if (!isApplicationExpression(expression)) return undefined;
-    const parts = flattenApplication(expression);
-    if (explicitNamedScanApplication(parts) || explicitNamedSegmentApplication(parts)) return undefined;
-    const receiver = parts[0];
-    const operation = parts[1];
-    if (!isNameExpression(receiver)
-        || !/^[A-Z]/.test(receiver.name)
-        || parts.length < 3) return undefined;
-    if (!isNameExpression(operation)
-        || (operation.name !== 'add' && operation.name !== 'remove')) return undefined;
-    const values = parts.slice(2);
-    const value = values.length === 1 ? values[0] : {
-        $type: 'ApplicationExpression',
-        head: values[0],
-        arguments: values.slice(1),
-    } as Expression;
-    return {
-        receiver,
-        operation: operation.name,
-        value,
-        arguments: values,
-    };
-}
-
-function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication | undefined {
-    const operations = ['floor', 'ceiling', 'lowerbound', 'upperbound'] as const;
-    const position = parts.findIndex((part, index) =>
-        index > 0 && index < parts.length - 1
-        && operations.some(operation => isNamed(part, operation)));
-    if (position < 0) return undefined;
-    const operation = operations.find(candidate => isNamed(parts[position], candidate))!;
-    return {
-        receiver: parts.slice(0, position),
-        operation,
-        argument: parts.slice(position + 1),
-    };
-}
-
-interface GraphEdgesApplication {
-    readonly receiver: Expression;
-    readonly operation: Expression;
-    readonly argument: Expression;
-}
-
-interface DsuMethodApplication {
-    readonly receiver: Expression;
-    readonly operation: 'find' | 'merge' | 'connected';
-    readonly operationExpression: Expression;
-    readonly arguments: readonly Expression[];
-}
-
-interface FunctionalMethodApplication {
-    readonly receiver: Expression;
-    readonly operation: 'jump' | 'distance';
-    readonly operationExpression: Expression;
-    readonly arguments: readonly Expression[];
-}
-
-function explicitFunctionalMethod(
-    parts: Expression[],
-): FunctionalMethodApplication | undefined {
-    if (parts.length !== 4 || !isNameExpression(parts[1])) return undefined;
-    const operation = parts[1].name;
-    if (operation !== 'jump' && operation !== 'distance') return undefined;
-    return {
-        receiver: parts[0], operation, operationExpression: parts[1],
-        arguments: parts.slice(2),
-    };
-}
-
-function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | undefined {
-    if (parts.length !== 3 && parts.length !== 4) return undefined;
-    const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
-    if (operation === 'find' && parts.length === 3) {
-        return {
-            receiver: parts[0], operation, operationExpression: parts[1],
-            arguments: parts.slice(2),
-        };
-    }
-    if ((operation === 'merge' || operation === 'connected') && parts.length === 4) {
-        return {
-            receiver: parts[0], operation, operationExpression: parts[1],
-            arguments: parts.slice(2),
-        };
-    }
-    return undefined;
-}
-
-function explicitGraphEdges(parts: Expression[]): GraphEdgesApplication | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'edges')) return undefined;
-    return {
-        receiver: parts[0],
-        operation: parts[1],
-        argument: parts[2],
-    };
 }
 
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
