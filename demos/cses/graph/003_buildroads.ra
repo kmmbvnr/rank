@@ -13,10 +13,7 @@ Components = Cities Roads components
 
 RoadsNeeded = Components len - 1
 RoadsNeeded print
-for i in 1 until (Components len)
-  A = Components (i - 1)
-  B = Components i
-  Pair = array A B
+for Pair in Components 2 window
   Pair print
 end
 
