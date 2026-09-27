@@ -1109,6 +1109,22 @@ it('infers the unchanged creating-strings result through counter reads', () => {
         .toEqual(examples.map(() => ['integer']));
 });
 
+it('infers unchanged probability demos through numeric text formatting', () => {
+    for (const [module, name] of [
+        ['028_diceprobability', 'probability_text'], ['029_movingrobots', 'empty_text'],
+        ['030_candylottery', 'candy_text'], ['031_inversionprob', 'inversion_text'],
+    ]) {
+        const source = readFileSync(new URL(`../../../demos/cses/math/${module}.ra`, import.meta.url), 'utf8');
+        const tests = readFileSync(new URL(`../../../demos/cses/math/${module}_test.ra`, import.meta.url), 'utf8');
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+        const examples = functionTestExamples(testProgram.value, module, new Set([name]));
+        expect(examples.length).toBeGreaterThan(0);
+        expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+            .toEqual(examples.map(() => ['text']));
+    }
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;

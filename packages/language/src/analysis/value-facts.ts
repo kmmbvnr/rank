@@ -324,6 +324,21 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     }
     if (isApplicationExpression(expression)) {
         const ranked = flattenApplication(expression);
+        if (ranked.length === 3 && isNameExpression(ranked[1]) && ranked[1].name === 'text'
+            && lookup('text') === undefined && isStringLiteral(ranked[2])) {
+            const source = expressionFacts(ranked[0], lookup);
+            const numeric = (types: Types | undefined) => !!types?.length
+                && types.every(type => type === 'integer' || type === 'real');
+            if (source.rank === 0 && numeric(source.types)) {
+                return { types: ['text'], rank: 1, shape: [null] };
+            }
+            if (['array', 'sequence'].includes(source.types.join()) && numeric(source.elements)
+                && (source.eagerScalarCells || source.callbackFreeScalarCells)) {
+                return { types: source.types, elements: ['text'], rank: source.rank,
+                    shape: source.shape, ...(source.types.join() === 'array'
+                        ? { eagerScalarCells: true as const } : { callbackFreeScalarCells: true as const }) };
+            }
+        }
         const rank = ranked.at(-2);
         const operationName = ranked.at(-3);
         const rankValue = ranked.at(-1);

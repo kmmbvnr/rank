@@ -71,6 +71,15 @@ it('tracks scalar conversions explicitly mapped over collection cells', () => {
         elements: ['real'], rank: 1, shape: [null] }]]))).toEqual({ types: [] });
 });
 
+it('tracks fixed-decimal text formatting for proven numeric values', () => {
+    const scalar: ValueFacts = { types: ['real'], rank: 0, shape: [] };
+    expect(facts('N text ".6f"', new Map([['N', scalar]]))).toEqual({ types: ['text'],
+        rank: 1, shape: [null] });
+    expect(facts('(array 1 2) text ".2f"')).toMatchObject({ types: ['array'],
+        rank: 1, shape: [2], elements: ['text'], eagerScalarCells: true });
+    expect(facts('Unknown text ".6f"')).toEqual({ types: [] });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {
