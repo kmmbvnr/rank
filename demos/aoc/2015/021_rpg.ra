@@ -64,7 +64,8 @@ fun solve Boss
       Base = Weapon + Armor
 
       for Pair in Rings 2 combinations
-        Stats = Base + Pair 0 + Pair 1
+        unpack Ring1 Ring2 = Pair
+        Stats = Base + Ring1 + Ring2
         Cost = Stats 0
 
         if Stats Boss wins
@@ -82,11 +83,8 @@ end
 
 rem Compare the number of turns each fighter needs to defeat the other.
 fun wins Stats Boss
-  Damage = Stats 1
-  Defense = Stats 2
-  BossHP = Boss 0
-  BossDamage = Boss 1
-  BossArmor = Boss 2
+  unpack Cost Damage Defense = Stats
+  unpack BossHP BossDamage BossArmor = Boss
 
   PlayerHit = 1 (Damage - BossArmor) max
   BossHit = 1 (BossDamage - Defense) max
