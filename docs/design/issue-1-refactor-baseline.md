@@ -99,3 +99,21 @@ compare correctness, inference coverage, copy counts, execution time and edit
 latency separately. File count alone is not an acceptance metric. A pilot for
 #24 or #26 should need one form recognizer, one runtime case and one analysis
 case, with the new form visible to the compiler's exhaustive checks.
+
+## Integration result, 2026-09-28
+
+The final `npm test` passed: language 461, interpreter 1,644, common 68, CLI 478
+and compile 10 tests. `node packages/cli/bin/cli.js test demos` passed all 392
+test files. Three pre-existing AoC demos used queue materialization or unpacked
+a rank-2 combination; their source was corrected and their seven cases passed
+before the full demo rerun. The earlier CLI nested-loop preview failure exposed
+a missing synthetic-name origin for generated iteration flags and was fixed;
+the clean full-suite run includes that case.
+
+The final analysis corpus has 1,051 known results out of 1,087 example calls
+and zero expectation conflicts. Isolated incomplete-source analysis times were
+0.11 ms median / 0.22 ms p95 for the short source and 5.16 ms median /
+6.47 ms p95 for the large source. The three 256-cell CoW demo medians were
+15.19 ms (gradient), 6.73 ms (k-means) and 3.21 ms (Adam), with copy counts
+0, 1 and 0 and copied-cell counts 0, 256 and 0. These are local samples, not
+speed claims; CoW counters do not measure all allocations.
