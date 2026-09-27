@@ -64,7 +64,8 @@ fun solve Boss
       Base = Weapon + Armor
 
       for Pair in Rings 2 combinations
-        unpack Ring1 Ring2 = Pair
+        Ring1 = Pair 0
+        Ring2 = Pair 1
         Stats = Base + Ring1 + Ring2
         Cost = Stats 0
 

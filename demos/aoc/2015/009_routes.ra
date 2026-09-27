@@ -31,7 +31,7 @@ fun solve Lines
     queue push Route index distance
   end
 
-  Distances = queue array
+  Distances = queue
   Shortest = Distances min
   Longest = Distances max
   return array Shortest Longest

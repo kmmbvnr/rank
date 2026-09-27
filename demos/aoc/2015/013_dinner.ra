@@ -56,7 +56,7 @@ fun best Guests Scores
     queue push Route Scores happiness
   end
 
-  Happiness = queue array
+  Happiness = queue
   return Happiness max
 end
 
