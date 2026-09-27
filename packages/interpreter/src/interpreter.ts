@@ -24,7 +24,8 @@ import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpress
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
-import { isKnownFileFree, ResourceMap } from './resource-summary.js';
+import { ResourceMap } from './resource-summary.js';
+import { ResourceOwnership } from './resource-ownership.js';
 import { reduceWindowCell } from './sequence.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
@@ -116,7 +117,6 @@ import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { broadcastShape, mapBroadcastArrays } from './tensor.js';
-import { closeFile } from './modules/io.js';
 import { matmulValues } from './modules/linalg.js';
 import { sumIndexed } from './modules/numbers.js';
 import { formattedText } from './modules/text.js';
@@ -170,7 +170,6 @@ import {
     isRankFunctionalGraph,
     isRankErrorValue,
     isRankFenwick,
-    isRankFile,
     isRankGroupedTable,
     isRankGraph,
     isRankIndex,
@@ -432,8 +431,7 @@ export class Interpreter {
     private localFrame: LocalFrame | undefined;
     private readonly variableTypes = new Map<string, ReadonlySet<string>>();
     private readonly variableArrayRanks = new Map<string, number>();
-    private readonly resourceScopes: Set<RankFile>[] = [];
-    private readonly generatorResourceScopes = new Set<Set<RankFile>>();
+    private readonly resources = new ResourceOwnership();
     private debugStatement?: Statement;
     private readonly debugCalls: { name: string; frame: LocalFrame }[] = [];
     private inspectionState(): Pick<import('./interrupt.js').PauseSnapshot, 'state' | 'bindings'> {
@@ -538,10 +536,10 @@ export class Interpreter {
             program,
         };
         if (this.options.persistentResources) {
-            if (this.resourceScopes.length === 0) this.resourceScopes.push(new Set());
+            this.resources.ensureScope();
             return this.executeProgram(program, this.options.args ?? []);
         }
-        return this.withResourceScope(
+        return this.resources.withResourceScope(
             () => this.executeProgram(program, this.options.args ?? []),
             false,
         );
@@ -606,77 +604,7 @@ export class Interpreter {
 
     dispose(): void {
         for (const child of this.aliases.values()) child.dispose();
-        for (const scope of this.generatorResourceScopes) {
-            this.closeResources(scope, new Set());
-        }
-        this.generatorResourceScopes.clear();
-        while (this.resourceScopes.length > 0) {
-            this.closeResources(this.resourceScopes.pop()!, new Set());
-        }
-    }
-
-    private withResourceScope<T extends RankValue | undefined>(
-        operation: () => T,
-        transferResult = true,
-    ): T {
-        const scope = new Set<RankFile>();
-        this.resourceScopes.push(scope);
-        let result: T | undefined;
-        let pending: unknown;
-        try {
-            result = operation();
-        } catch (error) {
-            pending = normalizeStackError(error);
-        }
-
-        return this.finishResourceScope(scope, result, pending, transferResult) as T;
-    }
-
-    private finishResourceScope(
-        scope: Set<RankFile>,
-        result: RankValue | undefined,
-        pending: unknown,
-        transferResult = true,
-    ): RankValue | undefined {
-        // Resource-free containers need no deep escape scan, just like scalars.
-        // Keep the scope itself: nested calls must still transfer files here.
-        if (scope.size === 0 && isKnownFileFree(result)) {
-            this.resourceScopes.pop();
-            if (pending !== undefined) throw pending;
-            return result;
-        }
-
-        let escaped = new Set<RankFile>();
-        if (pending === undefined && transferResult) {
-            try {
-                escaped = containedFiles(result);
-            } catch (error) {
-                pending = normalizeStackError(error);
-            }
-        }
-        this.resourceScopes.pop();
-
-        let closeError: unknown;
-        try {
-            this.closeResources(scope, escaped);
-        } catch (error) {
-            closeError = error;
-        }
-        if (transferResult) {
-            for (const file of escaped) this.ownFile(file);
-        }
-        if (pending !== undefined) throw pending;
-        if (closeError !== undefined) throw closeError;
-        return result;
-    }
-
-    private ownFile(file: RankFile): void {
-        let scope = this.resourceScopes.at(-1);
-        if (!scope) {
-            scope = new Set();
-            this.resourceScopes.push(scope);
-        }
-        scope.add(file);
+        this.resources.dispose();
     }
 
     private withLexicalFrame<T>(
@@ -697,30 +625,12 @@ export class Interpreter {
         resources: Set<RankFile>,
         operation: () => T,
     ): T {
-        this.resourceScopes.push(resources);
+        this.resources.pushScope(resources);
         try {
             return this.withLexicalFrame(frame, operation);
         } finally {
-            this.resourceScopes.pop();
+            this.resources.popScope();
         }
-    }
-
-    private ownFiles(value: RankValue | undefined): void {
-        if (isKnownFileFree(value)) return;
-        for (const file of containedFiles(value)) this.ownFile(file);
-    }
-
-    private closeResources(resources: Set<RankFile>, preserved: Set<RankFile>): void {
-        let firstError: unknown;
-        for (const file of [...resources].reverse()) {
-            if (preserved.has(file)) continue;
-            try {
-                closeFile(file);
-            } catch (error) {
-                firstError ??= error;
-            }
-        }
-        if (firstError !== undefined) throw firstError;
     }
 
     executeProgram(
@@ -2375,7 +2285,7 @@ export class Interpreter {
                 const keys: RankValue[][] = [];
                 for (const item of items) {
                     const value = yield* resume(interpreter.invoke(key, [item]));
-                    interpreter.ownFiles(value);
+                    interpreter.resources.ownFiles(value);
                     keys.push([value]);
                 }
                 return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortFieldDescending(expression.direction)]));
@@ -2458,12 +2368,12 @@ export class Interpreter {
             return () => {
                 const value = interpreter.resolve(expression.name);
                 if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(value);
-                if (tail && interpreter.resourceScopes.at(-1)?.size === 0) {
+                if (tail && interpreter.resources.currentScopeEmpty()) {
                     const definition = functionDefinitions.get(value);
                     if (definition?.interpreter === interpreter) throw new TailCallSignal(definition, []);
                 }
                 return mapResult(interpreter.invoke(value, []), result => {
-                    interpreter.ownFiles(result);
+                    interpreter.resources.ownFiles(result);
                     return result;
                 });
             };
@@ -3158,7 +3068,7 @@ export class Interpreter {
                     if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
                         const result = this.applyIntrinsicRank(fn, arguments_);
                         if ('done' in result) {
-                            this.ownFiles(result.value);
+                            this.resources.ownFiles(result.value);
                             return result;
                         }
                         return this.finishApplication(result);
@@ -3394,7 +3304,7 @@ export class Interpreter {
         }
         const frame = this.functionFrame(statement, arguments_, context);
         this.callDepth += 1;
-        return this.withResourceScope(() => {
+        return this.resources.withResourceScope(() => {
             try {
                 return this.withLexicalFrame(frame, direct);
             } catch (error) {
@@ -3418,7 +3328,7 @@ export class Interpreter {
         const callerStatement = this.debugStatement;
         const caller = this.localFrame;
         const scope = new Set<RankFile>();
-        this.resourceScopes.push(scope);
+        this.resources.pushScope(scope);
         this.localFrame = frame;
         this.callDepth += 1;
         if (inspectionEnabled()) this.debugCalls.push({ name: statement.name, frame });
@@ -3480,7 +3390,7 @@ export class Interpreter {
                 inspectExecution(() => this.inspectionState());
             }
             if (pending instanceof RankError && !compiledTail) pending.addCall(statement.name, statement.parameters, arguments_);
-            this.finishResourceScope(scope, result, pending);
+            this.resources.finishResourceScope(scope, result, pending);
         }
         return result!;
     }
@@ -3517,7 +3427,7 @@ export class Interpreter {
                 consumed = true;
 
                 const resources = new Set<RankFile>();
-                interpreter.generatorResourceScopes.add(resources);
+                interpreter.resources.addGeneratorScope(resources);
                 const execution = new ExecutionStack((function* (): Execution<RankValue | undefined> {
                     return yield* resume(interpreter.executeStatementStream(
                         statement.statements, false, false, false, true,
@@ -3561,8 +3471,8 @@ export class Interpreter {
                             },
                         );
                     } finally {
-                        interpreter.generatorResourceScopes.delete(resources);
-                        interpreter.closeResources(resources, new Set());
+                        interpreter.resources.deleteGeneratorScope(resources);
+                        interpreter.resources.closeResources(resources, new Set());
                     }
                 }
             },
@@ -3721,7 +3631,7 @@ export class Interpreter {
         this.pendingArgs = undefined;
         const previous = this.currentRunTarget;
         try {
-            return this.withResourceScope(() => this.executeProgram(target.program, args));
+            return this.resources.withResourceScope(() => this.executeProgram(target.program, args));
         } finally {
             this.currentRunTarget = previous;
         }
@@ -3732,8 +3642,8 @@ export class Interpreter {
         if (!child?.loadedProgram) {
             throw new RankError(`unknown module alias: ${alias}`);
         }
-        const result = child.withResourceScope(() => child.executeProgram(child.loadedProgram!.program));
-        this.ownFiles(result);
+        const result = child.resources.withResourceScope(() => child.executeProgram(child.loadedProgram!.program));
+        this.resources.ownFiles(result);
         return result;
     }
 
@@ -3801,7 +3711,7 @@ export class Interpreter {
         test.modules.add('testing');
         const program = { $type: 'Program' as const, statements } as Program;
         try {
-            test.withResourceScope(() => test.executeProgram(program, [], true), false);
+            test.resources.withResourceScope(() => test.executeProgram(program, [], true), false);
             this.testResults.push({ name, passed: true, output });
         } catch (error) {
             if (error instanceof InterruptedError) throw error;
@@ -3894,7 +3804,7 @@ export class Interpreter {
     private directNameValue(value: RankValue): RankValue {
         if (!isNativeFunction(value) || !value.arities.includes(0)) return value;
         const result = value.call([]);
-        this.ownFiles(result);
+        this.resources.ownFiles(result);
         return result;
     }
 
@@ -3940,7 +3850,7 @@ export class Interpreter {
                     md5: this.options.md5,
                     random: this.random,
                     seedRandom: seed => this.random[SEED_RANDOM](seed),
-                    ownFile: file => this.ownFile(file),
+                    ownFile: file => this.resources.ownFile(file),
                 });
                 if (isNativeFunction(value)) this.standardFunctions.set(fn, value);
                 if (isRankSequence(value)) this.standardSequences.set(fn, value);
@@ -4132,13 +4042,13 @@ export class Interpreter {
                 pending,
                 parts => this.applySelectors(parts),
             );
-            if (tail && index === values.length - 1 && this.resourceScopes.at(-1)?.size === 0) {
+            if (tail && index === values.length - 1 && this.resources.currentScopeEmpty()) {
                 const definition = functionDefinitions.get(value);
                 if (definition?.interpreter === this) throw new TailCallSignal(definition, arguments_);
             }
             const task = this.applyIntrinsicRank(value, arguments_);
             if (!('done' in task)) return this.continueApplication(values, missing, index + 1, task, tail);
-            this.ownFiles(task.value);
+            this.resources.ownFiles(task.value);
             pending = [task.value];
         }
         return completed(pending.length === 1 ? pending[0] : this.applySelectors(pending));
@@ -4146,7 +4056,7 @@ export class Interpreter {
 
     private *finishApplication(task: Execution<RankValue>): Execution<RankValue> {
         const result = yield* resume(task);
-        this.ownFiles(result);
+        this.resources.ownFiles(result);
         return result;
     }
 
@@ -4158,7 +4068,7 @@ export class Interpreter {
         tail: boolean,
     ): Execution<RankValue> {
         const result = yield* resume(task);
-        this.ownFiles(result);
+        this.resources.ownFiles(result);
         return yield* resume(this.apply(values, missing, start, [result], tail));
     }
 
@@ -4318,7 +4228,7 @@ export class Interpreter {
                     `rank operation ${fn.name} must return a scalar`,
                 );
             }
-            this.ownFiles(result);
+            this.resources.ownFiles(result);
             return result;
         };
         if (a.frameShape.length === 0) {
@@ -4387,7 +4297,7 @@ export class Interpreter {
                     `rank results must have one shape: ${resultCellShape.join(' ')} and ${shape.join(' ')}`,
                 );
             }
-            this.ownFiles(result);
+            this.resources.ownFiles(result);
             if (cacheable) results.set(frameIndex, result);
             return result;
         };
@@ -4500,7 +4410,7 @@ export class Interpreter {
             if (valueRank(result) !== 0) {
                 throw new RankError(`outer operation ${operation.name} must return a scalar`);
             }
-            this.ownFiles(result);
+            this.resources.ownFiles(result);
             return result;
         });
     }
@@ -7219,51 +7129,6 @@ const RUNTIME_TYPE_NAMES = new Set([
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
     return new Set([...values].map(typeName));
-}
-
-function containedFiles(value: RankValue | undefined): Set<RankFile> {
-    const files = new Set<RankFile>();
-    if (isKnownFileFree(value)) return files;
-    const seen = new Set<object>();
-    const pending: Iterator<RankValue | undefined>[] = [[value].values()];
-    const captures = function* (scopes: readonly ReadonlyMap<string, RankValue>[]): IterableIterator<RankValue> {
-        for (const scope of scopes) yield* scope.values();
-    };
-    while (pending.length > 0) {
-        const next = pending[pending.length - 1].next();
-        if (next.done) {
-            pending.pop();
-            continue;
-        }
-        const item = next.value;
-        if (isKnownFileFree(item) || item === undefined || typeof item !== 'object' || seen.has(item)) continue;
-        seen.add(item);
-        if (isRankFile(item)) {
-            files.add(item);
-        } else if (isRankArray(item) && item.containsFiles === false) {
-            continue;
-        } else if (item instanceof RankDeque || item instanceof RankHeap) {
-            pending.push(item.values());
-        } else if (isRankSegment(item)) {
-            pending.push(item.values());
-        } else if (isRankArray(item) || isRankQueue(item)) {
-            pending.push(item.items.values());
-        } else if (isRankIndex(item) || isRankSet(item)
-            || isRankObject(item) || isRankRecord(item)) {
-            pending.push(item.entries.values());
-        } else if (isRankGroupedTable(item)) {
-            pending.push(item.groups.flatMap(group => group.rows).values());
-        } else if (isRankCounter(item)) {
-            pending.push(Array.from(item.entries.values(), entry => entry.value).values());
-        } else if (isRankErrorValue(item)) {
-            pending.push([item.value, item.cause].values());
-        } else if (isNativeFunction(item)) {
-            if (item.captures) pending.push(captures(item.captures));
-        } else if (isRankSequence(item)) {
-            if (item.plan.captures) pending.push(captures(item.plan.captures));
-        }
-    }
-    return files;
 }
 
 function sortDescending(direction: RankValue): boolean {
