@@ -366,7 +366,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const rebound = new Set(contents.flatMap(writtenBindings));
         const candidates = new Map([...writes].flatMap(name => {
             const fact = env.get(name);
-            return !rebound.has(name) && fact?.types.join() === 'array' && fact.rank === 1
+            return !rebound.has(name) && fact?.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
                 && fact.eagerScalarCells && fact.elements?.length
                 ? [[name, fact] as const] : [];
         }));
@@ -426,7 +426,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             const indexAfter = trial.get('index')?.elements;
             const closed = [...candidates].every(([name, fact]) => {
                 const after = trial.get(name);
-                return after?.types.join() === 'array' && after.rank === 1 && after.eagerScalarCells
+                return after?.types.join() === 'array' && after.rank === fact.rank && after.eagerScalarCells
                     && after.elements?.length === fact.elements!.length
                     && after.elements.every(type => fact.elements!.includes(type));
             }) && (indexCandidate === undefined || seed !== undefined && indexAfter !== undefined
@@ -816,9 +816,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const replacement = inspect(statement.value, env);
                 const fact = env.get(statement.name);
                 const integerSelector = (value: Expression) => expressionFacts(value, name => env.get(name)).types.join() === 'integer';
-                const compound = statement.operator !== '=' && statement.indices.length === 1
-                    && !!statement.indices[0].value && integerSelector(statement.indices[0].value)
-                    && fact?.rank === 1 && fact.eagerScalarCells === true
+                const oneCellSelectors = fact?.rank !== undefined && statement.indices.length === fact.rank
+                    && statement.indices.every(index => !index.all && !index.spread
+                        && !!index.value && integerSelector(index.value));
+                const compound = statement.operator !== '=' && oneCellSelectors
+                    && fact.eagerScalarCells === true
                     && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
                     && replacement.rank === 0 && replacement.types.length > 0
                     && replacement.types.every(type => type === 'integer' || type === 'real')
@@ -828,8 +830,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && fact.types.every(type => type === 'array')) {
                     // Keep old element types as conservative possibilities;
                     // a known scalar replacement adds its possible types.
-                    const oneCell = statement.indices.length === 1 && !statement.indices[0].all
-                        && fact.rank === 1 && isAtom(replacement) && replacement.types.length > 0;
+                    const oneCell = oneCellSelectors && isAtom(replacement) && replacement.types.length > 0;
                     env.set(statement.name, { ...fact,
                         elements: oneCell && fact.elements?.length
                             ? [...new Set([...fact.elements, ...(compound.length ? compound : replacement.types)])] : undefined,

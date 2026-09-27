@@ -411,6 +411,31 @@ it('proves scalar array cell types through closed plain and compound writes in n
     ]).functionResults[0].types).toEqual([]);
 });
 
+it('proves full-cell writes across every axis without assuming slice writes are scalar', () => {
+    const source = 'fun grid\n A = array shape 2 2 fill 0\n for I in 0 to 1\n'
+        + '  for J in 0 to 1\n   A I J += 1\n  end\n end\n return A 0 0\nend\n';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'grid', arguments: [] }])
+        .functionResults[0].types).toEqual(['integer']);
+    const mixed = services.Rank.parser.LangiumParser.parse<Program>(source.replace('A I J += 1', 'A I J = "text"'));
+    expect(analyzeValues(mixed.value, new Map(), new Map(), [{ name: 'grid', arguments: [] }])
+        .functionResults[0].types).toEqual([]);
+});
+
+it('infers the unchanged AtCoder grid-path table', () => {
+    const source = readFileSync(new URL('../../../demos/atcoder/edpc/08_grid1.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/atcoder/edpc/08_grid1_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '08_grid1', new Set(['path_count']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('infers the unchanged CSES book-shop dynamic program from its test inputs', () => {
     const source = readFileSync(new URL('../../../demos/cses/dynamic/007_bookshop.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/cses/dynamic/007_bookshop_test.ra', import.meta.url), 'utf8');
