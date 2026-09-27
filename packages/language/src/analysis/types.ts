@@ -150,8 +150,10 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         const known = lookup(expression.name);
         if (known) return known;
         const local = localCollectionType(expression.name);
+        const builtin = findOperation(expression.name);
         return local.length ? local
-            : (operationArities(expression.name)?.length ?? 0) > 0 ? ['function'] : UNKNOWN;
+            : builtin?.arities.length === 0 ? resultTypes(builtin)
+                : (operationArities(expression.name)?.length ?? 0) > 0 ? ['function'] : UNKNOWN;
     }
     if (isUnaryExpression(expression)) {
         const operand = typeOf(expression.operand, lookup);

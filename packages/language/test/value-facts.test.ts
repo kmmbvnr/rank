@@ -62,6 +62,23 @@ it('recognizes implicit local collections without treating other names as values
     expect(facts('Unknown')).toEqual({ types: [] });
 });
 
+it('reads the declared type and element type of builtin values', () => {
+    for (const name of ['fibonacci', 'primes']) {
+        expect(facts(name)).toEqual({ types: ['sequence'], elements: ['integer'], rank: 1, shape: [null] });
+    }
+    for (const name of ['infinity', 'nan']) {
+        expect(facts(name)).toEqual({ types: ['real'], rank: 0, shape: [] });
+    }
+    for (const [name, expected] of [['fibonacci', 'sequence'], ['primes', 'sequence'],
+        ['infinity', 'real'], ['nan', 'real']]) {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = ${name}\n`);
+        const statement = parsed.value.statements[0];
+        if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+        expect(typeOf(statement.value, () => undefined)).toEqual([expected]);
+    }
+    expect(facts('primes', new Map([['primes', { types: ['text'] }]]))).toEqual({ types: ['text'] });
+});
+
 it('recognizes positional slices as arrays rather than integer ranges', () => {
     const source: ValueFacts = { types: ['array'], rank: 2, shape: [5, 4], elements: ['integer'],
         eagerScalarCells: true };

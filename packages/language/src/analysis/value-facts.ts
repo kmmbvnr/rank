@@ -92,8 +92,15 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
     if (isNameExpression(expression)) {
         const value = lookup(expression.name);
         const local = localCollectionType(expression.name);
+        const builtin = findOperation(expression.name);
         return value?.types.includes('function') && lookup.invoke && lookup.arity?.(expression.name) === 0
-            ? lookup.invoke(expression.name, []) : value ?? (local.length ? { types: local } : UNKNOWN_VALUE);
+            ? lookup.invoke(expression.name, []) : value ?? (local.length ? { types: local }
+                : builtin?.arities.length === 0 ? {
+                    types: resultTypes(builtin),
+                    ...(builtin.valueElements ? { elements: [builtin.valueElements] } : {}),
+                    ...(builtin.result === 'sequence' ? { rank: 1, shape: [null] } : {}),
+                    ...(builtin.result === 'real' ? { rank: 0, shape: [] } : {}),
+                } : UNKNOWN_VALUE);
     }
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
