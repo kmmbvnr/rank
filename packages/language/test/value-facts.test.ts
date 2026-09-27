@@ -119,6 +119,20 @@ it('keeps scalar cells through a stable numeric sort', () => {
         .toEqual({ types: ['array'] });
 });
 
+it('infers scalar cells and combined shape for a safe named outer operation', () => {
+    expect(facts('(0 until 3) (0 until 4) bxor outer')).toEqual({ types: ['array'], rank: 2,
+        shape: [3, 4], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(array 1 2) (array 3 4) bor outer')).toEqual({ types: ['array'], rank: 2,
+        shape: [2, 2], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('(array 1 2 3 4 shape 2 2) (array 5 6) band outer')).toEqual({
+        types: ['array'], rank: 3, shape: [2, 2, 2], elements: ['integer'], callbackFreeScalarCells: true,
+    });
+    expect(facts('(array 1 2) (array 3 4) bxor outer', new Map([['bxor', { types: ['function'] }]])))
+        .not.toMatchObject({ callbackFreeScalarCells: true });
+    expect(facts('(array 1 2.5) (array 3 4) bxor outer'))
+        .not.toMatchObject({ callbackFreeScalarCells: true });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {

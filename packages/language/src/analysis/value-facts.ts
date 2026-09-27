@@ -384,6 +384,27 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             && isNameExpression(last) && lookup(last.name) === undefined
             && findOperation(last.name)?.arities.join() === '1';
         const source = expressionFacts(unaryTail ? expression.head : parts[0], lookup);
+        if (parts.length === 4 && isNameExpression(last) && last.name === 'outer'
+            && lookup('outer') === undefined && isNameExpression(parts[2]) && lookup(parts[2].name) === undefined) {
+            const operation = findOperation(parts[2].name);
+            const right = expressionFacts(parts[1], lookup);
+            const domain = operation?.scalarNoCallback;
+            const safe = (value: ValueFacts) => (value.types.join() === 'array' || value.types.join() === 'sequence')
+                && value.rank !== undefined && value.rank > 0 && !!value.shape
+                && (value.eagerScalarCells || value.callbackFreeScalarCells)
+                && !!value.elements?.length && value.elements.every(type => type === 'integer'
+                    || domain === 'number' && type === 'real');
+            if (domain && operation?.arities.includes(2) && !operation.effects?.length
+                && operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
+                && safe(source) && safe(right)) {
+                const elements = resultTypes(operation);
+                if (elements.length && elements.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
+                    return { types: ['array'], rank: source.rank! + right.rank!,
+                        shape: [...source.shape!, ...right.shape!], elements,
+                        callbackFreeScalarCells: true };
+                }
+            }
+        }
         if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'sort'
             && lookup('sort') === undefined && isLabelLiteral(last)
             && (last.name === 'ascending' || last.name === 'descending')) {

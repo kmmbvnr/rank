@@ -1173,6 +1173,19 @@ it('infers the unchanged card-game result through sorted scalar cells', () => {
         .toEqual(examples.map(() => ['integer']));
 });
 
+it('infers the unchanged mex-grid result through a named outer operation', () => {
+    const source = readFileSync(new URL('../../../demos/cses/intro/019_mexgrid.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/intro/019_mexgrid_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '019_mexgrid', new Set(['grid']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults)
+        .toEqual(examples.map(example => ({ types: ['array'], rank: 2,
+            shape: [Number(example.arguments[0].integer), Number(example.arguments[0].integer)],
+            elements: ['integer'], callbackFreeScalarCells: true })));
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
