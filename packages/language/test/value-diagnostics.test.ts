@@ -296,6 +296,17 @@ it('does not guess results for recursion and joins all covered return paths', ()
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
+it('uses a settled binding type for a direct return after an unknown branch', () => {
+    const source = 'fun choose Flag Next\n Result = 1\n if Flag\n  Result = Next\n end\n return Result\nend\n';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    const result = analyzeValues(parsed.value, new Map(), new Map(), [{
+        name: 'choose', arguments: [{ types: ['boolean'], rank: 0, shape: [] }, { types: [] }],
+    }]);
+    expect(result.functionResults[0].types).toEqual(['integer']);
+    expect(result.diagnostics).toEqual([]);
+});
+
 it('infers the result of the unchanged CSES maximum-subarray loop', () => {
     const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source.slice(source.indexOf('fun max_subarray')));

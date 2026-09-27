@@ -203,7 +203,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         for (const statement of items) {
             if (isReturnStatement(statement)) {
                 if (statement.value) invalidateCalls(statement.value, env);
-                const result = statement.value ? inspect(statement.value, env) : UNKNOWN_VALUE;
+                const observed = statement.value ? inspect(statement.value, env) : UNKNOWN_VALUE;
+                const contract = statement.value && isNameExpression(statement.value)
+                    ? env.get(statement.value.name) : undefined;
+                const result = observed.types.length || !contract?.acceptedTypes?.length ? observed
+                    : { types: contract.acceptedTypes, acceptedArrayRank: contractRank(contract) };
                 if (!statement.value || !directNoReturnCall(statement.value, env)) values.push(result);
                 return { values, fallsThrough: false };
             }
