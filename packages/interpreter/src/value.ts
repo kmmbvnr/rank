@@ -11,6 +11,11 @@ import type { RankIo, SqliteScalar } from './io.js';
 import { RankError } from './errors.js';
 import { bindingRankConflict, bindingRankMessage } from '@arrrank/language';
 
+export function expectBoolean(value: RankValue): boolean {
+    if (typeof value !== 'boolean') throw new RankError(`expected boolean, got ${typeName(value)}`);
+    return value;
+}
+
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
     // ordinary data properties and remain stable during a synchronous operation.

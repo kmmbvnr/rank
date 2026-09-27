@@ -44,7 +44,7 @@ storage and compiler modules remain owners where they already have a clear job.
 | Table expression evaluation | `interpreter/keyed-table-expression.ts` | Add a keyed table case there with only module and expression-evaluation capabilities |
 | Selectors and rank application | `interpreter/selectors.ts`, `tensor-index.ts`, `rank-application.ts`, `reduction.ts` | Change concrete indexing, cell/frame assembly or reduction here; keep AST form recognition in language |
 | Value comparison and CLI inputs | `interpreter/value-comparison.ts`, `cli-args.ts` | Keep concrete runtime rules separate from abstract facts |
-| Execution and compiler dispatch | `interpreter.ts`, `execution.ts`, prepared-function and compiler modules | Preserve suspension, fallback timing and compiled/interpreted parity |
+| Execution and compiler dispatch | `interpreter.ts`, `statement-control.ts`, `execution.ts`, prepared-function and compiler modules | Keep `try`/`if` suspension and error precedence in statement control; preserve fallback timing and compiled/interpreted parity |
 | Resources and host effects | `interpreter/resource-ownership.ts`, `resource-summary.ts`, `host-effects.ts` | Keep closing and host policy visible at the execution boundary |
 | REPL | `common/live-preview.ts`, `repl-session.ts` | Pass explicit synthetic names; ordinary user names have ordinary block scope |
 

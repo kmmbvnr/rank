@@ -22,6 +22,8 @@ import {
 import { LocalFrame } from './frame.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { compileKeyedTableExpression } from './keyed-table-expression.js';
+import { prepareIfStatement, prepareTryStatement,
+    type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
@@ -172,6 +174,7 @@ import {
 } from './sequence.js';
 import {
     formatValue,
+    expectBoolean,
     isNativeFunction,
     isRankArray,
     checkBindingRank,
@@ -333,17 +336,6 @@ export interface RankTestResult {
 interface LoadedProgram {
     readonly id: string;
     readonly program: Program;
-}
-
-interface LoopControl { signal?: 'break' | 'continue' }
-
-interface ExecutionContext {
-    readonly loopControl?: LoopControl;
-    readonly assertBooleanExpressions: boolean;
-    readonly insideLoop: boolean;
-    readonly insideFinally: boolean;
-    readonly insideGenerator: boolean;
-    readonly tailCallsAllowed?: false;
 }
 
 interface TensorGroup { readonly count: number; run(): RankValue | undefined }
@@ -1105,115 +1097,18 @@ export class Interpreter {
                 throw signal;
             } };
         }
-        if (isTryStatement(statement)) {
-            const interpreter = this;
-            return { stream: function* (context) {
-                const { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator } = context;
-                let result: RankValue | undefined;
-                let pending: unknown;
-                try {
-                    try {
-                        try {
-                            result = yield* resume(interpreter.executeStatementStream(
-                                statement.statements,
-                                assertBooleanExpressions,
-                                insideLoop,
-                                insideFinally,
-                                insideGenerator,
-                                false,
-                            ));
-                        } catch (error) {
-                            if (!(error instanceof RankError) || error instanceof InterruptedError) throw error;
-                            const clause = statement.catches.find(candidate =>
-                                candidate.errorKind === undefined
-                                || candidate.errorKind.name === error.rankKind);
-                            if (!clause) throw error;
-                            interpreter.assign(clause.errorName, error.toValue());
-                            result = yield* resume(interpreter.executeStatementStream(
-                                clause.statements,
-                                assertBooleanExpressions,
-                                insideLoop,
-                                insideFinally,
-                                insideGenerator,
-                                false,
-                            ));
-                        }
-                    } catch (error) {
-                        pending = error;
-                    }
-                } finally {
-                    try {
-                        yield* resume(interpreter.executeStatementStream(
-                            statement.finallyStatements,
-                            assertBooleanExpressions,
-                            insideLoop,
-                            true,
-                            insideGenerator,
-                            false,
-                        ));
-                    } catch (error) {
-                        if (error instanceof RankError && pending instanceof RankError) {
-                            error.attachCause(pending);
-                        }
-                        pending = error;
-                    }
-                    if (pending !== undefined) throw pending;
-                }
-                return result;
-            } };
-        }
-        if (isIfStatement(statement)) {
-            const conditions = [statement.condition, ...statement.elifClauses.map(clause => clause.condition)]
-                .map(condition => this.compileDirectExpression(condition));
-            if (conditions.every(condition => condition !== undefined)) {
-                return { stream: context => {
-                    let branch = statement.elseStatements;
-                    for (let index = 0; index < conditions.length; index += 1) {
-                        if (expectBoolean(conditions[index]())) {
-                            branch = index === 0 ? statement.thenStatements : statement.elifClauses[index - 1].statements;
-                            break;
-                        }
-                    }
-                    return this.executeStatementStream(
-                        branch, context.assertBooleanExpressions, context.insideLoop,
-                        context.insideFinally, context.insideGenerator,
-                        context.tailCallsAllowed,
-                        context.loopControl,
-                    );
-                } };
-            }
-            const interpreter = this;
-            const tests = [statement.condition, ...statement.elifClauses.map(clause => clause.condition)];
-            const branchAt = (index: number) => index < 0 ? statement.elseStatements
-                : index === 0 ? statement.thenStatements : statement.elifClauses[index - 1].statements;
-            const enter = (context: ExecutionContext, index: number) => interpreter.executeStatementStream(
-                branchAt(index),
-                context.assertBooleanExpressions,
-                context.insideLoop,
-                context.insideFinally,
-                context.insideGenerator,
-                context.tailCallsAllowed,
-                context.loopControl,
-            );
-            // Only a condition that actually suspends needs a task to drive it;
-            // the rest pick their branch and hand the block straight back.
-            const suspended = function* (
-                context: ExecutionContext, index: number, pending: Execution<RankValue>,
-            ): Execution<RankValue | undefined> {
-                let taken = expectBoolean(yield* resume(pending)) ? index : -1;
-                for (index += 1; taken < 0 && index < tests.length; index += 1) {
-                    if (expectBoolean(yield* resume(interpreter.evaluateTask(tests[index])))) taken = index;
-                }
-                return yield* resume(enter(context, taken));
+        if (isTryStatement(statement) || isIfStatement(statement)) {
+            const control = {
+                evaluate: (expression: Expression) => this.evaluateTask(expression),
+                execute: (statements: Statement[], context: ExecutionContext) => this.executeStatementStream(
+                    statements, context.assertBooleanExpressions, context.insideLoop,
+                    context.insideFinally, context.insideGenerator, context.tailCallsAllowed, context.loopControl,
+                ),
+                compileDirect: (expression: Expression) => this.compileDirectExpression(expression),
+                assign: (name: string, value: RankValue) => this.assign(name, value),
             };
-            return { stream: (context): Evaluation<RankValue | undefined> => {
-                for (let index = 0; index < tests.length; index += 1) {
-                    const task = this.evaluateTask(tests[index]);
-                    if (!('done' in task)) return suspended(context, index, task);
-                    if (expectBoolean(task.value)) return enter(context, index);
-                }
-                return enter(context, -1);
-            } };
+            return isTryStatement(statement)
+                ? prepareTryStatement(statement, control) : prepareIfStatement(statement, control);
         }
         if (isForStatement(statement)) {
             const binding = forIteration(statement.condition);
@@ -5865,13 +5760,6 @@ function floorDivide(left: bigint, right: bigint): bigint {
     return remainder !== 0n && (left < 0n) !== (right < 0n)
         ? quotient - 1n
         : quotient;
-}
-
-function expectBoolean(value: RankValue): boolean {
-    if (typeof value !== 'boolean') {
-        throw new RankError(`expected boolean, got ${typeName(value)}`);
-    }
-    return value;
 }
 
 export { typeName } from './value.js';

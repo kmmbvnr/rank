@@ -23,6 +23,7 @@ const owners = new Set([
     'packages/interpreter/src/reduction.ts',
     'packages/interpreter/src/resource-ownership.ts',
     'packages/interpreter/src/selectors.ts',
+    'packages/interpreter/src/statement-control.ts',
     'packages/interpreter/src/tensor-index.ts',
     'packages/interpreter/src/value-comparison.ts',
 ]);
