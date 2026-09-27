@@ -663,7 +663,12 @@ it('infers value types written to a fresh function-local index', () => {
         .toEqual([]);
 });
 
-it('infers the unchanged regular-expression matcher from its local index writes', () => {
+it('keeps the type of a local index when a cell is copied with a default', () => {
+    expect(messages('use algo\nfun copy\n index 0 = true\n index 1 = index 0 default false\n return index 1 default false\nend\nA = copy\nA + 1'))
+        .toEqual(['operator + does not accept boolean and integer']);
+});
+
+it('infers the simplified regular-expression matcher from its local index writes', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/010_regexp.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);

@@ -433,6 +433,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             && (!node.fill || directValue(node.fill))
             && [...node.items, ...node.rows.flatMap(row => row.items)].every(item => directValue(item.value))
             && expressionFacts(node, name => env.get(name)).eagerScalarCells === true;
+    const safeIndexDefault = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean => {
+        if (!isBinaryExpression(node) || node.operator !== 'default' || !isApplicationExpression(node.left)
+            || !directValue(node.right)) return false;
+        const parts = flattenApplication(node.left);
+        const source = parts[0];
+        if (!isNameExpression(source) || env.get(source.name)?.types.join() !== 'index'
+            || parts.length < 2 || !parts.slice(1).every(part => {
+                const key = expressionFacts(part, name => env.get(name));
+                return directValue(part) && key.types.length > 0
+                    && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
+            })) return false;
+        const value = expressionFacts(node, name => env.get(name));
+        return isAtom(value) && value.types.length > 0
+            && value.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type));
+    };
     function insertCollectionElement(name: string, value: ValueFacts, node: Expression,
         env: Map<string, ValueFacts>): void {
         const collection = env.get(name);
@@ -1375,7 +1390,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && ['and', 'or', 'xor'].includes(statement.value.operator)
                     && [statement.value.left, statement.value.right].every(value => directValue(value)
                         && expressionFacts(value, name => env.get(name)).types.join() === 'boolean');
-                const safeValue = directValue(statement.value) || booleanValue
+                const safeValue = directValue(statement.value) || safeIndexDefault(statement.value, env) || booleanValue
                     || scalarArithmetic(statement.value, env) || scalarBitwise(statement.value, env);
                 if (!safeValue) {
                     forgetNonFunctions(env);
