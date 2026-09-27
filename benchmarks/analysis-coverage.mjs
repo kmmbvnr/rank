@@ -66,7 +66,11 @@ for (const path of paths) {
           // Numeric equality in a Rank test does not assert the result's numeric type.
           const numeric = [result, expected].every(value => value.types.every(type =>
             type === 'integer' || type === 'real'));
-          const incompatibleType = !numeric && result.types.every(type => !expected.types.includes(type));
+          // Equality compares cells of arrays, sequences and queues; a test
+          // against an array does not assert the returned container kind.
+          const collection = [result, expected].every(value => value.types.every(type =>
+            type === 'array' || type === 'sequence' || type === 'queue'));
+          const incompatibleType = !numeric && !collection && result.types.every(type => !expected.types.includes(type));
           const incompatibleRank = result.rank !== undefined && expected.rank !== undefined
             && result.rank !== expected.rank;
           if (incompatibleType || incompatibleRank) {

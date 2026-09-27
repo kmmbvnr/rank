@@ -77,6 +77,41 @@ it('infers safe unpacked shape cells without losing unrelated types', () => {
         .toEqual(['First has type boolean and cannot receive integer']);
 });
 
+it('keeps unrelated facts through local index writes', () => {
+    expect(messages('use algo\nCount = 1\nindex "x" = 2\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun read X\n Count = 1\n index X = 2\n return Count\nend\nA = 0 read\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 until 1\n  index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nCount = 1\nA = Unknown\nindex (A 0) = 2\nCount + "bad"'))
+        .toEqual([]);
+});
+
+it('keeps unrelated facts through scalar set additions but not lazy array keys', () => {
+    expect(messages('use algo\nCount = 1\nset add "x"\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 until 1\n  counter add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nCount = 1\nset add (array Unknown Unknown)\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nCount = 1\nA = Unknown\nset add (A 0)\nCount + "bad"'))
+        .toEqual([]);
+});
+
+it('keeps unrelated facts through direct queue pushes but not computed receivers', () => {
+    expect(messages('use algo\nCount = 1\nQ = new queue\nQ push 2\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nfun append X\n Count = 1\n Q = new queue\n for I in 0 until 1\n  Q push X\n end\n return Count\nend\nA = 0 append\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use algo\nCount = 1\nA = Unknown\n(A 0) push 2\nCount + "bad"'))
+        .toEqual([]);
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'use algo\nfun collect X\n Q = new queue\n Q push X\n return Q\nend\nA = 0 collect\n');
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['queue']);
+});
+
 it('gives function locals their own rank contract', () => {
     expect(messages('A = array 1 2\nfun make N\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
     expect(messages('fun change A\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))

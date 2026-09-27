@@ -2,9 +2,10 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
-    isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isStatement, isExpression,
+    isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
+    isExpressionStatement, isStatement, isExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
-    isTryStatement, isUnpackStatement, isYieldStatement,
+    isAddStatement, isPushStatement, isTryStatement, isUnpackStatement, isYieldStatement,
     type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
     type YieldStatement,
 } from '../generated/ast.js';
@@ -229,6 +230,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (contents.some(isReturnStatement)) values.push(...loopReturnPaths(statement, env));
                 else loop(statement, env);
             } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
+                || isIndexAssignmentStatement(statement)
+                || isAddStatement(statement) || isPushStatement(statement)
                 || isUnpackStatement(statement)
                 || isExpressionStatement(statement) || isFunctionStatement(statement)) {
                 if (!statements([statement], env)) return { values, fallsThrough: false };
@@ -250,6 +253,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     const writtenBindings = (node: AstNode): readonly string[] => isAssignmentStatement(node) ? [node.name]
         : isUnpackStatement(node) ? node.names.filter(name => name !== '#') : [];
+    const directValue = (node: Expression): boolean => isNameExpression(node) || isNumberLiteral(node)
+        || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
+        || isParenthesizedExpression(node) && directValue(node.value);
+    const forgetNonFunctions = (env: Map<string, ValueFacts>): void => {
+        for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+    };
 
     function loop(statement: ForStatement, env: Map<string, ValueFacts>): void {
         const condition = statement.condition;
@@ -269,7 +278,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const contents = [...AstUtils.streamAllContents(statement)];
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
-                && !isUnpackStatement(node) && !isExpressionStatement(node)
+                && !isUnpackStatement(node) && !isIndexAssignmentStatement(node)
+                && !isAddStatement(node) && !isPushStatement(node) && !isExpressionStatement(node)
                 && !isIfStatement(node) && !isForStatement(node))) {
             // Mutation and non-local exits need their own flow rules.
             for (const [name, fact] of env) env.set(name, invalidate(fact));
@@ -607,6 +617,37 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     env.set(name, { types, rank: 0, shape: [],
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
                         acceptedTypes: accepted ?? types });
+                }
+            } else if (isAddStatement(statement)) {
+                invalidateCalls(statement.value, env);
+                if (!directValue(statement.value)) {
+                    forgetNonFunctions(env);
+                }
+                const value = inspect(statement.value, env);
+                if (!value.types.length || !value.types.every(type =>
+                    ['integer', 'real', 'boolean', 'text', 'symbol', 'date', 'datetime'].includes(type))) {
+                    forgetNonFunctions(env);
+                }
+            } else if (isIndexAssignmentStatement(statement)) {
+                for (const key of statement.keys) {
+                    invalidateCalls(key, env);
+                    if (!directValue(key)) {
+                        forgetNonFunctions(env);
+                    }
+                    inspect(key, env);
+                }
+                invalidateCalls(statement.value, env);
+                if (!directValue(statement.value)) {
+                    forgetNonFunctions(env);
+                }
+                inspect(statement.value, env);
+            } else if (isPushStatement(statement)) {
+                for (const value of [statement.receiver, statement.value]) {
+                    invalidateCalls(value, env);
+                    if (!directValue(value)) {
+                        forgetNonFunctions(env);
+                    }
+                    inspect(value, env);
                 }
             } else if (isArrayAssignmentStatement(statement)) {
                 for (const index of statement.indices) if (index.value) {
