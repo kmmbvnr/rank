@@ -87,6 +87,8 @@ export interface Operation {
      * as in `Text json .flat`. The call receives the label as its last operand.
      */
     readonly modifiers?: readonly string[];
+    /** This unary operation accepts the `axis` reduction form. */
+    readonly axisReduction?: true;
 }
 
 /** A library module or the always-available core catalogue group. */
@@ -453,11 +455,11 @@ export const operations: readonly Operation[] = [
         summary: 'Least common multiple, also a reduction over one finite collection.' },
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real', mapsScalarCells: true,
         summary: 'Natural logarithm of a positive finite number.' },
-    { name: 'max', module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number',
+    { name: 'max', module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number', axisReduction: true,
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
         summary: 'Larger of two numbers, or the largest of one collection.' },
-    { name: 'min', module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number',
+    { name: 'min', module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number', axisReduction: true,
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
         summary: 'Smaller of two numbers, or the smallest of one collection.' },
@@ -477,7 +479,7 @@ export const operations: readonly Operation[] = [
         summary: 'Hyperbolic sine.' },
     { name: 'sqrt', module: 'numbers', arities: [1], form: 'Value sqrt', result: 'real',
         monadicRank: 0, summary: 'Real square root of a nonnegative number.' },
-    { name: 'sum', module: 'core', arities: [1], form: 'Values sum', result: 'number',
+    { name: 'sum', module: 'core', arities: [1], form: 'Values sum', result: 'number', axisReduction: true,
         scalarCellArrayNoCallback: 'number',
         summary: 'Adds every numeric cell of an array, collection or finite sequence.' },
     { name: 'tan', module: 'numbers', arities: [1], form: 'Angle tan', result: 'real', mapsScalarCells: true,
@@ -498,10 +500,10 @@ export const operations: readonly Operation[] = [
         result: 'array', effects: ['random'],
         summary: 'Real tensor drawn from the half-open interval between the bounds.' },
 
-    { name: 'all', module: 'sequences', arities: [1], form: 'Mask all', result: 'boolean',
+    { name: 'all', module: 'sequences', arities: [1], form: 'Mask all', result: 'boolean', axisReduction: true,
         scalarCellArrayNoCallback: 'boolean',
         summary: 'True when every boolean cell is true; empty collections are true.' },
-    { name: 'any', module: 'sequences', arities: [1], form: 'Mask any', result: 'boolean',
+    { name: 'any', module: 'sequences', arities: [1], form: 'Mask any', result: 'boolean', axisReduction: true,
         scalarCellArrayNoCallback: 'boolean',
         summary: 'True when one boolean cell is true; empty collections are false.' },
     { name: 'argsort', module: 'sequences', arities: [1, 2], form: 'Values argsort .descending', result: 'array',
@@ -511,7 +513,7 @@ export const operations: readonly Operation[] = [
         summary: 'Selects each cell by a boolean mask; SQLite expressions become CASE.' },
     { name: 'copy', module: 'sequences', arities: [1], form: 'Values copy', result: 'array',
         summary: 'Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack.' },
-    { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer',
+    { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer', axisReduction: true,
         scalarCellArrayNoCallback: 'boolean', scalarResult: true,
         summary: 'Number of true cells, or of source items a lazy mask selects.' },
     { name: 'drop', module: 'sequences', arities: [2], form: 'Values Count drop', result: 'value',
@@ -564,11 +566,11 @@ export const operations: readonly Operation[] = [
         summary: 'Sample covariance matrix over feature and observation axes.' },
     { name: 'mae', module: 'stats', arities: [2], form: 'Pred Target mae', result: 'real',
         summary: 'Mean absolute error between two broadcast numeric values.' },
-    { name: 'mean', module: 'stats', arities: [1], form: 'Values mean', result: 'real',
+    { name: 'mean', module: 'stats', arities: [1], form: 'Values mean', result: 'real', axisReduction: true,
         summary: 'Arithmetic mean, missing table cells skipped.' },
-    { name: 'median', module: 'stats', arities: [1], form: 'Values median', result: 'real',
+    { name: 'median', module: 'stats', arities: [1], form: 'Values median', result: 'real', axisReduction: true,
         summary: 'Middle value of a sorted copy, averaging the two middle values when even.' },
-    { name: 'mode', module: 'stats', arities: [1], form: 'Values mode', result: 'value',
+    { name: 'mode', module: 'stats', arities: [1], form: 'Values mode', result: 'value', axisReduction: true,
         summary: 'Most frequent value in a collection or array.' },
     { name: 'mse', module: 'stats', arities: [2], form: 'Pred Target mse', result: 'real',
         summary: 'Mean squared error between two broadcast numeric values.' },
@@ -576,15 +578,15 @@ export const operations: readonly Operation[] = [
         summary: 'Percentile P in 0..100.' },
     { name: 'quantile', module: 'stats', arities: [1, 2], form: 'Values Q quantile', result: 'value', dyadicRanks: [1, 0],
         summary: 'Linear interpolation quantile Q in 0..1.' },
-    { name: 'skew', module: 'stats', arities: [1], form: 'Values skew', result: 'real',
+    { name: 'skew', module: 'stats', arities: [1], form: 'Values skew', result: 'real', axisReduction: true,
         summary: 'Alias for skewness.' },
-    { name: 'skewness', module: 'stats', arities: [1], form: 'Values skewness', result: 'real',
+    { name: 'skewness', module: 'stats', arities: [1], form: 'Values skewness', result: 'real', axisReduction: true,
         summary: 'Sample skewness of numeric values.' },
-    { name: 'std', module: 'stats', arities: [1], form: 'Values std', result: 'real',
+    { name: 'std', module: 'stats', arities: [1], form: 'Values std', result: 'real', axisReduction: true,
         summary: 'Population standard deviation, dividing by N.' },
-    { name: 'var', module: 'stats', arities: [1], form: 'Values var', result: 'real',
+    { name: 'var', module: 'stats', arities: [1], form: 'Values var', result: 'real', axisReduction: true,
         summary: 'Alias for variance.' },
-    { name: 'variance', module: 'stats', arities: [1], form: 'Values variance', result: 'real',
+    { name: 'variance', module: 'stats', arities: [1], form: 'Values variance', result: 'real', axisReduction: true,
         summary: 'Population variance of numeric values.' },
 
 

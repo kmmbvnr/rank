@@ -10,6 +10,7 @@ import {
 import { binaryType, localCollectionType, mapsScalarCells, resultTypes, typeOf, type Types } from './types.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation, type Operation } from '../operations.js';
+import { axisReductionForm } from '../application-forms.js';
 
 /** Serializable facts only: inspecting these never evaluates user code. */
 export interface ValueFacts {
@@ -998,10 +999,9 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                 };
             }
         }
-        if (source.types.join() === 'array' && source.shape && parts.length >= 4
-            && isNameExpression(parts[1]) && parts[1].name === 'sum' && lookup('sum') === undefined
-            && isNameExpression(parts[2]) && parts[2].name === 'axis') {
-            const axes = parts.slice(3).map(part => expressionFacts(part, lookup).integer);
+        const axisReduction = axisReductionForm(parts, name => lookup(name) === undefined);
+        if (source.types.join() === 'array' && source.shape && axisReduction?.operation.name === 'sum') {
+            const axes = axisReduction.axes.map(part => expressionFacts(part, lookup).integer);
             if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
                 && Number(axis) >= 0 && Number(axis) < source.shape!.length)
                 && new Set(axes).size === axes.length) {
@@ -1012,13 +1012,11 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
                     : { types: elements, rank: 0, shape: [] };
             }
         }
-        if (source.types.join() === 'array' && source.shape && parts.length >= 4
-            && isNameExpression(parts[1]) && ['mean', 'median', 'std', 'variance', 'var', 'skewness', 'skew']
-                .includes(parts[1].name) && lookup(parts[1].name) === undefined
-            && isNameExpression(parts[2]) && parts[2].name === 'axis'
+        if (source.types.join() === 'array' && source.shape
+            && axisReduction?.operation.module === 'stats' && axisReduction.operation.result === 'real'
             && (source.eagerScalarCells || source.callbackFreeScalarCells)
             && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
-            const axes = parts.slice(3).map(part => expressionFacts(part, lookup).integer);
+            const axes = axisReduction.axes.map(part => expressionFacts(part, lookup).integer);
             if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
                 && Number(axis) >= 0 && Number(axis) < source.shape!.length)
                 && new Set(axes).size === axes.length) {

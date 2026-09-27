@@ -95,6 +95,7 @@ import {
     type Program,
     type Statement,
     findOperation,
+    axisReductionForm,
 } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
@@ -2877,30 +2878,17 @@ export class Interpreter {
                     );
                 };
             }
-            const axisReduction = explicitAxisReduction(parts);
+            const axisReduction = axisReductionForm(parts);
             if (axisReduction) {
+                const axes = axisReduction.axes.map(axis =>
+                    safeDimension(integerLiteral(axis, `${axisReduction.operation.name} axis`),
+                        `${axisReduction.operation.name} axis`));
                 return function* (): Execution<RankValue> {
-                    interpreter.requireModule(
-                        axisReduction.operation === 'mean'
-                            || axisReduction.operation === 'median'
-                            || axisReduction.operation === 'std'
-                            || axisReduction.operation === 'variance'
-                            || axisReduction.operation === 'var'
-                            || axisReduction.operation === 'skewness'
-                            || axisReduction.operation === 'skew'
-                            || axisReduction.operation === 'mode'
-                            ? 'stats'
-                            : axisReduction.operation === 'all'
-                                || axisReduction.operation === 'any'
-                                || axisReduction.operation === 'count'
-                                ? 'sequences'
-                                : 'core',
-                        axisReduction.operation,
-                    );
+                    interpreter.requireModule(axisReduction.operation.module, axisReduction.operation.name);
                     return interpreter.evaluateAxisReduction(
-                        axisReduction.operation,
+                        axisReduction.operation.name,
                         (yield* resume(interpreter.evaluateTask(axisReduction.source))),
-                        axisReduction.axes,
+                        axes,
                     );
                 };
             }
@@ -4587,7 +4575,7 @@ export class Interpreter {
     }
 
     private evaluateAxisReduction(
-        operation: 'sum' | 'mean' | 'median' | 'std' | 'variance' | 'var' | 'skewness' | 'skew' | 'mode' | 'min' | 'max' | 'all' | 'any' | 'count',
+        operation: string,
         value: RankValue,
         axes: readonly number[],
     ): RankValue {
@@ -6538,30 +6526,6 @@ function explicitAxisShuffle(
         source: parts[0],
         seed: shuffle === 2 ? parts[1] : undefined,
         axis: safeDimension(integerLiteral(parts[shuffle + 2], 'shuffle axis'), 'shuffle axis'),
-    };
-}
-
-function explicitAxisReduction(
-    parts: Expression[],
-): {
-    source: Expression;
-    operation: 'sum' | 'mean' | 'median' | 'std' | 'variance' | 'var' | 'skewness' | 'skew' | 'mode' | 'min' | 'max' | 'all' | 'any' | 'count';
-    axes: readonly number[];
-} | undefined {
-    if (parts.length < 4) return undefined;
-    const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
-    if ((operation !== 'sum' && operation !== 'mean' && operation !== 'median' && operation !== 'std'
-        && operation !== 'variance' && operation !== 'var'
-        && operation !== 'skewness' && operation !== 'skew'
-        && operation !== 'mode'
-        && operation !== 'min' && operation !== 'max'
-        && operation !== 'all' && operation !== 'any' && operation !== 'count')
-        || !isNamed(parts[2], 'axis')) return undefined;
-    return {
-        source: parts[0],
-        operation: operation as any,
-        axes: parts.slice(3).map(axis =>
-            safeDimension(integerLiteral(axis, `${operation} axis`), `${operation} axis`)),
     };
 }
 
