@@ -20,6 +20,14 @@ must not force a new framework into this extraction. The near-term target is
 #3/#4: a return contract and call-site analysis should have clear places to
 attach without adding spelling checks in multiple packages.
 
+The later typing and interpreter walkthrough comments add a useful review test:
+for each user-visible typing rule and execution stage, a contributor should be
+able to find its owner. They are an ownership map, not an instruction to create
+every suggested file. In particular, static rejection needs proof that *all*
+possible types conflict, while runtime checks a concrete value; sharing a
+binding rule must retain that difference. Existing `frame.ts`, `execution.ts`,
+storage and compiler modules remain owners where they already have a clear job.
+
 ## Current owners and direction
 
 | Concern | Current owner / boundary | Migration target |

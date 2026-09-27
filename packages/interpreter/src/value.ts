@@ -9,6 +9,7 @@ import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
 import type { RankIo, SqliteScalar } from './io.js';
 import { RankError } from './errors.js';
+import { bindingRankConflict, bindingRankMessage } from '@arrrank/language';
 
 interface RankArrayValue {
     // Internal protocol, not a stable embedding API. Eager host arrays must use
@@ -304,8 +305,8 @@ export function isRankFunctionalGraph(value: RankValue): value is RankFunctional
 export function checkBindingRank(name: string, expected: number | undefined, value: RankValue): number | undefined {
     if (!isRankArray(value)) return expected;
     const received = value.shape.length;
-    if (expected !== undefined && expected !== received) {
-        throw new RankError(`${name} has rank ${expected} and cannot receive rank ${received}`, 'DimensionMismatch');
+    if (expected !== undefined && bindingRankConflict(expected, received)) {
+        throw new RankError(bindingRankMessage(name, expected, received), 'DimensionMismatch');
     }
     return received;
 }

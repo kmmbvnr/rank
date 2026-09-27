@@ -14,6 +14,8 @@ import {
 import { compoundType, type Types } from './types.js';
 import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
+import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
+    provenBindingTypeConflict } from '../binding-rule.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields } from './function-yields.js';
 import { expressionFacts, hasCallbackFreeFindProof, incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE,
@@ -1419,13 +1421,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const accepted = previous?.acceptedTypes ?? previous?.types;
                 const expectedRank = contractRank(previous);
                 const receivedRank = arrayRank(next);
-                if (accepted?.length && next.types.length
-                    && next.types.every(type => !accepted.includes(type))) {
+                if (accepted?.length && provenBindingTypeConflict(accepted, next.types)) {
                     diagnostics.push({ node: statement.value, kind: 'TypeError',
-                        message: `${statement.name} has type ${accepted.join(' or ')} and cannot receive ${next.types.join(' or ')}` });
-                } else if (expectedRank !== undefined && receivedRank !== undefined && expectedRank !== receivedRank) {
+                        message: bindingTypeMessage(statement.name, accepted, next.types) });
+                } else if (expectedRank !== undefined && receivedRank !== undefined
+                    && bindingRankConflict(expectedRank, receivedRank)) {
                     diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
-                        message: `${statement.name} has rank ${expectedRank} and cannot receive rank ${receivedRank}` });
+                        message: bindingRankMessage(statement.name, expectedRank, receivedRank) });
                 }
                 env.set(statement.name, { ...next, acceptedTypes: accepted?.length ? accepted : next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });
@@ -1447,9 +1449,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const types = cell?.types ?? source.positions?.[index] ?? source.elements ?? [];
                     const previous = env.get(name);
                     const accepted = previous?.acceptedTypes ?? previous?.types;
-                    if (accepted?.length && types.length && types.every(type => !accepted.includes(type))) {
+                    if (accepted?.length && provenBindingTypeConflict(accepted, types)) {
                         diagnostics.push({ node: statement, kind: 'TypeError',
-                            message: `${name} has type ${accepted.join(' or ')} and cannot receive ${types.join(' or ')}` });
+                            message: bindingTypeMessage(name, accepted, types) });
                     }
                     const scalarCell = types.length && types.every(type =>
                         ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
@@ -1599,10 +1601,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && fact.fields[statement.indices[0].value.name]) {
                     const field = statement.indices[0].value.name;
                     const expected = fact.fields[field].types;
-                    if (expected.length && replacement.types.length
-                        && replacement.types.every(type => !expected.includes(type))) {
+                    if (expected.length && provenBindingTypeConflict(expected, replacement.types)) {
                         diagnostics.push({ node: statement.value, kind: 'TypeError',
-                            message: `record field .${field} has type ${expected.join(' or ')} and cannot receive ${replacement.types.join(' or ')}` });
+                            message: bindingTypeMessage(`record field .${field}`, expected, replacement.types) });
                     }
                     for (const source of [env, globalCallEnvs.at(-1)]) if (source) for (const [name, value] of source) {
                         if (value.types.join() === 'record' && value.fields?.[field]) source.set(name, {

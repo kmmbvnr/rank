@@ -96,6 +96,9 @@ import {
     type Statement,
     findOperation,
     axisReductionForm,
+    acceptsBindingType,
+    bindingTypeMessage,
+    possibleBindingTypeConflict,
 } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
@@ -4029,10 +4032,8 @@ export class Interpreter {
         // previous value nor a rewrite of the type it keeps.
         const recorded = frame ? frame.typeOf(name) : this.variableTypes.get(name);
         if (recorded !== undefined) {
-            if (!recorded.has(received)) {
-                throw new RankError(
-                    `${name} has type ${formatTypes(recorded)} and cannot receive ${received}`,
-                );
+            if (!acceptsBindingType(recorded, received)) {
+                throw new RankError(bindingTypeMessage(name, recorded, [received], true));
             }
             if (frame) frame.set(name, value);
             else {
@@ -4051,10 +4052,8 @@ export class Interpreter {
         }
         const previous = frame ? frame.get(name) : this.variables.get(name);
         const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
-        if (expected !== undefined && !expected.has(received)) {
-            throw new RankError(
-                `${name} has type ${formatTypes(expected)} and cannot receive ${received}`,
-            );
+        if (expected !== undefined && !acceptsBindingType(expected, received)) {
+            throw new RankError(bindingTypeMessage(name, expected, [received], true));
         }
         const settled = expected ?? new Set([received]);
         if (frame) {
@@ -4099,9 +4098,7 @@ export class Interpreter {
         const expected = record.types.get(field)!;
         const received = typeName(result);
         if (expected !== received) {
-            throw new RankError(
-                `record field .${field} has type ${expected} and cannot receive ${received}`,
-            );
+            throw new RankError(bindingTypeMessage(`record field .${field}`, [expected], [received]));
         }
         noteArrayBinding(result);
         record.entries.set(field, result);
@@ -5073,10 +5070,8 @@ export class Interpreter {
             const held = frame ? frame.get(name) : this.variables.get(name);
             const previous = recorded
                 ?? (held !== undefined ? new Set([typeName(held)]) : undefined);
-            if (previous && [...inferred].some(type => !previous.has(type))) {
-                throw new RankError(
-                    `${name} has type ${formatTypes(previous)} and cannot receive ${formatTypes(inferred)}`,
-                );
+            if (previous && possibleBindingTypeConflict(previous, inferred)) {
+                throw new RankError(bindingTypeMessage(name, previous, inferred, true));
             }
             if (frame) frame.declareType(name, previous ?? inferred);
             else this.variableTypes.set(name, previous ?? inferred);
@@ -7224,10 +7219,6 @@ const RUNTIME_TYPE_NAMES = new Set([
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
     return new Set([...values].map(typeName));
-}
-
-function formatTypes(types: ReadonlySet<string>): string {
-    return [...types].sort().join(' or ');
 }
 
 function containedFiles(value: RankValue | undefined): Set<RankFile> {
