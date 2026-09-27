@@ -1022,6 +1022,27 @@ it('keeps numeric matrix cells only when loop rebindings are closed', () => {
         + ' A = array shape 2 3 fill 1\nend\nA + (array shape 2 4 fill 1)')).toEqual([]);
 });
 
+it('retains a private scalar parameter type but not its value across an unknown call', () => {
+    const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
+    const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
+    expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
+    const withCapture = source.replace(' Unknown external', ' fun nested\n  N = 4\n  return 0\n end\n Unknown external');
+    expect(analyzeValues(parse(withCapture)).bindings.get('A')?.types).toEqual([]);
+});
+
+it('infers the unchanged CSES graph-path matrix result', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/023_graphpaths1.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/math/023_graphpaths1_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    expect(program.parserErrors).toEqual([]);
+    expect(testProgram.parserErrors).toEqual([]);
+    const examples = functionTestExamples(testProgram.value, '023_graphpaths1', new Set(['path_count']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer', 'real']));
+});
+
 it('infers the unchanged Zigzag demo from its test inputs', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/006_zigzag.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/006_zigzag_test.ra', import.meta.url), 'utf8');

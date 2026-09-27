@@ -44,6 +44,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
     let remainingCalls = 100;
+    const privateParameters: Set<string>[] = [];
 
     function directNoReturnCall(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean {
         const parts = isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
@@ -184,6 +185,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });
         activeCalls.add(name);
         globalCallEnvs.push(globalEnv);
+        privateParameters.push([...AstUtils.streamAllContents(definition)].some(isFunctionStatement)
+            ? new Set() : new Set(definition.parameters));
         const diagnosticStart = diagnostics.length;
         try {
             const result = returnPaths(definition.statements, local);
@@ -193,6 +196,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         } finally {
             activeCalls.delete(name);
             globalCallEnvs.pop();
+            privateParameters.pop();
             if (site) for (let index = diagnosticStart; index < diagnostics.length; index++) {
                 diagnostics[index] = { ...diagnostics[index], node: site, message: `${name}: ${diagnostics[index].message}` };
             }
@@ -634,7 +638,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
         if (unknown) {
-            for (const [name, fact] of env) if (!fact.types.includes('function')) env.set(name, invalidate(fact));
+            const protectedNames = privateParameters.at(-1);
+            for (const [name, fact] of env) if (!fact.types.includes('function')) {
+                const accepted = fact.acceptedTypes ?? fact.types;
+                env.set(name, protectedNames?.has(name) && fact.rank === 0 && accepted.length > 0
+                    && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                    ? { types: accepted, acceptedTypes: accepted, rank: 0, shape: [] } : invalidate(fact));
+            }
             const global = globalCallEnvs.at(-1);
             if (global && global !== env) for (const [name, fact] of global) {
                 if (!fact.types.includes('function')) global.set(name, invalidate(fact));
@@ -748,7 +758,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     // can invalidate caller facts. Limit this early snapshot to values whose
     // evaluation cannot itself call Rank or read host-owned array cells.
     function directCallBeforeEffects(value: Expression, env: Map<string, ValueFacts>): ValueFacts | undefined {
-        if (globalCallEnvs.length || !isApplicationExpression(value)) return undefined;
+        if (!isApplicationExpression(value)) return undefined;
         const parts = flattenApplication(value);
         const target = parts.at(-1);
         if (!target || !isNameExpression(target) || env.get(target.name) !== functionBindings.get(target.name)
