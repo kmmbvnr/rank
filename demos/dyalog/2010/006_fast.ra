@@ -1,0 +1,103 @@
+rem Dyalog Programming Contest 2010
+rem Task 6: Variable Interest, Fast
+rem The same estimate as task 5, judged on speed alone.
+rem Within a year the rate and the payment are fixed,
+rem so the twelve months of balance, interest and
+rem savings have closed forms and the model steps a
+rem year at a time instead of a month.
+
+use "001_params"
+use "002_buyorrent"
+use "005_variable"
+use io
+use cli
+use numbers
+use random
+use sequences
+
+argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+
+State = 2010 seed
+Params = Input read getparams
+Options = array 8.5 10000
+Options Params variablefast print
+
+
+rem The task 5 shares, with the same die rolls.
+fun variablefast Options Params
+  unpack Start Count = Options
+  Sims = Count integer
+  Quarters = Params 2 integer // 3
+  Rolls = (1 to 6) (Quarters * Sims) choices
+  Steps = (Rolls - 3.5) / 10
+  Changes = Steps (array Quarters Sims) reshape copy
+  return Changes Start Params fastdifference bins
+end
+
+
+rem The task 5 difference, a year per step. With a
+rem monthly Rate the balance grows by Rise = 1 + Rate
+rem and the interest of month k within the year is
+rem   Excess * Rise ** k + Payment,
+rem where Excess is the first interest over the payment.
+rem Over a Span of months the savings keep the tax back
+rem on that interest less each payment: Weight sums
+rem Rise ** k * Growth ** (Span - 1 - k) and Within is
+rem the same sum at a zero rate. The fixed loan is the
+rem same in every lane and adds a constant.
+fun fastdifference Changes Start Params
+  unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl TaxPct PropRate SavRate Rent = Params
+  Term = Months integer
+  Sims = Changes shape 1
+  Tax = TaxPct / 100
+  Growth = 1 + SavRate / 1200 * (1 - Tax)
+  Month = (1 to Term) copy
+  Fixed = BankAmt (BankRate / 1200) Month loan
+  FixedFlow = Fixed .pmt - Fixed .int * Tax
+  Settled = FixedFlow * Growth ** (Term - Month) sum
+
+  Official = array shape Sims fill Start * 1.0
+  Balance = array shape Sims fill BankAmt * 1.0
+  Saving = array shape Sims fill 0.0
+  for Year in 0 until (Term + 11) // 12
+    First = Year * 12
+    Left = Term - First
+    Span = 12 Left min
+    Rate = Official / 1200
+    Rise = 1 + Rate
+    Payment = Balance Rate Left payment
+    Within = Growth ** (0 until Span) sum
+    Weight = Rise Growth Span weight
+    Excess = Balance * Rate - Payment
+    Kept = Tax * Excess * Weight - (1 - Tax) * Payment * Within
+    Saving = (Saving * Growth ** Span + Kept) copy
+    Balance = Balance Rate Payment Span repay copy
+    if First + 12 less Term
+      for Quarter in Year * 4 until Year * 4 + 4
+        Moved = Official + Changes Quarter
+        Official = Moved 0.0 max copy
+      end
+    end
+  end
+  Owed = Balance - Fixed .bal (Term - 1)
+  return (Saving + Settled - Owed) copy
+end
+
+
+rem The balance after Span equal payments.
+fun repay Balance Rate Payment Span
+  Grown = (1 + Rate) ** Span
+  Annuity = Balance * Grown - Payment * (Grown - 1) / Rate
+  return (Rate equal 0) (Balance - Span * Payment) Annuity choose
+end
+
+
+rem Sum of Rise ** k * Growth ** (Span - 1 - k) for k
+rem below Span: a difference of powers over the Gap,
+rem or its first-order series when the two nearly meet.
+fun weight Rise Growth Span
+  Gap = Rise - Growth
+  Near = Span * Growth ** (Span - 1) + Span * (Span - 1) / 2 * Growth ** (Span - 2) * Gap
+  Far = (Rise ** Span - Growth ** Span) / Gap
+  return (Gap abs less 0.0000001) Near Far choose
+end

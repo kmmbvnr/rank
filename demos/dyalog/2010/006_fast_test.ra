@@ -1,0 +1,98 @@
+use testing
+
+rem The yearly closed forms must reproduce the monthly
+rem steps of task 5 lane by lane.
+test "random rate paths match the monthly model"
+  use "005_variable"
+  use "006_fast"
+  use numbers
+  use random
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  State = 11 seed
+  Rolls = (1 to 6) (120 * 50) choices
+  Steps = (Rolls - 3.5) / 10
+  Changes = Steps (array 120 50) reshape
+  Slow = Changes 8.5 Params difference
+  Fast = Changes 8.5 Params fastdifference
+  Error = Slow - Fast abs
+  Error at most 0.000001 all
+end
+
+test "a zero rate matches the monthly model"
+  use "005_variable"
+  use "006_fast"
+  use numbers
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Changes = array shape 120 3 fill -0.25
+  Slow = Changes 1.0 Params difference
+  Fast = Changes 1.0 Params fastdifference
+  Error = Slow - Fast abs
+  Close = Error at most 0.000001 all
+  Close and (Fast isnan count equal 0)
+end
+
+rem A central rate of 2.25 makes the monthly loan rate
+rem equal the net savings growth, where the weight sum
+rem switches to its series.
+test "a rate equal to the savings growth matches the monthly model"
+  use "005_variable"
+  use "006_fast"
+  use numbers
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Changes = array shape 120 2 fill 0.0
+  Slow = Changes 2.25 Params difference
+  Fast = Changes 2.25 Params fastdifference
+  Error = Slow - Fast abs
+  Error at most 0.000001 all
+end
+
+test "a term that is not whole years matches the monthly model"
+  use "005_variable"
+  use "006_fast"
+  use numbers
+  use random
+  use sequences
+
+  Params = array 150000.0 5000.0 100.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  State = 5 seed
+  Rolls = (1 to 6) (33 * 20) choices
+  Steps = (Rolls - 3.5) / 10
+  Changes = Steps (array 33 20) reshape
+  Slow = Changes 8.5 Params difference
+  Fast = Changes 8.5 Params fastdifference
+  Error = Slow - Fast abs
+  Error at most 0.000001 all
+end
+
+test "shares match task 5 with the same seed"
+  use "005_variable"
+  use "006_fast"
+  use random
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  State = 3 seed
+  Slow = (array 8.5 300) Params variablerisk
+  State = 3 seed
+  Fast = (array 8.5 300) Params variablefast
+  (Slow equal Fast) all
+end
+
+test "the weight series agrees with the sum near the savings growth"
+  use "006_fast"
+  use numbers
+  use sequences
+
+  Growth = 1.001875
+  Rise = Growth + 0.00000005
+  Month = (0 until 12) copy
+  Direct = Rise ** Month * Growth ** (11 - Month) sum
+  Series = Rise Growth 12 weight
+  Series - Direct abs at most 0.000000001
+end
