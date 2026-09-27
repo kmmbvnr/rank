@@ -10,7 +10,6 @@ use io
 use cli
 use sequences
 use stats
-use tables
 use text
 
 argument Input path = "demos/dyalog/2010/data/buyrent.xml"
@@ -30,8 +29,7 @@ rem dropped. An unknown code raises Missing.
 fun aggregate Data Period Ops
   Groups = Data Period window stride Period axis 0
   Kinds = "SAMFL" "" split
-  Positions = (0 until (Kinds len)) copy
-  Index = (Ops "" split) Kinds Positions lookup
+  Index = Kinds (Ops "" split) find rank 1 0
   Sums = Groups sum rank 1
   Means = Groups mean rank 1
   Maxima = Groups max rank 1

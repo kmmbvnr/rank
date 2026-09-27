@@ -756,7 +756,7 @@ Total = A B * outer sum rank 1 sum
 Total = M sum axis 0 sum
 ```
 
-`rank` consumes its integer argument; `axis` consumes its axis numbers (and
+`rank` consumes its integer argument, or two for `rank L R`; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
 `with` consumes one seed or identity operand before the chain continues.
 For example, `A + scan with 0 sum` sums the scan results. `segment`

@@ -337,6 +337,20 @@ shape to the frame. Source cells and assembled results are lazy read-only views;
 each demanded function result is cached. This avoids a separate
 dataframe-specific row API.
 
+A binary operation takes one cell rank per operand with `rank L R`. The left
+operand is split into cells of rank `L`, the right into cells of rank `R`, and
+their frames broadcast by trailing axes. Keeping one side whole and taking the
+other item by item finds several values in one vector at once:
+
+```rank
+Kinds = "SAMFL" "" split
+Index = Kinds (Ops "" split) find rank 1 0
+rem one position for every code
+```
+
+`M Targets find rank 1 0` pairs each row of `M` with its own target. Each cell
+result must currently be a scalar; `rank N` keeps its meaning.
+
 ## Iteration by axis and cell rank
 
 Ordinary `for` over a rank-N tensor yields its rank-(N-1) cells along the

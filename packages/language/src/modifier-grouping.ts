@@ -48,7 +48,11 @@ function boundary(parts: Expression[]): number | undefined {
         return parts.length > end ? end : undefined;
     }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
-    if (rank >= 0 && parts.length > rank + 2) return rank + 2;
+    if (rank >= 0) {
+        // `rank L R` takes a second number for the right operand of a binary operation.
+        const end = isNumberLiteral(parts[rank + 2]) ? rank + 3 : rank + 2;
+        if (parts.length > end) return end;
+    }
     const axis = parts.findIndex((part, index) => index >= 2 && named(part, 'axis'));
     if (axis >= 0) {
         let end = axis + 1;

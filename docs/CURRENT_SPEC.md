@@ -2724,7 +2724,7 @@ Total = A B * outer sum rank 1 sum
 Total = M sum axis 0 sum
 ```
 
-`rank` consumes its integer argument; `axis` consumes its axis numbers (and
+`rank` consumes its integer argument, or two for `rank L R`; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
 `with` consumes one seed or identity operand before the chain continues.
 For example, `A + scan with 0 sum` sums the scan results. `segment`
@@ -4814,6 +4814,20 @@ Scalar cell results have the frame shape. Array results append their common
 shape to the frame. Source cells and assembled results are lazy read-only views;
 each demanded function result is cached. This avoids a separate
 dataframe-specific row API.
+
+A binary operation takes one cell rank per operand with `rank L R`. The left
+operand is split into cells of rank `L`, the right into cells of rank `R`, and
+their frames broadcast by trailing axes. Keeping one side whole and taking the
+other item by item finds several values in one vector at once:
+
+```rank
+Kinds = "SAMFL" "" split
+Index = Kinds (Ops "" split) find rank 1 0
+rem one position for every code
+```
+
+`M Targets find rank 1 0` pairs each row of `M` with its own target. Each cell
+result must currently be a scalar; `rank N` keeps its meaning.
 
 ## Iteration by axis and cell rank
 

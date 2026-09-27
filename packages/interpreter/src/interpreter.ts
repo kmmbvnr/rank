@@ -2735,8 +2735,12 @@ export class Interpreter {
                         if (isNativeFunction(operation) && (operation.dyadicRanks || operation.arities.includes(2))) {
                             return yield* resume(interpreter.applyDyadicAtRank(
                                 left, right, operation, Number(explicitRank.rank),
+                                explicitRank.rightRank === undefined ? undefined : Number(explicitRank.rightRank),
                             ));
                         }
+                    }
+                    if (explicitRank.rightRank !== undefined) {
+                        throw new RankError('rank L R expects a binary operation');
                     }
                     const source = yield* resume(interpreter.evaluateTask(
                         applicationParts(explicitRank.parts.slice(0, -1)),
@@ -6698,7 +6702,20 @@ function explicitMaterializePipeline(parts: Expression[]): {
 
 function explicitRankApplication(
     parts: Expression[],
-): { parts: Expression[]; rank: bigint; axes?: readonly number[] } | undefined {
+): { parts: Expression[]; rank: bigint; rightRank?: bigint; axes?: readonly number[] } | undefined {
+    // `rank L R` gives the left and right operands of a binary operation their own cell ranks.
+    const [word, first, second] = parts.slice(-3);
+    if (parts.length >= 3 && isNamed(word, 'rank') && isNumberLiteral(first) && isNumberLiteral(second)) {
+        const beforeRank = parts.slice(0, -3);
+        if (beforeRank.length !== 3 || beforeRank.some(part => isNamed(part, 'axis'))) {
+            throw new RankError('rank L R expects two operands and a binary operation');
+        }
+        return {
+            parts: beforeRank,
+            rank: BigInt(safeDimension(integerLiteral(first, 'rank'), 'rank')),
+            rightRank: BigInt(safeDimension(integerLiteral(second, 'rank'), 'rank')),
+        };
+    }
     const modifier = parts.at(-2);
     const rank = parts.at(-1);
     if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
