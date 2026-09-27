@@ -27,6 +27,7 @@ import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { prepareFunction } from './prepared-function.js';
 import { ResourceMap } from './resource-summary.js';
 import { ResourceOwnership } from './resource-ownership.js';
+import { compareCells, equalValues } from './value-comparison.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
 import { reduceWindowCell } from './sequence.js';
 import { numericKernel } from './numeric-kernels.js';
@@ -6677,99 +6678,6 @@ function expectBoolean(value: RankValue): boolean {
         throw new RankError(`expected boolean, got ${typeName(value)}`);
     }
     return value;
-}
-
-function compareCells(operator: string, left: RankValue, right: RankValue): boolean {
-    if (operator === 'equal' || operator === 'notequal') {
-        const equal = equalValues(left, right);
-        return operator === 'equal' ? equal : !equal;
-    }
-    const order = compareCellOrder(left, right, new WeakMap());
-    if (operator === 'less') return order < 0;
-    if (operator === 'greater') return order > 0;
-    if (operator === 'atleast') return order >= 0;
-    return order <= 0;
-}
-
-function compareCellOrder(left: RankValue, right: RankValue, compared: WeakMap<object, WeakSet<object>>): number {
-    if (isRankArray(left) && isRankArray(right)) {
-        if (alreadyCompared(left, right, compared)) return 0;
-        const a = arraySize(left.shape), b = arraySize(right.shape);
-        for (let index = 0; index < Math.min(a, b); index++) {
-            checkpoint('comparing cells');
-            const order = compareCellOrder(arrayItem(left, index), arrayItem(right, index), compared);
-            if (order) return order;
-        }
-        if (a !== b) return a - b;
-        for (let axis = 0; axis < Math.min(left.shape.length, right.shape.length); axis++) {
-            if (left.shape[axis] !== right.shape[axis]) return left.shape[axis] - right.shape[axis];
-        }
-        return left.shape.length - right.shape.length;
-    }
-    return compareOrderedValues(left, right, orderedKind(left));
-}
-
-function equalValues(left: RankValue, right: RankValue): boolean {
-    return equalNestedValues(left, right, new WeakMap());
-}
-
-function equalNestedValues(
-    left: RankValue,
-    right: RankValue,
-    compared: WeakMap<object, WeakSet<object>>,
-): boolean {
-    if ((typeof left === 'bigint' || typeof left === 'number')
-        && (typeof right === 'bigint' || typeof right === 'number')) {
-        if (typeof left === typeof right) return left === right;
-        const integer = typeof left === 'bigint' ? left : right as bigint;
-        const real = typeof left === 'number' ? left : right as number;
-        return Number.isFinite(real) && Number.isInteger(real) && integer === BigInt(real);
-    }
-    if (typeof left !== 'object' || typeof right !== 'object') {
-        return left === right;
-    }
-    if (left.kind === 'label' && right.kind === 'label') {
-        return left.name === right.name;
-    }
-    if (isRankDate(left) && isRankDate(right)) {
-        return left.kind === right.kind && formatValue(left) === formatValue(right);
-    }
-    if (isRankDuration(left) && isRankDuration(right)) {
-        return left.seconds === right.seconds;
-    }
-    if (isRankArray(left) && isRankArray(right)) {
-        if (!sameShape(left.shape, right.shape)) return false;
-        if (alreadyCompared(left, right, compared)) return true;
-        const size = arraySize(left.shape);
-        for (let index = 0; index < size; index += 1) {
-            if (!equalNestedValues(arrayItem(left, index), arrayItem(right, index), compared)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    if (isRankRecord(left) && isRankRecord(right)) {
-        if (left.entries.size !== right.entries.size) return false;
-        if (alreadyCompared(left, right, compared)) return true;
-        for (const [name, value] of left.entries) {
-            const other = right.entries.get(name);
-            if (other === undefined || !equalNestedValues(value, other, compared)) return false;
-        }
-        return true;
-    }
-    return left === right;
-}
-
-function alreadyCompared(
-    left: object,
-    right: object,
-    compared: WeakMap<object, WeakSet<object>>,
-): boolean {
-    const matches = compared.get(left);
-    if (matches?.has(right)) return true;
-    if (matches) matches.add(right);
-    else compared.set(left, new WeakSet([right]));
-    return false;
 }
 
 export { typeName } from './value.js';
