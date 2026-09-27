@@ -8,10 +8,7 @@ use algo
 
 argument Input path
 
-Answers = Input read solve
-Part1 = Answers 0
-Part2 = Answers 1
-
+unpack Part1 Part2 = Input read solve
 Part1 print
 Part2 print
 
@@ -52,21 +49,15 @@ fun robohouses Moves
   set add array 0 0
 
   for C i in Moves
-    X = 0
-    Y = 0
-    if i % 2 equal 0
+    if i even
       SantaX += C dx
       SantaY += C dy
-      X = SantaX
-      Y = SantaY
+      set add array SantaX SantaY
     else
       RoboX += C dx
       RoboY += C dy
-      X = RoboX
-      Y = RoboY
+      set add array RoboX RoboY
     end
-
-    set add array X Y
   end
 
   return set len
@@ -77,8 +68,7 @@ rem Return horizontal movement for one direction.
 fun dx C
   if C equal ">"
     return 1
-  end
-  if C equal "<"
+  elif C equal "<"
     return -1
   end
   return 0
@@ -89,8 +79,7 @@ rem Return vertical movement for one direction.
 fun dy C
   if C equal "^"
     return 1
-  end
-  if C equal "v"
+  elif C equal "v"
     return -1
   end
   return 0
