@@ -97,13 +97,13 @@ facts do not settle that policy. Neither issue should be reimplemented here.
 
 Each coherent slice gets its own local commit after checks. At final integration,
 compare correctness, inference coverage, copy counts, execution time and edit
-latency separately. File count alone is not an acceptance metric. A pilot for
-#24 or #26 should need one form recognizer, one runtime case and one analysis
-case, with the new form visible to the compiler's exhaustive checks.
+latency separately. File count alone is not an acceptance metric. A new form
+needs one recognizer, one runtime case and one analysis case. A metadata-only
+change, such as an intrinsic rank in #26, needs no new form recognizer.
 
-## Integration result, 2026-09-28
+## Earlier integration checkpoint, 2026-09-28
 
-The final `npm test` passed: language 461, interpreter 1,644, common 68, CLI 478
+At that checkpoint, `npm test` passed: language 461, interpreter 1,644, common 68, CLI 478
 and compile 10 tests. `node packages/cli/bin/cli.js test demos` passed all 392
 test files. Three pre-existing AoC demos used queue materialization or unpacked
 a rank-2 combination; their source was corrected and their seven cases passed
@@ -118,3 +118,37 @@ and zero expectation conflicts. Isolated incomplete-source analysis times were
 15.19 ms (gradient), 6.73 ms (k-means) and 3.21 ms (Adam), with copy counts
 0, 1 and 0 and copied-cell counts 0, 256 and 0. These are local samples, not
 speed claims; CoW counters do not measure all allocations.
+
+## Final integration after the call, loop, return and table slices
+
+`npm test` passed with 461 language, 1,644 interpreter, 68 common, 478 CLI and
+10 compile tests. The CLI demo runner passed all 392 files. The architecture
+check covers 25 migrated owners and found no cycle or backwards import among
+them. It does not claim that every pre-existing module is acyclic.
+
+The inference corpus remains at 1,051 known results of 1,087 examples, with
+zero expectation conflicts. An isolated incomplete-source run measured
+0.11/0.20 ms median/p95 for the short case and 5.48/6.71 ms for the 200-write
+case; repeat runs ranged from 0.10/0.17 to 0.14/0.27 ms and 4.95/6.11 to
+5.31/7.09 ms respectively. This variation does not establish a regression.
+The 256-cell CoW demo medians were 14.10 ms (gradient), 6.64 ms (k-means)
+and 3.18 ms (Adam). Copy counts remained 0/1/0 and copied-cell counts
+0/256/0. These counters do not measure all allocations.
+
+Issue #26 is a useful pilot for the new ownership map. An intrinsic rank
+change begins at the `dyadicRanks` entry in `language/operations.ts`, reaches
+concrete execution through `interpreter/rank-application.ts`, and reaches
+static result shape inference through `analysis/application-facts.ts`. No
+additional spelling recognizer is needed for that path. The proposed negative
+ranks and non-scalar result stacking in #26 still depend on their own language
+contracts; this refactor does not select those behaviors.
+
+The remaining `prepareStatement` and `compileExpression` cases still dispatch
+in `Interpreter`. Extracting the loop compiler adapter or every application
+branch today would require passing most of the interpreter's mutable state to
+another file. Keep those cases visible until a narrower execution contract
+has a concrete consumer. The retained `ValueFacts.acceptedTypes` and
+`acceptedArrayRank` fields are transitional: a separate persistent contract
+representation belongs with the typing policy in #3/#5, where its lifetime and
+unknown-value rules can be specified. These are explicit limits of the
+refactor, not evidence that a future type rule is already implemented.
