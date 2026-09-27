@@ -1,6 +1,6 @@
 # Issue #1: baseline and semantic ownership
 
-Status: working migration record, 2026-09-27. The behavior measurements below
+Status: working migration record, 2026-09-28. The baseline measurements below
 were taken after fixing the missing `use numbers` in the houses demo (commit
 `517fc2b`). Times are local samples, not performance promises.
 
@@ -28,17 +28,25 @@ possible types conflict, while runtime checks a concrete value; sharing a
 binding rule must retain that difference. Existing `frame.ts`, `execution.ts`,
 storage and compiler modules remain owners where they already have a clear job.
 
-## Current owners and direction
+## Semantic owners after the migration
 
-| Concern | Current owner / boundary | Migration target |
+| Concern | Owner / boundary | Where a new rule goes |
 | --- | --- | --- |
-| Syntax and application grouping | `language/expressions.ts`, `modifier-grouping.ts` | One binding-aware form recognizer in `language`, used by grouping, runtime and analysis |
-| Builtin identity and metadata | `language/operations.ts`; runtime implementations in `interpreter/modules/` | Reuse the operation entry; keep executable values in runtime |
+| Syntax and application forms | `language/application-forms.ts`, `expressions.ts`, `modifier-grouping.ts` | Recognize the syntax in language; consume the form in runtime and analysis |
+| Builtin identity and metadata | `language/operations.ts`; runtime implementations in `interpreter/modules/` | Extend the operation entry and its module implementation |
 | Names and scopes | `language/analysis/bindings.ts`, `block-scope.ts`; runtime `frame.ts` | Keep static scope facts separate from mutable runtime frames |
-| Type/rank facts and diagnostics | `value-facts.ts` (1,229 lines), `value-diagnostics.ts` (1,749 lines) | Extract transfer, call and flow responsibilities as they gain actual consumers |
-| Execution and compiler dispatch | `interpreter.ts` (7,335 lines), `execution.ts`, prepared-function and compiler modules | Preserve `Interpreter` as facade; move node handlers through narrow dependencies |
-| Resources and host effects | `interpreter.ts`, `resource-summary.ts`, `host-effects.ts` | Keep lifetime and host policy visible at the execution boundary |
-| REPL | `common` sessions and preview generation | Pass explicit preview origin to language analysis when replacing the name-prefix convention |
+| Binding type and rank | `language/binding-rule.ts`, `type-names.ts`; runtime classification in `interpreter/value.ts` | Change the shared rule or name once, then classify concrete values at runtime |
+| Abstract facts and transfer | `analysis/value-domain.ts`, `binary-facts.ts`, `application-facts.ts`, `value-facts.ts` | Add abstract transfer without evaluating user code or lazy cells |
+| Flow and safety proofs | `analysis/control-flow.ts`, `value-safety.ts`, `operation-proofs.ts` | Prove conflicts conservatively; keep storage and effect guards separate |
+| Function yields | `analysis/function-yields.ts` | Summarize generator cells from safe parameter and local facts without executing the body |
+| Bounded recursion proof | `analysis/numeric-recursion.ts` | Keep eligibility and input widening separate from call-site execution paths |
+| Call analysis and diagnostics | `analysis/value-diagnostics.ts` | Keep call-site budgets and source diagnostics together until a smaller contract has a consumer |
+| Table expression evaluation | `interpreter/keyed-table-expression.ts` | Add a keyed table case there with only module and expression-evaluation capabilities |
+| Selectors and rank application | `interpreter/selectors.ts`, `tensor-index.ts`, `rank-application.ts`, `reduction.ts` | Change concrete indexing, cell/frame assembly or reduction here; keep AST form recognition in language |
+| Value comparison and CLI inputs | `interpreter/value-comparison.ts`, `cli-args.ts` | Keep concrete runtime rules separate from abstract facts |
+| Execution and compiler dispatch | `interpreter.ts`, `execution.ts`, prepared-function and compiler modules | Preserve suspension, fallback timing and compiled/interpreted parity |
+| Resources and host effects | `interpreter/resource-ownership.ts`, `resource-summary.ts`, `host-effects.ts` | Keep closing and host policy visible at the execution boundary |
+| REPL | `common/live-preview.ts`, `repl-session.ts` | Pass explicit synthetic names; ordinary user names have ordinary block scope |
 
 `language` cannot import interpreter values, callbacks, host I/O or UI state.
 Runtime may consume language AST and semantic descriptions. `common` may adapt
@@ -52,6 +60,25 @@ The public runtime surface is `Interpreter` (`execute`, `evaluate`, `dispose`,
 exports from `interpreter/index.ts`. `analyzeValues`, `expressionFacts`,
 `analyzeBindings` and `analyzeWithImports` are exported from `language/index.ts`.
 These exports and observable evaluation order are compatibility boundaries.
+`execute` also accepts an optional set of synthetic names for isolated live
+previews; ordinary execution passes none. This set is not inferred from spelling.
+
+The executable boundary check is `npm run check:semantic-boundaries`. It rejects
+language imports of the interpreter, runtime imports back into the facade and
+cycles among the migrated semantic owners. Existing cycles outside these owners
+are not silently claimed to be removed by this check.
+
+The remaining large `prepareStatement`, `compileExpression` and call-analysis
+dispatches stay in their current owner when extraction would expose the entire
+interpreter or create a generic state container. Their feature-specific policies
+(return contracts in #3, specialization in #4, bottom/widening in #5) must be
+decided with a real consumer. In #24, a proposed trailing combiner would change
+`modifier-grouping.ts` and `symbolicApplicationForm`; `binary-facts.ts` and the
+runtime expression case already consume that form. The syntax choice and
+migration policy in #24 are still open. In #26, intrinsic ranks start in
+`operations.ts`, execute in `rank-application.ts`, and require an abstract
+transfer in `application-facts.ts`. Non-scalar cell stacking depends on the
+separate #23 contract, so this refactor does not choose it by accident.
 
 Issue #2 is closed; `scopeBlock`, `frame.ts`, `block-scope.ts` and scope tests
 already implement its core behavior. Issue #31 remains open and asks for a
