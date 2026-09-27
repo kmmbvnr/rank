@@ -100,6 +100,16 @@ it('keeps scalar boolean compound assignments local with proven inputs', () => {
     expect(analyze(source, 'month_days', [], [{ types: [] }, integer]).unknown).toBe(true);
 });
 
+it('proves local integer factor iteration without user callbacks', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const source = readFileSync(new URL('../../../demos/cses/math/019_countingnecklaces.ra', import.meta.url), 'utf8');
+    expect(analyze(source, 'totient', [], [integer]).unknown).toBe(false);
+    expect(analyze(source, 'totient', [], [{ types: [] }]).unknown).toBe(true);
+    const reader = 'fun helper Values\n Local = Values\n for Value in Local\n  Seen = Value\n end\n return 0\nend';
+    expect(analyze(reader, 'helper', [], [{ types: ['sequence'], rank: 1,
+        shape: [null], elements: ['integer'] }]).unknown).toBe(true);
+});
+
 it('proves numeric full reductions without invoking lazy cells', () => {
     const source = 'fun helper Values\n return Values + reduce\nend';
     const numeric: ValueFacts = { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],

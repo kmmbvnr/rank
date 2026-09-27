@@ -268,6 +268,16 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     return true;
                 }
                 if (!facts || operation.effects?.length) return false;
+                if (['factors', 'divisors'].includes(name) && arguments_.length === 1) {
+                    const source = fact(arguments_[0]);
+                    return source.rank === 0 && source.types.join() === 'integer';
+                }
+                if (name === 'unique' && arguments_.length === 1) {
+                    const source = fact(arguments_[0]);
+                    return ['array', 'sequence'].includes(source.types.join())
+                        && !!(source.eagerScalarCells || source.callbackFreeScalarCells)
+                        && !!source.elements?.length && source.elements.every(type => type === 'integer');
+                }
                 if (operation.arrayHeaderNoCallback) {
                     return hasArrayHeaderNoCallbackProof(operation, arguments_.map(fact));
                 }
@@ -382,6 +392,10 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 }
                 const target = parts.at(-1)!;
                 if (!isNameExpression(target) || locals.has(target.name) && !localFunctions.has(target.name)) return false;
+                if (isApplicationExpression(value.head) && value.arguments.length === 1
+                    && !isBound(target.name) && findOperation(target.name)?.arities.join() === '1') {
+                    return propagate(target.name, [value.head]);
+                }
                 return propagate(target.name, parts.slice(0, -1));
             }
             if (isNumberLiteral(value) || isStringLiteral(value) || isBooleanLiteral(value)
@@ -504,6 +518,12 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 } else if (isNameExpression(iterable) && definition.parameters.includes(iterable.name)
                     && source.types.join() === 'text' && read(iterable.name)) {
                     element = { types: ['text'], rank: 1, shape: [null] };
+                } else if (isNameExpression(iterable) && assignments.has(iterable.name)
+                    && !capturedBindings.has(iterable.name)
+                    && ['array', 'sequence'].includes(source.types.join())
+                    && !!(source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && source.elements?.join() === 'integer') {
+                    element = { types: ['integer'], rank: 0, shape: [] };
                 } else return false;
                 const binder = item.condition.left.name;
                 locals.add(binder);

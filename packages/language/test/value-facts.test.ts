@@ -80,6 +80,18 @@ it('tracks fixed-decimal text formatting for proven numeric values', () => {
     expect(facts('Unknown text ".6f"')).toEqual({ types: [] });
 });
 
+it('tracks callback-free integer factor sequences and distinct values', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const bindings = new Map([['N', integer]]);
+    for (const operation of ['factors', 'divisors']) {
+        expect(facts(`N ${operation}`, bindings)).toEqual({ types: ['sequence'],
+            elements: ['integer'], rank: 1, shape: [null], callbackFreeScalarCells: true });
+    }
+    expect(facts('N factors unique', bindings)).toEqual({ types: ['sequence'],
+        elements: ['integer'], rank: 1, shape: [null], callbackFreeScalarCells: true });
+    expect(facts('Unknown factors')).toEqual({ types: ['sequence'] });
+});
+
 it('reads a counter entry as an integer when the key is known', () => {
     const counter: ValueFacts = { types: ['counter'] };
     const bindings = new Map<string, ValueFacts>([['Counts', counter], ['Letter', {

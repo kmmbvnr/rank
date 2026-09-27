@@ -1125,6 +1125,17 @@ it('infers unchanged probability demos through numeric text formatting', () => {
     }
 });
 
+it('infers the unchanged necklace result through integer divisor sequences', () => {
+    const source = readFileSync(new URL('../../../demos/cses/math/019_countingnecklaces.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/cses/math/019_countingnecklaces_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '019_countingnecklaces', new Set(['necklaces']));
+    expect(examples.length).toBeGreaterThan(0);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual(examples.map(() => ['integer']));
+});
+
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
     const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;

@@ -391,6 +391,20 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
             const arity = unaryTail ? 1 : parts.length - 1;
             if (operation?.arities.includes(arity)) {
                 const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => expressionFacts(part, lookup));
+                if (arity === 1 && ['factors', 'divisors'].includes(last.name)
+                    && source.rank === 0 && source.types.join() === 'integer') {
+                    return { types: ['sequence'], elements: ['integer'], rank: 1,
+                        shape: [null], callbackFreeScalarCells: true };
+                }
+                if (arity === 1 && last.name === 'unique' && source.rank === 1
+                    && ['array', 'sequence'].includes(source.types.join())
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && source.elements?.length && source.elements.every(type =>
+                        ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))) {
+                    return { types: source.types, elements: source.elements, rank: 1,
+                        shape: [null], ...(source.types.join() === 'array'
+                            ? { eagerScalarCells: true as const } : { callbackFreeScalarCells: true as const }) };
+                }
                 if (last.name === 'text' && arity === 1 && source.rank === 0
                     && source.types.length > 0 && source.types.every(type =>
                         ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
