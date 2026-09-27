@@ -20,11 +20,8 @@ fun removal_game Values
       AfterLeft = Difference (Left + 1)
       TakeLeft = Values Left - AfterLeft
       BeforeRight = Difference Left
-      RightValue = Values Right
-      TakeRight = RightValue
-      TakeRight -= BeforeRight
-      Best = TakeLeft TakeRight max
-      Difference Left = Best
+      TakeRight = Values Right - BeforeRight
+      Difference Left = TakeLeft TakeRight max
     end
   end
 
