@@ -1,4 +1,4 @@
-import { flattenApplication } from '../expressions.js';
+import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 /**
  * Type facts over the runtime's own type names.
  *
@@ -152,6 +152,11 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         return within(operand, NUMBERS) ? operand : UNKNOWN;
     }
     if (isBinaryExpression(expression)) {
+        const slice = inlineSliceOperands(expression);
+        if (slice) {
+            const source = typeOf(slice.source, lookup);
+            return same(source, 'array') || same(source, 'text') ? source : UNKNOWN;
+        }
         return binaryType(expression.operator,
             typeOf(expression.left, lookup), typeOf(expression.right, lookup));
     }
