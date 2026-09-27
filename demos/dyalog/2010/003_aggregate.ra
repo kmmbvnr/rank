@@ -14,8 +14,13 @@ use text
 
 argument Input path = "demos/dyalog/2010/data/buyrent.xml"
 
-Mat = (1 to 16) copy (array 4 4) reshape
-(Mat 2 "SAMF" aggregate) print
+Mat = array shape 4 4
+  1 2 3 4
+  5 6 7 8
+  9 10 11 12
+  13 14 15 16
+end
+Mat 2 "SAMF" aggregate print
 
 rem Yearly totals of flows, year-end values of balances.
 Model = Input read getparams buyorrent
