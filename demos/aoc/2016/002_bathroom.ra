@@ -8,10 +8,7 @@ use sequences
 
 argument Input path
 
-Answers = Input readlines solve
-Part1 = Answers 0
-Part2 = Answers 1
-
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
@@ -67,12 +64,10 @@ end
 rem Return how far one direction moves on a keypad of the given width.
 fun offset C Width
   if C equal "U"
-    return 0 - Width
-  end
-  if C equal "D"
+    return -Width
+  elif C equal "D"
     return Width
-  end
-  if C equal "L"
+  elif C equal "L"
     return -1
   end
   return 1
