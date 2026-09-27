@@ -103,6 +103,8 @@ factors
 divisors
 multiple by
 infinity
+nan
+isnan
 ```
 
 `multiple by` is an elementwise divisibility test and returns a boolean value
@@ -303,6 +305,10 @@ so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
+
+`nan` is the real not-a-number value, printed as `nan`. Every ordering
+comparison and `equal` with it is false. `Value isnan` is a boolean mask over
+numbers, arrays and sequences; other element types raise `.TypeError`.
 
 ## Sequences
 

@@ -3,6 +3,9 @@ import type { RankValue } from './value.js';
 /** Bounded diagnostic text; never evaluates lazy arrays or consumes sequences. */
 export function summarizeValue(value: RankValue, depth = 0): string {
     if (typeof value === 'string') return JSON.stringify(value.slice(0, 80)) + (value.length > 80 ? '…' : '');
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+        return Number.isNaN(value) ? 'nan' : value > 0 ? 'infinity' : '-infinity';
+    }
     if (typeof value !== 'object') return String(value);
     if (value.kind === 'array' || value.kind === 'bytes') {
         const label = `${value.kind}[${value.shape.join('×')}]`;

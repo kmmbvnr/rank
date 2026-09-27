@@ -4880,6 +4880,9 @@ export class Interpreter {
         }
         if (operator === 'less' || operator === 'greater'
             || operator === 'atleast' || operator === 'atmost') {
+            // IEEE: nan is unordered, so every comparison with it is false,
+            // as in the compiled scalar and tensor kernels.
+            if (Number.isNaN(left) || Number.isNaN(right)) return false;
             const order = compareOrderedValues(left, right, orderedKind(left));
             if (operator === 'less') return order < 0;
             if (operator === 'greater') return order > 0;

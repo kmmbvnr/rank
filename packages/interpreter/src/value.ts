@@ -452,6 +452,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (typeof value === 'number') {
         if (value === Number.POSITIVE_INFINITY) return 'infinity';
         if (value === Number.NEGATIVE_INFINITY) return '-infinity';
+        if (Number.isNaN(value)) return 'nan';
         return Object.is(value, -0) ? '0' : value.toString();
     }
     if (typeof value === 'boolean') {

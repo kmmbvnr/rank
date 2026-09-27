@@ -3,6 +3,18 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank mathematical functions', () => {
+    it('marks and detects nan, which is unordered and unequal to itself', () => {
+        expect(run('use numbers\nnan')).toBe('nan');
+        expect(run('use numbers\ninfinity - infinity isnan')).toBe('true');
+        expect(run('use numbers\n(array 1.0 nan 3) isnan')).toBe('false true false');
+        expect(run('use numbers\nuse sequences\n(array 1.0 nan 3) isnan true find')).toBe('1');
+        expect(run('use numbers\nuse sequences\n(1 to 3) isnan copy')).toBe('false false false');
+        expect(run('use numbers\narray (nan less 1.0) (nan at most 1.0) (1.0 at least nan) (nan equal nan)'))
+            .toBe('false false false false');
+        expect(run('use numbers\n(array nan 2.0) at most 3.0')).toBe('false true');
+        expect(() => run('use numbers\n"x" isnan')).toThrowError();
+    });
+
     it('calculates exact and modular binomials', () => {
         expect(run('use numbers\n5 2 binomial')).toBe('10');
         expect(run('use numbers\n100 50 binomial')).toBe(

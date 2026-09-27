@@ -74,6 +74,7 @@ export const numbersModule: RuntimeModule = {
     round: () => native('round', 2, arguments_ =>
         roundValue(arguments_[0], arguments_[1])),
     infinity: () => Number.POSITIVE_INFINITY,
+    nan: () => Number.NaN,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
     powmod: () => native('powmod', 3, arguments_ => modularPower(
@@ -120,6 +121,7 @@ export const numbersModule: RuntimeModule = {
     }),
     odd: () => predicateFunction('odd', value => expectInteger(value) % 2n !== 0n),
     even: () => predicateFunction('even', value => expectInteger(value) % 2n === 0n),
+    isnan: () => predicateFunction('isnan', value => Number.isNaN(Number(expectNumeric(value)))),
 };
 
 function unaryMath(

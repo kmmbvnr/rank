@@ -619,6 +619,14 @@ rem 2.5, 2, -3
 valid for comparisons and arithmetic, but decimal input declarations accept
 only finite real values.
 
+`nan` from `use numbers` is the IEEE not-a-number real value. It marks a real
+with no numeric value, such as an unknown parameter, and arises from undefined
+real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,
+`greater`, `at most`, `at least` and `equal` with it are false, so it does not
+equal itself and `find` cannot locate it. `Value isnan` tests for it, mapping
+over arrays and sequences like `even`, and `Params isnan true find` gives its
+position. Missing cells in general are a separate proposal.
+
 `round` from `use numbers` preserves the numeric type of every scalar it
 rounds: an `integer` result remains an integer and a `real` result remains a
 real. Its signed integer places argument counts decimal positions to the right
@@ -5243,6 +5251,10 @@ so `Operation = max` may be called as `A B Operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
+
+`nan` is the real not-a-number value, printed as `nan`. Every ordering
+comparison and `equal` with it is false. `Value isnan` is a boolean mask over
+numbers, arrays and sequences; other element types raise `.TypeError`.
 
 ## Sequences
 

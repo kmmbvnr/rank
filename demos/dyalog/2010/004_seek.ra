@@ -1,0 +1,89 @@
+rem Dyalog Programming Contest 2010
+rem Task 4: Goal Seeking
+rem One of the twelve parameters is unknown, marked
+rem with nan. Find a value for it that makes the
+rem final Advantage of Buying equal to a target,
+rem to within one unit of currency.
+
+use "001_params"
+use "002_buyorrent"
+use io
+use cli
+use numbers
+use sequences
+
+argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+
+Params = Input read getparams copy
+rem The initial rent at which buying and renting break even.
+Params 11 = nan
+(0 Params seek) print
+
+
+rem The loan term is a whole number of months and the
+rem gap jumps with it, so terms up to fifty years are
+rem scanned. Any other parameter is a nonnegative value,
+rem doubled from zero to a sign change of the gap and
+rem then bisected.
+rem Raises DomainError when no value reaches the target.
+fun seek Target Params
+  Pos = Params isnan true find
+  if Pos equal 2
+    for Months in 1 to 600
+      Value = Months * 1.0
+      if Value Pos Params Target gap abs at most 1
+        return Value
+      end
+    end
+    .DomainError "no value reaches the target" raise
+  end
+  Low = 0.0
+  LowGap = Low Pos Params Target gap
+  High = 1.0
+  HighGap = High Pos Params Target gap
+  for not (LowGap * HighGap at most 0)
+    if High greater 2.0 ** 40
+      .DomainError "no value reaches the target" raise
+    end
+    Low = High
+    LowGap = HighGap
+    High = High * 2
+    HighGap = High Pos Params Target gap
+  end
+  if LowGap abs at most 1
+    return Low
+  end
+  if HighGap abs at most 1
+    return High
+  end
+  for
+    Mid = (Low + High) / 2
+    if (Mid equal Low) or (Mid equal High)
+      .DomainError "no value reaches the target" raise
+    end
+    MidGap = Mid Pos Params Target gap
+    if MidGap abs at most 1
+      return Mid
+    end
+    if LowGap * MidGap at most 0
+      High = Mid
+    else
+      Low = Mid
+      LowGap = MidGap
+    end
+  end
+end
+
+
+rem Final advantage minus the target, or nan where
+rem the model has no value, such as a zero rate.
+fun gap Value Pos Params Target
+  Trial = Params copy
+  Trial Pos = Value
+  try
+    Series = Trial buyorrent .series
+    return Series (Series len - 1) 14 - Target
+  catch Error
+    return nan
+  end
+end

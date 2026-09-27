@@ -273,9 +273,11 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `N factors` | sequence, lazy | Lazy ascending sequence of the prime factors, repeated factors included. |
 | `A B gcd` | integer | Greatest common divisor, always nonnegative. |
 | `infinity` | real | The positive infinite real value. |
+| `Value isnan` | boolean | True for the real value nan; it does not equal itself. |
 | `Value isqrt` | integer | Exact integer floor of the square root, calculated without reals. |
 | `A B lcm` | integer | Least common multiple, also a reduction over one finite collection. |
 | `Value log` | real | Natural logarithm of a positive finite number. |
+| `nan` | real | The real not-a-number value, for a result or cell with no numeric value. |
 | `Value odd` | boolean | True for an odd integer. |
 | `Base Exponent Modulus powmod` | integer | Modular exponentiation by repeated squaring, never building the full power. |
 | `Value Places round` | number | Rounds to a signed number of decimal places, halfway values to even. |

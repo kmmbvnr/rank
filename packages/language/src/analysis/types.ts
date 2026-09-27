@@ -263,7 +263,7 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     // Leading operands beyond the arity are addressing that the runtime folds
     // into one value first, so the operation still decides the result.
     if (arity < Math.min(...operation.arities)) return UNKNOWN;
-    if (operation.name === 'even' || operation.name === 'odd') {
+    if (operation.name === 'even' || operation.name === 'odd' || operation.name === 'isnan') {
         // These predicates map over collections. Addressing or an unresolved
         // call chain needs runtime information before its shape is known.
         if (parts.length !== 2) return UNKNOWN;
