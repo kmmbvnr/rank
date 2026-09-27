@@ -591,11 +591,15 @@ it('checks the result rank of the unchanged bill-count loop before execution', (
         .toEqual(['2 selectors exceed array rank 1']);
 });
 
-it('keeps unsupported loop exits unknown when inferring returned values', () => {
+it('collects returns from reachable loop paths with break and continue', () => {
     for (const exit of ['break', 'continue']) {
         expect(messages(`fun choose N\n for I in 0 until N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 choose\nA = true`))
-            .toEqual([]);
+            .toEqual(['A has type integer or text and cannot receive boolean']);
+        expect(messages(`fun choose\n for I in 1 to 2\n  ${exit}\n  return 1\n end\n return "text"\nend\nA = choose\nA = true`))
+            .toEqual(['A has type text and cannot receive boolean']);
     }
+    expect(messages('fun choose\n for I in 1 to 2\n  for J in 1 to 2\n   break\n  end\n  return 1\n end\n return "text"\nend\nA = choose\nA = true'))
+        .toEqual(['A has type integer or text and cannot receive boolean']);
     expect(messages('fun choose\n for I in 0 until 0\n  return "text"\n end\n return 1\nend\nA = choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });

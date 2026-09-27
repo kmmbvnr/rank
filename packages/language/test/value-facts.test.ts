@@ -135,6 +135,14 @@ it('keeps scalar rank through unary signs and guarded numeric builtins', () => {
         .toBeUndefined();
 });
 
+it('does not call a shape-preserving numeric operation scalar when its input is unknown', () => {
+    expect(facts('Unknown 4 round').types).toEqual([]);
+    expect(facts('Unknown sin').types).toEqual([]);
+    const mixed = new Map<string, ValueFacts>([['Value', { types: ['array', 'integer'] }]]);
+    expect(facts('Value 4 round', mixed).types).toEqual([]);
+    expect(facts('Value sin', mixed).types).toEqual([]);
+});
+
 it('distinguishes callback-free derived masks from eager arrays', () => {
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
         eagerScalarCells: true };

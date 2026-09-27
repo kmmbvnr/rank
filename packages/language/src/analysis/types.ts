@@ -266,6 +266,8 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     const arity = unaryTail ? 1 : parts.length - 1;
     const source = typeOf(unaryTail ? expression.head : head, lookup);
     if (operation.arities.includes(arity)) {
+        if ((arity === 1 && mapsScalarCells(operation) || arity === 2 && operation.preservesArrayShape)
+            && !same(source, 'array') && !same(source, 'sequence') && !within(source, NUMBERS)) return UNKNOWN;
         if (arity === 1 && mapsScalarCells(operation)
             && (same(source, 'array') || same(source, 'sequence'))) return source;
         if (arity === 2 && operation.preservesArrayShape

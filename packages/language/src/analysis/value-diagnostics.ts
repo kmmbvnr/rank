@@ -4,7 +4,7 @@ import {
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isStatement, isExpression,
-    isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
+    isBreakStatement, isContinueStatement, isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isAddStatement, isPushStatement, isTryStatement, isUnpackStatement, isYieldStatement,
     type Expression, type Program, type Statement, type FunctionStatement, type IfStatement, type ForStatement,
     type YieldStatement,
@@ -198,9 +198,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
     }
 
-    function returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): { values: ValueFacts[]; fallsThrough: boolean } {
+    interface ReturnPaths {
+        values: ValueFacts[];
+        fallsThrough: boolean;
+        exitsLoop: boolean;
+    }
+    function returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): ReturnPaths {
         const values: ValueFacts[] = [];
+        let exitsLoop = false;
         for (const statement of items) {
+            if (isBreakStatement(statement) || isContinueStatement(statement)) {
+                return { values, fallsThrough: false, exitsLoop: true };
+            }
             if (isReturnStatement(statement)) {
                 if (statement.value) invalidateCalls(statement.value, env);
                 const observed = statement.value ? inspect(statement.value, env) : UNKNOWN_VALUE;
@@ -209,7 +218,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const result = observed.types.length || !contract?.acceptedTypes?.length ? observed
                     : { types: contract.acceptedTypes, acceptedArrayRank: contractRank(contract) };
                 if (!statement.value || !directNoReturnCall(statement.value, env)) values.push(result);
-                return { values, fallsThrough: false };
+                return { values, fallsThrough: false, exitsLoop };
             }
             if (isIfStatement(statement)) {
                 const branches = conditionalPaths(statement, env);
@@ -222,15 +231,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     // Return facts still join all possible paths conservatively.
                     if (branches.length > 1) diagnostics.length = diagnosticStart;
                     values.push(...result.values);
+                    exitsLoop ||= result.exitsLoop;
                     if (result.fallsThrough) survivors.push(local);
                 }
-                if (!survivors.length) return { values, fallsThrough: false };
+                if (!survivors.length) return { values, fallsThrough: false, exitsLoop };
                 mergeEnvironments(env, survivors);
             } else if (isForStatement(statement)) {
                 const contents = [...AstUtils.streamAllContents(statement)];
-                if (contents.some(node => node.$type === 'BreakStatement' || node.$type === 'ContinueStatement')) {
-                    return { values: [UNKNOWN_VALUE], fallsThrough: true };
-                }
                 if (contents.some(isReturnStatement)) values.push(...loopReturnPaths(statement, env));
                 else loop(statement, env);
             } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
@@ -238,13 +245,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 || isAddStatement(statement) || isPushStatement(statement)
                 || isUnpackStatement(statement)
                 || isExpressionStatement(statement) || isFunctionStatement(statement)) {
-                if (!statements([statement], env)) return { values, fallsThrough: false };
+                if (!statements([statement], env)) return { values, fallsThrough: false, exitsLoop };
             } else {
                 // Unknown control flow may return, yield, throw or alter captured state.
-                return { values: [UNKNOWN_VALUE], fallsThrough: true };
+                return { values: [UNKNOWN_VALUE], fallsThrough: true, exitsLoop };
             }
         }
-        return { values, fallsThrough: true };
+        return { values, fallsThrough: true, exitsLoop };
     }
 
     function emptyBuiltinRange(source: Expression | undefined, collection: ValueFacts): boolean {
@@ -397,7 +404,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const start = diagnostics.length;
         const returned = returnPaths(statement.statements, local);
         if (count == null || count <= 0) diagnostics.length = start;
-        if (returned.fallsThrough) {
+        if (returned.exitsLoop) {
+            for (const [name, fact] of env) env.set(name, invalidate(fact));
+        } else if (returned.fallsThrough) {
             for (const node of AstUtils.streamAllContents(statement)) {
                 for (const name of writtenBindings(node)) {
                     const fact = local.get(name);
