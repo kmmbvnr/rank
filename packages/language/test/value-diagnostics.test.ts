@@ -983,6 +983,21 @@ it('keeps a text parameter when an implicit queue selects its characters', () =>
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['text']);
 });
 
+it('binds each matrix row as an array when iterating its first axis', () => {
+    const source = 'fun first_cell Matrix\n for Row in Matrix\n  return Row 0\n end\nend\n'
+        + 'A = (array 1 2 3 4 shape 2 2) first_cell';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['integer']);
+    const rows = services.Rank.parser.LangiumParser.parse<Program>(source.replace('return Row 0', 'return Row') + '\n');
+    expect(analyzeValues(rows.value).bindings.get('A')).toMatchObject({ types: ['array'], rank: 1 });
+    expect(messages(source.replace('return Row 0', 'return Row 0 0')))
+        .toEqual(['first_cell: 2 selectors exceed array rank 1']);
+    const empty = 'fun empty\n Matrix = array shape 0 2 fill 0\n for Row in Matrix\n  return 1\n end\n return "x"\nend\nA = empty';
+    expect(analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(empty + '\n').value)
+        .bindings.get('A')?.types).toEqual(['text']);
+});
+
 it('infers the unchanged Zigzag demo from its test inputs', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/006_zigzag.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/006_zigzag_test.ra', import.meta.url), 'utf8');

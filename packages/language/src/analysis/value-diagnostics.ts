@@ -324,7 +324,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     function safeIndexedIteration(collection: ValueFacts): boolean {
         const kind = collection.types.join();
         return kind === 'text' || kind === 'queue'
-            || collection.rank === 1 && ['array', 'sequence'].includes(kind)
+            || collection.rank !== undefined && collection.rank > 0 && ['array', 'sequence'].includes(kind)
                 && (collection.eagerScalarCells === true || collection.callbackFreeScalarCells === true);
     }
 
@@ -342,10 +342,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function bindIteration(env: Map<string, ValueFacts>, names: readonly string[], collection: ValueFacts): void {
         if (names[0] !== '#') {
-            const types = collection.elements ?? (collection.types.join() === 'text' ? ['text'] : []);
-            env.set(names[0], { types, acceptedTypes: types,
-                ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
-                    ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] } : {}) });
+            if (collection.types.join() === 'array' && collection.rank !== undefined && collection.rank > 1) {
+                env.set(names[0], { types: ['array'], acceptedTypes: ['array'],
+                    rank: collection.rank - 1, acceptedArrayRank: collection.rank - 1,
+                    shape: collection.shape?.slice(1) ?? Array(collection.rank - 1).fill(null),
+                    ...(collection.eagerScalarCells || collection.callbackFreeScalarCells
+                        ? { elements: collection.elements, callbackFreeScalarCells: true as const } : {}) });
+            } else {
+                const types = collection.elements ?? (collection.types.join() === 'text' ? ['text'] : []);
+                env.set(names[0], { types, acceptedTypes: types,
+                    ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+                        ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] } : {}) });
+            }
         }
         if (names[1] && names[1] !== '#') env.set(names[1], {
             types: ['integer'], acceptedTypes: ['integer'], rank: 0, shape: [],
@@ -361,7 +369,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
         const membership = candidate && (candidate.names.length === 1
             || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)) ? candidate : undefined;
-        const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
+        const count = membership && collection.rank !== undefined && collection.rank > 0
+            ? collection.shape?.[0] : undefined;
         if (count === 0) {
             if (!emptyBuiltinRange(source, collection)
                 && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
@@ -481,7 +490,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
         const membership = candidate && (candidate.names.length === 1
             || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)) ? candidate : undefined;
-        const count = membership && collection.rank === 1 ? collection.shape?.[0] : undefined;
+        const count = membership && collection.rank !== undefined && collection.rank > 0
+            ? collection.shape?.[0] : undefined;
         if (count === 0) {
             if (!emptyBuiltinRange(source, collection)
                 && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
