@@ -16,3 +16,4 @@ export * from './analysis/block-scope.js';
 export * from './expression-grouping.js';
 export * from './expressions.js';
 export { REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS, groupModifiers } from './modifier-grouping.js';
+export * from './next-tokens.js';

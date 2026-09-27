@@ -287,11 +287,20 @@ let tallestViewport = 0;
 let viewportWidth = 0;
 /** Android reports the soft keyboard itself; a browser only shows it by shrinking the viewport. */
 let nativeSoftKeyboard: boolean | undefined;
-(globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean) => void }).rankSoftKeyboard = visible => {
-    nativeSoftKeyboard = visible;
-    softKeyboard = visible;
-    render();
-};
+const softKeyboardHeightKey = 'rank-soft-keyboard-height-v1';
+let softKeyboardHeight = 0;
+try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) || 0; } catch { /* Measured again when it opens. */ }
+(globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean, height?: number) => void })
+    .rankSoftKeyboard = (visible, height = 0) => {
+        nativeSoftKeyboard = visible;
+        softKeyboard = visible;
+        // Remember the portrait soft keyboard's height to take exactly its place.
+        if (visible && height > 100 && innerHeight > innerWidth) {
+            softKeyboardHeight = height;
+            try { localStorage.setItem(softKeyboardHeightKey, String(height)); } catch { /* This visit only. */ }
+        }
+        render();
+    };
 /**
  * The symbol keyboard replaces the soft keyboard rather than stacking with it:
  * closing the soft keyboard shows the symbols, ABC brings the soft keyboard back.
@@ -311,21 +320,27 @@ function renderKeyboard(): void {
     const shown = keyboardEnabled && !softKeyboard;
     const tabs = keyboardTabs(repl.session.modules);
     if (!tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
-    const layout = keyboardModule + ':' + tabs.map(tab => tab.module).join(',');
-    if (layout !== keyboardLayout) {
-        keyboardLayout = layout;
+    const modules = tabs.map(tab => tab.module).join(',');
+    if (modules !== keyboardTabList.dataset.modules) {
+        keyboardTabList.dataset.modules = modules;
         keyboardTabList.replaceChildren(...tabs.map(tab => {
             const button = document.createElement('button');
             button.type = 'button';
             button.role = 'tab';
+            button.tabIndex = -1;
             button.textContent = tab.module;
-            button.setAttribute('aria-selected', String(tab.module === keyboardModule));
             button.onclick = () => { haptic(); keyboardModule = tab.module; keyboardKeys.scrollTop = 0; render(); };
             return button;
         }));
+    }
+    for (const button of keyboardTabList.children)
+        button.setAttribute('aria-selected', String(button.textContent === keyboardModule));
+    if (keyboardModule !== keyboardLayout) {
+        keyboardLayout = keyboardModule;
         keyboardKeys.replaceChildren(...tabs.find(tab => tab.module === keyboardModule)!.keys.map(key => {
             const button = document.createElement('button');
             button.type = 'button';
+            button.tabIndex = -1;
             button.textContent = key;
             button.onclick = () => typeKey(key);
             return button;
@@ -341,6 +356,9 @@ function renderKeyboard(): void {
     // Landscape leaves the narrow code on the left and floats the keyboard on the right.
     const floating = floatingKeyboard.matches;
     keyboard.classList.toggle('floating', floating);
+    const sized = !floating && softKeyboardHeight > 0;
+    keyboard.classList.toggle('sized', sized);
+    keyboard.style.height = sized ? softKeyboardHeight + 'px' : '';
     setKeyboardSize(floating ? 0 : keyboard.offsetHeight, floating ? keyboard.offsetWidth + 16 : 0);
 }
 function setKeyboardSize(height: number, width: number): void {
@@ -366,7 +384,9 @@ function setKeyboard(enabled: boolean): void {
     render();
 }
 // Tapping a key must not move focus, or the soft keyboard would come back over it.
+// Android follows a touch with a compatibility mousedown, whose default action focuses the button.
 keyboard.addEventListener('pointerdown', event => event.preventDefault());
+keyboard.addEventListener('mousedown', event => event.preventDefault());
 keyboardCollapse.onclick = () => { haptic(); setKeyboard(false); };
 // A field that kept focus after Back does not summon the soft keyboard again until it refocuses.
 keyboardLetters.onclick = () => {

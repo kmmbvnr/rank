@@ -15,6 +15,7 @@ public class MainActivity extends BridgeActivity {
     private boolean resumed;
     private boolean keyboardRequested;
     private Boolean imeVisible;
+    private int imeHeight;
     private final Runnable showKeyboard = () -> {
         if (!resumed || !hasWindowFocus() || keyboardRequested || bridge == null) return;
         WebView webView = bridge.getWebView();
@@ -52,11 +53,22 @@ public class MainActivity extends BridgeActivity {
                     String foreground = String.format("#%06x", getColor(android.R.color.system_accent1_100) & 0xffffff);
                     webView.evaluateJavascript("document.documentElement.style.setProperty('--run-background','" + background
                         + "');document.documentElement.style.setProperty('--run-foreground','" + foreground + "');", null);
+                    // The symbol keyboard wears the same dynamic colors as the system keyboard.
+                    webView.evaluateJavascript(color("--keyboard-900", android.R.color.system_neutral1_900)
+                        + color("--keyboard-800", android.R.color.system_neutral1_800)
+                        + color("--keyboard-700", android.R.color.system_neutral1_700)
+                        + color("--key-foreground", android.R.color.system_neutral1_50)
+                        + color("--keyboard-muted", android.R.color.system_neutral2_400)
+                        + color("--keyboard-accent", android.R.color.system_accent1_200), null);
                 }
                 imeVisible = null;
                 scheduleKeyboard();
             }
         });
+    }
+
+    private String color(String name, int id) {
+        return String.format("document.documentElement.style.setProperty('%s','#%06x');", name, getColor(id) & 0xffffff);
     }
 
     /** The console shows its symbol keyboard only while the soft keyboard is closed. */
@@ -67,9 +79,14 @@ public class MainActivity extends BridgeActivity {
             WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(webView);
             if (insets == null) return;
             boolean visible = insets.isVisible(WindowInsetsCompat.Type.ime());
-            if (imeVisible != null && imeVisible == visible) return;
+            // CSS pixels, so the symbol keyboard can take exactly the soft keyboard's place.
+            int height = Math.round(insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                / getResources().getDisplayMetrics().density);
+            if (imeVisible != null && imeVisible == visible && imeHeight == height) return;
             imeVisible = visible;
-            webView.evaluateJavascript("window.rankSoftKeyboard&&window.rankSoftKeyboard(" + visible + ")", null);
+            imeHeight = height;
+            webView.evaluateJavascript("window.rankSoftKeyboard&&window.rankSoftKeyboard("
+                + visible + "," + height + ")", null);
         });
     }
 

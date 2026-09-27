@@ -1,5 +1,5 @@
-import { moduleOperations } from '@arrrank/language';
-import { OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, endsOperand, insideText, tokenize } from './repl-input.js';
+import { acceptsNext, moduleOperations, nextTokens } from '@arrrank/language';
+import { OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, endsOperand, insideText, tokenize, type Token } from './repl-input.js';
 
 export interface KeyboardTab {
     readonly module: string;
@@ -12,8 +12,73 @@ const STATEMENT_HEADS = new Set([
     'flag', 'for', 'fun', 'if', 'memo', 'option', 'return', 'run', 'test', 'try', 'use', 'yield',
 ]);
 
-/** Word operators that take a left operand; `not` is a prefix and stands anywhere. */
-const INFIX = new Set(OPERATOR_KEYWORDS.filter(word => word !== 'not'));
+/** Statement keywords that continue an open block; the grammar knows which block is open. */
+const CONTINUATIONS = new Set(['catch', 'elif', 'else', 'end', 'finally']);
+
+/** Words that open an operand, so they never follow one. */
+const PREFIX = new Set(['array', 'new', 'not', 'record', 'stdin']);
+
+/** Modifiers name the operator they follow: `+ reduce`, `equal outer`, `len axis`. */
+const REDUCED = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
+const COMPARED = new Set(['equal', 'less', 'greater', 'least', 'most', 'by']);
+/** `rank` and `axis` also follow a function name: `len axis`, `integer rank`. */
+const function_ = (previous: Token) => previous.kind === 'word' && endsOperand(previous);
+const MODIFIERS: Readonly<Record<string, (previous: Token) => boolean>> = {
+    reduce: previous => REDUCED.has(previous.text),
+    scan: previous => REDUCED.has(previous.text),
+    outer: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text),
+    rank: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text) || function_(previous),
+    axis: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text) || function_(previous),
+};
+
+/** Postfix forms that take exactly one operand: `Values sort by .x`, but `(A B) sort by .x`. */
+const SINGLE = new Set(['sort by', 'argsort by', 'group by', 'first where', 'first index where',
+    'take while', 'filter', 'select']);
+
+/** Joins take two operands side by side: `Days Revenue leftjoin by .date`. */
+const PAIR = new Set(['leftjoin by', 'innerjoin by', 'leftjoin on', 'innerjoin on']);
+
+/** Words that only extend one construct earlier on the line. */
+const EXTENDS: Readonly<Record<string, (words: readonly string[]) => boolean>> = {
+    by: words => words.includes('to') || words.includes('until'),
+    fill: words => words.includes('shape'),
+    as: words => words[0] === 'use',
+};
+
+/** Items of an `array` literal run to the end of its bracket, and operators cannot stand between them. */
+function insideArray(tokens: readonly Token[]): boolean {
+    const levels = [false];
+    for (const token of tokens) {
+        if (token.text === '(') levels.push(false);
+        else if (token.text === ')') { if (levels.length > 1) levels.pop(); }
+        else if (token.kind === 'word' && token.text === 'array') levels[levels.length - 1] = true;
+    }
+    return levels.at(-1)!;
+}
+
+/** Mutations that stand as a statement of their own: `set add Value`. */
+const MUTATIONS = new Set(['set add', 'counter add']);
+
+/** Word operators that take a left operand. */
+const INFIX = new Set(OPERATOR_KEYWORDS.filter(word => !PREFIX.has(word) && !(word in MODIFIERS)
+    && !SINGLE.has(word) && !PAIR.has(word) && !(word in EXTENDS) && !MUTATIONS.has(word)));
+
+/** How many operands stand side by side at the end of the line, a bracketed group counting once. */
+function trailingOperands(tokens: readonly Token[]): number {
+    let count = 0;
+    for (let at = tokens.length - 1; at >= 0; at--) {
+        const token = tokens[at];
+        if (token.kind === 'symbol' && token.text === ')') {
+            let depth = 0;
+            for (; at >= 0; at--) {
+                if (tokens[at].text === ')') depth++;
+                else if (tokens[at].text === '(' && --depth === 0) break;
+            }
+        } else if (!endsOperand(token) || PREFIX.has(token.text)) break;
+        count++;
+    }
+    return count;
+}
 
 /**
  * One tab per module in use, `core` first: it carries the keywords, which need
@@ -33,16 +98,36 @@ export function keyboardTabs(modules: Iterable<string>): KeyboardTab[] {
 }
 
 /**
- * Whether a key can be typed after `before`, the source up to the cursor:
- * statement keywords open a line, word operators follow an operand, and
- * nothing is typed into text or a comment.
+ * Whether a key can be typed after `before`, the cell source up to the cursor.
+ * The grammar decides what may follow; statement keywords open a line, word
+ * operators follow an operand, and nothing goes into text, a comment or the
+ * module name after `use`.
  */
 export function keyAvailable(key: string, before: string): boolean {
     const line = before.slice(before.lastIndexOf('\n') + 1);
     if (insideText(line)) return false;
-    if (STATEMENT_HEADS.has(key)) return line.trim() === '';
-    if (INFIX.has(key)) return endsOperand(tokenize(line).at(-1));
-    return true;
+    const tokens = tokenize(line);
+    const last = tokens.at(-1);
+    if (last?.kind === 'word' && (last.text === 'use' || last.text === 'ops')) return false;
+    if (line.trim() === '') {
+        if (CONTINUATIONS.has(key)) return nextTokens(before).has(key);
+        if (STATEMENT_HEADS.has(key) || MUTATIONS.has(key)) return true;
+        // The completion parser sees only a line break here, so ask what starts an expression.
+        return !OPERATOR_KEYWORDS.includes(key) && acceptsNext('X = ', key)
+            || PREFIX.has(key);
+    }
+    if (STATEMENT_HEADS.has(key) || MUTATIONS.has(key)) return false;
+    if (key in MODIFIERS) return MODIFIERS[key](last!);
+    const words = tokens.map(token => token.text);
+    if (key in EXTENDS) return EXTENDS[key](words) && endsOperand(last) && !(last!.text in EXTENDS)
+        && !['shape', 'to', 'until', 'use'].includes(last!.text);
+    if (insideArray(tokens) && OPERATOR_KEYWORDS.includes(key)) return false;
+    if (SINGLE.has(key)) return trailingOperands(tokens) === 1;
+    if (PAIR.has(key)) return trailingOperands(tokens) >= 2;
+    // An operand ends here unless the last word still waits for one: `array 3` does, `array` does not.
+    const operand = endsOperand(last) && !PREFIX.has(last!.text);
+    if (INFIX.has(key) && !operand || PREFIX.has(key) && operand) return false;
+    return acceptsNext(before, key);
 }
 
 /**
