@@ -7,16 +7,10 @@ use algo
 fun add_two A B
   N = A len
   M = B len
-  Size = N
-
-  if M greater Size
-    Size = M
-  end
-
+  Size = N M max
   Carry = 0
-  I = 0
 
-  for I less Size
+  for I in 0 until Size
     X = 0
     Y = 0
 
@@ -31,7 +25,6 @@ fun add_two A B
     Sum = X + Y + Carry
     queue push Sum % 10
     Carry = Sum // 10
-    I += 1
   end
 
   if Carry greater 0
