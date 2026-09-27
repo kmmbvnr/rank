@@ -15,11 +15,6 @@ rem Minimize moves to one common length.
 fun stick_cost Values
   A = Values sort
   Target = A (A len // 2)
-  Cost = 0
-
-  for X in A
-    Cost += X - Target abs
-  end
-
-  return Cost
+  Diffs = A - Target abs
+  return Diffs sum
 end
