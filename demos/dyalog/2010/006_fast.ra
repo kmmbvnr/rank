@@ -88,7 +88,8 @@ rem The balance after Span equal payments.
 fun repay Balance Rate Payment Span
   Grown = (1 + Rate) ** Span
   Annuity = Balance * Grown - Payment * (Grown - 1) / Rate
-  return (Rate equal 0) (Balance - Span * Payment) Annuity choose
+  Zero = Rate less 0.000000001
+  return Zero (Balance - Span * Payment) Annuity choose
 end
 
 

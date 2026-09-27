@@ -96,3 +96,22 @@ test "the weight series agrees with the sum near the savings growth"
   Series = Rise Growth 12 weight
   Series - Direct abs at most 0.000000001
 end
+
+rem 0.1 + 0.2 - 0.3 leaves a rate a rounding error above
+rem zero, where the annuity formula divides by zero.
+test "a rounding residue above a zero rate matches the monthly model"
+  use "005_variable"
+  use "006_fast"
+  use numbers
+  use sequences
+
+  Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
+  Changes = array shape 120 1 fill 0.0
+  Changes 0 0 = 0.2
+  Changes 1 0 = -0.3
+  Slow = Changes 0.1 Params difference
+  Fast = Changes 0.1 Params fastdifference
+  Error = Slow - Fast abs
+  Close = Error at most 0.000001 all
+  Close and (Fast isnan count equal 0)
+end

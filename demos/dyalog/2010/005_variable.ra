@@ -75,9 +75,13 @@ end
 
 rem The standard amortization payment for each lane,
 rem an equal share of the balance at a zero rate.
+rem Sums of quarterly steps can leave a rate a rounding
+rem error above zero, where 1 + Rate is exactly 1, so
+rem a rate below 1e-9 counts as zero.
 fun payment Balance Rate Months
   Annuity = Balance * Rate / (1 - (1 + Rate) ** -Months)
-  return (Rate equal 0) (Balance / Months) Annuity choose
+  Zero = Rate less 0.000000001
+  return Zero (Balance / Months) Annuity choose
 end
 
 
