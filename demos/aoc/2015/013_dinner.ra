@@ -52,18 +52,12 @@ end
 
 rem Return the greatest happiness among all permutations of the guests.
 fun best Guests Scores
-  Routes = Guests permutations
-  Best = (Routes 0) Scores happiness
-
-  for Route in Routes
-    Total = Route Scores happiness
-
-    if Total greater Best
-      Best = Total
-    end
+  for Route in Guests permutations
+    queue push Route Scores happiness
   end
 
-  return Best
+  Happiness = queue array
+  return Happiness max
 end
 
 
