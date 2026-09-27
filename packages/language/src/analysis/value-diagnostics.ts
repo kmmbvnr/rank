@@ -239,6 +239,29 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
                 if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
                 mergeEnvironments(env, survivors);
+            } else if (isTryStatement(statement) && !statement.finallyStatements.length) {
+                const success = new Map(env);
+                const tried = returnPaths(statement.statements, success);
+                values.push(...tried.values);
+                breaks.push(...tried.breaks);
+                continues.push(...tried.continues);
+                const survivors = tried.fallsThrough ? [success] : [];
+                for (const clause of statement.catches) {
+                    // An error can occur after any prefix of the try body. Its
+                    // bindings cannot be assumed to have their entry values.
+                    const caught = new Map(env);
+                    forgetNonFunctions(caught);
+                    caught.set(clause.errorName, UNKNOWN_VALUE);
+                    const start = diagnostics.length;
+                    const path = returnPaths(clause.statements, caught);
+                    diagnostics.length = start;
+                    values.push(...path.values);
+                    breaks.push(...path.breaks);
+                    continues.push(...path.continues);
+                    if (path.fallsThrough) survivors.push(caught);
+                }
+                if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
+                mergeEnvironments(env, survivors);
             } else if (isForStatement(statement)) {
                 const contents = [...AstUtils.streamAllContents(statement)];
                 if (contents.some(isReturnStatement)) values.push(...loopReturnPaths(statement, env));

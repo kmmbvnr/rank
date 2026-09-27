@@ -976,6 +976,16 @@ it('infers result facts only from paths that return', () => {
     expect(messages('fun fail\n Value = 1\nend\nA = fail\nA + "bad"')).toEqual([]);
 });
 
+it('infers returns through try and catch without assuming partial writes', () => {
+    const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
+    const both = 'fun choose\n try\n  return 1\n catch Error\n  return "fallback"\n end\nend\nA = choose';
+    expect(analyzeValues(parse(both)).bindings.get('A')?.types).toEqual(['integer', 'text']);
+    const caught = 'fun choose\n Value = 1\n try\n  Value = 2\n  1 / 0\n catch Error\n  return Value\n end\nend\nA = choose';
+    expect(analyzeValues(parse(caught)).bindings.get('A')?.types).toEqual([]);
+    expect(messages('fun choose\n try\n  return array 1 2\n catch Error\n  return array 3 4\n end\nend\nA = choose\nA # #'))
+        .toEqual(['2 selectors exceed array rank 1']);
+});
+
 it('does not analyze statements after a definite no-return call', () => {
     const fail = 'fun fail\n Value = 1\nend\n';
     expect(messages(fail + 'fail\nA = 1\nA + "bad"')).toEqual([]);
