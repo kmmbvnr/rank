@@ -9,8 +9,9 @@ import {
 } from '../generated/ast.js';
 import { flattenApplication, groupedUnaryDyadicChain, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { expressionFacts, hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
-    hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof } from './value-facts.js';
+import { expressionFacts } from './value-facts.js';
+import { hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
+    hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof } from './operation-proofs.js';
 import { joinValueFacts, UNKNOWN_VALUE, type FactLookup, type ValueFacts } from './value-domain.js';
 
 /** Possible effects, not a purity promise. Unknown includes unsupported syntax. */
