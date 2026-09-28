@@ -25,8 +25,9 @@ fun components Cities Roads
 
   fun findroot City
     for Parent City not equal City
-      Parent City = Parent (Parent City)
-      City = Parent City
+      Next = Parent City
+      Parent City = Parent Next
+      City = Next
     end
     return City
   end
@@ -49,18 +50,20 @@ fun components Cities Roads
     return true
   end
 
-  for i in 0 until (Roads len // 2)
-    A = Roads (2 * i)
-    B = Roads (2 * i + 1)
+  Total = Roads len
+  for i in 0 until Total by 2
+    A = Roads i
+    B = Roads (i + 1)
     A B unite
   end
 
+  Roots = new queue
   for City in 1 to Cities
     if City findroot equal City
-      queue push City
+      Roots push City
     end
   end
 
-  Shape = array (queue len)
-  return queue Shape reshape
+  Length = Roots len
+  return Roots (0 until Length)
 end
