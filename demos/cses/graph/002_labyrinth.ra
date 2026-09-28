@@ -41,49 +41,40 @@ fun labyrinth Grid
     end
   end
 
-  rem Visit an unseen open neighbor.
-  fun visit Row Column Direction
-    NY = Row + DYs Direction
-    NX = Column + DXs Direction
-    Inside = NY at least 0
-    Inside and= NY less H
-    Inside and= NX at least 0
-    Inside and= NX less W
-    if not Inside
-      return -1
-    end
-
-    Neighbor = Grid NY
-    if Neighbor NX equal "#"
-      return -1
-    end
-    if Parent NY NX not equal -1
-      return -1
-    end
-
-    Parent NY NX = Direction
-    return NY * W + NX
-  end
-
   StartY = Start // W
   StartX = Start % W
   Parent StartY StartX = -2
-  queue push Start
-  Head = 0
+  Pending = new queue
+  Pending push Start
 
-  for queue len greater Head
-    Position = queue Head
+  for Position in Pending
+    if Position equal Target
+      break
+    end
     Row = Position // W
     Column = Position % W
 
     for DY Direction in DYs
-      Next = Row Column Direction visit
-      if Next not equal -1
-        queue push Next
+      NY = Row + DY
+      NX = Column + DXs Direction
+      if NY less 0 or NY at least H
+        continue
       end
-    end
+      if NX less 0 or NX at least W
+        continue
+      end
 
-    Head += 1
+      Neighbor = Grid NY
+      if Neighbor NX equal "#"
+        continue
+      end
+      if Parent NY NX not equal -1
+        continue
+      end
+
+      Parent NY NX = Direction
+      Pending push NY * W + NX
+    end
   end
 
   TargetY = Target // W
