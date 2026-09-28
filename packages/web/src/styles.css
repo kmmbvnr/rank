@@ -11,6 +11,7 @@
     --chrome-height: max(44px, env(safe-area-inset-top));
     --terminal-inset: 10px;
     --keyboard-height: 0px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
     --keyboard-width: 0px;
     /* Gboard sits between the two darkest neutral tones, with keys a step lighter. */
     --keyboard-background: color-mix(in srgb, var(--keyboard-900, #1b1c1d) 80%, var(--keyboard-800, #2e3033));
@@ -43,7 +44,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #commands button:active, #commands button:focus-visible { background: #333; }
 .arrows { display: flex; }
 #commands .arrows button { justify-content: center; }
-#run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - var(--keyboard-height) - 72px - env(safe-area-inset-bottom, 0px)); right: calc(max(12px, env(safe-area-inset-right)) + var(--keyboard-width)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 0; border-radius: 16px; background: var(--run-background, #41465b); color: var(--run-foreground, #dce1f9); touch-action: none; user-select: none; }
+#run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - var(--keyboard-height) - 72px - var(--safe-bottom)); right: calc(max(12px, env(safe-area-inset-right)) + var(--keyboard-width)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 0; border-radius: 16px; background: var(--run-background, #41465b); color: var(--run-foreground, #dce1f9); touch-action: none; user-select: none; }
 #run-button::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; background: radial-gradient(circle 54px at var(--ripple-x, 50%) var(--ripple-y, 50%), color-mix(in srgb, currentColor 24%, transparent) 0%, transparent 100%); transform-origin: var(--ripple-x, 50%) var(--ripple-y, 50%); }
 #run-button.rippling::before { animation: run-ripple 500ms ease-out; }
 #run-button.holding:not(:disabled) { filter: brightness(1.08); }
@@ -70,7 +71,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #run-button[data-state="paused"] .step-icon { display: initial; }
 
 /* Iteration steppers sit left of the run button, only while a loop iteration is selected. */
-#iteration-controls { display: none; position: fixed; z-index: 3; gap: 8px; top: calc(var(--top) + var(--height) - var(--keyboard-height) - 66px - env(safe-area-inset-bottom, 0px)); right: calc(max(12px, env(safe-area-inset-right)) + 64px + var(--keyboard-width)); }
+#iteration-controls { display: none; position: fixed; z-index: 3; gap: 8px; top: calc(var(--top) + var(--height) - var(--keyboard-height) - 66px - var(--safe-bottom)); right: calc(max(12px, env(safe-area-inset-right)) + 64px + var(--keyboard-width)); }
 #iteration-controls button { display: flex; width: 44px; height: 44px; padding: 0; align-items: center; justify-content: center; border-radius: 14px; background: color-mix(in srgb, var(--run-background, #41465b) 80%, #000); color: var(--run-foreground, #dce1f9); touch-action: none; user-select: none; }
 #iteration-controls button:active:not(:disabled) { filter: brightness(1.25); }
 #iteration-controls button:disabled { opacity: .65; }
@@ -80,7 +81,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 .mobile #iteration-controls:not([hidden]) { display: flex; }
 
 /* Symbol keyboard: docked in place of the soft keyboard, in the style of a dark phone keyboard. */
-#keyboard { position: fixed; z-index: 2; left: 0; right: 0; top: calc(var(--top) + var(--height) - var(--keyboard-height)); padding: 6px 4px env(safe-area-inset-bottom, 0px); background: var(--keyboard-background, #202124); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+#keyboard { position: fixed; z-index: 2; left: 0; right: 0; top: calc(var(--top) + var(--height) - var(--keyboard-height)); padding: 6px 4px var(--safe-bottom); background: var(--keyboard-background, #202124); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 #keyboard { display: flex; flex-direction: column; }
 #keyboard[hidden] { display: none; }
 #keyboard.sized #keyboard-keys { flex: 1; height: auto; min-height: 0; }
@@ -98,6 +99,9 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #keyboard-collapse svg { width: 24px; height: 24px; fill: currentColor; }
 #commands #keyboard-toggle[aria-pressed="true"]::after { content: '✓'; }
 /* Floating, as the phone keyboard floats in landscape: a rounded card beside the code. */
-#keyboard.floating { left: auto; top: auto; right: max(8px, env(safe-area-inset-right)); bottom: max(8px, env(safe-area-inset-bottom)); width: min(420px, 48vw); padding: 8px 6px 0; border-radius: 18px; box-shadow: 0 8px 24px rgb(0 0 0 / .6); }
+#keyboard.floating { left: auto; top: auto; right: max(8px, env(safe-area-inset-right)); bottom: max(8px, var(--safe-bottom)); width: min(420px, 48vw); padding: 8px 6px 0; border-radius: 18px; box-shadow: 0 8px 24px rgb(0 0 0 / .6); }
 #keyboard.floating::before { content: ''; display: block; width: 36px; height: 4px; margin: 0 auto 8px; border-radius: 2px; background: var(--keyboard-muted, #5f6368); }
 #keyboard.floating #keyboard-keys { height: min(236px, calc(var(--height) - 140px)); }
+
+/* The app hides the system bars; Android still reports a transient bottom inset while the keyboard closes, which made the run button jump. */
+.mobile { --safe-bottom: 0px; }
