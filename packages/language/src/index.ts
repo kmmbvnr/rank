@@ -4,6 +4,7 @@ export * from './generated/ast.js';
 export * from './generated/grammar.js';
 export * from './generated/module.js';
 export * from './operations.js';
+export * from './shape-signature.js';
 export * from './application-forms.js';
 export * from './builtin-bindings.js';
 export * from './type-names.js';
