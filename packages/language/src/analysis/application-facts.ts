@@ -473,6 +473,11 @@ function transferApplicationFacts(
                     return { types, rank: 0, shape: [] };
                 }
             }
+            if (arity === 2 && operation.selectsNumericCell && shaped
+                && operands.every(value => value.rank === 0 && value.types.length > 0
+                    && value.types.every(type => type === 'integer' || type === 'real'))) {
+                return { ...shaped, types: [...new Set(operands.flatMap(value => value.types))] };
+            }
             if (operation.scalarResult && shaped) return shaped;
             if (arity === 2 && last.name === 'startswith') {
                 const right = operands[1];
@@ -574,8 +579,7 @@ function transferApplicationFacts(
                 && resultTypes(operation).join() === 'array') return {
                 ...(shaped ?? { types: ['array'] }), elements: ['integer', 'real'], callbackFreeScalarCells: true,
             };
-            // Scalar min/max below preserve the precise union of operand types.
-            if (shaped && !(arity === 2 && operation.selectsNumericCell)) return shaped;
+            if (shaped) return shaped;
         }
     }
     const axisReduction = form.kind === 'axis-reduction' ? form : undefined;
@@ -618,15 +622,6 @@ function transferApplicationFacts(
     if (isNameExpression(last) && last.name === 'count' && lookup(last.name) === undefined
         && parts.length === 2 && source.types.join() === 'array') {
         return { types: ['integer'], rank: 0, shape: [] };
-    }
-    if (isNameExpression(last) && lookup(last.name) === undefined && ['min', 'max'].includes(last.name)
-        && parts.length === 3) {
-        const other = infer(parts[1], lookup);
-        if (source.rank === 0 && other.rank === 0
-            && [source, other].every(value => value.types.length > 0
-                && value.types.every(type => type === 'integer' || type === 'real'))) {
-            return { types: [...new Set([...source.types, ...other.types])], rank: 0, shape: [] };
-        }
     }
     if (isNameExpression(last) && lookup(last.name)?.types.includes('function') && lookup.invoke) {
         const pipedArguments = isApplicationExpression(expression.head) && expression.arguments.length === 1

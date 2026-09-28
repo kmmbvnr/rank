@@ -1000,7 +1000,8 @@ it('keeps collection kinds without inventing dimensions or callback proofs', () 
     expect(facts('Values 2 round', new Map([['Values', { types: ['array'], elements: ['real'] }]])))
         .toEqual({ types: ['array'], elements: ['real'] });
     expect(facts('Values sort', new Map([['Values', { types: ['array'] }]]))).toEqual({ types: ['array'] });
-    expect(facts('A B min', new Map([
+    expect(facts('A B Minimum', new Map([
+        ['Minimum', { types: ['function'], builtinOperation: 'min' }],
         ['A', { types: ['integer'], rank: 0, shape: [] }],
         ['B', { types: ['integer'], rank: 0, shape: [] }],
     ]))).toEqual({ types: ['integer'], rank: 0, shape: [] });
