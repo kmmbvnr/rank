@@ -533,7 +533,7 @@ it('keeps integer sums of proven scalar cells exact', () => {
             .toEqual({ types: ['integer'], rank: 0, shape: [] });
     }
     expect(facts('Items sum', new Map([['Items', { types: ['queue'], elements: ['integer', 'real'] }]])))
-        .toEqual({ types: ['integer', 'real'] });
+        .toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
     expect(facts('Items sum', new Map([
         ['Items', { types: ['queue'], elements: ['integer'] }],
         ['sum', { types: ['function'] }],
@@ -563,7 +563,7 @@ it('keeps scalar cells through a stable numeric sort', () => {
     expect(facts('A sort .descending', bindings)).toEqual({ types: ['array'], rank: 1,
         shape: [3], elements: ['integer'], eagerScalarCells: true });
     expect(facts('A sort', new Map([['A', { ...values, callbackFreeScalarCells: undefined }]])))
-        .toEqual({ types: ['array'] });
+        .toEqual({ types: ['array'], rank: 1, shape: [3] });
 });
 
 it('infers scalar cells and combined shape for a safe named outer operation', () => {
@@ -810,12 +810,12 @@ it('keeps callback-free numeric cells through arithmetic and scalar folds', () =
     expect(facts('Input max', new Map([['Input', { ...input, elements: ['real'] }]])))
         .toEqual({ types: ['real'], rank: 0, shape: [] });
     expect(facts('Input min', new Map([['Input', { ...input, eagerScalarCells: undefined }]])))
-        .toEqual({ types: ['integer', 'real'] });
+        .toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
     expect(facts('Input 0 max', bindings).callbackFreeScalarCells).toBe(true);
     expect(facts('Input 0 min', bindings).callbackFreeScalarCells).toBe(true);
     expect(facts('Input 0 max', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
         .toBeUndefined();
-    expect(facts('Input all', bindings).rank).toBeUndefined();
+    expect(facts('Input all', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('Input ** 2', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
         .toBeUndefined();
 });
@@ -960,4 +960,48 @@ it('infers finite windows including an empty frame', () => {
     expect(facts('(1 to 5) 7 window').shape).toEqual([0, 7]);
     expect(facts('"abcd" 2 window')).toEqual({ types: ['sequence'], elements: ['text'], rank: 1, shape: [3],
         callbackFreeScalarCells: true });
+});
+
+it('instantiates builtin cell signatures and combines intrinsic frames', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['Rows', { types: ['array'], rank: 2, shape: [2, 3] }],
+        ['Matrices', { types: ['array'], rank: 3, shape: [4, 3, 3] }],
+        ['Other', { types: ['array'], rank: 2, shape: [2, 1] }],
+    ]);
+    for (const name of ['sort', 'argsort']) {
+        expect(facts(`Rows ${name}`, bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, 3] });
+    }
+    expect(facts('Rows unique', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, null] });
+    expect(facts('Matrices inverse', bindings)).toEqual({ types: ['array'], rank: 3, shape: [4, 3, 3] });
+    expect(facts('Matrices det', bindings)).toEqual({ types: ['array'], rank: 1, shape: [4] });
+    expect(facts('Rows Other atan2', bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    expect(facts('Rows sort', new Map([...bindings, ['sort', { types: ['function'] }]]))).toEqual({ types: [] });
+    expect(facts('Rows Sort', new Map([...bindings,
+        ['Sort', { types: ['function'], builtinOperation: 'sort' }]])))
+        .toEqual({ types: ['array'], rank: 2, shape: [2, 3] });
+});
+
+it('uses cell signatures for explicit ranks and reordered frame axes', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['A', { types: ['array'], rank: 3, shape: [2, 0, 4] }],
+        ['B', { types: ['array'], rank: 2, shape: [2, 3] }],
+    ]);
+    expect(facts('A sort axis 1 0 rank 1', bindings))
+        .toEqual({ types: ['array'], rank: 3, shape: [0, 2, 4] });
+    expect(facts('B sum rank 1', bindings)).toEqual({ types: ['array'], rank: 1, shape: [2] });
+    expect(facts('B unique rank 1', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, null] });
+    expect(facts('B B atan2 rank 0 0', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, 3] });
+    expect(facts('B inverse', bindings).shape).toBeUndefined();
+    expect(facts('A B atan2', bindings).shape).toBeUndefined();
+});
+
+
+it('keeps collection kinds without inventing dimensions or callback proofs', () => {
+    expect(facts('Values 2 round', new Map([['Values', { types: ['array'], elements: ['real'] }]])))
+        .toEqual({ types: ['array'], elements: ['real'] });
+    expect(facts('Values sort', new Map([['Values', { types: ['array'] }]]))).toEqual({ types: ['array'] });
+    expect(facts('A B min', new Map([
+        ['A', { types: ['integer'], rank: 0, shape: [] }],
+        ['B', { types: ['integer'], rank: 0, shape: [] }],
+    ]))).toEqual({ types: ['integer'], rank: 0, shape: [] });
 });

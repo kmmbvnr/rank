@@ -1,3 +1,4 @@
+import { operationShapeFacts } from './operation-shape.js';
 import { symbolicFormFacts } from './binary-facts.js';
 import {
     isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
@@ -118,6 +119,17 @@ function transferApplicationFacts(
             return { types: [kind === 'text' ? 'sequence' : kind],
                 elements: [operationName.name === 'real' ? 'real' : 'integer'],
                 rank: source.rank, shape: source.shape, callbackFreeScalarCells: true };
+        }
+    }
+    if (form.kind === 'rank' && lookup('rank') === undefined) {
+        const name = form.parts.at(-1);
+        const operation = isNameExpression(name) ? operationBinding(name.name, lookup) : undefined;
+        const operands = form.parts.slice(0, -1).map(part => infer(part, lookup));
+        if (operation && operands.length === (form.rightRank === undefined ? 1 : 2)
+            && operands.every(value => value.types.join() === 'array')) {
+            const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
+            const shaped = operationShapeFacts(operation, operands, ranks, form.axes);
+            if (shaped) return shaped;
         }
     }
     const grouped = groupedUnaryDyadicChain(expression, name => lookup(name) === undefined);
@@ -292,6 +304,8 @@ function transferApplicationFacts(
         && (sortDirection.direction.name === 'ascending' || sortDirection.direction.name === 'descending')) {
         const sorted = sortedScalarArray(source);
         if (sorted) return sorted;
+        const shaped = operationShapeFacts(sortDirection.operation, [source]);
+        if (shaped) return shaped;
     }
     if (source.types.join() === 'index' && source.elements?.length && parts.length > 1
         && parts.slice(1).every(part => {
@@ -309,6 +323,7 @@ function transferApplicationFacts(
         const arity = unaryTail ? 1 : parts.length - 1;
         if (operation?.arities.includes(arity)) {
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
+            const shaped = operationShapeFacts(operation, operands);
             if (arity === 1 && last.name === 'eigh' && source.types.join() === 'array'
                 && source.rank === 2 && source.shape?.length === 2
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)
@@ -403,10 +418,8 @@ function transferApplicationFacts(
                     ...(last.name === 'root' && source.types.join() === 'graph' && source.elements?.length
                         ? { elements: source.elements } : {}) };
             }
-            if (operation.denseResult && resultTypes(operation).join() === 'array') return {
-                types: ['array'], rank: operation.denseResult.shape.length,
-                shape: operation.denseResult.shape, elements: operation.denseResult.elements,
-                eagerScalarCells: true,
+            if (operation.denseResult && shaped) return {
+                ...shaped, elements: operation.denseResult.elements, eagerScalarCells: true,
             };
             if (arity === 1 && last.name === 'indices' && source.types.join() === 'array'
                 && source.rank === 1 && source.elements?.join() === 'boolean'
@@ -432,7 +445,7 @@ function transferApplicationFacts(
             if (arity === 1 && operation === findOperation('argsort')
                 && (source.types.join() === 'text' || source.types.join() === 'array'
                     && source.rank === 1 && (source.eagerScalarCells || source.callbackFreeScalarCells))) {
-                return { types: ['array'], rank: 1, shape: [source.shape?.[0] ?? null],
+                return { ...(shaped ?? { types: ['array'] }),
                     elements: ['integer'], eagerScalarCells: true };
             }
             if (arity === 1 && last.name === 'unique' && source.rank === 1
@@ -440,8 +453,7 @@ function transferApplicationFacts(
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)
                 && source.elements?.length && source.elements.every(type =>
                     ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))) {
-                return { types: source.types, elements: source.elements, rank: 1,
-                    shape: [null], ...(source.types.join() === 'array'
+                return { ...shaped, types: source.types, elements: source.elements, ...(source.types.join() === 'array'
                         ? { eagerScalarCells: true as const } : { callbackFreeScalarCells: true as const }) };
             }
             if (last.name === 'text' && arity === 1 && source.rank === 0
@@ -461,7 +473,7 @@ function transferApplicationFacts(
                     return { types, rank: 0, shape: [] };
                 }
             }
-            if (operation.scalarResult) return { types: resultTypes(operation), rank: 0, shape: [] };
+            if (operation.scalarResult && shaped) return shaped;
             if (arity === 2 && last.name === 'startswith') {
                 const right = operands[1];
                 if (['text', 'bytes'].includes(source.types.join())
@@ -529,7 +541,7 @@ function transferApplicationFacts(
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
             if (operation.preservesArrayShape && arity === 2 && collection) return {
-                types: source.types, rank: source.rank, shape: source.shape, elements: source.elements,
+                ...(shaped ?? { types: source.types }), elements: source.elements,
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
@@ -540,26 +552,11 @@ function transferApplicationFacts(
                     ? { callbackFreeScalarCells: true as const } : {}) };
             if (arity === 2) {
                 const right = infer(parts[1], lookup);
-                if (operation.dyadicRanks?.[0] === 'all' && operation.dyadicRanks[1] === 1
-                    && right.types.join() === 'array' && right.rank !== undefined && right.rank > 1) {
-                    return { types: ['array'], rank: right.rank - 1,
-                        shape: right.shape?.slice(0, -1) ?? Array(right.rank - 1).fill(null),
-                        elements: resultTypes(operation) };
-                }
-                if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
-                    && (source.types.join() === 'array' || right.types.join() === 'array')) {
-                    const leftArray = source.types.join() === 'array';
-                    const rightArray = right.types.join() === 'array';
-                    const array = leftArray ? source : right;
-                    const shape = leftArray && rightArray
-                        ? source.shape && right.shape && !incompatibleShapes(source, right)
-                            ? broadcastShape(source.shape, right.shape) : undefined
-                        : array.shape;
-                    return { types: ['array'], rank: shape?.length ?? (leftArray !== rightArray ? array.rank : undefined),
-                        shape, elements: resultTypes(operation),
-                        ...(hasNumericArrayNoCallbackProof(operation, operands)
-                            ? { callbackFreeScalarCells: true as const } : {}) };
-                }
+                if (operation.dyadicRanks && shaped?.types.join() === 'array') return {
+                    ...shaped, ...(shaped.types.join() === 'array' ? { elements: resultTypes(operation) } : {}),
+                    ...(hasNumericArrayNoCallbackProof(operation, operands)
+                        ? { callbackFreeScalarCells: true as const } : {}),
+                };
                 if (operation === findOperation('matmul') && source.types.join() === 'array'
                     && right.types.join() === 'array' && source.shape?.length && right.shape?.length) {
                     const elements = [...(source.elements ?? []), ...(right.elements ?? [])];
@@ -573,19 +570,12 @@ function transferApplicationFacts(
                         : { types, rank: 0, shape: [] };
                 }
             }
-            if (operation.resultShapeFromOperand !== undefined
-                && resultTypes(operation).join() === 'array'
-                && operands[operation.resultShapeFromOperand]?.types.join() === 'array') {
-                const shapeSource = operands[operation.resultShapeFromOperand];
-                const callbackFree = hasNumericArrayNoCallbackProof(operation, operands);
-                return { types: ['array'], rank: shapeSource.rank, shape: shapeSource.shape,
-                    ...(callbackFree ? { elements: ['integer', 'real'] as Types,
-                        callbackFreeScalarCells: true as const } : {}) };
-            }
             if (hasNumericArrayNoCallbackProof(operation, operands)
                 && resultTypes(operation).join() === 'array') return {
-                types: ['array'], elements: ['integer', 'real'], callbackFreeScalarCells: true,
+                ...(shaped ?? { types: ['array'] }), elements: ['integer', 'real'], callbackFreeScalarCells: true,
             };
+            // Scalar min/max below preserve the precise union of operand types.
+            if (shaped && !(arity === 2 && operation.selectsNumericCell)) return shaped;
         }
     }
     const axisReduction = form.kind === 'axis-reduction' ? form : undefined;
