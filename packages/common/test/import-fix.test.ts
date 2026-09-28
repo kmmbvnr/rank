@@ -26,7 +26,7 @@ async function failAtPrompt(cells: string[], failing: string) {
 
 describe('import suggestions', () => {
     it('reads the suggested modules from an error', () => {
-        const output = [{ text: 'unknown name: find; did you forget `use graph` or `use sequences`?', error: true }];
+        const output = [{ text: 'unknown name: example; did you forget `use graph` or `use sequences`?', error: true }];
         expect(missingImports(output)).toEqual(['graph', 'sequences']);
         expect(missingImports([{ text: 'unknown name: Value', error: true }])).toEqual([]);
     });
@@ -82,8 +82,17 @@ describe('import suggestions', () => {
         expect(book.atPrompt).toBe(true);
     });
 
-    it('switches between candidate modules', async () => {
+    it('suggests only sequences for collection find', async () => {
+        const { repl } = await failAtPrompt([], 'X = (array 3 1 2) 1 find');
+        expect(repl.importFixes).toEqual(['sequences']);
+    });
+
+    it('switches between candidate modules in a diagnostic', async () => {
         const { repl, keys } = await failAtPrompt([], 'X = (array 3 1 2) 1 find');
+        // Exercise alternative navigation independently of the catalogue, whose names are unique.
+        repl.notebook.current.output = [{
+            text: 'unknown name: example; did you forget `use graph` or `use sequences`?', error: true,
+        }];
         expect(repl.importFixes).toEqual(['graph', 'sequences']);
 
         await keys.press('', { name: 'down' });
