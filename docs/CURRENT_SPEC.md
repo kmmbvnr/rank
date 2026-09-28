@@ -164,6 +164,104 @@ indentation semantic.
 Whitespace application itself remains on one physical line. A long function
 call uses named intermediate values or a parenthesized argument.
 
+## Coding style and line budget
+
+Rank code is designed for mobile touchscreens, pocket calculators, and narrow
+displays. Clean, idiomatic Rank balances brevity with readability:
+
+### 1. 40-column budget
+Aim for lines of roughly 40 characters (up to 50 at most). Code that fits on a
+narrow screen without horizontal scrolling or arbitrary line wrapping is easier
+to read, review, and type on mobile keyboards.
+
+### 2. Parenthesis budget: at most one pair per line
+Typing parentheses on mobile touchscreens requires switching keyboard layers
+(e.g. `?123` -> find `(` -> return to letters), creating significant typing friction.
+Deeply nested parentheses are also hard to read and balance mentally.
+
+Canonical Rank enforces a strict parenthesis budget:
+- **At most one pair of parentheses `(...)` per line.**
+- If an expression or indexing operation would require a second pair of
+  parentheses, extract a well-named intermediate variable on the preceding line.
+
+```rank
+rem Avoid: multiple or nested parentheses on one line
+return Reversed ((Reversed len - 1) to 0 by -1)
+
+rem Preferred: extract intermediate step to keep at most one pair
+Last = Reversed len - 1
+return Reversed (Last to 0 by -1)
+```
+
+```rank
+rem Avoid: nesting sub-expressions
+Jump = Cost (i - 1) + ((Height - Prev) abs)
+
+rem Preferred: linear dataflow without nested grouping
+Diff = Height - Prev
+Jump = Cost (i - 1) + Diff abs
+```
+
+### 3. Intentional vs. redundant intermediate variables
+Rank prefers explicit intermediate variables over long anonymous pipelines
+(see [Product decisions](design/product-decisions.md#2-intentional-intermediate-variables-over-vertical-pipelines)).
+However, intermediate variables must carry meaningful algorithmic semantics or
+serve to satisfy the line/parenthesis budget, rather than acting as procedural clutter.
+
+- **Intentional intermediate variables (encouraged):**
+  - Name key domain concepts and intermediate data states (`Odds = Numbers odd`,
+    `Mask = Heights greater 10`, `Tail = Dp from Start to N`).
+  - Break long expressions to stay within the 40-column width.
+  - Eliminate nested parentheses to satisfy the <= 1 parenthesis budget.
+  - Provide clear REPL inspection points for intermediate vectors/matrices.
+
+- **Redundant procedural aliases (avoid):**
+  - *Single-use arithmetic aliases:* do not create temporary names for trivial
+    scalar operations right before using them once:
+    ```rank
+    rem Avoid:
+    Diff = A - B
+    Jump = Diff abs
+
+    rem Preferred:
+    Jump = (A - B) abs
+    ```
+  - *Single-use boolean flags:* avoid naming a condition that is immediately
+    tested by a single `if`:
+    ```rank
+    rem Avoid:
+    Fits = Weight at most W
+    if Fits
+      ...
+    end
+
+    rem Preferred:
+    if Weight at most W
+      ...
+    end
+    ```
+  - *Procedural counters:* do not maintain manual loop counters or accumulators
+    when vector primitives, collection lengths, or reductions already provide the answer:
+    ```rank
+    rem Avoid: procedural counter in two-pointer matching
+    Count = 0
+    for I in 0 until N
+      ...
+      Count += 1
+    end
+
+    rem Preferred: direct derivation from array length/index
+    return A len - I
+    ```
+
+### 4. Vector idioms and ranges over procedural loops
+- Use stepped ranges (`for I in (N - 1) to 0 by -1` or `for I in Start to N by Step`)
+  instead of manual `while` loops with decrement/increment counters.
+- Use boolean masks and counting (`(A equal 1) count`) instead of manual tally loops.
+- Use container slicing (`Path (0 until Length)` or `Reversed (Last to 0 by -1)`)
+  instead of manual array copy/reverse loops.
+- Use guard clauses (`continue` or `return`) early to keep indentation shallow.
+
 ## Comments
 
 Comments use classic BASIC `rem`:
@@ -8009,7 +8107,9 @@ columns. Use fewer parentheses by giving intermediate results short,
 meaningful names. Name the value or its role, such as `Range`, `States` or
 `DigitCounts`; avoid placeholders such as `Temp` or `Result2`. Split a long
 expression into named steps when that makes the computation easier to follow.
-Keep parentheses where they are needed to express the intended grouping.
+Keep parentheses where they are needed to express the intended grouping, but
+observe the strict **parenthesis budget of at most one pair of parentheses per
+line** to avoid mobile keyboard friction.
 
 ```rank
 Range = 1 until 1000
@@ -8017,6 +8117,15 @@ States = Range next scan with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.
+
+### Intentional vs. redundant variables
+
+Intentional intermediate variables give domain identity to algorithmic states
+or keep lines within the 40-column and <= 1 parenthesis budget. In contrast,
+**redundant procedural aliases** should be avoided:
+- Do not create single-use aliases for trivial scalar math (e.g. `Diff = A - B; Jump = Diff abs` -> `Jump = (A - B) abs`).
+- Do not create single-use boolean flags immediately consumed by a single `if` (e.g. `Fits = W at most Limit; if Fits` -> `if W at most Limit`).
+- Do not use manual counters when vector primitives or container lengths derive the answer directly (e.g. `return A len - I`).
 
 ### Rationale: Readability, debugging, and the BASIC spirit
 

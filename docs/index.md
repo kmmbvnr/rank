@@ -23,7 +23,7 @@ implementation plans are recorded separately under development workflow.
 
 1. Keep source narrow: target about 40 characters per line.
 2. Prefer letters, digits, spaces and easy keyboard symbols.
-3. Avoid punctuation-heavy syntax.
+3. Avoid punctuation-heavy syntax: observe a strict budget of at most one pair of parentheses per line.
 4. Reuse a small set of general concepts across domains.
 5. Do not add primitives that exist only to solve one puzzle.
 6. The editor may help with quotes and blocks, but source is plain text.
@@ -35,8 +35,7 @@ implementation plans are recorded separately under development workflow.
 12. The `filter ... end` clause is concise source/query syntax, not mutation.
 13. User-facing syntax should stay simple even if implementations use macros,
     compiler extensions or optimized execution plans internally.
-14. Combine compatible tensor operations internally; readable temporary names
-    should not inherently require intermediate arrays.
+14. Combine compatible tensor operations internally; use intentional intermediate names for meaningful algorithmic stages and parenthesis reduction, avoiding redundant procedural aliases.
 15. Prefer whole-array transformations and predicates. Use loops for the outer
     search or for state that cannot be expressed more clearly as dataflow.
 
@@ -64,7 +63,7 @@ The foundational architecture of the pure Rank language core is documented acros
 
 ### Act I: Philosophy, Ergonomics & Program Structure
 *Line budget, primary-layer keyboard vocabulary, BASIC heritage, and modular grammar independence.*
-- [Lexical syntax](language/lexical-syntax.md) — 40-column target, words over symbols, indentation, and `rem` comments.
+- [Lexical syntax](language/lexical-syntax.md) — 40-column target, parenthesis budget (<= 1 pair per line), words over symbols, indentation, and `rem` comments.
 - [Modules, programs and inputs](language/modules-programs.md) — Modular vocabulary via `use` without grammar mutability.
 - [Testing](language/testing.md) — First-class test syntax and assertions.
 - [ADR Index: Act I](adr/language/README.md#act-i-philosophy-ergonomics--program-structure) — ADR-0000 through ADR-0003.

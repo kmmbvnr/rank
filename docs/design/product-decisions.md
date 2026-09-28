@@ -64,7 +64,9 @@ columns. Use fewer parentheses by giving intermediate results short,
 meaningful names. Name the value or its role, such as `Range`, `States` or
 `DigitCounts`; avoid placeholders such as `Temp` or `Result2`. Split a long
 expression into named steps when that makes the computation easier to follow.
-Keep parentheses where they are needed to express the intended grouping.
+Keep parentheses where they are needed to express the intended grouping, but
+observe the strict **parenthesis budget of at most one pair of parentheses per
+line** to avoid mobile keyboard friction.
 
 ```rank
 Range = 1 until 1000
@@ -72,6 +74,15 @@ States = Range next scan with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.
+
+### Intentional vs. redundant variables
+
+Intentional intermediate variables give domain identity to algorithmic states
+or keep lines within the 40-column and <= 1 parenthesis budget. In contrast,
+**redundant procedural aliases** should be avoided:
+- Do not create single-use aliases for trivial scalar math (e.g. `Diff = A - B; Jump = Diff abs` -> `Jump = (A - B) abs`).
+- Do not create single-use boolean flags immediately consumed by a single `if` (e.g. `Fits = W at most Limit; if Fits` -> `if W at most Limit`).
+- Do not use manual counters when vector primitives or container lengths derive the answer directly (e.g. `return A len - I`).
 
 ### Rationale: Readability, debugging, and the BASIC spirit
 
