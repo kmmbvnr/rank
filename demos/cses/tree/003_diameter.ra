@@ -20,7 +20,5 @@ fun tree_diameter Tree
   Last = First .order len - 1
   End = First .order Last
   Second = Tree End bfs
-  Last = Second .order len - 1
-  End = Second .order Last
-  return Second .distance End
+  return Second .distance max
 end
