@@ -15,7 +15,7 @@ argument OutputPath path = "demos/kaggle/submissions/house-prices.csv"
 
 Train = TrainPath csv
 Test = TestPath csv
-Submission = Train Test 0.05 1500 solve
+Submission = Train Test 0.05 1500 predictall
 Submission OutputPath csv
 
 
@@ -58,7 +58,7 @@ fun linear_predict X Model
 end
 
 
-fun solve Train Test Rate Steps
+fun predictall Train Test Rate Steps
   Quality = Train .OverallQual median
   Area = Train .GrLivArea median
   Train .OverallQual = Train .OverallQual default Quality

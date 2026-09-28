@@ -5,8 +5,8 @@
 Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text` are available
 without imports. The catalogue groups them under `core`; no `use core` is
-needed. These functions remain ordinary names and may be overridden by user
-functions. `numbers` still provides `sqrt`, `abs`, number theory and
+needed. User code cannot redefine these available names.
+`numbers` still provides `sqrt`, `abs`, number theory and
 `multiple by`; `sequences` provides shapes, ordering and sources such as
 `fibonacci`.
 
@@ -30,6 +30,29 @@ use random
 
 Parsing does not depend on which modules were opened. `use` enables the
 corresponding meanings, validators and execution rules after parsing.
+
+### Available builtin names
+
+User code cannot redefine an available builtin name. Core names are always
+available; other names become protected when their standard module is opened.
+The rule applies to function declarations, parameters and local bindings, and
+to unqualified imports of user functions. Names from unopened modules remain
+available: a program may define `solve` without `use linalg`.
+
+Conflicts are errors in either order. A source unit containing both
+`fun solve ...` and `use linalg` is rejected before execution. In a persistent
+session, opening `linalg` after defining `solve` fails without activating the
+module. A qualified import such as `use "worker" as W` keeps `W.solve` separate
+from the caller's builtin `solve`.
+
+Function aliases are allowed. `Op = matmul` retains builtin operation identity,
+including forms such as `A B Op axis 1 0`. Reassigning an alias to another
+function requires the next call to resolve that identity again.
+
+Receiver methods keep their contextual dispatch. `Dsu find X` calls the DSU
+method when `Dsu` is a DSU. For another receiver it resolves `find` as an
+ordinary function. A user function with that spelling is legal only while the
+module supplying the builtin name remains unopened.
 
 A missing `use` is reported in one of two shapes, because a module contributes
 two kinds of vocabulary. A name that only the module defines is simply unknown,

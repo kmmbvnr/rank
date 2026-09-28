@@ -507,8 +507,9 @@ Each call that creates a local function creates a distinct closure, even when th
 captured values match. Copying a function reference preserves its identity. Defining
 a function again creates a new object; saved references still refer to the old one.
 Functions supplied by standard-library modules are distinct across interpreter
-instances. User bindings can still shadow standard function names; caching does
-not change lookup order.
+instances. User code cannot redefine available builtin names, including through
+parameters or local functions. Names from unopened modules remain available to
+user functions. Aliases preserve the identity of the function they reference.
 
 ## Memoized functions
 

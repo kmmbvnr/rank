@@ -49,7 +49,7 @@ fun solve_images Train Test Rate Steps
   Xtest = TestImages (array M Features) reshape
 
   Y = Train image_labels
-  Pred = X Y Xtest Rate Steps solve
+  Pred = X Y Xtest Rate Steps predictall
   Ids = array shape M fill 0
   for Name Row in Test .name
     Prefix = (Name "." split) 0
@@ -68,7 +68,7 @@ fun probability X Model
 end
 
 
-fun solve X Y Xtest Rate Steps
+fun predictall X Y Xtest Rate Steps
   X = X / 255.0
   Xtest = Xtest / 255.0
   Model = X Y Rate Steps Classifier.logistic

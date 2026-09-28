@@ -17,7 +17,7 @@ argument Input path = "demos/dyalog/2010/data/buyrent.xml"
 Params = Input read getparams copy
 rem The initial rent at which buying and renting break even.
 Params 11 = nan
-0 Params seek print
+0 Params seekvalue print
 
 
 rem The loan term is a whole number of months and the
@@ -26,7 +26,7 @@ rem scanned. Any other parameter is a nonnegative value,
 rem doubled from zero to a sign change of the gap and
 rem then bisected.
 rem Raises DomainError when no value reaches the target.
-fun seek Target Params
+fun seekvalue Target Params
   Pos = Params isnan true find
   if Pos equal 2
     for Months in 1 to 600

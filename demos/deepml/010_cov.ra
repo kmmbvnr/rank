@@ -6,7 +6,7 @@ use sequences
 use stats
 
 rem Return the sample covariance of feature rows.
-fun covariance V
+fun covmatrix V
   N = V len axis 1
   if N less 2
     .InsufficientData raise

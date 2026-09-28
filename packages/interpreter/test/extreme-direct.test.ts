@@ -63,45 +63,45 @@ end
 
     for (const name of ['min', 'max']) {
         for (const imports of ['', 'use numbers\n']) {
-            it(`resolves shadowed ${name} as a postfix call and an alias (${imports || 'no imports'})`, () => {
-                const source = `${imports}fun ${name} A B\n return A * 10 + B\nend\n`;
-                expect(run(source + `3 4 ${name}`)).toBe('34');
-                expect(run(source + `Op = ${name}\n3 4 Op`)).toBe('34');
-                expect(run(source + `3 4 ${name} 5 ${name}`)).toBe('345');
+            it(`resolves custom ${name}custom as a postfix call and an alias (${imports || 'no imports'})`, () => {
+                const source = `${imports}fun ${name}custom A B\n return A * 10 + B\nend\n`;
+                expect(run(source + `3 4 ${name}custom`)).toBe('34');
+                expect(run(source + `Op = ${name}custom\n3 4 Op`)).toBe('34');
+                expect(run(source + `3 4 ${name}custom 5 ${name}custom`)).toBe('345');
             });
         }
-        it(`resolves local and parameter bindings of ${name}`, () => {
+        it(`resolves local and parameter bindings of ${name}custom`, () => {
             expect(run(`fun outer X
- fun ${name} A B
+ fun ${name}custom A B
   return A + B + X
  end
- return 3 4 ${name}
+ return 3 4 ${name}custom
 end
 10 outer`)).toBe('17');
             const runtime = new Interpreter();
             runtime.execute(`fun add A B
  return A + B
 end
-fun invoke ${name}
- return 3 4 ${name}
+fun invoke ${name}custom
+ return 3 4 ${name}custom
 end`);
             const invoke = runtime.variables.get('invoke');
             if (!invoke || !isNativeFunction(invoke)) throw new Error('missing function');
             expect(invoke.call([runtime.variables.get('add')!])).toBe(7n);
             runtime.dispose();
         });
-        it(`uses ordinary postfix arity for shadowed ${name}, including array arguments`, () => {
-            expect(run(`fun ${name} A B\n return B\nend\n(array 1 2) 99 ${name}`)).toBe('99');
-            expect(run(`fun ${name} A\n return 999\nend\n(array 1 2) ${name}`)).toBe('999');
+        it(`uses ordinary postfix arity for custom ${name}custom, including array arguments`, () => {
+            expect(run(`fun ${name}custom A B\n return B\nend\n(array 1 2) 99 ${name}custom`)).toBe('99');
+            expect(run(`fun ${name}custom A\n return 999\nend\n(array 1 2) ${name}custom`)).toBe('999');
         });
-        it(`supports deep recursive calls to ${name}`, () => {
-            expect(run(`fun ${name} A B
+        it(`supports deep recursive calls to ${name}custom`, () => {
+            expect(run(`fun ${name}custom A B
  if A equal 0
   return B
  end
- return ((A - 1) B ${name}) + 1
+ return ((A - 1) B ${name}custom) + 1
 end
-10000 7 ${name}`)).toBe('10007');
+10000 7 ${name}custom`)).toBe('10007');
         });
     }
 

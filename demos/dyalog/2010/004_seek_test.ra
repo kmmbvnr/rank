@@ -5,7 +5,7 @@ test "break-even rent from the contest"
   use numbers
 
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 nan
-  Rent = 0 Params seek
+  Rent = 0 Params seekvalue
   (Rent - 573.2682766) abs less 0.01
 end
 
@@ -19,7 +19,7 @@ test "a found value reaches the target within one unit"
   for Pos in array 0 4 9
     Trial = Base copy
     Trial Pos = nan
-    Value = 5000.0 Trial seek
+    Value = 5000.0 Trial seekvalue
     Close = Close and (Value Pos Trial 5000.0 gap abs at most 1)
   end
   Close
@@ -34,7 +34,7 @@ test "a whole loan term"
   Target = 240.0 2 Base 0.0 gap
   Trial = Base copy
   Trial 2 = nan
-  Target Trial seek equal 240.0
+  Target Trial seekvalue equal 240.0
 end
 
 test "an unreachable target is a domain error"
@@ -44,7 +44,7 @@ test "an unreachable target is a domain error"
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 nan
   Raised = false
   try
-    Rent = -1000000000.0 Params seek
+    Rent = -1000000000.0 Params seekvalue
   catch .DomainError Error
     Raised = true
   end

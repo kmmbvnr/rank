@@ -1,11 +1,11 @@
+import { symbolicFormFacts } from './binary-facts.js';
 import {
     isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
 import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
 import { findOperation } from '../operations.js';
-import { axisLengthForm, axisReductionForm, explicitNamedOuterApplication,
-    explicitNamedSegmentApplication, sortDirectionForm } from '../application-forms.js';
+import { applicationForm, assertNever, type ApplicationForm } from '../application-forms.js';
 import { mapsScalarCells, resultTypes, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, stableRecordField, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
@@ -25,6 +25,41 @@ function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
 /** Transfer facts through a flattened application and its standard-operation contract. */
 export function applicationExpressionFacts(
     expression: ApplicationExpression, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
+): ValueFacts | undefined {
+    const form = applicationForm(expression, name => operationBinding(name, lookup));
+    return applicationFormFacts(expression, form, lookup, infer);
+}
+
+/** Both syntax versions of a form use this transfer without inspecting their spelling. */
+export function applicationFormFacts(expression: Expression, form: ApplicationForm, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
+    switch (form.kind) {
+        case 'plain': case 'new-dsu': case 'new-graph': case 'text-format': case 'rank':
+        case 'lower-bound': case 'named-segment': case 'named-outer': case 'sort-direction':
+        case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
+        case 'dsu-method': case 'functional-method': case 'graph-edges': case 'materialize-pipeline':
+            return isApplicationExpression(expression)
+                ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
+        // These forms have runtime implementations but no abstract transfer yet.
+        case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
+        case 'axis-window': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
+        case 'axis-transpose': case 'named-scan': case 'axis-selection': case 'multiset-method':
+        case 'comparison-rank': case 'outer':
+            return UNKNOWN_VALUE;
+        case 'segment': case 'scan': case 'reduce':
+            return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
+        default: return assertNever(form);
+    }
+}
+
+function operationBinding(name: string, lookup: FactLookup) {
+    const bound = lookup(name);
+    return bound ? bound.builtinOperation ? findOperation(bound.builtinOperation) : false : findOperation(name);
+}
+
+function transferApplicationFacts(
+    expression: ApplicationExpression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
 ): ValueFacts | undefined {
     const ranked = flattenApplication(expression);
@@ -98,7 +133,7 @@ export function applicationExpressionFacts(
         if (isApplicationExpression(prefix)) parts = [prefix, ...flattened.slice(2)];
     }
     const last = parts.at(-1)!;
-    if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from') {
+    if (form.kind === 'lower-bound') {
         const source = infer(parts[0], lookup);
         const limit = infer(parts[2], lookup);
         if (source.types.join() === 'sequence' && limit.types.join() === 'integer') return {
@@ -168,7 +203,7 @@ export function applicationExpressionFacts(
         && lookup(last.name) === undefined && source.types.join() === 'text') {
         return { types: ['object'] };
     }
-    const namedSegment = explicitNamedSegmentApplication(parts);
+    const namedSegment = form.kind === 'named-segment' ? form : undefined;
     const combine = parts.length === 3 && namedSegment && isNameExpression(namedSegment.operation)
         ? namedSegment.operation.name : undefined;
     if (combine && ['min', 'max', 'maxsum', 'band', 'bor', 'bxor'].includes(combine)
@@ -186,19 +221,14 @@ export function applicationExpressionFacts(
         && source.elements?.length && infer(last, lookup).types.join() === 'integer') {
         return { types: source.elements, rank: 0, shape: [] };
     }
-    const covarianceName = parts.length === 2 ? last : parts.length === 5 ? parts[1] : undefined;
-    if (covarianceName && isNameExpression(covarianceName)
-        && ['covariance', 'correlation', 'corr'].includes(covarianceName.name)
-        && lookup(covarianceName.name) === undefined
-        && (parts.length === 2 || isNameExpression(parts[2]) && parts[2].name === 'axis')
+    const covarianceOperation = parts.length === 2 && isNameExpression(last) ? operationBinding(last.name, lookup) : undefined;
+    const covariance = form.kind === 'axis-covariance' || form.kind === 'axis-correlation' ? form : undefined;
+    if ((covariance || covarianceOperation && [findOperation('covariance'), findOperation('correlation'),
+        findOperation('corr')].includes(covarianceOperation))
         && source.types.join() === 'array' && source.shape && source.shape.length >= 2
         && (source.eagerScalarCells || source.callbackFreeScalarCells)
         && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
-        const axes = parts.length === 2 ? [source.shape.length - 2, source.shape.length - 1]
-            : parts.slice(3).map(part => {
-                const value = infer(part, lookup).integer;
-                return value === undefined ? NaN : Number(value);
-            });
+        const axes = covariance?.axes ?? [source.shape.length - 2, source.shape.length - 1];
         if (axes.every(axis => Number.isSafeInteger(axis) && axis >= 0 && axis < source.shape!.length)
             && axes[0] !== axes[1]) {
             const shape = [...source.shape.filter((_, axis) => !axes.includes(axis)),
@@ -212,17 +242,17 @@ export function applicationExpressionFacts(
         return stableRecordField({ types: source.elements });
     }
     if (parts.length === 2 && source.types.join() === 'graph' && source.elements?.length
-        && infer(parts[1], lookup).types.length) return {
+        && infer(parts[1], lookup).types.length && !infer(parts[1], lookup).types.includes('function')) return {
         types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
         callbackFreeScalarCells: true,
     };
     if (parts.length === 2 && source.types.join() === 'record' && isLabelLiteral(last)) {
         return source.fields?.[last.name] ?? UNKNOWN_VALUE;
     }
-    const axisLength = axisLengthForm(parts, name => lookup(name) === undefined);
-    if (axisLength && isNumberLiteral(axisLength.axis) && typeof axisLength.axis.value === 'bigint'
+    const axisLength = form.kind === 'axis-length' ? form : undefined;
+    if (axisLength
         && source.types.join() === 'array' && source.rank !== undefined) {
-        const axis = Number(axisLength.axis.value);
+        const axis = axisLength.axis;
         if (Number.isSafeInteger(axis) && axis >= 0 && axis < source.rank) {
             const dimension = source.shape?.[axis];
             return { types: ['integer'], rank: 0, shape: [],
@@ -234,7 +264,7 @@ export function applicationExpressionFacts(
         && infer(parts.at(-1)!, lookup).types.join() === 'integer') {
         return { types: ['integer'], rank: 0, shape: [] };
     }
-    const namedOuter = explicitNamedOuterApplication(parts);
+    const namedOuter = form.kind === 'named-outer' ? form : undefined;
     if (namedOuter && lookup('outer') === undefined
         && isNameExpression(namedOuter.operation) && lookup(namedOuter.operation.name) === undefined) {
         const operation = findOperation(namedOuter.operation.name);
@@ -256,8 +286,8 @@ export function applicationExpressionFacts(
             }
         }
     }
-    const sortDirection = sortDirectionForm(parts, name => lookup(name) === undefined);
-    if (parts.length === 3 && sortDirection?.operation.name === 'sort'
+    const sortDirection = form.kind === 'sort-direction' ? form : undefined;
+    if (parts.length === 3 && sortDirection && sortDirection.operation === findOperation('sort')
         && isLabelLiteral(sortDirection.direction)
         && (sortDirection.direction.name === 'ascending' || sortDirection.direction.name === 'descending')) {
         const sorted = sortedScalarArray(source);
@@ -273,8 +303,9 @@ export function applicationExpressionFacts(
         return types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
             ? { types, rank: 0, shape: [] } : { types };
     }
-    if (isNameExpression(last) && lookup(last.name) === undefined) {
-        const operation = findOperation(last.name);
+    const lastOperation = isNameExpression(last) ? operationBinding(last.name, lookup) : undefined;
+    if (isNameExpression(last) && lastOperation) {
+        const operation = lastOperation;
         const arity = unaryTail ? 1 : parts.length - 1;
         if (operation?.arities.includes(arity)) {
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
@@ -394,11 +425,11 @@ export function applicationExpressionFacts(
                 return { types: ['sequence'], elements: ['text'], rank: 1, shape: [null],
                     callbackFreeScalarCells: true };
             }
-            if (arity === 1 && last.name === 'sort') {
+            if (arity === 1 && operation === findOperation('sort')) {
                 const sorted = sortedScalarArray(source);
                 if (sorted) return sorted;
             }
-            if (arity === 1 && last.name === 'argsort'
+            if (arity === 1 && operation === findOperation('argsort')
                 && (source.types.join() === 'text' || source.types.join() === 'array'
                     && source.rank === 1 && (source.eagerScalarCells || source.callbackFreeScalarCells))) {
                 return { types: ['array'], rank: 1, shape: [source.shape?.[0] ?? null],
@@ -502,7 +533,7 @@ export function applicationExpressionFacts(
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
-            if (last.name === 'transpose' && arity === 1 && source.types.join() === 'array'
+            if (operation === findOperation('transpose') && arity === 1 && source.types.join() === 'array'
                 && source.shape) return { types: ['array'], rank: source.shape.length,
                 shape: [...source.shape].reverse(), elements: source.elements,
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
@@ -529,7 +560,7 @@ export function applicationExpressionFacts(
                         ...(hasNumericArrayNoCallbackProof(operation, operands)
                             ? { callbackFreeScalarCells: true as const } : {}) };
                 }
-                if (last.name === 'matmul' && source.types.join() === 'array'
+                if (operation === findOperation('matmul') && source.types.join() === 'array'
                     && right.types.join() === 'array' && source.shape?.length && right.shape?.length) {
                     const elements = [...(source.elements ?? []), ...(right.elements ?? [])];
                     const types: Types = source.elements?.length && right.elements?.length
@@ -557,7 +588,7 @@ export function applicationExpressionFacts(
             };
         }
     }
-    const axisReduction = axisReductionForm(parts, name => lookup(name) === undefined);
+    const axisReduction = form.kind === 'axis-reduction' ? form : undefined;
     if (source.types.join() === 'array' && source.shape && axisReduction?.operation.name === 'sum') {
         const axes = axisReduction.axes.map(part => infer(part, lookup).integer);
         if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
@@ -616,7 +647,7 @@ export function applicationExpressionFacts(
             : unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup)));
     }
     if (isNameExpression(last) && lookup(last.name) === undefined) {
-        if (last.name === 'window' && parts.length === 3 && source.rank === 1 && source.shape?.[0] != null) {
+        if (lastOperation === findOperation('window') && parts.length === 3 && source.rank === 1 && source.shape?.[0] != null) {
             const widthText = infer(parts[1], lookup).integer;
             const width = widthText === undefined ? NaN : Number(widthText);
             if (Number.isSafeInteger(width) && width > 0) {

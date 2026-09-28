@@ -44,7 +44,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     ...(builtin.valueCallbackFree ? { callbackFreeScalarCells: true as const } : {}),
                     ...(builtin.result === 'sequence' ? { rank: 1, shape: [null] } : {}),
                     ...(builtin.result === 'real' ? { rank: 0, shape: [] } : {}),
-                } : UNKNOWN_VALUE);
+                } : builtin ? { types: [], builtinOperation: builtin.name } : UNKNOWN_VALUE);
     }
     if (isNewStructureExpression(expression) && expression.structure === 'index') {
         return { types: ['index'], elements: [] };

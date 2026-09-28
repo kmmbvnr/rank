@@ -151,8 +151,9 @@ For an operation supporting several arities, an exact argument count wins.
 Otherwise Rank tries larger supported arities first. `min` and `max` are
 ordinary postfix calls: `A B max` calls the current `max` with arguments `A`
 and `B`, and `A B max 5 min` chains from the left. The infix form `A max B` is
-an error that suggests `A B max`. These names are not reserved; a local
-function or parameter shadows the builtin.
+an error that suggests `A B max`. Core names cannot be redefined by a local
+function or parameter. A differently named function or alias uses the same
+postfix calling convention.
 
 Builtins and aliases use the same argument rules: `Matrix i max` and
 `Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one

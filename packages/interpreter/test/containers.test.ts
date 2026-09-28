@@ -13,11 +13,11 @@ Q = new ${kind}
 Q push 1
 Q push 2
 Alias = Q
-fun take C
+fun takeitem C
   return C pop
 end
 A = Q peek
-B = Alias take
+B = Alias takeitem
 C = Q pop
 array A B C (Q len)
 `)).toBe(expected);

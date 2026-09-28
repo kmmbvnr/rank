@@ -23,7 +23,7 @@ fun as_value Tape Item
 end
 
 rem Record addition and its edges.
-fun add Tape A B
+fun addnode Tape A B
   Left = Tape A as_value
   Right = Tape B as_value
   Node = record

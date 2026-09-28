@@ -44,10 +44,9 @@ describe('ordered multiset', () => {
         ].join('\n'))).toBe('-1');
     });
 
-    it('does not reserve multiset method names for ordinary functions', () => {
+    it('allows method names from unopened modules', () => {
         for (const name of ['floor', 'ceiling', 'lowerbound', 'upperbound']) {
             expect(run([
-                'use algo',
                 `fun ${name} A B`,
                 '  return A + B',
                 'end',

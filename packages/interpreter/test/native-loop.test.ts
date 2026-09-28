@@ -190,7 +190,8 @@ fun work
 end`);
             expect(runtime.execute('work')).toBe(3n);
             expect(loops).toBe(1);
-            runtime.execute('fun startswith A B\n return false\nend');
+            runtime.execute('fun hostreplacement A B\n return false\nend');
+            runtime.variables.set('startswith', runtime.variables.get('hostreplacement')!);
             expect(runtime.execute('work')).toBe(0n);
             expect(loops).toBe(1);
         } finally { runtime.dispose(); }

@@ -14,7 +14,7 @@ test "assigns higher dog probability to bright dog features"
     250 250
   end
 
-  Prob = X Y Xtest 0.1 500 solve
+  Prob = X Y Xtest 0.1 500 predictall
   Prob 0 less 0.5 and Prob 1 greater 0.5
 end
 
@@ -25,7 +25,7 @@ test "returns one probability per image"
     0
     255
   end
-  Prob = X (array 0 1) X 0.1 100 solve
+  Prob = X (array 0 1) X 0.1 100 predictall
   Prob len equal 2
 end
 
@@ -37,6 +37,6 @@ test "keeps caller pixel matrices unchanged"
     255
   end
   Before = X copy
-  Prob = X (array 0 1) X 0.1 10 solve
+  Prob = X (array 0 1) X 0.1 10 predictall
   X equal Before
 end

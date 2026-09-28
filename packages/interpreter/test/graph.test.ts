@@ -214,8 +214,8 @@ Next (array 1 "x") weighted
 `)).toThrow('weighted requires numeric weights');
     });
 
-    it('allows a user function named weighted', () => {
-        expect(run(`${prelude}
+    it('allows weighted when its module is unopened', () => {
+        expect(run(`
 fun weighted A B
   return A + B
 end

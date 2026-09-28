@@ -83,7 +83,7 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         expect(() => r.execute('"abc" reverse')).toThrow('use text');
     });
 
-    it('preserves record types, function aliases, overrides and one evaluation per conversion', () => {
+    it('preserves record types, function aliases, rejected overrides and one evaluation per conversion', () => {
         const r = runtime();
         r.execute('Row = record\n .count = 1\nend');
         expect(() => r.execute('Row .count = 2.5')).toThrow('cannot receive real');
@@ -91,8 +91,8 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         r.execute('Cast = real\nCalls = array 0\nfun next\n Calls 0 += 1\n return 2\nend');
         expect(r.execute('next Cast')).toBe(2);
         expect(r.execute('Calls 0')).toBe(1n);
-        r.execute('fun real Value\n return Value + 10\nend');
-        expect(r.execute('2 real')).toBe(12n);
+        expect(() => r.execute('fun real Value\n return Value + 10\nend')).toThrow('cannot redefine available builtin: real');
+        expect(r.execute('2 real')).toBe(2);
         expect(r.execute('2 Cast')).toBe(2);
     });
 });

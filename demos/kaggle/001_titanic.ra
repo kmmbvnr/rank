@@ -16,7 +16,7 @@ argument OutputPath path = "demos/kaggle/submissions/titanic.csv"
 
 Train = TrainPath csv
 Test = TestPath csv
-Submission = Train Test 0.1 1000 solve
+Submission = Train Test 0.1 1000 predictall
 Submission OutputPath csv
 
 
@@ -99,7 +99,7 @@ end
 
 
 rem Return only the two columns required by Kaggle.
-fun solve Train Test Rate Steps
+fun predictall Train Test Rate Steps
   unpack X Xtest = Train Test prepare_features
   Y = Train .Survived
   Model = X Y Rate Steps logistic

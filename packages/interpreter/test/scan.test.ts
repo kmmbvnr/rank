@@ -72,7 +72,7 @@ describe('scan modifier', () => {
         expect(run('(array 3 1 2) max scan')).toBe('3 3 3');
     });
 
-    it.each(['add', 'remove'])('uses a function named %s without treating scan as mutation', name => {
+    it.each(['combineadd', 'combineremove'])('uses a function named %s without treating scan as mutation', name => {
         const setup = `fun ${name} A B\n  return A + B\nend\nValues = array 2 3 4\n`;
         expect(run(setup + `Values ${name} scan with 0`)).toBe('0 2 5 9');
         expect(run(setup + `Values ${name} scan`)).toBe('2 5 9');

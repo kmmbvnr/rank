@@ -3,7 +3,7 @@ import {
     type Expression, type NameExpression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
-import { OUTER_OPERATORS, REDUCE_OPERATORS, sortDirectionForm } from './application-forms.js';
+import { OUTER_OPERATORS, REDUCE_OPERATORS, applicationForm } from './application-forms.js';
 import { findOperation } from './operations.js';
 
 export const COMPARISON_OPERATORS = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
@@ -36,7 +36,7 @@ function declaredModifier(parts: Expression[], standard: StandardName): number |
 /** The end of a modified call when another pipeline step follows it. */
 function boundary(parts: Expression[]): number | undefined {
     const direction = parts.findIndex((part, index) => index > 1
-        && isSortDirection(part) && sortDirectionForm(parts.slice(0, index + 1)) !== undefined);
+        && isSortDirection(part) && applicationForm(parts.slice(0, index + 1)).kind === 'sort-direction');
     if (direction >= 0) return direction < parts.length - 1 ? direction + 1 : undefined;
     if (named(parts[2], 'segment') || named(parts[2], 'scan')) {
         const end = named(parts[3], 'with') ? 5 : 3;

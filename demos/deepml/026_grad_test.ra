@@ -8,9 +8,9 @@ test "official arithmetic graph"
   B = Tape 3 value
   C = Tape 10 value
   BC = Tape B C mul
-  D = Tape A BC add
+  D = Tape A BC addnode
   E = Tape 7 2 mul
-  F = Tape E D add
+  F = Tape E D addnode
   G = Tape F relu
 
   Tape G backward
@@ -33,9 +33,9 @@ test "official shared subgraph"
   A = Tape 2 value
   B = Tape 3 value
   M = Tape A B mul
-  Y = Tape M A add
-  Z = Tape M B add
-  W = Tape Y Z add
+  Y = Tape M A addnode
+  Z = Tape M B addnode
+  W = Tape Y Z addnode
 
   Tape W backward
 

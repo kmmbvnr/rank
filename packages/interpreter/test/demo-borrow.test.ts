@@ -46,13 +46,14 @@ it('borrows the unchanged scalar-reader demos without copying their inputs on a 
     }
 });
 
-it('rechecks builtin identity before borrowing after a redefinition', () => {
+it('rechecks builtin identity before borrowing after a host replacement', () => {
     const runtime = new Interpreter();
     try {
         const max = demo(runtime, 'demos/cses/sortnsrch/008_maxsubarray.ra', 'max_subarray');
         const first = input(1n);
         expect(max.call([first])).toBe(64n);
-        runtime.execute('fun max X Y\n return X\nend');
+        runtime.execute('fun hostreplacement X Y\n return X\nend');
+        runtime.variables.set('max', runtime.variables.get('hostreplacement')!);
         const next = input(1n);
         const stats = new RuntimeDiagnostics();
         stats.run(() => {
@@ -66,12 +67,13 @@ it('rechecks builtin identity before borrowing after a redefinition', () => {
     } finally { runtime.dispose(); }
 });
 
-it('falls back when len is redefined after a previously borrowed call', () => {
+it('falls back when the host replaces len after a previously borrowed call', () => {
     const runtime = new Interpreter();
     try {
         const max = demo(runtime, 'demos/cses/sortnsrch/008_maxsubarray.ra', 'max_subarray');
         expect(max.call([input(1n)])).toBe(64n);
-        runtime.execute('fun len X\n return 64\nend');
+        runtime.execute('fun hostreplacement X\n return 64\nend');
+        runtime.variables.set('len', runtime.variables.get('hostreplacement')!);
         const values = input(1n);
         const stats = new RuntimeDiagnostics();
         stats.run(() => {

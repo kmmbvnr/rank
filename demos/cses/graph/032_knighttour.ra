@@ -17,7 +17,7 @@ fun knight_tour StartX StartY
   DX = array 2 1 -1 -2 -2 -1 1 2
   DY = array 1 2 2 1 -1 -2 -2 -1
 
-  fun open X Y
+  fun countopen X Y
     Inside = X at least 0 and X less 8
     InsideY = Y at least 0 and Y less 8
     Inside and= InsideY
@@ -34,7 +34,7 @@ fun knight_tour StartX StartY
     for Move in 0 until 8
       NX = X + DX Move
       NY = Y + DY Move
-      if NX NY open
+      if NX NY countopen
         Count += 1
       end
     end
@@ -52,7 +52,7 @@ fun knight_tour StartX StartY
       NX = X + DX Move
       NY = Y + DY Move
       Next = NY * 8 + NX
-      if NX NY open
+      if NX NY countopen
         Moves push Next
       end
     end

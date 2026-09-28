@@ -117,6 +117,10 @@ j
 k
 ```
 
+Builtin names are protected while available: core names always, other standard
+function names after their module is opened. This includes lowercase function
+names and parameters; it does not make all library vocabulary reserved syntax.
+
 ## Indentation
 
 Canonical Rank source uses two spaces for each level of nesting. Tabs are not
@@ -322,7 +326,7 @@ Array lengths may vary. Record argument schemas participate in specialization,
 so an identity function can accept different record schemas in separate calls.
 
 Records have reference semantics, one of the few exceptions to
-[values and sharing](values-addressing.md#values-and-sharing). Assignment,
+[values and sharing](language/values-addressing.md#values-and-sharing). Assignment,
 function arguments and storage inside another structure preserve the same record
 identity, so mutation through one alias is visible through the others.
 Addressing may continue through arrays, queues and nested records:
@@ -803,8 +807,7 @@ keeps native sources repeatable. See [sequence previews](design/generator-previe
 Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text`, `bytes` are available
 without imports. The catalogue groups them under `core`; no `use core` is
-needed. These functions remain ordinary names and may be overridden by user
-functions. `numbers` still provides `sqrt`, `abs`, number theory and
+needed. User code cannot redefine these available names. `numbers` still provides `sqrt`, `abs`, number theory and
 `multiple by`; `sequences` provides shapes, ordering and sources such as
 `fibonacci`.
 
@@ -830,6 +833,29 @@ use bits
 
 Parsing does not depend on which modules were opened. `use` enables the
 corresponding meanings, validators and execution rules after parsing.
+
+### Available builtin names
+
+User code cannot redefine an available builtin name. Core names are always
+available; other names become protected when their standard module is opened.
+The rule applies to function declarations, parameters and local bindings, and
+to unqualified imports of user functions. Names from unopened modules remain
+available: a program may define `solve` without `use linalg`.
+
+Conflicts are errors in either order. A source unit containing both
+`fun solve ...` and `use linalg` is rejected before execution. In a persistent
+session, opening `linalg` after defining `solve` fails without activating the
+module. A qualified import such as `use "worker" as W` keeps `W.solve` separate
+from the caller's builtin `solve`.
+
+Function aliases are allowed. `Op = matmul` retains builtin operation identity,
+including forms such as `A B Op axis 1 0`. Reassigning an alias to another
+function requires the next call to resolve that identity again.
+
+Receiver methods keep their contextual dispatch. `Dsu find X` calls the DSU
+method when `Dsu` is a DSU. For another receiver it resolves `find` as an
+ordinary function. A user function with that spelling is legal only while the
+module supplying the builtin name remains unopened.
 
 ## Source modules
 
@@ -1179,8 +1205,9 @@ For an operation supporting several arities, an exact argument count wins.
 Otherwise Rank tries larger supported arities first. `min` and `max` are
 ordinary postfix calls: `A B max` calls the current `max` with arguments `A`
 and `B`, and `A B max 5 min` chains from the left. The infix form `A max B` is
-an error that suggests `A B max`. These names are not reserved; a local
-function or parameter shadows the builtin.
+an error that suggests `A B max`. Core names cannot be redefined by a local
+function or parameter. A differently named function or alias uses the same
+postfix calling convention.
 
 Builtins and aliases use the same argument rules: `Matrix i max` and
 `Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
@@ -1682,7 +1709,7 @@ end
 ```
 
 For a tensor, ordinary iteration yields cells along its leading axis. Explicit
-cell-rank and axis iteration are defined in [Tensors](tensors.md).
+cell-rank and axis iteration are defined in [Tensors](language/tensors.md).
 
 ## Errors and exceptions
 
@@ -2030,8 +2057,9 @@ Each call that creates a local function creates a distinct closure, even when th
 captured values match. Copying a function reference preserves its identity. Defining
 a function again creates a new object; saved references still refer to the old one.
 Functions supplied by standard-library modules are distinct across interpreter
-instances. User bindings can still shadow standard function names; caching does
-not change lookup order.
+instances. User code cannot redefine available builtin names, including through
+parameters or local functions. Names from unopened modules remain available to
+user functions. Aliases preserve the identity of the function they reference.
 
 ## Memoized functions
 
@@ -2592,7 +2620,7 @@ Rows = M axis 0 from 1 to 3
 
 Ranges and integer arrays preserve the selected axis. A scalar integer removes
 its axis. The complete selector rules are defined in
-[Values and addressing](values-addressing.md).
+[Values and addressing](language/values-addressing.md).
 
 ## Selection with boolean masks
 
@@ -2759,7 +2787,7 @@ Cluster = Points Mask
 ```
 
 A condition that names a column is a table query instead; see
-[Tables](tables.md). Filtering a plain array or sequence needs no `use tables`.
+[Tables](language/tables.md). Filtering a plain array or sequence needs no `use tables`.
 
 ## Ordering and uniqueness
 
@@ -3484,7 +3512,7 @@ An `index` writes a sparse tuple key. An array write requires one in-bounds
 index per dense axis and changes the array this name holds; a second name that
 was given the same array keeps what it was given. An `index` is a reference
 structure, so every name for it sees the write. See
-[values and sharing](values-addressing.md#values-and-sharing).
+[values and sharing](language/values-addressing.md#values-and-sharing).
 
 ### Set
 
@@ -4474,7 +4502,7 @@ Existing missing-cell and SQL NULL predicate behavior is unchanged.
 
 The same clause filters a plain array or sequence, where the elided subject is
 the value itself rather than a column; see
-[Sequences and arrays](sequences-arrays.md).
+[Sequences and arrays](language/sequences-arrays.md).
 
 Use `Data = Data filter ...` to keep the next step under the same variable
 name. Other references to the input retain the preceding table. The earlier
@@ -5835,7 +5863,7 @@ input, including a column containing only missing cells, raises
 `.EmptyReduction`. `median` sorts a copy, selects the middle value for an odd
 count and averages the two middle values for an even count. `std` divides by
 the population denominator `N`. All three operations support `rank` and `axis`;
-tensor behavior is described in [Tensors](../language/tensors.md). `median` and
+tensor behavior is described in [Tensors](language/tensors.md). `median` and
 `std` reject nonfinite cells with `.DomainError`.
 
 `mse` and `mae` calculate mean squared error and mean absolute error between
@@ -6447,18 +6475,18 @@ These names, together with `floor` and `ceiling`, are contextual rather than
 reserved: receiver-first method dispatch occurs only when the evaluated
 receiver is a multiset. Otherwise Rank resolves the word as an ordinary
 function.
-See [collections](../language/collections.md) for examples and empty-container rules.
+See [collections](language/collections.md) for examples and empty-container rules.
 
 `Values multiset` constructs a populated ordered multiset; `new multiset`
 creates an empty one. A multiset preserves duplicates. `Bag I` selects a sorted
 occurrence by zero-based index. Its lookup and mutation operations take expected
 `O(log N)` time. Missing indexed, `floor` and `ceiling` results raise `.Missing`
 and therefore compose with `default`. The complete collection semantics are defined
-in [Collections](../language/collections.md).
+in [Collections](language/collections.md).
 
 `Size fenwick` constructs a fixed-size integer Fenwick tree. It supports
 zero-based cell access and assignment plus inclusive prefix sums through
-`F sum I`, all as specified in [Collections](../language/collections.md).
+`F sum I`, all as specified in [Collections](language/collections.md).
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
 
@@ -6484,7 +6512,7 @@ Numeric `Values + segment` trees also accept `Tree Left Right = Value` and
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, `lengths`, and the increasing-path `upto` query.
 `Next Cost weighted` adds numeric edge sums to that path. Their inputs and
-results are specified in [Graphs](../language/graphs.md).
+results are specified in [Graphs](language/graphs.md).
 An undirected tree can be prepared with `Tree Root root`; its postfix
 `ancestor`, `lca`, and `distance` queries and traversal fields follow the
 rooted-tree rules above. `Tree pathlengths` provides a lazy unordered-pair

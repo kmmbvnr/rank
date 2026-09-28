@@ -73,7 +73,7 @@ array A B I
     });
 
     it('binds fresh function inputs on every invocation', () => {
-        const result = compare(`fun sum N
+        const result = compare(`fun totalcustom N
   I = 0
   Total = 0
   for I less N
@@ -82,8 +82,8 @@ array A B I
   end
   return Total
 end
-A = 3 sum
-B = 5 sum
+A = 3 totalcustom
+B = 5 totalcustom
 array A B
 `);
         expect(result.value).toBe('6 15');
@@ -1012,18 +1012,18 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it.each(['min', 'max'])('respects a shadowed %s and compiles the builtin without imports', name => {
+    it.each(['min', 'max'])('respects a custom %s and compiles the builtin without imports', name => {
         const result = compare(`use numbers
-fun ${name} A B
+fun ${name}custom A B
   return A + B
 end
 X = 0
 for I in 1 to 2
-  X = I 10 ${name}
+  X = I 10 ${name}custom
 end
 X`);
         expect(result.value).toBe('12');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
         expect(compare(`for I in 0 until 1
   X = 2 3 ${name}
 end`).loops).toBe(1);
@@ -1642,18 +1642,18 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('retains a user function named abs', () => {
+    it('retains a user function named customabs', () => {
         const result = compare(`use numbers
-fun abs X
+fun customabs X
   return X + 10
 end
 Total = 0
 for I in 1 to 2
-  Total += I abs
+  Total += I customabs
 end
 Total`);
         expect(result.value).toBe('23');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('preserves diagnostics for a missing numbers import', () => {
@@ -1890,15 +1890,15 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('keeps a shadowed text function', () => {
+    it('keeps a custom customtext function', () => {
         const result = compare(`use text
 use sequences
-fun text X
+fun customtext X
   return "xx"
 end
 Total = 0
 for I in 1 to 3
-  Total += I text len
+  Total += I customtext len
 end
 Total`);
         expect(result.value).toBe('6');
@@ -1907,15 +1907,15 @@ Total`);
 });
 
 
-it('retains shadowed len on a known allocated array', () => {
+it('retains custom customlen on a known allocated array', () => {
     const result = compare(`use sequences
-fun len A
+fun customlen A
   return 7
 end
 Total = 0
 for I in 1 to 2
   A = array shape I fill 0
-  Total += A len
+  Total += A customlen
 end
 Total`);
     expect(result.value).toBe('14');

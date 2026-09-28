@@ -76,7 +76,7 @@ export function safeIndexedSource(source: Expression): boolean {
     }
     if (!isApplicationExpression(source)) return false;
     const parts = flattenApplication(source);
-    return parts.length === 3 && isNameExpression(parts[2]) && parts[2].name === 'window'
+    return parts.length === 3 && isNameExpression(parts[2]) && findOperation(parts[2].name) === findOperation('window')
         && directValue(parts[0]) && directValue(parts[1]);
 }
 

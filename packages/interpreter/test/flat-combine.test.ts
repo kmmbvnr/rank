@@ -77,7 +77,7 @@ end`;
         }
     });
 
-    it('rechecks a builtin after global shadowing', () => {
+    it('rechecks a builtin after host replacement', () => {
         const source = `fun combine A B
   return record
     .n = (A .n) (B .n) max
@@ -86,7 +86,8 @@ end`;
         const fast = fixture(source), slow = fixture(source, false);
         expect(flatCombine(fast.operation, fast.values)).toBeDefined();
         for (const { runtime, tree } of [fast, slow]) {
-            runtime.execute('fun max A B\n  return A + B\nend');
+            runtime.execute('fun replacement A B\n  return A + B\nend');
+            runtime.variables.set('max', runtime.variables.get('replacement')!);
             tree.set(0n, state(9n));
         }
         expect(fast.tree.query(1n, 5n)).toEqual(slow.tree.query(1n, 5n));
@@ -110,10 +111,10 @@ end`;
     it('proves builtin bindings separately for each closure instance', () => {
         const runtime = new Interpreter();
         runtime.execute(`use numbers
-fun make max
+fun make Op
   fun combine A B
     return record
-      .n = (A .n) (B .n) max
+      .n = (A .n) (B .n) Op
     end
   end
   return combine
@@ -127,7 +128,7 @@ end`);
         const values = new FlatRecords(3, state(1n));
         const fast = make.call([builtin]) as NativeFunction;
         const slow = make.call([custom]) as NativeFunction;
-        expect(flatCombine(fast, values)).toBeDefined();
+        expect(flatCombine(fast, values)).toBeUndefined();
         expect(flatCombine(slow, values)).toBeUndefined();
         const build = (fn: NativeFunction) => new RankSegment(values, (a, b) => fn.call([a, b]), 'combine', fn);
         expect((build(fast).query(0n, 2n) as RankRecord).entries.get('n')).toBe(1n);

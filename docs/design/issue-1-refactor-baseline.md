@@ -158,10 +158,12 @@ refactor, not evidence that a future type rule is already implemented.
 The partial and open items above are tracked outside the closed issue. See the
 [post-close review](https://github.com/kmmbvnr/rank/issues/1#issuecomment-5862033534).
 
-- #36: one application-form classifier with exhaustive runtime and analysis
-  dispatch; move the recognizers still private to `interpreter.ts`; remove
-  name checks from `application-facts.ts`, `value-safety.ts` and `types.ts`.
-  Blocks #24, #9, #23 and form changes in #26.
+- #36 is implemented: one application-form classifier, exhaustive runtime and
+  analysis dispatch, and shared recognizers. The listed analysis name checks
+  now use form kinds or catalogue operations. The isolated #24 syntax pilot and
+  fake-form compiler check are repeatable with `npm run check:application-forms`.
+  See [implementation ADR-0005](../adr/implementation/0005-shared-application-form-classification.md).
+  #24, #9, #23 and form changes in #26 can use this boundary.
 - #37: `compileExpression`/`prepareStatement` node dispatch, one binding
   environment for globals and locals, control signals, fast-path selection
   and module operations in `modules/`. Depends on #36.

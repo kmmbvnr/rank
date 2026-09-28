@@ -6,7 +6,7 @@ import { createReplSession } from '../src/repl-session.js';
 async function loopFunction(enterAfterHeader = true): Promise<{ repl: NotebookRepl; keys: KeyRouter }> {
     const repl = new NotebookRepl(createReplSession(), () => {}, () => 80, true);
     const keys = new KeyRouter(repl);
-    repl.notebook.replace('fun sum n');
+    repl.notebook.replace('fun total n');
     await keys.press('', { name: 'return' });
     await keys.press('4');
     await keys.press('', { name: 'return' });

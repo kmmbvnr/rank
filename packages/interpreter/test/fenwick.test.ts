@@ -37,18 +37,18 @@ end
         runtime.dispose();
     });
 
-    it('keeps user-defined sum arity and dispatches each new receiver', () => {
+    it('keeps user-defined function arity and dispatches each new receiver', () => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line));
         expect(runtime.execute(`
 use algo
 use io
-fun sum A B
+fun customsum A B
   return A + B
 end
 F = 2 fenwick
 F 0 = 7
-F sum 1 3 sum print
+(F sum 1) 3 customsum print
 `)).toBe(10n);
         expect(output).toEqual(['10']);
         runtime.dispose();

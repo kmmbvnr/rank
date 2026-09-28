@@ -31,7 +31,10 @@ fun gcd A B
   return A
 end
 ```
-No parentheses or commas are used for parameter lists.
+No parentheses or commas are used for parameter lists. Function names and
+parameters cannot redefine available builtin names; see
+[ADR-0003](0003-modular-vocabulary-and-grammar-independence.md). Differently named
+aliases still hold builtin function objects and preserve their application forms.
 
 ### 2. File-Level Declaration Hoisting
 All top-level functions in a source file are parsed and registered before top-level executable statements begin:

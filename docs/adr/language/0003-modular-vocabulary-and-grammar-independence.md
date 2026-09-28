@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-09-28 — protect available builtin names (#36)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Modules and Programs Specification
 
@@ -48,6 +49,26 @@ When an unimported feature is encountered, the compiler provides helpful, action
 ### 4. Source Module Isolation
 Quoted module paths (`use "my_module"`) import functions and schemas without executing top-level scripts or contaminating caller variable scopes.
 
+### 5. Available Builtin Names Cannot Be Redefined
+
+Core names and names exported by opened standard modules cannot be used for
+user functions, parameters or local bindings. Unopened module vocabulary is
+still available for user declarations. Importing a module after a conflicting
+declaration is also an error, including across REPL executions.
+
+The shared rule is in `language/builtin-bindings.ts`. Runtime checks module
+activation and user-function imports as well as declarations; static analysis
+reports source conflicts without running the program. Aliased source imports
+keep their own namespace. Builtin aliases such as `Op = matmul` remain legal
+and retain their special application forms.
+
+Receiver methods remain contextual. A DSU's `find` method takes precedence
+when the receiver is a DSU; a different receiver uses ordinary function lookup.
+This is separate from the ban on redefining available builtin names.
+
+The host API may inject values directly. Optimizer identity guards needed for
+host-injected values remain; the source-language ban does not remove that API.
+
 ## Consequences
 
 ### Positive
@@ -56,6 +77,7 @@ Quoted module paths (`use "my_module"`) import functions and schemas without exe
 * **Clean 40-column code:** Functions from standard modules can be called directly without repetitive namespace prefixes (`sqrt`, not `numbers.sqrt`).
 
 ### Negative & Trade-offs
+* **Compatibility:** Existing programs that redefine available builtin names must rename those functions. Adding `use` can expose a conflict; adding a builtin to an unopened module cannot.
 * **Catalogue maintenance:** The compiler and language server must maintain an index of vocabulary across all standard modules to provide intelligent "did you forget `use X`?" suggestions.
 
 ## References

@@ -13,6 +13,7 @@ import {
 import { compoundType } from './types.js';
 import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
+import { builtinBindingDiagnostics } from '../builtin-bindings.js';
 import { arrayRank, conditionalPaths, contractRank, invalidate, mergeEnvironments } from './control-flow.js';
 import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
     provenBindingTypeConflict } from '../binding-rule.js';
@@ -49,7 +50,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
     examples: readonly { name: string; arguments: readonly ValueFacts[] }[] = [],
     loadModule?: (path: string) => Program | undefined): ValueAnalysis {
-    const diagnostics: ValueDiagnostic[] = [];
+    const diagnostics: ValueDiagnostic[] = builtinBindingDiagnostics(program, undefined, declarations.values(), loadModule);
     const expressions = new Map<Expression, ValueFacts>();
     const bindings = new Map(initial);
     const numeric = new Set(['integer', 'real']);

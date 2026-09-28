@@ -52,3 +52,5 @@ Decisions governing compiler internals, parser architecture, and execution engin
 - **[ADR-0001](implementation/0001-transparent-cow-memory-model-and-buffer-recycling.md)**: Transparent Copy-on-Write Memory Model and Buffer Recycling
 - **[ADR-0002](implementation/0002-abstract-interpretation-and-symbolic-shape-inference.md)**: Abstract Interpretation and Symbolic Shape Inference
 - **[ADR-0003](implementation/0003-tensor-kernel-fusion-and-execution-planner.md)**: Tensor Kernel Fusion and JIT Execution Planner
+
+- **[ADR-0005](implementation/0005-shared-application-form-classification.md)**: Shared Application Form Classification

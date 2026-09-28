@@ -13,6 +13,9 @@ The language is designed for:
 - [LLM-aided Rust rewrite](design/llm-rust-rewrite.md): use readable Rank as an
   executable reference for a standalone Rust program.
 
+Available builtin names cannot be redefined; see [modules and names](language/modules-programs.md#available-builtin-names).
+Builtin aliases and contextual receiver methods remain supported.
+
 Language sections describe the current design. Compiler experiments and future
 implementation plans are recorded separately under development workflow.
 

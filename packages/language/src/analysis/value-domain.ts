@@ -4,6 +4,8 @@ import type { Types } from './types.js';
  * Accepted binding fields remain here for compatibility with the current pass.
  */
 export interface ValueFacts {
+    /** Catalogue identity retained by a proven builtin function alias. */
+    readonly builtinOperation?: string;
     /** Internal recursion seed: no returning path has been observed yet. */
     readonly bottom?: true;
     readonly types: Types;
@@ -135,6 +137,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
         ? Object.fromEntries(Object.keys(first.fields).filter(name => values.every(value => value.fields?.[name]))
             .map(name => [name, joinValueFacts(values.map(value => value.fields![name]))])) : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
+        ...(first.builtinOperation && values.every(value => value.builtinOperation === first.builtinOperation)
+            ? { builtinOperation: first.builtinOperation } : {}),
         ...(types.join() === 'boolean' && first.boolean !== undefined
             && values.every(value => value.boolean === first.boolean) ? { boolean: first.boolean } : {}),
         ...(first.functionalWeighted !== undefined

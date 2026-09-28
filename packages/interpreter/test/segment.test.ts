@@ -92,13 +92,13 @@ describe('segment tree', () => {
         ].join('\n'))).toBe('20 15 18 3 2');
     });
 
-    it('honors a shadowing named operation', () => {
+    it('honors a custom named operation', () => {
         expect(run([
             'use algo',
-            'fun min A B',
+            'fun combinecustom A B',
             '  return A + B',
             'end',
-            'Tree = (array 2 3 4) min segment',
+            'Tree = (array 2 3 4) combinecustom segment',
             'Tree 0 2 query',
         ].join('\n'))).toBe('9');
     });
@@ -191,13 +191,13 @@ describe('segment tree', () => {
             .toThrowError('maxsum segment expects numeric values');
     });
 
-    it('honors a user function that shadows maxsum', () => {
+    it('honors a user function that replaces customcombine', () => {
         expect(run([
             'use algo',
-            'fun maxsum A B',
+            'fun customcombine A B',
             '  return A + B',
             'end',
-            'Tree = (array 1 2 3) maxsum segment',
+            'Tree = (array 1 2 3) customcombine segment',
             'Tree 0 2 query',
         ].join('\n'))).toBe('6');
     });

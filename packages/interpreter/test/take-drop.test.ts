@@ -117,7 +117,7 @@ T = M 1 drop 1 take`);
 
     it('preserves take while and user-defined take and drop functions', () => {
         expect(run('use sequences\nV = array 1 2 3\nM = V less 3\nV take while M')).toBe('1 2');
-        expect(run('use sequences\nfun take X\n  return X + 1\nend\n4 take')).toBe('5');
-        expect(run('use sequences\nfun drop X\n  return X + 2\nend\n4 drop')).toBe('6');
+        expect(run('fun take X\n  return X + 1\nend\n4 take')).toBe('5');
+        expect(run('fun drop X\n  return X + 2\nend\n4 drop')).toBe('6');
     });
 });

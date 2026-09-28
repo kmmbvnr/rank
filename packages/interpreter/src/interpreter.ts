@@ -46,7 +46,6 @@ import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
     flatArrayBorrowProofs,
-    COMPARISON_OPERATORS,
     isAddStatement,
     isAliasedTableExpression,
     isAllAxisExpression,
@@ -102,13 +101,8 @@ import {
     type FunctionStatement,
     type Program,
     type Statement,
-    axisReductionForm,
-    axisLengthForm,
-    symbolicApplicationForm,
-    explicitLowerBoundApplication, explicitMaterializePipeline, explicitNamedOuterApplication,
-    explicitNamedScanApplication, explicitNamedSegmentApplication, explicitCollectionMutation,
-    explicitMultisetMethod, explicitFunctionalMethod, explicitDsuMethod, explicitGraphEdges,
-    sortDirectionForm,
+    applicationForm, assertNever, type ApplicationForm, findOperation,
+    availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
     RUNTIME_TYPE_NAMES,
     acceptsBindingType,
     bindingTypeMessage,
@@ -357,6 +351,7 @@ interface BorrowProof {
     readonly candidates: ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>>;
 }
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
+const builtinOperations = new WeakMap<NativeFunction, NonNullable<ReturnType<typeof findOperation>>>();
 
 class TailCallSignal {
     constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[],
@@ -416,6 +411,9 @@ const typeFunction: NativeFunction = {
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
     readonly modules = new Set<string>(['core']);
+    /** Source bindings, separate from values injected through the host API. */
+    private readonly sourceBindings = new Set<string>();
+    private readonly sourceFunctions = new WeakMap<NativeFunction, FunctionStatement>();
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly options: InterpreterOptions;
@@ -572,6 +570,7 @@ export class Interpreter {
         }, new Set(this.variables.keys()));
         if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
         validateFunctionPlacement(program.statements, 'top');
+        this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         return program.statements.filter(isFunctionStatement).map(statement => statement.name);
     }
@@ -597,10 +596,13 @@ export class Interpreter {
             persistentResources: _persistent, ...options } = this.options;
         const fork = new Interpreter(output, options);
         for (const module of this.modules) fork.modules.add(module);
+        for (const name of this.sourceBindings) fork.sourceBindings.add(name);
         for (const [name, types] of this.variableTypes) fork.variableTypes.set(name, types);
         for (const [name, rank] of this.variableArrayRanks) fork.variableArrayRanks.set(name, rank);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
         for (const [name, value] of this.variables) {
+            const source = isNativeFunction(value) ? this.sourceFunctions.get(value) : undefined;
+            if (source && isNativeFunction(value)) fork.sourceFunctions.set(value, source);
             const definition = isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
             if (!definition || definition.context) fork.variables.set(name, clonePreviewValue(value));
         }
@@ -617,6 +619,7 @@ export class Interpreter {
     forgetBindings(names: Iterable<string>): void {
         for (const name of names) {
             this.variables.delete(name);
+            this.sourceBindings.delete(name);
             this.variableTypes.delete(name);
             this.variableArrayRanks.delete(name);
         }
@@ -659,6 +662,7 @@ export class Interpreter {
         assertBooleanExpressions = false,
     ): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
+        this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         this.prepareInputs(program, args);
         return this.executeStatements(program.statements, assertBooleanExpressions);
@@ -670,8 +674,20 @@ export class Interpreter {
         }
     }
 
+    private checkBuiltinBindings(program: Program, modules = this.modules): void {
+        const existing: (string | FunctionStatement)[] = [...this.sourceBindings, ...this.aliases.keys()];
+        for (const value of this.variables.values()) {
+            const statement = isNativeFunction(value) ? this.sourceFunctions.get(value) : undefined;
+            if (statement) existing.push(statement);
+        }
+        const diagnostic = builtinBindingDiagnostics(program, modules, existing)[0];
+        if (diagnostic) throw this.locateError(new RankError(diagnostic.message, diagnostic.kind),
+            diagnostic.node as Statement);
+    }
+
     private prepareModule(program: Program): void {
         validateFunctionPlacement(program.statements, 'top');
+        this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         for (const statement of program.statements) {
             if (!isUseStatement(statement)) continue;
@@ -1618,7 +1634,8 @@ export class Interpreter {
             } };
         }
         if (isExpressionStatement(statement)) {
-            const mutation = explicitCollectionMutation(statement.value);
+            const form = applicationForm(statement.value, name => this.applicationOperation(name), true);
+            const mutation = form.kind === 'collection-mutation' ? form : undefined;
             if (mutation) {
                 return { stream: function* (): Execution<RankValue | undefined> {
                     const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
@@ -1799,8 +1816,29 @@ export class Interpreter {
         expression: Expression,
         missing?: () => RankValue,
         tail = false,
+        classify = true,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
+        if (classify && (isApplicationExpression(expression) || isBinaryExpression(expression))) {
+            const syntax = isBinaryExpression(expression) ? flattenApplication(expression.right) : flattenApplication(expression);
+            const names = syntax.filter(isNameExpression).map(part => part.name);
+            let signature: string | undefined;
+            let compiled: (() => Evaluation<RankValue>) | undefined;
+            return () => {
+                const bindings = new Map(names.map(name => [name, this.applicationOperation(name)]));
+                const next = names.map(name => {
+                    const identity = bindings.get(name);
+                    return identity === false ? '\0' : identity?.name ?? name;
+                }).join(' ');
+                if (!compiled || signature !== next) {
+                    const form = applicationForm(expression, name => bindings.has(name)
+                        ? bindings.get(name) : this.applicationOperation(name));
+                    compiled = this.compileApplicationForm(expression, form, missing, tail);
+                    signature = next;
+                }
+                return compiled();
+            };
+        }
         if (isNewStructureExpression(expression)) {
             const create = this.compileDirectExpression(expression)!;
             return () => completed(create());
@@ -2054,92 +2092,6 @@ export class Interpreter {
                     return interpreter.evaluateUnary(left.operator, powered);
                 };
             }
-            const comparison = explicitComparisonRank(expression);
-            if (comparison) {
-                return function* (): Execution<RankValue> {
-                    const left = yield* resume(interpreter.evaluateTask(comparison.left));
-                    const right = yield* resume(interpreter.evaluateTask(comparison.right));
-                    return interpreter.compareAtRank(left, right, comparison);
-                };
-            }
-            const symbolic = symbolicApplicationForm(expression);
-            const outer = symbolic?.kind === 'outer' ? symbolic : undefined;
-            if (outer) {
-                if (outer.operands.length !== 2) {
-                    throw new RankError(`outer expects two operands, got ${outer.operands.length}`);
-                }
-                return function* (): Execution<RankValue> {
-                    return interpreter.evaluateOuter(
-                        outer.operator,
-                        (yield* resume(interpreter.evaluateTask(outer.operands[0]))),
-                        (yield* resume(interpreter.evaluateTask(outer.operands[1]))),
-                    );
-                };
-            }
-            const symbolicSegment = symbolic?.kind === 'segment' ? symbolic : undefined;
-            if (symbolicSegment) {
-                return function* (): Execution<RankValue> {
-                    interpreter.requireModule('algo', 'segment');
-                    if (!SEGMENT_OPERATORS.has(symbolicSegment.operator)) {
-                        throw new RankError('segment requires an associative operation');
-                    }
-                    const source = yield* resume(interpreter.evaluateTask(symbolicSegment.source));
-                    const values = segmentItems(source);
-                    if (symbolicSegment.operator === '+'
-                        && values.every(value => typeof value === 'bigint'
-                            || typeof value === 'number')) {
-                        return new RankRangeSumSegment(values);
-                    }
-                    return new RankSegment(
-                        values,
-                        (left, right) => interpreter.evaluateBinary(
-                            symbolicSegment.operator, left, right,
-                        ),
-                        symbolicSegment.operator,
-                    );
-                };
-            }
-            const scan = symbolic?.kind === 'scan' ? symbolic : undefined;
-            if (scan) {
-                return function* (): Execution<RankValue> {
-                    const source = yield* resume(interpreter.evaluateTask(scan.source));
-                    const seed = scan.seed === undefined
-                        ? undefined
-                        : yield* resume(interpreter.evaluateTask(scan.seed));
-                    return interpreter.reductions.evaluateScan(
-                        scan.operator,
-                        source,
-                        seed,
-                    );
-                };
-            }
-            const reduction = symbolic?.kind === 'reduce' ? {
-                ...symbolic,
-                rank: symbolic.rank === undefined ? undefined
-                    : safeDimension(integerLiteral(symbolic.rank, 'rank'), 'rank'),
-            } : undefined;
-            if (reduction) {
-                const fused = reduction.rank === undefined && reduction.seed === undefined ? compileFusedReduction(
-                    reduction.source, reduction.operator, {
-                        prepareLeaf: source => interpreter.compileDirectExpression(source),
-                        binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
-                        reduce: value => interpreter.reductions.evaluateReduction(reduction.operator, value),
-                    },
-                ) : undefined;
-                if (fused) return () => completed(fused());
-                return function* (): Execution<RankValue> {
-                    const source = yield* resume(interpreter.evaluateTask(reduction.source));
-                    const seed = reduction.seed === undefined
-                        ? undefined
-                        : yield* resume(interpreter.evaluateTask(reduction.seed));
-                    return interpreter.reductions.evaluateReduction(
-                        reduction.operator,
-                        source,
-                        reduction.rank,
-                        seed,
-                    );
-                };
-            }
             const slice = inlineSlice(expression);
             if (slice) {
                 return function* (): Execution<RankValue> {
@@ -2210,19 +2162,117 @@ export class Interpreter {
         if (isAllAxisExpression(expression)) {
             return function* (): Execution<RankValue> { throw new RankError('# is only valid inside tensor addressing'); };
         }
-        if (isApplicationExpression(expression)) {
-            const parts = flattenApplication(expression);
-            const sortDirection = sortDirectionForm(parts);
-            if (sortDirection) {
+        return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
+    }
+
+    /** Binding identity, including aliases; no user function is executed by classification. */
+    private applicationOperation(name: string): ReturnType<typeof findOperation> | false {
+        const value = this.findVariable(name);
+        if (value === undefined) return findOperation(name);
+        return isNativeFunction(value) ? builtinOperations.get(value) ?? false : false;
+    }
+
+    private compileApplicationForm(
+        expression: Expression, form: ApplicationForm, missing?: () => RankValue, tail = false,
+    ): () => Evaluation<RankValue> {
+        const interpreter = this;
+        const parts = flattenApplication(expression);
+        switch (form.kind) {
+            case 'collection-mutation': throw new RankError('collection mutation requires a statement');
+            case 'invalid': throw new RankError(form.message);
+            case 'comparison-rank': {
+                const comparison = form;
+                return function* (): Execution<RankValue> {
+                    const left = yield* resume(interpreter.evaluateTask(comparison.left));
+                    const right = yield* resume(interpreter.evaluateTask(comparison.right));
+                    return interpreter.compareAtRank(left, right, comparison);
+                };
+            }
+            case 'outer': {
+                const outer = form;
+                if (outer.operands.length !== 2) {
+                    throw new RankError(`outer expects two operands, got ${outer.operands.length}`);
+                }
+                return function* (): Execution<RankValue> {
+                    return interpreter.evaluateOuter(
+                        outer.operator,
+                        (yield* resume(interpreter.evaluateTask(outer.operands[0]))),
+                        (yield* resume(interpreter.evaluateTask(outer.operands[1]))),
+                    );
+                };
+            }
+            case 'segment': {
+                const symbolicSegment = form;
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('algo', 'segment');
+                    if (!SEGMENT_OPERATORS.has(symbolicSegment.operator)) {
+                        throw new RankError('segment requires an associative operation');
+                    }
+                    const source = yield* resume(interpreter.evaluateTask(symbolicSegment.source));
+                    const values = segmentItems(source);
+                    if (symbolicSegment.operator === '+'
+                        && values.every(value => typeof value === 'bigint'
+                            || typeof value === 'number')) {
+                        return new RankRangeSumSegment(values);
+                    }
+                    return new RankSegment(
+                        values,
+                        (left, right) => interpreter.evaluateBinary(
+                            symbolicSegment.operator, left, right,
+                        ),
+                        symbolicSegment.operator,
+                    );
+                };
+            }
+            case 'scan': {
+                const scan = form;
+                return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(scan.source));
+                    const seed = scan.seed === undefined
+                        ? undefined
+                        : yield* resume(interpreter.evaluateTask(scan.seed));
+                    return interpreter.reductions.evaluateScan(
+                        scan.operator,
+                        source,
+                        seed,
+                    );
+                };
+            }
+            case 'reduce': {
+                const reduction = { ...form, rank: form.rank === undefined ? undefined
+                    : safeDimension(integerLiteral(form.rank, 'rank'), 'rank') };
+                const fused = reduction.rank === undefined && reduction.seed === undefined ? compileFusedReduction(
+                    reduction.source, reduction.operator, {
+                        prepareLeaf: source => interpreter.compileDirectExpression(source),
+                        binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
+                        reduce: value => interpreter.reductions.evaluateReduction(reduction.operator, value),
+                    },
+                ) : undefined;
+                if (fused) return () => completed(fused());
+                return function* (): Execution<RankValue> {
+                    const source = yield* resume(interpreter.evaluateTask(reduction.source));
+                    const seed = reduction.seed === undefined
+                        ? undefined
+                        : yield* resume(interpreter.evaluateTask(reduction.seed));
+                    return interpreter.reductions.evaluateReduction(
+                        reduction.operator,
+                        source,
+                        reduction.rank,
+                        seed,
+                    );
+                };
+            }
+            case 'sort-direction': {
+                const sortDirection = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'sort direction');
                     const direction = sortDirection.direction;
                     const parts = flattenApplication(expression).slice(0, -1);
-                    const axis = explicitAxisArgsort(parts);
-                    const ranked = explicitRankApplication(parts);
-                    const operation = axis ? 'argsort' : (ranked?.parts ?? parts).at(-1);
-                    const name = typeof operation === 'string' ? operation
-                        : operation && isNameExpression(operation) ? operation.name : undefined;
+                    const inner = applicationForm(parts, name => interpreter.applicationOperation(name));
+                    if (inner.kind === 'invalid') throw new RankError(inner.message);
+                    const axis = inner.kind === 'axis-argsort' ? inner : undefined;
+                    const ranked = inner.kind === 'rank' ? inner : undefined;
+                    const name = sortDirection.operation.name;
                     if (name !== 'sort' && name !== 'argsort') {
                         throw new RankError('sort direction must follow sort or argsort', 'TypeError');
                     }
@@ -2241,7 +2291,7 @@ export class Interpreter {
                 };
             }
 
-            if (parts.some(isUnpackExpression)) {
+            case 'unpack': {
                 return function* (): Execution<RankValue> {
                     const values: RankValue[] = [];
                     for (const part of parts) {
@@ -2257,8 +2307,7 @@ export class Interpreter {
                     return yield* resume(interpreter.apply(values, missing, 0, [], tail));
                 };
             }
-            if (isNewStructureExpression(parts[0])
-                && parts[0].structure === 'graph') {
+            case 'new-graph': {
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('graph', 'new graph');
                     const constructor = graphConstructor();
@@ -2272,16 +2321,15 @@ export class Interpreter {
                     return constructor.call(arguments_);
                 };
             }
-            if (isNewStructureExpression(parts[0])
-                && parts[0].structure === 'dsu') {
+            case 'new-dsu': {
                 if (parts.length !== 2) throw new RankError('new dsu expects one collection');
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('graph', 'new dsu');
                     return dsuFrom(yield* resume(interpreter.evaluateTask(parts[1])));
                 };
             }
-            const namedOuter = explicitNamedOuterApplication(parts);
-            if (namedOuter) {
+            case 'named-outer': {
+                const namedOuter = form;
                 return function* (): Execution<RankValue> {
                     const operation = (yield* resume(interpreter.evaluateTask(namedOuter.operation)));
                     if (!isNativeFunction(operation)) {
@@ -2294,8 +2342,8 @@ export class Interpreter {
                     );
                 };
             }
-            const explicitRank = explicitRankApplication(parts);
-            if (explicitRank) {
+            case 'rank': {
+                const explicitRank = form;
                 return function* (): Execution<RankValue> {
                     if (explicitRank.parts.length === 3) {
                         const left = yield* resume(interpreter.evaluateTask(explicitRank.parts[0]));
@@ -2318,8 +2366,8 @@ export class Interpreter {
                     return yield* resume(interpreter.applyAtRank([source, operation], explicitRank.rank, explicitRank.axes));
                 };
             }
-            const axisMatmul = explicitAxisMatmul(parts);
-            if (axisMatmul) {
+            case 'axis-matmul': {
+                const axisMatmul = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('linalg', 'matmul');
                     return matmulValues(
@@ -2329,8 +2377,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisCovariance = explicitAxisCovariance(parts);
-            if (axisCovariance) {
+            case 'axis-covariance': {
+                const axisCovariance = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('stats', 'covariance');
                     return covarianceValue(
@@ -2339,8 +2387,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisCorrelation = explicitAxisCorrelation(parts);
-            if (axisCorrelation) {
+            case 'axis-correlation': {
+                const axisCorrelation = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('stats', axisCorrelation.name);
                     return correlationValue(
@@ -2349,8 +2397,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisQuantile = explicitAxisQuantile(parts);
-            if (axisQuantile) {
+            case 'axis-quantile': {
+                const axisQuantile = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('stats', axisQuantile.isPercentile ? 'percentile' : 'quantile');
                     return quantileValue(
@@ -2361,9 +2409,8 @@ export class Interpreter {
                     );
                 };
             }
-            const textFormat = parts.findIndex((part, index) => index > 0
-                && isNamed(part, 'text') && isStringLiteral(parts[index + 1]));
-            if (textFormat >= 0) {
+            case 'text-format': {
+                const textFormat = form.position;
                 const format = parts[textFormat + 1];
                 if (!isStringLiteral(format)) throw new RankError('expected text format');
                 return function* (): Execution<RankValue> {
@@ -2376,8 +2423,8 @@ export class Interpreter {
                     return remaining.length ? yield* resume(interpreter.apply([result, ...remaining], missing, 0, [], tail)) : result;
                 };
             }
-            const lowerBound = explicitLowerBoundApplication(parts);
-            if (lowerBound) {
+            case 'lower-bound': {
+                const lowerBound = form;
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(interpreter.evaluateTask(lowerBound.source));
                     if (!isRankSequence(source)) {
@@ -2389,8 +2436,8 @@ export class Interpreter {
                     return lowerBoundSequence(source, limit);
                 };
             }
-            const axisWindow = explicitAxisWindow(parts);
-            if (axisWindow) {
+            case 'axis-window': {
+                const axisWindow = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'window');
                     return windowValue(
@@ -2406,8 +2453,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisShuffle = explicitAxisShuffle(parts);
-            if (axisShuffle) {
+            case 'axis-shuffle': {
+                const axisShuffle = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('random', 'shuffle');
                     return shuffleValue(
@@ -2418,14 +2465,14 @@ export class Interpreter {
                     );
                 };
             }
-            const axisLength = explicitAxisLength(parts);
-            if (axisLength) {
+            case 'axis-length': {
+                const axisLength = form;
                 return function* (): Execution<RankValue> {
                     return lengthOfAxis((yield* resume(interpreter.evaluateTask(axisLength.source))), axisLength.axis);
                 };
             }
-            const axisArgsort = explicitAxisArgsort(parts);
-            if (axisArgsort) {
+            case 'axis-argsort': {
+                const axisArgsort = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'argsort');
                     return argsortAxis(
@@ -2434,8 +2481,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisMetric = explicitAxisMetric(parts);
-            if (axisMetric) {
+            case 'axis-metric': {
+                const axisMetric = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('stats', axisMetric.metric);
                     return errorMetricValue(
@@ -2446,8 +2493,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisReduction = axisReductionForm(parts);
-            if (axisReduction) {
+            case 'axis-reduction': {
+                const axisReduction = form;
                 const axes = axisReduction.axes.map(axis =>
                     safeDimension(integerLiteral(axis, `${axisReduction.operation.name} axis`),
                         `${axisReduction.operation.name} axis`));
@@ -2460,8 +2507,8 @@ export class Interpreter {
                     );
                 };
             }
-            const axisTranspose = explicitAxisTranspose(parts);
-            if (axisTranspose) {
+            case 'axis-transpose': {
+                const axisTranspose = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('sequences', 'transpose');
                     return transposeValue(
@@ -2470,8 +2517,8 @@ export class Interpreter {
                     );
                 };
             }
-            const namedSegment = explicitNamedSegmentApplication(parts);
-            if (namedSegment) {
+            case 'named-segment': {
+                const namedSegment = form;
                 return function* (): Execution<RankValue> {
                     interpreter.requireModule('algo', 'segment');
                     const source = yield* resume(interpreter.evaluateTask(namedSegment.source));
@@ -2493,8 +2540,8 @@ export class Interpreter {
                     );
                 };
             }
-            const namedScan = explicitNamedScanApplication(parts);
-            if (namedScan) {
+            case 'named-scan': {
+                const namedScan = form;
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(interpreter.evaluateTask(namedScan.source));
                     const seed = namedScan.seed === undefined
@@ -2507,8 +2554,8 @@ export class Interpreter {
                         (left, right) => operation.call([left, right]));
                 };
             }
-            const axisSelection = explicitAxisSelection(parts);
-            if (axisSelection) {
+            case 'axis-selection': {
+                const axisSelection = form;
                 return function* (): Execution<RankValue> {
                     return selectAxis(
                         (yield* resume(interpreter.evaluateTask(axisSelection.source))),
@@ -2517,8 +2564,8 @@ export class Interpreter {
                     );
                 };
             }
-            const graphEdges = explicitGraphEdges(parts);
-            if (graphEdges) {
+            case 'graph-edges': {
+                const graphEdges = form;
                 return function* (): Execution<RankValue> {
                     const receiver = yield* resume(interpreter.evaluateTask(
                         graphEdges.receiver,
@@ -2542,8 +2589,8 @@ export class Interpreter {
                     ));
                 };
             }
-            const dsuMethod = explicitDsuMethod(parts);
-            if (dsuMethod) {
+            case 'dsu-method': {
+                const dsuMethod = form;
                 return function* (): Execution<RankValue> {
                     const receiver = yield* resume(interpreter.evaluateTask(dsuMethod.receiver));
                     const arguments_ = yield* resume(mapExecution(
@@ -2564,8 +2611,8 @@ export class Interpreter {
                     ));
                 };
             }
-            const functionalMethod = explicitFunctionalMethod(parts);
-            if (functionalMethod) {
+            case 'functional-method': {
+                const functionalMethod = form;
                 return function* (): Execution<RankValue> {
                     const receiver = yield* resume(interpreter.evaluateTask(
                         functionalMethod.receiver,
@@ -2588,8 +2635,8 @@ export class Interpreter {
                     ));
                 };
             }
-            const multisetMethod = explicitMultisetMethod(parts);
-            if (multisetMethod) {
+            case 'multiset-method': {
+                const multisetMethod = form;
                 return function* (): Execution<RankValue> {
                     const receiverParts = yield* resume(mapExecution(
                         multisetMethod.receiver,
@@ -2624,8 +2671,8 @@ export class Interpreter {
                     ));
                 };
             }
-            const materializePipeline = explicitMaterializePipeline(parts);
-            if (materializePipeline) {
+            case 'materialize-pipeline': {
+                const materializePipeline = form;
                 return function* (): Execution<RankValue> {
                     const sourceParts = yield* resume(mapExecution(
                         materializePipeline.source,
@@ -2650,55 +2697,58 @@ export class Interpreter {
                     ));
                 };
             }
-            if (parts.length === 2 && isNamed(parts[1], 'sum')) {
-                const fused = compileFusedSum(parts[0], {
-                    prepareLeaf: source => interpreter.compileDirectExpression(source),
-                    binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
-                }, (value, sum) => {
-                    const fn = interpreter.resolve('sum');
-                    if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.core.sum)) {
-                        return completed(sum ? sum() : fn.call([value]));
-                    }
-                    return interpreter.apply([value, fn], missing, 0, [], tail);
-                });
-                if (fused) return fused;
-            }
-            if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
-                return function* (): Execution<RankValue> {
-                    let pending: RankValue[] = [];
-                    for (let index = 0; index < parts.length; index += 1) {
-                        const part = parts[index];
-                        // Resolve receiver methods before looking up ordinary functions.
-                        // Each operation consumes its arguments and leaves its result
-                        // available to the remainder of the postfix chain.
-                        if (isNamed(part, 'sum')) {
-                            const receiver = pending.length === 1 ? pending[0]
-                                : canApplySelectors(pending) ? interpreter.applySelectors(pending) : undefined;
-                            if (receiver !== undefined && isRankFenwick(receiver)) {
-                                interpreter.requireModule('algo', 'fenwick');
-                                const argument = parts[++index];
-                                if (!argument) throw new RankError('fenwick sum expects one integer index');
-                                const position = yield* resume(interpreter.evaluateTask(argument));
-                                pending = [expectFenwick(receiver).sum(expectInteger(position))];
-                                continue;
+            case 'plain': {
+                if (!isApplicationExpression(expression)) return this.compileExpression(expression, missing, tail, false);
+                if (parts.length === 2 && isNamed(parts[1], 'sum')) {
+                    const fused = compileFusedSum(parts[0], {
+                        prepareLeaf: source => interpreter.compileDirectExpression(source),
+                        binary: (operator, a, b) => interpreter.evaluateBinary(operator, a, b),
+                    }, (value, sum) => {
+                        const fn = interpreter.resolve('sum');
+                        if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.core.sum)) {
+                            return completed(sum ? sum() : fn.call([value]));
+                        }
+                        return interpreter.apply([value, fn], missing, 0, [], tail);
+                    });
+                    if (fused) return fused;
+                }
+                if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
+                    return function* (): Execution<RankValue> {
+                        let pending: RankValue[] = [];
+                        for (let index = 0; index < parts.length; index += 1) {
+                            const part = parts[index];
+                            // Resolve receiver methods before looking up ordinary functions.
+                            // Each operation consumes its arguments and leaves its result
+                            // available to the remainder of the postfix chain.
+                            if (isNamed(part, 'sum')) {
+                                const receiver = pending.length === 1 ? pending[0]
+                                    : canApplySelectors(pending) ? interpreter.applySelectors(pending) : undefined;
+                                if (receiver !== undefined && isRankFenwick(receiver)) {
+                                    interpreter.requireModule('algo', 'fenwick');
+                                    const argument = parts[++index];
+                                    if (!argument) throw new RankError('fenwick sum expects one integer index');
+                                    const position = yield* resume(interpreter.evaluateTask(argument));
+                                    pending = [expectFenwick(receiver).sum(expectInteger(position))];
+                                    continue;
+                                }
+                            }
+                            const value = isAllAxisExpression(part)
+                                ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part));
+                            pending.push(value);
+                            if (isNativeFunction(value)) {
+                                pending = [yield* resume(interpreter.apply(
+                                    pending, missing, 0, [], tail && index === parts.length - 1,
+                                ))];
                             }
                         }
-                        const value = isAllAxisExpression(part)
-                            ? ALL_AXIS : yield* resume(interpreter.evaluateTask(part));
-                        pending.push(value);
-                        if (isNativeFunction(value)) {
-                            pending = [yield* resume(interpreter.apply(
-                                pending, missing, 0, [], tail && index === parts.length - 1,
-                            ))];
-                        }
-                    }
-                    return pending.length === 1
-                        ? pending[0] : interpreter.applySelectors(pending, missing);
-                };
+                        return pending.length === 1
+                            ? pending[0] : interpreter.applySelectors(pending, missing);
+                    };
+                }
+                return this.compileApplication(parts, missing, tail);
             }
-            return this.compileApplication(parts, missing, tail);
+            default: return assertNever(form);
         }
-        return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
     }
 
     private compileApplication(
@@ -2783,10 +2833,15 @@ export class Interpreter {
         if (!(module in standardModules)) {
             throw new RankError(`unknown module: ${module}`);
         }
+        const modules = new Set([...this.modules, module]);
+        this.checkBuiltinBindings({ $type: 'Program', statements: [] }, modules);
         this.modules.add(module);
     }
 
     private defineFunction(statement: FunctionStatement): RankValue {
+        if (availableBuiltin(statement.name, this.modules)) {
+            throw new RankError(builtinBindingMessage(statement.name), 'TypeError');
+        }
         const { generator } = prepareFunction(statement);
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.localFrame;
@@ -2865,6 +2920,7 @@ export class Interpreter {
                 } finally { leaveRuntime(); }
             },
         };
+        this.sourceFunctions.set(fn, statement);
         if (!generator) {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
@@ -2875,11 +2931,10 @@ export class Interpreter {
             registerFlatCombine(fn, statement, builtins => {
                 if (this.callDepth >= this.maxCallDepth) return false;
                 for (const name of builtins) {
-                    const bound = context?.find(name)?.get(name) ?? this.variables.get(name);
+                    // Rank locals cannot hide core names; only host-injected globals need a guard.
+                    const bound = this.variables.get(name);
                     if (bound !== undefined) {
                         if (bound !== this.standardFunctions.get(standardModules.core[name])) return false;
-                    } else if ([...this.modules].find(module => standardModules[module]?.[name]) !== 'core') {
-                        return false;
                     }
                 }
                 return true;
@@ -3286,6 +3341,11 @@ export class Interpreter {
             this.aliases.set(alias, child);
         } else {
             for (const statement of loaded.program.statements) {
+                if (isFunctionStatement(statement) && availableBuiltin(statement.name, this.modules)) {
+                    throw new RankError(builtinBindingMessage(statement.name), 'TypeError');
+                }
+            }
+            for (const statement of loaded.program.statements) {
                 if (!isFunctionStatement(statement)) continue;
                 this.assign(statement.name, child.resolveVariable(statement.name));
             }
@@ -3537,7 +3597,11 @@ export class Interpreter {
                     seedRandom: seed => this.random[SEED_RANDOM](seed),
                     ownFile: file => this.resources.ownFile(file),
                 });
-                if (isNativeFunction(value)) this.standardFunctions.set(fn, value);
+                if (isNativeFunction(value)) {
+                    this.standardFunctions.set(fn, value);
+                    const operation = findOperation(name);
+                    if (operation) builtinOperations.set(value, operation);
+                }
                 if (isRankSequence(value)) this.standardSequences.set(fn, value);
                 return value;
             }
@@ -3613,6 +3677,7 @@ export class Interpreter {
     }
 
     private assign(name: string, value: RankValue): void {
+        if (availableBuiltin(name, this.modules)) throw new RankError(builtinBindingMessage(name), 'TypeError');
         const dot = name.indexOf('.');
         if (dot >= 0) {
             const alias = name.slice(0, dot);
@@ -3622,6 +3687,7 @@ export class Interpreter {
             return;
         }
         const frame = this.localFrame?.find(name) ?? this.localFrame;
+        if (!frame) this.sourceBindings.add(name);
         const received = typeName(value);
         // A variable that already carries a recorded type needs neither its
         // previous value nor a rewrite of the type it keeps.
@@ -3836,7 +3902,7 @@ export class Interpreter {
         return yield* resume(this.rankApplication.applyUnaryAtRank(receivers[0], fn, Number(rank), axes));
     }
 
-    private compareAtRank(left: RankValue, right: RankValue, spec: ComparisonRank): RankValue {
+    private compareAtRank(left: RankValue, right: RankValue, spec: Extract<ApplicationForm, { kind: 'comparison-rank' }>): RankValue {
         if (isRankSqliteExpression(left) || isRankSqliteExpression(right)) {
             if (spec.rank !== 0 || spec.axes !== undefined) {
                 throw new RankError('SQLite comparisons support rank 0 without axis', 'TypeError');
@@ -5229,286 +5295,10 @@ function inlineSlice(expression: Expression): InlineSlice | undefined {
     return undefined;
 }
 
-function explicitAxisSelection(
-    parts: Expression[],
-): { source: Expression; axis: number; selector: Expression } | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'axis')
-        || !isNumberLiteral(parts[2]) || typeof parts[2].value !== 'bigint') return undefined;
-    return {
-        source: parts[0],
-        axis: safeDimension(parts[2].value, 'axis'),
-        selector: parts[3],
-    };
-}
-
-function explicitAxisLength(
-    parts: Expression[],
-): { source: Expression; axis: number } | undefined {
-    const form = axisLengthForm(parts);
-    if (!form) return undefined;
-    return {
-        source: form.source,
-        axis: safeDimension(integerLiteral(form.axis, 'len axis'), 'len axis'),
-    };
-}
-
-function explicitAxisArgsort(
-    parts: Expression[],
-): { source: Expression; axis: number } | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'argsort')
-        || !isNamed(parts[2], 'axis')) return undefined;
-    return {
-        source: parts[0],
-        axis: safeDimension(integerLiteral(parts[3], 'argsort axis'), 'argsort axis'),
-    };
-}
-
-function explicitAxisShuffle(
-    parts: Expression[],
-): { source: Expression; seed?: Expression; axis: number } | undefined {
-    const shuffle = parts.findIndex(part => isNamed(part, 'shuffle'));
-    if (shuffle < 0 || !isNamed(parts[shuffle + 1], 'axis')) return undefined;
-    if ((shuffle !== 1 && shuffle !== 2) || parts.length !== shuffle + 3) {
-        throw new RankError('shuffle axis expects data, an optional seed and one axis');
-    }
-    return {
-        source: parts[0],
-        seed: shuffle === 2 ? parts[1] : undefined,
-        axis: safeDimension(integerLiteral(parts[shuffle + 2], 'shuffle axis'), 'shuffle axis'),
-    };
-}
-
-function explicitAxisQuantile(
-    parts: Expression[],
-): {
-    source: Expression;
-    q: Expression;
-    isPercentile: boolean;
-    axes: readonly number[];
-} | undefined {
-    if (parts.length < 5 || !isNamed(parts[3], 'axis')) return undefined;
-    const name = isNameExpression(parts[2]) ? parts[2].name : undefined;
-    if (name !== 'quantile' && name !== 'percentile') return undefined;
-    return {
-        source: parts[0],
-        q: parts[1],
-        isPercentile: name === 'percentile',
-        axes: parts.slice(4).map(axis =>
-            safeDimension(integerLiteral(axis, `${name} axis`), `${name} axis`)),
-    };
-}
-
-function explicitAxisMetric(
-    parts: Expression[],
-): {
-    left: Expression;
-    right: Expression;
-    metric: 'mse' | 'mae';
-    axes: readonly number[];
-} | undefined {
-    if (parts.length < 4 || !isNamed(parts[3], 'axis')) return undefined;
-    const metric = isNameExpression(parts[2]) ? parts[2].name : undefined;
-    if (metric !== 'mse' && metric !== 'mae') return undefined;
-    if (parts.length < 5) {
-        throw new RankError(`${metric} axis expects one or more axes`);
-    }
-    return {
-        left: parts[0],
-        right: parts[1],
-        metric,
-        axes: parts.slice(4).map(axis =>
-            safeDimension(integerLiteral(axis, `${metric} axis`), `${metric} axis`)),
-    };
-}
-
-function explicitAxisTranspose(
-    parts: Expression[],
-): { source: Expression; axes: readonly number[] } | undefined {
-    if (parts.length < 4 || !isNamed(parts[1], 'transpose')
-        || !isNamed(parts[2], 'axis')) return undefined;
-    return {
-        source: parts[0],
-        axes: parts.slice(3).map(axis =>
-            safeDimension(integerLiteral(axis, 'transpose axis'), 'transpose axis')),
-    };
-}
-
-interface AxisMatmulApplication {
-    readonly left: Expression;
-    readonly right: Expression;
-    readonly axes: readonly [number, number];
-}
-
-function explicitAxisMatmul(parts: Expression[]): AxisMatmulApplication | undefined {
-    if (parts.length < 4 || !isNamed(parts[2], 'matmul') || !isNamed(parts[3], 'axis')) {
-        return undefined;
-    }
-    if (parts.length !== 6) {
-        throw new RankError('matmul axis expects one axis for each operand');
-    }
-    return {
-        left: parts[0],
-        right: parts[1],
-        axes: [
-            safeDimension(integerLiteral(parts[4], 'matmul axis'), 'matmul axis'),
-            safeDimension(integerLiteral(parts[5], 'matmul axis'), 'matmul axis'),
-        ],
-    };
-}
-
-interface AxisCovarianceApplication {
-    readonly source: Expression;
-    readonly name: string;
-    readonly axes: readonly [number, number];
-}
-
-function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication | undefined {
-    if (parts.length < 3 || !isNamed(parts[1], 'covariance') || !isNamed(parts[2], 'axis')) {
-        return undefined;
-    }
-    if (parts.length !== 5) {
-        throw new RankError('covariance axis expects feature and observation axes');
-    }
-    return {
-        source: parts[0],
-        name: 'covariance',
-        axes: [
-            safeDimension(integerLiteral(parts[3], 'covariance axis'), 'covariance axis'),
-            safeDimension(integerLiteral(parts[4], 'covariance axis'), 'covariance axis'),
-        ],
-    };
-}
-
-function explicitAxisCorrelation(parts: Expression[]): AxisCovarianceApplication | undefined {
-    if (parts.length < 3 || (!isNamed(parts[1], 'correlation') && !isNamed(parts[1], 'corr')) || !isNamed(parts[2], 'axis')) {
-        return undefined;
-    }
-    const name = (parts[1] as any).name;
-    if (parts.length !== 5) {
-        throw new RankError(`${name} axis expects feature and observation axes`);
-    }
-    return {
-        source: parts[0],
-        name,
-        axes: [
-            safeDimension(integerLiteral(parts[3], `${name} axis`), `${name} axis`),
-            safeDimension(integerLiteral(parts[4], `${name} axis`), `${name} axis`),
-        ],
-    };
-}
+const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
 
 function isNamed(expression: Expression, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
-}
-
-function explicitRankApplication(
-    parts: Expression[],
-): { parts: Expression[]; rank: bigint; rightRank?: bigint; axes?: readonly number[] } | undefined {
-    // `rank L R` gives the left and right operands of a binary operation their own cell ranks.
-    const [word, first, second] = parts.slice(-3);
-    if (parts.length >= 3 && isNamed(word, 'rank') && isNumberLiteral(first) && isNumberLiteral(second)) {
-        const beforeRank = parts.slice(0, -3);
-        if (beforeRank.length !== 3 || beforeRank.some(part => isNamed(part, 'axis'))) {
-            throw new RankError('rank L R expects two operands and a binary operation');
-        }
-        return {
-            parts: beforeRank,
-            rank: BigInt(safeDimension(integerLiteral(first, 'rank'), 'rank')),
-            rightRank: BigInt(safeDimension(integerLiteral(second, 'rank'), 'rank')),
-        };
-    }
-    const modifier = parts.at(-2);
-    const rank = parts.at(-1);
-    if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
-    if (!isNumberLiteral(rank) || typeof rank.value !== 'bigint') {
-        throw new RankError('rank expects a nonnegative integer');
-    }
-    const beforeRank = parts.slice(0, -2);
-    if (beforeRank.length < 2) throw new RankError('rank requires data and a unary operation');
-    const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis'));
-    if (axisPosition < 0) return { parts: beforeRank, rank: rank.value };
-    if (axisPosition !== 2 || beforeRank.length === 3) {
-        throw new RankError(
-            'axis rank expects data and a unary operation followed by one or more frame axes',
-        );
-    }
-    return {
-        parts: beforeRank.slice(0, axisPosition),
-        rank: rank.value,
-        axes: beforeRank.slice(axisPosition + 1).map(axis =>
-            safeDimension(integerLiteral(axis, 'axis rank'), 'axis rank')),
-    };
-}
-
-interface OuterApplication {
-    readonly operator: string;
-    readonly left: Expression;
-    readonly right: Expression;
-}
-
-interface ComparisonRank extends OuterApplication {
-    readonly rank: number;
-    readonly axes?: readonly number[];
-}
-
-function explicitComparisonRank(expression: Expression): ComparisonRank | undefined {
-    if (!isBinaryExpression(expression) || !COMPARISON_OPERATORS.has(expression.operator)) return undefined;
-    const parts = flattenApplication(expression.right);
-    if (!isNamed(parts[0], 'rank') && !isNamed(parts[0], 'axis')) return undefined;
-    const rankIndex = parts.findIndex(part => isNamed(part, 'rank'));
-    if (rankIndex < 0 || rankIndex !== parts.length - 2
-        || (isNamed(parts[0], 'rank') ? rankIndex !== 0 : rankIndex < 2)) {
-        throw new RankError('comparison expects rank R or axis A ... rank R');
-    }
-    const rank = safeDimension(integerLiteral(parts[rankIndex + 1], 'rank'), 'rank');
-    const axes = rankIndex === 0 ? undefined : parts.slice(1, rankIndex)
-        .map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis'));
-    const operands = flattenApplication(expression.left);
-    if (operands.length !== 2) throw new RankError(`rank comparison expects two operands, got ${operands.length}`);
-    return { operator: expression.operator, left: operands[0], right: operands[1], rank, axes };
-}
-
-const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
-
-interface AxisWindowApplication {
-    readonly source: Expression;
-    readonly size: Expression;
-    readonly axes?: readonly number[];
-    readonly stride?: Expression;
-    readonly padding?: Expression;
-}
-
-function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
-    if (parts.length < 5 || !isNamed(parts[2], 'window')) return undefined;
-    let position = 3;
-    let stride: Expression | undefined;
-    let padding: Expression | undefined;
-    let axes: readonly number[] | undefined;
-
-    if (isNamed(parts[position], 'stride')) {
-        stride = parts[position + 1];
-        if (!stride) return undefined;
-        position += 2;
-    }
-    if (isNamed(parts[position], 'padding')) {
-        padding = parts[position + 1];
-        if (!padding) return undefined;
-        position += 2;
-    }
-    if (isNamed(parts[position], 'axis')) {
-        if (position + 1 >= parts.length) return undefined;
-        axes = parts.slice(position + 1).map(axis =>
-            safeDimension(integerLiteral(axis, 'window axis'), 'window axis'));
-        position = parts.length;
-    }
-    if (position !== parts.length || (!stride && !padding && !axes)) return undefined;
-    return {
-        source: parts[0],
-        size: parts[1],
-        axes,
-        stride,
-        padding,
-    };
 }
 
 function expectInteger(value: RankValue): bigint {

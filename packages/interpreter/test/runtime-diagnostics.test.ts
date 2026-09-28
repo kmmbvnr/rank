@@ -356,7 +356,7 @@ B = A * 3`);
         } finally { runtime.dispose(); }
     });
 
-    it('leaves a cached builtin region after the builtin is shadowed', () => {
+    it('leaves a cached builtin region after the host replaces a builtin', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
@@ -374,7 +374,8 @@ B = A * 3`);
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(213n);
             expect(stats.compiledLoops).toBe(1);
             expect(stats.hoistedReaders).toBe(1);
-            runtime.execute('fun codepoint X\n return 7\nend');
+            runtime.execute('fun hostreplacement X\n return 7\nend');
+            runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(39n);
             expect(stats.compiledLoops).toBe(1);
             expect(stats.fallbacks['loop:callee']).toBeGreaterThan(0);
@@ -385,7 +386,8 @@ B = A * 3`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('use text\nA = array 2\nB = A * 3\nfun codepoint X\n return 7\nend'));
+            stats.run(() => runtime.execute('use text\nA = array 2\nB = A * 3\nfun hostreplacement X\n return 7\nend'));
+            runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + ("A" codepoint)\nend\nTotal')))
                 .toBe(39n);

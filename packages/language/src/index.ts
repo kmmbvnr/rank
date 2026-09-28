@@ -5,6 +5,7 @@ export * from './generated/grammar.js';
 export * from './generated/module.js';
 export * from './operations.js';
 export * from './application-forms.js';
+export * from './builtin-bindings.js';
 export * from './type-names.js';
 export * from './binding-rule.js';
 export * from './analysis/bindings.js';

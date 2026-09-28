@@ -30,6 +30,10 @@ j
 k
 ```
 
+Builtin names are protected while available: core names always, other standard
+function names after their module is opened. This includes lowercase function
+names and parameters; it does not make all library vocabulary reserved syntax.
+
 ## Indentation
 
 Canonical Rank source uses two spaces for each level of nesting. Tabs are not

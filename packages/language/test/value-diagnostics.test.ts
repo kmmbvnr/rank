@@ -18,7 +18,8 @@ it('does not join an explicit raise with successful function returns', () => {
         'fun raise Error\n return "ok"\nend\n' + source);
     const shadowedResult = analyzeValues(shadowed.value, new Map(), new Map(), [{ name: 'choose',
         arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
-    expect(shadowedResult.functionResults[0].types).toEqual(['text', 'integer']);
+    expect(shadowedResult.diagnostics.map(item => item.message))
+        .toContain('cannot redefine available builtin: raise');
 });
 
 it('infers covariance results from the declared matrix axis length', () => {
@@ -29,7 +30,7 @@ it('infers covariance results from the declared matrix axis length', () => {
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
     expect(program.parserErrors).toEqual([]);
     expect(testProgram.parserErrors).toEqual([]);
-    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['covariance']));
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(['covmatrix']));
     expect(examples).toHaveLength(3);
     const analysis = analyzeValues(program.value, new Map(), new Map(), examples);
     expect(analysis.functionResults.map(fact => fact.types)).toEqual(examples.map(() => ['array']));
@@ -2035,7 +2036,7 @@ it('does not discard unrelated facts when popping a known native container', () 
     }
     expect(messages('use algo\nA = array 1 2\nUnknown pop\nA 0 + "bad"')).toEqual([]);
     expect(messages('use algo\nA = array 1 2\nQ = new stack\n'
-        + 'fun pop X\n A 0 = "changed"\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual([]);
+        + 'fun pop X\n A 0 = "changed"\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual(['cannot redefine available builtin: pop']);
 });
 
 it('infers elements inserted into named collections and rejects a definite mismatch', () => {
@@ -2085,7 +2086,7 @@ it('infers minimal grid path results through a typed set iteration', () => {
 });
 
 it('infers table projection ranks from literal JSON test inputs', () => {
-    for (const [moduleName, name] of [['001_titanic', 'solve'], ['004_digitsreq', 'solve_table'],
+    for (const [moduleName, name] of [['001_titanic', 'predictall'], ['004_digitsreq', 'solve_table'],
         ['005_distweets', 'solve_table']]) {
         const source = readFileSync(new URL(`../../../demos/kaggle/${moduleName}.ra`, import.meta.url), 'utf8');
         const tests = readFileSync(new URL(`../../../demos/kaggle/${moduleName}_test.ra`, import.meta.url), 'utf8');

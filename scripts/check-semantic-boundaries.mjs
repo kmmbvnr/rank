@@ -6,6 +6,7 @@ const language = resolve(root, 'packages/language/src');
 const runtime = resolve(root, 'packages/interpreter/src');
 const owners = new Set([
     'packages/language/src/application-forms.ts',
+    'packages/language/src/builtin-bindings.ts',
     'packages/language/src/binding-rule.ts',
     'packages/language/src/type-names.ts',
     'packages/language/src/analysis/application-facts.ts',
@@ -47,6 +48,9 @@ const edges = new Map();
 for (const file of [...sources(language), ...sources(runtime)]) {
     const name = relative(root, file);
     const source = readFileSync(file, 'utf8');
+    if (!file.startsWith(`${language}/`) && /\bfunction\s+(?:explicit\w+\s*\(|\w+Form\s*\([^)]*\b\w*Expression\b)/.test(source)) {
+        failures.push(`${name}: application-form recognizers belong in language`);
+    }
     const imports = [...source.matchAll(/\bfrom\s*['"]([^'"]+)['"]|\bimport\s*(?:\(\s*)?['"]([^'"]+)['"]/g)]
         .map(match => match[1] ?? match[2]);
     const target = specifier => specifier.startsWith('.')

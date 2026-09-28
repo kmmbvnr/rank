@@ -7,7 +7,7 @@ This directory documents the accepted architectural decisions governing the **Ra
 ## Table of Contents
 
 - [The Implementation and Runtime Pipeline](#the-implementation-and-runtime-pipeline)
-- [Architectural Index](#architectural-index) (ADR-0000 – ADR-0004)
+- [Architectural Index](#architectural-index) (ADR-0000 – ADR-0005)
 
 ---
 
@@ -37,3 +37,4 @@ flowchart TD
 | [ADR-0002](0002-abstract-interpretation-and-symbolic-shape-inference.md) | Abstract Interpretation and Symbolic Shape Inference | Distinguishing Rank from Shape, static dimension verification at edit time, line-level error localization, and inline LSP diagnostics. |
 | [ADR-0003](0003-tensor-kernel-fusion-and-execution-planner.md) | Tensor Kernel Fusion and JIT Execution Planner | Fusing consecutive assignment statements into single-pass register loops, eliminating temporary arrays, and lexical use analysis barriers. |
 | [ADR-0004](0004-perceus-borrow-inference-and-compile-time-in-place.md) | Parameter Borrow Inference and Automatic Compile-Time In-Place (ACI) | Static borrow inference preventing false CoW on helper calls, compile-time elision of `refcount` guards in loops, and FBIP standard library algorithms. |
+| [ADR-0005](0005-shared-application-form-classification.md) | Shared Application Form Classification | One binding-aware classifier, exhaustive runtime and analysis handlers, and isolated syntax pilots. |

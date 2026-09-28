@@ -453,16 +453,16 @@ ${input} digits`;
         expect(compare(source)).toHaveProperty('error');
     });
 
-    it('retains a user integer function under rank 0', () => {
-        const source = program.replace('fun digits N Power', `fun integer X
+    it('retains a user custominteger function under rank 0', () => {
+        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun digits N Power', `fun custominteger X
   return 2
 end
 fun digits N Power`);
         expect(compare(source)).toMatchObject({ value: '64' });
     });
 
-    it('retains a user text function before the digit pipeline', () => {
-        const source = program.replace('fun digits N Power', `fun text X
+    it('retains a user customtext function before the digit pipeline', () => {
+        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun digits N Power', `fun customtext X
   return "99"
 end
 fun digits N Power`);

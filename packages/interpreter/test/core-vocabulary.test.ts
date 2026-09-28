@@ -30,15 +30,15 @@ for (const compiled of [true, false]) {
             expect(r.execute('(A * A) sum')).toBe(91n);
         });
 
-        it('preserves user overrides and function aliases', () => {
+        it('rejects core overrides and retains function aliases', () => {
             const r = runtime();
             r.execute('Total = sum');
             expect(r.execute('1 to 3 Total')).toBe(6n);
-            r.execute('fun sum Values\n return 99\nend');
-            expect(r.execute('1 to 3 sum')).toBe(99n);
+            expect(() => r.execute('fun sum Values\n return 99\nend')).toThrow('cannot redefine available builtin: sum');
+            expect(r.execute('1 to 3 sum')).toBe(6n);
             expect(r.execute('1 to 3 Total')).toBe(6n);
-            r.execute('fun max A B\n return A + B\nend');
-            expect(r.execute('3 4 max')).toBe(7n);
+            expect(() => r.execute('fun max A B\n return A + B\nend')).toThrow('cannot redefine available builtin: max');
+            expect(r.execute('3 4 max')).toBe(4n);
         });
 
         it('keeps specialized number and sequence operations behind imports', () => {

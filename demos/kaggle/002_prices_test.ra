@@ -22,7 +22,7 @@ test "builds a two-column price submission"
   Train = "[{\"Id\":1,\"OverallQual\":1,\"GrLivArea\":10,\"SalePrice\":100}, {\"Id\":2,\"OverallQual\":2,\"GrLivArea\":20,\"SalePrice\":200}, {\"Id\":3,\"OverallQual\":3,\"GrLivArea\":30,\"SalePrice\":400}]" json
   Test = "[{\"Id\":4,\"OverallQual\":2,\"GrLivArea\":20}]" json
 
-  Result = Train Test 0.05 1000 solve
+  Result = Train Test 0.05 1000 predictall
   Shape = Result shape
   Price = Result 0 1
   Shape equal array 1 2 and Price greater 0

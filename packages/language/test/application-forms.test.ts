@@ -1,13 +1,45 @@
 import { EmptyFileSystem } from 'langium';
 import { expect, it } from 'vitest';
 import { axisLengthForm, axisReductionForm, sortDirectionForm,
-    symbolicApplicationForm } from '../src/application-forms.js';
+    symbolicApplicationForm, applicationForm } from '../src/application-forms.js';
 import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { flattenApplication } from '../src/expressions.js';
 import { findOperation } from '../src/operations.js';
 import { createRankServices } from '../src/rank-module.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
+
+it.each([
+    ['A len axis 1', 'axis-length'], ['A sum axis 1', 'axis-reduction'],
+    ['A argsort axis 1', 'axis-argsort'], ['A shuffle axis 1', 'axis-shuffle'],
+    ['A 0.5 quantile axis 1', 'axis-quantile'], ['A B mse axis 1', 'axis-metric'],
+    ['A transpose axis 1 0', 'axis-transpose'], ['A B matmul axis 1 0', 'axis-matmul'],
+    ['A covariance axis 0 1', 'axis-covariance'], ['A corr axis 0 1', 'axis-correlation'],
+    ['A sum rank 1', 'rank'], ['A axis 1 0', 'axis-selection'],
+    ['A 2 window axis 0', 'axis-window'], ['A B equal rank 1', 'comparison-rank'],
+    ['A min scan with 0', 'named-scan'], ['A min segment', 'named-segment'],
+    ['A B min outer', 'named-outer'], ['A sort .descending', 'sort-direction'],
+    ['A from 10', 'lower-bound'], ['A find 1', 'dsu-method'],
+    ['A jump 1 2', 'functional-method'], ['A floor 2', 'multiset-method'],
+    ['A edges 1', 'graph-edges'], ['A array len', 'materialize-pipeline'],
+    ['A + scan with 0', 'scan'], ['A + reduce', 'reduce'], ['A + segment', 'segment'],
+    ['A B + outer', 'outer'], ['1 + 2', 'plain'],
+])('classifies %s as %s', (source, kind) => {
+    const parsed = parser.parse<Program>(`Result = ${source}\n`);
+    expect(parsed.parserErrors.map(error => error.message)).toEqual([]);
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value).kind).toBe(kind);
+});
+
+it('uses operation identity for aliases and does not confuse a user function with a builtin', () => {
+    const parsed = parser.parse<Program>('Result = A B Op axis 1 0\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value, name => name === 'Op' ? findOperation('matmul') : findOperation(name)))
+        .toMatchObject({ kind: 'axis-matmul', axes: [1, 0] });
+    expect(applicationForm(statement.value, name => name === 'Op' ? false : findOperation(name)).kind).toBe('plain');
+});
 
 function form(source: string, standard: (name: string) => boolean = () => true) {
     const parsed = parser.parse<Program>(`Result = ${source}\n`);
