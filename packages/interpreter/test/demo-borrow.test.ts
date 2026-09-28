@@ -99,7 +99,7 @@ it('invalidates a cached reader-helper proof when that helper starts returning t
         runtime.execute('fun read X\n return X\nend');
         const next = input(2n);
         stats.run(() => {
-            expect(outer.call([next])).toBe(next);
+            expect(() => outer.call([next])).toThrow('outer returns rank 0 and cannot return rank 1');
             expect(arrayForWrite(next)).not.toBe(next);
         });
         expect(stats.cowCopies).toBe(1);

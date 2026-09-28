@@ -53,8 +53,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const functions = new Map(declarations);
     const calls = createCallAnalysis(bindings, functions, diagnostics, expressions,
         (items, env) => paths.returnPaths(items, env).values,
-        (module, name, arguments_) => analyzeValues(module, new Map(), new Map(),
-            [{ name, arguments: arguments_ }]).functionResults[0]);
+        (module, name, arguments_) => {
+            const analysis = analyzeValues(module, new Map(), new Map(), [{ name, arguments: arguments_ }]);
+            return { result: analysis.functionResults[0], diagnostics: analysis.diagnostics };
+        });
     const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings } = calls;
     function invalidateImportedAlias(alias: string, env: Map<string, ValueFacts>): void {
         for (const name of imported.keys()) if (name.startsWith(`${alias}.`)) {
@@ -885,6 +887,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         calls.resetBudget();
         return calls.call(example.name, example.arguments, bindings);
     });
+    calls.validateDeclarations(bindings);
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
     return { diagnostics: unique, bindings, expressions, functions, functionResults };

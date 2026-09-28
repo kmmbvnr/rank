@@ -32,7 +32,7 @@ describe('block scope', () => {
 end
 for I in 0 to 1
  Res = I compute
-end`)).toThrow('Res has type integer and cannot receive array');
+end`)).toThrow('compute returns rank 0 and cannot return rank 1');
         expect(() => run('for I in 0 to 1\n if I equal 0\n  X = 1\n else\n  X = "a"\n end\nend'))
             .toThrow('X has type integer and cannot receive text');
     });

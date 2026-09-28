@@ -11,10 +11,12 @@ export interface PreparedFunction {
 }
 
 // Syntax and slot names are shared, never values. Closures remain per invocation.
-const prepared = new WeakMap<FunctionStatement, PreparedFunction>();
+const prepared = new WeakMap<FunctionStatement, Map<string, PreparedFunction>>();
 
-export function prepareFunction(statement: FunctionStatement): PreparedFunction {
-    let result = prepared.get(statement);
+export function prepareFunction(statement: FunctionStatement, signature = ''): PreparedFunction {
+    let instances = prepared.get(statement);
+    if (!instances) prepared.set(statement, instances = new Map());
+    let result = instances.get(signature);
     if (!result) {
         const generator = functionYields(statement).length > 0;
         result = {
@@ -23,7 +25,7 @@ export function prepareFunction(statement: FunctionStatement): PreparedFunction 
             layout: new Map([...new Set(statement.parameters)].map((name, index) => [name, index])),
             borrowedParameters: inferBorrowedParameters(statement, generator),
         };
-        prepared.set(statement, result);
+        instances.set(signature, result);
     }
     return result;
 }

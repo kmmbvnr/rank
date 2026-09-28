@@ -331,6 +331,63 @@ G = A B gcd
 Result print
 ```
 
+### Return contracts and argument ranks
+
+Each function specialization has one return type and one return rank. Calls with
+matching argument types and ranks share that contract; axis lengths and scalar
+values do not create new specializations. A vector and a matrix can therefore use
+the same function:
+
+```rank
+fun double Values
+  return Values * 2
+end
+
+Vector = (array 1 2) double
+Matrix = (array 1 2 3 4 shape 2 2) double
+```
+
+The analyzer keeps the two results separate: `Vector` has rank 1 and `Matrix` has
+rank 2. Within either specialization, every reachable return must agree. A branch
+that returns a scalar for an empty input and a vector otherwise violates that rule.
+Return a vector in both cases, for example `array 0` for the base case. Different
+vector lengths are allowed, including zero.
+
+Known contradictory returns produce an editor error, including in functions that
+have not been called. Type guards can separate specializations; unresolved calls
+and unsupported analysis paths remain subject to runtime checks. At runtime, the
+first successful return settles the contract. A later conflicting result raises
+`ReturnTypeMismatch` or `ReturnRankMismatch`, including through memoized and tail
+calls. Each closure owns its contracts. Redefining a function starts new contracts.
+
+Known array element types distinguish type specializations, which share the
+return rank for the same argument ranks. Empty arrays do not settle an element
+type. Lazy arrays are not read to choose a specialization: unknown element types
+share a specialization until materialized. Returned lazy elements are checked as
+they are consumed, and their complete element type set settles when all cells have
+been read. Materialize inputs when dispatch must distinguish their element types.
+
+For results with different meanings, return a record with an explicit tag and
+consistent fields:
+
+```rank
+fun answer Found
+  if Found
+    return record
+      .kind = .found
+      .values = array 42
+    end
+  end
+  return record
+    .kind = .missing
+    .values = array 0
+  end
+end
+```
+
+Both paths return a scalar record. The caller inspects `.kind` before using
+`.values`.
+
 ### Function equality
 
 `equal` compares function identity. Two references to the same function are equal;

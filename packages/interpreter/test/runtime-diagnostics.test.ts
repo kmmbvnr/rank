@@ -87,7 +87,8 @@ Total`))).toBe(28n);
             expect(stats.run(() => read.call([array]))).toBe(11n);
             expect(stats.loopElementScans).toBe(2);
             array.items[0] = 'changed';
-            expect(stats.run(() => read.call([array]))).toBe('changed');
+            expect(() => stats.run(() => read.call([array])))
+                .toThrow('read_one returns rank 0 and cannot return rank 1');
             expect(stats.loopElementScans).toBe(3);
             expect(stats.compiledLoops).toBe(3);
         } finally { runtime.dispose(); }
@@ -105,7 +106,8 @@ Total`))).toBe(28n);
             expect(stats.run(() => read.call([array]))).toBe(7n);
             expect(stats.loopElementScans).toBe(0);
             array.items[0] = 'changed';
-            expect(stats.run(() => read.call([array]))).toBe('changed');
+            expect(() => stats.run(() => read.call([array])))
+                .toThrow('read_one returns rank 0 and cannot return rank 1');
             expect(stats.loopElementScans).toBe(0);
             expect(stats.compiledLoops).toBe(0);
             expect(stats.fallbacks['loop:storage-or-cell-type']).toBeGreaterThan(0);

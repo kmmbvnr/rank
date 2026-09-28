@@ -1,6 +1,7 @@
+import { argumentSignature, returnConflicts, returnInput } from './return-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isApplicationExpression, isAssignmentStatement, isForStatement, isFunctionStatement,
+    isApplicationExpression, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
     isNameExpression, isReturnStatement, isUnpackStatement,
     type Expression, type FunctionStatement, type Program, type Statement,
 } from '../generated/ast.js';
@@ -23,18 +24,21 @@ export function createCallAnalysis(
     diagnostics: CallDiagnostic[],
     expressions: Map<Expression, ValueFacts>,
     returnValues: (items: readonly Statement[], env: Map<string, ValueFacts>) => ValueFacts[],
-    analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => ValueFacts,
+    analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[] },
 ) {
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
     const imported = new Map<string, { program: Program; name: string; binding: ValueFacts;
         functions: ReadonlyMap<string, FunctionStatement> }>();
     const importedAliases = new Set<string>();
-    const activeCalls = new Set<string>();
-    const recursiveProbes = new Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
-        seen: boolean; valid: boolean }>();
+    const activeCalls = new WeakMap<FunctionStatement, Set<string>>();
+    const recursiveProbes = new WeakMap<FunctionStatement, Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
+        seen: boolean; valid: boolean }>>();
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
     let remainingCalls = 100;
+    let checkingReturns = false;
+    type Instance = { rankSignature: string; values: ValueFacts[] };
+    const specializations = new WeakMap<FunctionStatement, Map<string, Instance>>();
     const privateBindings: Set<string>[] = [];
 
     function directNoReturnCall(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean {
@@ -59,13 +63,22 @@ export function createCallAnalysis(
         const external = imported.get(name);
         if (external && caller.get(name) === external.binding
             && external.functions.get(external.name)?.parameters.length === arguments_.length) {
-            return analyzeImported(external.program, external.name, arguments_);
+            const analysis = analyzeImported(external.program, external.name, arguments_);
+            if (site) for (const diagnostic of analysis.diagnostics) {
+                if (diagnostic.message.includes('returns incompatible')) diagnostics.push({ ...diagnostic, node: site });
+            }
+            return analysis.result;
         }
         const definition = functions.get(name);
         if (!definition || caller.get(name) !== functionBindings.get(name)
             || definition.parameters.length !== arguments_.length) return UNKNOWN_VALUE;
-        if (activeCalls.has(name)) {
-            const probe = recursiveProbes.get(name);
+        const signature = argumentSignature(arguments_);
+        let active = activeCalls.get(definition);
+        if (!active) activeCalls.set(definition, active = new Set());
+        let probes = recursiveProbes.get(definition);
+        if (!probes) recursiveProbes.set(definition, probes = new Map());
+        if (active.has(signature)) {
+            const probe = probes.get(signature);
             if (!probe) return UNKNOWN_VALUE;
             probe.seen = true;
             probe.valid &&= arguments_.every((fact, index) => sameNumericInput(probe.inputs[index], fact));
@@ -101,15 +114,16 @@ export function createCallAnalysis(
         // declarations textually after an early return.
         const hoisted = definition.statements.filter(isFunctionStatement).map(nested => ({
             nested, previous: functions.get(nested.name), previousBinding: functionBindings.get(nested.name),
-            hadBinding: functionBindings.has(nested.name),
+            hadBinding: functionBindings.has(nested.name), previousInstances: specializations.get(nested),
         }));
         for (const { nested } of hoisted) {
             const fact: ValueFacts = { types: ['function'] };
             local.set(nested.name, fact);
             functions.set(nested.name, nested);
             functionBindings.set(nested.name, fact);
+            specializations.set(nested, new Map());
         }
-        activeCalls.add(name);
+        active.add(signature);
         globalCallEnvs.push(globalEnv);
         const nodes = [...AstUtils.streamAllContents(definition)];
         const nestedWrites = new Set(nodes.filter(isFunctionStatement).flatMap(nested =>
@@ -121,10 +135,66 @@ export function createCallAnalysis(
             .flatMap(loop => loopBinding(loop.condition)?.names ?? [])]
             .filter(name => name !== '#' && !nestedWrites.has(name))));
         const diagnosticStart = diagnostics.length;
+        const contractEnv = new Map([...local].map(([key, fact]) => [key,
+            fact.types.includes('function') ? fact : returnInput(fact)]));
         try {
             const result = returnValues(definition.statements, local);
             // Reaching the end throws: only paths that actually return contribute
             // a result value. With no proven return, the result remains unknown.
+            if (!checkingReturns) {
+                const before = new Map(expressions);
+                const savedGlobal = new Map(globalEnv);
+                const savedBudget = remainingCalls;
+                const start = diagnostics.length;
+                let returns = result;
+                checkingReturns = true;
+                try {
+                    returns = [...result, ...returnValues(definition.statements, contractEnv)];
+                } finally {
+                    checkingReturns = false;
+                    remainingCalls = savedBudget;
+                    globalEnv.clear();
+                    for (const [key, fact] of savedGlobal) globalEnv.set(key, fact);
+                    diagnostics.length = start;
+                    expressions.clear();
+                    for (const [node, fact] of before) expressions.set(node, fact);
+                }
+                const instances = specializations.get(definition) ?? new Map<string, Instance>();
+                specializations.set(definition, instances);
+                const previous = instances.get(signature)?.values ?? [];
+                const facts = [...previous, ...returns];
+                // Keep only distinct contract facts, not every call's data.
+                const rankSignature = argumentSignature(arguments_, false);
+                instances.set(signature, { rankSignature, values: [...new Map(facts.map(fact => {
+                    const contract = returnInput(fact);
+                    return [JSON.stringify(contract), contract] as const;
+                })).values()] });
+                // With unknown inputs, a type/rank guard may separate valid
+                // specializations. The concrete call pass checks each of them.
+                const unresolvedDispatch = arguments_.some(fact => !fact.types.length || fact.rank === undefined)
+                    && nodes.some(node => isBinaryExpression(node) && node.operator === 'is'
+                        || isNameExpression(node) && node.name === 'shape');
+                const rankFacts = [...instances.values()].filter(instance => instance.rankSignature === rankSignature)
+                    .flatMap(instance => instance.values);
+                const conflicts = [...returnConflicts(rankFacts).filter(item => item.kind === 'DimensionMismatch'),
+                    ...returnConflicts(facts).filter(item => item.kind === 'TypeError')];
+                for (const conflict of unresolvedDispatch ? [] : conflicts) diagnostics.push({
+                    node: definition, ...conflict, message: `${name} ${conflict.message}`,
+                });
+            }
+            if (!checkingReturns) for (const { nested } of hoisted) {
+                const start = diagnostics.length;
+                const savedGlobal = new Map(globalEnv);
+                const before = new Map(expressions);
+                call(nested.name, nested.parameters.map(() => UNKNOWN_VALUE), new Map(contractEnv));
+                const conflicts = diagnostics.slice(start).filter(item => item.message.includes('returns incompatible'));
+                diagnostics.length = start;
+                diagnostics.push(...conflicts);
+                globalEnv.clear();
+                for (const [key, fact] of savedGlobal) globalEnv.set(key, fact);
+                expressions.clear();
+                for (const [node, fact] of before) expressions.set(node, fact);
+            }
             const ordinary = joinValueFacts(result);
             if (ordinary.types.length || !arguments_.every(numericInput)
                 || !numericRecursionEligible(name, definition, bindings)) return ordinary;
@@ -150,12 +220,12 @@ export function createCallAnalysis(
             if (base.rank !== 0 || !base.types.length
                 || !base.types.every(type => type === 'integer' || type === 'real')) return ordinary;
             const probe = { inputs, result: base, seen: false, valid: true };
-            recursiveProbes.set(name, probe);
+            probes.set(signature, probe);
             let inferred: ValueFacts;
             try {
                 inferred = joinValueFacts(returnValues(definition.statements, widened));
             } finally {
-                recursiveProbes.delete(name);
+                probes.delete(signature);
                 diagnostics.length = start;
                 expressions.clear();
                 for (const [node, fact] of before) expressions.set(node, fact);
@@ -163,17 +233,20 @@ export function createCallAnalysis(
             return probe.valid && probe.seen && inferred.rank === 0 && inferred.types.length
                 && inferred.types.every(type => base.types.includes(type)) ? inferred : ordinary;
         } finally {
-            activeCalls.delete(name);
+            active.delete(signature);
             globalCallEnvs.pop();
             privateBindings.pop();
-            for (const { nested, previous, previousBinding, hadBinding } of hoisted.reverse()) {
+            for (const { nested, previous, previousBinding, hadBinding, previousInstances } of hoisted.reverse()) {
+                if (previousInstances) specializations.set(nested, previousInstances);
+                else specializations.delete(nested);
                 if (previous) functions.set(nested.name, previous);
                 else functions.delete(nested.name);
                 if (hadBinding) functionBindings.set(nested.name, previousBinding);
                 else functionBindings.delete(nested.name);
             }
             if (site) for (let index = diagnosticStart; index < diagnostics.length; index++) {
-                diagnostics[index] = { ...diagnostics[index], node: site, message: `${name}: ${diagnostics[index].message}` };
+                if (!diagnostics[index].message.includes('returns incompatible'))
+                    diagnostics[index] = { ...diagnostics[index], node: site, message: `${name}: ${diagnostics[index].message}` };
             }
         }
     }
@@ -181,7 +254,23 @@ export function createCallAnalysis(
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings,
         directNoReturnCall, call,
-        hasRecursiveProbe: (name: string) => activeCalls.has(name) && recursiveProbes.has(name),
+        hasRecursiveProbe: (name: string) => {
+            const definition = functions.get(name);
+            return !!definition && !!recursiveProbes.get(definition)?.size;
+        },
+        validateDeclarations: (env: Map<string, ValueFacts>) => {
+            for (const [name, definition] of [...functions]) {
+                remainingCalls = 100;
+                const start = diagnostics.length;
+                const before = new Map(expressions);
+                call(name, definition.parameters.map(() => UNKNOWN_VALUE), new Map(env));
+                const conflicts = diagnostics.slice(start).filter(item => item.message.includes('returns incompatible'));
+                diagnostics.length = start;
+                diagnostics.push(...conflicts);
+                expressions.clear();
+                for (const [node, fact] of before) expressions.set(node, fact);
+            }
+        },
         resetBudget: () => { remainingCalls = 100; },
     };
 }

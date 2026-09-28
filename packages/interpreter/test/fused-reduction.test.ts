@@ -32,6 +32,9 @@ end
                 [1e16, 1, -1e16, 0.25],
                 [-0], [Infinity, -Infinity, NaN], [],
             ]) {
+                // Each fresh lazy input has no known element type until read.
+                // Keep this comparison independent of an earlier return contract.
+                runtime.execute(`fun total X\n return X ${operator} reduce\nend`);
                 const a = vector(values);
                 const b = vector([...values].reverse());
                 if (values.length === 0 && operator === '-') {

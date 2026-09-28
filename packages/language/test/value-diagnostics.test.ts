@@ -740,7 +740,7 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
         .toEqual(['A has rank 1 and cannot receive rank 2']);
     expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual([]);
     expect(messages('fun choose X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 choose\nA = true'))
-        .toEqual(['A has type integer or text and cannot receive boolean']);
+        .toEqual(['A has type integer and cannot receive boolean']);
 });
 
 it('checks reductions against the actual runtime rule, allowing full rank', () => {
@@ -803,7 +803,9 @@ it('does not preserve caller facts through unknown calls, mutations or recursive
 it('does not guess results for recursion and joins all covered return paths', () => {
     expect(messages('fun again X\n return X again\nend\nA = 1 again\nA = "x"')).toEqual([]);
     expect(messages('fun choose X\n if X\n  return 1\n end\n return "x"\nend\nA = Flag choose\nA = true'))
-        .toEqual(['A has type integer or text and cannot receive boolean']);
+        .toEqual(['choose returns incompatible ranks: 0 and 1',
+            'choose returns incompatible types: integer and text',
+            'A has type integer or text and cannot receive boolean']);
     expect(messages('fun choose X\n if X\n  return 1\n end\nend\nA = Flag choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
@@ -822,7 +824,8 @@ it('infers numeric recursive results only when input facts stay invariant', () =
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun change X\n if X less 1\n  return X\n end\n'
         + ' return (X / 2) change\nend\nR = 2 change\nR + "bad"'))
-        .toEqual([]);
+        .toEqual(['change returns incompatible types: real and integer',
+            'operator + does not accept real and text']);
     expect(messages('fun swap A B\n if A less 1\n  return A\n end\n'
         + ' return B A swap\nend\nR = 2 1.0 swap\nR + "bad"'))
         .toEqual([]);
@@ -842,7 +845,7 @@ it('closes a numeric recursive result through assignments and arithmetic', () =>
         .toEqual(Array.from({ length: 9 }, () => ['integer']));
     expect(messages('fun change X\n if X less 1\n  return 1\n end\n'
         + ' Next = (X / 2) change\n return Next + 1\nend\nR = 2 change\nR + "bad"'))
-        .toEqual([]);
+        .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun widenresult X\n if X less 1\n  return 1\n end\n'
         + ' Next = (X - 1) widenresult\n return Next / 2\nend\nR = 2 widenresult\nR + "bad"'))
         .toEqual([]);
@@ -1240,12 +1243,14 @@ it('checks the result rank of the unchanged bill-count loop before execution', (
 it('collects returns from reachable loop paths with break and continue', () => {
     for (const exit of ['break', 'continue']) {
         expect(messages(`fun choose N\n for I in 0 until N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 choose\nA = true`))
-            .toEqual(['A has type integer or text and cannot receive boolean']);
+            .toEqual(['choose returns incompatible ranks: 0 and 1',
+            'choose returns incompatible types: integer and text',
+            'A has type integer or text and cannot receive boolean']);
         expect(messages(`fun choose\n for I in 1 to 2\n  ${exit}\n  return 1\n end\n return "text"\nend\nA = choose\nA = true`))
             .toEqual(['A has type text and cannot receive boolean']);
     }
     expect(messages('fun choose\n for I in 1 to 2\n  for J in 1 to 2\n   break\n  end\n  return 1\n end\n return "text"\nend\nA = choose\nA = true'))
-        .toEqual(['A has type integer or text and cannot receive boolean']);
+        .toEqual(['A has type integer and cannot receive boolean']);
     expect(messages('fun choose\n for I in 0 until 0\n  return "text"\n end\n return 1\nend\nA = choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });

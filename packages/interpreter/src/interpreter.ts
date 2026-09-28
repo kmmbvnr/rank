@@ -26,6 +26,7 @@ import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
+import { ReturnContract, argumentRankSignature, argumentSignature } from './return-contract.js';
 import { prepareFunction } from './prepared-function.js';
 import { ResourceMap } from './resource-summary.js';
 import { ResourceOwnership } from './resource-ownership.js';
@@ -340,6 +341,7 @@ type PreparedStatement = (
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
 const sourceIds = new WeakMap<object, string>();
 interface FunctionDefinition {
+    readonly specialization: (arguments_: RankValue[]) => ReturnContract;
     readonly interpreter: Interpreter;
     readonly statement: FunctionStatement;
     readonly context: LocalFrame | undefined;
@@ -419,7 +421,7 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
-    private readonly functionBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
+    private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
     private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
     private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
@@ -755,9 +757,12 @@ export class Interpreter {
         return undefined;
     }
 
-    private compiledFunctionBody(statement: FunctionStatement): CompiledBlock<ExecutionContext> | undefined {
+    private compiledFunctionBody(statement: FunctionStatement, arguments_: RankValue[]): CompiledBlock<ExecutionContext> | undefined {
         if (this.options.functionBodyCompilation === false) return undefined;
-        let body = this.functionBodies.get(statement);
+        let instances = this.functionBodies.get(statement);
+        if (!instances) this.functionBodies.set(statement, instances = new Map());
+        const signature = argumentSignature(arguments_);
+        let body = instances.get(signature);
         if (body === undefined) {
             const commands = statement.statements;
             const last = commands.at(-1);
@@ -779,7 +784,7 @@ export class Interpreter {
                 compiled: this.options.onFunctionBodyCompiled,
                 executed: this.options.onFunctionBodyExecuted,
             }) ?? null : null;
-            this.functionBodies.set(statement, body);
+            instances.set(signature, body);
         }
         return body ?? undefined;
     }
@@ -2788,6 +2793,20 @@ export class Interpreter {
         const proof = this.options.scalarEntryCompilation !== false && !generator
             ? scalarFunctionResult(statement, true) : undefined;
         const scalar = proof ? this.prepareScalarFunctionCall(statement) : undefined;
+        const instances = new Map<string, ReturnContract>();
+        const returnRanks = new Map<string, { rank?: number }>();
+        const specialization = (arguments_: RankValue[]): ReturnContract => {
+            const key = argumentSignature(arguments_);
+            let instance = instances.get(key);
+            if (!instance) {
+                prepareFunction(statement, key);
+                const rankKey = argumentRankSignature(arguments_);
+                let rank = returnRanks.get(rankKey);
+                if (!rank) returnRanks.set(rankKey, rank = {});
+                instances.set(key, instance = new ReturnContract(statement.name, rank));
+            }
+            return instance;
+        };
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
             if (scalar && arguments_.length === statement.parameters.length
                 && arguments_.every(value => typeof value === 'bigint')
@@ -2797,18 +2816,28 @@ export class Interpreter {
             return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
                 : this.callFunction(statement, arguments_, context);
         };
-        // The closure owns the cache, so separate local declarations never share it.
+        const checkedBody = (arguments_: RankValue[]): Evaluation<RankValue> => {
+            const contract = specialization(arguments_);
+            return mapResult(body(arguments_), value => {
+                try { return contract.check(value); }
+                catch (error) {
+                    if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                    throw this.locateError(error, statement);
+                }
+            });
+        };
+        // Only successful, validated returns enter the closure's memo cache.
         const cache = statement.memo ? new Map<string, RankValue>() : undefined;
         const execute = cache ? (arguments_: RankValue[]): Evaluation<RankValue> => {
             const key = JSON.stringify(arguments_.map(memoScalarKey));
             const cached = cache.get(key);
             if (cached !== undefined) return completed(cached);
-            return mapResult(body(arguments_), value => {
+            return mapResult(checkedBody(arguments_), value => {
                 memoScalarKey(value);
                 cache.set(key, value);
                 return value;
             });
-        } : body;
+        } : checkedBody;
         const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
@@ -2833,7 +2862,7 @@ export class Interpreter {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
-            if (!statement.memo) functionDefinitions.set(fn, { interpreter: this, statement, context, direct });
+            if (!statement.memo) functionDefinitions.set(fn, { interpreter: this, statement, context, direct, specialization });
         }
         if (!generator && !statement.memo && this.options.scalarFunctionCompilation !== false) {
             registerFlatCombine(fn, statement, builtins => {
@@ -2884,7 +2913,7 @@ export class Interpreter {
                 `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
             );
         }
-        const prepared = prepareFunction(statement);
+        const prepared = prepareFunction(statement, argumentSignature(arguments_));
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepared.layout);
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
@@ -2978,14 +3007,15 @@ export class Interpreter {
         let result: RankValue | undefined;
         let pending: unknown;
         let compiledTail = false;
+        const tailContracts = new Set<ReturnContract>();
         try {
             while (true) {
                 checkpoint();
                 try {
                     this.localFrame = frame;
                     if (inspectionEnabled()) this.debugCalls[this.debugCalls.length - 1] = { name: statement.name, frame };
-                    for (const local of prepareFunction(statement).locals) this.defineFunction(local);
-                    const body = this.compiledFunctionBody(statement);
+                    for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
+                    const body = this.compiledFunctionBody(statement, arguments_);
                     if (body) {
                         result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
                             insideFinally: false, insideGenerator: false }));
@@ -2995,6 +3025,7 @@ export class Interpreter {
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
+                        tailContracts.add(error.definition.specialization(error.arguments_));
                         if (error.compiled) {
                             compiledTail = true;
                             // Keep the tail driver's logical depth and resource scope;
@@ -3033,6 +3064,10 @@ export class Interpreter {
                 inspectExecution(() => this.inspectionState());
             }
             if (pending instanceof RankError && !compiledTail) pending.addCall(statement.name, statement.parameters, arguments_);
+            if (pending === undefined && result !== undefined) {
+                try { for (const contract of tailContracts) result = contract.check(result); }
+                catch (error) { pending = error; }
+            }
             this.resources.finishResourceScope(scope, result, pending);
         }
         return result!;
@@ -3053,7 +3088,7 @@ export class Interpreter {
         let consumed = false;
 
         this.withLexicalFrame(frame, () => {
-            for (const local of prepareFunction(statement).locals) this.defineFunction(local);
+            for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
         });
 
         return this.singlePassSequence({

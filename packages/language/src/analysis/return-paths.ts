@@ -24,7 +24,7 @@ interface ReturnPathContext {
     tryPrefixFacts(statement: TryStatement, env: Map<string, ValueFacts>): Map<string, ValueFacts> | undefined;
     forgetNonFunctions(env: Map<string, ValueFacts>): void;
     loop(statement: ForStatement, env: Map<string, ValueFacts>): void;
-    loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): ValueFacts[];
+    loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): { values: ValueFacts[]; fallsThrough: boolean };
     statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean;
 }
 
@@ -66,18 +66,15 @@ export function createReturnPathAnalysis(context: ReturnPathContext) {
                 }
                 if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
                 mergeEnvironments(env, survivors);
-            } else if (isTryStatement(statement) && !statement.finallyStatements.length) {
-                if (statement.statements.length === 1 && isExpressionStatement(statement.statements[0])
-                    && context.directNoReturnCall(statement.statements[0].value, env)) {
-                    return { values, fallsThrough: false, breaks, continues };
-                }
+            } else if (isTryStatement(statement)) {
                 const caughtFacts = context.tryPrefixFacts(statement, env);
                 const success = new Map(env);
                 const tried = returnPaths(statement.statements, success);
-                values.push(...tried.values);
+                const trySurvives = context.statements(statement.finallyStatements, success);
+                if (trySurvives) values.push(...tried.values);
                 breaks.push(...tried.breaks);
                 continues.push(...tried.continues);
-                const survivors = tried.fallsThrough ? [success] : [];
+                const survivors = tried.fallsThrough && trySurvives ? [success] : [];
                 for (const clause of statement.catches) {
                     // An error can occur after any prefix of the try body. Its
                     // bindings cannot be assumed to have their entry values.
@@ -88,17 +85,26 @@ export function createReturnPathAnalysis(context: ReturnPathContext) {
                     const start = diagnostics.length;
                     const path = returnPaths(clause.statements, caught);
                     diagnostics.length = start;
-                    values.push(...path.values);
+                    const catchSurvives = context.statements(statement.finallyStatements, caught);
+                    if (catchSurvives) values.push(...path.values);
                     breaks.push(...path.breaks);
                     continues.push(...path.continues);
-                    if (path.fallsThrough) survivors.push(caught);
+                    if (path.fallsThrough && catchSurvives) {
+                        // A no-return call may never reach a catch (for example,
+                        // an endless loop). Do not settle continuation bindings.
+                        if (!tried.fallsThrough && !tried.values.length) context.forgetNonFunctions(caught);
+                        survivors.push(caught);
+                    }
                 }
                 if (!survivors.length) return { values, fallsThrough: false, breaks, continues };
                 mergeEnvironments(env, survivors);
             } else if (isForStatement(statement)) {
                 const contents = [...AstUtils.streamAllContents(statement)];
-                if (contents.some(isReturnStatement)) values.push(...context.loopReturnPaths(statement, env));
-                else context.loop(statement, env);
+                if (contents.some(isReturnStatement)) {
+                    const loop = context.loopReturnPaths(statement, env);
+                    values.push(...loop.values);
+                    if (!loop.fallsThrough) return { values, fallsThrough: false, breaks, continues };
+                } else context.loop(statement, env);
             } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
                 || isIndexAssignmentStatement(statement)
                 || isAddStatement(statement) || isPushStatement(statement)

@@ -63,8 +63,8 @@ describe.each([true, false])('array binding rank (compiled=%s)', compiled => {
 it.each([false, true])('keeps a cached assignment site checked across repeated writes (local=%s)', local => {
     const runtime = new Interpreter(undefined, { integerLoopCompilation: false });
     try {
-        const loop = 'for I in 1 to 3\n A = I make\nend';
-        const source = 'fun make N\n if N less 3\n  return array 1 2\n end\n return array 1 2 3 4 shape 2 2\nend\n'
+        const loop = 'for I in 1 to 3\n Shape = array 4\n if I equal 3\n  Shape = array 2 2\n end\n A = (array 1 2 3 4) Shape reshape\nend';
+        const source = 'use sequences\n'
             + (local ? `fun check N\n${loop}\n return 0\nend\n3 check` : loop);
         expect(() => runtime.execute(source)).toThrow('A has rank 1 and cannot receive rank 2');
     } finally { runtime.dispose(); }

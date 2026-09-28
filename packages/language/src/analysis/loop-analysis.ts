@@ -301,9 +301,9 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
         mergeEnvironments(env, [env, local]);
     }
 
-    function loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): ValueFacts[] {
+    function loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): { values: ValueFacts[]; fallsThrough: boolean } {
         const condition = statement.condition;
-        if (condition && isBooleanLiteral(condition) && !condition.value) return [];
+        if (condition && isBooleanLiteral(condition) && !condition.value) return { values: [], fallsThrough: true };
         const candidate = loopBinding(condition);
         const source = candidate?.iterable ?? condition;
         if (source) invalidateCalls(source, env);
@@ -319,7 +319,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                 && !(source && safeIndexedIteration(collection) && safeIndexedSource(source))) {
                 for (const [name, fact] of env) env.set(name, invalidate(fact));
             }
-            return [];
+            return { values: [], fallsThrough: true };
         }
         const contents = [...AstUtils.streamAllContents(statement)];
         const rebound = new Set(contents.flatMap(writtenBindings));
@@ -398,7 +398,8 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             for (const path of exits) widenLoopExit(contents, path);
             mergeEnvironments(env, [env, ...exits]);
         }
-        return returned.values;
+        return { values: returned.values, fallsThrough: !(count != null && count > 0
+            && !returned.fallsThrough && !returned.breaks.length && !returned.continues.length) };
     }
 
     return { loop, loopReturnPaths };
