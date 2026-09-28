@@ -297,13 +297,13 @@ Previous = Values 1 shift
 Rises = Values greater Previous
 ```
 
-A positive count moves items toward higher positions; a negative count, written
-in parentheses, moves them toward lower positions. Positions left empty read
+A positive count moves items toward higher positions; a negative count moves
+them toward lower positions. Positions left empty read
 integer zero. `with` supplies another single value and `axis` selects the axis,
 zero by default. `axis` follows `with`:
 
 ```rank
-Ends = Starts (-1) shift with Total
+Ends = Starts -1 shift with Total
 Down = M 1 shift axis 0
 Right = M 1 shift with 9 axis 1
 ```

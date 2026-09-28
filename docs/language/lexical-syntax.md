@@ -524,6 +524,11 @@ rem -4, 0.25
 
 `**` is right-associative, so `2 ** 3 ** 2` is `2 ** (3 ** 2)`.
 
+A `-` written after a space and glued to its operand is a sign, so it starts a
+new argument of the call on its left: `Values -1 shift` means
+`Values (-1) shift`. Spaces on both sides, as in `X - 1`, or none, as in `X-1`,
+subtract. The REPL formatter keeps `A -1` as typed and spaces `A-1` as `A - 1`.
+
 Use parentheses or a named intermediate value when an arithmetic sign must be
 applied to the result of a call. Logical `not` applies after calls and
 comparisons, before `and`, `xor` and `or`: `not X even` means `not (X even)`;

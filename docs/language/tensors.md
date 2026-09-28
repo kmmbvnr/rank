@@ -308,7 +308,7 @@ convolution formula `max(0, floor((N + 2*P - W) / S) + 1)`.
 ```rank
 Down = M 1 shift
 Right = M 1 shift with 9 axis 1
-Up = M (-1) shift axis 0
+Up = M -1 shift axis 0
 ```
 
 A positive count moves items toward higher positions and vacated positions read

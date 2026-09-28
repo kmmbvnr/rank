@@ -251,7 +251,8 @@ const SPACED_SYMBOLS = new Set([
 /**
  * Puts one space on each side of every binary operator, so a line typed with no
  * spaces at all is stored the way the language is written. A `+` or `-` that no
- * operand precedes is a sign and stays attached, `.` and brackets are left
+ * operand precedes is a sign and stays attached, and so does a `-` written after
+ * a space and glued to its operand (`A -1 shift`). A `.` and brackets are left
  * alone, and text and comments are never touched.
  */
 export function spaceOperators(line: string, trailing = false): string {
@@ -263,6 +264,9 @@ export function spaceOperators(line: string, trailing = false): string {
         if (item.kind !== 'symbol' || !SPACED_SYMBOLS.has(item.text)) continue;
         const previous = tokens[index - 1];
         if (!endsOperand(previous)) continue;
+        // `A -1` is a sign after a space and stays attached; `A-1` and `A - 1` subtract.
+        if (item.text === '-' && line[item.start - 1] === ' '
+            && item.end < line.length && line[item.end] !== ' ') continue;
         // `and=`, `or=` and `xor=` are single tokens spelled as a word plus `=`.
         if (item.text === '=' && previous !== undefined && previous.kind === 'word'
             && previous.end === item.start && COMPOUND_KEYWORDS.has(previous.text)) continue;

@@ -969,14 +969,14 @@ beside its neighbor without index arithmetic:
 
 ```rank
 Previous = Values 1 shift
-Next = Values (-1) shift
-Ends = Starts (-1) shift with Total
+Next = Values -1 shift
+Ends = Starts -1 shift with Total
 Down = M 1 shift axis 0
 ```
 
 A positive count moves items toward higher positions. Positions left empty read
 integer zero, or the single value after `with`. `axis` defaults to zero and
-follows `with`. Write a negative count in parentheses. Shift is array-only,
+follows `with`. Shift is array-only,
 lazy and read-only.
 
 ## JSON

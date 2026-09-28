@@ -40,6 +40,15 @@ export function expressionDiagnostics(program: Program): readonly GroupingDiagno
     return diagnostics.get(program) ?? [];
 }
 
+/** A `-` after whitespace and before its operand, as in `A -1`, is a sign; `A - 1` and `A-1` subtract. */
+function attachedSign(expression: BinaryExpression): boolean {
+    if (expression.operator !== '-') return false;
+    const operator = GrammarUtils.findNodeForProperty(expression.$cstNode, 'operator');
+    if (!operator) return false;
+    const text = operator.root.fullText;
+    return /\s/.test(text[operator.offset - 1] ?? '') && !/\s/.test(text[operator.end] ?? ' ');
+}
+
 export interface GroupingOptions {
     /** Signatures from earlier REPL inputs; false marks a data binding. */
     readonly bindings?: ReadonlyMap<string, readonly number[] | false>;
@@ -132,6 +141,24 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const right = flatten(expression.right);
             if (isNameExpression(right[0]) && symbolic.has(right[0].name)) {
                 return [...tokens(expression.left), { kind: 'symbolic', original: expression }];
+            }
+            const signed = attachedSign(expression) ? tokens(expression.right) : undefined;
+            if (signed?.[0]?.kind === 'value') {
+                // `A -1 shift`: a minus glued to its operand is that operand's sign, so the
+                // operand becomes one more argument of the call on the left.
+                const parts = flatten(signed[0].value);
+                const negated = { $type: 'UnaryExpression', operator: '-', operand: parts[0],
+                    $cstNode: parts[0].$cstNode } as Expression;
+                const [head, ...rest] = tokens(expression.left);
+                if (head && !rest.length && head.kind === 'value') {
+                    return [{ kind: 'value', value: application([...flatten(head.value), negated, ...parts.slice(1)], expression) },
+                        ...signed.slice(1)];
+                }
+                if (rest.length && rest.at(-1)!.kind === 'value') {
+                    const last = rest.pop() as Token & { kind: 'value' };
+                    return [head, ...rest, { kind: 'value', value: application([...flatten(last.value), negated, ...parts.slice(1)], expression) },
+                        ...signed.slice(1)];
+                }
             }
             return [...tokens(expression.left), { kind: 'operator', value: expression }, ...tokens(expression.right),
                 ...(expression.step ? [{ kind: 'operator' as const, value: { ...expression, operator: 'by' } },

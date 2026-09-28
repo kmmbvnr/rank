@@ -118,6 +118,17 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('A = array 1 8\nA max 5 min')).toBe('5');
     });
 
+    it('reads a minus glued to its operand after a space as a sign', () => {
+        const source = 'A = array 1 2 3 4\nX = 5\n';
+        expect(run(source + 'A -1 shift')).toBe('2 3 4 0');
+        expect(run(source + 'A -1 shift with 9')).toBe('2 3 4 9');
+        expect(run(source + 'Y = -1\nA Y shift')).toBe('2 3 4 0');
+        expect(run(source + 'X - 1')).toBe('4');
+        expect(run(source + 'X-1')).toBe('4');
+        expect(run(source + 'X- 1')).toBe('4');
+        expect(run(source + 'X * 2 - 1')).toBe('9');
+    });
+
     it('normalizes rounding parameters instead of interpreting subtraction as a call', () => {
         expect(run('12.34 round - 1')).toBe('10');
         expect(run('12.34 round - 1 sqrt')).toBe(String(Math.sqrt(10)));
