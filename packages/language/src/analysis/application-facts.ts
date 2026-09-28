@@ -418,8 +418,8 @@ function transferApplicationFacts(
                     ...(last.name === 'root' && source.types.join() === 'graph' && source.elements?.length
                         ? { elements: source.elements } : {}) };
             }
-            if (operation.denseResult && shaped) return {
-                ...shaped, elements: operation.denseResult.elements, eagerScalarCells: true,
+            if (operation.denseElements && shaped) return {
+                ...shaped, elements: operation.denseElements, eagerScalarCells: true,
             };
             if (arity === 1 && last.name === 'indices' && source.types.join() === 'array'
                 && source.rank === 1 && source.elements?.join() === 'boolean'
@@ -478,7 +478,6 @@ function transferApplicationFacts(
                     && value.types.every(type => type === 'integer' || type === 'real'))) {
                 return { ...shaped, types: [...new Set(operands.flatMap(value => value.types))] };
             }
-            if (operation.scalarResult && shaped) return shaped;
             if (arity === 2 && last.name === 'startswith') {
                 const right = operands[1];
                 if (['text', 'bytes'].includes(source.types.join())
@@ -545,7 +544,7 @@ function transferApplicationFacts(
                 ...(hasMappedScalarNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
-            if (operation.preservesArrayShape && arity === 2 && collection) return {
+            if (operation.preservesCollectionElements && arity === 2 && collection) return {
                 ...(shaped ?? { types: source.types }), elements: source.elements,
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),

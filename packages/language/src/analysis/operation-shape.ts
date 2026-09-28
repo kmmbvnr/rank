@@ -42,7 +42,7 @@ export function operationShapeFacts(
     if (frame.length && ['text', 'sequence'].includes(operation.result)) return;
     const shape = [...frame, ...cellShape];
     const types = frame.length ? ['array']
-        : operation.preservesArrayShape && ['array', 'sequence'].includes(operands[0].types.join())
+        : operation.preservesCollectionElements && ['array', 'sequence'].includes(operands[0].types.join())
             ? operands[0].types : resultTypes(operation);
     return { types, rank: shape.length, shape };
 }

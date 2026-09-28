@@ -294,11 +294,11 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     const source = typeOf(unaryTail ? expression.head : head, lookup);
     if (operation.arities.includes(arity)) {
         if (arity === 1 && operation.preservesNumericScalarType && within(source, NUMBERS)) return source;
-        if ((arity === 1 && mapsScalarCells(operation) || arity === 2 && operation.preservesArrayShape)
+        if ((arity === 1 && mapsScalarCells(operation) || arity === 2 && operation.preservesCollectionElements)
             && !same(source, 'array') && !same(source, 'sequence') && !within(source, NUMBERS)) return UNKNOWN;
         if (arity === 1 && mapsScalarCells(operation)
             && (same(source, 'array') || same(source, 'sequence'))) return source;
-        if (arity === 2 && operation.preservesArrayShape
+        if (arity === 2 && operation.preservesCollectionElements
             && (same(source, 'array') || same(source, 'sequence'))) return source;
         if (arity === 2) {
             const right = typeOf(parts[1], lookup);

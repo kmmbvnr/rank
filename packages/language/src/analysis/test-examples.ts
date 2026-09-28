@@ -45,7 +45,7 @@ export function functionTestExamples(program: Program, moduleName?: string,
                 && (operation.module === 'core' || test.statements.some(statement =>
                     isUseStatement(statement) && !statement.alias
                     && statement.module === operation.module))
-                && (mapsScalarCells(operation) || operation.preservesArrayShape)) {
+                && (mapsScalarCells(operation) || operation.preservesCollectionElements)) {
                 const source = unwrap(parts[0]);
                 const prior = isNameExpression(source) ? calls.get(source.name) : undefined;
                 if (prior) return { ...prior, shapePreserved: true as const };

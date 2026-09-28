@@ -66,8 +66,6 @@ export interface Operation {
     readonly effects?: readonly Effect[];
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
     readonly scalarNoCallback?: 'integer' | 'number';
-    /** Every successful call returns one scalar, even when operand facts are unknown. */
-    readonly scalarResult?: true;
     /** A numeric scalar result keeps its operand's integer or real type. */
     readonly preservesNumericScalarType?: true;
     /** Unary application maps each scalar cell of an array or sequence. */
@@ -80,12 +78,10 @@ export interface Operation {
     readonly numericArrayNoCallback?: true;
     /** Reads only array metadata, for an array whose representation is already proved callback-free. */
     readonly arrayHeaderNoCallback?: true;
-    /** An array or sequence result keeps the input kind and array shape. */
-    readonly preservesArrayShape?: true;
-    /** On a successful call, the result array has this operand's shape. */
-    readonly resultShapeFromOperand?: number;
-    /** A fresh dense array with this shape and these proven cell types on every successful call. */
-    readonly denseResult?: { readonly shape: readonly (number | null)[]; readonly elements: readonly string[] };
+    /** An array or sequence result keeps the input collection kind and element types. */
+    readonly preservesCollectionElements?: true;
+    /** A fresh dense array with these proven cell types on every successful call. */
+    readonly denseElements?: readonly string[];
     /**
      * Labels written after the name that choose another form of the result,
      * as in `Text json .flat`. The call receives the label as its last operand.
@@ -154,7 +150,7 @@ export const operations: readonly Operation[] = [
         summary: 'Fixed-size integer Fenwick tree with inclusive prefix sums.' },
     { name: 'firstatleast', module: 'algo', arities: [2], form: 'Tree Target firstatleast',
         shape: [{ args: [null, null], result: [] }],
-        result: 'integer', scalarResult: true,
+        result: 'integer',
         summary: 'First position whose monotone prefix aggregate reaches the target.' },
     { name: 'floor', module: 'algo', arities: [2], form: 'Bag floor Limit', result: 'element',
         summary: 'Largest stored value at most the limit.' },
@@ -224,7 +220,7 @@ export const operations: readonly Operation[] = [
         summary: 'Formats a nonnegative integer as binary text, a width padding with zeroes.' },
     { name: 'bit', module: 'bits', arities: [2], form: 'Value Position bit', result: 'boolean',
         shape: [{ args: [null, null], result: [] }],
-        scalarNoCallback: 'integer', scalarResult: true,
+        scalarNoCallback: 'integer',
         summary: 'Tests a zero-based bit position.' },
     { name: 'bnot', module: 'bits', arities: [1], form: 'Value bnot', result: 'integer',
         shape: [{ args: [[]], result: [] }],
@@ -303,7 +299,7 @@ export const operations: readonly Operation[] = [
         summary: 'Connected components: their count, a per-vertex index and the roots.' },
     { name: 'connected', module: 'graph', arities: [3], form: 'Dsu A B connected',
         shape: [{ args: [null, null, null], result: [] }],
-        result: 'boolean', scalarResult: true,
+        result: 'boolean',
         summary: 'True when two values share a disjoint-set representative.' },
     { name: 'cycle', module: 'graph', arities: [1], form: 'Graph cycle', result: 'array',
         summary: 'One cycle with its first vertex repeated at the end, or an empty array.' },
@@ -332,14 +328,14 @@ export const operations: readonly Operation[] = [
         summary: 'Lowest common ancestor of two vertices.' },
     { name: 'lengths', module: 'graph', arities: [1], form: 'F lengths', result: 'array',
         shape: [{ args: [null], result: [null] }],
-        denseResult: { shape: [null], elements: ['integer'] },
+        denseElements: ['integer'],
         summary: 'Path length from every vertex of a functional graph.' },
     { name: 'maxflow', module: 'graph', arities: [3], form: 'Graph Source Sink maxflow',
         result: 'record', recordFields: { value: 'number' },
         summary: 'Maximum flow value, the per-edge flow and the minimum cut.' },
     { name: 'merge', module: 'graph', arities: [3], form: 'Dsu A B merge', result: 'boolean',
         shape: [{ args: [null, null, null], result: [] }],
-        effects: ['mutates'], scalarResult: true,
+        effects: ['mutates'],
         summary: 'Unions two disjoint-set components, true only when they differed.' },
     { name: 'mst', module: 'graph', arities: [1], form: 'Graph mst', result: 'record',
         recordFields: { connected: 'boolean', components: 'integer', weight: 'number' },
@@ -373,7 +369,7 @@ export const operations: readonly Operation[] = [
 
     { name: 'neighbors', module: 'grids', arities: [3, 4], form: 'Grid Row Column .eight neighbors', result: 'array',
         shape: [{ args: [null, null, null], result: [null, 2] }, { args: [null, null, null, null], result: [null, 2] }],
-        denseResult: { shape: [null, 2], elements: ['integer'] },
+        denseElements: ['integer'],
         summary: 'In-bounds row and column pairs around one grid cell; four neighbors by default.' },
     { name: 'segments', module: 'grids', arities: [2], form: 'Grid Width segments', result: 'array',
         summary: 'All in-bounds horizontal, vertical and diagonal segments of a fixed width.' },
@@ -385,7 +381,7 @@ export const operations: readonly Operation[] = [
         summary: 'Closes a file early; closing an already closed file does nothing.' },
     { name: 'eof', module: 'io', arities: [1], form: 'File eof', result: 'boolean',
         shape: [{ args: [null], result: [] }],
-        effects: ['io'], scalarResult: true,
+        effects: ['io'],
         summary: 'True when the position is at or past the end of the file.' },
     { name: 'flush', module: 'io', arities: [1], form: 'File flush', result: 'file',
         effects: ['io'], summary: 'Asks the host to write buffered output to the file system.' },
@@ -394,7 +390,7 @@ export const operations: readonly Operation[] = [
         summary: 'Opens a file, read-only unless a mode label selects write, update or append.' },
     { name: 'position', module: 'io', arities: [1], form: 'File position', result: 'integer',
         shape: [{ args: [null], result: [] }],
-        effects: ['io'], scalarResult: true, summary: 'Current byte offset of an open file.' },
+        effects: ['io'], summary: 'Current byte offset of an open file.' },
     { name: 'print', module: 'io', arities: [1], form: 'Value print', result: 'same',
         effects: ['io'],
         summary: 'Writes one line and returns the value, so a pipeline continues.' },
@@ -410,7 +406,7 @@ export const operations: readonly Operation[] = [
         effects: ['io'], summary: 'Sets an absolute byte offset from the beginning.' },
     { name: 'size', module: 'io', arities: [1], form: 'File size', result: 'integer',
         shape: [{ args: [null], result: [] }],
-        effects: ['io'], scalarResult: true, summary: 'Length of an open file in bytes.' },
+        effects: ['io'], summary: 'Length of an open file in bytes.' },
     { name: 'write', module: 'io', arities: [2], form: 'Text Path write', result: 'text',
         effects: ['io'], summary: 'Creates or replaces a file with UTF-8 text.' },
     { name: 'writebytes', module: 'io', arities: [2], form: 'File Bytes writebytes',
@@ -436,7 +432,7 @@ export const operations: readonly Operation[] = [
         summary: 'Contracts the last axis of the left array with the first axis of the right.' },
     { name: 'solve', module: 'linalg', arities: [2], form: 'A B solve', result: 'array',
         shape: [{ args: [['n', 'n'], [{ spread: 's' }]], result: [{ spread: 's' }] }],
-        numericArrayNoCallback: true, resultShapeFromOperand: 1,
+        numericArrayNoCallback: true,
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
     { name: 'abs', module: 'numbers', arities: [1], form: 'Value abs', result: 'number',
@@ -464,7 +460,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: [0, 0], summary: 'Exact binomial coefficient.' },
     { name: 'binomialmod', module: 'numbers', arities: [3], form: 'N K Modulus binomialmod',
         shape: [{ args: [null, null, null], result: [] }],
-        result: 'integer', scalarNoCallback: 'integer', scalarResult: true,
+        result: 'integer', scalarNoCallback: 'integer',
         summary: 'Binomial coefficient calculated directly modulo a prime.' },
     { name: 'cos', module: 'numbers', arities: [1], form: 'Angle cos', result: 'real', mapsScalarCells: true,
         summary: 'Cosine of an angle in radians.' },
@@ -482,7 +478,7 @@ export const operations: readonly Operation[] = [
         summary: 'Lazy ascending sequence of the prime factors, repeated factors included.' },
     { name: 'gcd', module: 'numbers', arities: [2], form: 'A B gcd', result: 'integer',
         shape: [{ args: [null, null], result: [] }],
-        scalarNoCallback: 'integer', scalarResult: true,
+        scalarNoCallback: 'integer',
         summary: 'Greatest common divisor, always nonnegative.' },
     { name: 'infinity', module: 'numbers', arities: [], form: 'infinity', result: 'real',
         summary: 'The positive infinite real value.' },
@@ -494,7 +490,6 @@ export const operations: readonly Operation[] = [
         summary: 'Exact integer floor of the square root, calculated without reals.' },
     { name: 'lcm', module: 'numbers', arities: [1, 2], form: 'A B lcm', result: 'integer',
         shape: [{ args: [null], result: [] }, { args: [null, null], result: [] }],
-        scalarResult: true,
         summary: 'Least common multiple, also a reduction over one finite collection.' },
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real', mapsScalarCells: true,
         summary: 'Natural logarithm of a positive finite number.' },
@@ -514,11 +509,11 @@ export const operations: readonly Operation[] = [
         scalarNoCallback: 'integer', summary: 'True for an odd integer.' },
     { name: 'powmod', module: 'numbers', arities: [3], form: 'Base Exponent Modulus powmod',
         shape: [{ args: [null, null, null], result: [] }],
-        result: 'integer', scalarNoCallback: 'integer', scalarResult: true,
+        result: 'integer', scalarNoCallback: 'integer',
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
     { name: 'round', module: 'numbers', arities: [2], form: 'Value Places round', result: 'number',
         shape: [{ args: [[{ spread: 's' }], null], result: [{ spread: 's' }] }],
-        scalarNoCallback: 'number', numericArrayNoCallback: true, preservesArrayShape: true,
+        scalarNoCallback: 'number', numericArrayNoCallback: true, preservesCollectionElements: true,
         summary: 'Rounds to a signed number of decimal places, halfway values to even.' },
     { name: 'sin', module: 'numbers', arities: [1], form: 'Angle sin', result: 'real', mapsScalarCells: true,
         summary: 'Sine of an angle in radians.' },
@@ -541,7 +536,7 @@ export const operations: readonly Operation[] = [
         summary: 'Draws Count values with replacement, complete cells for a tensor.' },
     { name: 'seed', module: 'random', arities: [1], form: 'Seed seed', result: 'integer',
         shape: [{ args: [null], result: [] }],
-        effects: ['random'], scalarResult: true,
+        effects: ['random'],
         summary: 'Restarts the pseudorandom stream of the session and returns the seed.' },
     { name: 'shuffle', module: 'random', arities: [1, 2], form: 'Values shuffle', result: 'array',
         effects: ['random'],
@@ -568,13 +563,12 @@ export const operations: readonly Operation[] = [
         summary: 'Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack.' },
     { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer', axisReduction: true,
         shape: [{ args: [null], result: [] }],
-        scalarCellArrayNoCallback: 'boolean', scalarResult: true,
+        scalarCellArrayNoCallback: 'boolean',
         summary: 'Number of true cells, or of source items a lazy mask selects.' },
     { name: 'drop', module: 'sequences', arities: [2], form: 'Values Count drop', result: 'value',
         lazy: true, summary: 'Skips Count leading items; sequences stay lazy and arrays slice their leading axis.' },
     { name: 'find', module: 'sequences', arities: [2], form: 'Values Target find', result: 'integer',
         shape: [{ args: [null, null], result: [] }],
-        scalarResult: true,
         summary: 'First zero-based position equal to Target in a vector or text.' },
     { name: 'findall', module: 'sequences', arities: [2], form: 'Values Target findall', result: 'array',
         summary: 'Every zero-based position equal to Target in a vector or text.' },
@@ -672,7 +666,7 @@ export const operations: readonly Operation[] = [
         summary: 'One-character text for a Unicode code point.' },
     { name: 'codepoint', module: 'text', arities: [1], form: 'Character codepoint',
         shape: [{ args: [null], result: [] }],
-        result: 'integer', scalarResult: true,
+        result: 'integer',
         summary: 'Integer code point of exactly one character.' },
     { name: 'hex', module: 'text', arities: [1], form: 'Bytes hex', result: 'text',
         summary: 'Lowercase hexadecimal text for bytes, without a prefix.' },
@@ -692,7 +686,7 @@ export const operations: readonly Operation[] = [
         summary: 'Reverses text by Unicode code point.' },
     { name: 'split', module: 'text', arities: [2], form: 'Text Separator split', result: 'array',
         shape: [{ args: [null, null], result: [null] }],
-        denseResult: { shape: [null], elements: ['text'] },
+        denseElements: ['text'],
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },
     { name: 'startswith', module: 'text', arities: [2], form: 'Value Prefix startswith',
         result: 'boolean',
