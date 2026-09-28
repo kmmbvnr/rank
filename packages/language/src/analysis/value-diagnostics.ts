@@ -14,6 +14,7 @@ import { compoundType } from './types.js';
 import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { builtinBindingDiagnostics } from '../builtin-bindings.js';
+import { renamedBuiltinCall } from '../builtin-renames.js';
 import { arrayRank, conditionalPaths, contractRank, invalidate, mergeEnvironments } from './control-flow.js';
 import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
     provenBindingTypeConflict } from '../binding-rule.js';
@@ -33,6 +34,7 @@ export interface ValueDiagnostic {
     readonly node: AstNode;
     readonly message: string;
     readonly kind: 'TypeError' | 'DimensionMismatch';
+    readonly code?: 'BuiltinRename';
 }
 
 export interface ValueAnalysis {
@@ -364,6 +366,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
                     if (parts.length === 3 && parts[2] === node) {
                         const source = expressionFacts(parts[0], name => env.get(name));
+                        const renamed = renamedBuiltinCall(parts);
+                        // Removed builtin calls fail before invoking a callback; keep
+                        // the receiver facts so inspection can report the migration.
+                        if (renamed && source.types.join() === renamed.receiver) continue;
                         const target = expressionFacts(parts[1], name => env.get(name));
                         if (!hasCallbackFreeFindProof(source, target)) {
                             unknown = true;
@@ -452,6 +458,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
             const source = inspect(parts[0], env);
+            const renamed = renamedBuiltinCall(parts);
+            const binding = renamed && env.get(renamed.operation.name);
+            if (renamed && source.types.join() === renamed.receiver
+                && (!binding || binding.builtinOperation === renamed.operation.name)) {
+                diagnostics.push({ node: renamed.operation, kind: 'TypeError', code: 'BuiltinRename', message: renamed.message });
+            }
             for (const part of parts.slice(1)) inspect(part, env);
             const selectors = parts.slice(1);
             const last = parts.at(-1);

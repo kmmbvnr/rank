@@ -41,3 +41,19 @@ test('check needs something to check', () => {
     assert.equal(result.status, 1);
     assert.match(result.stderr, /no \*\.ra files found/);
 });
+
+test('check explains the removed DSU find spelling', t => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-check-rename-'));
+    t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+    const file = path.join(temporary, 'old-dsu.ra');
+    for (const modules of ['use graph', 'use graph\nuse sequences']) {
+        for (const call of ['D find "a"', 'D "a" find']) {
+            fs.writeFileSync(file, `${modules}\nD = new dsu (array "a")\n${call}\n`);
+            const result = check(file);
+            assert.equal(result.status, 1);
+            assert.match(result.stderr, /DSU find is now findroot/);
+        }
+    }
+    fs.writeFileSync(file, 'use graph\nD = new dsu (array "a")\nD findroot "a"\n');
+    assert.equal(check(file).status, 0);
+});

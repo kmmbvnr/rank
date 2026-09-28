@@ -2584,3 +2584,19 @@ it('checks known array element types while treating text as a broadcast atom', (
         .toEqual(['operator + does not accept boolean and integer']);
     expect(messages('A = "prefix" + (array "a" "b")\nB = array "c" "d"\nA + B')).toEqual([]);
 });
+
+it('reports the removed DSU find spelling with and without sequences', () => {
+    for (const modules of ['use graph', 'use graph\nuse sequences']) {
+        for (const call of ['D find "a"', 'D "a" find', '(new dsu (array "a")) "a" find']) {
+            expect(messages(`${modules}\nD = new dsu (array "a")\n${call}`))
+                .toEqual(['DSU find is now findroot']);
+        }
+    }
+});
+
+it('limits rename diagnostics to known receivers and builtin names', () => {
+    expect(messages('use sequences\n(array "a" "b") "b" find')).toEqual([]);
+    expect(messages('use graph\nD = new dsu (array "a")\nD findroot "a"')).toEqual([]);
+    expect(messages('use graph\nfun find D X\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toEqual([]);
+    expect(messages('use sequences\nfun search D X\n return D X find\nend')).toEqual([]);
+});

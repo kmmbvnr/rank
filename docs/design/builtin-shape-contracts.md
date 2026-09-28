@@ -11,7 +11,7 @@ analyzer instantiate those same structured signatures without reading values.
 | Structured type and validator | `packages/language/src/shape-signature.ts`; tests cover named dimensions, spreads, sums, incompatible shapes and existential dimensions. |
 | Annotate ranked and shape-flag operations | Every catalogue entry with explicit ranks, dense element metadata or collection-preservation metadata must have a signature. `operations.test.ts` enforces coverage. |
 | Check ranks and old flags | Fixed cell patterns are checked against explicit numeric ranks. Runtime ranks come from the catalogue. `scalarResult`, `preservesArrayShape`, `resultShapeFromOperand` and `denseResult.shape` are removed with their consumers. Element/representation metadata remains separate. |
-| Derive runtime result-cell shape | `native` builds its shape hook from the unary signature. Empty-frame tests cover large cells, existential lengths and the fallback for unsigned builtins. |
+| Derive runtime result-cell shape | `native` builds its shape hook from the unary signature. Empty-frame tests cover large cells, existential lengths and the fallback for builtins without signatures. |
 | Generic analyzer transfer | `operationShapeFacts` splits frames, instantiates cell contracts and broadcasts frames. It supplies no element or callback-safety proofs. Value-aware cases, including known reshape targets, remain. |
 | Document notation | The generated standard-library reference explains structured literals, unknown dimensions and empty frames. Its source is `REFERENCE_PREAMBLE` in the CLI. |
 
@@ -53,7 +53,9 @@ The DSU operation is now `findroot`; `find` belongs to collection search in
 `sequences`. Both `Dsu findroot Value` and `Dsu Value findroot` work. There is
 no compatibility alias: keeping `graph.find` would preserve the collision.
 Native metadata can therefore still resolve by the unique catalogue name.
-Examples, receiver dispatch and analyzer facts use the new DSU name.
+Examples, receiver dispatch and analyzer facts use the new DSU name. A shared
+rename table makes the old DSU spelling report `DSU find is now findroot` during
+execution and static checking, without affecting collection search or user functions.
 
 ## Remaining scope
 
@@ -62,3 +64,12 @@ consumers and additional contracts for currently unannotated operations are
 follow-up work. Shape facts do not establish element types, purity, callback
 safety or the absence of effects. Those require their existing independent
 proofs.
+
+A product-dimension example for #66 would be flattening each rank-k cell of a
+batch of dense tensors with scalar elements: `[3, 2, 4]` would become `[3, 8]`.
+Its cell length is `2 * 4`, uniformly across the batch, so an addition-only
+contract would need an unexpressed dimension rather than an existential one.
+This remains a proposed tensor operation. Rank's current `flat` copies a
+rank-1 record array into compact storage, or initializes it from a count and
+record state; it does not flatten numeric tensors. Its missing contract is a
+separate catalogue addition, not a multiplication example.

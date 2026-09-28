@@ -45,6 +45,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
+    renamedBuiltinCall,
     flatArrayBorrowProofs,
     isAddStatement,
     isAliasedTableExpression,
@@ -2773,6 +2774,13 @@ export class Interpreter {
         parts: Expression[], missing?: () => RankValue, tail = false,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
+        const renamed = renamedBuiltinCall(parts);
+        const checkRename = renamed ? (receiver: RankValue): void => {
+            if (typeName(receiver) === renamed.receiver
+                && interpreter.applicationOperation(renamed.operation.name) !== false) {
+                throw new RankError(renamed.message, 'BuiltinRename');
+            }
+        } : undefined;
         const directParts = parts.map(part => isAllAxisExpression(part)
             ? () => ALL_AXIS : this.compileDirectExpression(part));
         if (directParts.every(part => part !== undefined)) {
@@ -2782,6 +2790,7 @@ export class Interpreter {
                 const binary = parts.length === 3;
                 return () => {
                     const a = left();
+                    checkRename?.(a);
                     const b = binary ? right() : undefined;
                     const arguments_ = binary ? [a, b!] : [a];
                     // `Record .field fn` reads the field first, on the general path.
@@ -2799,11 +2808,19 @@ export class Interpreter {
                     return this.apply([...arguments_, fn], missing, 0, [], tail);
                 };
             }
-            return () => this.apply(directParts.map(part => part()), missing, 0, [], tail);
+            return () => this.apply(directParts.map((part, index) => {
+                const value = part();
+                if (index === 0) checkRename?.(value);
+                return value;
+            }), missing, 0, [], tail);
         }
-        return () => flatMapResult(mapExecution(parts, part => isAllAxisExpression(part)
-            ? completed(ALL_AXIS) : interpreter.evaluateTask(part)),
-        values => interpreter.apply(values, missing, 0, [], tail));
+        return () => flatMapResult(mapExecution(parts, part => {
+            const task = isAllAxisExpression(part) ? completed(ALL_AXIS) : interpreter.evaluateTask(part);
+            return checkRename && part === parts[0] ? mapResult(task, value => {
+                checkRename(value);
+                return value;
+            }) : task;
+        }), values => interpreter.apply(values, missing, 0, [], tail));
     }
 
     private readStdin(mode: 'word' | 'integer'): RankValue {

@@ -101,5 +101,22 @@ it('keeps DSU findroot and collection find distinct when both modules are open',
     expect(run('use graph\nuse sequences\nuse text\nD = new dsu (array "a" "b")\nRoot = D findroot "a"\nRoot lower + "!"')).toBe('a!');
     expect(run('use graph\nuse sequences\n(array "a" "b") "b" find')).toBe('1');
     expect(run('use graph\nOp = findroot\nD = new dsu (array "a" "b")\nD "a" Op')).toBe('a');
-    expect(() => run('use graph\nD = new dsu (array "a")\nD "a" find')).toThrow('unknown name: find');
+    expect(() => run('use graph\nD = new dsu (array "a")\nD "a" find')).toThrow('DSU find is now findroot');
+});
+
+it('explains the removed DSU find spelling before suggesting another module', () => {
+    for (const modules of ['use graph', 'use graph\nuse sequences']) {
+        for (const call of ['D find "a"', 'D "a" find', '(new dsu (array "a")) "a" find']) {
+            for (const compiled of [true, false]) {
+                const runtime = new Interpreter(undefined, { scalarCompilation: compiled,
+                    scalarFunctionCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
+                expect(() => runtime.execute(`${modules}\nD = new dsu (array "a")\n${call}`))
+                    .toThrow('DSU find is now findroot');
+            }
+        }
+    }
+});
+
+it('does not treat a user function named find as a removed builtin', () => {
+    expect(run('use graph\nfun find D X\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toBe('99');
 });

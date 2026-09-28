@@ -33,6 +33,9 @@ corresponding meanings, validators and execution rules after parsing.
 
 ### Available builtin names
 
+Builtin function names are unique throughout the standard library. Modules
+control visibility; two modules cannot export different builtins with the same name.
+
 User code cannot redefine an available builtin name. Core names are always
 available; other names become protected when their standard module is opened.
 The rule applies to function declarations, parameters and local bindings, and
@@ -53,6 +56,11 @@ Receiver methods keep their contextual dispatch. `Dsu findroot X` calls the DSU
 method when `Dsu` is a DSU. For another receiver it resolves `findroot` as an
 ordinary function. A user function with that spelling is legal only while the
 module supplying the builtin name remains unopened.
+
+Removed builtin spellings produce a migration diagnostic when the receiver type
+is known. The former `Dsu find X` and `Dsu X find` calls report
+`DSU find is now findroot`, both during execution and in `rank check`.
+These spellings are not aliases; collection search still uses `Values Target find`.
 
 A missing `use` is reported in one of two shapes, because a module contributes
 two kinds of vocabulary. A name that only the module defines is simply unknown,
@@ -137,9 +145,9 @@ Rank does not require a `main` function.
 ## Reading a program without running it
 
 Two commands answer questions about a file that has not run. `rank check`
-parses every `*.ra` file under a path and reports the ones that do not, which
-is the gate a repository runs in CI. `rank explain` reports one program's
-binding facts:
+checks every `*.ra` file under a path for syntax, scope and removed builtin
+spellings, without running it. This is the gate a repository runs in CI.
+`rank explain` reports one program's binding facts:
 
 ```
 rank explain demos/cses/tree/003_diameter.ra

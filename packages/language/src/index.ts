@@ -7,6 +7,7 @@ export * from './operations.js';
 export * from './shape-signature.js';
 export * from './application-forms.js';
 export * from './builtin-bindings.js';
+export * from './builtin-renames.js';
 export * from './type-names.js';
 export * from './binding-rule.js';
 export * from './analysis/bindings.js';

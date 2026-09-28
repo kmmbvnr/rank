@@ -1,7 +1,7 @@
 import { runProgram } from '@arrrank/common';
 import { Interpreter, RankError, parse } from '@arrrank/interpreter';
 import {
-    analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
+    analyzeValues, analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
 } from '@arrrank/language';
 import chalk from 'chalk';
@@ -73,7 +73,7 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
     });
 }
 
-/** Parses every program under a path. The gate a repository can run in CI. */
+/** Checks syntax, scope and removed builtin uses without executing programs. */
 async function checkFiles(target: string): Promise<void> {
     const files = await findFiles(path.resolve(target), name => name.endsWith('.ra'));
     if (files.length === 0) throw new RankError(`no *.ra files found in ${target}`);
@@ -81,7 +81,19 @@ async function checkFiles(target: string): Promise<void> {
     let failed = 0;
     for (const file of files) {
         try {
-            parse(await fs.readFile(file, 'utf8'), path.relative(process.cwd(), file));
+            const source = await fs.readFile(file, 'utf8');
+            const sourceId = path.relative(process.cwd(), file);
+            const program = parse(source, sourceId);
+            const renamed = analyzeValues(program).diagnostics.find(item => item.code === 'BuiltinRename');
+            if (renamed) {
+                const error = new RankError(renamed.message, renamed.code);
+                const start = renamed.node.$cstNode?.range.start;
+                error.location = {
+                    sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
+                    sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',
+                };
+                throw error;
+            }
         } catch (error) {
             failed += 1;
             console.error(error instanceof RankError ? error.format() : String(error));
@@ -330,7 +342,7 @@ function printHelp(): void {
         'Usage:',
         '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
-        '  rank check [path]            Parse every *.ra file',
+        '  rank check [path]            Check every *.ra file',
         '  rank explain <file>          Where every name is bound and read',
         '  rank ops [--markdown]        The standard-library catalogue',
         '  rank test [path]             Run *_test.ra files',

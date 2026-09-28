@@ -2,7 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
-* **Updated:** 2026-09-28 — protect available builtin names (#36)
+* **Updated:** 2026-09-28 — protect available builtin names (#36); require unique standard-library names (#65)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Modules and Programs Specification
 
@@ -32,6 +32,10 @@ use numbers
 use sequences
 use cli
 ```
+Builtin function names are unique across the entire standard library. A module
+controls whether a function is visible; it does not provide a separate namespace
+for another builtin with the same name.
+
 Core operations (`len`, `sum`, `min`, `max`, `to`, `until`, `by`, `integer`, `real`, `text`) are built into `core` and require no `use`.
 
 ### 3. Actionable Compiler Diagnostics
@@ -62,7 +66,7 @@ reports source conflicts without running the program. Aliased source imports
 keep their own namespace. Builtin aliases such as `Op = matmul` remain legal
 and retain their special application forms.
 
-Receiver methods remain contextual. A DSU's `find` method takes precedence
+Receiver methods remain contextual. A DSU's `findroot` method takes precedence
 when the receiver is a DSU; a different receiver uses ordinary function lookup.
 This is separate from the ban on redefining available builtin names.
 
