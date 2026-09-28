@@ -26,6 +26,7 @@ const owners = new Set([
     'packages/interpreter/src/rank-application.ts',
     'packages/interpreter/src/reduction.ts',
     'packages/interpreter/src/return-contract.ts',
+    'packages/interpreter/src/record-contract.ts',
     'packages/interpreter/src/resource-ownership.ts',
     'packages/interpreter/src/selectors.ts',
     'packages/interpreter/src/statement-control.ts',

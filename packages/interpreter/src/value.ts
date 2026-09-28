@@ -8,7 +8,7 @@ import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
 import type { RankIo, SqliteScalar } from './io.js';
-import { RankError } from './errors.js';
+import { MissingValueError, RankError } from './errors.js';
 import { bindingRankConflict, bindingRankMessage } from '@arrrank/language';
 
 export function expectBoolean(value: RankValue): boolean {
@@ -192,6 +192,7 @@ export interface RankRecord {
     readonly kind: 'record';
     readonly entries: Map<string, RankValue>;
     readonly types: Map<string, string>;
+    fieldContracts?: Map<string, CollectionElementType>;
 }
 
 export type IntrinsicRank = number | 'all';
@@ -280,6 +281,7 @@ export interface CollectionElementType {
     readonly type: string;
     readonly rank?: number;
     readonly elements?: readonly CollectionElementType[];
+    readonly fields?: ReadonlyMap<string, CollectionElementType>;
 }
 
 /** Validate before committing the insertion. Empty arrays do not establish a cell type. */
@@ -293,30 +295,53 @@ export function checkCollectionElementType(
 
 function describeElementType(value: CollectionElementType): string {
     return value.type + (value.rank === undefined ? '' : ` rank ${value.rank}`)
-        + (value.elements?.length ? ` of ${value.elements.map(describeElementType).join(' or ')}` : '');
+        + (value.elements?.length ? ` of ${value.elements.map(describeElementType).join(' or ')}` : '')
+        + (value.fields ? ` {${[...value.fields].map(([name, field]) => `.${name}: ${describeElementType(field)}`).join(', ')}}` : '');
 }
 
-function mergeCollectionElementType(collection: string, expected: CollectionElementType | undefined,
-    received: CollectionElementType): CollectionElementType {
+export function mergeCollectionElementType(collection: string, expected: CollectionElementType | undefined,
+    received: CollectionElementType, structural = false): CollectionElementType {
     if (!expected) return received;
     if (expected.type !== received.type || expected.rank !== received.rank) {
         throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`);
     }
+    if (expected.fields && received.fields) {
+        if (expected.fields.size !== received.fields.size || [...expected.fields.keys()].some(name => !received.fields!.has(name))) {
+            throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`, 'TypeError');
+        }
+        return { ...expected, fields: new Map([...expected.fields].map(([name, field]) =>
+            [name, mergeCollectionElementType(`${collection} .${name}`, field, received.fields!.get(name)!, true)])) };
+    }
     if (!expected.elements?.length) return received.elements?.length ? received : expected;
+    if (structural && received.elements?.length && expected.elements.some(item =>
+        !received.elements!.some(cell => cell.type === item.type && cell.rank === item.rank))) {
+        throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`, 'TypeError');
+    }
     const elements = [...expected.elements];
     for (const cell of received.elements ?? []) {
         const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
         if (index < 0) {
             throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`);
         }
-        elements[index] = mergeCollectionElementType(collection, elements[index], cell);
+        elements[index] = mergeCollectionElementType(collection, elements[index], cell, structural);
     }
     return { ...expected, elements };
 }
 
-function collectionElementType(value: RankValue, active: Set<RankValue>): CollectionElementType {
+export function collectionElementType(value: RankValue, active: Set<RankValue> = new Set(), records = false): CollectionElementType {
     const type = typeName(value);
     const rank = isRankArray(value) ? value.shape.length : undefined;
+    if (records && isRankRecord(value)) {
+        if (active.has(value)) throw new RankError('cyclic records cannot establish a structural type', 'TypeError');
+        if (!value.fieldContracts) {
+            active.add(value);
+            const fields = new Map([...value.entries].map(([name, field]) =>
+                [name, collectionElementType(field, active, true)]));
+            active.delete(value);
+            value.fieldContracts = fields;
+        }
+        return { type, fields: value.fieldContracts };
+    }
     if (!isRankArray(value)) return { type };
     if (active.has(value)) throw new RankError('cyclic arrays cannot be collection elements');
     active.add(value);
@@ -324,11 +349,18 @@ function collectionElementType(value: RankValue, active: Set<RankValue>): Collec
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     for (let index = 0; index < size; index++) {
         checkpoint();
-        const cell = value.itemAt?.(index) ?? value.items[index];
+        let cell: RankValue;
+        try {
+            cell = value.itemAt?.(index) ?? value.items[index];
+        } catch (error) {
+            // Table columns may have absent cells; absence contributes no type.
+            if (records && error instanceof MissingValueError) continue;
+            throw error;
+        }
         const cellType = typeName(cell);
         const cellRank = isRankArray(cell) ? cell.shape.length : undefined;
         const position = elements.findIndex(element => element.type === cellType && element.rank === cellRank);
-        const element = collectionElementType(cell, active);
+        const element = collectionElementType(cell, active, records);
         if (position < 0) elements.push(element);
         else elements[position] = unionElementType(elements[position], element);
     }
@@ -337,6 +369,7 @@ function collectionElementType(value: RankValue, active: Set<RankValue>): Collec
 }
 
 function unionElementType(left: CollectionElementType, right: CollectionElementType): CollectionElementType {
+    if (left.fields && right.fields) return mergeCollectionElementType('array record cells', left, right);
     if (!right.elements?.length) return left;
     const elements = [...(left.elements ?? [])];
     for (const cell of right.elements) {

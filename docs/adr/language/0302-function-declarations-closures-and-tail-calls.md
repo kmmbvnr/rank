@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-09-28 — specialized and recursive return contracts (issues #3, #4 and #32)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Control Flow and Functions Specification, Tail Calls Test Suite
 
@@ -97,6 +98,40 @@ F equal abs      rem true
 abs equal sqrt   rem false
 ```
 
+### Return contracts per specialization
+
+A closure owns a return contract for each argument specialization. Argument
+types and ranks distinguish specializations; scalar values and axis lengths do
+not. Known array cell types distinguish type specializations, which share the
+return-rank constraint for matching argument ranks. Record arguments also include
+their field names and recursive field contracts, independent of declaration order.
+Redefining a function creates new contracts.
+
+Within one specialization, successful returns must agree on type and rank.
+Nonempty array returns must agree on their cell type set. Returned records must
+agree on recursive field schemas, including array ranks and cell contracts.
+Empty arrays defer cell types. Lengths may differ.
+
+The analyzer reports proven contradictions, including in uncalled functions.
+Recursive inference starts from reachable base returns and checks recursive
+steps against them; mutually recursive functions can share this evidence.
+Unknown calls or effects can leave facts unresolved. This is not a termination
+proof, and unresolved cases still have runtime checks.
+
+The first successful runtime return establishes the contract. Conflicts raise
+`ReturnTypeMismatch` or `ReturnRankMismatch`; memoization and tail calls do not
+bypass the checks. Direct lazy array arguments are not read for specialization,
+and returned lazy array cells are checked as consumed. Record array fields are
+validated during record construction or assignment, including lazy cells.
+
+Use one tagged record schema for variant results, or separate functions with
+different contracts. A scalar leaf and a record subtree cannot be returned from
+the same specialization; neither can records with different field schemas.
+
+See [return contracts and recursive examples](../../language/control-functions.md#return-contracts-and-argument-ranks),
+[runtime tests](../../../packages/interpreter/test/return-contract.test.ts) and
+[record schema tests](../../../packages/interpreter/test/record-contracts.test.ts).
+
 ## Consequences
 
 ### Positive
@@ -110,6 +145,6 @@ abs equal sqrt   rem false
 
 ## References
 * Section "Functions", "Local functions and closures", and "Function equality" in [docs/language/control-functions.md](../../language/control-functions.md)
-* Test suite [packages/interpreter/test/tail-calls.test.ts](../../packages/interpreter/test/tail-calls.test.ts)
+* Test suite [packages/interpreter/test/tail-calls.test.ts](../../../packages/interpreter/test/tail-calls.test.ts)
 * ADR-0301: [Data-First Calling Convention and Arity Resolution](0301-data-first-calling-convention.md)
 * ADR-0303: [First-Class Automatic Memoization for Dynamic Programming](0303-first-class-automatic-memoization.md)

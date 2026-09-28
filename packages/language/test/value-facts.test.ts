@@ -161,7 +161,8 @@ it('gives finite collection lengths scalar rank', () => {
 it('keeps known record field facts and builtin record contracts', () => {
     expect(facts('(record\n  .count = 3\n  .name = "a"\nend) .count'))
         .toMatchObject({ types: ['integer'], rank: 0 });
-    expect(facts('(record\n  .items = array 1 2\nend) .items')).toEqual({ types: ['array'] });
+    expect(facts('(record\n  .items = array 1 2\nend) .items'))
+        .toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
     expect(facts('((record\n  .count = 3\nend) with\n  .count += 2\nend) .count'))
         .toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('(record\n  .count = 3\nend) .missing')).toEqual({ types: [] });
@@ -221,7 +222,7 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
     expect(facts('Rooted 2 3 lca', new Map([['Rooted', { types: ['record'] }]])))
         .toEqual({ types: [] });
     expect(facts('((Graph topological) with\n  .order = array "x"\nend) .order',
-        new Map([['Graph', graph]]))).toEqual({ types: ['array'] });
+        new Map([['Graph', graph]]))).toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
 });
 
 it('distinguishes dsu components from graph components and tracks closed dsu values', () => {

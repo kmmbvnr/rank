@@ -155,6 +155,13 @@ Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
 is intended.
 
+Array bindings also keep their rank (number of axes). Axis lengths may change,
+but a vector cannot be reassigned a matrix. This applies to parameters and
+captured bindings; each function invocation has fresh local contracts. Ordinary
+array bindings do not fix cell types. Record fields and mutable collections have
+the stricter contracts described in [Records](#records) and
+[Collections](collections.md#mutable-collection-element-types).
+
 ## Records
 
 A `record` groups a fixed set of named fields:
@@ -182,6 +189,29 @@ from its initial value and keeps that type on later direct or compound
 assignment. `Value type` returns `.record`, and `Value is .record` is its
 type guard.
 
+An array field keeps its rank and recursive cell types, but not its axis lengths.
+An empty array establishes its rank; its cell types settle on the first nonempty
+assignment and remain fixed if it becomes empty again. Integer and real cells
+are different types. A nested record keeps the same field names and recursively
+the same field types; declaration order does not affect this contract.
+If an array field initially contains several cell types, later array values may
+use a subset of those types without narrowing the field's established contract.
+Replacing a nested record instead compares its established schema: a separately
+created record with a narrower array-field contract is a different schema.
+
+```rank
+State = record
+  .items = array 1 2
+end
+State .items = array 3 4 5
+rem Allowed: the length changes, but the rank and cell type do not.
+rem State .items = array 1.0 is a type error.
+```
+
+Establishing or checking an array field's contract reads its cells, including
+lazy cells. This can run callbacks and costs time proportional to the values
+checked. Absent table cells contribute no type and remain absent.
+
 `with` makes a changed copy of a record and leaves the original unchanged:
 
 ```rank
@@ -195,8 +225,14 @@ end
 Each line changes one field with `=` or a compound assignment operator, which
 reads the source record's value. Unlisted fields keep their values in the copy.
 The same field rules apply as for assignment: a field cannot be unknown, repeated
-or given another type. The copy is shallow; a record stored in a field stays
-shared.
+or given another type. The copy retains the source's field contracts, including
+cell types established before an array became empty. The copy is shallow; a
+record stored in a field stays shared.
+
+Within one function specialization, every returned record must have the same
+field names and recursive field types, including array ranks and cell types.
+Array lengths may vary. Record argument schemas participate in specialization,
+so an identity function can accept different record schemas in separate calls.
 
 Records have reference semantics, one of the few exceptions to
 [values and sharing](values-addressing.md#values-and-sharing). Assignment,

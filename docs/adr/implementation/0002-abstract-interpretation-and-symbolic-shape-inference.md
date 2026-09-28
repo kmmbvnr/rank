@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-09-28 — current contract inference and proof limits
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Abstract Interpretation Specification, Langium Validator Tests
 
@@ -31,22 +32,42 @@ flowchart TD
 ```
 
 ### 1. Structural Enablers in Rank
-Static shape inference is notoriously intractable in Python/NumPy due to pointer aliasing, dynamic dispatch, and hidden mutations. Rank uniquely enables tractable, exact static analysis through four architectural invariants:
-1. **Pure Value Semantics (ADR-0101):** Absence of mutable shared pointers means the dataflow is an acyclic dependency graph (DAG).
-2. **Intentional Intermediate Variables (ADR-0300):** The 40-column budget encourages naming intermediate values (`Digits`, `Windows`, `Products`), naturally yielding a Static Single Assignment (SSA) graph.
+Rank's analysis uses these language properties, while accounting for unknown
+calls, shared references and mutation:
+
+1. **Array Value Semantics (ADR-0101):** Copy-on-write arrays isolate ordinary array writes. Records and mutable collections still share identity through aliases.
+2. **Intentional Intermediate Variables (ADR-0300):** Named intermediate values (`Digits`, `Windows`, `Products`) expose data flow; assignments and loops still require joins and effect analysis.
 3. **Literal Ranks and Axes (ADR-0200):** Modifiers (`rank 1`, `axis 0`, `#`) are almost exclusively syntactic literals rather than dynamic variables.
 4. **Line-Level Error Localization:** Because each line performs exactly one transformation step, errors are pinpointed to the exact line and named operand without pipeline obscurity.
 
 ### 2. Separation of Rank and Shape
 The abstract interpreter distinguishes **Rank** (number of dimensions) from **Shape** (concrete axis lengths):
-- **Rank ($R \in \mathbb{N}_0$):** Fully decidable statically for virtually all operations:
+- **Rank ($R \in \mathbb{N}_0$):** Inferred where operands and operation contracts provide enough evidence:
   - Scalar: $R = 0$
   - Vector / Sequence: $R = 1$
-  - Matrix / 2D Table: $R = 2$
+  - Matrix: $R = 2$ (a table of object rows is rank 1)
   - $N$-D Tensor: $R = N$
-- **Shape ($S = [d_1, \dots, d_R]$):** Represented as concrete numbers, affine symbols ($[N - K + 1, K]$), or bounded ranges ($[\le N]$).
+- **Shape ($S = [d_1, \dots, d_R]$):** Current value facts store known axis lengths or unknown lengths (`null`). Symbolic affine dimensions are not an implemented general guarantee.
 
-Even when exact axis lengths are dynamic (e.g. after a boolean mask filter), the **Rank remains statically known**, allowing the validator to catch >70% of tensor misuse bugs before execution.
+Rank can remain known when exact axis lengths are unknown. There is no measured
+general percentage of tensor errors caught by this analysis.
+
+### Contract inference and effects
+
+Binding ranks, collection element contracts and recursive record field contracts
+provide stable facts after successful writes. Record axis lengths remain unknown
+because later same-rank assignments may change them. Safe direct collection
+aliases retain element facts; unknown effects discard facts they could invalidate.
+
+Function analysis specializes on argument types and ranks, known cell types and
+record schemas. Recursive inference uses reachable base returns, then checks
+recursive steps. Unknown callbacks and captured writes can prevent a proof;
+an unresolved result is not itself a proven type error. See
+[language ADR-0302](../language/0302-function-declarations-closures-and-tail-calls.md).
+
+Type or rank knowledge alone does not prove bounds safety, eager evaluation or
+absence of callbacks. Optimizations require those separate proofs. The runtime
+enforces contracts where static analysis cannot establish them.
 
 ### 3. Real-Time LSP Diagnostic Emission
 - The abstract interpretation pass is integrated directly into `RankValidator` via Langium.
@@ -57,7 +78,7 @@ Even when exact axis lengths are dynamic (e.g. after a boolean mask filter), the
 ### Positive
 * **Catch errors before running:** Prevents runtime panics on mobile terminals by identifying shape mismatches during editing.
 * **Zero annotation overhead:** Developers write clean, uncluttered BASIC-style code while enjoying the safety guarantees of a static type checker.
-* **Foundation for JIT kernel fusion:** Statically inferred ranks and shapes feed directly into the tensor fusion planner, eliminating runtime guard checks.
+* **Optimization evidence:** Proven types, ranks and read-safety facts can support specialized execution. Unproved cases retain runtime guards or use the general path.
 * **Precise localization:** Pinpoints errors to the exact offending line and named variable.
 
 ### Negative / Trade-offs

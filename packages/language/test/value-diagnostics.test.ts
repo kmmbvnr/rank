@@ -59,7 +59,7 @@ it('reports a record field type mismatch before execution', () => {
         .toEqual(['operator + does not accept integer and text']);
 });
 
-it('forgets graph result cells after a record alias changes the array field', () => {
+it('rejects changing graph result cell types through a record alias', () => {
     const source = 'Graph = new graph (1 to 3) .directed\nSorted = Graph topological\n';
     expect(messages(source + 'Sorted .order 0 + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -68,9 +68,10 @@ it('forgets graph result cells after a record alias changes the array field', ()
     const after = services.Rank.parser.LangiumParser.parse<Program>(source
         + 'Alias = Sorted\nAlias .order = array "x"\n');
     expect(analyzeValues(after.value).bindings.get('Sorted')?.fields?.order)
-        .toEqual({ types: ['array'] });
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
     expect(messages(source + 'Alias = Sorted\nAlias .order = array "x"\nSorted .order 0 + "bad"'))
-        .toEqual([]);
+        .toEqual(['record field .order has array cells of type integer and cannot receive text',
+            'operator + does not accept integer and text']);
 });
 
 it('retains only stable record field types after a field write', () => {
@@ -84,8 +85,9 @@ it('retains only stable record field types after a field write', () => {
     const rankChange = services.Rank.parser.LangiumParser.parse<Program>(
         'R = record\n .items = array 1 2\nend\nR .items = array shape 2 2 fill 0\n');
     const fields = analyzeValues(rankChange.value);
-    expect(fields.diagnostics).toEqual([]);
-    expect(fields.bindings.get('R')?.fields?.items).toEqual({ types: ['array'] });
+    expect(fields.diagnostics.map(item => item.message)).toEqual(['record field .items has rank 1 and cannot receive rank 2']);
+    expect(fields.bindings.get('R')?.fields?.items)
+        .toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
 });
 
 it('infers game routes from integer vertices in a closed graph', () => {

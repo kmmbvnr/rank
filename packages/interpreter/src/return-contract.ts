@@ -1,14 +1,26 @@
 import { arrayRevision, derivedArray, materializedArrayItems, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
-import { isRankArray, typeName, valueRank, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankRecord, mergeCollectionElementType, typeName, valueRank,
+    type CollectionElementType, type RankArray, type RankValue } from './value.js';
+import { recordContract, retainRecordContract } from './record-contract.js';
 
 export function argumentRankSignature(values: readonly RankValue[]): string {
-    return JSON.stringify(values.map(value => [typeName(value), valueRank(value)]));
+    return JSON.stringify(values.map(value => [typeName(value), valueRank(value),
+        isRankRecord(value) ? recordSignature(recordContract(value), false) : null]));
 }
 
 export function argumentSignature(values: readonly RankValue[]): string {
     return JSON.stringify(values.map(value => [typeName(value), valueRank(value),
-        isRankArray(value) ? elementTypes(value) : null]));
+        isRankArray(value) ? elementTypes(value) : null,
+        isRankRecord(value) ? recordSignature(recordContract(value), true) : null]));
+}
+
+function recordSignature(value: CollectionElementType, elements: boolean): unknown {
+    return [value.type, value.rank ?? null,
+        elements ? value.elements?.map(cell => recordSignature(cell, elements))
+            .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : null,
+        value.fields ? [...value.fields].sort(([a], [b]) => a.localeCompare(b))
+            .map(([name, field]) => [name, recordSignature(field, elements)]) : null];
 }
 
 const elementTypeCache = new WeakMap<RankArray, { revision: number; types: string[] }>();
@@ -36,6 +48,7 @@ function elementTypes(value: RankArray): string[] | undefined {
 export class ReturnContract {
     private type?: string;
     private elements?: Set<string>;
+    private record?: CollectionElementType;
 
     constructor(private readonly name: string, private readonly ranks: { rank?: number } = {}) {}
 
@@ -50,6 +63,18 @@ export class ReturnContract {
         const types = isRankArray(value) ? elementTypes(value) : undefined;
         const elements = types?.length ? new Set(types) : undefined;
         if (elements) this.checkElements(elements);
+        if (isRankRecord(value)) {
+            const received = recordContract(value);
+            let contract: CollectionElementType;
+            try {
+                contract = mergeCollectionElementType(`${this.name} return`, this.record, received);
+            } catch (error) {
+                if (!(error instanceof RankError)) throw error;
+                throw new RankError(error.message, 'ReturnTypeMismatch');
+            }
+            retainRecordContract(value, contract);
+            this.record = contract;
+        }
         this.ranks.rank = rank;
         this.type = type;
         if (isRankArray(value) && types === undefined) {

@@ -3,7 +3,7 @@ import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
-    isExpressionStatement, isNewStructureExpression,
+    isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
@@ -20,6 +20,7 @@ import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { createCallAnalysis } from './function-calls.js';
 import { createReturnPathAnalysis } from './return-paths.js';
+import { recordFieldConflict } from './return-contract.js';
 import { createLoopAnalysis } from './loop-analysis.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
@@ -203,6 +204,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const rebound = new Set<string>();
         for (const node of nodes) {
             if (isStdinExpression(node)) unknown = true;
+            if (isRecordExpression(node) || isRecordUpdateExpression(node)) {
+                for (const field of node.fields) {
+                    const value = expressionFacts(field.value, name => env.get(name));
+                    if (value.types.includes('array') && !safeRead(value)) unknown = true;
+                }
+            }
             if (!isNameExpression(node)) continue;
             if (sliceModifiers.has(node)) continue;
             if (env.get(node.name)?.types.includes('function')) {
@@ -416,6 +423,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (isParenthesizedExpression(expression)) inspect(expression.value, env);
         if (isMaterializeExpression(expression)) inspect(expression.source, env);
         if (isUnaryExpression(expression)) inspect(expression.operand, env);
+        if (isRecordExpression(expression)) for (const field of expression.fields) inspect(field.value, env);
+        if (isRecordUpdateExpression(expression)) {
+            const source = inspect(expression.source, env);
+            for (const field of expression.fields) {
+                inspect(field.value, env);
+                const expected = source.fields?.[field.name];
+                if (expected) checkFieldAssignment(expected, field.value, field.operator, env, `record field .${field.name}`);
+            }
+        }
         if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)
             || isTakeWhileExpression(expression)) {
             inspect(expression.source, env);
@@ -508,6 +524,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         expressions.set(expression, result);
         if (result.bottom) throw new UnobservedReturn();
         return result;
+    }
+
+    function checkFieldAssignment(expected: ValueFacts, value: Expression, operator: string,
+        env: Map<string, ValueFacts>, name: string): void {
+        const received = operator === '=' ? expressionFacts(value, key => env.get(key))
+            : expressionFacts({ $type: 'BinaryExpression', operator: operator.slice(0, -1),
+                left: { $type: 'NameExpression', name: '$field' }, right: value } as Expression,
+            key => key === '$field' ? expected : env.get(key));
+        const conflict = recordFieldConflict(expected, received, name);
+        if (conflict) diagnostics.push({ node: value, ...conflict });
     }
 
     // A direct call receives its already-evaluated arguments before its body
@@ -770,20 +796,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && fenwickIndex?.types.join() === 'integer'
                     && fenwickValueTypes.join() === 'integer') {
                     env.set(statement.name, fact);
-                } else if (fact?.types.join() === 'record' && fact.fields && statement.operator === '='
-                    && statement.indices.length === 1 && !statement.indices[0].all && !statement.indices[0].spread
-                    && statement.indices[0].value && isLabelLiteral(statement.indices[0].value)
-                    && fact.fields[statement.indices[0].value.name]) {
-                    const field = statement.indices[0].value.name;
-                    const expected = fact.fields[field].types;
-                    if (expected.length && provenBindingTypeConflict(expected, replacement.types)) {
-                        diagnostics.push({ node: statement.value, kind: 'TypeError',
-                            message: bindingTypeMessage(`record field .${field}`, expected, replacement.types) });
+                } else if (fact?.types.join() === 'record' && fact.fields
+                    && statement.indices.length > 0 && statement.indices.every(index =>
+                        !index.all && !index.spread && index.value && isLabelLiteral(index.value))) {
+                    let expected: ValueFacts | undefined = fact;
+                    const path: string[] = [];
+                    for (const index of statement.indices) {
+                        if (!index.value || !isLabelLiteral(index.value)) break;
+                        const field = index.value.name;
+                        path.push(`.${field}`);
+                        expected = expected?.fields?.[field];
                     }
+                    if (expected) checkFieldAssignment(expected, statement.value, statement.operator, env, `record field ${path.join(' ')}`);
+                    if (replacement.types.includes('array') && !safeRead(replacement)) forgetNonFunctions(env);
                     for (const source of [env, globalCallEnvs.at(-1)]) if (source) for (const [name, value] of source) {
-                        if (value.types.join() === 'record' && value.fields?.[field]) source.set(name, {
-                            ...value, fields: { ...value.fields, [field]: stableRecordField(value.fields[field]) },
-                        });
+                        if (value.types.join() === 'record') source.set(name, { ...value, ...stableRecordField(value) });
                     }
                 } else if (fact?.types.join() === 'segment' && fact.segmentOperation && fact.elements?.length
                     && (statement.indices.length === 1 || statement.indices.length === 2

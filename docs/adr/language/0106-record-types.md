@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-09-28 — fixed recursive field schemas (issue #32)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Lexical Syntax Specification
 
@@ -41,6 +42,23 @@ A record schema is permanently closed once created:
 ### 3. Field Type Invariance (Building on ADR-0100)
 Each field statically infers its type from its initial value (`.data = 2.0` infers `real`). Later direct or compound assignments must preserve that type; attempting to assign text to a numeric field is an error.
 
+Array fields preserve rank and recursive cell types, not axis lengths. Integer
+and real are distinct. An empty array fixes rank but leaves cell types undecided;
+the first nonempty assignment fixes them, even if the field becomes empty later.
+An established mixed-cell contract accepts subsets without narrowing itself.
+
+Nested records preserve their complete field-name set and recursive field types.
+Declaration order does not matter. Replacing a nested record compares established
+schemas, so a separately created record with a narrower array-field contract is
+not interchangeable with a wider one. Empty cell contracts may still be refined.
+These checks apply through aliases and function calls. Failed validation does not
+install a partial replacement contract.
+
+Checking array cells can evaluate lazy callbacks. Absent table cells contribute
+no type. Callback side effects are not rolled back when validation fails.
+Static analysis preserves proven field types and ranks but drops mutable axis
+lengths and read-safety facts; runtime checks cover cases it cannot prove.
+
 ### 4. Reference Identity Semantics (ADR-0101 Exception)
 Records are part of the deliberate, closed list of reference types (ADR-0101):
 - Assignment (`B = Node`) and argument passing share the record instance.
@@ -62,6 +80,7 @@ end
 - Each line uses `=` or any compound assignment operator; compound operators read the source record's value.
 - The field rules of assignment still hold: no unknown fields, no repeated fields, no type change.
 - The copy is shallow. Arrays inside keep copy-on-write value semantics; nested records stay shared.
+- The copy retains the source's established contracts, including cell types of currently empty arrays.
 - Only the block form exists. An inline form (`State with .mana -= 53 .boss -= 4`) was rejected: a field value such as `Mana - 53 .boss` cannot be told apart from a field read without extra lookahead, and the block mirrors `record ... end`.
 - `with` is a contextual keyword: it still works as a name, as in `reduce with`.
 
@@ -70,6 +89,16 @@ Rank strictly differentiates between three data-mapping structures:
 1. **`record`:** Statically closed schema, symbol keys (`.field`), typed fields, reference identity.
 2. **`object`:** Dynamic JSON-compatible key-value maps with string keys (`"key"`).
 3. **`index`:** Sparse associative arrays that accept arbitrary and tuple keys.
+
+### Function return schemas
+
+One function specialization must return records with the same field names and
+recursive field types. Returning a leaf record and a branch record with different
+fields is an error. Use one tagged schema with same-typed fields on both paths,
+or separate the functions. Array lengths may vary within that schema.
+
+Record argument schemas distinguish specializations; record identity, field order
+and array lengths do not. See [ADR-0302](0302-function-declarations-closures-and-tail-calls.md).
 
 ## Consequences
 
@@ -82,6 +111,7 @@ Rank strictly differentiates between three data-mapping structures:
 
 ### Negative & Trade-offs
 * **Mutable reference discipline:** Because records share state, developers must exercise care when mutating records stored in sets or memoization caches.
+* **Validation cost:** Establishing and checking array field contracts reads their cells, including lazy cells. Work grows with the values inspected.
 
 ## References
 * Section "Record types" in [docs/language/lexical-syntax.md](../../language/lexical-syntax.md)
@@ -90,3 +120,5 @@ Rank strictly differentiates between three data-mapping structures:
 * ADR-0105: [Symbol Scalars for Labels, Enums, Fields, and Type Tags](0105-symbol-scalars-for-labels-and-enums.md)
 * Initial commit `f8ef89b` (2026-09-08)
 * Issue #8: functional record update (2026-09-26)
+* Issue #32: recursive record field and return contracts (2026-09-28)
+* [Runtime contract tests](../../../packages/interpreter/test/record-contracts.test.ts)

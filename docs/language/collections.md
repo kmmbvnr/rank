@@ -116,6 +116,34 @@ implicit indices. Compound writes such as `Cache K += 1` require an existing
 entry. Keys may be integers, real numbers, booleans, text or labels. A named index can also
 be captured by a local function.
 
+Index values may have different types, and replacing an entry may change its
+type. The collection element contract below does not apply to `index`.
+
+### Mutable collection element types
+
+Each `set`, `counter`, `queue`, `stack`, `deque` and `heap` has an element
+contract. The first successful insertion fixes the runtime type of its values
+(`counter` keys and `heap` payloads). Integer and real are distinct types.
+Aliases and function arguments share the same contract, which remains after
+the collection becomes empty. An incompatible insertion raises an error
+before storing the new value. No constructor type annotation is required.
+
+An array element also fixes its number of axes and its cell types. Axis lengths
+may vary. For example, after inserting `array 1 2`, inserting `array 3 4 5`
+succeeds, while a text array, a real array or a rank-2 array fails. If the first
+array contains several cell types, later arrays may use those types but cannot
+introduce another one. The same rule applies recursively to nested arrays.
+Empty arrays fix their rank but defer their cell contract until cells are
+inserted. Record fields and the contents of nested mutable collections do not
+form part of this contract.
+
+Insertion reads array cells, including lazy cells, to validate their types.
+This adds work proportional to the number of cells inspected. A failed read
+does not establish or widen the contract; side effects performed by the read
+itself still take place. Static analysis reports proven incompatibilities and
+retains element facts through safe reads and direct aliases. Unknown calls or
+aliasing discard facts that cannot be proved; runtime checks still apply.
+
 ### Queue, stack, deque and heap
 
 All operations below require `use algo`. Use `use sequences` for `len`.

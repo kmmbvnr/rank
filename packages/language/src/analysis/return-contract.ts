@@ -1,9 +1,44 @@
 import type { ValueFacts } from './value-domain.js';
+import { bindingRankMessage, bindingTypeMessage, provenBindingTypeConflict } from '../binding-rule.js';
 
 /** Values and axis lengths do not identify a function specialization. */
 export function argumentSignature(inputs: readonly ValueFacts[], elements = true): string {
-    return JSON.stringify(inputs.map(value => [[...value.types].sort(), value.rank ?? null,
-        elements && value.elements ? [...value.elements].sort() : null]));
+    return JSON.stringify(inputs.map(value => inputSignature(value, elements)));
+}
+
+function inputSignature(value: ValueFacts, elements: boolean): unknown {
+    return [[...value.types].sort(), value.rank ?? null,
+        elements && value.elements ? [...value.elements].sort() : null,
+        value.types.join() === 'record' && value.fields ? Object.keys(value.fields).sort()
+            .map(name => [name, inputSignature(value.fields![name], elements)]) : null];
+}
+
+export function recordFieldConflict(expected: ValueFacts, received: ValueFacts, name: string, contract = false):
+    { kind: 'TypeError' | 'DimensionMismatch'; message: string } | undefined {
+    if (expected.types.length && provenBindingTypeConflict(expected.types, received.types)) {
+        return { kind: 'TypeError', message: bindingTypeMessage(name, expected.types, received.types) };
+    }
+    if (expected.rank !== undefined && received.rank !== undefined && expected.rank !== received.rank) {
+        return { kind: 'DimensionMismatch', message: bindingRankMessage(name, expected.rank, received.rank) };
+    }
+    if (expected.types.join() === 'array' && received.types.join() === 'array' && expected.elements?.length
+        && received.elements?.length && (contract || received.shape?.every(size => size !== null && size > 0))
+        && provenBindingTypeConflict(expected.elements, received.elements)) {
+        return { kind: 'TypeError', message: `${name} has array cells of type ${expected.elements.join(' or ')} and cannot receive ${received.elements.join(' or ')}` };
+    }
+    if (expected.types.join() !== 'record' || received.types.join() !== 'record' || !expected.fields || !received.fields) return;
+    if (expected.closedRecord && received.closedRecord
+        && (Object.keys(expected.fields).length !== Object.keys(received.fields).length
+            || Object.keys(expected.fields).some(field => !received.fields![field]))) {
+        return { kind: 'TypeError', message: `${name} has fields ${Object.keys(expected.fields).sort().map(field => `.${field}`).join(' ')} and cannot receive fields ${Object.keys(received.fields).sort().map(field => `.${field}`).join(' ')}` };
+    }
+    for (const [field, value] of Object.entries(expected.fields)) {
+        const replacement = received.fields[field];
+        if (!replacement) continue;
+        const conflict = recordFieldConflict(value, replacement, `${name} .${field}`, true);
+        if (conflict) return conflict;
+    }
+    return undefined;
 }
 
 export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeError' | 'DimensionMismatch'; message: string }[] {
@@ -13,6 +48,13 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
         message: `returns incompatible ranks: ${ranks.join(' and ')}` });
     for (let i = 0; i < values.length; i++) for (const right of values.slice(i + 1)) {
         const left = values[i];
+        if (left.types.join() === 'record' && right.types.join() === 'record') {
+            const conflict = recordFieldConflict(left, right, 'return record');
+            if (conflict) {
+                conflicts.push({ ...conflict, message: `returns incompatible record types: ${conflict.message}` });
+                return conflicts;
+            }
+        }
         const a = left.types.join() === 'array' ? left.elements ?? [] : left.types;
         const b = right.types.join() === 'array' ? right.elements ?? [] : right.types;
         if (a.length && b.length && !a.some(type => b.includes(type))) {
@@ -26,6 +68,7 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
 /** Retain types/ranks while forgetting data that could select just one return path. */
 export function returnInput(value: ValueFacts): ValueFacts {
     return { types: value.types, rank: value.rank, elements: value.elements,
+        ...(value.closedRecord ? { closedRecord: true as const } : {}),
         ...(value.shape ? { shape: value.shape.map(() => null) } : {}),
         ...(value.fields ? { fields: Object.fromEntries(Object.entries(value.fields)
             .map(([name, fact]) => [name, returnInput(fact)])) } : {}) };

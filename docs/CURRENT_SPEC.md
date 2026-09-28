@@ -1,6 +1,6 @@
 # Rank Wiki
 
-**Current language snapshot — 2026-09-12**
+**Current language snapshot — 2026-09-28**
 
 Rank is a modern BASIC for small screens and big algorithms.
 
@@ -242,6 +242,13 @@ Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
 is intended.
 
+Array bindings also keep their rank (number of axes). Axis lengths may change,
+but a vector cannot be reassigned a matrix. This applies to parameters and
+captured bindings; each function invocation has fresh local contracts. Ordinary
+array bindings do not fix cell types. Record fields and mutable collections have
+the stricter contracts described in [Records](#records) and
+[Collections](language/collections.md#mutable-collection-element-types).
+
 ## Records
 
 A `record` groups a fixed set of named fields:
@@ -269,6 +276,29 @@ from its initial value and keeps that type on later direct or compound
 assignment. `Value type` returns `.record`, and `Value is .record` is its
 type guard.
 
+An array field keeps its rank and recursive cell types, but not its axis lengths.
+An empty array establishes its rank; its cell types settle on the first nonempty
+assignment and remain fixed if it becomes empty again. Integer and real cells
+are different types. A nested record keeps the same field names and recursively
+the same field types; declaration order does not affect this contract.
+If an array field initially contains several cell types, later array values may
+use a subset of those types without narrowing the field's established contract.
+Replacing a nested record instead compares its established schema: a separately
+created record with a narrower array-field contract is a different schema.
+
+```rank
+State = record
+  .items = array 1 2
+end
+State .items = array 3 4 5
+rem Allowed: the length changes, but the rank and cell type do not.
+rem State .items = array 1.0 is a type error.
+```
+
+Establishing or checking an array field's contract reads its cells, including
+lazy cells. This can run callbacks and costs time proportional to the values
+checked. Absent table cells contribute no type and remain absent.
+
 `with` makes a changed copy of a record and leaves the original unchanged:
 
 ```rank
@@ -282,8 +312,14 @@ end
 Each line changes one field with `=` or a compound assignment operator, which
 reads the source record's value. Unlisted fields keep their values in the copy.
 The same field rules apply as for assignment: a field cannot be unknown, repeated
-or given another type. The copy is shallow; a record stored in a field stays
-shared.
+or given another type. The copy retains the source's field contracts, including
+cell types established before an array became empty. The copy is shallow; a
+record stored in a field stays shared.
+
+Within one function specialization, every returned record must have the same
+field names and recursive field types, including array ranks and cell types.
+Array lengths may vary. Record argument schemas participate in specialization,
+so an identity function can accept different record schemas in separate calls.
 
 Records have reference semantics, one of the few exceptions to
 [values and sharing](values-addressing.md#values-and-sharing). Assignment,
@@ -1810,29 +1846,170 @@ end
 Loading a source file with `use` registers its top-level functions without
 executing its ordinary top-level statements.
 
-Functions without parameters are called by evaluating their name:
-
-```rank
-fun answer
-  return 42
-end
-
-Answer = answer
-answer + 1
-```
-
-Each occurrence calls the function once. Parentheses only group expressions:
-`(answer)` also calls it; `answer()` is not Rank syntax. Functions that require
-arguments still evaluate to function values when named alone, so `Root = sqrt`
-remains a function alias. `Answer = answer` stores the returned value.
-
-Calls with arguments use Rank's data-first order. Arguments come first and the function name
+Calls use Rank's data-first order. Arguments come first and the function name
 is the final word:
 
 ```rank
 G = A B gcd
 Result print
 ```
+
+### Return contracts and argument ranks
+
+Each function specialization has one return type and one return rank. Calls with
+matching argument types and ranks share that contract; axis lengths and scalar
+values do not create new specializations. A vector and a matrix can therefore use
+the same function:
+
+```rank
+fun double Values
+  return Values * 2
+end
+
+Vector = (array 1 2) double
+Matrix = (array 1 2 3 4 shape 2 2) double
+```
+
+The analyzer keeps the two results separate: `Vector` has rank 1 and `Matrix` has
+rank 2. Within either specialization, every reachable return must agree. A branch
+that returns a scalar for an empty input and a vector otherwise violates that rule.
+Return a vector in both cases, for example `array 0` for the base case. Different
+vector lengths are allowed, including zero.
+
+Known contradictory returns produce an editor error, including in functions that
+have not been called. Type guards can separate specializations; unresolved calls
+and unsupported analysis paths remain subject to runtime checks. At runtime, the
+first successful return settles the contract. A later conflicting result raises
+`ReturnTypeMismatch` or `ReturnRankMismatch`, including through memoized and tail
+calls. Each closure owns its contracts. Redefining a function starts new contracts.
+
+Known array element types distinguish type specializations, which share the
+return rank for the same argument ranks. Empty arrays do not settle an element
+type. Direct lazy array arguments are not read to choose a specialization: unknown element types
+share a specialization until materialized. Returned lazy elements are checked as
+they are consumed, and their complete element type set settles when all cells have
+been read. Materialize inputs when dispatch must distinguish their element types.
+
+Record arguments also distinguish specializations by their field names and
+recursive field types, including array ranks and established cell types. Field
+order and array lengths do not distinguish them. Record construction and field
+assignment validate array cells, including lazy cells, before those records are
+passed to a function.
+
+Within one specialization, returned records must have the same recursive schema.
+Being `.record` on both paths is not enough: a field cannot be absent, change
+type, or change array rank. Empty arrays may defer cell types until a nonempty
+value establishes them. A schema conflict raises `ReturnTypeMismatch`.
+
+For results with different meanings, return a record with an explicit tag and
+consistent fields:
+
+```rank
+fun answer Found
+  if Found
+    return record
+      .kind = .found
+      .values = array 42
+    end
+  end
+  return record
+    .kind = .missing
+    .values = array 0
+  end
+end
+```
+
+Both paths return a scalar record with a symbol `.kind` and a rank-1 integer
+array `.values`. The caller inspects `.kind` before using `.values`.
+
+### Making recursive return types inferable
+
+Start with the result for one argument specialization. Write down its type and
+rank, then check the base case and every recursive return against that choice.
+A recursive call can use another specialization, but its result must still fit
+the caller's return contract.
+
+For integer input, this function has an integer base case and an integer
+recursive step:
+
+```rank
+fun factorial N
+  if N less 2
+    return 1
+  end
+  return N * ((N - 1) factorial)
+end
+
+Result = 5 factorial
+```
+
+The analyzer starts from the base return and checks the recursive step assuming
+that contract. Mutual recursion can obtain its base return from another member
+of the group. A cycle with no reachable base return cannot supply a result type.
+Knowing a result type does not prove that every call terminates.
+
+Use this checklist when a return conflicts or stays unknown:
+
+| Situation | What to do |
+| --- | --- |
+| The base returns `0`, while the recursive step uses `/` or a real accumulator | Use `0.0` when the intended result is real. Use `//` only when floor division is the intended calculation. |
+| An empty case returns a scalar, while other cases return an array | Return an array of the same rank in the empty case. Its length may be zero. |
+| A flag selects two operations with different result types or ranks | Give the operations separate functions, or use one tagged record representation for both results. |
+| A tree leaf returns a value, while a branch returns a container | Use the same record fields and recursive field types for both. Include a tag and same-typed unused values, or use separate functions. |
+| Different argument types select different cases | Use type guards. These cases may already have separate specializations and do not always need separate functions. |
+| A helper's result is unknown | Check that helper and its call arguments first. A wrapper around an unknown result does not prove its type. |
+| A recursive helper changes captured arrays or reads guarded indices | Check for an analysis limitation. A stable return contract alone does not prove cell types or safe reads. |
+
+#### When to split a function
+
+Suppose `N Mode calculate` computes an integer factorial for one boolean mode
+and its real reciprocal for the other. Both calls have the same integer/boolean
+argument signature, so the different boolean values cannot select different
+return contracts. Give the operations separate entry points. Alongside
+`factorial` above, define:
+
+```rank
+fun reciprocal_factorial N
+  if N less 2
+    return 1.0
+  end
+  Previous = (N - 1) reciprocal_factorial
+  return Previous / N
+end
+
+Count = 5 factorial
+Weight = 5 reciprocal_factorial
+```
+
+Each entry point now has one result type. Keep the choice at the call site or
+return a tagged record if callers need one shared interface. A wrapper that
+chooses between these two results using the original boolean flag would have
+the same conflicting contract as before.
+
+A shared recursive traversal may still be useful. It can return one record or
+array representation, with separate functions extracting the required results.
+Splitting a function helps when it separates contracts or makes data flow
+explicit; adding another name around the same mixed return paths does not help.
+
+#### Current limits
+
+The analyzer can still report an unknown result for valid recursive code, for
+example when effects pass through an unknown callback or a captured write cannot
+be proved to preserve cell types. Rewriting a correct algorithm is optional;
+report a small example when a consistent return contract remains unknown.
+
+The original `leetcode/004_medarrs` and `cses/dynamic/021_tilings` demos now infer
+results for all their test examples. Median uses the existing scalar binding
+contracts after successful assignments; this does not prove every index safe.
+Tilings uses a separate effect proof for scalar self-recursion with numeric
+captured writes. Inline recursive arithmetic and a named intermediate result
+both retain the inferred operand types.
+
+Test the base case and recursive cases, including empty inputs and every result
+variant. Passing tests check those executions; they do not by themselves prove
+that all return paths have one contract. See the
+[decision-tree demo](../demos/deepml/020_tree.ra) for a recursive function whose
+leaves and branches share a record result.
 
 ### Function equality
 

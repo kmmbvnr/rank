@@ -37,6 +37,8 @@ export interface ValueFacts {
     readonly segmentOperation?: '+' | 'min' | 'max' | 'maxsum' | 'band' | 'bor' | 'bxor';
     /** Known fields of a record; absent fields remain unknown. */
     readonly fields?: Readonly<Record<string, ValueFacts>>;
+    /** All field names are known, rather than just an intersection of branch facts. */
+    readonly closedRecord?: true;
 }
 
 export const UNKNOWN_VALUE: ValueFacts = { types: [] };
@@ -53,6 +55,7 @@ export function joinTypes(values: readonly Types[]): Types {
 /** The recursive contract forgets data and read-safety proofs, keeping type and rank. */
 export function widenValueFacts(value: ValueFacts): ValueFacts {
     if (value.bottom) return BOTTOM_VALUE;
+    if (value.types.join() === 'record') return stableRecordField(value);
     const ranks = value.types.map(type => ['array', 'bytes'].includes(type) ? undefined
         : ['text', 'sequence', 'queue', 'stack', 'deque'].includes(type) ? 1 : 0);
     const rank = value.rank ?? (ranks.length && ranks.every(rank => rank === ranks[0]) ? ranks[0] : undefined);
@@ -65,12 +68,20 @@ export type FactLookup = ((name: string) => ValueFacts | undefined) & {
     arity?: (name: string) => number | undefined;
 };
 
-export function stableRecordField(value: ValueFacts): ValueFacts {
+export function stableRecordField(value: ValueFacts, construction = false): ValueFacts {
     const { types } = value;
     return { types,
         ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
             'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
-            : types.join() === 'text' ? { rank: 1, shape: [null] } : {}) };
+            : types.join() === 'text' ? { rank: 1, shape: [null] }
+                : types.join() === 'array' || types.join() === 'bytes'
+                    ? { rank: value.rank, shape: value.rank === undefined ? undefined : Array(value.rank).fill(null),
+                        elements: !construction || value.shape?.every(size => size !== null && size > 0)
+                            ? value.elements : undefined }
+                    : types.join() === 'record' ? { rank: 0, shape: [],
+                        ...(value.fields ? { fields: Object.fromEntries(Object.entries(value.fields)
+                            .map(([name, field]) => [name, stableRecordField(field)])) } : {}),
+                        ...(value.closedRecord ? { closedRecord: true as const } : {}) } : {}) };
 }
 
 export function broadcastShape(left: readonly (number | null)[], right: readonly (number | null)[]): (number | null)[] {
@@ -139,6 +150,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
         ...(fields ? { fields } : {}),
+        ...(fields && values.every(value => value.closedRecord && value.fields
+            && Object.keys(value.fields).length === Object.keys(fields).length) ? { closedRecord: true as const } : {}),
         ...(first.textLiteral !== undefined && values.every(value => value.textLiteral === first.textLiteral)
             ? { textLiteral: first.textLiteral } : {}),
         ...(values.every(value => value.eagerScalarCells) ? { eagerScalarCells: true as const }

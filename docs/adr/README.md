@@ -2,6 +2,20 @@
 
 This directory documents the foundational architectural decisions made since the inception of the Rank language, capturing the design rationale, trade-offs, and technical evolution.
 
+## Keeping decisions and specifications current
+
+For a language-semantics change, update the relevant Wiki section under
+`docs/language/` or `docs/stdlib/`, the matching section of
+[CURRENT_SPEC.md](../CURRENT_SPEC.md), and the affected ADR in the same change.
+Keep an ADR's original decision date; add an `Updated` date and describe the
+revised rule and its trade-offs. Link the tests that enforce the rule.
+
+Wiki sections and the combined specification are maintained manually; CI does
+not currently check their agreement. Before closing an issue, check shared
+examples and contracts across both copies. Runtime behavior, static proofs and
+future proposals must be described separately. Editing these files does not by
+itself publish a separate Wiki or deploy the website.
+
 ---
 
 ## Decision Domains

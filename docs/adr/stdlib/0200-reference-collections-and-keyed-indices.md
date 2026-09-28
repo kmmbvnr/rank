@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-09-28 — collection element contracts (issue #31)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Collections Specification, Algorithmic Benchmark Suite
 
@@ -102,6 +103,27 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 - **Segment Tree (`Values min segment`, `Values + segment`):** Range queries and point/range updates in $O(\log N)$. Supports associative combinators with optional identity seeds (`segment with Identity`), lazy propagation, and $O(1)$ persistent copy-on-write versioning (`Version = Tree copy`).
 - **Wavelet Matrix (`Values wavelet`):** Range value-frequency queries (`within`, `sumwithin`, `missing`) over immutable arrays in $O(\log S)$ time.
 
+### Element contracts
+
+Each `set`, `counter`, `queue`, `stack`, `deque` and `heap` fixes its element
+contract on the first successful insertion. The contract governs counter keys
+and heap payloads. Integer and real are distinct; aliases share the contract,
+which survives removing every element. No constructor annotation is required.
+
+Array elements fix rank and recursive cell types, while axis lengths may vary.
+An initial mixed-cell array permits later subsets of those types. Empty arrays
+fix rank but defer cell types until a nonempty insertion. Record fields and the
+contents of nested mutable collections are outside this collection contract.
+Individual records still enforce their own field contracts under ADR-0106.
+
+`index` remains heterogeneous: different entries may hold different types and a
+replacement may change an entry's type. It is not a homogeneous collection.
+
+Insertion validates lazy array cells too. A failed check does not store the value
+or widen the contract, but effects performed by cell reads remain. Static checks
+report proven conflicts; runtime checks enforce the contract through aliases and
+unknown calls. Tests: [collection contracts](../../../packages/interpreter/test/collection-contracts.test.ts).
+
 ## Consequences
 
 ### Positive
@@ -112,3 +134,4 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 
 ### Negative / Trade-offs
 * **Mutation aliasing:** Because collections use reference identity rather than value semantics, programmers must be mindful of shared mutations across aliases.
+* **Array validation cost:** Inserting an array reads its cells to check the contract. This adds work proportional to the cells inspected; constant-time container insertion does not include that validation work.

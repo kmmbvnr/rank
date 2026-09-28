@@ -27,6 +27,7 @@ import { prepareIfStatement, prepareTryStatement,
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { ReturnContract, argumentRankSignature, argumentSignature } from './return-contract.js';
+import { checkRecordField, recordContract, retainRecordContract } from './record-contract.js';
 import { prepareFunction } from './prepared-function.js';
 import { ResourceMap } from './resource-summary.js';
 import { ResourceOwnership } from './resource-ownership.js';
@@ -235,8 +236,12 @@ function clonePreviewValue(value: RankValue): RankValue {
         .map(([key, item]) => [key, { value: clonePreviewValue(item.value), count: item.count }])) };
     if (isRankObject(value)) return { kind: 'object', entries: new Map([...value.entries]
         .map(([key, item]) => [key, clonePreviewValue(item)])) };
-    if (isRankRecord(value)) return { kind: 'record', entries: new Map([...value.entries]
-        .map(([key, item]) => [key, clonePreviewValue(item)])), types: new Map(value.types) };
+    if (isRankRecord(value)) {
+        const copy: RankRecord = { kind: 'record', entries: new Map([...value.entries]
+            .map(([key, item]) => [key, clonePreviewValue(item)])), types: new Map(value.types) };
+        retainRecordContract(copy, recordContract(value));
+        return copy;
+    }
     return value;
 }
 
@@ -1893,6 +1898,7 @@ export class Interpreter {
                     record.entries.set(field.name, value);
                     record.types.set(field.name, typeName(value));
                 }
+                recordContract(record);
                 return record;
             };
         }
@@ -1905,6 +1911,7 @@ export class Interpreter {
                     kind: 'record',
                     entries,
                     types: new Map(source.types),
+                    fieldContracts: new Map(recordContract(source).fields),
                 });
                 for (const [name, value] of source.entries) entries.set(name, value);
                 const changed = new Set<string>();
@@ -3688,6 +3695,7 @@ export class Interpreter {
         if (expected !== received) {
             throw new RankError(bindingTypeMessage(`record field .${field}`, [expected], [received]));
         }
+        checkRecordField(record, field, result);
         noteArrayBinding(result);
         record.entries.set(field, result);
         return result;

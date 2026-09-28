@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-09-28 — binding ranks and structural contracts
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Interpreter Type System Tests
 
@@ -42,17 +43,32 @@ Value /= 2       rem ERROR: Value has type integer and cannot receive real
 Even augmented assignment operators must preserve type invariants: because `/=` computes real division, it cannot be applied to a variable whose inferred type is `integer`.
 
 ### 3. Loop and Branch Union Types
-When a variable is assigned values of different types across conditional branches or loop iterations, its inferred type is widened to an explicit union:
+Analysis may join possible types from different paths. This does not permit an
+existing runtime binding to change type. A loop variable over a finite
+heterogeneous collection receives a fixed union of its element types:
 ```rank
 Values = array 1 "two"
 for Value in Values
   Value = Value
+  rem Value accepts integer or text, but not boolean.
 end
-rem Value now has inferred type 'integer or text'
-
-Value = true     rem ERROR: Value has type integer or text and cannot receive boolean
 ```
-The variable remains sealed to types outside that explicit union.
+The loop variable is block-local; it does not remain available after `end`.
+Ordinary body bindings retain their established type across iterations.
+
+### Array rank and structural contracts
+
+An array binding also keeps its number of axes. Axis lengths may change; a
+vector cannot be reassigned a matrix. The rule applies to parameters and captured
+bindings, and a new function invocation gets fresh local binding contracts.
+Ordinary array bindings do not thereby acquire a fixed cell-type contract.
+
+Record fields have the recursive contracts in
+[ADR-0106](0106-record-types.md). Mutable collections establish their element
+contracts on first insertion under
+[stdlib ADR-0200](../stdlib/0200-reference-collections-and-keyed-indices.md);
+`index` is exempt. Function return contracts are per specialization under
+[ADR-0302](0302-function-declarations-closures-and-tail-calls.md).
 
 ### 4. First-Class Runtime Type Inspection (`type`)
 The postfix operator `type` reflects the runtime type of any value as a lightweight symbol:
@@ -88,6 +104,7 @@ end
 
 ## References
 * Section "Type guards and inspection" in [docs/language/lexical-syntax.md](../../language/lexical-syntax.md)
-* Section "Keeps inferred type" and "Union type tests" in [packages/interpreter/test/expressions.test.ts](../../packages/interpreter/test/expressions.test.ts)
+* [Binding rank tests](../../../packages/interpreter/test/rank-assignment.test.ts)
+* Section "Keeps inferred type" and "Union type tests" in [packages/interpreter/test/expressions.test.ts](../../../packages/interpreter/test/expressions.test.ts)
 * ADR-0101: [Value Semantics with Copy-on-Write for Arrays and Tensors](0101-value-semantics-and-copy-on-write.md)
 * ADR-0300: [Intentional Intermediate Variables Over Vertical Pipelines](0300-intentional-intermediate-variables.md)

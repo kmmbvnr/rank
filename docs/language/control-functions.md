@@ -362,10 +362,21 @@ calls. Each closure owns its contracts. Redefining a function starts new contrac
 
 Known array element types distinguish type specializations, which share the
 return rank for the same argument ranks. Empty arrays do not settle an element
-type. Lazy arrays are not read to choose a specialization: unknown element types
+type. Direct lazy array arguments are not read to choose a specialization: unknown element types
 share a specialization until materialized. Returned lazy elements are checked as
 they are consumed, and their complete element type set settles when all cells have
 been read. Materialize inputs when dispatch must distinguish their element types.
+
+Record arguments also distinguish specializations by their field names and
+recursive field types, including array ranks and established cell types. Field
+order and array lengths do not distinguish them. Record construction and field
+assignment validate array cells, including lazy cells, before those records are
+passed to a function.
+
+Within one specialization, returned records must have the same recursive schema.
+Being `.record` on both paths is not enough: a field cannot be absent, change
+type, or change array rank. Empty arrays may defer cell types until a nonempty
+value establishes them. A schema conflict raises `ReturnTypeMismatch`.
 
 For results with different meanings, return a record with an explicit tag and
 consistent fields:
@@ -385,8 +396,8 @@ fun answer Found
 end
 ```
 
-Both paths return a scalar record. The caller inspects `.kind` before using
-`.values`.
+Both paths return a scalar record with a symbol `.kind` and a rank-1 integer
+array `.values`. The caller inspects `.kind` before using `.values`.
 
 ### Making recursive return types inferable
 
@@ -421,7 +432,7 @@ Use this checklist when a return conflicts or stays unknown:
 | The base returns `0`, while the recursive step uses `/` or a real accumulator | Use `0.0` when the intended result is real. Use `//` only when floor division is the intended calculation. |
 | An empty case returns a scalar, while other cases return an array | Return an array of the same rank in the empty case. Its length may be zero. |
 | A flag selects two operations with different result types or ranks | Give the operations separate functions, or use one tagged record representation for both results. |
-| A tree leaf returns a value, while a branch returns a container | Represent both as records. Include a tag and let callers inspect it before reading the variant's fields. |
+| A tree leaf returns a value, while a branch returns a container | Use the same record fields and recursive field types for both. Include a tag and same-typed unused values, or use separate functions. |
 | Different argument types select different cases | Use type guards. These cases may already have separate specializations and do not always need separate functions. |
 | A helper's result is unknown | Check that helper and its call arguments first. A wrapper around an unknown result does not prove its type. |
 | A recursive helper changes captured arrays or reads guarded indices | Check for an analysis limitation. A stable return contract alone does not prove cell types or safe reads. |
