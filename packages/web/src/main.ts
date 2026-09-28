@@ -294,6 +294,7 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
     .rankSoftKeyboard = (visible, height = 0) => {
         nativeSoftKeyboard = visible;
         softKeyboard = visible;
+        if (visible) softKeyboardWantedUntil = 0;
         // Remember the portrait soft keyboard's height to take exactly its place.
         if (visible && height > 100 && innerHeight > innerWidth) {
             softKeyboardHeight = height;
@@ -306,6 +307,7 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
  * closing the soft keyboard shows the symbols, ABC brings the soft keyboard back.
  */
 function softKeyboardOpen(height: number): boolean {
+    if (Date.now() < softKeyboardWantedUntil) return true;
     if (nativeSoftKeyboard !== undefined) return nativeSoftKeyboard;
     if (innerWidth !== viewportWidth) { viewportWidth = innerWidth; tallestViewport = 0; }
     // The app may open with the soft keyboard already up, so the screen is the reference too.
@@ -313,6 +315,14 @@ function softKeyboardOpen(height: number): boolean {
     return height < tallestViewport * 0.8;
 }
 let softKeyboard = false;
+/** After ABC the system keyboard needs a moment to report itself, and must not be taken for closed. */
+let softKeyboardWantedUntil = 0;
+/**
+ * A tap on a WebView with a focused text field reopens the system keyboard, so while the symbol
+ * keyboard is up the field is left unfocused; keys edit the notebook directly.
+ */
+function symbolKeyboardShown(): boolean { return keyboardEnabled && !softKeyboard; }
+function focusInput(): void { if (!symbolKeyboardShown()) input.focus({ preventScroll: true }); }
 const floatingKeyboard = matchMedia('(orientation: landscape) and (min-width: 640px)');
 floatingKeyboard.addEventListener('change', () => render());
 function renderKeyboard(): void {
@@ -347,6 +357,7 @@ function renderKeyboard(): void {
         }));
     }
     keyboard.hidden = !shown;
+    if (shown && document.activeElement === input) input.blur();
     if (!shown) return setKeyboardSize(0, 0);
     const book = editor();
     const before = book.current.source.slice(0, book.cursor);
@@ -393,10 +404,11 @@ keyboardLetters.onclick = () => {
     haptic();
     // Hide at once so the two keyboards never share the screen while the soft one slides in.
     softKeyboard = true;
+    softKeyboardWantedUntil = Date.now() + 1500;
     render();
     input.blur();
-    input.focus({ preventScroll: true });
-    setTimeout(resize, 600);
+    focusInput();
+    setTimeout(resize, 1600);
 };
 keyboardToggle.onclick = () => { haptic(); closeMenu(); setKeyboard(!keyboardEnabled); };
 function closeMenu(): void { commands.hidden = true; menuToggle.setAttribute('aria-expanded', 'false'); }
@@ -411,7 +423,7 @@ commands.onclick = event => {
     if (!button || button.disabled) return;
     haptic(button.dataset.key === 't' && !!session.pauseState ? 'step' : 'tap');
     closeMenu();
-    input.focus({ preventScroll: true });
+    focusInput();
     void press({ name: button.dataset.key, ctrl: button.dataset.ctrl === 'true' });
 };
 function runAction(): void {
@@ -427,7 +439,7 @@ async function moveIteration(direction: -1 | 1): Promise<void> {
     // Arrows only step the iteration once the loop line is focused and being selected.
     if (!repl.liveIterationFocus?.active) await press({ name: 'g', ctrl: true });
     await press({ name: direction < 0 ? 'left' : 'right' });
-    input.focus({ preventScroll: true });
+    focusInput();
 }
 // Tapping a stepper must not move the keyboard focus out of the terminal input.
 iterationControls.addEventListener('pointerdown', event => event.preventDefault());
@@ -501,10 +513,10 @@ document.addEventListener('paste', event => {
         getSelection()?.removeAllRanges();
     }
     (selected ? repl.notebook : editor()).insert(event.clipboardData?.getData('text/plain').replace(/\r\n?/g, '\n') ?? '');
-    follow = true; render(); input.focus({ preventScroll: true });
+    follow = true; render(); focusInput();
 });
 input.addEventListener('focus', () => terminal.classList.add('focused'));
-input.addEventListener('blur', () => terminal.classList.remove('focused'));
+input.addEventListener('blur', () => terminal.classList.toggle('focused', symbolKeyboardShown()));
 
 document.addEventListener('copy', event => {
     const selected = sourceSelection(screen, frame.targets ?? [], repl.notebook, getSelection());
@@ -528,7 +540,7 @@ document.addEventListener('cut', event => {
     (selected ? repl.notebook : editor()).replaceSelection('');
     getSelection()?.removeAllRanges();
     render();
-    input.focus({ preventScroll: true });
+    focusInput();
 });
 let hadNativeSelection = false;
 document.addEventListener('selectionchange', () => {
@@ -539,7 +551,7 @@ document.addEventListener('selectionchange', () => {
 
 async function locate(x: number, y: number): Promise<void> {
     stopMomentum();
-    if (busy || repl.running || repl.help) { input.focus({ preventScroll: true }); return; }
+    if (busy || repl.running || repl.help) { focusInput(); return; }
     const rect = terminal.getBoundingClientRect();
     const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
     const column = Math.round((x - rect.left) / cellWidth);
@@ -553,7 +565,7 @@ async function locate(x: number, y: number): Promise<void> {
         // Enter on the focused suggestion runs the fix through the usual key path.
         repl.focusImportFix();
         repl.moveImportFix(fix.index);
-        input.focus({ preventScroll: true });
+        focusInput();
         await press({ name: 'return' });
         return;
     }
@@ -580,7 +592,7 @@ async function locate(x: number, y: number): Promise<void> {
     }
     follow = true;
     render();
-    input.focus({ preventScroll: true });
+    focusInput();
 }
 
 let pointer: { x: number; y: number; moved: boolean; time: number } | undefined;
