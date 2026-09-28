@@ -59,13 +59,11 @@ rem Return a board with one added piece.
 fun place Board C Player
   Next = Board copy
   Rows = Board shape 0
-  R = Rows - 1
-  for R at least 0
+  for R in (Rows - 1) to 0 by -1
     if Next R C equal 0
       Next R C = Player
       return Next
     end
-    R -= 1
   end
   return Next
 end
@@ -76,13 +74,11 @@ fun won Board Player Need
   for R in 0 until Rows
     for C in 0 until Cols
       if Board R C equal Player
-        if Board R C 0 1 Need line
-          return true
-        elif Board R C 1 0 Need line
-          return true
-        elif Board R C 1 1 Need line
-          return true
-        elif Board R C 1 (-1) Need line
+        H = Board R C 0 1 Need line
+        V = Board R C 1 0 Need line
+        D1 = Board R C 1 1 Need line
+        D2 = Board R C 1 (-1) Need line
+        if H or V or D1 or D2
           return true
         end
       end
@@ -98,10 +94,9 @@ fun line Board R C DR DC Need
   for K in 1 until Need
     I = R + DR * K
     J = C + DC * K
-    if I less 0 or I at least Rows
-      return false
-    end
-    if J less 0 or J at least Cols
+    BadRow = I less 0 or I at least Rows
+    BadCol = J less 0 or J at least Cols
+    if BadRow or BadCol
       return false
     end
     if Board I J not equal Player
