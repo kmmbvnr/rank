@@ -41,12 +41,10 @@ fun build_teams Graph NodeCount
         CurrentTeam = Teams Current
         for Next in Graph Current
           Old = Teams Next
-          Same = Old equal CurrentTeam
           if Old equal 0
-            Team = 3 - CurrentTeam
-            Teams Next = Team
+            Teams Next = 3 - CurrentTeam
             Pending push Next
-          elif Same
+          elif Old equal CurrentTeam
             Possible = false
           end
         end
