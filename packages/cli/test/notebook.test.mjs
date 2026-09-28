@@ -371,7 +371,7 @@ test('a completed loop in an open function evaluates without closing the functio
     book.insert('end');
     await repl.submit();
     assert.equal(repl.liveEditing, true);
-    assert.deepEqual(repl.liveOutputs.get(5).map(line => line.text), ['6']);
+    assert.deepEqual(repl.liveOutputs.get(5).map(line => line.text), ['Sum = 6 · 3 iterations']);
     assert.equal(book.fileLines().length, 0);
 });
 

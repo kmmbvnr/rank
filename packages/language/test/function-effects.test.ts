@@ -68,6 +68,19 @@ function borrowProofs(source: string, name = 'helper', builtins: readonly ('len'
         builtin => builtins.includes(builtin));
 }
 
+it('guards counted-loop lengths from another flat-array parameter', () => {
+    const source = `fun helper A B
+  Total = 0
+  for I in 0 until ((A len) - 1)
+    Total += B I
+  end
+  return Total
+end`;
+    expect(borrowProofs(source, 'helper', ['len']).get(1)).toEqual(new Map([[0, 'flat-array']]));
+    expect(borrowProofs(source).has(1)).toBe(false);
+    expect(borrowProofs(source.replace('(A len) - 1', '(A len) - A'), 'helper', ['len']).has(1)).toBe(false);
+});
+
 it('distinguishes reads, parameter writes and captured object writes', () => {
     expect(analyze('fun helper X Y\n return X + Y\nend'))
         .toEqual({ unknown: false, parameters: new Set(), reboundParameters: new Set(),

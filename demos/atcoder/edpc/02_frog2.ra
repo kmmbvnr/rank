@@ -20,11 +20,11 @@ fun min_cost H K
   for I in 1 to N - 1
     Lo = 0 (I - K) max
     Diff = H I - H Lo
-    Best = Cost Lo + Diff abs
+    Best = Cost Lo + (Diff abs)
 
     for J in (Lo + 1) until I
       Diff = H I - H J
-      Step = Cost J + Diff abs
+      Step = Cost J + (Diff abs)
       Best = Best Step min
     end
 

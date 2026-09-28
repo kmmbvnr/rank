@@ -62,6 +62,30 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
         }
         return undefined;
     };
+    const loopBoundGuards = (value: Expression, current: FunctionStatement, parameter: string,
+        locals: ReadonlyMap<string, ReadonlySet<number>>): Guards | undefined => {
+        const integers = integerGuards(value, current, parameter, locals);
+        if (integers) return integerTypes(integers);
+        if (isParenthesizedExpression(value)) return loopBoundGuards(value.value, current, parameter, locals);
+        if (isApplicationExpression(value)) {
+            const parts = flattenApplication(value);
+            const receiver = parts[0], operation = parts[1];
+            const index = isNameExpression(receiver) ? current.parameters.indexOf(receiver.name) : -1;
+            if (parts.length === 2 && index >= 0 && isNameExpression(operation)
+                && operation.name === 'len' && !current.parameters.includes('len') && builtin('len')) {
+                return new Map([[index, 'flat-array']]);
+            }
+        }
+        if (isUnaryExpression(value) && (value.operator === '+' || value.operator === '-')) {
+            return loopBoundGuards(value.operand, current, parameter, locals);
+        }
+        if (isBinaryExpression(value) && !value.step && ['+', '-', '*', '//', '%'].includes(value.operator)) {
+            const left = loopBoundGuards(value.left, current, parameter, locals);
+            const right = loopBoundGuards(value.right, current, parameter, locals);
+            return left && right && mergeGuards(left, right) ? left : undefined;
+        }
+        return undefined;
+    };
     const inspect = (current: FunctionStatement): ReadonlyMap<number, Guards> => {
         const cached = cache.get(current);
         if (cached) return cached;
@@ -168,9 +192,9 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                     while (isParenthesizedExpression(iterable)) iterable = iterable.value;
                     if (!isBinaryExpression(iterable)
                         || (iterable.operator !== 'until' && iterable.operator !== 'to') || iterable.step) return undefined;
-                    const start = integerGuards(iterable.left, current, parameter, selectorLocals);
-                    const end = integerGuards(iterable.right, current, parameter, selectorLocals);
-                    if (!start || !end) return undefined;
+                    const start = loopBoundGuards(iterable.left, current, parameter, selectorLocals);
+                    const end = loopBoundGuards(iterable.right, current, parameter, selectorLocals);
+                    if (!start || !end || !mergeGuards(start, end)) return undefined;
                     const selectors = new Map(selectorLocals);
                     selectors.set(condition.left.name, new Set());
                     const scalars = new Set(scalarLocals);
@@ -185,7 +209,7 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                     }
                     scalarLocals.clear();
                     for (const name of knownBefore) if (knownAfter.has(name)) scalarLocals.add(name);
-                    const guards = integerTypes(new Set([...start, ...end]));
+                    const guards = start;
                     return mergeGuards(guards, body) ? guards : undefined;
                 }
                 if (isApplicationExpression(item)) {
