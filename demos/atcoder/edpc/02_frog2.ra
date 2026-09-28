@@ -18,33 +18,18 @@ fun min_cost H K
   Cost = array shape N fill 0
 
   for I in 1 to N - 1
-    Height = H I
-    Best = -1
-    Lo = 0
-    Reach = I - K
+    Lo = 0 (I - K) max
+    Diff = H I - H Lo
+    Best = Cost Lo + Diff abs
 
-    if Reach greater 0
-      Lo = Reach
-    end
-
-    Hi = I - 1
-    for J in Lo to Hi
-      Prev = H J
-      Diff = Height - Prev
-      Jump = Diff abs
-      Prior = Cost J
-      Step = Prior + Jump
-      Unset = Best equal -1
-      Smaller = Step less Best
-
-      if Unset or Smaller
-        Best = Step
-      end
+    for J in (Lo + 1) until I
+      Diff = H I - H J
+      Step = Cost J + Diff abs
+      Best = Best Step min
     end
 
     Cost I = Best
   end
 
-  Last = N - 1
-  return Cost Last
+  return Cost (N - 1)
 end
