@@ -21,58 +21,43 @@ fun count_rooms Grid
 
   rem Mark one component with BFS.
   fun flood Y X
-    Line = Grid Y
-    if Line X not equal "."
-      return 0
-    end
-    if Seen Y X
-      return 0
-    end
-
     Seen Y X = true
-    queue push Y * W + X
-    Head = 0
+    Pending = new queue
+    Pending push Y * W + X
 
-    for queue len greater Head
-      Position = queue Head
+    for Position in Pending
       Row = Position // W
       Column = Position % W
 
       for DY Direction in DYs
         NY = Row + DY
         NX = Column + DXs Direction
-        Inside = NY at least 0
-        Inside and= NY less H
-        Inside and= NX at least 0
-        Inside and= NX less W
-
-        if not Inside
+        if NY less 0 or NY at least H
+          continue
+        end
+        if NX less 0 or NX at least W
           continue
         end
 
         Neighbor = Grid NY
-        if Neighbor NX not equal "."
-          continue
-        end
-        if Seen NY NX
+        if Neighbor NX equal "#" or Seen NY NX
           continue
         end
 
         Seen NY NX = true
-        Next = NY * W + NX
-        queue push Next
+        Pending push NY * W + NX
       end
-
-      Head += 1
     end
-
-    return 1
+    return true
   end
 
   Rooms = 0
   for Line Y in Grid
     for Cell X in Line
-      Rooms += Y X flood
+      if Cell equal "." and not Seen Y X
+        Y X flood
+        Rooms += 1
+      end
     end
   end
 
