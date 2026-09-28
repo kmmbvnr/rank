@@ -3,7 +3,7 @@ import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
-    isExpressionStatement,
+    isExpressionStatement, isNewStructureExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
@@ -40,6 +40,8 @@ export interface ValueAnalysis {
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly functionResults: readonly ValueFacts[];
 }
+
+let nextCollectionId = 0;
 
 /** A non-executing pass. Unknown facts never justify a diagnostic. */
 export function analyzeValues(program: Program, initial: ReadonlyMap<string, ValueFacts> = new Map(),
@@ -94,8 +96,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 message: `${name} holds array rank ${collection.elementRank} and cannot receive rank ${rank}` });
             return;
         }
-        if (!accepted?.length) env.set(name, { ...collection, elements: value.types,
-            ...(rank !== undefined ? { elementRank: rank } : {}) });
+        const nonempty = value.shape?.every(size => size !== null && size > 0) === true;
+        if (nonempty && accepted?.join() === 'array' && collection.elementCells?.length && value.elements?.length
+            && value.elements.every(type => !collection.elementCells!.includes(type))) {
+            diagnostics.push({ node, kind: 'TypeError',
+                message: `${name} holds array of ${collection.elementCells.join(' or ')} and cannot receive array of ${value.elements.join(' or ')}` });
+            return;
+        }
+        // Unknown host collections need runtime validation before we can publish facts.
+        if (collection.collectionId === undefined) return;
+        for (const [alias, fact] of env) if (fact.collectionId === collection.collectionId) {
+            env.set(alias, { ...fact, elements: accepted?.length ? accepted : value.types,
+                ...(rank !== undefined ? { elementRank: collection.elementRank ?? rank } : {}),
+                ...(!accepted?.length && nonempty && value.types.join() === 'array' && value.elements?.length
+                    ? { elementCells: value.elements } : {}) });
+        }
     }
     function tryPrefixFacts(statement: TryStatement,
         env: Map<string, ValueFacts>): Map<string, ValueFacts> | undefined {
@@ -556,6 +571,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const previous = env.get(statement.name);
                 let next = beforeEffects ?? inspect(statement.value, env);
+                let constructor = statement.value;
+                while (isParenthesizedExpression(constructor)) constructor = constructor.value;
+                if (isNewStructureExpression(constructor)
+                    && ['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(constructor.structure)) {
+                    next = { ...next, collectionId: nextCollectionId++ };
+                }
                 if (next.bottom) throw new UnobservedReturn();
                 if (statement.operator !== '=') next = {
                     ...expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
@@ -660,6 +681,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         forgetNonFunctions(env);
                     }
                     inspect(value, env);
+                }
+                const payload = expressionFacts(statement.value, name => env.get(name));
+                if (payload.types.includes('array') && !payload.eagerScalarCells && !payload.callbackFreeScalarCells) {
+                    forgetNonFunctions(env);
                 }
                 if (receiver && safeCollectionValue(statement.value, env)) {
                     insertCollectionElement(receiver,
@@ -819,6 +844,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const parts = isApplicationExpression(statement.value)
                     ? flattenApplication(statement.value) : [];
                 const key = parts[2] && expressionFacts(parts[2], name => env.get(name));
+                const receiver = parts[0] && isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
+                const method = parts.at(-1);
+                const safePayload = (node: Expression): boolean => {
+                    const fact = expressionFacts(node, name => env.get(name));
+                    return safeCollectionValue(node, env) && fact.types.length > 0
+                        && (!fact.types.includes('array') || !!fact.eagerScalarCells || !!fact.callbackFreeScalarCells);
+                };
+                const dequeInsert = parts.length === 3 && receiver?.types.join() === 'deque'
+                    && method && isNameExpression(method) && ['pushfront', 'pushback'].includes(method.name)
+                    && !env.has(method.name) && safePayload(parts[1]);
+                const heapInsert = parts.length === 4 && receiver?.types.join() === 'heap'
+                    && method && isNameExpression(method) && method.name === 'enqueue' && !env.has('enqueue')
+                    && directValue(parts[1]) && ['integer', 'real', 'text'].includes(expressionFacts(parts[1], name => env.get(name)).types.join())
+                    && safePayload(parts[2]);
+                const collectionRemove = parts.length === 3 && ['set', 'counter'].includes(receiver?.types.join() ?? '')
+                    && isNameExpression(parts[1]) && parts[1].name === 'remove' && !env.has('remove')
+                    && safePayload(parts[2]);
                 const collectionAdd = parts.length === 3 && isNameExpression(parts[0])
                     && ['set', 'counter'].includes(env.get(parts[0].name)?.types.join() ?? '')
                     && isNameExpression(parts[1]) && parts[1].name === 'add' && !env.has('add')
@@ -826,10 +868,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
                             'date', 'datetime'].includes(type)) || key.types.join() === 'array'
                             && key.eagerScalarCells === true);
-                if (!collectionAdd) invalidateCalls(statement.value, env);
+                if (!collectionAdd && !dequeInsert && !heapInsert && !collectionRemove) invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
                 if (collectionAdd && isNameExpression(parts[0])) insertCollectionElement(parts[0].name,
                     key!, parts[2], env);
+                if ((dequeInsert || heapInsert) && isNameExpression(parts[0])) {
+                    const payload = parts[dequeInsert ? 1 : 2];
+                    insertCollectionElement(parts[0].name, expressionFacts(payload, name => env.get(name)), payload, env);
+                }
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isArgumentStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);

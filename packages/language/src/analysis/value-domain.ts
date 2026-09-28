@@ -13,6 +13,10 @@ export interface ValueFacts {
     readonly elements?: Types;
     /** Rank fixed by the first insertion of an array into a mutable collection. */
     readonly elementRank?: number;
+    /** Cell types of array elements stored in a mutable collection. */
+    readonly elementCells?: Types;
+    /** Identity of a locally constructed collection; dropped when effects are unknown. */
+    readonly collectionId?: number;
     /** Element types by position for a fixed rank-1 array. */
     readonly positions?: readonly Types[];
     /** Complete cell facts for a fixed rank-1 array whose cells may themselves be arrays. */
@@ -129,6 +133,10 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { segmentOperation: first.segmentOperation } : {}),
         ...(elements ? { elements } : {}),
         ...(elementRank !== undefined ? { elementRank } : {}),
+        ...(values.every(value => value.elementCells?.length)
+            ? { elementCells: joinTypes(values.map(value => value.elementCells!)) } : {}),
+        ...(first.collectionId !== undefined && values.every(value => value.collectionId === first.collectionId)
+            ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
         ...(fields ? { fields } : {}),
         ...(first.textLiteral !== undefined && values.every(value => value.textLiteral === first.textLiteral)

@@ -39,7 +39,9 @@ test "official weather example"
   D = (Wind "Weak") .value equal "Yes"
   E = Tree .attribute equal "Outlook"
   F = Rain .attribute equal "Wind"
-  A and B and C and D and E and F
+  G = Tree .value equal "Yes"
+  H = Rain .value equal "Yes"
+  A and B and C and D and E and F and G and H
 end
 
 test "pure data returns its class"
@@ -52,7 +54,11 @@ test "pure data returns its class"
 
   Attrs = array "Color"
   Result = Data Attrs "Class" learn_tree
-  Result .leaf and (Result .value equal "A")
+  A = Result .leaf and (Result .value equal "A")
+  B = Result .attribute equal ""
+  Branches = Result .branches
+  C = not "Red" in Branches
+  A and B and C
 end
 
 test "majority ties are alphabetic"
@@ -65,7 +71,11 @@ test "majority ties are alphabetic"
 
   Attrs = array shape 0 fill 0
   Result = Data Attrs "Class" learn_tree
-  Result .leaf and (Result .value equal "A")
+  A = Result .leaf and (Result .value equal "A")
+  B = Result .attribute equal ""
+  Branches = Result .branches
+  C = not "Class" in Branches
+  A and B and C
 end
 
 test "attribute ties keep input order"

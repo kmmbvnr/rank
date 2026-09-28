@@ -2063,7 +2063,7 @@ it('infers elements inserted into named collections and rejects a definite misma
     expect(messages('use algo\nQ = new queue\nQ push 1\nAlias = Q\nX = Alias pop\nX + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nQ = new queue\nAlias = Q\nAlias push 1\nX = Q pop\nX + "bad"'))
-        .toEqual([]);
+        .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nQ = new queue\nQ push 1\nQ = new queue\nQ push "text"\nX = Q pop\nX + "bad"'))
         .toEqual([]);
     expect(messages('use algo\nuse io\nQ = new queue\nQ push 1\nInput = stdin .integer\nX = Q pop\nX + "bad"'))

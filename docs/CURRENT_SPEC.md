@@ -3189,6 +3189,34 @@ implicit indices. Compound writes such as `Cache K += 1` require an existing
 entry. Keys may be integers, real numbers, booleans, text or labels. A named index can also
 be captured by a local function.
 
+Index values may have different types, and replacing an entry may change its
+type. The collection element contract below does not apply to `index`.
+
+### Mutable collection element types
+
+Each `set`, `counter`, `queue`, `stack`, `deque` and `heap` has an element
+contract. The first successful insertion fixes the runtime type of its values
+(`counter` keys and `heap` payloads). Integer and real are distinct types.
+Aliases and function arguments share the same contract, which remains after
+the collection becomes empty. An incompatible insertion raises an error
+before storing the new value. No constructor type annotation is required.
+
+An array element also fixes its number of axes and its cell types. Axis lengths
+may vary. For example, after inserting `array 1 2`, inserting `array 3 4 5`
+succeeds, while a text array, a real array or a rank-2 array fails. If the first
+array contains several cell types, later arrays may use those types but cannot
+introduce another one. The same rule applies recursively to nested arrays.
+Empty arrays fix their rank but defer their cell contract until cells are
+inserted. Record fields and the contents of nested mutable collections do not
+form part of this contract.
+
+Insertion reads array cells, including lazy cells, to validate their types.
+This adds work proportional to the number of cells inspected. A failed read
+does not establish or widen the contract; side effects performed by the read
+itself still take place. Static analysis reports proven incompatibilities and
+retains element facts through safe reads and direct aliases. Unknown calls or
+aliasing discard facts that cannot be proved; runtime checks still apply.
+
 ### Queue, stack, deque and heap
 
 All operations below require `use algo`. Use `use sequences` for `len`.
@@ -3223,8 +3251,8 @@ A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
 Binary functions use postfix syntax, such as `Ends Value pushfront`.
 
 A heap is a stable min-priority queue. `Heap push Value` uses the value itself
-as its priority. `Heap Priority Value enqueue` accepts a separate payload of
-any type. Priorities must be comparable scalars of one ordering family;
+as its priority. `Heap Priority Value enqueue` accepts a separate payload
+subject to the heap's element contract. Priorities must be comparable scalars of one ordering family;
 integer and real priorities can mix. NaN priorities are rejected. Equal
 priorities preserve insertion order. For a numeric max-heap, negate priorities
 when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
@@ -3237,7 +3265,7 @@ internal heap order, not sorted order; repeatedly call `pop` to get priority ord
 Queue iteration can observe entries appended during the loop. Do not remove
 entries while iterating a container; use a conditional `for` with `pop` instead.
 
-End operations use constant expected time with numeric-keyed storage; heap
+Apart from element validation, end operations use constant expected time with numeric-keyed storage; heap
 insertion and extraction use O(log n) comparisons and `peek` takes O(1).
 Materializing a queue-family container as an array takes O(n). Named containers
 are shared references when assigned, captured or passed to functions. Their

@@ -247,7 +247,7 @@ V
 `)).toThrow('queue holds text');
     });
 
-    it('rejects a different array rank without reading its cells', () => {
+    it('checks array ranks and cell types before committing an insertion', () => {
         expect(() => run(prelude + `Q = new queue
 Q push array 1 2
 Q push (array 1 2 3 4) (array 2 2) reshape
@@ -257,12 +257,15 @@ Q push (array 1 2 3 4) (array 2 2) reshape
             reads++;
             throw new Error('array cell was read');
         } };
-        const queue = new RankDeque().push(lazy);
+        const queue = new RankDeque();
+        expect(() => queue.push(lazy)).toThrow('array cell was read');
+        expect(queue.size).toBe(0);
         queue.push({ kind: 'array', items: [1n, 2n], shape: [2] });
-        expect(reads).toBe(0);
-        expect(queue.size).toBe(2);
-        expect(run(prelude + 'Q = new queue\nQ push array 1 2\nQ push array "a" "b"\nQ len')).toBe('2');
-        expect(run(prelude + 'H = new heap\nH 1 (array 1 2) enqueue\nH 2 (array "a" "b") enqueue\nH len'))
-            .toBe('2');
+        expect(reads).toBe(1);
+        expect(queue.size).toBe(1);
+        expect(() => run(prelude + 'Q = new queue\nQ push array 1 2\nQ push array "a" "b"'))
+            .toThrow(/array rank 1 of integer.*array rank 1 of text/);
+        expect(() => run(prelude + 'H = new heap\nH 1 (array 1 2) enqueue\nH 2 (array "a" "b") enqueue'))
+            .toThrow(/array rank 1 of integer.*array rank 1 of text/);
     });
 });

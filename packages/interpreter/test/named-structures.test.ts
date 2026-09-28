@@ -94,8 +94,8 @@ array (Seen len) (Counts (array 1 2))
                 .toThrow(/rank 1.*rank 2/);
             expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC remove 1\nC add "text"`))
                 .toThrow(`${kind} holds integer and cannot receive text`);
-            expect(run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add array "a" "b"\nC len`))
-                .toBe('2');
+            expect(() => run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add array "a" "b"\nC len`))
+                .toThrow(/array rank 1 of integer.*array rank 1 of text/);
         }
     });
 

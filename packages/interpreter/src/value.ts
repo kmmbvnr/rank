@@ -279,19 +279,72 @@ export type RankGraph = GraphValue;
 export interface CollectionElementType {
     readonly type: string;
     readonly rank?: number;
+    readonly elements?: readonly CollectionElementType[];
 }
 
-/** Match variable contracts without inspecting array cells or invoking lazy code. */
+/** Validate before committing the insertion. Empty arrays do not establish a cell type. */
 export function checkCollectionElementType(
-    collection: string, expected: CollectionElementType | undefined, value: RankValue,
+    collection: string, expected: CollectionElementType | undefined | (() => CollectionElementType | undefined), value: RankValue,
 ): CollectionElementType {
+    const received = isRankArray(value) ? collectionElementType(value, new Set()) : { type: typeName(value) };
+    // Reading lazy cells can re-enter Rank and insert through another alias.
+    return mergeCollectionElementType(collection, typeof expected === 'function' ? expected() : expected, received);
+}
+
+function describeElementType(value: CollectionElementType): string {
+    return value.type + (value.rank === undefined ? '' : ` rank ${value.rank}`)
+        + (value.elements?.length ? ` of ${value.elements.map(describeElementType).join(' or ')}` : '');
+}
+
+function mergeCollectionElementType(collection: string, expected: CollectionElementType | undefined,
+    received: CollectionElementType): CollectionElementType {
+    if (!expected) return received;
+    if (expected.type !== received.type || expected.rank !== received.rank) {
+        throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`);
+    }
+    if (!expected.elements?.length) return received.elements?.length ? received : expected;
+    const elements = [...expected.elements];
+    for (const cell of received.elements ?? []) {
+        const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
+        if (index < 0) {
+            throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`);
+        }
+        elements[index] = mergeCollectionElementType(collection, elements[index], cell);
+    }
+    return { ...expected, elements };
+}
+
+function collectionElementType(value: RankValue, active: Set<RankValue>): CollectionElementType {
     const type = typeName(value);
     const rank = isRankArray(value) ? value.shape.length : undefined;
-    if (expected && (expected.type !== type || expected.rank !== rank)) {
-        throw new RankError(`${collection} holds ${expected.type}${expected.rank === undefined ? '' : ` rank ${expected.rank}`}`
-            + ` and cannot receive ${type}${rank === undefined ? '' : ` rank ${rank}`}`);
+    if (!isRankArray(value)) return { type };
+    if (active.has(value)) throw new RankError('cyclic arrays cannot be collection elements');
+    active.add(value);
+    const elements: CollectionElementType[] = [];
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    for (let index = 0; index < size; index++) {
+        checkpoint();
+        const cell = value.itemAt?.(index) ?? value.items[index];
+        const cellType = typeName(cell);
+        const cellRank = isRankArray(cell) ? cell.shape.length : undefined;
+        const position = elements.findIndex(element => element.type === cellType && element.rank === cellRank);
+        const element = collectionElementType(cell, active);
+        if (position < 0) elements.push(element);
+        else elements[position] = unionElementType(elements[position], element);
     }
-    return expected ?? { type, ...(rank === undefined ? {} : { rank }) };
+    active.delete(value);
+    return { type, rank, ...(elements.length ? { elements } : {}) };
+}
+
+function unionElementType(left: CollectionElementType, right: CollectionElementType): CollectionElementType {
+    if (!right.elements?.length) return left;
+    const elements = [...(left.elements ?? [])];
+    for (const cell of right.elements) {
+        const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
+        if (index < 0) elements.push(cell);
+        else elements[index] = unionElementType(elements[index], cell);
+    }
+    return { ...left, elements };
 }
 
 /** The type symbol reported by `type` and enforced by runtime bindings. */

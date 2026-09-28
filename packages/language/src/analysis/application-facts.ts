@@ -148,14 +148,15 @@ export function applicationExpressionFacts(
             if (typeof value === 'string') return { types: ['text'], rank: 1, shape: [[...value].length] };
         } catch { /* Invalid JSON has no value facts. */ }
     }
-    if (parts.length === 2 && isNameExpression(last)
+    if (parts.length === 2 && (isNameExpression(last)
         && ['pop', 'peek', 'popfront', 'peekfront', 'popback', 'peekback'].includes(last.name)
         && lookup(last.name) === undefined
+        || ['queue', 'stack', 'deque'].includes(source.types.join()) && infer(parts[1], lookup).types.join() === 'integer')
         && ['queue', 'stack', 'deque', 'heap'].includes(source.types.join())
         && source.elements?.length) {
         const types = source.elements;
         return types.join() === 'array' && source.elementRank !== undefined
-            ? { types, rank: source.elementRank, shape: Array(source.elementRank).fill(null) }
+            ? { types, rank: source.elementRank, shape: Array(source.elementRank).fill(null), elements: source.elementCells }
             : stableRecordField({ types });
     }
     if (parts.length === 3 && isLabelLiteral(parts[1]) && parts[1].name === 'flat'

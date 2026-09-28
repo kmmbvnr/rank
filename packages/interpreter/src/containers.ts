@@ -32,7 +32,7 @@ export class RankDeque {
         return this.typeSummary.types;
     }
     push(value: RankValue): this {
-        this.acceptedElementType = checkCollectionElementType(this.mode, this.acceptedElementType, value);
+        this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
@@ -40,7 +40,7 @@ export class RankDeque {
         return this;
     }
     pushFront(value: RankValue): this {
-        this.acceptedElementType = checkCollectionElementType(this.mode, this.acceptedElementType, value);
+        this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
@@ -81,7 +81,11 @@ export class RankHeap {
         if (this.priorityKind !== undefined && this.priorityKind !== kind) {
             throw new RankError('heap priorities must have one comparable type');
         }
-        this.elementType = checkCollectionElementType('heap', this.elementType, value);
+        const elementType = checkCollectionElementType('heap', () => this.elementType, value);
+        if (this.priorityKind !== undefined && this.priorityKind !== kind) {
+            throw new RankError('heap priorities must have one comparable type');
+        }
+        this.elementType = elementType;
         this.priorityKind = kind;
         this.resources.include(value);
         noteArrayBinding(value);
@@ -125,9 +129,11 @@ export class RankHeap {
 export function pushCollection(receiver: RankValue, value: RankValue): RankValue {
     if (receiver instanceof RankDeque || receiver instanceof RankHeap) return receiver.push(value);
     if (isRankQueue(receiver)) {
-        const previous = receiver.elementType ?? (receiver.items.length
-            ? checkCollectionElementType('queue', undefined, receiver.items[0]) : undefined);
-        receiver.elementType = checkCollectionElementType('queue', previous, value);
+        receiver.elementType = checkCollectionElementType('queue', () => {
+            let previous = receiver.elementType;
+            for (const item of receiver.items) previous = checkCollectionElementType('queue', previous, item);
+            return previous;
+        }, value);
         receiver.items.push(value);
         return receiver;
     }

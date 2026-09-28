@@ -41,8 +41,8 @@ export function expectAddCollection(value: RankValue) {
 export function addToCollection(target: RankValue, value: RankValue): RankValue {
     const receiver = expectAddCollection(target);
     if (isRankMultiset(receiver)) return receiver.add(value);
-    const elementType = checkCollectionElementType(receiver.kind, receiver.elementType, value);
     const key = setValueKey(value);
+    const elementType = checkCollectionElementType(receiver.kind, () => receiver.elementType, value);
     receiver.elementType = elementType;
     if (isRankSet(receiver)) receiver.entries.set(key, value);
     else {

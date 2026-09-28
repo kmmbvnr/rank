@@ -14,7 +14,7 @@ export const directValue = (node: Expression): boolean => isNameExpression(node)
     || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
     || isParenthesizedExpression(node) && directValue(node.value);
 export const safeCollectionValue = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean =>
-    directValue(node) || isArrayExpression(node)
+    isParenthesizedExpression(node) ? safeCollectionValue(node.value, env) : directValue(node) || isArrayExpression(node)
         && node.dimensions.every(item => directValue(item.value))
         && (!node.fill || directValue(node.fill))
         && [...node.items, ...node.rows.flatMap(row => row.items)].every(item => directValue(item.value))

@@ -80,7 +80,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                         ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] }
                             : types.join() === 'array' && collection.elementRank !== undefined
                                 ? { rank: collection.elementRank, acceptedArrayRank: collection.elementRank,
-                                    shape: Array(collection.elementRank).fill(null) } : {}) });
+                                    shape: Array(collection.elementRank).fill(null), elements: collection.elementCells } : {}) });
             }
         }
         if (names[1] && names[1] !== '#') env.set(names[1], {
