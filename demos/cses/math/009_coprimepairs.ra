@@ -21,15 +21,14 @@ fun coprime_pairs Values
 
   for Value in Values
     Factors = Value factors unique array
-    Size = Factors len
-    Subsets = 1 Size shl
+    Subsets = 1 (Factors len) shl
     NotCoprime = 0
 
     for Mask in 1 until Subsets
       Product = 1
-      for I in 0 until Size
+      for Factor I in Factors
         if Mask I bit
-          Product *= Factors I
+          Product *= Factor
         end
       end
 
