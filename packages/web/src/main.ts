@@ -25,7 +25,6 @@ const keyboard = document.querySelector<HTMLElement>('#keyboard')!;
 const keyboardKeys = document.querySelector<HTMLElement>('#keyboard-keys')!;
 const keyboardTabList = document.querySelector<HTMLElement>('#keyboard-tabs')!;
 const keyboardToggle = document.querySelector<HTMLButtonElement>('#keyboard-toggle')!;
-const keyboardCollapse = document.querySelector<HTMLButtonElement>('#keyboard-collapse')!;
 const keyboardLetters = document.querySelector<HTMLButtonElement>('#keyboard-letters')!;
 const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
 const stoppedMessage = () => compact() ? 'Stopped' : 'Stopped · Ctrl-L restart';
@@ -292,16 +291,32 @@ let softKeyboardHeight = 0;
 try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) || 0; } catch { /* Measured again when it opens. */ }
 (globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean, height?: number) => void })
     .rankSoftKeyboard = (visible, height = 0) => {
+        const changed = nativeSoftKeyboard !== visible;
         nativeSoftKeyboard = visible;
         softKeyboard = visible;
         if (visible) softKeyboardWantedUntil = 0;
+        if (changed) beginKeyboardTransition();
         // Remember the portrait soft keyboard's height to take exactly its place.
         if (visible && height > 100 && innerHeight > innerWidth) {
             softKeyboardHeight = height;
             try { localStorage.setItem(softKeyboardHeightKey, String(height)); } catch { /* This visit only. */ }
         }
-        render();
+        if (!changed) render();
     };
+/**
+ * While the system keyboard slides, the viewport height jumps through values far from the final one,
+ * which threw the run button around. The final height is known, so the layout uses it meanwhile.
+ */
+let transitionUntil = 0;
+/** Exact portrait viewport heights with and without the system keyboard, so the layout can hold still between them. */
+const settledHeightsKey = 'rank-settled-heights-v1';
+const settledHeights: { open?: number; closed?: number } = {};
+try { Object.assign(settledHeights, JSON.parse(localStorage.getItem(settledHeightsKey) ?? '{}')); } catch { /* Measured on first use. */ }
+function beginKeyboardTransition(): void {
+    transitionUntil = Date.now() + 450;
+    resize();
+    setTimeout(resize, 500);
+}
 /**
  * The symbol keyboard replaces the soft keyboard rather than stacking with it:
  * closing the soft keyboard shows the symbols, ABC brings the soft keyboard back.
@@ -391,6 +406,8 @@ function typeKey(key: string): void {
 }
 function setKeyboard(enabled: boolean): void {
     keyboardEnabled = enabled;
+    // Closing the system keyboard is what lets the symbol keyboard take its place.
+    if (enabled && softKeyboard) input.blur();
     try { localStorage.setItem(keyboardKey, enabled ? 'on' : 'off'); } catch { /* Only this visit remembers it. */ }
     render();
 }
@@ -398,19 +415,19 @@ function setKeyboard(enabled: boolean): void {
 // Android follows a touch with a compatibility mousedown, whose default action focuses the button.
 keyboard.addEventListener('pointerdown', event => event.preventDefault());
 keyboard.addEventListener('mousedown', event => event.preventDefault());
-keyboardCollapse.onclick = () => { haptic(); setKeyboard(false); };
 // A field that kept focus after Back does not summon the soft keyboard again until it refocuses.
 keyboardLetters.onclick = () => {
-    haptic();
     // Hide at once so the two keyboards never share the screen while the soft one slides in.
     softKeyboard = true;
     softKeyboardWantedUntil = Date.now() + 1500;
-    render();
+    beginKeyboardTransition();
     input.blur();
     focusInput();
     setTimeout(resize, 1600);
 };
-keyboardToggle.onclick = () => { haptic(); closeMenu(); setKeyboard(!keyboardEnabled); };
+// With the system keyboard up, the first press only swaps it for ours (even if ours is already on
+// behind it); the next press hides ours.
+keyboardToggle.onclick = () => { haptic(); closeMenu(); setKeyboard(softKeyboard ? true : !keyboardEnabled); };
 function closeMenu(): void { commands.hidden = true; menuToggle.setAttribute('aria-expanded', 'false'); }
 chrome.addEventListener('pointerdown', event => event.preventDefault());
 menuToggle.onclick = () => {
@@ -696,8 +713,18 @@ function resize(): void {
     stopMomentum();
     scrollFraction = 0;
     const viewport = window.visualViewport;
-    const height = viewport?.height ?? innerHeight;
+    let height = viewport?.height ?? innerHeight;
     softKeyboard = softKeyboardOpen(height);
+    if (innerHeight > innerWidth) {
+        const state = softKeyboard ? 'open' : 'closed';
+        if (Date.now() >= transitionUntil) {
+            if (settledHeights[state] !== height) {
+                settledHeights[state] = height;
+                try { localStorage.setItem(settledHeightsKey, JSON.stringify(settledHeights)); } catch { /* Predicted from the keyboard height instead. */ }
+            }
+        } else if (settledHeights[state]) height = settledHeights[state]!;
+        else if (softKeyboardHeight > 0 && tallestViewport > 0) height = tallestViewport - (softKeyboard ? softKeyboardHeight : 0);
+    }
     document.documentElement.style.setProperty('--height', height + 'px');
     document.documentElement.style.setProperty('--top', (viewport?.offsetTop ?? 0) + 'px');
     cellWidth = measure.getBoundingClientRect().width / 10;
