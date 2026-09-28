@@ -1,5 +1,5 @@
 import { parse } from '@arrrank/interpreter';
-import stringWidth from 'string-width';
+import { cellWidth } from './display-width.js';
 import { tokenize, type Token } from './repl-input.js';
 
 const precedence: Readonly<Record<string, number>> = {
@@ -20,7 +20,7 @@ function operand(token: Token | undefined): boolean {
 
 /** Add only an outer expression group; never split an application or a string. */
 function wrapLine(line: string, width: number): string {
-    if (stringWidth(line) <= width) return line;
+    if (cellWidth(line) <= width) return line;
     const tokens = tokenize(line);
     const comment = tokens.findIndex(token => token.kind === 'comment');
     const code = comment < 0 ? tokens : tokens.slice(0, comment);
@@ -74,13 +74,13 @@ function wrapLine(line: string, width: number): string {
         let current = nested;
         for (const chunk of chunks) {
             const candidate = current === nested ? nested + chunk : current + ' ' + chunk;
-            if (current !== nested && stringWidth(candidate) > width) {
+            if (current !== nested && cellWidth(candidate) > width) {
                 lines.push(current);
                 current = nested + chunk;
             } else current = candidate;
         }
         lines.push(current, last);
-        if (lines.every(item => stringWidth(item) <= width)) return lines.join('\n');
+        if (lines.every(item => cellWidth(item) <= width)) return lines.join('\n');
     }
     return line;
 }
@@ -89,7 +89,7 @@ function wrapLine(line: string, width: number): string {
 export function formatSource(
     source: string, width = 40, bindings?: ReadonlyMap<string, readonly number[] | false>,
 ): string {
-    if (!source.split('\n').some(line => stringWidth(line) > width)) return source;
+    if (!source.split('\n').some(line => cellWidth(line) > width)) return source;
     try {
         const program = parse(source, '<format>', { bindings });
         const protectedLines = new Set<number>();

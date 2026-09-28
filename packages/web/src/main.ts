@@ -5,6 +5,7 @@ import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
 import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { keyAvailable, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
+import { textEdit } from '@arrrank/common/input-edit';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
@@ -27,7 +28,9 @@ const keyboardTabList = document.querySelector<HTMLElement>('#keyboard-tabs')!;
 const keyboardToggle = document.querySelector<HTMLButtonElement>('#keyboard-toggle')!;
 const keyboardLetters = document.querySelector<HTMLButtonElement>('#keyboard-letters')!;
 const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
-const stoppedMessage = () => compact() ? 'Stopped' : 'Stopped · Ctrl-L restart';
+/** Keyboard shortcut hints only help with a keyboard; a touch console runs through its buttons. */
+const keyHints = () => !touchConsole && !compact();
+const stoppedMessage = () => keyHints() ? 'Stopped · Ctrl-L restart' : 'Stopped';
 function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
     const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
     if (capacitor?.getPlatform() === 'android') {
@@ -108,7 +111,7 @@ function render(): void {
     if (shownPause) {
         scrollFraction = 0;
         frame = pauseFrame(shownPause, columns, rows, repl.pauseTop,
-            compact() ? 'Paused' : modes.pauseStatus);
+            keyHints() ? modes.pauseStatus : 'Paused');
         repl.pauseTop = frame.top;
         top = frame.top;
     } else if (repl.help) {
@@ -116,7 +119,7 @@ function render(): void {
         frame = helpFrame(repl.help.text, columns, rows, repl.help.top);
         repl.help.top = frame.top;
     } else {
-        const showShortcutHints = !compact();
+        const showShortcutHints = keyHints();
         const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
         if (follow || shownFailure || repl.running) scrollFraction = 0;
         frame = notebookFrame(repl.notebook, columns, rows, top,
@@ -124,7 +127,7 @@ function render(): void {
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints,
-            compact() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
+            !keyHints() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
         top = frame.top;
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
     }
@@ -219,16 +222,12 @@ function applyInput(): void {
     // Keep native IME composition intact; ordinary insertions use CLI auto-pairing and aliases.
     if (composing || previous === value) book.replace(value, input.selectionStart);
     else {
-        let start = 0;
-        while (start < previous.length && start < value.length && previous[start] === value[start]) start++;
-        let end = previous.length;
-        let nextEnd = value.length;
-        while (end > start && nextEnd > start && previous[end - 1] === value[nextEnd - 1]) { end--; nextEnd--; }
-        if (end > start) book.replace(previous.slice(0, start) + previous.slice(end), start);
-        else book.cursor = start;
-        if (nextEnd > start) book.insert(value.slice(start, nextEnd), true);
+        const edit = textEdit(previous, value, input.selectionEnd);
+        if (edit.to > edit.from) book.replace(previous.slice(0, edit.from) + previous.slice(edit.to), edit.from);
+        else book.cursor = edit.from;
+        if (edit.text) book.insert(edit.text, true);
         // A soft keyboard deletes through input events, not Backspace keydowns.
-        else if (end > start) book.dropClearedLine(previous);
+        else if (edit.to > edit.from) book.dropClearedLine(previous);
     }
     repl.dismiss();
     follow = true;

@@ -1,5 +1,5 @@
 /// <reference lib="es2022.intl" />
-import stringWidth from 'string-width';
+import { cellWidth, fitEnd } from './display-width.js';
 import stripVTControlCharacters from 'strip-ansi';
 import type { Notebook } from './notebook.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
@@ -32,14 +32,14 @@ export function editableRows(source: string, columns: number): TextRow[] {
         rows.push(row);
         for (const part of graphemes(line)) {
             let shown = visible(part.segment, column);
-            let size = stringWidth(shown);
+            let size = cellWidth(shown);
             if (size > width) { shown = '?'; size = 1; }
             if (column + size > width) {
                 row = { text: '', points: [{ offset: offset + part.index, column: 0 }] };
                 rows.push(row);
                 column = 0;
                 shown = visible(part.segment, column);
-                size = stringWidth(shown);
+                size = cellWidth(shown);
                 if (size > width) { shown = '?'; size = 1; }
             }
             row.text += shown;
@@ -63,7 +63,7 @@ function selectedRow(row: TextRow, range?: { from: number; to: number }): string
     return graphemes(row.text).map(part => {
         const point = row.points.find(point => point.column === column);
         if (point) offset = point.offset;
-        column += stringWidth(part.segment);
+        column += cellWidth(part.segment);
         return offset >= range.from && offset < range.to
             ? '\x1b[7m' + part.segment + '\x1b[27m' : part.segment;
     }).join('');
@@ -133,7 +133,7 @@ export function notebookFrame(
     importFixFocus?: number,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
-    const gutter = Math.min(Math.max(6, stringWidth(promptLabel)), Math.max(0, width - 1));
+    const gutter = Math.min(Math.max(6, cellWidth(promptLabel)), Math.max(0, width - 1));
     const bodyWidth = Math.max(1, width - gutter);
     const rows: string[] = [];
     const targets: (ScreenTarget | undefined)[] = [];
@@ -166,11 +166,11 @@ export function notebookFrame(
             const liveProgress = live && !editingField && !breakpoint;
             const hiddenFocusedDraft = promptOutputFocus && item.text.trim() === '';
             const steppingNext = nextEval && (stepping || !!promptOutputFocus);
-            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+            const marker = breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
                 : steppingNext ? '    ● '
                 : liveProgress ? '    ● '
-                : item.text.trim() === '' ? '      ' : '    · ')
-                .slice(-gutter || label.length);
+                : item.text.trim() === '' ? '      ' : '    · ';
+            const prefix = fitEnd(marker, gutter || cellWidth(label));
             const progress = promptOutputs?.get(sourceLine);
             const progressColor = progress?.some(output => output.error) ? '\x1b[31m'
                 : progress ? '\x1b[38;5;208m' : '\x1b[90m';
@@ -194,10 +194,9 @@ export function notebookFrame(
                     ...(index === notebook.active ? diagnostics?.get(sourceLine) ?? [] : [])];
                 for (const output of outputs) {
                     const sourceText = cell.source.split('\n')[sourceLine - 1] ?? '';
-                    const indent = stringWidth(/^\s*/.exec(sourceText)?.[0] ?? '');
+                    const indent = cellWidth(/^\s*/.exec(sourceText)?.[0] ?? '');
                     const marker = output.error && gutter > 0
-                        ? (' '.repeat(gutter + indent) + '! ').slice(-(gutter + indent))
-                        : ' '.repeat(gutter + indent);
+                        ? fitEnd('! ', gutter + indent) : ' '.repeat(gutter + indent);
                     const outputWidth = output.error ? Math.min(width, 40) - gutter - indent : bodyWidth - indent;
                     const layout = output.error ? errorRows : editableRows;
                     for (const result of layout(clean(output.inlineText ?? output.text), Math.max(1, outputWidth))) {
@@ -244,7 +243,7 @@ export function notebookFrame(
             // A failed execution describes its original source, not the edited draft.
             if (output.error && cell.executed !== undefined && cell.executed !== cell.source) continue;
             const marker = (output.error || pending) && gutter > 0
-                ? (' '.repeat(gutter) + (output.error ? '! ' : '~ ')).slice(-gutter) : ' '.repeat(gutter);
+                ? fitEnd(output.error ? '! ' : '~ ', gutter) : ' '.repeat(gutter);
             const cleaned = clean(output.inlineText ?? output.text);
             const text = output.error ? importPhrases(cleaned).text : cleaned;
             const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
@@ -260,8 +259,8 @@ export function notebookFrame(
                 const painted = shown.replace(/use\u00a0([\w.-]+)/g, (phrase, module: string, at: number) => {
                     const fix = modules.indexOf(module);
                     if (fix < 0) return phrase;
-                    const from = stringWidth(shown.slice(0, at));
-                    fixes.push({ index: fix, module, from, to: from + stringWidth(phrase) });
+                    const from = cellWidth(shown.slice(0, at));
+                    fixes.push({ index: fix, module, from, to: from + cellWidth(phrase) });
                     if (fix === focused) caret = { row: rows.length, column: from };
                     return (fix === focused ? '\x1b[7m' : '\x1b[4m') + phrase
                         + (fix === focused ? '\x1b[27m' : '\x1b[24m');
@@ -309,11 +308,11 @@ export function notebookFrame(
         status = clipped(status, Math.min(40, width));
         let label = running ? '' : fileStatus;
         if (label && followCursor) {
-            const available = footerWidth - stringWidth(status) - 3;
-            if (stringWidth(label) > available) {
+            const available = footerWidth - cellWidth(status) - 3;
+            if (cellWidth(label) > available) {
                 const separator = label.lastIndexOf(' · ');
                 const state = separator >= 0 ? label.slice(separator) : '';
-                const nameWidth = available - stringWidth(state) - 1;
+                const nameWidth = available - cellWidth(state) - 1;
                 label = nameWidth >= 0 ? (nameWidth > 0 ? clipped(label, nameWidth) : '') + '…' + state
                     : available > 0 ? clipped(state.replace(/^ · /, ''), available) : '';
             }

@@ -1,4 +1,4 @@
-import stringWidth from 'string-width';
+import { cellWidth } from '@arrrank/common/display-width';
 
 const graphemes = new Intl.Segmenter();
 
@@ -6,7 +6,7 @@ const graphemes = new Intl.Segmenter();
 function pinned(text: string): Node {
     const cell = document.createElement('span');
     cell.style.display = 'inline-block';
-    cell.style.width = (stringWidth(text) || 1) + 'ch';
+    cell.style.width = (cellWidth(text) || 1) + 'ch';
     cell.style.textAlign = 'center';
     // The glyph lives in its own span so the fallback font it picks cannot
     // change the `ch` the cell is measured in.
