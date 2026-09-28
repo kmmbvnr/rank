@@ -152,3 +152,21 @@ has a concrete consumer. The retained `ValueFacts.acceptedTypes` and
 representation belongs with the typing policy in #3/#5, where its lifetime and
 unknown-value rules can be specified. These are explicit limits of the
 refactor, not evidence that a future type rule is already implemented.
+
+## Follow-ups after closing #1
+
+The partial and open items above are tracked outside the closed issue. See the
+[post-close review](https://github.com/kmmbvnr/rank/issues/1#issuecomment-5862033534).
+
+- #36: one application-form classifier with exhaustive runtime and analysis
+  dispatch; move the recognizers still private to `interpreter.ts`; remove
+  name checks from `application-facts.ts`, `value-safety.ts` and `types.ts`.
+  Blocks #24, #9, #23 and form changes in #26.
+- #37: `compileExpression`/`prepareStatement` node dispatch, one binding
+  environment for globals and locals, control signals, fast-path selection
+  and module operations in `modules/`. Depends on #36.
+- #3: persistent contracts (`acceptedTypes`, `acceptedArrayRank`, return
+  contract) and the `typeOf`/`expressionFacts` split.
+- #5: explicit bottom instead of `types: []` as the recursion seed, and one
+  join/widening instead of `unionTypes`, `joinValueFacts` and
+  `mergeEnvironments`.
