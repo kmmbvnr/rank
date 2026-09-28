@@ -20,9 +20,9 @@ fun longest_prime_sum Limit
   Count = Primes len
   Prefix = Primes + scan with 0
   Below = Prefix less Limit
-  Length = (Prefix take while Below) len - 1
+  MaxLength = (Prefix take while Below) len - 1
 
-  for Length greater 0
+  for Length in MaxLength to 1 by -1
     LastStart = Count - Length
     for Start in 0 to LastStart
       End = Start + Length
@@ -34,7 +34,6 @@ fun longest_prime_sum Limit
         return Total
       end
     end
-    Length -= 1
   end
   return 0
 end
