@@ -50,20 +50,11 @@ fun message_route Graph Start Target
     return array shape 0 fill 0
   end
 
-  Length = 0
+  Reversed = new queue
   Node = Target
   for Node not equal -1
-    Length += 1
+    Reversed push Node
     Node = Parent Node
   end
-
-  Path = array shape Length fill 0
-  Position = Length - 1
-  Node = Target
-  for Node not equal -1
-    Path Position = Node
-    Position -= 1
-    Node = Parent Node
-  end
-  return Path
+  return Reversed ((Reversed len - 1) to 0 by -1)
 end
