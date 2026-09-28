@@ -1359,7 +1359,7 @@ An undirected tree can be prepared with `Tree Root root`; its postfix
 in the same document. `Tree pathlengths` provides a lazy unordered-pair
 distance sequence with planned exact and bounded-range counts.
 The same module provides closed and open `new dsu` structures with contextual
-`merge`, `find`, and `connected` methods plus `components` and `len` queries.
+`merge`, `findroot`, and `connected` methods plus `components` and `len` queries.
 
 ## Rule for adding library vocabulary
 

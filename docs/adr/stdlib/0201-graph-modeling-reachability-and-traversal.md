@@ -65,7 +65,7 @@ Rank provides an optimized, near-constant time $O(\alpha(N))$ DSU implementation
 ```rank
 Union = new dsu Nodes
 Combined = Union merge A B
-Leader = Union find A
+Leader = Union findroot A
 Same = Union connected A B
 TotalComponents = Union components
 ```

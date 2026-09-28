@@ -77,6 +77,8 @@ describe('the operation catalogue', () => {
                 expect(entry.shape, entry.name).toBeDefined();
             }
             const arities = entry.shape?.map(signature => signature.args.length) ?? [];
+            if (entry.monadicRank !== undefined) expect(arities, entry.name).toContain(1);
+            if (entry.dyadicRanks) expect(arities, entry.name).toContain(2);
             expect(new Set(arities).size, entry.name).toBe(arities.length);
             for (const signature of entry.shape ?? []) {
                 expect(validateShapeSignature(signature), entry.name).toEqual([]);
@@ -109,6 +111,14 @@ describe('the operation catalogue', () => {
             return entry.arities.length === 0 ? words.length !== 1 : at === 0;
         });
         expect(wrong.map(entry => entry.form)).toEqual([]);
+    });
+
+    it('gives every standard-library operation a unique name', () => {
+        const names = operations.map(operation => operation.name);
+        expect(new Set(names).size).toBe(names.length);
+        expect(findOperation('find')?.module).toBe('sequences');
+        expect(findOperation('findroot')?.module).toBe('graph');
+        expect(findOperation('findroot')?.result).toBe('element');
     });
 
     it('finds an entry by name', () => {

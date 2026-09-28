@@ -244,7 +244,7 @@ end
 A = Union merge 1 2
 B = Union merge 2 3
 C = Union merge 1 3
-Root = Union find 3
+Root = Union findroot 3
 array A B C (Union connected 1 3) (Union connected 1 4) Root (Union components) (Union len)
 `)).toBe('true true false true false 1 3 5');
     });
@@ -253,7 +253,7 @@ array A B C (Union connected 1 3) (Union connected 1 4) Root (Union components) 
         expect(run(`${prelude}
 Union = new dsu
 Union merge "a" "b"
-Union find "alone"
+Union findroot "alone"
 array (Union components) (Union len) (Union connected "a" "b")
 `)).toBe('2 3 true');
     });
@@ -261,16 +261,16 @@ array (Union components) (Union len) (Union connected "a" "b")
     it('rejects unknown closed DSU values', () => {
         expect(() => run(`${prelude}
 Union = new dsu (array 1 2)
-Union find 3
+Union findroot 3
 `)).toThrow('dsu does not contain the value');
     });
 
     it('keeps DSU method words contextual', () => {
         expect(run(`
-fun find A B
+fun findroot A B
   return A + B
 end
-3 find 4
+3 findroot 4
 `)).toBe('7');
     });
 

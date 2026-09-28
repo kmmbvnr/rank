@@ -38,6 +38,21 @@ describe('shape signatures', () => {
         expect(apply({ args: [null, ['d']], result: null }, [[4], [2]])).toBeUndefined();
         expect(apply({ args: [[]], result: [] }, [])).toBeUndefined();
     });
+    it('distinguishes unexpressed dimensions from value-dependent dimensions', () => {
+        const uniform: ShapeSignature = { args: [['m', 'n']], result: [null] };
+        const varying: ShapeSignature = { args: [['d']], result: [{ exists: 'k' }] };
+        expect(validate(uniform)).toEqual([]);
+        expect(validate(varying)).toEqual([]);
+        expect(apply(uniform, [[2, 3]])).toEqual([null]);
+        expect(apply(varying, [[3]])).toEqual([null]);
+        expect(uniform.result).toEqual([null]);
+        expect(varying.result).toEqual([{ exists: 'k' }]);
+        expect(validate({ args: [[{ exists: 'k' }]], result: [] }))
+            .toContain('existential dimension in an argument');
+        expect(validate({ args: [['k']], result: [{ exists: 'k' }] }))
+            .toContain('existential shadows input variable k');
+    });
+
     it('rejects invalid catalogue contracts', () => {
         for (const signature of [
             { args: [['n']], result: ['m'] },

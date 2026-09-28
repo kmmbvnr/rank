@@ -22,12 +22,13 @@ static analysis use the same signature instantiator.
 | `['n', 'n']` | Square matrix cell. |
 | `[{ spread: 's' }]` | A whole shape, possibly empty. Fixed axes may surround it. |
 | `[{ add: ['m', 'n'] }]` | One axis of length `m + n`. |
-| `[null]` in a result | One axis with a data-dependent length (an existential dimension). |
+| `[null]` in a result | A shape-determined axis whose length is not expressed by the contract. |
+| `[{ exists: 'k' }]` | An axis whose length depends on values and may differ between cells (Σ). |
 | `null` argument pattern | Any input shape. |
 | `null` result pattern | The result rank also needs value information. |
 
 `sort` declares `{ args: [['d']], result: ['d'] }`; `unique` declares
-`{ args: [['d']], result: [null] }`. `sum` takes the whole input and
+`{ args: [['d']], result: [{ exists: 'k' }] }`. `sum` takes the whole input and
 declares `{ args: [null], result: [] }`. These are metadata literals,
 not Rank source syntax.
 
@@ -40,12 +41,17 @@ Each pattern supports one shape spread. Dimension expressions support
 natural-number literals, variables and addition. Instantiation resolves
 direct bindings and sums with one unknown variable; it does not solve
 general systems of equations. Catalogue tests check the signatures against
-the explicit ranks and legacy shape flags retained during migration.
+the explicit ranks. Legacy shape flags have been removed; native cell ranks
+are read from the catalogue rather than repeated in runtime modules.
 
-An exact builtin result shape avoids evaluating a zero-filled prototype for
-an empty frame. Existential dimensions remain unknown to the analyzer; the
-runtime retains its existing prototype fallback for these cases. Text and
+A declared builtin contract avoids evaluating a zero-filled prototype for
+an empty frame. Unknown result dimensions become zero at runtime and remain
+unknown in analysis. If the result rank is unknown, no cell axes are added.
+Only pure builtins without a contract use a bounded prototype call. Text and
 sequence results retain their existing boxed-cell behavior under lifting.
+
+See the [migration audit](../design/builtin-shape-contracts.md) for coverage,
+accepted differences from the original proposal and remaining work.
 
 ## algo
 
@@ -189,7 +195,7 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 | `Graph Start dijkstra` | record | Shortest distances for nonnegative numeric weights. |
 | `Rooted A B distance` | integer | Edges between two vertices of a rooted tree or functional graph. |
 | `Graph Start euler` | array | Euler trail using every edge once, or an empty array when none exists. |
-| `Dsu Value find` | element | Representative of the disjoint-set component holding a value. |
+| `Dsu Value findroot` | element | Representative of the disjoint-set component holding a value. |
 | `Graph floyd` | record | All-pairs shortest distances addressed Distance From To. |
 | `Next functional` | functional | Successor structure prepared for jump, distance and path queries. |
 | `F Start Steps jump` | integer | Vertex reached after exactly that many successor steps. |

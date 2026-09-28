@@ -254,7 +254,7 @@ export interface GraphEdgesApplication {
 
 export interface DsuMethodApplication {
     readonly receiver: Expression;
-    readonly operation: 'find' | 'merge' | 'connected';
+    readonly operation: 'findroot' | 'merge' | 'connected';
     readonly operationExpression: Expression;
     readonly arguments: readonly Expression[];
 }
@@ -281,7 +281,7 @@ export function explicitFunctionalMethod(
 export function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | undefined {
     if (parts.length !== 3 && parts.length !== 4) return undefined;
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
-    if (operation === 'find' && parts.length === 3) {
+    if (operation === 'findroot' && parts.length === 3) {
         return {
             receiver: parts[0], operation, operationExpression: parts[1],
             arguments: parts.slice(2),
@@ -356,7 +356,7 @@ export function applicationForm(
         if (!isNameExpression(part)) return part;
         const operation = lookup(part.name);
         // Receiver methods keep their contextual meaning even with a same-named function.
-        const contextual = ['add', 'remove', 'find', 'merge', 'connected', 'jump', 'distance',
+        const contextual = ['add', 'remove', 'findroot', 'merge', 'connected', 'jump', 'distance',
             'edges', 'floor', 'ceiling', 'lowerbound', 'upperbound'].includes(part.name);
         const name = operation === false ? (/^[A-Z]/.test(part.name) || contextual ? part.name : '\0' + part.name)
             : operation?.name ?? part.name;

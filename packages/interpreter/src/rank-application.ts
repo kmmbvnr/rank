@@ -219,16 +219,17 @@ export class RankApplication {
 
     /**
      * An empty frame has no cell to call, yet its result keeps the cell axes:
-     * `0 3` rows sorted are still `0 3`. A declared shape wins. Otherwise a
-     * pure builtin runs once on a zero fill cell, as in J, and only the shape
-     * of that result is kept. Unknown shapes return `undefined`.
+     * `0 3` rows sorted are still `0 3`. A declared contract wins, even if
+     * its result rank is unknown. A pure builtin without a shape hook runs
+     * once on a zero fill cell, as in J; only the result shape is kept.
+     * Unknown shapes return `undefined`.
      */
     private emptyFrameCellShape(
         fn: Extract<RankValue, { kind: 'function' }>,
         cellShape: readonly number[],
     ): readonly number[] | undefined {
         const declared = fn.monadicResultShape?.(cellShape);
-        if (declared !== undefined || !this.isPureBuiltin(fn)) return declared;
+        if (fn.monadicResultShape || !this.isPureBuiltin(fn)) return declared;
         const size = arraySize(cellShape);
         if (size > FILL_CELL_LIMIT) return undefined;
         const fill = cellShape.length === 0 ? 0n

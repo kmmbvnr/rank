@@ -26,9 +26,9 @@ it('checks module activation across separate executions without corrupting the s
     expect(formatValue(runtime.execute('7 solve')!)).toBe('7');
 });
 
-it('retains builtin aliases and receiver-method priority', () => {
+it('retains builtin aliases and receiver methods', () => {
     expect(run('Op = sum\n(array 1 2 3) Op')).toBe('6');
-    expect(run('use graph\nfun find A B\n return 99\nend\nD = new dsu (array 1 2)\nD find 1')).toBe('1');
+    expect(run('use graph\nfun find A B\n return 99\nend\nD = new dsu (array 1 2)\nD findroot 1')).toBe('1');
 });
 
 it('checks retained function parameters and nested declarations before opening a module', () => {
@@ -95,4 +95,11 @@ it('checks loop bindings and parameters after a module is already loaded', () =>
     runtime.execute('use stats');
     expect(() => runtime.execute('fun f mean\n return mean\nend'))
         .toThrow('cannot redefine available builtin: mean');
+});
+
+it('keeps DSU findroot and collection find distinct when both modules are open', () => {
+    expect(run('use graph\nuse sequences\nuse text\nD = new dsu (array "a" "b")\nRoot = D findroot "a"\nRoot lower + "!"')).toBe('a!');
+    expect(run('use graph\nuse sequences\n(array "a" "b") "b" find')).toBe('1');
+    expect(run('use graph\nOp = findroot\nD = new dsu (array "a" "b")\nD "a" Op')).toBe('a');
+    expect(() => run('use graph\nD = new dsu (array "a")\nD "a" find')).toThrow('unknown name: find');
 });

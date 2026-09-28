@@ -125,7 +125,7 @@ const IMPLICIT = new Set(['queue', 'set', 'counter', 'index']);
  */
 const METHODS = new Set([
     'add', 'remove', 'sum', 'floor', 'ceiling', 'lowerbound', 'upperbound',
-    'find', 'merge', 'connected', 'jump', 'distance', 'edges',
+    'findroot', 'merge', 'connected', 'jump', 'distance', 'edges',
 ]);
 
 const MODIFIERS = new Set([

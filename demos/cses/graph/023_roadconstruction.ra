@@ -24,13 +24,13 @@ fun road_progress N Roads
 
   for Road i in Roads
     unpack A B = Road
-    RootA = Union find A
-    RootB = Union find B
+    RootA = Union findroot A
+    RootB = Union findroot B
     if RootA not equal RootB
       Combined = Sizes RootA
       Combined += Sizes RootB
       Union merge RootA RootB
-      Root = Union find RootA
+      Root = Union findroot RootA
       Sizes Root = Combined
       Largest = Largest Combined max
     end

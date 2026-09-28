@@ -18,7 +18,7 @@ describe('Rank over an empty frame', () => {
         expect(native('argsort', 1, never).monadicResultShape?.([3])).toEqual([3]);
         expect(native('inverse', 1, never).monadicResultShape?.([3, 3])).toEqual([3, 3]);
         expect(native('det', 1, never).monadicResultShape?.([3, 3])).toEqual([]);
-        expect(native('unique', 1, never).monadicResultShape?.([3])).toBeUndefined();
+        expect(native('unique', 1, never).monadicResultShape?.([3])).toEqual([0]);
         expect(native('inverse', 1, never).monadicResultShape?.([2, 3])).toBeUndefined();
     });
 
@@ -29,7 +29,13 @@ describe('Rank over an empty frame', () => {
     });
 
     it('keeps the rank of data-dependent builtin results', () => {
-        expect(shape('M = array shape 0 3 fill 1\nR = M unique rank 1')).toBe('0 1');
+        expect(shape('M = array shape 0 3 fill 1\nR = M unique rank 1')).toBe('0 0');
+    });
+
+    it('uses zero existential axes even above the fill-cell limit', () => {
+        expect(shape('M = array shape 0 100000 fill 1\nR = M unique')).toBe('0 0');
+        expect(shape('M = array shape 0 0 fill 1\nR = M unique')).toBe('0 0');
+        expect(shape('M = array shape 0 2 3 fill 1\nR = M transpose rank 2')).toBe('0 3 2');
     });
 
     it('uses the cell shape of explicit frame axes', () => {

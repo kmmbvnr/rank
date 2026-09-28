@@ -249,8 +249,8 @@ function transferApplicationFacts(
                 elements: ['real'], callbackFreeScalarCells: true };
         }
     }
-    if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'find'
-        && lookup('find') === undefined && source.types.join() === 'dsu' && source.elements?.length) {
+    if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'findroot'
+        && lookup('findroot') === undefined && source.types.join() === 'dsu' && source.elements?.length) {
         return stableRecordField({ types: source.elements });
     }
     if (parts.length === 2 && source.types.join() === 'graph' && source.elements?.length
@@ -299,10 +299,10 @@ function transferApplicationFacts(
         }
     }
     const sortDirection = form.kind === 'sort-direction' ? form : undefined;
-    if (parts.length === 3 && sortDirection && sortDirection.operation === findOperation('sort')
+    if (parts.length === 3 && sortDirection
         && isLabelLiteral(sortDirection.direction)
         && (sortDirection.direction.name === 'ascending' || sortDirection.direction.name === 'descending')) {
-        const sorted = sortedScalarArray(source);
+        const sorted = sortDirection.operation.name === 'sort' && sortedScalarArray(source);
         if (sorted) return sorted;
         const shaped = operationShapeFacts(sortDirection.operation, [source]);
         if (shaped) return shaped;
@@ -323,7 +323,8 @@ function transferApplicationFacts(
         const arity = unaryTail ? 1 : parts.length - 1;
         if (operation?.arities.includes(arity)) {
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
-            const shaped = operationShapeFacts(operation, operands);
+            const shaped = operation.sortDirection && arity === 2 ? undefined
+                : operationShapeFacts(operation, operands);
             if (arity === 1 && last.name === 'eigh' && source.types.join() === 'array'
                 && source.rank === 2 && source.shape?.length === 2
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)
@@ -365,7 +366,7 @@ function transferApplicationFacts(
             if (arity === 1 && last.name === 'components' && source.types.join() === 'dsu') {
                 return { types: ['integer'], rank: 0, shape: [] };
             }
-            if (arity === 2 && last.name === 'find' && source.types.join() === 'dsu'
+            if (arity === 2 && operation.name === 'findroot' && source.types.join() === 'dsu'
                 && source.elements?.length) {
                 return stableRecordField({ types: source.elements });
             }

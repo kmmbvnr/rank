@@ -1,5 +1,6 @@
-/** A null dimension is existential: its size is not determined by input shapes. */
-export type ShapeDimension = number | string | null | { readonly add: readonly (number | string)[] };
+/** null is an unexpressed dimension; exists explicitly marks dependence on values. */
+export type ShapeDimension = number | string | null
+    | { readonly add: readonly (number | string)[] } | { readonly exists: string };
 export type ShapeTerm = ShapeDimension | { readonly spread: string };
 /** At most one spread per pattern; fixed dimensions can precede or follow it. */
 export type ShapePattern = readonly ShapeTerm[];
@@ -31,6 +32,12 @@ export function validateShapeSignature(signature: ShapeSignature): readonly stri
         if (value.filter(spread).length > 1) errors.push('multiple spreads in one pattern');
         for (const term of value) {
             if (spread(term)) { variable(term.spread, 'shape', result); continue; }
+            if (term !== null && typeof term === 'object' && 'exists' in term) {
+                if (!result) errors.push('existential dimension in an argument');
+                if (!/^[a-z][a-z0-9]*$/i.test(term.exists)) errors.push(`invalid variable ${term.exists}`);
+                if (variables.has(term.exists)) errors.push(`existential shadows input variable ${term.exists}`);
+                continue;
+            }
             const terms = term !== null && typeof term === 'object' ? term.add : [term];
             if (terms.length === 0) errors.push('empty dimension sum');
             for (const dim of terms) {
@@ -84,7 +91,8 @@ export function instantiateShapeSignature(
                 if (n === null || term === null) continue;
                 if (typeof term === 'number') { if (term !== n) return; }
                 else if (typeof term === 'string') { if (!bind(term, n)) return; }
-                else equations.push([term, n]);
+                else if ('add' in term) equations.push([term, n]);
+                else return;
             }
         }
     }
@@ -93,7 +101,7 @@ export function instantiateShapeSignature(
     while (changed) {
         changed = false;
         for (const [expression, expected] of equations) {
-            if (expression === null || typeof expression !== 'object') continue;
+            if (expression === null || typeof expression !== 'object' || !('add' in expression)) continue;
             let constant = 0;
             const unknown = new Map<string, number>();
             for (const term of expression.add) {
@@ -117,6 +125,8 @@ export function instantiateShapeSignature(
             const value = shapes.get(term.spread);
             if (!value) return;
             result.push(...value);
+        } else if (term !== null && typeof term === 'object' && 'exists' in term) {
+            result.push(null);
         } else if (term !== null && typeof term === 'object') {
             const values = term.add.map(n => typeof n === 'number' ? n : dimensions.get(n));
             const value = values.every(n => n !== undefined) ? (values as number[]).reduce((a, b) => a + b, 0) : null;

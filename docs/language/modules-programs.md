@@ -49,8 +49,8 @@ Function aliases are allowed. `Op = matmul` retains builtin operation identity,
 including forms such as `A B Op axis 1 0`. Reassigning an alias to another
 function requires the next call to resolve that identity again.
 
-Receiver methods keep their contextual dispatch. `Dsu find X` calls the DSU
-method when `Dsu` is a DSU. For another receiver it resolves `find` as an
+Receiver methods keep their contextual dispatch. `Dsu findroot X` calls the DSU
+method when `Dsu` is a DSU. For another receiver it resolves `findroot` as an
 ordinary function. A user function with that spelling is legal only while the
 module supplying the builtin name remains unopened.
 

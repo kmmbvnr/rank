@@ -950,8 +950,8 @@ Function aliases are allowed. `Op = matmul` retains builtin operation identity,
 including forms such as `A B Op axis 1 0`. Reassigning an alias to another
 function requires the next call to resolve that identity again.
 
-Receiver methods keep their contextual dispatch. `Dsu find X` calls the DSU
-method when `Dsu` is a DSU. For another receiver it resolves `find` as an
+Receiver methods keep their contextual dispatch. `Dsu findroot X` calls the DSU
+method when `Dsu` is a DSU. For another receiver it resolves `findroot` as an
 ordinary function. A user function with that spelling is legal only while the
 module supplying the builtin name remains unopened.
 
@@ -4105,17 +4105,17 @@ starts with a finite rank-1 collection and rejects unknown values:
 ```rank
 Union = new dsu Nodes
 Union merge A B
-Root = Union find A
+Root = Union findroot A
 Same = Union connected A B
 Count = Union components
 ```
 
 `merge` uses union by size and returns true only when it combines two previous
-components. `find` returns the representative value selected by the structure;
+components. `findroot` returns the representative value selected by the structure;
 `connected` compares representatives. `components` returns the current number
 of components, while `len` returns the number of registered values.
 
-`new dsu` without a collection creates an open DSU. `find`, `merge`, and
+`new dsu` without a collection creates an open DSU. `findroot`, `merge`, and
 `connected` register unknown scalar values before answering. DSU values may be
 integer, real, boolean, text, or symbols, like graph vertices. The method words
 dispatch only when their receiver is a DSU and remain available to ordinary
@@ -6630,7 +6630,7 @@ An undirected tree can be prepared with `Tree Root root`; its postfix
 rooted-tree rules above. `Tree pathlengths` provides a lazy unordered-pair
 distance sequence with planned exact and bounded-range counts.
 The same module provides closed and open `new dsu` structures with contextual
-`merge`, `find`, and `connected` methods plus `components` and `len` queries.
+`merge`, `findroot`, and `connected` methods plus `components` and `len` queries.
 
 ## Rule for adding library vocabulary
 

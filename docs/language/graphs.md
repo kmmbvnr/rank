@@ -111,17 +111,17 @@ starts with a finite rank-1 collection and rejects unknown values:
 ```rank
 Union = new dsu Nodes
 Union merge A B
-Root = Union find A
+Root = Union findroot A
 Same = Union connected A B
 Count = Union components
 ```
 
 `merge` uses union by size and returns true only when it combines two previous
-components. `find` returns the representative value selected by the structure;
+components. `findroot` returns the representative value selected by the structure;
 `connected` compares representatives. `components` returns the current number
 of components, while `len` returns the number of registered values.
 
-`new dsu` without a collection creates an open DSU. `find`, `merge`, and
+`new dsu` without a collection creates an open DSU. `findroot`, `merge`, and
 `connected` register unknown scalar values before answering. DSU values may be
 integer, real, boolean, text, or symbols, like graph vertices. The method words
 dispatch only when their receiver is a DSU and remain available to ordinary

@@ -21,10 +21,10 @@ export function native(
     // Text and sequences are boxed result cells in ranked assembly. Their
     // logical shape must not be appended as tensor axes.
     const tensorResult = operation && !['text', 'sequence'].includes(operation.result);
-    const resultShape = signature && tensorResult
+    const resultShape = signature
         ? (cellShape: readonly number[]): readonly number[] | undefined => {
             const result = instantiateShapeSignature(signature, [cellShape]);
-            return result?.every(n => n !== null) ? result as readonly number[] : undefined;
+            return tensorResult ? result?.map(n => n ?? 0) : [];
         } : undefined;
     return {
         kind: 'function',

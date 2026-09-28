@@ -230,15 +230,15 @@ it('distinguishes dsu components from graph components and tracks closed dsu val
     expect(dsu).toEqual({ types: ['dsu'], elements: ['integer'] });
     const bindings = new Map<string, ValueFacts>([['Union', dsu]]);
     expect(facts('Union components', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('Union find 2', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Union findroot 2', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('new dsu components')).toEqual({ types: ['integer'], rank: 0, shape: [] });
     const words = facts('new dsu (array "a" "b")');
-    expect(facts('Words find "a"', new Map([['Words', words]])))
+    expect(facts('Words findroot "a"', new Map([['Words', words]])))
         .toEqual({ types: ['text'], rank: 1, shape: [null] });
     const mixed = facts('new dsu (array 1 "x")');
-    expect(facts('Mixed find 1', new Map([['Mixed', mixed]])))
+    expect(facts('Mixed findroot 1', new Map([['Mixed', mixed]])))
         .toEqual({ types: ['integer', 'text'] });
-    expect(facts('Union find 2', new Map([['Union', { types: ['dsu'] }]])))
+    expect(facts('Union findroot 2', new Map([['Union', { types: ['dsu'] }]])))
         .toEqual({ types: [] });
 });
 
@@ -995,7 +995,6 @@ it('uses cell signatures for explicit ranks and reordered frame axes', () => {
     expect(facts('A B atan2', bindings).shape).toBeUndefined();
 });
 
-
 it('keeps collection kinds without inventing dimensions or callback proofs', () => {
     expect(facts('Values 2 round', new Map([['Values', { types: ['array'], elements: ['real'] }]])))
         .toEqual({ types: ['array'], elements: ['real'] });
@@ -1005,4 +1004,13 @@ it('keeps collection kinds without inventing dimensions or callback proofs', () 
         ['A', { types: ['integer'], rank: 0, shape: [] }],
         ['B', { types: ['integer'], rank: 0, shape: [] }],
     ]))).toEqual({ types: ['integer'], rank: 0, shape: [] });
+});
+
+it('keeps collection search and DSU findroot contracts separate', () => {
+    expect(facts('X Y find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1 2) 1 find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    const bindings = new Map<string, ValueFacts>([['D', { types: ['dsu'], elements: ['text'] }]]);
+    expect(facts('D "a" findroot', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
+    bindings.set('Op', { types: [], builtinOperation: 'findroot' });
+    expect(facts('D "a" Op', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
 });

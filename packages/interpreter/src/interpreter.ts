@@ -2617,7 +2617,7 @@ export class Interpreter {
                     ));
                     if (isRankDsu(receiver)) {
                         interpreter.requireModule('graph', dsuMethod.operation);
-                        if (dsuMethod.operation === 'find') return receiver.find(arguments_[0]);
+                        if (dsuMethod.operation === 'findroot') return receiver.find(arguments_[0]);
                         if (dsuMethod.operation === 'merge') {
                             return receiver.merge(arguments_[0], arguments_[1]);
                         }
