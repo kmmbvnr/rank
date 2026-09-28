@@ -33,8 +33,7 @@ fun shortest Graph NodeCount
   Pending 0 Item enqueue
 
   for Pending len greater 0
-    Item = Pending pop
-    unpack Current Distance = Item
+    unpack Current Distance = Pending pop
     if Distance not equal Dist Current
       continue
     end
@@ -44,8 +43,8 @@ fun shortest Graph NodeCount
       Candidate = Distance + Cost
       if Candidate less Dist Next
         Dist Next = Candidate
-        Item = array Next Candidate
-        Pending Candidate Item enqueue
+        NextItem = array Next Candidate
+        Pending Candidate NextItem enqueue
       end
     end
   end
