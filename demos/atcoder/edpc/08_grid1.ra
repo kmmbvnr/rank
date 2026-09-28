@@ -15,37 +15,25 @@ rem Count right/down paths from the top-left to the bottom-right, skipping
 rem walls, modulo 1e9+7.
 fun path_count Grid
   H = Grid len
-  FirstRow = Grid 0
-  W = FirstRow len
+  W = (Grid 0) len
   Ways = array shape H W fill 0
 
   for Row R in Grid
     for Cell C in Row
-      Wall = Cell equal "#"
-      TopRow = R equal 0
-      LeftCol = C equal 0
-      Start = TopRow and LeftCol
+      if Cell equal "#"
+        continue
+      end
 
-      if Wall
-        Ways R C = 0
-      elif Start
-        Ways R C = 1
+      if R equal 0 and C equal 0
+        Ways 0 0 = 1
       else
         Total = 0
-        HasUp = R greater 0
-        HasLeft = C greater 0
-
-        if HasUp
-          Up = R - 1
-          FromAbove = Ways Up C
-          Total += FromAbove
+        if R greater 0
+          Total += Ways (R - 1) C
         end
-        if HasLeft
-          Left = C - 1
-          FromLeft = Ways R Left
-          Total += FromLeft
+        if C greater 0
+          Total += Ways R (C - 1)
         end
-
         Ways R C = Total % 1000000007
       end
     end
