@@ -33,21 +33,18 @@ fun hamiltonian_flights N Edges
   Ways 1 0 = 1
   for Mask in 3 until States by 2
     HasLast = Mask Last bit
-    Incomplete = Mask not equal Full
-    if HasLast and Incomplete
+    if HasLast and Mask not equal Full
       continue
     end
     for City in 1 until N
-      if Mask City bit equal false
+      if not Mask City bit
         continue
       end
       Bit = 1 City shl
       Before = Mask Bit bxor
-      Total = 0
-      for Previous in Back City
-        Total += Ways Before Previous
-      end
-      Ways Mask City = Total % Modulus
+      Prevs = Back City
+      Incoming = Ways Before Prevs
+      Ways Mask City = Incoming sum % Modulus
     end
   end
   return Ways Full Last
