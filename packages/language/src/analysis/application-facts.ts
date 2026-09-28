@@ -19,8 +19,8 @@ function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
     if (source.types.join() !== 'array' || source.rank !== 1 || !source.shape
         || !(source.eagerScalarCells || source.callbackFreeScalarCells)
         || !source.elements?.length || !source.elements.every(type => type === 'integer' || type === 'real')) return;
-    return { types: ['array'], rank: 1, shape: source.shape,
-        elements: source.elements, eagerScalarCells: true };
+    const shaped = operationShapeFacts(findOperation('sort')!, [source]);
+    return shaped ? { ...shaped, elements: source.elements, eagerScalarCells: true } : undefined;
 }
 
 /** Transfer facts through a flattened application and its standard-operation contract. */
