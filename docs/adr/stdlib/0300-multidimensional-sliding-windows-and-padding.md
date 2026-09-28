@@ -64,7 +64,7 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
 
 - `with` sets the border value; it defaults to integer zero:
   ```rank
-  Peaks = Matrix WindowShape window padding 1 with (-infinity)
+  Peaks = Matrix WindowShape window padding 1 with -infinity
   ```
   The value must be a single value, and `with` is valid only directly after
   `padding`. Padding stays `stride`, `padding`, `axis` in that order.

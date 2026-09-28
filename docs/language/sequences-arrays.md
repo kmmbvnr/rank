@@ -273,11 +273,11 @@ inserts integer zero, or the `with` value, outside the source; text, queues and 
 support stride.
 
 `with` after `padding` replaces the zero border with any single value, so a
-border can be neutral for the reduction that follows. Parenthesize a negative
-value:
+border can be neutral for the reduction that follows. A negative value needs no
+parentheses:
 
 ```rank
-Above = M WindowShape window padding 1 with (-infinity)
+Above = M WindowShape window padding 1 with -infinity
 Below = M WindowShape window padding 1 with infinity
 ```
 

@@ -123,6 +123,8 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run(source + 'A -1 shift')).toBe('2 3 4 0');
         expect(run(source + 'A -1 shift with 9')).toBe('2 3 4 9');
         expect(run(source + 'Y = -1\nA Y shift')).toBe('2 3 4 0');
+        expect(run(source + 'A 1 shift with -100')).toBe('-100 1 2 3');
+        expect(run(source + 'B = A 2 window padding 1 with -5\nB shape')).toBe('5 2');
         expect(run(source + 'X - 1')).toBe('4');
         expect(run(source + 'X-1')).toBe('4');
         expect(run(source + 'X- 1')).toBe('4');

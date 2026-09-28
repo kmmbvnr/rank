@@ -149,7 +149,15 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 const parts = flatten(signed[0].value);
                 const negated = { $type: 'UnaryExpression', operator: '-', operand: parts[0],
                     $cstNode: parts[0].$cstNode } as Expression;
-                const [head, ...rest] = tokens(expression.left);
+                const left = tokens(expression.left);
+                const final = left.at(-1);
+                if (final?.kind === 'call') {
+                    // `A 1 shift with -100`: the sign belongs to the last argument of that call.
+                    return [...left.slice(0, -1),
+                        { ...final, parts: [...final.parts, negated, ...parts.slice(1)] },
+                        ...signed.slice(1)];
+                }
+                const [head, ...rest] = left;
                 if (head && !rest.length && head.kind === 'value') {
                     return [{ kind: 'value', value: application([...flatten(head.value), negated, ...parts.slice(1)], expression) },
                         ...signed.slice(1)];

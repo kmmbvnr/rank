@@ -460,7 +460,7 @@ describe('Rank expressions and sequences', () => {
             'use sequences',
             'use numbers',
             'A = array 1 2 3',
-            'B = A 3 window padding 1 with (-infinity)',
+            'B = A 3 window padding 1 with -infinity',
             'B max rank 1',
         ].join('\n'))).toBe('2 3 3');
         expect(() => run([

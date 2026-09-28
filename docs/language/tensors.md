@@ -298,7 +298,7 @@ value per selected axis. Strides are positive, padding is nonnegative, and the
 defaults are one and zero. When `axis` is also present it follows these
 modifiers. Padding is available for arrays and inserts integer zero beyond the
 source boundary; `padding 1 with V` inserts `V` instead, for example
-`with (-infinity)` before a `max` reduction. Position axes use the usual
+`with -infinity` before a `max` reduction. Position axes use the usual
 convolution formula `max(0, floor((N + 2*P - W) / S) + 1)`.
 
 ## Shifting along an axis
