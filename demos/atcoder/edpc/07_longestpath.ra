@@ -25,17 +25,12 @@ fun longest_path Graph N
   Sorted = Graph topological
 
   for Current in Sorted .order
+    Candidate = Distance Current + 1
     for Next in Graph Current
-      Prior = Distance Current
-      Candidate = Prior + 1
       Existing = Distance Next
-
-      if Candidate greater Existing
-        Distance Next = Candidate
-      end
+      Distance Next = Existing Candidate max
     end
   end
 
-  Peak = Distance max
-  return Peak - 1
+  return Distance max - 1
 end
