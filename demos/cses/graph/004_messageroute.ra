@@ -56,5 +56,6 @@ fun message_route Graph Start Target
     Reversed push Node
     Node = Parent Node
   end
-  return Reversed ((Reversed len - 1) to 0 by -1)
+  Last = Reversed len - 1
+  return Reversed (Last to 0 by -1)
 end
