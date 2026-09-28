@@ -32,7 +32,7 @@ export const numbersModule: RuntimeModule = {
         const value = expectNumeric(arguments_[0]);
         if (typeof value === 'bigint') return absolute(value);
         return value < 0 ? -value : value === 0 ? 0 : value;
-    }, 0),
+    }),
     sin: () => unaryMath('sin', Math.sin, finiteDomain),
     cos: () => unaryMath('cos', Math.cos, finiteDomain),
     tan: () => unaryMath('tan', Math.tan, finiteDomain),
@@ -44,7 +44,7 @@ export const numbersModule: RuntimeModule = {
         arguments_[1],
         'atan2',
         (left, right) => Math.atan2(numericReal(left, 'atan2'), numericReal(right, 'atan2')),
-    ), 'all', [0, 0]),
+    )),
     sinh: () => unaryMath('sinh', Math.sinh),
     cosh: () => unaryMath('cosh', Math.cosh),
     tanh: () => unaryMath('tanh', Math.tanh),
@@ -57,14 +57,14 @@ export const numbersModule: RuntimeModule = {
             throw new RankError('sqrt expects a nonnegative value', 'DomainError');
         }
         return Math.sqrt(Number(value));
-    }, 0),
+    }),
     isqrt: () => native('isqrt', 1, arguments_ => {
         const value = expectInteger(arguments_[0]);
         if (value < 0n) {
             throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
         }
         return integerSquareRoot(value);
-    }, 0),
+    }),
     log: () => unaryMath(
         'log',
         Math.log,
@@ -87,7 +87,7 @@ export const numbersModule: RuntimeModule = {
         arguments_[1],
         'binomial',
         (left, right) => exactBinomial(expectInteger(left), expectInteger(right)),
-    ), 'all', [0, 0]),
+    )),
     binomialmod: () => native('binomialmod', 3, arguments_ => modularBinomial(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
@@ -279,7 +279,7 @@ export function numericExtreme(
             throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
         }
         return result;
-    }, 'all', [0, 0]);
+    });
 }
 
 /** Sum integers without a generic numeric callback on every element.

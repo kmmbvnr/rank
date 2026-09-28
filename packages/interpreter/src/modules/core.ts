@@ -34,8 +34,8 @@ export const coreModule: RuntimeModule = {
         text: arguments_ => new ByteArray(encoder.encode(arguments_[0] as string)),
         bytes: arguments_ => arguments_[0],
     }),
-    integer: () => native('integer', 1, ([value]) => integerValue(value), 1),
-    real: () => native('real', 1, ([value]) => realValue(value), 1),
+    integer: () => native('integer', 1, ([value]) => integerValue(value)),
+    real: () => native('real', 1, ([value]) => realValue(value)),
     text: () => native('text', 1, ([value]) => {
         if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {
             throw new RankError('text expects a scalar value', 'TypeError');

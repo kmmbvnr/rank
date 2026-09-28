@@ -15,13 +15,11 @@ export const linalgModule: RuntimeModule = {
         'det',
         1,
         arguments_ => determinant(arguments_[0]),
-        2,
     ),
     inverse: () => native(
         'inverse',
         1,
         arguments_ => inverseMatrix(arguments_[0]),
-        2,
     ),
     matmul: () => native(
         'matmul',

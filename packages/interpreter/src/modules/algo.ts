@@ -48,7 +48,7 @@ export const algoModule: RuntimeModule = {
             const [left, right] = missingBounds(arguments_[1]);
             return expectWavelet(arguments_[0], 'missing')
                 .missing(left, right);
-        }, 'all', ['all', 1],
+        },
     ),
     segment: () => native('segment', 2, () => {
         throw new RankError('segment must follow a binary operation');
@@ -97,7 +97,7 @@ export const algoModule: RuntimeModule = {
                 yield* permute(input);
             },
         });
-    }, 1),
+    }),
     combinations: () => native('combinations', 2, arguments_ => {
         const input = combinationInput(arguments_[0]);
         const countValue = expectInteger(arguments_[1]);

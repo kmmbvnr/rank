@@ -54,7 +54,7 @@ export const datesModule: RuntimeModule = {
             throw new RankError('seconds expects a duration', 'TypeError');
         }
         return value.seconds;
-    }, 0),
+    }),
     calendar: () => native('calendar', [2, 3], values => {
         const [startValue, endValue] = values.slice(-2);
         const start = parseDate(startValue);
@@ -121,7 +121,7 @@ function component(
         }
         if (!isRankDate(value)) throw new RankError(`${name} expects a date or datetime`, 'TypeError');
         return read(value);
-    }, 0);
+    });
 }
 
 function timeComponent(name: string, read: (value: RankDateTime) => bigint): RankValue {
@@ -130,7 +130,7 @@ function timeComponent(name: string, read: (value: RankDateTime) => bigint): Ran
             throw new RankError(`${name} expects a datetime`, 'TypeError');
         }
         return read(value);
-    }, 0);
+    });
 }
 
 function mapDates(value: RankValue, name: string, parse: (value: RankValue) => RankValue): RankValue {

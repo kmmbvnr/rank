@@ -53,16 +53,15 @@ export const sequencesModule: RuntimeModule = {
         || arguments_[0] instanceof RankPersistentSumSegment
             ? arguments_[0].copy()
             : copyArray(arguments_[0])),
-    sort: () => native('sort', [1, 2], arguments_ => sortValue(arguments_[0]), 1),
+    sort: () => native('sort', [1, 2], arguments_ => sortValue(arguments_[0])),
     argsort: () => native(
         'argsort',
         [1, 2],
         arguments_ => argsortValue(arguments_[0]),
-        1,
     ),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
     unique: () => native('unique', 1, arguments_ => isRankSqliteTable(arguments_[0])
-        ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0]), 1),
+        ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0])),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
     all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),

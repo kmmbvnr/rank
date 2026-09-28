@@ -6,7 +6,6 @@ import { mapSequence } from '../sequence.js';
 import {
     isRankArray,
     isRankSequence,
-    type IntrinsicRank,
     type NativeFunction,
     type RankValue,
 } from '../value.js';
@@ -15,9 +14,6 @@ export function native(
     name: string,
     arity: number | readonly number[],
     call: (arguments_: RankValue[]) => RankValue,
-    monadicRank: IntrinsicRank = 'all',
-    dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank],
-    monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined,
 ): NativeFunction {
     const arities = typeof arity === 'number' ? [arity] : arity;
     const operation = findOperation(name);
@@ -25,18 +21,18 @@ export function native(
     // Text and sequences are boxed result cells in ranked assembly. Their
     // logical shape must not be appended as tensor axes.
     const tensorResult = operation && !['text', 'sequence'].includes(operation.result);
-    const resultShape = monadicResultShape ?? (signature && tensorResult
+    const resultShape = signature && tensorResult
         ? (cellShape: readonly number[]): readonly number[] | undefined => {
             const result = instantiateShapeSignature(signature, [cellShape]);
             return result?.every(n => n !== null) ? result as readonly number[] : undefined;
-        } : undefined);
+        } : undefined;
     return {
         kind: 'function',
         name,
         arities,
-        monadicRank,
+        monadicRank: operation?.monadicRank ?? 'all',
         monadicResultShape: resultShape,
-        dyadicRanks,
+        dyadicRanks: operation?.dyadicRanks,
         call(arguments_) {
             if (!arities.includes(arguments_.length)) {
                 throw new RankError(
