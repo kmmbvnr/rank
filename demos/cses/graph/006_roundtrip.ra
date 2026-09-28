@@ -56,11 +56,7 @@ fun find_cycle Graph NodeCount
         Path push Next
 
         Length = Path len
-        Cycle = array shape Length fill 0
-        for City i in Path
-          Cycle i = City
-        end
-        return Cycle
+        return Path (0 until Length)
       end
     end
 
