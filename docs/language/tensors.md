@@ -301,6 +301,20 @@ source boundary; `padding 1 with V` inserts `V` instead, for example
 `with (-infinity)` before a `max` reduction. Position axes use the usual
 convolution formula `max(0, floor((N + 2*P - W) / S) + 1)`.
 
+## Shifting along an axis
+
+`shift` moves the items of a tensor along one axis and keeps the shape:
+
+```rank
+Down = M 1 shift
+Right = M 1 shift with 9 axis 1
+Up = M (-1) shift axis 0
+```
+
+A positive count moves items toward higher positions and vacated positions read
+integer zero or the `with` value. The axis defaults to zero and follows `with`.
+The result is a lazy, read-only view.
+
 ## Rank-based application
 
 The same `rank` mechanism used for arrays applies to tensor cells:

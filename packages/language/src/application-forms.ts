@@ -330,6 +330,7 @@ export type ApplicationForm =
     | Recognized<'axis-quantile', typeof explicitAxisQuantile>
     | Recognized<'lower-bound', typeof explicitLowerBoundApplication>
     | Recognized<'axis-window', typeof explicitAxisWindow>
+    | Recognized<'axis-shift', typeof explicitAxisShift>
     | Recognized<'axis-shuffle', typeof explicitAxisShuffle>
     | Recognized<'axis-length', typeof explicitAxisLength>
     | Recognized<'axis-argsort', typeof explicitAxisArgsort>
@@ -417,6 +418,8 @@ function classifyParts(parts: Expression[]): ApplicationForm {
     if (form6) return { ...form6, kind: 'lower-bound' };
     const form7 = explicitAxisWindow(parts);
     if (form7) return { ...form7, kind: 'axis-window' };
+    const formShift = explicitAxisShift(parts);
+    if (formShift) return { ...formShift, kind: 'axis-shift' };
     const form8 = explicitAxisShuffle(parts);
     if (form8) return { ...form8, kind: 'axis-shuffle' };
     const form9 = explicitAxisLength(parts);
@@ -703,6 +706,30 @@ function explicitComparisonRank(expression: Expression): ComparisonRank | undefi
     return { operator: expression.operator, left: operands[0], right: operands[1], rank, axes };
 }
 
+
+/** `Values Count shift [with Fill] [axis K]`; the bare form is an ordinary operation. */
+function explicitAxisShift(
+    parts: Expression[],
+): { source: Expression; amount: Expression; fill?: Expression; axis?: number } | undefined {
+    if (parts.length < 5 || !isNamed(parts[2], 'shift')) return undefined;
+    let position = 3;
+    let fill: Expression | undefined;
+    let axis: number | undefined;
+    if (isNamed(parts[position], 'with')) {
+        fill = parts[position + 1];
+        if (!fill) return undefined;
+        position += 2;
+    }
+    if (isNamed(parts[position], 'axis')) {
+        if (position + 2 !== parts.length) {
+            throw new ApplicationSyntaxError('shift axis expects exactly one axis');
+        }
+        axis = literalDimension(integerLiteral(parts[position + 1], 'shift axis'), 'shift axis');
+        position += 2;
+    }
+    if (position !== parts.length || (!fill && axis === undefined)) return undefined;
+    return { source: parts[0], amount: parts[1], fill, axis };
+}
 
 interface AxisWindowApplication {
     readonly source: Expression;

@@ -529,6 +529,33 @@ export function windowValue(
     );
 }
 
+/** Move items along one axis of an array; vacated positions read the fill value. */
+export function shiftValue(
+    source: RankValue,
+    amountValue: RankValue,
+    fillValue: RankValue = 0n,
+    axis = 0,
+): RankValue {
+    if (typeof amountValue !== 'bigint') throw new RankError('shift amount must be an integer');
+    if (isRankArray(fillValue) || isRankSequence(fillValue) || isRankQueue(fillValue)) {
+        throw new RankError('shift fill must be a single value');
+    }
+    if (!isRankArray(source)) throw new RankError('shift expects an array');
+    if (!Number.isSafeInteger(axis) || axis < 0 || axis >= source.shape.length) {
+        throw new RankError(`shift axis out of bounds: ${axis}`);
+    }
+    const amount = Number(amountValue);
+    if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
+    const shape = source.shape;
+    return derivedArray(shape, [source], linear => {
+        const coordinates = arrayCoordinates(shape, linear);
+        coordinates[axis] -= amount;
+        if (coordinates[axis] < 0 || coordinates[axis] >= shape[axis]) return fillValue;
+        const offset = arrayOffset(shape, coordinates);
+        return source.itemAt?.(offset) ?? source.items[offset];
+    });
+}
+
 function windowWidths(value: RankValue): number[] {
     const values = typeof value === 'bigint'
         ? [value]

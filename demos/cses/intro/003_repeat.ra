@@ -2,6 +2,7 @@ rem CSES 1069: Repetitions
 rem https://cses.fi/problemset/task/1069
 
 use io
+use sequences
 
 Text = stdin .word
 
@@ -10,20 +11,12 @@ Text longest print
 
 rem Find the longest run of one repeated character.
 fun longest Text
-  Prev = Text 0
-  Run = 0
-  Best = 0
-
-  for C in Text
-    if C equal Prev
-      Run += 1
-    else
-      Prev = C
-      Run = 1
-    end
-
-    Best = Best Run max
-  end
-
-  return Best
+  Chars = Text 1 window array
+  Previous = Chars 1 shift with ""
+  Changes = Chars not equal Previous
+  Starts = Changes indices
+  Total = Text len
+  Ends = Starts (-1) shift with Total
+  Runs = Ends - Starts
+  return Runs max
 end

@@ -287,6 +287,30 @@ For source length `N`, window width `W`, stride `S` and padding `P`, the
 position-axis length is `max(0, floor((N + 2*P - W) / S) + 1)`. Windows remain
 lazy, read-only views of their source and the conceptual padding border.
 
+## Shifting along an axis
+
+`shift` moves the items of an array along one axis and keeps the shape, so an
+item can be compared with its neighbor without index arithmetic:
+
+```rank
+Previous = Values 1 shift
+Rises = Values greater Previous
+```
+
+A positive count moves items toward higher positions; a negative count, written
+in parentheses, moves them toward lower positions. Positions left empty read
+integer zero. `with` supplies another single value and `axis` selects the axis,
+zero by default. `axis` follows `with`:
+
+```rank
+Ends = Starts (-1) shift with Total
+Down = M 1 shift axis 0
+Right = M 1 shift with 9 axis 1
+```
+
+Unlike `window`, `shift` never changes the length of an axis. It is available
+for arrays and is a lazy, read-only view of its source.
+
 ## Shape and size
 
 An atom has shape `[]`. A finite sequence has shape `[Size]`. A tensor stores a

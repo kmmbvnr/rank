@@ -606,6 +606,9 @@ export const operations: readonly Operation[] = [
     { name: 'window', module: 'sequences', arities: [2], form: 'Values Width window',
         result: 'array', lazy: true,
         summary: 'Overlapping complete cells of that size, with optional stride, padding and padding value.' },
+    { name: 'shift', module: 'sequences', arities: [2], form: 'Values Count shift',
+        result: 'array', lazy: true,
+        summary: 'Moves items along an axis, keeping the shape; vacated positions read zero or a with value.' },
 
     { name: 'correlation', module: 'stats', arities: [1], form: 'Features correlation',
         result: 'array', lazy: true,

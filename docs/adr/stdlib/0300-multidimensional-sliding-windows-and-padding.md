@@ -75,6 +75,16 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
   Columns = Matrix 3 window axis 1
   ```
 
+### 6. Axis Shift (`shift`)
+- `shift` keeps the shape and moves items along one axis, aligning neighbors:
+  ```rank
+  Previous = Values 1 shift
+  Down = Matrix 1 shift with 9 axis 0
+  ```
+- A positive count moves toward higher positions; vacated positions read zero
+  or the single `with` value. `axis` defaults to zero and follows `with`.
+- The result is a lazy, read-only view for arrays.
+
 ## Consequences
 
 ### Positive

@@ -368,6 +368,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values Count take` | value, lazy | Keeps at most Count leading items; sequences stay lazy and arrays slice their leading axis. |
 | `Values unique` | array | Distinct values in first-appearance order. |
 | `Values Width window` | array, lazy | Overlapping complete cells of that size, with optional stride, padding and padding value. |
+| `Values Count shift` | array, lazy | Moves items along an axis, keeping the shape; vacated positions read zero or a with value. |
 
 These need `use sequences` but have no name to look up.
 

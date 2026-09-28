@@ -158,6 +158,7 @@ import {
     sequenceMask,
     sequenceValues,
     takeWhileValue,
+    shiftValue,
     windowValue,
     zipSequences,
 } from './sequence.js';
@@ -2453,6 +2454,20 @@ export class Interpreter {
                         axisWindow.fill
                             ? (yield* resume(interpreter.evaluateTask(axisWindow.fill)))
                             : undefined,
+                    );
+                };
+            }
+            case 'axis-shift': {
+                const axisShift = form;
+                return function* (): Execution<RankValue> {
+                    interpreter.requireModule('sequences', 'shift');
+                    return shiftValue(
+                        (yield* resume(interpreter.evaluateTask(axisShift.source))),
+                        (yield* resume(interpreter.evaluateTask(axisShift.amount))),
+                        axisShift.fill
+                            ? (yield* resume(interpreter.evaluateTask(axisShift.fill)))
+                            : undefined,
+                        axisShift.axis,
                     );
                 };
             }

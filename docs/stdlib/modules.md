@@ -533,6 +533,7 @@ len
 shape
 transpose
 window
+shift
 copy
 take
 drop
@@ -952,14 +953,31 @@ Blocks = M WindowShape window
 Columns = M 3 window axis 1
 Strided = M WindowShape window stride 2
 Padded = M WindowShape window padding 1
+Bordered = M WindowShape window padding 1 with 9
 ```
 
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
 `stride` and `padding` accept a scalar for all selected axes or one integer per
 axis. Their defaults are one and zero. Strides are positive; padding is
-nonnegative, symmetric, array-only and filled with integer zero. The modifiers
+nonnegative, symmetric, array-only and filled with integer zero unless `with` gives another single
+value. The modifiers
 precede a final `axis` clause when combined. Results remain lazy and contain
 only complete windows of the conceptually padded source.
+
+`shift` moves items along one axis and keeps the shape, so a value can sit
+beside its neighbor without index arithmetic:
+
+```rank
+Previous = Values 1 shift
+Next = Values (-1) shift
+Ends = Starts (-1) shift with Total
+Down = M 1 shift axis 0
+```
+
+A positive count moves items toward higher positions. Positions left empty read
+integer zero, or the single value after `with`. `axis` defaults to zero and
+follows `with`. Write a negative count in parentheses. Shift is array-only,
+lazy and read-only.
 
 ## JSON
 

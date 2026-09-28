@@ -44,7 +44,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         // These forms have runtime implementations but no abstract transfer yet.
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
-        case 'axis-window': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
+        case 'axis-window': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
         case 'axis-transpose': case 'named-scan': case 'axis-selection': case 'multiset-method':
         case 'comparison-rank': case 'outer':
             return UNKNOWN_VALUE;

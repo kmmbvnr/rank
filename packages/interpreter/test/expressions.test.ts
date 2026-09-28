@@ -470,6 +470,28 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toThrowError('window padding fill must be a single value');
     });
 
+    it('shifts items along an axis', () => {
+        const source = [
+            'use sequences',
+            'A = array 1 2 3 4',
+            'M = array shape 2 3',
+            '  1 2 3',
+            '  4 5 6',
+            'end',
+        ];
+        const shifted = (line: string) => run([...source, line].join('\n'));
+        expect(shifted('A 1 shift')).toBe('0 1 2 3');
+        expect(shifted('A (-1) shift')).toBe('2 3 4 0');
+        expect(shifted('A 2 shift with 9')).toBe('9 9 1 2');
+        expect(shifted('A 9 shift')).toBe('0 0 0 0');
+        expect(shifted('M 1 shift axis 1')).toBe('0 1 2 0 4 5');
+        expect(shifted('M 1 shift')).toBe('0 0 0 1 2 3');
+        expect(shifted('M (-1) shift with 7 axis 0')).toBe('4 5 6 7 7 7');
+        expect(() => shifted('M 1 shift axis 2')).toThrowError('shift axis out of bounds: 2');
+        expect(() => shifted('A 1 shift with (array 1)')).toThrowError('shift fill must be a single value');
+        expect(() => shifted('"ab" 1 shift')).toThrowError('shift expects an array');
+    });
+
     it('reshapes finite values in row-major order', () => {
         const matrix = new Interpreter().execute([
             'use sequences',
