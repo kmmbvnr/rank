@@ -61,14 +61,9 @@ fun negative_cycle Edges N
   end
   Path push Start
 
-  Length = Path len
-  Cycle = array shape Length fill 0
-  for City i in Path
-    Position = Length - i - 1
-    Cycle Position = City
-  end
+  Last = Path len - 1
   return record
     .found = true
-    .cycle = Cycle
+    .cycle = Path (Last to 0 by -1)
   end
 end
