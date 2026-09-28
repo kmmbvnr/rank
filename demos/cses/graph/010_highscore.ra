@@ -53,19 +53,21 @@ fun high_score Edges N
     Updated = false
     for Edge in Edges
       unpack From To Score = Edge
-      if Dist From not equal -infinity
-        Candidate = Dist From + Score
-        if Candidate greater Dist To
-          Dist To = Candidate
-          Updated = true
-          Last = Pass equal N
-          Useful = CanReach To
-          if Last and Useful
-            return record
-              .infinite = true
-              .score = 0
-            end
-          end
+      if Dist From equal -infinity
+        continue
+      end
+
+      Candidate = Dist From + Score
+      if Candidate at most Dist To
+        continue
+      end
+
+      Dist To = Candidate
+      Updated = true
+      if Pass equal N and CanReach To
+        return record
+          .infinite = true
+          .score = 0
         end
       end
     end
