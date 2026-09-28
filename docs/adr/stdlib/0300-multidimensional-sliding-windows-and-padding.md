@@ -62,6 +62,13 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
 - For source length $N$, window width $W$, stride $S$, and padding $P$, the output position length matches the standard convolution formula:
   $$\text{length} = \max\left(0, \left\lfloor \frac{N + 2P - W}{S} \right\rfloor + 1\right)$$
 
+- `with` sets the border value; it defaults to integer zero:
+  ```rank
+  Peaks = Matrix WindowShape window padding 1 with (-infinity)
+  ```
+  The value must be a single value, and `with` is valid only directly after
+  `padding`. Padding stays `stride`, `padding`, `axis` in that order.
+
 ### 5. Selective Axis Windowing (`axis`)
 - `axis` targets specific dimensions without windowing the entire tensor:
   ```rank

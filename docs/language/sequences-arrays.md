@@ -269,12 +269,23 @@ Each value may instead be a rank-1 integer array with one item per selected
 axis. `stride` comes before `padding`, and `axis` follows both when they are
 combined. Strides must be positive and padding must be nonnegative. Their
 defaults are one and zero. Nonzero padding is defined only for arrays and
-inserts integer zero outside the source; text, queues and sequences still
+inserts integer zero, or the `with` value, outside the source; text, queues and sequences still
 support stride.
+
+`with` after `padding` replaces the zero border with any single value, so a
+border can be neutral for the reduction that follows. Parenthesize a negative
+value:
+
+```rank
+Above = M WindowShape window padding 1 with (-infinity)
+Below = M WindowShape window padding 1 with infinity
+```
+
+`with` is valid only directly after `padding`, and `axis` follows it.
 
 For source length `N`, window width `W`, stride `S` and padding `P`, the
 position-axis length is `max(0, floor((N + 2*P - W) / S) + 1)`. Windows remain
-lazy, read-only views of their source and the conceptual zero border.
+lazy, read-only views of their source and the conceptual padding border.
 
 ## Shape and size
 

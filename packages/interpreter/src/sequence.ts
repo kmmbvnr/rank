@@ -436,7 +436,11 @@ export function windowValue(
     axes?: readonly number[],
     strideValue?: RankValue,
     paddingValue?: RankValue,
+    fillValue: RankValue = 0n,
 ): RankValue {
+    if (isRankArray(fillValue) || isRankSequence(fillValue) || isRankQueue(fillValue)) {
+        throw new RankError('window padding fill must be a single value');
+    }
     const widths = windowWidths(sizeValue);
     if (widths.some(width => width <= 0)) {
         throw new RankError('window sizes must be positive integers');
@@ -490,6 +494,7 @@ export function windowValue(
             [0],
             strides,
             padding,
+            fillValue,
         );
     }
 
@@ -504,6 +509,7 @@ export function windowValue(
             [0],
             strides,
             padding,
+            fillValue,
         );
     }
 
@@ -518,6 +524,7 @@ export function windowValue(
         selectedAxes,
         strides,
         padding,
+        fillValue,
         [source],
     );
 }
@@ -606,6 +613,7 @@ function arrayWindows(
     axes: readonly number[],
     strides: readonly number[],
     padding: readonly number[],
+    fill: RankValue,
     dependencies?: readonly RankArray[],
 ): RankArray {
     const positionShape = [...sourceShape];
@@ -629,7 +637,7 @@ function arrayWindows(
                 + offsets[index];
         });
         if (hasPadding && input.some((coordinate, axis) =>
-            coordinate < 0 || coordinate >= sourceShape[axis])) return 0n;
+            coordinate < 0 || coordinate >= sourceShape[axis])) return fill;
         return sourceItem(arrayOffset(sourceShape, input));
     };
     const result = dependencies ? derivedArray(resultShape, dependencies, read)
@@ -658,7 +666,7 @@ function arrayWindows(
         }
         let offset = arrayOffset(sourceShape, coordinates);
         const read = () => hasPadding && coordinates.some((coordinate, axis) =>
-            coordinate < 0 || coordinate >= sourceShape[axis]) ? 0n : sourceItem(offset);
+            coordinate < 0 || coordinate >= sourceShape[axis]) ? fill : sourceItem(offset);
         let answer = read();
         for (let index = 1; index < size; index++) {
             for (let axis = widths.length - 1; axis >= 0; axis--) {

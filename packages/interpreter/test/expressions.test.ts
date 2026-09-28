@@ -442,6 +442,34 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toThrowError('window padding must be nonnegative integers');
     });
 
+    it('fills window padding with a chosen value', () => {
+        expect(run([
+            'use sequences',
+            'M = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'M 2 window padding 1 with 9 axis 1',
+        ].join('\n'))).toBe('9 1 1 2 2 9 9 3 3 4 4 9');
+        expect(run([
+            'use sequences',
+            'A = array 1 2 3',
+            'A 2 window padding 1 with 7',
+        ].join('\n'))).toBe('7 1 1 2 2 3 3 7');
+        expect(run([
+            'use sequences',
+            'use numbers',
+            'A = array 1 2 3',
+            'B = A 3 window padding 1 with (-infinity)',
+            'B max rank 1',
+        ].join('\n'))).toBe('2 3 3');
+        expect(() => run([
+            'use sequences',
+            'A = array 1 2 3',
+            'A 2 window padding 1 with (array 1 2)',
+        ].join('\n'))).toThrowError('window padding fill must be a single value');
+    });
+
     it('reshapes finite values in row-major order', () => {
         const matrix = new Interpreter().execute([
             'use sequences',

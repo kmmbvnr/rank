@@ -297,8 +297,9 @@ A scalar applies to every selected axis; a rank-1 integer array supplies one
 value per selected axis. Strides are positive, padding is nonnegative, and the
 defaults are one and zero. When `axis` is also present it follows these
 modifiers. Padding is available for arrays and inserts integer zero beyond the
-source boundary. Position axes use the usual convolution formula
-`max(0, floor((N + 2*P - W) / S) + 1)`.
+source boundary; `padding 1 with V` inserts `V` instead, for example
+`with (-infinity)` before a `max` reduction. Position axes use the usual
+convolution formula `max(0, floor((N + 2*P - W) / S) + 1)`.
 
 ## Rank-based application
 

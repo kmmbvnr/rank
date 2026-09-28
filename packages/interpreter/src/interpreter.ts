@@ -2450,6 +2450,9 @@ export class Interpreter {
                         axisWindow.padding
                             ? (yield* resume(interpreter.evaluateTask(axisWindow.padding)))
                             : undefined,
+                        axisWindow.fill
+                            ? (yield* resume(interpreter.evaluateTask(axisWindow.fill)))
+                            : undefined,
                     );
                 };
             }

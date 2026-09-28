@@ -710,6 +710,7 @@ interface AxisWindowApplication {
     readonly axes?: readonly number[];
     readonly stride?: Expression;
     readonly padding?: Expression;
+    readonly fill?: Expression;
 }
 
 function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
@@ -717,6 +718,7 @@ function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefi
     let position = 3;
     let stride: Expression | undefined;
     let padding: Expression | undefined;
+    let fill: Expression | undefined;
     let axes: readonly number[] | undefined;
 
     if (isNamed(parts[position], 'stride')) {
@@ -728,6 +730,11 @@ function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefi
         padding = parts[position + 1];
         if (!padding) return undefined;
         position += 2;
+        if (isNamed(parts[position], 'with')) {
+            fill = parts[position + 1];
+            if (!fill) return undefined;
+            position += 2;
+        }
     }
     if (isNamed(parts[position], 'axis')) {
         if (position + 1 >= parts.length) return undefined;
@@ -742,5 +749,6 @@ function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefi
         axes,
         stride,
         padding,
+        fill,
     };
 }

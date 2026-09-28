@@ -1,36 +1,37 @@
 rem Cody 54730: local grid extrema
 rem Tied values are not extrema.
 
-use grids
 use sequences
+use numbers
 
 
 rem Keep strict eight-neighbor extrema.
 fun local_extrema Grid
-  H = Grid len
-  W = Grid 0 len
-  Result = Grid copy
+  Size = array 3 3
+  Above = Grid Size window padding 1 with (-infinity)
+  Below = Grid Size window padding 1 with infinity
+  Peaks = Above peak rank 2
+  Valleys = Below valley rank 2
+  Marks = Peaks Valleys max
+  return Grid * Marks
+end
 
-  for Y in 0 until H
-    for X in 0 until W
-      Value = Grid Y X
-      Higher = true
-      Lower = true
-      Around = Grid Y X .eight neighbors
 
-      for Point in Around
-        unpack NextY NextX = Point
-        Other = Grid NextY NextX
-        Higher and= Value greater Other
-        Lower and= Value less Other
-      end
-
-      if Higher or Lower
-        continue
-      end
-      Result Y X = 0
-    end
+rem One when no other cell reaches the center.
+fun peak Cell
+  Ties = Cell at least Cell 1 1
+  if Ties count equal 1
+    return 1
   end
+  return 0
+end
 
-  return Result
+
+rem One when no other cell falls to the center.
+fun valley Cell
+  Ties = Cell at most Cell 1 1
+  if Ties count equal 1
+    return 1
+  end
+  return 0
 end
