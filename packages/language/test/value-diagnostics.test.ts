@@ -810,7 +810,7 @@ it('does not guess results for recursion and joins all covered return paths', ()
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
-it('infers numeric recursive results only when input facts stay invariant', () => {
+it('checks recursive numeric specializations including empty median inputs', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/004_medarrs.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/004_medarrs_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
@@ -818,7 +818,7 @@ it('infers numeric recursive results only when input facts stay invariant', () =
     const examples = functionTestExamples(testProgram.value, '004_medarrs', new Set(['median']));
     expect(examples).toHaveLength(8);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual([['real'], ['real'], [], ['real'], ['real'], ['real'], [], ['real']]);
+        .toEqual(examples.map(() => ['real']));
     expect(messages('fun gcd A B\n if B equal 0\n  return A\n end\n'
         + ' return B (A % B) gcd\nend\nR = 12 8 gcd\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -828,10 +828,10 @@ it('infers numeric recursive results only when input facts stay invariant', () =
             'operator + does not accept real and text']);
     expect(messages('fun swap A B\n if A less 1\n  return A\n end\n'
         + ' return B A swap\nend\nR = 2 1.0 swap\nR + "bad"'))
-        .toEqual([]);
+        .toEqual(['swap returns incompatible types: integer and real']);
     expect(messages('Hidden = 1\nfun captured X\n if X less 1\n  return Hidden\n end\n'
         + ' return (X - 1) captured\nend\nR = 2 captured\nR + "bad"'))
-        .toEqual([]);
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('closes a numeric recursive result through assignments and arithmetic', () => {
@@ -848,7 +848,7 @@ it('closes a numeric recursive result through assignments and arithmetic', () =>
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun widenresult X\n if X less 1\n  return 1\n end\n'
         + ' Next = (X - 1) widenresult\n return Next / 2\nend\nR = 2 widenresult\nR + "bad"'))
-        .toEqual([]);
+        .toEqual(['widenresult returns incompatible types: integer and real']);
 });
 
 it('keeps a fresh numeric array through a nested read-only helper in a loop', () => {
@@ -1583,7 +1583,7 @@ it('keeps numeric matrix cells only when loop rebindings are closed', () => {
         + ' for I in 0 until 3\n  Result = Result Base matmul\n end\n return Result 0 0\nend\n'
         + 'A = (array 1 2 3 4 shape 2 2) combine';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
-    expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer', 'real']);
+    expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const broken = source.replace('Result = Result Base matmul\n end',
         'Result = Result Base matmul\n  if I equal 1\n   Result = "bad"\n  end\n end');
     expect(analyzeValues(parse(broken)).bindings.get('A')?.types).toEqual([]);
@@ -1822,7 +1822,7 @@ it('passes a safe indexed scalar to a call before the callee changes its array',
     const examples = functionTestExamples(appleTests.value, '016_apples', new Set(['solve']));
     expect(examples).toHaveLength(3);
     expect(analyzeValues(appleProgram.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual([['integer', 'real'], ['integer', 'real'], ['integer']]);
+        .toEqual([['integer'], ['integer'], ['integer']]);
 });
 
 it('keeps the exact numeric scalar type through abs', () => {
@@ -2474,7 +2474,7 @@ it('infers the unchanged CSES graph-path matrix result', () => {
     const examples = functionTestExamples(testProgram.value, '023_graphpaths1', new Set(['path_count']));
     expect(examples.length).toBeGreaterThan(0);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual(examples.map(() => ['integer', 'real']));
+        .toEqual(examples.map(() => ['integer']));
 });
 
 it('infers the unchanged Zigzag demo from its test inputs', () => {

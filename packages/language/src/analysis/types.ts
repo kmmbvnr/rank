@@ -1,3 +1,4 @@
+import { joinTypes } from './value-domain.js';
 import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 /**
  * Type facts over the runtime's own type names.
@@ -34,8 +35,7 @@ export function describeTypes(types: Types): string {
 }
 
 export function unionTypes(left: Types, right: Types): Types {
-    if (left.length === 0 || right.length === 0) return UNKNOWN;
-    return [...new Set([...left, ...right])];
+    return joinTypes([left, right]);
 }
 
 /** Types that a comparison reduces to a single boolean rather than a mask. */

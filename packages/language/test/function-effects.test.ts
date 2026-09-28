@@ -773,3 +773,28 @@ it('does not reuse a helper summary across a local redefinition', () => {
     const source = 'fun outer A\n fun reader X\n  X 0 = 9\n  return 0\n end\n A reader\n fun reader X\n  return X 0\n end\n return 0\nend';
     expect(analyze(source, 'outer').unknown).toBe(true);
 });
+
+it('proves numeric captured writes through scalar self-recursion without an alias proof', () => {
+    const source = 'fun outer\n A = array shape 2 fill 0\n fun helper N\n'
+        + ' if N equal 0\n return 0\n end\n A 0 += N\n A 0 %= 7\n return (N - 1) helper\n end\n return 0\nend';
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [], integer: '3' };
+    const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true };
+    const captures = new Map([['A', array]]);
+    const result = analyze(source, 'helper', ['A'], [integer], captures);
+    expect(result).toMatchObject({ unknown: false, captures: new Set(['A']),
+        numericCaptureWrites: new Set(['A']), io: false });
+    expect(result.returns).toEqual([{ kind: 'unknown' }]);
+    for (const replacement of ['A 0 = "bad"', 'A 0 /= 2', 'A = array 1 2', 'stdin .integer', 'N external']) {
+        expect(analyze(source.replace('A 0 += N', replacement), 'helper', ['A'], [integer], captures).unknown).toBe(true);
+    }
+    expect(analyze(source.replace('(N - 1) helper', '(N / 2) helper'),
+        'helper', ['A'], [integer], captures).unknown).toBe(true);
+    expect(analyze(source, 'helper', ['A'], [integer], new Map([['A', { ...array, eagerScalarCells: undefined }]]))
+        .unknown).toBe(true);
+});
+
+it('does not skip later recursive effects using the first calls concrete scalar bounds', () => {
+    const source = 'fun helper N\n for I in 0 until N\n I external\n end\n'
+        + ' if N less 2\n return (N + 1) helper\n end\n return 0\nend';
+    expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '0' }]).unknown).toBe(true);
+});

@@ -4,6 +4,8 @@ import type { Types } from './types.js';
  * Accepted binding fields remain here for compatibility with the current pass.
  */
 export interface ValueFacts {
+    /** Internal recursion seed: no returning path has been observed yet. */
+    readonly bottom?: true;
     readonly types: Types;
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
@@ -34,6 +36,26 @@ export interface ValueFacts {
 }
 
 export const UNKNOWN_VALUE: ValueFacts = { types: [] };
+export const BOTTOM_VALUE: ValueFacts = { types: [], bottom: true };
+
+/** Stop only the current abstract execution path while a recursive seed is absent. */
+export class UnobservedReturn extends Error {}
+
+export function joinTypes(values: readonly Types[]): Types {
+    return values.length && values.every(types => types.length)
+        ? [...new Set(values.flatMap(types => types))] : [];
+}
+
+/** The recursive contract forgets data and read-safety proofs, keeping type and rank. */
+export function widenValueFacts(value: ValueFacts): ValueFacts {
+    if (value.bottom) return BOTTOM_VALUE;
+    const ranks = value.types.map(type => ['array', 'bytes'].includes(type) ? undefined
+        : ['text', 'sequence', 'queue', 'stack', 'deque'].includes(type) ? 1 : 0);
+    const rank = value.rank ?? (ranks.length && ranks.every(rank => rank === ranks[0]) ? ranks[0] : undefined);
+    return { types: value.types, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}),
+        ...(value.elements ? { elements: value.elements } : {}) };
+}
+
 export type FactLookup = ((name: string) => ValueFacts | undefined) & {
     invoke?: (name: string, arguments_: readonly ValueFacts[]) => ValueFacts;
     arity?: (name: string) => number | undefined;
@@ -76,9 +98,10 @@ export function isAtom(facts: ValueFacts): boolean {
 /** Facts shared by every reachable path, with a union of possible runtime types. */
 export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     if (!values.length) return UNKNOWN_VALUE;
+    values = values.filter(value => !value.bottom);
+    if (!values.length) return BOTTOM_VALUE;
     const first = values[0];
-    const types = values.every(value => value.types.length)
-        ? [...new Set(values.flatMap(value => value.types))] : [];
+    const types = joinTypes(values.map(value => value.types));
     const scalar = types.length > 0 && types.every(type =>
         ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
     const rank = scalar ? 0 : values.every(value => value.rank === first.rank) ? first.rank : undefined;

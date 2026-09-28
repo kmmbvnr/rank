@@ -1,7 +1,7 @@
 import type { BinaryExpression, Expression } from '../generated/ast.js';
 import { inlineSliceOperands } from '../expressions.js';
 import { symbolicApplicationForm } from '../application-forms.js';
-import { binaryType, typeOf, type Types } from './types.js';
+import { binaryType, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, isAtom, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 
@@ -129,7 +129,7 @@ export function binaryExpressionFacts(
             callbackFreeScalarCells: true };
     }
     if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)) {
-        const inferred = typeOf(expression, name => lookup(name)?.types);
+        const inferred = binaryType(expression.operator, left.types, right.types);
         const scalarNumbers = [left, right].every(value => value.rank === 0
             && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
         const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', '%'].includes(expression.operator)

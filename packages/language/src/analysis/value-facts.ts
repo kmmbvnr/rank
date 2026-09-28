@@ -11,11 +11,26 @@ import { localCollectionType, resultTypes, typeOf } from './types.js';
 import { findOperation } from '../operations.js';
 import { applicationExpressionFacts } from './application-facts.js';
 import { binaryExpressionFacts } from './binary-facts.js';
-import { isAtom, stableRecordField, UNKNOWN_VALUE,
+import { isAtom, stableRecordField, UNKNOWN_VALUE, BOTTOM_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 
 /** Start with facts that follow directly from syntax, retaining unknown lengths. */
 export function expressionFacts(expression: Expression, lookup: FactLookup): ValueFacts {
+    let unobserved = false;
+    const observe = (value: ValueFacts | undefined): ValueFacts | undefined => {
+        unobserved ||= value?.bottom === true;
+        return value;
+    };
+    const tracked: FactLookup = Object.assign((name: string) => observe(lookup(name)), {
+        arity: lookup.arity,
+        ...(lookup.invoke ? { invoke: (name: string, inputs: readonly ValueFacts[]) =>
+            observe(lookup.invoke!(name, inputs))! } : {}),
+    });
+    const result = evaluateFacts(expression, tracked);
+    return unobserved ? BOTTOM_VALUE : result;
+}
+
+function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isParenthesizedExpression(expression)) return expressionFacts(expression.value, lookup);
     if (isNameExpression(expression)) {
         const value = lookup(expression.name);

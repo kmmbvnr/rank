@@ -30,14 +30,16 @@ test "official weather example"
   Target = "PlayTennis"
   Tree = Data Attrs Target learn_tree
 
-  Outlook = Tree "Outlook"
+  Outlook = Tree .branches
   Rain = Outlook "Rain"
-  Wind = Rain "Wind"
-  A = Outlook "Overcast" equal "Yes"
-  B = Outlook "Sunny" equal "No"
-  C = Wind "Strong" equal "No"
-  D = Wind "Weak" equal "Yes"
-  A and B and C and D
+  Wind = Rain .branches
+  A = (Outlook "Overcast") .value equal "Yes"
+  B = (Outlook "Sunny") .value equal "No"
+  C = (Wind "Strong") .value equal "No"
+  D = (Wind "Weak") .value equal "Yes"
+  E = Tree .attribute equal "Outlook"
+  F = Rain .attribute equal "Wind"
+  A and B and C and D and E and F
 end
 
 test "pure data returns its class"
@@ -50,7 +52,7 @@ test "pure data returns its class"
 
   Attrs = array "Color"
   Result = Data Attrs "Class" learn_tree
-  Result equal "A"
+  Result .leaf and (Result .value equal "A")
 end
 
 test "majority ties are alphabetic"
@@ -63,7 +65,7 @@ test "majority ties are alphabetic"
 
   Attrs = array shape 0 fill 0
   Result = Data Attrs "Class" learn_tree
-  Result equal "A"
+  Result .leaf and (Result .value equal "A")
 end
 
 test "attribute ties keep input order"
@@ -77,9 +79,10 @@ test "attribute ties keep input order"
   ]" json
   Attrs = array "First" "Second"
   Tree = Data Attrs "Class" learn_tree
-  First = Tree "First"
+  First = Tree .branches
 
-  A = First "x" equal "No"
-  B = First "y" equal "Yes"
-  A and B
+  A = (First "x") .value equal "No"
+  B = (First "y") .value equal "Yes"
+  C = Tree .attribute equal "First"
+  A and B and C
 end

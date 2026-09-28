@@ -3,6 +3,68 @@
 Status: proposed implementation sequence, based on the implementation on
 2026-09-23. This plan does not introduce syntax or change runtime semantics.
 
+## Recursive typing goal
+
+The long-term goal is an inferred result type and rank for every supported,
+contract-consistent recursive specialization, including mutual recursion and
+nested helpers that change captured state. Track this against all recursive
+demos with their call examples. A result contract must remain separate from
+proofs about effects, ownership, termination and indexed reads.
+
+User guidance is part of this goal. An unresolved result should eventually
+identify the blocking expression or call and explain the reason: conflicting
+returns, no base return, unknown callee, unproved captured write, guarded read,
+or analysis budget exhaustion. These explanations are planned; the current
+analyzer does not yet expose all of them.
+
+For a contract conflict, show the conflicting returns and suggest a concrete
+repair: align numeric types/ranks, use a tagged result record, or split operations
+with different contracts into separate functions. For a missing proof in valid
+code, identify the analyzer limitation. Keep the
+[user checklist](../language/control-functions.md#making-recursive-return-types-inferable)
+aligned with behavior verified by tests.
+
+Progress toward this goal requires:
+
+- A recursive-demo coverage report that lists each tested specialization,
+  inferred type/rank and reason for every unresolved result. Runtime failures
+  must be reported, not silently omitted from coverage.
+- Capture/write summaries and guarded-index reasoning for the remaining valid
+  programs, with tests that preserve conservative effect handling.
+- Consistent inference for equivalent expression forms. Inline recursive
+  arithmetic now uses inferred operand facts, matching a named intermediate.
+  Keep this equivalence covered as more expression forms gain inference.
+- Examples showing each supported user repair and diagnostics pointing to the
+  relevant base and recursive returns.
+
+### Boundary for native Rust compilation
+
+The intended native Rust compiler must resolve the representation of every
+reachable function specialization before generating code. An unresolved result
+blocks that compilation and needs a diagnostic with the call chain, missing
+fact and an available repair. It must not silently become a generic dynamic
+value. Functions outside the reachable program do not need specializations.
+
+A known outer type is only part of this check. Arrays also need an element
+representation; records need field layouts; recursive records may need an
+explicit indirection in the generated representation. A tagged result can use
+a finite Rust enum when its variants and payloads are known. Unknown input
+from JSON or a host API needs an explicit parsing/validation boundary before
+it enters code requiring a concrete representation.
+
+For an unresolved but contract-consistent function, improve inference or offer
+a verified refactoring. A future annotation or explicit contract could provide
+missing information, but its syntax and semantics remain undecided; the compiler
+would still have to check the body against it. A missing termination proof alone
+must not block typing a function with a known representation.
+
+This is a planned compilation gate. The current `@arrrank/compile` package
+exports an agent rewrite task and preserves unknown analysis facts; it does not
+yet implement native typed lowering or this gate. The interpreter can continue
+executing code whose static result is unknown, subject to runtime contracts.
+
+## Current implementation
+
 Stages 0–1 are complete for the supported array-value diagnostic scope: fresh
 bindings, direct aliases, rebinding, branch joins and proven indexed writes.
 Unknown calls, nested references and host-owned storage still fall back to
@@ -106,22 +168,33 @@ the known-result count, but avoids reporting types from a branch that cannot
 run for a proven flag.
 Representative remaining boundaries are:
 
-- A bounded numeric fixed-point check now infers six `leetcode/004_medarrs`
-  examples and all nine `cses/math/001_josephus` examples. It widens inputs,
-  checks every recursive call preserves their type and rank, then accepts a
-  result only when every return path stays within the base-return type.
-  Recursion over unknown or mutable values still needs #5; a return-only
-  fixed point would be unsound. The two empty-array median cases also need
-  numeric guard/index reasoning: replacing their recursive call with a real
-  literal still leaves their results unknown.
-  `cses/dynamic/021_tilings` has five such unknown examples: its nested
-  recursive `place` writes the captured `Next` array. Removing the current
-  nested-function exclusion without a capture/write proof would be unsound.
-  In the two empty-array median cases, the loop analysis widens `Low`, `High`,
-  `I` and `J` because they may change between iterations. It then cannot prove
-  that branches reading the empty array are unreachable. Exact comparisons of
-  names and literals alone do not close this gap; it needs a sound loop-range
-  invariant and branch constraints for indexed reads.
+- Recursive return inference uses the specialized return contract from #3/#4.
+  It seeds a contract from nonrecursive returning paths, assumes that contract
+  at recursive edges with the same argument type/rank signature, then checks
+  every returning path against it. Cycles include mutually recursive functions;
+  nested functions and different argument signatures are not excluded.
+  An explicit bottom fact means no returning path has been observed. Unknown
+  information remains top and cannot be discarded to manufacture a seed.
+  A call budget bounds specialization and recursive proof; an unproved result
+  stays unknown. Recursive results retain types, ranks and element types, but
+  lose concrete values, axis lengths, field facts and cell-read safety proofs.
+- This proof infers all nine `cses/math/001_josephus` examples and all five
+  `cses/intro/024_gridpath` examples. All eight `leetcode/004_medarrs` examples
+  now infer `real`, including empty inputs. A successful assignment to an
+  uncaptured scalar local must satisfy its existing binding contract. Retaining
+  that type is sufficient here; index safety and termination remain unproved.
+- All five original `cses/dynamic/021_tilings` examples now infer `integer`.
+  A separate inductive effect proof covers self-recursion with scalar numeric
+  parameters and captured writes that preserve numeric cell types. It rejects
+  unknown effects, I/O, captured rebinding and changes to recursive parameter
+  types. It forgets concrete parameter values before checking the body and
+  supplies no recursive return-origin/alias proof. Loop rebindings first try
+  the initial integer element type and widen only if the closure check fails.
+  Other recursive effects still use conservative invalidation.
+- Two demos needed consistent return representations under #3: `012_jsonsum`
+  uses `0.0` for an excluded object, matching its real accumulator;
+  `deepml/020_tree` returns a record for both leaves and splits. Its tests now
+  access `.value` on leaves and `.attribute`/`.branches` on splits.
 - Local functions are registered before analyzing the enclosing body, matching
   runtime hoisting even when their declarations follow an early `return`.
   Their binding identity is restored after the call. This makes the three
@@ -236,9 +309,9 @@ of `cses/graph/008_routes1` and `013_flightroutes` inferable without claiming
 that their heap payload cells have known types. Insertion through an untracked
 alias or helper remains unknown.
 
-The next implementation work should start with the shared contracts and
-fixed-point proofs rather than adding demo-specific return annotations. The
-counts are a baseline for coverage, not a correctness or optimization claim.
+The recursive contract proof above supersedes the recursion portion of this
+baseline. Further work needs guarded-index and capture/write proofs. These
+counts remain a historical coverage baseline, not a correctness or optimization claim.
 
 Stage 3 has a first, separate flat-array borrow candidate check. It accepts
 direct numeric reads, parameter-indexed reads guarded by bigint arguments,

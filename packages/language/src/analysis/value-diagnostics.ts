@@ -24,7 +24,7 @@ import { createLoopAnalysis } from './loop-analysis.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
 import { hasCallbackFreeFindProof } from './operation-proofs.js';
-import { incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE,
+import { incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE, UnobservedReturn,
     type ValueFacts, type FactLookup } from './value-domain.js';
 
 export interface ValueDiagnostic {
@@ -191,10 +191,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             if (!isNameExpression(node)) continue;
             if (sliceModifiers.has(node)) continue;
             if (env.get(node.name)?.types.includes('function')) {
-                // During the numeric fixed-point check, this recursive call is
-                // provisionally pure; its argument and result types are checked
-                // before the provisional result can escape the analysis.
-                if (calls.hasRecursiveProbe(node.name)) continue;
+                // Only the restricted numeric proof can provisionally preserve
+                // effects. A general recursive return contract proves no purity.
+                if (calls.hasPureRecursiveProbe(node.name)) continue;
                 let site: AstNode = node;
                 while (isApplicationExpression(site.$container)) site = site.$container;
                 const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
@@ -492,6 +491,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
         const result = expressionFacts(expression, lookup);
         expressions.set(expression, result);
+        if (result.bottom) throw new UnobservedReturn();
         return result;
     }
 
@@ -556,6 +556,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const previous = env.get(statement.name);
                 let next = beforeEffects ?? inspect(statement.value, env);
+                if (next.bottom) throw new UnobservedReturn();
                 if (statement.operator !== '=') next = {
                     ...expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
                         left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name)),
@@ -571,6 +572,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && bindingRankConflict(expectedRank, receivedRank)) {
                     diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
                         message: bindingRankMessage(statement.name, expectedRank, receivedRank) });
+                }
+                // A successful assignment to an uncaptured scalar local must
+                // satisfy its existing binding contract, even if the RHS is unknown.
+                if (!next.types.length && accepted?.length && privateBindings.at(-1)?.has(statement.name)
+                    && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
+                    next = { types: accepted, rank: 0, shape: [] };
                 }
                 env.set(statement.name, { ...next, acceptedTypes: accepted?.length ? accepted : next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });

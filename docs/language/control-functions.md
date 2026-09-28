@@ -388,6 +388,95 @@ end
 Both paths return a scalar record. The caller inspects `.kind` before using
 `.values`.
 
+### Making recursive return types inferable
+
+Start with the result for one argument specialization. Write down its type and
+rank, then check the base case and every recursive return against that choice.
+A recursive call can use another specialization, but its result must still fit
+the caller's return contract.
+
+For integer input, this function has an integer base case and an integer
+recursive step:
+
+```rank
+fun factorial N
+  if N less 2
+    return 1
+  end
+  return N * ((N - 1) factorial)
+end
+
+Result = 5 factorial
+```
+
+The analyzer starts from the base return and checks the recursive step assuming
+that contract. Mutual recursion can obtain its base return from another member
+of the group. A cycle with no reachable base return cannot supply a result type.
+Knowing a result type does not prove that every call terminates.
+
+Use this checklist when a return conflicts or stays unknown:
+
+| Situation | What to do |
+| --- | --- |
+| The base returns `0`, while the recursive step uses `/` or a real accumulator | Use `0.0` when the intended result is real. Use `//` only when floor division is the intended calculation. |
+| An empty case returns a scalar, while other cases return an array | Return an array of the same rank in the empty case. Its length may be zero. |
+| A flag selects two operations with different result types or ranks | Give the operations separate functions, or use one tagged record representation for both results. |
+| A tree leaf returns a value, while a branch returns a container | Represent both as records. Include a tag and let callers inspect it before reading the variant's fields. |
+| Different argument types select different cases | Use type guards. These cases may already have separate specializations and do not always need separate functions. |
+| A helper's result is unknown | Check that helper and its call arguments first. A wrapper around an unknown result does not prove its type. |
+| A recursive helper changes captured arrays or reads guarded indices | Check for an analysis limitation. A stable return contract alone does not prove cell types or safe reads. |
+
+#### When to split a function
+
+Suppose `N Mode calculate` computes an integer factorial for one boolean mode
+and its real reciprocal for the other. Both calls have the same integer/boolean
+argument signature, so the different boolean values cannot select different
+return contracts. Give the operations separate entry points. Alongside
+`factorial` above, define:
+
+```rank
+fun reciprocal_factorial N
+  if N less 2
+    return 1.0
+  end
+  Previous = (N - 1) reciprocal_factorial
+  return Previous / N
+end
+
+Count = 5 factorial
+Weight = 5 reciprocal_factorial
+```
+
+Each entry point now has one result type. Keep the choice at the call site or
+return a tagged record if callers need one shared interface. A wrapper that
+chooses between these two results using the original boolean flag would have
+the same conflicting contract as before.
+
+A shared recursive traversal may still be useful. It can return one record or
+array representation, with separate functions extracting the required results.
+Splitting a function helps when it separates contracts or makes data flow
+explicit; adding another name around the same mixed return paths does not help.
+
+#### Current limits
+
+The analyzer can still report an unknown result for valid recursive code, for
+example when effects pass through an unknown callback or a captured write cannot
+be proved to preserve cell types. Rewriting a correct algorithm is optional;
+report a small example when a consistent return contract remains unknown.
+
+The original `leetcode/004_medarrs` and `cses/dynamic/021_tilings` demos now infer
+results for all their test examples. Median uses the existing scalar binding
+contracts after successful assignments; this does not prove every index safe.
+Tilings uses a separate effect proof for scalar self-recursion with numeric
+captured writes. Inline recursive arithmetic and a named intermediate result
+both retain the inferred operand types.
+
+Test the base case and recursive cases, including empty inputs and every result
+variant. Passing tests check those executions; they do not by themselves prove
+that all return paths have one contract. See the
+[decision-tree demo](../../demos/deepml/020_tree.ra) for a recursive function whose
+leaves and branches share a record result.
+
 ### Function equality
 
 `equal` compares function identity. Two references to the same function are equal;

@@ -9,7 +9,7 @@ import { flattenApplication } from '../expressions.js';
 import { loopBinding, arrayRank } from './control-flow.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { numericInput, numericRecursionEligible, sameNumericInput, widenedInput } from './numeric-recursion.js';
-import { joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
+import { BOTTOM_VALUE, joinValueFacts, UNKNOWN_VALUE, widenValueFacts, type ValueFacts } from './value-domain.js';
 
 interface CallDiagnostic {
     readonly node: AstNode;
@@ -32,7 +32,8 @@ export function createCallAnalysis(
     const importedAliases = new Set<string>();
     const activeCalls = new WeakMap<FunctionStatement, Set<string>>();
     const recursiveProbes = new WeakMap<FunctionStatement, Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
-        seen: boolean; valid: boolean }>>();
+        seen: boolean; valid: boolean; pure: boolean }>>();
+    const callStack: { definition: FunctionStatement; signature: string; recursive: boolean }[] = [];
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
     let remainingCalls = 100;
@@ -78,10 +79,12 @@ export function createCallAnalysis(
         let probes = recursiveProbes.get(definition);
         if (!probes) recursiveProbes.set(definition, probes = new Map());
         if (active.has(signature)) {
+            const cycle = callStack.findIndex(frame => frame.definition === definition && frame.signature === signature);
+            for (const frame of callStack.slice(cycle)) frame.recursive = true;
             const probe = probes.get(signature);
             if (!probe) return UNKNOWN_VALUE;
             probe.seen = true;
-            probe.valid &&= arguments_.every((fact, index) => sameNumericInput(probe.inputs[index], fact));
+            if (probe.pure) probe.valid &&= arguments_.every((fact, index) => sameNumericInput(probe.inputs[index], fact));
             return probe.result;
         }
         if (remainingCalls-- <= 0) return UNKNOWN_VALUE;
@@ -123,6 +126,8 @@ export function createCallAnalysis(
             functionBindings.set(nested.name, fact);
             specializations.set(nested, new Map());
         }
+        const frame = { definition, signature, recursive: false };
+        callStack.push(frame);
         active.add(signature);
         globalCallEnvs.push(globalEnv);
         const nodes = [...AstUtils.streamAllContents(definition)];
@@ -134,6 +139,7 @@ export function createCallAnalysis(
             .map(statement => statement.name).filter(name => !name.includes('.')), ...nodes.filter(isForStatement)
             .flatMap(loop => loopBinding(loop.condition)?.names ?? [])]
             .filter(name => name !== '#' && !nestedWrites.has(name))));
+        const entry = new Map(local);
         const diagnosticStart = diagnostics.length;
         const contractEnv = new Map([...local].map(([key, fact]) => [key,
             fact.types.includes('function') ? fact : returnInput(fact)]));
@@ -196,43 +202,55 @@ export function createCallAnalysis(
                 for (const [node, fact] of before) expressions.set(node, fact);
             }
             const ordinary = joinValueFacts(result);
-            if (ordinary.types.length || !arguments_.every(numericInput)
-                || !numericRecursionEligible(name, definition, bindings)) return ordinary;
-            const inputs = arguments_.map(widenedInput);
-            const widened = new Map(local);
+            if (!frame.recursive || ordinary.bottom) return ordinary;
+            // Seed with bottom, not unknown: a recursive edge without a base
+            // contributes no completed return. Unknown external calls still do.
+            const pure = arguments_.every(numericInput) && numericRecursionEligible(name, definition, bindings);
+            const inputs = arguments_.map(fact => pure ? widenedInput(fact) : {
+                ...returnInput(fact),
+                ...(fact.eagerScalarCells ? { eagerScalarCells: true as const } : {}),
+                ...(fact.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}),
+            });
+            const widened = new Map(entry);
             definition.parameters.forEach((parameter, index) => widened.set(parameter, {
                 ...inputs[index], acceptedTypes: inputs[index].types,
                 acceptedArrayRank: arrayRank(inputs[index]),
             }));
             const before = new Map(expressions);
+            const savedGlobal = new Map(globalEnv);
             const start = diagnostics.length;
-            let base = joinValueFacts(result.filter(fact => fact.types.length));
-            if (!base.types.length) {
-                try {
-                    base = joinValueFacts(returnValues(definition.statements, new Map(widened))
-                        .filter(fact => fact.types.length));
-                } finally {
-                    diagnostics.length = start;
-                    expressions.clear();
-                    for (const [node, fact] of before) expressions.set(node, fact);
-                }
-            }
-            if (base.rank !== 0 || !base.types.length
-                || !base.types.every(type => type === 'integer' || type === 'real')) return ordinary;
-            const probe = { inputs, result: base, seen: false, valid: true };
+            const probe = { inputs, result: BOTTOM_VALUE, seen: false, valid: true, pure };
             probes.set(signature, probe);
-            let inferred: ValueFacts;
+            let conflicts: ReturnType<typeof returnConflicts> = [];
             try {
-                inferred = joinValueFacts(returnValues(definition.statements, widened));
+                const bases = returnValues(definition.statements, new Map(widened));
+                const base = widenValueFacts(joinValueFacts(bases));
+                if (!probe.seen) return ordinary;
+                conflicts = returnConflicts(bases);
+                if (!base.types.length || base.rank === undefined || conflicts.length) return UNKNOWN_VALUE;
+                probe.result = base;
+                globalEnv.clear();
+                for (const [key, fact] of savedGlobal) globalEnv.set(key, fact);
+                const returns = returnValues(definition.statements, new Map(widened));
+                const inferred = widenValueFacts(joinValueFacts(returns));
+                conflicts = returnConflicts([...bases, ...returns]);
+                if (conflicts.length) return UNKNOWN_VALUE;
+                return probe.valid && inferred.rank === base.rank && inferred.types.length
+                    && inferred.types.every(type => base.types.includes(type))
+                    && (!base.elements?.length || !!inferred.elements?.length
+                        && inferred.elements.every(type => base.elements!.includes(type))) ? inferred : UNKNOWN_VALUE;
             } finally {
                 probes.delete(signature);
                 diagnostics.length = start;
+                for (const conflict of conflicts) diagnostics.push({ node: definition, ...conflict,
+                    message: `${name} ${conflict.message}` });
                 expressions.clear();
                 for (const [node, fact] of before) expressions.set(node, fact);
+                globalEnv.clear();
+                for (const [key, fact] of savedGlobal) globalEnv.set(key, fact);
             }
-            return probe.valid && probe.seen && inferred.rank === 0 && inferred.types.length
-                && inferred.types.every(type => base.types.includes(type)) ? inferred : ordinary;
         } finally {
+            callStack.pop();
             active.delete(signature);
             globalCallEnvs.pop();
             privateBindings.pop();
@@ -254,9 +272,9 @@ export function createCallAnalysis(
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings,
         directNoReturnCall, call,
-        hasRecursiveProbe: (name: string) => {
+        hasPureRecursiveProbe: (name: string) => {
             const definition = functions.get(name);
-            return !!definition && !!recursiveProbes.get(definition)?.size;
+            return !!definition && [...recursiveProbes.get(definition)?.values() ?? []].some(probe => probe.pure);
         },
         validateDeclarations: (env: Map<string, ValueFacts>) => {
             for (const [name, definition] of [...functions]) {

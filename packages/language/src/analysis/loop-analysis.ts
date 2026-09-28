@@ -139,7 +139,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             return !writes.has(name) && fact?.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
                 && (fact.eagerScalarCells || fact.callbackFreeScalarCells)
                 && fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
-                ? [[name, { ...fact, shape: Array(fact.rank).fill(null), elements: ['integer', 'real'] as Types,
+                ? [[name, { ...fact, shape: Array(fact.rank).fill(null), elements: fact.elements as Types,
                     eagerScalarCells: undefined, callbackFreeScalarCells: true as const,
                     integers: undefined, positions: undefined, positionFacts: undefined }] as const] : [];
         }));
@@ -201,7 +201,12 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                 return !effect.unknown && !effect.io && !effect.parameters.size && !effect.reboundParameters.size
                     && [...effect.captures].every(name => effect.numericCaptureWrites?.has(name)
                         && safeRead(preview.get(name)))
-                    && !effect.bindingCaptures.size && !effect.valueCaptures.size
+                    && !effect.bindingCaptures.size && [...effect.valueCaptures].every(name => {
+                        const value = effect.globalValueCaptures.has(name)
+                            ? (context.globalEnv() ?? preview).get(name) : preview.get(name);
+                        return value?.rank === 0 && value.types.length > 0
+                            && value.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type));
+                    })
                     && [...effect.readCaptures].every(name => safeRead(preview.get(name)))
                     && [...effect.readParameters].every(index => safeRead(inputs[index]));
             });
@@ -266,19 +271,20 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                     const after = trial.get(name);
                     return after?.types.join() === 'array' && after.rank === fact.rank
                         && (after.eagerScalarCells || after.callbackFreeScalarCells)
-                        && after.elements?.length && after.elements.every(type => type === 'integer' || type === 'real');
+                        && after.elements?.length && after.elements.every(type => fact.elements!.includes(type));
                 }) && (indexCandidate === undefined || seed !== undefined
                     && indexAfter.every(fact => fact?.types.join() === 'index' && fact.elements !== undefined
                         && fact.elements.every(type => seed!.includes(type))));
                 return { trial, closed };
             };
             let { trial, closed } = attempt(candidates);
-            if (!closed && [...candidates.values()].some(fact => fact.elements?.every(type =>
-                type === 'integer' || type === 'real'))) {
+            if (!closed && (numeric.size || [...candidates.values()].some(fact => fact.elements?.every(type =>
+                type === 'integer' || type === 'real')))) {
                 restore();
                 const widened = new Map([...candidates].map(([name, fact]) => [name,
                     fact.elements?.every(type => type === 'integer' || type === 'real')
                         ? { ...fact, elements: ['integer', 'real'] as Types } : fact] as const));
+                for (const [name, fact] of numeric) numeric.set(name, { ...fact, elements: ['integer', 'real'] });
                 ({ trial, closed } = attempt(widened));
             }
             if (closed) {

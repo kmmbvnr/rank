@@ -6,16 +6,23 @@ use numbers
 use sequences
 use tables
 
-rem Learn a categorical decision tree.
+rem Learn a categorical decision tree. Every node is a record.
+rem Leaves have .value; splits have .attribute and .branches.
 fun learn_tree Data Attrs Target
   Y = Data Target
 
   if Y unique len equal 1
-    return Y 0
+    return record
+      .leaf = true
+      .value = Y 0
+    end
   end
 
   if Attrs len equal 0
-    return Y majority
+    return record
+      .leaf = true
+      .value = Y majority
+    end
   end
 
   Best = Attrs 0
@@ -32,8 +39,11 @@ fun learn_tree Data Attrs Target
 
   Rest = (Attrs filter not equal Best) array
   Nodes = Data Best Rest Target branch
-  index Best = Nodes
-  return index
+  return record
+    .leaf = false
+    .attribute = Best
+    .branches = Nodes
+  end
 end
 
 

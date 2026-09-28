@@ -12,7 +12,7 @@ import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
 import { hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
     hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof } from './operation-proofs.js';
-import { joinValueFacts, UNKNOWN_VALUE, type FactLookup, type ValueFacts } from './value-domain.js';
+import { joinValueFacts, UNKNOWN_VALUE, widenValueFacts, type FactLookup, type ValueFacts } from './value-domain.js';
 
 /** Possible effects, not a purity promise. Unknown includes unsupported syntax. */
 export interface FunctionEffects {
@@ -89,6 +89,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const valueCaptures = new Set<string>();
         const globalValueCaptures = new Set<string>();
         let io = false;
+        let recursive = false;
         const assignments = new Set(descendants
             .filter(isAssignmentStatement).map(node => node.name));
         const parent = isFunctionStatement(definition.$container) ? definition.$container : undefined;
@@ -125,14 +126,18 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             .map(node => [node.name, node]));
         const locals = new Set([...definition.parameters,
             ...[...assignments].filter(name => !capturedBindings.has(name)), ...localFunctions.keys()]);
+        const selfCalls = descendants.some(node => isNameExpression(node) && node.name === definition.name);
+        // A later recursive activation can receive different scalar values.
+        // Do not skip effects using the first activation's concrete bounds.
         const facts = inputs && inputs.length === definition.parameters.length
-            ? new Map(definition.parameters.map((name, index) => [name, inputs[index]] as const)) : undefined;
+            ? new Map(definition.parameters.map((name, index) => [name,
+                selfCalls && inputs[index].rank === 0 ? widenValueFacts(inputs[index]) : inputs[index]] as const)) : undefined;
         const helperFor = (name: string): FunctionStatement | undefined => {
             const local = localFunctions.get(name);
             if (local) return local;
             if (locals.has(name)) return undefined;
             const global = resolve(name);
-            return global?.$container.$type === 'Program' ? global : undefined;
+            return global === definition || global?.$container.$type === 'Program' ? global : undefined;
         };
         const lookup = ((name: string) => changedLocals.has(name) || reboundParameters.has(definition.parameters.indexOf(name))
             ? UNKNOWN_VALUE : facts?.get(name) ?? (!assignments.has(name) && !locals.has(name)
@@ -362,6 +367,19 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return false;
             }
             if (helper.parameters.length !== arguments_.length) return false;
+            if (helper === definition) {
+                // Inductive effect proof for scalar self-recursion: recursive
+                // arguments keep their types, and captured writes must preserve
+                // their numeric cell representation (checked after the body).
+                const actual = arguments_.map(fact);
+                if (!inputs || inputs.length !== actual.length || !actual.every((value, index) =>
+                    value.rank === 0 && value.types.length > 0
+                    && value.types.every(type => type === 'integer' || type === 'real')
+                    && inputs[index].rank === 0
+                    && value.types.every(type => inputs[index].types.includes(type)))) return false;
+                recursive = true;
+                return arguments_.every(expression);
+            }
             const effects = analyze(helper, arguments_.map(fact));
             if (effects.unknown || !arguments_.every(expression)) return false;
             io ||= effects.io;
@@ -549,9 +567,13 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     && !!(captured.eagerScalarCells || captured.callbackFreeScalarCells)
                     && !!captured.elements?.length
                     && captured.elements.every(type => type === 'integer' || type === 'real');
-                if (!isPlainArrayWrite(item, value => isNumberLiteral(value) && typeof value.value === 'bigint'
+                const integerIndex = (value: Expression) => isNumberLiteral(value) && typeof value.value === 'bigint'
                     || (privateArrays.has(item.name) || numericCapture) && fact(value).rank === 0
-                        && fact(value).types.join() === 'integer')) return false;
+                        && fact(value).types.join() === 'integer';
+                const numericCompound = numericCapture && ['+=', '-=', '*=', '//=', '%='].includes(item.operator)
+                    && item.indices.every(index => !index.spread && !index.all
+                        && index.value !== undefined && integerIndex(index.value));
+                if (!isPlainArrayWrite(item, integerIndex) && !numericCompound) return false;
                 if (privateArrays.has(item.name)) {
                     if (!expression(item.value) || !item.indices.every(index => !index.value || expression(index.value))) return false;
                     if ([item.value, ...AstUtils.streamAllContents(item.value)].some(node =>
@@ -719,14 +741,16 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             let origins: readonly ReturnOrigin[] | undefined;
             const supported = definition.statements.every(statement);
             for (const name of unprovenCaptureWrites) numericCaptureWrites.delete(name);
-            const result = supported ? {
+            const recursiveSafe = !recursive || !io && !parameters.size && !reboundParameters.size
+                && !bindingCaptures.size && [...captures].every(name => numericCaptureWrites.has(name));
+            const result = supported && recursiveSafe ? {
                 unknown: false, parameters, reboundParameters, captures, bindingCaptures, globalWriteCaptures,
                 ...(numericCaptureWrites.size ? { numericCaptureWrites } : {}),
                 readParameters, readCaptures, globalReadCaptures,
                 valueCaptures, globalValueCaptures, io,
                 ...(returnFacts.length && returnFacts.every(value => value.types.length)
                     ? { result: joinValueFacts(returnFacts) } : {}),
-                get returns() { return origins ??= returnOrigins().map(item =>
+                get returns() { return origins ??= recursive ? [{ kind: 'unknown' }] : returnOrigins().map(item =>
                     item.kind === 'parameter' && (parameters.has(item.index) || reboundParameters.has(item.index))
                     || item.kind === 'capture' && (captures.has(item.name) || bindingCaptures.has(item.name))
                         ? { kind: 'unknown' } : item); },
