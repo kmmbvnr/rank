@@ -202,7 +202,10 @@ export interface NativeFunction {
     readonly name: string;
     readonly arities: readonly number[];
     readonly monadicRank: IntrinsicRank;
-    readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[];
+    /** Result cell shape for an argument cell of this shape, when known without
+     * calling the function. Ranked application over an empty frame has no cell
+     * to call. `undefined` leaves the shape unknown. */
+    readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly call: (arguments_: RankValue[]) => RankValue;

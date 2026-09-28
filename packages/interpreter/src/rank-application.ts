@@ -1,4 +1,4 @@
-import { arrayRevision, derivedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
+import { arrayRevision, derivedArray, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
@@ -143,15 +143,14 @@ export class RankApplication {
         const cells = tensorCells(value, frameAxes);
         const frameSize = arraySize(cells.frameShape);
         if (frameSize === 0) {
-            const resultShape = fn.monadicResultShape?.(cells.cellShape) ?? [];
+            const resultShape = this.emptyFrameCellShape(fn, cells.cellShape) ?? [];
             return lazyArray([...cells.frameShape, ...resultShape], () => {
                 throw new RankError('empty ranked result has no items');
             });
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
 
-        const builtin = ['core', 'numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
-            Object.values(standardModules[module]).some(definition => this.standardFunctions.get(definition) === fn));
+        const builtin = this.isPureBuiltin(fn);
         const results = new Map<number, RankValue>();
         let inputRevision: number | undefined;
         let materialized: RankValue[] | undefined;
@@ -213,7 +212,40 @@ export class RankApplication {
         return builtin ? registerArrayDependencies(result, [value]) : result;
     }
 
+    private isPureBuiltin(fn: Extract<RankValue, { kind: 'function' }>): boolean {
+        return ['core', 'numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
+            Object.values(standardModules[module]).some(definition => this.standardFunctions.get(definition) === fn));
+    }
+
+    /**
+     * An empty frame has no cell to call, yet its result keeps the cell axes:
+     * `0 3` rows sorted are still `0 3`. A declared shape wins. Otherwise a
+     * pure builtin runs once on a zero fill cell, as in J, and only the shape
+     * of that result is kept. Unknown shapes return `undefined`.
+     */
+    private emptyFrameCellShape(
+        fn: Extract<RankValue, { kind: 'function' }>,
+        cellShape: readonly number[],
+    ): readonly number[] | undefined {
+        const declared = fn.monadicResultShape?.(cellShape);
+        if (declared !== undefined || !this.isPureBuiltin(fn)) return declared;
+        const size = arraySize(cellShape);
+        if (size > FILL_CELL_LIMIT) return undefined;
+        const fill = cellShape.length === 0 ? 0n
+            : ownedArray(Array.from({ length: size }, () => 0n), cellShape, true);
+        try {
+            const result = fn.call([fill]);
+            return isRankArray(result) ? [...result.shape] : [];
+        } catch (error) {
+            if (error instanceof RankError) return undefined;
+            throw error;
+        }
+    }
+
 }
+
+/** Larger fill cells cost more than an unknown result cell shape is worth. */
+const FILL_CELL_LIMIT = 1 << 16;
 
 export function tensorFrameAxes(
     shape: readonly number[],

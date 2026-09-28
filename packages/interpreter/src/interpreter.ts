@@ -101,7 +101,7 @@ import {
     type FunctionStatement,
     type Program,
     type Statement,
-    applicationForm, assertNever, type ApplicationForm, findOperation,
+    applicationForm, assertNever, type ApplicationForm, findOperation, functionEffects, type ValueFacts,
     availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
     RUNTIME_TYPE_NAMES,
     acceptsBindingType,
@@ -2905,6 +2905,8 @@ export class Interpreter {
             name: statement.name,
             arities: [statement.parameters.length],
             monadicRank: 'all',
+            monadicResultShape: generator ? undefined
+                : cellShape => this.userResultCellShape(statement, context, returnRanks, cellShape),
             dyadicRanks: statement.parameters.length === 2 ? ['all', 'all'] : undefined,
             captures: context?.captures(),
             // What a caller outside the runtime reaches. A Rank call made from a
@@ -2942,6 +2944,47 @@ export class Interpreter {
         }
         this.assign(statement.name, fn);
         return fn;
+    }
+
+    /**
+     * The result cell shape of a user function over an empty frame, found
+     * without calling it: its body may print or loop. Static result facts for
+     * an integer cell of that shape come first, then a return rank that earlier
+     * calls settled. Lengths the facts leave open are zero.
+     */
+    private userResultCellShape(
+        statement: FunctionStatement,
+        context: LocalFrame | undefined,
+        returnRanks: ReadonlyMap<string, { rank?: number }>,
+        cellShape: readonly number[],
+    ): readonly number[] | undefined {
+        const valueOf = (name: string) => context?.lookup(name) ?? this.variables.get(name);
+        const functionValue = (name: string) => {
+            const value = valueOf(name);
+            return value !== undefined && isNativeFunction(value) ? value : undefined;
+        };
+        const cell: ValueFacts = cellShape.length === 0
+            ? { types: ['integer'], rank: 0, shape: [] }
+            : { types: ['array'], rank: cellShape.length, shape: cellShape,
+                elements: ['integer'], eagerScalarCells: true };
+        const result = functionEffects(
+            name => name === statement.name ? statement : this.sourceFunctions.get(functionValue(name)!),
+            name => functionValue(name) !== undefined,
+            name => valueOf(name) !== undefined,
+        )(statement.name, [cell]).result;
+        // Like a called cell, a non-array result leaves only the frame.
+        if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
+        if (result?.types.join() === 'array' && result.shape?.length === result.rank) {
+            return result.shape!.map(dimension => dimension ?? 0);
+        }
+        const settled = new Set<number>();
+        for (const [key, contract] of returnRanks) {
+            const [argument, ...rest] = JSON.parse(key) as [string, number, unknown][];
+            if (rest.length || contract.rank === undefined || argument[1] !== cellShape.length
+                || cellShape.length > 0 && argument[0] !== 'array') continue;
+            settled.add(contract.rank);
+        }
+        return settled.size === 1 ? Array<number>([...settled][0]).fill(0) : undefined;
     }
 
     private prepareScalarFunctionCall(statement: FunctionStatement): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined {

@@ -3004,6 +3004,20 @@ Every cell result must have the same shape. Scalar results leave only the frame
 shape; array results append their shape to the frame. Source cells and the
 assembled result are lazy views, and a demanded cell result is cached.
 
+An empty frame has no cells to call, but its result keeps the cell axes, so the
+result rank does not depend on whether the input is empty. A standard-library
+function runs once on a zero cell of the argument cell shape and only the result
+shape is kept. A user function is not called. Its result shape comes from the
+analysis of its body, or from the return rank that earlier calls settled.
+Lengths that neither fixes are zero. With no such knowledge the cell is a
+scalar:
+
+```rank
+M = array shape 0 3 fill 1
+Sorted = M sort rank 1
+rem shape 0 3
+```
+
 For example, `integer` has intrinsic unary rank 1. It converts a complete text
 value by default, while an explicit rank 0 converts its character atoms:
 

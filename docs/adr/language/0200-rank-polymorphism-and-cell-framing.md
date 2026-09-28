@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08 / 2026-09-09
+* **Updated:** 2026-09-28 — result cell shape over an empty frame
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Tensor Model Specification
 
@@ -39,6 +40,7 @@ BatchDets = T det rank 2
 ```
 - **Argument rank $> R$:** The function applies to every trailing rank-$R$ cell in row-major frame order.
 - **Argument rank $\le R$:** The function receives the argument whole once.
+- **Empty frame:** No cell is called, yet the result keeps the cell axes, so its rank matches the nonempty case. Following J and Remora (Slepak, Shivers, Manolios, *The Semantics of Rank Polymorphism*, §2.4), the cell shape comes from the function rather than from computed cells: a declared shape, a standard-library call on a zero fill cell, or, for user functions, the analysed result facts and the settled return rank. User code never runs for this, because it may print or fail to terminate on a fill value.
 
 ### 3. Frame Selection via the `axis` Modifier
 When targeting non-trailing or arbitrary dimensions, `axis` names the **frame axes** along which the operation iterates:

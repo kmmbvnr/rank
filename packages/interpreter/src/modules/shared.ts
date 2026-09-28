@@ -16,7 +16,7 @@ export function native(
     call: (arguments_: RankValue[]) => RankValue,
     monadicRank: IntrinsicRank = 'all',
     dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank],
-    monadicResultShape?: (cellShape: readonly number[]) => readonly number[],
+    monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined,
 ): NativeFunction {
     const arities = typeof arity === 'number' ? [arity] : arity;
     return {
