@@ -63,10 +63,15 @@ fun escape_monsters Grid
     for DY Direction in DYs
       NY = Row + DY
       NX = Column + DXs Direction
-      if NY NX valid and Time less Danger NY NX
-        Danger NY NX = Time
-        Pending push NY * W + NX
+      if not NY NX valid
+        continue
       end
+      if Time at least Danger NY NX
+        continue
+      end
+
+      Danger NY NX = Time
+      Pending push NY * W + NX
     end
   end
 
@@ -84,9 +89,11 @@ fun escape_monsters Grid
   for Position in Pending
     Row = Position // W
     Column = Position % W
-    BorderY = Row equal 0 or Row equal H - 1
-    BorderX = Column equal 0 or Column equal W - 1
-    if BorderY or BorderX
+    if Row equal 0 or Row equal H - 1
+      Escape = Position
+      break
+    end
+    if Column equal 0 or Column equal W - 1
       Escape = Position
       break
     end
@@ -95,13 +102,19 @@ fun escape_monsters Grid
     for DY Direction in DYs
       NY = Row + DY
       NX = Column + DXs Direction
-      if NY NX valid and Parent NY NX equal -1
-        if Arrival less Danger NY NX
-          Parent NY NX = Direction
-          Steps NY NX = Arrival
-          Pending push NY * W + NX
-        end
+      if not NY NX valid
+        continue
       end
+      if Parent NY NX not equal -1
+        continue
+      end
+      if Arrival at least Danger NY NX
+        continue
+      end
+
+      Parent NY NX = Direction
+      Steps NY NX = Arrival
+      Pending push NY * W + NX
     end
   end
 
