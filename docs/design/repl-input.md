@@ -36,11 +36,26 @@ iteration row, where Enter activates selection. Source editing has a bar cursor.
 Enter evaluates code use a block cursor, as does the iteration row whether or
 not selection is active. The terminal's default
 cursor style is restored on exit.
-The `▶` source marker identifies the next line to evaluate, including while the
-cursor is on the iteration selector. Changing the iteration recalculates only
-the prefix above that marker. Ctrl-R advances it with evaluation; ordinary
-text editing has no marker. If the selector and marker fit together they remain
-visible; otherwise the footer names the next source line, for example `▶ line 6`.
+The next line to evaluate is shown by the color of its gutter dot (cyan), not by
+a separate glyph, so no character changes the width of the row. It appears while
+stepping with Ctrl-R and while the cursor is on the iteration selector; ordinary
+text editing and a plain live preview have no marker, because the progress dots
+and inline results already show what ran. Changing the iteration recalculates
+only the prefix above that line. Ctrl-R advances it with evaluation. If the
+selector and the cyan dot fit together they remain visible; otherwise the footer
+names the next source line, for example `next: line 6`.
+Cursor style: a bar cursor for all source text editing, including inside a live
+preview; a block cursor only where Enter evaluates or accepts something (the
+iteration row, prompt-output focus, and stepping).
+A live function preview shows results per line. Conditional blocks
+(`if`/`elif`/`else`, `try`/`catch`/`finally`) have no preview on their `end`:
+the branch lines already say `branch runs` or `branch skipped`. The `end` of a
+loop summarizes the state after all iterations: the outer names the body
+changes, then the iteration count, for example `Total = 55 · 5 iterations`; a
+loop that changes no outer name shows only `5 iterations`. Names first bound
+inside the loop end with it and are not listed. Preview errors never carry line
+numbers from the generated preview program, and block-scope violations use the
+`Scope` label instead of `Syntax`.
 Ctrl-R on a function body line evaluates through that line using the existing
 example arguments; it asks for arguments only when values are missing or skipped.
 Entering evaluation with Ctrl-R keeps the cursor at the same screen row when example fields and preview
@@ -120,12 +135,12 @@ status. External effects from the previous run are not undone.
 
 This is a future REPL display idea, not current behavior. After a committed
 `Ctrl-R` step, show the actual copy-on-write (CoW) work beneath the source that
-just ran, alongside its result. Keep the `▶` marker on the *next* source line:
+just ran, alongside its result. Show the *next* source line by the color of its dot:
 
 ```text
 ●  2› A 0 = 9
       CoW: 1 copy · 2048 cells
-▶  3› A sum
+●  3› A sum   (cyan dot)
 ```
 
 When no copy occurred, show a muted `CoW: none` in step mode. If several copies

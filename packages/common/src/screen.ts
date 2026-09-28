@@ -165,16 +165,17 @@ export function notebookFrame(
             const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
             const liveProgress = live && !editingField && !breakpoint;
             const hiddenFocusedDraft = promptOutputFocus && item.text.trim() === '';
-            const prefix = (nextEval ? breakpoint ? '  ◆ ▶ ' : line === labelRow ? '▶' + label.slice(1) : '    ▶ '
-                : breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+            const steppingNext = nextEval && (stepping || !!promptOutputFocus);
+            const prefix = (breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+                : steppingNext ? '    ● '
                 : liveProgress ? '    ● '
                 : item.text.trim() === '' ? '      ' : '    · ')
                 .slice(-gutter || label.length);
             const progress = promptOutputs?.get(sourceLine);
             const progressColor = progress?.some(output => output.error) ? '\x1b[31m'
                 : progress ? '\x1b[38;5;208m' : '\x1b[90m';
-            const painted = nextEval ? '\x1b[36m' + prefix + '\x1b[0m'
-                : breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
+            const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
+                : steppingNext ? '\x1b[36m' + prefix + '\x1b[0m'
                 : liveProgress ? progressColor + prefix + '\x1b[0m'
                 : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;
             if (nextEval) { nextEvalRow = rows.length; nextEvalSourceLine = sourceLine; }
@@ -304,7 +305,7 @@ export function notebookFrame(
             ? notebook.atPrompt ? 'Ctrl-L run all' : 'Ctrl-R run · Ctrl-L run all' : '');
         if (showShortcutHints && followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
             && (nextEvalRow < top || nextEvalRow >= top + viewportHeight))
-            status = `▶ line ${nextEvalSourceLine} · ${promptOutputFocus.active ? '←/→' : 'Enter'} · Esc · ^L run all`;
+            status = `next: line ${nextEvalSourceLine} · ${promptOutputFocus.active ? '←/→' : 'Enter'} · Esc · ^L run all`;
         status = clipped(status, Math.min(40, width));
         let label = running ? '' : fileStatus;
         if (label && followCursor) {
@@ -323,7 +324,7 @@ export function notebookFrame(
         top, maxTop, targets: targets.slice(top, top + renderedHeight),
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
-            : promptOutputs || notebook.atPrompt || stepping ? 2 : 6 };
+            : promptOutputs && !stepping ? 6 : notebook.atPrompt || stepping ? 2 : 6 };
 }
 
 /** Saving has its own filename editor and never changes the source cursor. */

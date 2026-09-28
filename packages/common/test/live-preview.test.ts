@@ -46,8 +46,8 @@ it('previews a generator body past an earlier yield', async () => {
         await runner.updateFunction(live, source, true);
         expect(live.outputs.get(5)).toEqual([{ text: '2 1', error: false }]);
         // The closing `end` runs the whole loop, which a yield must not turn
-        // into a generator: the preview returns the value it reached.
-        expect(live.outputs.get(6)).toEqual([{ text: '6 1', error: false }]);
+        // into a generator: the preview summarizes the state after the loop.
+        expect(live.outputs.get(6)).toEqual([{ text: 'Pos = 6 1 · 5 iterations', error: false }]);
     } finally {
         session.dispose();
     }
@@ -151,4 +151,63 @@ it('handles manual preview cancellation via interrupt', async () => {
     await runner.updateFunction(live, source, true);
     expect(live.outputs.get(2)).toEqual([{ text: 'cancelled · ^R to evaluate', error: false }]);
     expect(live.slowLines.has(2)).toBe(true);
+});
+
+async function previewFunction(name: string, parameters: string[], values: string[], source: string) {
+    const session = createReplSession();
+    const runner = new LivePreviewRunner((text, syntheticNames) => session.preview(text, 80, false, syntheticNames));
+    const header = source.split('\n')[0];
+    const live = new LiveFunctionSession({ name, parameters, header, source, values, cellId: 1, existing: false }, []);
+    try {
+        await runner.updateFunction(live, source, true);
+        return live.outputs;
+    } finally {
+        session.dispose();
+    }
+}
+
+it('shows no preview on the end of a conditional block', async () => {
+    const fib = ['memo fib N', '  if N at most 2', '    return N', '  else', '    Fib1 = N - 1 fib',
+        '    Fib2 = N - 2 fib', '    return Fib1 + Fib2', '  end'].join('\n');
+    const outputs = await previewFunction('fib', ['N'], ['1'], fib);
+    expect(outputs.has(8)).toBe(false);
+    const branches = await previewFunction('f', ['N'], ['1'],
+        ['fun f N', '  if N at most 2', '    X = 1', '  else', '    Y = 2', '  end'].join('\n'));
+    expect(branches.has(6)).toBe(false);
+    for (const lines of branches.values()) for (const line of lines) expect(line.error).toBe(false);
+});
+
+it('summarizes a loop on its end by the outer names it changes and its iteration count', async () => {
+    const outputs = await previewFunction('g', ['N'], ['5'],
+        ['fun g N', '  Total = 0', '  for I in 1 to N', '    Sq = I * I', '    Total += Sq', '  end'].join('\n'));
+    expect(outputs.get(6)).toEqual([{ text: 'Total = 55 · 5 iterations', error: false }]);
+});
+
+it('shows only the iteration count for a loop that changes no outer name', async () => {
+    const outputs = await previewFunction('g', ['N'], ['5'],
+        ['fun g N', '  for I in 1 to N', '    Sq = I * I', '  end'].join('\n'));
+    expect(outputs.get(4)).toEqual([{ text: '5 iterations', error: false }]);
+});
+
+it('summarizes a loop in a conditional preview', async () => {
+    const session = createReplSession();
+    const runner = new LivePreviewRunner((text, syntheticNames) => session.preview(text, 80, false, syntheticNames));
+    const state = { outputs: new Map(), prefixes: new Map(), iterations: new Map() };
+    try {
+        await runner.updateConditional(state, 'if true\n  Total = 0\n  for I in 1 to 3\n    Total += I\n  end\nend', true);
+        expect(state.outputs.get(5)).toEqual([{ text: 'Total = 6 · 3 iterations', error: false }]);
+    } finally {
+        session.dispose();
+    }
+});
+
+it('reports a block-scope error without the generated program line numbers', async () => {
+    const outputs = await previewFunction('f', [], [],
+        ['fun f', '  for I in 1 to 2', '    X = I', '  end', '  X'].join('\n'));
+    const errors = [...outputs.values()].flat().filter(line => line.error);
+    expect(errors.length).toBeGreaterThan(0);
+    for (const line of errors) {
+        expect(line.text).not.toMatch(/at line \d+/);
+        expect(line.text).not.toContain('[Syntax]');
+    }
 });

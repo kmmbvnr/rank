@@ -3,7 +3,12 @@ import type { Execution, OutputLine } from './repl-session.js';
 import type { LiveFunctionSession } from './live-function.js';
 
 type Preview = (source: string, syntheticNames: ReadonlySet<string>) => Execution | Promise<Execution>;
-interface GeneratedPreview { readonly source: string; readonly syntheticNames: ReadonlySet<string> }
+interface LoopSummary { readonly names: readonly string[]; readonly sources: readonly string[] }
+interface GeneratedPreview {
+    readonly source: string;
+    readonly syntheticNames: ReadonlySet<string>;
+    readonly summary?: LoopSummary;
+}
 
 interface PreviewState {
     readonly outputs: Map<number, OutputLine[]>;
@@ -28,6 +33,8 @@ const SKIPPED = '.replPreviewSkipped';
 const BRANCH_RUNS = '.replPreviewBranchRuns';
 const LOOP_RUNS = '.replPreviewLoopRuns';
 const ITERATION = 'RankReplPreviewIteration';
+const COUNT = 'RankReplPreviewCount';
+const SUMMARY = 'RankReplPreviewSummary';
 
 /** Builds and evaluates isolated prefixes while a block is being written. */
 export class LivePreviewRunner {
@@ -121,6 +128,16 @@ export class LivePreviewRunner {
             let result: Execution;
             try {
                 result = await this.preview(item.source, item.syntheticNames);
+                if (item.summary && !result.interrupted && !result.output.some(line => line.error)) {
+                    const values: OutputLine[][] = [];
+                    for (const source of item.summary.sources) {
+                        const value = await this.preview(source, item.syntheticNames);
+                        if (value.interrupted || value.output.some(line => line.error)) { result = value; break; }
+                        values.push(value.output);
+                    }
+                    if (values.length === item.summary.sources.length)
+                        result = { ...result, output: loopSummary(item.summary.names, values, result.output) };
+                }
             } finally {
                 if (timer) clearInterval(timer);
                 if (timeoutTimer) clearTimeout(timeoutTimer);
@@ -138,7 +155,7 @@ export class LivePreviewRunner {
             const isRecError = priorRecursion && result.output.some(line => line.error && !line.text.includes('[Syntax]'));
             const output = isRecError
                 ? [{ text: 'recursive call', error: false }]
-                : displayOutput(result.output, item.control);
+                : displayOutput(result.output, item.control).map(previewError);
             state.outputs.set(item.line, output);
             state.prefixes.set(item.line, item.source);
         }
@@ -159,10 +176,11 @@ function previewTargets(source: string, start: number, end: number, throughLine?
         const line = lines[index];
         if (!line.trim()) continue;
         const closingBlock = line.trim() === 'end' ? state.blocks.at(-1) : undefined;
+        // A conditional's branch lines already show their results; only a loop's `end` adds the state after all iterations.
         state = addLine(state, line.trim(), index + 1 < end);
         const first = line.trim().split(/\s+/, 1)[0];
         const resultLine = !['end', 'break', 'continue', 'try', 'catch', 'finally'].includes(first)
-            || first === 'end' && closingBlock !== undefined;
+            || first === 'end' && closingBlock === 'for';
         if (state.pending === '' && resultLine
             && (throughLine === undefined || index + 1 <= throughLine)) targets.push(index);
     }
@@ -224,56 +242,76 @@ function functionPreviewSource(live: LiveFunctionSession, source: string, target
     const lines = source.split('\n');
     const active = enclosingLoopLines(lines, 1, target);
     omitCompletedLoop(active, lines, 1, target);
+    const closing = closingLoop(lines, 1, target);
     let state: CellState = EMPTY_CELL;
     for (let index = 1; index < target; index++) {
         if (!lines[index].trim()) continue;
         if (active.has(index)) {
             state = addActiveLoop(state, skippedReturn(lines[index].trim()), index + 1,
                 live.iterations.get(index + 1) ?? 0);
-        } else state = addLine(state, skippedReturn(lines[index].trim()), true);
+        } else if (index === closing) state = addCountedLoop(state, skippedReturn(lines[index].trim()));
+        else state = addLine(state, skippedReturn(lines[index].trim()), true);
     }
-    state = lines[target].trim() === 'end'
-        ? addClosedBlockResult(state, lines, 1, target)
-        : addTarget(state, lines[target].trim(), true, live.iterations.get(target + 1) ?? 0);
-    const body = cellSource(closeCell(state)).split('\n').map(line => `  ${line}`).join('\n');
     const call = [...live.values.map(value => `(${value})`), live.name].join(' ');
-    return { source: [
-        live.header,
-        `  ${REACHED} = false`,
-        `  ${ITERATION} = 0`,
-        body,
-        `  if ${reachedCondition(active, lines)}`,
-        `    return ${VALUE}`,
-        '  end',
-        `  return ${SKIPPED}`,
-        'end',
-        call,
-    ].join('\n'), syntheticNames: previewSyntheticNames(active, lines) };
+    const program = (final: CellState, result = VALUE): string => {
+        const body = cellSource(closeCell(final)).split('\n').map(line => `  ${line}`).join('\n');
+        return [
+            live.header,
+            `  ${REACHED} = false`,
+            `  ${ITERATION} = 0`,
+            body,
+            `  if ${reachedCondition(active, lines)}`,
+            `    return ${result}`,
+            '  end',
+            `  return ${SKIPPED}`,
+            'end',
+            call,
+        ].join('\n');
+    };
+    const syntheticNames = previewSyntheticNames(active, lines);
+    if (closing === undefined) {
+        return { source: program(addTarget(state, lines[target].trim(), true,
+            live.iterations.get(target + 1) ?? 0)), syntheticNames };
+    }
+    const closed = addLine(state, 'end');
+    const names = loopOuterNames(lines, 1, closing, target, live.parameters);
+    return { source: program(addResult(closed, COUNT, SUMMARY), SUMMARY),
+        syntheticNames: new Set([...syntheticNames, COUNT, SUMMARY]),
+        summary: { names, sources: names.map(name => program(addResult(closed, name, SUMMARY), SUMMARY)) } };
 }
 
 function conditionalPreviewSource(preview: PreviewState, source: string, target: number): GeneratedPreview {
     const lines = source.split('\n');
     const active = enclosingLoopLines(lines, 0, target);
     omitCompletedLoop(active, lines, 0, target);
+    const closing = closingLoop(lines, 0, target);
     let state: CellState = EMPTY_CELL;
     for (let index = 0; index < target; index++) {
         if (!lines[index].trim()) continue;
         if (active.has(index)) {
             state = addActiveLoop(state, lines[index].trim(), index + 1,
                 preview.iterations.get(index + 1) ?? 0);
-        } else state = addLine(state, lines[index].trim(), true);
+        } else if (index === closing) state = addCountedLoop(state, lines[index].trim());
+        else state = addLine(state, lines[index].trim(), true);
     }
-    state = lines[target].trim() === 'end'
-        ? addClosedBlockResult(state, lines, 0, target)
-        : addTarget(state, lines[target].trim(), false, preview.iterations.get(target + 1) ?? 0);
-    return { source: [
+    const program = (final: CellState, result = VALUE): string => [
         `${REACHED} = false`,
         `${ITERATION} = 0`,
-        cellSource(closeCell(state)),
+        cellSource(closeCell(final)),
         `if ${reachedCondition(active, lines)}`,
-        `  ${VALUE}`,
+        `  ${result}`,
         'end',
-    ].join('\n'), syntheticNames: previewSyntheticNames(active, lines) };
+    ].join('\n');
+    const syntheticNames = previewSyntheticNames(active, lines);
+    if (closing === undefined) {
+        return { source: program(addTarget(state, lines[target].trim(), false,
+            preview.iterations.get(target + 1) ?? 0)), syntheticNames };
+    }
+    const closed = addLine(state, 'end');
+    const names = loopOuterNames(lines, 0, closing, target, []);
+    return { source: program(addResult(closed, COUNT, SUMMARY), SUMMARY),
+        syntheticNames: new Set([...syntheticNames, COUNT, SUMMARY]),
+        summary: { names, sources: names.map(name => program(addResult(closed, name, SUMMARY), SUMMARY)) } };
 }
 
 /**
@@ -344,16 +382,74 @@ function addTarget(state: CellState, line: string, insideFunction: boolean, iter
     return addLine(state, `${REACHED} = true`);
 }
 
-function addResult(state: CellState, value: string): CellState {
-    state = addLine(state, `${VALUE} = ${value}`);
+function addResult(state: CellState, value: string, into = VALUE): CellState {
+    state = addLine(state, `${into} = ${value}`);
     return addLine(state, `${REACHED} = true`);
 }
 
-function addClosedBlockResult(state: CellState, lines: string[], start: number, target: number): CellState {
-    state = addLine(state, 'end');
-    const assignment = /^\s*([A-Za-z][A-Za-z0-9_]*)(?:\s+.*?)?\s*(?:=|\+=|-=|\*=|\*\*=|\/=|\/\/=|%=|and=|or=|xor=)/;
-    const name = lines.slice(start, target).reverse().map(line => assignment.exec(line)?.[1]).find(Boolean);
-    return addResult(state, name ?? '0');
+const ASSIGNMENT = /^([A-Za-z][A-Za-z0-9_]*)(?:\s+.*?)?\s*(=|\+=|-=|\*=|\*\*=|\/=|\/\/=|%=|and=|or=|xor=)/;
+
+/** The line of the loop that the `end` at `target` closes, if it closes one. */
+function closingLoop(lines: string[], start: number, target: number): number | undefined {
+    if (lines[target]?.trim() !== 'end') return undefined;
+    const closing = openBlocks(lines, start, target).at(-1);
+    return closing?.kind === 'for' ? closing.line : undefined;
+}
+
+function addCountedLoop(state: CellState, header: string): CellState {
+    state = addLine(state, `${COUNT} = 0`, true);
+    state = addLine(state, header, true);
+    return addLine(state, `${COUNT} += 1`);
+}
+
+/**
+ * Names the loop body assigns that were already bound in a block still open at
+ * the loop. Names first bound inside the loop end with it, so they are skipped.
+ */
+function loopOuterNames(
+    lines: string[], start: number, loop: number, end: number, parameters: readonly string[],
+): string[] {
+    const scopes: Set<string>[] = [new Set(parameters)];
+    for (let index = start; index < loop; index++) {
+        const text = lines[index].trim();
+        if (!text) continue;
+        const scan = scanLine(text);
+        for (let count = 0; count < scan.closes; count++) if (scopes.length > 1) scopes.pop();
+        const assigned = ASSIGNMENT.exec(text);
+        if (assigned?.[2] === '=') scopes.at(-1)!.add(assigned[1]);
+        for (let count = 0; count < scan.opens.length; count++) scopes.push(new Set());
+    }
+    const visible = new Set(scopes.flatMap(scope => [...scope]));
+    const names: string[] = [];
+    for (let index = loop + 1; index < end; index++) {
+        const name = ASSIGNMENT.exec(lines[index].trim())?.[1];
+        if (name && visible.has(name) && !names.includes(name)) names.push(name);
+    }
+    return names;
+}
+
+function loopSummary(names: readonly string[], values: OutputLine[][], counted: OutputLine[]): OutputLine[] {
+    const last = (output: OutputLine[]): string | undefined =>
+        output.filter(line => !line.error).at(-1)?.text.replace(/\s*\n\s*/g, ' ');
+    const count = last(counted);
+    if (count === undefined || counted.some(line => !line.error && line.text === SKIPPED)) return [];
+    const parts = names.flatMap((name, index) => {
+        const value = last(values[index]);
+        return value === undefined ? [] : [`${name} = ${value}`];
+    });
+    const total = Number(count);
+    parts.push(`${count} ${total === 1 ? 'iteration' : 'iterations'}`);
+    return [{ text: parts.join(' · '), error: false }];
+}
+
+/** Generated previews number their own lines, so a line reference would point at the wrong place. */
+function previewError(line: OutputLine): OutputLine {
+    if (!line.error) return line;
+    const strip = (text: string): string => text
+        .replace(/ inside the block that ends at line \d+/g, ' inside a block that has ended')
+        .replace(/ (?:at|on) line \d+/g, '');
+    return { ...line, text: strip(line.text),
+        ...line.inlineText === undefined ? {} : { inlineText: strip(line.inlineText) } };
 }
 
 /** Kept as a public helper for callers that build a one-line function preview. */

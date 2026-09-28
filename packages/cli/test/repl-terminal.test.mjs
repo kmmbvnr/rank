@@ -364,15 +364,14 @@ test('the next-eval marker remains in the branch body while the iterator is sele
         { keys: '\x1b', until: '(\\^L|Ctrl-L) run all' },
     ], 40, 18);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /\(array i i i\)/);
-    assert.match(frames[2].text, /▶\s+\(array i i i\)/);
+    assert.match(frames[2].text, /●\s+\(array i i i\)/);
     assert.match(frames[3].text, /←\/→ select/);
     assert.match(frames[4].text, /i = 9 · iteration 9/);
     assert.match(frames[4].text, /else\n\s+branch runs/);
-    assert.match(frames[4].text, /▶\s+\(array i i i\)/);
+    assert.match(frames[4].text, /●\s+\(array i i i\)/);
     assert.doesNotMatch(frames[4].text, /9 9 9/);
     assert.match(frames[5].text, /9 9 9/);
-    assert.match(frames[5].text, /▶\s+end/);
-    assert.doesNotMatch(frames[6].text, /▶/);
+    assert.match(frames[5].text, /●\s+end/);
 });
 
 test('leaving an unused top insertion row restores the original numbering', async t => {
@@ -750,7 +749,6 @@ test('an open function evaluates body lines immediately on example arguments', a
     assert.equal(frames[0].cursorX, 10, 'argument cursor belongs immediately after N =');
     assert.match(frames[1].text, /fun inc N/);
     assert.match(frames[1].text, /fun inc N\n\s+N = 2/);
-    assert.doesNotMatch(frames[1].text, /●/);
     assert.match(frames[2].text, /A = N \+ 1\n        3/);
     assert.match(frames[2].text, /fun inc N\n\s+N = 2/);
     assert.match(frames[3].text, /A \* 2\n        6/);
@@ -958,8 +956,8 @@ test('Enter on an empty live-function line preserves a blank without inserting e
     assert.match(frames[3].text, /return X \+ 1\n        2/);
     assert.match(frames[3].text, /Enter try · \^T args · \^L run all/);
     assert.doesNotMatch(frames[3].text, /<function inc>|\n\s*end\s*\n/);
-    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*▶?\s*$/);
-    assert.match(frames[4].text, /return X \+ 1\n        2\n    ●   \n    ▶   return X \+ 2/);
+    assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*●?\s*$/);
+    assert.match(frames[4].text, /return X \+ 1\n        2\n    ●   \n    ●   return X \+ 2/);
 });
 
 test('Enter reevaluates an edited function line without inserting end', async t => {
@@ -1054,7 +1052,7 @@ test('loop arrows keep the cursor on the visible iteration and defer body evalua
     assert.doesNotMatch(frames[0].text.split('\n')[frames[0].cursorY], /iteration/);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /i = 2 · iteration 2/);
     assert.doesNotMatch(frames[1].text, /A = i/);
-    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /▶/);
+    assert.match(frames[2].text.split('\n')[frames[2].cursorY], /●/);
     assert.match(frames[3].text, /A = i\n\s+2/);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /i = 2 · iteration 2/);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /i = 3 · iteration 3/);
@@ -1223,7 +1221,7 @@ test('Enter during evaluation inserts a temporary line that disappears when left
         UP,
         '\x12',
     ], 80, 22);
-    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /^\s*[·●▶]?\s*$/);
+    assert.match(frames[8].text.split('\n')[frames[8].cursorY], /^\s*[·●]?\s*$/);
     assert.match(frames[9].text, /Result = X \+ 1\n[^\n]*end/);
     assert.match(frames[14].text, /Result \*= 2\n[^\n]*end/);
     assert.match(frames[16].text, /Result \*= 2\n        6/);

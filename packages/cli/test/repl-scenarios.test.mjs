@@ -611,12 +611,12 @@ test('the next-eval marker stays at the recalculation boundary while selecting a
         assert.equal(s.repl.liveIterationFocus.nextLine, 6);
         assert.deepEqual(s.repl.liveOutputs.get(5).map(line => line.text), ['branch runs']);
         assert.equal(s.repl.liveOutputs.has(6), false);
-        assert.match(clean(frame().lines.join('\n')), /▶\s+\(array i i i\)/);
+        assert.match(clean(frame().lines.join('\n')), /●\s+\(array i i i\)/);
         await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(6).map(line => line.text), ['9 9 9']);
-        assert.match(clean(frame().lines.join('\n')), /▶\s+end/);
+        assert.match(clean(frame().lines.join('\n')), /●\s+end/);
         await s.esc();
-        assert.doesNotMatch(clean(frame().lines.join('\n')), /▶/);
+        assert.doesNotMatch(clean(frame().lines.join('\n')), /\x1b\[36m/);
     } finally { s.session.dispose(); }
 });
 

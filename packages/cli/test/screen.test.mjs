@@ -91,7 +91,8 @@ test('live replay marks evaluated lines orange and remaining lines gray', () => 
     const sourceLine = value => frame.lines.find(line => line.includes(value));
     assert.match(sourceLine('fun inspect'), /\x1b\[38;5;208m/);
     assert.match(sourceLine('A = N'), /\x1b\[38;5;208m/);
-    assert.match(sourceLine('B = A'), /\x1b\[36m.*▶/);
+    assert.match(sourceLine('B = A'), /\x1b\[90m/);
+    assert.doesNotMatch(sourceLine('B = A'), /▶/);
     assert.match(sourceLine('end'), /\x1b\[90m/);
 });
 
@@ -159,7 +160,7 @@ test('iteration-field focus marks the next body line without evaluating it', () 
     const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',
         undefined, 'rank> ', outputs, undefined, { line: 1, offset: 5 });
     const body = frame.lines.find(line => line.includes('A = i'));
-    assert.match(body, /\x1b\[36m.*▶/);
+    assert.match(body, /\x1b\[36m.*●/);
     assert.doesNotMatch(body, /\x1b\[33m/);
     const passive = frame.lines.find(line => line.includes('iteration 5'));
     assert.doesNotMatch(passive, /\x1b\[7m/);
@@ -173,7 +174,7 @@ test('iteration-field focus marks the next body line without evaluating it', () 
     assert.match(drawFrame(active), /\x1b\[2 q/);
     assert.equal(frame.cursorStyle, 2);
     const preview = notebookFrame(book, 40, 10, 0, '', false, true, '', 'Running…', undefined, 'rank> ', outputs);
-    assert.equal(preview.cursorStyle, 2);
+    assert.equal(preview.cursorStyle, 6);
     assert.equal(notebookFrame(book, 40, 10).cursorStyle, 2);
     book.enqueue(book.current.source);
     book.active = 0;
@@ -187,12 +188,12 @@ test('the next-eval marker is not repeated on wraps and its line remains visible
     const focused = { line: 1, offset: 5, active: true, nextLine: 2 };
     let frame = notebookFrame(book, 40, 14, 0, '', false, true, '', 'Running…',
         undefined, 'rank> ', outputs, undefined, focused);
-    assert.equal(frame.lines.filter(line => line.includes('▶')).length, 1);
-    assert.match(frame.lines.find(line => line.includes('▶')), /Value =/);
+    assert.equal(frame.lines.filter(line => line.includes('\x1b[36m')).length, 1);
+    assert.match(frame.lines.find(line => line.includes('\x1b[36m')), /Value =/);
     book.replace('for i in 1 to 3\n' + Array.from({ length: 12 }, (_, i) => `  Value${i} = i`).join('\n') + '\nend');
     frame = notebookFrame(book, 40, 5, 0, '←/→ select · Esc edit · ^L run all', false, true, '', 'Running…',
         undefined, 'rank> ', outputs, undefined, { ...focused, nextLine: 12 });
-    assert.match(frame.lines.at(-1), /▶ line 12/);
+    assert.match(frame.lines.at(-1), /next: line 12/);
     assert.match(frame.lines.at(-1), /\^L run all/);
     assert.ok(frame.lines.every(line => stringWidth(line) <= 39));
 });

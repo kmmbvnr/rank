@@ -61,7 +61,7 @@ export function parse(
     }
     const scopeError = blockScopeDiagnostics(result.value, known, syntheticNames)[0];
     if (scopeError) {
-        const error = new RankError(scopeError.message, 'Syntax');
+        const error = new RankError(scopeError.message, 'Scope');
         const start = scopeError.node.$cstNode?.range.start;
         error.location = {
             sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
