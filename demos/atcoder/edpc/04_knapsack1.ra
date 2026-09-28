@@ -23,15 +23,11 @@ fun max_value W Weights Values
   Best = array shape Size fill 0
 
   for Weight i in Weights
-    Fits = Weight at most W
-
-    if Fits
+    if Weight at most W
       Value = Values i
 
       for Cap in W to Weight by -1
-        Prev = Cap - Weight
-        Taken = Best Prev
-        Candidate = Taken + Value
+        Candidate = Best (Cap - Weight) + Value
         Current = Best Cap
         Best Cap = Current Candidate max
       end
