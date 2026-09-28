@@ -30,9 +30,7 @@ fun max_value W Weights Values
     Value = Values i
 
     for V in TotalValue to Value by -1
-      Prev = V - Value
-      Reached = MinWeight Prev
-      Candidate = Reached + Weight
+      Candidate = MinWeight (V - Value) + Weight
       Current = MinWeight V
       MinWeight V = Current Candidate min
     end
@@ -40,10 +38,7 @@ fun max_value W Weights Values
 
   Best = 0
   for V in 0 to TotalValue
-    Needed = MinWeight V
-    Affordable = Needed at most W
-
-    if Affordable
+    if MinWeight V at most W
       Best = V
     end
   end
