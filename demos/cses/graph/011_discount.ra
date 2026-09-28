@@ -28,23 +28,22 @@ fun flight_discount Edges N
 
   FromStart = Graph N 1 distances
   ToEnd = Back N N distances
-  Best = array infinity
+  Best = -1
 
   for Edge in Edges
     unpack From To Cost = Edge
     Left = FromStart From
     Right = ToEnd To
-    Known = Left not equal infinity
-    Known and= Right not equal infinity
-    if Known
-      Candidate = Left + Cost // 2
-      Candidate += Right
-      if Candidate less Best 0
-        Best 0 = Candidate
-      end
+    if Left equal infinity or Right equal infinity
+      continue
+    end
+
+    Candidate = Left + Cost // 2 + Right
+    if Best equal -1 or Candidate less Best
+      Best = Candidate
     end
   end
-  return Best 0
+  return Best
 end
 
 
@@ -58,8 +57,7 @@ fun distances Graph N Start
   Pending 0 Item enqueue
 
   for Pending len greater 0
-    Item = Pending pop
-    unpack Current Distance = Item
+    unpack Current Distance = Pending pop
     if Distance not equal Dist Current
       continue
     end
@@ -68,8 +66,8 @@ fun distances Graph N Start
       Candidate = Distance + Cost
       if Candidate less Dist Next
         Dist Next = Candidate
-        Item = array Next Candidate
-        Pending Candidate Item enqueue
+        NextItem = array Next Candidate
+        Pending Candidate NextItem enqueue
       end
     end
   end
