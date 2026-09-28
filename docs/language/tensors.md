@@ -315,6 +315,22 @@ A positive count moves items toward higher positions and vacated positions read
 integer zero or the `with` value. The axis defaults to zero and follows `with`.
 The result is a lazy, read-only view.
 
+## Addressing with a coordinate vector
+
+A rank-1 coordinate array addresses one cell through `unpack`, and adding an
+offset vector moves to a neighbor without repeating `(Y - 1)` for each axis:
+
+```rank
+Cell = array 1 1
+Up = array -1 0
+Next = Cell + Up
+Value = M unpack Next
+```
+
+Write `M unpack (Cell + Up)` when the sum stays inline: `M unpack Cell + Up` adds
+`Up` to the cell value instead. See
+[Sequences and arrays](sequences-arrays.md#addressing-with-a-coordinate-vector).
+
 ## Rank-based application
 
 The same `rank` mechanism used for arrays applies to tensor cells:

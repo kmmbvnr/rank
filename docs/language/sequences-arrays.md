@@ -311,6 +311,25 @@ Right = M 1 shift with 9 axis 1
 Unlike `window`, `shift` never changes the length of an axis. It is available
 for arrays and is a lazy, read-only view of its source.
 
+## Addressing with a coordinate vector
+
+`unpack` spreads a rank-1 array into separate addresses, so one vector can name
+a cell of a tensor and offsets are added to whole coordinates at once:
+
+```rank
+Cell = array 1 1
+Up = array -1 0
+Value = M unpack Cell
+Above = M unpack Next
+```
+
+with `Next = Cell + Up` on the line before. An expression after `unpack` needs
+parentheses, as in `M unpack (Cell + Up)`, because whitespace application binds
+tighter than `+`: `M unpack Cell + Up` is `(M unpack Cell) + Up`. Prefer a named
+step such as `Next`, which also keeps the line inside the parenthesis budget.
+The vector needs one item per axis, and coordinates outside the tensor are
+out-of-bounds errors as for any address.
+
 ## Shape and size
 
 An atom has shape `[]`. A finite sequence has shape `[Size]`. A tensor stores a

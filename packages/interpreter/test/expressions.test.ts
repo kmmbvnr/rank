@@ -470,6 +470,23 @@ describe('Rank expressions and sequences', () => {
         ].join('\n'))).toThrowError('window padding fill must be a single value');
     });
 
+    it('addresses a tensor with a coordinate vector and offsets', () => {
+        const source = [
+            'use sequences',
+            'M = array shape 2 2',
+            '  1 2',
+            '  3 4',
+            'end',
+            'Cell = array 1 1',
+            'Up = array -1 0',
+        ];
+        const at = (line: string) => run([...source, line].join('\n'));
+        expect(at('M unpack Cell')).toBe('4');
+        expect(at('M unpack (Cell + Up)')).toBe('2');
+        expect(at('Next = Cell + Up\nM unpack Next')).toBe('2');
+        expect(at('M unpack Cell + Up')).toBe('3 4');
+    });
+
     it('shifts items along an axis', () => {
         const source = [
             'use sequences',
