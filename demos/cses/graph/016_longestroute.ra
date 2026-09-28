@@ -34,8 +34,8 @@ fun longest_route Graph N
     if Distance Current less 0
       continue
     end
+    Candidate = Distance Current + 1
     for Next in Graph Current
-      Candidate = Distance Current + 1
       if Candidate greater Distance Next
         Distance Next = Candidate
         Parent Next = Current
@@ -53,9 +53,8 @@ fun longest_route Graph N
   Length = Distance N
   Path = array shape Length fill 0
   Current = N
-  for i in 1 to Length
-    Position = Length - i
-    Path Position = Current
+  for i in (Length - 1) to 0 by -1
+    Path i = Current
     Current = Parent Current
   end
   return record
