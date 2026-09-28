@@ -59,8 +59,6 @@ export const sequencesModule: RuntimeModule = {
         [1, 2],
         arguments_ => argsortValue(arguments_[0]),
         1,
-        undefined,
-        shape => shape,
     ),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
     unique: () => native('unique', 1, arguments_ => isRankSqliteTable(arguments_[0])

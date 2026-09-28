@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 import { run } from './support.js';
+import { native } from '../src/modules/shared.js';
 
 const shape = (source: string) => run(`use sequences\n${source}\nR shape`);
 
@@ -9,6 +10,22 @@ describe('Rank over an empty frame', () => {
         expect(shape('M = array shape 0 3 fill 1\nR = M sort rank 1')).toBe('0 3');
         expect(shape('M = array shape 0 3 fill 1\nR = M argsort')).toBe('0 3');
         expect(shape('M = array shape 0 3 fill 1\nR = M sum rank 1')).toBe('0');
+    });
+
+    it('derives builtin result shapes without executing a fill cell', () => {
+        const never = () => { throw new Error('shape inference must not call the builtin'); };
+        expect(native('sort', 1, never, 1).monadicResultShape?.([100_000])).toEqual([100_000]);
+        expect(native('argsort', 1, never, 1).monadicResultShape?.([3])).toEqual([3]);
+        expect(native('inverse', 1, never, 2).monadicResultShape?.([3, 3])).toEqual([3, 3]);
+        expect(native('det', 1, never, 2).monadicResultShape?.([3, 3])).toEqual([]);
+        expect(native('unique', 1, never, 1).monadicResultShape?.([3])).toBeUndefined();
+        expect(native('inverse', 1, never, 2).monadicResultShape?.([2, 3])).toBeUndefined();
+    });
+
+    it('keeps large empty-frame cells without allocating or evaluating a prototype', () => {
+        expect(shape('M = array shape 0 100000 fill 1\nR = M sort')).toBe('0 100000');
+        expect(shape('use linalg\nM = array shape 0 300 300 fill 1\nR = M inverse')).toBe('0 300 300');
+        expect(shape('M = array shape 0 0 fill 1\nR = M sort')).toBe('0 0');
     });
 
     it('keeps the rank of data-dependent builtin results', () => {

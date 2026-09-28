@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-    findOperation, moduleForms, modules, operations, type Operation,
+    findOperation, instantiateShapeSignature, validateShapeSignature, moduleForms, modules, operations, type Operation,
 } from '@arrrank/language';
 import { Interpreter, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
@@ -68,6 +68,32 @@ describe('the operation catalogue', () => {
             }
         }
         expect(wrong).toEqual([]);
+    });
+
+    it('validates shape contracts and their migration against ranks and flags', () => {
+        for (const entry of operations) {
+            if (entry.monadicRank !== undefined || entry.dyadicRanks || entry.scalarResult
+                || entry.denseResult || entry.preservesArrayShape || entry.resultShapeFromOperand !== undefined) {
+                expect(entry.shape, entry.name).toBeDefined();
+            }
+            for (const signature of entry.shape ?? []) {
+                expect(validateShapeSignature(signature), entry.name).toEqual([]);
+                expect(entry.arities, entry.name).toContain(signature.args.length);
+                const ranks = signature.args.length === 1 ? [entry.monadicRank ?? 'all'] : entry.dyadicRanks;
+                signature.args.forEach((arg, i) => {
+                    if (arg && !arg.some(term => term !== null && typeof term === 'object' && 'spread' in term)
+                        && typeof ranks?.[i] === 'number') expect(arg.length, entry.name).toBe(ranks[i]);
+                });
+                if (entry.scalarResult) expect(signature.result, entry.name).toEqual([]);
+                if (entry.denseResult) expect(signature.result, entry.name).toEqual(entry.denseResult.shape);
+                if (entry.preservesArrayShape) {
+                    expect(instantiateShapeSignature(signature, [[2, 3], []]), entry.name).toEqual([2, 3]);
+                }
+                if (entry.resultShapeFromOperand !== undefined) {
+                    expect(instantiateShapeSignature(signature, [[3, 3], [3, 2]]), entry.name).toEqual([3, 2]);
+                }
+            }
+        }
     });
 
     it('names a module that exists for every entry', () => {

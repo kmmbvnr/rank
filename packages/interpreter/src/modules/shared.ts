@@ -1,3 +1,4 @@
+import { findOperation, instantiateShapeSignature } from '@arrrank/language';
 import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
@@ -19,12 +20,22 @@ export function native(
     monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined,
 ): NativeFunction {
     const arities = typeof arity === 'number' ? [arity] : arity;
+    const operation = findOperation(name);
+    const signature = operation?.shape?.find(shape => shape.args.length === 1);
+    // Text and sequences are boxed result cells in ranked assembly. Their
+    // logical shape must not be appended as tensor axes.
+    const tensorResult = operation && !['text', 'sequence'].includes(operation.result);
+    const resultShape = monadicResultShape ?? (signature && tensorResult
+        ? (cellShape: readonly number[]): readonly number[] | undefined => {
+            const result = instantiateShapeSignature(signature, [cellShape]);
+            return result?.every(n => n !== null) ? result as readonly number[] : undefined;
+        } : undefined);
     return {
         kind: 'function',
         name,
         arities,
         monadicRank,
-        monadicResultShape,
+        monadicResultShape: resultShape,
         dyadicRanks,
         call(arguments_) {
             if (!arities.includes(arguments_.length)) {

@@ -22,8 +22,6 @@ export const linalgModule: RuntimeModule = {
         1,
         arguments_ => inverseMatrix(arguments_[0]),
         2,
-        undefined,
-        shape => shape,
     ),
     matmul: () => native(
         'matmul',
