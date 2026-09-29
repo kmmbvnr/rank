@@ -36,10 +36,11 @@ fun subtree Values Rooted Queries
   Order = Rooted .order
   Entry = Rooted .entry
   Sizes = Rooted .size
-  Flat = array shape (Order len) fill 0
+  Size = Order len
+  Flat = array shape Size fill 0
   for Node in Order
-    Value = Values (Node - 1)
-    Flat (Entry Node) = Value
+    Pos = Entry Node
+    Flat Pos = Values (Node - 1)
   end
   Sums = Flat + segment
   Answers = new queue
