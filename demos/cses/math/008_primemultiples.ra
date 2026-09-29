@@ -21,22 +21,24 @@ fun divisible_count N Primes
     Product = 1
 
     for Prime I in Primes
-      if Mask I bit
-        if Product greater N // Prime
-          Product = N + 1
-          break
-        end
-        Product *= Prime
+      if Mask I bit equal false
+        continue
       end
+      if Product greater N // Prime
+        Product = N + 1
+        break
+      end
+      Product *= Prime
     end
 
-    if Product at most N
-      Part = N // Product
-      if Mask popcount odd
-        Answer += Part
-      else
-        Answer -= Part
-      end
+    if Product greater N
+      continue
+    end
+    Part = N // Product
+    if Mask popcount odd
+      Answer += Part
+    else
+      Answer -= Part
     end
   end
 
