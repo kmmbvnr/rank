@@ -57,7 +57,7 @@ end
 fun classify X Centers Classes
   unpack Rows Cols = X shape
   Pred = array shape Rows fill 0
-  for Row in 0 until Rows
+  for Row in 0 till Rows
     Point = X Row #
     Delta = Centers - Point
     Dist = Delta * Delta sum axis 1

@@ -24,7 +24,7 @@ describe('stack-safe Rank calls', () => {
         expect(run(`
 Edges = array shape 100000 fill -1
 Seen = array shape 100000 fill false
-for I in 0 until 99999
+for I in 0 till 99999
   Edges I = I + 1
 end
 fun dfs V

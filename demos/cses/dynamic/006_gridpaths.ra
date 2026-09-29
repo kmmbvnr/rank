@@ -20,12 +20,11 @@ fun grid_paths Grid
     for Cell Column in Row
       if Cell equal "*"
         Ways Column = 0
-      else
-        if Column greater 0
-          Left = Ways (Column - 1)
-          Ways Column += Left
-          Ways Column %= 1000000007
-        end
+        continue
+      end
+      if Column greater 0
+        Ways Column += Ways (Column - 1)
+        Ways Column %= 1000000007
       end
     end
   end

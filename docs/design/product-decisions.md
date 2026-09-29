@@ -69,7 +69,7 @@ observe the strict **parenthesis budget of at most one pair of parentheses per
 line** to avoid mobile keyboard friction.
 
 ```rank
-Range = 1 until 1000
+Range = 1 till 1000
 States = Range next scan with Start
 ```
 
@@ -187,7 +187,7 @@ therefore agree. In the pipeline that makes it, a numeric operation such as
 `Mask sum` is an error that names `Values Mask sum` and `Mask count`.
 
 ```rank
-Fib = fibonacci till Limit
+Fib = fibonacci to Limit
 Answer = Fib even sum
 Mask = Fib even
 Answer = Fib Mask sum

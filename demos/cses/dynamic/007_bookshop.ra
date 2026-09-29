@@ -17,16 +17,14 @@ fun book_shop Prices Pages Budget
   Best = array shape (Budget + 1) fill 0
 
   for Price i in Prices
-    if Price at most Budget
-      for Cost in Budget to Price by -1
-        Previous = Cost - Price
-        PageCount = Pages i
-        Base = Best Previous
-        Candidate = Base + PageCount
-        Current = Best Cost
-        Maximum = Current Candidate max
-        Best Cost = Maximum
-      end
+    if Price greater Budget
+      continue
+    end
+    Gain = Pages i
+
+    for Cost in Budget to Price by -1
+      Candidate = Best (Cost - Price) + Gain
+      Best Cost = Best Cost Candidate max
     end
   end
 

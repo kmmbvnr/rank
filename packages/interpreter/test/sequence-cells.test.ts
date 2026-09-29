@@ -38,7 +38,7 @@ fun empty_rows
   yield array shape 0 fill 0
 end
 empty_rows copy shape`)).toBe('2 0');
-        expect(run('use sequences\n(0 until 0) copy shape')).toBe('0');
+        expect(run('use sequences\n(0 till 0) copy shape')).toBe('0');
     });
 
     it('copies each yielded cell before advancing a mutable generator', () => {

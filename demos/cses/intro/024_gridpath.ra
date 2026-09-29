@@ -14,7 +14,7 @@ fun solve Path
   Moves = "UDLR"
 
   Seen = array shape 9 9 fill false
-  for I in 0 until 9
+  for I in 0 till 9
     Seen 0 I = true
     Seen 8 I = true
     Seen I 0 = true
@@ -105,11 +105,13 @@ fun solve Path
 
       NY = Y + DYs i
       NX = X + DXs i
-      if not Seen NY NX
-        Seen NY NX = true
-        Ways += Next NY NX walk
-        Seen NY NX = false
+      if Seen NY NX
+        continue
       end
+
+      Seen NY NX = true
+      Ways += Next NY NX walk
+      Seen NY NX = false
     end
 
     return Ways

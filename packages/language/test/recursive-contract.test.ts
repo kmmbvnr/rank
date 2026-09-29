@@ -171,7 +171,7 @@ it('uses inferred recursive operands for inline arithmetic', () => {
 });
 
 it('widens numeric loop cells when the integer seed is not closed', () => {
-    const program = parse('A = array 8\nfor I in 0 until Count\n A = A / 2\nend');
+    const program = parse('A = array 8\nfor I in 0 till Count\n A = A / 2\nend');
     const result = analyzeValues(program);
     expect(result.bindings.get('A')?.elements).toEqual(['integer', 'real']);
     expect(result.diagnostics).toEqual([]);

@@ -543,9 +543,9 @@ find
 findall
 ```
 
-`take`, `drop`, `from` and `till` are clauses rather than functions, so they
-need no module: `primes take 5`, `fibonacci till 1000`. See
-[Pipeline clauses](../language/sequences-arrays.md#pipeline-clauses).
+`to`, `till`, `from`, `after`, `take` and `drop` are words of the language
+rather than functions, so they need no module: `primes take 5`,
+`fibonacci to 1000`. See [Bounds](../language/sequences-arrays.md#bounds).
 
 `copy` eagerly copies a material or lazy array into independent writable dense
 storage while preserving its shape. On a numeric `+ segment`, it creates an

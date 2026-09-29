@@ -116,12 +116,12 @@ T = M drop 1 take 1`);
         }
     });
 
-    it('names the clause that replaced each former spelling', () => {
+    it('names the clause to write for a spelling Rank does not have', () => {
         expect(() => run('use sequences\nprimes 5 take')).toThrow('take takes its count after it: write `Values take 5`');
         expect(() => run('use sequences\nprimes 5 drop')).toThrow('drop takes its count after it: write `Values drop 5`');
         expect(() => run('use sequences\nV = array 1 2 3\nM = V less 3\nV take while M'))
-            .toThrow('take while is gone: write `till not Condition`');
-        expect(() => run('use sequences\nprimes until 10')).toThrow('bound a sequence with till');
-        expect(() => run('A = array 1 2 3\nA from 0 until 2')).toThrow('slices are written with a range');
+            .toThrow('take while is not a Rank clause: write `till not Condition`');
+        expect(() => run('use sequences\nprimes until 10')).toThrow('until is not a Rank word: write `till`');
+        expect(() => run('A = array 1 2 3\nA from 0 until 2')).toThrow('until is not a Rank word');
     });
 });

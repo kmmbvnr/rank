@@ -8,7 +8,7 @@ use sequences
 N = stdin .integer
 Projects = new queue
 
-for i in 1 to N
+for Step in 1 to N
   Project = record
     .start = stdin .integer
     .finish = stdin .integer
@@ -25,8 +25,7 @@ rem compatible prefix.
 fun maximum_reward Jobs
   Sorted = Jobs sort by .finish .start
   Count = Sorted len
-  Size = Count + 1
-  Best = array shape Size fill 0
+  Best = array shape (Count + 1) fill 0
 
   for Project i in Sorted
     Low = 0

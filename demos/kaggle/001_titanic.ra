@@ -59,7 +59,7 @@ fun logistic X Y Rate Steps
   Weights = array shape Columns fill 0.0
   Bias = 0.0
   Zt = Z transpose
-  for # in 0 until Steps
+  for # in 0 till Steps
     Scores = Z Weights matmul + Bias
     Probability = Scores sigmoid
     Error = Probability - Y

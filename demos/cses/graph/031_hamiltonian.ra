@@ -20,7 +20,7 @@ fun hamiltonian_flights N Edges
   States = 1 N shl
   Full = States - 1
   Last = N - 1
-  Nodes = 0 until N
+  Nodes = 0 till N
   Back = new graph Nodes .directed
   for Edge in Edges
     unpack From To = Edge
@@ -31,12 +31,12 @@ fun hamiltonian_flights N Edges
 
   Ways = array shape States N fill 0
   Ways 1 0 = 1
-  for Mask in 3 until States by 2
+  for Mask in 3 till States by 2
     HasLast = Mask Last bit
     if HasLast and Mask not equal Full
       continue
     end
-    for City in 1 until N
+    for City in 1 till N
       if not Mask City bit
         continue
       end

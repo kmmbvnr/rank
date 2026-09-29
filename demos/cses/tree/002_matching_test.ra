@@ -28,7 +28,7 @@ test "path uses alternating edges"
   use graph
   use sequences
   Tree = new graph (1 to 6) .undirected
-  for Node in 1 until 6
+  for Node in 1 till 6
     Tree add Node (Node + 1)
   end
   Tree tree_matching equal 3

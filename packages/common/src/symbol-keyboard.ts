@@ -42,7 +42,7 @@ const PAIR = new Set(['leftjoin by', 'innerjoin by', 'leftjoin on', 'innerjoin o
 
 /** Words that only extend one construct earlier on the line. */
 const EXTENDS: Readonly<Record<string, (words: readonly string[]) => boolean>> = {
-    by: words => words.includes('to') || words.includes('until'),
+    by: words => words.includes('to') || words.includes('till'),
     fill: words => words.includes('shape'),
     as: words => words[0] === 'use',
 };
@@ -122,7 +122,7 @@ export function keyAvailable(key: string, before: string): boolean {
     if (key in MODIFIERS) return MODIFIERS[key](last!);
     const words = tokens.map(token => token.text);
     if (key in EXTENDS) return EXTENDS[key](words) && endsOperand(last) && !(last!.text in EXTENDS)
-        && !['shape', 'to', 'until', 'use'].includes(last!.text);
+        && !['shape', 'to', 'till', 'use'].includes(last!.text);
     if (insideArray(tokens) && OPERATOR_KEYWORDS.includes(key)) return false;
     if (SINGLE.has(key)) return trailingOperands(tokens) === 1;
     if (PAIR.has(key)) return trailingOperands(tokens) >= 2;

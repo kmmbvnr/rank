@@ -37,7 +37,7 @@ array cell by cell allocates once:
 
 ```rank
 A = array shape 1000 fill 0
-for I in 0 until 1000
+for I in 0 till 1000
   A I = I * I
 end
 ```
@@ -334,7 +334,7 @@ Numeric ranges are first-class sequences:
 
 ```rank
 1 to 10
-1 until 10
+1 till 10
 for i in 1 to 10
   i print
 end
@@ -347,10 +347,10 @@ end
 => 1 2 3
 ```
 
-`until` excludes the endpoint.
+`till` excludes the endpoint.
 
 ```text
-1 until 3
+1 till 3
 => 1 2
 ```
 
@@ -372,17 +372,17 @@ Use an explicit negative step for a descending range:
 1 to 9 by 2
 => 1 3 5 7 9
 
-10 until 0 by -2
+10 till 0 by -2
 => 10 8 6 4 2
 ```
 
 With `to`, the endpoint is included only
 when the range lands on it exactly; `1 to 6 by 2` therefore produces
-`1 3 5`. With `until`, the endpoint is always excluded. `to` and `until`
-build ranges of numbers only: a sequence such as `fibonacci` is bounded with
-`till` (see [Pipeline clauses](sequences-arrays.md#pipeline-clauses)).
+`1 3 5`. With `till`, the endpoint is always excluded. After values rather
+than a number, the same words bound them: `fibonacci to 100` keeps the items
+at most 100 (see [Bounds](sequences-arrays.md#bounds)).
 
-Equal bounds produce one value with `to` and no values with `until`,
+Equal bounds produce one value with `to` and no values with `till`,
 regardless of the step's sign. A zero step is an error even for empty ranges.
 
 ```rank
@@ -402,10 +402,10 @@ A range used as a selector takes a contiguous slice:
 
 ```rank
 Closed = Text (L to R)
-Open = Text (L until R)
+Open = Text (L till R)
 ```
 
-`to` includes the final position; `until` excludes it. Positions are
+`to` includes the final position; `till` excludes it. Positions are
 zero-based, and every selected position must exist. Equal exclusive bounds
 produce an empty slice. Text is sliced by Unicode code point.
 
@@ -413,9 +413,9 @@ For tensors, each selector addresses the next axis, and `#` keeps a whole axis.
 Other axes are preserved:
 
 ```rank
-Rows = M (1 until 4)
+Rows = M (1 till 4)
 Columns = M # (2 to 5)
-Block = M (1 until 4) (2 until 5)
+Block = M (1 till 4) (2 till 5)
 ```
 
 On a SQLite view a range selector becomes `LIMIT` and `OFFSET`, and on a SQLite

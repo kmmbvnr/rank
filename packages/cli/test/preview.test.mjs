@@ -24,7 +24,7 @@ test('a short value is shown whole', () => {
 });
 
 test('a long sequence keeps both ends and counts the rest', () => {
-    const shown = preview(value('1 until 1000'));
+    const shown = preview(value('1 till 1000'));
     assert.match(shown.text, /^1 2 3 4 5 6 7 8 9 10 \.\.\. 99[0-9]/);
     assert.match(shown.text, /999$/);
     assert.equal(shown.note, '999 values');
@@ -32,7 +32,7 @@ test('a long sequence keeps both ends and counts the rest', () => {
 });
 
 test('a long array keeps both ends', () => {
-    const shown = preview(value('use sequences\n(1 until 1000) array'));
+    const shown = preview(value('use sequences\n(1 till 1000) array'));
     assert.match(shown.text, /^1 2 3 .* 998 999$/);
     assert.equal(shown.note, '999 values');
 });
@@ -63,7 +63,7 @@ test('a tensor reports the shape its flat text hides', () => {
 test('long text is cut and counted', () => {
     const shown = preview(value([
         'use sequences', 'use text',
-        'A = (1 until 200) array',
+        'A = (1 till 200) array',
         'A "," join',
     ].join('\n')));
     assert.match(shown.text, / \.\.\.$/);
@@ -92,7 +92,7 @@ test('a result is cut to the width of the screen', () => {
 test('the REPL cuts a result and full prints it whole', () => {
     const session = spawnSync(process.execPath, [cli], {
         encoding: 'utf8',
-        input: '1 until 1000\nfull\nexit\n',
+        input: '1 till 1000\nfull\nexit\n',
     });
     assert.equal(session.status, 0);
     const first = session.stdout.split('\n')[0];
@@ -108,7 +108,7 @@ test('REPL previews cap numeric sequences and boolean masks at 40 columns, even 
     for (const columns of [120, 80, 47, 30]) {
         const session = createReplSession();
         t.after(() => session.dispose());
-        const sources = ['use numbers', 'N = 1 until 1000', 'Mask = N multiple by 3', 'Mask or= N multiple by 5'];
+        const sources = ['use numbers', 'N = 1 till 1000', 'Mask = N multiple by 3', 'Mask or= N multiple by 5'];
         for (const [index, source] of sources.entries()) {
             const result = await session.execute(source, index, [], columns);
             assert.equal(result.ok, true);

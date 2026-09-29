@@ -8,8 +8,8 @@ fun transpose_matrix A
 
   Result = array shape Columns Rows fill 0
 
-  for i in 0 until Rows
-    for j in 0 until Columns
+  for i in 0 till Rows
+    for j in 0 till Columns
       Result j i = A i j
     end
   end

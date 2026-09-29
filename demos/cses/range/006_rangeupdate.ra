@@ -10,7 +10,7 @@ Q = stdin .integer
 Values = stdin .integer N array
 Queries = array shape Q 4 fill 0
 
-for I in 0 until Q
+for I in 0 till Q
   Type = stdin .integer
   Queries I 0 = Type
   Queries I 1 = stdin .integer
@@ -50,5 +50,5 @@ fun range_updates Values Queries
     end
   end
 
-  return Answers (0 until Count)
+  return Answers (0 till Count)
 end

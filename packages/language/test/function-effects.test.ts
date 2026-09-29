@@ -71,7 +71,7 @@ function borrowProofs(source: string, name = 'helper', builtins: readonly ('len'
 it('guards counted-loop lengths from another flat-array parameter', () => {
     const source = `fun helper A B
   Total = 0
-  for I in 0 until ((A len) - 1)
+  for I in 0 till ((A len) - 1)
     Total += B I
   end
   return Total
@@ -132,7 +132,7 @@ it('summarizes a counted numeric reader loop only with proven call inputs', () =
     expect(analyze(source, 'max_subarray', [], [input])).toMatchObject({ unknown: false,
         readParameters: new Set([0]), parameters: new Set(), io: false });
     const definition = source.slice(source.indexOf('fun max_subarray'));
-    expect(analyze(definition.replace('1 until N', 'Items'), 'max_subarray', [], [input]).unknown)
+    expect(analyze(definition.replace('1 till N', 'Items'), 'max_subarray', [], [input]).unknown)
         .toBe(true);
     expect(analyze(definition, 'max_subarray', ['i'], [input]).unknown).toBe(false);
     expect(analyze(definition.replace('Best = Best Current max', 'if Current\n      Best = Current\n    end'),
@@ -281,7 +281,7 @@ it('summarizes the unchanged gradient-descent loop for callback-free numeric arr
 });
 
 it('does not inspect an unreachable counted-loop body', () => {
-    const source = 'fun helper N\n for I in 0 until N\n  Unknown callback\n end\n return 1\nend';
+    const source = 'fun helper N\n for I in 0 till N\n  Unknown callback\n end\n return 1\nend';
     expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '0' }]).unknown)
         .toBe(false);
     expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '1' }]).unknown)
@@ -353,7 +353,7 @@ it('summarizes the unchanged marble-count demo while iterating text', () => {
 
 it('accepts only proven scalar integer compound assignments', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
-    expect(analyze('fun helper N\n Count = 0\n for I in 0 until N\n  Count += I\n end\n return Count\nend',
+    expect(analyze('fun helper N\n Count = 0\n for I in 0 till N\n  Count += I\n end\n return Count\nend',
         'helper', [], [integer]).unknown).toBe(false);
     expect(analyze('fun helper X\n X += 1\n return X\nend', 'helper', [], [integer]).unknown).toBe(false);
     expect(analyze('fun helper X\n X += 1\n return X\nend', 'helper').unknown).toBe(true);
@@ -409,7 +409,7 @@ it('proves non-escape in unchanged numeric reader demos only with exact builtin 
 });
 
 it('does not keep a fresh return origin after a loop can replace the local', () => {
-    const source = 'fun helper X N\n Y = array 1\n for I in 0 until N\n  Y = X\n end\n return Y\nend';
+    const source = 'fun helper X N\n Y = array 1\n for I in 0 till N\n  Y = X\n end\n return Y\nend';
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [1], elements: ['integer'], eagerScalarCells: true };
     const result = analyze(source, 'helper', [], [array, { types: ['integer'], rank: 0, shape: [] }]);
     expect(result).toMatchObject({ unknown: false, returns: [{ kind: 'unknown' }] });
@@ -575,7 +575,7 @@ it('keeps writes to a private literal array local without claiming embedded argu
 
 it('proves writes to a privately allocated numeric matrix in a counted loop', () => {
     const source = 'fun helper Size\n Temp = array shape Size Size fill 0\n'
-        + ' for I in 0 until Size\n  Temp I I = 1\n end\n return Temp\nend';
+        + ' for I in 0 till Size\n  Temp I I = 1\n end\n return Temp\nend';
     const integer = [{ types: ['integer'], rank: 0, shape: [] }] as const;
     expect(analyze(source, 'helper', [], integer)).toMatchObject({ unknown: false,
         parameters: new Set(), captures: new Set() });
@@ -685,17 +685,17 @@ it('tracks integer selector guards through reader helpers', () => {
 });
 
 it('borrows through a counted read-only loop, but not dynamic iteration or escape', () => {
-    expect(borrowProofs('fun helper X N\n for I in 0 until N\n  X I\n end\n return X 0\nend'))
+    expect(borrowProofs('fun helper X N\n for I in 0 till N\n  X I\n end\n return X 0\nend'))
         .toEqual(new Map([[0, new Map([[1, 'bigint']])]]));
-    expect(borrowProofs('fun helper X N\n Total = 0\n for I in 0 until N\n  Total += X I\n end\n return Total\nend'))
+    expect(borrowProofs('fun helper X N\n Total = 0\n for I in 0 till N\n  Total += X I\n end\n return Total\nend'))
         .toEqual(new Map([[0, new Map([[1, 'bigint']])]]));
     expect(borrowProofs('fun helper X\n for I in X\n  I\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun helper X N\n for X in 0 until N\n  X 0\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun helper X N\n for I in 0 until N\n  Saved = X\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun helper X N\n for I in 0 until N\n  X I = 9\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun helper X N\n for I in 0 until N\n  return X\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun helper X N\n Total = 0\n for I in 0 until N\n  Total += X\n end\n return Total\nend')).toEqual(new Map());
-    expect(borrowProofs('fun helper X N\n Total = 0\n for I in 0 until N\n  Total += X I\n end\n return X Total\nend')).toEqual(new Map());
+    expect(borrowProofs('fun helper X N\n for X in 0 till N\n  X 0\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun helper X N\n for I in 0 till N\n  Saved = X\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun helper X N\n for I in 0 till N\n  X I = 9\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun helper X N\n for I in 0 till N\n  return X\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun helper X N\n Total = 0\n for I in 0 till N\n  Total += X\n end\n return Total\nend')).toEqual(new Map());
+    expect(borrowProofs('fun helper X N\n Total = 0\n for I in 0 till N\n  Total += X I\n end\n return X Total\nend')).toEqual(new Map());
 });
 
 it('keeps aliases, returns, writes and unknown calls outside the borrow proof', () => {
@@ -807,7 +807,7 @@ it('proves numeric captured writes through scalar self-recursion without an alia
 });
 
 it('does not skip later recursive effects using the first calls concrete scalar bounds', () => {
-    const source = 'fun helper N\n for I in 0 until N\n I external\n end\n'
+    const source = 'fun helper N\n for I in 0 till N\n I external\n end\n'
         + ' if N less 2\n return (N + 1) helper\n end\n return 0\nend';
     expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '0' }]).unknown).toBe(true);
 });

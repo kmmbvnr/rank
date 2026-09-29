@@ -18,10 +18,7 @@ fun solve Text
     Count = index C default 0
     Count += 1
     index C = Count
-
-    if Count greater Max
-      Max = Count
-    end
+    Max = Max Count max
   end
 
   if 2 * Max greater N + 1
@@ -38,15 +35,16 @@ fun solve Text
 
     for C in Alphabet
       Count = index C default 0
+      if Count equal 0
+        continue
+      end
 
-      if Count greater 0
-        if Choice equal "" and C not equal Previous
-          Choice = C
-        end
+      if Choice equal "" and C not equal Previous
+        Choice = C
+      end
 
-        if 2 * Count greater Remaining
-          Forced = C
-        end
+      if 2 * Count greater Remaining
+        Forced = C
       end
     end
 

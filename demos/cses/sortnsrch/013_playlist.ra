@@ -17,8 +17,7 @@ fun longest_distinct A
 
   for Value i in A
     if Value in index
-      Prev = index Value
-      Left = Left (Prev + 1) max
+      Left = Left (index Value + 1) max
     end
 
     index Value = i

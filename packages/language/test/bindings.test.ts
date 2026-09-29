@@ -214,7 +214,7 @@ describe('type facts', () => {
     it('keeps the shape of an operator over a collection', async () => {
         const result = await facts([
             'use numbers',
-            'Range = 1 until 10',
+            'Range = 1 till 10',
             'Mask = Range multiple by 3',
             'Values = array 1 2 3',
             'Shifted = Values + 1',

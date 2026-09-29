@@ -36,7 +36,7 @@ Builtin function names are unique across the entire standard library. A module
 controls whether a function is visible; it does not provide a separate namespace
 for another builtin with the same name.
 
-Core operations (`len`, `sum`, `min`, `max`, `to`, `until`, `by`, `integer`, `real`, `text`) are built into `core` and require no `use`.
+Core operations (`len`, `sum`, `min`, `max`, `to`, `till`, `by`, `integer`, `real`, `text`) are built into `core` and require no `use`.
 
 ### 3. Actionable Compiler Diagnostics
 When an unimported feature is encountered, the compiler provides helpful, actionable diagnostic messages rather than generic syntax failures:

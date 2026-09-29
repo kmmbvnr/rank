@@ -52,7 +52,7 @@ fun valid_suffix Prefix Divisors
   end
 
   Start = Length - 3
-  Text = Prefix (Start until Length)
+  Text = Prefix (Start till Length)
   Value = Text integer
   Divisor = Divisors (Length - 4)
   return Value multiple by Divisor

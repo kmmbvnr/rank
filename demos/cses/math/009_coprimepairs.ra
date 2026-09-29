@@ -24,7 +24,7 @@ fun coprime_pairs Values
     Subsets = 1 (Factors len) shl
     NotCoprime = 0
 
-    for Mask in 1 until Subsets
+    for Mask in 1 till Subsets
       Product = 1
       for Factor I in Factors
         if Mask I bit

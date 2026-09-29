@@ -8,13 +8,13 @@ fun rref A
   Work = A * 1.0 copy
   Row = 0
 
-  for Col in 0 until Cols
+  for Col in 0 till Cols
     if Row at least Rows
       break
     end
 
     Pivot = -1
-    for I in Row until Rows
+    for I in Row till Rows
       if Work I Col not equal 0
         Pivot = I
         break
@@ -33,7 +33,7 @@ fun rref A
     Divisor = Work Row Col
     Work Row /= Divisor
 
-    for I in 0 until Rows
+    for I in 0 till Rows
       if I equal Row
         continue
       end

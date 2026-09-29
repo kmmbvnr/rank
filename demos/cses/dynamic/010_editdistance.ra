@@ -14,22 +14,21 @@ fun edit_distance Left Right
   Width = Right len
   Previous = 0 to Width array
 
+  Cols = Width + 1
+
   for A i in Left
-    Size = Width + 1
-    Current = array shape Size fill 0
+    Current = array shape Cols fill 0
     Current 0 = i + 1
 
     for B j in Right
       if A equal B
         Current (j + 1) = Previous j
-      else
-        Delete = Previous (j + 1)
-        Insert = Current j
-        Replace = Previous j
-        Best = Delete Insert min
-        Best = Best Replace min
-        Current (j + 1) = Best + 1
+        continue
       end
+      Delete = Previous (j + 1)
+      Best = Delete (Current j) min
+      Best = Best (Previous j) min
+      Current (j + 1) = Best + 1
     end
 
     Previous = Current

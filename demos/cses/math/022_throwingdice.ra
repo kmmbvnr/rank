@@ -14,10 +14,10 @@ fun dice_ways N
   Mod = 1000000007
   Steps = array shape 6 6 fill 0
 
-  for Column in 0 until 6
+  for Column in 0 till 6
     Steps 0 Column = 1
   end
-  for Row in 1 until 6
+  for Row in 1 till 6
     Steps Row (Row - 1) = 1
   end
 
@@ -37,7 +37,7 @@ end
 rem Construct an identity matrix.
 fun identity Size
   Result = array shape Size Size fill 0
-  for I in 0 until Size
+  for I in 0 till Size
     Result I I = 1
   end
   return Result

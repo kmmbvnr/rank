@@ -36,9 +36,8 @@ fun minimal_grid_path Grid
       for Row in Candidates
         Column = Diagonal - Row
         Line = Grid Row
-        Letter = Line Column
-        if Letter less Best
-          Best = Letter
+        if Line Column less Best
+          Best = Line Column
         end
       end
 

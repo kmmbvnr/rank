@@ -34,7 +34,7 @@ fun bike_features Data
   Result # 1 = Times weekday
   Result # 2 = Times month
   Result # 3 = Times year
-  for Column in 0 until 8
+  for Column in 0 till 8
     Result # (Column + 4) = Numeric # Column
   end
   return Result

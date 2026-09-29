@@ -39,8 +39,8 @@ fun pca Data K
   Components = (Vectors # Columns) copy
 
   rem Fix sign at the first nonzero
-  for j in 0 until K
-    for i in 0 until Features
+  for j in 0 till K
+    for i in 0 till Features
       Value = Components i j
       if Value abs greater 0.0000000001
         if Value less 0

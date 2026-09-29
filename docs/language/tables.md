@@ -294,7 +294,7 @@ scalar, combining boolean expressions with `and` or `or`, and using the result
 as a table mask extend the SQL plan. Projection with an array of field labels,
 `innerjoin by/on`, `leftjoin by/on`, `select`, `lookup`, `reach by`, `unique` and field-keyed `sort by` also
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
-or a product of expressions uses SQL `SUM`. `View (0 until N)` keeps the
+or a product of expressions uses SQL `SUM`. `View (0 till N)` keeps the
 first `N` rows as a SQLite `LIMIT` query and checks the bounds against `len`.
 `array`, `print` and CSV output execute the
 view. `sql` and `explain` inspect the current plan without loading its result
@@ -313,7 +313,7 @@ SQLite `NULL` fields are absent when rows are materialized. The database view
 cannot be used as a destination for field assignment. SQL
 ordering is guaranteed when `sort by` is the final operation before the
 terminal read, or when a sorted view is immediately sliced with
-`(0 until N)`.
+`(0 till N)`.
 
 For a query that cannot yet be expressed through Rank's table operations, use
 an explicit read-only SQL source with positional bound parameters:

@@ -103,7 +103,7 @@ H = new heap
 H 0 0 enqueue
 for H len greater 0
   V = H pop
-  for U in 0 until 4
+  for U in 0 till 4
     Weight = Graph V U
     if Weight greater 0
       Candidate = (Dist V) + Weight

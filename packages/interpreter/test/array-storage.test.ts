@@ -159,7 +159,7 @@ First = A inspect`);
     it.each([true, false])('borrows through a counted read-only loop with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun inspect V N\n for I in 0 until N\n  V I\n end\n return V 0\nend\nA = array 10 20 30');
+            runtime.execute('fun inspect V N\n for I in 0 till N\n  V I\n end\n return V 0\nend\nA = array 10 20 30');
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.execute('A 3 inspect')).toBe(10n);
             expect(isSharedArray(array)).toBe(false);
@@ -174,7 +174,7 @@ First = A inspect`);
     it.each([true, false])('borrows through a scalar reduction loop with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun sum_cells V N\n Total = 0\n for I in 0 until N\n  Total += V I\n end\n return Total\nend\nA = array 10 20 30');
+            runtime.execute('fun sum_cells V N\n Total = 0\n for I in 0 till N\n  Total += V I\n end\n return Total\nend\nA = array 10 20 30');
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.execute('A 3 sum_cells')).toBe(60n);
             expect(isSharedArray(array)).toBe(false);

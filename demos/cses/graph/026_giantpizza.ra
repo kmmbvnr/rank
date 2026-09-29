@@ -7,7 +7,7 @@ use io
 People = stdin .integer
 Toppings = stdin .integer
 Clauses = array shape People 2 fill 0
-for i in 0 until People
+for i in 0 till People
   SignA = stdin .word
   A = stdin .integer
   SignB = stdin .word

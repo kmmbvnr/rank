@@ -10,15 +10,15 @@ fun k_means Points K Centroids Max
   N = Points len
   Labels = array shape N fill 0
 
-  for Step in 0 until Max
-    for i in 0 until N
+  for Step in 0 till Max
+    for i in 0 till N
       Point = Points i
       Best = 0
 
       D = Point - Centroids 0
       BestDist = D * D sum / 1
 
-      for c in 1 until K
+      for c in 1 till K
         D = Point - Centroids c
         Dist = D * D sum / 1
 
@@ -33,7 +33,7 @@ fun k_means Points K Centroids Max
 
     Next = Centroids copy
 
-    for c in 0 until K
+    for c in 0 till K
       Mask = Labels equal c
       Cluster = Points Mask #
 

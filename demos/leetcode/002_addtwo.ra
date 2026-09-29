@@ -10,7 +10,7 @@ fun add_two A B
   Size = N M max
   Carry = 0
 
-  for I in 0 until Size
+  for I in 0 till Size
     X = 0
     Y = 0
 

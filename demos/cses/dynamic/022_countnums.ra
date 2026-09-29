@@ -2,6 +2,7 @@ rem CSES 2220: Counting Numbers
 rem https://cses.fi/problemset/task/2220
 
 use io
+use sequences
 
 Lower = stdin .integer
 Upper = stdin .integer
@@ -38,24 +39,17 @@ fun valid_up_to Limit
     end
 
     for Digit in 0 to Last
-      Leading = Prev equal 10
-      Leading and= Digit equal 0
-      Repeated = Prev equal Digit
-      if Repeated and not Leading
+      Leading = Prev equal 10 and Digit equal 0
+      if Prev equal Digit and not Leading
         continue
       end
 
-      NewPrev = Digit
-      if Leading
-        NewPrev = 10
-      end
-
+      NewPrev = Leading 10 Digit choose
       NewTight = 0
-      KeepsLimit = Tight equal 1
-      SameDigit = Digit equal Maximum
-      KeepsLimit and= SameDigit
-      if KeepsLimit
-        NewTight = 1
+      if Tight equal 1
+        if Digit equal Maximum
+          NewTight = 1
+        end
       end
 
       Next NewPrev NewTight += Ways

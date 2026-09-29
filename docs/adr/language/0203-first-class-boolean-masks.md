@@ -1,7 +1,7 @@
 # 0203. First-Class Boolean Masks for Selection and Assignment
 
 * **Status:** Accepted
-* **Date:** 2026-09-08 (revised 2026-09-29: masks are positional)
+* **Date:** 2026-09-29
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Product Decisions Section 6
 
@@ -30,7 +30,7 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
 2. **Explicit selection via juxtaposition (`Source Mask`):**
    Applying a mask to a collection selects the items at the positions where the mask is `true`:
    ```rank
-   Fib = fibonacci till Limit
+   Fib = fibonacci to Limit
    Mask = Fib even
    Answer = Fib Mask sum
    ```
@@ -76,7 +76,7 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
    Pred Negative = 0
    ```
 
-7. **A mask does not stop a sequence.** `less 1000` is a predicate: over `fibonacci` it is `false` forever after 987, so `Fib (Fib less 1000)` never ends. Ending a sequence is the job of `till` ([ADR-0205](0205-slices-and-sequence-bounds.md)), which can take the same condition: `fibonacci till at least 1000`. An optimizer may recognize a monotonic source and stop early, but the meaning does not depend on it. A preview of a selection that finds nothing more gives up after a budget of passed-over items and shows `...`.
+7. **A mask does not stop a sequence.** `less 1000` is a predicate: over `fibonacci` it is `false` forever after 987, so `Fib (Fib less 1000)` never ends. Ending a sequence is the job of `till` ([ADR-0205](0205-slices-and-sequence-bounds.md)): `fibonacci till 1000`. An optimizer may recognize a monotonic source and stop early, but the meaning does not depend on it. A preview of a selection that finds nothing more gives up after a budget of passed-over items and shows `...`.
 
 8. **Short-circuiting selectors (`first where`, `first index where`):**
    `first where` takes a condition whose subject is the source, as `filter` does, or a mask:
@@ -107,4 +107,4 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
 * Core Principles 10, 11 in [docs/CURRENT_SPEC.md](../../CURRENT_SPEC.md)
 * Section 6 ("Boolean sequence masks and explicit selection") in [docs/design/product-decisions.md](../design/product-decisions.md)
 * Section "Boolean addressing" in [docs/language/values-addressing.md](../../language/values-addressing.md)
-* [ADR-0205](0205-slices-and-sequence-bounds.md): `take`, `drop`, `from` and `till`
+* [ADR-0205](0205-slices-and-sequence-bounds.md): `to`, `till`, `from`, `after`, `take` and `drop`

@@ -24,16 +24,16 @@ fun random_subsets X Y N Replace Seed
   end
 
   State = Seed seed
-  Pool = 0 until Rows array
+  Pool = 0 till Rows array
   Result = new queue
 
-  for # in 0 until N
+  for # in 0 till N
     Ids = Pool
     if Replace
       Ids = Pool Size choices
     else
       Order = Pool shuffle
-      Ids = Order (0 until Size)
+      Ids = Order (0 till Size)
     end
 
     Part = record

@@ -16,7 +16,7 @@ Answer print
 rem Count candidates that remain non-palindromic after fifty steps.
 fun lychrel_count Limit
   Count = 0
-  for N in 1 until Limit
+  for N in 1 till Limit
     if N lychrel
       Count += 1
     end

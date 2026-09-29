@@ -31,7 +31,7 @@ describe('prime membership trial division', () => {
             .toBe('false false false true true true true true false false false');
         expect(run('use sequences\n(array 2.0 3.5 31.0) in primes'))
             .toBe('true false true');
-        expect(run('use sequences\n(array 29 31 37 41) in (primes from 31 till at least 41)'))
+        expect(run('use sequences\n(array 29 31 37 41) in (primes from 31 till 41)'))
             .toBe('false true true false');
     });
 

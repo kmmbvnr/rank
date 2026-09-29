@@ -34,7 +34,7 @@ fun adaboost_fit X Y Classifiers
   Initial = 1.0 / N
   Weight = array shape N fill Initial
 
-  for # in 0 until Classifiers
+  for # in 0 till Classifiers
     Best = record
       .polarity = 1
       .threshold = X 0 0
@@ -43,7 +43,7 @@ fun adaboost_fit X Y Classifiers
     end
     MinError = infinity
 
-    for Feature in 0 until Features
+    for Feature in 0 till Features
       Column = X axis 1 Feature
       Limits = Column unique sort
 

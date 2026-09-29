@@ -18,7 +18,7 @@ fun smallest_prime_replacement
   Upper = 10000
 
   for true
-    for Prime in primes from Lower till at least Upper
+    for Prime in primes from Lower till Upper
       if Prime has_eight_prime_family
         return Prime
       end
@@ -33,7 +33,7 @@ end
 fun has_eight_prime_family Prime
   Digits = Prime text integer rank 0
   Last = Digits len - 1
-  Places = 0 until Last
+  Places = 0 till Last
 
   for Digit in 0 to 2
     Same = (Digits Places equal Digit) indices

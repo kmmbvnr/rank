@@ -57,7 +57,7 @@ fun difference Changes Start Params
   Saving = array shape Sims fill 0.0
   Rate = Official / 1200
   Payment = Balance Rate Term payment
-  for Month in 0 until Term
+  for Month in 0 till Term
     if Month greater 0 and Month % 12 equal 0
       Rate = Official / 1200
       Payment = Balance Rate (Term - Month) payment

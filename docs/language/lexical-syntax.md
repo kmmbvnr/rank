@@ -158,7 +158,7 @@ serve to satisfy the line/parenthesis budget, rather than acting as procedural c
     ```rank
     rem Avoid: procedural counter in two-pointer matching
     Count = 0
-    for I in 0 until N
+    for I in 0 till N
       ...
       Count += 1
     end
@@ -171,7 +171,7 @@ serve to satisfy the line/parenthesis budget, rather than acting as procedural c
 - Use stepped ranges (`for I in (N - 1) to 0 by -1` or `for I in Start to N by Step`)
   instead of manual `while` loops with decrement/increment counters.
 - Use boolean masks and counting (`(A equal 1) count`) instead of manual tally loops.
-- Use container slicing (`Path (0 until Length)` or `Reversed (Last to 0 by -1)`)
+- Use container slicing (`Path (0 till Length)` or `Reversed (Last to 0 by -1)`)
   instead of manual array copy/reverse loops.
 - Use guard clauses (`continue` or `return`) early to keep indentation shallow.
 
@@ -469,7 +469,7 @@ A max + 1
 ```
 
 To process just one operand, group it explicitly: `A - (A mean)` or
-`0 until (Classes len)`.
+`0 till (Classes len)`.
 
 A comparison works like the arithmetic above it, as on a calculator: after a
 plain left operand, the comparison takes the next value and a following

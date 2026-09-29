@@ -32,7 +32,7 @@ rem Count evaluates to 3 (not 4)
 ### 2. Surrogate-Safe Slicing
 Slicing through `from ... to / until` operates strictly on code point boundaries:
 ```rank
-Prefix = "A😀Б" (0 until 2)
+Prefix = "A😀Б" (0 till 2)
 rem Produces "A😀" without splitting the surrogate pair
 ```
 It is syntactically and semantically impossible to cleave a surrogate pair or extract an orphaned surrogate.

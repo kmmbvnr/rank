@@ -86,7 +86,7 @@ Keep lines near 40 columns. Reduce parentheses by naming intermediate values
 with short names that describe their contents or role. For example:
 
 ```rank
-Range = 1 until 1000
+Range = 1 till 1000
 States = Range next scan with Start
 ```
 
@@ -110,7 +110,7 @@ they remove whole classes of candidates.
 Project Euler 51 follows this shape:
 
 ```rank
-Places = 0 until Last
+Places = 0 till Last
 
 for Digit in 0 to 2
   Mask = Digits Places equal Digit

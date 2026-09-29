@@ -50,8 +50,8 @@ rem Apply one cellular-automaton step and preserve the matrix shape.
 fun evolve Grid Stuck
   N = Grid len
 
-  for Y in 0 until N
-    for X in 0 until N
+  for Y in 0 till N
+    for X in 0 till N
       On = Grid Y X
       Count = Grid X Y neighbors
       New = Count equal 3 or On and Count equal 2

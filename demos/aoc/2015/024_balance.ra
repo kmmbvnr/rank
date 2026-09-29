@@ -21,7 +21,7 @@ rem Minimize the first group by package count, then by product.
 fun balance Packages Groups
   Target = Packages sum // Groups
   Count = Packages len
-  Indices = 0 until Count
+  Indices = 0 till Count
 
   for Size in 1 to Count
     Found = false
@@ -68,7 +68,7 @@ fun partitionable Packages Used Groups Target
   end
 
   Count = Packages len
-  for I in 0 until Count
+  for I in 0 till Count
     Taken = Used I bit
     if not Taken
       queue push I

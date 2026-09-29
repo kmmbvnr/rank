@@ -17,12 +17,12 @@ fun unordered_coin_ways Coins Target
   Ways 0 = 1
 
   for Coin in Coins
-    if Coin at most Target
-      for Total in Coin to Target
-        Previous = Total - Coin
-        Ways Total += Ways Previous
-        Ways Total %= 1000000007
-      end
+    if Coin greater Target
+      continue
+    end
+    for Total in Coin to Target
+      Ways Total += Ways (Total - Coin)
+      Ways Total %= 1000000007
     end
   end
 

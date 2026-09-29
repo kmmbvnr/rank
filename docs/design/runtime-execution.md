@@ -530,7 +530,7 @@ iterations. Scalar assignments commit immediately, retaining fixed-type checks,
 lexical binding behavior and partial state if a later operation fails. The
 invocation-bound writer optimization below avoids repeating known type checks. Errors carry the original body-command or loop-condition location.
 
-The scope includes conditional and `to`/`until` range loops with at most 32 commands (including nested branches and loops),
+The scope includes conditional and `to`/`till` range loops with at most 32 commands (including nested branches and loops),
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
 bigint arithmetic. Guarded array reads/writes, containers and vector iteration are
