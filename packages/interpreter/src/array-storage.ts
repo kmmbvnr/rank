@@ -150,7 +150,11 @@ export function float64Cells(value: RankArray): Float64Array | undefined {
     const state = ownedStorage.get(value);
     if (state?.stable && state.typed instanceof Float64Array) return state.typed;
     const plain = realCells(value);
-    return plain ? Float64Array.from(plain) : undefined;
+    if (!plain) return undefined;
+    // A plain loop: `Float64Array.from` walks an iterator, several times slower.
+    const copy = new Float64Array(plain.length);
+    for (let index = 0; index < plain.length; index += 1) copy[index] = plain[index];
+    return copy;
 }
 
 const SMALL_OPERAND_CELLS = 4096;

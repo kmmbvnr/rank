@@ -607,6 +607,11 @@ function reshape(value: RankValue, shapeValue: RankValue): RankValue {
 
     const shape = shapeValue.items.map(item => reshapeDimension(item as bigint));
     const expected = shape.reduce((product, dimension) => product * dimension, 1);
+    // A typed array reshapes into a typed array: the cells keep their order.
+    const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
+    if (stored && typedElementKind(value as RankArray) !== undefined && stored.length === expected) {
+        return typedArray((stored as Float64Array | BigInt64Array).slice(), shape);
+    }
     const items = reshapeItems(value);
     if (items.length !== expected) {
         throw new RankError(

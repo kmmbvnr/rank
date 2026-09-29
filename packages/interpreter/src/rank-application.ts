@@ -1,4 +1,4 @@
-import { arrayRevision, derivedArray, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
+import { arrayRevision, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -125,14 +125,24 @@ export class RankApplication {
             && (a.frameShape.length === 0 || b.frameShape.length === 0 || sameShape(a.frameShape, b.frameShape))
             && this.isPureBuiltin(fn)) {
             const cells: RankValue[] = new Array(frameSize);
+            // Real results (max, min over reals) go into one typed buffer.
+            let reals: Float64Array | undefined = new Float64Array(frameSize);
             try {
                 for (let index = 0; index < frameSize; index += 1) {
                     if ((index & 0xfff) === 0) checkpoint('computing array');
-                    cells[index] = applyCell(
+                    const result = applyCell(
                         a.cellAt(a.frameShape.length === 0 ? 0 : index),
                         b.cellAt(b.frameShape.length === 0 ? 0 : index));
+                    if (reals) {
+                        if (typeof result === 'number') reals[index] = result;
+                        else {
+                            for (let done = 0; done < index; done += 1) cells[done] = reals[done];
+                            reals = undefined;
+                        }
+                    }
+                    if (!reals) cells[index] = result;
                 }
-                return completed(ownedArray(cells, frameShape));
+                return completed(reals ? typedArray(reals, frameShape) : ownedArray(cells, frameShape));
             } catch (error) {
                 if (!(error instanceof RankError)) throw error;
             }
