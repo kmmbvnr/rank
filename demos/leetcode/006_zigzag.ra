@@ -15,8 +15,8 @@ fun zigzag Text N
   Length = Text len
   Cycle = N * 2 - 2
 
-  for Row in 0 until N
-    for Position in Row until Length by Cycle
+  for Row in 0 till N
+    for Position in Row till Length by Cycle
       queue push Position
 
       if Row greater 0 and Row less N - 1

@@ -17,16 +17,16 @@ fun cross_validation N K Shuffle
     .DomainError raise
   end
 
-  Order = 0 until N array
+  Order = 0 till N array
   if Shuffle
     Order = Order shuffle
   end
 
   Base = N // K
   Extra = N % K
-  Positions = 0 until N array
+  Positions = 0 till N array
 
-  for Fold in 0 until K
+  for Fold in 0 till K
     First = Fold * Base
     First += Fold Extra min
 
@@ -36,7 +36,7 @@ fun cross_validation N K Shuffle
     end
     Last = First + Size
 
-    Test = Order (First until Last)
+    Test = Order (First till Last)
 
     TrainMask = Positions less First
     After = Positions at least Last

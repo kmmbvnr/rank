@@ -31,8 +31,9 @@ describe('short-circuiting sequence selectors', () => {
     it('keeps the items before the first that meets a till condition', () => {
         expect(run('use numbers\nValues = array 2 4 7 8\nValues till not even')).toBe('2 4');
         expect(run('use numbers\nValues = array 2 4 7 8\nMask = Values even\nValues till (not Mask)')).toBe('2 4');
-        expect(run('Values = array 2 4 7 8\nValues till 4')).toBe('2 4');
-        expect(run('Values = array 2 4 7 8\nValues till at least 4')).toBe('2');
+        expect(run('Values = array 2 4 7 8\nValues to 4')).toBe('2 4');
+        expect(run('Values = array 2 4 7 8\nValues till 4')).toBe('2');
+        expect(run('Values = array 2 4 7 8\nValues till 5')).toBe('2 4');
         expect(run('"hello world" till equal " "')).toBe('hello');
     });
 
@@ -41,11 +42,18 @@ describe('short-circuiting sequence selectors', () => {
         expect(run('Values = array 2 4 7 8\nValues from greater 4')).toBe('7 8');
         expect(run('use numbers\nValues = array 2 4 7 3\nValues from not even')).toBe('7 3');
         expect(run('Values = array 2 4\nValues from 9')).toBe('');
+        expect(run('Values = array 2 4 7 8\nValues after 4')).toBe('7 8');
+        expect(run('Values = array 2 4 7 8\nValues from 4')).toBe('4 7 8');
+        expect(run('use sequences\nprimes after 101 till 110 array')).toBe('103 107 109');
+        expect(() => run('Values = array 2 4\nValues after greater 1'))
+            .toThrowError('after takes a value; write `from Condition`');
+        expect(() => run('use numbers\nValues = array 2 4\nValues to not even'))
+            .toThrowError('to takes a value; write `till Condition`');
     });
 
     it('keeps till and from lazy over an unbounded source', () => {
         expect(run('use sequences\nprimes till 10 array')).toBe('2 3 5 7');
-        expect(run('use sequences\nprimes till at least 7 array')).toBe('2 3 5');
+        expect(run('use sequences\nprimes till 7 array')).toBe('2 3 5');
         expect(run('use sequences\nprimes from greater 7 take 2 array')).toBe('11 13');
         expect(run([
             'use sequences',
@@ -62,6 +70,6 @@ describe('short-circuiting sequence selectors', () => {
         expect(() => run('Values = array 1 2\nValues first where (array true)'))
             .toThrowError('first where mask length 1 does not match source length 2');
         expect(() => run('Values = array 1 2\nValues till (array 1 0)'))
-            .toThrowError('till expects a boolean mask');
+            .toThrowError('till expects a value or a boolean mask');
     });
 });

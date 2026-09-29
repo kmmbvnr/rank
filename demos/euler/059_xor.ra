@@ -32,7 +32,7 @@ end
 rem Gather repeats the key; bxor applies to corresponding bytes.
 fun decrypt Cipher Key
   Size = Cipher len
-  Positions = 0 until Size
+  Positions = 0 till Size
   KeyLen = Key len
   Slots = Positions % KeyLen
   KeyStream = Key Slots
@@ -64,7 +64,7 @@ end
 rem Reuse byte positions and score each key as it arrives.
 fun best_key Cipher Weights
   Size = Cipher len
-  Positions = 0 until Size
+  Positions = 0 till Size
   Slots = Positions % 3
   BestScore = -101 * Size - 1
   BestKey = array 97 97 97

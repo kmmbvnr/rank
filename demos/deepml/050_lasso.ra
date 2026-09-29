@@ -15,7 +15,7 @@ fun lasso X Y L1 Lr N Eps
   W = array shape Cols fill 0.0
   Bias = 0.0
 
-  for # in 0 until N
+  for # in 0 till N
     Error = X W matmul + Bias - Y
     Grad = X transpose Error matmul
     Grad /= Rows

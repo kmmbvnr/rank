@@ -46,7 +46,7 @@ rem Rank using counts of unused values.
 fun permutation_order P
   N = P len
   Available = N fenwick
-  for I in 0 until N
+  for I in 0 till N
     Available I = 1
   end
 

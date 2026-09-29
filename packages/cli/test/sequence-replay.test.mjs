@@ -15,8 +15,8 @@ end`;
 test('a stored native stream keeps its position rather than the values it read', t => {
     const s = session(t);
     s.run(1, 'use numbers\nFib = fibonacci');
-    assert.equal(s.run(2, 'Fib till at least 100000 sum'), 196416n);
-    assert.equal(s.run(3, 'Fib till at least 1000000 sum'), 121393n + 196418n + 317811n + 514229n + 832040n);
+    assert.equal(s.run(2, 'Fib till 100000 sum'), 196416n);
+    assert.equal(s.run(3, 'Fib till 1000000 sum'), 121393n + 196418n + 317811n + 514229n + 832040n);
     assert.equal(s.replay.retained, 0);
     // A rewind recomputes the prefix instead of replaying kept values.
     s.replay.rewind(3);
@@ -338,15 +338,15 @@ test('stored primes resume after bounded sums and preserve the first excluded va
     const s = session(t);
     const g = s.run(1, 'G = primes');
     assert.match(s.look(g).text, /^2 3 5 7/);
-    assert.match(s.look(s.run(2, 'G till at least 100')).text, /^2 3 5 7/);
+    assert.match(s.look(s.run(2, 'G till 100')).text, /^2 3 5 7/);
     assert.match(s.look(g).text, /^2 3 5 7/);
-    assert.equal(s.run(3, 'G till at least 100 sum'), 1060n);
+    assert.equal(s.run(3, 'G till 100 sum'), 1060n);
     assert.match(s.look(g).text, /^101 103 107/);
-    assert.equal(s.run(4, 'G till at least 120 sum'), 533n);
+    assert.equal(s.run(4, 'G till 120 sum'), 533n);
     assert.match(s.look(g).text, /^127 131 137/);
     s.replay.rewind(4);
     assert.match(s.look(g).text, /^101 103 107/);
-    assert.equal(s.run(4, 'G till at least 120 sum'), 533n);
+    assert.equal(s.run(4, 'G till 120 sum'), 533n);
     s.replay.rewind(3);
     assert.match(s.look(g).text, /^2 3 5 7/);
 });
@@ -355,26 +355,26 @@ test('stored sources start fresh while aliases share the same cursor', t => {
     const s = session(t);
     const g = s.run(1, 'G = primes');
     const h = s.run(2, 'H = G');
-    assert.equal(s.run(3, 'G till at least 10 sum'), 17n);
+    assert.equal(s.run(3, 'G till 10 sum'), 17n);
     assert.match(s.look(h).text, /^11 13 17/);
     assert.equal(s.run(4, 'H 0'), 11n);
     assert.match(s.look(g).text, /^13 17 19/);
     const fresh = s.run(5, 'F = primes');
     assert.match(s.look(fresh).text, /^2 3 5/);
-    assert.equal(s.run(6, 'F till at least 10 sum'), 17n);
+    assert.equal(s.run(6, 'F till 10 sum'), 17n);
     assert.match(s.look(g).text, /^13 17 19/);
 });
 
 test('inclusive, empty and lower bounds consume only the requested prefix', t => {
     const s = session(t);
     const g = s.run(1, 'G = primes');
-    assert.equal(s.run(2, 'G till at least 2 sum'), 0n);
-    assert.equal(s.run(3, 'G till 2 sum'), 2n);
+    assert.equal(s.run(2, 'G till 2 sum'), 0n);
+    assert.equal(s.run(3, 'G to 2 sum'), 2n);
     assert.match(s.look(g).text, /^3 5 7/);
-    assert.equal(s.run(4, 'G from 10 till at least 20 sum'), 60n);
+    assert.equal(s.run(4, 'G from 10 till 20 sum'), 60n);
     assert.match(s.look(g).text, /^23 29 31/);
-    const limited = s.run(5, 'Limited = G till at least 30');
-    assert.equal(s.run(6, 'Limited till at least 100 sum'), 52n);
+    const limited = s.run(5, 'Limited = G till 30');
+    assert.equal(s.run(6, 'Limited till 100 sum'), 52n);
     assert.match(s.look(g).text, /^31 37 41/);
     assert.equal(s.look(limited).text, '');
 });
@@ -382,29 +382,29 @@ test('inclusive, empty and lower bounds consume only the requested prefix', t =>
 test('Fibonacci reductions and combined masks read the stream rather than a fresh plan', t => {
     const s = session(t);
     s.run(1, 'use numbers\nG = fibonacci');
-    assert.equal(s.run(2, 'G till at least 10 sum'), 19n);
-    assert.equal(s.run(3, 'G till at least 30 sum'), 34n);
+    assert.equal(s.run(2, 'G till 10 sum'), 19n);
+    assert.equal(s.run(3, 'G till 30 sum'), 34n);
     assert.match(s.look(s.interpreter.variables.get('G')).text, /^34 55 89/);
     s.run(4, 'P = primes\nMask = P greater 5 and P less 20');
-    assert.equal(s.run(5, 'P Mask till at least 20 sum'), 67n);
+    assert.equal(s.run(5, 'P Mask till 20 sum'), 67n);
     assert.match(s.look(s.interpreter.variables.get('P')).text, /^23 29 31/);
 });
 
 test('filtered views retain their stream source when assigned and bounded again', t => {
     const s = session(t);
     const g = s.run(1, 'G = primes');
-    s.run(2, 'H = (G (G greater 5)) till at least 100');
-    assert.equal(s.run(3, 'H till at least 20 sum'), 67n);
+    s.run(2, 'H = (G (G greater 5)) till 100');
+    assert.equal(s.run(3, 'H till 20 sum'), 67n);
     assert.match(s.look(g).text, /^23 29 31/);
-    assert.equal(s.run(4, 'H till at least 30 sum'), 52n);
+    assert.equal(s.run(4, 'H till 30 sum'), 52n);
     assert.match(s.look(g).text, /^31 37 41/);
 });
 
 test('cached generators cannot move a separately consumed native source backwards', t => {
     const s = session(t);
-    s.run(1, 'fun forward G\n for V in G till at least 1000\n  yield V\n end\nend\nG = primes\nH = G forward');
+    s.run(1, 'fun forward G\n for V in G till 1000\n  yield V\n end\nend\nG = primes\nH = G forward');
     s.look(s.interpreter.variables.get('H'));
-    s.run(2, 'G till at least 100 sum');
+    s.run(2, 'G till 100 sum');
     assert.throws(() => s.run(3, 'H 0'), /advanced since this value was buffered/);
     assert.match(s.look(s.interpreter.variables.get('G')).text, /^101 103 107/);
     s.replay.rewind(2);
@@ -415,22 +415,22 @@ test('cached generators cannot move a separately consumed native source backward
 test('ordinary execution keeps reusable native sequences and ranges', () => {
     const interpreter = new Interpreter(() => {});
     interpreter.execute('use sequences\nG = primes');
-    assert.equal(interpreter.execute('G till at least 100 sum'), 1060n);
-    assert.equal(interpreter.execute('G till at least 100 sum'), 1060n);
+    assert.equal(interpreter.execute('G till 100 sum'), 1060n);
+    assert.equal(interpreter.execute('G till 100 sum'), 1060n);
 });
 
 test('two sequential reads and nested readers share a native cursor without duplication', t => {
     const s = session(t);
     s.run(1, 'G = primes');
     assert.equal(s.run(2, '(G 0) + (G 0)'), 5n);
-    assert.equal(s.run(3, 'Total = 0\nfor P in G till at least 11\n Total += P\n Extra = G 0\n Total += Extra\nend\nTotal'), 12n);
+    assert.equal(s.run(3, 'Total = 0\nfor P in G till 11\n Total += P\n Extra = G 0\n Total += Extra\nend\nTotal'), 12n);
     assert.match(s.look(s.interpreter.variables.get('G')).text, /^11 13 17/);
 });
 
 test('previewing two readers of one native stream mirrors consumption without spending it', t => {
     const s = session(t);
     const g = s.run(1, 'G = primes');
-    s.run(2, 'H = G till at least 10');
+    s.run(2, 'H = G till 10');
     const pairs = s.run(3, 'H + H');
     assert.equal(s.look(pairs).text, '5 12');
     assert.match(s.look(g).text, /^2 3 5/);
@@ -441,7 +441,7 @@ test('previewing two readers of one native stream mirrors consumption without sp
 test('the actual CLI shows 101 after consuming primes below 100', () => {
     const result = spawnSync(process.execPath, ['packages/cli/bin/cli.js'], {
         cwd: new URL('../../../', import.meta.url), encoding: 'utf8',
-        input: 'use sequences\nG = primes\nG till at least 100\nG till at least 100 sum\nG\nexit\n',
+        input: 'use sequences\nG = primes\nG till 100\nG till 100 sum\nG\nexit\n',
     });
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stderr, '');

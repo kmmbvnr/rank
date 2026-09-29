@@ -21,7 +21,7 @@ rem Remove the outer quotes and split the
 rem quoted comma-separated word list.
 fun words_from_text Text
   Last = Text len - 1
-  Body = Text (1 until Last)
+  Body = Text (1 till Last)
   return Body "\",\"" split
 end
 

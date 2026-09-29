@@ -64,7 +64,7 @@ type: do not replace integers with f64. `//` is floor division and `%` follows t
 divisor's sign; Rust signed division truncates, so translate negative operands
 explicitly. Division by zero fails. Boolean operations evaluate both operands.
 
-`A to B` is ascending and includes B. `A until B` excludes B. Empty ascending
+`A to B` is ascending and includes B. `A till B` excludes B. Empty ascending
 ranges produce no elements. Sequence values are lazy and may be iterated again;
 do not consume a named sequence once if it is reused later. Never assume an
 arbitrary user generator is pure or finite.
@@ -144,7 +144,7 @@ use cli
 rem Upper boundary, excluded.
 option Limit integer = 1000
 
-N = 1 until Limit
+N = 1 till Limit
 
 Mask = N multiple by 3
 Mask or= N multiple by 5

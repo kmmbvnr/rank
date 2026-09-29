@@ -23,10 +23,10 @@ fun solve Containers Target
   MinUsed = N + 1
   Part2 = 0
 
-  for Mask in 0 until Limit
+  for Mask in 0 till Limit
     Total = 0
 
-    for I in 0 until N
+    for I in 0 till N
       if Mask I bit
         Total += Containers I
       end

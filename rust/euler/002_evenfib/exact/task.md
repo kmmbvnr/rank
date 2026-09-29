@@ -75,7 +75,7 @@ type: do not replace integers with f64. `//` is floor division and `%` follows t
 divisor's sign; Rust signed division truncates, so translate negative operands
 explicitly. Division by zero fails. Boolean operations evaluate both operands.
 
-`A to B` is ascending and includes B. `A until B` excludes B. Empty ascending
+`A to B` is ascending and includes B. `A till B` excludes B. Empty ascending
 ranges produce no elements. Sequence values are lazy and may be iterated again;
 do not consume a named sequence once if it is reused later. Never assume an
 arbitrary user generator is pure or finite.
@@ -337,7 +337,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "form": "fibonacci",
       "result": "sequence",
       "lazy": true,
-      "summary": "Unbounded lazy Fibonacci numbers; bound with to, until or from.",
+      "summary": "Unbounded lazy Fibonacci numbers; bound with to, till or from.",
       "sites": [
         {
           "line": 13,

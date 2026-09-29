@@ -30,7 +30,7 @@ flowchart TD
         ADR100["0100: Inferred Type Stability & Invariance"]
         ADR101["0101: Value Semantics & Copy-on-Write"]
         ADR102["0102: Numeric Tower & Division"]
-        ADR103["0103: Numeric Ranges ('to', 'until', 'by')"]
+        ADR103["0103: Numeric Ranges ('to', 'till', 'by')"]
         ADR104["0104: Unicode Code Point Semantics & Text Blocks"]
         ADR105["0105: Symbol Scalars ('.name')"]
         ADR106["0106: Closed Typed Records"]
@@ -43,7 +43,7 @@ flowchart TD
         ADR202["0202: Whitespace Juxtaposition for Addressing"]
         ADR203["0203: First-Class Boolean Masks"]
         ADR204["0204: Whole-Axis Selector ('#')"]
-        ADR205["0205: Slices and Sequence Bounds ('take', 'drop', 'from', 'till')"]
+        ADR205["0205: Slices and Sequence Bounds ('to', 'till', 'from', 'after')"]
         ADR206["0206: Index Array Selection & Permutation (Gather)"]
         ADR207["0207: Positional Unpacking & Splatting ('unpack')"]
     end
@@ -90,7 +90,7 @@ flowchart TD
 | [ADR-0100](0100-inferred-type-stability-and-invariance.md) | Inferred Type Stability and Invariant Variable Binding | No declaration keywords (`let`/`var`); variables infer invariant types; runtime guards (`is`, `type`). |
 | [ADR-0101](0101-value-semantics-and-copy-on-write.md) | Value Semantics with Copy-on-Write for Arrays and Tensors | Variables hold pure values; aliasing cannot mutate caller data; transparent Copy-on-Write. |
 | [ADR-0102](0102-numeric-tower-and-division-semantics.md) | Numeric Tower and Division Semantics | Arbitrary-precision `integer` (BigInt), IEEE-754 `real`, `/` for real division, `//` for floor division. |
-| [ADR-0103](0103-first-class-numeric-ranges.md) | First-Class Numeric Ranges (`to`, `until`, `by`) | Self-evident range sequences: `to` inclusive, `until` exclusive, strict step sign direction. |
+| [ADR-0103](0103-first-class-numeric-ranges.md) | First-Class Numeric Ranges (`to`, `till`, `by`) | Self-evident range sequences: `to` inclusive, `till` exclusive, strict step sign direction. |
 | [ADR-0104](0104-unicode-code-point-semantics-for-text.md) | Unicode Code Point Semantics for Text Strings | Unicode scalar coordinates, surrogate safety, and 40-column multiline blocks (`text`, `text lines`). |
 | [ADR-0105](0105-symbol-scalars-for-labels-and-enums.md) | Symbol Scalars for Labels, Enums, Fields, and Type Tags | Lightweight `.name` tokens for record fields, table columns, ad-hoc enums, and type guards. |
 | [ADR-0106](0106-record-types.md) | Record Types as Closed, Typed Reference Structures | Typo-safe closed schemas with typed fields; explicit reference identity for autograd and graphs; `with` blocks for changed copies. |
@@ -108,7 +108,7 @@ flowchart TD
 | [ADR-0202](0202-whitespace-juxtaposition-for-addressing.md) | Whitespace Juxtaposition for Addressing and Selection | Universal $\text{value} + \text{selector} \rightarrow \text{value}$ formula; non-negative indices. |
 | [ADR-0203](0203-first-class-boolean-masks.md) | First-Class Boolean Masks for Selection and Assignment | Declarative filtering `A Mask` and conditional in-place updates `A Mask = 0`. |
 | [ADR-0204](0204-whole-axis-tensor-selector-hash.md) | Whole-Axis Tensor Selector (`#`) | Extracting and mutating entire matrix columns (`M # j`) via long-press on `.`. |
-| [ADR-0205](0205-slices-and-sequence-bounds.md) | Slices and Sequence Bounds | Range selectors slice by position; `take`/`drop` count items; `from`/`till` bound a sequence by a condition or value. |
+| [ADR-0205](0205-slices-and-sequence-bounds.md) | Slices and Sequence Bounds | `to`/`till` and `from`/`after` bound values inclusively and exclusively; range selectors slice by position; `take`/`drop` count items. |
 | [ADR-0206](0206-index-array-selection-and-permutation.md) | Index Array Selection and Permutation (Gather Addressing) | Arbitrary permutation, duplication along axis 0, and multidimensional Cartesian sub-blocks. |
 | [ADR-0207](0207-positional-unpacking-and-splatting.md) | Positional Unpacking and Argument Splatting (`unpack`) | Destructuring LHS, argument splatting RHS, and coordinate expansion `A unpack Coors`. |
 

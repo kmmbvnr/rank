@@ -3,14 +3,14 @@ import {
     isFirstIndexWhereExpression, isFirstWhereExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral,
     isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
-    isSubjectComparisonExpression, isTableFilterExpression,
+    isTableFilterExpression,
     isBoundClauseExpression, isCountClauseExpression, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
 import { localCollectionType, resultTypes, typeOf } from './types.js';
 import { findOperation } from '../operations.js';
 import { applicationExpressionFacts, takeDropFacts } from './application-facts.js';
-import { sliceFacts } from './binary-facts.js';
+import { callbackFreeCondition, sliceFacts } from './binary-facts.js';
 import { binaryExpressionFacts } from './binary-facts.js';
 import { isAtom, stableRecordField, UNKNOWN_VALUE, BOTTOM_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
@@ -172,7 +172,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         if (source.types.join() === 'queue') return { types: ['array'], rank: 1, shape: [null] };
         if (source.rank === 1 && ['array', 'sequence'].includes(source.types.join())) {
             const safe = source.elements?.length && (source.eagerScalarCells || source.callbackFreeScalarCells)
-                && callbackFreeCondition(expression.condition, lookup);
+                && callbackFreeCondition(expression.condition, lookup, expressionFacts);
             return { types: source.types, rank: 1, shape: [null],
                 ...(safe ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
         }
@@ -184,7 +184,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         const safeSource = source.rank === 1 && source.elements?.length
             && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
             && (source.eagerScalarCells || source.callbackFreeScalarCells);
-        if (safeSource && callbackFreeCondition(expression.mask, lookup)
+        if (safeSource && callbackFreeCondition(expression.mask, lookup, expressionFacts)
             && ['array', 'sequence'].includes(source.types.join())) {
             return source.elements!.join() === 'text'
                 ? { types: ['text'], rank: 1, shape: [null] }
@@ -203,22 +203,4 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         if (application) return application;
     }
     return { types: typeOf(expression, name => lookup(name)?.types) };
-}
-
-/**
- * Whether a clause condition reads the items without calling back into the
- * program: a comparison with a plain operand, a plain bound value, or a mask
- * whose cells are already known.
- */
-function callbackFreeCondition(condition: Expression, lookup: FactLookup): boolean {
-    if (isSubjectComparisonExpression(condition)) return callbackFreeCondition(condition.right, lookup);
-    if (isUnaryExpression(condition)) return callbackFreeCondition(condition.operand, lookup);
-    if (isBinaryExpression(condition)) {
-        return callbackFreeCondition(condition.left, lookup) && callbackFreeCondition(condition.right, lookup);
-    }
-    const facts = expressionFacts(condition, lookup);
-    if (facts.rank === 0 && facts.types.length > 0
-        && facts.types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) return true;
-    return facts.rank === 1 && facts.elements?.join() === 'boolean'
-        && !!(facts.eagerScalarCells || facts.callbackFreeScalarCells);
 }

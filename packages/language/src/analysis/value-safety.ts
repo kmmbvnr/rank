@@ -70,7 +70,7 @@ export function safeIndexedIteration(collection: ValueFacts): boolean {
 
 export function safeIndexedSource(source: Expression): boolean {
     if (directValue(source)) return true;
-    if (isBinaryExpression(source) && ['to', 'until'].includes(source.operator)) {
+    if (isBinaryExpression(source) && ['to', 'till'].includes(source.operator)) {
         return directValue(source.left) && directValue(source.right)
             && (!source.step || directValue(source.step));
     }

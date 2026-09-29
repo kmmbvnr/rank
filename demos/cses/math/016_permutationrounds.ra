@@ -16,7 +16,7 @@ fun rounds P
   Powers = array shape (N + 1) fill 0
   Visited = array shape N fill false
 
-  for Start in 0 until N
+  for Start in 0 till N
     if Visited Start
       continue
     end
@@ -39,7 +39,7 @@ fun rounds P
 
   Mod = 1000000007
   Answer = 1
-  for Prime in primes till N
+  for Prime in primes to N
     Power = Powers Prime
     Part = Prime Power Mod powmod
     Answer = Answer * Part % Mod

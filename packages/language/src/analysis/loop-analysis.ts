@@ -37,7 +37,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
     function emptyBuiltinRange(source: Expression | undefined, collection: ValueFacts): boolean {
         while (source && isParenthesizedExpression(source)) source = source.value;
         return !!source && isBinaryExpression(source)
-            && (source.operator === 'to' || source.operator === 'until')
+            && (source.operator === 'to' || source.operator === 'till')
             && collection.types.join() === 'sequence'
             && collection.shape?.[0] === 0;
     }

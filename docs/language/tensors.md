@@ -432,7 +432,7 @@ A range selects a slice and an integer array selects arbitrary positions;
 `#` keeps a whole axis, and `axis` names the axis for an index array:
 
 ```rank
-Rows = M (1 until 4)
+Rows = M (1 till 4)
 Columns = M axis 1 array 0 2 5
 ```
 

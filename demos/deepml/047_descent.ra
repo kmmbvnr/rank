@@ -18,7 +18,7 @@ fun descent X Y W Rate Iter Size Mode
     end
   end
 
-  for # in 0 until Iter
+  for # in 0 till Iter
     if Mode equal .batch
       Error = X W matmul - Y
       XT = X transpose
@@ -38,10 +38,10 @@ fun descent X Y W Rate Iter Size Mode
     end
 
     if Mode equal .mini_batch
-      for I in 0 until N by Size
+      for I in 0 till N by Size
         J = I + Size N min
-        Xb = X (I until J)
-        Yb = Y (I until J)
+        Xb = X (I till J)
+        Yb = Y (I till J)
         Error = Xb W matmul - Yb
         XT = Xb transpose
         Gradient = XT Error matmul

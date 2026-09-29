@@ -14,7 +14,7 @@ fun train_neuron X Y W Bias Rate Epochs
   N = Y len
   B = Bias / 1.0
 
-  for Epoch in 0 until Epochs
+  for Epoch in 0 till Epochs
     Pred = X W matmul + B
     Pred = Pred sigmoid
 

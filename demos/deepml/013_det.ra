@@ -22,11 +22,11 @@ fun determinant A
   end
 
   Total = 0
-  Cols = 0 until N array
+  Cols = 0 till N array
 
   for c in Cols
     Keep = Cols not equal c
-    Minor = A (1 until N)
+    Minor = A (1 till N)
     Minor = Minor axis 1 Keep
 
     Sign = 1 - 2 * (c % 2)

@@ -55,7 +55,7 @@ fun minplus Left Right
   Size = Left len
   Result = array shape Size Size fill infinity
 
-  for K in 0 until Size
+  for K in 0 till Size
     Column = Left # K
     Row = Right K
     Candidate = Column Row + outer
@@ -69,7 +69,7 @@ end
 rem Construct a min-plus identity.
 fun minplus_identity Size
   Result = array shape Size Size fill infinity
-  for I in 0 until Size
+  for I in 0 till Size
     Result I I = 0
   end
   return Result

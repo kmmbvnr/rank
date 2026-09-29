@@ -21,12 +21,22 @@ export interface ClauseExpressionContext {
 
 const LOGICAL = new Set(['and', 'or', 'xor']);
 
-/** Compile `from`, `till`, `take`, `drop` and `first where` clauses. */
+/** `to` and `till` end a sequence; `from` and `after` start it. */
+export type BoundMode = 'to' | 'till' | 'from' | 'after';
+
+/** Whether the right side of `to` or `till` tests items rather than supplying a value. */
+export function isBoundCondition(expression: Expression): boolean {
+    return isSubjectComparisonExpression(expression)
+        || (isUnaryExpression(expression) && expression.operator === 'not')
+        || (isBinaryExpression(expression) && LOGICAL.has(expression.operator));
+}
+
+/** Compile `from`, `after`, `take`, `drop` and `first where` clauses, and `to`/`till` bounds. */
 export function compileClauseExpression(
     expression: Expression, makeContext: () => ClauseExpressionContext,
 ): (() => Evaluation<RankValue>) | undefined {
     if (isTakeWhileExpression(expression)) {
-        return () => { throw new RankError('take while is gone: write `till not Condition` to keep items while Condition holds'); };
+        return () => { throw new RankError('take while is not a Rank clause: write `till not Condition` to keep items while Condition holds'); };
     }
     if (isCountClauseExpression(expression)) {
         const context = makeContext();
@@ -36,26 +46,17 @@ export function compileClauseExpression(
             return takeDropValue(source, count, expression.operator === 'drop');
         };
     }
+    // `Values till greater 5`: a condition cannot be evaluated before its subject.
+    if (isBinaryExpression(expression) && (expression.operator === 'to' || expression.operator === 'till')
+        && !expression.step && isBoundCondition(expression.right)) {
+        return compileBound(expression.left, expression.right, expression.operator, makeContext());
+    }
     if (isBoundClauseExpression(expression)) {
-        const context = makeContext();
-        const mode = expression.operator;
-        return function* (): Execution<RankValue> {
-            const condition = expression.condition;
-            if (isBinaryExpression(condition) && (condition.operator === 'to' || condition.operator === 'until')) {
-                throw new RankError(`slices are written with a range: \`Values (Start ${condition.operator} End)\``);
-            }
-            const source = yield* resume(context.evaluate(expression.source));
-            const bound = yield* resume(boundCondition(context, source, condition, mode));
-            if (isRankSequence(source) && bound.limit !== undefined && typeof bound.limit.value === 'bigint') {
-                // An ordered source seeks to a bound instead of reading up to it.
-                const { value, inclusive } = bound.limit;
-                const planned = mode === 'till'
-                    ? source.plan.withUpperBound && boundSequence(source, value, inclusive)
-                    : source.plan.withLowerBound && lowerBoundSequence(source, value, inclusive);
-                if (planned) return planned;
-            }
-            return boundValue(source, bound.condition, mode);
-        };
+        const condition = expression.condition;
+        if (isBinaryExpression(condition) && ['to', 'till', 'until'].includes(condition.operator)) {
+            return () => { throw new RankError(`slices are written with a range: \`Values (Start ${condition.operator} End)\``); };
+        }
+        return compileBound(expression.source, condition, expression.operator, makeContext());
     }
     if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)) {
         const context = makeContext();
@@ -69,19 +70,72 @@ export function compileClauseExpression(
     return undefined;
 }
 
-/** A bound value from `till Limit` or `till greater Limit`, which an ordered source can seek. */
+function compileBound(
+    sourceExpression: Expression, condition: Expression, mode: BoundMode, context: ClauseExpressionContext,
+): () => Evaluation<RankValue> {
+    return function* (): Execution<RankValue> {
+        const source = yield* resume(context.evaluate(sourceExpression));
+        const bound = yield* resume(boundCondition(context, source, condition, mode));
+        return applyBound(source, bound, mode);
+    };
+}
+
+/** A bound value an ordered source can seek: `till Limit`, `from greater Limit`. */
 interface Limit { readonly value: RankValue; readonly inclusive: boolean }
 
+export interface Bound { readonly condition: BoundCondition; readonly limit?: Limit }
+
+/** Seek an ordered source to a plain bound, or read the items in order. */
+export function applyBound(source: RankValue, bound: Bound, mode: BoundMode): RankValue {
+    const upper = mode === 'to' || mode === 'till';
+    if (isRankSequence(source) && bound.limit !== undefined && typeof bound.limit.value === 'bigint') {
+        const { value, inclusive } = bound.limit;
+        const planned = upper
+            ? source.plan.withUpperBound && boundSequence(source, value, inclusive)
+            : source.plan.withLowerBound && lowerBoundSequence(source, value, inclusive);
+        if (planned) return planned;
+    }
+    return boundValue(source, bound.condition, upper ? 'till' : 'from');
+}
+
 /**
- * A plain value is a bound, since a sequence need never equal it:
- * `till Limit` keeps items at most `Limit`, `from Limit` starts at the first at
- * least `Limit`. Anything else is a condition on each item, or a mask.
+ * A value on the right of a bound: a limit, a mask, or a function of one item.
+ * `to X` keeps items at most X and `till X` those below it; `from X` starts at
+ * the first item at least X and `after X` at the first above it.
  */
+export function valueBound(
+    value: RankValue, mode: BoundMode,
+    binary: (operator: string, left: RankValue, right: RankValue) => RankValue,
+): Bound {
+    if (isMask(value)) {
+        requireCondition(mode);
+        return { condition: { mask: value } };
+    }
+    if (isNativeFunction(value)) {
+        requireCondition(mode);
+        return { condition: { test: item => value.call([item]) === true } };
+    }
+    if (isRankArray(value) || isRankSequence(value)) throw new RankError(`${mode} expects a value or a boolean mask`);
+    // The test finds the first item on the far side of the bound.
+    const operator = mode === 'to' || mode === 'after' ? 'greater' : 'atleast';
+    return {
+        condition: { test: item => binary(operator, item, value) === true },
+        limit: { value, inclusive: mode === 'to' || mode === 'from' },
+    };
+}
+
+/** `to` and `after` take a value; a condition belongs to `till` or `from`. */
+function requireCondition(mode: BoundMode): void {
+    if (mode === 'to') throw new RankError('to takes a value; write `till Condition` to stop before an item');
+    if (mode === 'after') throw new RankError('after takes a value; write `from Condition` to start at an item');
+}
+
 function* boundCondition(
-    context: ClauseExpressionContext, source: RankValue, condition: Expression, mode: 'from' | 'till',
-): Execution<{ condition: BoundCondition; limit?: Limit }> {
+    context: ClauseExpressionContext, source: RankValue, condition: Expression, mode: BoundMode,
+): Execution<Bound> {
     if (isSubjectComparisonExpression(condition)
         && ['greater', 'atleast'].includes(condition.operator.replace(/\s+/g, ''))) {
+        requireCondition(mode);
         const value = yield* resume(context.evaluate(condition.right));
         const strict = condition.operator === 'greater';
         const operator = strict ? 'greater' : 'atleast';
@@ -92,15 +146,9 @@ function* boundCondition(
         };
     }
     if (!isPredicate(context, condition)) {
-        const value = yield* resume(context.evaluate(condition));
-        if (isMask(value)) return { condition: { mask: value } };
-        if (isRankArray(value) || isRankSequence(value)) throw new RankError(`${mode} expects a boolean mask`);
-        const operator = mode === 'till' ? 'greater' : 'atleast';
-        return {
-            condition: { test: item => context.binary(operator, item, value) === true },
-            limit: { value, inclusive: true },
-        };
+        return valueBound(yield* resume(context.evaluate(condition)), mode, context.binary);
     }
+    requireCondition(mode);
     const mask = yield* resume(conditionMask(context, source, condition));
     if (isRankSequenceMask(mask) && mask.source === source) return { condition: { test: item => mask.predicate.test(item) } };
     return { condition: { mask } };

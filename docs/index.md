@@ -71,7 +71,7 @@ The foundational architecture of the pure Rank language core is documented acros
 ### Act II: Value Model & Type System
 *Memory semantics, invariant variable typing, numeric tower, and scalar primitives.*
 - [Values and addressing](language/values-addressing.md) — Pure values, transparent copy-on-write, and universal `default`.
-- [Lexical syntax: Scalars](language/lexical-syntax.md#scalars-and-arithmetic) — Exact integer arithmetic, IEEE-754 reals, ranges (`to`/`until`), code-point text, and `.symbols`.
+- [Lexical syntax: Scalars](language/lexical-syntax.md#scalars-and-arithmetic) — Exact integer arithmetic, IEEE-754 reals, ranges (`to`/`till`), code-point text, and `.symbols`.
 - [Record types](language/lexical-syntax.md#record-types) — Closed typed structures with shared reference identity.
 - [ADR Index: Act II](adr/language/README.md#act-ii-value-model--type-system) — ADR-0100 through ADR-0107 (Type Stability, CoW, Tower, Ranges, Text Blocks, Symbols, Records, Default).
 

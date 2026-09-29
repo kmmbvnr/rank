@@ -9,7 +9,7 @@ N = stdin .integer
 Low = stdin .integer
 High = stdin .integer
 Tree = new graph (1 to N) .undirected
-for i in 1 until N
+for i in 1 till N
   A = stdin .integer
   B = stdin .integer
   Tree add A B

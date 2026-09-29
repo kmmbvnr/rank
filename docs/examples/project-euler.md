@@ -9,7 +9,7 @@ rem Project Euler 1
 rem Multiples of 3 or 5
 rem https://projecteuler.net/problem=1
 
-N = 1 until 1000
+N = 1 till 1000
 
 Mask = N multiple by 3
 Mask or= N multiple by 5
@@ -20,7 +20,7 @@ Answer print
 ```
 
 This example demonstrates:
-- the ordinary/lazy sequence `1 until 1000`;
+- the ordinary/lazy sequence `1 till 1000`;
 - the `multiple by` divisibility operation from `numbers`;
 - boolean masks as first-class values;
 - incremental mask composition with `or=`;
@@ -40,7 +40,7 @@ rem https://projecteuler.net/problem=2
 use sequences
 use numbers
 
-Fib = fibonacci till 4000000
+Fib = fibonacci to 4000000
 Mask = Fib even
 Answer = Fib Mask sum
 ```
@@ -211,7 +211,7 @@ use numbers
 
 option Limit integer = 2000000
 
-Primes = primes till at least Limit
+Primes = primes till Limit
 Answer = Primes sum
 ```
 
@@ -261,7 +261,7 @@ rem https://projecteuler.net/problem=13
 
 Total = Numbers sum
 Text = Total text
-Prefix = Text (0 until 10)
+Prefix = Text (0 till 10)
 Answer = Prefix integer
 ```
 
@@ -391,7 +391,7 @@ text conversion as problem 16 gives the digit sum `648`.
 rem Project Euler 21
 rem https://projecteuler.net/problem=21
 
-Candidates = (2 until Limit) array
+Candidates = (2 till Limit) array
 Partners = Candidates proper_divisor_sum rank 0
 Reverse = Partners proper_divisor_sum rank 0
 Amicable = Partners not equal Candidates
@@ -495,8 +495,8 @@ records the first position of each remainder, giving denominator `983` below
 rem Project Euler 27
 rem https://projecteuler.net/problem=27
 
-for A in (-Limit + 1) until Limit by 2
-  for B in primes till Limit
+for A in (-Limit + 1) till Limit by 2
+  for B in primes to Limit
     Length = A B quadratic_run
   end
 end
@@ -631,13 +631,13 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
-Candidates = primes till at least Limit
+Candidates = primes till Limit
 Circular = Candidates circular_prime rank 0
 Answer = Circular count
 
-for Shift in 1 until Length
-  Left = Text (Shift until Length)
-  Right = Text (0 until Shift)
+for Shift in 1 till Length
+  Left = Text (Shift till Length)
+  Right = Text (0 till Shift)
   Number = (Left + Right) integer
 end
 ```
@@ -668,8 +668,8 @@ the odd-only search produces `872187`.
 rem Project Euler 37
 rem https://projecteuler.net/problem=37
 
-LeftText = Text (Drop until Length)
-RightText = Text (0 until Last)
+LeftText = Text (Drop till Length)
+RightText = Text (0 till Last)
 ```
 
 Every proper decimal prefix and suffix is parsed and tested with `in primes`.
@@ -858,7 +858,7 @@ concatenation is `296962999629`.
 
 ```rank
 Prefix = Primes + scan with 0
-Length = (Prefix till at least Limit) len - 1
+Length = (Prefix till Limit) len - 1
 
 Total = Prefix End - Prefix Start
 if Total in primes
@@ -866,7 +866,7 @@ if Total in primes
 end
 ```
 
-A seeded scan builds the zero-based prefix table. `till at least Limit` finds
+A seeded scan builds the zero-based prefix table. `till Limit` finds
 the longest prefix whose sum stays below the limit without a mutable
 accumulator. Every
 interval sum is then constant time, and lengths are tried from largest to
@@ -875,7 +875,7 @@ smallest. The result below one million is `997651`.
 ## 51. Prime digit replacements
 
 ```rank
-Places = 0 until (Digits len - 1)
+Places = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
 for Pick in Same 3 combinations

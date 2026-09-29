@@ -63,7 +63,7 @@ end
     it.each([true, false])('removes body names at runtime with loop compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('Total = 0\nfor I in 0 until 5\n Step = I + 1\n Total += Step\nend');
+            runtime.execute('Total = 0\nfor I in 0 till 5\n Step = I + 1\n Total += Step\nend');
             expect(runtime.variables.get('Total')).toBe(15n);
             expect(runtime.variables.has('Step')).toBe(false);
             expect(runtime.variables.has('I')).toBe(false);

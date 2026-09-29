@@ -60,7 +60,7 @@ When an addressed assignment (`A i = Value` or `A += Delta`) is executed:
   ```rank
   A = array shape N fill 0
   B = A          rem A and B share buffer (owners = 2)
-  for i in 0 until N
+  for i in 0 till N
     A i = i * i  rem i = 0 triggers CoW copy; new buffer is UNBOUND!
   end
   ```

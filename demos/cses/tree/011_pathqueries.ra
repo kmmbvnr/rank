@@ -10,14 +10,14 @@ N = stdin .integer
 Q = stdin .integer
 Values = stdin .integer N array
 Graph = new graph (1 to N) .undirected
-for i in 1 until N
+for i in 1 till N
   A = stdin .integer
   B = stdin .integer
   Graph add A B
 end
 
 Queries = array shape Q 3 fill 0
-for i in 0 until Q
+for i in 0 till Q
   Type = stdin .integer
   Queries i 0 = Type
   Queries i 1 = stdin .integer

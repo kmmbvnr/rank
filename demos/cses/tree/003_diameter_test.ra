@@ -28,7 +28,7 @@ test "path diameter is every edge"
   use graph
   use sequences
   Tree = new graph (1 to 7) .undirected
-  for Node in 1 until 7
+  for Node in 1 till 7
     Tree add Node (Node + 1)
   end
   Tree tree_diameter equal 6

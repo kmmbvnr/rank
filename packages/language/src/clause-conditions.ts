@@ -7,8 +7,12 @@ import {
 } from './generated/ast.js';
 import { flattenApplication } from './expressions.js';
 
-/** A pipeline clause: `filter`, `from`, `till`, `take`, `drop`, `first where`; or postfix `array`. */
-type Clause = Expression & { source: Expression };
+/**
+ * A pipeline step with its own condition or operand: `filter`, `from`, `after`,
+ * `take`, `drop`, `first where`, postfix `array`, and a `to` or `till` bound.
+ * A bound is a binary range node, whose left side is its source.
+ */
+type Clause = Expression & ({ source: Expression } | { left: Expression; right: Expression });
 
 /** What followed a condition on its line: a call argument or a later clause. */
 type Step = { kind: 'argument'; value: Expression } | { kind: 'clause'; node: Clause };
@@ -28,14 +32,29 @@ export interface ClauseNames {
 const LOGICAL = new Set(['and', 'or', 'xor']);
 const MODIFIERS = new Set(['rank', 'axis']);
 
+/** `Values till 10` and `1 to 10`: a range operator without a step. */
+function isBound(expression: Expression): boolean {
+    return isBinaryExpression(expression) && ['to', 'till', 'until'].includes(expression.operator) && !expression.step;
+}
+
+function sourceOf(clause: Clause): Expression {
+    return 'source' in clause ? clause.source : clause.left;
+}
+
+function setSource(clause: Clause, source: Expression): void {
+    if ('source' in clause) clause.source = source;
+    else clause.left = source;
+}
+
 function isClause(expression: Expression): expression is Clause {
-    return isMaterializeExpression(expression) || isTableFilterExpression(expression) || isBoundClauseExpression(expression)
+    return isBound(expression) || isMaterializeExpression(expression) || isTableFilterExpression(expression) || isBoundClauseExpression(expression)
         || isCountClauseExpression(expression) || isTakeWhileExpression(expression)
         || isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression);
 }
 
 /** The property holding a clause's one-line condition, if it has one. */
-function conditionKey(clause: Clause): 'condition' | 'mask' | undefined {
+function conditionKey(clause: Clause): 'condition' | 'mask' | 'right' | undefined {
+    if (isBound(clause)) return 'right';
     if (isTableFilterExpression(clause)) return clause.condition ? 'condition' : undefined;
     if (isBoundClauseExpression(clause)) return 'condition';
     if (isTakeWhileExpression(clause) || isFirstWhereExpression(clause)
@@ -69,7 +88,10 @@ function transform(node: AstNode, names: ClauseNames): AstNode {
     const clause = node as Clause;
     const key = conditionKey(clause);
     if (!key) return clause;
-    const { extent, steps } = peelTerm(record[key] as Expression, names);
+    const condition = record[key] as Expression;
+    // A bound's right side is a value unless it is written as a condition.
+    const { extent, steps } = key === 'right' && !isCondition(condition)
+        ? peelOperand(condition) : peelTerm(condition, names);
     record[key] = extent;
     return rebuild(clause, steps);
 }
@@ -78,7 +100,7 @@ function rebuild(start: Expression, steps: readonly Step[]): Expression {
     let current = start;
     for (const step of steps) {
         if (step.kind === 'clause') {
-            step.node.source = current;
+            setSource(step.node, current);
             current = step.node;
         } else {
             current = {
@@ -92,8 +114,15 @@ function rebuild(start: Expression, steps: readonly Step[]): Expression {
 
 /** A clause inside a condition was parsed after the predicate: it follows it. */
 function peelClause(clause: Clause, peel: (source: Expression) => Peeled): Peeled {
-    const inner = peel(clause.source);
+    const inner = peel(sourceOf(clause));
     return { extent: inner.extent, steps: [...inner.steps, { kind: 'clause', node: clause }] };
+}
+
+/** A condition written with a comparison, `not` or a logical word. */
+function isCondition(expression: Expression): boolean {
+    return isSubjectComparisonExpression(expression)
+        || (isUnaryExpression(expression) && expression.operator === 'not')
+        || (isBinaryExpression(expression) && LOGICAL.has(expression.operator));
 }
 
 /** One predicate term, possibly combined with `and`, `or`, `xor` or `not`. */

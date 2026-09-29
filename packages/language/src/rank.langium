@@ -260,11 +260,19 @@ DefaultExpression returns Expression:
     ({infer BinaryExpression.left=current}
         operator='default' right=RangeExpression)?;
 
+// `to` includes its bound and `till` excludes it. After a number they build a
+// range; after a sequence they bound it, by a value or by a condition.
+// `until` parses only to report `till` in its place.
 RangeExpression returns Expression:
     AdditionExpression
     ({infer BinaryExpression.left=current}
-        operator=('to' | 'until') right=AdditionExpression
+        operator=('to' | 'till' | 'until') right=RangeBound
         ('by' step=AdditionExpression)?)?;
+
+RangeBound returns Expression:
+    SubjectComparisonChain |
+    {infer UnaryExpression} operator='not' operand=NotExpression |
+    AdditionExpression;
 
 AdditionExpression returns Expression:
     MultiplicationExpression
@@ -299,7 +307,7 @@ ApplicationExpression returns Expression:
         {infer TableFilterExpression.source=current} sourceFields+=LabelLiteral?
             'filter' (condition=FilterCondition |
                 NL+ (conditions+=FilterCondition NL+)+ 'end') |
-        {infer BoundClauseExpression.source=current} operator=('from' | 'till') condition=FilterCondition |
+        {infer BoundClauseExpression.source=current} operator=('from' | 'after') condition=FilterCondition |
         // `take while` is gone; it parses only to report `till` in its place.
         {infer TakeWhileExpression.source=current} 'take' 'while' mask=FilterCondition |
         {infer CountClauseExpression.source=current} operator=('take' | 'drop') count=PrimaryExpression
@@ -465,8 +473,13 @@ MultilineDefaultExpression returns Expression:
 MultilineRangeExpression returns Expression:
     MultilineAdditionExpression
     ({infer BinaryExpression.left=current}
-        NL* operator=('to' | 'until') NL* right=MultilineAdditionExpression
+        NL* operator=('to' | 'till' | 'until') NL* right=MultilineRangeBound
         (NL* 'by' NL* step=MultilineAdditionExpression)?)?;
+
+MultilineRangeBound returns Expression:
+    SubjectComparisonChain |
+    {infer UnaryExpression} operator='not' operand=NotExpression |
+    MultilineAdditionExpression;
 
 MultilineAdditionExpression returns Expression:
     MultilineMultiplicationExpression
@@ -484,7 +497,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'text' | 'first' | 'take' | 'drop' | 'from' | 'till' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'text' | 'first' | 'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;

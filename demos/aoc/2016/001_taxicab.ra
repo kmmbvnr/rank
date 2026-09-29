@@ -57,7 +57,7 @@ fun walk Text
       Dir = -Dir
     end
 
-    for # in 0 until Steps
+    for # in 0 till Steps
       Pos = Pos + Dir
       yield Pos
     end

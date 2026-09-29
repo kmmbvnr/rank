@@ -21,7 +21,7 @@ fun two_sets N
   Ways = array shape Size fill 0
   Ways 0 = 1
 
-  for Value in 1 until N
+  for Value in 1 till N
     if Value at most Target
       for Sum in Target to Value by -1
         Ways Sum += Ways (Sum - Value)

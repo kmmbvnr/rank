@@ -25,7 +25,7 @@ fun solve Lines
   Most = ""
   Least = ""
 
-  for J in 0 until Width
+  for J in 0 till Width
     Column = Grid axis 1 J
     Letters = Column unique
     Matches = Column Letters equal outer

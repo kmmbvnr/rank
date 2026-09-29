@@ -28,7 +28,7 @@ export function rangeSliceOperands(expression: Expression): {
     const range = parts.at(-1);
     if (parts.length < 2 || !isParenthesizedExpression(range)) return undefined;
     const value = range.value;
-    if (!isBinaryExpression(value) || (value.operator !== 'to' && value.operator !== 'until') || value.step) return undefined;
+    if (!isBinaryExpression(value) || (value.operator !== 'to' && value.operator !== 'till') || value.step) return undefined;
     const skipped = parts.slice(1, -1);
     if (!skipped.every(isAllAxisExpression)) return undefined;
     return { source: parts[0], start: value.left, end: value.right, axis: BigInt(skipped.length),

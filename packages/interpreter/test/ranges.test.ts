@@ -5,21 +5,21 @@ import { run } from './support.js';
 describe('numeric range direction', () => {
     it.each([
         ['1 to 0', ''],
-        ['1 until 0', ''],
+        ['1 till 0', ''],
         ['5 to 1 by 2', ''],
-        ['5 until 1 by 2', ''],
+        ['5 till 1 by 2', ''],
         ['1 to 5 by -1', ''],
-        ['1 until 5 by -2', ''],
+        ['1 till 5 by -2', ''],
         ['3 to 1 by -1', '3 2 1'],
-        ['3 until 1 by -1', '3 2'],
+        ['3 till 1 by -1', '3 2'],
         ['6 to 1 by -2', '6 4 2'],
-        ['6 until 2 by -2', '6 4'],
+        ['6 till 2 by -2', '6 4'],
         ['-5 to -1 by 2', '-5 -3 -1'],
         ['-1 to -5 by -2', '-1 -3 -5'],
         ['1 to 1 by -2', '1'],
-        ['1 until 1 by -2', ''],
+        ['1 till 1 by -2', ''],
         ['1 to 1', '1'],
-        ['1 until 1', ''],
+        ['1 till 1', ''],
     ])('%s produces the expected values and exact size', (source, expected) => {
         const program = `${source}`;
         expect(run(program)).toBe(expected);
@@ -42,7 +42,7 @@ describe('numeric range direction', () => {
             'end',
             'L = 5',
             'R = 3',
-            'for i in L until R',
+            'for i in L till R',
             '  i print',
             'end',
         ].join('\n'));
@@ -61,7 +61,7 @@ describe('numeric range direction', () => {
         expect(run('(5 to 1 by -2) 2')).toBe('1');
     });
 
-    it.each(['1 to 0', '0 until 0', '0 to 1'])('rejects zero step for %s', source => {
+    it.each(['1 to 0', '0 till 0', '0 to 1'])('rejects zero step for %s', source => {
         expect(() => run(`${source} by 0`))
             .toThrowError('range step must be a nonzero integer');
     });

@@ -32,8 +32,8 @@ fun transition_matrix Board
   Cells = Board ** 2
   Move = array shape Cells Cells fill 0.0
 
-  for Y in 0 until Board
-    for X in 0 until Board
+  for Y in 0 till Board
+    for X in 0 till Board
       Degree = 4
       L = Board - 1
       if X equal 0 or X equal L
@@ -89,7 +89,7 @@ end
 rem Construct a real identity matrix.
 fun identity_real Size
   Result = array shape Size Size fill 0.0
-  for I in 0 until Size
+  for I in 0 till Size
     Result I I = 1.0
   end
   return Result

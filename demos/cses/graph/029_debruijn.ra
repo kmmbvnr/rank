@@ -17,7 +17,7 @@ fun debruijn N
 
   NodeCount = 1 (N - 1) shl
   Mask = NodeCount - 1
-  Nodes = 0 until NodeCount
+  Nodes = 0 till NodeCount
   Graph = new graph Nodes .directed
   for Node in Nodes
     Shifted = Node 1 shl
@@ -29,11 +29,11 @@ fun debruijn N
 
   Path = Graph 0 euler
   Result = ""
-  for # in 1 until N
+  for # in 1 till N
     Result += "0"
   end
   Total = Path len
-  for i in 1 until Total
+  for i in 1 till Total
     Bit = Path i % 2
     Result += Bit text
   end

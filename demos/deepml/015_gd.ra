@@ -24,7 +24,7 @@ fun linear_regression X Y Rate Steps
 
   Theta = array shape N fill 0
 
-  for Step in 0 until Steps
+  for Step in 0 till Steps
     Pred = X Theta matmul
     Error = Pred - Y
 

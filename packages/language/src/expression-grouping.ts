@@ -15,7 +15,7 @@ import { splitClauseConditions } from './clause-conditions.js';
 // Logical operators still separate independent clauses.
 const precedence: Readonly<Record<string, number>> = {
     equal: 0.5, notequal: 0.5, less: 0.5, greater: 0.5, atleast: 0.5, atmost: 0.5, multipleby: 0.5,
-    to: 1, until: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, '%': 3, '**': 4,
+    to: 1, till: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, '%': 3, '**': 4,
 };
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is']);
 const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);

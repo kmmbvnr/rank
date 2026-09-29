@@ -56,7 +56,7 @@ fun find_cycle Graph NodeCount
         Path push Next
 
         Length = Path len
-        return Path (0 until Length)
+        return Path (0 till Length)
       end
     end
 

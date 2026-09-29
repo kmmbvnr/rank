@@ -52,7 +52,7 @@ describe('runtime diagnostics and stable tensor reads', () => {
             (runtime.variables.get('B') as RankArray).items;
             const before = stats.validationRequests;
             expect(stats.run(() => runtime.execute(`Total = 0
-for I in 0 until 100
+for I in 0 till 100
   Total += B 0
 end
 Total`))).toBe(200n);
@@ -63,7 +63,7 @@ Total`))).toBe(200n);
             source.items[0] = 7n;
             // An invalidated cache is not materialized speculatively at loop entry.
             expect(stats.run(() => runtime.execute(`Total = 0
-for I in 0 until 2
+for I in 0 till 2
   Total += B 0
 end
 Total`))).toBe(28n);
@@ -75,7 +75,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun read_one A\n for I in 0 until 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun read_one A\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             const array = createArraySnapshot([7n, 8n, 9n]);
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
@@ -98,7 +98,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun read_one A\n for I in 0 until 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun read_one A\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             const array: RankArray = { kind: 'array', shape: [2], items: [7n, 8n] };
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
@@ -117,7 +117,7 @@ Total`))).toBe(28n);
     it.each([true, false])('does not inspect an unread host cell with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun read_one A\n for I in 0 until 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun read_one A\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
             const items = new Proxy([7n, 8n], {
@@ -148,7 +148,7 @@ Total`))).toBe(28n);
         } finally { runtime.dispose(); }
     });
 
-    it.each(['0 until N', '2 to 1', '0 to 1 by -1'])('does not copy a shared destination for empty range %s', range => {
+    it.each(['0 till N', '2 to 1', '0 to 1 by -1'])('does not copy a shared destination for empty range %s', range => {
         for (const integerLoopCompilation of [false, true]) {
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
@@ -172,7 +172,7 @@ Total`))).toBe(28n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             try {
-                runtime.execute('fun alter A\n for I in 0 until 1 by 0\n  A 0 = I\n end\n return A\nend');
+                runtime.execute('fun alter A\n for I in 0 till 1 by 0\n  A 0 = I\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 const array = createArraySnapshot([1n, 2n]);
@@ -205,7 +205,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun alter A Flag\n for I in 0 until 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
+            runtime.execute('fun alter A Flag\n for I in 0 till 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             expect(stats.run(() => alter.call([createArraySnapshot([1n, 2n]), true]))).toBeDefined();
@@ -222,7 +222,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun alter A B Flag\n for I in 0 until 1\n  if Flag\n   A I = 9\n   B I = 8\n  end\n end\n return A\nend');
+            runtime.execute('fun alter A B Flag\n for I in 0 till 1\n  if Flag\n   A I = 9\n   B I = 8\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             stats.run(() => alter.call([createArraySnapshot([1n, 2n]), createArraySnapshot([3n, 4n]), true]));
@@ -287,7 +287,7 @@ Total`))).toBe(30n);
 end
 fun total B N
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += B 0 + (I bump)
  end
  return Total
@@ -318,7 +318,7 @@ B = A * 3`);
 end
 fun total B N
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += B 0 + (I bump)
  end
  return Total
@@ -363,7 +363,7 @@ B = A * 3`);
             runtime.execute(`use text
 fun total B N
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += B 0 + ("A" codepoint)
  end
  return Total

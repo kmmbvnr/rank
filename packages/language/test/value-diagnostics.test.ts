@@ -295,10 +295,10 @@ it('widens numeric segment payloads across aliases and forgets unsafe updates', 
     expect(messages('use algo\nTree = (array 1 2) + segment\nTree 0 = Unknown\nTree 0 1 query + "bad"'))
         .toEqual([]);
     expect(messages('use algo\nCount = 1\nTree = (array 1 2) + segment\n'
-        + 'for I in 0 until 2\n Tree I = 3\nend\nCount + "bad"'))
+        + 'for I in 0 till 2\n Tree I = 3\nend\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nTree = (array 1 2) + segment\n'
-        + 'for I in 0 until 2\n Tree I = Unknown\nend\nCount + "bad"'))
+        + 'for I in 0 till 2\n Tree I = Unknown\nend\nCount + "bad"'))
         .toEqual([]);
 });
 
@@ -430,9 +430,9 @@ it('checks inline array element counts without executing dimensions', () => {
 });
 
 it('keeps slice result types during program analysis', () => {
-    expect(messages('A = (1 to 5) (1 until 3)\nA = "text"'))
+    expect(messages('A = (1 to 5) (1 till 3)\nA = "text"'))
         .toEqual(['A has type array and cannot receive text']);
-    expect(messages('T = "A😀БC" (1 until 3)\nT = array 1 2'))
+    expect(messages('T = "A😀БC" (1 till 3)\nT = array 1 2'))
         .toEqual(['T has type text and cannot receive array']);
 });
 
@@ -443,7 +443,7 @@ it('infers safe unpacked shape cells without losing unrelated types', () => {
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('Count = 1\nA = array Unknown Unknown\nunpack First Second = A\nCount + "bad"'))
         .toEqual([]);
-    expect(messages('Count = 1\nfor I in 0 until 1\n unpack First Second = array 2 3\nend\nCount + "bad"'))
+    expect(messages('Count = 1\nfor I in 0 till 1\n unpack First Second = array 2 3\nend\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('First = true\nunpack First Second = array 2 3'))
         .toEqual(['First has type boolean and cannot receive integer']);
@@ -493,7 +493,7 @@ it('keeps unrelated facts through local index writes', () => {
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nfun read X\n Count = 1\n index X = 2\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 until 1\n  index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 till 1\n  index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nindex (A 0) = 2\nCount + "bad"'))
         .toEqual([]);
@@ -532,17 +532,17 @@ it('widens possible named-index values through aliases and forgets unsafe writes
 
 it('keeps a closed named-index value type across loop iterations and aliases', () => {
     const source = 'use algo\nfun lookup\n Cache = new index\n Alias = Cache\n'
-        + ' for I in 0 until 3\n  Alias I = I\n end\n return Cache 1\nend\nR = lookup\n';
+        + ' for I in 0 till 3\n  Alias I = I\n end\n return Cache 1\nend\nR = lookup\n';
     expect(messages(source + 'R + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nfun lookup X\n Cache = new index\n'
-        + ' for I in 0 until 3\n  Cache I = X\n end\n return Cache 1\nend\n'
+        + ' for I in 0 till 3\n  Cache I = X\n end\n return Cache 1\nend\n'
         + 'R = Unknown lookup\nR + "bad"')).toEqual([]);
 });
 
 it('retains scalar rank for a loop-carried index value', () => {
     const source = 'use algo\nfun lookup\n Cache = new index\n Position = 0\n'
-        + ' for I in 0 until 3\n  Cache I = Position\n  Position += 1\n end\n'
+        + ' for I in 0 till 3\n  Cache I = Position\n  Position += 1\n end\n'
         + ' return Cache 1\nend\nR = lookup\n';
     expect(messages(source + 'R + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -550,7 +550,7 @@ it('retains scalar rank for a loop-carried index value', () => {
 
 it('infers a guarded index read before a later loop write', () => {
     const source = 'use algo\nfun lookup\n Cache = new index\n Total = 0\n Position = 0\n'
-        + ' for I in 0 until 3\n  if I greater 0\n   Total += Cache 0\n  end\n'
+        + ' for I in 0 till 3\n  if I greater 0\n   Total += Cache 0\n  end\n'
         + '  Cache 0 = Position\n  Position += 1\n end\n return Total\nend\nR = lookup\n';
     expect(messages(source + 'R + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -558,19 +558,19 @@ it('infers a guarded index read before a later loop write', () => {
 
 it('includes aliased index writes from earlier iterations in a loop read', () => {
     const source = 'use algo\nCache = new index\nCache 0 = 1\nAlias = Cache\n'
-        + 'for I in 0 until 2\n Seen = Cache 0\n Alias 0 = "text"\nend\n';
+        + 'for I in 0 till 2\n Seen = Cache 0\n Alias 0 = "text"\nend\n';
     const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
     const read = [...analysis.expressions].find(([expression]) => expression.$cstNode?.text === 'Cache 0')?.[1];
     expect(read?.types).toEqual(['integer', 'text']);
     const implicit = 'use algo\nfun lookup\n index 0 = 1\n Alias = index\n'
-        + ' for I in 0 until 2\n  Seen = Alias 0\n  index 0 = "text"\n end\n return Alias 0\nend\nR = lookup\n';
+        + ' for I in 0 till 2\n  Seen = Alias 0\n  index 0 = "text"\n end\n return Alias 0\nend\nR = lookup\n';
     const result = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(implicit).value);
     expect(result.bindings.get('R')?.types).toEqual(['integer', 'text']);
 });
 
 it('does not reuse an index alias value across a loop that can return early', () => {
     const source = 'use algo\nfun lookup\n Cache = new index\n Cache 0 = 1\n Alias = Cache\n'
-        + ' for I in 0 until 2\n  if I greater 0\n   return Cache 0\n  end\n'
+        + ' for I in 0 till 2\n  if I greater 0\n   return Cache 0\n  end\n'
         + '  Alias 0 = "text"\n end\n return 0\nend\nR = lookup\n';
     const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
     expect(analysis.bindings.get('R')?.types).toEqual([]);
@@ -590,7 +590,7 @@ it('infers a fresh local index read from earlier iterations on an early-return p
         + '\nR = 7 cycle_length\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nfun lookup X\n Cache = new index\n'
-        + ' for I in 0 until 3\n  if I greater 0\n   return Cache 0\n  end\n'
+        + ' for I in 0 till 3\n  if I greater 0\n   return Cache 0\n  end\n'
         + '  Cache 0 = X\n end\n return 0\nend\nR = Unknown lookup\nR + "bad"'))
         .toEqual([]);
 });
@@ -598,7 +598,7 @@ it('infers a fresh local index read from earlier iterations on an early-return p
 it('keeps unrelated facts through scalar set additions but not lazy array keys', () => {
     expect(messages('use algo\nCount = 1\nset add "x"\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 until 1\n  counter add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 till 1\n  counter add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nset add (array Unknown Unknown)\nCount + "bad"'))
         .toEqual([]);
@@ -615,7 +615,7 @@ it('keeps unrelated facts through scalar set additions but not lazy array keys',
 it('keeps unrelated facts through direct queue pushes but not computed receivers', () => {
     expect(messages('use algo\nCount = 1\nQ = new queue\nQ push 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun append X\n Count = 1\n Q = new queue\n for I in 0 until 1\n  Q push X\n end\n return Count\nend\nA = 0 append\nA + "bad"'))
+    expect(messages('use algo\nfun append X\n Count = 1\n Q = new queue\n for I in 0 till 1\n  Q push X\n end\n return Count\nend\nA = 0 append\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\n(A 0) push 2\nCount + "bad"'))
         .toEqual([]);
@@ -725,10 +725,10 @@ it('checks loop binding contracts without freezing iteration dimensions', () => 
 });
 
 it('does not diagnose empty or unproven loops or statements after a loop exit', () => {
-    for (const header of ['I in 1 until 1', 'I in Items', 'false']) {
+    for (const header of ['I in 1 till 1', 'I in Items', 'false']) {
         expect(messages(`A = 1\nfor ${header}\n A = "bad"\nend`)).toEqual([]);
     }
-    expect(messages('A = array 1 2\nfor I in 1 until 1\n A = array 1 2 3\nend\nA + (array 1 2 3)'))
+    expect(messages('A = array 1 2\nfor I in 1 till 1\n A = array 1 2 3\nend\nA + (array 1 2 3)'))
         .toEqual(['shape mismatch: [2] and [3]']);
     expect(messages('A = 1\nfor I in 1 to 3\n break\n A = "bad"\nend')).toEqual([]);
     expect(messages('A = array 1 2\nfor I in 1 to 3\n continue\n A = array shape 2 2 fill 0\nend')).toEqual([]);
@@ -1230,7 +1230,7 @@ it('keeps known empty arrays but not arbitrary empty sequences', () => {
         expect(analyzeValues(program.value, new Map([['Items', items]])).diagnostics.map(item => item.message))
             .toEqual(type === 'array' ? ['operator + does not accept integer and text'] : []);
     }
-    expect(messages(source.replace('Items', '0 until 0')))
+    expect(messages(source.replace('Items', '0 till 0')))
         .toEqual(['operator + does not accept integer and text']);
 });
 
@@ -1243,7 +1243,7 @@ it('checks the result rank of the unchanged bill-count loop before execution', (
 
 it('collects returns from reachable loop paths with break and continue', () => {
     for (const exit of ['break', 'continue']) {
-        expect(messages(`fun choose N\n for I in 0 until N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 choose\nA = true`))
+        expect(messages(`fun choose N\n for I in 0 till N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 choose\nA = true`))
             .toEqual(['choose returns incompatible ranks: 0 and 1',
             'choose returns incompatible types: integer and text',
             'A has type integer or text and cannot receive boolean']);
@@ -1252,7 +1252,7 @@ it('collects returns from reachable loop paths with break and continue', () => {
     }
     expect(messages('fun choose\n for I in 1 to 2\n  for J in 1 to 2\n   break\n  end\n  return 1\n end\n return "text"\nend\nA = choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
-    expect(messages('fun choose\n for I in 0 until 0\n  return "text"\n end\n return 1\nend\nA = choose\nA = true'))
+    expect(messages('fun choose\n for I in 0 till 0\n  return "text"\n end\n return 1\nend\nA = choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
@@ -1304,7 +1304,7 @@ it('retains unrelated facts after the unchanged marble-count text loop', () => {
 });
 
 it('still discards facts after an unknown call inside a loop', () => {
-    expect(messages('A = array 1 2\nfor I in 0 until 1\n A external\nend\nA 0 + "bad"'))
+    expect(messages('A = array 1 2\nfor I in 0 till 1\n A external\nend\nA 0 + "bad"'))
         .toEqual([]);
 });
 
@@ -1547,7 +1547,7 @@ it('infers result facts only from paths that return', () => {
 });
 
 it('keeps a text parameter when an implicit queue selects its characters', () => {
-    const source = 'fun reorder Text\n for I in 0 until 2\n  queue push I\n end\n return Text queue\nend\nA = "abc" reorder';
+    const source = 'fun reorder Text\n for I in 0 till 2\n  queue push I\n end\n return Text queue\nend\nA = "abc" reorder';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['text']);
@@ -1571,7 +1571,7 @@ it('binds each matrix row as an array when iterating its first axis', () => {
 });
 
 it('preserves scalar cells through a proven integer spread index', () => {
-    const source = 'fun write Position\n A = array shape 2 2 fill 0\n for I in 0 until 2\n'
+    const source = 'fun write Position\n A = array shape 2 2 fill 0\n for I in 0 till 2\n'
         + '  A unpack Position += 1\n end\n return A 0 1\nend\nResult = (array 0 1) write';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('Result')?.types).toEqual(['integer']);
@@ -1581,24 +1581,24 @@ it('preserves scalar cells through a proven integer spread index', () => {
 
 it('keeps numeric matrix cells only when loop rebindings are closed', () => {
     const source = 'fun combine Base\n Result = array shape 2 2 fill 1\n'
-        + ' for I in 0 until 3\n  Result = Result Base matmul\n end\n return Result 0 0\nend\n'
+        + ' for I in 0 till 3\n  Result = Result Base matmul\n end\n return Result 0 0\nend\n'
         + 'A = (array 1 2 3 4 shape 2 2) combine';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const broken = source.replace('Result = Result Base matmul\n end',
         'Result = Result Base matmul\n  if I equal 1\n   Result = "bad"\n  end\n end');
     expect(analyzeValues(parse(broken)).bindings.get('A')?.types).toEqual([]);
-    expect(messages('A = array shape 2 2 fill 1\nfor I in 0 until 2\n'
+    expect(messages('A = array shape 2 2 fill 1\nfor I in 0 till 2\n'
         + ' A = array shape 2 3 fill 1\nend\nA + (array shape 2 4 fill 1)')).toEqual([]);
 });
 
 it('joins integer and real cells across proven matrix writes in a loop', () => {
     const source = 'fun build_matrix Size\n M = array shape Size Size fill infinity\n'
-        + ' for I in 0 until Size\n  M I I = 0\n end\n return M 0 0\nend\nA = 2 build_matrix';
+        + ' for I in 0 till Size\n  M I I = 0\n end\n return M 0 0\nend\nA = 2 build_matrix';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['real', 'integer']);
-    expect(messages('A = array shape 2 2 fill 0\nfor I in 0 until 2\n A I I = 1\nend\nA 0 0 + "x"'))
+    expect(messages('A = array shape 2 2 fill 0\nfor I in 0 till 2\n A I I = 1\nend\nA 0 0 + "x"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
@@ -1615,7 +1615,7 @@ it('keeps the unchanged LCS element type before widening numeric loop cells', ()
 
 it('does not close a numeric loop through an effectful helper', () => {
     const source = 'fun impure X\n Unknown external\n return X\nend\n'
-        + 'fun compute\n A = array 1 2\n for I in 0 until 2\n  A = A impure\n end\n return A 0\nend\nResult = compute';
+        + 'fun compute\n A = array 1 2\n for I in 0 till 2\n  A = A impure\n end\n return A 0\nend\nResult = compute';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(analyzeValues(parsed.value).bindings.get('Result')?.types).toEqual([]);
 });
@@ -1867,13 +1867,13 @@ it('analyzes hoisted local functions declared after return without leaking their
 });
 
 it('retains the rank of a private array but not its cells after an unknown call', () => {
-    const source = 'fun f\n A = array 1 2\n Unknown external\n return A from 0 to 1\nend\nR = f';
+    const source = 'fun f\n A = array 1 2\n Unknown external\n return A (0 to 1)\nend\nR = f';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('R')).toMatchObject({ types: ['array'], rank: 1 });
     const withCapture = source.replace(' Unknown external',
         ' fun change\n  A = "x"\n  return 0\n end\n Unknown external');
     expect(analyzeValues(parse(withCapture)).bindings.get('R')?.types).toEqual([]);
-    expect(analyzeValues(parse('A = array 1 2\nUnknown external\nR = A from 0 to 1'))
+    expect(analyzeValues(parse('A = array 1 2\nUnknown external\nR = A (0 to 1)'))
         .bindings.get('R')?.types).toEqual([]);
 });
 
@@ -2377,7 +2377,7 @@ it('infers the unchanged CSES subarray-sums result through computed index values
 });
 
 it('retains a private scalar after loop widening and an unknown call', () => {
-    const source = 'fun choose Items\n Best = -1\n for I in 0 until 3\n'
+    const source = 'fun choose Items\n Best = -1\n for I in 0 till 3\n'
         + '  if Items I external\n   Best = I\n  end\n end\n return Best\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);

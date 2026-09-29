@@ -1,4 +1,4 @@
-# 0103. First-Class Numeric Ranges (to, until, by)
+# 0103. First-Class Numeric Ranges (to, till, by)
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
@@ -25,20 +25,20 @@ Rank introduces **word-based, first-class numeric range sequences**:
   ```text
   1 to 3  =>  1 2 3
   ```
-- **`until` (exclusive upper bound):**
+- **`till` (exclusive upper bound):**
   ```text
-  1 until 3  =>  1 2
+  1 till 3  =>  1 2
   ```
 
-Ranges are first-class, lazy sequence values. They can be bound to names (`R = 1 until 1000`), iterated in `for` loops (`for i in 1 to 10`), or evaluated as arrays.
+Ranges are first-class, lazy sequence values. They can be bound to names (`R = 1 till 1000`), iterated in `for` loops (`for i in 1 to 10`), or evaluated as arrays.
 
-`to` and `until` only build ranges of numbers. Addressing with a range slices by position (`Text (1 until 3)`), and another sequence is bounded by the `till` and `from` clauses (`fibonacci till 1000`), as [ADR-0205](0205-slices-and-sequence-bounds.md) describes. `primes until 20` is an error that suggests `till`.
+The same two words bound any other sequence by value: `fibonacci to 100` keeps the items at most 100 and `primes till 100` those below 100. Addressing with a range slices by position (`Text (1 till 3)`). [ADR-0205](0205-slices-and-sequence-bounds.md) describes both, with `from` and `after` for lower bounds.
 
 ### 2. Explicit Stepping with `by`
 A step is specified using the `by` keyword followed by a non-zero integer:
 ```text
 1 to 9 by 2         => 1 3 5 7 9
-10 until 0 by -2    => 10 8 6 4 2
+10 till 0 by -2     => 10 8 6 4 2
 ```
 - **Strict step direction:** The bounds never guess the direction. If the step points away from the target (e.g. `1 to 5 by -1` or `5 to 1`), the range is immediately empty.
 - A zero step (`by 0`) is a runtime error.
@@ -46,7 +46,7 @@ A step is specified using the `by` keyword followed by a non-zero integer:
 ## Consequences
 
 ### Positive
-* **Self-evident semantics:** `to` and `until` eliminate off-by-one errors regarding boundary inclusion.
+* **Self-evident semantics:** `to` and `till` eliminate off-by-one errors regarding boundary inclusion.
 * **Touchscreen friendly:** Typed entirely using primary-layer letters and digits.
 * **First-class sequences:** Ranges are regular values that compose naturally with the rest of the language without special loop-only restrictions.
 * **Deterministic iteration:** Strict direction checking prevents runaway loops on inverted bounds.

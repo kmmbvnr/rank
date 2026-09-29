@@ -146,8 +146,8 @@ These constructs are always available.
 | Form | Summary |
 | --- | --- |
 | `Left Right max` | The larger of two numbers; min gives the smaller. |
-| `Low to High` | Counting range with an inclusive upper bound. |
-| `Low until High` | Counting range with an exclusive upper bound. |
+| `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |
+| `Low till High` | Counting range with an exclusive upper bound; after values, keeps those below High. |
 
 ## crypto
 
@@ -363,7 +363,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values Target find` | integer | First zero-based position equal to Target in a vector or text. |
 | `Values Target findall` | array | Every zero-based position equal to Target in a vector or text. |
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
-| `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, until or from. |
+| `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | Zero-based positions of the true values in a boolean vector. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly. |

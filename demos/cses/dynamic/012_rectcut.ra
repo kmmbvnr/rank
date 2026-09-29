@@ -21,7 +21,7 @@ fun rectangle_cuts Height Width
 
     Best = H * W
     Last = H // 2 + 1
-    for Split in 1 until Last
+    for Split in 1 till Last
       Other = H - Split
       Candidate = Cuts Split W
       Candidate += Cuts Other W + 1
@@ -29,7 +29,7 @@ fun rectangle_cuts Height Width
     end
 
     Last = W // 2 + 1
-    for Split in 1 until Last
+    for Split in 1 till Last
       Other = W - Split
       Candidate = Cuts H Split
       Candidate += Cuts H Other + 1

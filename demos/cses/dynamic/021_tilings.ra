@@ -19,7 +19,7 @@ fun counting_tilings Height Width
   for Column in 1 to Width
     Next = array shape States fill 0
 
-    for Mask in 0 until States
+    for Mask in 0 till States
       Ways = Current Mask
       if Ways greater 0
         0 0 place

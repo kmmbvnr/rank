@@ -14,7 +14,7 @@ for (const compiled of [true, false]) {
         it('combines ranges, reductions, indexing and loops without imports', () => {
             const r = runtime();
             expect(r.execute('1 to 5 sum')).toBe(15n);
-            expect(r.execute('1 until 5 len')).toBe(4n);
+            expect(r.execute('1 till 5 len')).toBe(4n);
             expect(r.execute('9 to 1 by -2 min')).toBe(1n);
             expect(r.execute('3 5 max 4 min')).toBe(4n);
             expect(r.execute('A = array 1 4 2\nA sum + (A len)')).toBe(10n);

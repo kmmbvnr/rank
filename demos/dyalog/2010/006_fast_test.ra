@@ -91,7 +91,7 @@ test "the weight series agrees with the sum near the savings growth"
 
   Growth = 1.001875
   Rise = Growth + 0.00000005
-  Month = (0 until 12) copy
+  Month = (0 till 12) copy
   Direct = Rise ** Month * Growth ** (11 - Month) sum
   Series = Rise Growth 12 weight
   Series - Direct abs at most 0.000000001

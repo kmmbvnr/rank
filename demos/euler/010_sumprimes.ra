@@ -8,7 +8,7 @@ use cli
 
 option Limit integer = 2000000
 
-Primes = primes till at least Limit
+Primes = primes till Limit
 Answer = Primes sum
 
 Answer print

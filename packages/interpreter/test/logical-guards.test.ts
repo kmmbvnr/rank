@@ -66,7 +66,7 @@ R`)).toBe('yes');
     it('guard inside compiled integer loops', () => {
         const source = `Password = array "a" "" "b"
 Count = 0
-for I in 0 until 10
+for I in 0 till 10
  if I less 3 and Password I equal ""
   Count += 1
  end

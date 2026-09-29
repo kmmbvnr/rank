@@ -22,7 +22,7 @@ fun longest_collatz Limit
   BestStart = 1
   BestLength = 1
 
-  for Start in 2 until Limit
+  for Start in 2 till Limit
     Length = Start Cache collatz_length
     if Length greater BestLength
       BestLength = Length

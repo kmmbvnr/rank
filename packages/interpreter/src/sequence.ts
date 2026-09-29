@@ -74,7 +74,7 @@ export function boundSequence(
 ): RankSequence {
     const planned = source.plan.withUpperBound?.(limit, inclusive);
     if (!planned) {
-        throw new RankError(`${source.plan.name} does not support ${inclusive ? 'to' : 'until'}`);
+        throw new RankError(`${source.plan.name} does not support ${inclusive ? 'to' : 'till'}`);
     }
     return sequence(planned);
 }

@@ -136,7 +136,7 @@ test('empty loop and a native sequence can both be stopped', { timeout: 10000 },
     const s = await session(t);
     assert.equal((await stop(s, 'for\nend')).interrupted, true);
     await s.execute('use sequences\nuse numbers', 3, []);
-    const result = await stop(s, 'primes till at least 170141183460469231731687303715884105727 sum', 4);
+    const result = await stop(s, 'primes till 170141183460469231731687303715884105727 sum', 4);
     assert.equal(result.interrupted, true);
     assert.equal((await s.execute('9', 5, [])).output[0].text, '9');
 });

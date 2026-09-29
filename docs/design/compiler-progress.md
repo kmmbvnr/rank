@@ -326,7 +326,7 @@ whole-suite speedup. The final enabled verification took 34.574 s.
 
 ## Numeric range loop lowering
 
-The same whole-loop compiler now handles inline `to`/`until` numeric ranges,
+The same whole-loop compiler now handles inline `to`/`till` numeric ranges,
 including `by`, descending steps, an optional index and `#` discards. Bound values
 are captured once. A separate cursor preserves progression if the body changes
 the visible variable, the source bound or the step variable. All writes still use
