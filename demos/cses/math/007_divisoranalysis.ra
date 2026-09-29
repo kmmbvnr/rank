@@ -22,8 +22,7 @@ fun analyze_divisors Factors
   Count = 1
 
   for Factor in Factors
-    Prime = Factor 0
-    Power = Factor 1
+    unpack Prime Power = Factor
     Terms = Power + 1
 
     Numerator = Prime Terms Mod powmod
@@ -32,8 +31,7 @@ fun analyze_divisors Factors
     Denom = Prime - 1
     InvExp = Mod - 2
     Inv = Denom InvExp Mod powmod
-    Geometric = Numerator * Inv
-    Geometric %= Mod
+    Geometric = Numerator * Inv % Mod
     Sum = Sum * Geometric % Mod
 
     Triangle = Power * Terms // 2
