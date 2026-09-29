@@ -28,8 +28,7 @@ fun flight_routes Graph N K
   Found = 0
 
   for Pending len greater 0
-    Item = Pending pop
-    unpack Current Distance = Item
+    unpack Current Distance = Pending pop
     if Visits Current at least K
       continue
     end
@@ -46,8 +45,8 @@ fun flight_routes Graph N K
     for Edge in Graph edges Current
       unpack Next Cost = Edge
       NextDistance = Distance + Cost
-      Item = array Next NextDistance
-      Pending NextDistance Item enqueue
+      NextItem = array Next NextDistance
+      Pending NextDistance NextItem enqueue
     end
   end
   return Answers
