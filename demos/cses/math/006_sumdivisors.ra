@@ -17,8 +17,8 @@ fun divisor_sum N
     Quotient = N // Left
     Right = N // Quotient
     Count = Right - Left + 1
-    Part = (Left + Right) * Count // 2
-    Part %= Modulus
+    Sum = Left + Right
+    Part = Sum * Count // 2 % Modulus
     Answer += Quotient % Modulus * Part
     Answer %= Modulus
     Left = Right + 1
