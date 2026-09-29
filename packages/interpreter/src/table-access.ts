@@ -1,5 +1,5 @@
 import { RankArrowTable, columnFromValues } from './arrow-table.js';
-import { readArrayItem, ownedArray } from './array-storage.js';
+import { readArrayItem, ownedArray, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { materializeSequence } from './sequence.js';
@@ -77,6 +77,30 @@ function selectRows(table: RankArrowTable, selector: RankArray): RankValue {
     throw new RankError('table selection expects a boolean mask, row numbers or column names', 'TypeError');
 }
 
+/** Integer columns, or real columns, without a gap copy straight into one
+ * buffer, row by row: no boxed cell is made. Anything else takes the cell path. */
+function typedMatrix(table: RankArrowTable, indices: readonly number[]): Float64Array | BigInt64Array | undefined {
+    if (indices.length === 0) return undefined;
+    const kind = table.columns[indices[0]].kind;
+    if (kind !== 'integer' && kind !== 'real') return undefined;
+    const sources: (Float64Array | BigInt64Array)[] = [];
+    for (const index of indices) {
+        const column = table.columns[index];
+        if (column.kind !== kind || !column.vector || column.vector.nullCount !== 0) return undefined;
+        sources.push(column.vector.toArray() as Float64Array | BigInt64Array);
+    }
+    const columns = indices.length;
+    const buffer = kind === 'integer' ? new BigInt64Array(table.length * columns) : new Float64Array(table.length * columns);
+    for (let column = 0; column < columns; column += 1) {
+        checkpoint('processing table');
+        const source = sources[column], target = buffer;
+        for (let row = 0; row < table.length; row += 1) {
+            (target as unknown as Record<number, unknown>)[row * columns + column] = source[row];
+        }
+    }
+    return buffer;
+}
+
 /** Columns into a rows-by-columns matrix carrying the column names. */
 function projectColumns(table: RankArrowTable, fields: readonly RankValue[]): RankArray {
     const names = fields.map(field => {
@@ -90,6 +114,8 @@ function projectColumns(table: RankArrowTable, fields: readonly RankValue[]): Ra
         return index;
     });
     const columns = indices.length;
+    const buffer = typedMatrix(table, indices);
+    if (buffer) return typedArray(buffer, [table.length, columns], names);
     const items: RankValue[] = new Array(table.length * columns);
     for (let row = 0; row < table.length; row += 1) {
         checkpoint('processing table');

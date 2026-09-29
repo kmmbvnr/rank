@@ -1,7 +1,7 @@
 import { Bool, Dictionary, Float64, Int32, Int64, Utf8, Vector, makeData, type DataType } from 'apache-arrow';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
-import { derivedArray, ownedArray, ownedObject } from './array-storage.js';
+import { derivedArray, ownedArray, ownedObject, typedArray } from './array-storage.js';
 import type { RankArray, RankObject, RankRecord, RankValue } from './value.js';
 
 const INT64_MIN = -(1n << 63n);
@@ -81,6 +81,12 @@ export class RankArrowTable {
         const index = this.indexOf(name);
         if (index < 0) throw new MissingValueError(`missing object key: ${name}`);
         const column = this.columns[index];
+        const vector = column.vector;
+        if ((column.kind === 'integer' || column.kind === 'real') && vector && vector.nullCount === 0) {
+            // Shared with the column: a typed array is never written in place,
+            // a write converts it to plain cells first.
+            return typedArray(vector.toArray() as Float64Array | BigInt64Array, [this.length]);
+        }
         const items: RankValue[] = new Array(this.length);
         let absent = false;
         for (let row = 0; row < this.length; row += 1) {
