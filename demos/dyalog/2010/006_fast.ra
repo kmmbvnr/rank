@@ -35,9 +35,11 @@ fun variablefast Options Params
 end
 
 
-rem The task 5 difference, a year per step. With a
-rem monthly Rate the balance grows by Rise = 1 + Rate
-rem and the interest of month k within the year is
+rem The task 5 difference, a year at a time and without a
+rem loop: every year and every lane is one cell of a
+rem Years by Sims table. With a monthly Rate the balance
+rem grows by Rise = 1 + Rate and the interest of month k
+rem within the year is
 rem   Excess * Rise ** k + Payment,
 rem where Excess is the first interest over the payment.
 rem Over a Span of months the savings keep the tax back
@@ -45,6 +47,14 @@ rem on that interest less each payment: Weight sums
 rem Rise ** k * Growth ** (Span - 1 - k) and Within is
 rem the same sum at a zero rate. The fixed loan is the
 rem same in every lane and adds a constant.
+rem
+rem The rate is the quarterly walk, held at zero when it
+rem would go below: a running sum less its running
+rem minimum. The payment and the repaid balance are
+rem proportional to the balance at the start of the year,
+rem so a year is one factor and the balances are running
+rem products of them. The savings are the sum of what
+rem each year kept, grown by the years after it.
 fun fastdifference Changes Start Params
   unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl TaxPct PropRate SavRate Rent = Params
   Term = Months integer
@@ -56,30 +66,36 @@ fun fastdifference Changes Start Params
   FixedFlow = Fixed .pmt - Fixed .int * Tax
   Settled = FixedFlow * Growth ** (Term - Month) sum
 
-  Official = array shape Sims fill Start * 1.0
-  Balance = array shape Sims fill BankAmt * 1.0
-  Saving = array shape Sims fill 0.0
-  for Year in 0 till (Term + 11) // 12
-    First = Year * 12
-    Left = Term - First
-    Span = 12 Left min
-    Rate = Official / 1200
-    Rise = 1 + Rate
-    Payment = Balance Rate Left payment
-    Within = Growth ** (0 till Span) sum
-    Weight = Rise Growth Span weight
-    Excess = Balance * Rate - Payment
-    Kept = Tax * Excess * Weight - (1 - Tax) * Payment * Within
-    Saving = Saving * Growth ** Span + Kept
-    Balance = Balance Rate Payment Span repay
-    if First + 12 less Term
-      for Quarter in Year * 4 till Year * 4 + 4
-        Moved = Official + Changes Quarter
-        Official = Moved 0.0 max
-      end
-    end
-  end
-  Owed = Balance - Fixed .bal (Term - 1)
+  Years = (Term + 11) // 12
+  Year = (0 till Years) copy
+  Column = array Years 1
+  Elapsed = (Year * 12) Column reshape
+  Left = Term - Elapsed
+  Span = Left 12 min
+  Alive = (Year Column reshape) 1 min
+  Reached = (Year * 4 - 1) 0 max
+
+  Walk = (Changes + scan axis 0) + Start
+  Low = Walk min scan axis 0
+  Path = Walk - (Low 0.0 min)
+  Official = Path Reached # * Alive + Start * (1 - Alive)
+  Rate = Official / 1200
+  Payment = 1.0 Rate Left payment
+  Factor = 1.0 Rate Payment Span repay
+  Kept = Factor * scan axis 0
+  Before = Kept 1 shift with 1.0
+
+  Ahead = (0 till 12) (array 1 12) reshape
+  Powers = (Ahead less Span) (Growth ** Ahead) 0.0 choose
+  Within = Powers sum axis 1
+  Weight = (1 + Rate) Growth Span weight
+  Excess = BankAmt * Before * (Rate - Payment)
+  Paid = BankAmt * Before * Payment
+  Flow = Tax * Excess * Weight - (1 - Tax) * Paid * (Within Column reshape)
+  Grown = Flow * Growth ** (Left - Span)
+  Saving = Grown sum axis 0
+  Last = Kept (Years - 1)
+  Owed = BankAmt * Last - Fixed .bal (Term - 1)
   return Saving + Settled - Owed
 end
 

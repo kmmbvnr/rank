@@ -288,6 +288,8 @@ it('infers numeric scans without treating unsafe cell readers as callback-free',
         shape: [3], elements: ['integer'], callbackFreeScalarCells: true });
     expect(facts('(array 1 2) + scan with 0.5')).toEqual({ types: ['array'], rank: 1,
         shape: [3], elements: ['integer', 'real'], callbackFreeScalarCells: true });
+    // An axis scan keeps the shape of any rank, so it claims no rank-1 facts.
+    expect(facts('(array 1 2 3) + scan axis 0')).toEqual({ types: [] });
     expect(facts('Unsafe + scan with 0', new Map([['Unsafe', { types: ['array'], rank: 1,
         shape: [3], elements: ['integer'] }]]))).toEqual({ types: [] });
 });

@@ -2229,6 +2229,13 @@ export class Interpreter {
             }
             case 'scan': {
                 const scan = form;
+                if (scan.axis !== undefined) {
+                    const axis = safeDimension(integerLiteral(scan.axis, 'scan axis'), 'scan axis');
+                    return function* (): Execution<RankValue> {
+                        const source = yield* resume(interpreter.evaluateTask(scan.source));
+                        return interpreter.reductions.evaluateScanAxis(scan.operator, source, axis);
+                    };
+                }
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(interpreter.evaluateTask(scan.source));
                     const seed = scan.seed === undefined
@@ -2549,6 +2556,8 @@ export class Interpreter {
             }
             case 'named-scan': {
                 const namedScan = form;
+                const namedAxis = namedScan.axis === undefined ? undefined
+                    : safeDimension(integerLiteral(namedScan.axis, 'scan axis'), 'scan axis');
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(interpreter.evaluateTask(namedScan.source));
                     const seed = namedScan.seed === undefined
@@ -2556,6 +2565,9 @@ export class Interpreter {
                     const operation = yield* resume(interpreter.evaluateTask(namedScan.operation));
                     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
                         throw new RankError('scan requires a binary operation');
+                    }
+                    if (namedAxis !== undefined) {
+                        return interpreter.reductions.evaluateNamedScanAxis(operation, source, namedAxis);
                     }
                     return interpreter.reductions.scanValues(source, operation.name, seed,
                         (left, right) => operation.call([left, right]));

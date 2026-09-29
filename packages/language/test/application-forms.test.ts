@@ -24,7 +24,7 @@ it.each([
     ['A findroot 1', 'dsu-method'],
     ['A jump 1 2', 'functional-method'], ['A floor 2', 'multiset-method'],
     ['A edges 1', 'graph-edges'], ['A array len', 'materialize-pipeline'],
-    ['A + scan with 0', 'scan'], ['A + reduce', 'reduce'], ['A + segment', 'segment'],
+    ['A + scan with 0', 'scan'], ['A + scan axis 1', 'scan'], ['A min scan axis 0', 'named-scan'], ['A + reduce', 'reduce'], ['A + segment', 'segment'],
     ['A B + outer', 'outer'], ['1 + 2', 'plain'],
 ])('classifies %s as %s', (source, kind) => {
     const parsed = parser.parse<Program>(`Result = ${source}\n`);
@@ -94,5 +94,7 @@ it('recognizes symbolic modifiers once and respects a shadowed modifier', () => 
     expect(symbolic('Values + reduce rank 1 with 0')?.kind).toBe('reduce');
     expect(symbolic('Values + segment')?.kind).toBe('segment');
     expect(symbolic('A B * outer')?.kind).toBe('outer');
+    expect(symbolic('Values + scan axis 1')?.kind).toBe('scan');
+    expect(symbolic('Values + scan axis 1')).toMatchObject({ axis: { value: 1n } });
     expect(symbolic('Values + scan', name => name !== 'scan')).toBeUndefined();
 });

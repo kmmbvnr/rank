@@ -1,4 +1,4 @@
-import { denseScalarItems, derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { denseScalarItems, derivedArray, eagerOperandItems, ownedArray, readArrayItem, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -66,6 +66,58 @@ export class ReductionEvaluator {
     evaluateScan(operator: string, value: RankValue, seed?: RankValue): RankValue {
         return this.scanValues(value, operator, seed,
             numericKernel(operator, (a, b) => this.binary(operator, a, b)));
+    }
+
+    /** Prefix accumulation along one axis of an array; the shape is kept. */
+    evaluateScanAxis(operator: string, value: RankValue, axis: number): RankValue {
+        return this.scanAxis(operator, value, axis, numericKernel(operator, (a, b) => this.binary(operator, a, b)));
+    }
+
+    /** `scanAxis` with a named binary operation; `max` and `min` run as real loops. */
+    evaluateNamedScanAxis(operation: NativeFunction, value: RankValue, axis: number): RankValue {
+        const extreme = operation === this.standardFunctions.get(standardModules.core.max) ? 'max'
+            : operation === this.standardFunctions.get(standardModules.core.min) ? 'min' : operation.name;
+        return this.scanAxis(extreme, value, axis, (left, right) => operation.call([left, right]));
+    }
+
+    private scanAxis(operator: string, value: RankValue, axis: number,
+        operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
+        if (!isRankArray(value)) throw new RankError(`${operator} scan axis expects an array`);
+        if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
+        const shape = value.shape;
+        const size = arraySize(shape);
+        const length = shape[axis];
+        const inner = arraySize(shape.slice(axis + 1));
+        const outer = arraySize(shape.slice(0, axis));
+        const cells = eagerOperandItems(value)
+            ?? Array.from({ length: size }, (_, index) => arrayItem(value, index));
+        const reals = realView(cells);
+        if (reals && (operator === '+' || operator === '-' || operator === '*' || operator === 'max' || operator === 'min')) {
+            const out = new Float64Array(size);
+            for (let start = 0; start < size; start += length * inner) {
+                for (let index = 0; index < inner && length > 0; index += 1) out[start + index] = reals[start + index];
+                for (let step = 1; step < length; step += 1) {
+                    const at = start + step * inner;
+                    if (operator === '+') for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] + reals[index];
+                    else if (operator === 'max') for (let index = at; index < at + inner; index += 1) out[index] = Math.max(out[index - inner], reals[index]);
+                    else if (operator === 'min') for (let index = at; index < at + inner; index += 1) out[index] = Math.min(out[index - inner], reals[index]);
+                    else if (operator === '-') for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] - reals[index];
+                    else for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] * reals[index];
+                }
+            }
+            return typedArray(out, shape);
+        }
+        const out: RankValue[] = new Array(size);
+        for (let block = 0; block < outer; block += 1) {
+            const start = block * length * inner;
+            for (let step = 0; step < length; step += 1) {
+                const at = start + step * inner;
+                for (let index = at; index < at + inner; index += 1) {
+                    out[index] = step === 0 ? cells[index] : operation(out[index - inner], cells[index]);
+                }
+            }
+        }
+        return ownedArray(out, shape);
     }
 
     scanValues(value: RankValue, operator: string, seed: RankValue | undefined,
@@ -223,6 +275,15 @@ export class ReductionEvaluator {
         return result;
     }
 
+}
+
+/** The cells as reals when every one is a real number. */
+function realView(cells: ArrayLike<RankValue>): ArrayLike<number> | undefined {
+    if (cells instanceof Float64Array) return cells;
+    for (let index = 0; index < cells.length; index += 1) {
+        if (typeof cells[index] !== 'number') return undefined;
+    }
+    return cells as ArrayLike<number>;
 }
 
 export function* reductionValues(value: RankValue, operation: string): IterableIterator<RankValue> {

@@ -156,7 +156,7 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
             return { types: ['segment'], elements: values.elements, segmentOperation: '+' };
         }
     }
-    if (symbolic?.kind === 'scan' && ['+', '*'].includes(symbolic.operator)) {
+    if (symbolic?.kind === 'scan' && !symbolic.axis && ['+', '*'].includes(symbolic.operator)) {
         const source = infer(symbolic.source, lookup);
         const seed = symbolic.seed && infer(symbolic.seed, lookup);
         const numeric = (types: Types | undefined) => !!types?.length

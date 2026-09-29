@@ -3390,8 +3390,17 @@ array for compatibility.
 `scan` accepts a rank-1 array, queue, text or sequence. An array, queue or text
 produces a material rank-1 array. A sequence produces another lazy sequence, so
 an unbounded source is valid when a later operation requests only a finite
-prefix or a particular position. Higher-rank arrays are rejected. `scan`
-currently has no `rank` or `axis` form.
+prefix or a particular position. `scan` without `axis` rejects higher-rank
+arrays and has no `rank` form.
+
+`axis` followed by one literal axis number scans an array of any rank along that
+axis and keeps its shape, so `T + scan axis 0` accumulates down every column of
+a matrix and each cell along the other axes is an independent scan. It works
+with the symbolic operators and with named binary operations, as in
+`T max scan axis 0` or `T next scan axis 1`. The first item along the axis is
+kept, as in a scan without a seed; `with` is not accepted together with `axis`.
+Real cells scanned with `+`, `-`, `*`, `max` or `min` run as one loop over a
+typed buffer.
 
 A binary user function can also accumulate states:
 
