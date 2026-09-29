@@ -12,6 +12,27 @@ fun nums N
   yield N + 2
 end`;
 
+test('a stored native stream keeps its position rather than the values it read', t => {
+    const s = session(t);
+    s.run(1, 'use numbers\nFib = fibonacci');
+    assert.equal(s.run(2, 'Fib till at least 100000 sum'), 196416n);
+    assert.equal(s.run(3, 'Fib till at least 1000000 sum'), 121393n + 196418n + 317811n + 514229n + 832040n);
+    assert.equal(s.replay.retained, 0);
+    // A rewind recomputes the prefix instead of replaying kept values.
+    s.replay.rewind(3);
+    assert.equal(s.run(3, 'Fib take 2 sum'), 121393n + 196418n);
+    s.replay.rewind(2);
+    assert.equal(s.run(2, 'Fib take 3 sum'), 6n);
+});
+
+test('a generator that outgrows the replay budget raises an error instead of exhausting memory', t => {
+    const s = session(t);
+    // A generator may print, so its values stay on the tape to replay; values
+    // that keep growing would otherwise fill memory within seconds.
+    s.run(1, 'use numbers\nfun growing\n  X = 2\n  for\n    X = X * X + 1\n    yield X\n  end\nend\nG = growing');
+    assert.throws(() => s.run(2, 'G filter less 0 take 1 sum'), /kept more than 64 MB of values for replay/);
+});
+
 test('nullary generator calls create fresh tapes and saved instances rewind', t => {
     const s = session(t);
     s.interpreter.execute('fun tst\n yield 1\n yield 2\n yield 3\nend');

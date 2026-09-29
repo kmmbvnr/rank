@@ -16,12 +16,38 @@ interface Boundary { readonly limit: bigint; readonly inclusive: boolean }
 
 interface Consumption { readonly line: number; readonly position: number }
 
+/**
+ * How much the tapes of one session may keep for replay. Every value read
+ * from a stored stream stays on its tape, and growing values such as
+ * Fibonacci numbers fill memory quadratically; a phone's web view dies long
+ * before the search would end. Past this budget reading is an error.
+ */
+export const REPLAY_BYTES = 64 * 1024 * 1024;
+
+/** A rough size of a kept value: its digits for integers, a pointer otherwise. */
+function retainedBytes(value: RankValue): number {
+    if (typeof value === 'bigint') {
+        const magnitude = value < 0n ? -value : value;
+        return magnitude < 1n << 64n ? 16 : 16 + magnitude.toString(16).length / 2;
+    }
+    if (typeof value === 'string') return 16 + 2 * value.length;
+    return 16;
+}
+
 interface Tape {
     readonly source: RankSequence;
     readonly entries: Entry[];
+    /**
+     * A stored native source such as `primes`. It computes the same values on
+     * every pass, so it keeps a position rather than the values it yielded.
+     */
     readonly resumable?: boolean;
     iterator?: IterableIterator<RankValue>;
     finished: boolean;
+    /** Resumable tapes: the index the iterator yields next, and the last value read. */
+    next?: number;
+    last?: { readonly index: number; readonly entry: Entry };
+    end?: number;
 }
 
 /** The REPL retains yielded values; ordinary file execution has no tape. */
@@ -32,6 +58,7 @@ export class SequenceReplay {
     private readonly collecting: Read[][] = [];
     private line = 0;
     private closed = false;
+    private retained = 0;
 
     readonly wrap = (source: RankSequence): RankSequence => {
         const tape: Tape = { source, entries: [], finished: false };
@@ -130,7 +157,8 @@ export class SequenceReplay {
         const position = previous?.position ?? 0;
         this.checkPosition(tape, position, expected);
         const cached = tape.entries[position];
-        const exhausted = cached && 'result' in cached.outcome && cached.outcome.result.done;
+        const exhausted = tape.resumable ? tape.end !== undefined && position >= tape.end
+            : cached && 'result' in cached.outcome && cached.outcome.result.done;
         if ((this.looking?.has(tape) && !tape.resumable) || (!this.looking && previous && (!tape.resumable || exhausted))) {
             throw new RankError(
                 `sequence ${tape.source.plan.name} has already been consumed; return to its consuming line to replay it`,
@@ -177,6 +205,7 @@ export class SequenceReplay {
     }
 
     private read(tape: Tape, index: number): Entry {
+        if (tape.resumable) return this.recompute(tape, index);
         const cached = tape.entries[index];
         if (cached) {
             for (const read of cached.reads) {
@@ -209,6 +238,48 @@ export class SequenceReplay {
             this.collecting.pop();
         }
         tape.entries.push(entry);
+        if ('result' in entry.outcome && !entry.outcome.result.done) {
+            this.retained += retainedBytes(entry.outcome.result.value);
+            if (this.retained > REPLAY_BYTES) {
+                throw new RankError(
+                    `sequence ${tape.source.plan.name} kept more than ${REPLAY_BYTES / 1024 / 1024} MB of values for replay; `
+                    + 'bound the stored sequence with till, or read the source directly instead of through a name',
+                    'MemoryLimit',
+                );
+            }
+        }
+        return entry;
+    }
+
+    /**
+     * Read a native source at `index` without keeping its values. A read at
+     * the last index returns the peeked value again; a read behind the
+     * iterator, after a rewind, starts a fresh pass and skips to the index.
+     */
+    private recompute(tape: Tape, index: number): Entry {
+        if (tape.last?.index === index) return tape.last.entry;
+        if (tape.iterator === undefined || tape.next === undefined || index < tape.next) {
+            if (!tape.finished) tape.iterator?.return?.();
+            tape.iterator = tape.source.plan.iterate();
+            tape.next = 0;
+            tape.finished = false;
+        }
+        let entry: Entry;
+        try {
+            let result = tape.iterator.next();
+            for (; tape.next < index && !result.done; tape.next++) result = tape.iterator.next();
+            tape.next += 1;
+            tape.finished = Boolean(result.done);
+            if (result.done) tape.end = Math.min(tape.end ?? index, index);
+            entry = { reads: [], outcome: { result } };
+        } catch (error) {
+            // The next read starts a fresh pass rather than resuming a broken one.
+            tape.iterator = undefined;
+            tape.finished = true;
+            if (error instanceof InterruptedError) throw error;
+            entry = { reads: [], outcome: { error } };
+        }
+        tape.last = { index, entry };
         return entry;
     }
 
@@ -221,6 +292,7 @@ export class SequenceReplay {
             } catch (error) { failure ??= error; }
             tape.entries.length = 0;
         }
+        this.retained = 0;
         this.closed = true;
         this.tapes.clear();
         this.consumed.clear();

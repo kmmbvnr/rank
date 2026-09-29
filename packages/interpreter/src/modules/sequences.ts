@@ -782,27 +782,18 @@ function* primeIterator(
     boundary?: Boundary,
     lower?: Boundary,
 ): IterableIterator<bigint> {
-    if (lower) {
-        let candidate = lower.limit;
-        if (!lower.inclusive) candidate += 1n;
-        if (candidate <= 2n) {
-            if (!boundary || within(2n, boundary)) yield 2n;
-            candidate = 3n;
-        }
-        if (candidate % 2n === 0n) candidate += 1n;
-        for (; !boundary || within(candidate, boundary); candidate += 2n) {
-            checkpoint('reading sequence');
-            if (primeMembership(candidate)) yield candidate;
-        }
-        return;
+    // Trial division needs divisors only up to the square root, which the shared
+    // membership table keeps. Keeping every prime yielded instead would grow
+    // without end on a search that never stops.
+    let candidate = lower ? lower.limit + (lower.inclusive ? 0n : 1n) : 2n;
+    if (candidate <= 2n) {
+        if (!boundary || within(2n, boundary)) yield 2n;
+        candidate = 3n;
     }
-    const found: bigint[] = [];
-    for (let candidate = 2n; !boundary || within(candidate, boundary); candidate += 1n) {
+    if (candidate % 2n === 0n) candidate += 1n;
+    for (; !boundary || within(candidate, boundary); candidate += 2n) {
         checkpoint('reading sequence');
-        if (isPrime(candidate, found)) {
-            found.push(candidate);
-            yield candidate;
-        }
+        if (primeMembership(candidate)) yield candidate;
     }
 }
 
