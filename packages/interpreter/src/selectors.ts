@@ -1,4 +1,5 @@
-import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { atSequence, sequenceValues } from './sequence.js';
 import { arrayOffset, coordinatesAt, safeDimension } from './tensor-index.js';
@@ -10,6 +11,10 @@ const arrayItem = readArrayItem;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 const array = (items: RankValue[]): RankArray => ownedArray(items);
+
+// A large slice of stored scalars is copied at once. A lazy slice would cache
+// each cell in a Map, several times the size of the cells themselves.
+const DENSE_SLICE_CELLS = 1 << 16;
 
 interface TensorSelection {
     readonly shape: readonly number[];
@@ -124,14 +129,31 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     return derivedArray(rest, [source], index => arrayItem(source, offset + index));
 }
 
+/** The cells a selection addresses: an array, or the one cell of an empty shape. */
+export function sliceArray(
+    source: RankArray, selection: { shape: readonly number[]; offsetAt(index: number): number },
+): RankValue {
+    if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
+    const stored = denseScalarItems(source);
+    const total = arraySize(selection.shape);
+    if (stored && total >= DENSE_SLICE_CELLS) {
+        const cells: RankValue[] = new Array(total);
+        for (let index = 0; index < total; index += 1) {
+            if ((index & 0xfff) === 0) checkpoint('computing array');
+            cells[index] = stored[selection.offsetAt(index)];
+        }
+        return ownedArray(cells, selection.shape, true);
+    }
+    return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+}
+
 export function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
     const size = axisSize(source, axis);
     if (isRankArray(source)) {
         const selectors = Array(axis).fill(ALL_AXIS) as RankValue[];
         selectors.push(selector);
         const selection = tensorSelection(source, selectors);
-        if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-        return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+        return sliceArray(source, selection);
     }
     if (typeof selector === 'bigint') {
         if (selector < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);

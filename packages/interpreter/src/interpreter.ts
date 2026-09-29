@@ -39,7 +39,7 @@ import { RankApplication, dyadicCells, tensorCells, tensorFrameAxes,
     type OuterCells } from './rank-application.js';
 import {
     ALL_AXIS, atArray, isCollectionSelector, isIntegerCollectionSelector,
-    isTensorAddress, scalarArrayWriteOffset, selectAxis, tensorSelection,
+    isTensorAddress, scalarArrayWriteOffset, selectAxis, sliceArray, tensorSelection,
 } from './selectors.js';
 import { arrayOffset, coordinatesAt, safeDimension, sameShape } from './tensor-index.js';
 import { numericKernel } from './numeric-kernels.js';
@@ -4970,8 +4970,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (isRankArray(values[0]) && isTensorAddress(values.slice(1))) {
         const source = values[0];
         const selection = tensorSelection(source, values.slice(1));
-        if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-        return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+        return sliceArray(source, selection);
     }
     const last = values.at(-1);
     if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
