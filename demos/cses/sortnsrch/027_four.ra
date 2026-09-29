@@ -22,8 +22,8 @@ rem Match each pair with an earlier pair.
 fun find_four A Target
   N = A len
 
-  for i in 0 until N
-    for j in i + 1 until N
+  for i in 0 till N
+    for j in i + 1 till N
       Need = Target - A i - A j
 
       if Need in index
@@ -36,7 +36,7 @@ fun find_four A Target
       end
     end
 
-    for k in 0 until i
+    for k in 0 till i
       Sum = A k + A i
       index Sum = array k i
     end

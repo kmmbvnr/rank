@@ -18,7 +18,7 @@ fun interpolate_readings Lines
   Readings = Lines real rank 0 copy
   N = Readings len
 
-  for Start in 0 until N
+  for Start in 0 till N
     if Readings Start equal 9999
       End = Start
       for Readings End equal 9999
@@ -29,7 +29,7 @@ fun interpolate_readings Lines
       Gap = End - Start + 1
       Step = (Readings End - Anchor) / Gap
       Val = Anchor
-      for i in Start until End
+      for i in Start till End
         Val += Step
         Readings i = Val
       end

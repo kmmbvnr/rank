@@ -326,7 +326,7 @@ helper forwards it.
 Assignments to local scalar results or selectors inside those branches are
 accepted when every path proves the value needed after the `if`. Selector
 parameter guards from all paths are combined. A path with an escaping array
-value fails the proof. A counted `for I in Start until End` can also borrow
+value fails the proof. A counted `for I in Start till End` can also borrow
 when both bounds are proven integers and the body only reads scalar cells or
 updates proven scalar locals. The loop's possible zero-iteration path is joined
 with its body facts. Dynamic iteration, array writes, escaping values and
@@ -364,7 +364,7 @@ This is a targeted microbenchmark, not a measured improvement in an existing
 demo. Broader compiler use and the stage-5 differential gate remain open.
 
 A guarded range-reader trial removed per-cell bounds checks for `A I` inside
-`for I in 0 until N` when entry guards proved `N <= A shape 0`. It passed
+`for I in 0 till N` when entry guards proved `N <= A shape 0`. It passed
 compiled/interpreted result, error-order and partial-write tests. An isolated
 warm comparison on Apple M5 / Node v24.15.0 used parentheses around `I` to
 disable only the draft range proof. At 200,000 cells the medians were 6.43 ms
@@ -756,10 +756,10 @@ pass for proved inputs. Deep-ML `017_kmeans` and `049_adam` are the next gates.
 `k_means` has nested loops, a `break`, indexed array writes and `sum`/`mean`
 on derived arrays. `adam_optimizer` calls the passed `Gradient` function inside
 a loop and updates `X`. Their effects and value origins remain unknown.
-The call-site pass can skip the body of a built-in `to` or `until` range when
+The call-site pass can skip the body of a built-in `to` or `till` range when
 its bounds prove zero iterations. An empty shape fact on an arbitrary array
 or sequence is not enough: starting its iterator may run a callback.
-The corpus check also found 20 CSES result conflicts: `A from L until R`
+The corpus check also found 20 CSES result conflicts: `A from L till R`
 was inferred as an integer range even though runtime treats it as a slice.
 Known array sources now retain their rank and partial shape through this
 form; unknown sources stay unknown. The current 1,087 examples have 467

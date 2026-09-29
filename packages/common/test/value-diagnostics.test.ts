@@ -332,7 +332,7 @@ it('checks loop ranks in an unexecuted draft and clears the error after an edit'
         expect(session.diagnosticFacts.find(([name]) => name === 'A')?.[1].shape).toEqual([2]);
         repl.notebook.replace('for I in 1 to 3\n A = array 1 2 3\nend');
         expect(repl.diagnosticOutputs?.size).toBe(0);
-        repl.notebook.replace('for I in 1 until 1\n A = array shape 2 2 fill 0\nend');
+        repl.notebook.replace('for I in 1 till 1\n A = array shape 2 2 fill 0\nend');
         expect(repl.diagnosticOutputs?.size).toBe(0);
     } finally { session.dispose(); }
 });

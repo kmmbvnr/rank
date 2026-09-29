@@ -629,7 +629,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 && item.condition.operator === 'in') {
                 let iterable = item.condition.right;
                 while (isParenthesizedExpression(iterable)) iterable = iterable.value;
-                if (isBinaryExpression(iterable) && (iterable.operator === 'to' || iterable.operator === 'until')
+                if (isBinaryExpression(iterable) && (iterable.operator === 'to' || iterable.operator === 'till')
                     && fact(iterable).shape?.[0] === 0
                     && expression(iterable)) return true;
             }
@@ -645,7 +645,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 const iterable = item.condition.right;
                 const source = fact(iterable);
                 let element: ValueFacts;
-                if (isBinaryExpression(iterable) && (iterable.operator === 'to' || iterable.operator === 'until')
+                if (isBinaryExpression(iterable) && (iterable.operator === 'to' || iterable.operator === 'till')
                     && [iterable.left, iterable.right, ...(iterable.step ? [iterable.step] : [])]
                         .every(bound => fact(bound).rank === 0 && fact(bound).types.join() === 'integer')
                     && source.types.join() === 'sequence' && source.elements?.join() === 'integer') {

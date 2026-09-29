@@ -23,7 +23,7 @@ rem TLS needs an ABBA outside brackets and none inside them.
 fun tls Address
   Parts = Address (array "[" "]") split
 
-  I = 0 until (Parts len)
+  I = 0 till (Parts len)
   SuperMask = I even
   HyperMask = not SuperMask
 
@@ -62,7 +62,7 @@ rem SSL needs an outside ABA whose matching BAB occurs inside brackets.
 fun ssl Address
   Parts = Address (array "[" "]") split
 
-  I = 0 until (Parts len)
+  I = 0 till (Parts len)
   SuperMask = I even
   HyperMask = not SuperMask
 

@@ -11,7 +11,7 @@ fun shuffle_data X Y
     .DimensionMismatch raise
   end
 
-  Indices = 0 until Count
+  Indices = 0 till Count
   Order = Indices shuffle
 
   ShuffledX = X Order

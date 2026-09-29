@@ -41,9 +41,9 @@ fun svd_2x2 A
 
   U = A V matmul copy
 
-  for j in 0 until 2
+  for j in 0 till 2
     if Sigma j greater 0
-      for i in 0 until 2
+      for i in 0 till 2
         U i j = U i j / Sigma j
       end
     end

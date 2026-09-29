@@ -12,7 +12,7 @@ Types = array shape Q fill ""
 As = array shape Q fill 0
 Bs = array shape Q fill 0
 
-for I in 0 until Q
+for I in 0 till Q
   Types I = stdin .word
   As I = stdin .integer
   Bs I = stdin .integer
@@ -29,10 +29,10 @@ fun salaries Salaries Types As Bs
   Q = Types len
   Total = N + Q * 2
   Coordinates = array shape Total fill 0
-  Coordinates (0 until N) = Salaries
-  Coordinates (N until N + Q) = As
+  Coordinates (0 till N) = Salaries
+  Coordinates (N till N + Q) = As
   LastStart = N + Q
-  Tail = LastStart until Total
+  Tail = LastStart till Total
   Coordinates Tail = Bs
   Coordinates = Coordinates unique sort
 
@@ -65,5 +65,5 @@ fun salaries Salaries Types As Bs
     end
   end
 
-  return Answers (0 until AnswerCount)
+  return Answers (0 till AnswerCount)
 end

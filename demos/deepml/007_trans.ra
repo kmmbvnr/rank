@@ -36,9 +36,9 @@ fun determinant A
   Work = A * 1.0 copy
 
   Result = 1.0
-  for i in 0 until Rows
+  for i in 0 till Rows
     Pivot = i
-    for Row in i + 1 until Rows
+    for Row in i + 1 till Rows
       if Work Row i abs greater Work Pivot i abs
         Pivot = Row
       end
@@ -48,7 +48,7 @@ fun determinant A
     end
 
     if Pivot not equal i
-      for j in 0 until Cols
+      for j in 0 till Cols
         Temp = Work i j * 1.0
         Work i j = Work Pivot j
         Work Pivot j = Temp
@@ -57,9 +57,9 @@ fun determinant A
     end
 
     Result *= Work i i
-    for Row in i + 1 until Rows
+    for Row in i + 1 till Rows
       Factor = Work Row i / Work i i
-      for j in i until Cols
+      for j in i till Cols
         Work Row j = Work Row j - Factor * Work i j
       end
     end

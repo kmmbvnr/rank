@@ -544,7 +544,7 @@ describe('Rank grammar', () => {
 
     it('parses nested for and if blocks', async () => {
         const document = await parse([
-            'for i in 0 until 3',
+            'for i in 0 till 3',
             '  if i greater 0',
             '    Total += i',
             '  else',
@@ -745,10 +745,10 @@ describe('Rank grammar', () => {
         const document = await parse([
             'Range = 1 to 5',
             'Odds = 1 to 9 by 2',
-            'Countdown = 10 until 0 by -2',
-            'Part = Text from L until R',
+            'Countdown = 10 till 0 by -2',
+            'Part = Text (L till R)',
             'Letters = Text array 0 2 6',
-            'Rows = M axis 0 from First to Last',
+            'Rows = M (First to Last)',
             'Columns = M axis 1 array 0 2',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);

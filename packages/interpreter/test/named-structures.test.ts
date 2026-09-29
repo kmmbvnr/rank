@@ -236,7 +236,7 @@ array (M 0) (M 1) (M 2)
 use algo
 use sequences
 Sets = new queue
-for I in 0 until 2
+for I in 0 till 2
   Sets push new set
 end
 A = Sets 0

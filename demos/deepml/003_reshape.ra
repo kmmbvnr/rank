@@ -16,7 +16,7 @@ fun reshape_matrix A NewShape
 
   Result = array shape Rows Cols fill 0
 
-  for k in 0 until NewSize
+  for k in 0 till NewSize
     OldRow = k // OldCols
     OldColumn = k % OldCols
 

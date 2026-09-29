@@ -59,21 +59,21 @@ fun fastdifference Changes Start Params
   Official = array shape Sims fill Start * 1.0
   Balance = array shape Sims fill BankAmt * 1.0
   Saving = array shape Sims fill 0.0
-  for Year in 0 until (Term + 11) // 12
+  for Year in 0 till (Term + 11) // 12
     First = Year * 12
     Left = Term - First
     Span = 12 Left min
     Rate = Official / 1200
     Rise = 1 + Rate
     Payment = Balance Rate Left payment
-    Within = Growth ** (0 until Span) sum
+    Within = Growth ** (0 till Span) sum
     Weight = Rise Growth Span weight
     Excess = Balance * Rate - Payment
     Kept = Tax * Excess * Weight - (1 - Tax) * Payment * Within
     Saving = (Saving * Growth ** Span + Kept) copy
     Balance = Balance Rate Payment Span repay copy
     if First + 12 less Term
-      for Quarter in Year * 4 until Year * 4 + 4
+      for Quarter in Year * 4 till Year * 4 + 4
         Moved = Official + Changes Quarter
         Official = Moved 0.0 max copy
       end

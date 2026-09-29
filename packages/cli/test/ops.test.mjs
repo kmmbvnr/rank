@@ -30,7 +30,7 @@ test('ops names the use a name still needs', () => {
 test('ops lists a module as forms, bare syntax included', () => {
     const session = repl(['ops core']);
     assert.match(session.stdout, /Low to High/);
-    assert.match(session.stdout, /Low until High/);
+    assert.match(session.stdout, /Low till High/);
 
     const bits = repl(['ops bits']);
     assert.match(bits.stdout, /Value Count shl/);

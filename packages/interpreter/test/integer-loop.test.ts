@@ -108,8 +108,8 @@ array A B
 
 
 describe('compiled numeric range loops', () => {
-    it.each(['1 to 5', '1 until 5', '5 to 1 by -2', '5 until 1 by -2',
-        '5 to 1', '1 to 5 by -1', '3 until 3', '3 to 3'])('preserves %s', range => {
+    it.each(['1 to 5', '1 till 5', '5 to 1 by -2', '5 till 1 by -2',
+        '5 to 1', '1 to 5 by -1', '3 till 3', '3 to 3'])('preserves %s', range => {
         const result = compare(`Total = 0
 for Value i in ${range}
   Total += Value + i
@@ -124,7 +124,7 @@ Total
 Step = 1
 Count = 0
 I = 0
-for I in 0 until N by Step
+for I in 0 till N by Step
   N = 0
   Step = 10
   I += 100
@@ -642,7 +642,7 @@ Value = 0
 Answer = 1
 for I less 1
   I += 1
-  for J in 1 until 1
+  for J in 1 till 1
     Value = 5
   end
   Answer = Value
@@ -678,8 +678,8 @@ describe('integer array reads in compiled loops', () => {
   4 5 6
 end
 Total = 0
-for I in 0 until 2
-  for J in 0 until 3
+for I in 0 till 2
+  for J in 0 till 3
     Total += A I J
   end
 end
@@ -702,7 +702,7 @@ end`);
     it('uses array values in conditions and dependent bounds', () => {
         const result = compare(`A = array 2 4 6
 Total = 0
-for I in 0 until 3
+for I in 0 till 3
   for J in 1 to (A I)
     if (A I) greater J
       Total += J
@@ -717,7 +717,7 @@ Total`);
     it('declines real atoms before execution', () => {
         const result = compare(`A = array 1.5 2.5
 Total = 0.0
-for I in 0 until 2
+for I in 0 till 2
   Total += A I
 end
 Total`);
@@ -730,7 +730,7 @@ Total`);
   1 2
   3 4
 end
-for I in 0 until 2
+for I in 0 till 2
   Row = A I
 end`);
         expect(result.loops).toBe(0);
@@ -739,7 +739,7 @@ end`);
     it('declines receiver rebinding', () => {
         const result = compare(`A = array 1 2
 Total = 0
-for I in 0 until 2
+for I in 0 till 2
   Total += A I
   A = array 3 4
 end
@@ -755,7 +755,7 @@ it('does not force lazy array input when the loop does not read it', () => {
     runtime.variables.set('A', { kind: 'array', shape: [1], itemAt: read,
         get items(): never { throw new Error('forced lazy input'); } });
     try {
-        runtime.execute(`for I in 0 until 0
+        runtime.execute(`for I in 0 till 0
   Value = A I
 end`);
         expect(read).not.toHaveBeenCalled();
@@ -765,7 +765,7 @@ end`);
 describe('array writes in compiled integer loops', () => {
     it.each(['-1', '2', '9007199254740993', '999999999999999999999999999999999999'])('keeps matrix write bounds and error order at %s', index => {
         const result = compare(`A = array shape 2 2 fill 0
-for I in 0 until 2
+for I in 0 till 2
   A I 0 = 9
   A I (${index}) = 1 // 0
 end`);
@@ -780,7 +780,7 @@ end`);
         const result = compare(`A = array shape 6 fill 0
 B = A
 A 0 = 1
-for I in 1 until 6
+for I in 1 till 6
   A I = (B (I - 1)) * 2
 end
 A`);
@@ -790,8 +790,8 @@ A`);
 
     it('returns the right operand of the last completed array write', () => {
         const result = compare(`A = array shape 2 2 fill 0
-for I in 0 until 2
-  for J in 0 until 2
+for I in 0 till 2
+  for J in 0 till 2
     A I J = I * 2 + J
   end
 end`);
@@ -801,7 +801,7 @@ end`);
 
     it.each(['-1', '3'])('checks address %s before evaluating a failing right operand', index => {
         const result = compare(`A = array 1 2 3
-for I in 0 until 2
+for I in 0 till 2
   A I = 9
   A (${index}) = 1 // 0
 end`);
@@ -811,7 +811,7 @@ end`);
 
     it('preserves earlier writes when the right operand fails', () => {
         const result = compare(`A = array 1 2 3
-for I in 0 until 3
+for I in 0 till 3
   A I = 9 // (1 - I)
 end`);
         expect(result).toHaveProperty('error');
@@ -820,7 +820,7 @@ end`);
 
     it('preserves array mutations and results across break', () => {
         const result = compare(`A = array 1 2 3
-for I in 0 until 3
+for I in 0 till 3
   A I = I + 10
   if I equal 1
     break
@@ -831,7 +831,7 @@ end`);
 
     it('retains partial row assignment', () => {
         const result = compare(`A = array shape 2 2 fill 0
-for I in 0 until 2
+for I in 0 till 2
   A I = 7
 end`);
         expect(result.loops).toBe(0);
@@ -935,7 +935,7 @@ describe('compiled compound array assignments', () => {
     it.each(['+=', '-=', '*=', '//=', '%='])('preserves signed operands and RHS result for %s', operator => {
         const result = compare(`A = array -7 7 -7 7
 B = array -3 -3 3 3
-for I in 0 until 4
+for I in 0 till 4
   A I ${operator} B I
 end`);
         expect(result.value).toBe('3');
@@ -946,7 +946,7 @@ end`);
         const result = compare(`A = array shape 2 2 fill 1
 B = A
 Factors = array 2 3
-for I in 0 until 2
+for I in 0 till 2
   for Factor j in Factors
     A I j *= Factor
     B I j += A I j
@@ -958,7 +958,7 @@ A`);
 
     it.each(['//=', '%='])('keeps earlier mutations when %s divides by zero', operator => {
         const result = compare(`A = array 7 7 7
-for I in 0 until 3
+for I in 0 till 3
   A I ${operator} (1 - I)
 end`);
         expect(result).toHaveProperty('error');
@@ -967,7 +967,7 @@ end`);
 
     it('checks a bad address before the RHS error', () => {
         const result = compare(`A = array 7
-for I in 0 until 1
+for I in 0 till 1
   A 1 += 1 // 0
 end`);
         expect(result).toHaveProperty('error');
@@ -978,7 +978,7 @@ end`);
         const result = compare(`use algo
 A = index
 A 0 = 1
-for I in 0 until 2
+for I in 0 till 2
   A 0 += I
 end`);
         expect(result.loops).toBe(0);
@@ -1003,7 +1003,7 @@ Total`);
         const result = compare(`use numbers
 A = array 9007199254740993 9007199254740995
 Total = 0
-for I in 0 until 2
+for I in 0 till 2
   X = (A I) 9007199254740994 max
   Total += X
 end
@@ -1024,14 +1024,14 @@ end
 X`);
         expect(result.value).toBe('12');
         expect(result.loops).toBe(1);
-        expect(compare(`for I in 0 until 1
+        expect(compare(`for I in 0 till 1
   X = 2 3 ${name}
 end`).loops).toBe(1);
     });
 
     it('retains right operand error timing and partial writes', () => {
         const result = compare(`use numbers
-for I in 0 until 2
+for I in 0 till 2
   Done = I
   X = I (1 // (1 - I)) max
 end`);
@@ -1041,7 +1041,7 @@ end`);
 
     it('preserves scalar unary extrema', () => {
         const result = compare(`use numbers
-for I in 0 until 1
+for I in 0 till 1
   X = I max
 end`);
         expect(result.value).toBe('0');
@@ -1050,7 +1050,7 @@ end`);
 
     it('retains skipped malformed chains', () => {
         const result = compare(`use numbers
-for I in 0 until 0
+for I in 0 till 0
   X = 1 2 3 max
 end`);
         expect(result).not.toHaveProperty('error');
@@ -1060,9 +1060,9 @@ end`);
 describe('compiled full scalar write addresses', () => {
     it('writes rectangular rank-three cells in row-major order', () => {
         const result = compare(`A = array shape 2 3 4 fill 0
-for I in 0 until 2
-  for J in 0 until 3
-    for K in 0 until 4
+for I in 0 till 2
+  for J in 0 till 3
+    for K in 0 till 4
       A I J K = I * 100 + J * 10 + K
     end
   end
@@ -1073,7 +1073,7 @@ A`);
 
     it.each(['0 3 0', '0 0 4', '0 (0 - 1) 0', '0 0 999999999999999999999999'])('preserves error ordering for address %s', address => {
         const result = compare(`A = array shape 2 3 4 fill 0
-for I in 0 until 1
+for I in 0 till 1
   A 1 2 3 = 99
   A ${address} = 1 // 0
 end`);
@@ -1083,7 +1083,7 @@ end`);
 
     it('rejects a coordinate on an empty axis', () => {
         const result = compare(`A = array shape 2 0 4 fill 0
-for I in 0 until 1
+for I in 0 till 1
   A 0 0 0 = 1
 end`);
         expect(result).toHaveProperty('error');
@@ -1127,7 +1127,7 @@ end
 
     it('checks a new invocation with a different parameter type', () => {
         const result = compare(`fun replace Value
-  for I in 0 until 2
+  for I in 0 till 2
     Done = I
     Value = I
   end
@@ -1141,7 +1141,7 @@ Second = 1.0 replace`);
 
     it('does not check an assignment that never executes', () => {
         const result = compare(`Value = "kept"
-for I in 0 until 2
+for I in 0 till 2
   if I less 0
     Value = I
   end
@@ -1154,7 +1154,7 @@ Value`);
     it('keeps prior writes before a late first-assignment type error', () => {
         const result = compare(`Wrong = "text"
 Done = 0
-for I in 0 until 4
+for I in 0 till 4
   Done += I
   if I equal 2
     Wrong = I
@@ -1166,13 +1166,13 @@ end`);
 
     it('retains declared types after the compiled region returns', () => {
         const result = compare(`Value = 0
-for I in 0 until 3
+for I in 0 till 3
   Value = I
 end
 Value = "text"`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
-        expect(compare(`for I in 0 until 3
+        expect(compare(`for I in 0 till 3
   Local = I
 end
 Local = "text"
@@ -1183,7 +1183,7 @@ Local`)).toMatchObject({ value: 'text', loops: 1 });
 describe('boolean locals in compiled loops', () => {
     it('stores comparisons and combines boolean assignment operators', () => {
         const result = compare(`Count = 0
-for I in 0 until 6
+for I in 0 till 6
   Allowed = I less 2
   Allowed or= I equal 5
   Allowed and= I greater 0
@@ -1211,7 +1211,7 @@ I`);
 
     it('merges boolean definitions from both branches', () => {
         const result = compare(`Count = 0
-for I in 0 until 4
+for I in 0 till 4
   Flag = false
   if I less 2
     Flag = true
@@ -1231,7 +1231,7 @@ Count`);
     it('preserves a first-write type error after earlier mutations', () => {
         const result = compare(`Flag = 1
 Done = 0
-for I in 0 until 3
+for I in 0 till 3
   Done += 1
   Flag = I less 2
 end`);
@@ -1241,7 +1241,7 @@ end`);
 
     it('does not make boolean compound operands short-circuit', () => {
         const result = compare(`Flag = true
-for I in 0 until 1
+for I in 0 till 1
   Flag or= (1 // 0) equal 0
 end`);
         expect(result).toHaveProperty('error');
@@ -1250,7 +1250,7 @@ end`);
 
     it('keeps the boolean type after leaving the region', () => {
         const result = compare(`Flag = false
-for I in 0 until 2
+for I in 0 till 2
   Flag = I equal 0
 end
 Flag = 1`);
@@ -1259,7 +1259,7 @@ Flag = 1`);
     });
 
     it('declines incompatible local types across branches', () => {
-        const result = compare(`for I in 0 until 2
+        const result = compare(`for I in 0 till 2
   if I equal 0
     Value = true
   else
@@ -1276,7 +1276,7 @@ describe('boolean arrays in compiled regions', () => {
         const result = compare(`A = array true false false false
 B = A
 Count = 0
-for I in 1 until 4
+for I in 1 till 4
   if B (I - 1)
     A I = true
   end
@@ -1294,8 +1294,8 @@ Count`);
   true false
   false true
 end
-for I in 0 until 2
-  for J in 0 until 2
+for I in 0 till 2
+  for J in 0 till 2
     A I J ${operator} I equal J
   end
 end
@@ -1305,7 +1305,7 @@ A`);
 
     it('validates an address before the boolean RHS fails', () => {
         const result = compare(`A = array true false
-for I in 0 until 1
+for I in 0 till 1
   A 0 = false
   A 2 or= (1 // 0) equal 0
 end`);
@@ -1316,7 +1316,7 @@ end`);
     it('retains ordinary behavior for mixed cells', () => {
         const result = compare(`A = array true 1
 Count = 0
-for I in 0 until 2
+for I in 0 till 2
   if A I
     Count += 1
   end
@@ -1327,7 +1327,7 @@ end`);
     it('declines mixed read/write types through different aliases', () => {
         const result = compare(`A = array 1 2
 B = A
-for I in 0 until 2
+for I in 0 till 2
   X = B I + 1
   A I = true
 end
@@ -1350,7 +1350,7 @@ end`);
 describe('array locals in compiled regions', () => {
     it('allocates fresh arrays and preserves aliases to earlier objects', () => {
         const result = compare(`Total = 0
-for I in 0 until 3
+for I in 0 till 3
   Current = array shape 2 fill I
   Saved = Current
   Current = array shape 2 fill 9
@@ -1364,7 +1364,7 @@ Total`);
     it('rebinds an input while retaining writes through an old alias', () => {
         const result = compare(`Source = array 1 1
 Total = 0
-for I in 0 until 2
+for I in 0 till 2
   Seen = Source 0
   Old = Source
   Source = array shape 2 fill I
@@ -1390,7 +1390,7 @@ Count`);
     });
 
     it.each(['-1', '9007199254740992'])('checks dimension %s before a failing fill', dimension => {
-        const result = compare(`for I in 0 until 1
+        const result = compare(`for I in 0 till 1
   Done = I
   Row = array shape (${dimension}) fill (1 // 0)
 end`);
@@ -1399,7 +1399,7 @@ end`);
     });
 
     it('keeps the prior array when a later allocation expression fails', () => {
-        const result = compare(`for I in 0 until 2
+        const result = compare(`for I in 0 till 2
   Row = array shape 2 fill (1 // (1 - I))
 end`);
         expect(result).toHaveProperty('error');
@@ -1409,7 +1409,7 @@ end`);
     it('checks a destination type at the assignment, after earlier writes', () => {
         const result = compare(`Row = 1
 Done = 0
-for I in 0 until 2
+for I in 0 till 2
   Done += 1
   Row = array shape 2 fill 0
 end`);
@@ -1418,7 +1418,7 @@ end`);
     });
 
     it('does not assume a conditional array definition executed', () => {
-        const result = compare(`for I in 0 until 1
+        const result = compare(`for I in 0 till 1
   if I greater 0
     Row = array shape 2 fill 0
   end
@@ -1439,7 +1439,7 @@ it('does not make a cached lazy input writable through a local alias', () => {
         runtime.variables.set('Source', registerCachedArray({ kind: 'array', shape: [1],
             get items() { return [1n]; }, itemAt: read }, () => [1n]));
         try {
-            expect(() => runtime.execute(`for I in 0 until 1
+            expect(() => runtime.execute(`for I in 0 till 1
   Seen = Source 0
   Alias = Source
   Alias 0 = 2
@@ -1452,7 +1452,7 @@ end`)).toThrow('cannot assign to a lazy array');
 
 
 it('retains partial selection on locally created arrays', () => {
-    const result = compare(`for I in 0 until 1
+    const result = compare(`for I in 0 till 1
   A = array shape 2 2 fill 0
   A 0 = 1
 end
@@ -1461,7 +1461,7 @@ A`);
 });
 
 it('retains excess-address diagnostics for local arrays', () => {
-    const result = compare(`for I in 0 until 1
+    const result = compare(`for I in 0 till 1
   A = array shape 2 fill 0
   A 0 0 = 1
 end`);
@@ -1475,7 +1475,7 @@ it('honors the array-write toggle for locally created arrays', () => {
         onIntegerLoopExecuted: () => loops++ });
     try {
         const result = runtime.execute(`B = array 0 0
-for I in 0 until 1
+for I in 0 till 1
   A = array shape 2 fill 0
   A 0 = 7
   B = A
@@ -1489,8 +1489,8 @@ B`);
 describe('compiled loop returns', () => {
     it('returns from both nested loops while keeping prior writes', () => {
         const result = compare(`fun find N
-  for I in 0 until N
-    for J in 0 until N
+  for I in 0 till N
+    for J in 0 till N
       if I + J equal 5
         return I * 10 + J
       end
@@ -1522,7 +1522,7 @@ end
     it('runs enclosing finally before completing the return', () => {
         const result = compare(`fun perform A
   try
-    for I in 0 until 3
+    for I in 0 till 3
       A 0 += 1
       return I
     end
@@ -1540,7 +1540,7 @@ A`);
 
     it('retains return expression errors after earlier mutations', () => {
         const result = compare(`fun perform A
-  for I in 0 until 3
+  for I in 0 till 3
     A 0 += 1
     return 1 // I
   end
@@ -1553,7 +1553,7 @@ A perform`);
     });
 
     it('keeps invalid-context validation before the return expression', () => {
-        const result = compare(`for I in 0 until 1
+        const result = compare(`for I in 0 till 1
   return 1 // 0
 end`);
         expect(result).toHaveProperty('error');
@@ -1565,7 +1565,7 @@ end`);
   try
     Result = N
   finally
-    for I in 0 until 1
+    for I in 0 till 1
       return 1 // 0
     end
   end

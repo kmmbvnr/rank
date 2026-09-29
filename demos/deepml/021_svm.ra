@@ -15,10 +15,10 @@ fun pegasos X Y Kind Lambda Steps Sigma
     Eta = 1 / (Lambda * t)
     Decay = 1 - Eta * Lambda
 
-    for i in 0 until N
+    for i in 0 till N
       Score = Bias
 
-      for j in 0 until N
+      for j in 0 till N
         if Kind equal "linear"
           K = X j * X i sum
           Score += Alpha j * Y j * K

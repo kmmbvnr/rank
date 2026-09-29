@@ -87,7 +87,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('(array 10 20) 2 default 99')).toBe('99');
         expect(run('(array 10) 0 default 1 / 0')).toBe('10');
         expect(run('"ab" 2 default "?"')).toBe('?');
-        expect(run('(1 until 3) 2 default 99')).toBe('99');
+        expect(run('(1 till 3) 2 default 99')).toBe('99');
         expect(run([
             'use algo',
             'fun lookup Key',
@@ -239,7 +239,7 @@ describe('Rank expressions and sequences', () => {
         const xor = new Interpreter().execute([
             'use bits',
 
-            'Values = 0 until 3',
+            'Values = 0 till 3',
             'Operation = bxor',
             'Values Values Operation outer',
         ].join('\n'));
@@ -641,7 +641,7 @@ describe('Rank expressions and sequences', () => {
         const source = [
 
             'use numbers',
-            'N = 1 until 1000',
+            'N = 1 till 1000',
             'Mask = N multiple by 3',
             'Mask or= N multiple by 5',
             'N Mask sum',
@@ -681,7 +681,7 @@ describe('Rank expressions and sequences', () => {
         expect(run(setup + 'Mask 2 window')).toBe('false false false true');
         expect(run(setup + 'Result = true\nfor Value in Mask\nResult and= Value\nend\nResult'))
             .toBe('false');
-        expect(run('use sequences\nB = 1 until 1\nMask = B greater 2\nMask len')).toBe('0');
+        expect(run('use sequences\nB = 1 till 1\nMask = B greater 2\nMask len')).toBe('0');
     });
 
     it('keeps explicit Fibonacci selection lazy', () => {
@@ -757,7 +757,7 @@ describe('Rank expressions and sequences', () => {
     it('indexes and bounds lazy prime sequences', () => {
         expect(run('use sequences\nprimes 5')).toBe('13');
         expect(run('use sequences\nprimes till 20')).toBe('2 3 5 7 11 13 17 19');
-        expect(run('use sequences\nprimes till at least 19')).toBe('2 3 5 7 11 13 17');
+        expect(run('use sequences\nprimes till 19')).toBe('2 3 5 7 11 13 17');
         expect(run('use sequences\n17 in primes')).toBe('true');
         expect(run('use sequences\n17.0 in primes')).toBe('true');
         expect(run('use sequences\n18 in primes')).toBe('false');
@@ -780,7 +780,7 @@ describe('Rank expressions and sequences', () => {
         expect(run([
             'use sequences',
             'F = fibonacci from 8',
-            'F = F till 34',
+            'F = F to 34',
             'F',
         ].join('\n'))).toBe('8 13 21 34');
         // `from` is a condition, so any sequence of comparable values accepts it.
@@ -795,15 +795,15 @@ describe('Rank expressions and sequences', () => {
         expect(run('1 to 4')).toBe('1 2 3 4');
         expect(run('1 to 9 by 2')).toBe('1 3 5 7 9');
         expect(run('1 to 6 by 2')).toBe('1 3 5');
-        expect(run('10 until 0 by -2')).toBe('10 8 6 4 2');
+        expect(run('10 till 0 by -2')).toBe('10 8 6 4 2');
         expect(run('10 to 1 by -3')).toBe('10 7 4 1');
-        expect(run('1 until 1 by 2')).toBe('');
+        expect(run('1 till 1 by 2')).toBe('');
         expect(run('1 to 1 by 2')).toBe('1');
         expect(() => run('1 to 5 by 0'))
             .toThrowError('range step must be a nonzero integer');
         expect(() => run('use sequences\nfibonacci to 20 by 2'))
-            .toThrowError('to makes a range of numbers; bound a sequence with till');
-        expect(run('"A😀БC" (1 until 3)')).toBe('😀Б');
+            .toThrowError('by applies only to numeric ranges');
+        expect(run('"A😀БC" (1 till 3)')).toBe('😀Б');
         expect(run('"A😀БC" (1 to 3)')).toBe('😀БC');
         expect(run('"abcdef" array 4 1 1')).toBe('ebb');
         expect(run('Positions = 1 to 3\n"abcde" Positions')).toBe('bcd');
@@ -820,7 +820,7 @@ describe('Rank expressions and sequences', () => {
         ];
         const columns = new Interpreter().execute([
             ...matrix,
-            'M # (1 until 3)',
+            'M # (1 till 3)',
         ].join('\n'));
         expect(columns).toMatchObject({ kind: 'array', items: [2n, 3n, 5n, 6n], shape: [2, 2] });
 

@@ -48,8 +48,8 @@ fun elevator_rides Weights Limit
     return 0
   end
 
-  for Mask in 1 until States
-    for Person in 0 until Count
+  for Mask in 1 till States
+    for Person in 0 till Count
       Mask Person add_person
     end
   end

@@ -5,9 +5,9 @@
 Ranges and algorithmic sources are sequences:
 
 ```rank
-Range = 1 until 1000
+Range = 1 till 1000
 Primes = primes
-Fib = fibonacci till 4000000
+Fib = fibonacci to 4000000
 ```
 
 Sequences are lazy by default. Constructing, transforming or filtering a
@@ -16,27 +16,83 @@ materialization, or iteration demands values from that plan. A terminal
 operation that would consume an unbounded sequence is an error.
 
 `fibonacci` starts with `1 2 3 5 8 ...` and `primes` with `2 3 5 7 11 ...`.
-Both are infinite until a clause bounds them, and both support ordinary
+Both are infinite until a bound ends them, and both support ordinary
 zero-based sequence addressing:
 
 ```rank
-Fib = fibonacci till 100
+Fib = fibonacci to 100
 SixthPrime = primes 5
 ```
 
-`to` and `until` build ranges of numbers only. `primes until 20` is an error
-that suggests `till`.
+## Bounds
 
-## Pipeline clauses
+Four words bound a sequence, an array or text by value. `to` and `till` end
+it; `from` and `after` start it. `to` and `from` include the bound, `till` and
+`after` exclude it:
 
-Four clauses shape a sequence, an array or text from left to right. Each one
-continues the pipeline, so they chain in any order:
+| Boundary | Inclusive | Exclusive |
+|---|---|---|
+| Upper | `to X` (≤ X) | `till X` (< X) |
+| Lower | `from X` (≥ X) | `after X` (> X) |
 
 ```rank
-Answer = fibonacci till Limit filter even sum
-Big = primes from 100 take 5
-Even = fibonacci filter even till 1000
+Fib = fibonacci to 89
+rem 1 2 3 5 8 13 21 34 55 89
+Small = primes till 20
+rem 2 3 5 7 11 13 17 19
+Large = primes from 101 take 3
+rem 101 103 107
+Next = primes after 101 take 3
+rem 103 107 109
+Window = primes after 100 till 130
+rem 101 103 107 109 113 127
 ```
+
+After a number, `to` and `till` build a range instead: `1 to 10` counts from
+1 through 10 and `1 till 10` from 1 through 9. A bound is a value rather than
+an item to find, because a sequence need never equal it.
+
+`till` and `from` also take a condition. `till` stops before the first item
+that meets it; `from` starts at the first item that meets it and keeps it:
+
+```rank
+Leading = fibonacci till greater 50
+rem 1 2 3 5 8 13 21 34
+Big = primes from greater 100 take 3
+rem 101 103 107
+Word = "hello world" till equal " "
+rem hello
+Run = Values till not even
+```
+
+The condition's subject is the item, as in [`filter`](#filter-clause): a
+comparison with its right operand (`greater 50`), a predicate (`even`), a
+function of one argument, `not` and the logical words over those, or a mask.
+Text asks the condition of each character. `to` and `after` take only a value.
+
+Bounds continue a pipeline, so they chain with filters and each other in any
+order:
+
+```rank
+Answer = fibonacci to Limit filter even sum
+Even = fibonacci filter even till 1000
+Middle = fibonacci from 8 to 100
+```
+
+Bounds read items in order and work on any rank-1 value. An ordered source
+seeks instead: `primes from 100` starts its sieve at 100, `fibonacci` advances
+its recurrence to the bound, and a filter over such a source keeps the
+ability. Seeking applies to a plain bound and to `greater` and `at least`
+conditions, and gives the same items as reading. On a stored native stream,
+`to` and `till` look at the first excluded value and leave it for the next
+consumer.
+
+Sequence sources may also accept filters and reductions in their own plan.
+For example, filtering `fibonacci` by `even` lets the source produce only
+`2 8 34 ...`. A source that has no specialized implementation uses the general
+lazy operation with the same observable result.
+
+## Take and drop
 
 `take` and `drop` count items. `take` keeps at most the requested number of
 leading items; `drop` skips that many and returns the tail:
@@ -53,61 +109,13 @@ are clamped: `take` returns all its items and `drop` returns an empty result.
 `take 0` reads nothing; `drop 0` preserves all items. Text counts Unicode code
 points. Arrays return lazy views along their leading axis, preserving the
 remaining dimensions. Writes to the source are visible through those views;
-use `copy` for an independent snapshot. The former spelling `primes 5 take` is
-a syntax error that names `primes take 5`.
+use `copy` for an independent snapshot.
 
 Sequences remain lazy, including user generators. `take` stops without
 requesting an extra item and closes the source iterator. `drop` traverses the
 skipped prefix when demanded. Neither operation makes a single-pass source
 replayable. `take` bounds an infinite source by count; `drop` alone leaves it
 infinite. Materializing a bounded sequence uses postfix `array`.
-
-`from` and `till` bound by a condition. `from` starts at the first item that
-meets its condition and keeps it; `till` stops before the first item that
-meets its condition:
-
-```rank
-Large = primes from greater 100 take 3
-rem 101 103 107
-Leading = fibonacci till greater 50
-rem 1 2 3 5 8 13 21 34
-Word = "hello world" till equal " "
-rem hello
-```
-
-The condition's subject is the item, as in [`filter`](#filter-clause): a
-comparison with its right operand (`greater 50`), a predicate (`even`), a
-function of one argument, `not` and the logical words over those, or a mask.
-Text asks the condition of each character.
-
-A plain value is a bound rather than a value to find, because a sequence need
-never equal it. `till Limit` keeps the items at most `Limit`, the same as
-`till greater Limit`, and `from Limit` starts at the first item at least
-`Limit`:
-
-```rank
-Fib = fibonacci till 100
-Candidates = primes from 100
-Below = primes till at least 20
-rem 2 3 5 7 11 13 17 19
-```
-
-`till at least Limit` is the strict bound: it keeps the items below `Limit`.
-
-`from` and `till` read items in order and work on any rank-1 value. An ordered
-source seeks instead: `primes from 100` starts its sieve at 100, `fibonacci`
-advances its recurrence to the bound, and a filter over such a source keeps
-the ability. Seeking applies to a plain bound and to `greater` and `at least`
-conditions, and gives the same items as reading. On a stored native stream,
-`till` looks at the first excluded value and leaves it for the next consumer.
-
-Sequence sources may also accept filters and reductions in their own plan.
-For example, filtering `fibonacci` by `even` lets the source produce only
-`2 8 34 ...`. A source that has no specialized implementation uses the general
-lazy operation with the same observable result.
-
-`take while` is gone: `Values till not Condition` keeps the items while
-`Condition` holds.
 
 ## Explicit materialization
 
@@ -481,7 +489,7 @@ A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
 
 ```rank
-Part = A (2 until 6)
+Part = A (2 till 6)
 Picked = A array 4 1 1
 Columns = M # (1 to 3)
 ```
@@ -1131,7 +1139,7 @@ so `default` can provide a fallback. Known unequal source and mask lengths are
 errors.
 
 The leading run that meets a condition is `till not Condition`; see
-[Pipeline clauses](#pipeline-clauses).
+[Bounds](#bounds).
 
 ## Outer
 

@@ -31,7 +31,7 @@ fun knight_tour StartX StartY
     X = Position % 8
     Y = Position // 8
     Count = 0
-    for Move in 0 until 8
+    for Move in 0 till 8
       NX = X + DX Move
       NY = Y + DY Move
       if NX NY countopen
@@ -48,7 +48,7 @@ fun knight_tour StartX StartY
     end
 
     Moves = new queue
-    for Move in 0 until 8
+    for Move in 0 till 8
       NX = X + DX Move
       NY = Y + DY Move
       Next = NY * 8 + NX
@@ -83,8 +83,8 @@ rem Verify numbering and knight moves.
 fun valid_tour Board
   Xs = array shape 65 fill 0
   Ys = array shape 65 fill 0
-  for Y in 0 until 8
-    for X in 0 until 8
+  for Y in 0 till 8
+    for X in 0 till 8
       Step = Board Y X
       if Step less 1 or Step greater 64
         return false
@@ -94,7 +94,7 @@ fun valid_tour Board
     end
   end
 
-  for Step in 1 until 64
+  for Step in 1 till 64
     Next = Step + 1
     DX = (Xs Next - Xs Step) abs
     DY = (Ys Next - Ys Step) abs

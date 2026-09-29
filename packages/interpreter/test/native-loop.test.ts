@@ -42,16 +42,16 @@ describe('guarded native loop calls', () => {
     });
 
     it.each([
-        `S = "a😀ёж"\nOut = ""\nfor I in 0 until 4\n Out += S I\nend\nOut`,
+        `S = "a😀ёж"\nOut = ""\nfor I in 0 till 4\n Out += S I\nend\nOut`,
         `S = "😀"\nOut = ""\nfor I in 0 to 1\n Out += S I\nend`,
         `S = "😀"\nfor I in -1 to 0\n Out = S I\nend`,
         `S = "😀"\nfor I in 9007199254740993 to 9007199254740994\n Out = S I\nend`,
-        `use text\nA = array "a" "b"\nB = A\nfor I in 0 until 2\n A I = "😀"\nend\narray (A "" join) (B "" join)`,
-        `use text\nS = ""\nfor I in 0 until 2\n A = array shape 2 fill "ё"\n A I = "😀"\n S = A ":" join\nend\nS`,
-        `use text\nS = ""\nfor I in 0 until 2\n A = array shape 2 fill "a"\n B = A\n S = B "" join\nend\nS`,
+        `use text\nA = array "a" "b"\nB = A\nfor I in 0 till 2\n A I = "😀"\nend\narray (A "" join) (B "" join)`,
+        `use text\nS = ""\nfor I in 0 till 2\n A = array shape 2 fill "ё"\n A I = "😀"\n S = A ":" join\nend\nS`,
+        `use text\nS = ""\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n S = B "" join\nend\nS`,
         `use text\nA = array "a" "b"\nOut = ""\nfor I in 0 to 2\n Out += A I\nend`,
         `use text\nA = array "a" "b"\nfor I in 0 to 2\n A I = "😀"\nend`,
-        `use text\nA = array "a" "b"\nS = ""\nfor I in 0 until 2\n S += A "" join\n A I = "x"\n S += A "" join\nend\nS`,
+        `use text\nA = array "a" "b"\nS = ""\nfor I in 0 till 2\n S += A "" join\n A I = "x"\n S += A "" join\nend\nS`,
     ])('compiles text storage with matching state and errors: %s', source => {
         expect(compare(source).loops).toBeGreaterThan(0);
     });
@@ -97,7 +97,7 @@ describe('guarded native loop calls', () => {
     it.each([
         ['text prefix and integer formatting', `use text
 Total = 0
-for I in 0 until 100
+for I in 0 till 100
   S = "item" + (I text)
   if S "item1" startswith
     continue
@@ -137,7 +137,7 @@ Total`],
 use text
 Prefix = "" bytes
 Total = 0
-for I in 0 until 100
+for I in 0 till 100
   H = ("abc" + (I text)) md5
   if not (H Prefix startswith)
     continue
@@ -221,10 +221,10 @@ end`);
     });
 
     it.each([
-        `use text\nA = array "a" 1\nfor I in 0 until 2\n S = A "" join\nend\nS`,
-        `use text\nA = array shape 2 2 fill "a"\nfor I in 0 until 2\n S = A "" join\nend\nS`,
-        `use text\nfor I in 0 until 2\n A = array shape 2 fill "a"\n B = A\n A 0 = "😀"\n S = B "" join\nend\nS`,
-        `use text\nfor I in 0 until 2\n A = array shape 2 fill "a"\n B = A\n B 0 = "😀"\n S = A "" join\nend\nS`,
+        `use text\nA = array "a" 1\nfor I in 0 till 2\n S = A "" join\nend\nS`,
+        `use text\nA = array shape 2 2 fill "a"\nfor I in 0 till 2\n S = A "" join\nend\nS`,
+        `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n A 0 = "😀"\n S = B "" join\nend\nS`,
+        `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n B 0 = "😀"\n S = A "" join\nend\nS`,
         `use text\nfor I in 1 to 2\n fun startswith A B\n  return false\n end\n B = "x" "x" startswith\nend\nB`,
         `use text\nfor I in 1 to 2\n B = (array "a" "b") "a" startswith\nend\nB`,
         `for I in 1 to 2\n B = "x" bytes\n B 0 = 120\nend\nB`,

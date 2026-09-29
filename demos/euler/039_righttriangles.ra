@@ -25,7 +25,7 @@ fun right_triangle_perimeter Limit
       break
     end
 
-    for N in 1 until M
+    for N in 1 till M
       if (M - N) even
         continue
       end

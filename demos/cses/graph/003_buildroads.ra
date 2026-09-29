@@ -51,7 +51,7 @@ fun components Cities Roads
   end
 
   Total = Roads len
-  for i in 0 until Total by 2
+  for i in 0 till Total by 2
     A = Roads i
     B = Roads (i + 1)
     A B unite
@@ -65,5 +65,5 @@ fun components Cities Roads
   end
 
   Length = Roots len
-  return Roots (0 until Length)
+  return Roots (0 till Length)
 end

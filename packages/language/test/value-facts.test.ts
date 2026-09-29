@@ -573,7 +573,7 @@ it('keeps scalar cells through a stable numeric sort', () => {
 });
 
 it('infers scalar cells and combined shape for a safe named outer operation', () => {
-    expect(facts('(0 until 3) (0 until 4) bxor outer')).toEqual({ types: ['array'], rank: 2,
+    expect(facts('(0 till 3) (0 till 4) bxor outer')).toEqual({ types: ['array'], rank: 2,
         shape: [3, 4], elements: ['integer'], callbackFreeScalarCells: true });
     expect(facts('(array 1 2) (array 3 4) bor outer')).toEqual({ types: ['array'], rank: 2,
         shape: [2, 2], elements: ['integer'], callbackFreeScalarCells: true });
@@ -704,20 +704,20 @@ it('recognizes positional slices as arrays rather than integer ranges', () => {
     const source: ValueFacts = { types: ['array'], rank: 2, shape: [5, 4], elements: ['integer'],
         eagerScalarCells: true };
     const bindings = new Map([['Source', source]]);
-    expect(facts('Source (1 until 3)', bindings)).toMatchObject({ types: ['array'], rank: 2,
+    expect(facts('Source (1 till 3)', bindings)).toMatchObject({ types: ['array'], rank: 2,
         shape: [2, 4], elements: ['integer'] });
     expect(facts('Source # (1 to 2)', bindings)).toMatchObject({ types: ['array'], rank: 2,
         shape: [5, 2], elements: ['integer'] });
-    expect(facts('Source (Start until End)', bindings)).toMatchObject({ types: ['array'], rank: 2,
+    expect(facts('Source (Start till End)', bindings)).toMatchObject({ types: ['array'], rank: 2,
         shape: [null, 4] });
-    expect(facts('Unknown (0 until End)')).toEqual({ types: [] });
-    expect(facts('1 until 3')).toMatchObject({ types: ['sequence'], shape: [2] });
-    expect(facts('"A😀БC" (1 until 3)')).toMatchObject({ types: ['text'], rank: 1, shape: [2] });
-    expect(facts('(1 to 5) (1 until 3)')).toMatchObject({ types: ['array'], rank: 1,
+    expect(facts('Unknown (0 till End)')).toEqual({ types: [] });
+    expect(facts('1 till 3')).toMatchObject({ types: ['sequence'], shape: [2] });
+    expect(facts('"A😀БC" (1 till 3)')).toMatchObject({ types: ['text'], rank: 1, shape: [2] });
+    expect(facts('(1 to 5) (1 till 3)')).toMatchObject({ types: ['array'], rank: 1,
         shape: [2], elements: ['integer'] });
     expect(facts('Queue (1 to 2)', new Map([['Queue', { types: ['queue'] }]])))
         .toMatchObject({ types: ['array'], rank: 1, shape: [null] });
-    const parsed = services.Rank.parser.LangiumParser.parse<Program>('Result = Source (1 until 3)\n');
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>('Result = Source (1 till 3)\n');
     const assignment = parsed.value.statements[0];
     if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
     expect(typeOf(assignment.value, name => name === 'Source' ? ['array'] : undefined)).toEqual(['array']);
@@ -929,9 +929,9 @@ it('does not mistake a plain lookup function for a call resolver', () => {
 it('propagates finite range lengths through materialization', () => {
     expect(facts('(1 to 5) array')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [5],
         callbackFreeScalarCells: true });
-    expect(facts('(1 until 5) array').shape).toEqual([4]);
+    expect(facts('(1 till 5) array').shape).toEqual([4]);
     expect(facts('(1 to 9 by 2) array').shape).toEqual([5]);
-    expect(facts('(9 until 1 by -2) array').shape).toEqual([4]);
+    expect(facts('(9 till 1 by -2) array').shape).toEqual([4]);
     expect(facts('(5 to 1) array').shape).toEqual([0]);
 });
 

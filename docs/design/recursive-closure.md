@@ -45,7 +45,7 @@ repetition to Python or a graph library. See the
 [q iterators](https://code.kx.com/q/wp/iterators/), and
 [pandas merge](https://pandas.pydata.org/docs/reference/api/pandas.merge.html).
 
-A general `Step until stable` operation would be useful on in-memory arrays,
+A general `Step till stable` operation would be useful on in-memory arrays,
 but an arbitrary Rank function cannot automatically become a SQLite recursive
 query. `reach by` names a relational step with a stable two-column schema,
 which both backends can execute. An unseeded `closure by` would derive all

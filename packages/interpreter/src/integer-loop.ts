@@ -467,7 +467,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 iterators.push(source => host.iterationValues(binding, source, elementType));
                 header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
             } else {
-                if (!isBinaryExpression(range) || !['to', 'until'].includes(range.operator)) return undefined;
+                if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
                 const start = emit(range.left, tests), end = emit(range.right, tests);
                 const step = range.step ? emit(range.step, tests) : { code: '1n', type: 'integer' };
                 if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
@@ -817,7 +817,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             return typeof value === 'string' ? value.length === 0
                 : !!value && isRankArray(value) && value.shape[0] === 0;
         }
-        if (!isBinaryExpression(source) || !['to', 'until'].includes(source.operator)) return false;
+        if (!isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return false;
         const integer = (value: Expression): bigint | undefined => {
             const fact = expressionFacts(value, name => {
                 const current = host.read(name);

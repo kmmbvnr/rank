@@ -13,5 +13,5 @@ R = Db .members select .surname
 R = R unique
 R = R sort by .surname
 Rows = R array
-Result = Rows (0 until 10)
+Result = Rows (0 till 10)
 Result OutputPath csv

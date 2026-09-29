@@ -9,7 +9,7 @@ use cli
 rem Upper boundary, excluded.
 option Limit integer = 1000
 
-N = 1 until Limit
+N = 1 till Limit
 
 Mask = N multiple by 3
 Mask or= N multiple by 5

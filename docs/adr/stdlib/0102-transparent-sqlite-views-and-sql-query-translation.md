@@ -39,7 +39,7 @@ Rows = Filtered array
 Common analytical operations compile directly to native SQL primitives:
 - `View len` translates to `SELECT COUNT(*) FROM ...`
 - `View .cost sum` translates to `SELECT SUM(cost) FROM ...`
-- `View (0 until 10)` translates to `LIMIT 10 OFFSET 0`
+- `View (0 till 10)` translates to `LIMIT 10 OFFSET 0`
 - Relational joins translate directly to SQL `JOIN` clauses.
 - Data is processed directly inside SQLite's optimized C engine, transferring only necessary results into memory.
 

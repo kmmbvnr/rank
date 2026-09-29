@@ -25,7 +25,7 @@ fun collecting_updates Values Swaps
 
   Rounds = 1
 
-  for Value in 1 until N
+  for Value in 1 till N
     Next = Value + 1
     if index Value greater index Next
       Rounds += 1

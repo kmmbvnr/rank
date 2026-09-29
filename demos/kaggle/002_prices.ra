@@ -37,7 +37,7 @@ fun linear X Y Rate Steps
   Weights = array shape Columns fill 0.0
   Bias = Y mean
   Zt = Z transpose
-  for # in 0 until Steps
+  for # in 0 till Steps
     Error = Z Weights matmul + Bias - Y
     Weights -= Rate * (Zt Error matmul / Rows)
     Bias -= Rate * (Error mean)

@@ -14,10 +14,10 @@ fun jacobi A B N
 
   X = array shape Size fill 0.0
 
-  for # in 0 until N
+  for # in 0 till N
     Next = array shape Size fill 0.0
 
-    for i in 0 until Size
+    for i in 0 till Size
       RowSum = A i * X sum
       Diagonal = A i i
       Residual = B i - RowSum + Diagonal * X i

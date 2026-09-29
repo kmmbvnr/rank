@@ -22,7 +22,7 @@ import {
 import { LocalFrame } from './frame.js';
 import { compileKeyedTableExpression } from './keyed-table-expression.js';
 import { compileTableExpression } from './table-query-expression.js';
-import { compileClauseExpression } from './clause-expression.js';
+import { applyBound, compileClauseExpression, isBoundCondition, valueBound, type ClauseExpressionContext } from './clause-expression.js';
 import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
@@ -1788,6 +1788,8 @@ export class Interpreter {
         }
         if (isBinaryExpression(expression) && expression.operator !== 'default'
             && expression.operator !== '**'
+            // `Values till not even` tests each item; its right side is no value.
+            && !((expression.operator === 'to' || expression.operator === 'till') && isBoundCondition(expression.right))
             && !isNamed(expression.right, 'reduce')
             && !isNamed(expression.right, 'scan')
             && !isNamed(expression.right, 'segment')
@@ -1818,6 +1820,8 @@ export class Interpreter {
         classify = true,
     ): () => Evaluation<RankValue> {
         const interpreter = this;
+        const bound = compileClauseExpression(expression, () => this.clauseContext());
+        if (bound && isBinaryExpression(expression)) return bound;
         if (classify && (isApplicationExpression(expression) || isBinaryExpression(expression))) {
             const syntax = isBinaryExpression(expression) ? flattenApplication(expression.right) : flattenApplication(expression);
             const names = syntax.filter(isNameExpression).map(part => part.name);
@@ -1919,13 +1923,7 @@ export class Interpreter {
             maskSelection,
         }));
         if (tableQuery) return tableQuery;
-        const clause = compileClauseExpression(expression, () => ({
-            get localFrame() { return interpreter.localFrame; },
-            set localFrame(frame) { interpreter.localFrame = frame; },
-            evaluate: node => interpreter.evaluateTask(node),
-            binary: (operator, left, right) => interpreter.evaluateBinary(operator, left, right),
-            findVariable: name => interpreter.findVariable(name),
-        }));
+        const clause = compileClauseExpression(expression, () => this.clauseContext());
         if (clause) return clause;
         if (isRecordExpression(expression)) {
             return function* (): Execution<RankValue> {
@@ -3592,6 +3590,17 @@ export class Interpreter {
 
     // Rank source cannot pass a nullary function by name: the name calls it.
     // A host callback can still supply one through a parameter or public binding.
+    private clauseContext(): ClauseExpressionContext {
+        const interpreter = this;
+        return {
+            get localFrame() { return interpreter.localFrame; },
+            set localFrame(frame) { interpreter.localFrame = frame; },
+            evaluate: node => interpreter.evaluateTask(node),
+            binary: (operator, left, right) => interpreter.evaluateBinary(operator, left, right),
+            findVariable: name => interpreter.findVariable(name),
+        };
+    }
+
     private directNameValue(value: RankValue): RankValue {
         if (!isNativeFunction(value) || !value.arities.includes(0)) return nameMask(value);
         const result = value.call([]);
@@ -4153,11 +4162,12 @@ export class Interpreter {
         if (operator === '+' && typeof left === 'string' && typeof right === 'string') {
             return left + right;
         }
-        if (operator === 'to' || operator === 'until') {
-            if (isRankSequence(left)) {
-                // `to` and `until` make ranges; a sequence is bounded by a clause.
-                throw new RankError(`${operator} makes a range of numbers; bound a sequence with till: `
-                    + `write \`Values till ${operator === 'to' ? 'Limit' : 'at least Limit'}\``);
+        if (operator === 'until') throw new RankError('until is not a Rank word: write `till` for a bound it excludes');
+        if (operator === 'to' || operator === 'till') {
+            // After a number the words build a range; after values they bound them.
+            if (typeof left !== 'bigint' && typeof left !== 'number') {
+                if (rangeStep !== undefined) throw new RankError('by applies only to numeric ranges');
+                return applyBound(left, valueBound(right, operator, (op, a, b) => this.evaluateBinary(op, a, b)), operator);
             }
             return makeRange(
                 expectInteger(left),
@@ -4738,7 +4748,7 @@ function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: 
         ? (value: bigint) => inclusive ? value <= end : value < end
         : (value: bigint) => inclusive ? value >= end : value > end;
     return sequence({
-        name: `${start} ${inclusive ? 'to' : 'until'} ${end}${stride === undefined ? '' : ` by ${stride}`}`,
+        name: `${start} ${inclusive ? 'to' : 'till'} ${end}${stride === undefined ? '' : ` by ${stride}`}`,
         size: {
             kind: 'exact',
             value: size,

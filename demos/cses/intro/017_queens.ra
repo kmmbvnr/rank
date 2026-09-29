@@ -31,7 +31,7 @@ fun solve Board
     Ways = 0
     Line = Board Row
 
-    for Col in 0 until 8
+    for Col in 0 till 8
       if Line Col not equal "."
         continue
       end

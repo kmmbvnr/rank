@@ -18,7 +18,7 @@ rem Even positive values end in binary zero,
 rem so only odd candidates can qualify.
 fun double_palindrome_sum Limit
   Total = 0
-  for Value in 1 until Limit by 2
+  for Value in 1 till Limit by 2
     Decimal = Value text
     if Decimal reverse equal Decimal
       Binary = Value binary

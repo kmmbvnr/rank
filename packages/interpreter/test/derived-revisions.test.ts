@@ -39,7 +39,7 @@ A = array 0
 B = A * 2
 Warm = B sum
 Answer = 0
-for I in 0 until 2
+for I in 0 till 2
   A 0 = I + 1
   Answer += B 0
 end
@@ -56,7 +56,7 @@ Answer`)).toBe(0n);
             runtime.execute(`use numbers
 A = array 0
 Warm = (A * 2) sum`);
-            expect(() => runtime.execute(`for I in 0 until 3
+            expect(() => runtime.execute(`for I in 0 till 3
   A 0 = I + 1
   if I equal 1
     Bad = 1 // 0
@@ -153,7 +153,7 @@ use stats
 A = array shape 2 2 fill 1
 Warm = (A mean axis 1) sum`);
             expect(runtime.execute('(A mean axis 1) 0')).toBe(1);
-            runtime.execute(`for I in 0 until 2
+            runtime.execute(`for I in 0 till 2
   A I 0 = 3
 end`);
             expect(runtime.execute('(A mean axis 1) 0')).toBe(2);

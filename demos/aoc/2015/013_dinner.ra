@@ -66,7 +66,7 @@ fun happiness Route Scores
   Total = 0
   N = Route len
 
-  for I in 0 until N
+  for I in 0 till N
     J = (I + 1) % N
     A = Route I
     B = Route J

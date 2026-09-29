@@ -17,7 +17,7 @@ fun divisible_count N Primes
   Subsets = 1 (Primes len) shl
   Answer = 0
 
-  for Mask in 1 until Subsets
+  for Mask in 1 till Subsets
     Product = 1
 
     for Prime I in Primes

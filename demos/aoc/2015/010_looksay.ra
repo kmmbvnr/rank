@@ -25,7 +25,7 @@ end
 
 rem Apply the look-and-say description repeatedly.
 fun describe Value Rounds
-  for Round in 0 until Rounds
+  for Round in 0 till Rounds
     Value = Value look
   end
   return Value

@@ -191,7 +191,7 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                     let iterable = condition.right;
                     while (isParenthesizedExpression(iterable)) iterable = iterable.value;
                     if (!isBinaryExpression(iterable)
-                        || (iterable.operator !== 'until' && iterable.operator !== 'to') || iterable.step) return undefined;
+                        || (iterable.operator !== 'till' && iterable.operator !== 'to') || iterable.step) return undefined;
                     const start = loopBoundGuards(iterable.left, current, parameter, selectorLocals);
                     const end = loopBoundGuards(iterable.right, current, parameter, selectorLocals);
                     if (!start || !end || !mergeGuards(start, end)) return undefined;

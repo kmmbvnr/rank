@@ -29,7 +29,7 @@ test "path distance is its difference"
   use "008_distancequeries"
   use graph
   Tree = new graph (1 to 6) .undirected
-  for Node in 1 until 6
+  for Node in 1 till 6
     Tree add Node (Node + 1)
   end
   Rooted = Tree 3 root

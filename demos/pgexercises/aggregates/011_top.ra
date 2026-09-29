@@ -15,5 +15,5 @@ R = G select
   .slots = .slots sum
 end
 R = R sort by .slots .descending
-Result = R (0 until 1)
+Result = R (0 till 1)
 Result OutputPath csv

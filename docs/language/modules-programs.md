@@ -2,7 +2,7 @@
 
 ## Standard modules
 
-Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
+Ranges (`to`, `till`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text` are available
 without imports. The catalogue groups them under `core`; no `use core` is
 needed. User code cannot redefine these available names.

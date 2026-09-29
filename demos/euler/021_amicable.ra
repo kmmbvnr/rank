@@ -15,7 +15,7 @@ Answer print
 rem Test every value against the proper
 rem divisor sum of its partner.
 fun amicable_sum Limit
-  Candidates = (2 until Limit) array
+  Candidates = (2 till Limit) array
   Partners = Candidates proper_divisor_sum rank 0
   Reverse = Partners proper_divisor_sum rank 0
   Amicable = Partners not equal Candidates

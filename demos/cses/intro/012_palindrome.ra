@@ -30,7 +30,7 @@ fun palindrome Text
       Middle = C
     end
 
-    for # in 0 until Half
+    for # in 0 till Half
       Left += C
     end
   end

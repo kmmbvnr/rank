@@ -179,7 +179,7 @@ A B calculate print`;
 use io
 fun rows A X
   Result = 0.0
-  for I in 0 until 2
+  for I in 0 till 2
     S = (A I * X) sum
     Result += S
   end

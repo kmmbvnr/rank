@@ -454,7 +454,7 @@ current Rank evaluation semantics.
 While Rank's "Reset-to-Unbound" invariant (ADR-0001) and Automatic Compile-Time In-Place lowering (ADR-0004) protect against $O(N^2)$ cascades for loops with pre-existing aliases, an accidental anti-pattern remains possible: re-creating an alias *inside* an imperative loop body:
 
 ```rank
-for i in 0 until N
+for i in 0 till N
   B = A          rem Alias created INSIDE loop body!
   A i = i        rem Performance Cliff: CoW copy triggered on every iteration!
 end

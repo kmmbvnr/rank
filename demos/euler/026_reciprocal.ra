@@ -18,7 +18,7 @@ rem denominator and keep the first maximum.
 fun longest_reciprocal_cycle Limit
   Best = 0
   BestLength = 0
-  for Denominator in 2 until Limit
+  for Denominator in 2 till Limit
     Length = Denominator cycle_length
     if Length greater BestLength
       Best = Denominator

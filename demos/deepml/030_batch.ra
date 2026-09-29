@@ -10,11 +10,11 @@ fun batch_iterator X Size
 
   N = X len
 
-  for First in 0 until N by Size
+  for First in 0 till N by Size
     Last = First + Size
     Last = Last N min
 
-    yield X (First until Last)
+    yield X (First till Last)
   end
 end
 
@@ -29,13 +29,13 @@ fun batch_pairs X Y Size
     .DimensionMismatch raise
   end
 
-  for First in 0 until N by Size
+  for First in 0 till N by Size
     Last = First + Size
     Last = Last N min
 
     Batch = record
-      .x = X (First until Last)
-      .y = Y (First until Last)
+      .x = X (First till Last)
+      .y = Y (First till Last)
     end
 
     yield Batch

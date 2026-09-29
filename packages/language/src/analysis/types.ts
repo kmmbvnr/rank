@@ -195,7 +195,11 @@ export function compoundType(operator: string, left: Types, right: Types): Types
 
 export function binaryType(operator: string, left: Types, right: Types): Types {
     if (operator === 'default') return unionTypes(left, right);
-    if (operator === 'to' || operator === 'until') return ['sequence'];
+    if (operator === 'to' || operator === 'till') {
+        // After values the words bound them and keep their kind; after a number they build a range.
+        if (same(left, 'text') || same(left, 'array') || same(left, 'sequence')) return left;
+        return same(left, 'queue') ? ['array'] : ['sequence'];
+    }
     if (COMPARISONS.has(operator)) {
         if (within(left, SCALARS) && within(right, SCALARS)) return ['boolean'];
         // Over a collection a comparison is a mask with the same shape.

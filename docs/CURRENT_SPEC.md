@@ -245,7 +245,7 @@ serve to satisfy the line/parenthesis budget, rather than acting as procedural c
     ```rank
     rem Avoid: procedural counter in two-pointer matching
     Count = 0
-    for I in 0 until N
+    for I in 0 till N
       ...
       Count += 1
     end
@@ -258,7 +258,7 @@ serve to satisfy the line/parenthesis budget, rather than acting as procedural c
 - Use stepped ranges (`for I in (N - 1) to 0 by -1` or `for I in Start to N by Step`)
   instead of manual `while` loops with decrement/increment counters.
 - Use boolean masks and counting (`(A equal 1) count`) instead of manual tally loops.
-- Use container slicing (`Path (0 until Length)` or `Reversed (Last to 0 by -1)`)
+- Use container slicing (`Path (0 till Length)` or `Reversed (Last to 0 by -1)`)
   instead of manual array copy/reverse loops.
 - Use guard clauses (`continue` or `return`) early to keep indentation shallow.
 
@@ -555,7 +555,7 @@ A max + 1
 ```
 
 To process just one operand, group it explicitly: `A - (A mean)` or
-`0 until (Classes len)`.
+`0 till (Classes len)`.
 
 A comparison works like the arithmetic above it, as on a calculator: after a
 plain left operand, the comparison takes the next value and a following
@@ -897,12 +897,12 @@ everywhere else, as in `Number text` and `use text`.
 ## Standard modules
 
 In the REPL, a saved native source has a consumption cursor: after `G = primes`
-and `G till at least 100 sum`, the next preview of `G` begins at `101`. Previews do not
+and `G till 100 sum`, the next preview of `G` begins at `101`. Previews do not
 consume values. `H = G` shares the cursor; `H = primes` starts fresh. Replaying
 a consuming line restores the position before that line. Normal file execution
 keeps native sources repeatable. See [sequence previews](design/generator-previews.md).
 
-Ranges (`to`, `until`, `by`), `len`, `sum`, `min`, `max`, and explicit
+Ranges (`to`, `till`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text`, `bytes` are available
 without imports. The catalogue groups them under `core`; no `use core` is
 needed. User code cannot redefine these available names. `numbers` still provides `sqrt`, `abs`, number theory and
@@ -1197,7 +1197,7 @@ array cell by cell allocates once:
 
 ```rank
 A = array shape 1000 fill 0
-for I in 0 until 1000
+for I in 0 till 1000
   A I = I * I
 end
 ```
@@ -1508,7 +1508,7 @@ Numeric ranges are first-class sequences:
 
 ```rank
 1 to 10
-1 until 10
+1 till 10
 for i in 1 to 10
   i print
 end
@@ -1521,10 +1521,10 @@ end
 => 1 2 3
 ```
 
-`until` excludes the endpoint.
+`till` excludes the endpoint.
 
 ```text
-1 until 3
+1 till 3
 => 1 2
 ```
 
@@ -1546,17 +1546,17 @@ Use an explicit negative step for a descending range:
 1 to 9 by 2
 => 1 3 5 7 9
 
-10 until 0 by -2
+10 till 0 by -2
 => 10 8 6 4 2
 ```
 
 With `to`, the endpoint is included only
 when the range lands on it exactly; `1 to 6 by 2` therefore produces
-`1 3 5`. With `until`, the endpoint is always excluded. `to` and `until`
-build ranges of numbers only: a sequence such as `fibonacci` is bounded with
-`till` (see [Pipeline clauses](sequences-arrays.md#pipeline-clauses)).
+`1 3 5`. With `till`, the endpoint is always excluded. After values rather
+than a number, the same words bound them: `fibonacci to 100` keeps the items
+at most 100 (see [Bounds](#bounds)).
 
-Equal bounds produce one value with `to` and no values with `until`,
+Equal bounds produce one value with `to` and no values with `till`,
 regardless of the step's sign. A zero step is an error even for empty ranges.
 
 ```rank
@@ -1576,10 +1576,10 @@ A range used as a selector takes a contiguous slice:
 
 ```rank
 Closed = Text (L to R)
-Open = Text (L until R)
+Open = Text (L till R)
 ```
 
-`to` includes the final position; `until` excludes it. Positions are
+`to` includes the final position; `till` excludes it. Positions are
 zero-based, and every selected position must exist. Equal exclusive bounds
 produce an empty slice. Text is sliced by Unicode code point.
 
@@ -1587,9 +1587,9 @@ For tensors, each selector addresses the next axis, and `#` keeps a whole axis.
 Other axes are preserved:
 
 ```rank
-Rows = M (1 until 4)
+Rows = M (1 till 4)
 Columns = M # (2 to 5)
-Block = M (1 until 4) (2 until 5)
+Block = M (1 till 4) (2 till 5)
 ```
 
 On a SQLite view a range selector becomes `LIMIT` and `OFFSET`, and on a SQLite
@@ -2390,9 +2390,9 @@ Floor = -5 // 2
 Ranges and algorithmic sources are sequences:
 
 ```rank
-Range = 1 until 1000
+Range = 1 till 1000
 Primes = primes
-Fib = fibonacci till 4000000
+Fib = fibonacci to 4000000
 ```
 
 Sequences are lazy by default. Constructing, transforming or filtering a
@@ -2401,27 +2401,83 @@ materialization, or iteration demands values from that plan. A terminal
 operation that would consume an unbounded sequence is an error.
 
 `fibonacci` starts with `1 2 3 5 8 ...` and `primes` with `2 3 5 7 11 ...`.
-Both are infinite until a clause bounds them, and both support ordinary
+Both are infinite until a bound ends them, and both support ordinary
 zero-based sequence addressing:
 
 ```rank
-Fib = fibonacci till 100
+Fib = fibonacci to 100
 SixthPrime = primes 5
 ```
 
-`to` and `until` build ranges of numbers only. `primes until 20` is an error
-that suggests `till`.
+## Bounds
 
-## Pipeline clauses
+Four words bound a sequence, an array or text by value. `to` and `till` end
+it; `from` and `after` start it. `to` and `from` include the bound, `till` and
+`after` exclude it:
 
-Four clauses shape a sequence, an array or text from left to right. Each one
-continues the pipeline, so they chain in any order:
+| Boundary | Inclusive | Exclusive |
+|---|---|---|
+| Upper | `to X` (≤ X) | `till X` (< X) |
+| Lower | `from X` (≥ X) | `after X` (> X) |
 
 ```rank
-Answer = fibonacci till Limit filter even sum
-Big = primes from 100 take 5
-Even = fibonacci filter even till 1000
+Fib = fibonacci to 89
+rem 1 2 3 5 8 13 21 34 55 89
+Small = primes till 20
+rem 2 3 5 7 11 13 17 19
+Large = primes from 101 take 3
+rem 101 103 107
+Next = primes after 101 take 3
+rem 103 107 109
+Window = primes after 100 till 130
+rem 101 103 107 109 113 127
 ```
+
+After a number, `to` and `till` build a range instead: `1 to 10` counts from
+1 through 10 and `1 till 10` from 1 through 9. A bound is a value rather than
+an item to find, because a sequence need never equal it.
+
+`till` and `from` also take a condition. `till` stops before the first item
+that meets it; `from` starts at the first item that meets it and keeps it:
+
+```rank
+Leading = fibonacci till greater 50
+rem 1 2 3 5 8 13 21 34
+Big = primes from greater 100 take 3
+rem 101 103 107
+Word = "hello world" till equal " "
+rem hello
+Run = Values till not even
+```
+
+The condition's subject is the item, as in [`filter`](#filter-clause): a
+comparison with its right operand (`greater 50`), a predicate (`even`), a
+function of one argument, `not` and the logical words over those, or a mask.
+Text asks the condition of each character. `to` and `after` take only a value.
+
+Bounds continue a pipeline, so they chain with filters and each other in any
+order:
+
+```rank
+Answer = fibonacci to Limit filter even sum
+Even = fibonacci filter even till 1000
+Middle = fibonacci from 8 to 100
+```
+
+Bounds read items in order and work on any rank-1 value. An ordered source
+seeks instead: `primes from 100` starts its sieve at 100, `fibonacci` advances
+its recurrence to the bound, and a filter over such a source keeps the
+ability. Seeking applies to a plain bound and to `greater` and `at least`
+conditions, and gives the same items as reading. On a stored native stream,
+`to` and `till` look at the first excluded value and leave it for the next
+consumer.
+
+Sequence sources may also accept filters and reductions in their own plan.
+For example, filtering `fibonacci` by `even` lets the source produce only
+`2 8 34 ...`. A source that has no specialized implementation uses the general
+lazy operation with the same observable result.
+
+## Take and drop
 
 `take` and `drop` count items. `take` keeps at most the requested number of
 leading items; `drop` skips that many and returns the tail:
@@ -2438,61 +2494,13 @@ are clamped: `take` returns all its items and `drop` returns an empty result.
 `take 0` reads nothing; `drop 0` preserves all items. Text counts Unicode code
 points. Arrays return lazy views along their leading axis, preserving the
 remaining dimensions. Writes to the source are visible through those views;
-use `copy` for an independent snapshot. The former spelling `primes 5 take` is
-a syntax error that names `primes take 5`.
+use `copy` for an independent snapshot.
 
 Sequences remain lazy, including user generators. `take` stops without
 requesting an extra item and closes the source iterator. `drop` traverses the
 skipped prefix when demanded. Neither operation makes a single-pass source
 replayable. `take` bounds an infinite source by count; `drop` alone leaves it
 infinite. Materializing a bounded sequence uses postfix `array`.
-
-`from` and `till` bound by a condition. `from` starts at the first item that
-meets its condition and keeps it; `till` stops before the first item that
-meets its condition:
-
-```rank
-Large = primes from greater 100 take 3
-rem 101 103 107
-Leading = fibonacci till greater 50
-rem 1 2 3 5 8 13 21 34
-Word = "hello world" till equal " "
-rem hello
-```
-
-The condition's subject is the item, as in [`filter`](#filter-clause): a
-comparison with its right operand (`greater 50`), a predicate (`even`), a
-function of one argument, `not` and the logical words over those, or a mask.
-Text asks the condition of each character.
-
-A plain value is a bound rather than a value to find, because a sequence need
-never equal it. `till Limit` keeps the items at most `Limit`, the same as
-`till greater Limit`, and `from Limit` starts at the first item at least
-`Limit`:
-
-```rank
-Fib = fibonacci till 100
-Candidates = primes from 100
-Below = primes till at least 20
-rem 2 3 5 7 11 13 17 19
-```
-
-`till at least Limit` is the strict bound: it keeps the items below `Limit`.
-
-`from` and `till` read items in order and work on any rank-1 value. An ordered
-source seeks instead: `primes from 100` starts its sieve at 100, `fibonacci`
-advances its recurrence to the bound, and a filter over such a source keeps
-the ability. Seeking applies to a plain bound and to `greater` and `at least`
-conditions, and gives the same items as reading. On a stored native stream,
-`till` looks at the first excluded value and leaves it for the next consumer.
-
-Sequence sources may also accept filters and reductions in their own plan.
-For example, filtering `fibonacci` by `even` lets the source produce only
-`2 8 34 ...`. A source that has no specialized implementation uses the general
-lazy operation with the same observable result.
-
-`take while` is gone: `Values till not Condition` keeps the items while
-`Condition` holds.
 
 ## Explicit materialization
 
@@ -2768,7 +2776,7 @@ A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
 
 ```rank
-Part = A (2 until 6)
+Part = A (2 till 6)
 Picked = A array 4 1 1
 Columns = M # (1 to 3)
 ```
@@ -2837,7 +2845,7 @@ In the pipeline that makes it, a mask stands for the values it selects, so
 numeric operations after the predicate read those values: `sum`, `min`, `max`,
 `lcm`, `mean`, `median`, `std`, `variance`, `skewness`, `quantile` and
 `percentile`. A pipeline therefore reads like a calculator, and both lines
-below give 44 for `Fib = fibonacci till 100`:
+below give 44 for `Fib = fibonacci to 100`:
 
 ```rank
 Answer = Fib even sum
@@ -3415,7 +3423,7 @@ so `default` can provide a fallback. Known unequal source and mask lengths are
 errors.
 
 The leading run that meets a condition is `till not Condition`; see
-[Pipeline clauses](#pipeline-clauses).
+[Bounds](#bounds).
 
 ## Outer
 
@@ -4482,7 +4490,7 @@ database. The source is unchanged, and output order requires `sort by`.
 `len` runs `COUNT(*)`, and `sum` of a lazy column or arithmetic column
 expression runs SQL `SUM`. `group by` on a SQLite view is lazy; grouped
 `select` returns a view with key columns and named aggregates. A following `filter` narrows the
-totals, and `sort by` defines their output order. `View (0 until N)` adds
+totals, and `sort by` defines their output order. `View (0 till N)` adds
 SQL `LIMIT` after checking bounds with `len`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
 join keys compare by numeric value, while text and numeric keys do not match.
@@ -5331,7 +5339,7 @@ A range selects a slice and an integer array selects arbitrary positions;
 `#` keeps a whole axis, and `axis` names the axis for an index array:
 
 ```rank
-Rows = M (1 until 4)
+Rows = M (1 till 4)
 Columns = M axis 1 array 0 2 5
 ```
 
@@ -6745,7 +6753,7 @@ rem Project Euler 1
 rem Multiples of 3 or 5
 rem https://projecteuler.net/problem=1
 
-N = 1 until 1000
+N = 1 till 1000
 
 Mask = N multiple by 3
 Mask or= N multiple by 5
@@ -6756,7 +6764,7 @@ Answer print
 ```
 
 This example demonstrates:
-- the ordinary/lazy sequence `1 until 1000`;
+- the ordinary/lazy sequence `1 till 1000`;
 - the `multiple by` divisibility operation from `numbers`;
 - boolean masks as first-class values;
 - incremental mask composition with `or=`;
@@ -6776,7 +6784,7 @@ rem https://projecteuler.net/problem=2
 use sequences
 use numbers
 
-Fib = fibonacci till 4000000
+Fib = fibonacci to 4000000
 Mask = Fib even
 Answer = Fib Mask sum
 ```
@@ -6947,7 +6955,7 @@ use numbers
 
 option Limit integer = 2000000
 
-Primes = primes till at least Limit
+Primes = primes till Limit
 Answer = Primes sum
 ```
 
@@ -6997,7 +7005,7 @@ rem https://projecteuler.net/problem=13
 
 Total = Numbers sum
 Text = Total text
-Prefix = Text (0 until 10)
+Prefix = Text (0 till 10)
 Answer = Prefix integer
 ```
 
@@ -7127,7 +7135,7 @@ text conversion as problem 16 gives the digit sum `648`.
 rem Project Euler 21
 rem https://projecteuler.net/problem=21
 
-Candidates = (2 until Limit) array
+Candidates = (2 till Limit) array
 Partners = Candidates proper_divisor_sum rank 0
 Reverse = Partners proper_divisor_sum rank 0
 Amicable = Partners not equal Candidates
@@ -7231,8 +7239,8 @@ records the first position of each remainder, giving denominator `983` below
 rem Project Euler 27
 rem https://projecteuler.net/problem=27
 
-for A in (-Limit + 1) until Limit by 2
-  for B in primes till Limit
+for A in (-Limit + 1) till Limit by 2
+  for B in primes to Limit
     Length = A B quadratic_run
   end
 end
@@ -7367,13 +7375,13 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
-Candidates = primes till at least Limit
+Candidates = primes till Limit
 Circular = Candidates circular_prime rank 0
 Answer = Circular count
 
-for Shift in 1 until Length
-  Left = Text (Shift until Length)
-  Right = Text (0 until Shift)
+for Shift in 1 till Length
+  Left = Text (Shift till Length)
+  Right = Text (0 till Shift)
   Number = (Left + Right) integer
 end
 ```
@@ -7404,8 +7412,8 @@ the odd-only search produces `872187`.
 rem Project Euler 37
 rem https://projecteuler.net/problem=37
 
-LeftText = Text (Drop until Length)
-RightText = Text (0 until Last)
+LeftText = Text (Drop till Length)
+RightText = Text (0 till Last)
 ```
 
 Every proper decimal prefix and suffix is parsed and tested with `in primes`.
@@ -7594,7 +7602,7 @@ concatenation is `296962999629`.
 
 ```rank
 Prefix = Primes + scan with 0
-Length = (Prefix till at least Limit) len - 1
+Length = (Prefix till Limit) len - 1
 
 Total = Prefix End - Prefix Start
 if Total in primes
@@ -7602,7 +7610,7 @@ if Total in primes
 end
 ```
 
-A seeded scan builds the zero-based prefix table. `till at least Limit` finds
+A seeded scan builds the zero-based prefix table. `till Limit` finds
 the longest prefix whose sum stays below the limit without a mutable
 accumulator. Every
 interval sum is then constant time, and lengths are tried from largest to
@@ -7611,7 +7619,7 @@ smallest. The result below one million is `997651`.
 ## 51. Prime digit replacements
 
 ```rank
-Places = 0 until (Digits len - 1)
+Places = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
 for Pick in Same 3 combinations
@@ -8204,7 +8212,7 @@ observe the strict **parenthesis budget of at most one pair of parentheses per
 line** to avoid mobile keyboard friction.
 
 ```rank
-Range = 1 until 1000
+Range = 1 till 1000
 States = Range next scan with Start
 ```
 
@@ -8319,7 +8327,7 @@ itself sees boolean values. Prefix `array Mask` and postfix `Mask array`
 therefore agree.
 
 ```rank
-Fib = fibonacci till Limit
+Fib = fibonacci to Limit
 Mask = Fib even
 Answer = Fib Mask sum
 ```

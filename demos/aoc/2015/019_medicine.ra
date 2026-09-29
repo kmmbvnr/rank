@@ -61,16 +61,16 @@ fun matchat Text Pattern Start
   if Text len less Finish
     return false
   end
-  Part = Text (Start until Finish)
+  Part = Text (Start till Finish)
   return Part equal Pattern
 end
 
 
 rem Replace one occurrence beginning at a known Unicode position.
 fun replaceat Text From To Start
-  Prefix = Text (0 until Start)
+  Prefix = Text (0 till Start)
   Tail = Start + (From len)
-  Suffix = Text (Tail until (Text len))
+  Suffix = Text (Tail till (Text len))
   return Prefix + To + Suffix
 end
 

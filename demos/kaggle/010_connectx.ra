@@ -13,7 +13,7 @@ fun move Board Player Rows Cols Need
   Other = 3 - Player
 
   rem Win immediately.
-  for C in 0 until Cols
+  for C in 0 till Cols
     if Board C legal
       Next = Board C Player place
       if Next Player Need won
@@ -23,7 +23,7 @@ fun move Board Player Rows Cols Need
   end
 
   rem Block an immediate opponent win.
-  for C in 0 until Cols
+  for C in 0 till Cols
     if Board C legal
       Next = Board C Other place
       if Next Other Need won
@@ -37,7 +37,7 @@ fun move Board Player Rows Cols Need
   Center = Cols // 2
   Best = -1
   BestDist = Cols + 1
-  for C in 0 until Cols
+  for C in 0 till Cols
     if Board C legal
       Dist = C - Center abs
       if Dist less BestDist
@@ -71,8 +71,8 @@ end
 
 fun won Board Player Need
   unpack Rows Cols = Board shape
-  for R in 0 until Rows
-    for C in 0 until Cols
+  for R in 0 till Rows
+    for C in 0 till Cols
       if Board R C equal Player
         H = Board R C 0 1 Need line
         V = Board R C 1 0 Need line
@@ -91,7 +91,7 @@ end
 fun line Board R C DR DC Need
   unpack Rows Cols = Board shape
   Player = Board R C
-  for K in 1 until Need
+  for K in 1 till Need
     I = R + DR * K
     J = C + DC * K
     BadRow = I less 0 or I at least Rows

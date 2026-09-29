@@ -58,7 +58,7 @@ save, discard changes, or cancel with Esc.
 See [REPL input](../../docs/design/repl-input.md) for execution and input details.
 
 Stored native sources in the REPL keep their read position. After
-`G = primes` and `G until 100 sum`, inspecting `G` starts at `101`.
+`G = primes` and `G till 100 sum`, inspecting `G` starts at `101`.
 Previews do not consume values; `H = G` shares the cursor, while `H = primes`
 starts a fresh stream. Editing a consuming line restores the position left by
 its preceding lines. Normal file execution retains repeatable native sources.

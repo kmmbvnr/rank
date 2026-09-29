@@ -1,4 +1,7 @@
-import type { BinaryExpression, Expression } from '../generated/ast.js';
+import {
+    isBinaryExpression, isSubjectComparisonExpression, isUnaryExpression,
+    type BinaryExpression, type Expression,
+} from '../generated/ast.js';
 import { rangeSliceOperands } from '../expressions.js';
 import { applicationForm, type ApplicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
@@ -51,7 +54,18 @@ export function binaryExpressionFacts(
         return left.rank === 0 && right.rank === 0 && types.length
             ? { types, rank: 0, shape: [] } : { types };
     }
-    if (expression.operator === 'to' || expression.operator === 'until') {
+    if ((expression.operator === 'to' || expression.operator === 'till')
+        && ['text', 'array', 'sequence', 'queue'].includes(left.types.join())) {
+        // A bound keeps a run of the source's own items.
+        if (left.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+        if (left.types.join() === 'queue') return { types: ['array'], rank: 1, shape: [null] };
+        if (left.rank !== 1) return { types: left.types };
+        const safe = left.elements?.length && (left.eagerScalarCells || left.callbackFreeScalarCells)
+            && callbackFreeCondition(expression.right, lookup, infer);
+        return { types: left.types, rank: 1, shape: [null],
+            ...(safe ? { elements: left.elements, callbackFreeScalarCells: true as const } : {}) };
+    }
+    if (expression.operator === 'to' || expression.operator === 'till') {
         let length: number | null = null;
         const stepText = expression.step ? infer(expression.step, lookup).integer : '1';
         if (left.integer !== undefined && right.integer !== undefined && stepText !== undefined && BigInt(stepText) !== 0n) {
@@ -208,4 +222,25 @@ export function sliceFacts(
         return undefined;
     }
     return undefined;
+}
+
+/**
+ * Whether a clause condition reads the items without calling back into the
+ * program: a comparison with a plain operand, a plain bound value, or a mask
+ * whose cells are already known.
+ */
+export function callbackFreeCondition(
+    condition: Expression, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
+): boolean {
+    if (isSubjectComparisonExpression(condition)) return callbackFreeCondition(condition.right, lookup, infer);
+    if (isUnaryExpression(condition)) return callbackFreeCondition(condition.operand, lookup, infer);
+    if (isBinaryExpression(condition)) {
+        return callbackFreeCondition(condition.left, lookup, infer) && callbackFreeCondition(condition.right, lookup, infer);
+    }
+    const facts = infer(condition, lookup);
+    if (facts.rank === 0 && facts.types.length > 0
+        && facts.types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) return true;
+    return facts.rank === 1 && facts.elements?.join() === 'boolean'
+        && !!(facts.eagerScalarCells || facts.callbackFreeScalarCells);
 }

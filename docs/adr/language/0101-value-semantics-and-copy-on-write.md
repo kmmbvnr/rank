@@ -52,7 +52,7 @@ Value semantics describes what the language *means*, not what the memory allocat
 - A uniquely owned array (such as an array created inside a loop or function) is mutated directly in-place without copying:
   ```rank
   A = array shape 1000 fill 0
-  for I in 0 until 1000
+  for I in 0 till 1000
     A I = I * I  rem Single allocation; zero defensive copies!
   end
   ```
