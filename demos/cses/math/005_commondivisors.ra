@@ -19,12 +19,13 @@ fun largest_gcd Values
 
   for Value in Values
     Seen add Value
-    if Seen Value at most 2
-      for Divisor in Value divisors
-        Counts add Divisor
-        if Counts Divisor equal 2
-          Shared add Divisor
-        end
+    if Seen Value greater 2
+      continue
+    end
+    for Divisor in Value divisors
+      Counts add Divisor
+      if Counts Divisor equal 2
+        Shared add Divisor
       end
     end
   end
