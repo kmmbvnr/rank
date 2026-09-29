@@ -42,7 +42,8 @@ fun paths Values Rooted Queries
 
   for Node in Order
     Position = Entry Node
-    Value = Current (Node - 1)
+    Id = Node - 1
+    Value = Current Id
     Sums Position += Value
     End = Position + Sizes Node
     if End less N
@@ -55,8 +56,9 @@ fun paths Values Rooted Queries
     unpack Type Node Value = Query
     Position = Entry Node
     if Type equal 1
-      Delta = Value - Current (Node - 1)
-      Current (Node - 1) = Value
+      Id = Node - 1
+      Delta = Value - Current Id
+      Current Id = Value
       Sums Position += Delta
       End = Position + Sizes Node
       if End less N
