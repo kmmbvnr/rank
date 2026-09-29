@@ -26,22 +26,22 @@ fun descriptions Description Maximum
   end
 
   for Wanted i in Description
-    if i greater 0
-      Next = array shape Size fill 0
-
-      for Value in 1 to Maximum
-        Allowed = Wanted equal 0
-        Allowed or= Wanted equal Value
-        if Allowed
-          Count = Previous (Value - 1)
-          Count += Previous Value
-          Count += Previous (Value + 1)
-          Next Value = Count % Modulus
-        end
-      end
-
-      Previous = Next
+    if i equal 0
+      continue
     end
+    Next = array shape Size fill 0
+
+    for Value in 1 to Maximum
+      if Wanted not equal 0 and Wanted not equal Value
+        continue
+      end
+      Count = Previous (Value - 1)
+      Count += Previous Value
+      Count += Previous (Value + 1)
+      Next Value = Count % Modulus
+    end
+
+    Previous = Next
   end
 
   return Previous sum % Modulus
