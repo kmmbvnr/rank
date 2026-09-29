@@ -25,7 +25,7 @@ const iterationNext = document.querySelector<HTMLButtonElement>('#iteration-next
 const keyboard = document.querySelector<HTMLElement>('#keyboard')!;
 const keyboardKeys = document.querySelector<HTMLElement>('#keyboard-keys')!;
 const keyboardTabList = document.querySelector<HTMLElement>('#keyboard-tabs')!;
-const keyboardToggle = document.querySelector<HTMLButtonElement>('#keyboard-toggle')!;
+const keyboardHide = document.querySelector<HTMLButtonElement>('#keyboard-hide')!;
 const keyboardLetters = document.querySelector<HTMLButtonElement>('#keyboard-letters')!;
 const compact = () => import.meta.env.MODE === 'mobile' || matchMedia('(max-width: 800px)').matches;
 /** Keyboard shortcut hints only help with a keyboard; a touch console runs through its buttons. */
@@ -275,9 +275,23 @@ input.addEventListener('keydown', event => {
             meta: event.metaKey, shift: event.shiftKey }, event.key.length === 1 ? event.key : '');
     }
 });
-const keyboardKey = 'rank-symbol-keyboard-v1';
 let keyboardEnabled = touchConsole;
-try { keyboardEnabled = touchConsole && localStorage.getItem(keyboardKey) !== 'off'; } catch { /* Default stays on. */ }
+let keyboardOpening = touchConsole;
+let keyboardOpeningTimer: ReturnType<typeof setTimeout> | undefined;
+if (touchConsole) {
+    keyboardOpeningTimer = setTimeout(() => {
+        keyboardOpening = false;
+        render();
+    }, 500);
+}
+function startKeyboardOpening(): void {
+    keyboardOpening = true;
+    clearTimeout(keyboardOpeningTimer);
+    keyboardOpeningTimer = setTimeout(() => {
+        keyboardOpening = false;
+        render();
+    }, 450);
+}
 let keyboardModule = 'core';
 let keyboardLayout = '';
 let keyboardSize = '';
@@ -292,13 +306,23 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
     .rankSoftKeyboard = (visible, height = 0) => {
         const changed = nativeSoftKeyboard !== visible;
         nativeSoftKeyboard = visible;
+        const wasSoftKeyboard = softKeyboard;
         softKeyboard = visible;
-        if (visible) softKeyboardWantedUntil = 0;
+        if (visible) {
+            softKeyboardWantedUntil = 0;
+            if (touchConsole) keyboardEnabled = true;
+        }
         if (changed) beginKeyboardTransition();
         // Remember the portrait soft keyboard's height to take exactly its place.
         if (visible && height > 100 && innerHeight > innerWidth) {
             softKeyboardHeight = height;
             try { localStorage.setItem(softKeyboardHeightKey, String(height)); } catch { /* This visit only. */ }
+        }
+        if (wasSoftKeyboard && !visible) {
+            keyboardOpening = false;
+            clearTimeout(keyboardOpeningTimer);
+            if (busy || repl.running) keyboardEnabled = false;
+            input.blur();
         }
         if (!changed) render();
     };
@@ -336,12 +360,22 @@ let softKeyboardWantedUntil = 0;
  * keyboard is up the field is left unfocused; keys edit the notebook directly.
  */
 function symbolKeyboardShown(): boolean { return keyboardEnabled && !softKeyboard; }
-function focusInput(): void { if (!symbolKeyboardShown()) input.focus({ preventScroll: true }); }
+function focusInput(): void {
+    if (touchConsole && !keyboardEnabled) {
+        startKeyboardOpening();
+        keyboardEnabled = true;
+        softKeyboard = true;
+        softKeyboardWantedUntil = Date.now() + 1500;
+        beginKeyboardTransition();
+        input.focus({ preventScroll: true });
+        return;
+    }
+    if (!symbolKeyboardShown()) input.focus({ preventScroll: true });
+}
 const floatingKeyboard = matchMedia('(orientation: landscape) and (min-width: 640px)');
 floatingKeyboard.addEventListener('change', () => render());
 function renderKeyboard(): void {
-    keyboardToggle.setAttribute('aria-pressed', String(keyboardEnabled));
-    const shown = keyboardEnabled && !softKeyboard;
+    const floating = floatingKeyboard.matches;
     const tabs = keyboardTabs(repl.session.modules);
     if (!tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
     const modules = tabs.map(tab => tab.module).join(',');
@@ -370,21 +404,21 @@ function renderKeyboard(): void {
             return button;
         }));
     }
-    keyboard.hidden = !shown;
-    if (shown && document.activeElement === input) input.blur();
-    if (!shown) return setKeyboardSize(0, 0);
+    keyboard.hidden = !keyboardEnabled || keyboardOpening || (floating && softKeyboard);
+    if (!keyboardEnabled || keyboardOpening) return setKeyboardSize(0, 0);
     const book = editor();
     const before = book.current.source.slice(0, book.cursor);
     const locked = busy || repl.running || !!repl.help || repl.liveIterationFocused;
     for (const button of keyboardKeys.children as HTMLCollectionOf<HTMLButtonElement>)
         button.disabled = locked || !keyAvailable(button.textContent!, before);
     // Landscape leaves the narrow code on the left and floats the keyboard on the right.
-    const floating = floatingKeyboard.matches;
     keyboard.classList.toggle('floating', floating);
     const sized = !floating && softKeyboardHeight > 0;
     keyboard.classList.toggle('sized', sized);
     keyboard.style.height = sized ? softKeyboardHeight + 'px' : '';
-    setKeyboardSize(floating ? 0 : keyboard.offsetHeight, floating ? keyboard.offsetWidth + 16 : 0);
+    const height = softKeyboard || keyboardOpening || floating ? 0 : keyboard.offsetHeight;
+    const width = softKeyboard || keyboardOpening || !floating ? 0 : keyboard.offsetWidth + 16;
+    setKeyboardSize(height, width);
 }
 function setKeyboardSize(height: number, width: number): void {
     const size = height + 'x' + width;
@@ -405,9 +439,9 @@ function typeKey(key: string): void {
 }
 function setKeyboard(enabled: boolean): void {
     keyboardEnabled = enabled;
-    // Closing the system keyboard is what lets the symbol keyboard take its place.
-    if (enabled && softKeyboard) input.blur();
-    try { localStorage.setItem(keyboardKey, enabled ? 'on' : 'off'); } catch { /* Only this visit remembers it. */ }
+    keyboardOpening = false;
+    clearTimeout(keyboardOpeningTimer);
+    if (!enabled) input.blur();
     render();
 }
 // Tapping a key must not move focus, or the soft keyboard would come back over it.
@@ -421,12 +455,10 @@ keyboardLetters.onclick = () => {
     softKeyboardWantedUntil = Date.now() + 1500;
     beginKeyboardTransition();
     input.blur();
-    focusInput();
+    input.focus({ preventScroll: true });
     setTimeout(resize, 1600);
 };
-// With the system keyboard up, the first press only swaps it for ours (even if ours is already on
-// behind it); the next press hides ours.
-keyboardToggle.onclick = () => { haptic(); closeMenu(); setKeyboard(softKeyboard ? true : !keyboardEnabled); };
+keyboardHide.onclick = () => { haptic(); setKeyboard(false); };
 function closeMenu(): void { commands.hidden = true; menuToggle.setAttribute('aria-expanded', 'false'); }
 chrome.addEventListener('pointerdown', event => event.preventDefault());
 menuToggle.onclick = () => {
@@ -531,7 +563,15 @@ document.addEventListener('paste', event => {
     (selected ? repl.notebook : editor()).insert(event.clipboardData?.getData('text/plain').replace(/\r\n?/g, '\n') ?? '');
     follow = true; render(); focusInput();
 });
-input.addEventListener('focus', () => terminal.classList.add('focused'));
+input.addEventListener('focus', () => {
+    terminal.classList.add('focused');
+    if (touchConsole) {
+        if (!keyboardEnabled) startKeyboardOpening();
+        keyboardEnabled = true;
+        softKeyboard = true;
+        softKeyboardWantedUntil = Date.now() + 1500;
+    }
+});
 input.addEventListener('blur', () => terminal.classList.toggle('focused', symbolKeyboardShown()));
 
 document.addEventListener('copy', event => {
@@ -558,16 +598,39 @@ document.addEventListener('cut', event => {
     render();
     focusInput();
 });
+function syncInputSelection(): void {
+    if (document.activeElement !== input || composing) return;
+    if (busy || repl.running || repl.help || repl.liveIterationFocused) return;
+    const book = editor();
+    const start = input.selectionStart ?? 0;
+    const end = input.selectionEnd ?? 0;
+    const selected = book.selection;
+    const from = selected?.start === book.active ? selected.from : book.cursor;
+    const to = selected?.end === book.active ? selected.to : book.cursor;
+    if (start === from && end === to) return;
+    if (start === end) {
+        book.selectTo(book.active, start);
+    } else {
+        const backward = input.selectionDirection === 'backward';
+        book.selectTo(book.active, backward ? end : start, false);
+        book.selectTo(book.active, backward ? start : end, true);
+    }
+    follow = true;
+    render();
+}
 let hadNativeSelection = false;
 document.addEventListener('selectionchange', () => {
+    syncInputSelection();
     const selected = nativeSelection();
     if (hadNativeSelection && !selected) requestAnimationFrame(() => render());
     hadNativeSelection = selected;
 });
+input.addEventListener('select', syncInputSelection);
+input.addEventListener('selectionchange', syncInputSelection);
 
 async function locate(x: number, y: number): Promise<void> {
     stopMomentum();
-    if (busy || repl.running || repl.help) { focusInput(); return; }
+    if (busy || repl.running || repl.help) { if (!keyboardEnabled) return; focusInput(); return; }
     const rect = terminal.getBoundingClientRect();
     const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
     const column = Math.round((x - rect.left) / cellWidth);
@@ -713,7 +776,12 @@ function resize(): void {
     scrollFraction = 0;
     const viewport = window.visualViewport;
     let height = viewport?.height ?? innerHeight;
+    const wasSoftKeyboard = softKeyboard;
     softKeyboard = softKeyboardOpen(height);
+    if (wasSoftKeyboard && !softKeyboard) {
+        if (busy || repl.running) keyboardEnabled = false;
+        input.blur();
+    }
     if (innerHeight > innerWidth) {
         const state = softKeyboard ? 'open' : 'closed';
         if (Date.now() >= transitionUntil) {
