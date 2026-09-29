@@ -17,8 +17,7 @@ rem through the tallest query.
 fun counting_towers Heights
   Modulus = 1000000007
   Maximum = Heights max
-  Size = Maximum + 1
-  Answers = array shape Size fill 0
+  Answers = array shape (Maximum + 1) fill 0
   Together = 1
   Separate = 1
   Answers 1 = 2
