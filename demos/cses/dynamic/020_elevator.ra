@@ -36,15 +36,15 @@ fun elevator_rides Weights Limit
       NewWeight = Weight
     end
 
-    Better = NewRides less Rides Mask
-    Same = NewRides equal Rides Mask
-    Lighter = NewWeight less Last Mask
-    Better or= Same and Lighter
-
-    if Better
-      Rides Mask = NewRides
-      Last Mask = NewWeight
+    if NewRides greater Rides Mask
+      return 0
     end
+    if NewRides equal Rides Mask and NewWeight at least Last Mask
+      return 0
+    end
+
+    Rides Mask = NewRides
+    Last Mask = NewWeight
     return 0
   end
 
