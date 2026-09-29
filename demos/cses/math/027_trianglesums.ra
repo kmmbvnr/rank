@@ -50,6 +50,9 @@ fun sum_of_two_squares N
     Exponent = 1
   end
 
-  BadPrime = Previous % 4 equal 3
-  return not (BadPrime and Exponent odd)
+  Bad = Previous % 4 equal 3
+  if Bad and Exponent odd
+    return false
+  end
+  return true
 end
