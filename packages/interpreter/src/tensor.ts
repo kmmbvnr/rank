@@ -65,7 +65,13 @@ export function mapDenseArrays(
         const result = realKernel(realCode, size, a, b, leftMod, rightMod);
         if (result) return typedArray(result, shape);
     }
-    const cells: RankValue[] = realMode ? new Float64Array(size) as unknown as RankValue[] : new Array(size);
+    // An operand that is real makes every result cell real, whatever the other
+    // one holds, so the result is typed then too.
+    const someReal = realCode >= 0 && !realMode
+        && ((leftArray ? realCells(leftArray) !== undefined : typeof left === 'number')
+            || (rightArray ? realCells(rightArray) !== undefined : typeof right === 'number'));
+    const typedResult = realMode || someReal;
+    const cells: RankValue[] = typedResult ? new Float64Array(size) as unknown as RankValue[] : new Array(size);
     try {
         // Each shape case gets its own loop, so the hot one has no per-cell branch.
         for (let start = 0; start < size; start += DENSE_CHUNK) {
@@ -110,7 +116,7 @@ export function mapDenseArrays(
     }
     // Every cell is a number, a boolean or a bigint: the operands were scalar
     // and the operation returned a scalar.
-    return realMode ? typedArray(cells as unknown as Float64Array, shape) : ownedArray(cells, shape, true);
+    return typedResult ? typedArray(cells as unknown as Float64Array, shape) : ownedArray(cells, shape, true);
 }
 
 const DENSE_MIN_CELLS = 1024;
