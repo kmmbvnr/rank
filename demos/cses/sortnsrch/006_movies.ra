@@ -34,10 +34,11 @@ fun watch Movies
   Answer = 0
 
   for Movie in Sorted
-    if Movie .start at least Last
-      Last = Movie .finish
-      Answer += 1
+    if Movie .start less Last
+      continue
     end
+    Last = Movie .finish
+    Answer += 1
   end
 
   return Answer
