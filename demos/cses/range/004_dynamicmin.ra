@@ -19,21 +19,19 @@ rem Apply point assignments.
 rem Answer inclusive one-based ranges.
 fun dynamic_mins Values Queries
   Tree = Values min segment
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   Count = 0
 
   for Query in Queries
     unpack Type A B = Query
     if Type equal 1
       Tree (A - 1) = B
-    else
-      Left = A - 1
-      Right = B - 1
-      Minimum = Tree Left Right query
-      Answers Count = Minimum
-      Count += 1
+      continue
     end
+
+    Left = A - 1
+    Answers Count = Tree Left (B - 1) query
+    Count += 1
   end
 
   return Answers (0 till Count)
