@@ -105,11 +105,13 @@ fun solve Path
 
       NY = Y + DYs i
       NX = X + DXs i
-      if not Seen NY NX
-        Seen NY NX = true
-        Ways += Next NY NX walk
-        Seen NY NX = false
+      if Seen NY NX
+        continue
       end
+
+      Seen NY NX = true
+      Ways += Next NY NX walk
+      Seen NY NX = false
     end
 
     return Ways
