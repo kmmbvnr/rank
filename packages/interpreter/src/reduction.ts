@@ -1,4 +1,4 @@
-import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -10,6 +10,7 @@ import { isNativeFunction, isRankArray, isRankQueue, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
 const arrayItem = readArrayItem;
+const MAX_OFFSET_TABLE = 1 << 20;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 const array = (items: RankValue[]): RankArray => ownedArray(items);
@@ -139,9 +140,19 @@ export class ReductionEvaluator {
         const directSum = operation === 'sum' && value.itemAt === undefined
             && reducer === this.standardFunctions.get(standardModules.core.sum);
 
+        // Stored cells are read straight from their storage, through offsets
+        // worked out once for the reduced axes instead of once per cell.
+        const stored = denseScalarItems(value);
+        let reducedOffsets: Int32Array | undefined;
+        if (stored && reducedSize <= MAX_OFFSET_TABLE) {
+            reducedOffsets = new Int32Array(reducedSize);
+            for (let index = 0; index < reducedSize; index += 1) reducedOffsets[index] = offsetAt(index, reducedAxes);
+        }
         const reduceAt = (frameIndex: number): RankValue => {
             const start = offsetAt(frameIndex, frameAxes);
-            const itemAt = (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
+            const itemAt = stored && reducedOffsets
+                ? (index: number) => stored[start + reducedOffsets![index]]
+                : (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
             if (directSum) return sumIndexed(reducedSize, itemAt);
             if (this.tensorFusion
                 && (operation === 'mean' || operation === 'std')

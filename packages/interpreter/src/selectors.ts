@@ -1,4 +1,5 @@
-import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, readArrayItem, realCells, typedArray, typedElementKind } from './array-storage.js';
+import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { atSequence, sequenceValues } from './sequence.js';
 import { arrayOffset, coordinatesAt, safeDimension } from './tensor-index.js';
@@ -11,9 +12,22 @@ const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 const array = (items: RankValue[]): RankArray => ownedArray(items);
 
+// A large slice of stored scalars is copied at once. A lazy slice would cache
+// each cell in a Map, several times the size of the cells themselves.
+const DENSE_SLICE_CELLS = 1 << 16;
+
+interface SelectedAxis {
+    readonly preserve: boolean;
+    readonly size: number;
+    indexAt(coordinate: number): number;
+}
+
 interface TensorSelection {
     readonly shape: readonly number[];
     offsetAt(index: number): number;
+    /** The per-axis plan behind `offsetAt`, when there is one. */
+    readonly axes?: readonly SelectedAxis[];
+    readonly sourceShape?: readonly number[];
 }
 
 function isAllAxisSelector(value: RankValue): boolean {
@@ -87,7 +101,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
         };
     }
     return {
-        shape,
+        shape, axes, sourceShape: source.shape,
         offsetAt(index) {
             const output = coordinatesAt(shape, index);
             let outputAxis = 0;
@@ -121,7 +135,74 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     for (let axis = indices.length; axis < shape.length; axis += 1) offset *= shape[axis];
     if (indices.length === shape.length) return arrayItem(source, offset);
     const rest = shape.slice(indices.length);
+    // A row of a typed array is one contiguous run of its buffer.
+    const kind = typedElementKind(source);
+    const stored = kind ? denseScalarItems(source) as Float64Array | BigInt64Array : undefined;
+    if (stored) {
+        const length = arraySize(rest);
+        return typedArray(stored.slice(offset, offset + length), rest);
+    }
     return derivedArray(rest, [source], index => arrayItem(source, offset + index));
+}
+
+/** The cells a selection addresses: an array, or the one cell of an empty shape. */
+export function sliceArray(
+    source: RankArray, selection: TensorSelection,
+): RankValue {
+    if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
+    const stored = denseScalarItems(source);
+    const total = arraySize(selection.shape);
+    // A typed source is never written in place, so its slice is copied whatever
+    // its size; stored plain cells are copied once the slice is large.
+    const kind = typedElementKind(source);
+    if (stored && (kind !== undefined || total >= DENSE_SLICE_CELLS)) {
+        const reals = kind === 'real' || (kind === undefined && realCells(source) !== undefined);
+        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
+            : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
+        gather(stored, out as unknown as RankValue[], selection, total);
+        return Array.isArray(out) ? ownedArray(out, selection.shape, true) : typedArray(out, selection.shape);
+    }
+    return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+}
+
+/** Copy the selected cells in output order. With a per-axis plan the source
+ * offset is stepped like an odometer instead of decoded for every cell. */
+function gather(
+    stored: ArrayLike<RankValue>, out: RankValue[], selection: TensorSelection, total: number,
+): void {
+    const { axes, sourceShape } = selection;
+    if (!axes || !sourceShape) {
+        for (let index = 0; index < total; index += 1) {
+            if ((index & 0xfff) === 0) checkpoint('computing array');
+            out[index] = stored[selection.offsetAt(index)];
+        }
+        return;
+    }
+    const strides = new Array<number>(sourceShape.length).fill(1);
+    for (let axis = sourceShape.length - 2; axis >= 0; axis -= 1) strides[axis] = strides[axis + 1] * sourceShape[axis + 1];
+    let fixed = 0;
+    const kept: { size: number; stride: number; indexAt: (coordinate: number) => number }[] = [];
+    axes.forEach((axis, position) => {
+        if (axis.preserve) kept.push({ size: axis.size, stride: strides[position], indexAt: axis.indexAt });
+        else fixed += axis.indexAt(0) * strides[position];
+    });
+    const rank = kept.length;
+    const coordinates = new Array<number>(rank).fill(0);
+    const contribution = kept.map(axis => axis.indexAt(0) * axis.stride);
+    let offset = fixed + contribution.reduce((sum, value) => sum + value, 0);
+    for (let index = 0; index < total; index += 1) {
+        if ((index & 0xfff) === 0) checkpoint('computing array');
+        out[index] = stored[offset];
+        for (let position = rank - 1; position >= 0; position -= 1) {
+            const axis = kept[position];
+            coordinates[position] += 1;
+            if (coordinates[position] >= axis.size) coordinates[position] = 0;
+            const next = axis.indexAt(coordinates[position]) * axis.stride;
+            offset += next - contribution[position];
+            contribution[position] = next;
+            if (coordinates[position] !== 0) break;
+        }
+    }
 }
 
 export function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
@@ -130,8 +211,7 @@ export function selectAxis(source: RankValue, axis: number, selector: RankValue)
         const selectors = Array(axis).fill(ALL_AXIS) as RankValue[];
         selectors.push(selector);
         const selection = tensorSelection(source, selectors);
-        if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-        return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+        return sliceArray(source, selection);
     }
     if (typeof selector === 'bigint') {
         if (selector < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);

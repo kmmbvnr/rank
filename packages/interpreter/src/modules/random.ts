@@ -1,3 +1,4 @@
+import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import {
@@ -68,7 +69,7 @@ export function uniformValue(
     const size = uniformSize(shape);
     const width = high - low;
     const items = Array.from({ length: size }, () => low + random() * width);
-    return { kind: 'array', items, shape };
+    return ownedArray(items, shape);
 }
 
 function finiteBound(value: RankValue, side: string): number {
@@ -123,7 +124,7 @@ export function choicesValue(
             items.push(source.itemAt?.(index) ?? source.items[index]);
         }
     }
-    return { kind: 'array', items, shape: [count, ...cellShape] };
+    return ownedArray(items, [count, ...cellShape]);
 }
 
 /** Return an eager copy with complete cells reordered along one axis. */
@@ -156,7 +157,7 @@ export function shuffleValue(
         const sourceIndex = outputIndex + (sourceCoordinate - coordinate) * stride;
         return source.itemAt?.(sourceIndex) ?? source.items[sourceIndex];
     });
-    return { kind: 'array', items, shape: [...source.shape] };
+    return ownedArray(items, source.shape);
 }
 
 function randomSource(value: RankValue, operation: string): RankArray {

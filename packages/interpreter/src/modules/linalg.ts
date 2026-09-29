@@ -1,5 +1,5 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape } from '../array-storage.js';
+import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
 import { expectNumeric, native } from './shared.js';
@@ -477,33 +477,93 @@ function denseMatmul(
         ...rightAxes.map(axis => rightStrides[axis]),
     ];
     const leftRank = leftAxes.length;
-    const cells: (bigint | number)[] = new Array(size);
+    // Real cells multiply and sum to real cells: the result is one typed buffer.
+    const realMode = contracted > 0 && realCells(left) !== undefined && realCells(right) !== undefined;
+    if (realMode) {
+        return typedArray(realMatmul(
+            float64Cells(left)!, float64Cells(right)!, size, contracted, leftInner, rightInner,
+            outputShape, outputStrides, leftRank), outputShape);
+    }
+    const cells: (bigint | number)[] = realMode ? new Float64Array(size) as unknown as number[] : new Array(size);
+    // The two operand offsets of each output cell come from an odometer over
+    // the output coordinates, so no cell pays for a division per axis.
+    const rank = outputShape.length;
+    const coordinates = new Array<number>(rank).fill(0);
+    let leftBase = 0;
+    let rightBase = 0;
+    // A long contraction is worth an interrupt check per cell; short ones batch.
+    const period = contracted >= 256 ? 1 : 1024;
     try {
         for (let index = 0; index < size; index += 1) {
-            checkpoint('computing linear algebra');
-            let remaining = index;
-            let leftBase = 0;
-            let rightBase = 0;
-            for (let position = outputShape.length - 1; position >= 0; position -= 1) {
-                const coordinate = remaining % outputShape[position];
-                remaining = (remaining - coordinate) / outputShape[position];
-                if (position < leftRank) leftBase += coordinate * outputStrides[position];
-                else rightBase += coordinate * outputStrides[position];
-            }
-            let total: bigint | number = 0n;
-            for (let inner = 0; inner < contracted; inner += 1) {
+            if (index % period === 0) checkpoint('computing linear algebra');
+            let total: bigint | number | undefined;
+            // Real cells, the common case, sum without any per-cell type dispatch.
+            let real = 0;
+            let inner = 0;
+            for (; inner < contracted; inner += 1) {
                 const a = leftItems[leftBase + inner * leftInner];
                 const b = rightItems[rightBase + inner * rightInner];
-                if (typeof a === 'number' && typeof b === 'number' && typeof total === 'number') total += a * b;
-                else total = addNumbers(total, multiplyNumbers(expectNumeric(a), expectNumeric(b)));
+                if (typeof a !== 'number' || typeof b !== 'number') break;
+                real += a * b;
+            }
+            if (inner === contracted && contracted > 0) total = real;
+            else {
+                total = inner === 0 ? 0n : real;
+                for (; inner < contracted; inner += 1) {
+                    const a = leftItems[leftBase + inner * leftInner];
+                    const b = rightItems[rightBase + inner * rightInner];
+                    if (typeof a === 'number' && typeof b === 'number' && typeof total === 'number') total += a * b;
+                    else total = addNumbers(total, multiplyNumbers(expectNumeric(a), expectNumeric(b)));
+                }
             }
             cells[index] = total;
+            for (let position = rank - 1; position >= 0; position -= 1) {
+                const stride = outputStrides[position];
+                coordinates[position] += 1;
+                if (position < leftRank) leftBase += stride; else rightBase += stride;
+                if (coordinates[position] < outputShape[position]) break;
+                if (position < leftRank) leftBase -= stride * outputShape[position];
+                else rightBase -= stride * outputShape[position];
+                coordinates[position] = 0;
+            }
         }
     } catch (error) {
         if (error instanceof RankError) return undefined;
         throw error;
     }
-    return ownedArray(cells, outputShape, true);
+    return realMode ? typedArray(cells as unknown as Float64Array, outputShape) : ownedArray(cells, outputShape, true);
+}
+
+/** Real matrix products over typed buffers: one loop shape, so the JIT keeps it monomorphic. */
+function realMatmul(
+    leftItems: Float64Array, rightItems: Float64Array, size: number, contracted: number,
+    leftInner: number, rightInner: number, outputShape: readonly number[],
+    outputStrides: readonly number[], leftRank: number,
+): Float64Array {
+    const out = new Float64Array(size);
+    const rank = outputShape.length;
+    const coordinates = new Array<number>(rank).fill(0);
+    let leftBase = 0;
+    let rightBase = 0;
+    const period = contracted >= 256 ? 1 : 1024;
+    for (let index = 0; index < size; index += 1) {
+        if (index % period === 0) checkpoint('computing linear algebra');
+        let total = 0;
+        for (let inner = 0; inner < contracted; inner += 1) {
+            total += leftItems[leftBase + inner * leftInner] * rightItems[rightBase + inner * rightInner];
+        }
+        out[index] = total;
+        for (let position = rank - 1; position >= 0; position -= 1) {
+            const stride = outputStrides[position];
+            coordinates[position] += 1;
+            if (position < leftRank) leftBase += stride; else rightBase += stride;
+            if (coordinates[position] < outputShape[position]) break;
+            if (position < leftRank) leftBase -= stride * outputShape[position];
+            else rightBase -= stride * outputShape[position];
+            coordinates[position] = 0;
+        }
+    }
+    return out;
 }
 
 function stridesOf(shape: readonly number[]): number[] {

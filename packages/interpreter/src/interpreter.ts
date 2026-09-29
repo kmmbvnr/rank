@@ -39,7 +39,7 @@ import { RankApplication, dyadicCells, tensorCells, tensorFrameAxes,
     type OuterCells } from './rank-application.js';
 import {
     ALL_AXIS, atArray, isCollectionSelector, isIntegerCollectionSelector,
-    isTensorAddress, scalarArrayWriteOffset, selectAxis, tensorSelection,
+    isTensorAddress, scalarArrayWriteOffset, selectAxis, sliceArray, tensorSelection,
 } from './selectors.js';
 import { arrayOffset, coordinatesAt, safeDimension, sameShape } from './tensor-index.js';
 import { numericKernel } from './numeric-kernels.js';
@@ -122,7 +122,7 @@ import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
-import { mapBroadcastArrays, mapDenseArrays } from './tensor.js';
+import { REAL_CODES, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
 import { matmulValues } from './modules/linalg.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
@@ -4970,8 +4970,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (isRankArray(values[0]) && isTensorAddress(values.slice(1))) {
         const source = values[0];
         const selection = tensorSelection(source, values.slice(1));
-        if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-        return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+        return sliceArray(source, selection);
     }
     const last = values.at(-1);
     if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
@@ -5309,7 +5308,7 @@ function mapBinary(
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
     if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
-        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation);
+        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name]);
         if (dense) return dense;
     }
     if (leftArray && rightArray) {

@@ -1,6 +1,6 @@
 import { checkpoint } from '../interrupt.js';
 import { markArrayMask } from '../array-mask.js';
-import { denseScalarItems, derivedArray, ownedArray } from '../array-storage.js';
+import { denseScalarItems, derivedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
@@ -155,12 +155,13 @@ function mapUnaryNumeric(
     const stored = denseScalarItems(value);
     if (stored && stored.length >= 1024) {
         try {
-            const cells: RankValue[] = new Array(stored.length);
+            // The result is real by construction: one typed buffer.
+            const cells = new Float64Array(stored.length);
             for (let index = 0; index < stored.length; index += 1) {
-                checkpoint('computing array');
+                if ((index & 0xfff) === 0) checkpoint('computing array');
                 cells[index] = operation(numericReal(stored[index], name));
             }
-            return ownedArray(cells, value.shape, true);
+            return typedArray(cells, value.shape);
         } catch (error) {
             if (!(error instanceof RankError)) throw error;
         }

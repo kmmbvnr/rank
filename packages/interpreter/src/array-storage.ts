@@ -45,7 +45,10 @@ export function registerCachedArray<T extends RankArray>(
 
 export function materializedArrayItems(value: RankArray): RankValue[] | undefined {
     const owned = ownedStorage.get(value);
-    if (owned) return owned.stable ? owned.items : undefined;
+    if (owned) {
+        owned.convert?.();
+        return owned.stable ? owned.items : undefined;
+    }
     if ('itemAt' in value) return cachedStorage.get(value)?.();
     const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
     return Array.isArray(items) ? items : undefined;
@@ -53,7 +56,13 @@ export function materializedArrayItems(value: RankArray): RankValue[] | undefine
 
 
 interface OwnedStorage {
+    /** The cells. Typed storage stands in here while `typed` is set: only index
+     * and length reads are valid on it, and `convert` swaps in a plain array. */
     items: RankValue[];
+    typed?: Float64Array | BigInt64Array;
+    convert?: () => void;
+    /** The revision at which every cell was last found to be a number, or not. */
+    realChecked?: { revision: number; real: boolean };
     shape: readonly number[];
     revision: number;
     birth: number;
@@ -111,12 +120,45 @@ export function isFlatScalarArray(value: RankValue): boolean {
 
 /** The stored cells of an array whose every cell is already a scalar and which
  * nothing can change under us: reading them cannot run lazy work or raise. */
-export function denseScalarItems(value: RankArray): readonly RankValue[] | undefined {
+export function denseScalarItems(value: RankArray): ArrayLike<RankValue> | undefined {
     const storage = ownedStorage.get(value);
     return storage?.stable && storage.scalarOnly ? storage.items : undefined;
 }
 
+/**
+ * The cells of an array when every one is a real number: a real typed buffer,
+ * or stored cells checked once per revision. Real arithmetic on such cells
+ * needs no type dispatch and can write straight into a typed buffer.
+ */
+export function realCells(value: RankArray): ArrayLike<number> | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    if (state.typed) return state.typed instanceof Float64Array ? state.typed : undefined;
+    if (state.realChecked?.revision !== state.revision) {
+        let real = true;
+        for (let index = 0; index < state.items.length; index += 1) {
+            if (typeof state.items[index] !== 'number') { real = false; break; }
+        }
+        state.realChecked = { revision: state.revision, real };
+    }
+    return state.realChecked.real ? state.items as unknown as number[] : undefined;
+}
+
+/** The real cells of an array as one Float64Array, or undefined if any cell is
+ * not a real number. A typed buffer is shared; plain cells are copied. */
+export function float64Cells(value: RankArray): Float64Array | undefined {
+    const state = ownedStorage.get(value);
+    if (state?.stable && state.typed instanceof Float64Array) return state.typed;
+    const plain = realCells(value);
+    if (!plain) return undefined;
+    // A plain loop: `Float64Array.from` walks an iterator, several times slower.
+    const copy = new Float64Array(plain.length);
+    for (let index = 0; index < plain.length; index += 1) copy[index] = plain[index];
+    return copy;
+}
+
 const SMALL_OPERAND_CELLS = 4096;
+const MAX_EAGER_OPERAND_CELLS = 1 << 25;
 
 /**
  * The scalar cells of an operand for an eager kernel: the stored cells of a
@@ -124,11 +166,28 @@ const SMALL_OPERAND_CELLS = 4096;
  * large partner. Declines when reading raises (the lazy path raises it when
  * the cell is demanded) or when a cell is not a number.
  */
-export function eagerOperandItems(value: RankArray): readonly RankValue[] | undefined {
+export function eagerOperandItems(value: RankArray): ArrayLike<RankValue> | undefined {
     const stored = denseScalarItems(value);
     if (stored) return stored;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    if (size > SMALL_OPERAND_CELLS) return undefined;
+    if (size > MAX_EAGER_OPERAND_CELLS) return undefined;
+    if (size > SMALL_OPERAND_CELLS) {
+        // A large lazy operand is read once and kept: the result is dense anyway,
+        // and leaving the layer lazy makes every later read walk the whole chain.
+        // A host buffer has no revision, so its reads stay in the host's order.
+        if (arrayRevision(value) === undefined) return undefined;
+        try {
+            const items = value.items;
+            for (let index = 0; index < size; index += 1) {
+                const cell = items[index];
+                if (typeof cell !== 'number' && typeof cell !== 'bigint') return undefined;
+            }
+            return items;
+        } catch (error) {
+            if (error instanceof RankError) return undefined;
+            throw error;
+        }
+    }
     const cells: RankValue[] = new Array(size);
     try {
         for (let index = 0; index < size; index += 1) {
@@ -149,8 +208,39 @@ export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
     columnNames?: readonly string[],
 ): RankArray {
+    return createOwned(items, shape, scalarOnly, columnNames);
+}
+
+/**
+ * An array of integers or of reals held in one typed buffer, 8 bytes a cell
+ * where boxed cells cost several times that. Kernels read the cells in place.
+ * Anything that needs a plain array of cells (public `items`, a write, a
+ * compiled region) converts once, and the array is an ordinary owned one from
+ * then on. Takes ownership of `data`.
+ */
+export function typedArray(
+    data: Float64Array | BigInt64Array, shape: readonly number[] = [data.length],
+    columnNames?: readonly string[],
+): RankArray {
+    return createOwned(data, shape, true, columnNames);
+}
+
+/** The element type of an array still held in a typed buffer. */
+export function typedElementKind(value: RankArray): 'integer' | 'real' | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.typed) return undefined;
+    return state.typed instanceof BigInt64Array ? 'integer' : 'real';
+}
+
+function createOwned(
+    cells: RankValue[] | Float64Array | BigInt64Array, shape: readonly number[], scalarOnly: boolean,
+    columnNames?: readonly string[],
+): RankArray {
+    const typed = Array.isArray(cells) ? undefined : cells;
+    const items = cells as RankValue[];
     const state: OwnedStorage = {
-        items, shape: [...shape], revision: writeRevision, birth: ++creationSerial, scalarOnly: scalarOnly || items.every(item => typeof item !== 'object'),
+        items, typed, shape: [...shape], revision: writeRevision, birth: ++creationSerial,
+        scalarOnly: typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object'),
         stable: true, resources: undefined!,
     };
     state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
@@ -166,7 +256,7 @@ export function ownedArray(
         state.scalarOnly = false;
         state.stable = false;
     };
-    const facade = new Proxy(items, {
+    const facadeOf = (target: RankValue[]) => new Proxy(target, {
         set(target, key, value) {
             const success = Reflect.set(target, key, value, target);
             if (success) changed(value);
@@ -192,8 +282,21 @@ export function ownedArray(
             return success;
         },
     });
-    const value: RankArray = new Proxy({ kind: 'array' as const, items: facade, shape: Object.freeze([...shape]),
-        ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) }, {
+    const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
+        ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
+    if (typed) {
+        Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
+        state.convert = () => {
+            const plain = Array.from(typed as ArrayLike<RankValue>);
+            state.items = plain;
+            state.typed = undefined;
+            state.convert = undefined;
+            Object.defineProperty(raw, 'items', { value: facadeOf(plain), writable: true, enumerable: true, configurable: true });
+        };
+    } else {
+        raw.items = facadeOf(items);
+    }
+    const value: RankArray = new Proxy(raw, {
         set(target, key, replacement) {
             const success = Reflect.set(target, key, replacement, target);
             if (success) uncertain();
@@ -300,6 +403,16 @@ export function isSharedArray(value: RankValue): boolean {
 
 /** Storage this name owns alone. The result is unbound: the caller binds it. */
 export function privateArrayCopy(value: RankArray): RankArray {
+    const stored = ownedStorage.get(value);
+    if (stored?.typed) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) {
+            diagnostics.cowCopies++;
+            diagnostics.cowCopiedCells += stored.typed.length;
+        }
+        return createOwned(stored.typed.slice(), value.shape, true,
+            (value as { columnNames?: readonly string[] }).columnNames);
+    }
     const items = [...value.items];
     const diagnostics = currentDiagnostics();
     if (diagnostics) {
@@ -509,6 +622,7 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     if (!value || !isRankArray(value)) return value;
     const state = ownedStorage.get(value);
     if (!state?.stable) return value;
+    state.convert?.();
     const view: RankArray = { kind: 'array', shape: [...value.shape], items: state.items };
     borrowedStorage.set(view, state);
     return view;

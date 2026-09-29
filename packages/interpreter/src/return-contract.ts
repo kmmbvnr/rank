@@ -1,4 +1,4 @@
-import { arrayRevision, denseScalarItems, derivedArray, materializedArrayItems, readArrayItem } from './array-storage.js';
+import { arrayRevision, denseScalarItems, derivedArray, materializedArrayItems, readArrayItem, typedElementKind } from './array-storage.js';
 import { RankError } from './errors.js';
 import { isRankArray, isRankRecord, mergeCollectionElementType, typeName, valueRank,
     type CollectionElementType, type RankArray, type RankValue } from './value.js';
@@ -30,6 +30,8 @@ function elementTypes(value: RankArray): string[] | undefined {
     const revision = arrayRevision(value);
     const cached = elementTypeCache.get(value);
     if (revision !== undefined && cached?.revision === revision) return cached.types;
+    const typed = typedElementKind(value);
+    if (typed) return [typed];
     const dense = denseScalarItems(value);
     if (dense) {
         // Stored scalars cannot hide getters, so no descriptor lookup is needed.

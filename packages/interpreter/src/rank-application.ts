@@ -1,6 +1,7 @@
-import { arrayRevision, derivedArray, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
+import { arrayRevision, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
+import { checkpoint } from './interrupt.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { textFunctionSqlite } from './modules/sqlite.js';
@@ -11,6 +12,7 @@ import { isRankArray, isRankSqliteExpression, isRankSequence, valueRank,
     type IntrinsicRank, type NativeFunction, type RankArray, type RankSequence, type RankValue } from './value.js';
 
 const arrayItem = readArrayItem;
+const DENSE_FRAME_CELLS = 1024;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValue,
@@ -114,6 +116,37 @@ export class RankApplication {
             this.ownFiles(result);
             return result;
         };
+        // A pure builtin over scalar cells is computed at once: a lazy layer per
+        // call makes a loop that rebinds its own result read back through every
+        // earlier pass. A cell that raises leaves the lazy form, which raises
+        // only when that cell is read.
+        const frameSize = arraySize(frameShape);
+        if (frameSize >= DENSE_FRAME_CELLS && leftRank === 0 && rightRank === 0
+            && (a.frameShape.length === 0 || b.frameShape.length === 0 || sameShape(a.frameShape, b.frameShape))
+            && this.isPureBuiltin(fn)) {
+            const cells: RankValue[] = new Array(frameSize);
+            // Real results (max, min over reals) go into one typed buffer.
+            let reals: Float64Array | undefined = new Float64Array(frameSize);
+            try {
+                for (let index = 0; index < frameSize; index += 1) {
+                    if ((index & 0xfff) === 0) checkpoint('computing array');
+                    const result = applyCell(
+                        a.cellAt(a.frameShape.length === 0 ? 0 : index),
+                        b.cellAt(b.frameShape.length === 0 ? 0 : index));
+                    if (reals) {
+                        if (typeof result === 'number') reals[index] = result;
+                        else {
+                            for (let done = 0; done < index; done += 1) cells[done] = reals[done];
+                            reals = undefined;
+                        }
+                    }
+                    if (!reals) cells[index] = result;
+                }
+                return completed(reals ? typedArray(reals, frameShape) : ownedArray(cells, frameShape));
+            } catch (error) {
+                if (!(error instanceof RankError)) throw error;
+            }
+        }
         if (a.frameShape.length === 0) {
             return completed(lazyArray(frameShape, index =>
                 applyCell(a.cellAt(0), b.cellAt(index)), true));
