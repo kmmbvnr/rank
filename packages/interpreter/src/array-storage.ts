@@ -117,6 +117,7 @@ export function denseScalarItems(value: RankArray): readonly RankValue[] | undef
 }
 
 const SMALL_OPERAND_CELLS = 4096;
+const MAX_EAGER_OPERAND_CELLS = 1 << 25;
 
 /**
  * The scalar cells of an operand for an eager kernel: the stored cells of a
@@ -128,7 +129,24 @@ export function eagerOperandItems(value: RankArray): readonly RankValue[] | unde
     const stored = denseScalarItems(value);
     if (stored) return stored;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    if (size > SMALL_OPERAND_CELLS) return undefined;
+    if (size > MAX_EAGER_OPERAND_CELLS) return undefined;
+    if (size > SMALL_OPERAND_CELLS) {
+        // A large lazy operand is read once and kept: the result is dense anyway,
+        // and leaving the layer lazy makes every later read walk the whole chain.
+        // A host buffer has no revision, so its reads stay in the host's order.
+        if (arrayRevision(value) === undefined) return undefined;
+        try {
+            const items = value.items;
+            for (let index = 0; index < size; index += 1) {
+                const cell = items[index];
+                if (typeof cell !== 'number' && typeof cell !== 'bigint') return undefined;
+            }
+            return items;
+        } catch (error) {
+            if (error instanceof RankError) return undefined;
+            throw error;
+        }
+    }
     const cells: RankValue[] = new Array(size);
     try {
         for (let index = 0; index < size; index += 1) {
