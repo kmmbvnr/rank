@@ -17,8 +17,7 @@ rem Mark sums backwards so every coin
 rem is used at most once.
 fun money_sums Coins
   Maximum = Coins sum
-  Size = Maximum + 1
-  Reachable = array shape Size fill false
+  Reachable = array shape (Maximum + 1) fill false
   Reachable 0 = true
 
   for Coin in Coins
