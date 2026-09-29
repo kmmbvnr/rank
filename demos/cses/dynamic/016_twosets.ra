@@ -17,16 +17,16 @@ fun two_sets N
   end
 
   Target = Total // 2
-  Size = Target + 1
-  Ways = array shape Size fill 0
+  Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 
   for Value in 1 till N
-    if Value at most Target
-      for Sum in Target to Value by -1
-        Ways Sum += Ways (Sum - Value)
-        Ways Sum %= Modulus
-      end
+    if Value greater Target
+      continue
+    end
+    for Sum in Target to Value by -1
+      Ways Sum += Ways (Sum - Value)
+      Ways Sum %= Modulus
     end
   end
 
