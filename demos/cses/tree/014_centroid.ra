@@ -21,15 +21,16 @@ fun centroid Tree Rooted
   Limit = Rooted .order len // 2
   Current = Rooted .root
 
-  for true
+  for
     Moved = false
     for Next in Tree Current
-      if Sizes Next greater Limit
-        if Sizes Next less Sizes Current
-          Current = Next
-          Moved = true
-          break
-        end
+      if Sizes Next at most Limit
+        continue
+      end
+      if Sizes Next less Sizes Current
+        Current = Next
+        Moved = true
+        break
       end
     end
     if not Moved
