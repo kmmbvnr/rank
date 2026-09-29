@@ -6,6 +6,7 @@ import { readTextFile, writeTextFile } from './io.js';
 import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, selectRollingSqlite, sqliteColumns } from './sqlite.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { sortByKeys } from './sequences.js';
+import { RankArrowTable, parseCsvToArrow } from '../arrow-table.js';
 import { expectNumeric } from './shared.js';
 import { meanValue, medianValue, standardDeviation, varianceValue, skewnessValue, modeValue, quantileValue } from './stats.js';
 import {
@@ -17,6 +18,7 @@ import {
     isRankDuration,
     isRankLabel,
     isRankSqliteTable,
+    isRankTable,
     isRankSqliteExpression,
     isRankTableAlias,
     isRankRecord,
@@ -67,7 +69,18 @@ export const tablesModule: RuntimeModule = {
         return derivedArray(requested.shape, [requested, keys, values],
             index => find(readArrayItem(requested, index)), fileFree);
     }),
+    table: () => native('table', 1, ([value]) => {
+        if (isRankTable(value)) return value;
+        if (!isRankArray(value) || value.shape.length !== 1) {
+            throw new RankError('table expects a rank-1 array of objects', 'DimensionMismatch');
+        }
+        return RankArrowTable.fromRows(
+            Array.from({ length: value.shape[0] }, (_, index) => readArrayItem(value, index)), value.columnNames);
+    }),
     labels: () => native('labels', 1, ([value]) => {
+        if (isRankTable(value)) {
+            return ownedArray(value.names.map((name): RankValue => ({ kind: 'label', name })));
+        }
         if (!isRankArray(value) || value.shape.length !== 1) {
             throw new RankError('labels expects a rank-1 table', 'DimensionMismatch');
         }
@@ -85,7 +98,7 @@ export const tablesModule: RuntimeModule = {
     }),
     csv: context => native('csv', [1, 2], arguments_ => {
         if (arguments_.length === 1) {
-            return parseCsv(readTextFile(context.io, arguments_[0]));
+            return parseCsvToArrow(readTextFile(context.io, arguments_[0]));
         }
         const path = arguments_[1];
         if (typeof path !== 'string') throw new RankError('file path must be text');
@@ -381,6 +394,18 @@ function aggregateGroupRows(
     keys: readonly (RankValue | undefined)[], rows: readonly RankObject[],
     fields: readonly string[], specs: readonly GroupAggregateSpec[],
 ): RankObject {
+    return ownedObject(aggregateGroup(keys, rows.length, field => rows.flatMap(row => {
+        const value = row.entries.get(field);
+        return value === undefined ? [] : [value];
+    }), fields, specs));
+}
+
+/** One aggregate row: `count` rows in the group, `present(field)` the values
+ * of a column that are not absent, in row order. */
+export function aggregateGroup(
+    keys: readonly (RankValue | undefined)[], count: number, present: (field: string) => RankValue[],
+    fields: readonly string[], specs: readonly GroupAggregateSpec[],
+): Map<string, RankValue> {
     const entries = new Map<string, RankValue>();
     fields.forEach((name, index) => {
         const key = keys[index];
@@ -388,12 +413,9 @@ function aggregateGroupRows(
     });
     for (const spec of specs) {
         checkpoint('processing table');
-        const values = spec.field === undefined ? [] : rows.flatMap(row => {
-            const value = row.entries.get(spec.field!);
-            return value === undefined ? [] : [value];
-        });
+        const values = spec.field === undefined ? [] : present(spec.field);
         if (spec.operation === 'count') {
-            entries.set(spec.name, BigInt(spec.field === undefined ? rows.length : values.length));
+            entries.set(spec.name, BigInt(spec.field === undefined ? count : values.length));
         } else if (spec.operation === 'sum') {
             let total: bigint | number = 0n;
             for (const value of values) {
@@ -417,7 +439,7 @@ function aggregateGroupRows(
             entries.set(spec.name, result);
         }
     }
-    return ownedObject(entries);
+    return entries;
 }
 
 function groupExtreme(values: readonly RankValue[], operation: 'min' | 'max'): RankValue {
@@ -621,127 +643,23 @@ export function projectFields(source: RankArray, fields: RankArray): RankArray {
     return result;
 }
 
-function parseCsv(text: string): RankArray {
-    const rows = csvRows(text);
-    if (rows.length === 0) throw new RankError('CSV input must contain a header row');
-    const headers = rows[0].map((header, index) => index === 0
-        ? header.replace(/^\uFEFF/, '') : header);
-    const seen = new Set<string>();
-    for (const header of headers) {
+function formatCsvTable(table: RankArrowTable): string {
+    if (table.columns.length === 0) throw new RankError('csv output requires at least one column');
+    const lines = [table.names.map(csvField).join(',')];
+    for (let row = 0; row < table.length; row += 1) {
         checkpoint('processing table');
-        if (header.length === 0) throw new RankError('CSV header must not be empty');
-        if (seen.has(header)) throw new RankError(`duplicate CSV header: ${header}`);
-        seen.add(header);
+        const cells: string[] = [];
+        for (let column = 0; column < table.columns.length; column += 1) {
+            const cell = table.cell(row, column);
+            cells.push(cell === undefined ? '' : csvScalar(cell));
+        }
+        lines.push(cells.join(','));
     }
-
-    const data = rows.slice(1);
-    const columnKinds = headers.map((_, column) => csvColumnKind(
-        data.map(row => row[column]).filter(value => value !== undefined && value !== ''),
-    ));
-    const items: RankValue[] = [];
-    for (let index = 0; index < data.length; index += 1) {
-        checkpoint('processing table');
-        const fields = data[index];
-        if (fields.length !== headers.length) {
-            throw new RankError(
-                `CSV row ${index + 2} has ${fields.length} ${fields.length === 1 ? 'field' : 'fields'}, expected ${headers.length}`,
-            );
-        }
-        const entries = new Map<string, RankValue>();
-        for (let column = 0; column < headers.length; column += 1) {
-            checkpoint('processing table');
-            if (fields[column] !== '') {
-                entries.set(headers[column], csvValue(fields[column], columnKinds[column]));
-            }
-        }
-        items.push(ownedObject(entries));
-    }
-    return ownedArray(items, [items.length], false, headers);
-}
-
-function csvRows(text: string): string[][] {
-    const rows: string[][] = [];
-    let row: string[] = [];
-    let field = '';
-    let quoted = false;
-    let afterQuote = false;
-    let started = false;
-
-    const finishField = () => {
-        row.push(field);
-        field = '';
-        afterQuote = false;
-        started = false;
-    };
-    const finishRow = () => {
-        finishField();
-        rows.push(row);
-        row = [];
-    };
-
-    for (let index = 0; index < text.length; index += 1) {
-        checkpoint('processing table');
-        const character = text[index];
-        if (quoted) {
-            if (character === '"') {
-                if (text[index + 1] === '"') {
-                    field += '"';
-                    index += 1;
-                } else {
-                    quoted = false;
-                    afterQuote = true;
-                }
-            } else {
-                field += character;
-            }
-            continue;
-        }
-        if (afterQuote && character !== ',' && character !== '\n' && character !== '\r') {
-            throw new RankError('unexpected character after quoted CSV field');
-        }
-        if (character === '"') {
-            if (started || field.length > 0) throw new RankError('unexpected quote in CSV field');
-            quoted = true;
-            started = true;
-        } else if (character === ',') {
-            finishField();
-        } else if (character === '\n' || character === '\r') {
-            if (character === '\r' && text[index + 1] === '\n') index += 1;
-            finishRow();
-        } else {
-            field += character;
-            started = true;
-        }
-    }
-    if (quoted) throw new RankError('unterminated quoted CSV field');
-    if (started || afterQuote || field.length > 0 || row.length > 0) finishRow();
-    return rows;
-}
-
-type CsvColumnKind = 'integer' | 'real' | 'boolean' | 'text';
-
-const CSV_INTEGER = /^[+-]?(?:0|[1-9]\d*)$/;
-const CSV_REAL = /^[+-]?(?:(?:\d+\.\d*|\d*\.\d+)(?:[eE][+-]?\d+)?|\d+[eE][+-]?\d+)$/;
-
-function csvColumnKind(values: readonly string[]): CsvColumnKind {
-    if (values.length > 0 && values.every(value => CSV_INTEGER.test(value))) return 'integer';
-    if (values.length > 0 && values.every(value => CSV_INTEGER.test(value) || CSV_REAL.test(value))) return 'real';
-    if (values.length > 0 && values.every(value => value === 'true' || value === 'false')) return 'boolean';
-    return 'text';
-}
-
-function csvValue(value: string, kind: CsvColumnKind): RankValue {
-    if (kind === 'integer') return BigInt(value);
-    if (kind === 'real') {
-        const number = Number(value);
-        if (!Number.isFinite(number)) throw new RankError(`CSV number is outside supported range: ${value}`);
-        return number;
-    }
-    if (kind === 'boolean') return value === 'true';
-    return value;
+    return `${lines.join('\n')}\n`;
 }
 
 function formatCsv(value: RankValue): string {
+    if (isRankTable(value)) return formatCsvTable(value);
     if (isRankArray(value) && value.shape.length === 2 && value.columnNames !== undefined) {
         return formatSelectedColumns(value);
     }

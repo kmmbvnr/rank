@@ -122,7 +122,7 @@ import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
-import { mapBroadcastArrays } from './tensor.js';
+import { mapBroadcastArrays, mapDenseArrays } from './tensor.js';
 import { matmulValues } from './modules/linalg.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
@@ -138,6 +138,9 @@ import {
 } from './modules/sequences.js';
 import { covarianceValue, correlationValue, errorMetricValue, quantileValue } from './modules/stats.js';
 import { projectAliasedField, projectField, projectFields } from './modules/tables.js';
+import { applyTable, canApplyTable, writeTable } from './table-access.js';
+import { sortTable } from './table-ops.js';
+import { RankArrowTable } from './arrow-table.js';
 import {
     binarySqlite, filterSqlite, materializeSqlite,
     materializeSqliteExpression, projectSqlite, sliceSqlite, sliceTextSqlite, sortSqlite, sqliteColumn, sqliteScope,
@@ -183,6 +186,7 @@ import {
     isRankSqliteDatabase,
     isRankSqliteExpression,
     isRankSqliteTable,
+    isRankTable,
     isRankSqliteScope,
     isRankTableAlias,
     isRankQueue,
@@ -1386,6 +1390,15 @@ export class Interpreter {
             const general = function* (
                 target: RankValue, selectors: RankValue[], evaluated?: RankValue,
             ): Execution<RankValue | undefined> {
+                if (isRankTable(target)) {
+                    // A table is a value: a write makes a new version and rebinds the name.
+                    interpreter.requireModule('tables', 'table assignment');
+                    const value = yield* resume(interpreter.evaluateTask(statement.value));
+                    rebind(writeTable(target, selectors, value,
+                        statement.operator === '=' ? undefined : assignmentOperator(statement.operator),
+                        (operator, left, right) => interpreter.evaluateBinary(operator, left, right)));
+                    return value;
+                }
                 if (isRankIndex(target)) {
                     const key = indexKey(selectors);
                     const value = yield* resume(interpreter.evaluateTask(statement.value));
@@ -1977,6 +1990,7 @@ export class Interpreter {
                 if (isRankSqliteTable(source) && source.scopes) {
                     throw new RankError('alias of a joined SQLite view is not supported yet', 'TypeError');
                 }
+                if (isRankTable(source)) source = source.toRows();
                 if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
                     throw new RankError('alias expects a rank-1 table or SQLite view', 'TypeError');
                 }
@@ -1995,8 +2009,15 @@ export class Interpreter {
                     return sortSqlite(source, expression.fields.map(field => field.field.name),
                         expression.fields.map(field => sortFieldDescending(field.direction)));
                 }
-                const items = sortByItems(source, operation);
-                const resultWithSchema = (result: RankArray): RankArray => {
+                if (isRankTable(source) && !indices && expression.fields.length > 0) {
+                    return sortTable(source, expression.fields.map(field => field.field.name),
+                        expression.fields.map(field => sortFieldDescending(field.direction)));
+                }
+                // A key function reads whole rows, so it works on a snapshot of them.
+                const tableSource = isRankTable(source) ? source : undefined;
+                const items = sortByItems(tableSource ? tableSource.toRows() : source, operation);
+                const resultWithSchema = (result: RankArray): RankValue => {
+                    if (tableSource && !indices) return RankArrowTable.fromRows(result.items, tableSource.names);
                     if (!indices && isRankArray(source) && source.columnNames) {
                         Object.defineProperty(result, 'columnNames', { value: source.columnNames });
                     }
@@ -2135,8 +2156,9 @@ export class Interpreter {
                     return materializeSqlite(source.source);
                 }
                 if (isRankSqliteTable(source)) return materializeSqlite(source);
+                if (isRankTable(source)) return source.toRows();
                 if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
-                if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence or SQLite table');
+                if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence, table or SQLite table');
                 return materializeSequence(source);
             };
         }
@@ -3900,6 +3922,10 @@ export class Interpreter {
         if (values.length === 2 && isRankTableAlias(values[0])) {
             return this.applySelectors([values[0].source, values[1]], missing);
         }
+        if (isRankTable(values[0]) && canApplyTable(values)) {
+            this.requireModule('tables', 'table addressing');
+            return applyTable(values[0], values, missing, rest => this.applySelectors(rest, missing));
+        }
         if (values.length === 2 && isRankSqliteDatabase(values[0]) && isRankLabel(values[1])) {
             this.requireModule('tables', 'SQLite table selection');
             return sqliteTable(values[0], values[1].name);
@@ -4776,6 +4802,9 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+    if (isRankTable(values[0]) && canApplyTable(values)) {
+        return applyTable(values[0], values, missing, rest => applySelectors(rest, missing));
+    }
     const sqlite = sqliteRangeSelection(values);
     if (sqlite !== undefined) return sqlite;
     // `Walk .order i`: read the field, then address what it holds.
@@ -5052,6 +5081,7 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (values.length === 2 && (isRankSqliteExpression(values[0]) || isRankSqliteTable(values[0]))
         && isRankSequence(values[1]) && rangeBounds.has(values[1])) return true;
     if (isScopedSelectorChain(values)) return true;
+    if (isRankTable(values[0])) return canApplyTable(values);
     if (values.length === 2 && isRankTableAlias(values[0])) {
         return canApplySelectors([values[0].source, values[1]]);
     }
@@ -5258,6 +5288,8 @@ function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => bo
         : scalars.has(key(value));
 }
 
+const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
+
 function mapBinary(
     left: RankValue,
     right: RankValue,
@@ -5276,6 +5308,10 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
+    if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
+        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation);
+        if (dense) return dense;
+    }
     if (leftArray && rightArray) {
         return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
     }

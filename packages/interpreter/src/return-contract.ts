@@ -1,4 +1,4 @@
-import { arrayRevision, derivedArray, materializedArrayItems, readArrayItem } from './array-storage.js';
+import { arrayRevision, denseScalarItems, derivedArray, materializedArrayItems, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import { isRankArray, isRankRecord, mergeCollectionElementType, typeName, valueRank,
     type CollectionElementType, type RankArray, type RankValue } from './value.js';
@@ -30,6 +30,20 @@ function elementTypes(value: RankArray): string[] | undefined {
     const revision = arrayRevision(value);
     const cached = elementTypeCache.get(value);
     if (revision !== undefined && cached?.revision === revision) return cached.types;
+    const dense = denseScalarItems(value);
+    if (dense) {
+        // Stored scalars cannot hide getters, so no descriptor lookup is needed.
+        const types = new Set<string>();
+        let last: string | undefined;
+        for (let index = 0; index < dense.length; index++) {
+            const item = dense[index];
+            const type = typeof item === 'bigint' ? 'integer' : typeof item === 'number' ? 'real' : typeName(item);
+            if (type !== last) { types.add(type); last = type; }
+        }
+        const result = [...types].sort();
+        if (revision !== undefined) elementTypeCache.set(value, { revision, types: result });
+        return result;
+    }
     const items = materializedArrayItems(value);
     if (!items) return undefined;
     // Property descriptors avoid invoking getters on host-supplied cells.

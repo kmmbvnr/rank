@@ -109,6 +109,40 @@ export function isFlatScalarArray(value: RankValue): boolean {
     return !!storage?.stable && storage.scalarOnly && storage.shape.length === 1;
 }
 
+/** The stored cells of an array whose every cell is already a scalar and which
+ * nothing can change under us: reading them cannot run lazy work or raise. */
+export function denseScalarItems(value: RankArray): readonly RankValue[] | undefined {
+    const storage = ownedStorage.get(value);
+    return storage?.stable && storage.scalarOnly ? storage.items : undefined;
+}
+
+const SMALL_OPERAND_CELLS = 4096;
+
+/**
+ * The scalar cells of an operand for an eager kernel: the stored cells of a
+ * dense array, or the values of a small lazy one, which costs little next to a
+ * large partner. Declines when reading raises (the lazy path raises it when
+ * the cell is demanded) or when a cell is not a number.
+ */
+export function eagerOperandItems(value: RankArray): readonly RankValue[] | undefined {
+    const stored = denseScalarItems(value);
+    if (stored) return stored;
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    if (size > SMALL_OPERAND_CELLS) return undefined;
+    const cells: RankValue[] = new Array(size);
+    try {
+        for (let index = 0; index < size; index += 1) {
+            const cell = readArrayItem(value, index);
+            if (typeof cell !== 'number' && typeof cell !== 'bigint') return undefined;
+            cells[index] = cell;
+        }
+    } catch (error) {
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return cells;
+}
+
 /** Takes exclusive ownership of fresh storage. JS sees a write-tracked facade;
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(
@@ -353,6 +387,8 @@ const derivedRevisions = new WeakMap<object, {
 
 type DerivedRecord = NonNullable<ReturnType<typeof derivedRevisions.get>>;
 
+const MAX_CACHED_CELLS = 1 << 24;
+
 /** Cache a pure reader only while all its explicit dependencies have known revisions.
  * Untracked host buffers remain live: retained aliases can mutate outside Rank.
  * Registering the dependency revision also invalidates downstream expressions.
@@ -423,8 +459,10 @@ export function derivedArray(
         const result = read(index);
         if (diagnostics) diagnostics.cellsComputed++;
         // A dependency may have changed during the reader. Never retain that read.
-        if (undisturbed(startedEpoch, startedEntry)
-            || (tracked && arrayRevision(value) === started)) cells.set(index, result);
+        // A Map cannot hold more than 2^24 entries; a larger array recomputes
+        // the cells beyond the cache rather than failing.
+        if (cells.size < MAX_CACHED_CELLS && (undisturbed(startedEpoch, startedEntry)
+            || (tracked && arrayRevision(value) === started))) cells.set(index, result);
         return result;
     };
     const value: RankArray = {

@@ -1,6 +1,6 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
@@ -21,6 +21,7 @@ import {
     isRankSequence,
     isRankSqliteExpression,
     isRankSqliteTable,
+    isRankTable,
     isRankTableAlias,
     isRankSegment,
     isRankWavelet,
@@ -291,6 +292,30 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     }
 
     const shape = permutation.map(axis => value.shape[axis]);
+    // A stored array is permuted into a stored array at once: a lazy transpose
+    // would decode coordinates again for every cell of every later read.
+    const stored = denseScalarItems(value);
+    const total = shape.reduce((product, dimension) => product * dimension, 1);
+    if (stored && total >= 1024) {
+        const sourceStrides = new Array<number>(value.shape.length).fill(1);
+        for (let axis = value.shape.length - 2; axis >= 0; axis -= 1) {
+            sourceStrides[axis] = sourceStrides[axis + 1] * value.shape[axis + 1];
+        }
+        const strides = permutation.map(axis => sourceStrides[axis]);
+        const cells: RankValue[] = new Array(total);
+        for (let index = 0; index < total; index += 1) {
+            checkpoint('transposing array');
+            let remaining = index;
+            let offset = 0;
+            for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+                const coordinate = remaining % shape[axis];
+                remaining = (remaining - coordinate) / shape[axis];
+                offset += coordinate * strides[axis];
+            }
+            cells[index] = stored[offset];
+        }
+        return ownedArray(cells, shape, true);
+    }
     const itemAt = (index: number): RankValue => {
         const output = coordinatesAt(shape, index);
         const sourceRank = value.shape.length;
@@ -604,6 +629,7 @@ function reshapeItems(value: RankValue): RankValue[] {
 export function lengthOf(value: RankValue): bigint {
     if (isRankTableAlias(value)) return lengthOf(value.source);
     if (isRankSqliteTable(value)) return lengthSqlite(value);
+    if (isRankTable(value)) return BigInt(value.length);
     if (value instanceof RankDeque || value instanceof RankHeap) return BigInt(value.size);
     if (typeof value === 'string') return BigInt([...value].length);
     if (isRankArray(value)) return BigInt(value.shape[0] ?? 0);

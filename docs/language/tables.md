@@ -1,8 +1,105 @@
 # Tables
 
-Tables reuse Rank's normal addressing model.
+## Column tables
 
-## Mutation and cached columns
+A `table` is a value made of named columns. It is what `csv` returns and what
+the operations below produce. Its storage is columnar (Apache Arrow layout: one
+typed buffer per column plus a validity mask), so a table holds no per-row
+objects, and a million rows cost a few buffers rather than a million objects.
+See [columnar tables](../design/columnar-tables.md) for the measurements.
+
+```rank
+Data = "train.csv" csv        rem a table
+Data len                      rem number of rows
+Ages = Data .Age              rem one column, a rank-1 array
+```
+
+### Schema
+
+A table has an ordered list of unique column names and a length. Each column has
+one type: integer, real, boolean or text, inferred as described under
+[CSV](#csv). A column written from computed values takes the type its values
+share; values of mixed or other types (dates, nested arrays, integers beyond 64
+bits) are kept as they are, in a column without a typed buffer. A cell may be
+absent. Absent is not `NaN` and not zero: reading it
+raises the missing-value error, and `default` supplies a replacement. A column
+with no values at all is a text column of absent cells.
+
+### Values, not references
+
+A table is a value, like an array. Binding it to a second name, passing it to a
+function or returning it never lets a write through one name show through
+another:
+
+```rank
+fun fill Data
+  Data .Age = Data .Age default 30    rem the caller's table is unchanged
+  return Data
+end
+Filled = Train fill                   rem Train still has its gaps
+```
+
+Every change produces a new table version. Unchanged columns are shared with
+the old version, not copied, so replacing one column costs one buffer. A
+write to a table nobody else can observe is done in place; otherwise the first
+write copies only the column it touches. Programs cannot tell the difference.
+
+### Reading
+
+- `Data .Age` is the column as a rank-1 array. Reading an absent cell raises
+  the missing-value error when that cell is used, so `Data .Age default 0`
+  works as it does for any projection.
+- `Data 5` is row 5 as a *snapshot*: a record with the present fields in column
+  order. Changing the record does not change the table.
+- `Data 5 .Age` is one cell.
+- `Data Mask` and `Data (0 till 10)` select rows into a new table, in source
+  order. A boolean mask must have one value per row.
+- `Data (array .a .b)` projects columns into a rank-2 array with those column
+  names, in the order named. Use it to build a numeric matrix; CSV output
+  accepts it as a table.
+- `Data array` returns a rank-1 array of object rows. The rows are independent
+  snapshots; edit them freely and turn them back with `Rows table`.
+- `Rows table` builds a table from a rank-1 array of objects. Columns appear in
+  first-seen field order; a field missing from a row is an absent cell; a field
+  whose values mix types keeps them as they are.
+
+### Writing
+
+```rank
+Data .Age = Values           rem replace, or add if the name is new
+Data .Age = 0                rem a scalar fills the column
+Data .Age += 1               rem reads then replaces
+Data 5 .Age = 25             rem one cell
+```
+
+`Values` must be a rank-1 array with one entry per row; anything else is a
+`DimensionMismatch` and the table keeps its old value. Assignment rebinds the
+name to the new version. A cell write changes one cell of one column; writing
+a value of the wrong type for a typed column is a `TypeError`, except that an
+integer may be written into a real column. Column operations that rebuild a
+column (`.Age += 1`, replacement) may change its type, because the whole column
+is rewritten.
+
+### Operations
+
+`filter`, `select`, `sort by`, `group by`, `innerjoin` and `leftjoin` keep their
+meaning and their syntax (see below) and return tables. They read columns
+directly and do not build row objects.
+
+### Arrays of objects
+
+Arrays of objects (from `json`, or a SQLite `array`) are ordinary arrays; they
+are not tables. Their rows are mutable objects with identity, and everything
+under the older headings below that talks about "rows as objects" applies to
+them only. `Rows table` moves data into the column form, `Data array` out of
+it. Use an array of objects for irregular data or when one row must be a shared
+mutable thing; use a table for uniform data that is read, filtered and
+aggregated by column.
+
+## Mutation and cached columns (arrays of objects)
+
+This section and the others that describe row objects apply to arrays of
+objects, not to column tables. They reuse Rank's normal addressing model.
 
 A table has one observable revision for cache invalidation. Changing any field,
 replacing a row, or adding or removing a field changes that revision. Dependent
@@ -279,8 +376,8 @@ Current I/O form:
 Data = "train.csv" csv
 ```
 
-`csv` reads UTF-8 comma-separated data with a header row and returns a rank-1
-array of object rows. Quoted fields may contain commas, line endings and escaped
+`csv` reads UTF-8 comma-separated data with a header row and returns a
+[column table](#column-tables). Quoted fields may contain commas, line endings and escaped
 double quotes. Every data row must have the same field count as the header;
 empty and duplicate header names are errors.
 
@@ -300,8 +397,8 @@ Writing mirrors assignment:
 Out "submission.csv" csv
 ```
 
-Output must be a rank-1 array of object rows. The first row determines column
-order. A missing field produces an empty cell, an unexpected field is an error,
+Output may be a table, a projection of one, or a rank-1 array of object rows.
+For rows, the first row determines column order. A missing field produces an empty cell, an unexpected field is an error,
 and text is quoted when CSV escaping requires it. The file ends with a line
 ending.
 

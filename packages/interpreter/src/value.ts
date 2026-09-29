@@ -8,6 +8,7 @@ import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
 import type { RankIo, SqliteScalar } from './io.js';
+import type { RankArrowTable } from './arrow-table.js';
 import { MissingValueError, RankError } from './errors.js';
 import { bindingRankConflict, bindingRankMessage } from '@arrrank/language';
 
@@ -186,6 +187,11 @@ export interface RankGroupedTable {
     readonly rollup?: boolean;
     readonly rolling?: { readonly width: number; readonly field: string };
     readonly rollingSource?: RankArray;
+    /** Groups of a column table: row numbers into the table, no row objects. */
+    readonly columnar?: {
+        readonly table: RankArrowTable;
+        readonly groups: readonly { readonly keys: readonly (RankValue | undefined)[]; readonly rows: readonly number[] }[];
+    };
 }
 
 export interface RankRecord {
@@ -274,7 +280,7 @@ export type RankValue = bigint | number | boolean | string | RankArray | RankFil
     RankSqliteDatabase | RankSqliteTable | RankSqliteExpression | RankTableAlias | RankSqliteScope |
     RankLabel | RankDate | RankDateTime | RankDuration | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
-    RankGroupedTable | NativeFunction |
+    RankGroupedTable | RankArrowTable | NativeFunction |
     RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
     RankWavelet;
 
@@ -423,6 +429,11 @@ export function valueRank(value: RankValue): number {
 
 export function isRankSqliteDatabase(value: RankValue): value is RankSqliteDatabase {
     return typeof value === 'object' && value.kind === 'sqlite-database';
+}
+
+/** A column table: named typed columns, an immutable value. */
+export function isRankTable(value: RankValue): value is RankArrowTable {
+    return typeof value === 'object' && value.kind === 'table';
 }
 
 export function isRankSqliteTable(value: RankValue): value is RankSqliteTable {
@@ -611,6 +622,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return '<index>';
     }
     if (value.kind === 'grouped-table') return '<grouped table>';
+    if (value.kind === 'table') return `<table ${value.length} rows: ${value.names.map(name => `.${name}`).join(' ')}>`;
     if (value.kind === 'sqlite-database') return `<sqlite ${value.path}>`;
     if (value.kind === 'sqlite-table') return '<sqlite table>';
     if (value.kind === 'sqlite-expression') return '<sqlite expression>';
