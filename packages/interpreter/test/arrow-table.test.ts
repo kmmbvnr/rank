@@ -1,45 +1,86 @@
 import { describe, expect, it } from 'vitest';
 import { parseCsvToArrow } from '../src/arrow-table.js';
-import { parseCsv } from '../src/modules/tables.js';
-import type { RankArray, RankObject } from '../src/value.js';
+import type { RankObject, RankValue } from '../src/value.js';
 
-const rowsOf = (table: RankArray) => table.items.map(row => [...(row as RankObject).entries]);
+const rowsOf = (text: string) => parseCsvToArrow(text).toRows().items
+    .map(row => Object.fromEntries((row as RankObject).entries));
 
-const samples: Record<string, string> = {
-    'mixed kinds and gaps': [
-        'Id,Sex,Age,Fare,Alive,Note',
-        '1,male,22,7.25,true,"a, b"',
-        '2,female,,71.2833,false,',
-        '3,female,26.5,,true,"say ""hi"""',
-        '4,male,35,8.05,,x',
-    ].join('\n'),
-    'byte order mark and CRLF': '﻿a,b\r\n1,2\r\n3,4\r\n',
-    'integers outside 64 bits stay exact': 'n\n123456789012345678901234567890\n-5\n',
-    'repeating text': ['k,v', ...Array.from({ length: 40 }, (_, i) => `${i % 3 ? 'red' : 'blue'},${i}`)].join('\n'),
-    'header only': 'a,b\n',
-    'all empty column': 'a,b\n1,\n2,\n',
-    'zero, sign and exponent forms': 'x\n0\n+3\n-0\n',
-    'reals with exponents': 'x\n1e3\n2.5E-2\n.5\n',
-    'text that only looks numeric': 'x\n007\n1_000\n',
-    'blank line is a one-field record': 'a\n\n1\n',
-    'lone carriage returns': 'a,b\r1,2\r3,4',
-    'trailing comma at end of input': 'a,b\n1,',
-    'quoted newline and empty quoted cell': 'a,b\n"x\ny",""\n',
-    'numbers then text is one text column': ['k', '1', '2', ...Array.from({ length: 30 }, () => 'z'), ''].join('\n'),
-    'mixed integer and real widen to real': 'x\n1\n2.5\n',
-    'booleans need every cell': 'x\ntrue\nfalse\n\ntrue\n',
-    'unicode text': ['k', ...Array.from({ length: 12 }, (_, i) => i % 2 ? 'Ünïcödé ✓' : '日本語')].join('\n'),
-    'no trailing newline': 'a,b\n1,2',
+interface Sample { text: string; names: string[]; rows: Record<string, RankValue>[] }
+
+const repeating = Array.from({ length: 40 }, (_, i) => ({ k: i % 3 ? 'red' : 'blue', v: BigInt(i) }));
+const unicode = Array.from({ length: 12 }, (_, i) => ({ k: i % 2 ? 'Ünïcödé ✓' : '日本語' }));
+
+const samples: Record<string, Sample> = {
+    'mixed kinds and gaps': {
+        text: [
+            'Id,Sex,Age,Fare,Alive,Note',
+            '1,male,22,7.25,true,"a, b"',
+            '2,female,,71.2833,false,',
+            '3,female,26.5,,true,"say ""hi"""',
+            '4,male,35,8.05,,x',
+        ].join('\n'),
+        names: ['Id', 'Sex', 'Age', 'Fare', 'Alive', 'Note'],
+        rows: [
+            { Id: 1n, Sex: 'male', Age: 22, Fare: 7.25, Alive: true, Note: 'a, b' },
+            { Id: 2n, Sex: 'female', Fare: 71.2833, Alive: false },
+            { Id: 3n, Sex: 'female', Age: 26.5, Alive: true, Note: 'say "hi"' },
+            { Id: 4n, Sex: 'male', Age: 35, Fare: 8.05, Note: 'x' },
+        ],
+    },
+    'byte order mark and CRLF': {
+        text: '﻿a,b\r\n1,2\r\n3,4\r\n', names: ['a', 'b'],
+        rows: [{ a: 1n, b: 2n }, { a: 3n, b: 4n }],
+    },
+    'integers outside 64 bits stay exact': {
+        text: 'n\n123456789012345678901234567890\n-5\n', names: ['n'],
+        rows: [{ n: 123456789012345678901234567890n }, { n: -5n }],
+    },
+    'repeating text': {
+        text: ['k,v', ...repeating.map(row => `${row.k},${row.v}`)].join('\n'),
+        names: ['k', 'v'], rows: repeating,
+    },
+    'header only': { text: 'a,b\n', names: ['a', 'b'], rows: [] },
+    'all empty column': { text: 'a,b\n1,\n2,\n', names: ['a', 'b'], rows: [{ a: 1n }, { a: 2n }] },
+    'zero, sign and exponent forms': {
+        text: 'x\n0\n+3\n-0\n', names: ['x'], rows: [{ x: 0n }, { x: 3n }, { x: 0n }],
+    },
+    'reals with exponents': {
+        text: 'x\n1e3\n2.5E-2\n.5\n', names: ['x'], rows: [{ x: 1000 }, { x: 0.025 }, { x: 0.5 }],
+    },
+    'text that only looks numeric': {
+        text: 'x\n007\n1_000\n', names: ['x'], rows: [{ x: '007' }, { x: '1_000' }],
+    },
+    'blank line is a one-field record': { text: 'a\n\n1\n', names: ['a'], rows: [{}, { a: 1n }] },
+    'lone carriage returns': {
+        text: 'a,b\r1,2\r3,4', names: ['a', 'b'], rows: [{ a: 1n, b: 2n }, { a: 3n, b: 4n }],
+    },
+    'trailing comma at end of input': { text: 'a,b\n1,', names: ['a', 'b'], rows: [{ a: 1n }] },
+    'quoted newline and empty quoted cell': {
+        text: 'a,b\n"x\ny",""\n', names: ['a', 'b'], rows: [{ a: 'x\ny' }],
+    },
+    'numbers then text is one text column': {
+        text: ['k', '1', '2', ...Array.from({ length: 30 }, () => 'z'), ''].join('\n'), names: ['k'],
+        rows: [{ k: '1' }, { k: '2' }, ...Array.from({ length: 30 }, () => ({ k: 'z' }))],
+    },
+    'mixed integer and real widen to real': {
+        text: 'x\n1\n2.5\n', names: ['x'], rows: [{ x: 1 }, { x: 2.5 }],
+    },
+    'booleans need every cell': {
+        text: 'x\ntrue\nfalse\n\ntrue\n', names: ['x'], rows: [{ x: true }, { x: false }, {}, { x: true }],
+    },
+    'unicode text': {
+        text: ['k', ...unicode.map(row => row.k)].join('\n'), names: ['k'], rows: unicode,
+    },
+    'no trailing newline': { text: 'a,b\n1,2', names: ['a', 'b'], rows: [{ a: 1n, b: 2n }] },
 };
 
 describe('columnar CSV', () => {
-    for (const [name, text] of Object.entries(samples)) {
-        it(`matches the row-object reader: ${name}`, () => {
-            const expected = parseCsv(text);
-            const actual = parseCsvToArrow(text).toRows();
-            expect(actual.shape).toEqual(expected.shape);
-            expect(actual.columnNames).toEqual(expected.columnNames);
-            expect(rowsOf(actual)).toEqual(rowsOf(expected));
+    for (const [name, sample] of Object.entries(samples)) {
+        it(`reads ${name}`, () => {
+            const table = parseCsvToArrow(sample.text);
+            expect(table.length).toBe(sample.rows.length);
+            expect(table.names).toEqual(sample.names);
+            expect(rowsOf(sample.text)).toEqual(sample.rows);
         });
     }
 
@@ -74,8 +115,7 @@ describe('columnar CSV', () => {
         ['header error beats a short row', 'a,a\n1\n', 'duplicate CSV header: a'],
         ['long row', 'a\n1,2\n', 'CSV row 2 has 2 fields, expected 1'],
     ] as const) {
-        it(`rejects like the row-object reader: ${name}`, () => {
-            expect(() => parseCsv(text)).toThrowError(message);
+        it(`rejects ${name}`, () => {
             expect(() => parseCsvToArrow(text)).toThrowError(message);
         });
     }
