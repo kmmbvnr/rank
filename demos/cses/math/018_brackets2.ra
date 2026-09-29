@@ -40,8 +40,7 @@ fun completions N Prefix
   A = Remaining Opens Mod binomialmod
   B = 0
   if Opens greater 0
-    Less = Opens - 1
-    B = Remaining Less Mod binomialmod
+    B = Remaining (Opens - 1) Mod binomialmod
   end
   return (A - B + Mod) % Mod
 end
