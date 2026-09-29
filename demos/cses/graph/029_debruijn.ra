@@ -23,15 +23,17 @@ fun debruijn N
     Shifted = Node 1 shl
     Zero = Shifted Mask band
     Graph add Node Zero
-    Graph add Node (Zero + 1)
+    One = Zero + 1
+    Graph add Node One
   end
 
   Path = Graph 0 euler
   Result = ""
-  for i in 1 until N
+  for # in 1 until N
     Result += "0"
   end
-  for i in 1 until (Path len)
+  Total = Path len
+  for i in 1 until Total
     Bit = Path i % 2
     Result += Bit text
   end
