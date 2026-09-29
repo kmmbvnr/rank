@@ -24,19 +24,21 @@ fun distinct_colors Colors Rooted
   Parents = Rooted .parent
   Root = Rooted .root
   Bags = new index
-  Result = array shape (Order len) fill 0
+  Size = Order len
+  Result = array shape Size fill 0
 
   for Node in Order
     Bag = new set
-    Bag add Colors (Node - 1)
+    Id = Node - 1
+    Bag add Colors Id
     Bags Node = Bag
   end
 
   Last = Order len - 1
-  for i in Last to 0 by -1
-    Node = Order i
+  for Node in Order (Last to 0 by -1)
     Bag = Bags Node
-    Result (Node - 1) = Bag len
+    Id = Node - 1
+    Result Id = Bag len
     if Node not equal Root
       Parent = Parents Node
       ParentBag = Bags Parent
