@@ -44,10 +44,9 @@ fun collect_coins N Coins Edges
   Sorted = DAG topological
   for Current in Sorted .order
     for Next in DAG Current
-      Collected = Best Current
-      Collected += Sums Next
-      Previous = Best Next
-      Best Next = Previous Collected max
+      Candidate = Best Current + Sums Next
+      CurrentBest = Best Next
+      Best Next = CurrentBest Candidate max
     end
   end
   return Best max
