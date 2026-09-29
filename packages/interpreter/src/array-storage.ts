@@ -109,6 +109,13 @@ export function isFlatScalarArray(value: RankValue): boolean {
     return !!storage?.stable && storage.scalarOnly && storage.shape.length === 1;
 }
 
+/** The stored cells of an array whose every cell is already a scalar and which
+ * nothing can change under us: reading them cannot run lazy work or raise. */
+export function denseScalarItems(value: RankArray): readonly RankValue[] | undefined {
+    const storage = ownedStorage.get(value);
+    return storage?.stable && storage.scalarOnly ? storage.items : undefined;
+}
+
 /** Takes exclusive ownership of fresh storage. JS sees a write-tracked facade;
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(

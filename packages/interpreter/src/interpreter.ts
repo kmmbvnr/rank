@@ -122,7 +122,7 @@ import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
-import { mapBroadcastArrays } from './tensor.js';
+import { mapBroadcastArrays, mapDenseArrays } from './tensor.js';
 import { matmulValues } from './modules/linalg.js';
 import { formattedText } from './modules/text.js';
 import { randomFromSeed, shuffleValue } from './modules/random.js';
@@ -5278,6 +5278,8 @@ function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => bo
         : scalars.has(key(value));
 }
 
+const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
+
 function mapBinary(
     left: RankValue,
     right: RankValue,
@@ -5296,6 +5298,10 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
+    if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
+        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation);
+        if (dense) return dense;
+    }
     if (leftArray && rightArray) {
         return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
     }
