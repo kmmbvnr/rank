@@ -39,8 +39,10 @@ fun elevator_rides Weights Limit
     if NewRides greater Rides Mask
       return 0
     end
-    if NewRides equal Rides Mask and NewWeight at least Last Mask
-      return 0
+    if NewRides equal Rides Mask
+      if NewWeight at least Last Mask
+        return 0
+      end
     end
 
     Rides Mask = NewRides
