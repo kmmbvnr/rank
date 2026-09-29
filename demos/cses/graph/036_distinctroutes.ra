@@ -53,18 +53,20 @@ fun flow_path N Graph Flow
   Parent 1 = -1
   Pending = new queue
   Pending push 1
-  for Pending len greater 0
-    Current = Pending pop
+  for Current in Pending
     for Next in Graph Current
-      Unseen = Parent Next equal 0
-      Positive = Flow Current Next default 0
-      if Unseen and Positive greater 0
-        Parent Next = Current
-        if Next equal N
-          return Parent
-        end
-        Pending push Next
+      if Parent Next not equal 0
+        continue
       end
+      Leftover = Flow Current Next default 0
+      if Leftover at most 0
+        continue
+      end
+      Parent Next = Current
+      if Next equal N
+        return Parent
+      end
+      Pending push Next
     end
   end
   return Parent
