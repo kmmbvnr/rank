@@ -1,5 +1,5 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array-storage.js';
+import { derivedArray, arrayRevision, denseScalarItems, ownedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { numericSource, sequenceValues } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -488,6 +488,17 @@ export function correlationValue(
 }
 
 export function meanValue(value: RankValue): number {
+    const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
+    if (stored) {
+        if (stored.length === 0) throw new RankError('mean requires at least one value', 'EmptyReduction');
+        let sum = 0;
+        for (let index = 0; index < stored.length; index += 1) {
+            if ((index & 0xfff) === 0) checkpoint('computing statistics');
+            const item = stored[index];
+            sum += typeof item === 'number' ? item : Number(expectNumeric(item));
+        }
+        return sum / stored.length;
+    }
     const items = presentValues(value, 'mean');
     if (items.length === 0) {
         throw new RankError('mean requires at least one value', 'EmptyReduction');
@@ -520,8 +531,11 @@ export function medianValue(value: RankValue): number {
 
 function presentValues(value: RankValue, operation: string): RankValue[] {
     if (!isRankArray(value)) return [...sequenceValues(value, operation)];
+    const stored = denseScalarItems(value);
+    if (stored) return Array.from(stored);
     const items: RankValue[] = [];
-    for (let index = 0; index < arraySize(value.shape); index += 1) {
+    const size = arraySize(value.shape);
+    for (let index = 0; index < size; index += 1) {
         checkpoint('computing statistics');
         try {
             items.push(arrayItem(value, index));

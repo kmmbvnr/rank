@@ -478,26 +478,47 @@ function denseMatmul(
     ];
     const leftRank = leftAxes.length;
     const cells: (bigint | number)[] = new Array(size);
+    // The two operand offsets of each output cell come from an odometer over
+    // the output coordinates, so no cell pays for a division per axis.
+    const rank = outputShape.length;
+    const coordinates = new Array<number>(rank).fill(0);
+    let leftBase = 0;
+    let rightBase = 0;
+    // A long contraction is worth an interrupt check per cell; short ones batch.
+    const period = contracted >= 256 ? 1 : 1024;
     try {
         for (let index = 0; index < size; index += 1) {
-            checkpoint('computing linear algebra');
-            let remaining = index;
-            let leftBase = 0;
-            let rightBase = 0;
-            for (let position = outputShape.length - 1; position >= 0; position -= 1) {
-                const coordinate = remaining % outputShape[position];
-                remaining = (remaining - coordinate) / outputShape[position];
-                if (position < leftRank) leftBase += coordinate * outputStrides[position];
-                else rightBase += coordinate * outputStrides[position];
-            }
-            let total: bigint | number = 0n;
-            for (let inner = 0; inner < contracted; inner += 1) {
+            if (index % period === 0) checkpoint('computing linear algebra');
+            let total: bigint | number | undefined;
+            // Real cells, the common case, sum without any per-cell type dispatch.
+            let real = 0;
+            let inner = 0;
+            for (; inner < contracted; inner += 1) {
                 const a = leftItems[leftBase + inner * leftInner];
                 const b = rightItems[rightBase + inner * rightInner];
-                if (typeof a === 'number' && typeof b === 'number' && typeof total === 'number') total += a * b;
-                else total = addNumbers(total, multiplyNumbers(expectNumeric(a), expectNumeric(b)));
+                if (typeof a !== 'number' || typeof b !== 'number') break;
+                real += a * b;
+            }
+            if (inner === contracted && contracted > 0) total = real;
+            else {
+                total = inner === 0 ? 0n : real;
+                for (; inner < contracted; inner += 1) {
+                    const a = leftItems[leftBase + inner * leftInner];
+                    const b = rightItems[rightBase + inner * rightInner];
+                    if (typeof a === 'number' && typeof b === 'number' && typeof total === 'number') total += a * b;
+                    else total = addNumbers(total, multiplyNumbers(expectNumeric(a), expectNumeric(b)));
+                }
             }
             cells[index] = total;
+            for (let position = rank - 1; position >= 0; position -= 1) {
+                const stride = outputStrides[position];
+                coordinates[position] += 1;
+                if (position < leftRank) leftBase += stride; else rightBase += stride;
+                if (coordinates[position] < outputShape[position]) break;
+                if (position < leftRank) leftBase -= stride * outputShape[position];
+                else rightBase -= stride * outputShape[position];
+                coordinates[position] = 0;
+            }
         }
     } catch (error) {
         if (error instanceof RankError) return undefined;
